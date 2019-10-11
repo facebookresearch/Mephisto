@@ -8,4 +8,4 @@ import os.path
 
 # Contains important data model constants
 # TODO update the save dir location, allow setting it globally?
-SAVE_DIR_LOCATION = os.path.expanduser('~/mephisto/data/')
+SAVE_DIR_LOCATION = os.path.expanduser("~/mephisto/data/")
