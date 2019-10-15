@@ -4,8 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.base.task import Task, TaskRun
-from mephisto.data_model.base.worker import Worker, Agent
+from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.worker import Worker, Agent
 from typing import List, Optional, Tuple, Dict
 
 

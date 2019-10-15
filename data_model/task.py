@@ -4,8 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.base.project import Project
-from mephisto.data_model.base.assignment import Assignment, ASSIGNMENT_STATUSES
+from mephisto.data_model.project import Project
+from mephisto.data_model.assignment import Assignment, ASSIGNMENT_STATUSES
 from typing import List, Optional, Tuple, Dict
 
 

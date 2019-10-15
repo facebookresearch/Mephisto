@@ -4,8 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.base.database import MephistoDB
-from mephisto.data_model.base.task import Task
+from mephisto.data_model.database import MephistoDB
+from mephisto.data_model.task import Task
 
 from typing import List
 

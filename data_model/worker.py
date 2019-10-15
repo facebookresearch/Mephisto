@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.base.assignment import SubAssignment
+from mephisto.data_model.assignment import SubAssignment
 from typing import List, Optional, Tuple, Dict
 
 AGENT_STATUSES = [
@@ -39,7 +39,7 @@ class Worker:
     def new(worker_id: str, crowd_provider: str) -> Worker:
         """
         Create a new worker attached to the given identifier, assuming it doesn't already
-        exist in the database. Takes in a crowd_provider
+        exist in the data Takes in a crowd_provider
         """
         # TODO Create a worker and initialize any expected stats for them
         #
