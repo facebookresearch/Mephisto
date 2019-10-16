@@ -4,9 +4,30 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.project import Project
+from mephisto.data_model.requester import Requester
 from mephisto.data_model.assignment import Assignment, ASSIGNMENT_STATUSES
-from typing import List, Optional, Tuple, Dict
+from mephisto.core.utils import get_tasks_dir, get_dir_for_task, ensure_user_confirm
+from typing import List, Optional, Tuple, Dict, cast
+import os
+from shutil import copytree
+
+
+VALID_TASK_TYPES = ['legacy_parlai', 'generic']
+
+def assert_task_is_valid(dir_name, task_type) -> None:
+    """
+    Go through the given task directory and ensure it is valid under the
+    given task type
+    """
+    # TODO actually check to ensure all the expected files are there
+    pass
+
+
+# TODO find a way to repair the database if a user moves folders and files around
+# in an unexpected way, primarily resulting in tasks no longer being executable
+# and becoming just storage for other information.
 
 
 class TaskParams:
@@ -15,7 +36,7 @@ class TaskParams:
     should extend the TaskParam class and add additional fields to the argparser.
     """
 
-    def __init__(self, arg_string: Optional[str] = None):
+    def __init__(self, task_dir, arg_string: Optional[str] = None):
         """
         Load up a new set of task parameters from either command line arguments
         or from the provided arguments
@@ -43,39 +64,65 @@ class Task:
     def __init__(self, db: MephistoDB, db_id: str):
         self.db_id: str = db_id
         self.db: MephistoDB = db
-        # TODO pull info for this from the database,
-        # then check the task directory to be sure that
-        # it is well-formed and nothing is missing.
-        self.project_name: str = None
+        task_row = db.get_task(db_id)
+        self.task_name: str = task_row['task_name']
+        self.task_type: str = task_row['task_type']
+        self.project_id: Optional[str] = task_row['project_id']
+        self.parent_task_type: Optional[str] = task_row['parent_task_id']
 
-    def get_runs(self) -> List["TaskRun"]:
+    def get_project(self) -> Optional[Project]:
+        """
+        Get the project for this task, if it exists
+        """
+        if self.project_id is not None:
+            return Project(self.db, self.project_id)
+        else
+            return None
+
+    def set_project(self, project: Project):
+        if self.project_id != project.db_id:
+            # TODO this constitutes an update, must go back to the db
+            raise NotImplementedError()
+
+    def get_runs(self) -> List[TaskRun]:
         """
         Return all of the runs of this task that have been launched
         """
-        # TODO query the database for runs of this specific task_id
-        pass
+        return self.db.find_task_runs(task_id=self.db_id)
 
     def get_assignments(self) -> List[Assignment]:
         """
         Return all of the assignments for all runs of this task
         """
-        # TODO return the union of all of the assignments for all of the TaskRuns
-        pass
+        assigns = []
+        for task_run in self.get_runs():
+            assigns += task_run.get_assignments()
+        return assigns
 
     def get_task_params(self) -> TaskParams:
         """
         Return the task parameters associated with this task
         """
-        # TODO search into the directory to find the correct TaskParams, return those
-        pass
+        task_dir = self.get_task_source()
+        # TODO load the TaskParams module for the given task
+        raise NotImplementedError()
 
     def get_task_source(self) -> str:
         """
         Return the path to the task content, such that the server architect
         can deploy the relevant frontend
         """
-        # TODO this is going to be in a standard folder of one of a few types
-        pass
+        # FIXME will this ever be invalid? Must have tests
+        return get_dir_for_task(self.task_name)
+
+    def get_total_spend(self) -> float:
+        """
+        Return the total amount of funding spent for this task.
+        """
+        total_spend = 0
+        for task_run in self.get_runs():
+            total_spend += task_run.get_total_spend()
+        return total_spend
 
     @staticmethod
     def new(
@@ -83,18 +130,46 @@ class Task:
         db: MephistoDB,
         task_type: str,
         project: Optional[Project] = None,
+        parent_task: Optional[Task] = None,
+        skip_inputs: bool = False,
     ) -> Task:
         """
         Create a new task by the given name, ensure that the folder for this task
         exists and has the expected directories and files. If a project is
         specified, register the task underneath it
         """
-        # TODO parse for the task directory by the given name, if
-        # the folder doesn't exist, make a new folder entirely and populate
-        # with some skeleton code?
-        #
-        # then make a new entry in the database for this task
-        pass
+        assert task_type in VALID_TASK_TYPES, f'Given task type {task_type} is not recognized in {VALID_TASK_TYPES}'
+        assert len(db.find_tasks(task_name=task_name)) == 0, f"A task named {task_name} already exists!"
+
+        new_task_dir = get_dir_for_task(task_name, not_exists_ok=True)
+        if parent_task is None:
+            # Assume we already have an existing task dir for the given task,
+            # complain if it doesn't exist or isn't configured properly
+            assert os.path.exists(new_task_dir), f"No such task path {new_task_dir} exists yet, and as such the task cannot be officially created without using a parent task."
+            assert_task_is_valid(new_task_dir, task_type)
+        else:
+            # The user intends to create a task by copying something from
+            # the gallery or local task directory and then modifying it.
+            # Ensure the parent task exists before starting
+            parent_task_dir = parent_task.get_task_source()
+            assert parent_task_dir is not None, f"No such task {parent_task} exists in your local task directory or the gallery, but was specified as a parent task. Perhaps this directory was deleted?"
+
+            # If the new directory already exists, complain, as we are going to delete it.
+            if os.path.exists(new_task_dir):
+                ensure_user_confirm(
+                    f"The task directory {new_task_dir} already exists, and the contents "
+                    f"within will be deleted and replaced with the starter code for {parent_task}."
+                    skip_inputs=skip_inputs,
+                )
+                os.rmdir(new_task_dir)
+            os.mkdir(new_task_dir)
+            copytree(parent_task_dir, new_task_dir)
+
+        db_id = db.new_task(task_name, task_type, project.db_id, parent_task.db_id)
+        return Task(db, db_id)
+
+        def __repr__(self):
+            return f'Task-{self.task_name} [{self.task_type}]'
 
 
 class TaskRun:
@@ -134,7 +209,7 @@ class TaskRun:
         pass
 
     @staticmethod
-    def new(task: Task, params: TaskParams) -> TaskRun:
+    def new(task: Task, params: TaskParams, requester: Requester) -> TaskRun:
         """
         Create a new run for the given task with the given params
         """
