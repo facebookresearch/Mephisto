@@ -6,18 +6,21 @@
 
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.worker import Worker, Agent
+from mephisto.core.utils import get_dir_for_run
 from typing import List, Optional, Tuple, Dict
-
+import os
 
 ASSIGNMENT_STATUSES = [
     # TODO put all the valid assignment statuses here
 ]
 
+ASSIGNMENT_DATA_FILE = 'assign_data.json'
+
 
 class Assignment:
     """
     This class tracks an individual run of a specific task, and handles state management
-    for the set of assignments within
+    for the set of assignments within via abstracted database helpers
     """
 
     def __init__(self, db: MephistoDB, db_id: str):
@@ -27,12 +30,22 @@ class Assignment:
 
     def get_assignment_data(self) -> Optional[str]:
         """Return the specific assignment data for this assignment"""
-        pass
+        # TODO pull from the assignment directory if it exists
+        raise NotImplementedError()
 
     def get_status(self) -> str:
         """
         Get the status of this assignment, as determined by the status of
         the sub-assignments
+        """
+        subassignments = self.get_subassignments()
+        # TODO parse subassignments and return a computed status
+        raise NotImplementedError()
+
+    def get_subassignments(self, status: Optional[str]):
+        """
+        Get subassignments for this assignment, optionally
+        constrained by the specific status.
         """
         assert (
             status is None or status in ASSIGNMENT_STATUSES
@@ -49,13 +62,20 @@ class Assignment:
         pass
 
     @staticmethod
-    def new(task_run: TaskRun, assignment_data: Optional[str] = None) -> Assignment:
+    def new(db: MephistoDB, task_run: TaskRun, assignment_json: Optional[str]) -> Assignment:
         """
-        Create an assignment for the given task. Can take optional assignment_data
-        that specifies what the content of this specific task is supposed to be
+        Create an assignment for the given task. Initialize the folders for storing
+        the results for this assignment.
         """
-        # TODO Create an individual assignment, and the related subassignment
-        # for the given task run
+        db_id = db.new_assignment(task_run.db_id)
+        run_dir = task_run.get_run_dir()
+        assign_dir = os.path.join(run_dir, db_id)
+        os.makedirs(assign_dir)
+        if assignment_json is not None:
+            with open(os.path.join(assign_dir, ASSIGNMENT_DATA_FILE)):
+                # TODO write this assignment data to a file
+                pass
+        # TODO make the database entry, then return the new Assignment
         pass
 
 

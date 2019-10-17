@@ -137,7 +137,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def new_task_run(
-        self, task_id: str, requester_id: str, init_params: Optional[str]
+        self, task_id: str, requester_id: str, init_params: str
     ) -> str:
         """
         Create a new task_run for the given task.
@@ -168,5 +168,38 @@ class MephistoDB(ABC):
         """
         Try to find any task_run that matches the above. When called with no arguments,
         return all task_runs.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def new_assignment(
+        self,
+        task_run_id: str,
+    ) -> str:
+        """
+        Create a new assignment for the given task
+
+        Assignments should not be
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_assignment(self, task_id: str) -> Optional[Mapping[str, Any]]:
+        """
+        Return assignment's fields by task_id, raise EntryDoesNotExistException if no id exists
+        in tasks
+
+        See Assignment for the expected fields for the returned mapping
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def find_assignments(
+        self,
+        task_run_id: Optional[str] = None,
+    ) -> List[Assignment]:
+        """
+        Try to find any task that matches the above. When called with no arguments,
+        return all tasks.
         """
         raise NotImplementedError()

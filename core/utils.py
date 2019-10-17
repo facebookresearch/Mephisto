@@ -47,4 +47,13 @@ def get_tasks_dir() -> str:
     Return the directory where the mephisto user has configured their personal tasks
     to exist in
     """
+    # TODO be able to configure this kind of thing
     return os.path.expanduser('~/mephisto/tasks/')
+
+def get_dir_for_run(run_id: str, project_name: str = "NO_PROJECT") -> str:
+    """
+    Return the directory where the mephisto data is expected to go
+    """
+    # TODO be able to configure this kind of thing
+    base_path = os.path.expanduser('~/mephisto/runs/')
+    return os.path.join(base_path, project_name, run_id)

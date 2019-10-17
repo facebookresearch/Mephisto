@@ -8,7 +8,7 @@ from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.assignment import Assignment, ASSIGNMENT_STATUSES
-from mephisto.core.utils import get_tasks_dir, get_dir_for_task, ensure_user_confirm
+from mephisto.core.utils import get_tasks_dir, get_dir_for_task, ensure_user_confirm, get_dir_for_run
 from typing import List, Optional, Tuple, Dict, cast
 import os
 from shutil import copytree
@@ -48,6 +48,12 @@ class TaskParams:
         # frontend in some kind of managable way
         #
         # THis class is likely to leverage argparse in a significant way
+        pass
+
+    def parse(self, parse_args=None):
+        pass
+
+    def get_param_string(self):
         pass
 
     # TODO write functions for retrieving arguments
@@ -181,14 +187,18 @@ class TaskRun:
     def __init__(self, db: MephistoDB, db_id: str):
         self.db_id: str = db_id
         self.db: MephistoDB = db
-        # TODO pull info for this from the database
-        self.project_name: str = None
+        row = db.get_task_run(db_id)
+        self.task_id = row['task_id']
+        self.requester_id = row['requester_id']
+        task = Task(db, self.task_id)
+        self.task_params = task.get_task_params()
+        self.param_string = row['init_params']
 
     def get_used_params(self) -> TaskParams:
         """Return the parameters used to launch this task"""
-        # TODO get the correct params, and initialize them using the
-        # saved startup string
-        pass
+        # TODO investigae this once TaskParams is implemented
+        # > self.task_params.parse(self.param_string)?
+        raise NotImplementedError()
 
     def get_assignments(self, status: Optional[str] = None) -> List[Assignments]:
         """
@@ -205,13 +215,23 @@ class TaskRun:
         """
         Get the statistics for all of the assignments for this run.
         """
-        # TODO query all the assignments, then bundle them by status
-        pass
+        assigns = self.get_assignments()
+        return {status: len([x for x in assigns if x.status == status]) for status in ASSIGNMENT_STATUSES}
+
+    def get_run_dir(self) -> str:
+        """
+        Return the directory where the data from this run is stored
+        """
+        # TODO this step should go into the TaskLauncher
+        # run_dir = self.get_run_dir()
+        # os.makedirs(run_dir, exist_ok=True)
+        task = Task(self.task_id)
+        return get_dir_for_run(self.db_id, task.get_project())
 
     @staticmethod
-    def new(task: Task, params: TaskParams, requester: Requester) -> TaskRun:
+    def new(db: MephistoDB, task: Task, requester: Requester, params: TaskParams) -> TaskRun:
         """
         Create a new run for the given task with the given params
         """
-        # TODO create the task and hook the specific params into it.
-        pass
+        db_id = db.new_task_run(task.db_id, requester.db_id, params.get_param_string())
+        return TaskRun(db, db_id)
