@@ -79,7 +79,7 @@ class Assignment:
         the sub-assignments
         """
         units = self.get_units()
-        statuses = set(unit.get_status() for unit in units])
+        statuses = set(unit.get_status() for unit in units)
         if len(statuses) == 1:
             return statuses[0]
 
@@ -99,9 +99,7 @@ class Assignment:
         Get units for this assignment, optionally
         constrained by the specific status.
         """
-        assert (
-            status is None or status in UNIT_STATUSES
-        ), "Invalid assignment status"
+        assert status is None or status in UNIT_STATUSES, "Invalid assignment status"
         units = self.db.find_units(assignment_id=self.assignment_id)
         if status is not None:
             units = [u for u in units if u.get_status() == status]
@@ -154,12 +152,12 @@ class Unit(ABC):
         self.db_id: str = db_id
         self.db: MephistoDB = db
         row = db.get_unit(db_id)
-        self.assignment_id = row['assignment_id']
-        self.unit_index = row['unit_index']
-        self.pay_amount = row['pay_amount']
-        self.agent_id = row['agent_id']
-        self.crowd_provider = get_crowd_provider_from_type(row['provider_type'])
-        self.db_status = row['status']
+        self.assignment_id = row["assignment_id"]
+        self.unit_index = row["unit_index"]
+        self.pay_amount = row["pay_amount"]
+        self.agent_id = row["agent_id"]
+        self.crowd_provider = get_crowd_provider_from_type(row["provider_type"])
+        self.db_status = row["status"]
 
     def get_assignment_data(self) -> Optional[Dict[str, Any]]:
         """Return the specific assignment data for this assignment"""
@@ -173,13 +171,15 @@ class Unit(ABC):
         if self.db_status in FINAL_UNIT_STATUSES:
             return self.db_status
         row = self.db.get_unit(self.db_id)
-        return row['status']
+        return row["status"]
 
     def set_db_status(self, status: str) -> None:
         """
         Set the status reflected in the database for this Unit
         """
-        assert status in UNIT_STATUSES, f'{status} not valid Assignment Status, not in {UNIT_STATUSES}'
+        assert (
+            status in UNIT_STATUSES
+        ), f"{status} not valid Assignment Status, not in {UNIT_STATUSES}"
         self.db.update_unit(self.db_id, status=status)
 
     @abstractmethod
@@ -213,13 +213,15 @@ class Unit(ABC):
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
         row = self.db.get_unit(self.db_id)
-        agent_id = row['agent_id']
+        agent_id = row["agent_id"]
         if agent_id is not None:
             return self.crowd_provider.CrowdAgent(self.db, agent_id)
         return None
 
     @abstractstaticmethod
-    def new(db: MephistoDB, assignment: Assignment, index: int, pay_amount: float) -> Unit:
+    def new(
+        db: MephistoDB, assignment: Assignment, index: int, pay_amount: float
+    ) -> Unit:
         """
         Create a Unit for the given assignment via the crowd provider for this version
         """
