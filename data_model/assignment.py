@@ -156,8 +156,30 @@ class Unit(ABC):
         self.unit_index = row["unit_index"]
         self.pay_amount = row["pay_amount"]
         self.agent_id = row["agent_id"]
-        self.crowd_provider = get_crowd_provider_from_type(row["provider_type"])
+        self.provider_type = row["provider_type"]
         self.db_status = row["status"]
+
+    def __new__(cls, db: MephistoDB, db_id: str) -> Unit:
+        """
+        The new method is overridden to be able to automatically generate
+        the expected Unit class without needing to specifically find it
+        for a given db_id. As such it is impossible to create a Unit
+        as you will instead be returned the correct Unit class according to
+        the crowdprovider associated with this Unit.
+        """
+        if (cls == Unit):
+            # We are trying to construct a Unit, find what type to use and
+            # create that instead
+            row = db.get_unit(db_id)
+            correct_class = get_crowd_provider_from_type(row['provider_type']).CrowdUnit
+            return super().__new__(correct_class, db, db_id)
+        else:
+            # We are constructing another instance directly
+            return super().__new__(cls, db, db_id)
+
+    def get_crowd_provider_class(self):
+        """Get the CrowdProvider class that manages this Unit"""
+        return get_crowd_provider_from_type(self.provider_type)
 
     def get_assignment_data(self) -> Optional[Dict[str, Any]]:
         """Return the specific assignment data for this assignment"""
@@ -208,14 +230,14 @@ class Unit(ABC):
         # not need to be re-queried
         # TODO add test to ensure this behavior/assumption holds always
         if self.db_status in FINAL_UNIT_AGENT_STATUSES:
-            return self.crowd_provider.CrowdAgent(self.db, self.agent_id)
+            return Agent(self.db, self.agent_id)
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
         row = self.db.get_unit(self.db_id)
         agent_id = row["agent_id"]
         if agent_id is not None:
-            return self.crowd_provider.CrowdAgent(self.db, agent_id)
+            return Agent(self.db, agent_id)
         return None
 
     @abstractstaticmethod
