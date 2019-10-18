@@ -8,13 +8,19 @@ from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.assignment import Assignment, ASSIGNMENT_STATUSES
-from mephisto.core.utils import get_tasks_dir, get_dir_for_task, ensure_user_confirm, get_dir_for_run
+from mephisto.core.utils import (
+    get_tasks_dir,
+    get_dir_for_task,
+    ensure_user_confirm,
+    get_dir_for_run,
+)
 from typing import List, Optional, Tuple, Dict, cast
 import os
 from shutil import copytree
 
 
-VALID_TASK_TYPES = ['legacy_parlai', 'generic']
+VALID_TASK_TYPES = ["legacy_parlai", "generic"]
+
 
 def assert_task_is_valid(dir_name, task_type) -> None:
     """
@@ -71,10 +77,10 @@ class Task:
         self.db_id: str = db_id
         self.db: MephistoDB = db
         task_row = db.get_task(db_id)
-        self.task_name: str = task_row['task_name']
-        self.task_type: str = task_row['task_type']
-        self.project_id: Optional[str] = task_row['project_id']
-        self.parent_task_type: Optional[str] = task_row['parent_task_id']
+        self.task_name: str = task_row["task_name"]
+        self.task_type: str = task_row["task_type"]
+        self.project_id: Optional[str] = task_row["project_id"]
+        self.parent_task_type: Optional[str] = task_row["parent_task_id"]
 
     def get_project(self) -> Optional[Project]:
         """
@@ -82,7 +88,7 @@ class Task:
         """
         if self.project_id is not None:
             return Project(self.db, self.project_id)
-        else
+        else:
             return None
 
     def set_project(self, project: Project):
@@ -144,27 +150,35 @@ class Task:
         exists and has the expected directories and files. If a project is
         specified, register the task underneath it
         """
-        assert task_type in VALID_TASK_TYPES, f'Given task type {task_type} is not recognized in {VALID_TASK_TYPES}'
-        assert len(db.find_tasks(task_name=task_name)) == 0, f"A task named {task_name} already exists!"
+        assert (
+            task_type in VALID_TASK_TYPES
+        ), f"Given task type {task_type} is not recognized in {VALID_TASK_TYPES}"
+        assert (
+            len(db.find_tasks(task_name=task_name)) == 0
+        ), f"A task named {task_name} already exists!"
 
         new_task_dir = get_dir_for_task(task_name, not_exists_ok=True)
         if parent_task is None:
             # Assume we already have an existing task dir for the given task,
             # complain if it doesn't exist or isn't configured properly
-            assert os.path.exists(new_task_dir), f"No such task path {new_task_dir} exists yet, and as such the task cannot be officially created without using a parent task."
+            assert os.path.exists(
+                new_task_dir
+            ), f"No such task path {new_task_dir} exists yet, and as such the task cannot be officially created without using a parent task."
             assert_task_is_valid(new_task_dir, task_type)
         else:
             # The user intends to create a task by copying something from
             # the gallery or local task directory and then modifying it.
             # Ensure the parent task exists before starting
             parent_task_dir = parent_task.get_task_source()
-            assert parent_task_dir is not None, f"No such task {parent_task} exists in your local task directory or the gallery, but was specified as a parent task. Perhaps this directory was deleted?"
+            assert (
+                parent_task_dir is not None
+            ), f"No such task {parent_task} exists in your local task directory or the gallery, but was specified as a parent task. Perhaps this directory was deleted?"
 
             # If the new directory already exists, complain, as we are going to delete it.
             if os.path.exists(new_task_dir):
                 ensure_user_confirm(
                     f"The task directory {new_task_dir} already exists, and the contents "
-                    f"within will be deleted and replaced with the starter code for {parent_task}."
+                    f"within will be deleted and replaced with the starter code for {parent_task}.",
                     skip_inputs=skip_inputs,
                 )
                 os.rmdir(new_task_dir)
@@ -175,7 +189,7 @@ class Task:
         return Task(db, db_id)
 
         def __repr__(self):
-            return f'Task-{self.task_name} [{self.task_type}]'
+            return f"Task-{self.task_name} [{self.task_type}]"
 
 
 class TaskRun:
@@ -188,17 +202,23 @@ class TaskRun:
         self.db_id: str = db_id
         self.db: MephistoDB = db
         row = db.get_task_run(db_id)
-        self.task_id = row['task_id']
-        self.requester_id = row['requester_id']
+        self.task_id = row["task_id"]
+        self.requester_id = row["requester_id"]
         task = Task(db, self.task_id)
         self.task_params = task.get_task_params()
-        self.param_string = row['init_params']
+        self.param_string = row["init_params"]
 
     def get_used_params(self) -> TaskParams:
         """Return the parameters used to launch this task"""
         # TODO investigae this once TaskParams is implemented
         # > self.task_params.parse(self.param_string)?
         raise NotImplementedError()
+
+    def get_requester(self) -> Requester:
+        """
+        Return the requester that started this task.
+        """
+        return Requester(self.db, self.db_id)
 
     def get_assignments(self, status: Optional[str] = None) -> List[Assignments]:
         """
@@ -208,15 +228,20 @@ class TaskRun:
         assert (
             status is None or status in ASSIGNMENT_STATUSES
         ), "Invalid assignment status"
-        # TODO query the database for all assignments of the given status if supplied
-        pass
+        assignments = self.db.find_assignments(task_run_id=self.db_id)
+        if status is not None:
+            assignments = [a for a in assignments if a.get_status() == status]
+        return assignments
 
     def get_assignment_statuses(self) -> Dict[str, int]:
         """
         Get the statistics for all of the assignments for this run.
         """
         assigns = self.get_assignments()
-        return {status: len([x for x in assigns if x.status == status]) for status in ASSIGNMENT_STATUSES}
+        return {
+            status: len([x for x in assigns if x.get_status() == status])
+            for status in ASSIGNMENT_STATUSES
+        }
 
     def get_run_dir(self) -> str:
         """
@@ -229,7 +254,9 @@ class TaskRun:
         return get_dir_for_run(self.db_id, task.get_project())
 
     @staticmethod
-    def new(db: MephistoDB, task: Task, requester: Requester, params: TaskParams) -> TaskRun:
+    def new(
+        db: MephistoDB, task: Task, requester: Requester, params: TaskParams
+    ) -> TaskRun:
         """
         Create a new run for the given task with the given params
         """

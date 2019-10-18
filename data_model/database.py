@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod, abstractstaticmethod
 from typing import Mapping, Optional, Any
 from mephisto.data_model.project import Project
 from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.assignment import Assignment, Unit
 
 # TODO investigate rate limiting against the db by caching locally where appropriate across the data model?
 # TODO investigate cursors for DB queries as the project scales
@@ -136,9 +137,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def new_task_run(
-        self, task_id: str, requester_id: str, init_params: str
-    ) -> str:
+    def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
         """
         Create a new task_run for the given task.
 
@@ -172,14 +171,11 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def new_assignment(
-        self,
-        task_run_id: str,
-    ) -> str:
+    def new_assignment(self, task_run_id: str) -> str:
         """
         Create a new assignment for the given task
 
-        Assignments should not be
+        Assignments should not be edited or altered once created
         """
         raise NotImplementedError()
 
@@ -194,12 +190,52 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def find_assignments(
-        self,
-        task_run_id: Optional[str] = None,
-    ) -> List[Assignment]:
+    def find_assignments(self, task_run_id: Optional[str] = None) -> List[Assignment]:
         """
         Try to find any task that matches the above. When called with no arguments,
         return all tasks.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def new_unit(self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str) -> str:
+        """
+        Create a new unit with the given index. Raises EntryAlreadyExistsException
+        if there is already a unit for the given assignment with the given index.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_unit(self, unit_id: str) -> Optional[Mapping[str, Any]]:
+        """
+        Return unit's fields by unit_id, raise EntryDoesNotExistException
+        if no id exists in units
+
+        See unit for the expected fields for the returned mapping
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def find_units(
+        self,
+        assignment_id: Optional[str] = None,
+        index: Optional[int] = None,
+        agent_id: Optional[str] = None,
+    ) -> List[Unit]:
+        """
+        Try to find any unit that matches the above. When called with no arguments,
+        return all units.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def update_unit(
+        self,
+        unit_id: str,
+        agent_id: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> None:
+        """
+        Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
         raise NotImplementedError()

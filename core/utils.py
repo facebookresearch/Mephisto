@@ -6,6 +6,7 @@
 
 import os
 from typing import Optional
+from mephisto.data_model.constants import NO_PROJECT_NAME
 
 def ensure_user_confirm(display_text, skip_input=False) -> None:
     """
@@ -50,10 +51,18 @@ def get_tasks_dir() -> str:
     # TODO be able to configure this kind of thing
     return os.path.expanduser('~/mephisto/tasks/')
 
-def get_dir_for_run(run_id: str, project_name: str = "NO_PROJECT") -> str:
+
+def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
     """
     Return the directory where the mephisto data is expected to go
     """
     # TODO be able to configure this kind of thing
     base_path = os.path.expanduser('~/mephisto/runs/')
     return os.path.join(base_path, project_name, run_id)
+
+
+def get_crowd_provider_from_type(provider_type: str) -> Any:
+    """
+    Return the crowd provider class for the given string
+    """
+    raise NotImplementedError()

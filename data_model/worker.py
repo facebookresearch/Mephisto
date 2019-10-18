@@ -68,3 +68,9 @@ class Agent:
         """
         # TODO Create the agent
         pass
+
+    def get_worker(self) -> Worker:
+        """
+        Return the worker that is using this agent for a task
+        """
+        return Worker(self.db, self.worker_id)

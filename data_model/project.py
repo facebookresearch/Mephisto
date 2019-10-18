@@ -6,6 +6,7 @@
 
 from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.task import Task
+from mephisto.data_model.constants import NO_PROJECT_NAME
 
 from typing import List
 
@@ -22,7 +23,7 @@ class Project:
         self.db_id: str = db_id
         self.db: MephistoDB = db
         project_row = self.db.get_project(db_id)
-        self.project_name: str = project_row['project_name']
+        self.project_name: str = project_row["project_name"]
 
     def get_tasks(self) -> List[Task]:
         """
@@ -47,5 +48,6 @@ class Project:
         Try to create a new project by this name, raise an exception if
         the name already exists.
         """
+        assert project_name != NO_PROJECT_NAME, f'{project_name} is a reserved name that cannot be used as a project name.'
         db_id = db.new_project(project_name)
         return Project(db, db_id)
