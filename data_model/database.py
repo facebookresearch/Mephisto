@@ -198,7 +198,9 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def new_unit(self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str) -> str:
+    def new_unit(
+        self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str
+    ) -> str:
         """
         Create a new unit with the given index. Raises EntryAlreadyExistsException
         if there is already a unit for the given assignment with the given index.
@@ -230,10 +232,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def update_unit(
-        self,
-        unit_id: str,
-        agent_id: Optional[str] = None,
-        status: Optional[str] = None,
+        self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.

@@ -48,6 +48,8 @@ class Project:
         Try to create a new project by this name, raise an exception if
         the name already exists.
         """
-        assert project_name != NO_PROJECT_NAME, f'{project_name} is a reserved name that cannot be used as a project name.'
+        assert (
+            project_name != NO_PROJECT_NAME
+        ), f"{project_name} is a reserved name that cannot be used as a project name."
         db_id = db.new_project(project_name)
         return Project(db, db_id)
