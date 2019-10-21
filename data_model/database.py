@@ -262,7 +262,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def find_requesters(
-        self, requester_name: Optional[str] = None, provider_type: Optional[int] = None
+        self, requester_name: Optional[str] = None, provider_type: Optional[str] = None
     ) -> List[Requester]:
         """
         Try to find any requester that matches the above. When called with no arguments,
@@ -291,7 +291,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def find_workers(self, provider_type: Optional[int] = None) -> List[Worker]:
+    def find_workers(self, provider_type: Optional[str] = None) -> List[Worker]:
         """
         Try to find any worker that matches the above. When called with no arguments,
         return all workers.
@@ -299,7 +299,9 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def new_agent(self, worker_id: str, unit_id: str, provider_type: str) -> str:
+    def new_agent(
+        self, worker_id: str, unit_id: str, task_type: str, provider_type: str
+    ) -> str:
         """
         Create a new agent with the given name and provider type.
         Raises EntryAlreadyExistsException
@@ -328,8 +330,9 @@ class MephistoDB(ABC):
     @abstractmethod
     def find_agents(
         self,
-        status: Optional[str],
-        worker_id: Optional[str],
+        status: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        task_type: Optional[str] = None,
         provider_type: Optional[int] = None,
     ) -> List[Agent]:
         """

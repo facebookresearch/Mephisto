@@ -263,12 +263,16 @@ class Unit(ABC):
 
     @staticmethod
     def _register_unit(
-        db: MephistoDB, assignment: Assignment, index: int, pay_amount: float
+        db: MephistoDB,
+        assignment: Assignment,
+        index: int,
+        pay_amount: float,
+        provider_type: str,
     ) -> Unit:
         """
         Create an entry for this unit in the database
         """
-        db_id = db.new_unit(assignment.db_id, index, pay_amount)
+        db_id = db.new_unit(assignment.db_id, index, pay_amount, provider_type)
         return Unit(db, db_id)
 
     @abstractstaticmethod

@@ -58,6 +58,10 @@ class TaskParams:
         # frontend in some kind of managable way
         #
         # THis class is likely to leverage argparse in a significant way
+
+        # TODO implement __new__ method as well that tries to pull the module
+        # directly from the task_dir if it exists, such that people can define
+        # their own task params
         pass
 
     def parse(self, parse_args=None):
@@ -84,7 +88,7 @@ class Task:
         self.task_name: str = task_row["task_name"]
         self.task_type: str = task_row["task_type"]
         self.project_id: Optional[str] = task_row["project_id"]
-        self.parent_task_type: Optional[str] = task_row["parent_task_id"]
+        self.parent_task_id: Optional[str] = task_row["parent_task_id"]
 
     def get_project(self) -> Optional[Project]:
         """
@@ -214,6 +218,10 @@ class TaskRun:
         task = Task(db, self.task_id)
         self.task_params = task.get_task_params()
         self.param_string = row["init_params"]
+
+    def get_task(self) -> Task:
+        """Return the task used to initialize this run"""
+        return Task(self.db, self.task_id)
 
     def get_used_params(self) -> TaskParams:
         """Return the parameters used to launch this task"""

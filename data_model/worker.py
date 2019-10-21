@@ -58,11 +58,11 @@ class Worker(ABC):
         return self.db.find_agents(worker_id=self.db_id, status=status)
 
     @staticmethod
-    def _register_worker(db: MephistoDB, worker_id: str) -> Worker:
+    def _register_worker(db: MephistoDB, worker_id: str, provider_type: str) -> Worker:
         """
         Create an entry for this worker in the database
         """
-        db_id = db.new_worker(worker_id)
+        db_id = db.new_worker(worker_id, provider_type)
         return Worker(db, db_id)
 
     @abstractstaticmethod
@@ -71,7 +71,7 @@ class Worker(ABC):
         Create a new worker attached to the given identifier, assuming it doesn't already
         exist in the database.
 
-        Implementation should call _register_worker(db, worker_id) when sure the worker
-        can be successfully created to have it put into the db and return the result.
+        Implementation should return the result of _register_worker when sure the worker
+        can be successfully created to have it put into the db.
         """
         raise NotImplementedError()

@@ -66,3 +66,10 @@ def get_crowd_provider_from_type(provider_type: str) -> Any:
     Return the crowd provider class for the given string
     """
     raise NotImplementedError()
+
+
+def get_task_runner_from_type(task_type: str) -> Any:
+    """
+    Return the task runner class for the given string
+    """
+    raise NotImplementedError()

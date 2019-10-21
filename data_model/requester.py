@@ -64,11 +64,13 @@ class Requester(ABC):
         return total_spend
 
     @staticmethod
-    def _register_requester(db: MephistoDB, requester_id: str) -> Requester:
+    def _register_requester(
+        db: MephistoDB, requester_id: str, provider_type: str
+    ) -> Requester:
         """
         Create an entry for this requester in the database
         """
-        db_id = db.new_requester(requester_id)
+        db_id = db.new_requester(requester_id, provider_type)
         return Requester(db, db_id)
 
     @abstractstaticmethod
