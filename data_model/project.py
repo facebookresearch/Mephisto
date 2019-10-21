@@ -43,7 +43,7 @@ class Project:
         return sum_total
 
     @staticmethod
-    def new(self, project_name: str, db: MephistoDB) -> Project:
+    def new(self, db: MephistoDB, project_name: str) -> Project:
         """
         Try to create a new project by this name, raise an exception if
         the name already exists.

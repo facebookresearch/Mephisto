@@ -24,6 +24,13 @@ ASSIGNMENT_STATUSES = [
     # EXPIRED
 ]
 
+PAYABLE_STATUSES = [
+    # LAUNCHED
+    # ASSIGNED
+    # COMPLETED
+    # ACCEPTED
+]
+
 UNIT_STATUSES = [
     # TODO put all the valid unit statuses here
     # LAUNCHED
@@ -115,6 +122,17 @@ class Assignment:
         workers = [a.get_worker() for a in agents]
         return workers
 
+    def get_cost_of_statuses(self, statuses: List[str]) -> float:
+        """
+        Return the sum of all pay_amounts for every unit
+        of this assignment with any of the given statuses
+        """
+        units = [u for u in self.get_units() if u.get_status() in statuses]
+        sum_cost = 0
+        for unit in units:
+            sum_cost += unit.pay_amount
+        return sum_cost
+
     # TODO add helpers to manage retrieving results as well
 
     @staticmethod
@@ -126,6 +144,9 @@ class Assignment:
         the results for this assignment. Can take assignment_data to save and
         load for this particular assignment.
         """
+        # TODO consider offloading this state management to the MephistoDB
+        # as it is data handling and can theoretically be done differently
+        # in different implementations
         db_id = db.new_assignment(task_run.db_id)
         run_dir = task_run.get_run_dir()
         assign_dir = os.path.join(run_dir, db_id)
@@ -167,11 +188,11 @@ class Unit(ABC):
         as you will instead be returned the correct Unit class according to
         the crowdprovider associated with this Unit.
         """
-        if (cls == Unit):
+        if cls == Unit:
             # We are trying to construct a Unit, find what type to use and
             # create that instead
             row = db.get_unit(db_id)
-            correct_class = get_crowd_provider_from_type(row['provider_type']).CrowdUnit
+            correct_class = get_crowd_provider_from_type(row["provider_type"]).UnitClass
             return super().__new__(correct_class, db, db_id)
         else:
             # We are constructing another instance directly
@@ -240,11 +261,24 @@ class Unit(ABC):
             return Agent(self.db, agent_id)
         return None
 
+    @staticmethod
+    def _register_unit(
+        db: MephistoDB, assignment: Assignment, index: int, pay_amount: float
+    ) -> Unit:
+        """
+        Create an entry for this unit in the database
+        """
+        db_id = db.new_unit(assignment.db_id, index, pay_amount)
+        return Unit(db, db_id)
+
     @abstractstaticmethod
     def new(
         db: MephistoDB, assignment: Assignment, index: int, pay_amount: float
     ) -> Unit:
         """
-        Create a Unit for the given assignment via the crowd provider for this version
+        Create a Unit for the given assignment
+
+        Implementation should return the result of _register_unit when sure the unit
+        can be successfully created to have it put into the db.
         """
         raise NotImplementedError()

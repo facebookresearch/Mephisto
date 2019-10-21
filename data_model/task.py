@@ -7,7 +7,11 @@
 from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.assignment import Assignment, ASSIGNMENT_STATUSES
+from mephisto.data_model.assignment import (
+    Assignment,
+    ASSIGNMENT_STATUSES,
+    PAYABLE_STATUSES,
+)
 from mephisto.core.utils import (
     get_tasks_dir,
     get_dir_for_task,
@@ -138,8 +142,8 @@ class Task:
 
     @staticmethod
     def new(
-        task_name: str,
         db: MephistoDB,
+        task_name: str,
         task_type: str,
         project: Optional[Project] = None,
         parent_task: Optional[Task] = None,
@@ -150,6 +154,9 @@ class Task:
         exists and has the expected directories and files. If a project is
         specified, register the task underneath it
         """
+        # TODO consider offloading this state management to the MephistoDB
+        # as it is data handling and can theoretically be done differently
+        # in different implementations
         assert (
             task_type in VALID_TASK_TYPES
         ), f"Given task type {task_type} is not recognized in {VALID_TASK_TYPES}"
@@ -252,6 +259,17 @@ class TaskRun:
         # os.makedirs(run_dir, exist_ok=True)
         task = Task(self.task_id)
         return get_dir_for_run(self.db_id, task.get_project())
+
+    def get_total_spend(self) -> float:
+        """
+        Return the total amount spent on this run, based on any assignments
+        that are still in a payable state.
+        """
+        assigns = self.get_assignments()
+        total_amount = 0
+        for assign in assigns:
+            total_amount += assign.get_cost_of_statuses(PAYABLE_STATUSES)
+        return total_amount
 
     @staticmethod
     def new(

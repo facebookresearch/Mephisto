@@ -13,6 +13,7 @@ from typing import Mapping, Optional, Any
 from mephisto.data_model.project import Project
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.assignment import Assignment, Unit
+from mephisto.data_model.requester import Requester
 
 # TODO investigate rate limiting against the db by caching locally where appropriate across the data model?
 # TODO investigate cursors for DB queries as the project scales
@@ -236,5 +237,103 @@ class MephistoDB(ABC):
     ) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def new_requester(self, requester_name: str, provider_type: str) -> str:
+        """
+        Create a new requester with the given name and provider type.
+        Raises EntryAlreadyExistsException
+        if there is already a requester with this name
+        """
+        # TODO ensure that provider type is a valid type
+        raise NotImplemente4dError
+
+    @abstractmethod
+    def get_requester(self, requester_id: str) -> Optional[Mapping[str, Any]]:
+        """
+        Return requester's fields by requester_id, raise EntryDoesNotExistException
+        if no id exists in requesters
+
+        See requester for the expected fields for the returned mapping
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def find_requesters(
+        self, requester_name: Optional[str] = None, provider_type: Optional[int] = None
+    ) -> List[Requester]:
+        """
+        Try to find any requester that matches the above. When called with no arguments,
+        return all requesters.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def new_worker(self, worker_name: str, provider_type: str) -> str:
+        """
+        Create a new worker with the given name and provider type.
+        Raises EntryAlreadyExistsException
+        if there is already a worker with this name
+        """
+        # TODO ensure that provider type is a valid type
+        raise NotImplemente4dError
+
+    @abstractmethod
+    def get_worker(self, worker_id: str) -> Optional[Mapping[str, Any]]:
+        """
+        Return worker's fields by worker_id, raise EntryDoesNotExistException
+        if no id exists in workers
+
+        See worker for the expected fields for the returned mapping
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def find_workers(self, provider_type: Optional[int] = None) -> List[Worker]:
+        """
+        Try to find any worker that matches the above. When called with no arguments,
+        return all workers.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def new_agent(self, worker_id: str, unit_id: str, provider_type: str) -> str:
+        """
+        Create a new agent with the given name and provider type.
+        Raises EntryAlreadyExistsException
+        if there is already a agent with this name
+        """
+        # TODO ensure that provider type is a valid type
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_agent(self, agent_id: str) -> Optional[Mapping[str, Any]]:
+        """
+        Return agent's fields by agent_id, raise EntryDoesNotExistException
+        if no id exists in agents
+
+        See Agent for the expected fields for the returned mapping
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
+        """
+        Update the given task with the given parameters if possible, raise appropriate exception otherwise.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def find_agents(
+        self,
+        status: Optional[str],
+        worker_id: Optional[str],
+        provider_type: Optional[int] = None,
+    ) -> List[Agent]:
+        """
+        Try to find any agent that matches the above. When called with no arguments,
+        return all agents.
         """
         raise NotImplementedError()
