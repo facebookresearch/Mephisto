@@ -1,4 +1,5 @@
 mephisto/tasks/*
+**/.mypy_cache/*
+**/__pycache__/*
 runs/*
-.mypy_cache/*
 mephisto.egg-info/*

@@ -7,6 +7,7 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.data_model.assignment import Unit
 from mephisto.data_model.database import MephistoDB
+from mephisto.data_model.worker import Worker
 from mephisto.core.utils import get_crowd_provider_from_type, get_task_runner_from_type
 from typing import List, Optional, Tuple, Dict, Any
 
@@ -43,7 +44,7 @@ class AgentState(ABC):
     @abstractmethod
     def __init__(self, agent: Agent):
         """
-        Create an AssignState to track the state of an agent's work on a Unit
+        Create an AgentState to track the state of an agent's work on a Unit
 
         Implementations should initialize any required files for saving and
         loading state data somewhere.
@@ -53,7 +54,7 @@ class AgentState(ABC):
         """
         raise NotImplementedError()
 
-    def __new__(cls, agent: Agent) -> AssignState:
+    def __new__(cls, agent: Agent) -> AgentState:
         """
         The new method is overridden to be able to automatically generate
         the expected Requester class without needing to specifically find it
@@ -61,14 +62,14 @@ class AgentState(ABC):
         as you will instead be returned the correct Requester class according to
         the crowdprovider associated with this Requester.
         """
-        if cls == AssignState:
+        if cls == AgentState:
             # We are trying to construct an AgentState, find what type to use and
             # create that instead
             correct_class = get_task_runner_from_type(agent.task_type).AgentStateClass
-            return super().__new__(correct_class, agent)
+            return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
-            return super().__new__(cls, agent)
+            return super().__new__(cls)
 
     @abstractmethod
     def load_data(self) -> None:
@@ -108,18 +109,21 @@ class AgentState(ABC):
         # ones may have multiple turns or steps.
         raise NotImplementedError()
 
-
-AGENT_STATUSES = [
-    AgentState.STATUS_NONE,
-    AgentState.STATUS_ONBOARDING,
-    AgentState.STATUS_WAITING,
-    AgentState.STATUS_IN_TASK,
-    AgentState.STATUS_DONE,
-    AgentState.STATUS_DISCONNECT,
-    AgentState.STATUS_PARTNER_DISCONNECT,
-    AgentState.STATUS_EXPIRED,
-    AgentState.STATUS_RETURNED,
-]
+    @staticmethod
+    def valid() -> List[str]:
+        """Return all valid Agent statuses"""
+        # TODO write a test that ensures all AgentState statuses are here
+        return [
+            AgentState.STATUS_NONE,
+            AgentState.STATUS_ONBOARDING,
+            AgentState.STATUS_WAITING,
+            AgentState.STATUS_IN_TASK,
+            AgentState.STATUS_DONE,
+            AgentState.STATUS_DISCONNECT,
+            AgentState.STATUS_PARTNER_DISCONNECT,
+            AgentState.STATUS_EXPIRED,
+            AgentState.STATUS_RETURNED,
+        ]
 
 
 class Agent(ABC):
@@ -133,6 +137,7 @@ class Agent(ABC):
         self.db_id: str = db_id
         self.db: MephistoDB = db
         row = db.get_agent(db_id)
+        assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_status = row["status"]
         self.worker_id = row["worker_id"]
         self.task_type = row["task_type"]
@@ -151,36 +156,20 @@ class Agent(ABC):
             # We are trying to construct a Agent, find what type to use and
             # create that instead
             row = db.get_agent(db_id)
+            assert row is not None, f"Given db_id {db_id} did not exist in given db"
             correct_class = get_crowd_provider_from_type(
                 row["provider_type"]
             ).AgentClass
-            return super().__new__(correct_class, db, db_id)
+            return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
-            return super().__new__(cls, db, db_id)
+            return super().__new__(cls)
 
     def get_worker(self) -> Worker:
         """
         Return the worker that is using this agent for a task
         """
         return Worker(self.db, self.worker_id)
-
-    @abstractmethod
-    def observe(self, action: Dict[str, Any]) -> None:
-        """
-        Pass the observed information to the AgentState, then
-        push that information to the user
-        """
-        # TODO maybe formalize the contents of what an Action are?
-        raise NotImplementedError()
-
-    @abstractmethod
-    def act(self, blocking=False) -> Optional[Dict[str, Any]]:
-        """
-        Request information from the Agent's frontend. If non-blocking,
-        should return None if no actions are ready to be returned.
-        """
-        raise NotImplementedError()
 
     @staticmethod
     def _register_agent(db: MephistoDB, worker: Worker, unit: Unit) -> Agent:
@@ -193,7 +182,24 @@ class Agent(ABC):
         )
         return Agent(db, db_id)
 
-    @abstractstaticmethod
+    # Children classes should implement the following methods
+
+    def observe(self, action: Dict[str, Any]) -> None:
+        """
+        Pass the observed information to the AgentState, then
+        push that information to the user
+        """
+        # TODO maybe formalize the contents of what an Action are?
+        raise NotImplementedError()
+
+    def act(self, blocking=False) -> Optional[Dict[str, Any]]:
+        """
+        Request information from the Agent's frontend. If non-blocking,
+        should return None if no actions are ready to be returned.
+        """
+        raise NotImplementedError()
+
+    @staticmethod
     def new(db: MephistoDB, worker: Worker, unit: Unit) -> Agent:
         """
         Create an agent for this worker to be used for work on the given Unit.

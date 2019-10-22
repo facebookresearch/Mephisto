@@ -8,52 +8,59 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.worker import Worker, Agent
+from mephisto.data_model.database import MephistoDB
 from mephisto.core.utils import get_dir_for_run, get_crowd_provider_from_type
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Any
 import os
 import json
 
-ASSIGNMENT_STATUSES = [
-    # TODO put all the valid assignment statuses here
-    # LAUNCHED
-    # ASSIGNED
-    # COMPLETED
-    # ACCEPTED
-    # MIXED
-    # REJECTED
-    # EXPIRED
-]
+class AssignmentState:
+    LAUNCHED = 'launched'
+    ASSIGNED = 'assigned'
+    COMPLETED = 'completed'
+    ACCEPTED = 'accepted'
+    MIXED = 'mixed'
+    REJECTED = 'rejected'
+    EXPIRED = 'expired'
 
-PAYABLE_STATUSES = [
-    # LAUNCHED
-    # ASSIGNED
-    # COMPLETED
-    # ACCEPTED
-]
+    @staticmethod
+    def valid() -> List[str]:
+        """Return all valid assignment statuses"""
+        # TODO write test to ensure all states are covered here
+        return [
+            AssignmentState.LAUNCHED, AssignmentState.ASSIGNED, AssignmentState.COMPLETED, AssignmentState.ACCEPTED,
+            AssignmentState.MIXED, AssignmentState.REJECTED, AssignmentState.EXPIRED
+        ]
 
-UNIT_STATUSES = [
-    # TODO put all the valid unit statuses here
-    # LAUNCHED
-    # ASSIGNED
-    # COMPLETED
-    # ACCEPTED
-    # REJECTED
-    # EXPIRED
-]
+    @staticmethod
+    def payable() -> List[str]:
+        """Return all statuses that should be considered spent budget"""
+        return [
+            AssignmentState.LAUNCHED, AssignmentState.ASSIGNED, AssignmentState.COMPLETED, AssignmentState.ACCEPTED
+        ]
 
-FINAL_UNIT_AGENT_STATUSES = [
-    # TODO put all the statuses after which the agent is not going to change
-    # COMPLETED
-    # ACCEPTED
-    # REJECTED
-    # EXPIRED
-]
+    @staticmethod
+    def valid_unit() -> List[str]:
+        """Return all statuses that are valids for a Unit"""
+        return [
+            AssignmentState.LAUNCHED, AssignmentState.ASSIGNED, AssignmentState.COMPLETED, AssignmentState.ACCEPTED,
+            AssignmentState.REJECTED, AssignmentState.EXPIRED
+        ]
 
-FINAL_UNIT_STATUSES = [
-    # TODO put all statuses that should never change once assigned
-    # ACCEPTED
-    # EXPIRED
-]
+    @staticmethod
+    def final_unit() -> List[str]:
+        """Return all statuses that are terminal for a Unit"""
+        return [
+            AssignmentState.ACCEPTED, AssignmentState.EXPIRED
+        ]
+
+    @staticmethod
+    def final_agent() -> List[str]:
+        """Return all statuses that are terminal changes to a Unit's agent"""
+        return [
+            AssignmentState.COMPLETED, AssignmentState.ACCEPTED, AssignmentState.REJECTED, AssignmentState.EXPIRED
+        ]
+
 
 ASSIGNMENT_DATA_FILE = "assign_data.json"
 
@@ -68,6 +75,7 @@ class Assignment:
         self.db_id: str = db_id
         self.db: MephistoDB = db
         row = db.get_assignment(db_id)
+        assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_run_id = row["task_run_id"]
 
     def get_assignment_data(self) -> Optional[Dict[str, Any]]:
@@ -76,7 +84,7 @@ class Assignment:
         run_dir = task_run.get_run_dir()
         assign_data_filename = os.path.join(run_dir, self.db_id, ASSIGNMENT_DATA_FILE)
         if os.path.exists(assign_data_filename):
-            with open(os.path.join(assign_dir, ASSIGNMENT_DATA_FILE), "r") as json_file:
+            with open(assign_data_filename, "r") as json_file:
                 return json.load(json_file)
         return None
 
@@ -88,7 +96,7 @@ class Assignment:
         units = self.get_units()
         statuses = set(unit.get_status() for unit in units)
         if len(statuses) == 1:
-            return statuses[0]
+            return statuses.pop()
 
         # TODO parse statuses and return a computed status
         # ASSIGNED is any are still assigned
@@ -101,13 +109,13 @@ class Assignment:
         """
         return TaskRun(self.db, self.task_run_id)
 
-    def get_units(self, status: Optional[str]) -> List[Unit]:
+    def get_units(self, status: Optional[str] = None) -> List[Unit]:
         """
         Get units for this assignment, optionally
         constrained by the specific status.
         """
-        assert status is None or status in UNIT_STATUSES, "Invalid assignment status"
-        units = self.db.find_units(assignment_id=self.assignment_id)
+        assert status is None or status in AssignmentState.valid_unit(), "Invalid assignment status"
+        units = self.db.find_units(assignment_id=self.db_id)
         if status is not None:
             units = [u for u in units if u.get_status() == status]
         return units
@@ -151,7 +159,7 @@ class Assignment:
         run_dir = task_run.get_run_dir()
         assign_dir = os.path.join(run_dir, db_id)
         os.makedirs(assign_dir)
-        if assignment_json is not None:
+        if assignment_data is not None:
             with open(
                 os.path.join(assign_dir, ASSIGNMENT_DATA_FILE), "w+"
             ) as json_file:
@@ -173,6 +181,7 @@ class Unit(ABC):
         self.db_id: str = db_id
         self.db: MephistoDB = db
         row = db.get_unit(db_id)
+        assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.assignment_id = row["assignment_id"]
         self.unit_index = row["unit_index"]
         self.pay_amount = row["pay_amount"]
@@ -192,11 +201,12 @@ class Unit(ABC):
             # We are trying to construct a Unit, find what type to use and
             # create that instead
             row = db.get_unit(db_id)
+            assert row is not None, f"Given db_id {db_id} did not exist in given db"
             correct_class = get_crowd_provider_from_type(row["provider_type"]).UnitClass
-            return super().__new__(correct_class, db, db_id)
+            return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
-            return super().__new__(cls, db, db_id)
+            return super().__new__(cls)
 
     def get_crowd_provider_class(self):
         """Get the CrowdProvider class that manages this Unit"""
@@ -211,9 +221,10 @@ class Unit(ABC):
         """
         Return the status as currently stored in the database
         """
-        if self.db_status in FINAL_UNIT_STATUSES:
+        if self.db_status in AssignmentState.final_unit():
             return self.db_status
         row = self.db.get_unit(self.db_id)
+        assert row is not None, f"Unit {self.db_id} stopped existing in the db..."
         return row["status"]
 
     def set_db_status(self, status: str) -> None:
@@ -221,21 +232,9 @@ class Unit(ABC):
         Set the status reflected in the database for this Unit
         """
         assert (
-            status in UNIT_STATUSES
-        ), f"{status} not valid Assignment Status, not in {UNIT_STATUSES}"
+            status in AssignmentState.valid_unit()
+        ), f"{status} not valid Assignment Status, not in {AssignmentState.valid_unit()}"
         self.db.update_unit(self.db_id, status=status)
-
-    @abstractmethod
-    def get_status(self) -> str:
-        """
-        Get the status of this unit, as determined by whether there's
-        a worker working on it at the moment, and any other possible states. Should
-        return one of UNIT_STATUSES
-
-        Status is crowd-provider dependent, and thus this method should be defined
-        in the child class.
-        """
-        raise NotImplementedError()
 
     def get_assignment(self) -> Assignment:
         """
@@ -250,12 +249,13 @@ class Unit(ABC):
         # In these statuses, we know the agent isn't changing anymore, and thus will
         # not need to be re-queried
         # TODO add test to ensure this behavior/assumption holds always
-        if self.db_status in FINAL_UNIT_AGENT_STATUSES:
+        if self.db_status in AssignmentState.final_unit():
             return Agent(self.db, self.agent_id)
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
         row = self.db.get_unit(self.db_id)
+        assert row is not None, f"Unit {self.db_id} stopped existing in the db..."
         agent_id = row["agent_id"]
         if agent_id is not None:
             return Agent(self.db, agent_id)
@@ -275,7 +275,20 @@ class Unit(ABC):
         db_id = db.new_unit(assignment.db_id, index, pay_amount, provider_type)
         return Unit(db, db_id)
 
-    @abstractstaticmethod
+    # Children classes should implement the below methods
+
+    def get_status(self) -> str:
+        """
+        Get the status of this unit, as determined by whether there's
+        a worker working on it at the moment, and any other possible states. Should
+        return one of UNIT_STATUSES
+
+        Status is crowd-provider dependent, and thus this method should be defined
+        in the child class.
+        """
+        raise NotImplementedError()
+
+    @staticmethod
     def new(
         db: MephistoDB, assignment: Assignment, index: int, pay_amount: float
     ) -> Unit:

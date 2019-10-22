@@ -7,6 +7,8 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.task import TaskRun
+from mephisto.data_model.assignment import Unit
+from mephisto.data_model.project import Project
 from mephisto.core.utils import get_crowd_provider_from_type
 
 from typing import List
@@ -23,10 +25,11 @@ class Requester(ABC):
         self.db_id: str = db_id
         self.db: MephistoDB = db
         row = db.get_requester(db_id)
+        assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.provider_type: str = row["provider_type"]
         self.requester_name: str = row["requester_name"]
 
-    def __new__(cls, db: MephistoDB, db_id: str) -> Unit:
+    def __new__(cls, db: MephistoDB, db_id: str) -> Requester:
         """
         The new method is overridden to be able to automatically generate
         the expected Requester class without needing to specifically find it
@@ -38,13 +41,14 @@ class Requester(ABC):
             # We are trying to construct a Requester, find what type to use and
             # create that instead
             row = db.get_requester(db_id)
+            assert row is not None, f"Given db_id {db_id} did not exist in given db"
             correct_class = get_crowd_provider_from_type(
                 row["provider_type"]
             ).RequesterClass
-            return super().__new__(correct_class, db, db_id)
+            return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
-            return super().__new__(cls, db, db_id)
+            return super().__new__(cls)
 
     def get_task_runs(self) -> List[TaskRun]:
         """
@@ -58,7 +62,7 @@ class Requester(ABC):
         across all tasks.
         """
         task_runs = self.db.find_task_runs(requester_id=self.db_id)
-        total_spend = 0
+        total_spend = 0.0
         for run in task_runs:
             total_spend += run.get_total_spend()
         return total_spend
@@ -73,8 +77,8 @@ class Requester(ABC):
         db_id = db.new_requester(requester_id, provider_type)
         return Requester(db, db_id)
 
-    @abstractstaticmethod
-    def new(self, db: MephistoDB, requester_name: str) -> Project:
+    @staticmethod
+    def new(db: MephistoDB, requester_name: str) -> Requester:
         """
         Try to create a new requester by this name, raise an exception if
         the name already exists.
