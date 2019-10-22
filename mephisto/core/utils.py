@@ -53,13 +53,19 @@ def get_tasks_dir() -> str:
     return os.path.expanduser("~/mephisto/mephisto/tasks/")
 
 
-def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
+def get_data_dir() -> str:
     """
     Return the directory where the mephisto data is expected to go
     """
     # TODO be able to configure this kind of thing
-    base_path = os.path.expanduser("~/mephisto/runs/")
-    return os.path.join(base_path, project_name, run_id)
+    return os.path.expanduser("~/mephisto/data")
+
+
+def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
+    """
+    Return the directory where the mephisto run data is expected to go
+    """
+    return os.path.join(get_data_dir(), 'runs', project_name, run_id)
 
 
 def get_crowd_provider_from_type(provider_type: str) -> Any:

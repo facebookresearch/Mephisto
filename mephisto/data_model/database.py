@@ -8,7 +8,7 @@
 import os
 import sqlite3
 
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractmethod
 from typing import Mapping, Optional, Any, List
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Assignment, Unit
@@ -59,11 +59,13 @@ class MephistoDB(ABC):
         """
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
         with this name has already been created.
+
+        Project names are permanent, as changing directories later is painful.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_project(self, project_id: str) -> Optional[Mapping[str, Any]]:
+    def get_project(self, project_id: str) -> Mapping[str, Any]:
         """
         Return project's fields by the given project_id, raise EntryDoesNotExistException if no id exists
         in projects
@@ -74,18 +76,11 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def find_projects(
-        self, project_id: Optional[str] = None, project_name: Optional[str] = None
+        self, project_name: Optional[str] = None
     ) -> List[Project]:
         """
         Try to find any project that matches the above. When called with no arguments,
         return all projects.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def update_project(self, project_id: str, project_name: str) -> None:
-        """
-        Update the given project with the given parameters if possible, raise appropriate exception otherwise.
         """
         raise NotImplementedError()
 
@@ -334,6 +329,7 @@ class MephistoDB(ABC):
     def find_agents(
         self,
         status: Optional[str] = None,
+        unit_id: Optional[str] = None,
         worker_id: Optional[str] = None,
         task_type: Optional[str] = None,
         provider_type: Optional[int] = None,

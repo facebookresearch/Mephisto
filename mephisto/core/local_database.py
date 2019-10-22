@@ -4,8 +4,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.database import MephistoDB, MephistoDBException, EntryAlreadyExistsException, EntryDoesNotExistException
-from typing import Mapping, Optional, Any
+from mephisto.data_model.database import (
+    MephistoDB,
+    MephistoDBException,
+    EntryAlreadyExistsException,
+    EntryDoesNotExistException,
+)
+from typing import Mapping, Optional, Any, List
+from mephisto.core.utils import get_data_dir
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.data_model.project import Project
@@ -13,152 +19,205 @@ from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.worker import Worker
 
+import sqlite3
+from sqlite3 import Connection, Cursor
+import threading
+
+
 CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
-        run_id string PRIMARY KEY,
-        created integer NOT NULL,
-        maximum integer NOT NULL,
-        completed integer NOT NULL,
-        failed integer NOT NULL,
-        taskname string,
-        launch_time int
-    );
+    project_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_name STRING NOT NULL UNIQUE,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 """
 
-CREATE_TASKS_TABLE = """
+CREATE_TASKS_TABLE = """CREATE TABLE IF NOT EXISTS tasks (
+    task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_name STRING NOT NULL UNIQUE,
+    task_type STRING NOT NULL,
+    project_id INTEGER,
+    parent_task_id INTEGER,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_task_id) REFERENCES tasks (task_id),
+    FOREIGN KEY (project_id) REFERENCES projects (project_id)
+);
 """
 
-CREATE_TASK_RUNS_TABLE = """
+CREATE_REQUESTERS_TABLE = """CREATE TABLE IF NOT EXISTS requesters (
+    requester_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    requester_name STRING NOT NULL UNIQUE,
+    provider_type STRING NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 """
 
-CREATE_ASSIGNMENTS_TABLE = """
+CREATE_TASK_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS task_runs (
+    task_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    requester_id INTEGER NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
+    FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
+);
 """
 
-CREATE_UNITS_TABLE = """
+CREATE_ASSIGNMENTS_TABLE = """CREATE TABLE IF NOT EXISTS assignments (
+    assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_run_id INTEGER NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_id)
+);
 """
 
-CREATE_AGENTS_TABLE = """
+CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
+    unit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_id INTEGER NOT NULL,
+    unit_index INTEGER NOT NULL,
+    pay_amount FLOAT NOT NULL,
+    provider_type STRING NOT NULL,
+    status STRING NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id)
+);
 """
 
-CREATE_WORKERS_TABLE = """
+CREATE_WORKERS_TABLE = """CREATE TABLE IF NOT EXISTS workers (
+    worker_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider_type STRING NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 """
 
-CREATE_REQUESTERS_TABLE = """
+CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
+    agent_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    worker_id INTEGER NOT NULL,
+    unit_id INTEGER NOT NULL,
+    task_type STRING NOT NULL,
+    provider_type STRING NOT NULL,
+    status STRING NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
+    FOREIGN KEY (unit_id) REFERENCES units (unit_id)
+);
 """
 
-
-
-CREATE_RUN_DATA_TABLE = """CREATE TABLE IF NOT EXISTS runs (
-        run_id string PRIMARY KEY,
-        created integer NOT NULL,
-        maximum integer NOT NULL,
-        completed integer NOT NULL,
-        failed integer NOT NULL,
-        taskname string,
-        launch_time int
-    );
-    """
-
-# Worker data table:
-# TODO add block status
-CREATE_WORKER_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS workers (
-        worker_id string PRIMARY KEY,
-        accepted integer NOT NULL,
-        disconnected integer NOT NULL,
-        expired integer NOT NULL,
-        completed integer NOT NULL,
-        approved integer NOT NULL,
-        rejected integer NOT NULL
-    );
-    """
-
-# HIT data table:
-CREATE_HIT_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS hits (
-        hit_id string PRIMARY KEY,
-        expiration integer NOT NULL,
-        hit_status string,
-        assignments_pending int,
-        assignments_available int,
-        assignments_complete int,
-        run_id string,
-        FOREIGN KEY (run_id) REFERENCES runs (run_id)
-    );
-    """
-
-# Assignment data table: (as one HIT can technically have multiple assignments)
-CREATE_ASSIGN_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS assignments (
-        assignment_id string PRIMARY KEY,
-        status string,
-        approve_time int,
-        worker_id string,
-        hit_id string,
-        FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
-        FOREIGN KEY (hit_id) REFERENCES hits (hit_id)
-    );
-    """
-
-# pairing data table: (reflects one worker<->assignment pairing)
-CREATE_PAIRING_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS pairings (
-        status string,
-        onboarding_start int,
-        onboarding_end int,
-        task_start int,
-        task_end int,
-        conversation_id string,
-        bonus_amount int,
-        bonus_text string,
-        bonus_paid boolean,
-        notes string,
-        worker_id string,
-        assignment_id string,
-        run_id string,
-        onboarding_id string,
-        extra_bonus_amount int,
-        extra_bonus_text string,
-        FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
-        FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id),
-        FOREIGN KEY (run_id) REFERENCES runs (run_id)
-    );
-    """
 
 class LocalMephistoDB(MephistoDB):
+    """
+    Local database for core Mephisto data storage, the LocalMephistoDatabase handles
+    grounding all of the python interactions with the Mephisto architecture to
+    local files and a database.
+    """
+
+    def __init__(self, file_name='database.db'):
+        self.db_path = os.path.join(get_data_dir(), file_name)
+        self.conn: Dict[int, Connection] = {}
+        self.table_access_condition = threading.Condition()
+        self.init_tables()
+
+    def _get_connection(self) -> Connection:
+        """Returns a singular database connection to be shared amongst all
+        calls for a given thread.
+        """
+        # TODO is there a problem with having just one db connection?
+        # Will this cause bugs with failed commits?
+        curr_thread = threading.get_ident()
+        if curr_thread not in self.conn or self.conn[curr_thread] is None:
+            try:
+                conn = sqlite3.connect(self.db_path)
+                conn.row_factory = sqlite3.Row
+                self.conn[curr_thread] = conn
+            except sqlite3.Error as e:
+                shared_utils.print_and_log(
+                    logging.ERROR,
+                    "Could not get db connection, failing: {}".format(repr(e)),
+                    should_print=True,
+                )
+                raise e
+        return self.conn[curr_thread]
+
     @staticmethod
     def init_tables(self) -> None:
         """
-        Initialize any tables that may be required to run this database. If this is an expensive
-        operation, check to see if they already exist before trying to initialize
+        Run all the table creation SQL queries to ensure the expected tables exist
         """
-        raise NotImplementedError()
+        # TODO maybe raise flag when the schema of existing tables isn't what we expect
+        # it to be?
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(CREATE_PROJECTS_TABLE)
+            c.execute(CREATE_TASKS_TABLE)
+            c.execute(CREATE_REQUESTERS_TABLE)
+            c.execute(CREATE_TASK_RUNS_TABLE)
+            c.execute(CREATE_ASSIGNMENTS_TABLE)
+            c.execute(CREATE_UNITS_TABLE)
+            c.execute(CREATE_WORKERS_TABLE)
+            c.execute(CREATE_AGENTS_TABLE)
+            conn.commit()
 
     def new_project(self, project_name: str) -> str:
         """
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
         with this name has already been created.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    'INSERT INTO projects(project_name) VALUES (?);',
+                    (project_name, ),
+                )
+                project_id = str(c.lastrowid)
+                conn.commit()
+                return str(c.lastrowid)
+            except sqlite3.IntegrityError:
+                # TODO formally check that the entry already existed? Check other exceptions?
+                conn.rollback()
+                raise EntryAlreadyExistsException()
 
-    def get_project(self, project_id: str) -> Optional[Mapping[str, Any]]:
+    def get_project(self, project_id: str) -> Mapping[str, Any]:
         """
         Return project's fields by the given project_id, raise EntryDoesNotExistException if no id exists
         in projects
 
-        See Project for the expected returned mapping's fields
+        Returns a SQLite Row object with the expected fields
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * FROM projects
+                WHERE (project_id = ?)
+                """,
+                (type, id),
+            )
+            projects = c.fetchall()
+            if len(projects) != 1:
+                raise EntryDoesNotExistException
+            return projects[0]
 
     def find_projects(
-        self, project_id: Optional[str] = None, project_name: Optional[str] = None
+        self, project_name: Optional[str] = None
     ) -> List[Project]:
         """
         Try to find any project that matches the above. When called with no arguments,
         return all projects.
         """
-        raise NotImplementedError()
-
-    def update_project(self, project_id: str, project_name: str) -> None:
-        """
-        Update the given project with the given parameters if possible, raise appropriate exception otherwise.
-        """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT project_id from projects
+                AND (?1 IS NULL OR project_name = ?1)
+                """,
+                (project_name, ),
+            )
+            project_rows = c.fetchall()
+            return [Project(self, r['project_id']) for r in project_rows]
 
     def new_task(
         self,
@@ -381,6 +440,7 @@ class LocalMephistoDB(MephistoDB):
     def find_agents(
         self,
         status: Optional[str] = None,
+        unit_id: Optional[str] = None,
         worker_id: Optional[str] = None,
         task_type: Optional[str] = None,
         provider_type: Optional[int] = None,
