@@ -7,11 +7,7 @@
 from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.assignment import (
-    Assignment,
-    ASSIGNMENT_STATUSES,
-    PAYABLE_STATUSES,
-)
+from mephisto.data_model.assignment import Assignment, AssignmentState
 from mephisto.core.utils import (
     get_tasks_dir,
     get_dir_for_task,
@@ -84,11 +80,12 @@ class Task:
     def __init__(self, db: MephistoDB, db_id: str):
         self.db_id: str = db_id
         self.db: MephistoDB = db
-        task_row = db.get_task(db_id)
-        self.task_name: str = task_row["task_name"]
-        self.task_type: str = task_row["task_type"]
-        self.project_id: Optional[str] = task_row["project_id"]
-        self.parent_task_id: Optional[str] = task_row["parent_task_id"]
+        row = db.get_task(db_id)
+        assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.task_name: str = row["task_name"]
+        self.task_type: str = row["task_type"]
+        self.project_id: Optional[str] = row["project_id"]
+        self.parent_task_id: Optional[str] = row["parent_task_id"]
 
     def get_project(self) -> Optional[Project]:
         """
@@ -114,7 +111,7 @@ class Task:
         """
         Return all of the assignments for all runs of this task
         """
-        assigns = []
+        assigns: List[Assignment] = []
         for task_run in self.get_runs():
             assigns += task_run.get_assignments()
         return assigns
@@ -133,13 +130,15 @@ class Task:
         can deploy the relevant frontend
         """
         # FIXME will this ever be invalid? Must have tests
-        return get_dir_for_task(self.task_name)
+        task_dir = get_dir_for_task(self.task_name)
+        assert task_dir is not None, f"Task dir for {self} no longer exists!"
+        return task_dir
 
     def get_total_spend(self) -> float:
         """
         Return the total amount of funding spent for this task.
         """
-        total_spend = 0
+        total_spend = 0.0
         for task_run in self.get_runs():
             total_spend += task_run.get_total_spend()
         return total_spend
@@ -151,7 +150,7 @@ class Task:
         task_type: str,
         project: Optional[Project] = None,
         parent_task: Optional[Task] = None,
-        skip_inputs: bool = False,
+        skip_input: bool = False,
     ) -> Task:
         """
         Create a new task by the given name, ensure that the folder for this task
@@ -169,6 +168,7 @@ class Task:
         ), f"A task named {task_name} already exists!"
 
         new_task_dir = get_dir_for_task(task_name, not_exists_ok=True)
+        assert new_task_dir is not None, "Should always be able to make a new task dir"
         if parent_task is None:
             # Assume we already have an existing task dir for the given task,
             # complain if it doesn't exist or isn't configured properly
@@ -190,13 +190,15 @@ class Task:
                 ensure_user_confirm(
                     f"The task directory {new_task_dir} already exists, and the contents "
                     f"within will be deleted and replaced with the starter code for {parent_task}.",
-                    skip_inputs=skip_inputs,
+                    skip_input=skip_input,
                 )
                 os.rmdir(new_task_dir)
             os.mkdir(new_task_dir)
             copytree(parent_task_dir, new_task_dir)
 
-        db_id = db.new_task(task_name, task_type, project.db_id, parent_task.db_id)
+        project_id = None if project is None else project.db_id
+        parent_task_id = None if parent_task is None else parent_task.db_id
+        db_id = db.new_task(task_name, task_type, project_id, parent_task_id)
         return Task(db, db_id)
 
         def __repr__(self):
@@ -213,6 +215,7 @@ class TaskRun:
         self.db_id: str = db_id
         self.db: MephistoDB = db
         row = db.get_task_run(db_id)
+        assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         task = Task(db, self.task_id)
@@ -235,13 +238,13 @@ class TaskRun:
         """
         return Requester(self.db, self.db_id)
 
-    def get_assignments(self, status: Optional[str] = None) -> List[Assignments]:
+    def get_assignments(self, status: Optional[str] = None) -> List[Assignment]:
         """
         Get assignments for this run, optionally filtering by their
         current status
         """
         assert (
-            status is None or status in ASSIGNMENT_STATUSES
+            status is None or status in AssignmentState.valid()
         ), "Invalid assignment status"
         assignments = self.db.find_assignments(task_run_id=self.db_id)
         if status is not None:
@@ -255,7 +258,7 @@ class TaskRun:
         assigns = self.get_assignments()
         return {
             status: len([x for x in assigns if x.get_status() == status])
-            for status in ASSIGNMENT_STATUSES
+            for status in AssignmentState.valid()
         }
 
     def get_run_dir(self) -> str:
@@ -265,8 +268,12 @@ class TaskRun:
         # TODO this step should go into the TaskLauncher
         # run_dir = self.get_run_dir()
         # os.makedirs(run_dir, exist_ok=True)
-        task = Task(self.task_id)
-        return get_dir_for_run(self.db_id, task.get_project())
+        task = Task(self.db, self.task_id)
+        project = task.get_project()
+        if project is None:
+            return get_dir_for_run(self.db_id)
+        else:
+            return get_dir_for_run(self.db_id, project.project_name)
 
     def get_total_spend(self) -> float:
         """
@@ -274,9 +281,9 @@ class TaskRun:
         that are still in a payable state.
         """
         assigns = self.get_assignments()
-        total_amount = 0
+        total_amount = 0.0
         for assign in assigns:
-            total_amount += assign.get_cost_of_statuses(PAYABLE_STATUSES)
+            total_amount += assign.get_cost_of_statuses(AssignmentState.payable())
         return total_amount
 
     @staticmethod

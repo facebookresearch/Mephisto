@@ -22,8 +22,9 @@ class Project:
     def __init__(self, db: MephistoDB, db_id: str):
         self.db_id: str = db_id
         self.db: MephistoDB = db
-        project_row = self.db.get_project(db_id)
-        self.project_name: str = project_row["project_name"]
+        row = self.db.get_project(db_id)
+        assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.project_name: str = row["project_name"]
 
     def get_tasks(self) -> List[Task]:
         """
@@ -37,7 +38,7 @@ class Project:
         across all tasks.
         """
         tasks = self.get_tasks()
-        sum_total = 0
+        sum_total = 0.0
         for task in tasks:
             sum_total += task.get_total_spend()
         return sum_total

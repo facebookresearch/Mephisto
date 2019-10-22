@@ -9,11 +9,13 @@ import os
 import sqlite3
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from typing import Mapping, Optional, Any
-from mephisto.data_model.project import Project
-from mephisto.data_model.task import Task, TaskRun
+from typing import Mapping, Optional, Any, List
+from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Assignment, Unit
+from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
+from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.worker import Worker
 
 # TODO investigate rate limiting against the db by caching locally where appropriate across the data model?
 # TODO investigate cursors for DB queries as the project scales
@@ -248,7 +250,7 @@ class MephistoDB(ABC):
         if there is already a requester with this name
         """
         # TODO ensure that provider type is a valid type
-        raise NotImplemente4dError
+        raise NotImplementedError()
 
     @abstractmethod
     def get_requester(self, requester_id: str) -> Optional[Mapping[str, Any]]:
@@ -278,7 +280,7 @@ class MephistoDB(ABC):
         if there is already a worker with this name
         """
         # TODO ensure that provider type is a valid type
-        raise NotImplemente4dError
+        raise NotImplementedError()
 
     @abstractmethod
     def get_worker(self, worker_id: str) -> Optional[Mapping[str, Any]]:

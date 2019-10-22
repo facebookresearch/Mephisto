@@ -5,8 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from typing import Optional
+from typing import Optional, Any
 from mephisto.data_model.constants import NO_PROJECT_NAME
+
 
 def ensure_user_confirm(display_text, skip_input=False) -> None:
     """
@@ -17,7 +18,7 @@ def ensure_user_confirm(display_text, skip_input=False) -> None:
     if skip_input:
         return
     res = input(f'{display_text}\nEnter "n" to exit and anything else to continue:')
-    if res == 'n':
+    if res == "n":
         raise SystemExit(0)
     return
 
@@ -26,7 +27,7 @@ def get_gallery_dir() -> str:
     """
     Return the path to the mephisto task gallery
     """
-    return os.path.expanduser('~/mephisto/gallery/')
+    return os.path.expanduser("~/mephisto/gallery/")
 
 
 def get_dir_for_task(task_name: str, not_exists_ok: bool = False) -> Optional[str]:
@@ -34,7 +35,7 @@ def get_dir_for_task(task_name: str, not_exists_ok: bool = False) -> Optional[st
     Return the directory for the given task, if it exists. Check the user's task
     dir first and then the gallery second.
     """
-    dir_path = os.path.join(get_task_dir(), task_name)
+    dir_path = os.path.join(get_tasks_dir(), task_name)
     if os.path.exists(dir_path) or not_exists_ok:
         return dir_path
     dir_path = os.path.join(get_gallery_dir(), task_name)
@@ -49,7 +50,7 @@ def get_tasks_dir() -> str:
     to exist in
     """
     # TODO be able to configure this kind of thing
-    return os.path.expanduser('~/mephisto/mephisto/tasks/')
+    return os.path.expanduser("~/mephisto/mephisto/tasks/")
 
 
 def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
@@ -57,7 +58,7 @@ def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
     Return the directory where the mephisto data is expected to go
     """
     # TODO be able to configure this kind of thing
-    base_path = os.path.expanduser('~/mephisto/runs/')
+    base_path = os.path.expanduser("~/mephisto/runs/")
     return os.path.join(base_path, project_name, run_id)
 
 
