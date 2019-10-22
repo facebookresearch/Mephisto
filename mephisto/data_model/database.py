@@ -45,9 +45,8 @@ class MephistoDB(ABC):
     def __init__(self):
         self.init_tables()
 
-    @staticmethod
     @abstractmethod
-    def init_tables() -> None:
+    def init_tables(self) -> None:
         """
         Initialize any tables that may be required to run this database. If this is an expensive
         operation, check to see if they already exist before trying to initialize

@@ -128,15 +128,9 @@ class LocalMephistoDB(MephistoDB):
                 conn.row_factory = sqlite3.Row
                 self.conn[curr_thread] = conn
             except sqlite3.Error as e:
-                shared_utils.print_and_log(
-                    logging.ERROR,
-                    "Could not get db connection, failing: {}".format(repr(e)),
-                    should_print=True,
-                )
-                raise e
+                raise MephistoDBException(e)
         return self.conn[curr_thread]
 
-    @staticmethod
     def init_tables(self) -> None:
         """
         Run all the table creation SQL queries to ensure the expected tables exist
@@ -366,7 +360,7 @@ class LocalMephistoDB(MephistoDB):
         if there is already a requester with this name
         """
         # TODO ensure that provider type is a valid type
-        raise NotImplemente4dError
+        raise NotImplementedError()
 
     def get_requester(self, requester_id: str) -> Optional[Mapping[str, Any]]:
         """
@@ -393,7 +387,7 @@ class LocalMephistoDB(MephistoDB):
         if there is already a worker with this name
         """
         # TODO ensure that provider type is a valid type
-        raise NotImplemente4dError
+        raise NotImplementedError()
 
     def get_worker(self, worker_id: str) -> Optional[Mapping[str, Any]]:
         """
