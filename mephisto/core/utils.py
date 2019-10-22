@@ -49,7 +49,7 @@ def get_tasks_dir() -> str:
     to exist in
     """
     # TODO be able to configure this kind of thing
-    return os.path.expanduser('~/mephisto/tasks/')
+    return os.path.expanduser('~/mephisto/mephisto/tasks/')
 
 
 def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
