@@ -6,13 +6,48 @@
 
 from mephisto.data_model.database import MephistoDB, MephistoDBException, EntryAlreadyExistsException, EntryDoesNotExistException
 from typing import Mapping, Optional, Any
-from mephisto.data_model.project import Project
-from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Assignment, Unit
+from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
+from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.worker import Worker
 
-# Run data table:
-CREATE_RUN_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS runs (
+CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
+        run_id string PRIMARY KEY,
+        created integer NOT NULL,
+        maximum integer NOT NULL,
+        completed integer NOT NULL,
+        failed integer NOT NULL,
+        taskname string,
+        launch_time int
+    );
+"""
+
+CREATE_TASKS_TABLE = """
+"""
+
+CREATE_TASK_RUNS_TABLE = """
+"""
+
+CREATE_ASSIGNMENTS_TABLE = """
+"""
+
+CREATE_UNITS_TABLE = """
+"""
+
+CREATE_AGENTS_TABLE = """
+"""
+
+CREATE_WORKERS_TABLE = """
+"""
+
+CREATE_REQUESTERS_TABLE = """
+"""
+
+
+
+CREATE_RUN_DATA_TABLE = """CREATE TABLE IF NOT EXISTS runs (
         run_id string PRIMARY KEY,
         created integer NOT NULL,
         maximum integer NOT NULL,
@@ -94,7 +129,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def new_project(self, project_name: str) -> str:
         """
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
@@ -102,7 +136,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def get_project(self, project_id: str) -> Optional[Mapping[str, Any]]:
         """
         Return project's fields by the given project_id, raise EntryDoesNotExistException if no id exists
@@ -112,7 +145,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def find_projects(
         self, project_id: Optional[str] = None, project_name: Optional[str] = None
     ) -> List[Project]:
@@ -122,14 +154,12 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def update_project(self, project_id: str, project_name: str) -> None:
         """
         Update the given project with the given parameters if possible, raise appropriate exception otherwise.
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def new_task(
         self,
         task_name: str,
@@ -143,7 +173,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def get_task(self, task_id: str) -> Optional[Mapping[str, Any]]:
         """
         Return task's fields by task_id, raise EntryDoesNotExistException if no id exists
@@ -153,7 +182,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def find_tasks(
         self,
         task_id: Optional[str] = None,
@@ -167,7 +195,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def update_task(
         self,
         task_id: str,
@@ -180,7 +207,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
         """
         Create a new task_run for the given task.
@@ -191,7 +217,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def get_task_run(self, task_run_id: str) -> Optional[Mapping[str, Any]]:
         """
         Return the given task_run's fields by task_run_id, raise EntryDoesNotExistException if no id exists
@@ -201,7 +226,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def find_task_runs(
         self,
         task_run_id: Optional[str] = None,
@@ -214,7 +238,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def new_assignment(self, task_run_id: str) -> str:
         """
         Create a new assignment for the given task
@@ -223,7 +246,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def get_assignment(self, task_id: str) -> Optional[Mapping[str, Any]]:
         """
         Return assignment's fields by task_id, raise EntryDoesNotExistException if no id exists
@@ -233,7 +255,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def find_assignments(self, task_run_id: Optional[str] = None) -> List[Assignment]:
         """
         Try to find any task that matches the above. When called with no arguments,
@@ -241,7 +262,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def new_unit(
         self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str
     ) -> str:
@@ -251,7 +271,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def get_unit(self, unit_id: str) -> Optional[Mapping[str, Any]]:
         """
         Return unit's fields by unit_id, raise EntryDoesNotExistException
@@ -261,7 +280,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def find_units(
         self,
         assignment_id: Optional[str] = None,
@@ -274,7 +292,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
@@ -283,7 +300,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def new_requester(self, requester_name: str, provider_type: str) -> str:
         """
         Create a new requester with the given name and provider type.
@@ -293,7 +309,6 @@ class LocalMephistoDB(MephistoDB):
         # TODO ensure that provider type is a valid type
         raise NotImplemente4dError
 
-    @abstractmethod
     def get_requester(self, requester_id: str) -> Optional[Mapping[str, Any]]:
         """
         Return requester's fields by requester_id, raise EntryDoesNotExistException
@@ -303,7 +318,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def find_requesters(
         self, requester_name: Optional[str] = None, provider_type: Optional[str] = None
     ) -> List[Requester]:
@@ -313,7 +327,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def new_worker(self, worker_name: str, provider_type: str) -> str:
         """
         Create a new worker with the given name and provider type.
@@ -323,7 +336,6 @@ class LocalMephistoDB(MephistoDB):
         # TODO ensure that provider type is a valid type
         raise NotImplemente4dError
 
-    @abstractmethod
     def get_worker(self, worker_id: str) -> Optional[Mapping[str, Any]]:
         """
         Return worker's fields by worker_id, raise EntryDoesNotExistException
@@ -333,7 +345,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def find_workers(self, provider_type: Optional[str] = None) -> List[Worker]:
         """
         Try to find any worker that matches the above. When called with no arguments,
@@ -341,7 +352,6 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def new_agent(
         self, worker_id: str, unit_id: str, task_type: str, provider_type: str
     ) -> str:
@@ -353,7 +363,6 @@ class LocalMephistoDB(MephistoDB):
         # TODO ensure that provider type is a valid type
         raise NotImplementedError()
 
-    @abstractmethod
     def get_agent(self, agent_id: str) -> Optional[Mapping[str, Any]]:
         """
         Return agent's fields by agent_id, raise EntryDoesNotExistException
@@ -363,14 +372,12 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def find_agents(
         self,
         status: Optional[str] = None,

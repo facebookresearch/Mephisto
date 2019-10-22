@@ -14,6 +14,7 @@ from mephisto.data_model.project import Project
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.data_model.requester import Requester
+from mephisto.data_model.agent import Agent
 
 # TODO investigate rate limiting against the db by caching locally where appropriate across the data model?
 # TODO investigate cursors for DB queries as the project scales
