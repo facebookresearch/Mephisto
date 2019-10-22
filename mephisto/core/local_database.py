@@ -4,48 +4,90 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
-import os
-import sqlite3
-
-from abc import ABC, abstractmethod
+from mephisto.data_model.database import MephistoDB, MephistoDBException, EntryAlreadyExistsException, EntryDoesNotExistException
 from typing import Mapping, Optional, Any
 from mephisto.data_model.project import Project
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.data_model.requester import Requester
 
-# TODO investigate rate limiting against the db by caching locally where appropriate across the data model?
-# TODO investigate cursors for DB queries as the project scales
-
-
-class MephistoDBException(Exception):
-    pass
-
-
-class EntryAlreadyExistsException(MephistoDBException):
-    pass
-
-
-class EntryDoesNotExistException(MephistoDBException):
-    pass
-
-
-class MephistoDB(ABC):
-    """
-    Provides the interface for all queries that are necessary for the Mephisto
-    architecture to run as expected. All other databases should implement
-    these methods to be used as the database that backs Mephisto.
-
-    By default, we use a LocalMesphistoDB located at `mephisto/data/database.db`
+# Run data table:
+CREATE_RUN_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS runs (
+        run_id string PRIMARY KEY,
+        created integer NOT NULL,
+        maximum integer NOT NULL,
+        completed integer NOT NULL,
+        failed integer NOT NULL,
+        taskname string,
+        launch_time int
+    );
     """
 
-    def __init__(self):
-        self.init_tables()
+# Worker data table:
+# TODO add block status
+CREATE_WORKER_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS workers (
+        worker_id string PRIMARY KEY,
+        accepted integer NOT NULL,
+        disconnected integer NOT NULL,
+        expired integer NOT NULL,
+        completed integer NOT NULL,
+        approved integer NOT NULL,
+        rejected integer NOT NULL
+    );
+    """
 
+# HIT data table:
+CREATE_HIT_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS hits (
+        hit_id string PRIMARY KEY,
+        expiration integer NOT NULL,
+        hit_status string,
+        assignments_pending int,
+        assignments_available int,
+        assignments_complete int,
+        run_id string,
+        FOREIGN KEY (run_id) REFERENCES runs (run_id)
+    );
+    """
+
+# Assignment data table: (as one HIT can technically have multiple assignments)
+CREATE_ASSIGN_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS assignments (
+        assignment_id string PRIMARY KEY,
+        status string,
+        approve_time int,
+        worker_id string,
+        hit_id string,
+        FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
+        FOREIGN KEY (hit_id) REFERENCES hits (hit_id)
+    );
+    """
+
+# pairing data table: (reflects one worker<->assignment pairing)
+CREATE_PAIRING_DATA_SQL_TABLE = """CREATE TABLE IF NOT EXISTS pairings (
+        status string,
+        onboarding_start int,
+        onboarding_end int,
+        task_start int,
+        task_end int,
+        conversation_id string,
+        bonus_amount int,
+        bonus_text string,
+        bonus_paid boolean,
+        notes string,
+        worker_id string,
+        assignment_id string,
+        run_id string,
+        onboarding_id string,
+        extra_bonus_amount int,
+        extra_bonus_text string,
+        FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
+        FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id),
+        FOREIGN KEY (run_id) REFERENCES runs (run_id)
+    );
+    """
+
+class LocalMephistoDB(MephistoDB):
     @staticmethod
-    @abstractmethod
-    def init_tables() -> None:
+    def init_tables(self) -> None:
         """
         Initialize any tables that may be required to run this database. If this is an expensive
         operation, check to see if they already exist before trying to initialize
