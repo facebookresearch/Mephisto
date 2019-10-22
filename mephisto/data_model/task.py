@@ -7,10 +7,7 @@
 from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.assignment import (
-    Assignment,
-    AssignmentState,
-)
+from mephisto.data_model.assignment import Assignment, AssignmentState
 from mephisto.core.utils import (
     get_tasks_dir,
     get_dir_for_task,

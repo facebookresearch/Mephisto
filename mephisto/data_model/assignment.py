@@ -14,51 +14,65 @@ from typing import List, Optional, Tuple, Dict, Any
 import os
 import json
 
+
 class AssignmentState:
-    LAUNCHED = 'launched'
-    ASSIGNED = 'assigned'
-    COMPLETED = 'completed'
-    ACCEPTED = 'accepted'
-    MIXED = 'mixed'
-    REJECTED = 'rejected'
-    EXPIRED = 'expired'
+    LAUNCHED = "launched"
+    ASSIGNED = "assigned"
+    COMPLETED = "completed"
+    ACCEPTED = "accepted"
+    MIXED = "mixed"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
 
     @staticmethod
     def valid() -> List[str]:
         """Return all valid assignment statuses"""
         # TODO write test to ensure all states are covered here
         return [
-            AssignmentState.LAUNCHED, AssignmentState.ASSIGNED, AssignmentState.COMPLETED, AssignmentState.ACCEPTED,
-            AssignmentState.MIXED, AssignmentState.REJECTED, AssignmentState.EXPIRED
+            AssignmentState.LAUNCHED,
+            AssignmentState.ASSIGNED,
+            AssignmentState.COMPLETED,
+            AssignmentState.ACCEPTED,
+            AssignmentState.MIXED,
+            AssignmentState.REJECTED,
+            AssignmentState.EXPIRED,
         ]
 
     @staticmethod
     def payable() -> List[str]:
         """Return all statuses that should be considered spent budget"""
         return [
-            AssignmentState.LAUNCHED, AssignmentState.ASSIGNED, AssignmentState.COMPLETED, AssignmentState.ACCEPTED
+            AssignmentState.LAUNCHED,
+            AssignmentState.ASSIGNED,
+            AssignmentState.COMPLETED,
+            AssignmentState.ACCEPTED,
         ]
 
     @staticmethod
     def valid_unit() -> List[str]:
         """Return all statuses that are valids for a Unit"""
         return [
-            AssignmentState.LAUNCHED, AssignmentState.ASSIGNED, AssignmentState.COMPLETED, AssignmentState.ACCEPTED,
-            AssignmentState.REJECTED, AssignmentState.EXPIRED
+            AssignmentState.LAUNCHED,
+            AssignmentState.ASSIGNED,
+            AssignmentState.COMPLETED,
+            AssignmentState.ACCEPTED,
+            AssignmentState.REJECTED,
+            AssignmentState.EXPIRED,
         ]
 
     @staticmethod
     def final_unit() -> List[str]:
         """Return all statuses that are terminal for a Unit"""
-        return [
-            AssignmentState.ACCEPTED, AssignmentState.EXPIRED
-        ]
+        return [AssignmentState.ACCEPTED, AssignmentState.EXPIRED]
 
     @staticmethod
     def final_agent() -> List[str]:
         """Return all statuses that are terminal changes to a Unit's agent"""
         return [
-            AssignmentState.COMPLETED, AssignmentState.ACCEPTED, AssignmentState.REJECTED, AssignmentState.EXPIRED
+            AssignmentState.COMPLETED,
+            AssignmentState.ACCEPTED,
+            AssignmentState.REJECTED,
+            AssignmentState.EXPIRED,
         ]
 
 
@@ -114,7 +128,9 @@ class Assignment:
         Get units for this assignment, optionally
         constrained by the specific status.
         """
-        assert status is None or status in AssignmentState.valid_unit(), "Invalid assignment status"
+        assert (
+            status is None or status in AssignmentState.valid_unit()
+        ), "Invalid assignment status"
         units = self.db.find_units(assignment_id=self.db_id)
         if status is not None:
             units = [u for u in units if u.get_status() == status]
