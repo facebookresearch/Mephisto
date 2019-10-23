@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from typing import Optional, Any
+from typing import Optional, Any, List
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
 

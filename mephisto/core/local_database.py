@@ -34,7 +34,9 @@ def nonesafe_int(in_string: Optional[str]) -> Optional[int]:
 def assert_valid_provider(provider_type: str) -> None:
     """Throw an assertion error if the given provider type is not valid"""
     valid_types = get_valid_provider_types()
-    assert provider_type in valid_types, f"Supplied provider {provider_type} is not in supported list of providers {valid_types}."
+    assert (
+        provider_type in valid_types
+    ), f"Supplied provider {provider_type} is not in supported list of providers {valid_types}."
 
 
 CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
@@ -131,7 +133,7 @@ class LocalMephistoDB(MephistoDB):
     local files and a database.
     """
 
-    def __init__(self, file_name='database.db'):
+    def __init__(self, file_name="database.db"):
         self.db_path = os.path.join(get_data_dir(), file_name)
         self.conn: Dict[int, Connection] = {}
         self.table_access_condition = threading.Condition()
@@ -172,7 +174,9 @@ class LocalMephistoDB(MephistoDB):
             c.execute(CREATE_AGENTS_TABLE)
             conn.commit()
 
-    def __get_one_by_id(self, table_name: str, id_name: str, db_id: str) -> Mapping[str, Any]:
+    def __get_one_by_id(
+        self, table_name: str, id_name: str, db_id: str
+    ) -> Mapping[str, Any]:
         """
         Try to request the row for the given table and entry,
         raise EntryDoesNotExistException if it isn't present
@@ -185,7 +189,7 @@ class LocalMephistoDB(MephistoDB):
                 SELECT * FROM {table_name}
                 WHERE ({id_name} = ?)
                 """,
-                (db_id),
+                (int(db_id),),
             )
             results = c.fetchall()
             if len(results) != 1:
@@ -202,8 +206,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    'INSERT INTO projects(project_name) VALUES (?);',
-                    (project_name, ),
+                    "INSERT INTO projects(project_name) VALUES (?);", (project_name,)
                 )
                 project_id = str(c.lastrowid)
                 conn.commit()
@@ -220,11 +223,9 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id('projects', 'project_id', int(project_id))
+        return self.__get_one_by_id("projects", "project_id", project_id)
 
-    def find_projects(
-        self, project_name: Optional[str] = None
-    ) -> List[Project]:
+    def find_projects(self, project_name: Optional[str] = None) -> List[Project]:
         """
         Try to find any project that matches the above. When called with no arguments,
         return all projects.
@@ -237,10 +238,10 @@ class LocalMephistoDB(MephistoDB):
                 SELECT project_id from projects
                 WHERE (?1 IS NULL OR project_name = ?1)
                 """,
-                (project_name, ),
+                (project_name,),
             )
             rows = c.fetchall()
-            return [Project(self, r['project_id']) for r in rows]
+            return [Project(self, r["project_id"]) for r in rows]
 
     def new_task(
         self,
@@ -256,21 +257,19 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            project_id = nonesafe_int(project_id)
-            parent_task_id = nonesafe_int(parent_task_id)
             try:
                 c.execute(
-                    '''INSERT INTO tasks(
+                    """INSERT INTO tasks(
                         task_name,
                         task_type,
                         project_id,
                         parent_task_id
-                    ) VALUES (?, ?, ?, ?);''',
+                    ) VALUES (?, ?, ?, ?);""",
                     (
                         task_name,
                         task_type,
-                        int(project_id),
-                        int(parent_task_id),
+                        nonesafe_int(project_id),
+                        nonesafe_int(parent_task_id),
                     ),
                 )
                 task_id = str(c.lastrowid)
@@ -288,7 +287,7 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id('tasks', 'task_id', int(task_id))
+        return self.__get_one_by_id("tasks", "task_id", task_id)
 
     def find_tasks(
         self,
@@ -303,8 +302,6 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            project_id = nonesafe_int(project_id)
-            parent_task_id = nonesafe_int(parent_task_id)
             c.execute(
                 """
                 SELECT task_id from tasks
@@ -312,10 +309,10 @@ class LocalMephistoDB(MephistoDB):
                 AND (?2 IS NULL OR project_id = ?2)
                 AND (?3 IS NULL OR parent_project_id = ?3)
                 """,
-                (task_name, project_id, parent_task_id),
+                (task_name, nonesafe_int(project_id), nonesafe_int(parent_task_id)),
             )
             rows = c.fetchall()
-            return [Task(self, r['task_id']) for r in rows]
+            return [Task(self, r["task_id"]) for r in rows]
 
     def update_task(
         self,
@@ -331,7 +328,7 @@ class LocalMephistoDB(MephistoDB):
         """
         if len(self.find_task_runs(task_id=task_id)) != 0:
             raise MephistoDBException(
-                'Cannot edit a task that has already been run, for risk of data corruption.'
+                "Cannot edit a task that has already been run, for risk of data corruption."
             )
         with self.table_access_condition:
             conn = self._get_connection()
@@ -382,12 +379,10 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id('task_runs', 'task_run_id', int(task_run_id))
+        return self.__get_one_by_id("task_runs", "task_run_id", task_run_id)
 
     def find_task_runs(
-        self,
-        task_id: Optional[str] = None,
-        requester_id: Optional[str] = None,
+        self, task_id: Optional[str] = None, requester_id: Optional[str] = None
     ) -> List[TaskRun]:
         """
         Try to find any task_run that matches the above. When called with no arguments,
@@ -396,18 +391,16 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            task_id = nonesafe_int(task_id)
-            requester_id = nonesafe_int(requester_id)
             c.execute(
                 """
                 SELECT task_run_id from task_runs
                 WHERE (?1 IS NULL OR task_id = ?1)
                 AND (?2 IS NULL OR requester_id = ?2)
                 """,
-                (task_id, requester_id),
+                (nonesafe_int(task_id), nonesafe_int(requester_id)),
             )
             rows = c.fetchall()
-            return [TaskRun(self, r['task_run_id']) for r in rows]
+            return [TaskRun(self, r["task_run_id"]) for r in rows]
 
     def new_assignment(self, task_run_id: str) -> str:
         """Create a new assignment for the given task"""
@@ -415,8 +408,7 @@ class LocalMephistoDB(MephistoDB):
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                'INSERT INTO assignments(task_run_id) VALUES (?);',
-                (int(task_run_id), ),
+                "INSERT INTO assignments(task_run_id) VALUES (?);", (int(task_run_id),)
             )
             assignment_id = str(c.lastrowid)
             conn.commit()
@@ -429,7 +421,7 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id('assignments', 'assignment_id', int(assignment_id))
+        return self.__get_one_by_id("assignments", "assignment_id", assignment_id)
 
     def find_assignments(self, task_run_id: Optional[str] = None) -> List[Assignment]:
         """
@@ -439,16 +431,15 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            task_run_id = nonesafe_int(task_run_id)
             c.execute(
                 """
                 SELECT assignment_id from assignments
                 WHERE (?1 IS NULL OR task_run_id = ?1)
                 """,
-                (task_run_id, ),
+                (nonesafe_int(task_run_id),),
             )
             rows = c.fetchall()
-            return [Assignment(self, r['assignment_id']) for r in rows]
+            return [Assignment(self, r["assignment_id"]) for r in rows]
 
     def new_unit(
         self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str
@@ -462,13 +453,13 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    '''INSERT INTO units(
+                    """INSERT INTO units(
                         assignment_id,
                         unit_index,
                         pay_amount,
                         provider_type,
                         status
-                    ) VALUES (?, ?, ?, ?, ?);''',
+                    ) VALUES (?, ?, ?, ?, ?);""",
                     (
                         int(assignment_id),
                         unit_index,
@@ -492,7 +483,7 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id('units', 'unit_id', int(unit_id))
+        return self.__get_one_by_id("units", "unit_id", unit_id)
 
     def find_units(
         self,
@@ -508,8 +499,6 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            assignment_id = nonesafe_int(assignment_id)
-            agent_id = nonesafe_int(agent_id)
             c.execute(
                 """
                 SELECT unit_id from units
@@ -518,10 +507,15 @@ class LocalMephistoDB(MephistoDB):
                 AND (?3 IS NULL OR provider_type = ?3)
                 AND (?4 IS NULL OR agent_id = ?4)
                 """,
-                (assignment_id, unit_index, provider_type, agent_id),
+                (
+                    nonesafe_int(assignment_id),
+                    unit_index,
+                    provider_type,
+                    nonesafe_int(agent_id),
+                ),
             )
             rows = c.fetchall()
-            return [Unit(self, r['unit_id']) for r in rows]
+            return [Unit(self, r["unit_id"]) for r in rows]
 
     def update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
@@ -529,7 +523,9 @@ class LocalMephistoDB(MephistoDB):
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
-        assert status in AssignmentState.valid_unit(), f'Invalid status {status} for a unit'
+        assert (
+            status in AssignmentState.valid_unit()
+        ), f"Invalid status {status} for a unit"
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -555,7 +551,9 @@ class LocalMephistoDB(MephistoDB):
                 conn.commit()
             except sqlite3.IntegrityError:
                 conn.rollback()
-                raise MephistoDBException(f'Given agent_id {agent_id} not found in the database')
+                raise MephistoDBException(
+                    f"Given agent_id {agent_id} not found in the database"
+                )
 
     def new_requester(self, requester_name: str, provider_type: str) -> str:
         """
@@ -569,7 +567,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    'INSERT INTO requesters(requester_name, provider_type) VALUES (?, ?);',
+                    "INSERT INTO requesters(requester_name, provider_type) VALUES (?, ?);",
                     (requester_name, provider_type),
                 )
                 requester_id = str(c.lastrowid)
@@ -587,7 +585,7 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id('requesters', 'requester_id', int(requester_id))
+        return self.__get_one_by_id("requesters", "requester_id", requester_id)
 
     def find_requesters(
         self, requester_name: Optional[str] = None, provider_type: Optional[str] = None
@@ -608,7 +606,7 @@ class LocalMephistoDB(MephistoDB):
                 (requester_name, provider_type),
             )
             rows = c.fetchall()
-            return [Requester(self, r['requester_id']) for r in rows]
+            return [Requester(self, r["requester_id"]) for r in rows]
 
     def new_worker(self, worker_name: str, provider_type: str) -> str:
         """
@@ -625,7 +623,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    'INSERT INTO workers(worker_name, provider_type) VALUES (?, ?);',
+                    "INSERT INTO workers(worker_name, provider_type) VALUES (?, ?);",
                     (worker_name, provider_type),
                 )
                 worker_id = str(c.lastrowid)
@@ -643,7 +641,7 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id('workers', 'worker_id', int(worker_id))
+        return self.__get_one_by_id("workers", "worker_id", worker_id)
 
     def find_workers(self, provider_type: Optional[str] = None) -> List[Worker]:
         """
@@ -658,10 +656,10 @@ class LocalMephistoDB(MephistoDB):
                 SELECT worker_id from workers
                 WHERE (?1 IS NULL OR provider_type = ?1)
                 """,
-                (provider_type, ),
+                (provider_type,),
             )
             rows = c.fetchall()
-            return [Worker(self, r['task_id']) for r in rows]
+            return [Worker(self, r["task_id"]) for r in rows]
 
     def new_agent(
         self, worker_id: str, unit_id: str, task_type: str, provider_type: str
@@ -677,19 +675,19 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    '''INSERT INTO agents(
+                    """INSERT INTO agents(
                         worker_id,
                         unit_id,
                         task_type,
                         provider_type,
                         status
-                    ) VALUES (?, ?, ?, ?, ?);''',
+                    ) VALUES (?, ?, ?, ?, ?);""",
                     (
                         int(worker_id),
                         int(unit_id),
                         task_type,
                         provider_type,
-                        AgentState.STATUS_NONE
+                        AgentState.STATUS_NONE,
                     ),
                 )
                 agent_id = str(c.lastrowid)
@@ -706,27 +704,26 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id('agents', 'agent_id', int(agent_id))
+        return self.__get_one_by_id("agents", "agent_id", agent_id)
 
     def update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
-        assert status in AgentState.valid(), f'Invalid status {status} for an agent'
+        assert status in AgentState.valid(), f"Invalid status {status} for an agent"
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            try:
-                if status is not None:
-                    c.execute(
-                        """
-                        UPDATE agents
-                        SET status = ?
-                        WHERE agent_id = ?;
-                        """,
-                        (status, int(unit_id)),
-                    )
-                conn.commit()
+            if status is not None:
+                c.execute(
+                    """
+                    UPDATE agents
+                    SET status = ?
+                    WHERE agent_id = ?;
+                    """,
+                    (status, int(agent_id)),
+                )
+            conn.commit()
 
     def find_agents(
         self,
@@ -743,8 +740,6 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            unit_id = nonesafe_int(unit_id)
-            worker_id = nonesafe_int(worker_id)
             c.execute(
                 """
                 SELECT worker_id from workers
@@ -754,7 +749,13 @@ class LocalMephistoDB(MephistoDB):
                 AND (?1 IS NULL OR task_type = ?1)
                 AND (?1 IS NULL OR provider_type = ?1)
                 """,
-                (status, unit_id, worker_id, task_type, provider_type),
+                (
+                    status,
+                    nonesafe_int(unit_id),
+                    nonesafe_int(worker_id),
+                    task_type,
+                    provider_type,
+                ),
             )
             rows = c.fetchall()
-            return [Agent(self, r['task_id']) for r in rows]
+            return [Agent(self, r["task_id"]) for r in rows]
