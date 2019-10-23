@@ -80,3 +80,11 @@ def get_task_runner_from_type(task_type: str) -> Any:
     Return the task runner class for the given string
     """
     raise NotImplementedError()
+
+
+def get_valid_provider_types() -> List[str]:
+    """
+    Return the valid provider types that are currently supported by
+    the mephisto framework
+    """
+    raise NotImplementedError()

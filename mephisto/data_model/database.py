@@ -175,10 +175,10 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_assignment(self, task_id: str) -> Mapping[str, Any]:
+    def get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
         """
-        Return assignment's fields by task_id, raise EntryDoesNotExistException if no id exists
-        in tasks
+        Return assignment's fields by assignment_id, raise EntryDoesNotExistException if
+        no id exists in tasks
 
         See Assignment for the expected fields for the returned mapping
         """
@@ -216,7 +216,8 @@ class MephistoDB(ABC):
     def find_units(
         self,
         assignment_id: Optional[str] = None,
-        index: Optional[int] = None,
+        unit_index: Optional[int] = None,
+        provider_type: Optional[str] = None,
         agent_id: Optional[str] = None,
     ) -> List[Unit]:
         """
@@ -270,6 +271,9 @@ class MephistoDB(ABC):
         Create a new worker with the given name and provider type.
         Raises EntryAlreadyExistsException
         if there is already a worker with this name
+
+        worker_name should be the unique identifier by which the crowd provider
+        is using to keep track of this worker
         """
         # TODO ensure that provider type is a valid type
         raise NotImplementedError()
@@ -328,7 +332,7 @@ class MephistoDB(ABC):
         unit_id: Optional[str] = None,
         worker_id: Optional[str] = None,
         task_type: Optional[str] = None,
-        provider_type: Optional[int] = None,
+        provider_type: Optional[str] = None,
     ) -> List[Agent]:
         """
         Try to find any agent that matches the above. When called with no arguments,

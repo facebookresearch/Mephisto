@@ -11,9 +11,9 @@ from mephisto.data_model.database import (
     EntryDoesNotExistException,
 )
 from typing import Mapping, Optional, Any, List
-from mephisto.core.utils import get_data_dir
-from mephisto.data_model.agent import Agent
-from mephisto.data_model.assignment import Assignment, Unit
+from mephisto.core.utils import get_data_dir, get_valid_provider_types
+from mephisto.data_model.agent import Agent, AgentState
+from mephisto.data_model.assignment import Assignment, Unit, AssignmentState
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
@@ -29,6 +29,12 @@ def nonesafe_int(in_string: Optional[str]) -> Optional[int]:
     if in_string is None:
         return None
     return int(in_string)
+
+
+def assert_valid_provider(provider_type: str) -> None:
+    """Throw an assertion error if the given provider type is not valid"""
+    valid_types = get_valid_provider_types()
+    assert provider_type in valid_types, f"Supplied provider {provider_type} is not in supported list of providers {valid_types}."
 
 
 CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
@@ -84,8 +90,11 @@ CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
     pay_amount FLOAT NOT NULL,
     provider_type STRING NOT NULL,
     status STRING NOT NULL,
+    agent_id STRING,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id)
+    FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id),
+    FOREIGN KEY (agent_id) REFERENCES agents (agent_id),
+    UNIQUE (assignment_id, unit_index)
 );
 """
 
@@ -110,6 +119,11 @@ CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
 """
 
 
+# TODO find_x queries are pretty slow right now, as we query the same table once to get
+# all of the rows, but only select the ids, then we later construct them individually, making
+# a second set of requests.
+# It would be better to expose an init param for DB Objects that takes in the full row
+# and inits with that if provided, and queries the database if not.
 class LocalMephistoDB(MephistoDB):
     """
     Local database for core Mephisto data storage, the LocalMephistoDatabase handles
@@ -393,31 +407,48 @@ class LocalMephistoDB(MephistoDB):
                 (task_id, requester_id),
             )
             rows = c.fetchall()
-            return [TaskRun(self, r['task_id']) for r in rows]
+            return [TaskRun(self, r['task_run_id']) for r in rows]
 
     def new_assignment(self, task_run_id: str) -> str:
-        """
-        Create a new assignment for the given task
+        """Create a new assignment for the given task"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                'INSERT INTO assignments(task_run_id) VALUES (?);',
+                (int(task_run_id), ),
+            )
+            assignment_id = str(c.lastrowid)
+            conn.commit()
+            return assignment_id
 
-        Assignments should not be edited or altered once created
+    def get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
         """
-        raise NotImplementedError()
+        Return assignment's fields by assignment_id, raise EntryDoesNotExistException
+        if no id exists in tasks
 
-    def get_assignment(self, task_id: str) -> Mapping[str, Any]:
+        Returns a SQLite Row object with the expected fields
         """
-        Return assignment's fields by task_id, raise EntryDoesNotExistException if no id exists
-        in tasks
-
-        See Assignment for the expected fields for the returned mapping
-        """
-        raise NotImplementedError()
+        return self.__get_one_by_id('assignments', 'assignment_id', int(assignment_id))
 
     def find_assignments(self, task_run_id: Optional[str] = None) -> List[Assignment]:
         """
         Try to find any task that matches the above. When called with no arguments,
         return all tasks.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            task_run_id = nonesafe_int(task_run_id)
+            c.execute(
+                """
+                SELECT assignment_id from assignments
+                WHERE (?1 IS NULL OR task_run_id = ?1)
+                """,
+                (task_run_id, ),
+            )
+            rows = c.fetchall()
+            return [Assignment(self, r['assignment_id']) for r in rows]
 
     def new_unit(
         self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str
@@ -426,28 +457,71 @@ class LocalMephistoDB(MephistoDB):
         Create a new unit with the given index. Raises EntryAlreadyExistsException
         if there is already a unit for the given assignment with the given index.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    '''INSERT INTO units(
+                        assignment_id,
+                        unit_index,
+                        pay_amount,
+                        provider_type,
+                        status
+                    ) VALUES (?, ?, ?, ?, ?);''',
+                    (
+                        int(assignment_id),
+                        unit_index,
+                        pay_amount,
+                        provider_type,
+                        AssignmentState.CREATED,
+                    ),
+                )
+                unit_id = str(c.lastrowid)
+                conn.commit()
+                return unit_id
+            except sqlite3.IntegrityError:
+                # TODO formally check that the entry already existed? Check other exceptions?
+                conn.rollback()
+                raise EntryAlreadyExistsException()
 
     def get_unit(self, unit_id: str) -> Mapping[str, Any]:
         """
         Return unit's fields by unit_id, raise EntryDoesNotExistException
         if no id exists in units
 
-        See unit for the expected fields for the returned mapping
+        Returns a SQLite Row object with the expected fields
         """
-        raise NotImplementedError()
+        return self.__get_one_by_id('units', 'unit_id', int(unit_id))
 
     def find_units(
         self,
         assignment_id: Optional[str] = None,
-        index: Optional[int] = None,
+        unit_index: Optional[int] = None,
+        provider_type: Optional[str] = None,
         agent_id: Optional[str] = None,
     ) -> List[Unit]:
         """
         Try to find any unit that matches the above. When called with no arguments,
         return all units.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            assignment_id = nonesafe_int(assignment_id)
+            agent_id = nonesafe_int(agent_id)
+            c.execute(
+                """
+                SELECT unit_id from units
+                WHERE (?1 IS NULL OR assignment_id = ?1)
+                AND (?2 IS NULL OR unit_index = ?2)
+                AND (?3 IS NULL OR provider_type = ?3)
+                AND (?4 IS NULL OR agent_id = ?4)
+                """,
+                (assignment_id, unit_index, provider_type, agent_id),
+            )
+            rows = c.fetchall()
+            return [Unit(self, r['unit_id']) for r in rows]
 
     def update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
@@ -455,7 +529,33 @@ class LocalMephistoDB(MephistoDB):
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
-        raise NotImplementedError()
+        assert status in AssignmentState.valid_unit(), f'Invalid status {status} for a unit'
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                if agent_id is not None:
+                    c.execute(
+                        """
+                        UPDATE units
+                        SET agent_id = ?
+                        WHERE unit_id = ?;
+                        """,
+                        (int(agent_id), int(unit_id)),
+                    )
+                if status is not None:
+                    c.execute(
+                        """
+                        UPDATE units
+                        SET status = ?
+                        WHERE unit_id = ?;
+                        """,
+                        (status, int(unit_id)),
+                    )
+                conn.commit()
+            except sqlite3.IntegrityError:
+                conn.rollback()
+                raise MephistoDBException(f'Given agent_id {agent_id} not found in the database')
 
     def new_requester(self, requester_name: str, provider_type: str) -> str:
         """
@@ -463,17 +563,31 @@ class LocalMephistoDB(MephistoDB):
         Raises EntryAlreadyExistsException
         if there is already a requester with this name
         """
-        # TODO ensure that provider type is a valid type
-        raise NotImplementedError()
+        assert_valid_provider(provider_type)
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    'INSERT INTO requesters(requester_name, provider_type) VALUES (?, ?);',
+                    (requester_name, provider_type),
+                )
+                requester_id = str(c.lastrowid)
+                conn.commit()
+                return requester_id
+            except sqlite3.IntegrityError:
+                # TODO formally check that the entry already existed? Check other exceptions?
+                conn.rollback()
+                raise EntryAlreadyExistsException()
 
     def get_requester(self, requester_id: str) -> Mapping[str, Any]:
         """
         Return requester's fields by requester_id, raise EntryDoesNotExistException
         if no id exists in requesters
 
-        See requester for the expected fields for the returned mapping
+        Returns a SQLite Row object with the expected fields
         """
-        raise NotImplementedError()
+        return self.__get_one_by_id('requesters', 'requester_id', int(requester_id))
 
     def find_requesters(
         self, requester_name: Optional[str] = None, provider_type: Optional[str] = None
@@ -482,32 +596,72 @@ class LocalMephistoDB(MephistoDB):
         Try to find any requester that matches the above. When called with no arguments,
         return all requesters.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT requester_id from requesters
+                WHERE (?1 IS NULL OR requester_name = ?1)
+                AND (?2 IS NULL OR provider_type = ?2)
+                """,
+                (requester_name, provider_type),
+            )
+            rows = c.fetchall()
+            return [Requester(self, r['requester_id']) for r in rows]
 
     def new_worker(self, worker_name: str, provider_type: str) -> str:
         """
         Create a new worker with the given name and provider type.
         Raises EntryAlreadyExistsException
         if there is already a worker with this name
+
+        worker_name should be the unique identifier by which the crowd provider
+        is using to keep track of this worker
         """
-        # TODO ensure that provider type is a valid type
-        raise NotImplementedError()
+        assert_valid_provider(provider_type)
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    'INSERT INTO workers(worker_name, provider_type) VALUES (?, ?);',
+                    (worker_name, provider_type),
+                )
+                worker_id = str(c.lastrowid)
+                conn.commit()
+                return worker_id
+            except sqlite3.IntegrityError:
+                # TODO formally check that the entry already existed? Check other exceptions?
+                conn.rollback()
+                raise EntryAlreadyExistsException()
 
     def get_worker(self, worker_id: str) -> Mapping[str, Any]:
         """
         Return worker's fields by worker_id, raise EntryDoesNotExistException
         if no id exists in workers
 
-        See worker for the expected fields for the returned mapping
+        Returns a SQLite Row object with the expected fields
         """
-        raise NotImplementedError()
+        return self.__get_one_by_id('workers', 'worker_id', int(worker_id))
 
     def find_workers(self, provider_type: Optional[str] = None) -> List[Worker]:
         """
         Try to find any worker that matches the above. When called with no arguments,
         return all workers.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT worker_id from workers
+                WHERE (?1 IS NULL OR provider_type = ?1)
+                """,
+                (provider_type, ),
+            )
+            rows = c.fetchall()
+            return [Worker(self, r['task_id']) for r in rows]
 
     def new_agent(
         self, worker_id: str, unit_id: str, task_type: str, provider_type: str
@@ -517,23 +671,62 @@ class LocalMephistoDB(MephistoDB):
         Raises EntryAlreadyExistsException
         if there is already a agent with this name
         """
-        # TODO ensure that provider type is a valid type
-        raise NotImplementedError()
+        assert_valid_provider(provider_type)
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    '''INSERT INTO agents(
+                        worker_id,
+                        unit_id,
+                        task_type,
+                        provider_type,
+                        status
+                    ) VALUES (?, ?, ?, ?, ?);''',
+                    (
+                        int(worker_id),
+                        int(unit_id),
+                        task_type,
+                        provider_type,
+                        AgentState.STATUS_NONE
+                    ),
+                )
+                agent_id = str(c.lastrowid)
+                conn.commit()
+                return agent_id
+            except sqlite3.IntegrityError as e:
+                conn.rollback()
+                raise MephistoDBException(e)
 
     def get_agent(self, agent_id: str) -> Mapping[str, Any]:
         """
         Return agent's fields by agent_id, raise EntryDoesNotExistException
         if no id exists in agents
 
-        See Agent for the expected fields for the returned mapping
+        Returns a SQLite Row object with the expected fields
         """
-        raise NotImplementedError()
+        return self.__get_one_by_id('agents', 'agent_id', int(agent_id))
 
     def update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
-        raise NotImplementedError()
+        assert status in AgentState.valid(), f'Invalid status {status} for an agent'
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                if status is not None:
+                    c.execute(
+                        """
+                        UPDATE agents
+                        SET status = ?
+                        WHERE agent_id = ?;
+                        """,
+                        (status, int(unit_id)),
+                    )
+                conn.commit()
 
     def find_agents(
         self,
@@ -541,10 +734,27 @@ class LocalMephistoDB(MephistoDB):
         unit_id: Optional[str] = None,
         worker_id: Optional[str] = None,
         task_type: Optional[str] = None,
-        provider_type: Optional[int] = None,
+        provider_type: Optional[str] = None,
     ) -> List[Agent]:
         """
         Try to find any agent that matches the above. When called with no arguments,
         return all agents.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            unit_id = nonesafe_int(unit_id)
+            worker_id = nonesafe_int(worker_id)
+            c.execute(
+                """
+                SELECT worker_id from workers
+                WHERE (?1 IS NULL OR status = ?1)
+                AND (?1 IS NULL OR unit_id = ?1)
+                AND (?1 IS NULL OR worker_id = ?1)
+                AND (?1 IS NULL OR task_type = ?1)
+                AND (?1 IS NULL OR provider_type = ?1)
+                """,
+                (status, unit_id, worker_id, task_type, provider_type),
+            )
+            rows = c.fetchall()
+            return [Agent(self, r['task_id']) for r in rows]

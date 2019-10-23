@@ -165,6 +165,8 @@ class Agent(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
+    # TODO do we want to store task working time or completion time here?
+
     def get_worker(self) -> Worker:
         """
         Return the worker that is using this agent for a task

@@ -16,6 +16,7 @@ import json
 
 
 class AssignmentState:
+    CREATED = "created"
     LAUNCHED = "launched"
     ASSIGNED = "assigned"
     COMPLETED = "completed"
@@ -29,6 +30,7 @@ class AssignmentState:
         """Return all valid assignment statuses"""
         # TODO write test to ensure all states are covered here
         return [
+            AssignmentState.CREATED,
             AssignmentState.LAUNCHED,
             AssignmentState.ASSIGNED,
             AssignmentState.COMPLETED,
@@ -52,6 +54,7 @@ class AssignmentState:
     def valid_unit() -> List[str]:
         """Return all statuses that are valids for a Unit"""
         return [
+            AssignmentState.CREATED,
             AssignmentState.LAUNCHED,
             AssignmentState.ASSIGNED,
             AssignmentState.COMPLETED,
