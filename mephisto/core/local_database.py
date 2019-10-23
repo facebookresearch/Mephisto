@@ -24,6 +24,13 @@ from sqlite3 import Connection, Cursor
 import threading
 
 
+def nonesafe_int(in_string: Optional[str]) -> Optional[int]:
+    """Cast input to an int or None"""
+    if in_string is None:
+        return None
+    return int(in_string)
+
+
 CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
     project_id INTEGER PRIMARY KEY AUTOINCREMENT,
     project_name STRING NOT NULL UNIQUE,
@@ -55,6 +62,7 @@ CREATE_TASK_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS task_runs (
     task_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
     task_id INTEGER NOT NULL,
     requester_id INTEGER NOT NULL,
+    init_params STRING NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks (task_id),
     FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
@@ -150,6 +158,26 @@ class LocalMephistoDB(MephistoDB):
             c.execute(CREATE_AGENTS_TABLE)
             conn.commit()
 
+    def __get_one_by_id(self, table_name: str, id_name: str, db_id: str) -> Mapping[str, Any]:
+        """
+        Try to request the row for the given table and entry,
+        raise EntryDoesNotExistException if it isn't present
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                f"""
+                SELECT * FROM {table_name}
+                WHERE ({id_name} = ?)
+                """,
+                (db_id),
+            )
+            results = c.fetchall()
+            if len(results) != 1:
+                raise EntryDoesNotExistException
+            return results[0]
+
     def new_project(self, project_name: str) -> str:
         """
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
@@ -165,7 +193,7 @@ class LocalMephistoDB(MephistoDB):
                 )
                 project_id = str(c.lastrowid)
                 conn.commit()
-                return str(c.lastrowid)
+                return project_id
             except sqlite3.IntegrityError:
                 # TODO formally check that the entry already existed? Check other exceptions?
                 conn.rollback()
@@ -173,25 +201,12 @@ class LocalMephistoDB(MephistoDB):
 
     def get_project(self, project_id: str) -> Mapping[str, Any]:
         """
-        Return project's fields by the given project_id, raise EntryDoesNotExistException if no id exists
-        in projects
+        Return project's fields by the given project_id, raise EntryDoesNotExistException
+        if no id exists in projects
 
         Returns a SQLite Row object with the expected fields
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
-            c = conn.cursor()
-            c.execute(
-                """
-                SELECT * FROM projects
-                WHERE (project_id = ?)
-                """,
-                (type, id),
-            )
-            projects = c.fetchall()
-            if len(projects) != 1:
-                raise EntryDoesNotExistException
-            return projects[0]
+        return self.__get_one_by_id('projects', 'project_id', int(project_id))
 
     def find_projects(
         self, project_name: Optional[str] = None
@@ -206,12 +221,12 @@ class LocalMephistoDB(MephistoDB):
             c.execute(
                 """
                 SELECT project_id from projects
-                AND (?1 IS NULL OR project_name = ?1)
+                WHERE (?1 IS NULL OR project_name = ?1)
                 """,
                 (project_name, ),
             )
-            project_rows = c.fetchall()
-            return [Project(self, r['project_id']) for r in project_rows]
+            rows = c.fetchall()
+            return [Project(self, r['project_id']) for r in rows]
 
     def new_task(
         self,
@@ -224,20 +239,45 @@ class LocalMephistoDB(MephistoDB):
         Create a new task with the given task name. Raise EntryAlreadyExistsException if a task
         with this name has already been created.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            project_id = nonesafe_int(project_id)
+            parent_task_id = nonesafe_int(parent_task_id)
+            try:
+                c.execute(
+                    '''INSERT INTO tasks(
+                        task_name,
+                        task_type,
+                        project_id,
+                        parent_task_id
+                    ) VALUES (?, ?, ?, ?);''',
+                    (
+                        task_name,
+                        task_type,
+                        int(project_id),
+                        int(parent_task_id),
+                    ),
+                )
+                task_id = str(c.lastrowid)
+                conn.commit()
+                return task_id
+            except sqlite3.IntegrityError:
+                # TODO formally check that the entry already existed? Check other exceptions?
+                conn.rollback()
+                raise EntryAlreadyExistsException()
 
-    def get_task(self, task_id: str) -> Optional[Mapping[str, Any]]:
+    def get_task(self, task_id: str) -> Mapping[str, Any]:
         """
         Return task's fields by task_id, raise EntryDoesNotExistException if no id exists
         in tasks
 
-        See Task for the expected fields for the returned mapping
+        Returns a SQLite Row object with the expected fields
         """
-        raise NotImplementedError()
+        return self.__get_one_by_id('tasks', 'task_id', int(task_id))
 
     def find_tasks(
         self,
-        task_id: Optional[str] = None,
         task_name: Optional[str] = None,
         project_id: Optional[str] = None,
         parent_task_id: Optional[str] = None,
@@ -246,42 +286,92 @@ class LocalMephistoDB(MephistoDB):
         Try to find any task that matches the above. When called with no arguments,
         return all tasks.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            project_id = nonesafe_int(project_id)
+            parent_task_id = nonesafe_int(parent_task_id)
+            c.execute(
+                """
+                SELECT task_id from tasks
+                WHERE (?1 IS NULL OR task_name = ?1)
+                AND (?2 IS NULL OR project_id = ?2)
+                AND (?3 IS NULL OR parent_project_id = ?3)
+                """,
+                (task_name, project_id, parent_task_id),
+            )
+            rows = c.fetchall()
+            return [Task(self, r['task_id']) for r in rows]
 
     def update_task(
         self,
         task_id: str,
         task_name: Optional[str] = None,
         project_id: Optional[str] = None,
-        parent_task_id: Optional[str] = None,
     ) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
+
+        Tasks can only be updated if no runs exist for this task yet, otherwise there's too much state
+        and we shouldn't make changes.
         """
-        raise NotImplementedError()
+        if len(self.find_task_runs(task_id=task_id)) != 0:
+            raise MephistoDBException(
+                'Cannot edit a task that has already been run, for risk of data corruption.'
+            )
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                if task_name is not None:
+                    c.execute(
+                        """
+                        UPDATE tasks
+                        SET task_name = ?
+                        WHERE task_id = ?;
+                        """,
+                        (task_name, int(task_id)),
+                    )
+                if project_id is not None:
+                    c.execute(
+                        """
+                        UPDATE tasks
+                        SET project_id = ?
+                        WHERE task_id = ?;
+                        """,
+                        (int(project_id), int(task_id)),
+                    )
+                conn.commit()
+            except sqlite3.IntegrityError:
+                # TODO formally check that the entry already existed? Check other exceptions?
+                conn.rollback()
+                raise EntryAlreadyExistsException()
 
     def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
-        """
-        Create a new task_run for the given task.
+        """Create a new task_run for the given task."""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """INSERT INTO task_runs(task_id, requester_id, init_params)
+                VALUES (?, ?, ?);""",
+                (int(task_id), int(requester_id), init_params),
+            )
+            task_run_id = str(c.lastrowid)
+            conn.commit()
+            return task_run_id
 
-        Once a run is created, it should no longer be altered. The assignments and
-        subassignments depend on the data set up within, as the launched task
-        cannot be replaced and the requester can not be swapped mid-run.
-        """
-        raise NotImplementedError()
-
-    def get_task_run(self, task_run_id: str) -> Optional[Mapping[str, Any]]:
+    def get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
         """
         Return the given task_run's fields by task_run_id, raise EntryDoesNotExistException if no id exists
         in task_runs.
 
-        See TaskRun for the expected fields to populate in the returned mapping
+        Returns a SQLite Row object with the expected fields
         """
-        raise NotImplementedError()
+        return self.__get_one_by_id('task_runs', 'task_run_id', int(task_run_id))
 
     def find_task_runs(
         self,
-        task_run_id: Optional[str] = None,
         task_id: Optional[str] = None,
         requester_id: Optional[str] = None,
     ) -> List[TaskRun]:
@@ -289,7 +379,21 @@ class LocalMephistoDB(MephistoDB):
         Try to find any task_run that matches the above. When called with no arguments,
         return all task_runs.
         """
-        raise NotImplementedError()
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            task_id = nonesafe_int(task_id)
+            requester_id = nonesafe_int(requester_id)
+            c.execute(
+                """
+                SELECT task_run_id from task_runs
+                WHERE (?1 IS NULL OR task_id = ?1)
+                AND (?2 IS NULL OR requester_id = ?2)
+                """,
+                (task_id, requester_id),
+            )
+            rows = c.fetchall()
+            return [TaskRun(self, r['task_id']) for r in rows]
 
     def new_assignment(self, task_run_id: str) -> str:
         """
@@ -299,7 +403,7 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    def get_assignment(self, task_id: str) -> Optional[Mapping[str, Any]]:
+    def get_assignment(self, task_id: str) -> Mapping[str, Any]:
         """
         Return assignment's fields by task_id, raise EntryDoesNotExistException if no id exists
         in tasks
@@ -324,7 +428,7 @@ class LocalMephistoDB(MephistoDB):
         """
         raise NotImplementedError()
 
-    def get_unit(self, unit_id: str) -> Optional[Mapping[str, Any]]:
+    def get_unit(self, unit_id: str) -> Mapping[str, Any]:
         """
         Return unit's fields by unit_id, raise EntryDoesNotExistException
         if no id exists in units
@@ -362,7 +466,7 @@ class LocalMephistoDB(MephistoDB):
         # TODO ensure that provider type is a valid type
         raise NotImplementedError()
 
-    def get_requester(self, requester_id: str) -> Optional[Mapping[str, Any]]:
+    def get_requester(self, requester_id: str) -> Mapping[str, Any]:
         """
         Return requester's fields by requester_id, raise EntryDoesNotExistException
         if no id exists in requesters
@@ -389,7 +493,7 @@ class LocalMephistoDB(MephistoDB):
         # TODO ensure that provider type is a valid type
         raise NotImplementedError()
 
-    def get_worker(self, worker_id: str) -> Optional[Mapping[str, Any]]:
+    def get_worker(self, worker_id: str) -> Mapping[str, Any]:
         """
         Return worker's fields by worker_id, raise EntryDoesNotExistException
         if no id exists in workers
@@ -416,7 +520,7 @@ class LocalMephistoDB(MephistoDB):
         # TODO ensure that provider type is a valid type
         raise NotImplementedError()
 
-    def get_agent(self, agent_id: str) -> Optional[Mapping[str, Any]]:
+    def get_agent(self, agent_id: str) -> Mapping[str, Any]:
         """
         Return agent's fields by agent_id, raise EntryDoesNotExistException
         if no id exists in agents

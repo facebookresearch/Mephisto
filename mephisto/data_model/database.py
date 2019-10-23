@@ -98,7 +98,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_task(self, task_id: str) -> Optional[Mapping[str, Any]]:
+    def get_task(self, task_id: str) -> Mapping[str, Any]:
         """
         Return task's fields by task_id, raise EntryDoesNotExistException if no id exists
         in tasks
@@ -110,7 +110,6 @@ class MephistoDB(ABC):
     @abstractmethod
     def find_tasks(
         self,
-        task_id: Optional[str] = None,
         task_name: Optional[str] = None,
         project_id: Optional[str] = None,
         parent_task_id: Optional[str] = None,
@@ -127,7 +126,6 @@ class MephistoDB(ABC):
         task_id: str,
         task_name: Optional[str] = None,
         project_id: Optional[str] = None,
-        parent_task_id: Optional[str] = None,
     ) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
@@ -146,7 +144,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_task_run(self, task_run_id: str) -> Optional[Mapping[str, Any]]:
+    def get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
         """
         Return the given task_run's fields by task_run_id, raise EntryDoesNotExistException if no id exists
         in task_runs.
@@ -158,7 +156,6 @@ class MephistoDB(ABC):
     @abstractmethod
     def find_task_runs(
         self,
-        task_run_id: Optional[str] = None,
         task_id: Optional[str] = None,
         requester_id: Optional[str] = None,
     ) -> List[TaskRun]:
@@ -178,7 +175,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_assignment(self, task_id: str) -> Optional[Mapping[str, Any]]:
+    def get_assignment(self, task_id: str) -> Mapping[str, Any]:
         """
         Return assignment's fields by task_id, raise EntryDoesNotExistException if no id exists
         in tasks
@@ -206,7 +203,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_unit(self, unit_id: str) -> Optional[Mapping[str, Any]]:
+    def get_unit(self, unit_id: str) -> Mapping[str, Any]:
         """
         Return unit's fields by unit_id, raise EntryDoesNotExistException
         if no id exists in units
@@ -248,7 +245,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_requester(self, requester_id: str) -> Optional[Mapping[str, Any]]:
+    def get_requester(self, requester_id: str) -> Mapping[str, Any]:
         """
         Return requester's fields by requester_id, raise EntryDoesNotExistException
         if no id exists in requesters
@@ -278,7 +275,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_worker(self, worker_id: str) -> Optional[Mapping[str, Any]]:
+    def get_worker(self, worker_id: str) -> Mapping[str, Any]:
         """
         Return worker's fields by worker_id, raise EntryDoesNotExistException
         if no id exists in workers
@@ -308,7 +305,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_agent(self, agent_id: str) -> Optional[Mapping[str, Any]]:
+    def get_agent(self, agent_id: str) -> Mapping[str, Any]:
         """
         Return agent's fields by agent_id, raise EntryDoesNotExistException
         if no id exists in agents
