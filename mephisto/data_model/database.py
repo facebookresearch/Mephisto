@@ -43,6 +43,7 @@ class MephistoDB(ABC):
     """
 
     def __init__(self):
+        """Ensure the database is set up and ready to handle data"""
         self.init_tables()
 
     @abstractmethod

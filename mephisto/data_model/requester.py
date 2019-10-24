@@ -5,13 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.data_model.database import MephistoDB
-from mephisto.data_model.task import TaskRun
-from mephisto.data_model.assignment import Unit
-from mephisto.data_model.project import Project
 from mephisto.core.utils import get_crowd_provider_from_type
 
-from typing import List
+from typing import List, TYPE_CHECKING
+if TYPE_CHECKING:
+    from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.task import TaskRun
 
 
 class Requester(ABC):
@@ -21,15 +20,15 @@ class Requester(ABC):
     with whatever implementation details are required to get those to work.
     """
 
-    def __init__(self, db: MephistoDB, db_id: str):
+    def __init__(self, db: 'MephistoDB', db_id: str):
         self.db_id: str = db_id
-        self.db: MephistoDB = db
+        self.db: 'MephistoDB' = db
         row = db.get_requester(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.provider_type: str = row["provider_type"]
         self.requester_name: str = row["requester_name"]
 
-    def __new__(cls, db: MephistoDB, db_id: str) -> Requester:
+    def __new__(cls, db: 'MephistoDB', db_id: str) -> 'Requester':
         """
         The new method is overridden to be able to automatically generate
         the expected Requester class without needing to specifically find it
@@ -50,7 +49,7 @@ class Requester(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    def get_task_runs(self) -> List[TaskRun]:
+    def get_task_runs(self) -> List['TaskRun']:
         """
         Return the list of task runs that are run by this requester
         """
@@ -69,8 +68,8 @@ class Requester(ABC):
 
     @staticmethod
     def _register_requester(
-        db: MephistoDB, requester_id: str, provider_type: str
-    ) -> Requester:
+        db: 'MephistoDB', requester_id: str, provider_type: str
+    ) -> 'Requester':
         """
         Create an entry for this requester in the database
         """
@@ -78,7 +77,7 @@ class Requester(ABC):
         return Requester(db, db_id)
 
     @staticmethod
-    def new(db: MephistoDB, requester_name: str) -> Requester:
+    def new(db: 'MephistoDB', requester_name: str) -> 'Requester':
         """
         Try to create a new requester by this name, raise an exception if
         the name already exists.

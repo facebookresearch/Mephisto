@@ -41,15 +41,15 @@ def assert_valid_provider(provider_type: str) -> None:
 
 CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
     project_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_name STRING NOT NULL UNIQUE,
+    project_name TEXT NOT NULL UNIQUE,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 """
 
 CREATE_TASKS_TABLE = """CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_name STRING NOT NULL UNIQUE,
-    task_type STRING NOT NULL,
+    task_name TEXT NOT NULL UNIQUE,
+    task_type TEXT NOT NULL,
     project_id INTEGER,
     parent_task_id INTEGER,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -60,8 +60,8 @@ CREATE_TASKS_TABLE = """CREATE TABLE IF NOT EXISTS tasks (
 
 CREATE_REQUESTERS_TABLE = """CREATE TABLE IF NOT EXISTS requesters (
     requester_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    requester_name STRING NOT NULL UNIQUE,
-    provider_type STRING NOT NULL,
+    requester_name TEXT NOT NULL UNIQUE,
+    provider_type TEXT NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 """
@@ -70,7 +70,7 @@ CREATE_TASK_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS task_runs (
     task_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
     task_id INTEGER NOT NULL,
     requester_id INTEGER NOT NULL,
-    init_params STRING NOT NULL,
+    init_params TEXT NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks (task_id),
     FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
@@ -90,9 +90,9 @@ CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
     assignment_id INTEGER NOT NULL,
     unit_index INTEGER NOT NULL,
     pay_amount FLOAT NOT NULL,
-    provider_type STRING NOT NULL,
-    status STRING NOT NULL,
-    agent_id STRING,
+    provider_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    agent_id INTEGER,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id),
     FOREIGN KEY (agent_id) REFERENCES agents (agent_id),
@@ -102,7 +102,7 @@ CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
 
 CREATE_WORKERS_TABLE = """CREATE TABLE IF NOT EXISTS workers (
     worker_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    provider_type STRING NOT NULL,
+    provider_type TEXT NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 """
@@ -111,9 +111,9 @@ CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
     agent_id INTEGER PRIMARY KEY AUTOINCREMENT,
     worker_id INTEGER NOT NULL,
     unit_id INTEGER NOT NULL,
-    task_type STRING NOT NULL,
-    provider_type STRING NOT NULL,
-    status STRING NOT NULL,
+    task_type TEXT NOT NULL,
+    provider_type TEXT NOT NULL,
+    status TEXT NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
     FOREIGN KEY (unit_id) REFERENCES units (unit_id)
@@ -122,8 +122,8 @@ CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
 
 
 # TODO find_x queries are pretty slow right now, as we query the same table once to get
-# all of the rows, but only select the ids, then we later construct them individually, making
-# a second set of requests.
+# all of the rows, but only select the ids, then we later construct them individually,
+# making a second set of requests.
 # It would be better to expose an init param for DB Objects that takes in the full row
 # and inits with that if provided, and queries the database if not.
 class LocalMephistoDB(MephistoDB):
@@ -133,8 +133,10 @@ class LocalMephistoDB(MephistoDB):
     local files and a database.
     """
 
-    def __init__(self, file_name="database.db"):
-        self.db_path = os.path.join(get_data_dir(), file_name)
+    def __init__(self, database_path=None):
+        if database_path is None:
+            database_path = os.path.join(get_data_dir(), "database.db")
+        self.db_path = database_path
         self.conn: Dict[int, Connection] = {}
         self.table_access_condition = threading.Condition()
         self.init_tables()
@@ -154,6 +156,12 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.Error as e:
                 raise MephistoDBException(e)
         return self.conn[curr_thread]
+
+    def shutdown(self) -> None:
+        """Close all open connections"""
+        with self.table_access_condition:
+            for conn in self.conn.values():
+                conn.close()
 
     def init_tables(self) -> None:
         """
@@ -241,7 +249,7 @@ class LocalMephistoDB(MephistoDB):
                 (project_name,),
             )
             rows = c.fetchall()
-            return [Project(self, r["project_id"]) for r in rows]
+            return [Project(self, str(r["project_id"])) for r in rows]
 
     def new_task(
         self,
@@ -307,12 +315,12 @@ class LocalMephistoDB(MephistoDB):
                 SELECT task_id from tasks
                 WHERE (?1 IS NULL OR task_name = ?1)
                 AND (?2 IS NULL OR project_id = ?2)
-                AND (?3 IS NULL OR parent_project_id = ?3)
+                AND (?3 IS NULL OR parent_task_id = ?3)
                 """,
                 (task_name, nonesafe_int(project_id), nonesafe_int(parent_task_id)),
             )
             rows = c.fetchall()
-            return [Task(self, r["task_id"]) for r in rows]
+            return [Task(self, str(r["task_id"])) for r in rows]
 
     def update_task(
         self,
@@ -400,7 +408,7 @@ class LocalMephistoDB(MephistoDB):
                 (nonesafe_int(task_id), nonesafe_int(requester_id)),
             )
             rows = c.fetchall()
-            return [TaskRun(self, r["task_run_id"]) for r in rows]
+            return [TaskRun(self, str(r["task_run_id"])) for r in rows]
 
     def new_assignment(self, task_run_id: str) -> str:
         """Create a new assignment for the given task"""
@@ -439,7 +447,7 @@ class LocalMephistoDB(MephistoDB):
                 (nonesafe_int(task_run_id),),
             )
             rows = c.fetchall()
-            return [Assignment(self, r["assignment_id"]) for r in rows]
+            return [Assignment(self, str(r["assignment_id"])) for r in rows]
 
     def new_unit(
         self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str
@@ -515,7 +523,7 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [Unit(self, r["unit_id"]) for r in rows]
+            return [Unit(self, str(r["unit_id"])) for r in rows]
 
     def update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
@@ -606,7 +614,7 @@ class LocalMephistoDB(MephistoDB):
                 (requester_name, provider_type),
             )
             rows = c.fetchall()
-            return [Requester(self, r["requester_id"]) for r in rows]
+            return [Requester(self, str(r["requester_id"])) for r in rows]
 
     def new_worker(self, worker_name: str, provider_type: str) -> str:
         """
@@ -659,7 +667,7 @@ class LocalMephistoDB(MephistoDB):
                 (provider_type,),
             )
             rows = c.fetchall()
-            return [Worker(self, r["task_id"]) for r in rows]
+            return [Worker(self, str(r["task_id"])) for r in rows]
 
     def new_agent(
         self, worker_id: str, unit_id: str, task_type: str, provider_type: str
@@ -742,12 +750,12 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT worker_id from workers
+                SELECT agent_id from agents
                 WHERE (?1 IS NULL OR status = ?1)
-                AND (?1 IS NULL OR unit_id = ?1)
-                AND (?1 IS NULL OR worker_id = ?1)
-                AND (?1 IS NULL OR task_type = ?1)
-                AND (?1 IS NULL OR provider_type = ?1)
+                AND (?2 IS NULL OR unit_id = ?2)
+                AND (?3 IS NULL OR worker_id = ?3)
+                AND (?4 IS NULL OR task_type = ?4)
+                AND (?5 IS NULL OR provider_type = ?5)
                 """,
                 (
                     status,
@@ -758,4 +766,4 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [Agent(self, r["task_id"]) for r in rows]
+            return [Agent(self, str(r["agent_id"])) for r in rows]
