@@ -392,6 +392,9 @@ class LocalMephistoDB(MephistoDB):
     def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
         """Create a new task_run for the given task."""
         with self.table_access_condition:
+            # Ensure given ids are valid
+            _task = self.get_task(task_id)
+            _requester = self.get_requester(requester_id)
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(

@@ -126,7 +126,7 @@ class Task:
         """
         Return the task parameters associated with this task
         """
-        task_dir = self.get_task_source()
+        # task_dir = self.get_task_source()
         # TODO load the TaskParams module for the given task
         raise NotImplementedError()
 
@@ -224,8 +224,6 @@ class TaskRun:
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
-        task = Task(db, self.task_id)
-        self.task_params = task.get_task_params()
         self.param_string = row["init_params"]
 
     def get_task(self) -> 'Task':
@@ -291,6 +289,11 @@ class TaskRun:
         for assign in assigns:
             total_amount += assign.get_cost_of_statuses(AssignmentState.payable())
         return total_amount
+
+    def get_task_params(self) -> TaskParams:
+        """Return the task params for the parent task"""
+        task = Task(self.db, self.task_id)
+        return task.get_task_params()
 
     @staticmethod
     def new(

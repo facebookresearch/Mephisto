@@ -6,7 +6,7 @@
 
 
 import unittest
-from typing import Optional
+from typing import Optional, Tuple
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.agent_state import AgentState
@@ -66,13 +66,38 @@ class BaseDatabaseTests(unittest.TestCase):
         """
         return '999'
 
-    def get_test_project(self) -> None:
+    def get_test_project(self) -> Tuple[str, str]:
         """Helper to create a project for tests"""
         assert self.db is not None, 'No db initialized'
         db: MephistoDB = self.db
         project_name = 'test_project'
         project_id = db.new_project(project_name)
         return project_name, project_id
+
+    def get_test_worker(self) -> Tuple[str, str]:
+        """Helper to create a worker for tests"""
+        assert self.db is not None, 'No db initialized'
+        db: MephistoDB = self.db
+        worker_name = 'test_worker'
+        provider_type = 'mock'
+        worker_id = db.new_worker(worker_name, provider_type)
+        return worker_name, worker_id
+
+    def get_test_requester(self) -> Tuple[str, str]:
+        """Helper to create a requester for tests"""
+        db: MephistoDB = self.db
+        requester_name = 'test_requester'
+        provider_type = 'mock'
+        requester_id = db.new_requester(requester_name, provider_type)
+        return requester_name, requester_id
+
+    def get_test_task(self) -> Tuple[str, str]:
+        """Helper to create a task for tests"""
+        db: MephistoDB = self.db
+        task_name = 'test_task'
+        task_type = 'mock'
+        task_id = db.new_task(task_name, task_type)
+        return task_name, task_id
 
     def test_all_types_init_empty(self) -> None:
         """Ensure all of the tables on an empty database are empty"""
@@ -306,12 +331,11 @@ class BaseDatabaseTests(unittest.TestCase):
         db.update_task(task_id_2, task_name=task_name_3)
 
         # But not after we've created a task run
-        # TODO finish this once task_runs are done
-        # x = task_run
-        # with self.assertRaises(MephistoDBException):
-        #     fake_id = self.get_fake_id('Project')
-        #     task_id = db.update_task(task_id_2, task_name=task_name_2)
-
+        requester_name, requester_id = self.get_test_requester()
+        init_params = "--test --params"
+        task_run_id = db.new_task_run(task_id_2, requester_id, init_params)
+        with self.assertRaises(MephistoDBException):
+            task_id = db.update_task(task_id_2, task_name=task_name_2)
 
     def test_requester(self) -> None:
         """Test creation and querying of requesters"""
@@ -434,3 +458,68 @@ class BaseDatabaseTests(unittest.TestCase):
         # # Ensure no workers were created
         # workers = db.find_workers()
         # self.assertEqual(len(workers), 1)
+
+    def test_task_run(self) -> None:
+        """Test creation and querying of task_runs"""
+        assert self.db is not None, 'No db initialized'
+        db: MephistoDB = self.db
+
+        task_name, task_id = self.get_test_task()
+        requester_name, requester_id = self.get_test_requester()
+
+        # Check creation and retrieval of a task_run
+        # TODO pull initial params from the task type?
+        init_params = "--test --params"
+        task_run_id = db.new_task_run(task_id, requester_id, init_params)
+        self.assertIsNotNone(task_run_id)
+        self.assertTrue(isinstance(task_run_id, str))
+        task_run_row = db.get_task_run(task_run_id)
+        self.assertEqual(task_run_row['init_params'], init_params)
+        task_run = TaskRun(db, task_run_id)
+        self.assertEqual(task_run.task_id, task_id)
+
+        # Check finding for task_runs
+        task_runs = db.find_task_runs()
+        self.assertEqual(len(task_runs), 1)
+        self.assertTrue(isinstance(task_runs[0], TaskRun))
+        self.assertEqual(task_runs[0].db_id, task_run_id)
+        self.assertEqual(task_runs[0].task_id, task_id)
+        self.assertEqual(task_runs[0].requester_id, requester_id)
+
+        # Check finding for specific task_runs
+        task_runs = db.find_task_runs(task_id=task_id)
+        self.assertEqual(len(task_runs), 1)
+        self.assertTrue(isinstance(task_runs[0], TaskRun))
+        self.assertEqual(task_runs[0].db_id, task_run_id)
+        self.assertEqual(task_runs[0].task_id, task_id)
+        self.assertEqual(task_runs[0].requester_id, requester_id)
+
+        task_runs = db.find_task_runs(requester_id=requester_id)
+        self.assertEqual(len(task_runs), 1)
+        self.assertTrue(isinstance(task_runs[0], TaskRun))
+        self.assertEqual(task_runs[0].db_id, task_run_id)
+        self.assertEqual(task_runs[0].task_id, task_id)
+        self.assertEqual(task_runs[0].requester_id, requester_id)
+
+        task_runs = db.find_task_runs(task_id=self.get_fake_id('Task'))
+        self.assertEqual(len(task_runs), 0)
+
+    def test_task_run_fails(self) -> None:
+        """Ensure task_runs fail to be created or loaded under failure conditions"""
+        assert self.db is not None, 'No db initialized'
+        db: MephistoDB = self.db
+
+        task_name, task_id = self.get_test_task()
+        requester_name, requester_id = self.get_test_requester()
+        init_params = "--test --params"
+
+        # Can't create task run with invalid ids
+        with self.assertRaises(EntryDoesNotExistException):
+            task_run_id = db.new_task_run(self.get_fake_id('Task'), requester_id, init_params)
+        with self.assertRaises(EntryDoesNotExistException):
+            task_run_id = db.new_task_run(task_id, self.get_fake_id('Requester'), init_params)
+
+
+        # Ensure no task_runs were created
+        task_runs = db.find_task_runs()
+        self.assertEqual(len(task_runs), 0)
