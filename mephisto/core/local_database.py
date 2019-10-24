@@ -35,9 +35,10 @@ def nonesafe_int(in_string: Optional[str]) -> Optional[int]:
 def assert_valid_provider(provider_type: str) -> None:
     """Throw an assertion error if the given provider type is not valid"""
     valid_types = get_valid_provider_types()
-    assert (
-        provider_type in valid_types
-    ), f"Supplied provider {provider_type} is not in supported list of providers {valid_types}."
+    if provider_type not in valid_types:
+        raise MephistoDBException(
+            f"Supplied provider {provider_type} is not in supported list of providers {valid_types}."
+        )
 
 
 CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
@@ -103,6 +104,7 @@ CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
 
 CREATE_WORKERS_TABLE = """CREATE TABLE IF NOT EXISTS workers (
     worker_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    worker_name TEXT NOT NULL UNIQUE,
     provider_type TEXT NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -275,6 +277,9 @@ class LocalMephistoDB(MephistoDB):
         """
         if task_name in ['']:
             raise MephistoDBException(f'Invalid task name "{task_name}')
+        if project_id is not None:
+            # Ensure project exists
+            _project = Project(self, project_id)
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -351,6 +356,11 @@ class LocalMephistoDB(MephistoDB):
             raise MephistoDBException(
                 "Cannot edit a task that has already been run, for risk of data corruption."
             )
+        if task_name in ['']:
+            raise MephistoDBException(f'Invalid task name "{task_name}')
+        if project_id is not None:
+            # Ensure project exists
+            _project = Project(self, project_id)
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -377,7 +387,7 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError:
                 # TODO formally check that the entry already existed? Check other exceptions?
                 conn.rollback()
-                raise EntryAlreadyExistsException()
+                raise EntryAlreadyExistsException(f'Task name {task_name} is already in use')
 
     def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
         """Create a new task_run for the given task."""
@@ -582,6 +592,8 @@ class LocalMephistoDB(MephistoDB):
         Raises EntryAlreadyExistsException
         if there is already a requester with this name
         """
+        if requester_name == '':
+            raise MephistoDBException("Empty string is not a valid requester name")
         assert_valid_provider(provider_type)
         with self.table_access_condition:
             conn = self._get_connection()
@@ -638,6 +650,8 @@ class LocalMephistoDB(MephistoDB):
         worker_name should be the unique identifier by which the crowd provider
         is using to keep track of this worker
         """
+        if worker_name == '':
+            raise MephistoDBException("Empty string is not a valid requester name")
         assert_valid_provider(provider_type)
         with self.table_access_condition:
             conn = self._get_connection()

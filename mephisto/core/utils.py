@@ -6,6 +6,7 @@
 
 import os
 from typing import Optional, Any, List
+import functools
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
 
@@ -82,9 +83,11 @@ def get_task_runner_from_type(task_type: str) -> Any:
     raise NotImplementedError()
 
 
+@functools.lru_cache(maxsize=1)
 def get_valid_provider_types() -> List[str]:
     """
     Return the valid provider types that are currently supported by
     the mephisto framework
     """
-    raise NotImplementedError()
+    # TODO query this from the providers folder
+    return ['mock']

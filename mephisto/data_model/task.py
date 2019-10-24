@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 
-VALID_TASK_TYPES = ["legacy_parlai", "generic"]
+VALID_TASK_TYPES = ["legacy_parlai", "generic", "mock"]
 
 
 def assert_task_is_valid(dir_name, task_type) -> None:

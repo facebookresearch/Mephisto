@@ -130,6 +130,8 @@ class MephistoDB(ABC):
     ) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
+
+        Should only be runable if no runs have been created for this task
         """
         raise NotImplementedError()
 

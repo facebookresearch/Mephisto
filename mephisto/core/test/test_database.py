@@ -9,10 +9,10 @@ import shutil
 import os
 import tempfile
 
-from mephisto.data_model.test.data_model_tester import BaseDataModelTests
+from mephisto.data_model.test.data_model_database_tester import BaseDatabaseTests
 from mephisto.core.local_database import LocalMephistoDB
 
-class TestLocalMephistoDB(BaseDataModelTests):
+class TestLocalMephistoDB(BaseDatabaseTests):
     '''
     Unit testing for the LocalMephistoDB
 
