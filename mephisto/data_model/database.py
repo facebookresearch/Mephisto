@@ -89,8 +89,8 @@ class MephistoDB(ABC):
         self,
         task_name: str,
         task_type: str,
-        project_id: Optional[str],
-        parent_task_id: Optional[str],
+        project_id: Optional[str] = None,
+        parent_task_id: Optional[str] = None,
     ) -> str:
         """
         Create a new task with the given task name. Raise EntryAlreadyExistsException if a task

@@ -14,6 +14,7 @@ from typing import Mapping, Optional, Any, List
 from mephisto.core.utils import get_data_dir, get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState
 from mephisto.data_model.assignment import Assignment, Unit, AssignmentState
+from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
@@ -120,6 +121,14 @@ CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
 );
 """
 
+class StringIDRow(sqlite3.Row):
+    def __getitem__(self, key:str) -> Any:
+        val = super().__getitem__(key)
+        if key.endswith("_id") and val is not None:
+            return str(val)
+        else:
+            return val
+
 
 # TODO find_x queries are pretty slow right now, as we query the same table once to get
 # all of the rows, but only select the ids, then we later construct them individually,
@@ -151,7 +160,7 @@ class LocalMephistoDB(MephistoDB):
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
             try:
                 conn = sqlite3.connect(self.db_path)
-                conn.row_factory = sqlite3.Row
+                conn.row_factory = StringIDRow
                 self.conn[curr_thread] = conn
             except sqlite3.Error as e:
                 raise MephistoDBException(e)
@@ -209,6 +218,8 @@ class LocalMephistoDB(MephistoDB):
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
         with this name has already been created.
         """
+        if project_name in [NO_PROJECT_NAME, '']:
+            raise MephistoDBException(f'Invalid project name "{project_name}')
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -255,13 +266,15 @@ class LocalMephistoDB(MephistoDB):
         self,
         task_name: str,
         task_type: str,
-        project_id: Optional[str],
-        parent_task_id: Optional[str],
+        project_id: Optional[str] = None,
+        parent_task_id: Optional[str] = None,
     ) -> str:
         """
         Create a new task with the given task name. Raise EntryAlreadyExistsException if a task
         with this name has already been created.
         """
+        if task_name in ['']:
+            raise MephistoDBException(f'Invalid task name "{task_name}')
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()

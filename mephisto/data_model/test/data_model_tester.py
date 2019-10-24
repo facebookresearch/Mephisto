@@ -16,7 +16,7 @@ from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.database import MephistoDB
+from mephisto.data_model.database import MephistoDB, MephistoDBException, EntryAlreadyExistsException, EntryDoesNotExistException
 
 
 class BaseDataModelTests(unittest.TestCase):
@@ -53,6 +53,15 @@ class BaseDataModelTests(unittest.TestCase):
         set up.
         """
         raise NotImplementedError()
+
+    def get_fake_id(self, id_type: str = None) -> str:
+        """
+        Return a fake task id to be used to fail loading
+        something that shouldn't exist yet. Takes as input
+        the object type string being created
+        """
+        return '999'
+
 
     def test_all_types_init_empty(self) -> None:
         assert self.db is not None, 'No db initialized'
@@ -97,3 +106,130 @@ class BaseDataModelTests(unittest.TestCase):
         projects = db.find_projects(project_name='fake_name')
         self.assertEqual(len(projects), 0)
 
+    def test_project_fails(self) -> None:
+        assert self.db is not None, 'No db initialized'
+        db: MephistoDB = self.db
+
+        # Cant get non-existent entry
+        with self.assertRaises(EntryDoesNotExistException):
+            project = Project(db, self.get_fake_id('Project'))
+
+        project_name = 'test_project'
+        project_id = db.new_project(project_name)
+
+        # Can't create same project again
+        with self.assertRaises(EntryAlreadyExistsException):
+            project_id = db.new_project(project_name)
+
+        # Can't use reserved name
+        with self.assertRaises(MephistoDBException):
+            project_id = db.new_project(NO_PROJECT_NAME)
+
+        # Can't use no name
+        with self.assertRaises(MephistoDBException):
+            project_id = db.new_project('')
+
+        # Ensure no projects were created
+        projects = db.find_projects()
+        self.assertEqual(len(projects), 1)
+
+    def get_test_project(self) -> None:
+        assert self.db is not None, 'No db initialized'
+        db: MephistoDB = self.db
+        project_name = 'test_project'
+        project_id = db.new_project(project_name)
+        return project_name, project_id
+
+    def test_task(self) -> None:
+        assert self.db is not None, 'No db initialized'
+        db: MephistoDB = self.db
+
+        project_name, project_id = self.get_test_project()
+
+        # Check creation and retrieval of a task
+        task_name_1 = 'test_task'
+        task_type = 'test'
+        task_id_1 = db.new_task(task_name_1, task_type, project_id=project_id)
+        self.assertIsNotNone(task_id_1)
+        self.assertTrue(isinstance(task_id_1, str))
+        task_row = db.get_task(task_id_1)
+        self.assertEqual(task_row['task_name'], task_name_1)
+        self.assertEqual(task_row['task_type'], task_type)
+        self.assertEqual(task_row['project_id'], project_id)
+        self.assertIsNone(task_row['parent_task_id'])
+        task = Task(db, task_id_1)
+        self.assertEqual(task.task_name, task_name_1)
+
+        # Check creation of a task with a parent task, but no project
+        task_name_2 = 'test_task_2'
+        task_id_2 = db.new_task(task_name_2, task_type, parent_task_id=task_id_1)
+        self.assertIsNotNone(task_id_2)
+        self.assertTrue(isinstance(task_id_2, str))
+        task_row = db.get_task(task_id_2)
+        self.assertEqual(task_row['task_name'], task_name_2)
+        self.assertEqual(task_row['task_type'], task_type)
+        self.assertEqual(task_row['parent_task_id'], task_id_1)
+        self.assertIsNone(task_row['project_id'])
+        task = Task(db, task_id_2)
+        self.assertEqual(task.task_name, task_name_2)
+
+        # Check finding for tasks
+        tasks = db.find_tasks()
+        self.assertEqual(len(tasks), 2)
+        self.assertTrue(isinstance(tasks[0], Task))
+
+        # Check finding for specific tasks
+        tasks = db.find_tasks(task_name=task_name_1)
+        self.assertEqual(len(tasks), 1)
+        self.assertTrue(isinstance(tasks[0], Task))
+        self.assertEqual(tasks[0].db_id, task_id_1)
+        self.assertEqual(tasks[0].task_name, task_name_1)
+
+        tasks = db.find_tasks(project_id=project_id)
+        self.assertEqual(len(tasks), 1)
+        self.assertTrue(isinstance(tasks[0], Task))
+        self.assertEqual(tasks[0].db_id, task_id_1)
+        self.assertEqual(tasks[0].task_name, task_name_1)
+
+        tasks = db.find_tasks(parent_task_id=task_id_1)
+        self.assertEqual(len(tasks), 1)
+        self.assertTrue(isinstance(tasks[0], Task))
+        self.assertEqual(tasks[0].db_id, task_id_2)
+        self.assertEqual(tasks[0].task_name, task_name_2)
+
+        tasks = db.find_tasks(task_name='fake_name')
+        self.assertEqual(len(tasks), 0)
+
+    def test_task_fails(self) -> None:
+        assert self.db is not None, 'No db initialized'
+        db: MephistoDB = self.db
+
+        # Cant get non-existent entry
+        with self.assertRaises(EntryDoesNotExistException):
+            task = Task(db, self.get_fake_id('Task'))
+
+        task_name = 'test_task'
+        task_type = 'test'
+        task_id = db.new_task(task_name, task_type)
+
+        # Can't create same task again
+        with self.assertRaises(EntryAlreadyExistsException):
+            task_id = db.new_task(task_name, task_type)
+
+        # Can't create task with invalid project
+        with self.assertRaises(EntryAlreadyExistsException):
+            fake_id = self.get_fake_id('Project')
+            task_id = db.new_task(task_name, task_type, project_id=fake_id)
+
+        # Can't create task with invalid parent task
+        with self.assertRaises(EntryAlreadyExistsException):
+            fake_id = self.get_fake_id('Task')
+            task_id = db.new_task(task_name, task_type, parent_task_id=fake_id)
+
+        # Can't use no name
+        with self.assertRaises(MephistoDBException):
+            task_id = db.new_task('', task_type)
+
+        # Ensure no tasks were created
+        tasks = db.find_tasks()
+        self.assertEqual(len(tasks), 1)
