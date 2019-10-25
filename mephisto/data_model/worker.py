@@ -72,15 +72,15 @@ class Worker(ABC):
 
     # Children classes should implement the following methods
 
-    def bonus_worker(amount: float, reason: str) -> bool:
+    def bonus_worker(self, amount: float, reason: str) -> bool:
         """Bonus this worker for work any reason. Return success of bonus"""
         raise NotImplementedError()
 
-    def block_worker(reason: str) -> bool:
+    def block_worker(self, reason: str) -> bool:
         """Block this worker for a specified reason. Return success of block"""
         raise NotImplementedError()
 
-    def unblock_worker(reason: str) -> bool:
+    def unblock_worker(self, reason: str) -> bool:
         """unblock a blocked worker for the specified reason"""
         raise NotImplementedError()
 

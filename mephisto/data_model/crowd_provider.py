@@ -7,14 +7,14 @@
 from abc import ABC, abstractmethod, abstractproperty
 from mephisto.data_model.agent_state import AgentState
 from mephisto.core.utils import get_crowd_provider_from_type, get_task_runner_from_type
+from mephisto.data_model.assignment import Unit
+from mephisto.data_model.requester import Requester
+from mephisto.data_model.worker import Worker
+from mephisto.data_model.agent import Agent
 
 from typing import List, Optional, Tuple, Dict, Any, ClassVar, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.assignment import Unit
-    from mephisto.data_model.requester import Requester
-    from mephisto.data_model.worker import Worker
-    from mephisto.data_model.agent import Agent
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
 
@@ -30,19 +30,14 @@ class CrowdProvider(ABC):
     should ensure support for a vendor.
     """
 
-    @abstractproperty
-    UnitClass: ClassVar[Type['Unit']]
+    UnitClass: ClassVar[Type[Unit]] = Unit
 
-    @abstractproperty
-    RequesterClass: ClassVar[Type['Requester']]
+    RequesterClass: ClassVar[Type[Requester]] = Requester
 
-    @abstractproperty
-    WorkerClass: ClassVar[Type['Worker']]
+    WorkerClass: ClassVar[Type[Worker]] = Worker
 
-    @abstractproperty
-    AgentClass: ClassVar[Type['Agent']]
+    AgentClass: ClassVar[Type[Agent]] = Agent
 
-    @abstractproperty
     SUPPORTED_TASK_TYPES: ClassVar[List[str]]
 
     def __init__(self, db_path=None):
@@ -53,7 +48,7 @@ class CrowdProvider(ABC):
         state of the system can be managed or observed from
         other processes.
         """
-        if db_path is not None
+        if db_path is not None:
             self.db_path = db_path
         else:
             self.db_path = self.get_default_db_location()
@@ -79,7 +74,7 @@ class CrowdProvider(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def setup_resources_for_task_run(self, task_run: 'TaskRun', server_url: str):
+    def setup_resources_for_task_run(self, task_run: "TaskRun", server_url: str):
         """
         Setup any required resources for managing any additional resources
         surrounding a specific task run.
@@ -87,7 +82,7 @@ class CrowdProvider(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def cleanup_resources_from_task_run(self, task_run: 'TaskRun', server_url: str):
+    def cleanup_resources_from_task_run(self, task_run: "TaskRun", server_url: str):
         """
         Destroy any resources set up specifically for this task run
         """

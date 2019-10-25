@@ -10,7 +10,7 @@ from mephisto.core.utils import get_dir_for_run, get_crowd_provider_from_type
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.agent import Agent
-from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -97,7 +97,7 @@ class Assignment:
         of this assignment with any of the given statuses
         """
         units = [u for u in self.get_units() if u.get_status() in statuses]
-        sum_cost = 0
+        sum_cost = 0.0
         for unit in units:
             sum_cost += unit.get_pay_amount()
         return sum_cost
@@ -169,7 +169,7 @@ class Unit(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    def get_crowd_provider_class(self) -> Type['CrowdProvider']:
+    def get_crowd_provider_class(self) -> Type["CrowdProvider"]:
         """Get the CrowdProvider class that manages this Unit"""
         return get_crowd_provider_from_type(self.provider_type)
 
