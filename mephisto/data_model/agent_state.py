@@ -118,7 +118,7 @@ class AgentState(ABC):
             AgentState.STATUS_ONBOARDING,
             AgentState.STATUS_WAITING,
             AgentState.STATUS_IN_TASK,
-            AgentState.STATUS_DONE,
+            AgentState.STATUS_COMPLETED,
             AgentState.STATUS_DISCONNECT,
             AgentState.STATUS_PARTNER_DISCONNECT,
             AgentState.STATUS_EXPIRED,

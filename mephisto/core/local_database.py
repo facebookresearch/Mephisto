@@ -41,6 +41,24 @@ def assert_valid_provider(provider_type: str) -> None:
         )
 
 
+def is_key_failure(e: sqlite3.IntegrityError) -> bool:
+    """
+    Return if the given error is representing a foreign key
+    failure, where an insertion was expecting something to
+    exist already in the DB but it didn't.
+    """
+    return (str(e) == "FOREIGN KEY constraint failed")
+
+
+def is_unique_failure(e: sqlite3.IntegrityError) -> bool:
+    """
+    Return if the given error is representing a foreign key
+    failure, where an insertion was expecting something to
+    exist already in the DB but it didn't.
+    """
+    return (str(e).startswith("UNIQUE constraint"))
+
+
 CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
     project_id INTEGER PRIMARY KEY AUTOINCREMENT,
     project_name TEXT NOT NULL UNIQUE,
@@ -83,7 +101,7 @@ CREATE_ASSIGNMENTS_TABLE = """CREATE TABLE IF NOT EXISTS assignments (
     assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
     task_run_id INTEGER NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_id)
+    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id)
 );
 """
 
@@ -182,6 +200,7 @@ class LocalMephistoDB(MephistoDB):
         # it to be?
         with self.table_access_condition:
             conn = self._get_connection()
+            conn.execute("PRAGMA foreign_keys = 1")
             c = conn.cursor()
             c.execute(CREATE_PROJECTS_TABLE)
             c.execute(CREATE_TASKS_TABLE)
@@ -232,10 +251,13 @@ class LocalMephistoDB(MephistoDB):
                 project_id = str(c.lastrowid)
                 conn.commit()
                 return project_id
-            except sqlite3.IntegrityError:
-                # TODO formally check that the entry already existed? Check other exceptions?
+            except sqlite3.IntegrityError as e:
                 conn.rollback()
-                raise EntryAlreadyExistsException()
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException()
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException()
+                raise MephistoDBException(e)
 
     def get_project(self, project_id: str) -> Mapping[str, Any]:
         """
@@ -277,9 +299,6 @@ class LocalMephistoDB(MephistoDB):
         """
         if task_name in ['']:
             raise MephistoDBException(f'Invalid task name "{task_name}')
-        if project_id is not None:
-            # Ensure project exists
-            _project = Project(self, project_id)
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -301,10 +320,13 @@ class LocalMephistoDB(MephistoDB):
                 task_id = str(c.lastrowid)
                 conn.commit()
                 return task_id
-            except sqlite3.IntegrityError:
-                # TODO formally check that the entry already existed? Check other exceptions?
+            except sqlite3.IntegrityError as e:
                 conn.rollback()
-                raise EntryAlreadyExistsException()
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException()
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException()
+                raise MephistoDBException(e)
 
     def get_task(self, task_id: str) -> Mapping[str, Any]:
         """
@@ -358,9 +380,6 @@ class LocalMephistoDB(MephistoDB):
             )
         if task_name in ['']:
             raise MephistoDBException(f'Invalid task name "{task_name}')
-        if project_id is not None:
-            # Ensure project exists
-            _project = Project(self, project_id)
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -384,27 +403,33 @@ class LocalMephistoDB(MephistoDB):
                         (int(project_id), int(task_id)),
                     )
                 conn.commit()
-            except sqlite3.IntegrityError:
-                # TODO formally check that the entry already existed? Check other exceptions?
+            except sqlite3.IntegrityError as e:
                 conn.rollback()
-                raise EntryAlreadyExistsException(f'Task name {task_name} is already in use')
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException()
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException(f'Task name {task_name} is already in use')
+                raise MephistoDBException(e)
 
     def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
         """Create a new task_run for the given task."""
         with self.table_access_condition:
             # Ensure given ids are valid
-            _task = self.get_task(task_id)
-            _requester = self.get_requester(requester_id)
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """INSERT INTO task_runs(task_id, requester_id, init_params)
-                VALUES (?, ?, ?);""",
-                (int(task_id), int(requester_id), init_params),
-            )
-            task_run_id = str(c.lastrowid)
-            conn.commit()
-            return task_run_id
+            try:
+                c.execute(
+                    """INSERT INTO task_runs(task_id, requester_id, init_params)
+                    VALUES (?, ?, ?);""",
+                    (int(task_id), int(requester_id), init_params),
+                )
+                task_run_id = str(c.lastrowid)
+                conn.commit()
+                return task_run_id
+            except sqlite3.IntegrityError as e:
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException()
+                raise MephistoDBException(e)
 
     def get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
         """
@@ -439,6 +464,8 @@ class LocalMephistoDB(MephistoDB):
     def new_assignment(self, task_run_id: str) -> str:
         """Create a new assignment for the given task"""
         with self.table_access_condition:
+            # Ensure task run exists
+            _task_run = self.get_task_run(task_run_id)
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
@@ -505,10 +532,13 @@ class LocalMephistoDB(MephistoDB):
                 unit_id = str(c.lastrowid)
                 conn.commit()
                 return unit_id
-            except sqlite3.IntegrityError:
-                # TODO formally check that the entry already existed? Check other exceptions?
+            except sqlite3.IntegrityError as e:
                 conn.rollback()
-                raise EntryAlreadyExistsException()
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException()
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException()
+                raise MephistoDBException(e)
 
     def get_unit(self, unit_id: str) -> Mapping[str, Any]:
         """
@@ -557,9 +587,8 @@ class LocalMephistoDB(MephistoDB):
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
-        assert (
-            status in AssignmentState.valid_unit()
-        ), f"Invalid status {status} for a unit"
+        if status not in AssignmentState.valid_unit():
+           raise MephistoDBException(f"Invalid status {status} for a unit")
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -583,11 +612,13 @@ class LocalMephistoDB(MephistoDB):
                         (status, int(unit_id)),
                     )
                 conn.commit()
-            except sqlite3.IntegrityError:
+            except sqlite3.IntegrityError as e:
                 conn.rollback()
-                raise MephistoDBException(
-                    f"Given agent_id {agent_id} not found in the database"
-                )
+                if is_unique_failure(e):
+                    raise EntryDoesNotExistException(
+                        f"Given agent_id {agent_id} not found in the database"
+                    )
+                raise MephistoDBException(e)
 
     def new_requester(self, requester_name: str, provider_type: str) -> str:
         """
@@ -609,10 +640,10 @@ class LocalMephistoDB(MephistoDB):
                 requester_id = str(c.lastrowid)
                 conn.commit()
                 return requester_id
-            except sqlite3.IntegrityError:
-                # TODO formally check that the entry already existed? Check other exceptions?
-                conn.rollback()
-                raise EntryAlreadyExistsException()
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException()
+                raise MephistoDBException(e)
 
     def get_requester(self, requester_id: str) -> Mapping[str, Any]:
         """
@@ -667,10 +698,10 @@ class LocalMephistoDB(MephistoDB):
                 worker_id = str(c.lastrowid)
                 conn.commit()
                 return worker_id
-            except sqlite3.IntegrityError:
-                # TODO formally check that the entry already existed? Check other exceptions?
-                conn.rollback()
-                raise EntryAlreadyExistsException()
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException()
+                raise MephistoDBException(e)
 
     def get_worker(self, worker_id: str) -> Mapping[str, Any]:
         """
@@ -729,10 +760,20 @@ class LocalMephistoDB(MephistoDB):
                     ),
                 )
                 agent_id = str(c.lastrowid)
+                c.execute(
+                    """
+                    UPDATE units
+                    SET status = ?, agent_id = ?
+                    WHERE unit_id = ?;
+                    """,
+                    (AssignmentState.ASSIGNED, agent_id, unit_id)
+                )
                 conn.commit()
                 return agent_id
             except sqlite3.IntegrityError as e:
                 conn.rollback()
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException()
                 raise MephistoDBException(e)
 
     def get_agent(self, agent_id: str) -> Mapping[str, Any]:
@@ -748,7 +789,8 @@ class LocalMephistoDB(MephistoDB):
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
-        assert status in AgentState.valid(), f"Invalid status {status} for an agent"
+        if status not in AgentState.valid():
+            raise MephistoDBException(f"Invalid status {status} for an agent")
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()

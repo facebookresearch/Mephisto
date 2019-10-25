@@ -304,9 +304,11 @@ class MephistoDB(ABC):
         self, worker_id: str, unit_id: str, task_type: str, provider_type: str
     ) -> str:
         """
-        Create a new agent with the given name and provider type.
+        Create a new agent for the given worker id to assign to the given unit
         Raises EntryAlreadyExistsException
-        if there is already a agent with this name
+
+        Should update the unit's status to ASSIGNED and the assigned agent to
+        this one.
         """
         # TODO ensure that provider type is a valid type
         raise NotImplementedError()
