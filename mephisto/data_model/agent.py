@@ -91,6 +91,14 @@ class Agent(ABC):
         """
         raise NotImplementedError()
 
+    def approve_work(self) -> None:
+        """Approve the work done on this specific Unit"""
+        raise NotImplementedError()
+
+    def reject_work(self, reason) -> None:
+        """Reject the work done on this specific Unit"""
+        raise NotImplementedError()
+
     @staticmethod
     def new(db: "MephistoDB", worker: Worker, unit: "Unit") -> "Agent":
         """

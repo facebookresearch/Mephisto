@@ -5,10 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from typing import Optional, Any, List
 import functools
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
+from typing import Optional, Any, List, Type, TYPE_CHECKING
+if TYPE_CHECKING:
+    from mephisto.data_model.crowd_provider import CrowdProvider
 
 def ensure_user_confirm(display_text, skip_input=False) -> None:
     """
@@ -69,7 +71,7 @@ def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
     return os.path.join(get_data_dir(), "runs", project_name, run_id)
 
 
-def get_crowd_provider_from_type(provider_type: str) -> Any:
+def get_crowd_provider_from_type(provider_type: str) -> Type['CrowdProvider']:
     """
     Return the crowd provider class for the given string
     """

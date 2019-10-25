@@ -50,9 +50,7 @@ class Worker(ABC):
             return super().__new__(cls)
 
     # TODO make getters for helpful worker statistics
-    # TODO add worker qualification tracking
-
-    # TODO make abstract helpers for bonusing? and blocking
+    # TODO add worker qualification tracking?
 
     def get_agents(self, status: Optional[str] = None) -> List["Agent"]:
         """
@@ -71,6 +69,20 @@ class Worker(ABC):
         """
         db_id = db.new_worker(worker_id, provider_type)
         return Worker(db, db_id)
+
+    # Children classes should implement the following methods
+
+    def bonus_worker(amount: float, reason: str) -> bool:
+        """Bonus this worker for work any reason. Return success of bonus"""
+        raise NotImplementedError()
+
+    def block_worker(reason: str) -> bool:
+        """Block this worker for a specified reason. Return success of block"""
+        raise NotImplementedError()
+
+    def unblock_worker(reason: str) -> bool:
+        """unblock a blocked worker for the specified reason"""
+        raise NotImplementedError()
 
     @staticmethod
     def new(db: "MephistoDB", worker_id: str) -> "Worker":
