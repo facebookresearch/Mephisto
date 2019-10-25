@@ -26,7 +26,7 @@ class Worker(ABC):
         row = db.get_worker(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.provider_type = row["provider_type"]
-        self.db_status = row["status"]
+        self.worker_name = row["worker_name"]
         # TODO Do we want any other attributes here?
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Worker":

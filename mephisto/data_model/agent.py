@@ -32,7 +32,8 @@ class Agent(ABC):
         self.worker_id = row["worker_id"]
         self.task_type = row["task_type"]
         self.provider_type = row["provider_type"]
-        self.state = AgentState(self)
+        # TODO uncomment once we have agent states for task types
+        # self.state = AgentState(self)
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Agent":
         """

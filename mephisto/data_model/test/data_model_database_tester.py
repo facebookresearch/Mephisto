@@ -17,6 +17,7 @@ from mephisto.data_model.test.utils import (
     get_test_unit,
     get_test_agent,
 )
+from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.agent_state import AgentState
@@ -327,33 +328,32 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Check creation and retrieval of a requester
         requester_name = "test_requester"
-        provider_type = "mock"
+        provider_type = PROVIDER_TYPE
         requester_id = db.new_requester(requester_name, provider_type)
         self.assertIsNotNone(requester_id)
         self.assertTrue(isinstance(requester_id, str))
         requester_row = db.get_requester(requester_id)
         self.assertEqual(requester_row["requester_name"], requester_name)
 
-        # TODO Uncomment once Requester mock object exists
-        # requester = Requester(db, requester_id)
-        # self.assertEqual(requester.requester_name, requester_name)
+        requester = Requester(db, requester_id)
+        self.assertEqual(requester.requester_name, requester_name)
 
-        # # Check finding for requesters
-        # requesters = db.find_requesters()
-        # self.assertEqual(len(requesters), 1)
-        # self.assertTrue(isinstance(requesters[0], Requester))
-        # self.assertEqual(requesters[0].db_id, requester_id)
-        # self.assertEqual(requesters[0].requester_name, requester_name)
+        # Check finding for requesters
+        requesters = db.find_requesters()
+        self.assertEqual(len(requesters), 1)
+        self.assertTrue(isinstance(requesters[0], Requester))
+        self.assertEqual(requesters[0].db_id, requester_id)
+        self.assertEqual(requesters[0].requester_name, requester_name)
 
-        # # Check finding for specific requesters
-        # requesters = db.find_requesters(requester_name=requester_name)
-        # self.assertEqual(len(requesters), 1)
-        # self.assertTrue(isinstance(requesters[0], Requester))
-        # self.assertEqual(requesters[0].db_id, requester_id)
-        # self.assertEqual(requesters[0].requester_name, requester_name)
+        # Check finding for specific requesters
+        requesters = db.find_requesters(requester_name=requester_name)
+        self.assertEqual(len(requesters), 1)
+        self.assertTrue(isinstance(requesters[0], Requester))
+        self.assertEqual(requesters[0].db_id, requester_id)
+        self.assertEqual(requesters[0].requester_name, requester_name)
 
-        # requesters = db.find_requesters(requester_name='fake_name')
-        # self.assertEqual(len(requesters), 0)
+        requesters = db.find_requesters(requester_name="fake_name")
+        self.assertEqual(len(requesters), 0)
 
     def test_requester_fails(self) -> None:
         """Ensure requesters fail to be created or loaded under failure conditions"""
@@ -365,7 +365,7 @@ class BaseDatabaseTests(unittest.TestCase):
             requester = Requester(db, self.get_fake_id("Requester"))
 
         requester_name = "test_requester"
-        provider_type = "mock"
+        provider_type = PROVIDER_TYPE
         requester_id = db.new_requester(requester_name, provider_type)
 
         # Can't create same requester again
@@ -376,10 +376,9 @@ class BaseDatabaseTests(unittest.TestCase):
         with self.assertRaises(MephistoDBException):
             requester_id = db.new_requester("", provider_type)
 
-        # TODO uncomment once Requester mock is created
-        # # Ensure no requesters were created
-        # requesters = db.find_requesters()
-        # self.assertEqual(len(requesters), 1)
+        # Ensure no requesters were created
+        requesters = db.find_requesters()
+        self.assertEqual(len(requesters), 1)
 
     def test_worker(self) -> None:
         """Test creation and querying of workers"""
@@ -388,33 +387,32 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Check creation and retrieval of a worker
         worker_name = "test_worker"
-        provider_type = "mock"
+        provider_type = PROVIDER_TYPE
         worker_id = db.new_worker(worker_name, provider_type)
         self.assertIsNotNone(worker_id)
         self.assertTrue(isinstance(worker_id, str))
         worker_row = db.get_worker(worker_id)
         self.assertEqual(worker_row["worker_name"], worker_name)
 
-        # TODO Uncomment once Worker mock object exists
-        # worker = Worker(db, worker_id)
-        # self.assertEqual(worker.worker_name, worker_name)
+        worker = Worker(db, worker_id)
+        self.assertEqual(worker.worker_name, worker_name)
 
-        # # Check finding for workers
-        # workers = db.find_workers()
-        # self.assertEqual(len(workers), 1)
-        # self.assertTrue(isinstance(workers[0], Worker))
-        # self.assertEqual(workers[0].db_id, worker_id)
-        # self.assertEqual(workers[0].worker_name, worker_name)
+        # Check finding for workers
+        workers = db.find_workers()
+        self.assertEqual(len(workers), 1)
+        self.assertTrue(isinstance(workers[0], Worker))
+        self.assertEqual(workers[0].db_id, worker_id)
+        self.assertEqual(workers[0].worker_name, worker_name)
 
-        # # Check finding for specific workers
-        # workers = db.find_workers(worker_name=worker_name)
-        # self.assertEqual(len(workers), 1)
-        # self.assertTrue(isinstance(workers[0], Worker))
-        # self.assertEqual(workers[0].db_id, worker_id)
-        # self.assertEqual(workers[0].worker_name, worker_name)
+        # Check finding for specific workers
+        workers = db.find_workers(worker_name=worker_name)
+        self.assertEqual(len(workers), 1)
+        self.assertTrue(isinstance(workers[0], Worker))
+        self.assertEqual(workers[0].db_id, worker_id)
+        self.assertEqual(workers[0].worker_name, worker_name)
 
-        # workers = db.find_workers(worker_name='fake_name')
-        # self.assertEqual(len(workers), 0)
+        workers = db.find_workers(worker_name="fake_name")
+        self.assertEqual(len(workers), 0)
 
     def test_worker_fails(self) -> None:
         """Ensure workers fail to be created or loaded under failure conditions"""
@@ -426,7 +424,7 @@ class BaseDatabaseTests(unittest.TestCase):
             worker = Worker(db, self.get_fake_id("Worker"))
 
         worker_name = "test_worker"
-        provider_type = "mock"
+        provider_type = PROVIDER_TYPE
         worker_id = db.new_worker(worker_name, provider_type)
 
         # Can't create same worker again
@@ -437,10 +435,9 @@ class BaseDatabaseTests(unittest.TestCase):
         with self.assertRaises(MephistoDBException):
             worker_id = db.new_worker("", provider_type)
 
-        # TODO uncomment once Worker mock is created
-        # # Ensure no workers were created
-        # workers = db.find_workers()
-        # self.assertEqual(len(workers), 1)
+        # Ensure no workers were created
+        workers = db.find_workers()
+        self.assertEqual(len(workers), 1)
 
     def test_task_run(self) -> None:
         """Test creation and querying of task_runs"""
@@ -567,7 +564,7 @@ class BaseDatabaseTests(unittest.TestCase):
         assignment_id = get_test_assignment(db)
         unit_index = 0
         pay_amount = 15.0
-        provider_type = "mock"
+        provider_type = PROVIDER_TYPE
 
         unit_id = db.new_unit(assignment_id, unit_index, pay_amount, provider_type)
         self.assertIsNotNone(unit_id)
@@ -577,26 +574,27 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertEqual(unit_row["pay_amount"], pay_amount)
         self.assertEqual(unit_row["status"], AssignmentState.CREATED)
 
-        # TODO Uncomment once Unit mock object exists
-        # unit = Unit(db, unit_id)
-        # self.assertEqual(unit.unit_name, unit_name)
+        unit = Unit(db, unit_id)
+        self.assertEqual(unit.assignment_id, assignment_id)
 
-        # # Check finding for units
-        # units = db.find_units()
-        # self.assertEqual(len(units), 1)
-        # self.assertTrue(isinstance(units[0], Unit))
-        # self.assertEqual(units[0].db_id, unit_id)
-        # self.assertEqual(units[0].unit_name, unit_name)
+        # Check finding for units
+        units = db.find_units()
+        self.assertEqual(len(units), 1)
+        self.assertTrue(isinstance(units[0], Unit))
+        self.assertEqual(units[0].db_id, unit_id)
+        self.assertEqual(units[0].assignment_id, assignment_id)
+        self.assertEqual(units[0].pay_amount, pay_amount)
 
-        # # Check finding for specific units
-        # units = db.find_units(unit_name=unit_name)
-        # self.assertEqual(len(units), 1)
-        # self.assertTrue(isinstance(units[0], Unit))
-        # self.assertEqual(units[0].db_id, unit_id)
-        # self.assertEqual(units[0].unit_name, unit_name)
+        # Check finding for specific units
+        units = db.find_units(assignment_id=assignment_id)
+        self.assertEqual(len(units), 1)
+        self.assertTrue(isinstance(units[0], Unit))
+        self.assertEqual(units[0].db_id, unit_id)
+        self.assertEqual(units[0].assignment_id, assignment_id)
+        self.assertEqual(units[0].pay_amount, pay_amount)
 
-        # units = db.find_units(unit_name='fake_name')
-        # self.assertEqual(len(units), 0)
+        units = db.find_units(assignment_id=self.get_fake_id("Assignment"))
+        self.assertEqual(len(units), 0)
 
     def test_unit_fails(self) -> None:
         """Ensure units fail to be created or loaded under failure conditions"""
@@ -610,7 +608,7 @@ class BaseDatabaseTests(unittest.TestCase):
         assignment_id = get_test_assignment(db)
         unit_index = 0
         pay_amount = 15.0
-        provider_type = "mock"
+        provider_type = PROVIDER_TYPE
 
         # Can't use invalid assignment_id name
         with self.assertRaises(EntryDoesNotExistException):
@@ -624,10 +622,9 @@ class BaseDatabaseTests(unittest.TestCase):
         with self.assertRaises(EntryAlreadyExistsException):
             unit_id = db.new_unit(assignment_id, unit_index, pay_amount, provider_type)
 
-        # TODO uncomment once Unit mock is created
-        # # Ensure no units were created
-        # units = db.find_units()
-        # self.assertEqual(len(units), 1)
+        # Ensure no units were created
+        units = db.find_units()
+        self.assertEqual(len(units), 1)
 
     def test_unit_updates(self) -> None:
         """Test updating a unit's status"""
@@ -636,16 +633,15 @@ class BaseDatabaseTests(unittest.TestCase):
 
         unit_id = get_test_unit(db)
 
-        # TODO uncomment when Unit object is done
-        # # Check finding for specific units
-        # units = db.find_units(status=AssignState.COMPLETED)
-        # self.assertEqual(len(units), 0)
+        # Check finding for specific units
+        units = db.find_units(status=AssignmentState.COMPLETED)
+        self.assertEqual(len(units), 0)
 
         db.update_unit(unit_id, status=AssignmentState.COMPLETED)
 
-        # # Check finding for specific units
-        # units = db.find_units(status=AssignState.COMPLETED)
-        # self.assertEqual(len(units), 1)
+        # Check finding for specific units
+        units = db.find_units(status=AssignmentState.COMPLETED)
+        self.assertEqual(len(units), 1)
 
         # Can't update with a status that doesn't exist
         with self.assertRaises(MephistoDBException):
@@ -659,8 +655,8 @@ class BaseDatabaseTests(unittest.TestCase):
         # Check creation and retrieval of a agent
         worker_name, worker_id = get_test_worker(db)
         unit_id = get_test_unit(db)
-        provider_type = "mock"
-        task_type = "mock"
+        provider_type = PROVIDER_TYPE
+        task_type = PROVIDER_TYPE
 
         agent_id = db.new_agent(worker_id, unit_id, task_type, provider_type)
         self.assertIsNotNone(agent_id)
@@ -670,30 +666,29 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertEqual(agent_row["unit_id"], unit_id)
         self.assertEqual(agent_row["status"], AgentState.STATUS_NONE)
 
-        # TODO Uncomment once Agent/Unit mock object exists
         # ensure the unit is assigned now
-        # units = db.find_units(status=AssignmentState.ASSIGNED)
-        # self.assertEqual(len(units), 1)
+        units = db.find_units(status=AssignmentState.ASSIGNED)
+        self.assertEqual(len(units), 1)
 
-        # agent = Agent(db, agent_id)
-        # self.assertEqual(agent.agent_name, agent_name)
+        agent = Agent(db, agent_id)
+        self.assertEqual(agent.worker_id, worker_id)
 
-        # # Check finding for agents
-        # agents = db.find_agents()
-        # self.assertEqual(len(agents), 1)
-        # self.assertTrue(isinstance(agents[0], Agent))
-        # self.assertEqual(agents[0].db_id, agent_id)
-        # self.assertEqual(agents[0].agent_name, agent_name)
+        # Check finding for agents
+        agents = db.find_agents()
+        self.assertEqual(len(agents), 1)
+        self.assertTrue(isinstance(agents[0], Agent))
+        self.assertEqual(agents[0].db_id, agent_id)
+        self.assertEqual(agents[0].worker_id, worker_id)
 
-        # # Check finding for specific agents
-        # agents = db.find_agents(agent_name=agent_name)
-        # self.assertEqual(len(agents), 1)
-        # self.assertTrue(isinstance(agents[0], Agent))
-        # self.assertEqual(agents[0].db_id, agent_id)
-        # self.assertEqual(agents[0].agent_name, agent_name)
+        # Check finding for specific agents
+        agents = db.find_agents(worker_id=worker_id)
+        self.assertEqual(len(agents), 1)
+        self.assertTrue(isinstance(agents[0], Agent))
+        self.assertEqual(agents[0].db_id, agent_id)
+        self.assertEqual(agents[0].worker_id, worker_id)
 
-        # agents = db.find_agents(agent_name='fake_name')
-        # self.assertEqual(len(agents), 0)
+        agents = db.find_agents(worker_id=self.get_fake_id("Worker"))
+        self.assertEqual(len(agents), 0)
 
     def test_agent_fails(self) -> None:
         """Ensure agents fail to be created or loaded under failure conditions"""
@@ -706,8 +701,8 @@ class BaseDatabaseTests(unittest.TestCase):
 
         unit_id = get_test_unit(db)
         worker_name, worker_id = get_test_worker(db)
-        provider_type = "mock"
-        task_type = "mock"
+        provider_type = PROVIDER_TYPE
+        task_type = PROVIDER_TYPE
 
         # Can't use invalid worker id
         with self.assertRaises(EntryDoesNotExistException):
@@ -721,9 +716,9 @@ class BaseDatabaseTests(unittest.TestCase):
                 worker_id, self.get_fake_id("Unit"), task_type, provider_type
             )
 
-        # # Ensure no agents were created
-        # agents = db.find_agents()
-        # self.assertEqual(len(agents), 0)
+        # Ensure no agents were created
+        agents = db.find_agents()
+        self.assertEqual(len(agents), 0)
 
     def test_agent_updates(self) -> None:
         """Test updating an agent's status"""
@@ -732,16 +727,21 @@ class BaseDatabaseTests(unittest.TestCase):
 
         agent_id = get_test_agent(db)
 
-        # TODO uncomment when Agent object is done
-        # # Check finding for specific agents
-        # agents = db.find_agents(status=AgentState.NONE)
-        # self.assertEqual(len(agents), 0)
+        # Check finding for specific agents
+        agents = db.find_agents(status=AgentState.STATUS_NONE)
+        self.assertEqual(len(agents), 1)
+
+        agents = db.find_agents(status=AgentState.STATUS_ONBOARDING)
+        self.assertEqual(len(agents), 0)
 
         db.update_agent(agent_id, status=AgentState.STATUS_ONBOARDING)
 
-        # # Check finding for specific agents
-        # agents = db.find_agents(status=AgentState.NONE)
-        # self.assertEqual(len(agents), 1)
+        # Check finding for specific agents
+        agents = db.find_agents(status=AgentState.STATUS_ONBOARDING)
+        self.assertEqual(len(agents), 1)
+
+        agents = db.find_agents(status=AgentState.STATUS_NONE)
+        self.assertEqual(len(agents), 0)
 
         # Can't update with a status that doesn't exist
         with self.assertRaises(MephistoDBException):

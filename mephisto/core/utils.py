@@ -77,6 +77,11 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
     """
     Return the crowd provider class for the given string
     """
+    # TODO pull these from the files, then cache the results?
+    if provider_type == "mock":
+        from mephisto.providers.mock.mock_provider import MockProvider
+
+        return MockProvider
     raise NotImplementedError()
 
 

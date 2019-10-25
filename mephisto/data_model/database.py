@@ -238,6 +238,7 @@ class MephistoDB(ABC):
         unit_index: Optional[int] = None,
         provider_type: Optional[str] = None,
         agent_id: Optional[str] = None,
+        status: Optional[str] = None,
     ) -> List[Unit]:
         """
         Try to find any unit that matches the above. When called with no arguments,
@@ -308,7 +309,9 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def find_workers(self, provider_type: Optional[str] = None) -> List[Worker]:
+    def find_workers(
+        self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
+    ) -> List[Worker]:
         """
         Try to find any worker that matches the above. When called with no arguments,
         return all workers.
