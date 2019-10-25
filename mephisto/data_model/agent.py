@@ -99,6 +99,10 @@ class Agent(ABC):
         """Reject the work done on this specific Unit"""
         raise NotImplementedError()
 
+    def get_status(self) -> str:
+        """Get the status of this agent in their work on their unit"""
+        raise NotImplementedError()
+
     @staticmethod
     def new(db: "MephistoDB", worker: Worker, unit: "Unit") -> "Agent":
         """

@@ -1,0 +1,1 @@
+PROVIDER_TYPE = "mock"

@@ -55,7 +55,7 @@ class CrowdProvider(ABC):
         self.initialize_provider(self.db_path)
 
     @abstractmethod
-    def get_default_db_location(self):
+    def get_default_db_location(self) -> str:
         """
         Return the folder root we expect the datastore for this
         crowdprovider to be set up in.
@@ -63,7 +63,7 @@ class CrowdProvider(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def initialize_provider(storage_path=None):
+    def initialize_provider(self, storage_path: Optional[str] = None) -> None:
         """
         Do whatever is required to initialize this provider insofar
         as setting up local or external state is required to ensure
@@ -74,7 +74,9 @@ class CrowdProvider(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def setup_resources_for_task_run(self, task_run: "TaskRun", server_url: str):
+    def setup_resources_for_task_run(
+        self, task_run: "TaskRun", server_url: str
+    ) -> None:
         """
         Setup any required resources for managing any additional resources
         surrounding a specific task run.
@@ -82,8 +84,18 @@ class CrowdProvider(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def cleanup_resources_from_task_run(self, task_run: "TaskRun", server_url: str):
+    def cleanup_resources_from_task_run(
+        self, task_run: "TaskRun", server_url: str
+    ) -> None:
         """
         Destroy any resources set up specifically for this task run
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def worker_valid_for_task(self, worker: "Worker", task_run: "TaskRun") -> bool:
+        """
+        Determine if the given worker is eligible for working on
+        the given task, based on blocking/qualification status
         """
         raise NotImplementedError()
