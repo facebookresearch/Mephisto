@@ -66,7 +66,7 @@ def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
     """
     Return the directory where the mephisto run data is expected to go
     """
-    return os.path.join(get_data_dir(), 'runs', project_name, run_id)
+    return os.path.join(get_data_dir(), "runs", project_name, run_id)
 
 
 def get_crowd_provider_from_type(provider_type: str) -> Any:
@@ -90,4 +90,4 @@ def get_valid_provider_types() -> List[str]:
     the mephisto framework
     """
     # TODO query this from the providers folder
-    return ['mock']
+    return ["mock"]

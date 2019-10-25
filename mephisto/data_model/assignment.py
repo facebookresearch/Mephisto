@@ -11,13 +11,13 @@ from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.agent import Agent
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.worker import Worker
 
 import os
 import json
-
 
 
 ASSIGNMENT_DATA_FILE = "assign_data.json"
@@ -29,9 +29,9 @@ class Assignment:
     for the set of units within via abstracted database helpers
     """
 
-    def __init__(self, db: 'MephistoDB', db_id: str):
+    def __init__(self, db: "MephistoDB", db_id: str):
         self.db_id: str = db_id
-        self.db: 'MephistoDB' = db
+        self.db: "MephistoDB" = db
         row = db.get_assignment(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_run_id = row["task_run_id"]
@@ -67,7 +67,7 @@ class Assignment:
         """
         return TaskRun(self.db, self.task_run_id)
 
-    def get_units(self, status: Optional[str] = None) -> List['Unit']:
+    def get_units(self, status: Optional[str] = None) -> List["Unit"]:
         """
         Get units for this assignment, optionally
         constrained by the specific status.
@@ -80,7 +80,7 @@ class Assignment:
             units = [u for u in units if u.get_status() == status]
         return units
 
-    def get_workers(self) -> List['Worker']:
+    def get_workers(self) -> List["Worker"]:
         """
         Get the list of workers that have worked on this specific assignment
         """
@@ -105,8 +105,8 @@ class Assignment:
 
     @staticmethod
     def new(
-        db: 'MephistoDB', task_run: TaskRun, assignment_data: Optional[Dict[str, Any]]
-    ) -> 'Assignment':
+        db: "MephistoDB", task_run: TaskRun, assignment_data: Optional[Dict[str, Any]]
+    ) -> "Assignment":
         """
         Create an assignment for the given task. Initialize the folders for storing
         the results for this assignment. Can take assignment_data to save and
@@ -137,9 +137,9 @@ class Unit(ABC):
     It should be extended for usage with a specific crowd provider
     """
 
-    def __init__(self, db: 'MephistoDB', db_id: str):
+    def __init__(self, db: "MephistoDB", db_id: str):
         self.db_id: str = db_id
-        self.db: 'MephistoDB' = db
+        self.db: "MephistoDB" = db
         row = db.get_unit(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.assignment_id = row["assignment_id"]
@@ -149,7 +149,7 @@ class Unit(ABC):
         self.provider_type = row["provider_type"]
         self.db_status = row["status"]
 
-    def __new__(cls, db: 'MephistoDB', db_id: str) -> 'Unit':
+    def __new__(cls, db: "MephistoDB", db_id: str) -> "Unit":
         """
         The new method is overridden to be able to automatically generate
         the expected Unit class without needing to specifically find it
@@ -223,12 +223,12 @@ class Unit(ABC):
 
     @staticmethod
     def _register_unit(
-        db: 'MephistoDB',
+        db: "MephistoDB",
         assignment: Assignment,
         index: int,
         pay_amount: float,
         provider_type: str,
-    ) -> 'Unit':
+    ) -> "Unit":
         """
         Create an entry for this unit in the database
         """
@@ -250,8 +250,8 @@ class Unit(ABC):
 
     @staticmethod
     def new(
-        db: 'MephistoDB', assignment: Assignment, index: int, pay_amount: float
-    ) -> 'Unit':
+        db: "MephistoDB", assignment: Assignment, index: int, pay_amount: float
+    ) -> "Unit":
         """
         Create a Unit for the given assignment
 

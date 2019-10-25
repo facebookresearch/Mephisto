@@ -7,6 +7,7 @@
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
 from typing import List, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import Task
@@ -20,14 +21,14 @@ class Project:
     Abstracts relevant queries behind usable functions.
     """
 
-    def __init__(self, db: 'MephistoDB', db_id: str):
+    def __init__(self, db: "MephistoDB", db_id: str):
         self.db_id: str = db_id
-        self.db: 'MephistoDB' = db
+        self.db: "MephistoDB" = db
         row = self.db.get_project(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.project_name: str = row["project_name"]
 
-    def get_tasks(self) -> List['Task']:
+    def get_tasks(self) -> List["Task"]:
         """
         Return the list of tasks that are run as part of this project
         """
@@ -45,7 +46,7 @@ class Project:
         return sum_total
 
     @staticmethod
-    def new(self, db: 'MephistoDB', project_name: str) -> 'Project':
+    def new(self, db: "MephistoDB", project_name: str) -> "Project":
         """
         Try to create a new project by this name, raise an exception if
         the name already exists.

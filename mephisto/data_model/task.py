@@ -20,6 +20,7 @@ from mephisto.core.utils import (
 
 
 from typing import List, Optional, Tuple, Dict, cast, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.assignment import Assignment
@@ -83,9 +84,9 @@ class Task:
     task is to be associated with a specific project.
     """
 
-    def __init__(self, db: 'MephistoDB', db_id: str):
+    def __init__(self, db: "MephistoDB", db_id: str):
         self.db_id: str = db_id
-        self.db: 'MephistoDB' = db
+        self.db: "MephistoDB" = db
         row = db.get_task(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_name: str = row["task_name"]
@@ -107,17 +108,17 @@ class Task:
             # TODO this constitutes an update, must go back to the db
             raise NotImplementedError()
 
-    def get_runs(self) -> List['TaskRun']:
+    def get_runs(self) -> List["TaskRun"]:
         """
         Return all of the runs of this task that have been launched
         """
         return self.db.find_task_runs(task_id=self.db_id)
 
-    def get_assignments(self) -> List['Assignment']:
+    def get_assignments(self) -> List["Assignment"]:
         """
         Return all of the assignments for all runs of this task
         """
-        assigns: List['Assignment'] = []
+        assigns: List["Assignment"] = []
         for task_run in self.get_runs():
             assigns += task_run.get_assignments()
         return assigns
@@ -151,13 +152,13 @@ class Task:
 
     @staticmethod
     def new(
-        db: 'MephistoDB',
+        db: "MephistoDB",
         task_name: str,
         task_type: str,
         project: Optional[Project] = None,
-        parent_task: Optional['Task'] = None,
+        parent_task: Optional["Task"] = None,
         skip_input: bool = False,
-    ) -> 'Task':
+    ) -> "Task":
         """
         Create a new task by the given name, ensure that the folder for this task
         exists and has the expected directories and files. If a project is
@@ -217,16 +218,16 @@ class TaskRun:
     for the set of assignments within
     """
 
-    def __init__(self, db: 'MephistoDB', db_id: str):
+    def __init__(self, db: "MephistoDB", db_id: str):
         self.db_id: str = db_id
-        self.db: 'MephistoDB' = db
+        self.db: "MephistoDB" = db
         row = db.get_task_run(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
 
-    def get_task(self) -> 'Task':
+    def get_task(self) -> "Task":
         """Return the task used to initialize this run"""
         return Task(self.db, self.task_id)
 
@@ -242,7 +243,7 @@ class TaskRun:
         """
         return Requester(self.db, self.db_id)
 
-    def get_assignments(self, status: Optional[str] = None) -> List['Assignment']:
+    def get_assignments(self, status: Optional[str] = None) -> List["Assignment"]:
         """
         Get assignments for this run, optionally filtering by their
         current status
@@ -297,8 +298,8 @@ class TaskRun:
 
     @staticmethod
     def new(
-        db: 'MephistoDB', task: Task, requester: Requester, params: TaskParams
-    ) -> 'TaskRun':
+        db: "MephistoDB", task: Task, requester: Requester, params: TaskParams
+    ) -> "TaskRun":
         """
         Create a new run for the given task with the given params
         """

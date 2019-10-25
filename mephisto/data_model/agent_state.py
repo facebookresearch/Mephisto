@@ -8,6 +8,7 @@ from mephisto.core.utils import get_crowd_provider_from_type, get_task_runner_fr
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
 
@@ -42,7 +43,7 @@ class AgentState(ABC):
     STATUS_REJECTED = "rejected"
 
     @abstractmethod
-    def __init__(self, agent: 'Agent'):
+    def __init__(self, agent: "Agent"):
         """
         Create an AgentState to track the state of an agent's work on a Unit
 
@@ -54,7 +55,7 @@ class AgentState(ABC):
         """
         raise NotImplementedError()
 
-    def __new__(cls, agent: 'Agent') -> 'AgentState':
+    def __new__(cls, agent: "Agent") -> "AgentState":
         """
         The new method is overridden to be able to automatically generate
         the expected Requester class without needing to specifically find it

@@ -12,17 +12,18 @@ import tempfile
 from mephisto.data_model.test.data_model_database_tester import BaseDatabaseTests
 from mephisto.core.local_database import LocalMephistoDB
 
+
 class TestLocalMephistoDB(BaseDatabaseTests):
-    '''
+    """
     Unit testing for the LocalMephistoDB
 
     Inherits all tests directly from BaseDataModelTests, and
     writes no additional tests.
-    '''
+    """
 
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
-        database_path = os.path.join(self.data_dir, 'mephisto.db')
+        database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
 
     def tearDown(self):
@@ -32,5 +33,5 @@ class TestLocalMephistoDB(BaseDatabaseTests):
     # TODO are there any other unit tests we'd like to have?
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

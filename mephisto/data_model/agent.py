@@ -10,10 +10,10 @@ from mephisto.data_model.worker import Worker
 from mephisto.core.utils import get_crowd_provider_from_type, get_task_runner_from_type
 
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.database import MephistoDB
-
 
 
 class Agent(ABC):
@@ -23,9 +23,9 @@ class Agent(ABC):
     connection status, etc.
     """
 
-    def __init__(self, db: 'MephistoDB', db_id: str):
+    def __init__(self, db: "MephistoDB", db_id: str):
         self.db_id: str = db_id
-        self.db: 'MephistoDB' = db
+        self.db: "MephistoDB" = db
         row = db.get_agent(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_status = row["status"]
@@ -34,7 +34,7 @@ class Agent(ABC):
         self.provider_type = row["provider_type"]
         self.state = AgentState(self)
 
-    def __new__(cls, db: 'MephistoDB', db_id: str) -> 'Agent':
+    def __new__(cls, db: "MephistoDB", db_id: str) -> "Agent":
         """
         The new method is overridden to be able to automatically generate
         the expected Agent class without needing to specifically find it
@@ -64,7 +64,7 @@ class Agent(ABC):
         return Worker(self.db, self.worker_id)
 
     @staticmethod
-    def _register_agent(db: 'MephistoDB', worker: Worker, unit: 'Unit') -> 'Agent':
+    def _register_agent(db: "MephistoDB", worker: Worker, unit: "Unit") -> "Agent":
         """
         Create this agent in the mephisto db with the correct setup
         """
@@ -92,7 +92,7 @@ class Agent(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def new(db: 'MephistoDB', worker: Worker, unit: 'Unit') -> 'Agent':
+    def new(db: "MephistoDB", worker: Worker, unit: "Unit") -> "Agent":
         """
         Create an agent for this worker to be used for work on the given Unit.
 

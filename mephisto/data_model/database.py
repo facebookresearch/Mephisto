@@ -75,9 +75,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def find_projects(
-        self, project_name: Optional[str] = None
-    ) -> List[Project]:
+    def find_projects(self, project_name: Optional[str] = None) -> List[Project]:
         """
         Try to find any project that matches the above. When called with no arguments,
         return all projects.
@@ -158,9 +156,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def find_task_runs(
-        self,
-        task_id: Optional[str] = None,
-        requester_id: Optional[str] = None,
+        self, task_id: Optional[str] = None, requester_id: Optional[str] = None
     ) -> List[TaskRun]:
         """
         Try to find any task_run that matches the above. When called with no arguments,

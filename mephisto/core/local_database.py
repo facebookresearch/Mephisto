@@ -47,7 +47,7 @@ def is_key_failure(e: sqlite3.IntegrityError) -> bool:
     failure, where an insertion was expecting something to
     exist already in the DB but it didn't.
     """
-    return (str(e) == "FOREIGN KEY constraint failed")
+    return str(e) == "FOREIGN KEY constraint failed"
 
 
 def is_unique_failure(e: sqlite3.IntegrityError) -> bool:
@@ -56,7 +56,7 @@ def is_unique_failure(e: sqlite3.IntegrityError) -> bool:
     failure, where an insertion was expecting something to
     exist already in the DB but it didn't.
     """
-    return (str(e).startswith("UNIQUE constraint"))
+    return str(e).startswith("UNIQUE constraint")
 
 
 CREATE_PROJECTS_TABLE = """CREATE TABLE IF NOT EXISTS projects (
@@ -141,8 +141,9 @@ CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
 );
 """
 
+
 class StringIDRow(sqlite3.Row):
-    def __getitem__(self, key:str) -> Any:
+    def __getitem__(self, key: str) -> Any:
         val = super().__getitem__(key)
         if key.endswith("_id") and val is not None:
             return str(val)
@@ -239,7 +240,7 @@ class LocalMephistoDB(MephistoDB):
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
         with this name has already been created.
         """
-        if project_name in [NO_PROJECT_NAME, '']:
+        if project_name in [NO_PROJECT_NAME, ""]:
             raise MephistoDBException(f'Invalid project name "{project_name}')
         with self.table_access_condition:
             conn = self._get_connection()
@@ -297,7 +298,7 @@ class LocalMephistoDB(MephistoDB):
         Create a new task with the given task name. Raise EntryAlreadyExistsException if a task
         with this name has already been created.
         """
-        if task_name in ['']:
+        if task_name in [""]:
             raise MephistoDBException(f'Invalid task name "{task_name}')
         with self.table_access_condition:
             conn = self._get_connection()
@@ -378,7 +379,7 @@ class LocalMephistoDB(MephistoDB):
             raise MephistoDBException(
                 "Cannot edit a task that has already been run, for risk of data corruption."
             )
-        if task_name in ['']:
+        if task_name in [""]:
             raise MephistoDBException(f'Invalid task name "{task_name}')
         with self.table_access_condition:
             conn = self._get_connection()
@@ -408,7 +409,9 @@ class LocalMephistoDB(MephistoDB):
                 if is_key_failure(e):
                     raise EntryDoesNotExistException()
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException(f'Task name {task_name} is already in use')
+                    raise EntryAlreadyExistsException(
+                        f"Task name {task_name} is already in use"
+                    )
                 raise MephistoDBException(e)
 
     def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
@@ -588,7 +591,7 @@ class LocalMephistoDB(MephistoDB):
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
         if status not in AssignmentState.valid_unit():
-           raise MephistoDBException(f"Invalid status {status} for a unit")
+            raise MephistoDBException(f"Invalid status {status} for a unit")
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -626,7 +629,7 @@ class LocalMephistoDB(MephistoDB):
         Raises EntryAlreadyExistsException
         if there is already a requester with this name
         """
-        if requester_name == '':
+        if requester_name == "":
             raise MephistoDBException("Empty string is not a valid requester name")
         assert_valid_provider(provider_type)
         with self.table_access_condition:
@@ -684,7 +687,7 @@ class LocalMephistoDB(MephistoDB):
         worker_name should be the unique identifier by which the crowd provider
         is using to keep track of this worker
         """
-        if worker_name == '':
+        if worker_name == "":
             raise MephistoDBException("Empty string is not a valid requester name")
         assert_valid_provider(provider_type)
         with self.table_access_condition:
@@ -766,7 +769,7 @@ class LocalMephistoDB(MephistoDB):
                     SET status = ?, agent_id = ?
                     WHERE unit_id = ?;
                     """,
-                    (AssignmentState.ASSIGNED, agent_id, unit_id)
+                    (AssignmentState.ASSIGNED, agent_id, unit_id),
                 )
                 conn.commit()
                 return agent_id
