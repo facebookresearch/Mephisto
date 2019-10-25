@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.assignment import Assignment
 
 
 class MockUnit(Unit):
@@ -47,7 +48,7 @@ class MockUnit(Unit):
 
     @staticmethod
     def new(
-        db: "MephistoDB", assignment: Assignment, index: int, pay_amount: float
+        db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float
     ) -> "Unit":
         """Create a Unit for the given assignment"""
-        return MockUnit._register_agent(db, worker, unit, PROVIDER_TYPE)
+        return MockUnit._register_unit(db, assignment, index, pay_amount, PROVIDER_TYPE)

@@ -12,6 +12,7 @@ from typing import List, Optional, Tuple, Dict, Type, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.agent import Agent
+    from mephisto.data_model.task import TaskRun
 
 
 class Worker(ABC):
@@ -82,6 +83,10 @@ class Worker(ABC):
 
     def unblock_worker(self, reason: str) -> bool:
         """unblock a blocked worker for the specified reason"""
+        raise NotImplementedError()
+
+    def is_eligible(self, task_run: "TaskRun") -> bool:
+        """Determine if this worker is eligible for the given task run"""
         raise NotImplementedError()
 
     @staticmethod

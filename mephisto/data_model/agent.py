@@ -64,14 +64,14 @@ class Agent(ABC):
         return Worker(self.db, self.worker_id)
 
     @staticmethod
-    def _register_agent(db: "MephistoDB", worker: Worker, unit: "Unit") -> "Agent":
+    def _register_agent(
+        db: "MephistoDB", worker: Worker, unit: "Unit", provider_type: str
+    ) -> "Agent":
         """
         Create this agent in the mephisto db with the correct setup
         """
         task = unit.get_assignment().get_task_run().get_task()
-        db_id = db.new_agent(
-            worker.db_id, unit.db_id, task.task_type, worker.provider_type
-        )
+        db_id = db.new_agent(worker.db_id, unit.db_id, task.task_type, provider_type)
         return Agent(db, db_id)
 
     # Children classes should implement the following methods

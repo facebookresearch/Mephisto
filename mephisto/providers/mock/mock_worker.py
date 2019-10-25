@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple, Dict, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.task import TaskRun
 
 
 class MockWorker(Worker):
@@ -31,7 +32,11 @@ class MockWorker(Worker):
         return True
 
     def unblock_worker(self, reason: str) -> bool:
-        """unblock a blocked worker for the specified reason"""
+        """unblock a blocked worker for the specified reason. Return success of unblock"""
+        return True
+
+    def is_eligible(self, task_run: "TaskRun") -> bool:
+        """Determine if this worker is eligible for the given task run"""
         return True
 
     @staticmethod

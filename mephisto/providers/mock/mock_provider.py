@@ -10,7 +10,7 @@ from mephisto.providers.mock.mock_requester import MockRequester
 from mephisto.providers.mock.mock_unit import MockUnit
 from mephisto.providers.mock.mock_worker import MockWorker
 
-from typing import ClassVar, Dict, Any, TYPE_CHECKING
+from typing import ClassVar, Dict, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -28,7 +28,7 @@ class MockProvider(CrowdProvider):
         """Mocks don't store anything when not told explicitly"""
         return ""
 
-    def initialize_provider(storage_path: Optional[str] = None) -> None:
+    def initialize_provider_datastore(self, storage_path: Optional[str] = None) -> Any:
         """Mocks don't need any initialization"""
         # TODO when writing tests for the rest of the system, maybe
         # we do have a local database that we set up and
@@ -36,7 +36,8 @@ class MockProvider(CrowdProvider):
         assert (
             storage_path is not None
         ), "MockProviders should specify paths and be used only in tests"
-        return None
+        # Mock providers create a dict to store any important info in
+        return {"agents": {}, "requesters": {}, "units": {}, "workers": {}}
 
     def setup_resources_for_task_run(
         self, task_run: "TaskRun", server_url: str
@@ -49,7 +50,3 @@ class MockProvider(CrowdProvider):
     ) -> None:
         """Mocks don't do any initialization"""
         return None
-
-    def worker_valid_for_task(self, worker: "Worker", task_run: "TaskRun") -> bool:
-        """Workers are always valid for now"""
-        return True

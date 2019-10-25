@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractproperty
+from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.data_model.agent_state import AgentState
 from mephisto.core.utils import get_crowd_provider_from_type, get_task_runner_from_type
 from mephisto.data_model.assignment import Unit
@@ -40,19 +41,26 @@ class CrowdProvider(ABC):
 
     SUPPORTED_TASK_TYPES: ClassVar[List[str]]
 
-    def __init__(self, db_path=None):
+    def __init__(self, db: "MephistoDB"):
         """
         Crowd provider classes should keep as much of their state
         as possible in their non-python datastore. This way
         the system can work even after shutdowns, and the
         state of the system can be managed or observed from
         other processes.
+
+        In order to set up a datastore, init should check to see
+        if one is already set (using get_datastore_for_provider)
+        and use that one if available, otherwise make a new one
+        and register it with the database.
         """
-        if db_path is not None:
-            self.db_path = db_path
+        existing_datastore = db.get_datastore_for_provider(PROVIDER_TYPE)
+        if existing_datastore is not None:
+            self.datastore = existing_datastore
         else:
-            self.db_path = self.get_default_db_location()
-        self.initialize_provider(self.db_path)
+            self.datastore_root = db.get_db_path_for_provider(PROVIDER_TYPE)
+            self.datastore = self.initialize_provider_datastore(self.datastore_root)
+            db.set_datastore_for_provider(PROVIDER_TYPE, self.datastore)
 
     @abstractmethod
     def get_default_db_location(self) -> str:
@@ -63,13 +71,17 @@ class CrowdProvider(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def initialize_provider(self, storage_path: Optional[str] = None) -> None:
+    def initialize_provider_datastore(self, storage_path: Optional[str] = None) -> Any:
         """
         Do whatever is required to initialize this provider insofar
         as setting up local or external state is required to ensure
         that this vendor is usable.
 
         Local data storage should be put into the given root path.
+
+        This method should return the local data storage component that
+        is required to do any object initialization, as it will be available
+        from the MephistoDB in a db.get_provider_datastore(PROVIDER_TYPE).
         """
         raise NotImplementedError()
 
@@ -89,13 +101,5 @@ class CrowdProvider(ABC):
     ) -> None:
         """
         Destroy any resources set up specifically for this task run
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def worker_valid_for_task(self, worker: "Worker", task_run: "TaskRun") -> bool:
-        """
-        Determine if the given worker is eligible for working on
-        the given task, based on blocking/qualification status
         """
         raise NotImplementedError()

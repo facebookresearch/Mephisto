@@ -164,12 +164,9 @@ class LocalMephistoDB(MephistoDB):
     """
 
     def __init__(self, database_path=None):
-        if database_path is None:
-            database_path = os.path.join(get_data_dir(), "database.db")
-        self.db_path = database_path
         self.conn: Dict[int, Connection] = {}
         self.table_access_condition = threading.Condition()
-        self.init_tables()
+        super().__init__(database_path)
 
     def _get_connection(self) -> Connection:
         """Returns a singular database connection to be shared amongst all
