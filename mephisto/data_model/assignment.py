@@ -205,7 +205,7 @@ class Unit(ABC):
         """
         return Assignment(self.db, self.assignment_id)
 
-    def get_requester(self) -> 'Requester':
+    def get_requester(self) -> "Requester":
         """
         Return the requester who offered this Unit
         """

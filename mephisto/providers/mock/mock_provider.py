@@ -34,7 +34,7 @@ class MockProvider(CrowdProvider):
 
     AgentClass: ClassVar[Type[Agent]] = MockAgent
 
-    SUPPORTED_TASK_TYPES: ClassVar[List[str]] = ['mock']
+    SUPPORTED_TASK_TYPES: ClassVar[List[str]] = ["mock"]
 
     curr_db_location: ClassVar[str]
 
