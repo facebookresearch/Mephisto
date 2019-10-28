@@ -63,15 +63,7 @@ class CrowdProvider(ABC):
             db.set_datastore_for_provider(PROVIDER_TYPE, self.datastore)
 
     @abstractmethod
-    def get_default_db_location(self) -> str:
-        """
-        Return the folder root we expect the datastore for this
-        crowdprovider to be set up in.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def initialize_provider_datastore(self, storage_path: Optional[str] = None) -> Any:
+    def initialize_provider_datastore(self, storage_path: str) -> Any:
         """
         Do whatever is required to initialize this provider insofar
         as setting up local or external state is required to ensure

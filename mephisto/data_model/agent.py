@@ -30,6 +30,7 @@ class Agent(ABC):
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_status = row["status"]
         self.worker_id = row["worker_id"]
+        self.unit_id = row["unit_id"]
         self.task_type = row["task_type"]
         self.provider_type = row["provider_type"]
         # TODO uncomment once we have agent states for task types
@@ -63,6 +64,12 @@ class Agent(ABC):
         Return the worker that is using this agent for a task
         """
         return Worker(self.db, self.worker_id)
+
+    def get_unit(self) -> Unit:
+        """
+        Return the Unit that this agent is working on.
+        """
+        return Unit(self.db, self.unit_id)
 
     @staticmethod
     def _register_agent(

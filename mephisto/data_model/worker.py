@@ -7,7 +7,7 @@
 from abc import ABC, abstractmethod
 from mephisto.data_model.agent_state import AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
-from typing import List, Optional, Tuple, Dict, Type, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -73,11 +73,11 @@ class Worker(ABC):
 
     # Children classes should implement the following methods
 
-    def bonus_worker(self, amount: float, reason: str) -> bool:
+    def bonus_worker(self, amount: float, reason: str) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return success of bonus"""
         raise NotImplementedError()
 
-    def block_worker(self, reason: str) -> bool:
+    def block_worker(self, reason: str) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         raise NotImplementedError()
 

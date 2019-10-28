@@ -15,6 +15,7 @@ from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.worker import Worker
+    from mephisto.data_model.requester import Requester
     from mephisto.data_model.crowd_provider import CrowdProvider
 
 import os
@@ -195,6 +196,7 @@ class Unit(ABC):
         assert (
             status in AssignmentState.valid_unit()
         ), f"{status} not valid Assignment Status, not in {AssignmentState.valid_unit()}"
+        self.db_status = status
         self.db.update_unit(self.db_id, status=status)
 
     def get_assignment(self) -> Assignment:
@@ -202,6 +204,12 @@ class Unit(ABC):
         Return the assignment that this Unit is part of.
         """
         return Assignment(self.db, self.assignment_id)
+
+    def get_requester(self) -> 'Requester':
+        """
+        Return the requester who offered this Unit
+        """
+        return self.get_assignment().get_task_run().get_requester()
 
     def get_assigned_agent(self) -> Optional[Agent]:
         """

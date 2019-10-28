@@ -23,13 +23,13 @@ class MockWorker(Worker):
         # TODO any additional init as is necessary once
         # a mock DB exists
 
-    def bonus_worker(self, amount: float, reason: str) -> bool:
+    def bonus_worker(self, amount: float, reason: str) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return success of bonus"""
-        return True
+        return True, ''
 
-    def block_worker(self, reason: str) -> bool:
+    def block_worker(self, reason: str) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
-        return True
+        return True, ''
 
     def unblock_worker(self, reason: str) -> bool:
         """unblock a blocked worker for the specified reason. Return success of unblock"""
