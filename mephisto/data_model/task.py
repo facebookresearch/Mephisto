@@ -11,6 +11,7 @@ from shutil import copytree
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.assignment_state import AssignmentState
+from mephisto.data_model.task_config import TaskConfig
 from mephisto.core.utils import (
     get_tasks_dir,
     get_dir_for_task,
@@ -265,6 +266,10 @@ class TaskRun:
             status: len([x for x in assigns if x.get_status() == status])
             for status in AssignmentState.valid()
         }
+
+    def get_task_config(self) -> TaskConfig:
+        """Return the configuration options for this task"""
+        return TaskConfig(self)
 
     def get_run_dir(self) -> str:
         """

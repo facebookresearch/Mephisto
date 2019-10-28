@@ -65,10 +65,12 @@ class Agent(ABC):
         """
         return Worker(self.db, self.worker_id)
 
-    def get_unit(self) -> Unit:
+    def get_unit(self) -> "Unit":
         """
         Return the Unit that this agent is working on.
         """
+        from mephisto.data_model.assignment import Unit
+
         return Unit(self.db, self.unit_id)
 
     @staticmethod

@@ -264,7 +264,7 @@ class Unit(ABC):
         """
         raise NotImplementedError()
 
-    def launch(self) -> None:
+    def launch(self, task_url: str) -> None:
         """
         Make this Unit available on the crowdsourcing vendor. Depending on
         the task type, this could mean a number of different setup steps.

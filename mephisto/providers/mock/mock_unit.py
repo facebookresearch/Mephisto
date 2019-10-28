@@ -32,7 +32,7 @@ class MockUnit(Unit):
         row = self.db.get_unit(self.db_id)
         return row["status"]
 
-    def launch(self) -> None:
+    def launch(self, task_url: str) -> None:
         """Mock launches do nothing right now"""
         return None
 

@@ -26,13 +26,13 @@ class MockProvider(CrowdProvider):
     in a local state in the class for use in tests.
     """
 
-    UnitClass: ClassVar[Type[Unit]] = MockUnit
+    UnitClass: ClassVar[Type["Unit"]] = MockUnit
 
-    RequesterClass: ClassVar[Type[Requester]] = MockRequester
+    RequesterClass: ClassVar[Type["Requester"]] = MockRequester
 
-    WorkerClass: ClassVar[Type[Worker]] = MockWorker
+    WorkerClass: ClassVar[Type["Worker"]] = MockWorker
 
-    AgentClass: ClassVar[Type[Agent]] = MockAgent
+    AgentClass: ClassVar[Type["Agent"]] = MockAgent
 
     SUPPORTED_TASK_TYPES: ClassVar[List[str]] = ["mock"]
 
