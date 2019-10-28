@@ -9,6 +9,7 @@ python = "^3.6"
 click = "^7.0"
 flask = "^1.1"
 click_default_group = "^1.2"
+boto3 = "^1.10"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
@@ -19,3 +20,6 @@ pytest = "^3.0"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[mypy]
+ignore_missing_imports = true
