@@ -1,7 +1,11 @@
 import click
-from .server import app
+from mephisto.cli.server import app
 
-@click.command()
+@click.group()
+def cli():
+	pass
+
+@cli.command()
 def web():
 	app.run(debug=False)
 

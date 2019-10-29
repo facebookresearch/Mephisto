@@ -13,7 +13,7 @@ flask = "^1.1"
 pytest = "^3.0"
 
 [tool.poetry.scripts]
-'mephisto' = 'mephisto.cli.client:web'
+'mephisto' = 'mephisto.cli.client:cli'
 
 [build-system]
 requires = ["poetry>=0.12"]
