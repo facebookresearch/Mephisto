@@ -6,6 +6,8 @@ authors = ["Jack Urbanek <jju@fb.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
+click = "^7.0"
+flask = "^1.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
