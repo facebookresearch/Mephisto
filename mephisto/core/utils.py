@@ -5,7 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from typing import Optional, Any
+from typing import Optional, Any, List
+import functools
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
 
@@ -53,13 +54,19 @@ def get_tasks_dir() -> str:
     return os.path.expanduser("~/mephisto/mephisto/tasks/")
 
 
-def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
+def get_data_dir() -> str:
     """
     Return the directory where the mephisto data is expected to go
     """
     # TODO be able to configure this kind of thing
-    base_path = os.path.expanduser("~/mephisto/runs/")
-    return os.path.join(base_path, project_name, run_id)
+    return os.path.expanduser("~/mephisto/data")
+
+
+def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
+    """
+    Return the directory where the mephisto run data is expected to go
+    """
+    return os.path.join(get_data_dir(), "runs", project_name, run_id)
 
 
 def get_crowd_provider_from_type(provider_type: str) -> Any:
@@ -74,3 +81,13 @@ def get_task_runner_from_type(task_type: str) -> Any:
     Return the task runner class for the given string
     """
     raise NotImplementedError()
+
+
+@functools.lru_cache(maxsize=1)
+def get_valid_provider_types() -> List[str]:
+    """
+    Return the valid provider types that are currently supported by
+    the mephisto framework
+    """
+    # TODO query this from the providers folder
+    return ["mock"]

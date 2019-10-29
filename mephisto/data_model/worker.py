@@ -5,11 +5,13 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from mephisto.data_model.database import MephistoDB
-from mephisto.data_model.agent import AgentState, Agent
-from mephisto.data_model.assignment import Unit
+from mephisto.data_model.agent_state import AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
-from typing import List, Optional, Tuple, Dict, Type
+from typing import List, Optional, Tuple, Dict, Type, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.agent import Agent
 
 
 class Worker(ABC):
@@ -17,16 +19,16 @@ class Worker(ABC):
     This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
     """
 
-    def __init__(self, db: MephistoDB, db_id: str):
+    def __init__(self, db: "MephistoDB", db_id: str):
         self.db_id: str = db_id
-        self.db: MephistoDB = db
+        self.db: "MephistoDB" = db
         row = db.get_worker(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.provider_type = row["provider_type"]
         self.db_status = row["status"]
         # TODO Do we want any other attributes here?
 
-    def __new__(cls, db: MephistoDB, db_id: str) -> Worker:
+    def __new__(cls, db: "MephistoDB", db_id: str) -> "Worker":
         """
         The new method is overridden to be able to automatically generate
         the expected Worker class without needing to specifically find it
@@ -52,7 +54,7 @@ class Worker(ABC):
 
     # TODO make abstract helpers for bonusing? and blocking
 
-    def get_agents(self, status: Optional[str] = None) -> List[Agent]:
+    def get_agents(self, status: Optional[str] = None) -> List["Agent"]:
         """
         Get the list of agents that this worker was responsible for, by the given status
         if needed
@@ -61,7 +63,9 @@ class Worker(ABC):
         return self.db.find_agents(worker_id=self.db_id, status=status)
 
     @staticmethod
-    def _register_worker(db: MephistoDB, worker_id: str, provider_type: str) -> Worker:
+    def _register_worker(
+        db: "MephistoDB", worker_id: str, provider_type: str
+    ) -> "Worker":
         """
         Create an entry for this worker in the database
         """
@@ -69,7 +73,7 @@ class Worker(ABC):
         return Worker(db, db_id)
 
     @staticmethod
-    def new(db: MephistoDB, worker_id: str) -> Worker:
+    def new(db: "MephistoDB", worker_id: str) -> "Worker":
         """
         Create a new worker attached to the given identifier, assuming it doesn't already
         exist in the database.
