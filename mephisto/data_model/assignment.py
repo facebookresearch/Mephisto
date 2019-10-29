@@ -10,11 +10,13 @@ from mephisto.core.utils import get_dir_for_run, get_crowd_provider_from_type
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.agent import Agent
-from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.worker import Worker
+    from mephisto.data_model.requester import Requester
+    from mephisto.data_model.crowd_provider import CrowdProvider
 
 import os
 import json
@@ -96,9 +98,9 @@ class Assignment:
         of this assignment with any of the given statuses
         """
         units = [u for u in self.get_units() if u.get_status() in statuses]
-        sum_cost = 0
+        sum_cost = 0.0
         for unit in units:
-            sum_cost += unit.pay_amount
+            sum_cost += unit.get_pay_amount()
         return sum_cost
 
     # TODO add helpers to manage retrieving results as well
@@ -168,7 +170,7 @@ class Unit(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    def get_crowd_provider_class(self):
+    def get_crowd_provider_class(self) -> Type["CrowdProvider"]:
         """Get the CrowdProvider class that manages this Unit"""
         return get_crowd_provider_from_type(self.provider_type)
 
@@ -194,6 +196,7 @@ class Unit(ABC):
         assert (
             status in AssignmentState.valid_unit()
         ), f"{status} not valid Assignment Status, not in {AssignmentState.valid_unit()}"
+        self.db_status = status
         self.db.update_unit(self.db_id, status=status)
 
     def get_assignment(self) -> Assignment:
@@ -201,6 +204,12 @@ class Unit(ABC):
         Return the assignment that this Unit is part of.
         """
         return Assignment(self.db, self.assignment_id)
+
+    def get_requester(self) -> "Requester":
+        """
+        Return the requester who offered this Unit
+        """
+        return self.get_assignment().get_task_run().get_requester()
 
     def get_assigned_agent(self) -> Optional[Agent]:
         """
@@ -235,6 +244,13 @@ class Unit(ABC):
         db_id = db.new_unit(assignment.db_id, index, pay_amount, provider_type)
         return Unit(db, db_id)
 
+    def get_pay_amount(self) -> float:
+        """
+        Return the amount that this Unit is costing against the budget,
+        calculating additional fees as relevant
+        """
+        return self.pay_amount
+
     # Children classes should implement the below methods
 
     def get_status(self) -> str:
@@ -246,6 +262,28 @@ class Unit(ABC):
         Status is crowd-provider dependent, and thus this method should be defined
         in the child class.
         """
+        raise NotImplementedError()
+
+    def launch(self, task_url: str) -> None:
+        """
+        Make this Unit available on the crowdsourcing vendor. Depending on
+        the task type, this could mean a number of different setup steps.
+
+        Some crowd providers require setting up a configuration for the
+        very first launch, and this method should call a helper to manage
+        that step if necessary.
+        """
+        raise NotImplementedError()
+
+    def expire(self) -> float:
+        """
+        Expire this unit, removing it from being workable on the vendor.
+        Return the maximum time needed to wait before we know it's taken down.
+        """
+        raise NotImplementedError()
+
+    def is_expired(self) -> bool:
+        """Determine if this unit is expired as according to the vendor."""
         raise NotImplementedError()
 
     @staticmethod

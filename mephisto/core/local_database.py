@@ -164,12 +164,9 @@ class LocalMephistoDB(MephistoDB):
     """
 
     def __init__(self, database_path=None):
-        if database_path is None:
-            database_path = os.path.join(get_data_dir(), "database.db")
-        self.db_path = database_path
         self.conn: Dict[int, Connection] = {}
         self.table_access_condition = threading.Condition()
-        self.init_tables()
+        super().__init__(database_path)
 
     def _get_connection(self) -> Connection:
         """Returns a singular database connection to be shared amongst all
@@ -558,6 +555,7 @@ class LocalMephistoDB(MephistoDB):
         unit_index: Optional[int] = None,
         provider_type: Optional[str] = None,
         agent_id: Optional[str] = None,
+        status: Optional[str] = None,
     ) -> List[Unit]:
         """
         Try to find any unit that matches the above. When called with no arguments,
@@ -573,12 +571,14 @@ class LocalMephistoDB(MephistoDB):
                 AND (?2 IS NULL OR unit_index = ?2)
                 AND (?3 IS NULL OR provider_type = ?3)
                 AND (?4 IS NULL OR agent_id = ?4)
+                AND (?5 IS NULL OR status = ?5)
                 """,
                 (
                     nonesafe_int(assignment_id),
                     unit_index,
                     provider_type,
                     nonesafe_int(agent_id),
+                    status,
                 ),
             )
             rows = c.fetchall()
@@ -715,7 +715,9 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("workers", "worker_id", worker_id)
 
-    def find_workers(self, provider_type: Optional[str] = None) -> List[Worker]:
+    def find_workers(
+        self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
+    ) -> List[Worker]:
         """
         Try to find any worker that matches the above. When called with no arguments,
         return all workers.
@@ -726,12 +728,13 @@ class LocalMephistoDB(MephistoDB):
             c.execute(
                 """
                 SELECT worker_id from workers
-                WHERE (?1 IS NULL OR provider_type = ?1)
+                WHERE (?1 IS NULL OR worker_name = ?1)
+                AND (?2 IS NULL OR provider_type = ?2)
                 """,
-                (provider_type,),
+                (worker_name, provider_type),
             )
             rows = c.fetchall()
-            return [Worker(self, str(r["task_id"])) for r in rows]
+            return [Worker(self, str(r["worker_id"])) for r in rows]
 
     def new_agent(
         self, worker_id: str, unit_id: str, task_type: str, provider_type: str

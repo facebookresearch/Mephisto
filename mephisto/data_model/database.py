@@ -9,6 +9,7 @@ import os
 import sqlite3
 
 from abc import ABC, abstractmethod
+from mephisto.core.utils import get_crowd_provider_from_type
 from typing import Mapping, Optional, Any, List
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Assignment, Unit
@@ -42,9 +43,28 @@ class MephistoDB(ABC):
     By default, we use a LocalMesphistoDB located at `mephisto/data/database.db`
     """
 
-    def __init__(self):
+    def __init__(self, database_path=None):
         """Ensure the database is set up and ready to handle data"""
+        if database_path is None:
+            database_path = os.path.join(get_data_dir(), "database.db")
+        self.db_path = database_path
         self.init_tables()
+        self.__provider_datastores: Dict[str, Any] = {}
+
+    def get_db_path_for_provider(self, provider_type) -> str:
+        """Get the path to store data for a specific provider in"""
+        database_root = os.path.dirname(self.db_path)
+        provider_root = os.path.join(database_root, provider_type)
+        os.makedirs(provider_root, exist_ok=True)
+        return provider_root
+
+    def get_datastore_for_provider(self, provider_type: str) -> Any:
+        """Get the provider datastore registered with this db"""
+        return self.__provider_datastores.get(provider_type)
+
+    def set_datastore_for_provider(self, provider_type: str, datastore: Any) -> None:
+        """Set the provider datastore registered with this db"""
+        self.__provider_datastores[provider_type] = datastore
 
     @abstractmethod
     def init_tables(self) -> None:
@@ -218,6 +238,7 @@ class MephistoDB(ABC):
         unit_index: Optional[int] = None,
         provider_type: Optional[str] = None,
         agent_id: Optional[str] = None,
+        status: Optional[str] = None,
     ) -> List[Unit]:
         """
         Try to find any unit that matches the above. When called with no arguments,
@@ -288,7 +309,9 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def find_workers(self, provider_type: Optional[str] = None) -> List[Worker]:
+    def find_workers(
+        self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
+    ) -> List[Worker]:
         """
         Try to find any worker that matches the above. When called with no arguments,
         return all workers.

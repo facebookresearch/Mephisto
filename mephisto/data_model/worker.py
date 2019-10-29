@@ -7,11 +7,12 @@
 from abc import ABC, abstractmethod
 from mephisto.data_model.agent_state import AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
-from typing import List, Optional, Tuple, Dict, Type, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.agent import Agent
+    from mephisto.data_model.task import TaskRun
 
 
 class Worker(ABC):
@@ -25,7 +26,7 @@ class Worker(ABC):
         row = db.get_worker(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.provider_type = row["provider_type"]
-        self.db_status = row["status"]
+        self.worker_name = row["worker_name"]
         # TODO Do we want any other attributes here?
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Worker":
@@ -50,9 +51,7 @@ class Worker(ABC):
             return super().__new__(cls)
 
     # TODO make getters for helpful worker statistics
-    # TODO add worker qualification tracking
-
-    # TODO make abstract helpers for bonusing? and blocking
+    # TODO add worker qualification tracking?
 
     def get_agents(self, status: Optional[str] = None) -> List["Agent"]:
         """
@@ -71,6 +70,24 @@ class Worker(ABC):
         """
         db_id = db.new_worker(worker_id, provider_type)
         return Worker(db, db_id)
+
+    # Children classes should implement the following methods
+
+    def bonus_worker(self, amount: float, reason: str) -> Tuple[bool, str]:
+        """Bonus this worker for work any reason. Return success of bonus"""
+        raise NotImplementedError()
+
+    def block_worker(self, reason: str) -> Tuple[bool, str]:
+        """Block this worker for a specified reason. Return success of block"""
+        raise NotImplementedError()
+
+    def unblock_worker(self, reason: str) -> bool:
+        """unblock a blocked worker for the specified reason"""
+        raise NotImplementedError()
+
+    def is_eligible(self, task_run: "TaskRun") -> bool:
+        """Determine if this worker is eligible for the given task run"""
+        raise NotImplementedError()
 
     @staticmethod
     def new(db: "MephistoDB", worker_id: str) -> "Worker":

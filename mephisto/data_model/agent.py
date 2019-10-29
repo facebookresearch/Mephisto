@@ -30,9 +30,11 @@ class Agent(ABC):
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_status = row["status"]
         self.worker_id = row["worker_id"]
+        self.unit_id = row["unit_id"]
         self.task_type = row["task_type"]
         self.provider_type = row["provider_type"]
-        self.state = AgentState(self)
+        # TODO uncomment once we have agent states for task types
+        # self.state = AgentState(self)
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Agent":
         """
@@ -63,15 +65,23 @@ class Agent(ABC):
         """
         return Worker(self.db, self.worker_id)
 
+    def get_unit(self) -> "Unit":
+        """
+        Return the Unit that this agent is working on.
+        """
+        from mephisto.data_model.assignment import Unit
+
+        return Unit(self.db, self.unit_id)
+
     @staticmethod
-    def _register_agent(db: "MephistoDB", worker: Worker, unit: "Unit") -> "Agent":
+    def _register_agent(
+        db: "MephistoDB", worker: Worker, unit: "Unit", provider_type: str
+    ) -> "Agent":
         """
         Create this agent in the mephisto db with the correct setup
         """
         task = unit.get_assignment().get_task_run().get_task()
-        db_id = db.new_agent(
-            worker.db_id, unit.db_id, task.task_type, worker.provider_type
-        )
+        db_id = db.new_agent(worker.db_id, unit.db_id, task.task_type, provider_type)
         return Agent(db, db_id)
 
     # Children classes should implement the following methods
@@ -89,6 +99,18 @@ class Agent(ABC):
         Request information from the Agent's frontend. If non-blocking,
         should return None if no actions are ready to be returned.
         """
+        raise NotImplementedError()
+
+    def approve_work(self) -> None:
+        """Approve the work done on this specific Unit"""
+        raise NotImplementedError()
+
+    def reject_work(self, reason) -> None:
+        """Reject the work done on this specific Unit"""
+        raise NotImplementedError()
+
+    def get_status(self) -> str:
+        """Get the status of this agent in their work on their unit"""
         raise NotImplementedError()
 
     @staticmethod

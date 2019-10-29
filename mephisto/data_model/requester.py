@@ -77,6 +77,26 @@ class Requester(ABC):
         db_id = db.new_requester(requester_id, provider_type)
         return Requester(db, db_id)
 
+    # Children classes should implement the following methods
+
+    def register_credentials(self) -> None:
+        """
+        Follow through with whatever user input is required to register a new
+        requester under the requester name of this requester with the crowd provider.
+        """
+        raise NotImplementedError()
+
+    def get_available_budget(self) -> float:
+        """
+        Return the funds that this requester profile has available for usage with
+        its crowdsourcing vendor
+        """
+        raise NotImplementedError()
+
+    # TODO add a way to manage creation and validation of qualifications
+    # for a given requester?
+    # TODO add qualifications to the data model
+
     @staticmethod
     def new(db: "MephistoDB", requester_name: str) -> "Requester":
         """
