@@ -1,5 +1,5 @@
 import click
-from server import app
+from .server import app
 
 @click.command()
 def web():

@@ -12,6 +12,9 @@ flask = "^1.1"
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
 
+[tool.poetry.scripts]
+'mephisto' = 'mephisto.cli.client:web'
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
