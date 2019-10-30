@@ -6,11 +6,9 @@
 
 from mephisto.data_model.worker import Worker
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
-from mephisto.providers.mturk.mturk_utils import (
-    pay_bonus,
-    block_worker,
-    # unblock_worker, TODO import this when written
-)
+from mephisto.providers.mturk.mturk_utils import pay_bonus, block_worker
+
+# unblock_worker, TODO import this when written
 
 from uuid import uuid4
 
@@ -32,7 +30,9 @@ class MTurkWorker(Worker):
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
         # TODO are there MTurk specific worker things to track?
-        self.datastore: 'MTurkDatastore' = self.db.get_datastore_for_provider(PROVIDER_TYPE)
+        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
+            PROVIDER_TYPE
+        )
         self._worker_name = self.worker_name  # sandbox workers use a different name
 
     def _get_client(self, requester_name: str) -> Any:
@@ -41,31 +41,42 @@ class MTurkWorker(Worker):
         """
         return self.datastore.get_client_for_requester(requester_name)
 
-    def bonus_worker(self, amount: float, reason: str, unit: Optional['MTurkUnit'] = None) -> Tuple[bool, str]:
+    def bonus_worker(
+        self, amount: float, reason: str, unit: Optional["MTurkUnit"] = None
+    ) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return tuple of success and failure message"""
         if unit is None:
             # TODO implement
-            return False, 'bonusing via compensation tasks not yet available'
+            return False, "bonusing via compensation tasks not yet available"
 
         requester = unit.get_assignment().get_task_run().get_requester()
         client = self._get_client(requester.requester_name)
-        pay_bonus(client, self._worker_name, amount, unit.get_mturk_assignment_id(), reason, str(uuid4()))
-        return True, ''
+        pay_bonus(
+            client,
+            self._worker_name,
+            amount,
+            unit.get_mturk_assignment_id(),
+            reason,
+            str(uuid4()),
+        )
+        return True, ""
 
-    def block_worker(self, reason: str, unit: Optional['MTurkUnit'] = None) -> Tuple[bool, str]:
+    def block_worker(
+        self, reason: str, unit: Optional["MTurkUnit"] = None
+    ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         if unit is None:
             # TODO soft block from all requesters? Maybe have the master
             # requester soft block?
             # revisit when qualifications are done
-            return False, 'Blocking without a unit not yet supported for MTurkWorkers'
+            return False, "Blocking without a unit not yet supported for MTurkWorkers"
 
         # TODO disqual from this worker, so all others can disqual as well
         # revisit when qualifications are done
         requester = unit.get_assignment().get_task_run().get_requester()
         client = self._get_client(requester.requester_name)
         block_worker(client, self._worker_name, reason)
-        return True, ''
+        return True, ""
 
     def unblock_worker(self, reason: str) -> bool:
         """unblock a blocked worker for the specified reason. Return success of unblock"""
