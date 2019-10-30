@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
 from mephisto.data_model.crowd_provider import CrowdProvider
 from mephisto.providers.mturk.mturk_agent import MTurkAgent
@@ -30,9 +31,10 @@ if TYPE_CHECKING:
 
 class MTurkProvider(CrowdProvider):
     """
-    Mock implementation of a CrowdProvider that stores everything
-    in a local state in the class for use in tests.
+    Implementation of a crowdprovider that interfaces with MTurk
     """
+
+    PROVIDER_TYPE = PROVIDER_TYPE
 
     UnitClass: ClassVar[Type["Unit"]] = MTurkUnit
 

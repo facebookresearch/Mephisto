@@ -33,13 +33,13 @@ def client_is_sandbox(client: MTurkClient) -> bool:
     Determine if the given client is communicating with
     the live server or a sandbox
     """
-    return MTurkClient.endpoint_url == SANDBOX_ENDPOINT
+    return client.endpoint_url == SANDBOX_ENDPOINT
 
 
 def setup_aws_credentials(profile_name: str) -> bool:
     try:
         # Check existing credentials
-        MTurkClient(profile_name=profile_name)
+        boto3.Session(profile_name=profile_name)
         return True
     except ProfileNotFound:
         # Setup new credentials

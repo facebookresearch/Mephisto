@@ -24,7 +24,7 @@ CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
     hit_id TEXT NOT NULL UNIQUE,
     assignment_id TEXT NOT NULL UNIQUE,
     assignment_time_in_seconds INTEGER NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 """
 
@@ -33,7 +33,7 @@ CREATE_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS runs (
     arn_id TEXT,
     hit_type_id TEXT NOT NULL,
     hit_config_path TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 """
 
@@ -50,7 +50,7 @@ class MTurkDatastore:
         """Initialize the session storage to empty, initialize tables if needed"""
         self.session_storage: Dict[str, boto3.Session] = {}
         self.table_access_condition = threading.Condition()
-        self.conn: Dict[int, sqlite3.Connection]
+        self.conn: Dict[int, sqlite3.Connection] = {}
         self.db_path = os.path.join(datastore_root, "mturk.db")
         self.init_tables()
 
@@ -166,3 +166,14 @@ class MTurkDatastore:
         direct calls to the mturk surface
         """
         return self.get_session_for_requester(requester_name).client("mturk")
+
+    def get_sandbox_client_for_requester(self, requester_name: str) -> Any:
+        """
+        Return the client for the given requester, which should allow
+        direct calls to the mturk surface
+        """
+        return self.get_session_for_requester(requester_name).client(
+            service_name="mturk",
+            region_name="us-east-1",
+            endpoint_url="https://mturk-requester-sandbox.us-east-1.amazonaws.com",
+        )

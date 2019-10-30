@@ -14,7 +14,7 @@ from mephisto.providers.mturk.mturk_utils import (
     get_hit,
     create_hit_with_hit_type,
 )
-from mephisto.providers.mock.provider_type import PROVIDER_TYPE
+from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from typing import List, Optional, Tuple, Dict, Any, Type, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -30,8 +30,6 @@ class MTurkUnit(Unit):
     higher level assignment. It is the smallest 'unit' of work to complete
     the assignment, and this class is only responsible for checking
     the status of that work itself being done.
-
-    It should be extended for usage with a specific crowd provider
     """
 
     def __init__(self, db: "MephistoDB", db_id: str):
@@ -137,6 +135,8 @@ class MTurkUnit(Unit):
         )
         # TODO store the HIT link?
         print(hit_link, hit_id, response)
+        self.hit_id = hit_id
+        self.assignment_id = response["Assignments"][0]["AssignmentId"]
         return None
 
     def expire(self) -> float:
