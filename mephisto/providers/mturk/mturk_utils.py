@@ -45,20 +45,20 @@ def setup_aws_credentials(
         return True
     except ProfileNotFound:
         # Setup new credentials
-        print(
-            f"AWS credentials for {profile_name} not found. Please create "
-            "an IAM user with "
-            "programmatic access and AdministratorAccess policy at "
-            'https://console.aws.amazon.com/iam/ (On the "Set permissions" '
-            'page, choose "Attach existing policies directly" and then select '
-            '"AdministratorAccess" policy). After creating the IAM user, '
-            "please enter the user's Access Key ID and Secret Access "
-            "Key below:"
-        )
         if register_args is not None:
             aws_access_key_id = register_args["access_key_id"]
             aws_secret_access_key = register_args["secret_access_key"]
         else:
+            print(
+                f"AWS credentials for {profile_name} not found. Please create "
+                "an IAM user with "
+                "programmatic access and AdministratorAccess policy at "
+                'https://console.aws.amazon.com/iam/ (On the "Set permissions" '
+                'page, choose "Attach existing policies directly" and then select '
+                '"AdministratorAccess" policy). After creating the IAM user, '
+                "please enter the user's Access Key ID and Secret Access "
+                "Key below:"
+            )
             aws_access_key_id = input("Access Key ID: ")
             aws_secret_access_key = input("Secret Access Key: ")
         if not os.path.exists(os.path.expanduser("~/.aws/")):
