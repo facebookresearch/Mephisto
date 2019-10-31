@@ -101,6 +101,18 @@ class CrowdProviderTests(unittest.TestCase):
         provider = ProviderClass(self.db)
         self.assertTrue(self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE))
 
+    def test_init_object_registers_datastore(self) -> None:
+        """Ensure that initializing the crowd provider registers
+        a datastore with the database, as this is required functionality
+        for all crowd providers.
+        """
+        ProviderClass = self.CrowdProviderClass
+        self.assertFalse(self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE))
+        # Initialize the requester
+        RequesterClass = ProviderClass.RequesterClass
+        requester = RequesterClass.new(self.db, self.get_test_requester_name())
+        self.assertTrue(self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE))
+
     def test_requester(self) -> None:
         """Ensure we can create and use a requester"""
         db: MephistoDB = self.db
