@@ -107,7 +107,7 @@ class CrowdProviderTests(unittest.TestCase):
             "Requester gotten from db not same as first init",
         )
         # Ensure credential registration works
-        test_requester.register_credentials()
+        test_requester.register()
 
         # Ensure requester methods work
         avail_budget = test_requester.get_available_budget()

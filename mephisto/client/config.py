@@ -1,2 +1,2 @@
 class Config:
-	ENV='development'
+    ENV = "development"

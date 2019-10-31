@@ -7,7 +7,7 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.core.utils import get_crowd_provider_from_type
 
-from typing import List, TYPE_CHECKING
+from typing import List, Optional, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -79,12 +79,26 @@ class Requester(ABC):
 
     # Children classes should implement the following methods
 
-    def register_credentials(self) -> None:
+    def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """
-        Follow through with whatever user input is required to register a new
-        requester under the requester name of this requester with the crowd provider.
+        Register this requester with the crowd provider by providing any required credentials
+        or such. If no args are provided, assume the registration is already made and try
+        to assert it as such.
         """
         raise NotImplementedError()
+
+    @staticmethod
+    def get_register_args() -> Dict[str, str]:
+        """
+        Get the args required to register this requester to the crowd provider, the 'help_text'
+        key is a special key for any descriptive text to inform the user where to get these values.
+        """
+        # TODO perhaps at some point we can support more than just string arguents?
+        return {
+            # Dict is a map from param name to query text, such as
+            # "HELP_TEXT": 'This key is used to put any important instruction text behind',
+            # "requester_secret_key": "What is the secret key to register this worker?"
+        }
 
     def get_available_budget(self) -> float:
         """

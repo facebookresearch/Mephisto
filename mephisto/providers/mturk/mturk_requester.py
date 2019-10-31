@@ -11,7 +11,7 @@ from mephisto.providers.mturk.mturk_utils import (
 )
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 
-from typing import List, Any, TYPE_CHECKING
+from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -49,9 +49,28 @@ class MTurkRequester(Requester):
 
     # Required functions for a Requester implementation
 
-    def register_credentials(self) -> None:
-        """Try to register credentials for the given requester"""
-        setup_aws_credentials(self._requester_name)
+    def register(self, args: Optional[Dict[str, str]] = None) -> None:
+        """
+        Register this requester with the crowd provider by providing any required credentials
+        or such. If no args are provided, assume the registration is already made and try
+        to assert it as such.
+        """
+        setup_aws_credentials(self._requester_name, args)
+
+    @staticmethod
+    def get_register_args() -> Dict[str, str]:
+        """Get the args required to register this requester to the crowd provider"""
+        return {
+            "HELP_TEXT": "AWS are required to create a new Requester. Please create "
+            "an IAM user with "
+            "programmatic access and AdministratorAccess policy at "
+            'https://console.aws.amazon.com/iam/ (On the "Set permissions" '
+            'page, choose "Attach existing policies directly" and then select '
+            '"AdministratorAccess" policy). After creating the IAM user, '
+            "please enter the user's Access Key ID and Secret Access Key.",
+            "access_key_id": "IAM Access Key ID: ",
+            "secret_access_key": "IAM Secret Access Key: ",
+        }
 
     def get_available_budget(self) -> float:
         """Get the available budget from MTurk"""
