@@ -86,14 +86,23 @@ class CrowdProviderTests(unittest.TestCase):
 
     def get_test_requester(self) -> Requester:
         """Create a requester to use in tests and register it"""
-        assert self.db is not None, "No db initialized"
         db: MephistoDB = self.db
         RequesterClass = self.CrowdProviderClass.RequesterClass
         return RequesterClass.new(db, self.get_test_requester_name())
 
+    def test_init_registers_datastore(self) -> None:
+        """Ensure that initializing the crowd provider registers
+        a datastore with the database, as this is required functionality
+        for all crowd providers.
+        """
+        ProviderClass = self.CrowdProviderClass
+        self.assertFalse(self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE))
+        # Initialize the provider
+        provider = ProviderClass(self.db)
+        self.assertTrue(self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE))
+
     def test_requester(self) -> None:
         """Ensure we can create and use a requester"""
-        assert self.db is not None, "No db initialized"
         db: MephistoDB = self.db
         RequesterClass = self.CrowdProviderClass.RequesterClass
         test_requester = RequesterClass.new(db, self.get_test_requester_name())
@@ -117,7 +126,6 @@ class CrowdProviderTests(unittest.TestCase):
 
     def test_worker(self) -> None:
         """Ensure we can query and use a worker"""
-        assert self.db is not None, "No db initialized"
         db: MephistoDB = self.db
         requester = self.get_test_requester()
         WorkerClass = self.CrowdProviderClass.WorkerClass
