@@ -7,7 +7,7 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.core.utils import get_crowd_provider_from_type
 
-from typing import List, TYPE_CHECKING
+from typing import List, Optional, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB

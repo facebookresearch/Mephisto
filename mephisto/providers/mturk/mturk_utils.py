@@ -54,8 +54,8 @@ def setup_aws_credentials(profile_name: str, register_args=None) -> bool:
             "Key below:"
         )
         if register_args is not None:
-            aws_access_key_id = register_args['access_key_id']
-            aws_secret_access_key = register_args['secret_access_key']
+            aws_access_key_id = register_args["access_key_id"]
+            aws_secret_access_key = register_args["secret_access_key"]
         else:
             aws_access_key_id = input("Access Key ID: ")
             aws_secret_access_key = input("Secret Access Key: ")
