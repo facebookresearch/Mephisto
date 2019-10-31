@@ -82,6 +82,16 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
         from mephisto.providers.mock.mock_provider import MockProvider
 
         return MockProvider
+    if provider_type == "mturk":
+        from mephisto.providers.mturk.mturk_provider import MTurkProvider
+
+        return MTurkProvider
+    if provider_type == "mturk_sandbox":
+        from mephisto.providers.mturk_sandbox.sandbox_mturk_provider import (
+            SandboxMTurkProvider,
+        )
+
+        return SandboxMTurkProvider
     raise NotImplementedError()
 
 
@@ -99,4 +109,4 @@ def get_valid_provider_types() -> List[str]:
     the mephisto framework
     """
     # TODO query this from the providers folder
-    return ["mock"]
+    return ["mock", "mturk", "mturk_sandbox"]
