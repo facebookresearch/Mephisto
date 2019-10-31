@@ -58,8 +58,16 @@ class MephistoDB(ABC):
         os.makedirs(provider_root, exist_ok=True)
         return provider_root
 
+    def has_datastore_for_provider(self, provider_type: str) -> bool:
+        """Determine if a datastore has been registered for the given provider"""
+        return provider_type in self.__provider_datastores
+
     def get_datastore_for_provider(self, provider_type: str) -> Any:
         """Get the provider datastore registered with this db"""
+        if provider_type not in self.__provider_datastores:
+            # Register this provider for usage now
+            ProviderClass = get_crowd_provider_from_type(provider_type)
+            provider = ProviderClass(self)
         return self.__provider_datastores.get(provider_type)
 
     def set_datastore_for_provider(self, provider_type: str, datastore: Any) -> None:
