@@ -6,10 +6,16 @@ authors = ["Jack Urbanek <jju@fb.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
+click = "^7.0"
+flask = "^1.1"
+click_default_group = "^1.2"
 boto3 = "^1.10"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
+
+[tool.poetry.scripts]
+'mephisto' = 'mephisto.client.cli:cli'
 
 [build-system]
 requires = ["poetry>=0.12"]
