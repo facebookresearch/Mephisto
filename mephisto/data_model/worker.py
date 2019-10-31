@@ -75,11 +75,18 @@ class Worker(ABC):
 
     # Children classes should implement the following methods
 
-    def bonus_worker(self, amount: float, reason: str, unit: Optional["Unit"] = None) -> Tuple[bool, str]:
+    def bonus_worker(
+        self, amount: float, reason: str, unit: Optional["Unit"] = None
+    ) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return success of bonus"""
         raise NotImplementedError()
 
-    def block_worker(self, reason: str, unit: Optional["Unit"] = None, requester: Optional["Requester"] = None) -> Tuple[bool, str]:
+    def block_worker(
+        self,
+        reason: str,
+        unit: Optional["Unit"] = None,
+        requester: Optional["Requester"] = None,
+    ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         raise NotImplementedError()
 

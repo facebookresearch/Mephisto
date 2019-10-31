@@ -511,20 +511,23 @@ def approve_assignments_for_hit(
 
 def block_worker(client: MTurkClient, worker_id: str, reason: str) -> None:
     """Block a worker by id using the mturk client, passes reason along"""
-    print('blocking')
+    print("blocking")
     res = client.create_worker_block(WorkerId=worker_id, Reason=reason)
     print(res)
+
 
 def unblock_worker(client: MTurkClient, worker_id: str, reason: str) -> None:
     """Remove a block on the given worker"""
     client.delete_worker_block(WorkerId=worker_id, Reason=reason)
 
+
 def is_worker_blocked(client: MTurkClient, worker_id: str) -> bool:
     """Determine if the given worker is blocked by this client"""
-    blocks = client.list_worker_blocks(MaxResults=100)['WorkerBlocks']
+    blocks = client.list_worker_blocks(MaxResults=100)["WorkerBlocks"]
     print(blocks)
-    blocked_ids = [x['WorkerId'] for x in blocks]
+    blocked_ids = [x["WorkerId"] for x in blocks]
     return worker_id in blocked_ids
+
 
 def pay_bonus(
     client: MTurkClient,

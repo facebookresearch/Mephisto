@@ -6,7 +6,12 @@
 
 from mephisto.data_model.worker import Worker
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
-from mephisto.providers.mturk.mturk_utils import pay_bonus, block_worker, unblock_worker, is_worker_blocked
+from mephisto.providers.mturk.mturk_utils import (
+    pay_bonus,
+    block_worker,
+    unblock_worker,
+    is_worker_blocked,
+)
 
 from uuid import uuid4
 
@@ -63,14 +68,20 @@ class MTurkWorker(Worker):
         return True, ""
 
     def block_worker(
-        self, reason: str, unit: Optional["Unit"] = None, requester: Optional["Requester"] = None
+        self,
+        reason: str,
+        unit: Optional["Unit"] = None,
+        requester: Optional["Requester"] = None,
     ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         if unit is None and requester is None:
             # TODO soft block from all requesters? Maybe have the master
             # requester soft block?
             # revisit when qualifications are done
-            return False, "Blocking without a unit or requester not yet supported for MTurkWorkers"
+            return (
+                False,
+                "Blocking without a unit or requester not yet supported for MTurkWorkers",
+            )
         elif unit is not None and requester is None:
             # TODO disqual from this worker, so all others can disqual as well
             # revisit when qualifications are done

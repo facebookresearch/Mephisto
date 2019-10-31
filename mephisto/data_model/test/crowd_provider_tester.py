@@ -101,14 +101,22 @@ class CrowdProviderTests(unittest.TestCase):
         RequesterClass = provider.RequesterClass
         test_requester = RequesterClass.new(db, self.get_test_requester_name())
         test_requester_2 = Requester(db, test_requester.db_id)
-        self.assertEqual(test_requester.requester_name, test_requester_2.requester_name, "Requester gotten from db not same as first init")
+        self.assertEqual(
+            test_requester.requester_name,
+            test_requester_2.requester_name,
+            "Requester gotten from db not same as first init",
+        )
         # Ensure credential registration works
         test_requester.register_credentials()
 
         # Ensure requester methods work
         avail_budget = test_requester.get_available_budget()
         test_budget = self.get_test_requester_balance(test_requester.requester_name)
-        self.assertEqual(avail_budget, test_budget, "Queried budget from `get_available_budget` not equal to `test_budget`")
+        self.assertEqual(
+            avail_budget,
+            test_budget,
+            "Queried budget from `get_available_budget` not equal to `test_budget`",
+        )
 
     def test_worker(self) -> None:
         """Ensure we can query and use a worker"""
@@ -119,12 +127,16 @@ class CrowdProviderTests(unittest.TestCase):
         WorkerClass = provider.WorkerClass
         test_worker = WorkerClass.new(db, self.get_test_worker_name())
         test_worker_2 = Worker(db, test_worker.db_id)
-        self.assertEqual(test_worker.worker_name, test_worker_2.worker_name, "Worker gotten from db not same as first init")
+        self.assertEqual(
+            test_worker.worker_name,
+            test_worker_2.worker_name,
+            "Worker gotten from db not same as first init",
+        )
 
         # Ensure blocking is doable
-        test_worker.block_worker('Test reason', requester=requester)
+        test_worker.block_worker("Test reason", requester=requester)
         self.assertTrue(test_worker.is_blocked(requester))
-        test_worker.unblock_worker('Test reason', requester=requester)
+        test_worker.unblock_worker("Test reason", requester=requester)
         self.assertFalse(test_worker.is_blocked(requester))
 
         # TODO is it possible to test worker bonuses?
