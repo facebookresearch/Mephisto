@@ -11,6 +11,8 @@ from typing import List, Optional, Tuple, Dict, Type, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.assignment import Unit, Agent
+    from mephisto.data_model.requester import Requester
 
 
 class MockWorker(Worker):
@@ -23,17 +25,21 @@ class MockWorker(Worker):
         # TODO any additional init as is necessary once
         # a mock DB exists
 
-    def bonus_worker(self, amount: float, reason: str) -> Tuple[bool, str]:
+    def bonus_worker(self, amount: float, reason: str, unit: Optional["Unit"] = None) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return success of bonus"""
         return True, ""
 
-    def block_worker(self, reason: str) -> Tuple[bool, str]:
+    def block_worker(self, reason: str, unit: Optional["Unit"] = None, requester: Optional["Requester"] = None) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         return True, ""
 
-    def unblock_worker(self, reason: str) -> bool:
+    def unblock_worker(self, reason: str, requester: "Requester") -> bool:
         """unblock a blocked worker for the specified reason. Return success of unblock"""
         return True
+
+    def is_blocked(self, requester: "Requester") -> bool:
+        """Determine if a worker is blocked"""
+        return False
 
     def is_eligible(self, task_run: "TaskRun") -> bool:
         """Determine if this worker is eligible for the given task run"""

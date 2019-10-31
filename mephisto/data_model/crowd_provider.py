@@ -31,6 +31,8 @@ class CrowdProvider(ABC):
     should ensure support for a vendor.
     """
 
+    PROVIDER_TYPE = PROVIDER_TYPE
+
     UnitClass: ClassVar[Type[Unit]] = Unit
 
     RequesterClass: ClassVar[Type[Requester]] = Requester
@@ -54,13 +56,13 @@ class CrowdProvider(ABC):
         and use that one if available, otherwise make a new one
         and register it with the database.
         """
-        existing_datastore = db.get_datastore_for_provider(PROVIDER_TYPE)
+        existing_datastore = db.get_datastore_for_provider(self.PROVIDER_TYPE)
         if existing_datastore is not None:
             self.datastore = existing_datastore
         else:
-            self.datastore_root = db.get_db_path_for_provider(PROVIDER_TYPE)
+            self.datastore_root = db.get_db_path_for_provider(self.PROVIDER_TYPE)
             self.datastore = self.initialize_provider_datastore(self.datastore_root)
-            db.set_datastore_for_provider(PROVIDER_TYPE, self.datastore)
+            db.set_datastore_for_provider(self.PROVIDER_TYPE, self.datastore)
 
     @abstractmethod
     def initialize_provider_datastore(self, storage_path: str) -> Any:
