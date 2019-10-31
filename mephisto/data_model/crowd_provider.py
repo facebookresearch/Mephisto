@@ -56,9 +56,8 @@ class CrowdProvider(ABC):
         and use that one if available, otherwise make a new one
         and register it with the database.
         """
-        existing_datastore = db.get_datastore_for_provider(self.PROVIDER_TYPE)
-        if existing_datastore is not None:
-            self.datastore = existing_datastore
+        if db.has_datastore_for_provider(self.PROVIDER_TYPE):
+            self.datastore = db.get_datastore_for_provider(self.PROVIDER_TYPE)
         else:
             self.datastore_root = db.get_db_path_for_provider(self.PROVIDER_TYPE)
             self.datastore = self.initialize_provider_datastore(self.datastore_root)
