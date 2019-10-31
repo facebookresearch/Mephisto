@@ -1,8 +1,20 @@
 import React from "react";
-import "./App.css";
+import Sidebar from "./Sidebar";
+import DetailPane from "./DetailPane";
 
 function App() {
-  return <h1>mephisto</h1>;
+  return (
+    <div className="app-layout">
+      <Sidebar />
+      <div className="app-page">
+        <div className="app-page-header">
+          <h1>Dashboard</h1>
+          {/* <input type="text" name="search" placeholder="Search.." /> */}
+        </div>
+      </div>
+      <DetailPane />
+    </div>
+  );
 }
 
 export default App;
