@@ -14,30 +14,38 @@ def requester_details(type):
     return jsonify(params)
 
 
-@api.route("/requester/<string:type>/register", methods=["GET"])
+@api.route("/requester/<string:type>/register", methods=["POST"])
 def register(type):
-    options = request.args.to_dict()
+    options = request.form.to_dict()
     crowd_provider = get_crowd_provider_from_type(type)
     RequesterClass = crowd_provider.RequesterClass
     db = LocalMephistoDB()
 
-    requesters = db.find_requesters(requester_name="Noah1027")
+    if 'name' not in options:
+        return jsonify({'success': False, 'msg': 'No name was specified for the requester.'})
+
+    requesters = db.find_requesters(requester_name=options['name'])
     if len(requesters) == 0:
-        requester = RequesterClass.new(db, "Noah1027")  # TODO: unhardcode
+        requester = RequesterClass.new(db, options['name'])  # TODO: unhardcode
     else:
         requester = requesters[0]
     # except EntryAlreadyExistsException as e:
     #     return jsonify({'success': False, 'msg': 'Noah1027 already exists.'})
     try:
+        print(options)
         requester.register(options)
-        return jsonify({"success": True})
+        return jsonify({'success': True})
     except Exception as e:
-        return jsonify({"success": False, "msg": str(e)})
+        return jsonify({'success': False, 'msg': str(e)})
 
 
 @api.route("/<string:requester_name>/get_balance")
 def get_balance(requester_name):
     db = LocalMephistoDB()
-    requester = db.find_requesters(requester_name=requester_name)
-    requester = requester[0]
+    requesters = db.find_requesters(requester_name=requester_name)
+
+    if len(requesters) == 0:
+        return jsonify({"success": False, 'msg': f'No requester available with name: {requester_name}'})
+
+    requester = requesters[0]
     return jsonify({"balance": requester.get_available_budget()})
