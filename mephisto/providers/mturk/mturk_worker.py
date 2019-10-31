@@ -6,20 +6,20 @@
 
 from mephisto.data_model.worker import Worker
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
-from mephisto.providers.mturk.mturk_utils import pay_bonus, block_worker
-
-# unblock_worker, TODO import this when written
+from mephisto.providers.mturk.mturk_utils import pay_bonus, block_worker, unblock_worker, is_worker_blocked
 
 from uuid import uuid4
 
-from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit
+    from mephisto.data_model.requester import Requester
     from mephisto.providers.mturk.mturk_unit import MTurkUnit
+    from mephisto.providers.mturk.mturk_requester import MTurkRequester
 
 
 class MTurkWorker(Worker):
@@ -42,13 +42,14 @@ class MTurkWorker(Worker):
         return self.datastore.get_client_for_requester(requester_name)
 
     def bonus_worker(
-        self, amount: float, reason: str, unit: Optional["MTurkUnit"] = None
+        self, amount: float, reason: str, unit: Optional["Unit"] = None
     ) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return tuple of success and failure message"""
         if unit is None:
             # TODO implement
             return False, "bonusing via compensation tasks not yet available"
 
+        unit = cast("MTurkUnit", unit)
         requester = unit.get_assignment().get_task_run().get_requester()
         client = self._get_client(requester.requester_name)
         pay_bonus(
@@ -62,26 +63,35 @@ class MTurkWorker(Worker):
         return True, ""
 
     def block_worker(
-        self, reason: str, unit: Optional["MTurkUnit"] = None
+        self, reason: str, unit: Optional["Unit"] = None, requester: Optional["Requester"] = None
     ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
-        if unit is None:
+        if unit is None and requester is None:
             # TODO soft block from all requesters? Maybe have the master
             # requester soft block?
             # revisit when qualifications are done
-            return False, "Blocking without a unit not yet supported for MTurkWorkers"
-
-        # TODO disqual from this worker, so all others can disqual as well
-        # revisit when qualifications are done
-        requester = unit.get_assignment().get_task_run().get_requester()
-        client = self._get_client(requester.requester_name)
+            return False, "Blocking without a unit or requester not yet supported for MTurkWorkers"
+        elif unit is not None and requester is None:
+            # TODO disqual from this worker, so all others can disqual as well
+            # revisit when qualifications are done
+            requester = unit.get_assignment().get_task_run().get_requester()
+        requester = cast("MTurkRequester", requester)
+        client = self._get_client(requester._requester_name)
         block_worker(client, self._worker_name, reason)
         return True, ""
 
-    def unblock_worker(self, reason: str) -> bool:
+    def unblock_worker(self, reason: str, requester: "Requester") -> bool:
         """unblock a blocked worker for the specified reason. Return success of unblock"""
-        # TODO implement
-        return False
+        requester = cast("MTurkRequester", requester)
+        client = self._get_client(requester._requester_name)
+        unblock_worker(client, self._worker_name, reason)
+        return True
+
+    def is_blocked(self, requester: "Requester") -> bool:
+        """Determine if a worker is blocked"""
+        requester = cast("MTurkRequester", requester)
+        client = self._get_client(requester._requester_name)
+        return is_worker_blocked(client, self._worker_name)
 
     def is_eligible(self, task_run: "TaskRun") -> bool:
         """

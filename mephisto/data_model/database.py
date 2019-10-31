@@ -67,6 +67,11 @@ class MephistoDB(ABC):
         self.__provider_datastores[provider_type] = datastore
 
     @abstractmethod
+    def shutdown(self) -> None:
+        """Do whatever is required to shut this server off"""
+        raise NotImplementedError()
+
+    @abstractmethod
     def init_tables(self) -> None:
         """
         Initialize any tables that may be required to run this database. If this is an expensive
