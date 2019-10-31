@@ -9,7 +9,7 @@ import os
 import sqlite3
 
 from abc import ABC, abstractmethod
-from mephisto.core.utils import get_crowd_provider_from_type
+from mephisto.core.utils import get_crowd_provider_from_type, get_data_dir
 from typing import Mapping, Optional, Any, List
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Assignment, Unit
