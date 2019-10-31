@@ -102,6 +102,21 @@ class Worker(ABC):
         """Determine if this worker is eligible for the given task run"""
         raise NotImplementedError()
 
+    def register(self, args: Optional[Dict[str, str]] = None) -> None:
+        """Register this worker with the crowdprovider, if necessary"""
+        pass
+
+    @staticmethod
+    def get_register_args() -> Dict[str, str]:
+        """Get the args required to register this worker to the crowd provider"""
+        # TODO perhaps at some point we can support more than just string arguents?
+        return {
+            # Dict is a map from param name to query text, such as
+            # "HELP_TEXT": 'This key is used to put any important instruction text behind',
+            # "requester_secret_key": "What is the secret key to register this worker?"
+            # "worker_creation_confirmation": "What is the confirmation code to make this worker?"
+        }
+
     @staticmethod
     def new(db: "MephistoDB", worker_id: str) -> "Worker":
         """

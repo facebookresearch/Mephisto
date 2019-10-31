@@ -36,7 +36,7 @@ def client_is_sandbox(client: MTurkClient) -> bool:
     return client.endpoint_url == SANDBOX_ENDPOINT
 
 
-def setup_aws_credentials(profile_name: str) -> bool:
+def setup_aws_credentials(profile_name: str, register_args=None) -> bool:
     try:
         # Check existing credentials
         boto3.Session(profile_name=profile_name)
@@ -53,8 +53,12 @@ def setup_aws_credentials(profile_name: str) -> bool:
             "please enter the user's Access Key ID and Secret Access "
             "Key below:"
         )
-        aws_access_key_id = input("Access Key ID: ")
-        aws_secret_access_key = input("Secret Access Key: ")
+        if register_args is not None:
+            aws_access_key_id = register_args['access_key_id']
+            aws_secret_access_key = register_args['secret_access_key']
+        else:
+            aws_access_key_id = input("Access Key ID: ")
+            aws_secret_access_key = input("Secret Access Key: ")
         if not os.path.exists(os.path.expanduser("~/.aws/")):
             os.makedirs(os.path.expanduser("~/.aws/"))
         aws_credentials_file_path = "~/.aws/credentials"
