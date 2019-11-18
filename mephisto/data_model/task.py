@@ -232,7 +232,7 @@ class TaskRun:
         # TODO put this as row in db
         self.task_type = self.get_task().task_type
 
-    def get_task_runner(self) -> Type['TaskRunner']:
+    def get_task_runner(self) -> Type["TaskRunner"]:
         """Return the runner associated with this task run"""
         return get_task_runner_from_type(self.task_type)
 

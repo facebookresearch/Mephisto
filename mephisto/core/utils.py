@@ -96,7 +96,7 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
     raise NotImplementedError()
 
 
-def get_task_runner_from_type(task_type: str) -> Type['TaskRunner']:
+def get_task_runner_from_type(task_type: str) -> Type["TaskRunner"]:
     """
     Return the task runner class for the given string
     """

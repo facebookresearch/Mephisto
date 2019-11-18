@@ -34,21 +34,21 @@ class AgentDisconnectedError(AbsentAgentError):
     """Exception for a real disconnect event (no signal)"""
 
     def __init__(self, worker_id, assignment_id):
-        super().__init__(f'Agent disconnected', worker_id, assignment_id)
+        super().__init__(f"Agent disconnected", worker_id, assignment_id)
 
 
 class AgentTimeoutError(AbsentAgentError):
     """Exception for when a worker doesn't respond in time"""
 
     def __init__(self, timeout, worker_id, assignment_id):
-        super().__init__(f'Agent exceeded {timeout}', worker_id, assignment_id)
+        super().__init__(f"Agent exceeded {timeout}", worker_id, assignment_id)
 
 
 class AgentReturnedError(AbsentAgentError):
     """Exception for an explicit return event (worker returns task)"""
 
     def __init__(self, worker_id, assignment_id):
-        super().__init__(f'Agent returned HIT', worker_id, assignment_id)
+        super().__init__(f"Agent returned HIT", worker_id, assignment_id)
 
 
 class Agent(ABC):

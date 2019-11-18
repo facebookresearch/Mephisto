@@ -107,9 +107,20 @@ class BlueprintTests(unittest.TestCase):
     def test_has_required_class_members(self) -> None:
         """Ensures that the TaskRunner is well-formatted"""
         ImplementedAgentState = self._get_agent_state_class()
-        self.assertTrue(issubclass(ImplementedAgentState, AgentState), 'Implemented AgentStateClass does not extend AgentState')
-        self.assertNotEqual(ImplementedAgentState, AgentState, 'Can not use base AgentState in a TaskRunner implementation')
-        self.assertIn('mock', self.TaskRunnerClass.supported_architects, 'Must support at least the mock architecture for testing')
+        self.assertTrue(
+            issubclass(ImplementedAgentState, AgentState),
+            "Implemented AgentStateClass does not extend AgentState",
+        )
+        self.assertNotEqual(
+            ImplementedAgentState,
+            AgentState,
+            "Can not use base AgentState in a TaskRunner implementation",
+        )
+        self.assertIn(
+            "mock",
+            self.TaskRunnerClass.supported_architects,
+            "Must support at least the mock architecture for testing",
+        )
         # TODO implement getting the defaults of TaskRunnerClass.get_extra_options() when
         # options are improved
 
@@ -145,7 +156,9 @@ class BlueprintTests(unittest.TestCase):
         """Run a task in a thread, ensure we see it is being tracked"""
         task_runner = self.task_runner
         assignment = self.get_test_assignment()
-        task_thread = threading.Thread(target=task_runner.run_assignment, args=(assignment, ))
+        task_thread = threading.Thread(
+            target=task_runner.run_assignment, args=(assignment,)
+        )
         self.assertFalse(self.assignment_is_tracked(assignment))
         task_thread.start()
         time.sleep(0.1)  # Sleep to give the task_runner time to register

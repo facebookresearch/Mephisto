@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
 
+
 class TaskRunner(ABC):
     """
     Class to manage running a task of a specific type. Includes
@@ -21,23 +22,23 @@ class TaskRunner(ABC):
     passing agents through a task.
     """
 
-    AgentStateClass: ClassVar[Type['AgentState']]
+    AgentStateClass: ClassVar[Type["AgentState"]]
     supported_architects: ClassVar[List[str]]
 
-    def __init__(self, task_run: 'TaskRun', opts: Any):
+    def __init__(self, task_run: "TaskRun", opts: Any):
         self.opts = opts
         # TODO populate some kind of local state for tasks that are being run
         # by this runner from the database.
 
     @abstractmethod
-    def build_in_dir(self, task_run: 'TaskRun', build_dir: str) -> None:
+    def build_in_dir(self, task_run: "TaskRun", build_dir: str) -> None:
         """
         Build the server for the given task run into the provided directory
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def run_assignment(self, assignment: 'Assignment'):
+    def run_assignment(self, assignment: "Assignment"):
         """
         Handle setup for any resources required to get this assignment running.
         This will be run in a background thread, and should be tolerant to
@@ -47,7 +48,7 @@ class TaskRunner(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def cleanup_assignment(self, assignment: 'Assignment'):
+    def cleanup_assignment(self, assignment: "Assignment"):
         """
         Handle ensuring resources for a given assignment are cleaned up following
         a disconnect or other crash event

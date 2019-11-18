@@ -66,7 +66,9 @@ class MockAgent(Agent):
         a call to get_status
         """
         if self.get_status() != AgentState.STATUS_DISCONNECT:
-            self.db.update_agent(agent_id=self.db_id, status=AgentState.STATUS_COMPLETED)
+            self.db.update_agent(
+                agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
+            )
 
     def mark_disconnected(self) -> None:
         """Mark this mock agent as having disconnected"""

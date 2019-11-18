@@ -47,7 +47,7 @@ class MockBlueprintTests(BlueprintTests):
         expected_build_path = os.path.join(build_dir, MockTaskRunner.BUILT_FILE)
         if not os.path.exists(expected_build_path):
             return False
-        with open(expected_build_path, 'r') as built_file:
+        with open(expected_build_path, "r") as built_file:
             file_contents = built_file.read()
             return file_contents.strip() == MockTaskRunner.BUILT_MESSAGE
 
@@ -63,7 +63,7 @@ class MockBlueprintTests(BlueprintTests):
         # TODO move mock worker assignment to a more appropriate location
         unit_id = self.db.new_unit(assignment_id, 0, 0, MOCK_PROVIDER_TYPE)
         unit = MockUnit(self.db, unit_id)
-        worker_id = self.db.new_worker('MOCK_TEST_WORKER', MOCK_PROVIDER_TYPE)
+        worker_id = self.db.new_worker("MOCK_TEST_WORKER", MOCK_PROVIDER_TYPE)
         worker = MockWorker(self.db, worker_id)
         # TODO pull the task type name from the right location
         agent_id = self.db.new_agent(worker_id, unit_id, "mock", MOCK_PROVIDER_TYPE)
@@ -76,7 +76,7 @@ class MockBlueprintTests(BlueprintTests):
         by the given task runner. This should be false unless
         run_assignment is still ongoing for a task.
         """
-        assert isinstance(self.task_runner, MockTaskRunner), 'Must be a mock runner'
+        assert isinstance(self.task_runner, MockTaskRunner), "Must be a mock runner"
         return assignment.db_id in self.task_runner.tracked_tasks
 
     # TODO are there any other unit tests we'd like to have?
