@@ -5,6 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.assignment import Unit
+from mephisto.data_model.assignment_state import AssignmentState
+from mephisto.data_model.agent_state import AgentState
+
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING
 
@@ -29,8 +32,37 @@ class MockUnit(Unit):
         # a mock DB exists
 
     def get_status(self) -> str:
-        row = self.db.get_unit(self.db_id)
-        return row["status"]
+        agent = self.get_assigned_agent()
+        if agent is None:
+            row = self.db.get_unit(self.db_id)
+            return row["status"]
+        else:
+            agent_status = agent.get_status()
+            if agent_status == AgentState.STATUS_NONE:
+                return AssignmentState.LAUNCHED
+            elif agent_status in [
+                AgentState.STATUS_ACCEPTED,
+                AgentState.STATUS_ONBOARDING,
+                AgentState.STATUS_WAITING,
+                AgentState.STATUS_IN_TASK,
+            ]:
+                return AssignmentState.ASSIGNED
+            elif agent_status in [
+                AgentState.STATUS_COMPLETED,
+                AgentState.STATUS_PARTNER_DISCONNECT,
+            ]:
+                return AssignmentState.COMPLETED
+            elif agent_status in [
+                AgentState.STATUS_DISCONNECT,
+                AgentState.STATUS_EXPIRED,
+                AgentState.STATUS_RETURNED,
+            ]:
+                return AssignmentState.EXPIRED
+            elif agent_status == AgentState.STATUS_APPROVED:
+                return AssignmentState.ACCEPTED
+            elif agent_status == AgentState.STATUS_REJECTED:
+                return AssignmentState.REJECTED
+        return AssignmentState.LAUNCHED
 
     def launch(self, task_url: str) -> None:
         """Mock launches do nothing right now"""

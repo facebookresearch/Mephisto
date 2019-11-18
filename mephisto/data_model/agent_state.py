@@ -95,7 +95,7 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_data(self, *args) -> None:
+    def update_data(self, state) -> None:
         """
         Put new current Unit data into this AgentState
         """
