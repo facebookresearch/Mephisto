@@ -4,6 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
+
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.data_model.agent_state import AgentState
 from mephisto.data_model.worker import Worker
@@ -14,6 +16,39 @@ from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.database import MephistoDB
+
+
+# types of exceptions thrown when an agent exits the chat. These are thrown
+# on a failed act call call. If one of these is thrown and not handled,
+# the world should die and enter cleanup.
+class AbsentAgentError(Exception):
+    """Exceptions for when an agent leaves a task"""
+
+    def __init__(self, message, worker_id, assignment_id):
+        self.message = message
+        self.worker_id = worker_id
+        self.assignment_id = assignment_id
+
+
+class AgentDisconnectedError(AbsentAgentError):
+    """Exception for a real disconnect event (no signal)"""
+
+    def __init__(self, worker_id, assignment_id):
+        super().__init__(f"Agent disconnected", worker_id, assignment_id)
+
+
+class AgentTimeoutError(AbsentAgentError):
+    """Exception for when a worker doesn't respond in time"""
+
+    def __init__(self, timeout, worker_id, assignment_id):
+        super().__init__(f"Agent exceeded {timeout}", worker_id, assignment_id)
+
+
+class AgentReturnedError(AbsentAgentError):
+    """Exception for an explicit return event (worker returns task)"""
+
+    def __init__(self, worker_id, assignment_id):
+        super().__init__(f"Agent returned HIT", worker_id, assignment_id)
 
 
 class Agent(ABC):
@@ -73,6 +108,14 @@ class Agent(ABC):
 
         return Unit(self.db, self.unit_id)
 
+    def get_data_dir(self) -> str:
+        """
+        Return the directory to be storing any agent state for
+        this agent into
+        """
+        assignment_dir = self.get_unit().get_assignment().get_data_dir()
+        return os.path.join(assignment_dir, self.db_id)
+
     @staticmethod
     def _register_agent(
         db: "MephistoDB", worker: Worker, unit: "Unit", provider_type: str
@@ -102,15 +145,23 @@ class Agent(ABC):
         raise NotImplementedError()
 
     def approve_work(self) -> None:
-        """Approve the work done on this specific Unit"""
+        """Approve the work done on this agent's specific Unit"""
         raise NotImplementedError()
 
     def reject_work(self, reason) -> None:
-        """Reject the work done on this specific Unit"""
+        """Reject the work done on this agent's specific Unit"""
         raise NotImplementedError()
 
     def get_status(self) -> str:
         """Get the status of this agent in their work on their unit"""
+        raise NotImplementedError()
+
+    def mark_done(self) -> None:
+        """
+        Take any required step with the crowd_provider to ensure that
+        the worker can submit their work and be marked as complete via
+        a call to get_status
+        """
         raise NotImplementedError()
 
     @staticmethod

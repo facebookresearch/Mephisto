@@ -187,8 +187,9 @@ class LocalMephistoDB(MephistoDB):
     def shutdown(self) -> None:
         """Close all open connections"""
         with self.table_access_condition:
-            for conn in self.conn.values():
-                conn.close()
+            curr_thread = threading.get_ident()
+            self.conn[curr_thread].close()
+            del self.conn[curr_thread]
 
     def init_tables(self) -> None:
         """

@@ -12,6 +12,7 @@ from typing import Optional, Any, List, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
+    from mephisto.data_model.task_runner import TaskRunner
 
 
 def ensure_user_confirm(display_text, skip_input=False) -> None:
@@ -95,10 +96,15 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
     raise NotImplementedError()
 
 
-def get_task_runner_from_type(task_type: str) -> Any:
+def get_task_runner_from_type(task_type: str) -> Type["TaskRunner"]:
     """
     Return the task runner class for the given string
     """
+    # TODO construct this map automatically
+    if task_type == "mock":
+        from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
+
+        return MockTaskRunner
     raise NotImplementedError()
 
 
