@@ -55,8 +55,8 @@ class TaskBuilder(ABC):
 
     def __new__(cls, task_run: "TaskRun", opts: Any) -> "TaskBuilder":
         """Get the correct TaskBuilder for this task run"""
-        if cls == AgentState:
-            # We are trying to construct an AgentState, find what type to use and
+        if cls == TaskBuilder:
+            # We are trying to construct an TaskBuilder, find what type to use and
             # create that instead
             correct_class = get_blueprint_from_type(task_run.task_type).TaskBuilderClass
             return super().__new__(correct_class)
@@ -105,7 +105,7 @@ class TaskRunner(ABC):
 
     def __new__(cls, task_run: "TaskRun", opts: Any) -> "TaskRunner":
         """Get the correct TaskRunner for this task run"""
-        if cls == AgentState:
+        if cls == TaskRunner:
             # We are trying to construct an AgentState, find what type to use and
             # create that instead
             correct_class = get_blueprint_from_type(task_run.task_type).TaskRunnerClass

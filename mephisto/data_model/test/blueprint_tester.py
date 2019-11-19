@@ -76,6 +76,7 @@ class BlueprintTests(unittest.TestCase):
         self.build_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
+        # TODO we need to actually pull the task type from the Blueprint
         self.task_run = TaskRun(self.db, get_test_task_run(self.db))
         # TODO create a mock agent with the given task type?
         self.TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
@@ -144,6 +145,16 @@ class BlueprintTests(unittest.TestCase):
         )
         # TODO implement getting the defaults of TaskRunnerClass.get_extra_options() when
         # options are improved
+
+    def test_abstract_initialization_works(self) -> None:
+        """
+        Test that initialization from the abstract class produces the
+        correct class.
+        """
+        runner = TaskRunner(self.task_run, {}) # type: ignore
+        self.assertTrue(isinstance(runner, self.TaskRunnerClass))
+        builder = TaskBuilder(self.task_run, {}) # type: ignore
+        self.assertTrue(isinstance(builder, self.TaskBuilderClass))
 
     def test_can_init_subclasses(self) -> None:
         """Ensure the subclasses of a Blueprint can be properly initialized"""
