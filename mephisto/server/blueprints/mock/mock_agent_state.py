@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List, Dict, Any, TYPE_CHECKING
-from mephisto.data_model.agent_state import AgentState
+from mephisto.data_model.blueprint import AgentState
 import os
 import json
 
@@ -15,8 +15,7 @@ if TYPE_CHECKING:
 
 class MockAgentState(AgentState):
     """
-    Holds information about legacy ParlAI tasks. Data is stored in json files
-    containing every act from the ParlAI world.
+    Mock agent state that is to be used for testing
     """
 
     def __init__(self, agent: "Agent"):
@@ -33,7 +32,7 @@ class MockAgentState(AgentState):
         return self.state
 
     def save_data(self) -> None:
-        """Mock agents don't save data"""
+        """Mock agents don't save data (yet)"""
         pass
 
     def update_data(self, state) -> None:

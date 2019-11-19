@@ -38,11 +38,15 @@ class Assignment:
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_run_id = row["task_run_id"]
 
-    def get_assignment_data(self) -> Optional[Dict[str, Any]]:
-        """Return the specific assignment data for this assignment"""
+    def get_data_dir(self) -> str:
+        """Return the directory we expect to find assignment data in"""
         task_run = TaskRun(self.db, self.task_run_id)
         run_dir = task_run.get_run_dir()
-        assign_data_filename = os.path.join(run_dir, self.db_id, ASSIGNMENT_DATA_FILE)
+        return os.path.join(run_dir, self.db_id)
+
+    def get_assignment_data(self) -> Optional[Dict[str, Any]]:
+        """Return the specific assignment data for this assignment"""
+        assign_data_filename = os.path.join(self.get_data_dir(), ASSIGNMENT_DATA_FILE)
         if os.path.exists(assign_data_filename):
             with open(assign_data_filename, "r") as json_file:
                 return json.load(json_file)
@@ -51,7 +55,7 @@ class Assignment:
     def get_status(self) -> str:
         """
         Get the status of this assignment, as determined by the status of
-        the sub-assignments
+        the units
         """
         units = self.get_units()
         statuses = set(unit.get_status() for unit in units)

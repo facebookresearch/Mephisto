@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.agent_state import AgentState
+from mephisto.data_model.blueprint import AgentState
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING

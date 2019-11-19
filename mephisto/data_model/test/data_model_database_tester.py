@@ -20,7 +20,7 @@ from mephisto.data_model.test.utils import (
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.agent_state import AgentState
+from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.project import Project
