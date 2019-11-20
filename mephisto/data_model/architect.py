@@ -11,13 +11,20 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
 
+
 class Architect(ABC):
     """
     Provides methods for setting up a server somewhere and deploying tasks
     onto that server.
     """
 
-    def __init__(self, db: 'MephistoDB', opts: Dict[str, str], task_run: 'TaskRun', build_dir_root: str):
+    def __init__(
+        self,
+        db: "MephistoDB",
+        opts: Dict[str, str],
+        task_run: "TaskRun",
+        build_dir_root: str,
+    ):
         """
         Initialize this architect with whatever options are provided given
         get_extra_options. Parse whatever additional options may be required

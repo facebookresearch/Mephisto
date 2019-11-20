@@ -12,7 +12,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
 
-MOCK_DEPLOY_URL = 'MOCK_DEPLOY_URL'
+MOCK_DEPLOY_URL = "MOCK_DEPLOY_URL"
+
 
 class MockArchitect(Architect):
     """
@@ -20,7 +21,13 @@ class MockArchitect(Architect):
     onto that server.
     """
 
-    def __init__(self, db: 'MephistoDB', opts: Dict[str, str], task_run: 'TaskRun', build_dir_root: str):
+    def __init__(
+        self,
+        db: "MephistoDB",
+        opts: Dict[str, str],
+        task_run: "TaskRun",
+        build_dir_root: str,
+    ):
         """Create an architect for use in testing"""
         self.task_run = task_run
         self.build_dir = build_dir_root
@@ -38,9 +45,7 @@ class MockArchitect(Architect):
     def prepare(self) -> str:
         """Mark the preparation call"""
         self.prepared = True
-        return os.path.join(
-            self.build_dir, 'mock_build_{}'.format(self.task_run_id)
-        )
+        return os.path.join(self.build_dir, "mock_build_{}".format(self.task_run_id))
 
     def deploy(self) -> str:
         """Mark the deployed call"""
