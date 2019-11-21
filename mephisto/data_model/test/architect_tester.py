@@ -43,10 +43,19 @@ class ArchitectTests(unittest.TestCase):
         """Validate that server files are cleaned up following a deploy"""
         raise NotImplementedError()
 
+    def server_is_shutdown(self) -> bool:
+        """Validate that server is no longer running, ie shutdown successfully called"""
+        raise NotImplementedError()
+
     def server_is_up(self, url: str) -> bool:
         """Ping the url to see if anything is running"""
-        alive_url = (url + "/is_alive").replace('//', '/')
-        response = requests.get(alive_url)
+        if url.endswith('/'):
+            url = url[:-1]
+        alive_url = url + "/is_alive"
+        try:
+            response = requests.get(alive_url)
+        except requests.ConnectionError:
+            return False
         return response.status_code == 200
 
     @classmethod
@@ -113,7 +122,8 @@ class ArchitectTests(unittest.TestCase):
     def test_prepare_cleanup(self) -> None:
         """Test preparation and cleanup for server"""
         architect = self.get_architect()
-        architect.prepare()
+        built_dir = architect.prepare()
+        self.assertTrue(os.path.exists(built_dir))
         self.assertTrue(self.server_is_prepared(self.build_dir))
         architect.cleanup()
         self.assertTrue(self.server_is_cleaned(self.build_dir))
@@ -129,3 +139,4 @@ class ArchitectTests(unittest.TestCase):
         self.assertTrue(self.server_is_cleaned(self.build_dir))
         architect.shutdown()
         self.assertFalse(self.server_is_up(server_url))
+        self.assertTrue(self.server_is_shutdown())

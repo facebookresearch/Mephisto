@@ -54,9 +54,13 @@ class MockArchitectTests(ArchitectTests):
         return self.curr_architect.cleaned
 
     def server_is_up(self, url: str) -> bool:
-        """Ping the url to see if anything is running"""
+        """pretend to ping the url to see if anything is running"""
         self.assertIn(MOCK_DEPLOY_URL, url, "Not using the mock url with MockArchitect")
         return self.curr_architect.deployed and not self.curr_architect.did_shutdown
+
+    def server_is_shutdown(self) -> bool:
+        """Note that the server is down"""
+        return self.curr_architect.did_shutdown
 
 
 if __name__ == "__main__":

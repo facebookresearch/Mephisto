@@ -4,3 +4,4 @@ mephisto/tasks/*
 data/*
 mephisto.egg-info/*
 .DS_Store
+tmp/*
