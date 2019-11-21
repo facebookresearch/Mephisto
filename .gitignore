@@ -3,3 +3,4 @@ mephisto/tasks/*
 **/__pycache__/*
 data/*
 mephisto.egg-info/*
+tmp/*
