@@ -7,9 +7,9 @@
 import os
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.data_model.agent_state import AgentState
+from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.worker import Worker
-from mephisto.core.utils import get_crowd_provider_from_type, get_task_runner_from_type
+from mephisto.core.utils import get_crowd_provider_from_type
 
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
 

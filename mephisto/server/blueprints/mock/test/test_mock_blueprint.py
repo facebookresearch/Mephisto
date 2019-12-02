@@ -10,14 +10,14 @@ import os
 import tempfile
 
 from typing import Type, ClassVar
-from mephisto.data_model.test.task_runner_tester import BlueprintTests
-from mephisto.data_model.task_runner import TaskRunner
+from mephisto.data_model.test.blueprint_tester import BlueprintTests
 from mephisto.data_model.assignment_state import AssignmentState
+from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
+from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
-from mephisto.data_model.agent_state import AgentState
 from mephisto.core.local_database import LocalMephistoDB
-from mephisto.data_model.task_runner import TaskRunner
+from mephisto.data_model.blueprint import Blueprint, AgentState, TaskRunner, TaskBuilder
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.test.utils import get_test_task_run
@@ -33,23 +33,23 @@ from mephisto.providers.mock.provider_type import PROVIDER_TYPE as MOCK_PROVIDER
 class MockBlueprintTests(BlueprintTests):
     """
     This class contains the basic data model tests that should
-    be passable for a blueprint. Runs the tests on the TaskRunner,
+    be passable for a blueprint. Runs the tests on the MockBlueprint,
     which is the entry point for all blueprints.
     """
 
-    TaskRunnerClass = MockTaskRunner
+    BlueprintClass = MockBlueprint
     db: LocalMephistoDB
     data_dir: str
     build_dir: str
 
     def task_is_built(self, build_dir) -> bool:
         """Ensure that a properly built version of this task is present in this dir"""
-        expected_build_path = os.path.join(build_dir, MockTaskRunner.BUILT_FILE)
+        expected_build_path = os.path.join(build_dir, MockTaskBuilder.BUILT_FILE)
         if not os.path.exists(expected_build_path):
             return False
         with open(expected_build_path, "r") as built_file:
             file_contents = built_file.read()
-            return file_contents.strip() == MockTaskRunner.BUILT_MESSAGE
+            return file_contents.strip() == MockTaskBuilder.BUILT_MESSAGE
 
     def assignment_completed_successfully(self, assignment: Assignment) -> bool:
         """Validate that an assignment is able to be run successfully"""
@@ -70,14 +70,16 @@ class MockBlueprintTests(BlueprintTests):
         Agent = MockAgent(self.db, agent_id)
         return assign
 
-    def assignment_is_tracked(self, assignment: Assignment) -> bool:
+    def assignment_is_tracked(
+        self, task_runner: TaskRunner, assignment: Assignment
+    ) -> bool:
         """
         Return whether or not this task is currently being tracked (run)
         by the given task runner. This should be false unless
         run_assignment is still ongoing for a task.
         """
-        assert isinstance(self.task_runner, MockTaskRunner), "Must be a mock runner"
-        return assignment.db_id in self.task_runner.tracked_tasks
+        assert isinstance(task_runner, MockTaskRunner), "Must be a mock runner"
+        return assignment.db_id in task_runner.tracked_tasks
 
     # TODO are there any other unit tests we'd like to have?
 

@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.agent_state import AgentState
+from mephisto.data_model.blueprint import AgentState
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.providers.mturk.mturk_utils import (
     approve_work,
@@ -82,6 +82,15 @@ class MTurkAgent(Agent):
         # TODO do we need to query any other statuses?
         # When do we update this?
         return self.db_status
+
+    def mark_done(self) -> None:
+        """
+        Take any required step with the crowd_provider to ensure that
+        the worker can submit their work and be marked as complete via
+        a call to get_status
+        """
+        # TODO implement
+        raise NotImplementedError()
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":

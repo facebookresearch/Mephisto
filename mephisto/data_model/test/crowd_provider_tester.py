@@ -47,17 +47,15 @@ class CrowdProviderTests(unittest.TestCase):
 
     def get_test_worker_name(self) -> str:
         """Return a worker name that is usable for testing with this crowdprovider"""
-        return "ALNAP8V96IIO0"
         raise NotImplementedError()
 
     def get_test_requester_name(self) -> str:
         """Return a requester name that is usable for testing with this crowdprovider"""
-        return "UNIT_TEST_REQUESTER"
         raise NotImplementedError()
 
     def get_test_requester_balance(self, requester_name: str) -> float:
         """Get the amount that test accounts are expected to have"""
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def setUp(self) -> None:
         """

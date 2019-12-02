@@ -17,7 +17,7 @@ from mephisto.core.utils import (
     get_dir_for_task,
     ensure_user_confirm,
     get_dir_for_run,
-    get_task_runner_from_type,
+    get_blueprint_from_type,
 )
 
 
@@ -26,7 +26,7 @@ from typing import Type, List, Optional, Tuple, Dict, cast, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.assignment import Assignment
-    from mephisto.data_model.task_runner import TaskRunner
+    from mephisto.data_model.blueprint import Blueprint
 
 
 VALID_TASK_TYPES = ["legacy_parlai", "generic", "mock"]
@@ -232,9 +232,9 @@ class TaskRun:
         # TODO put this as row in db
         self.task_type = self.get_task().task_type
 
-    def get_task_runner(self) -> Type["TaskRunner"]:
+    def get_blueprint(self) -> Type["Blueprint"]:
         """Return the runner associated with this task run"""
-        return get_task_runner_from_type(self.task_type)
+        return get_blueprint_from_type(self.task_type)
 
     def get_task(self) -> "Task":
         """Return the task used to initialize this run"""

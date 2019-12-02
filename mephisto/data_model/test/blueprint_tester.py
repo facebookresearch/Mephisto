@@ -12,22 +12,22 @@ import os
 import shutil
 import threading
 import time
-from mephisto.data_model.agent_state import AgentState
+from mephisto.data_model.blueprint import Blueprint, AgentState, TaskRunner, TaskBuilder
 from mephisto.core.local_database import LocalMephistoDB
-from mephisto.data_model.task_runner import TaskRunner
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.test.utils import get_test_task_run
+from mephisto.providers.mock.mock_agent import MockAgent
 
 
 class BlueprintTests(unittest.TestCase):
     """
     This class contains the basic data model tests that should
-    be passable for a blueprint. Runs the tests on the TaskRunner,
-    which is the entry point for all blueprints.
+    be passable for a blueprint. Runs the tests on the Blueprint,
+    which is the entry point the components to run the task.
     """
 
-    TaskRunnerClass: ClassVar[Type[TaskRunner]]
+    BlueprintClass: ClassVar[Type[Blueprint]]
     db: LocalMephistoDB
     data_dir: str
     build_dir: str
@@ -58,7 +58,7 @@ class BlueprintTests(unittest.TestCase):
         """Create a test assignment for self.task_run using mock agents"""
         raise NotImplementedError()
 
-    def assignment_is_tracked(self, assignment: Assignment) -> bool:
+    def assignment_is_tracked(self, task_runner: TaskRunner, assignment: Assignment) -> bool:
         """
         Return whether or not this task is currently being tracked (run)
         by the given task runner. This should be false unless
@@ -76,8 +76,12 @@ class BlueprintTests(unittest.TestCase):
         self.build_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
+        # TODO we need to actually pull the task type from the Blueprint
         self.task_run = TaskRun(self.db, get_test_task_run(self.db))
-        self.task_runner = self._get_init_task_runner()
+        # TODO create a mock agent with the given task type?
+        self.TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
+        self.AgentStateClass = self.BlueprintClass.AgentStateClass
+        self.TaskBuilderClass = self.BlueprintClass.TaskBuilderClass
 
     def tearDown(self) -> None:
         """
@@ -90,14 +94,15 @@ class BlueprintTests(unittest.TestCase):
         self.db.shutdown()
         shutil.rmtree(self.data_dir)
 
-    def _get_agent_state_class(self) -> Type[AgentState]:
-        """Return the agent state class being tested"""
-        return self.TaskRunnerClass.AgentStateClass
-
     def _get_init_task_runner(self) -> TaskRunner:
         """Get an initialized task runner of TaskRunnerClass"""
         # TODO call get_extra_options and apply the defaults here
         return self.TaskRunnerClass(self.task_run, {})
+
+    def _get_init_task_builder(self) -> TaskBuilder:
+        """Get an initialized task runner of TaskBuilderClass"""
+        # TODO call get_extra_options and apply the defaults here
+        return self.TaskBuilderClass(self.task_run, {})
 
     def test_options(self) -> None:
         """Test the default options, and try to break the initialization"""
@@ -105,44 +110,79 @@ class BlueprintTests(unittest.TestCase):
         pass
 
     def test_has_required_class_members(self) -> None:
-        """Ensures that the TaskRunner is well-formatted"""
-        ImplementedAgentState = self._get_agent_state_class()
+        """Ensures that the BluePrint is well-formatted"""
         self.assertTrue(
-            issubclass(ImplementedAgentState, AgentState),
+            issubclass(self.AgentStateClass, AgentState),
             "Implemented AgentStateClass does not extend AgentState",
         )
         self.assertNotEqual(
-            ImplementedAgentState,
+            self.AgentStateClass,
             AgentState,
-            "Can not use base AgentState in a TaskRunner implementation",
+            "Can not use base AgentState in a Blueprint implementation",
+        )
+        self.assertTrue(
+            issubclass(self.TaskRunnerClass, TaskRunner),
+            "Implemented TaskRunnerClass does not extend TaskRunner",
+        )
+        self.assertNotEqual(
+            self.TaskRunnerClass,
+            TaskRunner,
+            "Can not use base TaskRunner in a Blueprint implementation",
+        )
+        self.assertTrue(
+            issubclass(self.TaskBuilderClass, TaskBuilder),
+            "Implemented TaskBuilderClass does not extend TaskBuilder",
+        )
+        self.assertNotEqual(
+            self.TaskBuilderClass,
+            TaskBuilder,
+            "Can not use base TaskBuilder in a Blueprint implementation",
         )
         self.assertIn(
             "mock",
-            self.TaskRunnerClass.supported_architects,
+            self.BlueprintClass.supported_architects,
             "Must support at least the mock architecture for testing",
         )
         # TODO implement getting the defaults of TaskRunnerClass.get_extra_options() when
         # options are improved
 
+    def test_abstract_initialization_works(self) -> None:
+        """
+        Test that initialization from the abstract class produces the
+        correct class.
+        """
+        runner = TaskRunner(self.task_run, {}) # type: ignore
+        self.assertTrue(isinstance(runner, self.TaskRunnerClass))
+        builder = TaskBuilder(self.task_run, {}) # type: ignore
+        self.assertTrue(isinstance(builder, self.TaskBuilderClass))
+
+    def test_can_init_subclasses(self) -> None:
+        """Ensure the subclasses of a Blueprint can be properly initialized"""
+        task_runner = self.TaskRunnerClass(self.task_run, {})
+        task_builder = self.TaskBuilderClass(self.task_run, {})
+        # TODO uncomment after creating a mock agent as part of this test
+        # agent_state = self.AgentStateClass(self.agent)
+
     def test_can_build_task(self) -> None:
         """Ensure a task can be built up from scratch in the given directory"""
-        task_runner = self.task_runner
-        task_runner.build_in_dir(self.task_run, self.build_dir)
+        task_builder = self._get_init_task_builder()
+        task_builder.build_in_dir(self.build_dir)
         self.assertTrue(self.task_is_built(self.build_dir))
 
     def test_can_run_task(self) -> None:
         """Ensure that a task can be run to completion in the basic case"""
-        task_runner = self.task_runner
+        task_runner = self._get_init_task_runner()
         assignment = self.get_test_assignment()
         task_runner.run_assignment(assignment)
         self.assertTrue(self.assignment_completed_successfully(assignment))
 
     def test_can_exit_gracefully(self) -> None:
         """Ensure that a task can be run to completion when an agent disconnects"""
-        task_runner = self.task_runner
+        task_runner = self._get_init_task_runner()
         assignment = self.get_test_assignment()
         fail_agent = assignment.get_units()[0].get_assigned_agent()
         assert fail_agent is not None, "No agent set for first unit of test assignment"
+        assert isinstance(fail_agent, MockAgent), "Agent must be mock agent for testing"
         fail_agent.mark_disconnected()
         try:
             task_runner.run_assignment(assignment)
@@ -150,19 +190,19 @@ class BlueprintTests(unittest.TestCase):
             task_runner.cleanup_assignment(assignment)
 
         self.assertFalse(self.assignment_completed_successfully(assignment))
-        self.assertFalse(self.assignment_is_tracked(assignment))
+        self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
 
     def test_run_tracked(self) -> None:
         """Run a task in a thread, ensure we see it is being tracked"""
-        task_runner = self.task_runner
+        task_runner = self._get_init_task_runner()
         assignment = self.get_test_assignment()
         task_thread = threading.Thread(
             target=task_runner.run_assignment, args=(assignment,)
         )
-        self.assertFalse(self.assignment_is_tracked(assignment))
+        self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
         task_thread.start()
         time.sleep(0.1)  # Sleep to give the task_runner time to register
-        self.assertTrue(self.assignment_is_tracked(assignment))
+        self.assertTrue(self.assignment_is_tracked(task_runner, assignment))
         task_thread.join()
-        self.assertFalse(self.assignment_is_tracked(assignment))
+        self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
         self.assertTrue(self.assignment_completed_successfully(assignment))

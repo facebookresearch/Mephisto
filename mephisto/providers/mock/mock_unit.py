@@ -6,7 +6,7 @@
 
 from mephisto.data_model.assignment import Unit
 from mephisto.data_model.assignment_state import AssignmentState
-from mephisto.data_model.agent_state import AgentState
+from mephisto.data_model.blueprint import AgentState
 
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING

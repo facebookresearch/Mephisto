@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from mephisto.data_model.agent_state import AgentState
+from mephisto.data_model.blueprint import AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
 from typing import List, Optional, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 

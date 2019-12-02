@@ -6,8 +6,8 @@
 
 from abc import ABC, abstractmethod, abstractproperty
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
-from mephisto.data_model.agent_state import AgentState
-from mephisto.core.utils import get_crowd_provider_from_type, get_task_runner_from_type
+from mephisto.data_model.blueprint import AgentState
+from mephisto.core.utils import get_crowd_provider_from_type
 from mephisto.data_model.assignment import Unit
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.worker import Worker
