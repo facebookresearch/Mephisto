@@ -12,7 +12,7 @@ app.config.from_object(Config)
 @app.route("/", defaults={"path": "index.html"})
 @app.route("/<path:path>")
 def index(path):
-    return send_file(os.path.join("..", "webapp2", "build", path))
+    return send_file(os.path.join("..", "webapp2", "build", "index.html"))
 
 
 app.register_blueprint(api, url_prefix="/api/v1")
