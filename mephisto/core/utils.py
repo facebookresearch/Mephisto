@@ -66,6 +66,13 @@ def get_data_dir() -> str:
     # TODO be able to configure this kind of thing
     return os.path.expanduser("~/mephisto/data")
 
+def get_mephisto_tmp_dir() -> str:
+    """
+    Return the directory where the mephisto temporary build files go
+    """
+    # TODO be able to configure this kind of thing
+    return os.path.expanduser("~/mephisto/tmp")
+
 
 def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
     """
