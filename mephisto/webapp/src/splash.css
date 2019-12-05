@@ -1,0 +1,30 @@
+.hero {
+  font-size: 45px;
+  font-weight: bold;
+  color: #033c3e;
+  line-height: 1.2em;
+  padding: 80px 0;
+  animation: fadeUp 2s cubic-bezier(0, 1, 0, 1);
+}
+/* 
+.hero a {
+  text-decoration: inherit;
+  color: inherit;
+}
+
+.hero a:hover {
+  text-decoration: inherit;
+  color: inherit;
+  opacity: 0.9;
+} */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
