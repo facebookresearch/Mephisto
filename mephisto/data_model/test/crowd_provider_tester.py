@@ -94,7 +94,9 @@ class CrowdProviderTests(unittest.TestCase):
         for all crowd providers.
         """
         ProviderClass = self.CrowdProviderClass
-        self.assertFalse(self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE))
+        self.assertFalse(
+            self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE)
+        )
         # Initialize the provider
         provider = ProviderClass(self.db)
         self.assertTrue(self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE))
@@ -105,7 +107,9 @@ class CrowdProviderTests(unittest.TestCase):
         for all crowd providers.
         """
         ProviderClass = self.CrowdProviderClass
-        self.assertFalse(self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE))
+        self.assertFalse(
+            self.db.has_datastore_for_provider(ProviderClass.PROVIDER_TYPE)
+        )
         # Initialize the requester
         RequesterClass = ProviderClass.RequesterClass
         requester = RequesterClass.new(self.db, self.get_test_requester_name())
