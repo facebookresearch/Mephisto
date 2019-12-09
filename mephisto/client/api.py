@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 from mephisto.core.utils import get_crowd_provider_from_type
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.data_model.database import EntryAlreadyExistsException
+from mephisto.data_model.assignment_state import AssignmentState
+from mephisto.data_model.task import TaskRun
 
 api = Blueprint("api", __name__)
 db = LocalMephistoDB()
@@ -23,6 +25,24 @@ def get_running_task_runs():
         'task_runs': dict_tasks,
         'task_count': len(dict_tasks),
         'live_task_count': live_task_count,
+    })
+
+
+@api.route("/task_runs/reviewable")
+def get_reviewable_task_runs():
+    """
+    Find reviewable task runs by querying for all reviewable tasks
+    and getting their runs
+    """
+    units = db.find_units(status=AssignmentState.COMPLETED)
+    reviewable_count = len(units)
+    task_run_ids = set([u.get_assignment().get_task_run().db_id for u in units])
+    task_runs = [TaskRun(db, db_id) for db_id in task_run_ids]
+    dict_tasks = [t.to_dict() for t in task_runs]
+    # TODO maybe include warning for auto approve date once that's tracked
+    return jsonify({
+        'task_runs': dict_tasks,
+        'total_reviewable': reviewable_count,
     })
 
 

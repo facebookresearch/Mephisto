@@ -183,6 +183,15 @@ class Unit(ABC):
         # TODO maybe this is somewhat controlled by task-types?
         return self.get_assignment().get_assignment_data()
 
+    def sync_status(self) -> None:
+        """
+        Ensure that the queried status from this unit and the db status
+        are up to date
+        """
+        # TODO this will need to be run periodically/on crashes
+        # to sync any lost state
+        self.set_db_status(self.get_status())
+
     def get_db_status(self) -> str:
         """
         Return the status as currently stored in the database
