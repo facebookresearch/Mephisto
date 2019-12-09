@@ -15,9 +15,15 @@ def get_available_requesters():
 
 @api.route("/task_runs/running")
 def get_running_task_runs():
+    """Find running tasks by querying for all task runs that aren't completed"""
     task_runs = db.find_task_runs(is_completed=False)
     dict_tasks = [t.to_dict() for t in task_runs if not t.get_is_completed()]
-    return jsonify({'task_runs': dict_tasks})
+    live_task_count = len([t for t in dict_tasks if not t['sandbox']])
+    return jsonify({
+        'task_runs': dict_tasks,
+        'task_count': len(dict_tasks),
+        'live_task_count': live_task_count,
+    })
 
 
 @api.route("/requester/<type>")
