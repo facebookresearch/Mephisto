@@ -13,6 +13,13 @@ def get_available_requesters():
     return jsonify({'requesters': dict_requesters})
 
 
+@api.route("/task_runs/running")
+def get_running_task_runs():
+    task_runs = db.find_task_runs(is_completed=False)
+    dict_tasks = [t.to_dict() for t in task_runs if not t.get_is_completed()]
+    return jsonify({'task_runs': dict_tasks})
+
+
 @api.route("/requester/<type>")
 def requester_details(type):
     crowd_provider = get_crowd_provider_from_type(type)

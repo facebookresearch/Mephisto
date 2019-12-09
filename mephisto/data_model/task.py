@@ -21,7 +21,7 @@ from mephisto.core.utils import (
 )
 
 
-from typing import Type, List, Optional, Tuple, Dict, cast, TYPE_CHECKING
+from typing import Type, List, Optional, Tuple, Dict, cast, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -229,8 +229,12 @@ class TaskRun:
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
-        # TODO put this as row in db
+        # TODO put this as col in db
+        # TODO put completion as a col in the db
         self.task_type = self.get_task().task_type
+        self.start_time = row['creation_date']
+        self.is_completed = row['is_completed']
+        self.has_assignments = False
 
     def get_blueprint(self) -> Type["Blueprint"]:
         """Return the runner associated with this task run"""
@@ -251,6 +255,13 @@ class TaskRun:
         Return the requester that started this task.
         """
         return Requester(self.db, self.db_id)
+
+    def get_has_assignments(self) -> bool:
+        """See if this task run has any assignments launched yet"""
+        if not self.has_assignments:
+            if len(self.get_assignments()) > 0:
+                self.has_assignments = True
+        return self.has_assignments
 
     def get_assignments(self, status: Optional[str] = None) -> List["Assignment"]:
         """
@@ -274,6 +285,27 @@ class TaskRun:
             status: len([x for x in assigns if x.get_status() == status])
             for status in AssignmentState.valid()
         }
+
+    def get_is_completed(self) -> bool:
+        """get the completion status of this task"""
+        self.sync_completion_status()
+        return self.is_completed
+
+    def sync_completion_status(self) -> None:
+        """
+        Update the is_complete status for this task run based on completion
+        of subassignments. If this task run has no subassignments yet, it
+        is not complete
+        """
+        if not self.is_completed and self.get_has_assignments():
+            statuses = self.get_assignment_statuses()
+            has_incomplete = False
+            for status in AssignmentState.incomplete():
+                if statuses[status] > 0:
+                    has_incomplete = True
+            if not has_incomplete:
+                self.db.update_task_run(self.db_id, is_completed=True)
+                self.is_completed = True
 
     def get_task_config(self) -> TaskConfig:
         """Return the configuration options for this task"""
@@ -308,6 +340,20 @@ class TaskRun:
         """Return the task params for the parent task"""
         task = Task(self.db, self.task_id)
         return task.get_task_params()
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a dict containing any important information about this task run"""
+        return {
+            'task_run_id': self.db_id,
+            'task_id': self.task_id,
+            'task_name': self.get_task().task_name,
+            'task_type': self.task_type,
+            'start_time': self.start_time,
+            'params': {'status': 'Not yet implemented', 'run params': 'Coming soon!'},
+            'param_string': self.param_string,
+            'task_status': self.get_assignment_statuses(),
+            'sandbox': self.get_requester().is_sandbox(),
+        }
 
     @staticmethod
     def new(

@@ -67,6 +67,12 @@ class Requester(ABC):
             total_spend += run.get_total_spend()
         return total_spend
 
+    def is_sandbox(self) -> bool:
+        """
+        Determine if this is a requester on a sandbox/test account
+        """
+        return False
+
     @staticmethod
     def _register_requester(
         db: "MephistoDB", requester_id: str, provider_type: str

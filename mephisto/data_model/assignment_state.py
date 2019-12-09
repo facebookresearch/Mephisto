@@ -18,6 +18,7 @@ class AssignmentState:
     REJECTED = "rejected"
     EXPIRED = "expired"
 
+
     @staticmethod
     def valid() -> List[str]:
         """Return all valid assignment statuses"""
@@ -31,6 +32,15 @@ class AssignmentState:
             AssignmentState.MIXED,
             AssignmentState.REJECTED,
             AssignmentState.EXPIRED,
+        ]
+
+    @staticmethod
+    def incomplete() -> List[str]:
+        """Return all statuses that are considered incomplete"""
+        return [
+            AssignmentState.CREATED,
+            AssignmentState.LAUNCHED,
+            AssignmentState.ASSIGNED,
         ]
 
     @staticmethod

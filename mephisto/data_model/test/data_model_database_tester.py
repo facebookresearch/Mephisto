@@ -484,6 +484,17 @@ class BaseDatabaseTests(unittest.TestCase):
         task_runs = db.find_task_runs(task_id=self.get_fake_id("TaskRun"))
         self.assertEqual(len(task_runs), 0)
 
+        task_runs = db.find_task_runs(is_completed=True)
+        self.assertEqual(len(task_runs), 0)
+
+        # Test updating the completion status, requery
+        db.update_task_run(task_run_id, True)
+        task_runs = db.find_task_runs(is_completed=True)
+        self.assertEqual(len(task_runs), 1)
+        self.assertTrue(isinstance(task_runs[0], TaskRun))
+        self.assertEqual(task_runs[0].db_id, task_run_id)
+
+
     def test_task_run_fails(self) -> None:
         """Ensure task_runs fail to be created or loaded under failure conditions"""
         assert self.db is not None, "No db initialized"

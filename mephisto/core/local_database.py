@@ -86,11 +86,13 @@ CREATE_REQUESTERS_TABLE = """CREATE TABLE IF NOT EXISTS requesters (
 );
 """
 
-CREATE_TASK_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS task_runs (
+CREATE_TASK_RUNS_TABLE = """
+    CREATE TABLE IF NOT EXISTS task_runs (
     task_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
     task_id INTEGER NOT NULL,
     requester_id INTEGER NOT NULL,
     init_params TEXT NOT NULL,
+    is_completed BOOLEAN NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks (task_id),
     FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
@@ -420,9 +422,9 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    """INSERT INTO task_runs(task_id, requester_id, init_params)
-                    VALUES (?, ?, ?);""",
-                    (int(task_id), int(requester_id), init_params),
+                    """INSERT INTO task_runs(task_id, requester_id, init_params, is_completed)
+                    VALUES (?, ?, ?, ?);""",
+                    (int(task_id), int(requester_id), init_params, False),
                 )
                 task_run_id = str(c.lastrowid)
                 conn.commit()
@@ -442,7 +444,7 @@ class LocalMephistoDB(MephistoDB):
         return self.__get_one_by_id("task_runs", "task_run_id", task_run_id)
 
     def find_task_runs(
-        self, task_id: Optional[str] = None, requester_id: Optional[str] = None
+        self, task_id: Optional[str] = None, requester_id: Optional[str] = None, is_completed: Optional[bool] = None
     ) -> List[TaskRun]:
         """
         Try to find any task_run that matches the above. When called with no arguments,
@@ -456,11 +458,35 @@ class LocalMephistoDB(MephistoDB):
                 SELECT task_run_id from task_runs
                 WHERE (?1 IS NULL OR task_id = ?1)
                 AND (?2 IS NULL OR requester_id = ?2)
+                AND (?3 IS NULL OR is_completed = ?3)
                 """,
-                (nonesafe_int(task_id), nonesafe_int(requester_id)),
+                (nonesafe_int(task_id), nonesafe_int(requester_id), is_completed),
             )
             rows = c.fetchall()
             return [TaskRun(self, str(r["task_run_id"])) for r in rows]
+
+    def update_task_run(self, task_run_id: str, is_completed: bool):
+        """
+        Update a task run. At the moment, can only update completion status
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    """
+                    UPDATE task_runs
+                    SET is_completed = ?
+                    WHERE task_run_id = ?;
+                    """,
+                    (is_completed, int(task_run_id)),
+                )
+                conn.commit()
+            except sqlite3.IntegrityError as e:
+                conn.rollback()
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException()
+                raise MephistoDBException(e)
 
     def new_assignment(self, task_run_id: str) -> str:
         """Create a new assignment for the given task"""
