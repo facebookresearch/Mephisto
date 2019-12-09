@@ -7,7 +7,7 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.core.utils import get_crowd_provider_from_type
 
-from typing import List, Optional, Dict, TYPE_CHECKING
+from typing import List, Optional, Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -87,6 +87,10 @@ class Requester(ABC):
         """
         raise NotImplementedError()
 
+    def is_registered(self) -> bool:
+        """Check to see if this requester has already been registered"""
+        raise NotImplementedError()
+
     @staticmethod
     def get_register_args() -> Dict[str, str]:
         """
@@ -106,6 +110,17 @@ class Requester(ABC):
         its crowdsourcing vendor
         """
         raise NotImplementedError()
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Produce a dict of this requester and important features for json serialization
+        """
+        return {
+            'requester_id': self.db_id,
+            'provider_type': self.provider_type,
+            'requester_name': self.requester_name,
+            'registered': self.is_registered(),
+        }
 
     # TODO add a way to manage creation and validation of qualifications
     # for a given requester?

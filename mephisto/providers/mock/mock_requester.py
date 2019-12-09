@@ -27,10 +27,15 @@ class MockRequester(Requester):
         super().__init__(db, db_id)
         # TODO any additional init as is necessary once
         # a mock DB exists
+        registered = False
 
     def register_credentials(self) -> None:
         """Mock requesters don't actually register credentials"""
-        pass
+        self.registered = True
+
+    def is_registered(self) -> bool:
+        """Return the registration status"""
+        return self.registered
 
     def get_available_budget(self) -> float:
         """MockRequesters have $100000 to spend"""

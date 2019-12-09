@@ -36,6 +36,15 @@ def client_is_sandbox(client: MTurkClient) -> bool:
     return client.endpoint_url == SANDBOX_ENDPOINT
 
 
+def check_aws_credentials(profile_name: str) -> bool:
+    try:
+        # Check existing credentials
+        boto3.Session(profile_name=profile_name)
+        return True
+    except ProfileNotFound:
+        return False
+
+
 def setup_aws_credentials(
     profile_name: str, register_args: Optional[Dict[str, str]] = None
 ) -> bool:

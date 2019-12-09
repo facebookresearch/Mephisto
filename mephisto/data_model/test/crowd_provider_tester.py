@@ -126,8 +126,13 @@ class CrowdProviderTests(unittest.TestCase):
             test_requester_2.requester_name,
             "Requester gotten from db not same as first init",
         )
+
         # Ensure credential registration works
+        # TODO ensure registration fails when we programatically login to an account
+        # in the future
+        # self.assertFalse(test_requester.is_registered())
         test_requester.register()
+        self.assertTrue(test_requester.is_registered())
 
         # Ensure requester methods work
         avail_budget = test_requester.get_available_budget()
