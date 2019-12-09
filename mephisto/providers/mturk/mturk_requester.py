@@ -8,6 +8,7 @@ from mephisto.data_model.requester import Requester
 from mephisto.providers.mturk.mturk_utils import (
     setup_aws_credentials,
     get_requester_balance,
+    check_aws_credentials,
 )
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 
@@ -56,6 +57,10 @@ class MTurkRequester(Requester):
         to assert it as such.
         """
         setup_aws_credentials(self._requester_name, args)
+
+    def is_registered(self) -> bool:
+        """Return whether or not this requester has registered yet"""
+        return check_aws_credentials(self._requester_name)
 
     @staticmethod
     def get_register_args() -> Dict[str, str]:

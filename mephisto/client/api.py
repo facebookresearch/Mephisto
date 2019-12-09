@@ -4,6 +4,13 @@ from mephisto.core.local_database import LocalMephistoDB
 from mephisto.data_model.database import EntryAlreadyExistsException
 
 api = Blueprint("api", __name__)
+db = LocalMephistoDB()
+
+@api.route("/requesters/")
+def get_available_requesters():
+    requesters = db.find_requesters()
+    dict_requesters = [r.to_dict() for r in requesters]
+    return jsonify({'requesters': dict_requesters})
 
 
 @api.route("/requester/<type>")
@@ -19,7 +26,6 @@ def register(type):
     options = request.form.to_dict()
     crowd_provider = get_crowd_provider_from_type(type)
     RequesterClass = crowd_provider.RequesterClass
-    db = LocalMephistoDB()
 
     if 'name' not in options:
         return jsonify({'success': False, 'msg': 'No name was specified for the requester.'})
@@ -41,7 +47,6 @@ def register(type):
 
 @api.route("/<string:requester_name>/get_balance")
 def get_balance(requester_name):
-    db = LocalMephistoDB()
     requesters = db.find_requesters(requester_name=requester_name)
 
     if len(requesters) == 0:
