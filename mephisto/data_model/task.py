@@ -233,8 +233,8 @@ class TaskRun:
         # TODO put completion as a col in the db
         self.task_type = self.get_task().task_type
         self.start_time = row['creation_date']
-        self.is_completed = row['is_completed']
-        self.has_assignments = False
+        self._is_completed = row['is_completed']
+        self._has_assignments = False
 
     def get_blueprint(self) -> Type["Blueprint"]:
         """Return the runner associated with this task run"""
@@ -258,10 +258,10 @@ class TaskRun:
 
     def get_has_assignments(self) -> bool:
         """See if this task run has any assignments launched yet"""
-        if not self.has_assignments:
+        if not self._has_assignments:
             if len(self.get_assignments()) > 0:
-                self.has_assignments = True
-        return self.has_assignments
+                self._has_assignments = True
+        return self._has_assignments
 
     def get_assignments(self, status: Optional[str] = None) -> List["Assignment"]:
         """
@@ -289,7 +289,7 @@ class TaskRun:
     def get_is_completed(self) -> bool:
         """get the completion status of this task"""
         self.sync_completion_status()
-        return self.is_completed
+        return self._is_completed
 
     def sync_completion_status(self) -> None:
         """
@@ -297,7 +297,8 @@ class TaskRun:
         of subassignments. If this task run has no subassignments yet, it
         is not complete
         """
-        if not self.is_completed and self.get_has_assignments():
+        # TODO revisit when/if it's possible to add tasks to a completed run
+        if not self._is_completed and self.get_has_assignments():
             statuses = self.get_assignment_statuses()
             has_incomplete = False
             for status in AssignmentState.incomplete():
@@ -305,7 +306,7 @@ class TaskRun:
                     has_incomplete = True
             if not has_incomplete:
                 self.db.update_task_run(self.db_id, is_completed=True)
-                self.is_completed = True
+                self._is_completed = True
 
     def get_task_config(self) -> TaskConfig:
         """Return the configuration options for this task"""
