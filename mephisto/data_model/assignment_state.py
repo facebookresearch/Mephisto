@@ -18,7 +18,6 @@ class AssignmentState:
     REJECTED = "rejected"
     EXPIRED = "expired"
 
-
     @staticmethod
     def valid() -> List[str]:
         """Return all valid assignment statuses"""
