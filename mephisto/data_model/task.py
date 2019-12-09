@@ -230,7 +230,6 @@ class TaskRun:
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
         # TODO put this as col in db
-        # TODO put completion as a col in the db
         self.task_type = self.get_task().task_type
         self.start_time = row['creation_date']
         self._is_completed = row['is_completed']
