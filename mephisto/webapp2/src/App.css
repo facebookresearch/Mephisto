@@ -1,0 +1,81 @@
+.container {
+  padding: 0px 30px;
+  display: flex;
+  max-width: 1280px;
+  margin: 0 auto;
+  align-items: flex-start;
+}
+
+.container > div {
+  flex-grow: 1;
+  margin-right: 20px;
+  max-width: 33%;
+}
+
+.container > div:last-child {
+  margin-right: 0px;
+}
+
+.above-the-fold {
+  background-repeat: no-repeat;
+  background-position: bottom;
+  height: 458px;
+  z-index: -1;
+  background-image: url(https://www.rev.com/content/curve/img/home/bg-home-background.svg);
+  position: absolute;
+  width: 100%;
+  background-size: cover !important;
+}
+
+header {
+  padding: 30px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0;
+  font-size: 40px;
+}
+
+.step-badge {
+  margin-right: 10px;
+}
+
+.widget {
+  animation: fadeIn 0.3s cubic-bezier(0.5, 0, 0, 1);
+  animation-fill-mode: forwards;
+  opacity: 0;
+  border-radius: 10px !important;
+}
+
+.widget:nth-child(1) {
+  animation-delay: 0s;
+}
+.widget:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.widget:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.widget:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9, 0.9) translateY(80px);
+  }
+  60% {
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1, 1) translateY(0px);
+  }
+}
+
+.widget .bullet {
+  margin-bottom: 5px;
+}
