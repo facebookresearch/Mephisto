@@ -14,8 +14,6 @@ declare module "axios" {
 // type CustomAxiosRequestConfig = AxiosRequestConfig & { delayed?: boolean };
 
 axios.interceptors.request.use(config => {
-  console.log(config);
-
   if (config.delayed) {
     return new Promise(resolve =>
       setTimeout(
