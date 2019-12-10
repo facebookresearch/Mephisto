@@ -7,6 +7,8 @@ from mephisto.data_model.database import (
     EntryDoesNotExistException,
 )
 
+from mephisto.data_model.agent import Agent
+from mephisto.data_model.assignment import Unit
 
 def get_test_project(db: MephistoDB) -> Tuple[str, str]:
     """Helper to create a project for tests"""
@@ -71,3 +73,23 @@ def get_test_agent(db: MephistoDB, unit_id=None) -> str:
     task_type = "mock"
 
     return db.new_agent(worker_id, unit_id, task_type, provider_type)
+
+def make_completed_unit(db: MephistoDB) -> str:
+    """
+    Creates a completed unit for the most recently created task run
+    using some worker. Assumes
+    """
+    workers = db.find_workers()
+    assert len(workers) > 0, "Must have at least one worker in database"
+    worker = workers[-1]
+    task_runs = db.find_task_runs(is_completed=False)
+    assert len(task_runs) > 0, 'Must be at least one incomplete task run'
+    task_run = task_runs[-1]
+    assign_id = db.new_assignment(task_run.db_id)
+    unit_id = db.new_unit(assign_id, 0, 0, 'mock')
+    agent_id = db.new_agent(worker.db_id, unit_id, 'mock', 'mock')
+    agent = Agent(db, agent_id)
+    agent.mark_done()
+    unit = Unit(db, unit_id)
+    unit.sync_status()
+    return unit.db_id
