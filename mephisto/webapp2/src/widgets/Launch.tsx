@@ -9,8 +9,8 @@ export default (function LaunchWidget() {
           <div className="bp3-non-ideal-state-visual" style={{ fontSize: 20 }}>
             <span className="bp3-icon bp3-icon-clean"></span>
           </div>
-          <div>You currently have no tasks running.</div>
-          <button className="bp3-button ">Launch</button>
+          <div>You have no tasks running.</div>
+          <button className="bp3-button ">Launch a task</button>
         </div>
       </div>
     </BaseWidget>

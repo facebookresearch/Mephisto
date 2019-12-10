@@ -2,6 +2,7 @@ import React from "react";
 import BaseWidget from "./Base";
 import { Colors } from "@blueprintjs/core";
 import { pluralize } from "../utils";
+import cx from "classnames";
 
 export default (function PrepareWidget() {
   const [numProviders, setNumProviders] = React.useState(0);
@@ -36,7 +37,13 @@ export default (function PrepareWidget() {
         </div>
         <div className="bullet">
           <div className="bp3-text-large bp3-running-text bp3-text-muted">
-            <span className="bp3-icon-small bp3-icon-download"></span> You have{" "}
+            <span
+              className={cx(
+                "bp3-icon-small",
+                numInstalledTasks === 1 ? "bp3-icon-layer" : "bp3-icon-layers"
+              )}
+            ></span>{" "}
+            You have{" "}
             <strong>
               {numInstalledTasks} {pluralize(numInstalledTasks, "task")}
             </strong>
