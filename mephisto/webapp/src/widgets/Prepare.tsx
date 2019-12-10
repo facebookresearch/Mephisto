@@ -7,7 +7,7 @@ import useAxios from "axios-hooks";
 import { Drawer, Classes, Position, Card } from "@blueprintjs/core";
 
 interface Requester {
-  provider_type: "string";
+  provider_type: string;
   registered: boolean;
   requester_id: string;
   requester_name: string;
