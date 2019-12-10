@@ -1,0 +1,131 @@
+import React from "react";
+import BaseWidget from "./Base";
+import { Colors, Icon, Button } from "@blueprintjs/core";
+import { pluralize } from "../utils";
+import cx from "classnames";
+import useAxios from "axios-hooks";
+import { Drawer, Classes, Position, Card } from "@blueprintjs/core";
+import { Requester } from "../models";
+
+export default (function PrepareWidget() {
+  const [numProviders, setNumProviders] = React.useState(0);
+  const [numInstalledTasks, setNumInstalledTasks] = React.useState(1);
+  const [requesterDrawerOpen, setRequesterDrawerOpen] = React.useState(false);
+
+  const [{ data, loading, error }, refetch] = useAxios({
+    url: "requesters",
+    params: "test"
+  });
+
+  return (
+    <BaseWidget badge="Step 1" heading={<span>Prepare it</span>}>
+      <>
+        <div className="bullet">
+          <div className="bp3-text-large bp3-running-text bp3-text-muted">
+            {error ? (
+              <span>
+                <Icon icon="warning-sign" color={Colors.RED3} /> Something went
+                wrong.{" "}
+                <a onClick={() => refetch()}>
+                  <strong>Try again</strong>
+                </a>
+              </span>
+            ) : loading ? (
+              <div className="bp3-skeleton bp3-text">&nbsp; </div>
+            ) : data.requesters.length === 0 ? (
+              <span>
+                <Icon icon="warning-sign" color={Colors.ORANGE3} />
+                {"  "}
+                You have no accounts set up.{" "}
+                <a>
+                  <strong>Configure</strong>
+                </a>
+              </span>
+            ) : (
+              <span>
+                <Icon icon="people" /> You have{" "}
+                <a onClick={() => setRequesterDrawerOpen(true)}>
+                  <strong>{data.requesters.length} requester accounts</strong>
+                </a>{" "}
+                set up
+              </span>
+            )}
+          </div>
+          <Drawer
+            icon="people"
+            onClose={() => setRequesterDrawerOpen(false)}
+            title="Requester accounts"
+            autoFocus={true}
+            canEscapeKeyClose={true}
+            // canOutsideClickClose={true}
+            enforceFocus={true}
+            hasBackdrop={true}
+            isOpen={requesterDrawerOpen}
+            position={Position.BOTTOM}
+            size={Drawer.SIZE_STANDARD}
+            usePortal={true}
+          >
+            <div
+              className={Classes.DRAWER_BODY}
+              style={{ backgroundColor: Colors.LIGHT_GRAY4 }}
+            >
+              <div className={Classes.DIALOG_BODY}>
+                {data && (
+                  <div>
+                    {data.requesters.map((r: Requester) => (
+                      <div key={r.requester_id} style={{ marginBottom: 12 }}>
+                        <Card interactive={true}>
+                          <Icon
+                            icon={r.registered ? "tick-circle" : "issue"}
+                            color={r.registered ? Colors.GREEN4 : Colors.GRAY4}
+                            title={"Registered?"}
+                          />
+                          <span
+                            style={{ margin: "0 15px" }}
+                            className="bp3-tag bp3-large bp3-minimal bp3-round step-badge"
+                          >
+                            {r.provider_type}
+                          </span>
+                          <h4
+                            style={{ display: "inline", marginRight: 4 }}
+                            className={cx("bp3-heading", {
+                              "bp3-text-muted": !r.registered
+                            })}
+                          >
+                            {r.requester_name}
+                          </h4>{" "}
+                          {!r.registered && (
+                            <span>
+                              &mdash; This account still needs to be registered.
+                            </span>
+                          )}
+                        </Card>
+                      </div>
+                    ))}
+                    <div style={{ marginTop: 15 }}>
+                      <Button disabled icon="new-person">
+                        (TODO) Add a new requester account...
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Drawer>
+        </div>
+        <div className="bullet">
+          <div className="bp3-text-large bp3-running-text bp3-text-muted">
+            <Icon icon={numInstalledTasks === 1 ? "layer" : "layers"} /> You
+            have{" "}
+            <strong>
+              {numInstalledTasks} task{" "}
+              {pluralize(numInstalledTasks, "template")}
+            </strong>
+            {"  "}
+            available to use
+          </div>
+        </div>
+      </>
+    </BaseWidget>
+  );
+} as React.FC);
