@@ -30,12 +30,8 @@ export default (function PrepareWidget() {
           <div className="bp3-text-large bp3-running-text bp3-text-muted">
             {error ? (
               <span>
-                <Icon icon="warning-sign" color={Colors.RED3} />
-                {/* <span
-                  style={{ color: Colors.RED3 }}
-                  className="bp3-icon-small bp3-icon-warning-sign"
-                ></span> */}{" "}
-                Something went wrong.{" "}
+                <Icon icon="warning-sign" color={Colors.RED3} /> Something went
+                wrong.{" "}
                 <a onClick={() => refetch()}>
                   <strong>Try again</strong>
                 </a>
