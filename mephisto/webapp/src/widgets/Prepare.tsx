@@ -5,13 +5,7 @@ import { pluralize } from "../utils";
 import cx from "classnames";
 import useAxios from "axios-hooks";
 import { Drawer, Classes, Position, Card } from "@blueprintjs/core";
-
-interface Requester {
-  provider_type: string;
-  registered: boolean;
-  requester_id: string;
-  requester_name: string;
-}
+import { Requester } from "../models";
 
 export default (function PrepareWidget() {
   const [numProviders, setNumProviders] = React.useState(0);
