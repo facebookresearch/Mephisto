@@ -1,5 +1,5 @@
 import React from "react";
-import "./splash.css";
+import "./Splash.css";
 import { Link } from "react-router-dom";
 
 export default () => {

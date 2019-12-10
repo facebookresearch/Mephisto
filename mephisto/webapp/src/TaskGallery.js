@@ -1,5 +1,5 @@
 import React from "react";
-import "./taskgallery.css";
+import "./TaskGallery.css";
 import cx from "classnames";
 
 import brace from "brace";

@@ -6,7 +6,7 @@ from mephisto.data_model.database import EntryAlreadyExistsException
 api = Blueprint("api", __name__)
 db = LocalMephistoDB()
 
-@api.route("/requesters/")
+@api.route("/requesters")
 def get_available_requesters():
     requesters = db.find_requesters()
     dict_requesters = [r.to_dict() for r in requesters]

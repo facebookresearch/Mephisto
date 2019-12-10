@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./review.css";
-import samplePic from "./sample.png"
+import "./Review.css";
+import samplePic from "./sample.png";
 
 export default () => (
   <div

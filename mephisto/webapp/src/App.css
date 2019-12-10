@@ -8,6 +8,18 @@
 
 * {
   box-sizing: border-box;
+  font-family: "Exo 2", sans-serif !important;
+  font-weight: 400;
+}
+
+html,
+body {
+  webkit-font-smoothing: auto;
+  -moz-font-smoothing: auto;
+  -moz-osx-font-smoothing: grayscale;
+  font-smoothing: auto;
+  text-rendering: optimizeLegibility;
+  font-smooth: always;
 }
 
 .App-header {

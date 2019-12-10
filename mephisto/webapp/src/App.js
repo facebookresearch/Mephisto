@@ -4,22 +4,26 @@ import { BrowserRouter as Router, Route, Switch, Link } from "react-router-dom";
 import Dashboard from "./Dashboard";
 import Review from "./Review";
 import TaskGallery from "./TaskGallery";
-import Splash from "./Splash";
 import { ReactComponent as M } from "./M.svg";
+import useAxios from "axios-hooks";
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <Router>
-          <header className="App-header">
-            <Switch>
-              <Route
-                exact
-                path="/"
-                render={() => (
-                  <Link to="/dashboard">
-                    {/* <img
+function App() {
+  const [{ data, loading, error }, refetch] = useAxios({
+    url: "requesters",
+    baseURL: "http://localhost:5000/api/v1/"
+  });
+
+  return (
+    <div className="App">
+      <Router>
+        <header className="App-header">
+          <Switch>
+            <Route
+              exact
+              path="/"
+              render={() => (
+                <Link to="/dashboard">
+                  {/* <img
                       alt="logo"
                       className="logo"
                       src="https://parl.ai/static/img/icon.png"
@@ -27,15 +31,15 @@ class App extends Component {
                         width: 60
                       }}
                     /> */}
-                    <M />
-                    mephisto
-                  </Link>
-                )}
-              />
-              <Route
-                render={() => (
-                  <Link to="/dashboard">
-                    {/* <img
+                  <M />
+                  mephisto
+                </Link>
+              )}
+            />
+            <Route
+              render={() => (
+                <Link to="/dashboard">
+                  {/* <img
                       alt="logo"
                       className="logo"
                       src="https://parl.ai/static/img/icon.png"
@@ -43,22 +47,34 @@ class App extends Component {
                         width: 60
                       }}
                     /> */}
-                    <M />
-                    mephisto
-                  </Link>
-                )}
-              />
-            </Switch>
-          </header>
+                  <M />
+                  mephisto
+                </Link>
+              )}
+            />
+          </Switch>
 
-          <Route exact path="/" render={() => <Dashboard />} />
-          <Route exact path="/dashboard" render={() => <Dashboard />} />
-          <Route exact path="/task-gallery" render={() => <TaskGallery />} />
-          <Route exact path="/review" render={() => <Review />} />
-        </Router>
-      </div>
-    );
-  }
+          {!loading && (
+            <div>
+              {/* {JSON.stringify(data)} */}
+              <select>
+                {data.requesters.map(r => (
+                  <option>
+                    {r.requester_name} - {r.provider_type}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </header>
+
+        <Route exact path="/" render={() => <Dashboard />} />
+        <Route exact path="/dashboard" render={() => <Dashboard />} />
+        <Route exact path="/task-gallery" render={() => <TaskGallery />} />
+        <Route exact path="/review" render={() => <Review />} />
+      </Router>
+    </div>
+  );
 }
 
 export default App;
