@@ -1,0 +1,27 @@
+{
+  "files": {
+    "main.css": "/static/css/main.2b44fa5b.chunk.css",
+    "main.js": "/static/js/main.4cc6b556.chunk.js",
+    "main.js.map": "/static/js/main.4cc6b556.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.e0f99456.js",
+    "runtime-main.js.map": "/static/js/runtime-main.e0f99456.js.map",
+    "static/css/2.d6c513eb.chunk.css": "/static/css/2.d6c513eb.chunk.css",
+    "static/js/2.7f2a0443.chunk.js": "/static/js/2.7f2a0443.chunk.js",
+    "static/js/2.7f2a0443.chunk.js.map": "/static/js/2.7f2a0443.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.4987f4e1b76609a2d91e5b859798eff2.js": "/precache-manifest.4987f4e1b76609a2d91e5b859798eff2.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/2.d6c513eb.chunk.css.map": "/static/css/2.d6c513eb.chunk.css.map",
+    "static/css/main.2b44fa5b.chunk.css.map": "/static/css/main.2b44fa5b.chunk.css.map",
+    "static/js/2.7f2a0443.chunk.js.LICENSE": "/static/js/2.7f2a0443.chunk.js.LICENSE",
+    "static/media/App.css": "/static/media/Oval.456d8835.svg",
+    "static/media/blueprint-icons.css": "/static/media/icons-20.d1f0f6c1.ttf"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.e0f99456.js",
+    "static/css/2.d6c513eb.chunk.css",
+    "static/js/2.7f2a0443.chunk.js",
+    "static/css/main.2b44fa5b.chunk.css",
+    "static/js/main.4cc6b556.chunk.js"
+  ]
+}
