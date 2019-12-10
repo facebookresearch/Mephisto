@@ -101,7 +101,9 @@ export default (function PrepareWidget() {
                           </span>
                           <h4
                             style={{ display: "inline", marginRight: 4 }}
-                            className="bp3-heading"
+                            className={cx("bp3-heading", {
+                              "bp3-text-muted": !r.registered
+                            })}
                           >
                             {r.requester_name}
                           </h4>{" "}

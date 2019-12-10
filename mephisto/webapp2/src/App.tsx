@@ -14,7 +14,7 @@ const App: React.FC = () => {
           className="bp3-italics bp3-text-large bp3-text-disabled"
           style={{ position: "relative", top: -8 }}
         >
-          crowdsourcing without the hassle
+          crowdsourcing without the tears
         </em>
       </header>
       <div className="container">
