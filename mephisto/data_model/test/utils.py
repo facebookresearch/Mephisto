@@ -79,7 +79,7 @@ def make_completed_unit(db: MephistoDB) -> str:
     Creates a completed unit for the most recently created task run
     using some worker. Assumes
     """
-    workers = db.find_workers()[-1]
+    workers = db.find_workers()
     assert len(workers) > 0, "Must have at least one worker in database"
     worker = workers[-1]
     task_runs = db.find_task_runs(is_completed=False)
