@@ -47,7 +47,8 @@ export default (function LaunchWidget() {
                     marginBottom: "10px",
                     borderColor: Colors.GRAY5,
                     borderWidth: 1,
-                    borderStyle: "solid"
+                    borderStyle: "solid",
+                    borderRadius: 5
                   }}
                 >
                   <h5 className="bp3-heading" style={{ display: "inline" }}>
