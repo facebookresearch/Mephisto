@@ -30,10 +30,11 @@ export default (function PrepareWidget() {
           <div className="bp3-text-large bp3-running-text bp3-text-muted">
             {error ? (
               <span>
-                <span
+                <Icon icon="warning-sign" color={Colors.RED3} />
+                {/* <span
                   style={{ color: Colors.RED3 }}
                   className="bp3-icon-small bp3-icon-warning-sign"
-                ></span>{" "}
+                ></span> */}{" "}
                 Something went wrong.{" "}
                 <a onClick={() => refetch()}>
                   <strong>Try again</strong>
@@ -43,10 +44,7 @@ export default (function PrepareWidget() {
               <div className="bp3-skeleton bp3-text">&nbsp; </div>
             ) : data.requesters.length === 0 ? (
               <span>
-                <span
-                  style={{ color: Colors.ORANGE3 }}
-                  className="bp3-icon-small bp3-icon-warning-sign"
-                ></span>
+                <Icon icon="warning-sign" color={Colors.ORANGE3} />
                 {"  "}
                 You have no accounts set up.{" "}
                 <a>
@@ -55,8 +53,7 @@ export default (function PrepareWidget() {
               </span>
             ) : (
               <span>
-                <span className="bp3-icon-small bp3-icon-people"></span> You
-                have{" "}
+                <Icon icon="people" /> You have{" "}
                 <a onClick={() => setRequesterDrawerOpen(true)}>
                   <strong>{data.requesters.length} requester accounts</strong>
                 </a>{" "}
@@ -128,15 +125,11 @@ export default (function PrepareWidget() {
         </div>
         <div className="bullet">
           <div className="bp3-text-large bp3-running-text bp3-text-muted">
-            <span
-              className={cx(
-                "bp3-icon-small",
-                numInstalledTasks === 1 ? "bp3-icon-layer" : "bp3-icon-layers"
-              )}
-            ></span>{" "}
-            You have{" "}
+            <Icon icon={numInstalledTasks === 1 ? "layer" : "layers"} /> You
+            have{" "}
             <strong>
-              {numInstalledTasks} {pluralize(numInstalledTasks, "task")}
+              {numInstalledTasks} task{" "}
+              {pluralize(numInstalledTasks, "template")}
             </strong>
             {"  "}
             available to use
