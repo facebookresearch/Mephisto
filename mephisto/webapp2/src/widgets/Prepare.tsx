@@ -19,7 +19,18 @@ export default (function PrepareWidget() {
       <>
         <div className="bullet">
           <div className="bp3-text-large bp3-running-text bp3-text-muted">
-            {loading ? (
+            {error ? (
+              <span>
+                <span
+                  style={{ color: Colors.RED3 }}
+                  className="bp3-icon-small bp3-icon-warning-sign"
+                ></span>{" "}
+                Something went wrong.{" "}
+                <a onClick={() => refetch()}>
+                  <strong>Try again</strong>
+                </a>
+              </span>
+            ) : loading ? (
               <div className="bp3-skeleton bp3-text">&nbsp; </div>
             ) : data.requesters.length === 0 ? (
               <span>
