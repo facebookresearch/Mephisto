@@ -21,7 +21,8 @@
   background-position: bottom;
   height: 458px;
   z-index: -1;
-  background-image: url(https://www.rev.com/content/curve/img/home/bg-home-background.svg);
+  /* background-image: url(https://www.rev.com/content/curve/img/home/bg-home-background.svg); */
+  background-image: url(./Oval.svg);
   position: absolute;
   width: 100%;
   background-size: cover !important;
