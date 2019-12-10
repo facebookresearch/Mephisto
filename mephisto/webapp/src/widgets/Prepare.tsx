@@ -13,8 +13,7 @@ export default (function PrepareWidget() {
   const [requesterDrawerOpen, setRequesterDrawerOpen] = React.useState(false);
 
   const [{ data, loading, error }, refetch] = useAxios({
-    url: "requesters",
-    params: "test"
+    url: "requesters"
   });
 
   return (
@@ -62,7 +61,7 @@ export default (function PrepareWidget() {
             hasBackdrop={true}
             isOpen={requesterDrawerOpen}
             position={Position.BOTTOM}
-            size={Drawer.SIZE_STANDARD}
+            size={"72%"}
             usePortal={true}
           >
             <div
