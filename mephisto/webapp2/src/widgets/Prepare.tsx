@@ -1,6 +1,6 @@
 import React from "react";
 import BaseWidget from "./Base";
-import { Colors, Icon } from "@blueprintjs/core";
+import { Colors, Icon, Button } from "@blueprintjs/core";
 import { pluralize } from "../utils";
 import cx from "classnames";
 import useAxios from "axios-hooks";
@@ -78,19 +78,25 @@ export default (function PrepareWidget() {
             size={Drawer.SIZE_STANDARD}
             usePortal={true}
           >
-            <div className={Classes.DRAWER_BODY}>
+            <div
+              className={Classes.DRAWER_BODY}
+              style={{ backgroundColor: Colors.LIGHT_GRAY4 }}
+            >
               <div className={Classes.DIALOG_BODY}>
                 {data && (
                   <div>
                     {data.requesters.map((r: Requester) => (
-                      <div key={r.requester_id}>
-                        <Card>
+                      <div key={r.requester_id} style={{ marginBottom: 12 }}>
+                        <Card interactive={true}>
                           <Icon
                             icon={r.registered ? "tick-circle" : "issue"}
                             color={r.registered ? Colors.GREEN4 : Colors.GRAY4}
                             title={"Registered?"}
-                          />{" "}
-                          <span className="bp3-tag bp3-large bp3-minimal bp3-round step-badge">
+                          />
+                          <span
+                            style={{ margin: "0 15px" }}
+                            className="bp3-tag bp3-large bp3-minimal bp3-round step-badge"
+                          >
                             {r.provider_type}
                           </span>
                           <h4
@@ -107,6 +113,11 @@ export default (function PrepareWidget() {
                         </Card>
                       </div>
                     ))}
+                    <div style={{ marginTop: 15 }}>
+                      <Button disabled icon="new-person">
+                        (TODO) Add a new requester account...
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
