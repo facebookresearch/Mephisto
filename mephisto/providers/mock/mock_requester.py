@@ -41,6 +41,10 @@ class MockRequester(Requester):
         """MockRequesters have $100000 to spend"""
         return MOCK_BUDGET
 
+    def is_sandbox(self) -> bool:
+        """MockRequesters are for testing only, and are thus treated as sandbox"""
+        return True
+
     @staticmethod
     def new(db: "MephistoDB", requester_name: str) -> "Requester":
         return MockRequester._register_requester(db, requester_name, PROVIDER_TYPE)

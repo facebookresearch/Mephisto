@@ -41,13 +41,6 @@ class MTurkRequester(Requester):
         """
         return self.datastore.get_client_for_requester(requester_name)
 
-    def is_sandbox(self) -> bool:
-        """
-        Determine if this is a requester on sandbox
-        """
-        # Regular requesters are never sandbox requesters
-        return False
-
     # Required functions for a Requester implementation
 
     def register(self, args: Optional[Dict[str, str]] = None) -> None:

@@ -189,11 +189,18 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def find_task_runs(
-        self, task_id: Optional[str] = None, requester_id: Optional[str] = None
+        self, task_id: Optional[str] = None, requester_id: Optional[str] = None, is_completed: Optional[bool] = None
     ) -> List[TaskRun]:
         """
         Try to find any task_run that matches the above. When called with no arguments,
         return all task_runs.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def update_task_run(self, task_run_id: str, is_completed: bool):
+        """
+        Update a task run. At the moment, can only update completion status
         """
         raise NotImplementedError()
 

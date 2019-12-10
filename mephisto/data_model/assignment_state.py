@@ -34,6 +34,15 @@ class AssignmentState:
         ]
 
     @staticmethod
+    def incomplete() -> List[str]:
+        """Return all statuses that are considered incomplete"""
+        return [
+            AssignmentState.CREATED,
+            AssignmentState.LAUNCHED,
+            AssignmentState.ASSIGNED,
+        ]
+
+    @staticmethod
     def payable() -> List[str]:
         """Return all statuses that should be considered spent budget"""
         return [
