@@ -1,13 +1,22 @@
 import React from "react";
 import BaseWidget from "./Base";
-import { Colors } from "@blueprintjs/core";
+import { Colors, Icon } from "@blueprintjs/core";
 import { pluralize } from "../utils";
 import cx from "classnames";
 import useAxios from "axios-hooks";
+import { Drawer, Classes, Position, Card } from "@blueprintjs/core";
+
+interface Requester {
+  provider_type: "string";
+  registered: boolean;
+  requester_id: string;
+  requester_name: string;
+}
 
 export default (function PrepareWidget() {
   const [numProviders, setNumProviders] = React.useState(0);
   const [numInstalledTasks, setNumInstalledTasks] = React.useState(1);
+  const [requesterDrawerOpen, setRequesterDrawerOpen] = React.useState(false);
 
   const [{ data, loading, error }, refetch] = useAxios({
     url: "requesters",
@@ -47,32 +56,62 @@ export default (function PrepareWidget() {
             ) : (
               <span>
                 <span className="bp3-icon-small bp3-icon-people"></span> You
-                have <strong>{data.requesters.length}</strong> crowdprovider
-                accounts
+                have{" "}
+                <a onClick={() => setRequesterDrawerOpen(true)}>
+                  <strong>{data.requesters.length} requester accounts</strong>
+                </a>{" "}
+                set up
               </span>
             )}
-            {/* 
-            {numProviders === 0 ? (
-              <span>
-                <span
-                  style={{ color: Colors.ORANGE3 }}
-                  className="bp3-icon-small bp3-icon-warning-sign"
-                ></span>
-                {"  "}
-                You have no accounts set up.{" "}
-                <a>
-                  <strong>Configure</strong>
-                </a>
-              </span>
-            ) : !numProviders ? (
-              <div className="bp3-skeleton bp3-text">&nbsp; </div>
-            ) : (
-              <span>
-                <span className="bp3-icon-small bp3-icon-people"></span> You
-                have <strong>5</strong> crowdprovider accounts
-              </span>
-            )} */}
           </div>
+          <Drawer
+            icon="people"
+            onClose={() => setRequesterDrawerOpen(false)}
+            title="Requester accounts"
+            autoFocus={true}
+            canEscapeKeyClose={true}
+            // canOutsideClickClose={true}
+            enforceFocus={true}
+            hasBackdrop={true}
+            isOpen={requesterDrawerOpen}
+            position={Position.BOTTOM}
+            size={Drawer.SIZE_STANDARD}
+            usePortal={true}
+          >
+            <div className={Classes.DRAWER_BODY}>
+              <div className={Classes.DIALOG_BODY}>
+                {data && (
+                  <div>
+                    {data.requesters.map((r: Requester) => (
+                      <div key={r.requester_id}>
+                        <Card>
+                          <Icon
+                            icon={r.registered ? "tick-circle" : "issue"}
+                            color={r.registered ? Colors.GREEN4 : Colors.GRAY4}
+                            title={"Registered?"}
+                          />{" "}
+                          <span className="bp3-tag bp3-large bp3-minimal bp3-round step-badge">
+                            {r.provider_type}
+                          </span>
+                          <h4
+                            style={{ display: "inline", marginRight: 4 }}
+                            className="bp3-heading"
+                          >
+                            {r.requester_name}
+                          </h4>{" "}
+                          {!r.registered && (
+                            <span>
+                              &mdash; This account still needs to be registered.
+                            </span>
+                          )}
+                        </Card>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </Drawer>
         </div>
         <div className="bullet">
           <div className="bp3-text-large bp3-running-text bp3-text-muted">
