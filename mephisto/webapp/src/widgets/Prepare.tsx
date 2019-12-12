@@ -6,13 +6,14 @@ import cx from "classnames";
 import useAxios from "axios-hooks";
 import { Drawer, Classes, Position, Card } from "@blueprintjs/core";
 import { Requester } from "../models";
+import Async from "../lib/Async";
 
 export default (function PrepareWidget() {
   const [numProviders, setNumProviders] = React.useState(0);
   const [numInstalledTasks, setNumInstalledTasks] = React.useState(1);
   const [requesterDrawerOpen, setRequesterDrawerOpen] = React.useState(false);
 
-  const [{ data, loading, error }, refetch] = useAxios({
+  const requesterAsync = useAxios({
     url: "requesters"
   });
 
@@ -21,34 +22,41 @@ export default (function PrepareWidget() {
       <>
         <div className="bullet">
           <div className="bp3-text-large bp3-running-text bp3-text-muted">
-            {error ? (
-              <span>
-                <Icon icon="warning-sign" color={Colors.RED3} /> Something went
-                wrong.{" "}
-                <a onClick={() => refetch()}>
-                  <strong>Try again</strong>
-                </a>
-              </span>
-            ) : loading ? (
-              <div className="bp3-skeleton bp3-text">&nbsp; </div>
-            ) : data.requesters.length === 0 ? (
-              <span>
-                <Icon icon="warning-sign" color={Colors.ORANGE3} />
-                {"  "}
-                You have no accounts set up.{" "}
-                <a>
-                  <strong>Configure</strong>
-                </a>
-              </span>
-            ) : (
-              <span>
-                <Icon icon="people" /> You have{" "}
-                <a onClick={() => setRequesterDrawerOpen(true)}>
-                  <strong>{data.requesters.length} requester accounts</strong>
-                </a>{" "}
-                set up
-              </span>
-            )}
+            <Async
+              info={requesterAsync}
+              onError={({ refetch }) => (
+                <span>
+                  <Icon icon="warning-sign" color={Colors.RED3} /> Something
+                  went wrong.{" "}
+                  <a onClick={() => refetch()}>
+                    <strong>Try again</strong>
+                  </a>
+                </span>
+              )}
+              onLoading={() => (
+                <div className="bp3-skeleton bp3-text">&nbsp; </div>
+              )}
+              checkIfEmptyFn={(data: any) => data.requesters}
+              onEmptyData={() => (
+                <span>
+                  <Icon icon="warning-sign" color={Colors.ORANGE3} />
+                  {"  "}
+                  You have no accounts set up.{" "}
+                  <a>
+                    <strong>Configure</strong>
+                  </a>
+                </span>
+              )}
+              onData={({ data }) => (
+                <span>
+                  <Icon icon="people" /> You have{" "}
+                  <a onClick={() => setRequesterDrawerOpen(true)}>
+                    <strong>{data.requesters.length} requester accounts</strong>
+                  </a>{" "}
+                  set up
+                </span>
+              )}
+            />
           </div>
           <Drawer
             icon="people"
@@ -69,9 +77,9 @@ export default (function PrepareWidget() {
               style={{ backgroundColor: Colors.LIGHT_GRAY4 }}
             >
               <div className={Classes.DIALOG_BODY}>
-                {data && (
+                {requesterAsync[0].data && (
                   <div>
-                    {data.requesters.map((r: Requester) => (
+                    {requesterAsync[0].data.requesters.map((r: Requester) => (
                       <div key={r.requester_id} style={{ marginBottom: 12 }}>
                         <Card interactive={true}>
                           <Icon
