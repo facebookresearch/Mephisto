@@ -103,7 +103,7 @@ export default (function PrepareWidget() {
                     ))}
                     <div style={{ marginTop: 15 }}>
                       <Button disabled icon="new-person">
-                        (TODO) Add a new requester account...
+                        [TODO] Add a new requester account...
                       </Button>
                     </div>
                   </div>
