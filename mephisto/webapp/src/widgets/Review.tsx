@@ -1,8 +1,11 @@
 import React from "react";
 import BaseWidget from "./Base";
 import useAxios from "axios-hooks";
-import Async, { mockRequest } from "../lib/Async";
+import { createAsync, mockRequest } from "../lib/Async";
 import { Icon, Colors } from "@blueprintjs/core";
+import { ReviewableTasks } from "../models";
+
+const Async = createAsync<ReviewableTasks>();
 
 export default (function ReviewWidget() {
   const reviewAsync = useAxios({
@@ -36,7 +39,7 @@ export default (function ReviewWidget() {
           </span>
         )}
         onData={({ data }) => <span>{JSON.stringify(data)}</span>}
-        checkIfEmptyFn={(data: any) => data.task_runs}
+        checkIfEmptyFn={data => data.task_runs}
         onEmptyData={() => (
           <div>
             <div className="bp3-non-ideal-state">

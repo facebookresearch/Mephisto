@@ -1,4 +1,6 @@
-export const task_runs__running = {
+import { TaskRun, RunningTasks } from "./models";
+
+export const task_runs__running: RunningTasks = {
   live_task_count: 1,
   task_count: 1,
   task_runs: [

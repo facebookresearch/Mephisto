@@ -29,6 +29,10 @@ def get_running_task_runs():
 
 @api.route("/error")
 def intentional_error():
+    """
+    A helper endpoint to test out cases in the UI where an error occurs.
+    TODO: allow the error code and error payload to be parameterized.
+    """
     raise InvalidUsage("An error occured", status_code=501)
 
 @api.route("/task_runs/reviewable")

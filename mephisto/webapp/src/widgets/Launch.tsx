@@ -2,18 +2,20 @@ import React from "react";
 import BaseWidget from "./Base";
 import useAxios from "axios-hooks";
 import cx from "classnames";
-import { TaskRun } from "../models";
+import { TaskRun, RunningTasks } from "../models";
 import { task_runs__running } from "../mocks";
 import { Card, Colors, Tag, Intent, Icon } from "@blueprintjs/core";
 import moment from "moment";
-import Async, { ResponseValues, mockRequest } from "../lib/Async";
+import { createAsync, ResponseValues, mockRequest } from "../lib/Async";
+
+const Async = createAsync<RunningTasks>();
 
 export default (function LaunchWidget() {
   // const runningTasksAsync = useAxios<RunningTasks>({
   //   url: "task_runs/running"
   // });
 
-  const runningTasksAsync = mockRequest(task_runs__running);
+  const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
 
   return (
     <BaseWidget badge="Step 2" heading={<span>Launch it</span>}>
@@ -86,7 +88,7 @@ export default (function LaunchWidget() {
             ))}
           </div>
         )}
-        checkIfEmptyFn={(data: any) => data.task_runs}
+        checkIfEmptyFn={data => data.task_runs}
         onEmptyData={() => (
           <div className="bp3-non-ideal-state">
             <div

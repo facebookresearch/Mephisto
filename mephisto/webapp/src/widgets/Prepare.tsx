@@ -5,15 +5,17 @@ import { pluralize } from "../utils";
 import cx from "classnames";
 import useAxios from "axios-hooks";
 import { Drawer, Classes, Position, Card } from "@blueprintjs/core";
-import { Requester } from "../models";
-import Async from "../lib/Async";
+import { Requesters, Requester } from "../models";
+import { createAsync } from "../lib/Async";
+
+const Async = createAsync<Requesters>();
 
 export default (function PrepareWidget() {
   const [numProviders, setNumProviders] = React.useState(0);
   const [numInstalledTasks, setNumInstalledTasks] = React.useState(1);
   const [requesterDrawerOpen, setRequesterDrawerOpen] = React.useState(false);
 
-  const requesterAsync = useAxios({
+  const requesterAsync = useAxios<Requesters>({
     url: "requesters"
   });
 
@@ -36,7 +38,7 @@ export default (function PrepareWidget() {
               onLoading={() => (
                 <div className="bp3-skeleton bp3-text">&nbsp; </div>
               )}
-              checkIfEmptyFn={(data: any) => data.requesters}
+              checkIfEmptyFn={data => data.requesters}
               onEmptyData={() => (
                 <span>
                   <Icon icon="warning-sign" color={Colors.ORANGE3} />

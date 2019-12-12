@@ -10,18 +10,31 @@ export interface ResponseValues<T> {
   response?: AxiosResponse;
 }
 
-type AsyncProps<T> = {
-  info:
-    | [ResponseValues<T>, (config?: any, options?: any) => AxiosPromise<T>]
-    | [ResponseValues<T>];
-  onLoading: React.FC<any>;
-  onError: React.FC<any>;
-  onData: React.FC<any>;
-  onEmptyData?: React.FC<any>;
-  checkIfEmptyFn?: Function;
+type AxiosInfo<T> =
+  | [ResponseValues<T>, (config?: any, options?: any) => AxiosPromise<T>]
+  | [ResponseValues<T>];
+
+type BaseAsyncProps<T> = {
+  axiosInfo: AxiosInfo<T>;
+  refetch: Function;
 };
 
-const Async: React.FC<AsyncProps<any>> = ({
+type AsyncProps<T> = {
+  info: AxiosInfo<T>;
+  onLoading: React.FC<BaseAsyncProps<T>>;
+  onError: React.FC<{ error: any } & BaseAsyncProps<T>>;
+  onData: React.FC<{ data: T } & BaseAsyncProps<T>>;
+  onEmptyData?: React.FC<{ data: T } & BaseAsyncProps<T>>;
+  checkIfEmptyFn?: (data: T) => any;
+};
+
+export type AsyncComponent<T = any> = React.FC<AsyncProps<T>>;
+
+export function createAsync<T>() {
+  return Async as AsyncComponent<T>;
+}
+
+const Async: AsyncComponent = ({
   info,
   onLoading,
   onError,
@@ -29,9 +42,9 @@ const Async: React.FC<AsyncProps<any>> = ({
   onEmptyData,
   checkIfEmptyFn: checkIfEmptyFn
 }) => {
-  const [{ data, loading, error }, refetch] = info;
+  const [{ data, loading, error }, refetch = () => {}] = info;
 
-  const baseProps = { refetch, axiosInfo: info };
+  const baseProps: BaseAsyncProps<any> = { refetch, axiosInfo: info };
 
   if (loading) return onLoading({ ...baseProps });
   else if (error) return onError({ error: error.response?.data, ...baseProps });
