@@ -65,9 +65,6 @@ class HerokuArchitect(Architect):
         self.tmp_dir = os.path.join(get_mephisto_tmp_dir(), 'heroku')
         if not os.path.exists(self.tmp_dir):
             os.makedirs(self.tmp_dir)
-        TaskBuilderClass = task_run.get_blueprint().TaskBuilderClass
-        # TODO pull options from the current set options for this run?
-        self.task_builder = TaskBuilderClass(self.task_run, {})
 
         # Cache-able parameters
         self.__heroku_app_name: Optional[str] = None
@@ -215,7 +212,6 @@ class HerokuArchitect(Architect):
         heroku_server_development_root = self.__get_build_directory()
         os.makedirs(heroku_server_development_root)
         heroku_server_development_path = build_router(heroku_server_development_root, self.task_run)
-        self.task_builder.build_in_dir(heroku_server_development_path)
         return heroku_server_development_path
 
     def __setup_heroku_server(self) -> str:
@@ -227,7 +223,6 @@ class HerokuArchitect(Architect):
         server_dir = self.__get_build_directory()
 
         print("Heroku: Starting server...")
-
 
         heroku_server_directory_path = os.path.join(server_dir, "router")
         sh.git(shlex.split(f"-C {heroku_server_directory_path} init"))

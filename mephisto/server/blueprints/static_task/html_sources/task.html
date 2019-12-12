@@ -1,0 +1,80 @@
+<!-- Bootstrap v3.0.3 -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script><!-- Modal --><!-- MODAL -->
+<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade in" id="exampleModal" role="dialog" tabindex="-1">
+<div class="modal-dialog" role="document">
+<div class="modal-content">
+<div class="modal-header"><button aria-label="Close" class="close" data-dismiss="modal" type="button"><span aria-hidden="true">&times;</span></button></div>
+
+<div class="modal-body" id="modal">&nbsp;</div>
+
+<div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal" type="button">Close</button></div>
+</div>
+</div>
+</div>
+<!-- Content -->
+
+<section class="container" id="Other" style="margin-bottom: 15px; padding: 10px; font-family: Verdana, Geneva, sans-serif; font-size: 0.9em;">
+<div class="row col-xs-12 col-md-12" style=""><!-- Instructions -->
+<div class="panel panel-primary" style="">
+<div class="panel-heading"><strong>Instructions</strong></div>
+
+<div class="panel-body" id="instructions">
+<p>Below you are given a character name and description for someone from a fantasy story. Please label what gender the character is. <br/> Below are some examples: </p>
+
+<ul>
+	<li>brave soldier - I fight to defend my honor. I will keep my village safe from any threat. It is my duty to protect my beloved wife. &nbsp; -<em> either </em> (the character doesn't explicitly state they are a man or a woman)</li>
+	<li>noble - I am the daughter of a great warrior. My family name carries a lot of weight where I live, so I'm accepted amongst nobility.  &nbsp; - <em>female</em> (the character is the daughter of someone, and thus a female)</li>
+	<li>prince - I cannot stand being part of royalty. I long to adventure at sea. My father would never allow it though. &nbsp;- <em>male</em> (the character is a prince, thus a male)</li>
+	<li>farmer - I heave hay around all day. Men like me don't have many other opportunities here. Still, I'd like to be a painter. &nbsp;- <em>male</em> (the character describes themself as a male)</li>
+</ul>
+
+</div>
+</div>
+<!-- End Instructions --><!-- Content Body -->
+
+<div class="input_location">
+<p><strong>Character name:</strong> <span id="char">${worker_id}</span></p>
+<p><strong>Description:</strong> <span id="persona">${assignment_id}</span></p>
+</div>
+
+<section>
+<fieldset>
+<div class="input-group">
+    <label>1. What gender is this character?</label>
+    <select class="form-control" name="gender">
+        <option selected="selected" value="">(select one)</option>
+        <option value="female">Female</option>
+        <option value="male">Male</option>
+        <option value="either">Either</option></select>
+</div>
+</fieldset>
+
+</section>
+<!-- End Content Body --></div>
+</section>
+<script>
+
+$(function()
+{
+    modal_body = $("#modal");
+    $("#instructions").clone().appendTo(modal_body);
+    $('.modal').modal('show');
+});
+</script>
+
+
+</script><!-- close container -->
+<style type="text/css">fieldset {
+    padding: 10px;
+    background:#fbfbfb;
+    border-radius:5px;
+    margin-bottom:5px;
+}
+
+.input_location {
+  background-color: blanchedalmond;
+  padding: 10px;
+}
+</style>

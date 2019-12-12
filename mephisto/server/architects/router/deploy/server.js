@@ -7,7 +7,7 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 const http = require('http');
-const nunjucks = require('nunjucks');
+const fs = require('fs');
 
 const task_directory_name = 'static';
 
@@ -23,15 +23,26 @@ app.use(
 );
 app.use(bodyParser.json());
 
-nunjucks.configure(task_directory_name, {
-  autoescape: true,
-  express: app,
-});
-
 const server = http.createServer(app);
 
 server.listen(PORT, function() {
   console.log('Listening on %d', server.address().port);
+});
+
+// ===================== <Routing> ========================
+app.get('/initial_task_data', function(req, res) {
+  var params = req.query;
+  var worker_id = params['worker_id']
+  var assignment_id = params['assignment_id']
+  var html_content = fs.readFileSync(task_directory_name + '/task.html', "utf8");
+  // TODO hit the backend to get the actual assignment and worker
+  // as registered
+  var response_data = {
+    worker_id: worker_id,
+    assignment_id: assignment_id,
+    html: html_content,
+  }
+  res.json(response_data)
 });
 
 // Quick status check for this server
@@ -42,6 +53,11 @@ app.get('/is_alive', function(req, res) {
 // Returns server time for now
 app.get('/get_timestamp', function(req, res) {
   res.json({ timestamp: Date.now() }); // in milliseconds
+});
+
+app.get('/task_index', function(req, res) {
+  // TODO how do we pass the task config to the frontend?
+  res.render('index.html');
 });
 
 app.use(express.static('static'));
