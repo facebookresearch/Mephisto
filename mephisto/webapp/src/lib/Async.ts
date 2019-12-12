@@ -49,13 +49,13 @@ export default Async;
 
 export function mockRequest<T>(
   mockData: T,
-  loading = false,
-  error = undefined
+  error: any = undefined,
+  loading: boolean = false
 ) {
   const request = {
     data: mockData,
     loading,
-    error
+    error: error && { response: { data: error } }
   } as ResponseValues<T>;
   return [request, () => {}] as [ResponseValues<T>, any];
 }

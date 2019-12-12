@@ -1,17 +1,18 @@
 import React from "react";
 import BaseWidget from "./Base";
 import useAxios from "axios-hooks";
-import Async from "../lib/Async";
+import Async, { mockRequest } from "../lib/Async";
+import { Icon, Colors } from "@blueprintjs/core";
 
 export default (function ReviewWidget() {
-  const info = useAxios({
+  const reviewAsync = useAxios({
     url: "task_runs/reviewable"
   });
 
   return (
     <BaseWidget badge="Step 3" heading={<span>Review it</span>}>
       <Async
-        info={info}
+        info={reviewAsync}
         onLoading={() => (
           <div className="bp3-skeleton">
             <div className="bp3-non-ideal-state">
@@ -25,7 +26,15 @@ export default (function ReviewWidget() {
             </div>
           </div>
         )}
-        onError={({ error }) => <span>{JSON.stringify(error)}</span>}
+        onError={({ refetch }) => (
+          <span>
+            <Icon icon="warning-sign" color={Colors.RED3} /> Something went
+            wrong.{" "}
+            <a onClick={() => refetch()}>
+              <strong>Try again</strong>
+            </a>
+          </span>
+        )}
         onData={({ data }) => <span>{JSON.stringify(data)}</span>}
         checkIfEmptyFn={(data: any) => data.task_runs}
         onEmptyData={() => (
