@@ -1,8 +1,14 @@
 import React from "react";
-import { AxiosError, AxiosResponse, AxiosPromise } from "axios";
+import {
+  AxiosError,
+  AxiosResponse,
+  AxiosPromise,
+  AxiosRequestConfig
+} from "axios";
 const isEmpty = require("lodash.isempty");
 
-// copied from axios-hooks which doesn't export the following type:
+// Start below: type definitions copied from the axios-hooks lib which
+// unfortunately doesn't export them:
 export interface ResponseValues<T> {
   data: T;
   loading: boolean;
@@ -10,8 +16,16 @@ export interface ResponseValues<T> {
   response?: AxiosResponse;
 }
 
+interface RefetchOptions {
+  useCache?: boolean;
+}
+/* End above: copied type defs from axios-hook */
+
 type AxiosInfo<T> =
-  | [ResponseValues<T>, (config?: any, options?: any) => AxiosPromise<T>]
+  | [
+      ResponseValues<T>,
+      (config?: AxiosRequestConfig, options?: RefetchOptions) => AxiosPromise<T>
+    ]
   | [ResponseValues<T>];
 
 type BaseAsyncProps<T> = {
