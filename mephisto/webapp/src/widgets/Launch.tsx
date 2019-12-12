@@ -81,7 +81,9 @@ export default (function LaunchWidget() {
       />
       <div>
         <div style={{ textAlign: "center", marginTop: 15 }}>
-          <button className="bp3-button ">[TODO] Launch a task</button>
+          <button className="bp3-button" disabled>
+            [TODO] Launch a task
+          </button>
         </div>
       </div>
     </BaseWidget>
