@@ -5,7 +5,7 @@ export interface Requester {
   requester_name: string;
 }
 
-export interface TaskRuns {
+export interface TaskRun {
   param_string: string; // "--test --task --run"
   params: object; // { "run params": "Coming soon!"; status: "Not yet implemented"; }
   sandbox: boolean;
@@ -29,5 +29,5 @@ export interface TaskRuns {
 export interface RunningTasks {
   live_task_count: number;
   task_count: 0;
-  task_runs: TaskRuns[];
+  task_runs: TaskRun[];
 }

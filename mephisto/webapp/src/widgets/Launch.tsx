@@ -2,16 +2,18 @@ import React from "react";
 import BaseWidget from "./Base";
 import useAxios from "axios-hooks";
 import cx from "classnames";
-import { RunningTasks } from "../models";
+import { TaskRun } from "../models";
 import { task_runs__running } from "../mocks";
 import { Card, Colors, Tag, Intent, Icon } from "@blueprintjs/core";
 import moment from "moment";
 import Async, { ResponseValues, mockRequest } from "../lib/Async";
 
 export default (function LaunchWidget() {
-  const runningTasksAsync = useAxios<RunningTasks>({
-    url: "task_runs/running"
-  });
+  // const runningTasksAsync = useAxios<RunningTasks>({
+  //   url: "task_runs/running"
+  // });
+
+  const runningTasksAsync = mockRequest(task_runs__running);
 
   return (
     <BaseWidget badge="Step 2" heading={<span>Launch it</span>}>
@@ -30,11 +32,11 @@ export default (function LaunchWidget() {
         )}
         onData={({ data }) => (
           <div>
-            {data.task_runs.map((run: any) => (
+            {data.task_runs.map((run: TaskRun) => (
               <div
                 className="run-header"
                 style={{
-                  backgroundColor: Colors.LIGHT_GRAY4,
+                  backgroundColor: Colors.LIGHT_GRAY5,
                   padding: 10,
                   marginBottom: "10px",
                   borderColor: Colors.GRAY5,
@@ -56,11 +58,30 @@ export default (function LaunchWidget() {
                   Running
                 </Tag>
                 <code
-                  className="bp3-code"
+                  className="bp3-code params-list"
                   style={{ display: "block", marginTop: 10 }}
                 >
                   {run.param_string}
                 </code>
+                <div className="details">
+                  <div className="metrics highlight-first">
+                    <div className="metric">
+                      {run.task_status.created + run.task_status.launched}
+                      <label>Remaining</label>
+                    </div>
+                    <div className="metric">
+                      {run.task_status.completed +
+                        run.task_status.accepted +
+                        run.task_status.mixed +
+                        run.task_status.rejected}
+                      <label>Completed</label>
+                    </div>
+                    <div className="metric">
+                      {run.task_status.launched + run.task_status.assigned}
+                      <label>In-Flight</label>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
