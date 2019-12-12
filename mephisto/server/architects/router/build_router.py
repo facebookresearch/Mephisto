@@ -9,6 +9,7 @@ import os
 import sh
 import shutil
 import shlex
+import subprocess
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -29,12 +30,29 @@ def can_build(build_dir: str, task_run: 'TaskRun') -> bool:
     # process for the router is decided
     return True
 
+def install_router_files() -> None:
+    """
+    Create a new build including the node_modules
+    """
+    return_dir = os.getcwd()
+    os.chdir(SERVER_SOURCE_ROOT)
+
+    packages_installed = subprocess.call(['npm', 'install'])
+    if packages_installed != 0:
+        raise Exception(
+            'please make sure npm is installed, otherwise view '
+            'the above error for more info.'
+        )
+    os.chdir(return_dir)
+
 def build_router(build_dir: str, task_run: 'TaskRun') -> str:
     """
     Copy expected files from the router source into the build dir,
     using existing files in the build dir as replacements for the
     defaults if available
     """
+    install_router_files()
+
     server_source_directory_path = SERVER_SOURCE_ROOT
     local_server_directory_path = os.path.join(
         build_dir, 'router'
@@ -57,5 +75,12 @@ def build_router(build_dir: str, task_run: 'TaskRun') -> str:
     #         shutil.copytree(file_path, os.path.join(task_directory_path, dir_name))
     #     except FileNotFoundError:  # noqa: F821 we don't support python2
     #         pass
+
+
+    TaskBuilderClass = task_run.get_blueprint().TaskBuilderClass
+    # TODO pull options from the current set options for this run?
+    task_builder = TaskBuilderClass(task_run, {})
+
+    task_builder.build_in_dir(local_server_directory_path)
 
     return local_server_directory_path

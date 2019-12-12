@@ -112,6 +112,10 @@ def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
         from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 
         return MockBlueprint
+    if task_type == "static":
+        from mephisto.server.blueprints.static_task.static_blueprint import StaticBlueprint
+
+        return StaticBlueprint
     raise NotImplementedError()
 
 

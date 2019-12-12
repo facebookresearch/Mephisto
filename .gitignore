@@ -5,3 +5,10 @@ data/*
 mephisto.egg-info/*
 .DS_Store
 tmp/*
+**/node_modules/*
+mephisto/server/**/package-lock.json
+mephisto/server/blueprints/**/build/*
+
+# temporary files for inspiration from ParlAI-MTurk
+old_code/*
+mephisto/server/architects/router_old/*

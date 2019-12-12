@@ -71,17 +71,11 @@ class LocalArchitect(Architect):
 
         shutil.copytree(self.server_dir, self.running_dir)
 
+        return_dir = os.getcwd()
         os.chdir(self.running_dir)
-
-        packages_installed = subprocess.call(['npm', 'install'])
-        if packages_installed != 0:
-            raise Exception(
-                'please make sure npm is installed, otherwise view '
-                'the above error for more info.'
-            )
-
         self.server_process = subprocess.Popen(['node', 'server.js'], preexec_fn=os.setpgrp)
         self.server_process_pid = self.server_process.pid
+        os.chdir(return_dir)
 
         time.sleep(1)
         print('Server running locally with pid {}.'.format(self.server_process_pid))
