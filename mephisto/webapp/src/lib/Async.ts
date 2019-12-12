@@ -3,7 +3,7 @@ import { AxiosError, AxiosResponse, AxiosPromise } from "axios";
 const isEmpty = require("lodash.isempty");
 
 // copied from axios-hooks which doesn't export the following type:
-interface ResponseValues<T> {
+export interface ResponseValues<T> {
   data: T;
   loading: boolean;
   error?: AxiosError;
@@ -11,7 +11,9 @@ interface ResponseValues<T> {
 }
 
 type AsyncProps<T> = {
-  info: [ResponseValues<T>, (config?: any, options?: any) => AxiosPromise<T>];
+  info:
+    | [ResponseValues<T>, (config?: any, options?: any) => AxiosPromise<T>]
+    | [ResponseValues<T>];
   onLoading: React.FC<any>;
   onError: React.FC<any>;
   onData: React.FC<any>;
@@ -44,3 +46,16 @@ const Async: React.FC<AsyncProps<any>> = ({
 };
 
 export default Async;
+
+export function mockRequest<T>(
+  mockData: T,
+  loading = false,
+  error = undefined
+) {
+  const request = {
+    data: mockData,
+    loading,
+    error
+  } as ResponseValues<T>;
+  return [request, () => {}] as [ResponseValues<T>, any];
+}

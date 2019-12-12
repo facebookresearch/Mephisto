@@ -6,23 +6,19 @@ import { RunningTasks } from "../models";
 import { task_runs__running } from "../mocks";
 import { Card, Colors, Tag, Intent } from "@blueprintjs/core";
 import moment from "moment";
+import Async, { ResponseValues, mockRequest } from "../lib/Async";
 
 export default (function LaunchWidget() {
-  // const [{ data, loading, error }, refetch] = useAxios<RunningTasks>({
-  //   url: "task_runs/running"
-  //   // delayed: true
-  // });
-
-  let loading, error;
-  const data = task_runs__running;
+  const runningTasksAsync = useAxios<RunningTasks>({
+    url: "task_runs/running"
+  });
 
   return (
     <BaseWidget badge="Step 2" heading={<span>Launch it</span>}>
-      <div className={cx({ "bp3-skeleton": loading })}>
-        {error ? (
-          <div>An error occured</div>
-        ) : loading || data.task_runs.length === 0 ? (
-          <div className="bp3-non-ideal-state">
+      <Async
+        info={runningTasksAsync}
+        onLoading={() => (
+          <div className="bp3-non-ideal-state bp3-skeleton">
             <div
               className="bp3-non-ideal-state-visual"
               style={{ fontSize: 20 }}
@@ -30,11 +26,11 @@ export default (function LaunchWidget() {
               <span className="bp3-icon bp3-icon-clean"></span>
             </div>
             <div>You have no tasks running.</div>
-            <button className="bp3-button ">[TODO] Launch a task</button>
           </div>
-        ) : (
+        )}
+        onData={({ data }) => (
           <div>
-            {data.task_runs.map(run => (
+            {data.task_runs.map((run: any) => (
               <div
                 className="run-header"
                 style={{
@@ -69,6 +65,21 @@ export default (function LaunchWidget() {
             ))}
           </div>
         )}
+        checkIfEmptyFn={(data: any) => data.task_runs}
+        onEmptyData={() => (
+          <div className="bp3-non-ideal-state">
+            <div
+              className="bp3-non-ideal-state-visual"
+              style={{ fontSize: 20 }}
+            >
+              <span className="bp3-icon bp3-icon-clean"></span>
+            </div>
+            <div>You have no tasks running.</div>
+          </div>
+        )}
+        onError={() => <div>An error occured</div>}
+      />
+      <div>
         <div style={{ textAlign: "center", marginTop: 15 }}>
           <button className="bp3-button ">[TODO] Launch a task</button>
         </div>
