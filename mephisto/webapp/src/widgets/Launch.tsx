@@ -4,7 +4,7 @@ import useAxios from "axios-hooks";
 import cx from "classnames";
 import { RunningTasks } from "../models";
 import { task_runs__running } from "../mocks";
-import { Card, Colors, Tag, Intent } from "@blueprintjs/core";
+import { Card, Colors, Tag, Intent, Icon } from "@blueprintjs/core";
 import moment from "moment";
 import Async, { ResponseValues, mockRequest } from "../lib/Async";
 
@@ -77,7 +77,15 @@ export default (function LaunchWidget() {
             <div>You have no tasks running.</div>
           </div>
         )}
-        onError={() => <div>An error occured</div>}
+        onError={({ refetch }) => (
+          <span>
+            <Icon icon="warning-sign" color={Colors.RED3} /> Something went
+            wrong.{" "}
+            <a onClick={() => refetch()}>
+              <strong>Try again</strong>
+            </a>
+          </span>
+        )}
       />
       <div>
         <div style={{ textAlign: "center", marginTop: 15 }}>
