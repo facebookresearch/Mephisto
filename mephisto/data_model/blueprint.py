@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.packet import Packet
 
 
 class Blueprint(ABC):
@@ -204,9 +205,9 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_data(self) -> Dict[str, Any]:
+    def get_data(self) -> Any:
         """
-        Return the currently stored data for this task in the dict format
+        Return the currently stored data for this task in the format
         expected by any frontend displays
         """
         raise NotImplementedError()
@@ -219,7 +220,7 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_data(self, state) -> None:
+    def update_data(self, packet: "Packet") -> None:
         """
         Put new current Unit data into this AgentState
         """
