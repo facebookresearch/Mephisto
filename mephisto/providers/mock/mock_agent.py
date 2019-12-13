@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.worker import Worker
+    from mephisto.data_model.packet import Packet
 
 
 class MockAgent(Agent):
@@ -25,24 +26,32 @@ class MockAgent(Agent):
 
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
-        # TODO any additional init as is necessary once
-        # a mock DB exists
+        self.datastore = db.get_datastore_for_provider(PROVIDER_TYPE)
+        self.datastore['agents'][db_id] = {
+            'observed': [],
+            'pending_acts': [],
+            'acts': [],
+        }
 
-    def observe(self, action: Dict[str, Any]) -> None:
-        """
-        Pass the observed information to the AgentState, then
-        push that information to the user
-        """
-        # TODO implement with the task runner system
-        raise NotImplementedError()
+    def observe(self, packet: "Packet") -> None:
+        """Put observations into this mock agent's observation list"""
+        self.datastore['agents'][self.db_id]['observed'].append(packet)
+        super().observe(packet)
 
-    def act(self, blocking=False) -> Optional[Dict[str, Any]]:
+    def act(self, timeout=None) -> Optional["Packet"]:
         """
-        Request information from the Agent's frontend. If non-blocking,
-        should return None if no actions are ready to be returned.
+        Either take an act from this mock agent's act queue (for use
+        by tests and other mock purposes) or request a regular act
+        (for use in manual testing).
         """
-        # TODO implement with the task runner system
-        raise NotImplementedError()
+        if len(self.datastore['agents'][self.db_id]['pending_acts']) > 0:
+            act = self.datastore['agents'][self.db_id]['pending_acts'].pop(0)
+        else:
+            act = super().act(timeout=timeout)
+
+        if act is not None:
+            self.datastore['agents'][self.db_id]['acts'].append(act)
+        return act
 
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""

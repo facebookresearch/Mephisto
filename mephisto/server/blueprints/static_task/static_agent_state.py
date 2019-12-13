@@ -23,22 +23,22 @@ class StaticAgentState(AgentState):
     def __init__(self, agent: "Agent"):
         """Mock agent states keep everything in local memory"""
         self.agent = agent
-        self.state: Dict[str, Any] = {}
+        self.state: List[Dict[str, Any]] = []
 
     def load_data(self) -> None:
-        """Mock agent states have no data stored"""
+        """Load data for this agent from disk"""
+        # TODO implement
         pass
 
-    def get_data(self) -> Dict[str, Any]:
+    def get_data(self) -> List[Dict[str, Any]]:
         """Return dict of this agent's state"""
         return self.state
 
     def save_data(self) -> None:
-        """Mock agents don't save data (yet)"""
+        """Save static agent data to disk"""
+        # TODO implement
         pass
 
-    def update_data(self, state) -> None:
-        """Put new data into this mock state"""
-        # TODO this should actually take in packets instead
-        # update once we use packets
-        self.state = state
+    def update_data(self, packet) -> None:
+        """Process the incoming data packet, and handle it"""
+        self.state.append(packet)
