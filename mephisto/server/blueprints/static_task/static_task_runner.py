@@ -9,15 +9,25 @@ from mephisto.data_model.packet import Packet, PACKET_TYPE_INIT_DATA
 
 import os
 import time
+import threading
 
 from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
+
+from recordclass import RecordClass
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.agent import Agent
 
 SYSTEM_SENDER = 'mephisto'  # TODO pull from somewhere
 TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
+
+
+class TrackedAssignment(RecordClass):
+    assignment: "Assignment"
+    thread: threading.Thread
+
 
 class StaticTaskRunner(TaskRunner):
     """
@@ -29,7 +39,7 @@ class StaticTaskRunner(TaskRunner):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
-        self.tracked_tasks: Dict[str, "Assignment"] = {}
+        self.running_assignments: Dict[str, TrackedAssignment] = {}
 
     def get_data_for_assignment(self, assigment: "Assignment") -> List[Dict[str, Any]]:
         """
@@ -39,38 +49,49 @@ class StaticTaskRunner(TaskRunner):
             {
                 'character_name': "Loaded Character",
                 'character_description': "I'm a character loaded from Mephisto!",
+                'html': "task.html",
             }
         ]
         # TODO pull this directly from the assignment
         # return assignment.get_data_for_assignment()
+
+    def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
+        """
+        Return the data for an agent already assigned to a particular unit
+        """
+        assignment = agent.get_unit().get_assignment()
+        assignment_data = self.get_data_for_assignment(assignment)
+        assert len(assignment_data) == 1, "Should only be one unit for static tasks"
+        return assignment_data[0]
+
+    def launch_assignment(self, assignment: "Assignment") -> None:
+        """
+        Launch a thread for the given assignment, if one doesn't
+        exist already
+        """
+        if assignment.db_id in self.running_assignments:
+            print(f"Assignment {assignment.db_id} is already running")
+            return
+
+        print(f"Assignment {assignment.db_id} is already launched")
+        run_thread = threading.Thread(target=self.run_assignment, args=(assignment,))
+        self.running_assignments[assignment.db_id] = TrackedAssignment(assignment=assignment, thread=run_thread)
+        run_thread.start()
+        return
 
     def run_assignment(self, assignment: "Assignment") -> None:
         """
         Static runners will get the task data, send it to the user, then
         wait for the agent to act (the data to be completed)
         """
-        # Load the unit data
-        assignment_data = self.get_data_for_assignment(assignment)
-        assert len(assignment_data) == 1, "Should only be one unit for static tasks"
-        unit_data = assignment_data[0]
         unit = assignment.get_units()[0]
         assert unit.unit_index == 0, "Static units should always have index 0"
         agent = unit.get_assigned_agent()
         assert agent is not None, "Task was not fully assigned"
 
-        self.tracked_tasks[assignment.db_id] = assignment
-
-        agent.observe(Packet(
-            packet_type=PACKET_TYPE_INIT_DATA,
-            sender_id=SYSTEM_SENDER,
-            receiver_id=agent.db_id,
-            data=unit_data,
-        ))
-
-        # TODO How do we handle disconnects on static tasks?
         agent_act = agent.act(timeout=TEST_TIMEOUT)
         agent.mark_done()
-        del self.tracked_tasks[assignment.db_id]
+        del self.running_assignments[assignment.db_id]
 
     @staticmethod
     def get_extra_options() -> Dict[str, str]:
@@ -79,5 +100,5 @@ class StaticTaskRunner(TaskRunner):
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Simply mark that the assignment is no longer being tracked"""
-        if assignment.db_id in self.tracked_tasks:
-            del self.tracked_tasks[assignment.db_id]
+        if assignment.db_id in self.running_assignments:
+            del self.running_assignments[assignment.db_id]

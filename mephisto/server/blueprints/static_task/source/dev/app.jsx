@@ -64,17 +64,12 @@ function registerWorker(callback_function) {
 }
 
 // Sends a request to get the initial task data
-function getInitTaskData(mephisto_worker_id, assignment_id, callback_function) {
-  var url = new URL(window.location.origin + '/initial_task_data')
-  var params = {'mephisto_worker_id': mephisto_worker_id, 'assignment_id': assignment_id};
-  Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
-  fetch(url)
-    .then(res => res.json())
-    .then(function(data) {
-    if (callback_function) {
-      callback_function(data);
-    }
-  });
+function getInitTaskData(mephisto_worker_id, agent_id, callback_function) {
+  postProviderRequest(
+    '/initial_task_data',
+    {'mephisto_worker_id': mephisto_worker_id, 'agent_id': agent_id},
+    callback_function,
+  );
 }
 
 /* ================= Application Components ================= */
@@ -104,6 +99,7 @@ class MainApp extends React.Component {
   }
 
   handleIncomingTaskData(data) {
+    console.log(data);
     let base_html = data['html'];
     let fin_html = base_html;
     delete data['html'];
@@ -126,7 +122,7 @@ class MainApp extends React.Component {
     let agent_id = agent_data_packet.data.agent_id;
     this.setState({agent_id: agent_id});
     if (agent_id !== null) {
-      getInitTaskData(this.state.mephisto_worker_id, this.state.assignment_id, data => this.handleIncomingTaskData(data));
+      getInitTaskData(this.state.mephisto_worker_id, agent_id, data => this.handleIncomingTaskData(data));
     } else {
       // TODO handle agent not being able to be
       // assigned work

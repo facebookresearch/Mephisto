@@ -12,6 +12,7 @@ PACKET_TYPE_NEW_AGENT = 'register_agent'
 PACKET_TYPE_NEW_WORKER = 'register_worker'
 PACKET_TYPE_REQUEST_AGENT_STATUS = 'request_status'
 PACKET_TYPE_RETURN_AGENT_STATUS = 'return_status'
+PACKET_TYPE_GET_INIT_DATA = 'init_data_request'
 PACKET_TYPE_ALIVE = 'alive'
 PACKET_TYPE_PROVIDER_DETAILS = 'provider_details'
 

@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -32,6 +32,13 @@ class Architect(ABC):
 
         Also set up any required database/memory into the MephistoDB so that
         this data can be stored long-term.
+        """
+        raise NotImplementedError()
+
+    def get_socket_urls(self) -> List[str]:
+        """
+        Return a list of all relevant sockets that the Supervisor will
+        need to attach to in order to function
         """
         raise NotImplementedError()
 

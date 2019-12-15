@@ -33,13 +33,6 @@ class Blueprint(ABC):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         self.opts = opts
-        self.db = task_run.db
-        if db.has_datastore_for_blueprint(self.BLUEPRINT_TYPE):
-            self.datastore = db.get_datastore_for_blueprint(self.BLUEPRINT_TYPE)
-        else:
-            self.datastore_root = db.get_db_path_for_blueprint(self.BLUEPRINT_TYPE)
-            self.datastore = self.initialize_blueprint_datastore(self.datastore_root)
-            db.set_datastore_for_blueprint(self.BLUEPRINT_TYPE, self.datastore)
 
     @staticmethod
     def get_extra_options() -> Dict[str, str]:
@@ -108,6 +101,7 @@ class TaskRunner(ABC):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         self.opts = opts
+        self.task_run = task_run
         # TODO populate some kind of local state for tasks that are being run
         # by this runner from the database.
 
@@ -123,13 +117,21 @@ class TaskRunner(ABC):
             return super().__new__(cls)
 
     @abstractmethod
+    def get_init_data_for_agent(self, agent: "Agent"):
+        """
+        Return the data that an agent will need for their task.
+
+        When all agents get their data, launch the task
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def run_assignment(self, assignment: "Assignment"):
         """
         Handle setup for any resources required to get this assignment running.
         This will be run in a background thread, and should be tolerant to
         being interrupted by cleanup_assignment.
         """
-        # TODO send some messages to the agents?
         raise NotImplementedError()
 
     @abstractmethod

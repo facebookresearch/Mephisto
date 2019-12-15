@@ -22,16 +22,22 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_REQUEST_AGENT_STATUS,
     PACKET_TYPE_RETURN_AGENT_STATUS,
     PACKET_TYPE_INIT_DATA,
+    PACKET_TYPE_GET_INIT_DATA,
     PACKET_TYPE_PROVIDER_DETAILS,
 )
 from mephisto.data_model.worker import Worker
 from mephisto.core.utils import get_crowd_provider_from_type
+
+from recordclass import RecordClass
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.blueprint import TaskRunner
+    from mephisto.data_model.crowd_provider import CrowdProvider
+    from mephisto.data_model.architect import Architect
 
 # TODO this class manages communications between the server
 # and workers, ensures that their status is properly tracked,
@@ -41,35 +47,74 @@ if TYPE_CHECKING:
 # Mostly, the supervisor babysits the socket and the workers
 
 SYSTEM_SOCKET_ID = 'mephisto'  # TODO pull from somewhere
-SERVER_SOCKET_ID = 'mephisto_server' # TODO pull from somewhere
 STATUS_CHECK_TIME = 10
 START_DEATH_TIME = 10
+
+# State storage
+class Job(RecordClass):
+    architect: "Architect"
+    task_runner: "TaskRunner"
+    provider: "CrowdProvider"
+    registered_socket_ids: List[str]
+
+class SocketInfo(RecordClass):
+    socket_id: str
+    url: str
+    job: "Job"
+    is_closed: bool = False
+    is_alive: bool = False
+    socket: Optional[websocket.WebSocketApp] = None
+    thread: Optional[threading.Thread] = None
+
+class AgentInfo(RecordClass):
+    agent: "Agent"
+    used_socket_id: str
+
 
 class Supervisor:
 
     def __init__(self, db: "MephistoDB"):
         self.db = db
-        self.active_agents: Dict[str, "Agent"] = {}
-        self.agent_mappings: Dict[str, str] = {}
-        self.sockets: Dict[str, websocket.WebSocketApp] = {}
-        self.socket_threads: Dict[str, threading.Thread] = {}
-        self.live_sockets: Dict[str, bool] = {}
-        self.responses: Dict[str, Dict[str, Any]] = {}
-        self.last_status_check = time.time()
-        self.message_queue: List[Packet] = []
-        self.sending_thread: threading.Thread = None
-        self.urls_to_task_runs: Dict[str, "TaskRun"] = {}
+        # Tracked state
+        self.agents: Dict[str, AgentInfo] = {}
+        self.sockets: Dict[str, SocketInfo] = {}
+        self.socket_count = 0
 
-    def setup_socket(self, url: str, task_run: "TaskRun"):
+        # Agent status handling
+        self.status_responses: Dict[str, Dict[str, Any]] = {}
+        self.last_status_check = time.time()
+
+        # Message handling
+        self.message_queue: List[Packet] = []
+        self.sending_thread: Optional[threading.Thread] = None
+
+    def register_job(
+        self,
+        architect: "Architect",
+        task_runner: "TaskRunner",
+        provider: "CrowdProvider",
+    ):
+        task_run = task_runner.task_run
+        urls = architect.get_socket_urls()
+        job = Job(architect=architect, task_runner=task_runner, provider=provider, registered_socket_ids=[])
+        for url in urls:
+            socket_id = self.setup_socket(url, job)
+            job.registered_socket_ids.append(socket_id)
+
+    def setup_socket(self, url: str, job: "Job") -> str:
         """Set up a socket communicating with the server at the given url"""
-        # Clear responses, as we won't have one for this server
-        self.responses = {}
-        self.live_sockets[url] = False
-        self.urls_to_task_runs[url] = task_run
+        # Clear status_responses, as we won't have one for this server
+        self.status_responses = {}
+
+        socket_name = f'socket_{self.socket_count}'
+        self.socket_count += 1
+
+        socket_info = SocketInfo(socket_id=socket_name, url=url, job=job)
+        self.sockets[socket_name] = socket_info
 
         def on_socket_open(*args):
-            self.live_sockets[url] = True
-            self._send_alive(self.sockets[url])
+            socket_info.is_alive = True
+            self._send_alive(socket_info)
             # TODO use logger?
             print(f'socket open {args}')
 
@@ -97,42 +142,34 @@ class Supervisor:
             try:
                 packet_dict = json.loads(args[1])
                 packet = Packet.from_dict(packet_dict)
-                self._on_message(packet, url)
+                self._on_message(packet, socket_info)
             except Exception as e:
                 print(repr(e))
                 raise
 
         def run_socket(*args):
-            # TODO this assumes that we'll be connecting directly to
-            # the hostname with no path to get a socket,
-            # and that the URL format is "https://hostname:port/"
-            host_name = url.split('https://')[1]
-            base_name, port = host_name.split(':')
-            protocol = "wss"
-            if base_name in ['localhost', '127.0.0.1']:
-                protocol = "ws"
-            while url in self.live_sockets:
+            while socket_name in self.sockets and not self.sockets[socket_name].is_closed:
                 try:
-                    sock_addr = "{}://{}:{}/".format(protocol, base_name, port)
-                    self.sockets[url] = websocket.WebSocketApp(
-                        sock_addr,
+                    socket = websocket.WebSocketApp(
+                        url,
                         on_message=on_message,
                         on_error=on_error,
                         on_close=on_disconnect,
                     )
-                    self.sockets[url].on_open = on_socket_open
-                    self.sockets[url].run_forever(ping_interval=8 * STATUS_CHECK_TIME)
+                    self.sockets[socket_name].socket = socket
+                    socket.on_open = on_socket_open
+                    socket.run_forever(ping_interval=8 * STATUS_CHECK_TIME)
                 except Exception as e:
                     print(f'Socket error {repr(e)}, attempting restart')
                 time.sleep(0.2)
 
         # Start listening thread
-        self.socket_threads[url] = threading.Thread(
+        socket_info.thread = threading.Thread(
             target=run_socket, name=f'socket-thread-{url}'
         )
-        self.socket_threads[url].start()
+        socket_info.thread.start()
         start_time = time.time()
-        while not self.live_sockets[url]:
+        while not socket_info.is_alive:
             if time.time() - start_time > START_DEATH_TIME:
                 # TODO better handle failing to connect with the server
                 raise ConnectionRefusedError(  # noqa F821 we only support py3
@@ -142,25 +179,29 @@ class Supervisor:
                     'certs installed.'
                 )
             try:
-                self._send_alive(self.sockets[url])
+                self._send_alive(socket_info)
             except Exception:
                 pass
             time.sleep(0.3)
         print('socket seems live!')
+        return socket_name
 
-    def close_socket(self, url: str):
-        """Close the socket to a given url"""
-        del self.live_sockets[url]
-        self.sockets[url].close()
-        del self.sockets[url]
+    def close_socket(self, socket_id: str):
+        """Close the given socket by id"""
+        socket_info = self.sockets[socket_id]
+        socket_info.is_closed = True
+        if socket_info.socket is not None:
+            socket_info.socket.close()
+        socket_info.is_alive = False
+        if socket_info.thread is not None:
+            socket_info.thread.join()
+        del self.sockets[socket_id]
 
     def shutdown(self):
         """Close all of the sockets, join their threads"""
         sockets_to_close = list(self.sockets.keys())
-        for url in sockets_to_close:
-            self.close_socket(url)
-        for t in self.socket_threads.values():
-            t.join()
+        for socket_id in sockets_to_close:
+            self.close_socket(socket_id)
         self.sending_thread.join()
 
     def _send_through_socket(self, socket: websocket.WebSocketApp, packet: Packet) -> bool:
@@ -183,24 +224,24 @@ class Supervisor:
             return False
         return True
 
-    def _send_alive(self, socket) -> bool:
+    def _send_alive(self, socket_info: SocketInfo) -> bool:
         print('sending alive')
-        return self._send_through_socket(socket, Packet(
+        return self._send_through_socket(socket_info.socket, Packet(
             packet_type=PACKET_TYPE_ALIVE,
             sender_id=SYSTEM_SOCKET_ID,
-            receiver_id=SERVER_SOCKET_ID,
+            receiver_id=socket_info.socket_id,
         ))
 
     def _on_act(self, packet: Packet):
         """Handle an action as sent from an agent"""
-        agent = self.active_agents[packet.sender_id]
+        agent = self.agents[packet.sender_id].agent
         agent.pending_actions.append(packet)
         agent.has_action.set()
 
-    def _register_worker(self, packet: Packet):
+    def _register_worker(self, packet: Packet, socket_info: SocketInfo):
         """Process a worker registration packet to register a worker"""
         crowd_data = packet.data['provider_data']
-        crowd_provider = get_crowd_provider_from_type(crowd_data['provider_type'])
+        crowd_provider = socket_info.job.provider
         worker_name = crowd_data['worker_name']
         workers = self.db.find_workers(worker_name=worker_name)
         if len(workers) == 0:
@@ -211,22 +252,18 @@ class Supervisor:
         self.message_queue.append(Packet(
             packet_type=PACKET_TYPE_PROVIDER_DETAILS,
             sender_id=SYSTEM_SOCKET_ID,
-            receiver_id=SERVER_SOCKET_ID,
+            receiver_id=socket_info.socket_id,
             data={'request_id': packet.data['request_id'], 'worker_id': worker.db_id}
         ))
 
-    def _register_agent(self, packet: Packet):
+    def _register_agent(self, packet: Packet, socket_info: SocketInfo):
         """Process an agent registration packet to register an agent"""
-        # TODO in order to fully handle multi-socket setups
-        # we'll need to store socket ids. Here we take what
-        # should be the only run
-        task_run = list(self.urls_to_task_runs.values())[0]
+        task_run = socket_info.job.task_runner.task_run
         crowd_data = packet.data['provider_data']
-        crowd_provider = get_crowd_provider_from_type(crowd_data['provider_type'])
+        crowd_provider = socket_info.job.provider
         worker_id = crowd_data['worker_id']
         worker = Worker(self.db, worker_id)
         units = task_run.get_valid_units_for_worker(worker)
-        print(units)
         reserved_unit = None
         while len(units) > 0 and reserved_unit is None:
             unit = units.pop(0)
@@ -235,7 +272,7 @@ class Supervisor:
             self.message_queue.append(Packet(
                 packet_type=PACKET_TYPE_PROVIDER_DETAILS,
                 sender_id=SYSTEM_SOCKET_ID,
-                receiver_id=SERVER_SOCKET_ID,
+                receiver_id=socket_info.socket_id,
                 data={'request_id': packet.data['request_id'], 'agent_id': None}
             ))
         else:
@@ -243,52 +280,70 @@ class Supervisor:
             self.message_queue.append(Packet(
                 packet_type=PACKET_TYPE_PROVIDER_DETAILS,
                 sender_id=SYSTEM_SOCKET_ID,
-                receiver_id=SERVER_SOCKET_ID,
+                receiver_id=socket_info.socket_id,
                 data={'request_id': packet.data['request_id'], 'agent_id': agent.db_id}
             ))
+            self.agents[agent.db_id] = AgentInfo(agent=agent, used_socket_id=socket_info.socket_id)
 
-    def _on_message(self, packet: Packet, url: str):
+    def _get_init_data(self, packet, socket_info: SocketInfo):
+        """Get the initialization data for the assigned agent's task"""
+        # TODO need to find a reasonable way to "start" the task with more than
+        # one agent
+        task_runner = socket_info.job.task_runner
+        agent_id = packet.data['provider_data']['agent_id']
+        agent_info = self.agents[agent_id]
+        unit_data = task_runner.get_init_data_for_agent(agent_info.agent)
+        self.message_queue.append(Packet(
+            packet_type=PACKET_TYPE_INIT_DATA,
+            sender_id=SYSTEM_SOCKET_ID,
+            receiver_id=socket_info.socket_id,
+            data={
+                'request_id': packet.data['request_id'],
+                'init_data': unit_data,
+            },
+        ))
+
+    def _on_message(self, packet: Packet, socket_info: SocketInfo):
         """Handle incoming messages from the socket"""
         print(packet)
         if packet.type == PACKET_TYPE_AGENT_ACTION:
             self._on_act(packet)
         elif packet.type == PACKET_TYPE_NEW_AGENT:
-            self._register_agent(packet)
+            self._register_agent(packet, socket_info)
         elif packet.type == PACKET_TYPE_NEW_WORKER:
-            self._register_worker(packet)
+            self._register_worker(packet, socket_info)
+        elif packet.type == PACKET_TYPE_GET_INIT_DATA:
+            self._get_init_data(packet, socket_info)
         elif packet.type == PACKET_TYPE_RETURN_AGENT_STATUS:
             # Record this status response
-            self.responses[url] = packet.data
+            self.status_responses[socket_info.socket_id] = packet.data
         else:
             # PACKET_TYPE_REQUEST_AGENT_STATUS, PACKET_TYPE_ALIVE,
             # PACKET_TYPE_INIT_DATA
             raise Exception(f"Unexpected packet type {packet.type}")
 
     # TODO maybe batching these is better?
-    def _try_send_agent_messages(self, agent: "Agent"):
+    def _try_send_agent_messages(self, agent_info: AgentInfo):
         """Handle sending any possible messages for a specific agent"""
-        agent_socket_url = self.agent_mappings[agent.db_id]
-        socket = self.sockets[agent_socket_url]
+        socket_info = self.sockets[agent_info.used_socket_id]
+        agent = agent_info.agent
         while len(agent.pending_observations) > 0:
             curr_obs = agent.pending_observations.pop(0)
-            did_send = self._send_through_socket(socket, curr_obs)
+            did_send = self._send_through_socket(socket_info.socket, curr_obs)
             if not did_send:
-                print(f'Failed to send packet {curr_obs} to {agent_socket_url}')
-                agent.pending_observations.insert(curr_obs, 0)
+                print(f'Failed to send packet {curr_obs} to {socket_info.url}')
+                agent.pending_observations.insert(0, curr_obs)
                 return  # something up with the socket, try later
 
     def _send_message_queue(self) -> None:
         """Send all of the messages in the system queue"""
-        # TODO in order to fully handle multi-socket setups
-        # we'll need to store socket ids. Here we take what
-        # should be the only socket
-        socket = list(self.sockets.values())[0]
         while len(self.message_queue) > 0:
             curr_obs = self.message_queue.pop(0)
+            socket = self.sockets[curr_obs.receiver_id].socket
             did_send = self._send_through_socket(socket, curr_obs)
             if not did_send:
-                print(f'Failed to send packet {curr_obs} to server')
-                self.message_queue.insert(curr_obs, 0)
+                print(f'Failed to send packet {curr_obs} to server {curr_obs.receiver_id}')
+                self.message_queue.insert(0, curr_obs)
                 return  # something up with the socket, try later
 
     def _handle_updated_agent_status(self, status_map: Dict[str, str]):
@@ -311,30 +366,30 @@ class Supervisor:
 
         self.last_status_check = time.time()
 
-        # If there are responses to check
-        if len(self.responses) != 0:
+        # If there are status_responses to check
+        if len(self.status_responses) != 0:
             found_statuses: Dict[str, str] = {}
-            for url, status_map in self.responses.items():
+            for socket_id, status_map in self.status_responses.items():
                 if status_map is None:
                     # TODO handle what appears to be a broken socket
                     raise Exception("Socket broken, what do?")
                 found_statuses.update(status_map)
             self._handle_updated_agent_status(found_statuses)
 
-        for url, socket in self.sockets.items():
+        for socket_id, socket_info in self.sockets.items():
             send_packet = Packet(
                 packet_type=PACKET_TYPE_REQUEST_AGENT_STATUS,
                 sender_id=SYSTEM_SOCKET_ID,
-                receiver_id=SERVER_SOCKET_ID,
+                receiver_id=socket_id,
                 data={},
             )
-            self._send_through_socket(socket, send_packet)
+            self._send_through_socket(socket_info.socket, send_packet)
 
     def _socket_handling_thread(self) -> None:
         """Thread for handling outgoing messages through the socket"""
-        while len(self.live_sockets) > 0:
-            for agent in self.active_agents.values():
-                self._try_send_agent_messages(agent)
+        while len(self.sockets) > 0:
+            for agent_info in self.agents.values():
+                self._try_send_agent_messages(agent_info)
             self._send_message_queue()
             self._request_status_update()
             # TODO is there a way we can trigger this when

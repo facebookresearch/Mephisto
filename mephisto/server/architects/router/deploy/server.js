@@ -47,7 +47,8 @@ const STATUS_DISCONNECTED = 'disconnect'
 const STATUS_DONE = 'done'
 
 const SYSTEM_SOCKET_ID = 'mephisto'  // TODO pull from somewhere
-const SERVER_SOCKET_ID = 'mephisto_server' // TODO pull from somewhere
+// TODO use registered socket id from on_alive
+const SERVER_SOCKET_ID = 'mephisto_server'
 
 const PACKET_TYPE_REQUEST_AGENT_STATUS = 'request_status'
 const PACKET_TYPE_RETURN_AGENT_STATUS = 'return_status'
@@ -55,6 +56,7 @@ const PACKET_TYPE_INIT_DATA = 'initial_data_send'
 const PACKET_TYPE_AGENT_ACTION = 'agent_action'
 const PACKET_TYPE_NEW_AGENT = 'register_agent'
 const PACKET_TYPE_NEW_WORKER = 'register_worker'
+const PACKET_TYPE_GET_INIT_DATA = 'init_data_request'
 const PACKET_TYPE_ALIVE = 'alive'
 const PACKET_TYPE_PROVIDER_DETAILS = 'provider_details'
 
@@ -63,7 +65,6 @@ class LocalAgentState {
   constructor(agent_id) {
     this.status = STATUS_INIT;
     this.agent_id = agent_id;
-    this.init_packet = null;
     this.unsent_messages = [];
   }
 
@@ -87,6 +88,7 @@ var mephisto_socket = null;
 var agent_id_to_agent = {};
 
 var pending_provider_requests = {};
+var pending_init_requests = {};
 
 
 // Handles sending a message through the socket
@@ -189,16 +191,18 @@ wss.on('connection', function(socket) {
       console.log(packet);
       if (packet['packet_type'] == PACKET_TYPE_REQUEST_AGENT_STATUS) {
         handle_get_agent_status(packet);
-      } else if (packet['packet_type'] == PACKET_TYPE_INIT_DATA) {
-        let agent = agent_id_to_agent[packet['receiver_id']];
-        agent.init_packet = packet;
-        handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_AGENT_ACTION) {
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_ALIVE) {
         handle_alive(socket, packet);
-      } else if (packet['packet_type'] == PACKET_TYPE_PROVIDER_DETAILS) {
+      } else if (
+        packet['packet_type'] == PACKET_TYPE_PROVIDER_DETAILS ||
+        packet['packet_type'] == PACKET_TYPE_INIT_DATA
+      ) {
         let request_id = packet['data']['request_id']
+        if (request_id === undefined) {
+          request_id = packet['receiver_id']
+        }
         let res_obj = pending_provider_requests[request_id]
         res_obj.json(packet);
         delete pending_provider_requests[request_id]
@@ -251,21 +255,6 @@ function main_thread() {
 // ======================= </Threads> ======================
 
 // ===================== <Routing> ========================
-app.get('/initial_task_data', function(req, res) {
-  var params = req.query;
-  var worker_id = params['worker_id']
-  var assignment_id = params['assignment_id']
-  var html_content = fs.readFileSync(task_directory_name + '/task.html', "utf8");
-  // TODO hit the backend to get the actual assignment and worker
-  // as registered
-  var response_data = {
-    worker_id: worker_id,
-    assignment_id: assignment_id,
-    html: html_content,
-  }
-  res.json(response_data)
-});
-
 function make_provider_request(request_type, provider_data, res) {
   var request_id = uuidv4();
 
@@ -283,6 +272,11 @@ function make_provider_request(request_type, provider_data, res) {
   _send_message(mephisto_socket, request_packet);
   // TODO set a timeout to expire this request rather than leave the worker hanging
 }
+
+app.post('/initial_task_data', function(req, res) {
+  var provider_data = req.body.provider_data;
+  make_provider_request(PACKET_TYPE_GET_INIT_DATA, provider_data, res);
+});
 
 app.post('/register_worker', function(req, res) {
   var provider_data = req.body.provider_data;

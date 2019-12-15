@@ -229,6 +229,14 @@ six = ">=1.5"
 
 [[package]]
 category = "main"
+description = "Mutable variants of tuple (mutabletuple) and collections.namedtuple (recordclass), which support assignments and more memory saving variants (dataobject, litelist, ...)."
+name = "recordclass"
+optional = false
+python-versions = "*"
+version = "0.12.0.1"
+
+[[package]]
+category = "main"
 description = "Python HTTP for Humans."
 name = "requests"
 optional = false
@@ -308,7 +316,7 @@ version = "0.6.0"
 more-itertools = "*"
 
 [metadata]
-content-hash = "e9d4c058dbea081e3b28e90f2a94f083e7b81b611893831c2f62e3f0c5bf09f1"
+content-hash = "312393f83e440003e80a95022b8d2b87fff8df8416566abb62dc514a3e4faafe"
 python-versions = "^3.6"
 
 [metadata.hashes]
@@ -334,6 +342,7 @@ pluggy = ["15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0", "9
 py = ["64f65755aee5b381cea27766a3a147c3f15b9b6b9ac88676de66ba2ae36793fa", "dc639b046a6e2cff5bbe40194ad65936d6ba360b52b3c3fe1d08a82dd50b5e53"]
 pytest = ["3f193df1cfe1d1609d4c583838bea3d532b18d6160fd3f55c9447fdca30848ec", "e246cf173c01169b9617fc07264b7b1316e78d7a650055235d6d897bc80d9660"]
 python-dateutil = ["7e6584c74aeed623791615e26efd690f29817a27c73085b78e4bad02493df2fb", "c89805f6f4d64db21ed966fda138f8a5ed7a4fdbc1a8ee329ce1b74e3c74da9e"]
+recordclass = ["1391d6d1a5813d4a944f061419949fd4b9b232664abc672897f3891ddbb21404", "3474e10ba4f808c797d0e3a1f9d2efd24b3c6bfb57c4bbfcd2de9b2fd4edb83c", "6cacbdb6085667d4a0a3fdfba44ee2ba7b6d3394e062afca417e8201d81586ef", "acc30251cdb3a1a73c3303d3eea9acde75c65e1bd4cc0a59a48695d7077f1800", "b033aded5109df9aadd684d555ea1df96c58c1197d4cb510e9d3bf191d63f3b5", "b535208c448c7aa2c88058b8407f2fd1abfb584c4c58a0c1c115f35bc5a19d1d", "c53bf18fa0ae2b63f3357559f6e66083a3a8a0530d80735189c24e908740a575", "d531482ac86174c1ca5a0fd30b49cca2688578a0266e15b691aed636bafc07e7", "e73c7be63ca339762f6c3a972b4c21ae6e675e2fc9b8874155452a75cce7e0f3", "f884e8eff5232913df6369369cb36794833db8f3b8c42d7540823bf9a6cec23d", "ffa468d976c9d5a11da64a864b8d688a39b677cdec794a5760f5c1b666ab2384"]
 requests = ["11e007a8a2aa0323f5a921e9e6a2d7e4e67d9877e85773fba9ba6419025cbeb4", "9cf5292fcd0f598c671cfc1e0d7d1a7f13bb8085e9a590f48c010551dc6c4b31"]
 s3transfer = ["6efc926738a3cd576c2a79725fed9afde92378aa5c6a957e3af010cb019fac9d", "b780f2411b824cb541dbcd2c713d0cb61c7d1bcadae204cdddda2b35cef493ba"]
 sh = ["ae3258c5249493cebe73cb4e18253a41ed69262484bad36fdb3efcb8ad8870bb", "b52bf5833ed01c7b5c5fb73a7f71b3d98d48e9b9b8764236237bdc7ecae850fc"]

@@ -13,7 +13,7 @@ import shlex
 import time
 
 from mephisto.data_model.architect import Architect
-from typing import Any, Optional, Dict, TYPE_CHECKING
+from typing import Any, Optional, Dict, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -45,10 +45,28 @@ class LocalArchitect(Architect):
         self.server_process: Optional[subprocess.Popen] = None
         self.server_dir: Optional[str] = None
         self.running_dir: Optional[str] = None
-        # TODO refactor with options
-        self.hostname = opts.get('hostname')
-        self.port = opts.get('port')
+        self.hostname: Optional[str] = opts.get('hostname')
+        self.port: Optional[str] = opts.get('port')
         self.cleanup_called = False
+
+    def get_socket_urls(self) -> List[str]:
+        """Return the path to the local server socket"""
+        assert self.hostname is not None, "No hostname for socket"
+        assert self.port is not None, "No ports for socket"
+        if 'https://' in self.hostname:
+            basename = self.hostname.split('https://')[1]
+            protocol = "wss"
+        elif 'http://' in self.hostname:
+            basename = self.hostname.split('http://')[1]
+            protocol = "ws"
+        else:
+            basename = self.hostname
+            protocol = "ws"
+
+        if basename in ['localhost', '127.0.0.1']:
+            protocol = "ws"
+
+        return [f'{protocol}://{basename}:{self.port}/']
 
     @staticmethod
     def get_extra_options() -> Dict[str, str]:
@@ -83,8 +101,10 @@ class LocalArchitect(Architect):
         port = self.port
         if host is None:
             host = input('Please enter the public server address, like https://hostname.com: ')
+            self.hostname = host
         if port is None:
             port = input('Please enter the port given above, likely 3000: ')
+            self.port = port
         return '{}:{}'.format(host, port)
 
     def cleanup(self) -> None:
