@@ -13,7 +13,10 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.packet import Packet
+<<<<<<< HEAD
     from mephisto.data_model.worker import Worker
+=======
+>>>>>>> 4f3adc7536a0723351227732e7559872703e378f
 
 
 class Blueprint(ABC):

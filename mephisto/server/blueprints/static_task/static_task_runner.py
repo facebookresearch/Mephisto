@@ -28,6 +28,8 @@ class TrackedAssignment(RecordClass):
     assignment: "Assignment"
     thread: threading.Thread
 
+SYSTEM_SENDER = 'mephisto'  # TODO pull from somewhere
+TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
 
 class StaticTaskRunner(TaskRunner):
     """
