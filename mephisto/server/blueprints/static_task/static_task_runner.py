@@ -78,5 +78,6 @@ class StaticTaskRunner(TaskRunner):
         return {}
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
-        """No cleanup required yet for ending mock runs"""
-        del self.tracked_tasks[assignment.db_id]
+        """Simply mark that the assignment is no longer being tracked"""
+        if assignment.db_id in self.tracked_tasks:
+            del self.tracked_tasks[assignment.db_id]

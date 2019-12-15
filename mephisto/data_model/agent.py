@@ -134,6 +134,20 @@ class Agent(ABC):
 
     # Specialized child cases may need to implement the following
 
+    @classmethod
+    def new_from_provider_data(
+        cls,
+        db: "MephistoDB",
+        worker: Worker,
+        unit: "Unit",
+        provider_data: Dict[str, Any]
+    ) -> "Agent":
+        """
+        Wrapper around the new method that allows registering additional
+        bookkeeping information from a crowd provider for this agent
+        """
+        return cls.new(db, worker, unit)
+
     def observe(self, packet: "Packet") -> None:
         """
         Pass the observed information to the AgentState, then

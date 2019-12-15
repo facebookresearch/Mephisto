@@ -12,7 +12,7 @@ import Bowser from 'bowser';
 import {Button} from 'react-bootstrap';
 
 /* global
-  getWorkerId, getAssignmentId, getWorkerRegistrationInfo,
+  getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
   getAgentRegistration, handleSubmitToProvider
 */
 
@@ -25,18 +25,48 @@ function isMobile() {
   );
 }
 
-function clickDone(worker_id, assignment_id, task_data) {
+function clickDone(provider_worker_id, assignment_id, task_data) {
   // At the moment this function simply calls the submit method,
   // will later also have to talk to the server and maybe do validation
   // TODO validate entry
   // TODO talk to the server
-  handleSubmitToProvider(worker_id, assignment_id, task_data);
+  handleSubmitToProvider(provider_worker_id, assignment_id, task_data);
+}
+
+function postData(url = '', data = {}) {
+  // Default options are marked with *
+  return fetch(url, {
+    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data) // body data type must match "Content-Type" header
+  });
+}
+
+function postProviderRequest(endpoint, data, callback_function) {
+  var url = new URL(window.location.origin + endpoint);
+  postData(url, {provider_data: data})
+    .then(res => res.json())
+    .then(function(data) {
+      if (callback_function) {
+        callback_function(data);
+      }
+    });
+}
+
+function requestAgent(mephisto_worker_id, callback_function) {
+  postProviderRequest('/request_agent', getAgentRegistration(mephisto_worker_id), callback_function);
+}
+
+function registerWorker(callback_function) {
+  postProviderRequest('/register_worker', getWorkerRegistrationInfo(), callback_function);
 }
 
 // Sends a request to get the initial task data
-function getInitTaskData(worker_id, assignment_id, callback_function) {
+function getInitTaskData(mephisto_worker_id, assignment_id, callback_function) {
   var url = new URL(window.location.origin + '/initial_task_data')
-  var params = {'worker_id': worker_id, 'assignment_id': assignment_id};
+  var params = {'mephisto_worker_id': mephisto_worker_id, 'assignment_id': assignment_id};
   Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
   fetch(url)
     .then(res => res.json())
@@ -53,17 +83,19 @@ class MainApp extends React.Component {
   constructor(props) {
     super(props);
 
-    let worker_id = getWorkerId();
+    let provider_worker_id = getWorkerName();
     let assignment_id = getAssignmentId();
     let render_html = "<h1>Display Preview Here</h1>";
-    if (worker_id !== null && assignment_id !== null) {
+    if (provider_worker_id !== null && assignment_id !== null) {
       render_html =  "<h1>Loading...</h1>";
     }
 
     this.state = {
       base_html: null,
       render_html: render_html,
-      worker_id: worker_id,
+      provider_worker_id: provider_worker_id,
+      mephisto_worker_id: null,
+      agent_id: null,
       assignment_id: assignment_id,
       task_data: null,
     };
@@ -89,32 +121,61 @@ class MainApp extends React.Component {
     });
   }
 
-  componentDidMount() {
-    let worker_id = this.state.worker_id;
-    let assignment_id = this.state.assignment_id;
-    if (assignment_id != null && worker_id != null) {
-      getInitTaskData(worker_id, assignment_id, data => this.handleIncomingTaskData(data));
+  afterAgentRegistration(agent_data_packet) {
+    console.log(agent_data_packet);
+    let agent_id = agent_data_packet.data.agent_id;
+    this.setState({agent_id: agent_id});
+    if (agent_id !== null) {
+      getInitTaskData(this.state.mephisto_worker_id, this.state.assignment_id, data => this.handleIncomingTaskData(data));
+    } else {
+      // TODO handle agent not being able to be
+      // assigned work
+      console.log('agent_id returned was null')
     }
   }
 
-  render() {
-    let worker_id = this.state.worker_id;
+  afterWorkerRegistration(worker_data_packet) {
+    let mephisto_worker_id = worker_data_packet.data.worker_id;
+    this.setState({mephisto_worker_id: mephisto_worker_id});
+    if (mephisto_worker_id !== null) {
+      requestAgent(mephisto_worker_id, data => this.afterAgentRegistration(data))
+    } else {
+      // TODO handle banned/blocked worker ids
+      console.log('worker_id returned was null')
+    }
+  }
+
+  componentDidMount() {
+    let provider_worker_id = this.state.provider_worker_id;
     let assignment_id = this.state.assignment_id;
-    let task_data = this.state.task_data;
+    if (assignment_id != null && provider_worker_id != null) {
+      registerWorker(data => this.afterWorkerRegistration(data));
+    }
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    const data = new FormData(event.target);
+    console.log(data, this.state.provider_worker_id);
+  }
+
+  render() {
     let dangerous_html = <div
       ref={elem => {this.raw_html_elem = elem}}
       dangerouslySetInnerHTML={{__html: this.state.render_html}}
     />;
     return (
       <div>
-        {dangerous_html}
-        <Button onClick={() => clickDone(worker_id, assignment_id, task_data)}>
-          <span
-            style={{ marginRight: 5 }}
-            className="glyphicon glyphicon-ok"
-          />
-          Submit
-        </Button>
+        <form onSubmit={this.handleSubmit}>
+          {dangerous_html}
+          <Button>
+            <span
+              style={{ marginRight: 5 }}
+              className="glyphicon glyphicon-ok"
+            />
+            Submit
+          </Button>
+        </form>
       </div>
     );
   }

@@ -13,6 +13,7 @@ PACKET_TYPE_NEW_WORKER = 'register_worker'
 PACKET_TYPE_REQUEST_AGENT_STATUS = 'request_status'
 PACKET_TYPE_RETURN_AGENT_STATUS = 'return_status'
 PACKET_TYPE_ALIVE = 'alive'
+PACKET_TYPE_PROVIDER_DETAILS = 'provider_details'
 
 class Packet:
     """
@@ -38,7 +39,7 @@ class Packet:
         # with no data
 
     @staticmethod
-    def from_dict(self, input_dict: Dict[str, Any]) -> "Packet":
+    def from_dict(input_dict: Dict[str, Any]) -> "Packet":
         return Packet(
             packet_type=input_dict['packet_type'],
             sender_id=input_dict['sender_id'],

@@ -16,7 +16,7 @@
     "async-lock": "1.0.0",
     "body-parser": "1.17.2",
     "express": "4.15.3",
-    "nunjucks": "3.0.1",
-    "request": "2.82.0"
+    "request": "2.82.0",
+    "ws": "4.0.0"
   }
 }

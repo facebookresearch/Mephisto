@@ -7,7 +7,7 @@
 from abc import ABC, abstractmethod
 from mephisto.data_model.blueprint import AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
-from typing import List, Optional, Tuple, Dict, Type, Tuple, TYPE_CHECKING
+from typing import Any, List, Optional, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -65,13 +65,23 @@ class Worker(ABC):
 
     @staticmethod
     def _register_worker(
-        db: "MephistoDB", worker_id: str, provider_type: str
+        db: "MephistoDB", worker_name: str, provider_type: str
     ) -> "Worker":
         """
         Create an entry for this worker in the database
         """
-        db_id = db.new_worker(worker_id, provider_type)
+        db_id = db.new_worker(worker_name, provider_type)
         return Worker(db, db_id)
+
+    @classmethod
+    def create_from_socket_data(cls, db, creation_data: Dict[str, Any]) -> "Worker":
+        """
+        Given the parameters passed through wrap_crowd_source.js, construct
+        a new worker
+
+        Basic case simply takes the worker id and registers it
+        """
+        return cls.new(db, creation_data['worker_name'])
 
     # Children classes should implement the following methods
 
@@ -118,7 +128,7 @@ class Worker(ABC):
         }
 
     @staticmethod
-    def new(db: "MephistoDB", worker_id: str) -> "Worker":
+    def new(db: "MephistoDB", worker_name: str) -> "Worker":
         """
         Create a new worker attached to the given identifier, assuming it doesn't already
         exist in the database.
