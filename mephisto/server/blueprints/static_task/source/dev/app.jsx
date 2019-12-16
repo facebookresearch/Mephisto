@@ -72,6 +72,17 @@ function getInitTaskData(mephisto_worker_id, agent_id, callback_function) {
   );
 }
 
+function requestTaskHMTL(target_html, callback_function) {
+  var url = new URL(window.location.origin + "/" + target_html);
+  fetch(url)
+    .then(res => res.text())
+    .then(function(html) {
+      if (callback_function) {
+        callback_function(html);
+      }
+  });
+}
+
 /* ================= Application Components ================= */
 
 class MainApp extends React.Component {
@@ -98,23 +109,34 @@ class MainApp extends React.Component {
     this.raw_html_elem = null;
   }
 
-  handleIncomingTaskData(data) {
-    console.log(data);
-    let base_html = data['html'];
+  handleIncomingTaskHTML(html) {
+    let base_html = html;
     let fin_html = base_html;
-    delete data['html'];
-    let task_data = data;
 
-    for (let [key, value] of Object.entries(task_data)) {
+    for (let [key, value] of Object.entries(this.state.task_data)) {
       let find_string = "${" + key + "}";
       fin_html = fin_html.replace(find_string, value);
     }
 
+
     this.setState({
       base_html: base_html,
       render_html: fin_html,
+    });
+  }
+
+  handleIncomingTaskData(packet) {
+    console.log(packet);
+    let unit_data = packet.data.init_data;
+    let html_target = unit_data['html'];
+    delete unit_data['html'];
+    let task_data = unit_data;
+
+    this.setState({
       task_data: task_data,
     });
+
+    requestTaskHMTL(html_target, data => this.handleIncomingTaskHTML(data));
   }
 
   afterAgentRegistration(agent_data_packet) {
@@ -151,8 +173,11 @@ class MainApp extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    const data = new FormData(event.target);
-    console.log(data, this.state.provider_worker_id);
+    const form_data = new FormData(event.target);
+    let obj_data = {}
+    form_data.forEach((value, key) => {obj_data[key] = value});
+    console.log(obj_data);
+    handleSubmitToProvider(form_data);
   }
 
   render() {
@@ -162,9 +187,9 @@ class MainApp extends React.Component {
     />;
     return (
       <div>
-        <form onSubmit={this.handleSubmit}>
+        <form onSubmit={this.handleSubmit.bind(this)}>
           {dangerous_html}
-          <Button>
+          <Button type="submit">
             <span
               style={{ marginRight: 5 }}
               className="glyphicon glyphicon-ok"

@@ -48,7 +48,7 @@ function getAgentRegistration(mephisto_worker_id) {
     };
 }
 
-function handleSubmitToProvider(worker_id, assignment_id, task_data) {
+function handleSubmitToProvider(task_data) {
     // Mock agents won't ever submit to a real provider
-    return True;
+    return true;
 }
