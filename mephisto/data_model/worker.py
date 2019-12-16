@@ -74,7 +74,7 @@ class Worker(ABC):
         return Worker(db, db_id)
 
     @classmethod
-    def create_from_socket_data(cls, db, creation_data: Dict[str, Any]) -> "Worker":
+    def new_from_provider_data(cls, db, creation_data: Dict[str, Any]) -> "Worker":
         """
         Given the parameters passed through wrap_crowd_source.js, construct
         a new worker

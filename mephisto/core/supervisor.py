@@ -245,7 +245,7 @@ class Supervisor:
         worker_name = crowd_data['worker_name']
         workers = self.db.find_workers(worker_name=worker_name)
         if len(workers) == 0:
-            worker = crowd_provider.WorkerClass.create_from_socket_data(self.db, crowd_data)
+            worker = crowd_provider.WorkerClass.new_from_provider_data(self.db, crowd_data)
         else:
             worker = workers[0]
         # TODO any sort of processing to see if this worker is blocked from the provider side?
