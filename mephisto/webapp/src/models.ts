@@ -4,3 +4,39 @@ export interface Requester {
   requester_id: string;
   requester_name: string;
 }
+
+export interface Requesters {
+  requesters: Requester[];
+}
+
+export interface TaskRun {
+  param_string: string; // "--test --task --run"
+  params: object; // { "run params": "Coming soon!"; status: "Not yet implemented"; }
+  sandbox: boolean;
+  start_time: string; // "2019-12-09 22:53:30"
+  task_id: string; // "1"
+  task_name: string; // "test_task"
+  task_run_id: string; // "1"
+  task_status: {
+    accepted: number;
+    assigned: number;
+    completed: number;
+    created: number;
+    expired: number;
+    launched: number;
+    mixed: number;
+    rejected: number;
+  };
+  task_type: string; // "mock" (it's the blueprint name)
+}
+
+export interface RunningTasks {
+  live_task_count: number;
+  task_count: number;
+  task_runs: TaskRun[];
+}
+
+export interface ReviewableTasks {
+  task_runs: TaskRun[];
+  total_reviewable: number;
+}

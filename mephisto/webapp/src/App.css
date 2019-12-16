@@ -81,3 +81,37 @@ h1 {
 .widget .bullet {
   margin-bottom: 5px;
 }
+
+.params-list {
+  overflow-y: auto;
+  max-height: 50px;
+}
+
+.details {
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.metrics {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.metric {
+  margin: 0px 0px 0px;
+  text-align: center;
+  padding: 10px;
+  font-size: 16px;
+  color: #333;
+  flex: 1;
+}
+
+.metrics.highlight-first .metric:first-child {
+  font-weight: bold;
+}
+
+.metric label {
+  display: block;
+  font-size: 12px;
+}
