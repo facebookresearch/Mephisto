@@ -1,25 +1,7 @@
 import React from "react";
-import {
-  AxiosError,
-  AxiosResponse,
-  AxiosPromise,
-  AxiosRequestConfig
-} from "axios";
+import { AxiosPromise, AxiosRequestConfig } from "axios";
+import { ResponseValues, RefetchOptions } from "axios-hooks";
 const isEmpty = require("lodash.isempty");
-
-// Start below: type definitions copied from the axios-hooks lib which
-// unfortunately doesn't export them:
-export interface ResponseValues<T> {
-  data: T;
-  loading: boolean;
-  error?: AxiosError;
-  response?: AxiosResponse;
-}
-
-interface RefetchOptions {
-  useCache?: boolean;
-}
-/* End above: copied type defs from axios-hook */
 
 type AxiosInfo<T> =
   | [

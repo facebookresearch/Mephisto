@@ -14,7 +14,7 @@
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
     "axios": "0.18.1",
-    "axios-hooks": "^1.8.0",
+    "axios-hooks": "1.9.0",
     "classnames": "^2.2.6",
     "lodash.isempty": "^4.4.0",
     "moment": "^2.24.0",
