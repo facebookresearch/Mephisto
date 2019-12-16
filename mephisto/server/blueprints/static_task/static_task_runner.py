@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.blueprint import TaskRunner
-from mephisto.data_model.packet import Packet, PACKET_TYPE_INIT_DATA
 
 import os
 import time
