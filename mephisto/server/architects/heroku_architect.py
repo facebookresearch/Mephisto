@@ -72,21 +72,7 @@ class HerokuArchitect(Architect):
         self.__heroku_user_identifier: Optional[str] = None
 
     def get_socket_urls(self) -> List[str]:
-        """Return the path to the local server socket"""
-        assert self.hostname is not None, "No hostname for socket"
-        assert self.port is not None, "No ports for socket"
-        if 'https://' in self.hostname:
-            basename = self.hostname.split('https://')[1]
-            protocol = "wss"
-        elif 'http://' in self.hostname:
-            basename = self.hostname.split('http://')[1]
-            protocol = "ws"
-        else:
-            basename = self.hostname
-            protocol = "ws"
-
-        if basename in ['localhost', '127.0.0.1']:
-            protocol = "ws"
+        """Returns the path to the heroku app socket"""
         heroku_app_name = self.__get_app_name()
         return ["wss://{}.herokuapp.com/".format(heroku_app_name)]
 
