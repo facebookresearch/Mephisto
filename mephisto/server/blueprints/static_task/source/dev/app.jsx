@@ -186,17 +186,27 @@ class MainApp extends React.Component {
       ref={elem => {this.raw_html_elem = elem}}
       dangerouslySetInnerHTML={{__html: this.state.render_html}}
     />;
+    let submit_button = <div />;
+    if (this.base_html !== null) {
+      submit_button = (
+        <div>
+          <div style={{display: 'flex', justifyContent: 'center'}}>
+            <Button type="submit">
+              <span
+                style={{ marginRight: 5 }}
+                className="glyphicon glyphicon-ok"
+              />
+              Submit
+            </Button>
+          </div>
+        </div>
+      )
+    }
     return (
       <div>
         <form onSubmit={this.handleSubmit.bind(this)}>
           {dangerous_html}
-          <Button type="submit">
-            <span
-              style={{ marginRight: 5 }}
-              className="glyphicon glyphicon-ok"
-            />
-            Submit
-          </Button>
+          {submit_button}
         </form>
       </div>
     );
