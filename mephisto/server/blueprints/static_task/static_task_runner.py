@@ -56,16 +56,26 @@ class StaticTaskRunner(TaskRunner):
         # TODO pull this directly from the assignment
         # return assignment.get_data_for_assignment()
 
+    # TODO reconnects should get the same agent as was initially given
+
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """
         Return the data for an agent already assigned to a particular unit
         """
-        assignment = agent.get_unit().get_assignment()
-        assignment_data = self.get_data_for_assignment(assignment)
-        assert len(assignment_data) == 1, "Should only be one unit for static tasks"
-        return assignment_data[0]
+        init_state = agent.state.get_init_state()
+        if init_state is not None:
+            # reconnecting agent, give everything we've got
+            # TODO implememnt
+            return {}
+        else:
+            assignment = agent.get_unit().get_assignment()
+            assignment_data = self.get_data_for_assignment(assignment)
+            assert len(assignment_data) == 1, "Should only be one unit for static tasks"
+            agent.state.set_init_state(assignment_data[0])
+            self.launch_assignment(assignment, agent)
+            return agent.state.get_init_state()
 
-    def launch_assignment(self, assignment: "Assignment") -> None:
+    def launch_assignment(self, assignment: "Assignment", agent: "Agent") -> None:
         """
         Launch a thread for the given assignment, if one doesn't
         exist already
@@ -74,20 +84,20 @@ class StaticTaskRunner(TaskRunner):
             print(f"Assignment {assignment.db_id} is already running")
             return
 
-        print(f"Assignment {assignment.db_id} is already launched")
-        run_thread = threading.Thread(target=self.run_assignment, args=(assignment,))
+        print(f"Assignment {assignment.db_id} is launching with {agent}")
+        run_thread = threading.Thread(target=self.run_assignment, args=(assignment, [agent]))
         self.running_assignments[assignment.db_id] = TrackedAssignment(assignment=assignment, thread=run_thread)
         run_thread.start()
         return
 
-    def run_assignment(self, assignment: "Assignment") -> None:
+    def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
         """
         Static runners will get the task data, send it to the user, then
         wait for the agent to act (the data to be completed)
         """
         unit = assignment.get_units()[0]
         assert unit.unit_index == 0, "Static units should always have index 0"
-        agent = unit.get_assigned_agent()
+        agent = agents[0]
         assert agent is not None, "Task was not fully assigned"
 
         agent_act = agent.act(timeout=TEST_TIMEOUT)

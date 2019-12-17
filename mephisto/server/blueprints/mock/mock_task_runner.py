@@ -31,16 +31,19 @@ class MockTaskRunner(TaskRunner):
         # TODO implement
         pass
 
-    def run_assignment(self, assignment: "Assignment"):
+    def run_assignment(self, assignment: "Assignment", agents: List["Agent"]):
         """
         Mock runners will pass the agents for the given assignment
         all of the required messages to finish a task.
         """
         self.tracked_tasks[assignment.db_id] = assignment
+        agent_dict = {a.db_id: a for a in agents}
         time.sleep(0.3)
         for unit in assignment.get_units():
-            agent = unit.get_assigned_agent()
-            assert agent is not None, "Task was not fully assigned"
+            assigned_agent = unit.get_assigned_agent()
+            assert assigned_agent is not None, "Task was not fully assigned"
+            agent = agent_dict.get(assigned_agent.db_id)
+            assert agent is not None, "Task was not launched with assigned agents"
             # TODO add some observations?
             # TODO add some acts?
             # TODO improve when MockAgents are more capable

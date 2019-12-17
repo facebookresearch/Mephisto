@@ -293,7 +293,7 @@ class Supervisor:
         agent_id = packet.data['provider_data']['agent_id']
         agent_info = self.agents[agent_id]
         unit_data = task_runner.get_init_data_for_agent(agent_info.agent)
-        self.message_queue.append(Packet(
+        agent_data_packet = Packet(
             packet_type=PACKET_TYPE_INIT_DATA,
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=socket_info.socket_id,
@@ -301,7 +301,8 @@ class Supervisor:
                 'request_id': packet.data['request_id'],
                 'init_data': unit_data,
             },
-        ))
+        )
+        self.message_queue.append(agent_data_packet)
 
     def _on_message(self, packet: Packet, socket_info: SocketInfo):
         """Handle incoming messages from the socket"""
