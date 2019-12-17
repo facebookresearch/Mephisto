@@ -13,10 +13,6 @@ module.exports = {
     path: __dirname,
     filename: 'build/bundle.js',
   },
-  node: {
-    net: 'empty',
-    dns: 'empty',
-  },
   module: {
     rules: [
       {

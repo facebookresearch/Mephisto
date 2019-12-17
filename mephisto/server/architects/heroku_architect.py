@@ -19,7 +19,7 @@ import time
 from mephisto.core.utils import get_mephisto_tmp_dir
 from mephisto.data_model.architect import Architect
 from mephisto.server.architects.router.build_router import build_router
-from typing import Tuple, Dict, Optional, TYPE_CHECKING
+from typing import Tuple, List, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -70,6 +70,11 @@ class HerokuArchitect(Architect):
         self.__heroku_app_name: Optional[str] = None
         self.__heroku_executable_path: Optional[str] = None
         self.__heroku_user_identifier: Optional[str] = None
+
+    def get_socket_urls(self) -> List[str]:
+        """Returns the path to the heroku app socket"""
+        heroku_app_name = self.__get_app_name()
+        return ["wss://{}.herokuapp.com/".format(heroku_app_name)]
 
     @staticmethod
     def get_extra_options() -> Dict[str, str]:

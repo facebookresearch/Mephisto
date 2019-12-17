@@ -18,8 +18,8 @@ previewed by the given worker.
 
 // TODO standardize this file, make one for every crowd provider
 
-function getWorkerId() {
-    // Mock worker id is passed via url params
+function getWorkerName() {
+    // Mock worker name is passed via url params
     urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('worker_id');
 }
@@ -32,15 +32,23 @@ function getAssignmentId() {
 
 function getWorkerRegistrationInfo() {
     // mock workers have no special registration
-    return {};
+    return {
+        worker_name: getWorkerName(),
+        provider_type: 'mock',
+    };
 }
 
-function getAgentRegistration() {
-    // Mock agents are created just using worker_id and assignment_id
-    return {};
+function getAgentRegistration(mephisto_worker_id) {
+    // Mock agents are created using the Mephisto worker_id
+    // and the supplied assignment id
+    return {
+        worker_id: mephisto_worker_id,
+        assignment_id: getAssignmentId(),
+        provider_type: 'mock',
+    };
 }
 
-function handleSubmitToProvider(worker_id, assignment_id, task_data) {
+function handleSubmitToProvider(task_data) {
     // Mock agents won't ever submit to a real provider
-    return True;
+    return true;
 }

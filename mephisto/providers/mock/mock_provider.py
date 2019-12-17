@@ -44,7 +44,12 @@ class MockProvider(CrowdProvider):
         # we do have a local database that we set up and
         # tear down
         # Mock providers create a dict to store any important info in
-        return {"agents": {}, "requesters": {}, "units": {}, "workers": {}}
+        return {
+            "agents": {},
+            "requesters": {},
+            "units": {},
+            "workers": {},
+        }
 
     def setup_resources_for_task_run(
         self, task_run: "TaskRun", server_url: str

@@ -27,6 +27,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.blueprint import Blueprint
+    from mephisto.data_model.worker import Worker
+    from mephisto.data_model.unit import Unit
 
 
 VALID_TASK_TYPES = ["legacy_parlai", "generic", "mock"]
@@ -234,6 +236,35 @@ class TaskRun:
         self.start_time = row['creation_date']
         self._is_completed = row['is_completed']
         self._has_assignments = False
+
+    def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
+        """
+        Get any units that the given worker could work on in this
+        task run
+        """
+        # TODO handle any qualification or queueing required to filter
+        # TODO ensure inability to pair with ones-self
+        # TODO this is pretty inefficient
+        assignments = self.get_assignments()
+        units = [u for assign in assignments for u in assign.get_units()]
+        valid_units = [u for u in units if u.get_assigned_agent() is None]
+        return valid_units
+
+    def reserve_unit(self, unit: "Unit") -> Optional["Unit"]:
+        """
+        'Atomically' reserve a unit by writing to the filesystem. If
+        the file creation fails, return none
+        """
+        file_name = f"unit_res_{unit.db_id}"
+        write_dir = os.path.join(self.get_run_dir(), 'reservations')
+        os.makedirs(write_dir, exist_ok=True)
+        try:
+            with open(os.path.join(write_dir, file_name), 'x') as res_file:
+                pass  # Creating the file is sufficient
+        except FileExistsError:
+            print(os.path.join(write_dir, file_name), ' existed')
+            return None
+        return unit
 
     def get_blueprint(self) -> Type["Blueprint"]:
         """Return the runner associated with this task run"""

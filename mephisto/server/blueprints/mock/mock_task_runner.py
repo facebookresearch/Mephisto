@@ -14,6 +14,7 @@ from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.agent import Agent
 
 
 class MockTaskRunner(TaskRunner):
@@ -22,6 +23,13 @@ class MockTaskRunner(TaskRunner):
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
         self.tracked_tasks: Dict[str, "Assignment"] = {}
+
+    def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
+        """
+        Return the data for an agent already assigned to a particular unit
+        """
+        # TODO implement
+        pass
 
     def run_assignment(self, assignment: "Assignment"):
         """

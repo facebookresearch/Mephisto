@@ -8,44 +8,98 @@ from mephisto.data_model.blueprint import TaskRunner
 
 import os
 import time
+import threading
 
 from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
+
+from recordclass import RecordClass
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.agent import Agent
 
+SYSTEM_SENDER = 'mephisto'  # TODO pull from somewhere
+TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
+
+
+class TrackedAssignment(RecordClass):
+    assignment: "Assignment"
+    thread: threading.Thread
+
+SYSTEM_SENDER = 'mephisto'  # TODO pull from somewhere
+TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
 
 class StaticTaskRunner(TaskRunner):
-    """Task runner for a static task"""
+    """
+    Task runner for a static task
 
-    # TODO implement. Going to get frontend working first
+    Static tasks always assume single unit assignments,
+    as only one person can work on them at a time
+    """
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
-        self.tracked_tasks: Dict[str, "Assignment"] = {}
+        self.running_assignments: Dict[str, TrackedAssignment] = {}
 
-    def run_assignment(self, assignment: "Assignment"):
+    def get_data_for_assignment(self, assigment: "Assignment") -> List[Dict[str, Any]]:
         """
-        Mock runners will pass the agents for the given assignment
-        all of the required messages to finish a task.
+        Finds the right data to get for the given assignment.
         """
-        self.tracked_tasks[assignment.db_id] = assignment
-        time.sleep(0.3)
-        for unit in assignment.get_units():
-            agent = unit.get_assigned_agent()
-            assert agent is not None, "Task was not fully assigned"
-            # TODO add some observations?
-            # TODO add some acts?
-            # TODO improve when MockAgents are more capable
-            agent.mark_done()
-        del self.tracked_tasks[assignment.db_id]
+        return [
+            {
+                'character_name': "Loaded Character",
+                'character_description': "I'm a character loaded from Mephisto!",
+                'html': "task.html",
+            }
+        ]
+        # TODO pull this directly from the assignment
+        # return assignment.get_data_for_assignment()
+
+    def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
+        """
+        Return the data for an agent already assigned to a particular unit
+        """
+        assignment = agent.get_unit().get_assignment()
+        assignment_data = self.get_data_for_assignment(assignment)
+        assert len(assignment_data) == 1, "Should only be one unit for static tasks"
+        return assignment_data[0]
+
+    def launch_assignment(self, assignment: "Assignment") -> None:
+        """
+        Launch a thread for the given assignment, if one doesn't
+        exist already
+        """
+        if assignment.db_id in self.running_assignments:
+            print(f"Assignment {assignment.db_id} is already running")
+            return
+
+        print(f"Assignment {assignment.db_id} is already launched")
+        run_thread = threading.Thread(target=self.run_assignment, args=(assignment,))
+        self.running_assignments[assignment.db_id] = TrackedAssignment(assignment=assignment, thread=run_thread)
+        run_thread.start()
+        return
+
+    def run_assignment(self, assignment: "Assignment") -> None:
+        """
+        Static runners will get the task data, send it to the user, then
+        wait for the agent to act (the data to be completed)
+        """
+        unit = assignment.get_units()[0]
+        assert unit.unit_index == 0, "Static units should always have index 0"
+        agent = unit.get_assigned_agent()
+        assert agent is not None, "Task was not fully assigned"
+
+        agent_act = agent.act(timeout=TEST_TIMEOUT)
+        agent.mark_done()
+        del self.running_assignments[assignment.db_id]
 
     @staticmethod
     def get_extra_options() -> Dict[str, str]:
         """Mock task types don't have extra options"""
         return {}
 
-    def cleanup_assignment(self, assignment: "Assignment"):
-        """No cleanup required yet for ending mock runs"""
-        pass
+    def cleanup_assignment(self, assignment: "Assignment") -> None:
+        """Simply mark that the assignment is no longer being tracked"""
+        if assignment.db_id in self.running_assignments:
+            del self.running_assignments[assignment.db_id]

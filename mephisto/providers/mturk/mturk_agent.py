@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.worker import Worker
+    from mephisto.data_model.packet import Packet
     from mephisto.providers.mturk.requester import MTurkRequester
     from mephisto.providers.mturk.unit import MTurkUnit
     from mephisto.providers.mturk.datastore import MTurkDatastore
@@ -51,7 +52,7 @@ class MTurkAgent(Agent):
 
     # Required functions for Agent Interface
 
-    def observe(self, action: Dict[str, Any]) -> None:
+    def observe(self, action: "Packet") -> None:
         """
         Pass the observed information to the AgentState, then
         push that information to the user
@@ -59,7 +60,7 @@ class MTurkAgent(Agent):
         # TODO implement with the task runner system
         raise NotImplementedError()
 
-    def act(self, blocking=False) -> Optional[Dict[str, Any]]:
+    def act(self, timeout=None) -> Optional["Packet"]:
         """
         Request information from the Agent's frontend. If non-blocking,
         should return None if no actions are ready to be returned.

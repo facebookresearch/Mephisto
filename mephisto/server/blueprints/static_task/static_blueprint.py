@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
 
+BLUEPRINT_TYPE = 'static_task'
 
 class StaticBlueprint(Blueprint):
     """Blueprint for a task that runs off of templated static HTML"""
@@ -27,6 +28,7 @@ class StaticBlueprint(Blueprint):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = StaticTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
     supported_architects: ClassVar[List[str]] = ["mock"]
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     @staticmethod
     def get_extra_options() -> Dict[str, str]:
