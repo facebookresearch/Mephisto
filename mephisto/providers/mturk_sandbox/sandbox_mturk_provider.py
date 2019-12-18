@@ -14,7 +14,7 @@ from mephisto.providers.mturk_sandbox.sandbox_mturk_unit import SandboxMTurkUnit
 from mephisto.providers.mturk_sandbox.sandbox_mturk_worker import SandboxMTurkWorker
 
 
-from typing import ClassVar, Type, List, TYPE_CHECKING
+from typing import Any, ClassVar, Type, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
@@ -29,6 +29,7 @@ class SandboxMTurkProvider(MTurkProvider):
     in a local state in the class for use in tests.
     """
 
+    # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
     UnitClass: ClassVar[Type["Unit"]] = SandboxMTurkUnit
@@ -42,3 +43,10 @@ class SandboxMTurkProvider(MTurkProvider):
     SUPPORTED_TASK_TYPES: ClassVar[List[str]] = [
         # TODO
     ]
+
+    def _get_client(self, requester_name: str) -> Any:
+        """
+        Get an mturk client for usage with mturk_utils
+        """
+        print('sandbox client', self)
+        return self.datastore.get_sandbox_client_for_requester(requester_name)

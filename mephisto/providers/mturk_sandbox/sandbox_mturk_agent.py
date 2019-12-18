@@ -22,6 +22,9 @@ class SandboxMTurkAgent(MTurkAgent):
     Wrapper for a regular MTurk agent that will only communicate with sandbox
     """
 
+    # Ensure inherited methods use this level's provider type
+    PROVIDER_TYPE = PROVIDER_TYPE
+
     def _get_client(self) -> Any:
         """
         Get an mturk client for usage with mturk_utils for this agent
@@ -35,4 +38,4 @@ class SandboxMTurkAgent(MTurkAgent):
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":
         """Create an agent for this worker to be used for work on the given Unit."""
-        return MTurkAgent._register_agent(db, worker, unit, PROVIDER_TYPE)
+        return SandboxMTurkAgent._register_agent(db, worker, unit, PROVIDER_TYPE)

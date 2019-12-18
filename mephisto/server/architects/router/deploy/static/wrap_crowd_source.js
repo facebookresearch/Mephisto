@@ -18,23 +18,59 @@ previewed by the given worker.
 
 // TODO standardize this file, make one for every crowd provider
 
+// MOCK IMPLEMENTATION
+// function getWorkerName() {
+//     // Mock worker name is passed via url params
+//     urlParams = new URLSearchParams(window.location.search);
+//     return urlParams.get('worker_id');
+// }
+
+// function getAssignmentId() {
+//     // mock assignment id is passed via url params
+//     urlParams = new URLSearchParams(window.location.search);
+//     return urlParams.get('assignment_id');
+// }
+
+// function getWorkerRegistrationInfo() {
+//     // mock workers have no special registration
+//     return {
+//         worker_name: getWorkerName(),
+//         provider_type: 'mock',
+//     };
+// }
+
+// function getAgentRegistration(mephisto_worker_id) {
+//     // Mock agents are created using the Mephisto worker_id
+//     // and the supplied assignment id
+//     return {
+//         worker_id: mephisto_worker_id,
+//         assignment_id: getAssignmentId(),
+//         provider_type: 'mock',
+//     };
+// }
+
+// function handleSubmitToProvider(task_data) {
+//     // Mock agents won't ever submit to a real provider
+//     return true;
+// }
+
 function getWorkerName() {
     // Mock worker name is passed via url params
-    urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('worker_id');
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('workerId');
 }
 
 function getAssignmentId() {
     // mock assignment id is passed via url params
-    urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('assignment_id');
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('assignmentId');
 }
 
 function getWorkerRegistrationInfo() {
     // mock workers have no special registration
     return {
         worker_name: getWorkerName(),
-        provider_type: 'mock',
+        provider_type: 'mturk',
     };
 }
 
@@ -44,11 +80,13 @@ function getAgentRegistration(mephisto_worker_id) {
     return {
         worker_id: mephisto_worker_id,
         assignment_id: getAssignmentId(),
-        provider_type: 'mock',
+        provider_type: 'mturk',
     };
 }
 
 function handleSubmitToProvider(task_data) {
     // Mock agents won't ever submit to a real provider
+    let urlParams = new URLSearchParams(window.location.search);
+    console.log('Submit to', urlParams.get('turkSubmitTo'))
     return true;
 }

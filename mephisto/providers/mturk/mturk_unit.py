@@ -23,6 +23,9 @@ if TYPE_CHECKING:
     from mephisto.providers.mturk.mturk_requester import MTurkRequester
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
 
+# TODO Fill in the duration with the task duration
+TODO_FILL_DURATION = 500
+
 
 class MTurkUnit(Unit):
     """
@@ -32,22 +35,25 @@ class MTurkUnit(Unit):
     the status of that work itself being done.
     """
 
+    # Ensure inherited methods use this level's provider type
+    PROVIDER_TYPE = PROVIDER_TYPE
+
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            PROVIDER_TYPE
+            self.PROVIDER_TYPE
         )
         try:
             mapping = self.datastore.get_hit_mapping(db_id)
             self.hit_id = mapping["hit_id"]
-            self.assignment_id = mapping["assignment_id"]
+            self.mturk_assignment_id = mapping["assignment_id"]
             self.assignment_duration_in_seconds = mapping[
                 "assignment_duration_in_seconds"
             ]
         except IndexError:
-            # HIT does not exist
+            # HIT does not appear to exist
             self.hit_id = None
-            self.assignment_id = None
+            self.mturk_assignment_id = None
             self.assignment_duration_in_seconds = -1
         self.__requester: Optional["MTurkRequester"] = None
 
@@ -61,8 +67,8 @@ class MTurkUnit(Unit):
         """
         Return the MTurk assignment id associated with this unit
         """
-        assert self.assignment_id is not None, "Only launched HITs have assignment ids"
-        return self.assignment_id
+        assert self.mturk_assignment_id is not None, "Only launched HITs have assignment ids"
+        return self.mturk_assignment_id
 
     def get_mturk_hit_id(self) -> str:
         """
@@ -133,10 +139,11 @@ class MTurkUnit(Unit):
         hit_link, hit_id, response = create_hit_with_hit_type(
             client, frame_height, task_url, hit_type_id
         )
+        self.datastore.new_hit(self.db_id, hit_id, TODO_FILL_DURATION)
         # TODO store the HIT link?
         print(hit_link, hit_id, response)
         self.hit_id = hit_id
-        self.assignment_id = response["Assignments"][0]["AssignmentId"]
+        # self.assignment_id = response["Assignments"][0]["AssignmentId"]
         return None
 
     def expire(self) -> float:

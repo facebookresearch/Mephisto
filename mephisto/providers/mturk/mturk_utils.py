@@ -33,7 +33,7 @@ def client_is_sandbox(client: MTurkClient) -> bool:
     Determine if the given client is communicating with
     the live server or a sandbox
     """
-    return client.endpoint_url == SANDBOX_ENDPOINT
+    return client.meta.endpoint_url == SANDBOX_ENDPOINT
 
 
 def check_aws_credentials(profile_name: str) -> bool:
@@ -289,7 +289,7 @@ def remove_worker_qualification(
     )
 
 
-# TODO Refactor qualifications with qualifications
+# TODO Refactor qualifications with qualifications, config with config
 def create_hit_type(
     client: MTurkClient,
     task_config: "TaskConfig",

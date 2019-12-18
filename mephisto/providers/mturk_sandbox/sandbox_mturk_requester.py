@@ -18,10 +18,13 @@ if TYPE_CHECKING:
 class SandboxMTurkRequester(MTurkRequester):
     """Wrapper around regular requester that handles removing the appended "sandbox" name"""
 
+    # Ensure inherited methods use this level's provider type
+    PROVIDER_TYPE = PROVIDER_TYPE
+
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            PROVIDER_TYPE
+            self.PROVIDER_TYPE
         )
         # Use _requester_name to preserve sandbox behavior which
         # utilizes a different requester_name
