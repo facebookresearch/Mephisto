@@ -54,7 +54,6 @@ class MTurkDatastore:
         self.db_path = os.path.join(datastore_root, "mturk.db")
         self.init_tables()
         self.datastore_root = datastore_root
-        print(self, 'registering with', datastore_root)
 
 
     def _get_connection(self) -> sqlite3.Connection:
@@ -78,7 +77,6 @@ class MTurkDatastore:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
             c = conn.cursor()
-            c.execute("""DROP TABLE units""")
             c.execute(CREATE_UNITS_TABLE)
             c.execute(CREATE_RUNS_TABLE)
             conn.commit()
@@ -144,14 +142,6 @@ class MTurkDatastore:
                 ) VALUES (?, ?, ?, ?);""",
                 (run_id, arn_id, hit_type_id, hit_config_path),
             )
-            print("run registered", self.db_path, run_id)
-            c.execute(
-                """
-                SELECT * from runs
-                """,
-            )
-            results = c.fetchall()
-            print("looking for ", self.db_path,  run_id, results)
             return None
 
     def get_run(self, run_id: str) -> sqlite3.Row:
@@ -167,14 +157,6 @@ class MTurkDatastore:
                 (run_id,),
             )
             results = c.fetchall()
-            print("looking for ", self.db_path,  run_id, results)
-            c.execute(
-                """
-                SELECT * from runs
-                """,
-            )
-            results = c.fetchall()
-            print("looking for ", self.db_path,  run_id, results)
             return results[0]
 
     def get_session_for_requester(self, requester_name: str) -> boto3.Session:

@@ -33,9 +33,6 @@ def client_is_sandbox(client: MTurkClient) -> bool:
     Determine if the given client is communicating with
     the live server or a sandbox
     """
-    # print(client)
-    # print(dir(client))
-    # import pdb; pdb.set_trace()
     return client.meta.endpoint_url == SANDBOX_ENDPOINT
 
 
@@ -299,7 +296,6 @@ def create_hit_type(
     auto_approve_delay: Optional[int] = 7 * 24 * 3600,  # default 1 week
 ) -> str:
     """Create a HIT type to be used to generate HITs of the requested params"""
-    print('trying to create hit type', client.meta.endpoint_url)
     hit_title = task_config.task_title
     hit_description = task_config.task_description
     hit_keywords = ",".join(task_config.task_tags)
@@ -347,7 +343,6 @@ def create_hit_type(
         QualificationRequirements=locale_requirements,
     )
     hit_type_id = response["HITTypeId"]
-    print(f'Created hit type  {hit_type_id}')
     return hit_type_id
 
 
@@ -360,7 +355,6 @@ def create_hit_with_hit_type(
     num_assignments: int = 1,
 ) -> Tuple[str, str, Dict[str, Any]]:
     """Creates the actual HIT given the type and page to direct clients to"""
-    print('trying to create  hit with type', client.meta.endpoint_url)
     page_url = page_url.replace("&", "&amp;")
     amazon_ext_url = (
         "http://mechanicalturk.amazonaws.com/"

@@ -81,7 +81,6 @@ class Worker(ABC):
 
         Basic case simply takes the worker id and registers it
         """
-        print('making worker from provider data', creation_data)
         return cls.new(db, creation_data['worker_name'])
 
     # Children classes should implement the following methods

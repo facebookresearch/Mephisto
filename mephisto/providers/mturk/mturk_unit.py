@@ -130,8 +130,6 @@ class MTurkUnit(Unit):
     def launch(self, task_url: str) -> None:
         """Create this HIT on MTurk (making it availalbe) and register the ids in the local db"""
         run_id = self.get_assignment().get_task_run().db_id
-        print('trying to get run', run_id)
-        print(self)
         hit_type_id = self.datastore.get_run(run_id)["hit_type_id"]
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
