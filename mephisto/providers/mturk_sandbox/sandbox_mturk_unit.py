@@ -24,6 +24,7 @@ class SandboxMTurkUnit(MTurkUnit):
     the status of that work itself being done.
     """
 
+    # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def _get_client(self, requester_name: str) -> Any:

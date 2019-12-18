@@ -29,6 +29,7 @@ class SandboxMTurkProvider(MTurkProvider):
     in a local state in the class for use in tests.
     """
 
+    # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
     UnitClass: ClassVar[Type["Unit"]] = SandboxMTurkUnit

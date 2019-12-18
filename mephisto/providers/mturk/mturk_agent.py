@@ -32,10 +32,13 @@ class MTurkAgent(Agent):
     connection status, etc.
     """
 
+    # Ensure inherited methods use this level's provider type
+    PROVIDER_TYPE = PROVIDER_TYPE
+
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            PROVIDER_TYPE
+            self.PROVIDER_TYPE
         )
         unit: "MTurkUnit" = self.get_unit()
         # self.mturk_assignment_id = unit.get_mturk_assignment_id()

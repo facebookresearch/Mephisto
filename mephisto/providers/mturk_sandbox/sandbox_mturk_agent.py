@@ -22,6 +22,7 @@ class SandboxMTurkAgent(MTurkAgent):
     Wrapper for a regular MTurk agent that will only communicate with sandbox
     """
 
+    # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def _get_client(self) -> Any:

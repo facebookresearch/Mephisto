@@ -35,6 +35,7 @@ class MTurkProvider(CrowdProvider):
     Implementation of a crowdprovider that interfaces with MTurk
     """
 
+    # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
     UnitClass: ClassVar[Type["Unit"]] = MTurkUnit

@@ -35,6 +35,7 @@ class MTurkUnit(Unit):
     the status of that work itself being done.
     """
 
+    # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def __init__(self, db: "MephistoDB", db_id: str):

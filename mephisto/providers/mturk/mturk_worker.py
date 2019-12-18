@@ -32,11 +32,14 @@ class MTurkWorker(Worker):
     This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
     """
 
+    # Ensure inherited methods use this level's provider type
+    PROVIDER_TYPE = PROVIDER_TYPE
+
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
         # TODO are there MTurk specific worker things to track?
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            PROVIDER_TYPE
+            self.PROVIDER_TYPE
         )
         self._worker_name = self.worker_name  # sandbox workers use a different name
 

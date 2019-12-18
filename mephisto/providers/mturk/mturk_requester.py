@@ -26,6 +26,7 @@ class MTurkRequester(Requester):
     all requests directly to MTurk through boto3.
     """
 
+    # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def __init__(self, db: "MephistoDB", db_id: str):
