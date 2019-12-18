@@ -25,14 +25,6 @@ function isMobile() {
   );
 }
 
-function clickDone(provider_worker_id, assignment_id, task_data) {
-  // At the moment this function simply calls the submit method,
-  // will later also have to talk to the server and maybe do validation
-  // TODO validate entry
-  // TODO talk to the server
-  handleSubmitToProvider(provider_worker_id, assignment_id, task_data);
-}
-
 function postData(url = '', data = {}) {
   // Default options are marked with *
   return fetch(url, {
@@ -81,6 +73,14 @@ function requestTaskHMTL(target_html, callback_function) {
         callback_function(html);
       }
   });
+}
+
+function postCompleteTask(agent_id, complete_data, callback_function) {
+  postProviderRequest(
+    '/submit_task',
+    {'agent_id': agent_id, 'final_data': complete_data},
+    callback_function,
+  )
 }
 
 /* ================= Application Components ================= */
@@ -177,6 +177,7 @@ class MainApp extends React.Component {
     let obj_data = {}
     form_data.forEach((value, key) => {obj_data[key] = value});
     console.log(obj_data);
+    postCompleteTask(this.state.agent_id, obj_data);
     handleSubmitToProvider(form_data);
   }
 
@@ -185,17 +186,27 @@ class MainApp extends React.Component {
       ref={elem => {this.raw_html_elem = elem}}
       dangerouslySetInnerHTML={{__html: this.state.render_html}}
     />;
+    let submit_button = <div />;
+    if (this.base_html !== null) {
+      submit_button = (
+        <div>
+          <div style={{display: 'flex', justifyContent: 'center'}}>
+            <Button type="submit">
+              <span
+                style={{ marginRight: 5 }}
+                className="glyphicon glyphicon-ok"
+              />
+              Submit
+            </Button>
+          </div>
+        </div>
+      )
+    }
     return (
       <div>
         <form onSubmit={this.handleSubmit.bind(this)}>
           {dangerous_html}
-          <Button type="submit">
-            <span
-              style={{ marginRight: 5 }}
-              className="glyphicon glyphicon-ok"
-            />
-            Submit
-          </Button>
+          {submit_button}
         </form>
       </div>
     );

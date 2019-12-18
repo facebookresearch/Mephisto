@@ -288,6 +288,21 @@ app.post('/request_agent', function(req, res) {
   make_provider_request(PACKET_TYPE_NEW_AGENT, provider_data, res);
 });
 
+app.post('/submit_task', function(req, res) {
+  var provider_data = req.body.provider_data;
+  let submit_packet = {
+    packet_type: PACKET_TYPE_AGENT_ACTION,
+    sender_id: provider_data.agent_id,
+    receiver_id: SYSTEM_SOCKET_ID,
+    data: {
+      'task_data': provider_data.final_data,
+      'is_submit': true
+    },
+  };
+  _send_message(mephisto_socket, submit_packet);
+  res.json({status: 'Submitted!'})
+});
+
 // Quick status check for this server
 app.get('/is_alive', function(req, res) {
   res.json({status: 'Alive!'});

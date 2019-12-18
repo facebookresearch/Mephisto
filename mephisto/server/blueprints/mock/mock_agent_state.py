@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Dict, Any, TYPE_CHECKING
 from mephisto.data_model.blueprint import AgentState
 import os
 import json
@@ -22,6 +22,24 @@ class MockAgentState(AgentState):
         """Mock agent states keep everything in local memory"""
         self.agent = agent
         self.state: Dict[str, Any] = {}
+        self.init_state: Any = None
+
+    def set_init_state(self, data: Any) -> bool:
+        """Set the initial state for this agent"""
+        if self.init_state is not None:
+            # Initial state is already set
+            return False
+        else:
+            self.init_state = data
+            self.save_data()
+            return True
+
+    def get_init_state(self) -> Optional[Dict[str, Any]]:
+        """
+        Return the initial state for this agent,
+        None if no such state exists
+        """
+        return self.init_state
 
     def load_data(self) -> None:
         """Mock agent states have no data stored"""

@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 from mephisto.core.utils import get_blueprint_from_type
-from typing import ClassVar, List, Dict, Any, Type, ClassVar, TYPE_CHECKING
+from typing import ClassVar, Optional, List, Dict, Any, Type, ClassVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -126,7 +126,7 @@ class TaskRunner(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def run_assignment(self, assignment: "Assignment"):
+    def run_assignment(self, assignment: "Assignment", agents: List["Agent"]):
         """
         Handle setup for any resources required to get this assignment running.
         This will be run in a background thread, and should be tolerant to
@@ -205,6 +205,19 @@ class AgentState(ABC):
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    @abstractmethod
+    def set_init_state(self, data: Any) -> bool:
+        """Set the initial state for this agent"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_init_state(self) -> Optional[Any]:
+        """
+        Return the initial state for this agent,
+        None if no such state exists
+        """
+        raise NotImplementedError()
 
     @abstractmethod
     def load_data(self) -> None:
