@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+from mephisto.data_model.task_config import TaskConfig
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
 from mephisto.data_model.crowd_provider import CrowdProvider
@@ -56,6 +57,12 @@ class MTurkProvider(CrowdProvider):
         """
         return MTurkDatastore(datastore_root=storage_path)
 
+    def _get_client(self, requester_name: str) -> Any:
+        """
+        Get an mturk client for usage with mturk_utils
+        """
+        return self.datastore.get_client_for_requester(requester_name)
+
     def setup_resources_for_task_run(
         self, task_run: "TaskRun", server_url: str
     ) -> None:
@@ -69,14 +76,16 @@ class MTurkProvider(CrowdProvider):
 
         # Set up SNS queue
         task_run_id = task_run.db_id
-        task_name = task_run.get_task().task_name
-        arn_id = setup_sns_topic(session, task_name, server_url, task_run_id)
+        # task_name = task_run.get_task().task_name
+        # arn_id = setup_sns_topic(session, task_name, server_url, task_run_id)
+        arn_id = 'TEST'
+
 
         # Set up HIT config
         # TODO refactor these opts into something gettable elsewhere?
         # TODO these might actually be more relevant to task type
         # and the frontend deployed based on task type
-        config_dir = os.path.join(self.datastore_root, task_run_id)
+        config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
         # os.mkdirs(config_dir, exist_ok=True)
         # opt = {
         #     'frame_height': 650,
@@ -86,9 +95,10 @@ class MTurkProvider(CrowdProvider):
         #     'run_dir': config_dir,
         # }
         # create_hit_config(opt, task_config, self.is_sandbox())
+        task_config = TaskConfig(task_run)
 
         # Set up HIT type
-        client = self.datastore.get_client_for_requester(requester._requester_name)
+        client = self._get_client(requester._requester_name)
         hit_type_id = create_hit_type(client, task_config)
         self.datastore.register_run(task_run_id, arn_id, hit_type_id, config_dir)
 

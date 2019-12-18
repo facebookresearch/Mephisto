@@ -144,6 +144,8 @@ class Supervisor:
                 packet = Packet.from_dict(packet_dict)
                 self._on_message(packet, socket_info)
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 print(repr(e))
                 raise
 
@@ -244,6 +246,9 @@ class Supervisor:
         crowd_provider = socket_info.job.provider
         worker_name = crowd_data['worker_name']
         workers = self.db.find_workers(worker_name=worker_name)
+        if len(workers) == 0:
+            # TODO get rid of sandbox designation
+            workers = self.db.find_workers(worker_name=worker_name + '_sandbox')
         if len(workers) == 0:
             worker = crowd_provider.WorkerClass.new_from_provider_data(self.db, crowd_data)
         else:

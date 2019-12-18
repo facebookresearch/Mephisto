@@ -284,7 +284,7 @@ class TaskRun:
         """
         Return the requester that started this task.
         """
-        return Requester(self.db, self.db_id)
+        return Requester(self.db, self.requester_id)
 
     def get_has_assignments(self) -> bool:
         """See if this task run has any assignments launched yet"""

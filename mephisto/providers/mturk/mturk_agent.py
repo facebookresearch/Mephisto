@@ -38,7 +38,7 @@ class MTurkAgent(Agent):
             PROVIDER_TYPE
         )
         unit: "MTurkUnit" = self.get_unit()
-        self.mturk_assignment_id = unit.get_mturk_assignment_id()
+        # self.mturk_assignment_id = unit.get_mturk_assignment_id()
         # TODO any additional init as is necessary once
         # a mock DB exists
 

@@ -24,6 +24,8 @@ class SandboxMTurkUnit(MTurkUnit):
     the status of that work itself being done.
     """
 
+    PROVIDER_TYPE = PROVIDER_TYPE
+
     def _get_client(self, requester_name: str) -> Any:
         """
         Get an mturk client for usage with mturk_utils

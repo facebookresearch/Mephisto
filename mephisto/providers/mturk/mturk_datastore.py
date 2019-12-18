@@ -22,7 +22,7 @@ MTURK_REGION_NAME = "us-east-1"
 CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
     unit_id TEXT PRIMARY KEY UNIQUE,
     hit_id TEXT NOT NULL UNIQUE,
-    assignment_id TEXT NOT NULL UNIQUE,
+    assignment_id TEXT,
     assignment_time_in_seconds INTEGER NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -53,6 +53,9 @@ class MTurkDatastore:
         self.conn: Dict[int, sqlite3.Connection] = {}
         self.db_path = os.path.join(datastore_root, "mturk.db")
         self.init_tables()
+        self.datastore_root = datastore_root
+        print(self, 'registering with', datastore_root)
+
 
     def _get_connection(self) -> sqlite3.Connection:
         """Returns a singular database connection to be shared amongst all
@@ -75,12 +78,13 @@ class MTurkDatastore:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
             c = conn.cursor()
+            c.execute("""DROP TABLE units""")
             c.execute(CREATE_UNITS_TABLE)
             c.execute(CREATE_RUNS_TABLE)
             conn.commit()
 
     def new_hit(
-        self, unit_id: str, hit_id: str, assignment_id: str, duration: int
+        self, unit_id: str, hit_id: str, duration: int
     ) -> None:
         """Register a new HIT mapping in the table"""
         with self.table_access_condition:
@@ -90,13 +94,24 @@ class MTurkDatastore:
                 """INSERT INTO units(
                     unit_id,
                     hit_id,
-                    assignment_id,
                     assignment_time_in_seconds
-                ) VALUES (?, ?, ?, ?);""",
-                (unit_id, hit_id, assignment_id, duration),
+                ) VALUES (?, ?, ?);""",
+                (unit_id, hit_id, duration),
             )
-            results = c.fetchall()
-            return results[0]
+            return None
+
+    def register_assignment_to_hit(self, unit_id: str, assignment_id: str) -> None:
+        """Register a specific  assignment to the given unit"""
+        with  self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """UPDATE units
+                SET assignment_id = ?
+                WHERE unit_id = ?
+                """,
+                (assignment_id, unit_id)
+            )
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""
@@ -129,8 +144,15 @@ class MTurkDatastore:
                 ) VALUES (?, ?, ?, ?);""",
                 (run_id, arn_id, hit_type_id, hit_config_path),
             )
+            print("run registered", self.db_path, run_id)
+            c.execute(
+                """
+                SELECT * from runs
+                """,
+            )
             results = c.fetchall()
-            return results[0]
+            print("looking for ", self.db_path,  run_id, results)
+            return None
 
     def get_run(self, run_id: str) -> sqlite3.Row:
         """Get the details for a run by task_run_id"""
@@ -145,6 +167,14 @@ class MTurkDatastore:
                 (run_id,),
             )
             results = c.fetchall()
+            print("looking for ", self.db_path,  run_id, results)
+            c.execute(
+                """
+                SELECT * from runs
+                """,
+            )
+            results = c.fetchall()
+            print("looking for ", self.db_path,  run_id, results)
             return results[0]
 
     def get_session_for_requester(self, requester_name: str) -> boto3.Session:

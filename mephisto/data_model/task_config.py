@@ -24,7 +24,7 @@ class TaskConfig:
         # TODO implement with TaskParams, some of these
         # should be removed or populated customly
         # based on the task type and provider
-        self.task_title = "test"
+        self.task_title = "test2"
         self.task_description = "test"
         self.task_reward = 0.3
         self.task_tags = ["test", "test", "test"]
