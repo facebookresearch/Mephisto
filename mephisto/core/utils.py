@@ -66,6 +66,7 @@ def get_data_dir() -> str:
     # TODO be able to configure this kind of thing
     return os.path.expanduser("~/mephisto/data")
 
+
 def get_mephisto_tmp_dir() -> str:
     """
     Return the directory where the mephisto temporary build files go
@@ -113,7 +114,9 @@ def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
 
         return MockBlueprint
     if task_type == "static":
-        from mephisto.server.blueprints.static_task.static_blueprint import StaticBlueprint
+        from mephisto.server.blueprints.static_task.static_blueprint import (
+            StaticBlueprint,
+        )
 
         return StaticBlueprint
     raise NotImplementedError()

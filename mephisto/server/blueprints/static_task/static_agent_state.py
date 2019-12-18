@@ -69,7 +69,8 @@ class StaticAgentState(AgentState):
         Process the incoming data packet, and handle
         updating the state
         """
-        assert packet.data.get('is_submit') is True, \
-            "Static tasks should only have final act"
-        self.state.append(packet.data['task_data'])
+        assert (
+            packet.data.get("is_submit") is True
+        ), "Static tasks should only have final act"
+        self.state.append(packet.data["task_data"])
         self.save_data()

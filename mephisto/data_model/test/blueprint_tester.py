@@ -59,7 +59,9 @@ class BlueprintTests(unittest.TestCase):
         """Create a test assignment for self.task_run using mock agents"""
         raise NotImplementedError()
 
-    def assignment_is_tracked(self, task_runner: TaskRunner, assignment: Assignment) -> bool:
+    def assignment_is_tracked(
+        self, task_runner: TaskRunner, assignment: Assignment
+    ) -> bool:
         """
         Return whether or not this task is currently being tracked (run)
         by the given task runner. This should be false unless
@@ -152,9 +154,9 @@ class BlueprintTests(unittest.TestCase):
         Test that initialization from the abstract class produces the
         correct class.
         """
-        runner = TaskRunner(self.task_run, {}) # type: ignore
+        runner = TaskRunner(self.task_run, {})  # type: ignore
         self.assertTrue(isinstance(runner, self.TaskRunnerClass))
-        builder = TaskBuilder(self.task_run, {}) # type: ignore
+        builder = TaskBuilder(self.task_run, {})  # type: ignore
         self.assertTrue(isinstance(builder, self.TaskBuilderClass))
 
     def test_can_init_subclasses(self) -> None:
@@ -174,7 +176,9 @@ class BlueprintTests(unittest.TestCase):
         """Ensure that a task can be run to completion in the basic case"""
         task_runner = self._get_init_task_runner()
         assignment = self.get_test_assignment()
-        agents: List["Agent"] = [cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()]
+        agents: List["Agent"] = [
+            cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
+        ]
 
         task_runner.run_assignment(assignment, agents)
         self.assertTrue(self.assignment_completed_successfully(assignment))
@@ -199,7 +203,9 @@ class BlueprintTests(unittest.TestCase):
         """Run a task in a thread, ensure we see it is being tracked"""
         task_runner = self._get_init_task_runner()
         assignment = self.get_test_assignment()
-        agents: List["Agent"] = [cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()]
+        agents: List["Agent"] = [
+            cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
+        ]
         task_thread = threading.Thread(
             target=task_runner.run_assignment, args=(assignment, agents)
         )

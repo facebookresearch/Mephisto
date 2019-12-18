@@ -67,7 +67,9 @@ class MTurkUnit(Unit):
         """
         Return the MTurk assignment id associated with this unit
         """
-        assert self.mturk_assignment_id is not None, "Only launched HITs have assignment ids"
+        assert (
+            self.mturk_assignment_id is not None
+        ), "Only launched HITs have assignment ids"
         return self.mturk_assignment_id
 
     def get_mturk_hit_id(self) -> str:

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.agent import Agent
 
-SYSTEM_SENDER = 'mephisto'  # TODO pull from somewhere
+SYSTEM_SENDER = "mephisto"  # TODO pull from somewhere
 TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
 
 
@@ -27,8 +27,10 @@ class TrackedAssignment(RecordClass):
     assignment: "Assignment"
     thread: threading.Thread
 
-SYSTEM_SENDER = 'mephisto'  # TODO pull from somewhere
+
+SYSTEM_SENDER = "mephisto"  # TODO pull from somewhere
 TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
+
 
 class StaticTaskRunner(TaskRunner):
     """
@@ -48,9 +50,9 @@ class StaticTaskRunner(TaskRunner):
         """
         return [
             {
-                'character_name': "Loaded Character",
-                'character_description': "I'm a character loaded from Mephisto!",
-                'html': "task.html",
+                "character_name": "Loaded Character",
+                "character_description": "I'm a character loaded from Mephisto!",
+                "html": "task.html",
             }
         ]
         # TODO pull this directly from the assignment
@@ -85,8 +87,12 @@ class StaticTaskRunner(TaskRunner):
             return
 
         print(f"Assignment {assignment.db_id} is launching with {agent}")
-        run_thread = threading.Thread(target=self.run_assignment, args=(assignment, [agent]))
-        self.running_assignments[assignment.db_id] = TrackedAssignment(assignment=assignment, thread=run_thread)
+        run_thread = threading.Thread(
+            target=self.run_assignment, args=(assignment, [agent])
+        )
+        self.running_assignments[assignment.db_id] = TrackedAssignment(
+            assignment=assignment, thread=run_thread
+        )
         run_thread.start()
         return
 

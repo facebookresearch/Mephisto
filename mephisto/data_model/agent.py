@@ -140,7 +140,7 @@ class Agent(ABC):
         db: "MephistoDB",
         worker: Worker,
         unit: "Unit",
-        provider_data: Dict[str, Any]
+        provider_data: Dict[str, Any],
     ) -> "Agent":
         """
         Wrapper around the new method that allows registering additional
@@ -153,7 +153,9 @@ class Agent(ABC):
         Pass the observed information to the AgentState, then
         queue the information to be pushed to the user
         """
-        assert packet.receiver_id == self.db_id, f"Unintended packet receiving: {self.db_id} {packet}"
+        assert (
+            packet.receiver_id == self.db_id
+        ), f"Unintended packet receiving: {self.db_id} {packet}"
         self.state.update_data(packet)
         self.pending_observations.append(packet)
 
@@ -167,7 +169,7 @@ class Agent(ABC):
             if timeout is None:
                 return None
             self.has_action.wait(timeout)
-        assert len(self.pending_actions) > 0, 'has_action released without an action!'
+        assert len(self.pending_actions) > 0, "has_action released without an action!"
 
         act = self.pending_actions.pop(0)
 

@@ -20,8 +20,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 STATIC_TASK_DIR = os.path.dirname(__file__)
-FRONTEND_SOURCE_DIR = os.path.join(STATIC_TASK_DIR, 'source')
-FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, 'build')
+FRONTEND_SOURCE_DIR = os.path.join(STATIC_TASK_DIR, "source")
+FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
+
 
 class StaticTaskBuilder(TaskBuilder):
     """
@@ -39,26 +40,25 @@ class StaticTaskBuilder(TaskBuilder):
         os.chdir(FRONTEND_SOURCE_DIR)
         if os.path.exists(FRONTEND_BUILD_DIR):
             shutil.rmtree(FRONTEND_BUILD_DIR)
-        packages_installed = subprocess.call(['npm', 'install'])
+        packages_installed = subprocess.call(["npm", "install"])
         if packages_installed != 0:
             raise Exception(
-                'please make sure npm is installed, otherwise view '
-                'the above error for more info.'
+                "please make sure npm is installed, otherwise view "
+                "the above error for more info."
             )
 
-        webpack_complete = subprocess.call(['npm', 'run', 'dev'])
+        webpack_complete = subprocess.call(["npm", "run", "dev"])
         if webpack_complete != 0:
             raise Exception(
-                'Webpack appears to have failed to build your '
-                'frontend. See the above error for more information.'
+                "Webpack appears to have failed to build your "
+                "frontend. See the above error for more information."
             )
         os.chdir(return_dir)
-
 
     def build_in_dir(self, build_dir: str):
         """Build the frontend if it doesn't exist, then copy into the server directory"""
 
-        if True: #not os.path.exists(FRONTEND_BUILD_DIR):
+        if True:  # not os.path.exists(FRONTEND_BUILD_DIR):
             self.rebuild_core()
 
         # TODO Copy html into static
@@ -66,15 +66,13 @@ class StaticTaskBuilder(TaskBuilder):
 
         # all the important files should've been moved to bundle.js in
         # server/static, now copy the rest into static
-        target_resource_dir = os.path.join(
-            build_dir, 'static'
-        )
+        target_resource_dir = os.path.join(build_dir, "static")
         file_name = os.path.basename(use_html_file)
         target_path = os.path.join(target_resource_dir, file_name)
         shutil.copy2(use_html_file, target_path)
 
-        bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, 'bundle.js')
-        target_path = os.path.join(target_resource_dir, 'bundle.js')
+        bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, "bundle.js")
+        target_path = os.path.join(target_resource_dir, "bundle.js")
         shutil.copy2(bundle_js_file, target_path)
 
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:

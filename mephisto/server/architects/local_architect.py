@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.core.utils import get_mephisto_tmp_dir
 
+
 class LocalArchitect(Architect):
     """
     Provides methods for setting up a server locally and deploying tasks
@@ -45,28 +46,28 @@ class LocalArchitect(Architect):
         self.server_process: Optional[subprocess.Popen] = None
         self.server_dir: Optional[str] = None
         self.running_dir: Optional[str] = None
-        self.hostname: Optional[str] = opts.get('hostname')
-        self.port: Optional[str] = opts.get('port')
+        self.hostname: Optional[str] = opts.get("hostname")
+        self.port: Optional[str] = opts.get("port")
         self.cleanup_called = False
 
     def get_socket_urls(self) -> List[str]:
         """Return the path to the local server socket"""
         assert self.hostname is not None, "No hostname for socket"
         assert self.port is not None, "No ports for socket"
-        if 'https://' in self.hostname:
-            basename = self.hostname.split('https://')[1]
+        if "https://" in self.hostname:
+            basename = self.hostname.split("https://")[1]
             protocol = "wss"
-        elif 'http://' in self.hostname:
-            basename = self.hostname.split('http://')[1]
+        elif "http://" in self.hostname:
+            basename = self.hostname.split("http://")[1]
             protocol = "ws"
         else:
             basename = self.hostname
             protocol = "ws"
 
-        if basename in ['localhost', '127.0.0.1']:
+        if basename in ["localhost", "127.0.0.1"]:
             protocol = "ws"
 
-        return [f'{protocol}://{basename}:{self.port}/']
+        return [f"{protocol}://{basename}:{self.port}/"]
 
     @staticmethod
     def get_extra_options() -> Dict[str, str]:
@@ -82,35 +83,37 @@ class LocalArchitect(Architect):
         """Deploy the server from a local folder for this task"""
         assert self.server_dir is not None, "Deploy called before prepare"
         self.running_dir = os.path.join(
-            get_mephisto_tmp_dir(),
-            f"local_server_{self.task_run_id}",
-            "server",
+            get_mephisto_tmp_dir(), f"local_server_{self.task_run_id}", "server"
         )
 
         shutil.copytree(self.server_dir, self.running_dir)
 
         return_dir = os.getcwd()
         os.chdir(self.running_dir)
-        self.server_process = subprocess.Popen(['node', 'server.js'], preexec_fn=os.setpgrp)
+        self.server_process = subprocess.Popen(
+            ["node", "server.js"], preexec_fn=os.setpgrp
+        )
         self.server_process_pid = self.server_process.pid
         os.chdir(return_dir)
 
         time.sleep(1)
-        print('Server running locally with pid {}.'.format(self.server_process_pid))
+        print("Server running locally with pid {}.".format(self.server_process_pid))
         host = self.hostname
         port = self.port
         if host is None:
-            host = input('Please enter the public server address, like https://hostname.com: ')
+            host = input(
+                "Please enter the public server address, like https://hostname.com: "
+            )
             self.hostname = host
         if port is None:
-            port = input('Please enter the port given above, likely 3000: ')
+            port = input("Please enter the port given above, likely 3000: ")
             self.port = port
-        return '{}:{}'.format(host, port)
+        return "{}:{}".format(host, port)
 
     def cleanup(self) -> None:
         """Cleanup the built directory"""
         assert self.server_dir is not None, "Cleanup called before prepare"
-        sh.rm(shlex.split('-rf ' + self.server_dir))
+        sh.rm(shlex.split("-rf " + self.server_dir))
 
     def shutdown(self) -> None:
         """Find the server process, shut it down, then remove the build directory"""
@@ -121,4 +124,4 @@ class LocalArchitect(Architect):
         else:
             self.server_process.terminate()
             self.server_process.wait()
-        sh.rm(shlex.split('-rf ' + self.running_dir))
+        sh.rm(shlex.split("-rf " + self.running_dir))

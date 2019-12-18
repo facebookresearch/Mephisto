@@ -12,13 +12,15 @@ import shlex
 import subprocess
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
 
 ROUTER_ROOT_DIR = os.path.dirname(router_module.__file__)
-SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, 'deploy')
+SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "deploy")
 
-def can_build(build_dir: str, task_run: 'TaskRun') -> bool:
+
+def can_build(build_dir: str, task_run: "TaskRun") -> bool:
     """Determine if the build dir is properly formatted for
     being able to have the router built within. This is a
     validation step that should be run before build_router.
@@ -30,6 +32,7 @@ def can_build(build_dir: str, task_run: 'TaskRun') -> bool:
     # process for the router is decided
     return True
 
+
 def install_router_files() -> None:
     """
     Create a new build including the node_modules
@@ -37,15 +40,16 @@ def install_router_files() -> None:
     return_dir = os.getcwd()
     os.chdir(SERVER_SOURCE_ROOT)
 
-    packages_installed = subprocess.call(['npm', 'install'])
+    packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
-            'please make sure npm is installed, otherwise view '
-            'the above error for more info.'
+            "please make sure npm is installed, otherwise view "
+            "the above error for more info."
         )
     os.chdir(return_dir)
 
-def build_router(build_dir: str, task_run: 'TaskRun') -> str:
+
+def build_router(build_dir: str, task_run: "TaskRun") -> str:
     """
     Copy expected files from the router source into the build dir,
     using existing files in the build dir as replacements for the
@@ -54,12 +58,10 @@ def build_router(build_dir: str, task_run: 'TaskRun') -> str:
     install_router_files()
 
     server_source_directory_path = SERVER_SOURCE_ROOT
-    local_server_directory_path = os.path.join(
-        build_dir, 'router'
-    )
+    local_server_directory_path = os.path.join(build_dir, "router")
 
     # Delete old server files
-    sh.rm(shlex.split('-rf ' + local_server_directory_path))
+    sh.rm(shlex.split("-rf " + local_server_directory_path))
 
     # Copy over a clean copy into the server directory
     shutil.copytree(server_source_directory_path, local_server_directory_path)
@@ -75,7 +77,6 @@ def build_router(build_dir: str, task_run: 'TaskRun') -> str:
     #         shutil.copytree(file_path, os.path.join(task_directory_path, dir_name))
     #     except FileNotFoundError:  # noqa: F821 we don't support python2
     #         pass
-
 
     TaskBuilderClass = task_run.get_blueprint().TaskBuilderClass
     # TODO pull options from the current set options for this run?

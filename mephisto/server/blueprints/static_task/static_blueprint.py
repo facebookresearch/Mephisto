@@ -19,7 +19,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
 
-BLUEPRINT_TYPE = 'static_task'
+BLUEPRINT_TYPE = "static_task"
+
 
 class StaticBlueprint(Blueprint):
     """Blueprint for a task that runs off of templated static HTML"""
