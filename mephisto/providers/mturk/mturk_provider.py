@@ -79,8 +79,7 @@ class MTurkProvider(CrowdProvider):
         task_run_id = task_run.db_id
         # task_name = task_run.get_task().task_name
         # arn_id = setup_sns_topic(session, task_name, server_url, task_run_id)
-        arn_id = 'TEST'
-
+        arn_id = "TEST"
 
         # Set up HIT config
         # TODO refactor these opts into something gettable elsewhere?

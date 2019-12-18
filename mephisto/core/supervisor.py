@@ -31,6 +31,7 @@ from mephisto.core.utils import get_crowd_provider_from_type
 from recordclass import RecordClass
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.database import MephistoDB
@@ -46,7 +47,7 @@ if TYPE_CHECKING:
 
 # Mostly, the supervisor babysits the socket and the workers
 
-SYSTEM_SOCKET_ID = 'mephisto'  # TODO pull from somewhere
+SYSTEM_SOCKET_ID = "mephisto"  # TODO pull from somewhere
 STATUS_CHECK_TIME = 10
 START_DEATH_TIME = 10
 
@@ -57,6 +58,7 @@ class Job(RecordClass):
     provider: "CrowdProvider"
     registered_socket_ids: List[str]
 
+
 class SocketInfo(RecordClass):
     socket_id: str
     url: str
@@ -66,13 +68,13 @@ class SocketInfo(RecordClass):
     socket: Optional[websocket.WebSocketApp] = None
     thread: Optional[threading.Thread] = None
 
+
 class AgentInfo(RecordClass):
     agent: "Agent"
     used_socket_id: str
 
 
 class Supervisor:
-
     def __init__(self, db: "MephistoDB"):
         self.db = db
         # Tracked state
@@ -96,7 +98,12 @@ class Supervisor:
     ):
         task_run = task_runner.task_run
         urls = architect.get_socket_urls()
-        job = Job(architect=architect, task_runner=task_runner, provider=provider, registered_socket_ids=[])
+        job = Job(
+            architect=architect,
+            task_runner=task_runner,
+            provider=provider,
+            registered_socket_ids=[],
+        )
         for url in urls:
             socket_id = self.setup_socket(url, job)
             job.registered_socket_ids.append(socket_id)
@@ -106,7 +113,7 @@ class Supervisor:
         # Clear status_responses, as we won't have one for this server
         self.status_responses = {}
 
-        socket_name = f'socket_{self.socket_count}'
+        socket_name = f"socket_{self.socket_count}"
         self.socket_count += 1
 
         socket_info = SocketInfo(socket_id=socket_name, url=url, job=job)
@@ -116,13 +123,13 @@ class Supervisor:
             socket_info.is_alive = True
             self._send_alive(socket_info)
             # TODO use logger?
-            print(f'socket open {args}')
+            print(f"socket open {args}")
 
         def on_error(ws, error):
             if error.errno == errno.ECONNREFUSED:
                 raise Exception(f"Socket {url} refused connection, cancelling")
             else:
-                print(f'Socket logged error: {error}')
+                print(f"Socket logged error: {error}")
                 try:
                     ws.close()
                 except Exception:
@@ -145,12 +152,15 @@ class Supervisor:
                 self._on_message(packet, socket_info)
             except Exception as e:
                 import traceback
+
                 traceback.print_exc()
                 print(repr(e))
                 raise
 
         def run_socket(*args):
-            while socket_name in self.sockets and not self.sockets[socket_name].is_closed:
+            while (
+                socket_name in self.sockets and not self.sockets[socket_name].is_closed
+            ):
                 try:
                     socket = websocket.WebSocketApp(
                         url,
@@ -162,12 +172,12 @@ class Supervisor:
                     socket.on_open = on_socket_open
                     socket.run_forever(ping_interval=8 * STATUS_CHECK_TIME)
                 except Exception as e:
-                    print(f'Socket error {repr(e)}, attempting restart')
+                    print(f"Socket error {repr(e)}, attempting restart")
                 time.sleep(0.2)
 
         # Start listening thread
         socket_info.thread = threading.Thread(
-            target=run_socket, name=f'socket-thread-{url}'
+            target=run_socket, name=f"socket-thread-{url}"
         )
         socket_info.thread.start()
         start_time = time.time()
@@ -175,17 +185,17 @@ class Supervisor:
             if time.time() - start_time > START_DEATH_TIME:
                 # TODO better handle failing to connect with the server
                 raise ConnectionRefusedError(  # noqa F821 we only support py3
-                    'Was not able to establish a connection with the server, '
-                    'please try to run again. If that fails,'
-                    'please ensure that your local device has the correct SSL '
-                    'certs installed.'
+                    "Was not able to establish a connection with the server, "
+                    "please try to run again. If that fails,"
+                    "please ensure that your local device has the correct SSL "
+                    "certs installed."
                 )
             try:
                 self._send_alive(socket_info)
             except Exception:
                 pass
             time.sleep(0.3)
-        print('socket seems live!')
+        print("socket seems live!")
         return socket_name
 
     def close_socket(self, socket_id: str):
@@ -206,7 +216,9 @@ class Supervisor:
             self.close_socket(socket_id)
         self.sending_thread.join()
 
-    def _send_through_socket(self, socket: websocket.WebSocketApp, packet: Packet) -> bool:
+    def _send_through_socket(
+        self, socket: websocket.WebSocketApp, packet: Packet
+    ) -> bool:
         """Send a packet through the socket, handle any errors"""
         if socket is None:
             return False
@@ -221,18 +233,22 @@ class Supervisor:
             return False
         except Exception as e:
             import traceback
+
             traceback.print_exc()
-            print('Unexpected socket error occured: {}'.format(repr(e)))
+            print("Unexpected socket error occured: {}".format(repr(e)))
             return False
         return True
 
     def _send_alive(self, socket_info: SocketInfo) -> bool:
-        print('sending alive')
-        return self._send_through_socket(socket_info.socket, Packet(
-            packet_type=PACKET_TYPE_ALIVE,
-            sender_id=SYSTEM_SOCKET_ID,
-            receiver_id=socket_info.socket_id,
-        ))
+        print("sending alive")
+        return self._send_through_socket(
+            socket_info.socket,
+            Packet(
+                packet_type=PACKET_TYPE_ALIVE,
+                sender_id=SYSTEM_SOCKET_ID,
+                receiver_id=socket_info.socket_id,
+            ),
+        )
 
     def _on_act(self, packet: Packet):
         """Handle an action as sent from an agent"""
@@ -242,31 +258,38 @@ class Supervisor:
 
     def _register_worker(self, packet: Packet, socket_info: SocketInfo):
         """Process a worker registration packet to register a worker"""
-        crowd_data = packet.data['provider_data']
+        crowd_data = packet.data["provider_data"]
         crowd_provider = socket_info.job.provider
-        worker_name = crowd_data['worker_name']
+        worker_name = crowd_data["worker_name"]
         workers = self.db.find_workers(worker_name=worker_name)
         if len(workers) == 0:
             # TODO get rid of sandbox designation
-            workers = self.db.find_workers(worker_name=worker_name + '_sandbox')
+            workers = self.db.find_workers(worker_name=worker_name + "_sandbox")
         if len(workers) == 0:
-            worker = crowd_provider.WorkerClass.new_from_provider_data(self.db, crowd_data)
+            worker = crowd_provider.WorkerClass.new_from_provider_data(
+                self.db, crowd_data
+            )
         else:
             worker = workers[0]
         # TODO any sort of processing to see if this worker is blocked from the provider side?
-        self.message_queue.append(Packet(
-            packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-            sender_id=SYSTEM_SOCKET_ID,
-            receiver_id=socket_info.socket_id,
-            data={'request_id': packet.data['request_id'], 'worker_id': worker.db_id}
-        ))
+        self.message_queue.append(
+            Packet(
+                packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                sender_id=SYSTEM_SOCKET_ID,
+                receiver_id=socket_info.socket_id,
+                data={
+                    "request_id": packet.data["request_id"],
+                    "worker_id": worker.db_id,
+                },
+            )
+        )
 
     def _register_agent(self, packet: Packet, socket_info: SocketInfo):
         """Process an agent registration packet to register an agent"""
         task_run = socket_info.job.task_runner.task_run
-        crowd_data = packet.data['provider_data']
+        crowd_data = packet.data["provider_data"]
         crowd_provider = socket_info.job.provider
-        worker_id = crowd_data['worker_id']
+        worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
         units = task_run.get_valid_units_for_worker(worker)
         reserved_unit = None
@@ -274,38 +297,46 @@ class Supervisor:
             unit = units.pop(0)
             reserved_unit = task_run.reserve_unit(unit)
         if reserved_unit is None:
-            self.message_queue.append(Packet(
-                packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                sender_id=SYSTEM_SOCKET_ID,
-                receiver_id=socket_info.socket_id,
-                data={'request_id': packet.data['request_id'], 'agent_id': None}
-            ))
+            self.message_queue.append(
+                Packet(
+                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                    sender_id=SYSTEM_SOCKET_ID,
+                    receiver_id=socket_info.socket_id,
+                    data={"request_id": packet.data["request_id"], "agent_id": None},
+                )
+            )
         else:
-            agent = crowd_provider.AgentClass.new_from_provider_data(self.db, worker, unit, crowd_data)
-            self.message_queue.append(Packet(
-                packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                sender_id=SYSTEM_SOCKET_ID,
-                receiver_id=socket_info.socket_id,
-                data={'request_id': packet.data['request_id'], 'agent_id': agent.db_id}
-            ))
-            self.agents[agent.db_id] = AgentInfo(agent=agent, used_socket_id=socket_info.socket_id)
+            agent = crowd_provider.AgentClass.new_from_provider_data(
+                self.db, worker, unit, crowd_data
+            )
+            self.message_queue.append(
+                Packet(
+                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                    sender_id=SYSTEM_SOCKET_ID,
+                    receiver_id=socket_info.socket_id,
+                    data={
+                        "request_id": packet.data["request_id"],
+                        "agent_id": agent.db_id,
+                    },
+                )
+            )
+            self.agents[agent.db_id] = AgentInfo(
+                agent=agent, used_socket_id=socket_info.socket_id
+            )
 
     def _get_init_data(self, packet, socket_info: SocketInfo):
         """Get the initialization data for the assigned agent's task"""
         # TODO need to find a reasonable way to "start" the task with more than
         # one agent
         task_runner = socket_info.job.task_runner
-        agent_id = packet.data['provider_data']['agent_id']
+        agent_id = packet.data["provider_data"]["agent_id"]
         agent_info = self.agents[agent_id]
         unit_data = task_runner.get_init_data_for_agent(agent_info.agent)
         agent_data_packet = Packet(
             packet_type=PACKET_TYPE_INIT_DATA,
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=socket_info.socket_id,
-            data={
-                'request_id': packet.data['request_id'],
-                'init_data': unit_data,
-            },
+            data={"request_id": packet.data["request_id"], "init_data": unit_data},
         )
         self.message_queue.append(agent_data_packet)
 
@@ -337,7 +368,7 @@ class Supervisor:
             curr_obs = agent.pending_observations.pop(0)
             did_send = self._send_through_socket(socket_info.socket, curr_obs)
             if not did_send:
-                print(f'Failed to send packet {curr_obs} to {socket_info.url}')
+                print(f"Failed to send packet {curr_obs} to {socket_info.url}")
                 agent.pending_observations.insert(0, curr_obs)
                 return  # something up with the socket, try later
 
@@ -348,7 +379,9 @@ class Supervisor:
             socket = self.sockets[curr_obs.receiver_id].socket
             did_send = self._send_through_socket(socket, curr_obs)
             if not did_send:
-                print(f'Failed to send packet {curr_obs} to server {curr_obs.receiver_id}')
+                print(
+                    f"Failed to send packet {curr_obs} to server {curr_obs.receiver_id}"
+                )
                 self.message_queue.insert(0, curr_obs)
                 return  # something up with the socket, try later
 
@@ -405,6 +438,6 @@ class Supervisor:
     def launch_sending_thread(self) -> None:
         """Launch the sending thread for this supervisor"""
         self.sending_thread = threading.Thread(
-            target=self._socket_handling_thread, name=f'socket-sending-thread'
+            target=self._socket_handling_thread, name=f"socket-sending-thread"
         )
         self.sending_thread.start()

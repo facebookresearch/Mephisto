@@ -444,7 +444,10 @@ class LocalMephistoDB(MephistoDB):
         return self.__get_one_by_id("task_runs", "task_run_id", task_run_id)
 
     def find_task_runs(
-        self, task_id: Optional[str] = None, requester_id: Optional[str] = None, is_completed: Optional[bool] = None
+        self,
+        task_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
+        is_completed: Optional[bool] = None,
     ) -> List[TaskRun]:
         """
         Try to find any task_run that matches the above. When called with no arguments,

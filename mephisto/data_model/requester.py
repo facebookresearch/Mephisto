@@ -122,10 +122,10 @@ class Requester(ABC):
         Produce a dict of this requester and important features for json serialization
         """
         return {
-            'requester_id': self.db_id,
-            'provider_type': self.provider_type,
-            'requester_name': self.requester_name,
-            'registered': self.is_registered(),
+            "requester_id": self.db_id,
+            "provider_type": self.provider_type,
+            "requester_name": self.requester_name,
+            "registered": self.is_registered(),
         }
 
     # TODO add a way to manage creation and validation of qualifications

@@ -27,15 +27,15 @@ class MockAgent(Agent):
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
         self.datastore = db.get_datastore_for_provider(PROVIDER_TYPE)
-        self.datastore['agents'][db_id] = {
-            'observed': [],
-            'pending_acts': [],
-            'acts': [],
+        self.datastore["agents"][db_id] = {
+            "observed": [],
+            "pending_acts": [],
+            "acts": [],
         }
 
     def observe(self, packet: "Packet") -> None:
         """Put observations into this mock agent's observation list"""
-        self.datastore['agents'][self.db_id]['observed'].append(packet)
+        self.datastore["agents"][self.db_id]["observed"].append(packet)
         super().observe(packet)
 
     def act(self, timeout=None) -> Optional["Packet"]:
@@ -44,13 +44,13 @@ class MockAgent(Agent):
         by tests and other mock purposes) or request a regular act
         (for use in manual testing).
         """
-        if len(self.datastore['agents'][self.db_id]['pending_acts']) > 0:
-            act = self.datastore['agents'][self.db_id]['pending_acts'].pop(0)
+        if len(self.datastore["agents"][self.db_id]["pending_acts"]) > 0:
+            act = self.datastore["agents"][self.db_id]["pending_acts"].pop(0)
         else:
             act = super().act(timeout=timeout)
 
         if act is not None:
-            self.datastore['agents'][self.db_id]['acts'].append(act)
+            self.datastore["agents"][self.db_id]["acts"].append(act)
         return act
 
     def approve_work(self) -> None:

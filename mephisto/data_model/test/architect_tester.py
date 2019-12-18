@@ -49,7 +49,7 @@ class ArchitectTests(unittest.TestCase):
 
     def server_is_up(self, url: str) -> bool:
         """Ping the url to see if anything is running"""
-        if url.endswith('/'):
+        if url.endswith("/"):
             url = url[:-1]
         alive_url = url + "/is_alive"
         try:
@@ -106,7 +106,9 @@ class ArchitectTests(unittest.TestCase):
             issubclass(self.ArchitectClass, Architect),
             "Implemented ArchitectClass does not extend Architect",
         )
-        self.assertNotEqual(self.ArchitectClass, Architect, "Can not use base Architect")
+        self.assertNotEqual(
+            self.ArchitectClass, Architect, "Can not use base Architect"
+        )
         opts = self.ArchitectClass.get_extra_options()
         architect = self.ArchitectClass(self.db, opts, self.task_run, self.build_dir)
 

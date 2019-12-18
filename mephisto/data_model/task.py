@@ -233,8 +233,8 @@ class TaskRun:
         self.param_string = row["init_params"]
         # TODO put this as col in db
         self.task_type = self.get_task().task_type
-        self.start_time = row['creation_date']
-        self._is_completed = row['is_completed']
+        self.start_time = row["creation_date"]
+        self._is_completed = row["is_completed"]
         self._has_assignments = False
 
     def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
@@ -256,13 +256,13 @@ class TaskRun:
         the file creation fails, return none
         """
         file_name = f"unit_res_{unit.db_id}"
-        write_dir = os.path.join(self.get_run_dir(), 'reservations')
+        write_dir = os.path.join(self.get_run_dir(), "reservations")
         os.makedirs(write_dir, exist_ok=True)
         try:
-            with open(os.path.join(write_dir, file_name), 'x') as res_file:
+            with open(os.path.join(write_dir, file_name), "x") as res_file:
                 pass  # Creating the file is sufficient
         except FileExistsError:
-            print(os.path.join(write_dir, file_name), ' existed')
+            print(os.path.join(write_dir, file_name), " existed")
             return None
         return unit
 
@@ -375,15 +375,15 @@ class TaskRun:
     def to_dict(self) -> Dict[str, Any]:
         """Return a dict containing any important information about this task run"""
         return {
-            'task_run_id': self.db_id,
-            'task_id': self.task_id,
-            'task_name': self.get_task().task_name,
-            'task_type': self.task_type,
-            'start_time': self.start_time,
-            'params': {'status': 'Not yet implemented', 'run params': 'Coming soon!'},
-            'param_string': self.param_string,
-            'task_status': self.get_assignment_statuses(),
-            'sandbox': self.get_requester().is_sandbox(),
+            "task_run_id": self.db_id,
+            "task_id": self.task_id,
+            "task_name": self.get_task().task_name,
+            "task_type": self.task_type,
+            "start_time": self.start_time,
+            "params": {"status": "Not yet implemented", "run params": "Coming soon!"},
+            "param_string": self.param_string,
+            "task_status": self.get_assignment_statuses(),
+            "sandbox": self.get_requester().is_sandbox(),
         }
 
     @staticmethod

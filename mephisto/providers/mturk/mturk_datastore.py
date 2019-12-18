@@ -55,7 +55,6 @@ class MTurkDatastore:
         self.init_tables()
         self.datastore_root = datastore_root
 
-
     def _get_connection(self) -> sqlite3.Connection:
         """Returns a singular database connection to be shared amongst all
         calls for a given thread.
@@ -81,9 +80,7 @@ class MTurkDatastore:
             c.execute(CREATE_RUNS_TABLE)
             conn.commit()
 
-    def new_hit(
-        self, unit_id: str, hit_id: str, duration: int
-    ) -> None:
+    def new_hit(self, unit_id: str, hit_id: str, duration: int) -> None:
         """Register a new HIT mapping in the table"""
         with self.table_access_condition:
             conn = self._get_connection()
@@ -100,7 +97,7 @@ class MTurkDatastore:
 
     def register_assignment_to_hit(self, unit_id: str, assignment_id: str) -> None:
         """Register a specific  assignment to the given unit"""
-        with  self.table_access_condition:
+        with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
@@ -108,7 +105,7 @@ class MTurkDatastore:
                 SET assignment_id = ?
                 WHERE unit_id = ?
                 """,
-                (assignment_id, unit_id)
+                (assignment_id, unit_id),
             )
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:

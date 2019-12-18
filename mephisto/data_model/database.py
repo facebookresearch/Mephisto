@@ -189,7 +189,10 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def find_task_runs(
-        self, task_id: Optional[str] = None, requester_id: Optional[str] = None, is_completed: Optional[bool] = None
+        self,
+        task_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
+        is_completed: Optional[bool] = None,
     ) -> List[TaskRun]:
         """
         Try to find any task_run that matches the above. When called with no arguments,

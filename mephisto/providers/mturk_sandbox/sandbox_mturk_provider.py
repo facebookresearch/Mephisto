@@ -48,5 +48,5 @@ class SandboxMTurkProvider(MTurkProvider):
         """
         Get an mturk client for usage with mturk_utils
         """
-        print('sandbox client', self)
+        print("sandbox client", self)
         return self.datastore.get_sandbox_client_for_requester(requester_name)

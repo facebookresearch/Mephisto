@@ -494,7 +494,6 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertTrue(isinstance(task_runs[0], TaskRun))
         self.assertEqual(task_runs[0].db_id, task_run_id)
 
-
     def test_task_run_fails(self) -> None:
         """Ensure task_runs fail to be created or loaded under failure conditions"""
         assert self.db is not None, "No db initialized"

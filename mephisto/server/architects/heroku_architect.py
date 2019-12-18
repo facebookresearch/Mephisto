@@ -34,6 +34,7 @@ HEROKU_CLIENT_URL = (
 
 HEROKU_WAIT_TIME = 3
 
+
 class HerokuArchitect(Architect):
     """
     Sets up a server on heroku and deploys the task on that server
@@ -62,7 +63,7 @@ class HerokuArchitect(Architect):
         self.task_run = task_run
         self.deploy_name = f"{task_run.get_task().task_name}_{task_run.db_id}"
         self.build_dir = build_dir_root
-        self.tmp_dir = os.path.join(get_mephisto_tmp_dir(), 'heroku')
+        self.tmp_dir = os.path.join(get_mephisto_tmp_dir(), "heroku")
         if not os.path.exists(self.tmp_dir):
             os.makedirs(self.tmp_dir)
 
@@ -130,7 +131,7 @@ class HerokuArchitect(Architect):
                     os.remove(os.path.join(self.tmp_dir, "heroku.tar.gz"))
 
                 # Get the heroku client and unzip
-                tar_path = os.path.join(self.tmp_dir, 'heroku.tar.gz')
+                tar_path = os.path.join(self.tmp_dir, "heroku.tar.gz")
                 sh.wget(
                     shlex.split(
                         "{}-{}-{}.tar.gz -O {}".format(
@@ -172,9 +173,7 @@ class HerokuArchitect(Architect):
                         "login` at the terminal to login to Heroku, and then run this "
                         "program again.".format(heroku_executable_path)
                     )
-                    raise SystemExit(
-                        "Please login to heroku before trying again."
-                    )
+                    raise SystemExit("Please login to heroku before trying again.")
             self.__heroku_executable_path = heroku_executable_path
             self.__heroku_user_identifier = heroku_user_identifier
         return self.__heroku_executable_path, self.__heroku_user_identifier
@@ -201,10 +200,10 @@ class HerokuArchitect(Architect):
                     hashlib.md5(heroku_user_identifier.encode("utf-8")).hexdigest(),
                 )
             )[:30]
-            heroku_app_name = heroku_app_name.replace("_", '-')
+            heroku_app_name = heroku_app_name.replace("_", "-")
             while heroku_app_name[-1] == "-":
                 heroku_app_name = heroku_app_name[:-1]
-            self.heroku_app_name = heroku_app_name.replace("_", '-')
+            self.heroku_app_name = heroku_app_name.replace("_", "-")
         return self.heroku_app_name
 
     def __compile_server(self) -> str:
@@ -216,7 +215,9 @@ class HerokuArchitect(Architect):
         print("Building server files...")
         heroku_server_development_root = self.__get_build_directory()
         os.makedirs(heroku_server_development_root)
-        heroku_server_development_path = build_router(heroku_server_development_root, self.task_run)
+        heroku_server_development_path = build_router(
+            heroku_server_development_root, self.task_run
+        )
         return heroku_server_development_path
 
     def __setup_heroku_server(self) -> str:
@@ -330,10 +331,8 @@ class HerokuArchitect(Architect):
         """
         heroku_executable_path, _token = self.__get_heroku_client()
         app_name = self.__get_app_name()
-        output = subprocess.check_output(
-            shlex.split(heroku_executable_path + " apps")
-        )
-        all_apps = str(output, 'utf-8')
+        output = subprocess.check_output(shlex.split(heroku_executable_path + " apps"))
+        all_apps = str(output, "utf-8")
         return app_name in all_apps
 
     def build_is_clean(self) -> bool:
