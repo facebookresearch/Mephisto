@@ -87,6 +87,18 @@ function getAgentRegistration(mephisto_worker_id) {
 function handleSubmitToProvider(task_data) {
     // Mock agents won't ever submit to a real provider
     let urlParams = new URLSearchParams(window.location.search);
-    console.log('Submit to', urlParams.get('turkSubmitTo'))
-    return true;
+    task_data['assignmentId'] = getAssignmentId();
+    task_data['workerId'] = getWorkerName();
+    var form = document.createElement('form');
+    document.body.appendChild(form);
+    for (var name in task_data) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = task_data[name];
+        form.appendChild(input);
+    }
+    form.method = 'POST';
+    form.action = urlParams.get('turkSubmitTo') + '/mturk/externalSubmit';
+    form.submit();
 }

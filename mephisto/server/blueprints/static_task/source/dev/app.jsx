@@ -178,7 +178,7 @@ class MainApp extends React.Component {
     form_data.forEach((value, key) => {obj_data[key] = value});
     console.log(obj_data);
     postCompleteTask(this.state.agent_id, obj_data);
-    handleSubmitToProvider(form_data);
+    handleSubmitToProvider(obj_data);
   }
 
   render() {

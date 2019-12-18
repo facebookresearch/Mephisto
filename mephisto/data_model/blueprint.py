@@ -258,6 +258,17 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @staticmethod
+    def complete() -> List[str]:
+        """Return all final Agent statuses which cannot be updated"""
+        return [
+            AgentState.STATUS_COMPLETED,
+            AgentState.STATUS_DISCONNECT,
+            AgentState.STATUS_PARTNER_DISCONNECT,
+            AgentState.STATUS_EXPIRED,
+            AgentState.STATUS_RETURNED,
+        ]
+
+    @staticmethod
     def valid() -> List[str]:
         """Return all valid Agent statuses"""
         # TODO write a test that ensures all AgentState statuses are here

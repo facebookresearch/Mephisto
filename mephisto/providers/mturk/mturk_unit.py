@@ -43,18 +43,7 @@ class MTurkUnit(Unit):
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
-        try:
-            mapping = self.datastore.get_hit_mapping(db_id)
-            self.hit_id = mapping["hit_id"]
-            self.mturk_assignment_id = mapping["assignment_id"]
-            self.assignment_duration_in_seconds = mapping[
-                "assignment_duration_in_seconds"
-            ]
-        except IndexError:
-            # HIT does not appear to exist
-            self.hit_id = None
-            self.mturk_assignment_id = None
-            self.assignment_duration_in_seconds = -1
+        self._sync_hit_mapping()
         self.__requester: Optional["MTurkRequester"] = None
 
     def _get_client(self, requester_name: str) -> Any:
@@ -63,10 +52,27 @@ class MTurkUnit(Unit):
         """
         return self.datastore.get_client_for_requester(requester_name)
 
+    def _sync_hit_mapping(self) -> None:
+        """Sync with the datastore to see if any mappings have updated"""
+        try:
+            mapping = self.datastore.get_hit_mapping(self.db_id)
+            self.hit_id = mapping["hit_id"]
+            self.mturk_assignment_id = mapping["assignment_id"]
+            self.assignment_time_in_seconds = mapping[
+                "assignment_time_in_seconds"
+            ]
+        except IndexError:
+            # HIT does not appear to exist
+            self.hit_id = None
+            self.mturk_assignment_id = None
+            self.assignment_time_in_seconds = -1
+
     def get_mturk_assignment_id(self) -> str:
         """
         Return the MTurk assignment id associated with this unit
         """
+        if self.mturk_assignment_id is None:
+            self._sync_hit_mapping()
         assert (
             self.mturk_assignment_id is not None
         ), "Only launched HITs have assignment ids"
@@ -142,10 +148,7 @@ class MTurkUnit(Unit):
             client, frame_height, task_url, hit_type_id
         )
         self.datastore.new_hit(self.db_id, hit_id, TODO_FILL_DURATION)
-        # TODO store the HIT link?
-        print(hit_link, hit_id, response)
         self.hit_id = hit_id
-        # self.assignment_id = response["Assignments"][0]["AssignmentId"]
         return None
 
     def expire(self) -> float:
@@ -158,7 +161,7 @@ class MTurkUnit(Unit):
             # The assignment is currently being worked on,
             # so we will set the wait time to be the
             # amount of time we granted for working on this assignment
-            delay = self.assignment_duration_in_seconds
+            delay = self.assignment_time_in_seconds
         mturk_hit_id = self.get_mturk_hit_id()
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
