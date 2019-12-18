@@ -58,9 +58,7 @@ class MTurkUnit(Unit):
             mapping = self.datastore.get_hit_mapping(self.db_id)
             self.hit_id = mapping["hit_id"]
             self.mturk_assignment_id = mapping["assignment_id"]
-            self.assignment_time_in_seconds = mapping[
-                "assignment_time_in_seconds"
-            ]
+            self.assignment_time_in_seconds = mapping["assignment_time_in_seconds"]
         except IndexError:
             # HIT does not appear to exist
             self.hit_id = None
