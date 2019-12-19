@@ -14,6 +14,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
 
 
+DATA_FILE = 'agent_data.json'
+
+
 class StaticAgentState(AgentState):
     """
     Agent state for static tasks
@@ -60,8 +63,11 @@ class StaticAgentState(AgentState):
 
     def save_data(self) -> None:
         """Save static agent data to disk"""
-        # TODO implement
-        print("WOULD SAVE DATA TO DISK", self.state)
+        data_dir = self.agent.get_data_dir()
+        os.makedirs(data_dir, exist_ok=True)
+        with open(os.path.join(data_dir, DATA_FILE), 'w+') as data_file:
+            json.dump(self.state, data_file)
+        print("SAVED_DATA_TO_DISC", self.state)
         pass
 
     def update_data(self, packet: "Packet") -> None:

@@ -52,6 +52,14 @@ class Assignment:
                 return json.load(json_file)
         return None
 
+    def write_assignment_data(self, data: Dict[str, Any]) -> None:
+        """Set the assignment data for this assignment"""
+        assign_data_filename = os.path.join(self.get_data_dir(), ASSIGNMENT_DATA_FILE)
+        os.makedirs(self.get_data_dir(), exist_ok=True)
+        with open(assign_data_filename, "w+") as json_file:
+            return json.dump(data, json_file)
+        return None
+
     def get_status(self) -> str:
         """
         Get the status of this assignment, as determined by the status of
