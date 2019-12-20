@@ -40,16 +40,6 @@ def get_running_task_runs():
         }
     )
 
-
-@api.route("/error", defaults={"status_code": "501"})
-@api.route("/error/<string:status_code>")
-def intentional_error(status_code):
-    """
-    A helper endpoint to test out cases in the UI where an error occurs.
-    """
-    raise InvalidUsage("An error occured", status_code=int(status_code))
-
-
 @api.route("/task_runs/reviewable")
 def get_reviewable_task_runs():
     """
@@ -64,6 +54,11 @@ def get_reviewable_task_runs():
     # TODO maybe include warning for auto approve date once that's tracked
     return jsonify({"task_runs": dict_tasks, "total_reviewable": reviewable_count})
 
+@api.route("/task_runs/launch", methods=["POST"])
+def start_task_run():
+    # TODO: incorporate actual logic here
+    info = request.get_json(force=True)
+    return jsonify({"status": "success", "data": info})
 
 @api.route("/requester/<requester_type>/options")
 def requester_details(requester_type):
@@ -176,6 +171,13 @@ def launch_task_run(requester_type):
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "msg": str(e)})
+@api.route("/error", defaults={"status_code": "501"})
+@api.route("/error/<string:status_code>")
+def intentional_error(status_code):
+    """
+    A helper endpoint to test out cases in the UI where an error occurs.
+    """
+    raise InvalidUsage("An error occured", status_code=int(status_code))
 
 
 class InvalidUsage(Exception):
