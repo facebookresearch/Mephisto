@@ -41,7 +41,7 @@ class MTurkAgent(Agent):
             self.PROVIDER_TYPE
         )
         unit: "MTurkUnit" = self.get_unit()
-        # self.mturk_assignment_id = unit.get_mturk_assignment_id()
+        self.mturk_assignment_id = unit.get_mturk_assignment_id()
         # TODO any additional init as is necessary once
         # a mock DB exists
 
@@ -53,23 +53,23 @@ class MTurkAgent(Agent):
         requester: "MTurkRequester" = unit.get_requester()
         return self.datastore.get_client_for_requester(requester._requester_name)
 
+    @classmethod
+    def new_from_provider_data(
+        cls,
+        db: "MephistoDB",
+        worker: "Worker",
+        unit: "Unit",
+        provider_data: Dict[str, Any],
+    ) -> "Agent":
+        """
+        Wrapper around the new method that allows registering additional
+        bookkeeping information from a crowd provider for this agent
+        """
+        datastore: "MTurkDatastore" = db.get_datastore_for_provider(cls.PROVIDER_TYPE)
+        datastore.register_assignment_to_hit(unit.db_id, provider_data["assignment_id"])
+        return cls.new(db, worker, unit)
+
     # Required functions for Agent Interface
-
-    def observe(self, action: "Packet") -> None:
-        """
-        Pass the observed information to the AgentState, then
-        push that information to the user
-        """
-        # TODO implement with the task runner system
-        raise NotImplementedError()
-
-    def act(self, timeout=None) -> Optional["Packet"]:
-        """
-        Request information from the Agent's frontend. If non-blocking,
-        should return None if no actions are ready to be returned.
-        """
-        # TODO implement with the task runner system
-        raise NotImplementedError()
 
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""
@@ -83,18 +83,22 @@ class MTurkAgent(Agent):
 
     def get_status(self) -> str:
         """Get the status of this agent in their work on their unit"""
-        # TODO do we need to query any other statuses?
-        # When do we update this?
+        if self.db_status not in AgentState.complete():
+            # TODO do we need to query any other statuses? perhaps from the MTurkUnit?
+            row = self.db.get_agent(self.db_id)
+            self.db_status = row["status"]
         return self.db_status
 
     def mark_done(self) -> None:
         """
-        Take any required step with the crowd_provider to ensure that
-        the worker can submit their work and be marked as complete via
-        a call to get_status
+        MTurk agents are marked as done on the side of MTurk, so if this agent
+        is marked as done there's nothing else we need to do as the task has been
+        submitted.
         """
-        # TODO implement
-        raise NotImplementedError()
+        if self.get_status() != AgentState.STATUS_DISCONNECT:
+            self.db.update_agent(
+                agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
+            )
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":

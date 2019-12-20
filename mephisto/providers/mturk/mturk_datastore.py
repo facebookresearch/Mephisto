@@ -93,6 +93,7 @@ class MTurkDatastore:
                 ) VALUES (?, ?, ?);""",
                 (unit_id, hit_id, duration),
             )
+            conn.commit()
             return None
 
     def register_assignment_to_hit(self, unit_id: str, assignment_id: str) -> None:
@@ -107,6 +108,7 @@ class MTurkDatastore:
                 """,
                 (assignment_id, unit_id),
             )
+            conn.commit()
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""
@@ -139,6 +141,7 @@ class MTurkDatastore:
                 ) VALUES (?, ?, ?, ?);""",
                 (run_id, arn_id, hit_type_id, hit_config_path),
             )
+            conn.commit()
             return None
 
     def get_run(self, run_id: str) -> sqlite3.Row:
