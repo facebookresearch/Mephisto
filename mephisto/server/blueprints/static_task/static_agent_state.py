@@ -14,6 +14,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
 
 
+DATA_FILE = 'agent_data.json'
+
+
 class StaticAgentState(AgentState):
     """
     Agent state for static tasks
@@ -28,6 +31,7 @@ class StaticAgentState(AgentState):
         """
         self.agent = agent
         self.state: List[Dict[str, Any]] = []
+        self.load_data()
 
     def set_init_state(self, data: Any) -> bool:
         """Set the initial state for this agent"""
@@ -51,8 +55,13 @@ class StaticAgentState(AgentState):
 
     def load_data(self) -> None:
         """Load data for this agent from disk"""
-        # TODO implement
-        pass
+        data_dir = self.agent.get_data_dir()
+        data_path = os.path.join(data_dir, DATA_FILE)
+        if os.path.exists(data_path):
+            with open(data_path, 'r') as data_file:
+                self.state = json.load(data_file)
+        else:
+            self.state = []
 
     def get_data(self) -> List[Dict[str, Any]]:
         """Return dict of this agent's state"""
@@ -60,9 +69,11 @@ class StaticAgentState(AgentState):
 
     def save_data(self) -> None:
         """Save static agent data to disk"""
-        # TODO implement
-        print("WOULD SAVE DATA TO DISK", self.state)
-        pass
+        data_dir = self.agent.get_data_dir()
+        os.makedirs(data_dir, exist_ok=True)
+        with open(os.path.join(data_dir, DATA_FILE), 'w+') as data_file:
+            json.dump(self.state, data_file)
+        print("SAVED_DATA_TO_DISC", self.state)
 
     def update_data(self, packet: "Packet") -> None:
         """

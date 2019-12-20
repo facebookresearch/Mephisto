@@ -44,19 +44,11 @@ class StaticTaskRunner(TaskRunner):
         super().__init__(task_run, opts)
         self.running_assignments: Dict[str, TrackedAssignment] = {}
 
-    def get_data_for_assignment(self, assigment: "Assignment") -> List[Dict[str, Any]]:
+    def get_data_for_assignment(self, assignment: "Assignment") -> List[Dict[str, Any]]:
         """
         Finds the right data to get for the given assignment.
         """
-        return [
-            {
-                "character_name": "Loaded Character",
-                "character_description": "I'm a character loaded from Mephisto!",
-                "html": "task.html",
-            }
-        ]
-        # TODO pull this directly from the assignment
-        # return assignment.get_data_for_assignment()
+        return assignment.get_assignment_data()
 
     # TODO reconnects should get the same agent as was initially given
 
