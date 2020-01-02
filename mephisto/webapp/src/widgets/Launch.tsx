@@ -3,17 +3,27 @@ import BaseWidget from "./Base";
 import useAxios from "axios-hooks";
 import { TaskRun, RunningTasks } from "../models";
 import { task_runs__running } from "../mocks";
-import { Colors, Icon } from "@blueprintjs/core";
+import {
+  Colors,
+  Icon,
+  Drawer,
+  Position,
+  Classes,
+  Card,
+  Button,
+  Intent,
+  Toaster
+} from "@blueprintjs/core";
 import { createAsync, mockRequest } from "../lib/Async";
 import TaskRunSummary from "./TaskRunSummary";
+import BlueprintSelect from "./components/BlueprintSelect";
+import ArchitectSelect from "./components/ArchitectSelect";
+import { toaster } from "../lib/toaster";
 
 const Async = createAsync<RunningTasks>();
+const LaunchInfoAsync = createAsync<any>();
 
 export default (function LaunchWidget() {
-  // const runningTasksAsync = useAxios<RunningTasks>({
-  //   url: "task_runs/running"
-  // });
-
   const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
 
   return (
@@ -62,11 +72,107 @@ export default (function LaunchWidget() {
       />
       <div>
         <div style={{ textAlign: "center", marginTop: 15 }}>
-          <button className="bp3-button" disabled>
-            [TODO] Launch a task
-          </button>
+          <LaunchForm />
         </div>
       </div>
     </BaseWidget>
   );
 } as React.FC);
+
+function LaunchForm() {
+  const [openForm, setOpenForm] = React.useState(false);
+  const launchInfo = useAxios({ url: "launch/options" });
+
+  return (
+    <div>
+      <button className="bp3-button" onClick={() => setOpenForm(true)}>
+        [TODO] Launch a task
+      </button>
+      <Drawer
+        icon="people"
+        onClose={() => setOpenForm(false)}
+        title="Launch a task"
+        autoFocus={true}
+        canEscapeKeyClose={false}
+        canOutsideClickClose={false}
+        enforceFocus={true}
+        hasBackdrop={true}
+        isOpen={openForm}
+        position={Position.RIGHT}
+        size={"50%"}
+        usePortal={true}
+      >
+        <div
+          className={Classes.DRAWER_BODY}
+          style={{ backgroundColor: Colors.LIGHT_GRAY4 }}
+        >
+          <div className={Classes.DIALOG_BODY}>
+            <h2>Step 1. Choose a Task Blueprint</h2>
+            <p className="bp3-text-muted">
+              A blueprint defines the task that will be run &amp; its associated
+              configuration parameters.
+            </p>
+            <LaunchInfoAsync
+              info={launchInfo}
+              onLoading={() => <span>Loading...</span>}
+              onData={({ data }) => (
+                <div>
+                  {/* {data.blueprints.map((bp: any) => (
+                    <Card interactive>{bp}</Card>
+                  ))} */}
+                  <BlueprintSelect data={data.blueprints} />
+                </div>
+              )}
+              onError={() => <span>Error</span>}
+            />
+
+            <h2>Step 2. Choose an Architect</h2>
+            <p className="bp3-text-muted">
+              An architect manages the deployment target of your task.
+            </p>
+            <LaunchInfoAsync
+              info={launchInfo}
+              onLoading={() => <span>Loading...</span>}
+              onData={({ data }) => (
+                <div>
+                  <ArchitectSelect data={data.architects} />
+                </div>
+              )}
+              onError={() => <span>Error</span>}
+            />
+            <Button
+              onClick={() => {
+                const validated = true;
+
+                if (validated) {
+                  setOpenForm(false);
+                  toaster.show({
+                    message: "Launching task...",
+                    icon: "cloud-upload",
+                    intent: Intent.NONE
+                  });
+                  setTimeout(
+                    () =>
+                      toaster.show({
+                        message: "Launched!",
+                        icon: "cloud-upload",
+                        intent: Intent.SUCCESS
+                      }),
+                    1000
+                  );
+                } else {
+                }
+              }}
+              large
+              icon="cloud-upload"
+              intent={Intent.SUCCESS}
+              style={{ margin: "20px auto 0" }}
+            >
+              Launch
+            </Button>
+          </div>
+        </div>
+      </Drawer>
+    </div>
+  );
+}

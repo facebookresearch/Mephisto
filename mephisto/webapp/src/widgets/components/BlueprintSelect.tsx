@@ -1,0 +1,125 @@
+import React from "react";
+import { Select, ItemRenderer } from "@blueprintjs/select";
+import {
+  Button,
+  MenuItem,
+  FormGroup,
+  InputGroup,
+  Card
+} from "@blueprintjs/core";
+import { createAsync } from "../../lib/Async";
+import useAxios from "axios-hooks";
+
+type IBlueprint = {
+  name: string;
+  rank: number;
+};
+
+type BlueprintParams = any;
+
+const BlueprintSelect = Select.ofType<IBlueprint>();
+const BlueprintParamsAsync = createAsync<BlueprintParams>();
+
+const renderBlueprintItem: ItemRenderer<IBlueprint> = (
+  blueprint,
+  { handleClick, modifiers, query }
+) => {
+  if (!modifiers.matchesPredicate) {
+    return null;
+  }
+  const text = `${blueprint.rank}. ${blueprint.name}`;
+  return (
+    <MenuItem
+      active={modifiers.active}
+      disabled={modifiers.disabled}
+      key={blueprint.rank}
+      onClick={handleClick}
+      text={highlightText(text, query)}
+    />
+  );
+};
+
+export default function BlueprintSelectComponent<T>({
+  data
+}: {
+  data: IBlueprint[];
+}) {
+  const [selected, setSelected] = React.useState<IBlueprint | null>(null);
+  const paramsInfo = useAxios({
+    url: `blueprints/${selected?.name || "none"}/arguments`
+  });
+
+  return (
+    <div>
+      <BlueprintSelect
+        items={data}
+        itemRenderer={renderBlueprintItem}
+        onItemSelect={(blueprint: IBlueprint) => setSelected(blueprint)}
+        activeItem={selected}
+      >
+        <Button icon="map" rightIcon="caret-down">
+          {selected ? selected.name : "Pick a blueprint..."}
+        </Button>
+      </BlueprintSelect>
+      {selected && (
+        <BlueprintParamsAsync
+          info={paramsInfo}
+          onLoading={() => <span>Loading...</span>}
+          onError={() => <span>Error</span>}
+          onData={({ data }) => (
+            <div style={{ margin: "20px 0" }}>
+              {data.args.map((field: any) => (
+                <FormGroup
+                  label={field.name}
+                  labelInfo={field.helpText}
+                  labelFor={"bp-" + field.name}
+                >
+                  <InputGroup
+                    id={"bp-" + field.name}
+                    placeholder={field.defaultValue}
+                    defaultValue={field.defaultValue}
+                  ></InputGroup>
+                </FormGroup>
+              ))}
+            </div>
+          )}
+        />
+      )}
+    </div>
+  );
+}
+
+function escapeRegExpChars(text: string) {
+  return text.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+}
+
+function highlightText(text: string, query: string) {
+  let lastIndex = 0;
+  const words = query
+    .split(/\s+/)
+    .filter(word => word.length > 0)
+    .map(escapeRegExpChars);
+  if (words.length === 0) {
+    return [text];
+  }
+  const regexp = new RegExp(words.join("|"), "gi");
+  const tokens: React.ReactNode[] = [];
+  while (true) {
+    const match = regexp.exec(text);
+    if (!match) {
+      break;
+    }
+    const length = match[0].length;
+    const before = text.slice(lastIndex, regexp.lastIndex - length);
+    if (before.length > 0) {
+      tokens.push(before);
+    }
+    lastIndex = regexp.lastIndex;
+    tokens.push(<strong key={lastIndex}>{match[0]}</strong>);
+  }
+  const rest = text.slice(lastIndex);
+  if (rest.length > 0) {
+    tokens.push(rest);
+  }
+  return tokens;
+}
