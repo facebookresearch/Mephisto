@@ -149,14 +149,16 @@ function LaunchForm() {
                   toaster.show({
                     message: "Launching task...",
                     icon: "cloud-upload",
-                    intent: Intent.NONE
+                    intent: Intent.NONE,
+                    timeout: 2000
                   });
                   setTimeout(
                     () =>
                       toaster.show({
                         message: "Launched!",
                         icon: "cloud-upload",
-                        intent: Intent.SUCCESS
+                        intent: Intent.SUCCESS,
+                        timeout: 2000
                       }),
                     1000
                   );
