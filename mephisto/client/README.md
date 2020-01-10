@@ -2,6 +2,7 @@
 
 All of the endpoints below are **`GET`** unless specified otherwise.
 
+These specs are to be implemented in `mephisto/client/api.py`.
 
 #### WIP Endpoints / Backlog
 
@@ -194,7 +195,7 @@ Sample response:
 Sample response:
 ```
 {
-  "id": <unit_id>,
+  "unit_id": <unit_id>,
   "view_path": "https://google.com",
   "data": {
     "name": "me"
@@ -203,5 +204,7 @@ Sample response:
 ```
 
 #### **`POST`** `/task_runs/<task_id>/units/<unit_id>/accept`
+
+[Discussion] Accept params here to allow giving a bonus?
 
 #### **`POST`** `/task_runs/<task_id>/units/<unit_id>/reject`
