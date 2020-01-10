@@ -11,11 +11,11 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 ---
 ## Requesters
 
-### `/requesters`
+#### `/requesters`
 
-### `/requester/<type>`
+#### `/requester/<type>`
 
-### `/<requester_name>/get_balance`
+#### `/<requester_name>/get_balance`
 
 TODO: Change to `/requester/balance/<requester_name>` perhaps, to be consistent in format?
 
@@ -24,7 +24,7 @@ TODO: Change to `/requester/balance/<requester_name>` perhaps, to be consistent 
 ---
 ## Launching
 
-### `/launch/options`
+#### `/launch/options`
 
 Sample response:
 ```
@@ -34,20 +34,20 @@ Sample response:
 }
 ```
 
-### `/blueprints/<blueprint_name>/arguments`
+#### `/blueprints/<blueprint_name>/arguments`
 
-### `/architects/<architect_name>/arguments`
+#### `/architects/<architect_name>/arguments`
 
 ### **`POST`** `/task_runs/launch`
 
 ---
 ## Review
 
-### `/task_runs/running`
+#### `/task_runs/running`
 
-### `/task_runs/reviewable`
+#### `/task_runs/reviewable`
 
-### `/task_runs/<task_id>/units`
+#### `/task_runs/<task_id>/units`
 
 Sample response:
 ```
