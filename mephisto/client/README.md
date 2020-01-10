@@ -7,10 +7,14 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 
 - Endpoints for actions to modify the review state of a Unit
 - Endpoint for getting the URL of a task and it's data to show
-- Make error reponse codes more consistent across all types of errors.
+- Make error reponse codes more consistent across all types of errors. Some stuff from the wild:
+  - https://stripe.com/docs/api/errors
+  - https://cloud.google.com/apis/design/errors#http_mapping
 
 ---
 ## 🕵️‍♀️ Requesters
+
+*Shows a list of all the requesters that are available on the local system*
 
 #### `/requesters`
 Sample response:
@@ -35,6 +39,8 @@ Sample response:
 
 #### `/requester/<type>`
 
+*Provides information on what params to provide if you'd like to set up a requester.*
+
 Sample response:
 ```
 {
@@ -45,6 +51,8 @@ Sample response:
 ```
 
 #### `/<requester_name>/get_balance` - TODO: Change to `/requester/balance/<requester_name>`
+
+[Discussion] Instead of `balance` should we make the endpoint a bit more generic, e.g. `info` or `metadata` or `properties` instead? This is because perhaps not every requester may have the concept of having a budget, although most might.
 
 Sample response:
 ```
@@ -137,9 +145,13 @@ Sample request:
 
 Sample response:
 ```
+# Success:
+
 {
   "success": true
 }
+
+# Error:
 
 {
   "success": false,
@@ -164,6 +176,16 @@ Sample response:
 ```
 
 #### `/task_runs/reviewable`
+
+*Shows tasks with atleast 1 unit that is reviewable.*
+
+Sample response:
+```
+{
+  "total_reviewable": 8,
+  "task_runs": TaskRun[]
+}
+```
 
 #### `/task_runs/<task_id>/units`
 
