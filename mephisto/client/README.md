@@ -17,7 +17,7 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 
 ### `/<requester_name>/get_balance`
 
-TODO: Change to `/requester/balance/<requester_name>` perhaps?
+TODO: Change to `/requester/balance/<requester_name>` perhaps, to be consistent in format?
 
 ### **`POST`** `/requester/<type>/register`
 
