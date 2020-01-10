@@ -10,7 +10,7 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 - Make error reponse codes more consistent across all types of errors.
 
 ---
-## Requesters
+## 🕵️‍♀️ Requesters
 
 #### `/requesters`
 Sample response:
@@ -76,7 +76,7 @@ Sample response:
 ```
 
 ---
-## Launching
+## 🚀 Launching
 
 #### `/launch/options`
 
@@ -148,7 +148,7 @@ Sample response:
 ```
 
 ---
-## Review
+## 📥 Review
 
 #### `/task_runs/running`
 
