@@ -6,13 +6,18 @@ import { createAsync } from "../../lib/Async";
 type ArchitectParams = any;
 const BlueprintParamsAsync = createAsync<ArchitectParams>();
 
-export default function ArchitectSelect({ data }: { data: any }) {
+export default function ArchitectSelect({
+  data,
+  onUpdate
+}: {
+  data: any;
+  onUpdate: Function;
+}) {
   const [selected, setSelected] = React.useState(null);
   const paramsInfo = useAxios({
     url: `architects/${selected || "none"}/arguments`
   });
 
-  console.log(data);
   return (
     <div>
       {data.map((arch: any) => (

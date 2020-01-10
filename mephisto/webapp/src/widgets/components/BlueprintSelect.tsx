@@ -1,14 +1,9 @@
 import React from "react";
 import { Select, ItemRenderer } from "@blueprintjs/select";
-import {
-  Button,
-  MenuItem,
-  FormGroup,
-  InputGroup,
-  Card
-} from "@blueprintjs/core";
+import { Button, MenuItem } from "@blueprintjs/core";
 import { createAsync } from "../../lib/Async";
 import useAxios from "axios-hooks";
+import FormField from "./FormField";
 
 type IBlueprint = {
   name: string;
@@ -40,9 +35,11 @@ const renderBlueprintItem: ItemRenderer<IBlueprint> = (
 };
 
 export default function BlueprintSelectComponent<T>({
-  data
+  data,
+  onUpdate
 }: {
   data: IBlueprint[];
+  onUpdate: Function;
 }) {
   const [selected, setSelected] = React.useState<IBlueprint | null>(null);
   const paramsInfo = useAxios({
@@ -54,7 +51,10 @@ export default function BlueprintSelectComponent<T>({
       <BlueprintSelect
         items={data}
         itemRenderer={renderBlueprintItem}
-        onItemSelect={(blueprint: IBlueprint) => setSelected(blueprint)}
+        onItemSelect={(blueprint: IBlueprint) => {
+          onUpdate({ blueprint: blueprint.name });
+          setSelected(blueprint);
+        }}
         activeItem={selected}
       >
         <Button icon="map" rightIcon="caret-down">
@@ -69,17 +69,7 @@ export default function BlueprintSelectComponent<T>({
           onData={({ data }) => (
             <div style={{ margin: "20px 0" }}>
               {data.args.map((field: any) => (
-                <FormGroup
-                  label={field.name}
-                  labelInfo={field.helpText}
-                  labelFor={"bp-" + field.name}
-                >
-                  <InputGroup
-                    id={"bp-" + field.name}
-                    placeholder={field.defaultValue}
-                    defaultValue={field.defaultValue}
-                  ></InputGroup>
-                </FormGroup>
+                <FormField prefix="bp" onUpdate={onUpdate} field={field} />
               ))}
             </div>
           )}

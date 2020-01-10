@@ -83,6 +83,10 @@ function LaunchForm() {
   const [openForm, setOpenForm] = React.useState(false);
   const launchInfo = useAxios({ url: "launch/options" });
 
+  const [params, addToParams] = React.useReducer((state, params) => {
+    return { ...state, ...params };
+  }, {});
+
   return (
     <div>
       <button className="bp3-button" onClick={() => setOpenForm(true)}>
@@ -117,10 +121,10 @@ function LaunchForm() {
               onLoading={() => <span>Loading...</span>}
               onData={({ data }) => (
                 <div>
-                  {/* {data.blueprints.map((bp: any) => (
-                    <Card interactive>{bp}</Card>
-                  ))} */}
-                  <BlueprintSelect data={data.blueprints} />
+                  <BlueprintSelect
+                    data={data.blueprints}
+                    onUpdate={(data: any) => addToParams(data)}
+                  />
                 </div>
               )}
               onError={() => <span>Error</span>}
@@ -135,7 +139,12 @@ function LaunchForm() {
               onLoading={() => <span>Loading...</span>}
               onData={({ data }) => (
                 <div>
-                  <ArchitectSelect data={data.architects} />
+                  <ArchitectSelect
+                    data={data.architects}
+                    onUpdate={(data: any) => {
+                      addToParams(data);
+                    }}
+                  />
                 </div>
               )}
               onError={() => <span>Error</span>}
