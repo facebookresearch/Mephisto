@@ -4,6 +4,8 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 
 These specs are to be implemented in `mephisto/client/api.py`.
 
+Key: `💚 - Data Complete / 💛 - Data Mocked / 💜 - Consumed by UI / 🖤 - Not consumed by UI`
+
 #### WIP Endpoints / Backlog
 
 - Endpoints for actions to modify the review state of a Unit
@@ -16,7 +18,7 @@ These specs are to be implemented in `mephisto/client/api.py`.
 ## 🕵️‍♀️ Requesters
 
 #### `/requesters`
-*Shows a list of all the requesters that are available on the local system*
+💚💜 *Shows a list of all the requesters that are available on the local system*
 
 Sample response:
 ```
@@ -40,7 +42,7 @@ Sample response:
 
 #### `/requester/<type>`
 
-*Provides information on what params to provide if you'd like to set up a requester.*
+💚💜 *Provides information on what params to provide if you'd like to set up a requester.*
 
 Sample response:
 ```
@@ -53,7 +55,9 @@ Sample response:
 
 #### `/<requester_name>/get_balance` - TODO: Change to `/requester/balance/<requester_name>`
 
-[Discussion] Instead of `balance` should we make the endpoint a bit more generic, e.g. `info` or `metadata` or `properties` instead? This is because perhaps not every requester may have the concept of having a budget, although most might.
+💚💜
+
+[Discussion] Instead of `balance` should we make the endpoint a bit more generic, e.g. `info` or `metadata` instead? [Yes] This is because perhaps not every requester may have the concept of having a budget, although most might.
 
 Sample response:
 ```
@@ -67,6 +71,8 @@ Sample response:
 ```
 
 #### **`POST`** `/requester/<type>/register`
+
+💛🖤
 
 Sample response:
 ```
@@ -88,6 +94,7 @@ Sample response:
 ## 🚀 Launching
 
 #### `/launch/options`
+💛💜
 
 Sample response:
 ```
@@ -101,6 +108,7 @@ Sample response:
 ```
 
 #### `/blueprints/<blueprint_name>/arguments`
+💛💜
 
 Sample response:
 ```
@@ -117,6 +125,7 @@ Sample response:
 
 
 #### `/architects/<architect_name>/arguments`
+💛💜
 
 Sample response:
 ```
@@ -132,6 +141,7 @@ Sample response:
 ```
 
 #### **`POST`** `/task_runs/launch`
+💛🖤
 
 Sample request:
 ```
@@ -164,6 +174,7 @@ Sample response:
 ## 📥 Review
 
 #### `/task_runs/running`
+💛🖤
 
 [Discussion] We need to confirm and communicate what exactly we mean by a "running" task. Based on prior discussions, my suspicion is that this categorization is a little difficult. Let's settle on a technical definition.
 
@@ -179,6 +190,7 @@ Sample response:
 ```
 
 #### `/task_runs/reviewable`
+💛🖤
 
 *Shows tasks with atleast 1 unit that is reviewable.*
 
@@ -191,6 +203,7 @@ Sample response:
 ```
 
 #### `/task_runs/<task_id>/units`
+💛🖤
 
 Sample response:
 ```
@@ -204,7 +217,9 @@ Sample response:
 ```
 
 #### **`POST`** `/task_runs/<task_id>/units/<unit_id>/accept`
+💛🖤
 
 [Discussion] Accept params here to allow giving a bonus?
 
 #### **`POST`** `/task_runs/<task_id>/units/<unit_id>/reject`
+💛🖤
