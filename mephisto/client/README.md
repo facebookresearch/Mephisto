@@ -17,7 +17,7 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 
 #### `/<requester_name>/get_balance`
 
-TODO: Change to `/requester/balance/<requester_name>` perhaps, to be consistent in format?
+TODO: Change to **`/requester/balance/<requester_name>`** perhaps, to be consistent in format?
 
 #### **`POST`** `/requester/<type>/register`
 
@@ -52,7 +52,7 @@ Sample response:
 Sample response:
 ```
 {
-    "id": task_id,
+    "id": <unit_id>,
     "view_path": "https://google.com",
     "data": {
         "name": "me"
