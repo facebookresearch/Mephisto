@@ -15,9 +15,12 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 
 #### `/requester/<type>`
 
-#### `/<requester_name>/get_balance`
+#### `/<requester_name>/get_balance` - TODO: Change to `/requester/balance/<requester_name>`
 
-TODO: Change to **`/requester/balance/<requester_name>`** perhaps, to be consistent in format?
+Sample response:
+```
+
+```
 
 #### **`POST`** `/requester/<type>/register`
 
@@ -44,6 +47,17 @@ Sample response:
 ## Review
 
 #### `/task_runs/running`
+
+Sample response:
+```
+{
+  live_task_count: 1,
+  task_count: 1,
+  task_runs: TaskRun[]
+}
+
+# For full example payload, see `task_runs__running` in mephisto/webapp/src/mocks.ts
+```
 
 #### `/task_runs/reviewable`
 
