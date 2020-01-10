@@ -14,9 +14,9 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 ---
 ## 🕵️‍♀️ Requesters
 
+#### `/requesters`
 *Shows a list of all the requesters that are available on the local system*
 
-#### `/requesters`
 Sample response:
 ```
 {
