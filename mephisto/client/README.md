@@ -8,7 +8,7 @@ These specs are to be implemented in `mephisto/client/api.py`.
 
 - Endpoints for actions to modify the review state of a Unit
 - Endpoint for getting the URL of a task and it's data to show
-- Make error reponse codes more consistent across all types of errors. Some stuff from the wild:
+- Make error reponse format more consistent across all endpoints / types of errors. Some stuff from the wild:
   - https://stripe.com/docs/api/errors
   - https://cloud.google.com/apis/design/errors#http_mapping
 
