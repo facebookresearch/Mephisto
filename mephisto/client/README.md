@@ -164,6 +164,8 @@ Sample response:
 
 #### `/task_runs/running`
 
+[Discussion] We need to confirm and communicate what exactly we mean by a "running" task. Based on prior discussions, my suspicion is that this categorization is a little difficult. Let's settle on a technical definition.
+
 Sample response:
 ```
 {
