@@ -19,7 +19,7 @@ All of the endpoints below are **`GET`** unless specified otherwise.
 
 TODO: Change to `/requester/balance/<requester_name>` perhaps, to be consistent in format?
 
-### **`POST`** `/requester/<type>/register`
+#### **`POST`** `/requester/<type>/register`
 
 ---
 ## Launching
@@ -38,7 +38,7 @@ Sample response:
 
 #### `/architects/<architect_name>/arguments`
 
-### **`POST`** `/task_runs/launch`
+#### **`POST`** `/task_runs/launch`
 
 ---
 ## Review
@@ -60,6 +60,6 @@ Sample response:
 }
 ```
 
-### **`POST`** `/task_runs/<task_id>/units/<unit_id>/accept`
+#### **`POST`** `/task_runs/<task_id>/units/<unit_id>/accept`
 
-### **`POST`** `/task_runs/<task_id>/units/<unit_id>/reject`
+#### **`POST`** `/task_runs/<task_id>/units/<unit_id>/reject`
