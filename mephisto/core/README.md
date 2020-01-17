@@ -25,4 +25,8 @@ The `TaskLauncher` class is a fairly lightweight class responsible for handling 
 (TODO) `TaskLauncher`s should parse the `TaskRun`'s `TaskConfig` to know what parameters to set. This info should be used to initialize the assignments and the units as specified. At the moment it initializes with some MOCK data.
 (TODO) `TaskLauncher` will eventually be the gatekeeper for the old `max_connections` feature of MTurk, which only lets out units gradually as they are completed. This functionality needs to be restored here somehow. Right now it launches all the units at once.
 
+## `MephistoOperator`
+The `MephistoOperator` will be the highest level class in the Mephisto architecture, and it's responsible for starting up tasks, coordinating requests, and managing various little setup components for the Mephisto experience that will be detailed here when the class is actually written.
+
 ## Utils
+The `utils.py` file contains a number of helper utils that (at the moment) rely on the local-storage implementation of Mephisto. These utils help navigate the files present in the mephisto architecture, identify task files, link classes, etc. Docstrings in this class explain in more detail.
