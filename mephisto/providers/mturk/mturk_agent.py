@@ -83,6 +83,7 @@ class MTurkAgent(Agent):
 
     def get_status(self) -> str:
         """Get the status of this agent in their work on their unit"""
+        # TODO move this default implementation to the regular agent.
         if self.db_status not in AgentState.complete():
             # TODO do we need to query any other statuses? perhaps from the MTurkUnit?
             row = self.db.get_agent(self.db_id)

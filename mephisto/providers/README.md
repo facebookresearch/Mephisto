@@ -1,6 +1,8 @@
 # CrowdProviders
 The providers directory is home to the existing providers for Mephisto. This file describes high level what crowd providers do, important details on existing providers, and how to create a new `CrowdProvider` for an existing crowdsourcing service.
 
+(TODO) Qualifications need to be added to crowd providers
+
 ## Implementation Details
 `CrowdProvider`s in short exist to be an abstraction layer between Mephisto and wherever we're sourcing the crowdwork from. Using `CrowdProvider`s lets Mephisto launch the same tasks all over the place using the same code. The primary abstractions that need a little bit of wrapping are the `Worker`, `Agent`, `Unit`, and `Requester`. These requirements and high level abstraction reasoning are included below, while explicit implementation requirements are provided in the "How to make a new `CrowdProvider`" section.
 
@@ -36,3 +38,49 @@ An interface that allows for launching tasks on your local machine, allowing for
 An implementation of a provider that allows for robust testing by exposing all of the underlying state to a user.
 
 ## How to make a new `CrowdProvider`
+Both the `MockProvider` and `MTurkProvider` are strong examples of implementing a provider. Important implementation details are captured below.
+
+### `<Crowd>Provider`
+The `CrowdProvider` implementation is mostly a place to centralize all of the components for this provider, and as such it should set `UnitClass`, `RequesterClass`, `WorkerClass`, and `AgentClass`. Beyond this it should implement the following:
+- `initialize_provider_datastore`: This method should return a connection to any of the data required to keep tabs on the crowd provider. Ideally it should store important information to disk somehow (such as in a SQL database).
+- `setup_resources_for_task_run`: This method is called prior to launching a task run, and should setup any kind of details with the provider that are required. For instance, this might register the task before requesting instances, or do any other required prep work such as setting up listeners.
+
+### `<Crowd>Worker`
+The `<Crowd>Worker` implementation needs to handle worker interactions, generally from the perspective of a requester:
+- `bonus_worker`: Provide the worker a bonus for the given reason, optionally attached to a unit. Return a tuple of `False` with an error reason if the operation can't be performed, and `(True, "")` otherwise.
+- `block_worker`: Block the given worker, optionally based on their work on a unit, and from a specific requester. Return a tuple of `False` with an error reason if the operation can't be performed, and `(True, "")` otherwise.
+- `unblock_worker`: Unblock the worker from a specific requester. Return a tuple of `False` with an error reason if the operation can't be performed, and `(True, "")` otherwise.
+- `is_blocked`: Provide whether or not this worker is blocked by the given `Requester`.
+- `is_eligible`: Determine if the worker is eligible to work on the given `TaskRun`.
+
+
+### `<Crowd>Agent`
+The `<Crowd>Agent` implementation needs to be able to handle the following interactions:
+- `new_from_provider_data`: As different providers may give different information upon the creation of an agent (which occurs when a worker accepts a unit), this information is sent through from the server via whatever is packaged in `wrap_crowd_source.js`. You can then store this into the provider datastore and return an `Agent`.
+- `approve_work`: Tell the crowd provider that this work is accepted. (If allowed)
+- `reject_work`: Tell the crowd provider that this work is rejected (if allowed), with the provided feedback `reason`.
+- `get_status`: Return the current agent's status according to the crowd provider (if this state is automatically tracked by the crowd provider, and can be queried). Defaults to whatever status updates the `Supervisor` can provide.
+- `mark_done`: Tell the crowd provider that the task this agent is working on is now complete (if required). Otherwise just mark it as so in the local database.
+
+### `<Crowd>Unit`
+The `<Crowd>Unit` implementation needs to be able to handle the following interactions:
+- `get_status`: Return the status for this unit, as known by the provider.
+- `launch`: Given the url of the server to point people to for this task, launch the task and make it available for crowd workers to claim.
+- `expire`: Submit a request to expire the HIT, and return the time that will need to be waited in order for that request to be fulfilled (in case it is not immediate).
+
+### `<Crowd>Requester`
+The `<Crowd>Requester` mostly just needs to abstract the registration process, but the full list of functions are below:
+- `register`: Given arguments, register this requester
+- `get_register_args`: Return the arguments required to register one of these requesters. (TODO) can we turn this into an argparse group somehow? And then later extract from the argparse group to send to the frontend.
+- `is_registered`: Determine if the current credentials for a `Requester` are valid.
+- `get_available_budget` (Optional): return the available budget for this requester.
+
+(TODO) maybe refactor budget? As not all requesters have budgets? Or perhaps have a few kinds of metadata?
+
+### `wrap_crowd_source.js`
+A few frontend functions are required to be sure that the backend is able to interface with frontend interactions:
+- `getWorkerName()`: Return the worker name, as will be provided to as the identifier for mephisto to know who is attempting the task
+- `getAssignmentId()`: Return an identifier for the specific task as represented by the provider.
+- `getWorkerRegistrationInfo()`: Return any special information that would be required to register a worker. Currently the `worker_name` field is required.
+- `getAgentRegistration(mephisto_worker_id)`: Return the data that is going to be passed to the `<Crowd>Agent`'s `new_from_provider` method. The `worker_id` field should be the provided `mephisto_worker_id` in almost all cases.
+- `handleSubmitToProvider()`: Tell the provider that the task is done from the frontend. Often amounts to hitting some kind of submit button after populating form data.
