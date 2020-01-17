@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
     from mephisto.data_model.architect import Architect
 
-# TODO this class manages communications between the server
+# This class manages communications between the server
 # and workers, ensures that their status is properly tracked,
 # and also provides some helping utility functions for
 # groups of workers or worker/agent compatibility.
