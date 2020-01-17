@@ -3,10 +3,10 @@ The contents of the core folder comprise controllers for launching and monitorin
 
 The goal is to make components of the Mephisto architecture reusable without needing to buy into the whole system. If someone wanted to override any of the subcomponents of Mephisto (`Architect`s, `TaskRunner`s, `CrowdProvider`s, etc.) the rest of the system should still function. It's also beneficial for writing contained tests and keeping code complexity down within each module.
 
-## LocalMephistoDB
+## `LocalMephistoDB`
 An implementation of the Mephisto Data Model outlined in `MephistoDB`. This database stores all of the information locally via SQLite. Some helper functions are included to make the implementation cleaner by abstracting away SQLite error parsing and string formatting, however it's pretty straightforward from the requirements of MephistoDB.
 
-## Supervisor
+## `Supervisor`
 The supervisor is responsible for interfacing between human agents and the rest of the mephisto system. In short, it is the layer that abstracts humans and human work into `Worker`s and `Agent`s that take actions. To that end, it has to set up a socket to connect to the task server, poll status on any agents currently working on tasks, and process incoming agent actions over the socket to put them into the `Agent` so that a task can use the data. It also handles the initialization of an `Agent` from a `Worker`, which is the operation that occurs when a human connecting to the service is accepting a task.
 
 At a high level, the supervisor manages establishing the abstraction by keeping track of `Job`s (a triple of `Architect`, `TaskRunner`, and `CrowdProvider`). The supervisor uses them for the following:
@@ -19,7 +19,10 @@ From this point, all interactions are handled from the perspective of pure Mephi
 - Calls to `Agent.observe()` will add messages to that `Agent`'s `pending_observations` list. The `Supervisor` should periodically send messages from all `Agent`s through to the server, such that the person is able to recieve the operation.
 - The `Supervisor` should also be querying for `Agent`'s state and putting any updates into the `Agent` itself, thus allowing tasks to know if an `Agent` has disconnected, returned a task, etc.
 
-## TaskLauncher
+## `TaskLauncher`
+The `TaskLauncher` class is a fairly lightweight class responsible for handling the process of launching units. A `TaskLauncher` is created for a specific `TaskRun`, and provided with `assignment_data` for that full task run. It creates `Assignment`s and `Unit`s for the `TaskRun`, and packages the expected data into the `Assignment`.  When a task is ready to go live, one calls `launch_units(url)` with the `url` that the task should be pointed to. If units need to be expired (such as during a shutdown), `expire_units` handles this for all units created for the given `TaskRun`.
 
+(TODO) `TaskLauncher`s should parse the `TaskRun`'s `TaskConfig` to know what parameters to set. This info should be used to initialize the assignments and the units as specified. At the moment it initializes with some MOCK data.
+(TODO) `TaskLauncher` will eventually be the gatekeeper for the old `max_connections` feature of MTurk, which only lets out units gradually as they are completed. This functionality needs to be restored here somehow. Right now it launches all the units at once.
 
 ## Utils
