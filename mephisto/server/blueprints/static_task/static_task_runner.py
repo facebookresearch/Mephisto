@@ -19,9 +19,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.agent import Agent
 
-SYSTEM_SENDER = "mephisto"  # TODO pull from somewhere
-TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
-
 
 class TrackedAssignment(RecordClass):
     assignment: "Assignment"

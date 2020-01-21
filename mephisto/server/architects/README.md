@@ -16,8 +16,11 @@ worker management, task flow control, and data saving.
 Deploys the built task on a server set up on localhost, for use deploying either for testing a task
 in progress, or for deploying a task publicly from a machine that already has public web access enabled.
 ### HumanArchitect
+(TODO) Implement this
 Requires a human (you) to verify that you've set up your own server with the task files as expected
 somewhere, and requests that you provide mephisto with the URL to register to it and communicate through.
+### MockArchitect
+An architect for use in various types of testing.
 
 ## Future work
 Future work is to develop a mephisto-remote that can set up a local client on a deployed server, and
