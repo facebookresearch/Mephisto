@@ -7,7 +7,7 @@
 from mephisto.data_model.requester import Requester
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 
-from typing import List, TYPE_CHECKING
+from typing import Optional, Dict, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -29,9 +29,13 @@ class MockRequester(Requester):
         # a mock DB exists
         registered = False
 
-    def register_credentials(self) -> None:
+    def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Mock requesters don't actually register credentials"""
-        self.registered = True
+        if args is not None:
+            if args.get('force_fail') is True:
+                raise Exception("Forced failure test exception was set")
+        else:
+            self.registered = True
 
     def is_registered(self) -> bool:
         """Return the registration status"""

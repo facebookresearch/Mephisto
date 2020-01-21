@@ -53,7 +53,7 @@ class MTurkRequester(Requester):
         to assert it as such.
         """
         for req_field in ['access_key_id', 'secret_access_key']:
-            if req_field not in args:
+            if args is not None and req_field not in args:
                 raise Exception(f'Missing IAM "{req_field}" in requester registration args')
         setup_aws_credentials(self._requester_name, args)
 
