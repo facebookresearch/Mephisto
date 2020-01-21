@@ -76,11 +76,9 @@ def register(type):
 
     requesters = db.find_requesters(requester_name=options["name"])
     if len(requesters) == 0:
-        requester = RequesterClass.new(db, options["name"])  # TODO: unhardcode
+        requester = RequesterClass.new(db, options["name"])
     else:
         requester = requesters[0]
-    # except EntryAlreadyExistsException as e:
-    #     return jsonify({'success': False, 'msg': 'Noah1027 already exists.'})
     try:
         print(options)
         requester.register(options)
