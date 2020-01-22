@@ -90,6 +90,8 @@ class Requester(ABC):
         Register this requester with the crowd provider by providing any required credentials
         or such. If no args are provided, assume the registration is already made and try
         to assert it as such.
+
+        Should throw an exception if something is wrong with provided registration arguments.
         """
         raise NotImplementedError()
 
