@@ -61,20 +61,35 @@ class MTurkRequester(Requester):
         """Return whether or not this requester has registered yet"""
         return check_aws_credentials(self._requester_name)
 
-    @staticmethod
-    def get_register_args() -> Dict[str, str]:
-        """Get the args required to register this requester to the crowd provider"""
-        return {
-            "HELP_TEXT": "AWS are required to create a new Requester. Please create "
-            "an IAM user with "
-            "programmatic access and AdministratorAccess policy at "
-            'https://console.aws.amazon.com/iam/ (On the "Set permissions" '
-            'page, choose "Attach existing policies directly" and then select '
-            '"AdministratorAccess" policy). After creating the IAM user, '
-            "please enter the user's Access Key ID and Secret Access Key.",
-            "access_key_id": "IAM Access Key ID: ",
-            "secret_access_key": "IAM Secret Access Key: ",
-        }
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        Add mturk registration arguments to the argument group.
+        """
+        super(cls).add_args_to_group(group)
+
+        group.description = """
+            MTurkRequester: AWS are required to create a new Requester.
+            Please create an IAM user with programmatic access and
+            AmazonMechanicalTurkFullAccess policy at
+            'https://console.aws.amazon.com/iam/ (On the "Set permissions"
+            page, choose "Attach existing policies directly" and then select
+            "AmazonMechanicalTurkFullAccess" policy). After creating
+            the IAM user, you should get an Access Key ID
+            and Secret Access Key.
+        """
+        group.add_argument(
+            '--access-key-id',
+            dest='access_key_id',
+            help='IAM Access Key ID',
+        )
+        group.add_argument(
+            '--secret-access-key',
+            dest='secret_access_key',
+            help='IAM Secret Access Key',
+        )
+        return
+
 
     def get_available_budget(self) -> float:
         """Get the available budget from MTurk"""
