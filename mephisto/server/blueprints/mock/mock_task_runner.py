@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.agent import Agent
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class MockTaskRunner(TaskRunner):
@@ -50,10 +51,13 @@ class MockTaskRunner(TaskRunner):
             agent.mark_done()
         del self.tracked_tasks[assignment.db_id]
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
-        """Mock task types don't have extra options"""
-        return {}
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        MockTaskRunners don't have any arguments (yet)
+        """
+        super(cls).add_args_to_group(group)
+        return
 
     def cleanup_assignment(self, assignment: "Assignment"):
         """No cleanup required yet for ending mock runs"""

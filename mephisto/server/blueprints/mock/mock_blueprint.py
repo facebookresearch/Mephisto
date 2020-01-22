@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class MockBlueprint(Blueprint):
@@ -28,7 +29,11 @@ class MockBlueprint(Blueprint):
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
     supported_architects: ClassVar[List[str]] = ["mock"]
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
-        """Mock task types don't have extra options"""
-        return {}
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        MockBlueprints don't have any arguments (yet)
+        """
+        super(cls).add_args_to_group(group)
+        return
+
