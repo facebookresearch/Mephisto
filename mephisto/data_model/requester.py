@@ -100,8 +100,8 @@ class Requester(ABC):
         """Check to see if this requester has already been registered"""
         raise NotImplementedError()
 
-    @staticmethod
-    def add_args_to_group(group: "ArgumentGroup") -> None:
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
         Add the arguments to register this requester to the crowd provider,
         the group's 'description' attribute should be used for any high level
