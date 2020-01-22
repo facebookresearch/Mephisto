@@ -40,7 +40,7 @@ class StaticBlueprint(Blueprint):
         html_source points to the file intending to be deployed for this task
         data_csv has the data to be deployed for this task.
         """
-        super(cls).add_args_to_group(group)
+        super(StaticBlueprint, cls).add_args_to_group(group)
 
         group.description = """
             StaticBlueprint: Tasks launched from static blueprints need a

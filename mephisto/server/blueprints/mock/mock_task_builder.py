@@ -38,7 +38,7 @@ class MockTaskBuilder(TaskBuilder):
         """
         MockTaskBuilders don't have any arguments (yet)
         """
-        super(cls).add_args_to_group(group)
+        super(MockTaskBuilder, cls).add_args_to_group(group)
         return
 
     def cleanup_assignment(self, assignment: "Assignment"):

@@ -83,7 +83,7 @@ class HerokuArchitect(Architect):
         """
         Adds HerokuArchitect arguments to the group
         """
-        super(cls).add_args_to_group(group)
+        super(HerokuArchitect, cls).add_args_to_group(group)
 
         group.description = """
             HerokuArchitect: Heroku servers are deployed by default

@@ -77,7 +77,7 @@ class LocalArchitect(Architect):
 
         Local architects can set hostname and port appropriately
         """
-        super(cls).add_args_to_group(group)
+        super(LocalArchitect, cls).add_args_to_group(group)
 
         group.description = """
             LocalArchitect: Local servers can configure the deploy

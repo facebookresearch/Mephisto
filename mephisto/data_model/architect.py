@@ -28,7 +28,7 @@ class Architect(ABC):
     ):
         """
         Initialize this architect with whatever options are provided given
-        get_extra_options. Parse whatever additional options may be required
+        add_args_to_group. Parse whatever additional options may be required
         for the specific task_run.
 
         Also set up any required database/memory into the MephistoDB so that

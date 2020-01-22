@@ -62,11 +62,21 @@ def get_arguments_from_group(group: argparse._ArgumentGroup) -> Dict[str, Any]:
     """
     parsed_actions = {}
     for action in group._group_actions:
+        action_type = action.type
+        type_string = None
+        if action_type is None:
+            type_string = 'str'
+        elif isinstance(action_type, argparse.FileType):
+            type_string = 'FileType'
+        elif hasattr(action_type, __name__):
+            type_string = action_type.__name__
+        else:
+            type_string = 'unknown_type'
         parsed_actions[action.dest] = {
             "dest": action.dest,
             "help": action.help,
             "default": action.default,
-            "type": action.type.__name__ if action.type is not None else "str",
+            "type": type_string,
             "choices": action.choices,
             "option_string": action.option_strings[0],
         }
@@ -90,13 +100,14 @@ def get_extra_argument_dict(customizable_class: Any) -> List[Dict[str, Any]]:
     (Blueprint, Architect, etc)
     """
     dummy_parser = argparse.ArgumentParser
-    arg_group = dummy_parser.add_argument_group()
+    arg_group = dummy_parser.add_argument_group('test_arguments') # type: ignore
     customizable_class.add_args_to_group(arg_group)
     groups = collect_groups_recurse(arg_group)
-    return [get_argument_group_dict(g) for g in groups]
+    parsed_groups = [get_argument_group_dict(g) for g in groups]
+    return [g for g in parsed_groups if g is not None]
 
 
-def get_default_arg_dict(customizable_class: Any) -> Dic[str, Any]:
+def get_default_arg_dict(customizable_class: Any) -> Dict[str, Any]:
     """
     Produce an opt dict containing the defaults for all
     arguments for the arguments added to the parser
