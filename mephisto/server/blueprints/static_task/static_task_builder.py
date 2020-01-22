@@ -84,11 +84,6 @@ class StaticTaskBuilder(TaskBuilder):
         """Mocks are always valid, we don't have any special resources"""
         return True
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
-        """Mock task types don't have extra options"""
-        return {}
-
     def cleanup_assignment(self, assignment: "Assignment"):
         """No cleanup required yet for ending mock runs"""
         pass

@@ -102,11 +102,6 @@ class StaticTaskRunner(TaskRunner):
         agent.mark_done()
         del self.running_assignments[assignment.db_id]
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
-        """Mock task types don't have extra options"""
-        return {}
-
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Simply mark that the assignment is no longer being tracked"""
         if assignment.db_id in self.running_assignments:
