@@ -56,7 +56,7 @@ class MockTaskRunner(TaskRunner):
         """
         MockTaskRunners don't have any arguments (yet)
         """
-        super(cls).add_args_to_group(group)
+        super(MockTaskRunner, cls).add_args_to_group(group)
         return
 
     def cleanup_assignment(self, assignment: "Assignment"):

@@ -48,7 +48,9 @@ class StaticTaskRunner(TaskRunner):
         """
         Finds the right data to get for the given assignment.
         """
-        return assignment.get_assignment_data()
+        data = assignment.get_assignment_data()
+        assert data is not None, "Static tasks must have assignment data"
+        return [data]
 
     # TODO reconnects should get the same agent as was initially given
 

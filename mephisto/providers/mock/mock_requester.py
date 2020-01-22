@@ -43,7 +43,7 @@ class MockRequester(Requester):
         """
         Add mock registration arguments to the argument group.
         """
-        super(cls).add_args_to_group(group)
+        super(MockRequester, cls).add_args_to_group(group)
 
         group.description = """
             MockRequester: Arguments for mock requester add special

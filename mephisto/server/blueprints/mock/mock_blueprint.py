@@ -34,5 +34,5 @@ class MockBlueprint(Blueprint):
         """
         MockBlueprints don't have any arguments (yet)
         """
-        super(cls).add_args_to_group(group)
+        super(MockBlueprint, cls).add_args_to_group(group)
         return

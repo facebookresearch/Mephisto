@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class MTurkRequester(Requester):
@@ -68,7 +69,7 @@ class MTurkRequester(Requester):
         """
         Add mturk registration arguments to the argument group.
         """
-        super(cls).add_args_to_group(group)
+        super(MTurkRequester, cls).add_args_to_group(group)
 
         group.description = """
             MTurkRequester: AWS are required to create a new Requester.

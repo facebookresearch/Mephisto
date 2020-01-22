@@ -43,7 +43,7 @@ class MockArchitect(Architect):
         """
         MockArchitects don't have any arguments (yet)
         """
-        super(cls).add_args_to_group(group)
+        super(MockArchitect, cls).add_args_to_group(group)
         return
 
     def prepare(self) -> str:
