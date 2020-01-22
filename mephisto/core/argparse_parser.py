@@ -99,8 +99,8 @@ def get_extra_argument_dict(customizable_class: Any) -> List[Dict[str, Any]]:
     Produce the argument dict for the given customizable class
     (Blueprint, Architect, etc)
     """
-    dummy_parser = argparse.ArgumentParser
-    arg_group = dummy_parser.add_argument_group('test_arguments') # type: ignore
+    dummy_parser = argparse.ArgumentParser()
+    arg_group = dummy_parser.add_argument_group('test_arguments')
     customizable_class.add_args_to_group(arg_group)
     groups = collect_groups_recurse(arg_group)
     parsed_groups = [get_argument_group_dict(g) for g in groups]
@@ -116,6 +116,6 @@ def get_default_arg_dict(customizable_class: Any) -> Dict[str, Any]:
     final_opts: Dict[str, Any] = {}
     for arg_group in init_arg_dicts:
         for arg_name, arg_attributes in arg_group["args"].items():
-            final_opts[arg_name] = arg_attributes.default
+            final_opts[arg_name] = arg_attributes['default']
 
     return final_opts

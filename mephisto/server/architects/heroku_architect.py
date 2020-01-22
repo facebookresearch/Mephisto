@@ -254,7 +254,10 @@ class HerokuArchitect(Architect):
         return_dir = os.getcwd()
         os.chdir(heroku_server_directory_path)
         try:
-            if self.opts.get("heroku_team", "") != "":
+            if (
+                self.opts.get("heroku_team", "") != "" and
+                self.opts.get("heroku_team") is not None
+            ):
                 subprocess.check_output(
                     shlex.split(
                         "{} create {} --team {}".format(

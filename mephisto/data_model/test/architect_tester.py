@@ -17,6 +17,7 @@ from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.data_model.database import MephistoDB
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
 from mephisto.core.local_database import LocalMephistoDB
+from mephisto.core.argparse_parser import get_default_arg_dict
 
 
 class ArchitectTests(unittest.TestCase):
@@ -109,7 +110,7 @@ class ArchitectTests(unittest.TestCase):
         self.assertNotEqual(
             self.ArchitectClass, Architect, "Can not use base Architect"
         )
-        opts = self.ArchitectClass.get_extra_options()
+        opts = get_default_arg_dict(self.ArchitectClass)
         architect = self.ArchitectClass(self.db, opts, self.task_run, self.build_dir)
 
     def get_architect(self) -> Architect:
@@ -117,7 +118,7 @@ class ArchitectTests(unittest.TestCase):
         Return an initialized architect to use in testing. Can be overridden if
         special parameters need to be set to run tests properly.
         """
-        opts = self.ArchitectClass.get_extra_options()
+        opts = get_default_arg_dict(self.ArchitectClass)
         architect = self.ArchitectClass(self.db, opts, self.task_run, self.build_dir)
         return architect
 
