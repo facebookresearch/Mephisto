@@ -90,8 +90,8 @@ class TaskBuilder(ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def add_args_to_group(group: "ArgumentGroup") -> None:
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
         Defines builder options that are potentially usable for this task type,
         and adds them to the given argparser group. The group's 'description'
@@ -158,8 +158,8 @@ class TaskRunner(ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def add_args_to_group(group: "ArgumentGroup") -> None:
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
         Defines runner options that are potentially usable for this task type,
         and adds them to the given argparser group. The group's 'description'

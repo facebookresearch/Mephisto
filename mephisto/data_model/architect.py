@@ -43,8 +43,8 @@ class Architect(ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def add_args_to_group(group: "ArgumentGroup") -> None:
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
         Defines options that are potentially usable for this server location,
         and adds them to the given argparser group. The group's 'description'
