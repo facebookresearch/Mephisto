@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class Blueprint(ABC):
@@ -34,14 +35,22 @@ class Blueprint(ABC):
     def __init__(self, task_run: "TaskRun", opts: Any):
         self.opts = opts
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
-        Defines options that are potentially usable for this task type.
+        Defines options that are potentially usable for this task type,
+        and adds them to the given argparser group. The group's 'description'
+        attribute should be used to put any general help for these options.
+
+        If the description field is left empty, the argument group is ignored
         """
-        # TODO query the options of the underlying TaskRunner and
-        # TaskBuilder classes, then append to this classes extra options
-        return {}
+        runner_group = group.add_argument_group('task_runner_args')
+        builder_group = group.add_argument_group('task_builder_args')
+        cls.TaskRunnerClass.add_args_to_group(runner_group)
+        cls.TaskBuilderClass.add_args_to_group(builder_group)
+        # group.description = 'For `Blueprint`, you can supply...'
+        # group.add_argument('--task-option', help='Lets you customize')
+        return
 
 
 class TaskBuilder(ABC):
@@ -82,13 +91,17 @@ class TaskBuilder(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def get_extra_options() -> Dict[str, str]:
+    def add_args_to_group(group: "ArgumentGroup") -> None:
         """
-        Defines options that are potentially usable for this task type.
+        Defines builder options that are potentially usable for this task type,
+        and adds them to the given argparser group. The group's 'description'
+        attribute should be used to put any general help for these options.
+
+        If the description field is left empty, the argument group is ignored
         """
-        # TODO update to a format that will be rendererable on the frontend.
-        # These are options that are available to the task
-        return {}
+        # group.description = 'For `TaskBuilder`, you can supply...'
+        # group.add_argument('--task-option', help='Lets you customize')
+        return
 
 
 class TaskRunner(ABC):
@@ -146,13 +159,17 @@ class TaskRunner(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def get_extra_options() -> Dict[str, str]:
+    def add_args_to_group(group: "ArgumentGroup") -> None:
         """
-        Defines options that are potentially usable for this task type.
+        Defines runner options that are potentially usable for this task type,
+        and adds them to the given argparser group. The group's 'description'
+        attribute should be used to put any general help for these options.
+
+        If the description field is left empty, the argument group is ignored
         """
-        # TODO update to a format that will be rendererable on the frontend.
-        # These are options that are available to the task
-        return {}
+        # group.description = 'For `TaskRunner`, you can supply...'
+        # group.add_argument('--task-option', help='Lets you customize something')
+        return
 
 
 # TODO what is the best method for creating new ones of these for different task types

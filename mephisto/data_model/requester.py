@@ -12,6 +12,7 @@ from typing import List, Optional, Dict, TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class Requester(ABC):
@@ -100,17 +101,21 @@ class Requester(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def get_register_args() -> Dict[str, str]:
+    def add_args_to_group(group: "ArgumentGroup") -> None:
         """
-        Get the args required to register this requester to the crowd provider, the 'help_text'
-        key is a special key for any descriptive text to inform the user where to get these values.
+        Add the arguments to register this requester to the crowd provider,
+        the group's 'description' attribute should be used for any high level
+        help on how to get the details.
+
+        The `name` argument is required.
+
+        If the description field is left empty, the argument group is ignored
         """
-        # TODO perhaps at some point we can support more than just string arguents?
-        return {
-            # Dict is a map from param name to query text, such as
-            # "HELP_TEXT": 'This key is used to put any important instruction text behind',
-            # "requester_secret_key": "What is the secret key to register this worker?"
-        }
+        # group.description = 'For `Requester`, Retrieve the following at xyz'
+        # group.add_argument('--username', help='Login username for requester')
+        # group.add_argument('--secret-key', help='Secret key found...')
+        group.add_argument('--name', help='Identifier for MephistoDB')
+        return
 
     def get_available_budget(self) -> float:
         """
