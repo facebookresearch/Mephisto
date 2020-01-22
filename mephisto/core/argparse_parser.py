@@ -16,7 +16,7 @@ and as such is only guaranteed stable for argparse 1.1
 """
 
 import argparse
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 def collect_groups_recurse(group: argparse._ArgumentGroup):
     '''
@@ -85,7 +85,7 @@ def get_argument_group_dict(
     }
 
 
-def get_extra_argument_dict(customizable_class: Any):
+def get_extra_argument_dict(customizable_class: Any) -> List[Dict[str, Any]]:
     '''
     Produce the argument dict for the given customizable class
     (Blueprint, Architect, etc)
@@ -95,3 +95,17 @@ def get_extra_argument_dict(customizable_class: Any):
     customizable_class.add_args_to_group(arg_group)
     groups = collect_groups_recurse(arg_group)
     return [get_argument_group_dict(g) for g in groups]
+
+
+def get_default_arg_dict(customizable_class: Any) -> Dic[str, Any]:
+    """
+    Produce an opt dict containing the defaults for all
+    arguments for the arguments added to the parser
+    """
+    init_arg_dicts = get_extra_argument_dict(customizable_class)
+    final_opts: Dict[str, Any] = {}
+    for arg_group in init_arg_dicts:
+        for arg_name, arg_attributes in arg_group['args'].items():
+            final_opts[arg_name] = arg_attributes.default
+
+    return final_opts
