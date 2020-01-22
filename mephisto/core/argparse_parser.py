@@ -72,7 +72,7 @@ def get_arguments_from_group(group: argparse._ArgumentGroup) -> Dict[str, Any]:
 
 
 def get_argument_group_dict(
-    group: argparse._ArgumentGroup
+    group: argparse._ArgumentGroup,
 ) -> Optional[Dict[str, Any]]:
     '''
     Extract an argument group (to be ready to send it to frontend)
@@ -93,4 +93,5 @@ def get_extra_argument_dict(customizable_class: Any):
     dummy_parser = argparse.ArgumentParser
     arg_group = dummy_parser.add_argument_group()
     customizable_class.add_args_to_group(arg_group)
-    return get_argument_group_dict(arg_group)
+    groups = collect_groups_recurse(arg_group)
+    return [get_argument_group_dict(g) for g in groups]
