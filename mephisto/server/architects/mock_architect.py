@@ -11,6 +11,7 @@ from typing import Dict, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 MOCK_DEPLOY_URL = "MOCK_DEPLOY_URL"
 
@@ -37,10 +38,13 @@ class MockArchitect(Architect):
         self.cleaned = False
         self.did_shutdown = False
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
-        """Mocks have no extra options"""
-        return {}
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        MockArchitects don't have any arguments (yet)
+        """
+        super(cls).add_args_to_group(group)
+        return
 
     def prepare(self) -> str:
         """Mark the preparation call"""
