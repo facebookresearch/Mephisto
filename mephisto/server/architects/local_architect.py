@@ -84,16 +84,13 @@ class LocalArchitect(Architect):
             location and port to run on.
         """
         group.add_argument(
-            '--hostname',
-            dest='hostname',
-            help='Location of the server',
-            default='localhost',
+            "--hostname",
+            dest="hostname",
+            help="Location of the server",
+            default="localhost",
         )
         group.add_argument(
-            '--port',
-            dest='port',
-            help='Port to launch the server on',
-            default='3000',
+            "--port", dest="port", help="Port to launch the server on", default="3000"
         )
         # TODO be able to specify the public address location
         # separately from the hostname

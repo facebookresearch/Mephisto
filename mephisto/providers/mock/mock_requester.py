@@ -33,7 +33,7 @@ class MockRequester(Requester):
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Mock requesters don't actually register credentials"""
         if args is not None:
-            if args.get('force_fail') is True:
+            if args.get("force_fail") is True:
                 raise Exception("Forced failure test exception was set")
         else:
             self.registered = True
@@ -50,11 +50,11 @@ class MockRequester(Requester):
             control and test functionality.
         """
         group.add_argument(
-            '--force-fail',
-            dest='force_fail',
+            "--force-fail",
+            dest="force_fail",
             type=bool,
-            default=False
-            help='Trigger a failed registration',
+            default=False,
+            help="Trigger a failed registration",
         )
         return
 

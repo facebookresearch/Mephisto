@@ -36,4 +36,3 @@ class MockBlueprint(Blueprint):
         """
         super(cls).add_args_to_group(group)
         return
-

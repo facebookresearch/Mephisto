@@ -13,9 +13,11 @@
 from mephisto.data_model.assignment import Assignment, Unit
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
+
 
 class TaskLauncher:
     """
@@ -24,7 +26,12 @@ class TaskLauncher:
     data and storing them locally for assignments when appropriate.
     """
 
-    def __init__(self, db: "MephistoDB", task_run: "TaskRun", assignment_data: List[List[Dict[str, Any]]]):
+    def __init__(
+        self,
+        db: "MephistoDB",
+        task_run: "TaskRun",
+        assignment_data: List[List[Dict[str, Any]]],
+    ):
         """Prepare the task master to get it ready to launch the assignments"""
         self.db = db
         self.task_run = task_run
@@ -49,9 +56,10 @@ class TaskLauncher:
             UNIT_COUNT = 1
             PAY_AMOUNT = 0
             for unit_idx in range(UNIT_COUNT):
-                unit_id = self.db.new_unit(assignment_id, unit_idx, PAY_AMOUNT, self.provider_type)
+                unit_id = self.db.new_unit(
+                    assignment_id, unit_idx, PAY_AMOUNT, self.provider_type
+                )
                 self.units.append(Unit(self.db, unit_id))
-
 
     def launch_units(self, url: str) -> None:
         """launch any units registered by this TaskLauncher"""

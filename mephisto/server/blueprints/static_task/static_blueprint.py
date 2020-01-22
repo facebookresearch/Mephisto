@@ -49,13 +49,11 @@ class StaticBlueprint(Blueprint):
             the html.
         """
         group.add_argument(
-            '--html-source',
-            dest='html_source',
-            help='Path to source HTML file for the task being run'
+            "--html-source",
+            dest="html_source",
+            help="Path to source HTML file for the task being run",
         )
         group.add_argument(
-            '--data-csv',
-            dest='data_csv',
-            help='Path to csv file containing task data'
+            "--data-csv", dest="data_csv", help="Path to csv file containing task data"
         )
         return

@@ -52,9 +52,11 @@ class MTurkRequester(Requester):
         or such. If no args are provided, assume the registration is already made and try
         to assert it as such.
         """
-        for req_field in ['access_key_id', 'secret_access_key']:
+        for req_field in ["access_key_id", "secret_access_key"]:
             if args is not None and req_field not in args:
-                raise Exception(f'Missing IAM "{req_field}" in requester registration args')
+                raise Exception(
+                    f'Missing IAM "{req_field}" in requester registration args'
+                )
         setup_aws_credentials(self._requester_name, args)
 
     def is_registered(self) -> bool:
@@ -79,17 +81,14 @@ class MTurkRequester(Requester):
             and Secret Access Key.
         """
         group.add_argument(
-            '--access-key-id',
-            dest='access_key_id',
-            help='IAM Access Key ID',
+            "--access-key-id", dest="access_key_id", help="IAM Access Key ID"
         )
         group.add_argument(
-            '--secret-access-key',
-            dest='secret_access_key',
-            help='IAM Secret Access Key',
+            "--secret-access-key",
+            dest="secret_access_key",
+            help="IAM Secret Access Key",
         )
         return
-
 
     def get_available_budget(self) -> float:
         """Get the available budget from MTurk"""

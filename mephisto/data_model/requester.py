@@ -114,7 +114,7 @@ class Requester(ABC):
         # group.description = 'For `Requester`, Retrieve the following at xyz'
         # group.add_argument('--username', help='Login username for requester')
         # group.add_argument('--secret-key', help='Secret key found...')
-        group.add_argument('--name', help='Identifier for MephistoDB')
+        group.add_argument("--name", help="Identifier for MephistoDB")
         return
 
     def get_available_budget(self) -> float:

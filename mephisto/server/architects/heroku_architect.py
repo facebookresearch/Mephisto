@@ -91,16 +91,16 @@ class HerokuArchitect(Architect):
             allow additional configurations.
         """
         group.add_argument(
-            '--use-hobby',
-            dest='use_hobby',
-            help='Launch on the Heroku Hobby tier',
+            "--use-hobby",
+            dest="use_hobby",
+            help="Launch on the Heroku Hobby tier",
             type=bool,
         )
         group.add_argument(
-            '--heroku-team',
-            dest='heroku_team',
-            help='Heroku team to use for this launch',
-            default='',
+            "--heroku-team",
+            dest="heroku_team",
+            help="Heroku team to use for this launch",
+            default="",
         )
         return
 
@@ -254,7 +254,7 @@ class HerokuArchitect(Architect):
         return_dir = os.getcwd()
         os.chdir(heroku_server_directory_path)
         try:
-            if self.opts.get("heroku_team", '') != '':
+            if self.opts.get("heroku_team", "") != "":
                 subprocess.check_output(
                     shlex.split(
                         "{} create {} --team {}".format(
