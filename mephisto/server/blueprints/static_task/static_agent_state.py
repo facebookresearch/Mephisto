@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
 
 
-DATA_FILE = 'agent_data.json'
+DATA_FILE = "agent_data.json"
 
 
 class StaticAgentState(AgentState):
@@ -58,7 +58,7 @@ class StaticAgentState(AgentState):
         data_dir = self.agent.get_data_dir()
         data_path = os.path.join(data_dir, DATA_FILE)
         if os.path.exists(data_path):
-            with open(data_path, 'r') as data_file:
+            with open(data_path, "r") as data_file:
                 self.state = json.load(data_file)
         else:
             self.state = []
@@ -71,7 +71,7 @@ class StaticAgentState(AgentState):
         """Save static agent data to disk"""
         data_dir = self.agent.get_data_dir()
         os.makedirs(data_dir, exist_ok=True)
-        with open(os.path.join(data_dir, DATA_FILE), 'w+') as data_file:
+        with open(os.path.join(data_dir, DATA_FILE), "w+") as data_file:
             json.dump(self.state, data_file)
         print("SAVED_DATA_TO_DISC", self.state)
 

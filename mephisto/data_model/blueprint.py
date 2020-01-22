@@ -44,8 +44,8 @@ class Blueprint(ABC):
 
         If the description field is left empty, the argument group is ignored
         """
-        runner_group = group.add_argument_group('task_runner_args')
-        builder_group = group.add_argument_group('task_builder_args')
+        runner_group = group.add_argument_group("task_runner_args")
+        builder_group = group.add_argument_group("task_builder_args")
         cls.TaskRunnerClass.add_args_to_group(runner_group)
         cls.TaskBuilderClass.add_args_to_group(builder_group)
         # group.description = 'For `Blueprint`, you can supply...'
