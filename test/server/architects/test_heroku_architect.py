@@ -37,8 +37,10 @@ class HerokuArchitectTests(ArchitectTests):
 
     def get_architect(self) -> HerokuArchitect:
         """We need to specify that the architect is launching on localhost for testing"""
-        opts = {'heroku_team': None, 'use_hobby': False}
-        self.curr_architect = HerokuArchitect(self.db, opts, self.task_run, self.build_dir)
+        opts = {"heroku_team": None, "use_hobby": False}
+        self.curr_architect = HerokuArchitect(
+            self.db, opts, self.task_run, self.build_dir
+        )
         return self.curr_architect
 
     def server_is_prepared(self, build_dir: str) -> bool:
@@ -66,6 +68,7 @@ class HerokuArchitectTests(ArchitectTests):
                 self.curr_architect.shutdown()
             if not self.curr_architect.build_is_clean():
                 self.curr_architect.cleanup()
+
 
 if __name__ == "__main__":
     unittest.main()

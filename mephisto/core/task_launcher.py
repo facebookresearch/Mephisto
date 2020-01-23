@@ -24,7 +24,7 @@ class TaskLauncher:
     data and storing them locally for assignments when appropriate.
     """
 
-    def __init__(self, db: "MephistoDB", task_run: "TaskRun", assignment_data: List[List[Dict[str, Any]]]):
+    def __init__(self, db: "MephistoDB", task_run: "TaskRun", assignment_data: List[Dict[str, Any]]):
         """Prepare the task master to get it ready to launch the assignments"""
         self.db = db
         self.task_run = task_run
