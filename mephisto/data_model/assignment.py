@@ -44,13 +44,13 @@ class Assignment:
         run_dir = task_run.get_run_dir()
         return os.path.join(run_dir, self.db_id)
 
-    def get_assignment_data(self) -> Optional[Dict[str, Any]]:
+    def get_assignment_data(self) -> Dict[str, Any]:
         """Return the specific assignment data for this assignment"""
         assign_data_filename = os.path.join(self.get_data_dir(), ASSIGNMENT_DATA_FILE)
-        if os.path.exists(assign_data_filename):
-            with open(assign_data_filename, "r") as json_file:
-                return json.load(json_file)
-        return None
+        assert os.path.exists(assign_data_filename), "No data exists for assignment"
+        with open(assign_data_filename, "r") as json_file:
+            return json.load(json_file)
+
 
     def write_assignment_data(self, data: Dict[str, Any]) -> None:
         """Set the assignment data for this assignment"""

@@ -41,7 +41,8 @@ class StaticTaskRunner(TaskRunner):
         super().__init__(task_run, opts)
         self.running_assignments: Dict[str, TrackedAssignment] = {}
 
-    def get_data_for_assignment(self, assignment: "Assignment") -> List[Dict[str, Any]]:
+    @staticmethod
+    def get_data_for_assignment(assignment: "Assignment") -> List[Dict[str, Any]]:
         """
         Finds the right data to get for the given assignment.
         """

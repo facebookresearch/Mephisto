@@ -25,6 +25,14 @@ class MockTaskRunner(TaskRunner):
         super().__init__(task_run, opts)
         self.tracked_tasks: Dict[str, "Assignment"] = {}
 
+
+    @staticmethod
+    def get_data_for_assignment(assignment: "Assignment") -> List[Dict[str, Any]]:
+        """
+        Mock tasks have no data unless given during testing
+        """
+        return [{}]
+
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """
         Return the data for an agent already assigned to a particular unit

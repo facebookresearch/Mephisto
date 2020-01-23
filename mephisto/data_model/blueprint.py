@@ -42,6 +42,9 @@ class Blueprint(ABC):
         and adds them to the given argparser group. The group's 'description'
         attribute should be used to put any general help for these options.
 
+        These options are used to configure the way that the blueprint
+        looks or otherwise runs tasks.
+
         If the description field is left empty, the argument group is ignored
         """
         runner_group = group.add_argument_group("task_runner_args")
@@ -128,6 +131,14 @@ class TaskRunner(ABC):
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    @staticmethod
+    @abstractmethod
+    def get_data_for_assignment(assignment: "Assignment") -> List[Dict[str, Any]]:
+        """
+        Finds the right data to get for the given assignment.
+        """
+        raise NotImplementedError()
 
     @abstractmethod
     def get_init_data_for_agent(self, agent: "Agent"):
