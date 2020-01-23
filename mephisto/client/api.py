@@ -4,7 +4,7 @@ from mephisto.core.local_database import LocalMephistoDB
 from mephisto.data_model.database import EntryAlreadyExistsException
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
-from mephisto.core.argparse_parser import get_extra_argument_dict, parse_arg_dict
+from mephisto.core.argparse_parser import get_extra_argument_dicts, parse_arg_dict
 
 api = Blueprint("api", __name__)
 db = LocalMephistoDB()
@@ -60,7 +60,7 @@ def get_reviewable_task_runs():
 def requester_details(requester_type):
     crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
-    params = get_extra_argument_dict(RequesterClass)
+    params = get_extra_argument_dicts(RequesterClass)
     return jsonify(params)
 
 

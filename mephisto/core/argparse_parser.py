@@ -60,6 +60,8 @@ def get_arguments_from_group(group: argparse._ArgumentGroup) -> Dict[str, Any]:
     Extract all of the arguments from an argument group
     and return a dict mapping from argument dest to argument dict
     """
+    if group.description is None:
+        return {}
     parsed_actions = {}
     for action in group._group_actions:
         action_type = action.type
@@ -68,7 +70,7 @@ def get_arguments_from_group(group: argparse._ArgumentGroup) -> Dict[str, Any]:
             type_string = "str"
         elif isinstance(action_type, argparse.FileType):
             type_string = "FileType"
-        elif hasattr(action_type, __name__):
+        elif hasattr(action_type, "__name__"):
             type_string = action_type.__name__
         else:
             type_string = "unknown_type"
@@ -94,9 +96,9 @@ def get_argument_group_dict(
     return {"desc": group.description, "args": get_arguments_from_group(group)}
 
 
-def get_extra_argument_dict(customizable_class: Any) -> List[Dict[str, Any]]:
+def get_extra_argument_dicts(customizable_class: Any) -> List[Dict[str, Any]]:
     """
-    Produce the argument dict for the given customizable class
+    Produce the argument dicts for the given customizable class
     (Blueprint, Architect, etc)
     """
     dummy_parser = argparse.ArgumentParser()
@@ -133,10 +135,10 @@ def get_default_arg_dict(customizable_class: Any) -> Dict[str, Any]:
     Produce an opt dict containing the defaults for all
     arguments for the arguments added to the parser
     """
-    init_arg_dicts = get_extra_argument_dict(customizable_class)
-    final_opts: Dict[str, Any] = {}
+    init_arg_dicts = get_extra_argument_dicts(customizable_class)
+    found_opts: Dict[str, Any] = {}
     for arg_group in init_arg_dicts:
         for arg_name, arg_attributes in arg_group["args"].items():
-            final_opts[arg_name] = arg_attributes["default"]
-
-    return final_opts
+            found_opts[arg_name] = arg_attributes["default"]
+    filtered_opts = {k: v for k, v in found_opts.items() if v is not None}
+    return filtered_opts
