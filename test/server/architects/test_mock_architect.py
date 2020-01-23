@@ -42,7 +42,9 @@ class MockArchitectTests(ArchitectTests):
         the correct calls have been made
         """
         opts = MockArchitect.get_extra_options()
-        self.curr_architect = MockArchitect(self.db, opts, self.task_run, self.build_dir)
+        self.curr_architect = MockArchitect(
+            self.db, opts, self.task_run, self.build_dir
+        )
         return self.curr_architect
 
     def server_is_prepared(self, build_dir: str) -> bool:

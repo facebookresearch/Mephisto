@@ -37,17 +37,19 @@ class LocalArchitectTests(ArchitectTests):
 
     def get_architect(self) -> LocalArchitect:
         """We need to specify that the architect is launching on localhost for testing"""
-        opts = {'hostname': 'http://localhost', 'port': '3000'}
-        self.curr_architect = LocalArchitect(self.db, opts, self.task_run, self.build_dir)
+        opts = {"hostname": "http://localhost", "port": "3000"}
+        self.curr_architect = LocalArchitect(
+            self.db, opts, self.task_run, self.build_dir
+        )
         return self.curr_architect
 
     def server_is_prepared(self, build_dir: str) -> bool:
         """Ensure the build directory exists"""
-        return os.path.exists(os.path.join(build_dir, 'router'))
+        return os.path.exists(os.path.join(build_dir, "router"))
 
     def server_is_cleaned(self, build_dir: str) -> bool:
         """Ensure the build directory is gone"""
-        return not os.path.exists(os.path.join(build_dir, 'router'))
+        return not os.path.exists(os.path.join(build_dir, "router"))
 
     def server_is_shutdown(self) -> bool:
         """Ensure process is no longer running"""
@@ -56,14 +58,16 @@ class LocalArchitectTests(ArchitectTests):
 
     # TODO maybe a test where we need to re-instance an architect?
 
-
     def tearDown(self) -> None:
         """Overrides teardown to remove server dir"""
         super().tearDown()
         if self.curr_architect is not None:
             if self.curr_architect.running_dir is not None:
-                sh.rm(shlex.split('-rf ' + self.curr_architect.running_dir))
-            if self.curr_architect.server_process is not None and not self.server_is_shutdown():
+                sh.rm(shlex.split("-rf " + self.curr_architect.running_dir))
+            if (
+                self.curr_architect.server_process is not None
+                and not self.server_is_shutdown()
+            ):
                 self.curr_architect.server_process.terminate()
                 self.curr_architect.server_process.wait()
 
