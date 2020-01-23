@@ -14,6 +14,7 @@ from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class MockTaskBuilder(TaskBuilder):
@@ -32,10 +33,13 @@ class MockTaskBuilder(TaskBuilder):
         """Mocks are always valid, we don't have any special resources"""
         return True
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
-        """Mock task types don't have extra options"""
-        return {}
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        MockTaskBuilders don't have any arguments (yet)
+        """
+        super(MockTaskBuilder, cls).add_args_to_group(group)
+        return
 
     def cleanup_assignment(self, assignment: "Assignment"):
         """No cleanup required yet for ending mock runs"""

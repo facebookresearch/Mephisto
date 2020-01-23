@@ -45,7 +45,9 @@ class StaticTaskRunner(TaskRunner):
         """
         Finds the right data to get for the given assignment.
         """
-        return assignment.get_assignment_data()
+        data = assignment.get_assignment_data()
+        assert data is not None, "Static tasks must have assignment data"
+        return [data]
 
     # TODO reconnects should get the same agent as was initially given
 
@@ -98,11 +100,6 @@ class StaticTaskRunner(TaskRunner):
         agent_act = agent.act(timeout=TEST_TIMEOUT)
         agent.mark_done()
         del self.running_assignments[assignment.db_id]
-
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
-        """Mock task types don't have extra options"""
-        return {}
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Simply mark that the assignment is no longer being tracked"""

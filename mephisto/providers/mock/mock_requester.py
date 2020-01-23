@@ -12,6 +12,7 @@ from typing import Optional, Dict, List, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 MOCK_BUDGET = 100000.0
 
@@ -32,10 +33,30 @@ class MockRequester(Requester):
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Mock requesters don't actually register credentials"""
         if args is not None:
-            if args.get('force_fail') is True:
+            if args.get("force_fail") is True:
                 raise Exception("Forced failure test exception was set")
         else:
             self.registered = True
+
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        Add mock registration arguments to the argument group.
+        """
+        super(MockRequester, cls).add_args_to_group(group)
+
+        group.description = """
+            MockRequester: Arguments for mock requester add special
+            control and test functionality.
+        """
+        group.add_argument(
+            "--force-fail",
+            dest="force_fail",
+            type=bool,
+            default=False,
+            help="Trigger a failed registration",
+        )
+        return
 
     def is_registered(self) -> bool:
         """Return the registration status"""

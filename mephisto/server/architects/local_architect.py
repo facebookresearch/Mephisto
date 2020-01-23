@@ -18,6 +18,7 @@ from typing import Any, Optional, Dict, List, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.core.utils import get_mephisto_tmp_dir
@@ -69,10 +70,31 @@ class LocalArchitect(Architect):
 
         return [f"{protocol}://{basename}:{self.port}/"]
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
-        """Local architects can set hostname and port appropriately"""
-        return {}
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        Adds LocalArchitect arguments to the group
+
+        Local architects can set hostname and port appropriately
+        """
+        super(LocalArchitect, cls).add_args_to_group(group)
+
+        group.description = """
+            LocalArchitect: Local servers can configure the deploy
+            location and port to run on.
+        """
+        group.add_argument(
+            "--hostname",
+            dest="hostname",
+            help="Location of the server",
+            default="localhost",
+        )
+        group.add_argument(
+            "--port", dest="port", help="Port to launch the server on", default="3000"
+        )
+        # TODO be able to specify the public address location
+        # separately from the hostname
+        return
 
     def prepare(self) -> str:
         """Mark the preparation call"""

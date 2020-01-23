@@ -10,6 +10,7 @@ from typing import Dict, List, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class Architect(ABC):
@@ -27,7 +28,7 @@ class Architect(ABC):
     ):
         """
         Initialize this architect with whatever options are provided given
-        get_extra_options. Parse whatever additional options may be required
+        add_args_to_group. Parse whatever additional options may be required
         for the specific task_run.
 
         Also set up any required database/memory into the MephistoDB so that
@@ -42,13 +43,18 @@ class Architect(ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
-        Defines options that are potentially usable for this server location
+        Defines options that are potentially usable for this server location,
+        and adds them to the given argparser group. The group's 'description'
+        attribute should be used to put any general help for these options.
+
+        If the description field is left empty, the argument group is ignored
         """
-        # TODO update to a format that will be rendererable on the frontend.
-        return {}
+        # group.description = 'For `Architect`, you can supply...'
+        # group.add_argument('--server-option', help='Lets you customize')
+        return
 
     def prepare(self) -> str:
         """

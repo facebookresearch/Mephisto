@@ -24,6 +24,7 @@ from typing import Tuple, List, Dict, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 USER_NAME = getpass.getuser()
@@ -77,17 +78,31 @@ class HerokuArchitect(Architect):
         heroku_app_name = self.__get_app_name()
         return ["wss://{}.herokuapp.com/".format(heroku_app_name)]
 
-    @staticmethod
-    def get_extra_options() -> Dict[str, str]:
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
-        Defines options that are potentially usable for this server location
+        Adds HerokuArchitect arguments to the group
         """
-        # TODO update to a format that will be rendererable on the frontend.
-        # TODO maybe use arg-parser somehow?
-        return {
-            "use_hobby": "Launch on the hobby tier?",
-            "heroku_team": "Heroku team to use",
-        }
+        super(HerokuArchitect, cls).add_args_to_group(group)
+
+        group.description = """
+            HerokuArchitect: Heroku servers are deployed by default
+            from a single account on the free tier. These settings
+            allow additional configurations.
+        """
+        group.add_argument(
+            "--use-hobby",
+            dest="use_hobby",
+            help="Launch on the Heroku Hobby tier",
+            type=bool,
+        )
+        group.add_argument(
+            "--heroku-team",
+            dest="heroku_team",
+            help="Heroku team to use for this launch",
+            default="",
+        )
+        return
 
     def __get_heroku_client(self) -> Tuple[str, str]:
         """
@@ -239,7 +254,10 @@ class HerokuArchitect(Architect):
         return_dir = os.getcwd()
         os.chdir(heroku_server_directory_path)
         try:
-            if self.opts.get("heroku_team") is not None:
+            if (
+                self.opts.get("heroku_team", "") != ""
+                and self.opts.get("heroku_team") is not None
+            ):
                 subprocess.check_output(
                     shlex.split(
                         "{} create {} --team {}".format(
