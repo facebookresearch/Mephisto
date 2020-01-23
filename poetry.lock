@@ -1,4 +1,12 @@
 [[package]]
+category = "main"
+description = "Python command-line parsing library"
+name = "argparse"
+optional = false
+python-versions = "*"
+version = "1.1"
+
+[[package]]
 category = "dev"
 description = "Atomic file writes."
 name = "atomicwrites"
@@ -316,10 +324,11 @@ version = "0.6.0"
 more-itertools = "*"
 
 [metadata]
-content-hash = "312393f83e440003e80a95022b8d2b87fff8df8416566abb62dc514a3e4faafe"
+content-hash = "a59c5b3737df3e794396b8c2f5c40c2d3c541aa6872b3ca7ab701c2d3b0ac457"
 python-versions = "^3.6"
 
 [metadata.hashes]
+argparse = ["83aa6d2a117c3fb5ada747c652972cb437ba7f2bb2b63c5fee94be79d1de0403", "ee6da1aaad8b08a74a33eb82264b1a2bf12a7d5aefc7e9d7d40a8f8fa9912e62"]
 atomicwrites = ["03472c30eb2c5d1ba9227e4c2ca66ab8287fbfbbda3888aa93dc2e28fc6811b4", "75a9445bac02d8d058d5e1fe689654ba5a6556a1dfd8ce6ec55a0ed79866cfa6"]
 attrs = ["08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c", "f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"]
 boto3 = ["4cb17e406a1e18a5691e4f76c456e538ec04e46e5211158714d66a12fe824dad", "f5cdbd853736175db5b23cd2bbfde9abe30152e68b16efa59a0456014c446782"]
