@@ -65,13 +65,13 @@ def get_arguments_from_group(group: argparse._ArgumentGroup) -> Dict[str, Any]:
         action_type = action.type
         type_string = None
         if action_type is None:
-            type_string = 'str'
+            type_string = "str"
         elif isinstance(action_type, argparse.FileType):
-            type_string = 'FileType'
+            type_string = "FileType"
         elif hasattr(action_type, __name__):
             type_string = action_type.__name__
         else:
-            type_string = 'unknown_type'
+            type_string = "unknown_type"
         parsed_actions[action.dest] = {
             "dest": action.dest,
             "help": action.help,
@@ -100,11 +100,32 @@ def get_extra_argument_dict(customizable_class: Any) -> List[Dict[str, Any]]:
     (Blueprint, Architect, etc)
     """
     dummy_parser = argparse.ArgumentParser()
-    arg_group = dummy_parser.add_argument_group('test_arguments')
+    arg_group = dummy_parser.add_argument_group("test_arguments")
     customizable_class.add_args_to_group(arg_group)
     groups = collect_groups_recurse(arg_group)
     parsed_groups = [get_argument_group_dict(g) for g in groups]
     return [g for g in parsed_groups if g is not None]
+
+
+def parse_arg_dict(customizable_class: Any, args: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Get the argparser for a class, then parse the given args using
+    it. Return the dict of the finalized namespace.
+    """
+    final_args = []
+    # Extract the expected argument string
+    for _key, val in args.items():
+        final_args.append(val["option_string"])
+        final_args.append(val["value"])
+
+    # Get an argparser with the current class
+    dummy_parser = argparse.ArgumentParser()
+    arg_group = dummy_parser.add_argument_group("test_arguments")
+    customizable_class.add_args_to_group(arg_group)
+
+    # Parse the namespace and return
+    arg_namespace = dummy_parser.parse_args(final_args)
+    return vars(arg_namespace)
 
 
 def get_default_arg_dict(customizable_class: Any) -> Dict[str, Any]:
@@ -116,6 +137,6 @@ def get_default_arg_dict(customizable_class: Any) -> Dict[str, Any]:
     final_opts: Dict[str, Any] = {}
     for arg_group in init_arg_dicts:
         for arg_name, arg_attributes in arg_group["args"].items():
-            final_opts[arg_name] = arg_attributes['default']
+            final_opts[arg_name] = arg_attributes["default"]
 
     return final_opts

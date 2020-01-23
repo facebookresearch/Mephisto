@@ -255,8 +255,8 @@ class HerokuArchitect(Architect):
         os.chdir(heroku_server_directory_path)
         try:
             if (
-                self.opts.get("heroku_team", "") != "" and
-                self.opts.get("heroku_team") is not None
+                self.opts.get("heroku_team", "") != ""
+                and self.opts.get("heroku_team") is not None
             ):
                 subprocess.check_output(
                     shlex.split(
