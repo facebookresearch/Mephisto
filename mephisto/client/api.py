@@ -4,6 +4,7 @@ from mephisto.core.local_database import LocalMephistoDB
 from mephisto.data_model.database import EntryAlreadyExistsException
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
+from mephisto.core.argparse_parser import get_extra_argument_dict, parse_arg_dict
 
 api = Blueprint("api", __name__)
 db = LocalMephistoDB()
@@ -55,33 +56,40 @@ def get_reviewable_task_runs():
     return jsonify({"task_runs": dict_tasks, "total_reviewable": reviewable_count})
 
 
-@api.route("/requester/<type>")
-def requester_details(type):
-    crowd_provider = get_crowd_provider_from_type(type)
+@api.route("/requester/<requester_type>")
+def requester_details(requester_type):
+    crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
-    params = RequesterClass.get_register_args()
+    params = get_extra_argument_dict(RequesterClass)
     return jsonify(params)
 
 
-@api.route("/requester/<string:type>/register", methods=["POST"])
-def register(type):
+@api.route("/requester/<string:requester_type>/register", methods=["POST"])
+def register(requester_type):
     options = request.form.to_dict()
-    crowd_provider = get_crowd_provider_from_type(type)
+    crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
 
-    if "name" not in options:
+    try:
+        parsed_options = parse_arg_dict(RequesterClass, options)
+    except Exception as e:
+        return jsonify(
+            {"success": False, "msg": f"error in parsing arguments: {str(e)}"}
+        )
+
+    if "name" not in parsed_options:
         return jsonify(
             {"success": False, "msg": "No name was specified for the requester."}
         )
 
-    requesters = db.find_requesters(requester_name=options["name"])
+    requesters = db.find_requesters(requester_name=parsed_options["name"])
     if len(requesters) == 0:
-        requester = RequesterClass.new(db, options["name"])
+        requester = RequesterClass.new(db, parsed_options["name"])
     else:
         requester = requesters[0]
     try:
-        print(options)
-        requester.register(options)
+        print(parsed_options)
+        requester.register(parsed_options)
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "msg": str(e)})
