@@ -192,11 +192,11 @@ class TaskRun:
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
-        self.task_config = TaskConfig(self)
         self.task_type = self.get_task().task_type
         self.start_time = row["creation_date"]
         self._is_completed = row["is_completed"]
         self._has_assignments = False
+        self.task_config = TaskConfig(self)
 
     def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
         """

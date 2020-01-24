@@ -10,7 +10,7 @@
 # interface could be like an iterator. This class will launch tasks
 # as if the loader is an iterator.
 
-from mephisto.data_model.assignment import Assignment, Unit
+from mephisto.data_model.assignment import Assignment, Unit, AssignmentData
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
 
@@ -32,12 +32,12 @@ class TaskLauncher:
         self,
         db: "MephistoDB",
         task_run: "TaskRun",
-        assignment_data: List[Dict[str, Any]],
+        assignment_data_list: List[AssignmentData],
     ):
         """Prepare the task launcher to get it ready to launch the assignments"""
         self.db = db
         self.task_run = task_run
-        self.assignment_data = assignment_data
+        self.assignment_data_list = assignment_data_list
         self.assignments: List[Assignment] = []
         self.units: List[Unit] = []
         self.provider_type = task_run.get_provider().PROVIDER_TYPE
@@ -52,15 +52,12 @@ class TaskLauncher:
         """
         task_run_id = self.task_run.db_id
         task_config = self.task_run.task_config
-        TaskRunnerClass = self.task_run.get_blueprint().TaskRunnerClass
-        for data in self.assignment_data:
+        for data in self.assignment_data_list:
             assignment_id = self.db.new_assignment(task_run_id)
             assignment = Assignment(self.db, assignment_id)
             assignment.write_assignment_data(data)
             self.assignments.append(assignment)
-            # TODO replace with something more efficient when we're using Unit data
-            # rather than assignment data. Ideally we can just query unit count
-            unit_count = len(TaskRunnerClass.get_data_for_assignment(assignment))
+            unit_count = len(data['unit_data'])
             for unit_idx in range(unit_count):
                 unit_id = self.db.new_unit(
                     assignment_id,

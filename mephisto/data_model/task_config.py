@@ -80,3 +80,13 @@ class TaskConfig:
             default=30*60
         )
         return
+
+    @classmethod
+    def get_mock_params(cls) -> str:
+        """Returns a param string with default / mock arguments to use for testing"""
+        return (
+            '--task-title "Mock Task Title" '
+            '--task-reward 0.3 '
+            '--task-tags mock,task,tags '
+            '--task-description "This is a test description"'
+        )

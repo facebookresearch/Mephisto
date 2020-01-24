@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.blueprint import TaskRunner
+from mephisto.data_model.assignment import AssignmentData
 
 import os
 import time
@@ -25,13 +26,16 @@ class MockTaskRunner(TaskRunner):
         super().__init__(task_run, opts)
         self.tracked_tasks: Dict[str, "Assignment"] = {}
 
+    @staticmethod
+    def get_mock_assignment_data() -> AssignmentData:
+        return AssignmentData(shared={}, unit_data=[{}, {}])
 
     @staticmethod
-    def get_data_for_assignment(assignment: "Assignment") -> List[Dict[str, Any]]:
+    def get_data_for_assignment(assignment: "Assignment") -> AssignmentData:
         """
         Mock tasks have no data unless given during testing
         """
-        return [{}]
+        return MockTaskRunner.get_mock_assignment_data()
 
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """
