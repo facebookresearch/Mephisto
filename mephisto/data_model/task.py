@@ -239,10 +239,6 @@ class TaskRun:
         """Return the task used to initialize this run"""
         return Task(self.db, self.task_id)
 
-    def get_used_params(self) -> TaskConfig:
-        """Return the parameters used to launch this task"""
-        return TaskConfig(self)
-
     def get_requester(self) -> Requester:
         """
         Return the requester that started this task.
