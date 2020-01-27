@@ -18,6 +18,7 @@ from mephisto.core.utils import (
     ensure_user_confirm,
     get_dir_for_run,
     get_blueprint_from_type,
+    get_crowd_provider_from_type,
 )
 
 
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.blueprint import Blueprint
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.unit import Unit
+    from mephisto.data_model.crowd_provider import CrowdProvider
 
 
 VALID_TASK_TYPES = ["legacy_parlai", "generic", "mock"]
@@ -46,39 +48,6 @@ def assert_task_is_valid(dir_name, task_type) -> None:
 # TODO find a way to repair the database if a user moves folders and files around
 # in an unexpected way, primarily resulting in tasks no longer being executable
 # and becoming just storage for other information.
-
-
-class TaskParams:
-    """
-    This class operates in a way to collect all task-related parameters. Specific tasks
-    should extend the TaskParam class and add additional fields to the argparser.
-    """
-
-    def __init__(self, task_dir, arg_string: Optional[str] = None):
-        """
-        Load up a new set of task parameters from either command line arguments
-        or from the provided arguments
-        """
-        # TODO figure out what command line arguments are available by default
-        # and make it possible to extend with additional arguments.
-        #
-        # Ideally the command line arguments should be displayable to the
-        # frontend in some kind of managable way
-        #
-        # THis class is likely to leverage argparse in a significant way
-
-        # TODO implement __new__ method as well that tries to pull the module
-        # directly from the task_dir if it exists, such that people can define
-        # their own task params
-        pass
-
-    def parse(self, parse_args=None):
-        pass
-
-    def get_param_string(self):
-        pass
-
-    # TODO write functions for retrieving arguments
 
 
 class Task:
@@ -127,14 +96,6 @@ class Task:
         for task_run in self.get_runs():
             assigns += task_run.get_assignments()
         return assigns
-
-    def get_task_params(self) -> TaskParams:
-        """
-        Return the task parameters associated with this task
-        """
-        # task_dir = self.get_task_source()
-        # TODO load the TaskParams module for the given task
-        raise NotImplementedError()
 
     def get_task_source(self) -> str:
         """
@@ -231,11 +192,11 @@ class TaskRun:
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
-        # TODO put this as col in db
         self.task_type = self.get_task().task_type
         self.start_time = row["creation_date"]
         self._is_completed = row["is_completed"]
         self._has_assignments = False
+        self.task_config = TaskConfig(self)
 
     def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
         """
@@ -270,15 +231,13 @@ class TaskRun:
         """Return the runner associated with this task run"""
         return get_blueprint_from_type(self.task_type)
 
+    def get_provider(self) -> Type["CrowdProvider"]:
+        """Return the crowd provider used to launch this task"""
+        return get_crowd_provider_from_type(self.get_requester().provider_type)
+
     def get_task(self) -> "Task":
         """Return the task used to initialize this run"""
         return Task(self.db, self.task_id)
-
-    def get_used_params(self) -> TaskParams:
-        """Return the parameters used to launch this task"""
-        # TODO investigae this once TaskParams is implemented
-        # > self.task_params.parse(self.param_string)?
-        raise NotImplementedError()
 
     def get_requester(self) -> Requester:
         """
@@ -340,15 +299,12 @@ class TaskRun:
 
     def get_task_config(self) -> TaskConfig:
         """Return the configuration options for this task"""
-        return TaskConfig(self)
+        return self.task_config
 
     def get_run_dir(self) -> str:
         """
         Return the directory where the data from this run is stored
         """
-        # TODO this step should go into the TaskLauncher
-        # run_dir = self.get_run_dir()
-        # os.makedirs(run_dir, exist_ok=True)
         task = Task(self.db, self.task_id)
         project = task.get_project()
         if project is None:
@@ -367,11 +323,6 @@ class TaskRun:
             total_amount += assign.get_cost_of_statuses(AssignmentState.payable())
         return total_amount
 
-    def get_task_params(self) -> TaskParams:
-        """Return the task params for the parent task"""
-        task = Task(self.db, self.task_id)
-        return task.get_task_params()
-
     def to_dict(self) -> Dict[str, Any]:
         """Return a dict containing any important information about this task run"""
         return {
@@ -380,7 +331,7 @@ class TaskRun:
             "task_name": self.get_task().task_name,
             "task_type": self.task_type,
             "start_time": self.start_time,
-            "params": {"status": "Not yet implemented", "run params": "Coming soon!"},
+            "params": self.task_config,
             "param_string": self.param_string,
             "task_status": self.get_assignment_statuses(),
             "sandbox": self.get_requester().is_sandbox(),
@@ -388,10 +339,10 @@ class TaskRun:
 
     @staticmethod
     def new(
-        db: "MephistoDB", task: Task, requester: Requester, params: TaskParams
+        db: "MephistoDB", task: Task, requester: Requester, param_string: str,
     ) -> "TaskRun":
         """
         Create a new run for the given task with the given params
         """
-        db_id = db.new_task_run(task.db_id, requester.db_id, params.get_param_string())
+        db_id = db.new_task_run(task.db_id, requester.db_id, param_string)
         return TaskRun(db, db_id)

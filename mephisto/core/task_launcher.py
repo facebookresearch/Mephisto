@@ -10,9 +10,11 @@
 # interface could be like an iterator. This class will launch tasks
 # as if the loader is an iterator.
 
-from mephisto.data_model.assignment import Assignment, Unit
+from mephisto.data_model.assignment import Assignment, Unit, InitializationData
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
+
+import os
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -30,15 +32,18 @@ class TaskLauncher:
         self,
         db: "MephistoDB",
         task_run: "TaskRun",
-        assignment_data: List[Dict[str, Any]],
+        assignment_data_list: List[InitializationData],
     ):
-        """Prepare the task master to get it ready to launch the assignments"""
+        """Prepare the task launcher to get it ready to launch the assignments"""
         self.db = db
         self.task_run = task_run
-        self.assignment_data = assignment_data
+        self.assignment_data_list = assignment_data_list
         self.assignments: List[Assignment] = []
         self.units: List[Unit] = []
-        self.provider_type = task_run.get_requester().provider_type
+        self.provider_type = task_run.get_provider().PROVIDER_TYPE
+
+        run_dir = task_run.get_run_dir()
+        os.makedirs(run_dir, exist_ok=True)
 
     def create_assignments(self) -> None:
         """
@@ -46,18 +51,19 @@ class TaskLauncher:
         currently in the assignment config
         """
         task_run_id = self.task_run.db_id
-        for data in self.assignment_data:
+        task_config = self.task_run.task_config
+        for data in self.assignment_data_list:
             assignment_id = self.db.new_assignment(task_run_id)
             assignment = Assignment(self.db, assignment_id)
             assignment.write_assignment_data(data)
             self.assignments.append(assignment)
-            # TODO get the count of units from the task run, as well
-            # as other configuration things like pay
-            UNIT_COUNT = 1
-            PAY_AMOUNT = 0
-            for unit_idx in range(UNIT_COUNT):
+            unit_count = len(data['unit_data'])
+            for unit_idx in range(unit_count):
                 unit_id = self.db.new_unit(
-                    assignment_id, unit_idx, PAY_AMOUNT, self.provider_type
+                    assignment_id,
+                    unit_idx,
+                    task_config.task_reward,
+                    self.provider_type,
                 )
                 self.units.append(Unit(self.db, unit_id))
 

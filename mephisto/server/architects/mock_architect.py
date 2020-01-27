@@ -33,6 +33,7 @@ class MockArchitect(Architect):
         self.task_run = task_run
         self.build_dir = build_dir_root
         self.task_run_id = task_run.db_id
+        # TODO track state in parent class?
         self.prepared = False
         self.deployed = False
         self.cleaned = False

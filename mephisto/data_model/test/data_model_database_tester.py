@@ -26,6 +26,7 @@ from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.database import (
     MephistoDB,
@@ -164,7 +165,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Check creation and retrieval of a task
         task_name_1 = "test_task"
-        task_type = "test"
+        task_type = "mock"
         task_id_1 = db.new_task(task_name_1, task_type, project_id=project_id)
         self.assertIsNotNone(task_id_1)
         self.assertTrue(isinstance(task_id_1, str))
@@ -227,7 +228,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         task_name = "test_task"
         task_name_2 = "test_task_2"
-        task_type = "test"
+        task_type = "mock"
         task_id = db.new_task(task_name, task_type)
 
         # Can't create same task again
@@ -262,7 +263,7 @@ class BaseDatabaseTests(unittest.TestCase):
         # Check creation and retrieval of a task
         task_name_1 = "test_task"
         task_name_2 = "test_task_2"
-        task_type = "test"
+        task_type = "mock"
         task_id_1 = db.new_task(task_name_1, task_type)
 
         tasks = db.find_tasks(project_id=project_id)
@@ -290,7 +291,7 @@ class BaseDatabaseTests(unittest.TestCase):
         db: MephistoDB = self.db
 
         task_name = "test_task"
-        task_type = "test"
+        task_type = "mock"
         task_id = db.new_task(task_name, task_type)
 
         task_name_2 = "test_task_2"
@@ -316,7 +317,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # But not after we've created a task run
         requester_name, requester_id = get_test_requester(db)
-        init_params = "--test --params"
+        init_params = TaskConfig.get_mock_params()
         task_run_id = db.new_task_run(task_id_2, requester_id, init_params)
         with self.assertRaises(MephistoDBException):
             db.update_task(task_id_2, task_name=task_name_2)
@@ -448,8 +449,7 @@ class BaseDatabaseTests(unittest.TestCase):
         requester_name, requester_id = get_test_requester(db)
 
         # Check creation and retrieval of a task_run
-        # TODO pull initial params from the task type?
-        init_params = "--test --params"
+        init_params = TaskConfig.get_mock_params()
         task_run_id = db.new_task_run(task_id, requester_id, init_params)
         self.assertIsNotNone(task_run_id)
         self.assertTrue(isinstance(task_run_id, str))
@@ -501,7 +501,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         task_name, task_id = get_test_task(db)
         requester_name, requester_id = get_test_requester(db)
-        init_params = "--test --params"
+        init_params = TaskConfig.get_mock_params()
 
         # Can't create task run with invalid ids
         with self.assertRaises(EntryDoesNotExistException):

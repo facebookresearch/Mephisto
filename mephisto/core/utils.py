@@ -101,7 +101,7 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
         )
 
         return SandboxMTurkProvider
-    raise NotImplementedError()
+    raise NotImplementedError(f"Missing provider type {provider_type}")
 
 
 def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
@@ -119,7 +119,7 @@ def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
         )
 
         return StaticBlueprint
-    raise NotImplementedError()
+    raise NotImplementedError(f"Missing task type {task_type}")
 
 
 @functools.lru_cache(maxsize=1)

@@ -9,6 +9,7 @@ from mephisto.data_model.database import (
 
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Unit
+from mephisto.data_model.task_config import TaskConfig
 
 
 def get_test_project(db: MephistoDB) -> Tuple[str, str]:
@@ -46,7 +47,7 @@ def get_test_task_run(db: MephistoDB) -> str:
     """Helper to create a task run for tests"""
     task_name, task_id = get_test_task(db)
     requester_name, requester_id = get_test_requester(db)
-    init_params = "--test --params"
+    init_params = TaskConfig.get_mock_params()
     return db.new_task_run(task_id, requester_id, init_params)
 
 
@@ -61,7 +62,6 @@ def get_test_unit(db: MephistoDB, unit_index=0) -> str:
     assignment_id = get_test_assignment(db)
     pay_amount = 15.0
     provider_type = "mock"
-
     return db.new_unit(assignment_id, unit_index, pay_amount, provider_type)
 
 

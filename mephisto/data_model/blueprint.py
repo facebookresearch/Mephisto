@@ -11,7 +11,7 @@ from typing import ClassVar, Optional, List, Dict, Any, Type, ClassVar, TYPE_CHE
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.assignment import Assignment, InitializationData
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
@@ -41,6 +41,9 @@ class Blueprint(ABC):
         Defines options that are potentially usable for this task type,
         and adds them to the given argparser group. The group's 'description'
         attribute should be used to put any general help for these options.
+
+        These options are used to configure the way that the blueprint
+        looks or otherwise runs tasks.
 
         If the description field is left empty, the argument group is ignored
         """
@@ -128,6 +131,13 @@ class TaskRunner(ABC):
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    @staticmethod
+    def get_data_for_assignment(assignment: "Assignment") -> "InitializationData":
+        """
+        Finds the right data to get for the given assignment.
+        """
+        return assignment.get_assignment_data()
 
     @abstractmethod
     def get_init_data_for_agent(self, agent: "Agent"):

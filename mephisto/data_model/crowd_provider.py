@@ -18,6 +18,7 @@ from typing import List, Optional, Tuple, Dict, Any, ClassVar, Type, TYPE_CHECKI
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class CrowdProvider(ABC):
@@ -77,6 +78,14 @@ class CrowdProvider(ABC):
         from the MephistoDB in a db.get_provider_datastore(PROVIDER_TYPE).
         """
         raise NotImplementedError()
+
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        Defines provider-specific arguments that are required to launch
+        or monitor a task
+        """
+        return
 
     @abstractmethod
     def setup_resources_for_task_run(

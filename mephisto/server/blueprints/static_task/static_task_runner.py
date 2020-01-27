@@ -16,7 +16,7 @@ from recordclass import RecordClass
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.assignment import Assignment, InitializationData
     from mephisto.data_model.agent import Agent
 
 
@@ -40,14 +40,6 @@ class StaticTaskRunner(TaskRunner):
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
         self.running_assignments: Dict[str, TrackedAssignment] = {}
-
-    def get_data_for_assignment(self, assignment: "Assignment") -> List[Dict[str, Any]]:
-        """
-        Finds the right data to get for the given assignment.
-        """
-        data = assignment.get_assignment_data()
-        assert data is not None, "Static tasks must have assignment data"
-        return [data]
 
     # TODO reconnects should get the same agent as was initially given
 

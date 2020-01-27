@@ -65,12 +65,13 @@ class MockUnit(Unit):
         return AssignmentState.LAUNCHED
 
     def launch(self, task_url: str) -> None:
-        """Mock launches do nothing right now"""
+        """Mock launches do nothing right now beyond updating state"""
+        self.db.update_unit(self.db_id, status=AssignmentState.LAUNCHED)
         return None
 
     def expire(self) -> float:
         """Expiration is immediate on Mocks"""
-        # TODO add stuff to the mockdb
+        self.db.update_unit(self.db_id, status=AssignmentState.EXPIRED)
         return 0.0
 
     def is_expired(self) -> bool:

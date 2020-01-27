@@ -10,7 +10,7 @@ from mephisto.core.utils import get_dir_for_run, get_crowd_provider_from_type
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.agent import Agent
-from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING, IO
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -20,9 +20,26 @@ if TYPE_CHECKING:
 
 import os
 import json
+from recordclass import RecordClass
 
 
 ASSIGNMENT_DATA_FILE = "assign_data.json"
+
+# TODO update from RecordClass to python dataclasses after migrating to 3.7
+class InitializationData(RecordClass):
+    shared: Dict[str, Any]
+    unit_data: List[Dict[str, Any]]
+
+    def dumpJSON(self, fp: IO[str]):
+        return json.dump({'shared': self.shared, 'unit_data': self.unit_data}, fp)
+
+    @staticmethod
+    def loadFromJSON(fp: IO[str]):
+        as_dict = json.load(fp)
+        return InitializationData(
+            shared=as_dict['shared'],
+            unit_data=as_dict['unit_data'],
+        )
 
 
 class Assignment:
@@ -44,21 +61,19 @@ class Assignment:
         run_dir = task_run.get_run_dir()
         return os.path.join(run_dir, self.db_id)
 
-    def get_assignment_data(self) -> Optional[Dict[str, Any]]:
+    def get_assignment_data(self) -> InitializationData:
         """Return the specific assignment data for this assignment"""
         assign_data_filename = os.path.join(self.get_data_dir(), ASSIGNMENT_DATA_FILE)
-        if os.path.exists(assign_data_filename):
-            with open(assign_data_filename, "r") as json_file:
-                return json.load(json_file)
-        return None
+        assert os.path.exists(assign_data_filename), "No data exists for assignment"
+        with open(assign_data_filename, "r") as json_file:
+            return InitializationData.loadFromJSON(json_file)
 
-    def write_assignment_data(self, data: Dict[str, Any]) -> None:
+    def write_assignment_data(self, data: InitializationData) -> None:
         """Set the assignment data for this assignment"""
         assign_data_filename = os.path.join(self.get_data_dir(), ASSIGNMENT_DATA_FILE)
         os.makedirs(self.get_data_dir(), exist_ok=True)
         with open(assign_data_filename, "w+") as json_file:
-            return json.dump(data, json_file)
-        return None
+            data.dumpJSON(json_file)
 
     def get_status(self) -> str:
         """
@@ -240,6 +255,8 @@ class Unit(ABC):
         # not need to be re-queried
         # TODO add test to ensure this behavior/assumption holds always
         if self.db_status in AssignmentState.final_unit():
+            if self.agent_id is None:
+                return None
             return Agent(self.db, self.agent_id)
 
         # Query the database to get the most up-to-date assignment, as this can
