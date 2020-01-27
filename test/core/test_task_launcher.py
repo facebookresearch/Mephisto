@@ -12,7 +12,7 @@ import tempfile
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.task_launcher import TaskLauncher
-from mephisto.data_model.assignment import AssignmentData
+from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
 
@@ -35,7 +35,7 @@ class TestTaskLauncher(unittest.TestCase):
         self.db.shutdown()
         shutil.rmtree(self.data_dir)
 
-    def get_mock_assignment_data_array(self) -> AssignmentData:
+    def get_mock_assignment_data_array(self) -> InitializationData:
         return [MockBlueprint.TaskRunnerClass.get_mock_assignment_data()]
 
     def test_init_on_task_run(self):

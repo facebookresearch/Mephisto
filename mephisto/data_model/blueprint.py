@@ -11,7 +11,7 @@ from typing import ClassVar, Optional, List, Dict, Any, Type, ClassVar, TYPE_CHE
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.assignment import Assignment, AssignmentData
+    from mephisto.data_model.assignment import Assignment, InitializationData
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
@@ -133,7 +133,7 @@ class TaskRunner(ABC):
             return super().__new__(cls)
 
     @staticmethod
-    def get_data_for_assignment(assignment: "Assignment") -> "AssignmentData":
+    def get_data_for_assignment(assignment: "Assignment") -> "InitializationData":
         """
         Finds the right data to get for the given assignment.
         """

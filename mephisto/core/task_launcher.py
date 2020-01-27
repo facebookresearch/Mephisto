@@ -10,7 +10,7 @@
 # interface could be like an iterator. This class will launch tasks
 # as if the loader is an iterator.
 
-from mephisto.data_model.assignment import Assignment, Unit, AssignmentData
+from mephisto.data_model.assignment import Assignment, Unit, InitializationData
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
 
@@ -32,7 +32,7 @@ class TaskLauncher:
         self,
         db: "MephistoDB",
         task_run: "TaskRun",
-        assignment_data_list: List[AssignmentData],
+        assignment_data_list: List[InitializationData],
     ):
         """Prepare the task launcher to get it ready to launch the assignments"""
         self.db = db

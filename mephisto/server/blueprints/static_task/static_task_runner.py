@@ -16,7 +16,7 @@ from recordclass import RecordClass
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.assignment import Assignment, AssignmentData
+    from mephisto.data_model.assignment import Assignment, InitializationData
     from mephisto.data_model.agent import Agent
 
 

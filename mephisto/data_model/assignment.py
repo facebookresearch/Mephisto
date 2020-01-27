@@ -26,7 +26,7 @@ from recordclass import RecordClass
 ASSIGNMENT_DATA_FILE = "assign_data.json"
 
 # TODO update from RecordClass to python dataclasses after migrating to 3.7
-class AssignmentData(RecordClass):
+class InitializationData(RecordClass):
     shared: Dict[str, Any]
     unit_data: List[Dict[str, Any]]
 
@@ -36,7 +36,7 @@ class AssignmentData(RecordClass):
     @staticmethod
     def loadFromJSON(fp: IO[str]):
         as_dict = json.load(fp)
-        return AssignmentData(
+        return InitializationData(
             shared=as_dict['shared'],
             unit_data=as_dict['unit_data'],
         )
@@ -61,14 +61,14 @@ class Assignment:
         run_dir = task_run.get_run_dir()
         return os.path.join(run_dir, self.db_id)
 
-    def get_assignment_data(self) -> AssignmentData:
+    def get_assignment_data(self) -> InitializationData:
         """Return the specific assignment data for this assignment"""
         assign_data_filename = os.path.join(self.get_data_dir(), ASSIGNMENT_DATA_FILE)
         assert os.path.exists(assign_data_filename), "No data exists for assignment"
         with open(assign_data_filename, "r") as json_file:
-            return AssignmentData.loadFromJSON(json_file)
+            return InitializationData.loadFromJSON(json_file)
 
-    def write_assignment_data(self, data: AssignmentData) -> None:
+    def write_assignment_data(self, data: InitializationData) -> None:
         """Set the assignment data for this assignment"""
         assign_data_filename = os.path.join(self.get_data_dir(), ASSIGNMENT_DATA_FILE)
         os.makedirs(self.get_data_dir(), exist_ok=True)
