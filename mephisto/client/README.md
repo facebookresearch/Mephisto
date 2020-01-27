@@ -46,11 +46,22 @@ Sample response:
 
 Sample response:
 ```
-{
-  "HELP_TEXT": "AWS are required to create a new Requester. Please create an IAM user with programmatic access and AdministratorAccess policy at https://console.aws.amazon.com/iam/ (On the \"Set permissions\" page, choose \"Attach existing policies directly\" and then select \"AdministratorAccess\" policy). After creating the IAM user, please enter the user's Access Key ID and Secret Access Key.",
-  "access_key_id": "IAM Access Key ID: ",
-  "secret_access_key": "IAM Secret Access Key: "
-}
+[
+  {
+    "args": {
+      "access_key_id": {
+        "choices": null,
+        "default": null,
+        "dest": "access_key_id",
+        "help": "IAM Access Key ID",
+        "option_string": "--access-key-id",
+        "type": "str"
+      },
+      // ...
+    },
+    "desc": "\n            MTurkRequester: AWS are required to create a new Requester.\n            Please create an IAM user with programmatic access and\n            AmazonMechanicalTurkFullAccess policy at\n            'https://console.aws.amazon.com/iam/ (On the \"Set permissions\"\n            page, choose \"Attach existing policies directly\" and then select\n            \"AmazonMechanicalTurkFullAccess\" policy). After creating\n            the IAM user, you should get an Access Key ID\n            and Secret Access Key.\n        "
+  }
+]
 ```
 
 #### `/<requester_name>/get_balance` - TODO: Change to `/requester/balance/<requester_name>`
