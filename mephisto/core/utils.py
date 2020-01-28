@@ -89,7 +89,7 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
     Return the crowd provider class for the given string
     """
      # list the current providers directories
-     providers_path = os.path.expanduser("~/mephisto/providers")
+    providers_path = os.path.expanduser("~/Mephisto/mephisto/providers")
 
      # check if the provider has a directory in the providers path
     is_valid_provider = (provider_type in [f for f in os.listdir(providers_path) if os.path.isdir(os.path.join(providers_path,f))])
@@ -115,6 +115,7 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
                 value = getattr(module, item)
                 is_class = inspect.isclass(value)
                 if(is_class):
+                    from mephisto.data_model.crowd_provider import CrowdProvider
                     is_crowdProvider = issubclass(value, CrowdProvider)
                     if(is_crowdProvider and value!= CrowdProvider):
                         return value
