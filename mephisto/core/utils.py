@@ -5,6 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import sys, glob, importlib, inspect
+
 import functools
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
@@ -28,6 +30,12 @@ def ensure_user_confirm(display_text, skip_input=False) -> None:
         raise SystemExit(0)
     return
 
+
+def get_provider_dir() -> str:
+    """
+    Return the path to the mephisto providers diroctory
+    """
+    return os.path.expanduser("~/Mephisto/mephisto/providers")
 
 def get_gallery_dir() -> str:
     """
@@ -86,22 +94,42 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
     """
     Return the crowd provider class for the given string
     """
-    # TODO pull these from the files, then cache the results?
-    if provider_type == "mock":
-        from mephisto.providers.mock.mock_provider import MockProvider
+    from mephisto.data_model.crowd_provider import CrowdProvider
+    
+     # list the current providers directories
+    providers_path = get_provider_dir()
 
-        return MockProvider
-    if provider_type == "mturk":
-        from mephisto.providers.mturk.mturk_provider import MTurkProvider
+     # check if the provider has a directory in the providers path
+    providers_lst = get_valid_provider_types()
+    is_valid_provider = (provider_type in providers_lst)
 
-        return MTurkProvider
-    if provider_type == "mturk_sandbox":
-        from mephisto.providers.mturk_sandbox.sandbox_mturk_provider import (
-            SandboxMTurkProvider,
-        )
+    if is_valid_provider:
+        # full path of the current provider
+        provider_dir = os.path.join(providers_path, provider_type)
+        sys.path.append(provider_dir)
 
-        return SandboxMTurkProvider
-    raise NotImplementedError(f"Missing provider type {provider_type}")
+        # Iterate over all the files insider the provider directory
+        file_paths = glob.glob(os.path.join(provider_dir, "*provider.py"))
+       
+        for file_path in file_paths:
+            file_name = os.path.basename(file_path)
+            module_name = os.path.splitext(file_name)[0]
+            if module_name.startswith("__"): continue
+            # -----------------------------
+            # Import python file
+            module = importlib.import_module(module_name)
+            # -----------------------------
+            # Iterate items inside imported python file
+            # search for a class whose base class is CrowdProvider and return it
+            for item in dir(module):
+                value = getattr(module, item)
+                is_class = inspect.isclass(value)
+                if(is_class):
+                    is_crowd_provider = issubclass(value, CrowdProvider)
+                    if(is_crowd_provider and value!= CrowdProvider):
+                        return value
+    else:
+        raise NotImplementedError(f"Missing provider type {provider_type}")
 
 
 def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
@@ -128,5 +156,6 @@ def get_valid_provider_types() -> List[str]:
     Return the valid provider types that are currently supported by
     the mephisto framework
     """
-    # TODO query this from the providers folder
-    return ["mock", "mturk", "mturk_sandbox"]
+    providers_path = get_provider_dir()
+    available_providers = [f for f in os.listdir(providers_path) if os.path.isdir(os.path.join(providers_path,f))]
+    return available_providers
