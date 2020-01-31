@@ -15,6 +15,7 @@ from typing import Optional, Any, List, Type, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
     from mephisto.data_model.task_runner import TaskRunner
+    from mephisto.data_model.architect import Architect
 
 
 def ensure_user_confirm(display_text, skip_input=False) -> None:
@@ -153,6 +154,26 @@ def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
     raise NotImplementedError(f"Missing task type {task_type}")
 
 
+def get_architect_from_type(architect_type: str) -> Type["Architect"]:
+    """
+    Return the task runner class for the given string
+    """
+    # TODO construct this map automatically
+    if architect_type == "mock":
+        from mephisto.server.architects.mock_architect import MockArchitect
+
+        return MockArchitect
+    if architect_type == "local":
+        from mephisto.server.architects.local_architect import LocalArchitect
+
+        return LocalArchitect
+    if architect_type == "heroku":
+        from mephisto.server.architects.heroku_architect import HerokuArchitect
+
+        return HerokuArchitect
+    raise NotImplementedError(f"Missing task type {architect_type}")
+
+
 @functools.lru_cache(maxsize=1)
 def get_valid_provider_types() -> List[str]:
     """
@@ -166,3 +187,21 @@ def get_valid_provider_types() -> List[str]:
         if os.path.isdir(os.path.join(providers_path, f))
     ]
     return available_providers
+
+
+@functools.lru_cache(maxsize=1)
+def get_valid_blueprint_types() -> List[str]:
+    """
+    Return the valid provider types that are currently supported by
+    the mephisto framework
+    """
+    return ['mock', 'static']
+
+
+@functools.lru_cache(maxsize=1)
+def get_valid_architect_types() -> List[str]:
+    """
+    Return the valid provider types that are currently supported by
+    the mephisto framework
+    """
+    return ['mock', 'heroku']
