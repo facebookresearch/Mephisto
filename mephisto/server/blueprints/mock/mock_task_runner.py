@@ -24,6 +24,7 @@ class MockTaskRunner(TaskRunner):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
+        self.timeout = opts['timeout_time']
         self.tracked_tasks: Dict[str, "Assignment"] = {}
 
     @staticmethod
@@ -57,12 +58,15 @@ class MockTaskRunner(TaskRunner):
             assert assigned_agent is not None, "Task was not fully assigned"
             agent = agent_dict.get(assigned_agent.db_id)
             assert agent is not None, "Task was not launched with assigned agents"
-            packet = agent.act(timeout=5)
+            packet = agent.act(timeout=self.timeout)
             if packet is not None:
                 agent.observe(packet)
             agent.mark_done()
         del self.tracked_tasks[assignment.db_id]
-        del self.running_assignments[assignment.db_id]
+        if assignment.db_id in self.running_assignments:
+            # TODO can we automatically remove from running_assignments
+            # when this thread exits? Examine from supervisor
+            del self.running_assignments[assignment.db_id]
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:

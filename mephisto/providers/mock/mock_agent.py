@@ -36,7 +36,6 @@ class MockAgent(Agent):
 
     def observe(self, packet: "Packet") -> None:
         """Put observations into this mock agent's observation list"""
-        print('apending observation!')
         self.datastore["agents"][self.db_id]["observed"].append(packet)
         super().observe(packet)
 

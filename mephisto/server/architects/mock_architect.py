@@ -42,17 +42,13 @@ class SocketHandler(WebSocketHandler):
         Opens a websocket and assigns a random UUID that is stored in the class-level
         `subs` variable.
         """
-        print('socket opening', self.sid)
         if self.sid not in self.subs.values():
             self.subs[self.sid] = self
-            print(f"Opened new socket from ip: {self.request.remote_ip}")
-            print(f"Current subscribers: {self.subs}")
 
     def on_close(self):
         """
         Runs when a socket is closed.
         """
-        print('closing sub!!!')
         del self.subs[self.sid]
 
     def on_message(self, message_text):
@@ -65,7 +61,6 @@ class SocketHandler(WebSocketHandler):
                 See `WebsocketAgent.put_data` for more information about the
                 attachment dict structure.
         """
-        print('websocket message from client: {}'.format(message_text))
         message = json.loads(message_text)
         if message['packet_type'] == PACKET_TYPE_ALIVE:
             self.app.last_alive_packet = message
@@ -112,11 +107,9 @@ class MockServer(tornado.web.Application):
         """
         Main loop for the application
         """
-        print("Mock Server Alive!")
         self.running_instance = tornado.ioloop.IOLoop()
         http_server = tornado.httpserver.HTTPServer(self, max_buffer_size=1024 ** 3)
         http_server.listen(self.port)
-        print('starting')
         self.running_instance.start()
         http_server.stop()
 

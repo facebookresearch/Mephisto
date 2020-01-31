@@ -126,14 +126,7 @@ class Supervisor:
             # TODO use logger?
             print(f"socket open {args}")
 
-        def on_close(*args):
-            import traceback
-            traceback.print_stack()
-
         def on_error(ws, error):
-            print(f'Had error {error}')
-            import traceback
-            traceback.print_exc()
             if hasattr(error, 'errno'):
                 if error.errno == errno.ECONNREFUSED:
                     raise Exception(f"Socket {url} refused connection, cancelling")
@@ -157,7 +150,6 @@ class Supervisor:
             """
             try:
                 packet_dict = json.loads(args[1])
-                print(packet_dict)
                 packet = Packet.from_dict(packet_dict)
                 self._on_message(packet, socket_info)
             except Exception as e:
@@ -181,7 +173,6 @@ class Supervisor:
                     self.sockets[socket_name].socket = socket
                     socket.on_open = on_socket_open
                     socket.run_forever(ping_interval=8 * STATUS_CHECK_TIME)
-                    print('socket no longer running... restarting?')
                 except Exception as e:
                     print(f"Socket error {repr(e)}, attempting restart")
                 time.sleep(0.2)
@@ -207,12 +198,10 @@ class Supervisor:
             except Exception:
                 pass
             time.sleep(0.3)
-        print("socket seems live!")
         return socket_name
 
     def close_socket(self, socket_id: str):
         """Close the given socket by id"""
-        print(f'closing socket {socket_id}')
         socket_info = self.sockets[socket_id]
         socket_info.is_closed = True
         if socket_info.socket is not None:
@@ -276,16 +265,13 @@ class Supervisor:
         crowd_provider = socket_info.job.provider
         worker_name = crowd_data["worker_name"]
         workers = self.db.find_workers(worker_name=worker_name)
-        print(f'workers_found: {workers}')
         if len(workers) == 0:
             # TODO get rid of sandbox designation
             workers = self.db.find_workers(worker_name=worker_name + "_sandbox")
         if len(workers) == 0:
-            print(f'Making worker')
             worker = crowd_provider.WorkerClass.new_from_provider_data(
                 self.db, crowd_data
             )
-            print(f'{worker}')
         else:
             worker = workers[0]
         # TODO any sort of processing to see if this worker is blocked from the provider side?
@@ -365,10 +351,9 @@ class Supervisor:
             # See if the current unit is ready to launch
             assignment = unit.get_assignment()
             agents = assignment.get_agents()
-            print(agents)
             task_run.clear_reservation(unit)  # TODO is this a safe enough place to un-reserve?
             if None not in agents:
-                print('launching')
+                # Launch the backend for this assignment
                 tracked_agents = [self.agents[a.db_id].agent for a in agents]
                 socket_info.job.task_runner.launch_assignment(assignment, tracked_agents)
 

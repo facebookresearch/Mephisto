@@ -42,7 +42,6 @@ class TestSupervisor(unittest.TestCase):
         self.architect.prepare()
         self.architect.deploy()
         self.urls = self.architect.get_socket_urls()
-        print(self.urls)
         self.url = self.urls[0]
         self.provider = MockProvider(self.db)
         self.provider.setup_resources_for_task_run(self.task_run, self.url)
@@ -56,9 +55,7 @@ class TestSupervisor(unittest.TestCase):
             self.sup.shutdown()
         self.launcher.expire_units()
         self.architect.cleanup()
-        print('shutting down architect')
         self.architect.shutdown()
-        print('architect down')
         self.db.shutdown()
         shutil.rmtree(self.data_dir)
 
@@ -66,42 +63,42 @@ class TestSupervisor(unittest.TestCase):
         mock_data = MockBlueprint.TaskRunnerClass.get_mock_assignment_data()
         return [mock_data, mock_data]
 
-    # def test_initialize_supervisor(self):
-    #     """Ensure that the supervisor object can even be created"""
-    #     sup = Supervisor(self.db)
-    #     self.assertIsNotNone(sup)
-    #     self.assertDictEqual(sup.agents, {})
-    #     self.assertDictEqual(sup.sockets, {})
-    #     sup.shutdown()
+    def test_initialize_supervisor(self):
+        """Ensure that the supervisor object can even be created"""
+        sup = Supervisor(self.db)
+        self.assertIsNotNone(sup)
+        self.assertDictEqual(sup.agents, {})
+        self.assertDictEqual(sup.sockets, {})
+        sup.shutdown()
 
-    # def test_socket_operations(self):
-    #     """
-    #     Initialize a socket, and ensure the basic 
-    #     startup and shutdown functions are working
-    #     """
-    #     sup = Supervisor(self.db)
-    #     self.sup = sup
-    #     TaskRunnerClass = MockBlueprint.TaskRunnerClass
-    #     task_runner = TaskRunnerClass(self.task_run, get_default_arg_dict(TaskRunnerClass))
-    #     test_job = Job(
-    #         architect=self.architect, 
-    #         task_runner=task_runner,
-    #         provider=self.provider,
-    #         registered_socket_ids=[],
-    #     )
-    #     socket_id = sup.setup_socket(self.url, test_job)
-    #     self.assertIsNotNone(socket_id)
-    #     self.assertEqual(sup.socket_count, 1)
-    #     self.assertIn(socket_id, sup.sockets)
-    #     socket_info = sup.sockets[socket_id]
-    #     self.assertTrue(socket_info.is_alive)
-    #     self.assertEqual(len(self.architect.server.subs), 1, "MockServer doesn't see registered socket")
-    #     self.assertIsNotNone(self.architect.server.last_alive_packet, "No alive packet recieved by server")
-    #     sup.launch_sending_thread()
-    #     self.assertIsNotNone(sup.sending_thread)
-    #     sup.shutdown()
-    #     self.assertTrue(socket_info.is_closed)
-    #     self.assertEqual(len(self.architect.server.subs), 0)
+    def test_socket_operations(self):
+        """
+        Initialize a socket, and ensure the basic 
+        startup and shutdown functions are working
+        """
+        sup = Supervisor(self.db)
+        self.sup = sup
+        TaskRunnerClass = MockBlueprint.TaskRunnerClass
+        task_runner = TaskRunnerClass(self.task_run, get_default_arg_dict(TaskRunnerClass))
+        test_job = Job(
+            architect=self.architect, 
+            task_runner=task_runner,
+            provider=self.provider,
+            registered_socket_ids=[],
+        )
+        socket_id = sup.setup_socket(self.url, test_job)
+        self.assertIsNotNone(socket_id)
+        self.assertEqual(sup.socket_count, 1)
+        self.assertIn(socket_id, sup.sockets)
+        socket_info = sup.sockets[socket_id]
+        self.assertTrue(socket_info.is_alive)
+        self.assertEqual(len(self.architect.server.subs), 1, "MockServer doesn't see registered socket")
+        self.assertIsNotNone(self.architect.server.last_alive_packet, "No alive packet recieved by server")
+        sup.launch_sending_thread()
+        self.assertIsNotNone(sup.sending_thread)
+        sup.shutdown()
+        self.assertTrue(socket_info.is_closed)
+        self.assertEqual(len(self.architect.server.subs), 0)
 
     def test_register_job(self):
         """Test registering and running a job"""
@@ -130,7 +127,6 @@ class TestSupervisor(unittest.TestCase):
         mock_worker_name = 'MOCK_WORKER'
         self.architect.server.register_mock_worker(mock_worker_name)
         workers = self.db.find_workers(worker_name=mock_worker_name)
-        print(workers)
         self.assertEqual(len(workers), 1, 'Worker not successfully registered')
         worker = workers[0]
         
@@ -186,8 +182,23 @@ class TestSupervisor(unittest.TestCase):
 
         self.assertLess(time.time() - start_time, TIMEOUT_TIME, 'Did not process messages in time')
 
-        self.assertEqual(len(task_runner.running_assignments), 0, 'Task was not completed')
-        self.assertEqual(self.architect.server.actions_observed, 2, "Not all actions observed")
+        # Give up to 1 seconds for the task to complete afterwards
+        start_time = time.time()
+        TIMEOUT_TIME = 1
+        while time.time() - start_time < TIMEOUT_TIME:
+            if len(task_runner.running_assignments) == 0:
+                break
+            time.sleep(0.1)
+        self.assertLess(time.time() - start_time, TIMEOUT_TIME, 'Did not complete task in time')
+
+        # Give up to 1 seconds for all messages to propogate
+        start_time = time.time()
+        TIMEOUT_TIME = 1
+        while time.time() - start_time < TIMEOUT_TIME:
+            if self.architect.server.actions_observed == 2:
+                break
+            time.sleep(0.1)
+        self.assertLess(time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time")
 
         sup.shutdown()
         self.assertTrue(socket_info.is_closed)
