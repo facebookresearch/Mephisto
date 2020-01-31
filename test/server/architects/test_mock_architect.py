@@ -22,6 +22,7 @@ from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
 from mephisto.core.argparse_parser import get_default_arg_dict
 
+
 class MockArchitectTests(ArchitectTests):
     """
     Runs architect tests on the mock class. Tests the general architect interface is
@@ -44,7 +45,7 @@ class MockArchitectTests(ArchitectTests):
         """
         opts = get_default_arg_dict(MockArchitect)
         self.curr_architect = MockArchitect(
-            self.db, opts, self.task_run, self.build_dir,
+            self.db, opts, self.task_run, self.build_dir
         )
         return self.curr_architect
 

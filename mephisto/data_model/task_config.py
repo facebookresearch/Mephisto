@@ -31,21 +31,21 @@ class TaskConfig:
         param_string = task_run.param_string
 
         parser = argparse.ArgumentParser()
-        blueprint_group = parser.add_argument_group('blueprint')
+        blueprint_group = parser.add_argument_group("blueprint")
         BlueprintClass.add_args_to_group(blueprint_group)
-        provider_group = parser.add_argument_group('crowd_provider')
+        provider_group = parser.add_argument_group("crowd_provider")
         CrowdProviderClass.add_args_to_group(provider_group)
-        task_group = parser.add_argument_group('task_config')
+        task_group = parser.add_argument_group("task_config")
         TaskConfig.add_args_to_group(task_group)
 
         arg_namespace, _unknown = parser.parse_known_args(shlex.split(param_string))
         args = vars(arg_namespace)
         self.args = args
-        self.task_title: str = args['task_title']
-        self.task_description: str = args['task_description']
-        self.task_reward: float = args['task_reward']
-        self.task_tags: List[str] = [s.strip() for s in args['task_tags'].split(',')]
-        self.assignment_duration_in_seconds: int = args['assignment_duration_seconds']
+        self.task_title: str = args["task_title"]
+        self.task_description: str = args["task_description"]
+        self.task_reward: float = args["task_reward"]
+        self.task_tags: List[str] = [s.strip() for s in args["task_tags"].split(",")]
+        self.assignment_duration_in_seconds: int = args["assignment_duration_seconds"]
         self.qualifications: List[Any] = []
 
     @classmethod
@@ -56,30 +56,30 @@ class TaskConfig:
         """
         group.description = "Core task arguments required to run a task"
         group.add_argument(
-            '--task-title',
-            dest='task_title',
-            help='Display title for your task on the crowd provider.',
+            "--task-title",
+            dest="task_title",
+            help="Display title for your task on the crowd provider.",
         )
         group.add_argument(
-            '--task-description',
-            dest='task_description',
-            help='Longer form description for what your task entails.',
+            "--task-description",
+            dest="task_description",
+            help="Longer form description for what your task entails.",
         )
         group.add_argument(
-            '--task-reward',
-            dest='task_reward',
-            help='Amount to pay per worker per assignment.',
+            "--task-reward",
+            dest="task_reward",
+            help="Amount to pay per worker per assignment.",
         )
         group.add_argument(
-            '--task-tags',
-            dest='task_tags',
-            help='Comma seperated tags for workers to use to find your task.',
+            "--task-tags",
+            dest="task_tags",
+            help="Comma seperated tags for workers to use to find your task.",
         )
         group.add_argument(
-            '--assignment-duration-seconds',
-            dest='assignment_duration_seconds',
-            help='Time that workers have to work on your task once accepted.',
-            default=30*60
+            "--assignment-duration-seconds",
+            dest="assignment_duration_seconds",
+            help="Time that workers have to work on your task once accepted.",
+            default=30 * 60,
         )
         return
 
@@ -88,7 +88,7 @@ class TaskConfig:
         """Returns a param string with default / mock arguments to use for testing"""
         return (
             '--task-title "Mock Task Title" '
-            '--task-reward 0.3 '
-            '--task-tags mock,task,tags '
+            "--task-reward 0.3 "
+            "--task-tags mock,task,tags "
             '--task-description "This is a test description"'
         )

@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from argparse import _ArgumentGroup as ArgumentGroup
 
-BLUEPRINT_TYPE = 'mock'
+BLUEPRINT_TYPE = "mock"
 
 
 class MockBlueprint(Blueprint):

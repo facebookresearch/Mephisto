@@ -348,7 +348,7 @@ class TaskRun:
 
     @staticmethod
     def new(
-        db: "MephistoDB", task: Task, requester: Requester, param_string: str,
+        db: "MephistoDB", task: Task, requester: Requester, param_string: str
     ) -> "TaskRun":
         """
         Create a new run for the given task with the given params

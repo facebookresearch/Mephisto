@@ -24,7 +24,7 @@ class MockTaskRunner(TaskRunner):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
-        self.timeout = opts['timeout_time']
+        self.timeout = opts["timeout_time"]
         self.tracked_tasks: Dict[str, "Assignment"] = {}
 
     @staticmethod
