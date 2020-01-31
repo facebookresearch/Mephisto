@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from argparse import _ArgumentGroup as ArgumentGroup
 
+BLUEPRINT_TYPE = 'mock'
+
 
 class MockBlueprint(Blueprint):
     """Mock of a task type, for use in testing"""
@@ -28,6 +30,7 @@ class MockBlueprint(Blueprint):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = MockTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
     supported_architects: ClassVar[List[str]] = ["mock"]
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:

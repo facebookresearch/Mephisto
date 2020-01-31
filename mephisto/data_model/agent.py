@@ -153,11 +153,10 @@ class Agent(ABC):
         Pass the observed information to the AgentState, then
         queue the information to be pushed to the user
         """
-        assert (
-            packet.receiver_id == self.db_id
-        ), f"Unintended packet receiving: {self.db_id} {packet}"
-        self.state.update_data(packet)
-        self.pending_observations.append(packet)
+        sending_packet = packet.copy()
+        sending_packet.receiver_id = self.db_id
+        self.state.update_data(sending_packet)
+        self.pending_observations.append(sending_packet)
 
     def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
         """
@@ -166,9 +165,10 @@ class Agent(ABC):
         to be returned.
         """
         if len(self.pending_actions) == 0:
-            if timeout is None:
+            if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
+        # TODO the below needs to be considered an agent timeout
         assert len(self.pending_actions) > 0, "has_action released without an action!"
 
         act = self.pending_actions.pop(0)

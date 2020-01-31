@@ -75,6 +75,13 @@ class Assignment:
         with open(assign_data_filename, "w+") as json_file:
             data.dumpJSON(json_file)
 
+    def get_agents(self) -> List[Optional['Agent']]:
+        """
+        Return all of the agents for this assignment
+        """
+        units = self.get_units()
+        return [u.get_assigned_agent() for u in units]
+
     def get_status(self) -> str:
         """
         Get the status of this assignment, as determined by the status of

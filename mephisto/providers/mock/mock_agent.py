@@ -27,14 +27,16 @@ class MockAgent(Agent):
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
         self.datastore = db.get_datastore_for_provider(PROVIDER_TYPE)
-        self.datastore["agents"][db_id] = {
-            "observed": [],
-            "pending_acts": [],
-            "acts": [],
-        }
+        if db_id not in self.datastore['agents']:
+            self.datastore["agents"][db_id] = {
+                "observed": [],
+                "pending_acts": [],
+                "acts": [],
+            }
 
     def observe(self, packet: "Packet") -> None:
         """Put observations into this mock agent's observation list"""
+        print('apending observation!')
         self.datastore["agents"][self.db_id]["observed"].append(packet)
         super().observe(packet)
 

@@ -12,17 +12,11 @@ import threading
 
 from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 
-from recordclass import RecordClass
-
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment, InitializationData
     from mephisto.data_model.agent import Agent
 
-
-class TrackedAssignment(RecordClass):
-    assignment: "Assignment"
-    thread: threading.Thread
 
 
 SYSTEM_SENDER = "mephisto"  # TODO pull from somewhere
@@ -39,7 +33,6 @@ class StaticTaskRunner(TaskRunner):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
-        self.running_assignments: Dict[str, TrackedAssignment] = {}
 
     # TODO reconnects should get the same agent as was initially given
 
@@ -57,27 +50,8 @@ class StaticTaskRunner(TaskRunner):
             assignment_data = self.get_data_for_assignment(assignment)
             assert len(assignment_data) == 1, "Should only be one unit for static tasks"
             agent.state.set_init_state(assignment_data[0])
-            self.launch_assignment(assignment, agent)
+            # self.launch_assignment(assignment, agent)
             return agent.state.get_init_state()
-
-    def launch_assignment(self, assignment: "Assignment", agent: "Agent") -> None:
-        """
-        Launch a thread for the given assignment, if one doesn't
-        exist already
-        """
-        if assignment.db_id in self.running_assignments:
-            print(f"Assignment {assignment.db_id} is already running")
-            return
-
-        print(f"Assignment {assignment.db_id} is launching with {agent}")
-        run_thread = threading.Thread(
-            target=self.run_assignment, args=(assignment, [agent])
-        )
-        self.running_assignments[assignment.db_id] = TrackedAssignment(
-            assignment=assignment, thread=run_thread
-        )
-        run_thread.start()
-        return
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
         """

@@ -8,6 +8,9 @@ from abc import ABC, abstractmethod
 from mephisto.core.utils import get_blueprint_from_type
 from typing import ClassVar, Optional, List, Dict, Any, Type, ClassVar, TYPE_CHECKING
 
+from recordclass import RecordClass
+import threading
+
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.task import TaskRun
@@ -15,6 +18,11 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+class TrackedAssignment(RecordClass):
+    assignment: "Assignment"
+    thread: threading.Thread
 
 
 class Blueprint(ABC):
@@ -118,6 +126,7 @@ class TaskRunner(ABC):
     def __init__(self, task_run: "TaskRun", opts: Any):
         self.opts = opts
         self.task_run = task_run
+        self.running_assignments: Dict[str, TrackedAssignment] = {}
         # TODO populate some kind of local state for tasks that are being run
         # by this runner from the database.
 
@@ -131,6 +140,25 @@ class TaskRunner(ABC):
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    def launch_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
+        """
+        Launch a thread for the given assignment, if one doesn't
+        exist already
+        """
+        if assignment.db_id in self.running_assignments:
+            print(f"Assignment {assignment.db_id} is already running")
+            return
+
+        print(f"Assignment {assignment.db_id} is launching with {agents}")
+        run_thread = threading.Thread(
+            target=self.run_assignment, args=(assignment, agents)
+        )
+        self.running_assignments[assignment.db_id] = TrackedAssignment(
+            assignment=assignment, thread=run_thread
+        )
+        run_thread.start()
+        return
 
     @staticmethod
     def get_data_for_assignment(assignment: "Assignment") -> "InitializationData":

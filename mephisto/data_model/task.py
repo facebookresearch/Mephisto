@@ -211,6 +211,15 @@ class TaskRun:
         valid_units = [u for u in units if u.get_assigned_agent() is None]
         return valid_units
 
+    def clear_reservation(self, unit: "Unit") -> None:
+        """
+        Remove the holder used to reserve a unit
+        """
+        file_name = f"unit_res_{unit.db_id}"
+        write_dir = os.path.join(self.get_run_dir(), "reservations")
+        if os.path.exists(os.path.join(write_dir, file_name)):
+            os.unlink(os.path.join(write_dir, file_name))
+
     def reserve_unit(self, unit: "Unit") -> Optional["Unit"]:
         """
         'Atomically' reserve a unit by writing to the filesystem. If

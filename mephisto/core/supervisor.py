@@ -79,6 +79,7 @@ class Supervisor:
         self.db = db
         # Tracked state
         self.agents: Dict[str, AgentInfo] = {}
+        self.agents_by_registration_id: Dict[str, AgentInfo] = {}
         self.sockets: Dict[str, SocketInfo] = {}
         self.socket_count = 0
 
@@ -125,9 +126,17 @@ class Supervisor:
             # TODO use logger?
             print(f"socket open {args}")
 
+        def on_close(*args):
+            import traceback
+            traceback.print_stack()
+
         def on_error(ws, error):
-            if error.errno == errno.ECONNREFUSED:
-                raise Exception(f"Socket {url} refused connection, cancelling")
+            print(f'Had error {error}')
+            import traceback
+            traceback.print_exc()
+            if hasattr(error, 'errno'):
+                if error.errno == errno.ECONNREFUSED:
+                    raise Exception(f"Socket {url} refused connection, cancelling")
             else:
                 print(f"Socket logged error: {error}")
                 try:
@@ -148,6 +157,7 @@ class Supervisor:
             """
             try:
                 packet_dict = json.loads(args[1])
+                print(packet_dict)
                 packet = Packet.from_dict(packet_dict)
                 self._on_message(packet, socket_info)
             except Exception as e:
@@ -171,6 +181,7 @@ class Supervisor:
                     self.sockets[socket_name].socket = socket
                     socket.on_open = on_socket_open
                     socket.run_forever(ping_interval=8 * STATUS_CHECK_TIME)
+                    print('socket no longer running... restarting?')
                 except Exception as e:
                     print(f"Socket error {repr(e)}, attempting restart")
                 time.sleep(0.2)
@@ -184,6 +195,7 @@ class Supervisor:
         while not socket_info.is_alive:
             if time.time() - start_time > START_DEATH_TIME:
                 # TODO better handle failing to connect with the server
+                self.sockets[socket_name].is_closed = True
                 raise ConnectionRefusedError(  # noqa F821 we only support py3
                     "Was not able to establish a connection with the server, "
                     "please try to run again. If that fails,"
@@ -200,6 +212,7 @@ class Supervisor:
 
     def close_socket(self, socket_id: str):
         """Close the given socket by id"""
+        print(f'closing socket {socket_id}')
         socket_info = self.sockets[socket_id]
         socket_info.is_closed = True
         if socket_info.socket is not None:
@@ -214,7 +227,8 @@ class Supervisor:
         sockets_to_close = list(self.sockets.keys())
         for socket_id in sockets_to_close:
             self.close_socket(socket_id)
-        self.sending_thread.join()
+        if self.sending_thread is not None:
+            self.sending_thread.join()
 
     def _send_through_socket(
         self, socket: websocket.WebSocketApp, packet: Packet
@@ -262,13 +276,16 @@ class Supervisor:
         crowd_provider = socket_info.job.provider
         worker_name = crowd_data["worker_name"]
         workers = self.db.find_workers(worker_name=worker_name)
+        print(f'workers_found: {workers}')
         if len(workers) == 0:
             # TODO get rid of sandbox designation
             workers = self.db.find_workers(worker_name=worker_name + "_sandbox")
         if len(workers) == 0:
+            print(f'Making worker')
             worker = crowd_provider.WorkerClass.new_from_provider_data(
                 self.db, crowd_data
             )
+            print(f'{worker}')
         else:
             worker = workers[0]
         # TODO any sort of processing to see if this worker is blocked from the provider side?
@@ -286,8 +303,28 @@ class Supervisor:
 
     def _register_agent(self, packet: Packet, socket_info: SocketInfo):
         """Process an agent registration packet to register an agent"""
-        task_run = socket_info.job.task_runner.task_run
+        # First see if this is a reconnection
         crowd_data = packet.data["provider_data"]
+        agent_registration_id = crowd_data['agent_registration_id']
+        if agent_registration_id in self.agents_by_registration_id:
+            agent = self.agents_by_registration_id[agent_registration_id].agent
+            # Update the source socket, in case it has changed
+            self.agents[agent.db_id].used_socket_id = socket_info.socket_id
+            self.message_queue.append(
+                Packet(
+                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                    sender_id=SYSTEM_SOCKET_ID,
+                    receiver_id=socket_info.socket_id,
+                    data={
+                        "request_id": packet.data["request_id"],
+                        "agent_id": agent.db_id,
+                    },
+                )
+            )
+            return
+
+        # Process a new agent 
+        task_run = socket_info.job.task_runner.task_run
         crowd_provider = socket_info.job.provider
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
@@ -320,9 +357,20 @@ class Supervisor:
                     },
                 )
             )
-            self.agents[agent.db_id] = AgentInfo(
+            agent_info = AgentInfo(
                 agent=agent, used_socket_id=socket_info.socket_id
             )
+            self.agents[agent.db_id] = agent_info
+            self.agents_by_registration_id[crowd_data['agent_registration_id']] = agent_info
+            # See if the current unit is ready to launch
+            assignment = unit.get_assignment()
+            agents = assignment.get_agents()
+            print(agents)
+            task_run.clear_reservation(unit)  # TODO is this a safe enough place to un-reserve?
+            if None not in agents:
+                print('launching')
+                tracked_agents = [self.agents[a.db_id].agent for a in agents]
+                socket_info.job.task_runner.launch_assignment(assignment, tracked_agents)
 
     def _get_init_data(self, packet, socket_info: SocketInfo):
         """Get the initialization data for the assigned agent's task"""
@@ -342,7 +390,6 @@ class Supervisor:
 
     def _on_message(self, packet: Packet, socket_info: SocketInfo):
         """Handle incoming messages from the socket"""
-        print(packet)
         if packet.type == PACKET_TYPE_AGENT_ACTION:
             self._on_act(packet)
         elif packet.type == PACKET_TYPE_NEW_AGENT:
