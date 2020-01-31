@@ -141,7 +141,9 @@ class TaskRunner(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    def launch_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
+    def launch_assignment(
+        self, assignment: "Assignment", agents: List["Agent"]
+    ) -> None:
         """
         Launch a thread for the given assignment, if one doesn't
         exist already

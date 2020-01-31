@@ -57,13 +57,10 @@ class TaskLauncher:
             assignment = Assignment(self.db, assignment_id)
             assignment.write_assignment_data(data)
             self.assignments.append(assignment)
-            unit_count = len(data['unit_data'])
+            unit_count = len(data["unit_data"])
             for unit_idx in range(unit_count):
                 unit_id = self.db.new_unit(
-                    assignment_id,
-                    unit_idx,
-                    task_config.task_reward,
-                    self.provider_type,
+                    assignment_id, unit_idx, task_config.task_reward, self.provider_type
                 )
                 self.units.append(Unit(self.db, unit_id))
 
