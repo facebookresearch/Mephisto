@@ -5,6 +5,15 @@ from mephisto.data_model.database import EntryAlreadyExistsException
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
 from mephisto.core.argparse_parser import get_extra_argument_dicts, parse_arg_dict
+from mephisto.core.utils import (
+    get_blueprint_from_type, 
+    get_crowd_provider_from_type, 
+    get_architect_from_type, 
+    get_valid_blueprint_types,
+    get_valid_provider_types, 
+    get_valid_architect_types, 
+)
+from mephisto.data_model.task_config import TaskConfig
 
 api = Blueprint("api", __name__)
 db = LocalMephistoDB()
@@ -56,7 +65,7 @@ def get_reviewable_task_runs():
     return jsonify({"task_runs": dict_tasks, "total_reviewable": reviewable_count})
 
 
-@api.route("/requester/<requester_type>")
+@api.route("/requester/<requester_type>/options")
 def requester_details(requester_type):
     crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
@@ -109,6 +118,64 @@ def get_balance(requester_name):
 
     requester = requesters[0]
     return jsonify({"balance": requester.get_available_budget()})
+
+
+@api.route("/requester/<string:requester_name>/launch_options")
+def requester_launch_options(requester_type):
+    requesters = db.find_requesters(requester_name=requester_name)
+
+    if len(requesters) == 0:
+        return jsonify(
+            {
+                "success": False,
+                "msg": f"No requester available with name: {requester_name}",
+            }
+        )
+    provider_type = requesters[0].provider_type
+    CrowdProviderClass = get_crowd_provider_from_type(requester_type)
+    params = get_extra_argument_dicts(CrowdProviderClass)
+    return jsonify({"success": True, 'options': params})
+
+
+@api.route("/blueprints")
+def get_available_blueprints():
+    blueprint_types = get_valid_blueprint_types()
+    return jsonify({"success": True, "blueprint_types": blueprint_types})
+
+
+@api.route("/blueprint/<string:blueprint_type>/options")
+def get_blueprint_arguments(blueprint_type):
+    BlueprintClass = get_blueprint_from_type(blueprint_type)
+    params = get_extra_argument_dicts(BlueprintClass)
+    return jsonify({"success": True, 'options': params})
+
+
+@api.route("/architects")
+def get_available_architects():
+    architect_types = get_valid_architect_types()
+    return jsonify({"success": True, "architect_types": architect_types})
+
+
+@api.route("/architect/<string:architect_type>/options")
+def get_architect_arguments(architect_type):
+    ArchitectClass = get_architect_from_type(architect_type)
+    params = get_extra_argument_dicts(ArchitectClass)
+    return jsonify({"success": True, 'options': params})
+
+
+@api.route("/task_run_options")
+def get_basic_task_options():
+    params = get_extra_argument_dicts(TaskConfig)
+    return jsonify({"success": True, 'options': params})
+
+
+@api.route("/launch_task_run", methods=["POST"])
+def register(requester_type):
+    # TODO parse out all of the details to be able to launch a task, 
+    try:
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "msg": str(e)})
 
 
 class InvalidUsage(Exception):

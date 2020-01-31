@@ -68,7 +68,8 @@ class TaskConfig:
         group.add_argument(
             "--task-reward",
             dest="task_reward",
-            help="Amount to pay per worker per assignment.",
+            help="Amount to pay per worker per unit.",
+            type=float
         )
         group.add_argument(
             "--task-tags",
