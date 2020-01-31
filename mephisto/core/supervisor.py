@@ -127,7 +127,7 @@ class Supervisor:
             print(f"socket open {args}")
 
         def on_error(ws, error):
-            if hasattr(error, 'errno'):
+            if hasattr(error, "errno"):
                 if error.errno == errno.ECONNREFUSED:
                     raise Exception(f"Socket {url} refused connection, cancelling")
             else:
@@ -291,7 +291,7 @@ class Supervisor:
         """Process an agent registration packet to register an agent"""
         # First see if this is a reconnection
         crowd_data = packet.data["provider_data"]
-        agent_registration_id = crowd_data['agent_registration_id']
+        agent_registration_id = crowd_data["agent_registration_id"]
         if agent_registration_id in self.agents_by_registration_id:
             agent = self.agents_by_registration_id[agent_registration_id].agent
             # Update the source socket, in case it has changed
@@ -309,7 +309,7 @@ class Supervisor:
             )
             return
 
-        # Process a new agent 
+        # Process a new agent
         task_run = socket_info.job.task_runner.task_run
         crowd_provider = socket_info.job.provider
         worker_id = crowd_data["worker_id"]
@@ -343,19 +343,24 @@ class Supervisor:
                     },
                 )
             )
-            agent_info = AgentInfo(
-                agent=agent, used_socket_id=socket_info.socket_id
-            )
+            agent_info = AgentInfo(agent=agent, used_socket_id=socket_info.socket_id)
             self.agents[agent.db_id] = agent_info
-            self.agents_by_registration_id[crowd_data['agent_registration_id']] = agent_info
+            self.agents_by_registration_id[
+                crowd_data["agent_registration_id"]
+            ] = agent_info
             # See if the current unit is ready to launch
             assignment = unit.get_assignment()
             agents = assignment.get_agents()
-            task_run.clear_reservation(unit)  # TODO is this a safe enough place to un-reserve?
+            # TODO is this a safe enough place to un-reserve?
+            task_run.clear_reservation(unit)  
             if None not in agents:
                 # Launch the backend for this assignment
+                # TODO async tasks should actually be launched one at a time,
+                # return to this when putting in the batch abstraction
                 tracked_agents = [self.agents[a.db_id].agent for a in agents]
-                socket_info.job.task_runner.launch_assignment(assignment, tracked_agents)
+                socket_info.job.task_runner.launch_assignment(
+                    assignment, tracked_agents
+                )
 
     def _get_init_data(self, packet, socket_info: SocketInfo):
         """Get the initialization data for the assigned agent's task"""
