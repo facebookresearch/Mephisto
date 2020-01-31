@@ -15,8 +15,13 @@ import json
 import time
 
 from mephisto.data_model.architect import Architect
-from mephisto.data_model.packet import PACKET_TYPE_ALIVE, PACKET_TYPE_NEW_WORKER, PACKET_TYPE_NEW_AGENT, PACKET_TYPE_AGENT_ACTION
-from typing import List, Dict, Any, TYPE_CHECKING
+from mephisto.data_model.packet import (
+    PACKET_TYPE_ALIVE,
+    PACKET_TYPE_NEW_WORKER,
+    PACKET_TYPE_NEW_AGENT,
+    PACKET_TYPE_AGENT_ACTION,
+)
+from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -32,8 +37,8 @@ def get_rand_id():
 
 class SocketHandler(WebSocketHandler):
     def __init__(self, *args, **kwargs):
-        self.subs: Dict[int, 'SocketHandler'] = kwargs.pop('subs')
-        self.app: 'MockServer' = kwargs.pop('app')
+        self.subs: Dict[int, "SocketHandler"] = kwargs.pop("subs")
+        self.app: "MockServer" = kwargs.pop("app")
         self.sid = get_rand_id()
         super().__init__(*args, **kwargs)
 
@@ -62,9 +67,9 @@ class SocketHandler(WebSocketHandler):
                 attachment dict structure.
         """
         message = json.loads(message_text)
-        if message['packet_type'] == PACKET_TYPE_ALIVE:
+        if message["packet_type"] == PACKET_TYPE_ALIVE:
             self.app.last_alive_packet = message
-        elif message['packet_type'] == PACKET_TYPE_AGENT_ACTION:
+        elif message["packet_type"] == PACKET_TYPE_AGENT_ACTION:
             self.app.actions_observed += 1
 
     def check_origin(self, origin):
@@ -73,6 +78,7 @@ class SocketHandler(WebSocketHandler):
 
 class AliveHandler(tornado.web.RequestHandler):
     """Simple handler for is_alive"""
+
     def get(self, eids):
         pass  # Default behavior returns 200
 
@@ -93,15 +99,14 @@ class MockServer(tornado.web.Application):
             "autoescape": None,
             "debug": "/dbg/" in __file__,
             "compiled_template_cache": False,
-            'static_url_prefix': '/static/',
-            'debug': True
+            "static_url_prefix": "/static/",
+            "debug": True,
         }
         handlers = [
-            ("/socket", SocketHandler, {'subs': self.subs, 'app': self}),
+            ("/socket", SocketHandler, {"subs": self.subs, "app": self}),
             ("/is_alive", AliveHandler, {}),
         ]
         super(MockServer, self).__init__(handlers, **tornado_settings)
-
 
     def __server_thread_fn(self):
         """
@@ -130,43 +135,49 @@ class MockServer(tornado.web.Application):
         Send a packet from the given agent with
         the given content
         """
-        self._send_message({
-            'packet_type': PACKET_TYPE_AGENT_ACTION,
-            'sender_id': agent_id,
-            'receiver_id': 'Mephisto',
-            'data': act_content,
-        })
-        
+        self._send_message(
+            {
+                "packet_type": PACKET_TYPE_AGENT_ACTION,
+                "sender_id": agent_id,
+                "receiver_id": "Mephisto",
+                "data": act_content,
+            }
+        )
+
     def register_mock_agent(self, worker_id, agent_details):
         """
         Send a packet asking to register a mock agent.
         """
-        self._send_message({
-            'packet_type': PACKET_TYPE_NEW_AGENT,
-            'sender_id': 'MockServer',
-            'receiver_id': 'Mephisto',
-            'data': {
-                'request_id': agent_details, 
-                'provider_data': {
-                    'worker_id': worker_id,
-                    'agent_registration_id': agent_details,
-                }
-            },
-        })
+        self._send_message(
+            {
+                "packet_type": PACKET_TYPE_NEW_AGENT,
+                "sender_id": "MockServer",
+                "receiver_id": "Mephisto",
+                "data": {
+                    "request_id": agent_details,
+                    "provider_data": {
+                        "worker_id": worker_id,
+                        "agent_registration_id": agent_details,
+                    },
+                },
+            }
+        )
 
     def register_mock_worker(self, worker_name):
         """
         send a packet asking to register a mock worker.
         """
-        self._send_message({
-            'packet_type': PACKET_TYPE_NEW_WORKER,
-            'sender_id': 'MockServer',
-            'receiver_id': 'Mephisto',
-            'data': {
-                'request_id': worker_name, 
-                'provider_data': {'worker_name': worker_name}
-            },
-        })
+        self._send_message(
+            {
+                "packet_type": PACKET_TYPE_NEW_WORKER,
+                "sender_id": "MockServer",
+                "receiver_id": "Mephisto",
+                "data": {
+                    "request_id": worker_name,
+                    "provider_data": {"worker_name": worker_name},
+                },
+            }
+        )
 
     def disconnect_mock_agent(self, agent_id):
         """
@@ -186,6 +197,7 @@ class MockServer(tornado.web.Application):
         """
         Defined to shutown the tornado application.
         """
+
         def stop_and_free():
             self.running_instance.stop()
 
@@ -210,9 +222,9 @@ class MockArchitect(Architect):
         self.task_run = task_run
         self.build_dir = build_dir_root
         self.task_run_id = task_run.db_id
-        self.should_run_server = opts.get('should_run_server')
-        self.port = opts.get('port')
-        self.server = None
+        self.should_run_server = opts.get("should_run_server")
+        self.port = opts.get("port")
+        self.server: Optional["MockServer"] = None
         # TODO track state in parent class?
         self.prepared = False
         self.deployed = False
@@ -273,5 +285,5 @@ class MockArchitect(Architect):
     def shutdown(self) -> None:
         """Mark the shutdown call"""
         self.did_shutdown = True
-        if self.should_run_server:
+        if self.should_run_server and self.server is not None:
             self.server.shutdown_mock()
