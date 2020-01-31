@@ -37,15 +37,19 @@ class TestSupervisor(unittest.TestCase):
         self.task_run_id = get_test_task_run(self.db)
         self.task_run = TaskRun(self.db, self.task_run_id)
         architect_args = get_default_arg_dict(MockArchitect)
-        architect_args['should_run_server'] = True
-        self.architect = MockArchitect(self.db, architect_args, self.task_run, self.data_dir)
+        architect_args["should_run_server"] = True
+        self.architect = MockArchitect(
+            self.db, architect_args, self.task_run, self.data_dir
+        )
         self.architect.prepare()
         self.architect.deploy()
         self.urls = self.architect.get_socket_urls()
         self.url = self.urls[0]
         self.provider = MockProvider(self.db)
         self.provider.setup_resources_for_task_run(self.task_run, self.url)
-        self.launcher = TaskLauncher(self.db, self.task_run, self.get_mock_assignment_data_array())
+        self.launcher = TaskLauncher(
+            self.db, self.task_run, self.get_mock_assignment_data_array()
+        )
         self.launcher.create_assignments()
         self.launcher.launch_units(self.url)
         self.sup = None
@@ -79,9 +83,11 @@ class TestSupervisor(unittest.TestCase):
         sup = Supervisor(self.db)
         self.sup = sup
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
-        task_runner = TaskRunnerClass(self.task_run, get_default_arg_dict(TaskRunnerClass))
+        task_runner = TaskRunnerClass(
+            self.task_run, get_default_arg_dict(TaskRunnerClass)
+        )
         test_job = Job(
-            architect=self.architect, 
+            architect=self.architect,
             task_runner=task_runner,
             provider=self.provider,
             registered_socket_ids=[],
@@ -92,8 +98,15 @@ class TestSupervisor(unittest.TestCase):
         self.assertIn(socket_id, sup.sockets)
         socket_info = sup.sockets[socket_id]
         self.assertTrue(socket_info.is_alive)
-        self.assertEqual(len(self.architect.server.subs), 1, "MockServer doesn't see registered socket")
-        self.assertIsNotNone(self.architect.server.last_alive_packet, "No alive packet recieved by server")
+        self.assertEqual(
+            len(self.architect.server.subs),
+            1,
+            "MockServer doesn't see registered socket",
+        )
+        self.assertIsNotNone(
+            self.architect.server.last_alive_packet,
+            "No alive packet received by server",
+        )
         sup.launch_sending_thread()
         self.assertIsNotNone(sup.sending_thread)
         sup.shutdown()
@@ -107,8 +120,10 @@ class TestSupervisor(unittest.TestCase):
         self.sup = sup
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         task_runner_args = get_default_arg_dict(TaskRunnerClass)
-        task_runner_args['timeout_time'] = 5
-        task_runner = TaskRunnerClass(self.task_run, get_default_arg_dict(TaskRunnerClass))
+        task_runner_args["timeout_time"] = 5
+        task_runner = TaskRunnerClass(
+            self.task_run, get_default_arg_dict(TaskRunnerClass)
+        )
         sup.register_job(self.architect, task_runner, self.provider)
         self.assertEqual(len(sup.sockets), sup.socket_count)
         self.assertEqual(sup.socket_count, 1)
@@ -118,21 +133,28 @@ class TestSupervisor(unittest.TestCase):
         socket_id = socket_info.socket_id
         task_runner = socket_info.job.task_runner
         self.assertIsNotNone(socket_id)
-        self.assertEqual(len(self.architect.server.subs), 1, "MockServer doesn't see registered socket")
-        self.assertIsNotNone(self.architect.server.last_alive_packet, "No alive packet recieved by server")
+        self.assertEqual(
+            len(self.architect.server.subs),
+            1,
+            "MockServer doesn't see registered socket",
+        )
+        self.assertIsNotNone(
+            self.architect.server.last_alive_packet,
+            "No alive packet received by server",
+        )
         sup.launch_sending_thread()
         self.assertIsNotNone(sup.sending_thread)
 
         # Register a worker
-        mock_worker_name = 'MOCK_WORKER'
+        mock_worker_name = "MOCK_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
         workers = self.db.find_workers(worker_name=mock_worker_name)
-        self.assertEqual(len(workers), 1, 'Worker not successfully registered')
+        self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker = workers[0]
-        
+
         self.architect.server.register_mock_worker(mock_worker_name)
         workers = self.db.find_workers(worker_name=mock_worker_name)
-        self.assertEqual(len(workers), 1, 'Worker potentially re-registered')
+        self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         worker_id = workers[0].db_id
 
         self.assertEqual(len(task_runner.running_assignments), 0)
@@ -148,12 +170,14 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(len(agents), 1, "Agent may have been duplicated")
         agent = agents[0]
         self.assertIsNotNone(agent)
-        self.assertEqual(len(sup.agents), 1, 'Agent not registered with supervisor')
+        self.assertEqual(len(sup.agents), 1, "Agent not registered with supervisor")
 
-        self.assertEqual(len(task_runner.running_assignments), 0, 'Task was not yet ready')
+        self.assertEqual(
+            len(task_runner.running_assignments), 0, "Task was not yet ready"
+        )
 
         # Register another worker
-        mock_worker_name = 'MOCK_WORKER_2'
+        mock_worker_name = "MOCK_WORKER_2"
         self.architect.server.register_mock_worker(mock_worker_name)
         workers = self.db.find_workers(worker_name=mock_worker_name)
         worker_id = workers[0].db_id
@@ -162,25 +186,29 @@ class TestSupervisor(unittest.TestCase):
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
 
-        self.assertEqual(len(task_runner.running_assignments), 1, 'Task was not launched')
+        self.assertEqual(
+            len(task_runner.running_assignments), 1, "Task was not launched"
+        )
         agents = [a.agent for a in sup.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
-        agent_1_data = agents[0].datastore['agents'][agent_id_1]
-        agent_2_data = agents[1].datastore['agents'][agent_id_2]
-        self.architect.server.send_agent_act(agent_id_1, {'text': 'message1'})
-        self.architect.server.send_agent_act(agent_id_2, {'text': 'message2'})
-        
+        agent_1_data = agents[0].datastore["agents"][agent_id_1]
+        agent_2_data = agents[1].datastore["agents"][agent_id_2]
+        self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
+        self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
+
         # Give up to 1 seconds for the actual operation to occur
         start_time = time.time()
         TIMEOUT_TIME = 1
         while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data['acts']) > 0:
+            if len(agent_1_data["acts"]) > 0:
                 break
             time.sleep(0.1)
 
-        self.assertLess(time.time() - start_time, TIMEOUT_TIME, 'Did not process messages in time')
+        self.assertLess(
+            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        )
 
         # Give up to 1 seconds for the task to complete afterwards
         start_time = time.time()
@@ -189,7 +217,9 @@ class TestSupervisor(unittest.TestCase):
             if len(task_runner.running_assignments) == 0:
                 break
             time.sleep(0.1)
-        self.assertLess(time.time() - start_time, TIMEOUT_TIME, 'Did not complete task in time')
+        self.assertLess(
+            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        )
 
         # Give up to 1 seconds for all messages to propogate
         start_time = time.time()
@@ -198,7 +228,9 @@ class TestSupervisor(unittest.TestCase):
             if self.architect.server.actions_observed == 2:
                 break
             time.sleep(0.1)
-        self.assertLess(time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time")
+        self.assertLess(
+            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        )
 
         sup.shutdown()
         self.assertTrue(socket_info.is_closed)
