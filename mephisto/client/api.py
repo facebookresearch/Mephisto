@@ -40,6 +40,7 @@ def get_running_task_runs():
         }
     )
 
+
 @api.route("/task_runs/reviewable")
 def get_reviewable_task_runs():
     """
@@ -54,64 +55,78 @@ def get_reviewable_task_runs():
     # TODO maybe include warning for auto approve date once that's tracked
     return jsonify({"task_runs": dict_tasks, "total_reviewable": reviewable_count})
 
+
 @api.route("/launch/options")
 def launch_options():
     # TODO: dynamically retrieve instead of statically providing
     # MOCK
-    return jsonify({
-        "blueprints": [{"name": "Test Blueprint", "rank": 1}, {"name": "Simple Q+A", "rank": 2}],
-        "architects": ["Local", "Heroku"]
-    })
+    return jsonify(
+        {
+            "blueprints": [
+                {"name": "Test Blueprint", "rank": 1},
+                {"name": "Simple Q+A", "rank": 2},
+            ],
+            "architects": ["Local", "Heroku"],
+        }
+    )
+
 
 @api.route("/blueprints/<string:blueprint>/arguments")
 def launch_args_blueprints(blueprint):
     # MOCK
-    return jsonify({
-        "args": [
-            {"name": "Task name", "defaultValue": blueprint + " Instance", "helpText": "This is what your task will be named."}
-        ]
-    })
+    return jsonify(
+        {
+            "args": [
+                {
+                    "name": "Task name",
+                    "defaultValue": blueprint + " Instance",
+                    "helpText": "This is what your task will be named.",
+                }
+            ]
+        }
+    )
+
 
 @api.route("/architects/<string:architect>/arguments")
 def launch_args_achitects(architect):
 
     defaultPort = 80 if architect == "Heroku" else 3000
-    
+
     # MOCK
-    return jsonify({
-        "args": [
-            {"name": "Port number", "defaultValue": defaultPort, "helpText": "Your task will be run on this port."}
-        ]
-    })
+    return jsonify(
+        {
+            "args": [
+                {
+                    "name": "Port number",
+                    "defaultValue": defaultPort,
+                    "helpText": "Your task will be run on this port.",
+                }
+            ]
+        }
+    )
 
 
 @api.route("/task_runs/launch", methods=["POST"])
 def start_task_run():
     # TODO: incorporate actual logic here
-    # Blueprint, CrowdProvider, Architect (Local/Heroku), Dict of arguments 
+    # Blueprint, CrowdProvider, Architect (Local/Heroku), Dict of arguments
     info = request.get_json(force=True)
 
     # MOCK
     return jsonify({"status": "success", "data": info})
 
-@api.route("/requester/<requester_type>/options")
-def requester_details(requester_type):
-    crowd_provider = get_crowd_provider_from_type(requester_type)
 
 @api.route("/task_runs/<int:task_id>/units")
 def view_unit(task_id):
     # TODO
 
     # MOCK
-    return jsonify({
-        "id": task_id,
-        "view_path": "https://google.com",
-        "data": {
-            "name": "me"
-        }
-    })
+    return jsonify(
+        {"id": task_id, "view_path": "https://google.com", "data": {"name": "me"}}
+    )
 
-@api.route("/requester/<string:requester_type>")
+
+@api.route("/requester/<string:requester_type>/options")
 def requester_details(requester_type):
     crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
