@@ -79,6 +79,7 @@ class Supervisor:
         self.db = db
         # Tracked state
         self.agents: Dict[str, AgentInfo] = {}
+        self.agents_by_registration_id: Dict[str, AgentInfo] = {}
         self.sockets: Dict[str, SocketInfo] = {}
         self.socket_count = 0
 
@@ -126,8 +127,9 @@ class Supervisor:
             print(f"socket open {args}")
 
         def on_error(ws, error):
-            if error.errno == errno.ECONNREFUSED:
-                raise Exception(f"Socket {url} refused connection, cancelling")
+            if hasattr(error, "errno"):
+                if error.errno == errno.ECONNREFUSED:
+                    raise Exception(f"Socket {url} refused connection, cancelling")
             else:
                 print(f"Socket logged error: {error}")
                 try:
@@ -184,6 +186,7 @@ class Supervisor:
         while not socket_info.is_alive:
             if time.time() - start_time > START_DEATH_TIME:
                 # TODO better handle failing to connect with the server
+                self.sockets[socket_name].is_closed = True
                 raise ConnectionRefusedError(  # noqa F821 we only support py3
                     "Was not able to establish a connection with the server, "
                     "please try to run again. If that fails,"
@@ -195,7 +198,6 @@ class Supervisor:
             except Exception:
                 pass
             time.sleep(0.3)
-        print("socket seems live!")
         return socket_name
 
     def close_socket(self, socket_id: str):
@@ -214,7 +216,8 @@ class Supervisor:
         sockets_to_close = list(self.sockets.keys())
         for socket_id in sockets_to_close:
             self.close_socket(socket_id)
-        self.sending_thread.join()
+        if self.sending_thread is not None:
+            self.sending_thread.join()
 
     def _send_through_socket(
         self, socket: websocket.WebSocketApp, packet: Packet
@@ -286,8 +289,28 @@ class Supervisor:
 
     def _register_agent(self, packet: Packet, socket_info: SocketInfo):
         """Process an agent registration packet to register an agent"""
-        task_run = socket_info.job.task_runner.task_run
+        # First see if this is a reconnection
         crowd_data = packet.data["provider_data"]
+        agent_registration_id = crowd_data["agent_registration_id"]
+        if agent_registration_id in self.agents_by_registration_id:
+            agent = self.agents_by_registration_id[agent_registration_id].agent
+            # Update the source socket, in case it has changed
+            self.agents[agent.db_id].used_socket_id = socket_info.socket_id
+            self.message_queue.append(
+                Packet(
+                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                    sender_id=SYSTEM_SOCKET_ID,
+                    receiver_id=socket_info.socket_id,
+                    data={
+                        "request_id": packet.data["request_id"],
+                        "agent_id": agent.db_id,
+                    },
+                )
+            )
+            return
+
+        # Process a new agent
+        task_run = socket_info.job.task_runner.task_run
         crowd_provider = socket_info.job.provider
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
@@ -320,9 +343,24 @@ class Supervisor:
                     },
                 )
             )
-            self.agents[agent.db_id] = AgentInfo(
-                agent=agent, used_socket_id=socket_info.socket_id
-            )
+            agent_info = AgentInfo(agent=agent, used_socket_id=socket_info.socket_id)
+            self.agents[agent.db_id] = agent_info
+            self.agents_by_registration_id[
+                crowd_data["agent_registration_id"]
+            ] = agent_info
+            # See if the current unit is ready to launch
+            assignment = unit.get_assignment()
+            agents = assignment.get_agents()
+            # TODO is this a safe enough place to un-reserve?
+            task_run.clear_reservation(unit)  
+            if None not in agents:
+                # Launch the backend for this assignment
+                # TODO async tasks should actually be launched one at a time,
+                # return to this when putting in the batch abstraction
+                tracked_agents = [self.agents[a.db_id].agent for a in agents]
+                socket_info.job.task_runner.launch_assignment(
+                    assignment, tracked_agents
+                )
 
     def _get_init_data(self, packet, socket_info: SocketInfo):
         """Get the initialization data for the assigned agent's task"""
@@ -342,7 +380,6 @@ class Supervisor:
 
     def _on_message(self, packet: Packet, socket_info: SocketInfo):
         """Handle incoming messages from the socket"""
-        print(packet)
         if packet.type == PACKET_TYPE_AGENT_ACTION:
             self._on_act(packet)
         elif packet.type == PACKET_TYPE_NEW_AGENT:

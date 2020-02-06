@@ -24,6 +24,7 @@ class MockTaskRunner(TaskRunner):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
+        self.timeout = opts["timeout_time"]
         self.tracked_tasks: Dict[str, "Assignment"] = {}
 
     @staticmethod
@@ -57,11 +58,15 @@ class MockTaskRunner(TaskRunner):
             assert assigned_agent is not None, "Task was not fully assigned"
             agent = agent_dict.get(assigned_agent.db_id)
             assert agent is not None, "Task was not launched with assigned agents"
-            # TODO add some observations?
-            # TODO add some acts?
-            # TODO improve when MockAgents are more capable
+            packet = agent.act(timeout=self.timeout)
+            if packet is not None:
+                agent.observe(packet)
             agent.mark_done()
         del self.tracked_tasks[assignment.db_id]
+        if assignment.db_id in self.running_assignments:
+            # TODO can we automatically remove from running_assignments
+            # when this thread exits? Examine from supervisor
+            del self.running_assignments[assignment.db_id]
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
@@ -69,6 +74,18 @@ class MockTaskRunner(TaskRunner):
         MockTaskRunners don't have any arguments (yet)
         """
         super(MockTaskRunner, cls).add_args_to_group(group)
+
+        group.description = """
+            MockArchitect: Mock Task Runners can specify a timeout to
+            make the task actually take time to run.
+        """
+        group.add_argument(
+            "--timeout-time",
+            dest="timeout_time",
+            help="Whether acts in the run assignment should have a timeout",
+            default=0,
+            type=int,
+        )
         return
 
     def cleanup_assignment(self, assignment: "Assignment"):

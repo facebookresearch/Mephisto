@@ -31,14 +31,13 @@ class InitializationData(RecordClass):
     unit_data: List[Dict[str, Any]]
 
     def dumpJSON(self, fp: IO[str]):
-        return json.dump({'shared': self.shared, 'unit_data': self.unit_data}, fp)
+        return json.dump({"shared": self.shared, "unit_data": self.unit_data}, fp)
 
     @staticmethod
     def loadFromJSON(fp: IO[str]):
         as_dict = json.load(fp)
         return InitializationData(
-            shared=as_dict['shared'],
-            unit_data=as_dict['unit_data'],
+            shared=as_dict["shared"], unit_data=as_dict["unit_data"]
         )
 
 
@@ -74,6 +73,13 @@ class Assignment:
         os.makedirs(self.get_data_dir(), exist_ok=True)
         with open(assign_data_filename, "w+") as json_file:
             data.dumpJSON(json_file)
+
+    def get_agents(self) -> List[Optional["Agent"]]:
+        """
+        Return all of the agents for this assignment
+        """
+        units = self.get_units()
+        return [u.get_assigned_agent() for u in units]
 
     def get_status(self) -> str:
         """

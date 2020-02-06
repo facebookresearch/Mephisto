@@ -79,6 +79,7 @@ function getAgentRegistration(mephisto_worker_id) {
     // and the supplied assignment id
     return {
         worker_id: mephisto_worker_id,
+        agent_registration_id: getAssignmentId(),
         assignment_id: getAssignmentId(),
         provider_type: 'mturk',
     };

@@ -57,5 +57,8 @@ class Packet:
             "data": self.data,
         }
 
+    def copy(self):
+        return Packet.from_dict(self.to_sendable_dict())
+
     def __str__(self) -> str:
         return str(self.to_sendable_dict())

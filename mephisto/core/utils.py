@@ -37,6 +37,7 @@ def get_provider_dir() -> str:
     """
     return os.path.expanduser("~/Mephisto/mephisto/providers")
 
+
 def get_gallery_dir() -> str:
     """
     Return the path to the mephisto task gallery
@@ -95,13 +96,13 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
     Return the crowd provider class for the given string
     """
     from mephisto.data_model.crowd_provider import CrowdProvider
-    
-     # list the current providers directories
+
+    # list the current providers directories
     providers_path = get_provider_dir()
 
-     # check if the provider has a directory in the providers path
+    # check if the provider has a directory in the providers path
     providers_lst = get_valid_provider_types()
-    is_valid_provider = (provider_type in providers_lst)
+    is_valid_provider = provider_type in providers_lst
 
     if is_valid_provider:
         # full path of the current provider
@@ -110,11 +111,12 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
 
         # Iterate over all the files insider the provider directory
         file_paths = glob.glob(os.path.join(provider_dir, "*provider.py"))
-       
+
         for file_path in file_paths:
             file_name = os.path.basename(file_path)
             module_name = os.path.splitext(file_name)[0]
-            if module_name.startswith("__"): continue
+            if module_name.startswith("__"):
+                continue
             # -----------------------------
             # Import python file
             module = importlib.import_module(module_name)
@@ -124,12 +126,13 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
             for item in dir(module):
                 value = getattr(module, item)
                 is_class = inspect.isclass(value)
-                if(is_class):
+                if is_class:
                     is_crowd_provider = issubclass(value, CrowdProvider)
-                    if(is_crowd_provider and value!= CrowdProvider):
+                    if is_crowd_provider and value != CrowdProvider:
                         return value
     else:
         raise NotImplementedError(f"Missing provider type {provider_type}")
+    raise NotImplementedError(f"Provider {provider_type} could not be loaded properly")
 
 
 def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
@@ -157,5 +160,9 @@ def get_valid_provider_types() -> List[str]:
     the mephisto framework
     """
     providers_path = get_provider_dir()
-    available_providers = [f for f in os.listdir(providers_path) if os.path.isdir(os.path.join(providers_path,f))]
+    available_providers = [
+        f
+        for f in os.listdir(providers_path)
+        if os.path.isdir(os.path.join(providers_path, f))
+    ]
     return available_providers

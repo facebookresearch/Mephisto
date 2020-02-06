@@ -15,6 +15,7 @@ sh = "^1.12"
 websocket-client = "^0.56.0"
 recordclass = "^0.12.0"
 argparse = "=1.1"
+tornado = "^6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"

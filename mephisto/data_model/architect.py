@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, TYPE_CHECKING
+from typing import Dict, List, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -22,7 +22,7 @@ class Architect(ABC):
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, str],
+        opts: Dict[str, Any],
         task_run: "TaskRun",
         build_dir_root: str,
     ):

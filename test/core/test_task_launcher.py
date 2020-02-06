@@ -19,6 +19,7 @@ from mephisto.data_model.task import TaskRun
 from mephisto.providers.mock.mock_provider import MockProvider
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 
+
 class TestTaskLauncher(unittest.TestCase):
     """
     Unit testing for the Mephisto TaskLauncher
@@ -40,7 +41,9 @@ class TestTaskLauncher(unittest.TestCase):
 
     def test_init_on_task_run(self):
         """Initialize a launcher on a task_run"""
-        launcher = TaskLauncher(self.db, self.task_run, self.get_mock_assignment_data_array())
+        launcher = TaskLauncher(
+            self.db, self.task_run, self.get_mock_assignment_data_array()
+        )
         self.assertEqual(self.db, launcher.db)
         self.assertEqual(self.task_run, launcher.task_run)
         self.assertEqual(len(launcher.assignments), 0)
@@ -56,12 +59,12 @@ class TestTaskLauncher(unittest.TestCase):
         self.assertEqual(
             len(launcher.assignments),
             len(mock_data_array),
-            "Inequal number of assignments existed than were launched"
+            "Inequal number of assignments existed than were launched",
         )
         self.assertEqual(
             len(launcher.units),
-            len(mock_data_array) * len(mock_data_array[0]['unit_data']),
-            "Inequal number of units created than were expected"
+            len(mock_data_array) * len(mock_data_array[0]["unit_data"]),
+            "Inequal number of units created than were expected",
         )
 
         for unit in launcher.units:
@@ -69,7 +72,7 @@ class TestTaskLauncher(unittest.TestCase):
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.CREATED)
 
-        launcher.launch_units('dummy-url')
+        launcher.launch_units("dummy-url")
 
         for unit in launcher.units:
             self.assertEqual(unit.get_db_status(), AssignmentState.LAUNCHED)
@@ -82,7 +85,6 @@ class TestTaskLauncher(unittest.TestCase):
             self.assertEqual(unit.get_db_status(), AssignmentState.EXPIRED)
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.EXPIRED)
-
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ import threading
 import time
 from mephisto.data_model.blueprint import Blueprint, AgentState, TaskRunner, TaskBuilder
 from mephisto.core.local_database import LocalMephistoDB
+from mephisto.core.argparse_parser import get_default_arg_dict
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.test.utils import get_test_task_run
@@ -99,13 +100,13 @@ class BlueprintTests(unittest.TestCase):
 
     def _get_init_task_runner(self) -> TaskRunner:
         """Get an initialized task runner of TaskRunnerClass"""
-        # TODO call get_extra_options and apply the defaults here
-        return self.TaskRunnerClass(self.task_run, {})
+        args = get_default_arg_dict(self.TaskRunnerClass)
+        return self.TaskRunnerClass(self.task_run, args)
 
     def _get_init_task_builder(self) -> TaskBuilder:
         """Get an initialized task runner of TaskBuilderClass"""
-        # TODO call get_extra_options and apply the defaults here
-        return self.TaskBuilderClass(self.task_run, {})
+        args = get_default_arg_dict(self.TaskBuilderClass)
+        return self.TaskBuilderClass(self.task_run, args)
 
     def test_options(self) -> None:
         """Test the default options, and try to break the initialization"""
@@ -154,15 +155,17 @@ class BlueprintTests(unittest.TestCase):
         Test that initialization from the abstract class produces the
         correct class.
         """
-        runner = TaskRunner(self.task_run, {})  # type: ignore
+        args = get_default_arg_dict(self.TaskRunnerClass)
+        runner = TaskRunner(self.task_run, args)  # type: ignore
         self.assertTrue(isinstance(runner, self.TaskRunnerClass))
-        builder = TaskBuilder(self.task_run, {})  # type: ignore
+        args = get_default_arg_dict(self.TaskBuilderClass)
+        builder = TaskBuilder(self.task_run, args)  # type: ignore
         self.assertTrue(isinstance(builder, self.TaskBuilderClass))
 
     def test_can_init_subclasses(self) -> None:
         """Ensure the subclasses of a Blueprint can be properly initialized"""
-        task_runner = self.TaskRunnerClass(self.task_run, {})
-        task_builder = self.TaskBuilderClass(self.task_run, {})
+        task_runner = self._get_init_task_runner()
+        task_builder = self._get_init_task_builder()
         # TODO uncomment after creating a mock agent as part of this test
         # agent_state = self.AgentStateClass(self.agent)
 
