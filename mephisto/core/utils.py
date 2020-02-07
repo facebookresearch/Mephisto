@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
     from mephisto.data_model.task_runner import TaskRunner
     from mephisto.data_model.architect import Architect
+    from mephisto.data_model.task import TaskRun
 
 
 def ensure_user_confirm(display_text, skip_input=False) -> None:
@@ -69,12 +70,21 @@ def get_tasks_dir() -> str:
     return os.path.expanduser("~/mephisto/mephisto/tasks/")
 
 
-def get_data_dir() -> str:
+def get_root_data_dir() -> str:
     """
     Return the directory where the mephisto data is expected to go
     """
     # TODO be able to configure this kind of thing
     return os.path.expanduser("~/mephisto/data")
+
+
+def get_data_dir(root_dir: Optional[str] = None) -> str:
+    """
+    Return the directory where the mephisto data is expected to go
+    """
+    if root_dir is None:
+        return get_root_data_dir()
+    return os.path.join(root_dir, 'data')
 
 
 def get_mephisto_tmp_dir() -> str:
@@ -85,11 +95,13 @@ def get_mephisto_tmp_dir() -> str:
     return os.path.expanduser("~/mephisto/tmp")
 
 
-def get_dir_for_run(run_id: str, project_name: str = NO_PROJECT_NAME) -> str:
+def get_dir_for_run(task_run: "TaskRun", project_name: str = NO_PROJECT_NAME) -> str:
     """
     Return the directory where the mephisto run data is expected to go
     """
-    return os.path.join(get_data_dir(), "runs", project_name, run_id)
+    run_id = task_run.db_id
+    root_dir = task_run.db.db_root
+    return os.path.join(get_data_dir(root_dir), "runs", project_name, run_id)
 
 
 def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:

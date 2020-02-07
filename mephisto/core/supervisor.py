@@ -108,6 +108,7 @@ class Supervisor:
         for url in urls:
             socket_id = self.setup_socket(url, job)
             job.registered_socket_ids.append(socket_id)
+        return job
 
     def setup_socket(self, url: str, job: "Job") -> str:
         """Set up a socket communicating with the server at the given url"""

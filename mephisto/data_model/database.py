@@ -48,6 +48,7 @@ class MephistoDB(ABC):
         if database_path is None:
             database_path = os.path.join(get_data_dir(), "database.db")
         self.db_path = database_path
+        self.db_root = os.path.dirname(self.db_path)
         self.init_tables()
         self.__provider_datastores: Dict[str, Any] = {}
 

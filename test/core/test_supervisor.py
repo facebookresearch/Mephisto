@@ -10,7 +10,6 @@ import shutil
 import os
 import tempfile
 import time
-import threading
 
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.architects.mock_architect import MockArchitect

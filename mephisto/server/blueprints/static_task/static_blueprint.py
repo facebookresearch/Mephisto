@@ -5,14 +5,16 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.blueprint import Blueprint
+from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.static_task.static_agent_state import StaticAgentState
 from mephisto.server.blueprints.static_task.static_task_runner import StaticTaskRunner
 from mephisto.server.blueprints.static_task.static_task_builder import StaticTaskBuilder
 
 import os
 import time
+import csv
 
-from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -31,6 +33,27 @@ class StaticBlueprint(Blueprint):
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
     supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
+
+    def __init__(self, task_run: "TaskRun", opts: Any):
+        super(StaticBlueprint, self).__init__(task_run, opts)
+        self._initialization_data_dicts = []
+        if opts.get('data_csv') is not None:
+            csv_file = opts['data_csv']
+            with open(csv_file, 'r') as csv_fp:
+                csv_reader = csv.reader(csv_fp)
+                headers = next(csv_reader)
+                for row in csv_reader:
+                    row_data = {}
+                    for i, col in row:
+                        row_data[headers[i]] = col
+                    self._initialization_data_dicts.append(row_data)
+        else:
+            # TODO handle JSON and python dicts directly
+            raise NotImplementedError("Parsing static tasks directly from dicts or JSON is not supported yet")
+        
+        self.html_file = opts['html_source']
+        if not os.path.exists(self.html_file):
+            raise FileNotFoundError(f"Specified html file {self.html_file} was not found from {os.getcwd()}")
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
@@ -57,3 +80,9 @@ class StaticBlueprint(Blueprint):
             "--data-csv", dest="data_csv", help="Path to csv file containing task data"
         )
         return
+
+    def get_initialization_data(self) -> Iterable["InitializationData"]:
+        """
+        Return the InitializationData retrieved from the specified stream
+        """
+        return [InitializationData(shared=d, unit_data=[]) for d in self._initialization_data_dicts]

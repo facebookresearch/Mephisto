@@ -64,6 +64,15 @@ class CrowdProvider(ABC):
             self.datastore = self.initialize_provider_datastore(self.datastore_root)
             db.set_datastore_for_provider(self.PROVIDER_TYPE, self.datastore)
 
+    @classmethod
+    def assert_task_args(cls, args: Any):
+        """
+        Assert that the provided arguments are valid. Should 
+        fail if a task launched with these arguments would
+        not work
+        """
+        return
+
     @abstractmethod
     def initialize_provider_datastore(self, storage_path: str) -> Any:
         """
@@ -89,7 +98,7 @@ class CrowdProvider(ABC):
 
     @abstractmethod
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", server_url: str
+        self, task_run: "TaskRun", server_url: str,
     ) -> None:
         """
         Setup any required resources for managing any additional resources
