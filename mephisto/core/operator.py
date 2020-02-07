@@ -95,8 +95,8 @@ class Operator:
         BlueprintClass: Type["Blueprint"], 
         ArchitectClass: Type["Architect"], 
         CrowdProviderClass: Type["CrowdProvider"],
-        argument_string: str,
-    ) -> Tuple[Dict[str, Any], str]:
+        argument_list: List[str],
+    ) -> Tuple[Dict[str, Any], List[str]]:
         """Parse the given arguments over the parsers for the given types"""
         # Create the parser
         parser = ArgumentParser()
@@ -110,7 +110,10 @@ class Operator:
         TaskConfig.add_args_to_group(task_group)
 
         # Return parsed args
-        known, unknown = parser.parse_known_args(argument_string)
+        try:
+            known, unknown = parser.parse_known_args(argument_list)
+        except SystemExit:
+            raise Exception("Argparse broke - must fix")
         return vars(known), unknown
 
     def get_running_task_runs(self):

@@ -36,7 +36,7 @@ class StaticBlueprint(Blueprint):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super(StaticBlueprint, self).__init__(task_run, opts)
-        self._initialization_data_dicts = []
+        self._initialization_data_dicts: List[Dict[str, Any]] = []
         if opts.get('data_csv') is not None:
             csv_file = opts['data_csv']
             with open(csv_file, 'r') as csv_fp:
@@ -44,7 +44,7 @@ class StaticBlueprint(Blueprint):
                 headers = next(csv_reader)
                 for row in csv_reader:
                     row_data = {}
-                    for i, col in row:
+                    for i, col in enumerate(row):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
         else:

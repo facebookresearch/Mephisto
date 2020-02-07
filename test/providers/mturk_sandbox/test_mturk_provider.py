@@ -31,6 +31,7 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
 
     def get_test_requester_name(self) -> str:
         """Return a requester name that is usable for testing with this crowdprovider"""
+        # TODO this requester must be registered!!
         return "UNIT_TEST_REQUESTER"
 
     def get_test_requester_balance(self, worker_name: str) -> float:

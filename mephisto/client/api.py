@@ -170,7 +170,7 @@ def get_basic_task_options():
 
 
 @api.route("/launch_task_run", methods=["POST"])
-def register(requester_type):
+def launch_task_run(requester_type):
     # TODO parse out all of the details to be able to launch a task, 
     try:
         return jsonify({"success": True})

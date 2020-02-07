@@ -38,7 +38,10 @@ class TaskConfig:
         task_group = parser.add_argument_group("task_config")
         TaskConfig.add_args_to_group(task_group)
 
-        arg_namespace, _unknown = parser.parse_known_args(shlex.split(param_string))
+        try:
+            arg_namespace, _unknown = parser.parse_known_args(shlex.split(param_string))
+        except SystemExit:
+            raise Exception("Argparse broke - must fix")
         args = vars(arg_namespace)
         self.args = args
         self.task_title: str = args["task_title"]
@@ -95,5 +98,6 @@ class TaskConfig:
             '--task-title "Mock Task Title" '
             "--task-reward 0.3 "
             "--task-tags mock,task,tags "
-            '--task-description "This is a test description"'
+            '--task-description "This is a test description" '
+            '--num-assignments 1 '
         )
