@@ -190,6 +190,13 @@ function LaunchForm() {
                     timeout: 2000
                   });
 
+                  toaster.show({
+                    message: JSON.stringify(params),
+                    icon: "cloud-upload",
+                    intent: Intent.NONE,
+                    timeout: 6000
+                  });
+
                   // TODO: Make request to /launch_task_run with `params`
                   // Use axios?
 
