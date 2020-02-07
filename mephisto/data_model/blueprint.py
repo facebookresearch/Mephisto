@@ -7,14 +7,14 @@
 from abc import ABC, abstractmethod
 from mephisto.core.utils import get_blueprint_from_type
 from typing import (
-    ClassVar, 
-    Optional, 
-    List, 
-    Dict, 
-    Any, 
-    Type, 
     ClassVar,
-    Union, 
+    Optional,
+    List,
+    Dict,
+    Any,
+    Type,
+    ClassVar,
+    Union,
     Iterable,
     AsyncIterator,
     TYPE_CHECKING,
@@ -85,7 +85,9 @@ class Blueprint(ABC):
         return
 
     @abstractmethod
-    def get_initialization_data(self) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
+    def get_initialization_data(
+        self
+    ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
         """
         Get all of the data used to initialize tasks from this blueprint.
         Can either be a simple iterable if all the assignments can 
@@ -94,6 +96,7 @@ class Blueprint(ABC):
         concurrently with the job.
         """
         raise NotImplementedError
+
 
 class TaskBuilder(ABC):
     """

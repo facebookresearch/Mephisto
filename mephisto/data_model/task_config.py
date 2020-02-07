@@ -75,7 +75,7 @@ class TaskConfig:
             dest="task_reward",
             help="Amount to pay per worker per unit.",
             required=True,
-            type=float
+            type=float,
         )
         group.add_argument(
             "--task-tags",
@@ -99,5 +99,5 @@ class TaskConfig:
             "--task-reward 0.3 "
             "--task-tags mock,task,tags "
             '--task-description "This is a test description" '
-            '--num-assignments 1 '
+            "--num-assignments 1 "
         )

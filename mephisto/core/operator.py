@@ -24,8 +24,8 @@ from mephisto.data_model.database import MephistoDB, EntryDoesNotExistException
 from mephisto.core.argparse_parser import get_default_arg_dict
 from mephisto.core.task_launcher import TaskLauncher
 from mephisto.core.utils import (
-    get_blueprint_from_type, 
-    get_crowd_provider_from_type, 
+    get_blueprint_from_type,
+    get_crowd_provider_from_type,
     get_architect_from_type,
 )
 
@@ -55,14 +55,14 @@ class Operator:
     good model to use to understand how the underlying 
     architecture works in order to build custom jobs or workflows.
     """
+
     def __init__(self, db: "MephistoDB"):
         self.db = db
         self.supervisor = Supervisor(db)
         self._task_runs_tracked: Dict[str, TrackedRun] = {}
         self.is_shutdown = False
         self._run_tracker_thread = threading.Thread(
-            target=self._track_and_kill_runs, 
-            name="Operator-tracking-thread",
+            target=self._track_and_kill_runs, name="Operator-tracking-thread"
         )
         self._run_tracker_thread.start()
 
@@ -92,8 +92,8 @@ class Operator:
 
     @staticmethod
     def _parse_args_from_classes(
-        BlueprintClass: Type["Blueprint"], 
-        ArchitectClass: Type["Architect"], 
+        BlueprintClass: Type["Blueprint"],
+        ArchitectClass: Type["Architect"],
         CrowdProviderClass: Type["CrowdProvider"],
         argument_list: List[str],
     ) -> Tuple[Dict[str, Any], List[str]]:
@@ -133,24 +133,23 @@ class Operator:
         # Extract the abstractions being used
         parser = self._get_baseline_argparser()
         type_args, task_args_string = parser.parse_known_args(arg_list)
-      
+
         requesters = self.db.find_requesters(requester_name=type_args.requester_name)
         if len(requesters) == 0:
-            raise EntryDoesNotExistException(f"No requester found with name {type_args.requester_name}")
+            raise EntryDoesNotExistException(
+                f"No requester found with name {type_args.requester_name}"
+            )
         requester = requesters[0]
         requester_id = requester.db_id
         provider_type = requester.provider_type
 
-        # Parse the arguments for the abstractions to ensure 
+        # Parse the arguments for the abstractions to ensure
         # everything required is set
         BlueprintClass = get_blueprint_from_type(type_args.blueprint_type)
         ArchitectClass = get_architect_from_type(type_args.architect_type)
         CrowdProviderClass = get_crowd_provider_from_type(provider_type)
         task_args, _unknown = self._parse_args_from_classes(
-            BlueprintClass, 
-            ArchitectClass, 
-            CrowdProviderClass, 
-            task_args_string,
+            BlueprintClass, ArchitectClass, CrowdProviderClass, task_args_string
         )
 
         # Load the classes to force argument validation before anything
@@ -161,19 +160,21 @@ class Operator:
         CrowdProviderClass.assert_task_args(task_args)
 
         # Find an existing task or create a new one
-        task_name = task_args.get('task_name', type_args.blueprint_type)
+        task_name = task_args.get("task_name", type_args.blueprint_type)
         tasks = self.db.find_tasks(task_name=task_name)
         task_id = None
         if len(tasks) == 0:
             task_id = self.db.new_task(task_name, type_args.blueprint_type)
         else:
             task_id = tasks[0].db_id
-        
+
         # Create a new task run
-        new_run_id = self.db.new_task_run(task_id, requester_id, ' '.join(task_args_string))
+        new_run_id = self.db.new_task_run(
+            task_id, requester_id, " ".join(task_args_string)
+        )
         task_run = TaskRun(self.db, new_run_id)
 
-        build_dir = os.path.join(task_run.get_run_dir(), 'build')
+        build_dir = os.path.join(task_run.get_run_dir(), "build")
         os.makedirs(build_dir, exist_ok=True)
         # TODO maybe this can be simplifies, and the task_run can be responsible for task_args?
         architect = ArchitectClass(self.db, task_args, task_run, build_dir)
@@ -182,7 +183,7 @@ class Operator:
         built_dir = architect.prepare()
         task_url = architect.deploy()
         architect.cleanup()
-        
+
         socket_urls = architect.get_socket_urls()
 
         # Create the backend runner
@@ -196,7 +197,9 @@ class Operator:
         initialization_data_array = blueprint.get_initialization_data()
         # TODO extend
         if not isinstance(initialization_data_array, list):
-            raise NotImplementedError("Non-list initialization data is not yet supported")
+            raise NotImplementedError(
+                "Non-list initialization data is not yet supported"
+            )
 
         launcher = TaskLauncher(self.db, task_run, initialization_data_array)
         launcher.create_assignments()
@@ -227,7 +230,7 @@ class Operator:
                     tracked_run.architect.shutdown()
                     # TODO kill the runner too?
                     del self._task_runs_tracked[task_run.db_id]
-            # TODO find a way to subscribe to completed or 
+            # TODO find a way to subscribe to completed or
             # expired tasks to be able to avoid a sleep call
             time.sleep(2)
 

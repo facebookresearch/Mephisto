@@ -84,7 +84,7 @@ def get_data_dir(root_dir: Optional[str] = None) -> str:
     """
     if root_dir is None:
         return get_root_data_dir()
-    return os.path.join(root_dir, 'data')
+    return os.path.join(root_dir, "data")
 
 
 def get_mephisto_tmp_dir() -> str:
@@ -207,7 +207,7 @@ def get_valid_blueprint_types() -> List[str]:
     Return the valid provider types that are currently supported by
     the mephisto framework
     """
-    return ['mock', 'static']
+    return ["mock", "static"]
 
 
 @functools.lru_cache(maxsize=1)
@@ -216,4 +216,4 @@ def get_valid_architect_types() -> List[str]:
     Return the valid provider types that are currently supported by
     the mephisto framework
     """
-    return ['mock', 'heroku']
+    return ["mock", "heroku"]

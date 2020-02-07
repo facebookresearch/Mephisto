@@ -98,7 +98,7 @@ class CrowdProvider(ABC):
 
     @abstractmethod
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", server_url: str,
+        self, task_run: "TaskRun", server_url: str
     ) -> None:
         """
         Setup any required resources for managing any additional resources

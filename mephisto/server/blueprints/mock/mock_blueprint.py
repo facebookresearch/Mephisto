@@ -54,4 +54,7 @@ class MockBlueprint(Blueprint):
         """
         Return the number of empty assignments specified in --num-assignments
         """
-        return [MockTaskRunner.get_mock_assignment_data() for i in range(self.opts['num_assignments'])]
+        return [
+            MockTaskRunner.get_mock_assignment_data()
+            for i in range(self.opts["num_assignments"])
+        ]

@@ -60,7 +60,7 @@ class TestOperator(unittest.TestCase):
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]
-        
+
         self.assertIsNotNone(tracked_run)
         self.assertIsNotNone(tracked_run.task_launcher)
         self.assertIsNotNone(tracked_run.task_runner)
@@ -71,7 +71,7 @@ class TestOperator(unittest.TestCase):
         # Create two agents to step through the task
         architect = tracked_run.architect
         self.assertIsInstance(architect, MockArchitect, "Must use mock in testing")
-         # Register a worker
+        # Register a worker
         mock_worker_name = "MOCK_WORKER"
         architect.server.register_mock_worker(mock_worker_name)
         workers = self.db.find_workers(worker_name=mock_worker_name)

@@ -353,7 +353,7 @@ class Supervisor:
             assignment = unit.get_assignment()
             agents = assignment.get_agents()
             # TODO is this a safe enough place to un-reserve?
-            task_run.clear_reservation(unit)  
+            task_run.clear_reservation(unit)
             if None not in agents:
                 # Launch the backend for this assignment
                 # TODO async tasks should actually be launched one at a time,

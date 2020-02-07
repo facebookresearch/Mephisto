@@ -37,9 +37,9 @@ class StaticBlueprint(Blueprint):
     def __init__(self, task_run: "TaskRun", opts: Any):
         super(StaticBlueprint, self).__init__(task_run, opts)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
-        if opts.get('data_csv') is not None:
-            csv_file = opts['data_csv']
-            with open(csv_file, 'r') as csv_fp:
+        if opts.get("data_csv") is not None:
+            csv_file = opts["data_csv"]
+            with open(csv_file, "r") as csv_fp:
                 csv_reader = csv.reader(csv_fp)
                 headers = next(csv_reader)
                 for row in csv_reader:
@@ -49,11 +49,15 @@ class StaticBlueprint(Blueprint):
                     self._initialization_data_dicts.append(row_data)
         else:
             # TODO handle JSON and python dicts directly
-            raise NotImplementedError("Parsing static tasks directly from dicts or JSON is not supported yet")
-        
-        self.html_file = opts['html_source']
+            raise NotImplementedError(
+                "Parsing static tasks directly from dicts or JSON is not supported yet"
+            )
+
+        self.html_file = opts["html_source"]
         if not os.path.exists(self.html_file):
-            raise FileNotFoundError(f"Specified html file {self.html_file} was not found from {os.getcwd()}")
+            raise FileNotFoundError(
+                f"Specified html file {self.html_file} was not found from {os.getcwd()}"
+            )
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
@@ -85,4 +89,7 @@ class StaticBlueprint(Blueprint):
         """
         Return the InitializationData retrieved from the specified stream
         """
-        return [InitializationData(shared=d, unit_data=[]) for d in self._initialization_data_dicts]
+        return [
+            InitializationData(shared=d, unit_data=[])
+            for d in self._initialization_data_dicts
+        ]
