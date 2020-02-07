@@ -4,6 +4,7 @@ import { Button, MenuItem } from "@blueprintjs/core";
 import { createAsync } from "../../lib/Async";
 import useAxios from "axios-hooks";
 import FormField from "./FormField";
+import OptionsForm from "./OptionsForm";
 
 type IBlueprint = {
   name: string;
@@ -42,7 +43,6 @@ export default function BlueprintSelectComponent<T>({
   onUpdate: Function;
 }) {
   const [selected, setSelected] = React.useState<IBlueprint | null>(null);
-  console.log(selected);
   const paramsInfo = useAxios({
     url: `blueprint/${selected?.name || "none"}/options`
   });
@@ -68,17 +68,11 @@ export default function BlueprintSelectComponent<T>({
           onLoading={() => <span>Loading...</span>}
           onError={() => <span>Error</span>}
           onData={({ data }) => (
-            <div style={{ margin: "20px 0" }}>
-              {Object.values(data.options)
-                .flatMap((opt: any) => Object.values(opt.args))
-                .map((field: any) => (
-                  <FormField
-                    prefix={"bp" + field.dest}
-                    onUpdate={onUpdate}
-                    field={field}
-                  />
-                ))}
-            </div>
+            <OptionsForm
+              onUpdate={onUpdate}
+              options={data.options}
+              prefix="bp"
+            />
           )}
         />
       )}

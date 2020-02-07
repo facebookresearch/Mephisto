@@ -84,7 +84,29 @@ function LaunchForm() {
   const launchInfo = useAxios({ url: "launch/options" });
 
   const [params, addToParams] = React.useReducer((state, params) => {
-    return { ...state, ...params };
+    let nextState;
+    if (params === "CLEAR_ALL") {
+      nextState = {};
+    } else if (params === "CLEAR_bp") {
+      nextState = Object.keys(state)
+        .filter(key => !key.startsWith("bp-"))
+        .reduce((obj: any, key: string) => {
+          obj[key] = state[key];
+          return obj;
+        }, {});
+    } else if (params === "CLEAR_arch") {
+      nextState = Object.keys(state)
+        .filter(key => !key.startsWith("arch-"))
+        .reduce((obj: any, key: string) => {
+          obj[key] = state[key];
+          return obj;
+        }, {});
+    } else {
+      nextState = { ...state, ...params };
+    }
+
+    console.log(nextState);
+    return nextState;
   }, {});
 
   return (
@@ -151,9 +173,15 @@ function LaunchForm() {
             />
             <Button
               onClick={() => {
-                const validated = true;
+                const validated =
+                  params.blueprint !== undefined &&
+                  params.architect !== undefined;
+                console.log({ validated });
 
                 if (validated) {
+                  console.table(params);
+                  addToParams("CLEAR_ALL");
+
                   setOpenForm(false);
                   toaster.show({
                     message: "Launching task...",
@@ -161,6 +189,10 @@ function LaunchForm() {
                     intent: Intent.NONE,
                     timeout: 2000
                   });
+
+                  // TODO: Make request to /launch_task_run with `params`
+                  // Use axios?
+
                   setTimeout(
                     () =>
                       toaster.show({
@@ -172,6 +204,12 @@ function LaunchForm() {
                     1000
                   );
                 } else {
+                  toaster.show({
+                    message: "Error: Must selected Blueprint + Architect",
+                    icon: "cloud-upload",
+                    intent: Intent.DANGER,
+                    timeout: 2000
+                  });
                 }
               }}
               large

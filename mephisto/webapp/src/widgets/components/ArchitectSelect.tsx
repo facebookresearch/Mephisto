@@ -9,6 +9,7 @@ import {
 } from "@blueprintjs/core";
 import useAxios from "axios-hooks";
 import { createAsync } from "../../lib/Async";
+import OptionsForm from "./OptionsForm";
 
 type ArchitectParams = any;
 const BlueprintParamsAsync = createAsync<ArchitectParams>();
@@ -35,7 +36,10 @@ export default function ArchitectSelect({
             marginBottom: 10,
             backgroundColor: arch === selected ? undefined : undefined
           }}
-          onClick={() => setSelected(arch)}
+          onClick={() => {
+            setSelected(arch);
+            onUpdate({ architect: arch });
+          }}
         >
           <Icon
             icon={arch === selected ? "tick-circle" : "circle"}
@@ -52,34 +56,11 @@ export default function ArchitectSelect({
           onLoading={() => <span>Loading...</span>}
           onError={() => <span>Error</span>}
           onData={({ data }) => (
-            <div style={{ margin: "20px 0" }}>
-              {Object.values(data.options)
-                .flatMap((opt: any) => Object.values(opt.args))
-                .map((field: any) => {
-                  return field.type === "bool" ? (
-                    <div key={field.dest}>
-                      <Checkbox
-                        defaultChecked={field.default}
-                        label={field.dest}
-                      />
-                      <p className="bp3-text-muted">{field.help}</p>
-                    </div>
-                  ) : (
-                    <FormGroup
-                      key={field.dest}
-                      label={field.dest}
-                      labelInfo={field.help}
-                      labelFor={"arch-" + field.dest}
-                    >
-                      <InputGroup
-                        id={"arch-" + field.dest}
-                        placeholder={field.default}
-                        defaultValue={field.default}
-                      ></InputGroup>
-                    </FormGroup>
-                  );
-                })}
-            </div>
+            <OptionsForm
+              onUpdate={onUpdate}
+              options={data.options}
+              prefix="arch"
+            />
           )}
         />
       )}
