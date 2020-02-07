@@ -74,7 +74,6 @@ class TaskConfig:
             "--task-reward",
             dest="task_reward",
             help="Amount to pay per worker per unit.",
-            required=True,
             type=float,
         )
         group.add_argument(

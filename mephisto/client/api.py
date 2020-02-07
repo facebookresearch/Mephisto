@@ -58,15 +58,16 @@ def get_reviewable_task_runs():
 
 @api.route("/launch/options")
 def launch_options():
-    # TODO: dynamically retrieve instead of statically providing
-    # MOCK
+    blueprint_types = get_valid_blueprint_types()
+    architect_types = get_valid_architect_types()
     return jsonify(
         {
-            "blueprints": [
-                {"name": "Test Blueprint", "rank": 1},
-                {"name": "Simple Q+A", "rank": 2},
+            "success": True,
+            "architect_types": architect_types,
+            "blueprint_types": [
+                {"name": bp, "rank": idx + 1}
+                for (idx, bp) in enumerate(blueprint_types)
             ],
-            "architects": ["Local", "Heroku"],
         }
     )
 
@@ -135,7 +136,7 @@ def requester_details(requester_type):
 
 
 @api.route("/requester/<string:requester_type>/register", methods=["POST"])
-def register(requester_type):
+def requester_register(requester_type):
     options = request.form.to_dict()
     crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
@@ -206,6 +207,8 @@ def get_available_blueprints():
 
 @api.route("/blueprint/<string:blueprint_type>/options")
 def get_blueprint_arguments(blueprint_type):
+    if blueprint_type == "none":
+        return jsonify({"success": True, "options": {}})
     BlueprintClass = get_blueprint_from_type(blueprint_type)
     params = get_extra_argument_dicts(BlueprintClass)
     return jsonify({"success": True, "options": params})
@@ -219,6 +222,8 @@ def get_available_architects():
 
 @api.route("/architect/<string:architect_type>/options")
 def get_architect_arguments(architect_type):
+    if architect_type == "none":
+        return jsonify({"success": True, "options": {}})
     ArchitectClass = get_architect_from_type(architect_type)
     params = get_extra_argument_dicts(ArchitectClass)
     return jsonify({"success": True, "options": params})
@@ -237,6 +242,8 @@ def launch_task_run(requester_type):
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "msg": str(e)})
+
+
 @api.route("/error", defaults={"status_code": "501"})
 @api.route("/error/<string:status_code>")
 def intentional_error(status_code):

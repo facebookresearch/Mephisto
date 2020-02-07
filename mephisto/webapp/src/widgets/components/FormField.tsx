@@ -18,17 +18,17 @@ function FormField({
   };
 
   React.useEffect(() => {
-    if (!!field.defaultValue) {
-      dispatch(field.defaultValue);
+    if (!!field.default) {
+      dispatch(field.default);
     }
-  }, [field.defaultValue]);
+  }, [field.default]);
 
   return (
-    <FormGroup label={field.name} labelInfo={field.helpText} labelFor={id}>
+    <FormGroup label={field.dest} labelInfo={field.help} labelFor={id}>
       <InputGroup
         id={id}
-        placeholder={field.defaultValue}
-        defaultValue={field.defaultValue}
+        placeholder={field.default}
+        defaultValue={field.default}
         onChange={(e: any) => dispatch(e.target.value)}
       ></InputGroup>
     </FormGroup>

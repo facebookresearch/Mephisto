@@ -42,8 +42,9 @@ export default function BlueprintSelectComponent<T>({
   onUpdate: Function;
 }) {
   const [selected, setSelected] = React.useState<IBlueprint | null>(null);
+  console.log(selected);
   const paramsInfo = useAxios({
-    url: `blueprints/${selected?.name || "none"}/arguments`
+    url: `blueprint/${selected?.name || "none"}/options`
   });
 
   return (
@@ -68,9 +69,15 @@ export default function BlueprintSelectComponent<T>({
           onError={() => <span>Error</span>}
           onData={({ data }) => (
             <div style={{ margin: "20px 0" }}>
-              {data.args.map((field: any) => (
-                <FormField prefix="bp" onUpdate={onUpdate} field={field} />
-              ))}
+              {Object.values(data.options)
+                .flatMap((opt: any) => Object.values(opt.args))
+                .map((field: any) => (
+                  <FormField
+                    prefix={"bp" + field.dest}
+                    onUpdate={onUpdate}
+                    field={field}
+                  />
+                ))}
             </div>
           )}
         />

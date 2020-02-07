@@ -15,13 +15,14 @@ export default function ArchitectSelect({
 }) {
   const [selected, setSelected] = React.useState(null);
   const paramsInfo = useAxios({
-    url: `architects/${selected || "none"}/arguments`
+    url: `architect/${selected || "none"}/options`
   });
 
   return (
     <div>
       {data.map((arch: any) => (
         <Card
+          key={arch}
           interactive={arch !== selected}
           style={{
             marginBottom: 10,
@@ -45,19 +46,22 @@ export default function ArchitectSelect({
           onError={() => <span>Error</span>}
           onData={({ data }) => (
             <div style={{ margin: "20px 0" }}>
-              {data.args.map((field: any) => (
-                <FormGroup
-                  label={field.name}
-                  labelInfo={field.helpText}
-                  labelFor={"arch-" + field.name}
-                >
-                  <InputGroup
-                    id={"arch-" + field.name}
-                    placeholder={field.defaultValue}
-                    defaultValue={field.defaultValue}
-                  ></InputGroup>
-                </FormGroup>
-              ))}
+              {Object.values(data.options)
+                .flatMap((opt: any) => Object.values(opt.args))
+                .map((field: any) => (
+                  <FormGroup
+                    key={field.dest}
+                    label={field.dest}
+                    labelInfo={field.help}
+                    labelFor={"arch-" + field.dest}
+                  >
+                    <InputGroup
+                      id={"arch-" + field.dest}
+                      placeholder={field.default}
+                      defaultValue={field.default}
+                    ></InputGroup>
+                  </FormGroup>
+                ))}
             </div>
           )}
         />

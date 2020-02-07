@@ -44,7 +44,7 @@ export default (function LaunchWidget() {
         onData={({ data }) => (
           <div>
             {data.task_runs.map((run: TaskRun) => (
-              <TaskRunSummary run={run} />
+              <TaskRunSummary key={run.task_run_id} run={run} />
             ))}
           </div>
         )}
@@ -122,7 +122,7 @@ function LaunchForm() {
               onData={({ data }) => (
                 <div>
                   <BlueprintSelect
-                    data={data.blueprints}
+                    data={data.blueprint_types}
                     onUpdate={(data: any) => addToParams(data)}
                   />
                 </div>
@@ -140,7 +140,7 @@ function LaunchForm() {
               onData={({ data }) => (
                 <div>
                   <ArchitectSelect
-                    data={data.architects}
+                    data={data.architect_types}
                     onUpdate={(data: any) => {
                       addToParams(data);
                     }}
