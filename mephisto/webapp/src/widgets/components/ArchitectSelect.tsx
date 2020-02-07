@@ -1,5 +1,12 @@
 import React from "react";
-import { Card, Colors, Icon, FormGroup, InputGroup } from "@blueprintjs/core";
+import {
+  Card,
+  Colors,
+  Icon,
+  FormGroup,
+  InputGroup,
+  Checkbox
+} from "@blueprintjs/core";
 import useAxios from "axios-hooks";
 import { createAsync } from "../../lib/Async";
 
@@ -48,20 +55,30 @@ export default function ArchitectSelect({
             <div style={{ margin: "20px 0" }}>
               {Object.values(data.options)
                 .flatMap((opt: any) => Object.values(opt.args))
-                .map((field: any) => (
-                  <FormGroup
-                    key={field.dest}
-                    label={field.dest}
-                    labelInfo={field.help}
-                    labelFor={"arch-" + field.dest}
-                  >
-                    <InputGroup
-                      id={"arch-" + field.dest}
-                      placeholder={field.default}
-                      defaultValue={field.default}
-                    ></InputGroup>
-                  </FormGroup>
-                ))}
+                .map((field: any) => {
+                  return field.type === "bool" ? (
+                    <div key={field.dest}>
+                      <Checkbox
+                        defaultChecked={field.default}
+                        label={field.dest}
+                      />
+                      <p className="bp3-text-muted">{field.help}</p>
+                    </div>
+                  ) : (
+                    <FormGroup
+                      key={field.dest}
+                      label={field.dest}
+                      labelInfo={field.help}
+                      labelFor={"arch-" + field.dest}
+                    >
+                      <InputGroup
+                        id={"arch-" + field.dest}
+                        placeholder={field.default}
+                        defaultValue={field.default}
+                      ></InputGroup>
+                    </FormGroup>
+                  );
+                })}
             </div>
           )}
         />
