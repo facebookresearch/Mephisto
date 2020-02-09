@@ -151,6 +151,7 @@ class Operator:
         task_args, _unknown = self._parse_args_from_classes(
             BlueprintClass, ArchitectClass, CrowdProviderClass, task_args_string
         )
+        print(BlueprintClass, ArchitectClass, CrowdProviderClass)
 
         # Load the classes to force argument validation before anything
         # is actually created in the database
@@ -216,6 +217,7 @@ class Operator:
             task_runner=task_runner,
             architect=architect,
         )
+        return 
 
     def _track_and_kill_runs(self):
         """

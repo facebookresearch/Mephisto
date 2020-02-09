@@ -47,8 +47,7 @@ class StaticTaskRunner(TaskRunner):
         else:
             assignment = agent.get_unit().get_assignment()
             assignment_data = self.get_data_for_assignment(assignment)
-            assert len(assignment_data) == 1, "Should only be one unit for static tasks"
-            agent.state.set_init_state(assignment_data[0])
+            agent.state.set_init_state(assignment_data.shared)
             # self.launch_assignment(assignment, agent)
             return agent.state.get_init_state()
 

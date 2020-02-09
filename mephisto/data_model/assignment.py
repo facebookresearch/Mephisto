@@ -91,9 +91,14 @@ class Assignment:
         if len(statuses) == 1:
             return statuses.pop()
 
+        if len(statuses) == 0:
+            return AssignmentState.CREATED
+
         # TODO parse statuses and return a computed status
         # ASSIGNED is any are still assigned
         # MIXED is any form of review status that remains
+        
+        return AssignmentState.LAUNCHED
         raise NotImplementedError()
 
     def get_task_run(self) -> TaskRun:
