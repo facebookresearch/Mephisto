@@ -41,14 +41,12 @@ class StaticTaskRunner(TaskRunner):
         """
         init_state = agent.state.get_init_state()
         if init_state is not None:
-            # reconnecting agent, give everything we've got
-            # TODO implememnt
-            return {}
+            # reconnecting agent, give what we've got
+            return init_state
         else:
             assignment = agent.get_unit().get_assignment()
             assignment_data = self.get_data_for_assignment(assignment)
             agent.state.set_init_state(assignment_data.shared)
-            # self.launch_assignment(assignment, agent)
             return agent.state.get_init_state()
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:

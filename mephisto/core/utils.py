@@ -136,9 +136,12 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
             module = importlib.import_module(module_name)
             # -----------------------------
             # Iterate items inside imported python file
-            # search for a class whose base class is CrowdProvider with the 
+            # search for a class whose base class is CrowdProvider with the
             # defined PROVIDER_TYPE
-            found_provider_type = module.PROVIDER_TYPE
+            if not hasattr(module, "PROVIDER_TYPE"):
+                # all valid crowdprovider modules should define a PROVIDER_TYPE
+                continue
+            found_provider_type = module.PROVIDER_TYPE  # type: ignore
             for item in dir(module):
                 value = getattr(module, item)
                 if "PROVIDER_TYPE" not in dir(value):

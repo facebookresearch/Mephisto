@@ -97,7 +97,7 @@ class Assignment:
         # TODO parse statuses and return a computed status
         # ASSIGNED is any are still assigned
         # MIXED is any form of review status that remains
-        
+
         return AssignmentState.LAUNCHED
         raise NotImplementedError()
 
