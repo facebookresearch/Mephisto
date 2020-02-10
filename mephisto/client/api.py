@@ -41,15 +41,6 @@ def get_running_task_runs():
     )
 
 
-@api.route("/error", defaults={"status_code": "501"})
-@api.route("/error/<string:status_code>")
-def intentional_error(status_code):
-    """
-    A helper endpoint to test out cases in the UI where an error occurs.
-    """
-    raise InvalidUsage("An error occured", status_code=int(status_code))
-
-
 @api.route("/task_runs/reviewable")
 def get_reviewable_task_runs():
     """
@@ -65,7 +56,42 @@ def get_reviewable_task_runs():
     return jsonify({"task_runs": dict_tasks, "total_reviewable": reviewable_count})
 
 
-@api.route("/requester/<requester_type>/options")
+@api.route("/launch/options")
+def launch_options():
+    blueprint_types = get_valid_blueprint_types()
+    architect_types = get_valid_architect_types()
+    return jsonify(
+        {
+            "success": True,
+            "architect_types": architect_types,
+            "blueprint_types": [
+                {"name": bp, "rank": idx + 1}
+                for (idx, bp) in enumerate(blueprint_types)
+            ],
+        }
+    )
+
+@api.route("/task_runs/launch", methods=["POST"])
+def start_task_run():
+    # TODO: incorporate actual logic here
+    # Blueprint, CrowdProvider, Architect (Local/Heroku), Dict of arguments
+    info = request.get_json(force=True)
+
+    # MOCK
+    return jsonify({"status": "success", "data": info})
+
+
+@api.route("/task_runs/<int:task_id>/units")
+def view_unit(task_id):
+    # TODO
+
+    # MOCK
+    return jsonify(
+        {"id": task_id, "view_path": "https://google.com", "data": {"name": "me"}}
+    )
+
+
+@api.route("/requester/<string:requester_type>/options")
 def requester_details(requester_type):
     crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
@@ -74,7 +100,7 @@ def requester_details(requester_type):
 
 
 @api.route("/requester/<string:requester_type>/register", methods=["POST"])
-def register(requester_type):
+def requester_register(requester_type):
     options = request.form.to_dict()
     crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
@@ -145,6 +171,8 @@ def get_available_blueprints():
 
 @api.route("/blueprint/<string:blueprint_type>/options")
 def get_blueprint_arguments(blueprint_type):
+    if blueprint_type == "none":
+        return jsonify({"success": True, "options": {}})
     BlueprintClass = get_blueprint_from_type(blueprint_type)
     params = get_extra_argument_dicts(BlueprintClass)
     return jsonify({"success": True, "options": params})
@@ -158,6 +186,8 @@ def get_available_architects():
 
 @api.route("/architect/<string:architect_type>/options")
 def get_architect_arguments(architect_type):
+    if architect_type == "none":
+        return jsonify({"success": True, "options": {}})
     ArchitectClass = get_architect_from_type(architect_type)
     params = get_extra_argument_dicts(ArchitectClass)
     return jsonify({"success": True, "options": params})
@@ -176,6 +206,15 @@ def launch_task_run(requester_type):
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "msg": str(e)})
+
+
+@api.route("/error", defaults={"status_code": "501"})
+@api.route("/error/<string:status_code>")
+def intentional_error(status_code):
+    """
+    A helper endpoint to test out cases in the UI where an error occurs.
+    """
+    raise InvalidUsage("An error occured", status_code=int(status_code))
 
 
 class InvalidUsage(Exception):
