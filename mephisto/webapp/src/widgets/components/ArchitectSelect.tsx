@@ -12,7 +12,7 @@ import { createAsync } from "../../lib/Async";
 import OptionsForm from "./OptionsForm";
 
 type ArchitectParams = any;
-const BlueprintParamsAsync = createAsync<ArchitectParams>();
+const ArchitectParamsAsync = createAsync<ArchitectParams>();
 
 export default function ArchitectSelect({
   data,
@@ -51,7 +51,7 @@ export default function ArchitectSelect({
         </Card>
       ))}
       {selected && (
-        <BlueprintParamsAsync
+        <ArchitectParamsAsync
           info={paramsInfo}
           onLoading={() => <span>Loading...</span>}
           onError={() => <span>Error</span>}

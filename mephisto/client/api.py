@@ -71,42 +71,6 @@ def launch_options():
         }
     )
 
-
-@api.route("/blueprints/<string:blueprint>/arguments")
-def launch_args_blueprints(blueprint):
-    # MOCK
-    return jsonify(
-        {
-            "args": [
-                {
-                    "name": "Task name",
-                    "defaultValue": blueprint + " Instance",
-                    "helpText": "This is what your task will be named.",
-                }
-            ]
-        }
-    )
-
-
-@api.route("/architects/<string:architect>/arguments")
-def launch_args_achitects(architect):
-
-    defaultPort = 80 if architect == "Heroku" else 3000
-
-    # MOCK
-    return jsonify(
-        {
-            "args": [
-                {
-                    "name": "Port number",
-                    "defaultValue": defaultPort,
-                    "helpText": "Your task will be run on this port.",
-                }
-            ]
-        }
-    )
-
-
 @api.route("/task_runs/launch", methods=["POST"])
 def start_task_run():
     # TODO: incorporate actual logic here
