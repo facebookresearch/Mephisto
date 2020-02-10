@@ -317,9 +317,9 @@ class TaskRun:
         task = Task(self.db, self.task_id)
         project = task.get_project()
         if project is None:
-            return get_dir_for_run(self.db_id)
+            return get_dir_for_run(self)
         else:
-            return get_dir_for_run(self.db_id, project.project_name)
+            return get_dir_for_run(self, project.project_name)
 
     def get_total_spend(self) -> float:
         """

@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.blueprint import Blueprint
+from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
@@ -12,7 +13,7 @@ from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
 import os
 import time
 
-from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -35,7 +36,25 @@ class MockBlueprint(Blueprint):
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
-        MockBlueprints don't have any arguments (yet)
+        MockBlueprints specify a count of assignments, as there 
+        is no real data being sent
         """
         super(MockBlueprint, cls).add_args_to_group(group)
+        group.description = "MockBlueprint arguments"
+        group.add_argument(
+            "--num-assignments",
+            dest="num_assignments",
+            help="Number of assignments to launch",
+            type=int,
+            required=True,
+        )
         return
+
+    def get_initialization_data(self) -> Iterable[InitializationData]:
+        """
+        Return the number of empty assignments specified in --num-assignments
+        """
+        return [
+            MockTaskRunner.get_mock_assignment_data()
+            for i in range(self.opts["num_assignments"])
+        ]

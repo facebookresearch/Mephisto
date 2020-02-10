@@ -36,6 +36,15 @@ class Architect(ABC):
         """
         raise NotImplementedError()
 
+    @classmethod
+    def assert_task_args(cls, args: Any):
+        """
+        Assert that the provided arguments are valid. Should 
+        fail if a task launched with these arguments would
+        not work
+        """
+        return
+
     def get_socket_urls(self) -> List[str]:
         """
         Return a list of all relevant sockets that the Supervisor will

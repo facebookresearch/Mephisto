@@ -120,7 +120,6 @@ class MockServer(tornado.web.Application):
 
     def _get_sub(self):
         """Return the subscriber socket to write to"""
-        assert len(self.subs) == 1, "MockServer only can handle one connection"
         return list(self.subs.values())[0]
 
     def _send_message(self, message):

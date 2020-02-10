@@ -6,12 +6,12 @@ from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
 from mephisto.core.argparse_parser import get_extra_argument_dicts, parse_arg_dict
 from mephisto.core.utils import (
-    get_blueprint_from_type, 
-    get_crowd_provider_from_type, 
-    get_architect_from_type, 
+    get_blueprint_from_type,
+    get_crowd_provider_from_type,
+    get_architect_from_type,
     get_valid_blueprint_types,
-    get_valid_provider_types, 
-    get_valid_architect_types, 
+    get_valid_provider_types,
+    get_valid_architect_types,
 )
 from mephisto.data_model.task_config import TaskConfig
 
@@ -134,7 +134,7 @@ def requester_launch_options(requester_type):
     provider_type = requesters[0].provider_type
     CrowdProviderClass = get_crowd_provider_from_type(requester_type)
     params = get_extra_argument_dicts(CrowdProviderClass)
-    return jsonify({"success": True, 'options': params})
+    return jsonify({"success": True, "options": params})
 
 
 @api.route("/blueprints")
@@ -147,7 +147,7 @@ def get_available_blueprints():
 def get_blueprint_arguments(blueprint_type):
     BlueprintClass = get_blueprint_from_type(blueprint_type)
     params = get_extra_argument_dicts(BlueprintClass)
-    return jsonify({"success": True, 'options': params})
+    return jsonify({"success": True, "options": params})
 
 
 @api.route("/architects")
@@ -160,18 +160,18 @@ def get_available_architects():
 def get_architect_arguments(architect_type):
     ArchitectClass = get_architect_from_type(architect_type)
     params = get_extra_argument_dicts(ArchitectClass)
-    return jsonify({"success": True, 'options': params})
+    return jsonify({"success": True, "options": params})
 
 
 @api.route("/task_run_options")
 def get_basic_task_options():
     params = get_extra_argument_dicts(TaskConfig)
-    return jsonify({"success": True, 'options': params})
+    return jsonify({"success": True, "options": params})
 
 
 @api.route("/launch_task_run", methods=["POST"])
-def register(requester_type):
-    # TODO parse out all of the details to be able to launch a task, 
+def launch_task_run(requester_type):
+    # TODO parse out all of the details to be able to launch a task,
     try:
         return jsonify({"success": True})
     except Exception as e:

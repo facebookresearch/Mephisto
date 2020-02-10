@@ -64,6 +64,15 @@ class CrowdProvider(ABC):
             self.datastore = self.initialize_provider_datastore(self.datastore_root)
             db.set_datastore_for_provider(self.PROVIDER_TYPE, self.datastore)
 
+    @classmethod
+    def assert_task_args(cls, args: Any):
+        """
+        Assert that the provided arguments are valid. Should 
+        fail if a task launched with these arguments would
+        not work
+        """
+        return
+
     @abstractmethod
     def initialize_provider_datastore(self, storage_path: str) -> Any:
         """

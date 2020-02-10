@@ -38,7 +38,10 @@ class TaskConfig:
         task_group = parser.add_argument_group("task_config")
         TaskConfig.add_args_to_group(task_group)
 
-        arg_namespace, _unknown = parser.parse_known_args(shlex.split(param_string))
+        try:
+            arg_namespace, _unknown = parser.parse_known_args(shlex.split(param_string))
+        except SystemExit:
+            raise Exception("Argparse broke - must fix")
         args = vars(arg_namespace)
         self.args = args
         self.task_title: str = args["task_title"]
@@ -59,22 +62,26 @@ class TaskConfig:
             "--task-title",
             dest="task_title",
             help="Display title for your task on the crowd provider.",
+            required=True,
         )
         group.add_argument(
             "--task-description",
             dest="task_description",
             help="Longer form description for what your task entails.",
+            required=True,
         )
         group.add_argument(
             "--task-reward",
             dest="task_reward",
             help="Amount to pay per worker per unit.",
-            type=float
+            required=True,
+            type=float,
         )
         group.add_argument(
             "--task-tags",
             dest="task_tags",
             help="Comma seperated tags for workers to use to find your task.",
+            required=True,
         )
         group.add_argument(
             "--assignment-duration-seconds",
@@ -91,5 +98,6 @@ class TaskConfig:
             '--task-title "Mock Task Title" '
             "--task-reward 0.3 "
             "--task-tags mock,task,tags "
-            '--task-description "This is a test description"'
+            '--task-description "This is a test description" '
+            "--num-assignments 1 "
         )

@@ -6,7 +6,19 @@
 
 from abc import ABC, abstractmethod
 from mephisto.core.utils import get_blueprint_from_type
-from typing import ClassVar, Optional, List, Dict, Any, Type, ClassVar, TYPE_CHECKING
+from typing import (
+    ClassVar,
+    Optional,
+    List,
+    Dict,
+    Any,
+    Type,
+    ClassVar,
+    Union,
+    Iterable,
+    AsyncIterator,
+    TYPE_CHECKING,
+)
 
 from recordclass import RecordClass
 import threading
@@ -44,6 +56,15 @@ class Blueprint(ABC):
         self.opts = opts
 
     @classmethod
+    def assert_task_args(cls, args: Any):
+        """
+        Assert that the provided arguments are valid. Should 
+        fail if a task launched with these arguments would
+        not work
+        """
+        return
+
+    @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
         Defines options that are potentially usable for this task type,
@@ -62,6 +83,19 @@ class Blueprint(ABC):
         # group.description = 'For `Blueprint`, you can supply...'
         # group.add_argument('--task-option', help='Lets you customize')
         return
+
+    @abstractmethod
+    def get_initialization_data(
+        self
+    ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
+        """
+        Get all of the data used to initialize tasks from this blueprint.
+        Can either be a simple iterable if all the assignments can 
+        be processed at once, or an AsyncIterator if the number
+        of tasks is unknown or changes based on something running
+        concurrently with the job.
+        """
+        raise NotImplementedError
 
 
 class TaskBuilder(ABC):

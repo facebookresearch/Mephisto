@@ -108,6 +108,7 @@ class Supervisor:
         for url in urls:
             socket_id = self.setup_socket(url, job)
             job.registered_socket_ids.append(socket_id)
+        return job
 
     def setup_socket(self, url: str, job: "Job") -> str:
         """Set up a socket communicating with the server at the given url"""
@@ -352,7 +353,7 @@ class Supervisor:
             assignment = unit.get_assignment()
             agents = assignment.get_agents()
             # TODO is this a safe enough place to un-reserve?
-            task_run.clear_reservation(unit)  
+            task_run.clear_reservation(unit)
             if None not in agents:
                 # Launch the backend for this assignment
                 # TODO async tasks should actually be launched one at a time,
