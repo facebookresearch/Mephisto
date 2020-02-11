@@ -10,7 +10,7 @@ function FormField({
   onUpdate: any;
   field: any;
 }) {
-  const id = prefix + "-" + field.dest;
+  const id = prefix + "|" + field.option_string;
   const dispatch = (value: any) => {
     onUpdate({
       [id]: value

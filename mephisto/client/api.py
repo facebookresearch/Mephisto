@@ -212,6 +212,21 @@ def get_architect_arguments(architect_type):
     return jsonify({"success": True, "options": params})
 
 
+@api.route("/task_run_options")
+def get_basic_task_options():
+    params = get_extra_argument_dicts(TaskConfig)
+    return jsonify({"success": True, "options": params})
+
+
+@api.route("/launch_task_run", methods=["POST"])
+def launch_task_run():
+    # TODO parse out all of the details to be able to launch a task,
+    try:
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "msg": str(e)})
+
+
 @api.route("/error", defaults={"status_code": "501"})
 @api.route("/error/<string:status_code>")
 def intentional_error(status_code):

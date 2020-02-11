@@ -19,6 +19,7 @@ import TaskRunSummary from "./TaskRunSummary";
 import BlueprintSelect from "./components/BlueprintSelect";
 import ArchitectSelect from "./components/ArchitectSelect";
 import { toaster } from "../lib/toaster";
+import { launchTask } from "../service";
 
 const Async = createAsync<RunningTasks>();
 const LaunchInfoAsync = createAsync<any>();
@@ -89,14 +90,14 @@ function LaunchForm() {
       nextState = {};
     } else if (params === "CLEAR_bp") {
       nextState = Object.keys(state)
-        .filter(key => !key.startsWith("bp-"))
+        .filter(key => !key.startsWith("bp|"))
         .reduce((obj: any, key: string) => {
           obj[key] = state[key];
           return obj;
         }, {});
     } else if (params === "CLEAR_arch") {
       nextState = Object.keys(state)
-        .filter(key => !key.startsWith("arch-"))
+        .filter(key => !key.startsWith("arch|"))
         .reduce((obj: any, key: string) => {
           obj[key] = state[key];
           return obj;
@@ -181,6 +182,8 @@ function LaunchForm() {
                 if (validated) {
                   console.table(params);
                   addToParams("CLEAR_ALL");
+
+                  launchTask(params);
 
                   setOpenForm(false);
                   toaster.show({
