@@ -62,7 +62,7 @@ class StaticTaskBuilder(TaskBuilder):
             self.rebuild_core()
 
         # Copy the built core and the given task file to the target path
-        use_html_file = self.opts['html_source']
+        use_html_file = self.opts["html_source"]
         target_resource_dir = os.path.join(build_dir, "static")
         file_name = os.path.basename(use_html_file)
         target_path = os.path.join(target_resource_dir, file_name)

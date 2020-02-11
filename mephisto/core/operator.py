@@ -183,8 +183,8 @@ class Operator:
         built_dir = architect.prepare()
         task_url = architect.deploy()
 
-        # TODO maybe the cleanup (destruction of the server configuration?) should only 
-        # happen after everything has already been reviewed, this way it's possible to 
+        # TODO maybe the cleanup (destruction of the server configuration?) should only
+        # happen after everything has already been reviewed, this way it's possible to
         # retrieve the exact build directory to review a task for real
         architect.cleanup()
 

@@ -50,7 +50,7 @@ class StaticBlueprint(Blueprint):
                 csv_reader = csv.reader(csv_fp)
                 headers = next(csv_reader)
                 for row in csv_reader:
-                    row_data = {'html': task_file_name}
+                    row_data = {"html": task_file_name}
                     for i, col in enumerate(row):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
@@ -59,7 +59,6 @@ class StaticBlueprint(Blueprint):
             raise NotImplementedError(
                 "Parsing static tasks directly from dicts or JSON is not supported yet"
             )
-
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
