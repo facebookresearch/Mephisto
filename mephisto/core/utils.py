@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-import sys, glob, importlib, inspect
+import sys, glob, importlib
 
 import functools
 from mephisto.data_model.constants import NO_PROJECT_NAME
@@ -104,6 +104,7 @@ def get_dir_for_run(task_run: "TaskRun", project_name: str = NO_PROJECT_NAME) ->
     return os.path.join(get_data_dir(root_dir), "runs", project_name, run_id)
 
 
+@functools.lru_cache(maxsize=30)
 def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
     """
     Return the crowd provider class for the given string
@@ -135,13 +136,18 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
             module = importlib.import_module(module_name)
             # -----------------------------
             # Iterate items inside imported python file
-            # search for a class whose base class is CrowdProvider and return it
+            # search for a class whose base class is CrowdProvider with the
+            # defined PROVIDER_TYPE
+            if not hasattr(module, "PROVIDER_TYPE"):
+                # all valid crowdprovider modules should define a PROVIDER_TYPE
+                continue
+            found_provider_type = module.PROVIDER_TYPE  # type: ignore
             for item in dir(module):
                 value = getattr(module, item)
-                is_class = inspect.isclass(value)
-                if is_class:
-                    is_crowd_provider = issubclass(value, CrowdProvider)
-                    if is_crowd_provider and value != CrowdProvider:
+                if "PROVIDER_TYPE" not in dir(value):
+                    continue
+                if value.PROVIDER_TYPE == found_provider_type:
+                    if issubclass(value, CrowdProvider):
                         return value
     else:
         raise NotImplementedError(f"Missing provider type {provider_type}")

@@ -39,7 +39,7 @@ class StaticBlueprint(Blueprint):
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         if opts.get("data_csv") is not None:
             csv_file = opts["data_csv"]
-            with open(csv_file, "r") as csv_fp:
+            with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
                 csv_reader = csv.reader(csv_fp)
                 headers = next(csv_reader)
                 for row in csv_reader:
@@ -90,6 +90,6 @@ class StaticBlueprint(Blueprint):
         Return the InitializationData retrieved from the specified stream
         """
         return [
-            InitializationData(shared=d, unit_data=[])
+            InitializationData(shared=d, unit_data=[{}])
             for d in self._initialization_data_dicts
         ]

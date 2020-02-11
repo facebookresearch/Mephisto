@@ -145,6 +145,8 @@ class MTurkUnit(Unit):
         hit_link, hit_id, response = create_hit_with_hit_type(
             client, frame_height, task_url, hit_type_id
         )
+        # TODO put the hit link somewhere retrievable
+        print(hit_link)
         self.datastore.new_hit(self.db_id, hit_id, TODO_FILL_DURATION)
         self.hit_id = hit_id
         return None
