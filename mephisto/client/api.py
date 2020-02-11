@@ -83,7 +83,7 @@ def start_task_run():
         input_arg_list.append(arg_content["value"])
     try:
         operator = app.extensions["operator"]
-        operator.parse_and_launch_run(input_args)
+        operator.parse_and_launch_run(input_arg_list)
         # MOCK? What data would we want to return?
         # perhaps a link to the task? Will look into soon!
         return jsonify({"status": "success", "data": info})
