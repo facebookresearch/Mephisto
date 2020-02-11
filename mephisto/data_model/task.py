@@ -340,7 +340,7 @@ class TaskRun:
             "task_name": self.get_task().task_name,
             "task_type": self.task_type,
             "start_time": self.start_time,
-            "params": self.task_config,
+            "params": self.task_config.args,
             "param_string": self.param_string,
             "task_status": self.get_assignment_statuses(),
             "sandbox": self.get_requester().is_sandbox(),

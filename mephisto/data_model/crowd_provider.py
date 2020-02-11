@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractproperty
-from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.data_model.blueprint import AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
 from mephisto.data_model.assignment import Unit
@@ -32,7 +31,7 @@ class CrowdProvider(ABC):
     should ensure support for a vendor.
     """
 
-    PROVIDER_TYPE = PROVIDER_TYPE
+    PROVIDER_TYPE = '__PROVIDER_BASE_CLASS__'
 
     UnitClass: ClassVar[Type[Unit]] = Unit
 

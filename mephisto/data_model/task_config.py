@@ -41,7 +41,7 @@ class TaskConfig:
         try:
             arg_namespace, _unknown = parser.parse_known_args(shlex.split(param_string))
         except SystemExit:
-            raise Exception("Argparse broke - must fix")
+            raise Exception(f"Argparse broke on {param_string} - must fix")
         args = vars(arg_namespace)
         self.args = args
         self.task_title: str = args["task_title"]

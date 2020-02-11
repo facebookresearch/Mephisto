@@ -11,7 +11,11 @@ def cli():
 @cli.command("web")
 def web():
     """Launch a local webserver with the Mephisto UI"""
-    app.run(debug=False)
+    try:
+        app.run(debug=False)
+    except KeyboardInterrupt:
+        print("caught interrupt")
+        pass
 
 
 if __name__ == "__main__":

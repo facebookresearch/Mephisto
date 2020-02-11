@@ -28,7 +28,7 @@ class MockRequester(Requester):
         super().__init__(db, db_id)
         # TODO any additional init as is necessary once
         # a mock DB exists
-        registered = False
+        self.registered = False
 
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Mock requesters don't actually register credentials"""

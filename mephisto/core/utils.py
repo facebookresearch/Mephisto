@@ -148,6 +148,7 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
                     continue
                 if value.PROVIDER_TYPE == found_provider_type:
                     if issubclass(value, CrowdProvider):
+                        print(f'returning {value} for {provider_type}')
                         return value
     else:
         raise NotImplementedError(f"Missing provider type {provider_type}")

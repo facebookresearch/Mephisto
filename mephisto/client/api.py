@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
-from mephisto.core.utils import get_crowd_provider_from_type
-from mephisto.core.local_database import LocalMephistoDB
+from flask import current_app as app
 from mephisto.data_model.database import EntryAlreadyExistsException
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
@@ -16,12 +15,13 @@ from mephisto.core.utils import (
 from mephisto.data_model.task_config import TaskConfig
 
 api = Blueprint("api", __name__)
-db = LocalMephistoDB()
 
 
 @api.route("/requesters")
 def get_available_requesters():
+    db = app.extensions['db']
     requesters = db.find_requesters()
+    print([(r.requester_name, r.provider_type, type(r)) for r in requesters])
     dict_requesters = [r.to_dict() for r in requesters]
     return jsonify({"requesters": dict_requesters})
 
@@ -29,6 +29,7 @@ def get_available_requesters():
 @api.route("/task_runs/running")
 def get_running_task_runs():
     """Find running tasks by querying for all task runs that aren't completed"""
+    db = app.extensions['db']
     task_runs = db.find_task_runs(is_completed=False)
     dict_tasks = [t.to_dict() for t in task_runs if not t.get_is_completed()]
     live_task_count = len([t for t in dict_tasks if not t["sandbox"]])
@@ -47,6 +48,7 @@ def get_reviewable_task_runs():
     Find reviewable task runs by querying for all reviewable tasks
     and getting their runs
     """
+    db = app.extensions['db']
     units = db.find_units(status=AssignmentState.COMPLETED)
     reviewable_count = len(units)
     task_run_ids = set([u.get_assignment().get_task_run().db_id for u in units])
@@ -73,12 +75,22 @@ def launch_options():
 
 @api.route("/task_runs/launch", methods=["POST"])
 def start_task_run():
-    # TODO: incorporate actual logic here
     # Blueprint, CrowdProvider, Architect (Local/Heroku), Dict of arguments
     info = request.get_json(force=True)
-
-    # MOCK
-    return jsonify({"status": "success", "data": info})
+    input_arg_list = []
+    for arg_content in info.values():
+        input_arg_list.append(arg_content['option_string'])
+        input_arg_list.append(arg_content['value'])
+    try:
+        operator = app.extensions['operator']
+        operator.parse_and_launch_run(input_args)
+        # MOCK? What data would we want to return?
+        # perhaps a link to the task? Will look into soon!
+        return jsonify({"status": "success", "data": info})
+    except Exception as e:
+        return jsonify(
+            {"success": False, "msg": f"error in launching job: {str(e)}"}
+        )
 
 
 @api.route("/task_runs/<int:task_id>/units")
@@ -89,6 +101,12 @@ def view_unit(task_id):
     return jsonify(
         {"id": task_id, "view_path": "https://google.com", "data": {"name": "me"}}
     )
+
+
+@api.route("/task_runs/options")
+def get_basic_task_options():
+    params = get_extra_argument_dicts(TaskConfig)
+    return jsonify({"success": True, "options": params})
 
 
 @api.route("/requester/<string:requester_type>/options")
@@ -117,6 +135,7 @@ def requester_register(requester_type):
             {"success": False, "msg": "No name was specified for the requester."}
         )
 
+    db = app.extensions['db']
     requesters = db.find_requesters(requester_name=parsed_options["name"])
     if len(requesters) == 0:
         requester = RequesterClass.new(db, parsed_options["name"])
@@ -132,6 +151,7 @@ def requester_register(requester_type):
 
 @api.route("/<string:requester_name>/get_balance")
 def get_balance(requester_name):
+    db = app.extensions['db']
     requesters = db.find_requesters(requester_name=requester_name)
 
     if len(requesters) == 0:
@@ -148,6 +168,7 @@ def get_balance(requester_name):
 
 @api.route("/requester/<string:requester_name>/launch_options")
 def requester_launch_options(requester_type):
+    db = app.extensions['db']
     requesters = db.find_requesters(requester_name=requester_name)
 
     if len(requesters) == 0:
@@ -191,21 +212,6 @@ def get_architect_arguments(architect_type):
     ArchitectClass = get_architect_from_type(architect_type)
     params = get_extra_argument_dicts(ArchitectClass)
     return jsonify({"success": True, "options": params})
-
-
-@api.route("/task_run_options")
-def get_basic_task_options():
-    params = get_extra_argument_dicts(TaskConfig)
-    return jsonify({"success": True, "options": params})
-
-
-@api.route("/launch_task_run", methods=["POST"])
-def launch_task_run(requester_type):
-    # TODO parse out all of the details to be able to launch a task,
-    try:
-        return jsonify({"success": True})
-    except Exception as e:
-        return jsonify({"success": False, "msg": str(e)})
 
 
 @api.route("/error", defaults={"status_code": "501"})
