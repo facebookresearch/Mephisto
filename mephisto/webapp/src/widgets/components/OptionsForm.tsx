@@ -12,12 +12,11 @@ function OptionsForm({
   options: any;
 }) {
   React.useEffect(() => {
-    console.log("options changed");
     onUpdate("CLEAR_" + prefix);
     Object.values(options)
       .flatMap((opt: any) => Object.values(opt.args))
       .forEach((field: any) => {
-        const id = prefix + "-" + field.dest;
+        const id = prefix + "|" + field.option_string;
         onUpdate({
           [id]: field.default
         });
