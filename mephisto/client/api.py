@@ -21,7 +21,6 @@ api = Blueprint("api", __name__)
 def get_available_requesters():
     db = app.extensions['db']
     requesters = db.find_requesters()
-    print([(r.requester_name, r.provider_type, type(r)) for r in requesters])
     dict_requesters = [r.to_dict() for r in requesters]
     return jsonify({"requesters": dict_requesters})
 
