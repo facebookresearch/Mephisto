@@ -235,6 +235,7 @@ class Operator:
             time.sleep(2)
 
     def shutdown(self):
+        print("operator shutting down")  # TODO logger
         self.is_shutdown = True
         for tracked_run in self._task_runs_tracked.values():
             tracked_run.task_launcher.expire_units()

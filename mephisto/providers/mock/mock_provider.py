@@ -9,6 +9,7 @@ from mephisto.providers.mock.mock_agent import MockAgent
 from mephisto.providers.mock.mock_requester import MockRequester
 from mephisto.providers.mock.mock_unit import MockUnit
 from mephisto.providers.mock.mock_worker import MockWorker
+from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, TYPE_CHECKING
 
@@ -35,6 +36,8 @@ class MockProvider(CrowdProvider):
     AgentClass: ClassVar[Type["Agent"]] = MockAgent
 
     SUPPORTED_TASK_TYPES: ClassVar[List[str]] = ["mock"]
+
+    PROVIDER_TYPE = PROVIDER_TYPE
 
     curr_db_location: ClassVar[str]
 
