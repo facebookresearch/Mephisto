@@ -1,5 +1,4 @@
 from flask import Flask, send_file, jsonify
-from flask import g as flask_globals
 from mephisto.client.config import Config
 from mephisto.client.api import api
 from mephisto.core.operator import Operator

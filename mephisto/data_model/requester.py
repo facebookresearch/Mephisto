@@ -98,7 +98,6 @@ class Requester(ABC):
 
     def is_registered(self) -> bool:
         """Check to see if this requester has already been registered"""
-        print(self)
         raise NotImplementedError()
 
     @classmethod
