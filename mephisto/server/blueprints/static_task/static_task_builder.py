@@ -57,15 +57,12 @@ class StaticTaskBuilder(TaskBuilder):
 
     def build_in_dir(self, build_dir: str):
         """Build the frontend if it doesn't exist, then copy into the server directory"""
-
-        if True:  # not os.path.exists(FRONTEND_BUILD_DIR):
+        # Only build this task if it hasn't already been built
+        if not os.path.exists(FRONTEND_BUILD_DIR):
             self.rebuild_core()
 
-        # TODO Copy html into static
-        use_html_file = "/Users/jju/mephisto/mephisto/server/blueprints/static_task/html_sources/task.html"
-
-        # all the important files should've been moved to bundle.js in
-        # server/static, now copy the rest into static
+        # Copy the built core and the given task file to the target path
+        use_html_file = self.opts['html_source']
         target_resource_dir = os.path.join(build_dir, "static")
         file_name = os.path.basename(use_html_file)
         target_path = os.path.join(target_resource_dir, file_name)
@@ -75,6 +72,7 @@ class StaticTaskBuilder(TaskBuilder):
         target_path = os.path.join(target_resource_dir, "bundle.js")
         shutil.copy2(bundle_js_file, target_path)
 
+        # Write a built file confirmation
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:
             built_file.write(self.BUILT_MESSAGE)
 
@@ -84,6 +82,7 @@ class StaticTaskBuilder(TaskBuilder):
         """Mocks are always valid, we don't have any special resources"""
         return True
 
+    # TODO failed static tasks should be requeued?
     def cleanup_assignment(self, assignment: "Assignment"):
         """No cleanup required yet for ending mock runs"""
         pass

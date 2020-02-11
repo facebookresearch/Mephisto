@@ -128,9 +128,8 @@ class MainApp extends React.Component {
   handleIncomingTaskData(packet) {
     console.log(packet);
     let unit_data = packet.data.init_data;
-    // let html_target = unit_data['html'];
-    // delete unit_data['html'];
-    let html_target = 'task.html';
+    let html_target = unit_data['html'];
+    delete unit_data['html'];
     let task_data = unit_data;
 
     this.setState({

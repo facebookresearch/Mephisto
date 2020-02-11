@@ -36,14 +36,21 @@ class StaticBlueprint(Blueprint):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super(StaticBlueprint, self).__init__(task_run, opts)
+        self.html_file = opts["html_source"]
+        if not os.path.exists(self.html_file):
+            raise FileNotFoundError(
+                f"Specified html file {self.html_file} was not found from {os.getcwd()}"
+            )
+
         self._initialization_data_dicts: List[Dict[str, Any]] = []
+        task_file_name = os.path.basename(self.html_file)
         if opts.get("data_csv") is not None:
             csv_file = opts["data_csv"]
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
                 csv_reader = csv.reader(csv_fp)
                 headers = next(csv_reader)
                 for row in csv_reader:
-                    row_data = {}
+                    row_data = {'html': task_file_name}
                     for i, col in enumerate(row):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
@@ -53,11 +60,6 @@ class StaticBlueprint(Blueprint):
                 "Parsing static tasks directly from dicts or JSON is not supported yet"
             )
 
-        self.html_file = opts["html_source"]
-        if not os.path.exists(self.html_file):
-            raise FileNotFoundError(
-                f"Specified html file {self.html_file} was not found from {os.getcwd()}"
-            )
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
