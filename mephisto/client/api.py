@@ -19,7 +19,7 @@ api = Blueprint("api", __name__)
 
 @api.route("/requesters")
 def get_available_requesters():
-    db = app.extensions['db']
+    db = app.extensions["db"]
     requesters = db.find_requesters()
     dict_requesters = [r.to_dict() for r in requesters]
     return jsonify({"requesters": dict_requesters})
@@ -28,7 +28,7 @@ def get_available_requesters():
 @api.route("/task_runs/running")
 def get_running_task_runs():
     """Find running tasks by querying for all task runs that aren't completed"""
-    db = app.extensions['db']
+    db = app.extensions["db"]
     task_runs = db.find_task_runs(is_completed=False)
     dict_tasks = [t.to_dict() for t in task_runs if not t.get_is_completed()]
     live_task_count = len([t for t in dict_tasks if not t["sandbox"]])
@@ -47,7 +47,7 @@ def get_reviewable_task_runs():
     Find reviewable task runs by querying for all reviewable tasks
     and getting their runs
     """
-    db = app.extensions['db']
+    db = app.extensions["db"]
     units = db.find_units(status=AssignmentState.COMPLETED)
     reviewable_count = len(units)
     task_run_ids = set([u.get_assignment().get_task_run().db_id for u in units])
@@ -72,24 +72,23 @@ def launch_options():
         }
     )
 
+
 @api.route("/task_runs/launch", methods=["POST"])
 def start_task_run():
     # Blueprint, CrowdProvider, Architect (Local/Heroku), Dict of arguments
     info = request.get_json(force=True)
     input_arg_list = []
     for arg_content in info.values():
-        input_arg_list.append(arg_content['option_string'])
-        input_arg_list.append(arg_content['value'])
+        input_arg_list.append(arg_content["option_string"])
+        input_arg_list.append(arg_content["value"])
     try:
-        operator = app.extensions['operator']
+        operator = app.extensions["operator"]
         operator.parse_and_launch_run(input_args)
         # MOCK? What data would we want to return?
         # perhaps a link to the task? Will look into soon!
         return jsonify({"status": "success", "data": info})
     except Exception as e:
-        return jsonify(
-            {"success": False, "msg": f"error in launching job: {str(e)}"}
-        )
+        return jsonify({"success": False, "msg": f"error in launching job: {str(e)}"})
 
 
 @api.route("/task_runs/<int:task_id>/units")
@@ -134,7 +133,7 @@ def requester_register(requester_type):
             {"success": False, "msg": "No name was specified for the requester."}
         )
 
-    db = app.extensions['db']
+    db = app.extensions["db"]
     requesters = db.find_requesters(requester_name=parsed_options["name"])
     if len(requesters) == 0:
         requester = RequesterClass.new(db, parsed_options["name"])
@@ -150,7 +149,7 @@ def requester_register(requester_type):
 
 @api.route("/<string:requester_name>/get_balance")
 def get_balance(requester_name):
-    db = app.extensions['db']
+    db = app.extensions["db"]
     requesters = db.find_requesters(requester_name=requester_name)
 
     if len(requesters) == 0:
@@ -167,7 +166,7 @@ def get_balance(requester_name):
 
 @api.route("/requester/<string:requester_name>/launch_options")
 def requester_launch_options(requester_type):
-    db = app.extensions['db']
+    db = app.extensions["db"]
     requesters = db.find_requesters(requester_name=requester_name)
 
     if len(requesters) == 0:

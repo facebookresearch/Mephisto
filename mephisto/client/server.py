@@ -16,10 +16,10 @@ app.register_blueprint(api, url_prefix="/api/v1")
 # Register extensions
 db = LocalMephistoDB()
 operator = Operator(db)
-if not hasattr(app, 'extensions'):
+if not hasattr(app, "extensions"):
     app.extensions = {}
-app.extensions['db'] = db
-app.extensions['operator'] = db
+app.extensions["db"] = db
+app.extensions["operator"] = db
 
 
 @app.route("/", defaults={"path": "index.html"})
@@ -44,6 +44,7 @@ def cleanup_resources(*args, **kwargs):
     operator.shutdown()
     db.shutdown()
     term_handler(*args, **kwargs)
+
 
 atexit.register(cleanup_resources)
 signal.signal(signal.SIGINT, cleanup_resources)

@@ -31,7 +31,7 @@ class CrowdProvider(ABC):
     should ensure support for a vendor.
     """
 
-    PROVIDER_TYPE = '__PROVIDER_BASE_CLASS__'
+    PROVIDER_TYPE = "__PROVIDER_BASE_CLASS__"
 
     UnitClass: ClassVar[Type[Unit]] = Unit
 
