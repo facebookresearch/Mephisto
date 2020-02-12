@@ -6,6 +6,15 @@ export function launchTask(data: any) {
 }
 
 function mapDataToExpectedPayload(data: any) {
+  // We expect to receive a payload of the following format that
+  // will then transform to suit the API's expectations:
+  //
+  // {
+  //    "blueprint": "name",
+  //    "architect": "name",
+  //    "requester": "name",
+  //    "bp|<arg-name>|<--arg-flag>": "value"
+  // }
   const transformed = Object.entries(data).map(([key, value]) => {
     if (key === "blueprint") {
       return [
@@ -20,6 +29,14 @@ function mapDataToExpectedPayload(data: any) {
         "architect_type",
         {
           option_string: "--architect_type",
+          value: value
+        }
+      ];
+    } else if (key === "requester") {
+      return [
+        "requester_name",
+        {
+          option_string: "--requester_name",
           value: value
         }
       ];
