@@ -18,11 +18,13 @@ import { createAsync, mockRequest } from "../lib/Async";
 import TaskRunSummary from "./TaskRunSummary";
 import BlueprintSelect from "./components/BlueprintSelect";
 import ArchitectSelect from "./components/ArchitectSelect";
+import RequesterSelect from "./components/RequesterSelect";
 import { toaster } from "../lib/toaster";
 import { launchTask } from "../service";
 
 const Async = createAsync<RunningTasks>();
 const LaunchInfoAsync = createAsync<any>();
+const RequesterInfoAsync = createAsync<any>();
 
 export default (function LaunchWidget() {
   // const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
@@ -84,6 +86,9 @@ export default (function LaunchWidget() {
 function LaunchForm() {
   const [openForm, setOpenForm] = React.useState(false);
   const launchInfo = useAxios({ url: "launch/options" });
+  const requesterInfo = useAxios({
+    url: "requesters"
+  });
 
   const [params, addToParams] = React.useReducer((state, params) => {
     let nextState;
@@ -173,11 +178,35 @@ function LaunchForm() {
               )}
               onError={() => <span>Error</span>}
             />
+            <h2>Step 3. Choose a Requester</h2>
+            <p className="bp3-text-muted">
+              A requester is the service account that will run your task.
+            </p>
+            <RequesterInfoAsync
+              info={requesterInfo}
+              onLoading={() => <span>Loading...</span>}
+              onData={({ data }) => (
+                <div>
+                  {/* {JSON.stringify(
+                    data.requesters.filter((r: any) => r.registered)
+                  )} */}
+                  <RequesterSelect
+                    data={data.requesters.filter((r: any) => r.registered)}
+                    onUpdate={(data: any) => {
+                      addToParams(data);
+                    }}
+                  />
+                </div>
+              )}
+              onError={() => <span>Error</span>}
+            />
+
             <Button
               onClick={() => {
                 const validated =
                   params.blueprint !== undefined &&
-                  params.architect !== undefined;
+                  params.architect !== undefined &&
+                  params.requester !== undefined;
                 console.log({ validated });
 
                 if (validated) {
@@ -216,7 +245,8 @@ function LaunchForm() {
                   );
                 } else {
                   toaster.show({
-                    message: "Error: Must selected Blueprint + Architect",
+                    message:
+                      "Error: Must selected Blueprint + Architect + Requester",
                     icon: "cloud-upload",
                     intent: Intent.DANGER,
                     timeout: 2000
