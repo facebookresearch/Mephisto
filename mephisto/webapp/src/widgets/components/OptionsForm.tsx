@@ -16,7 +16,7 @@ function OptionsForm({
     Object.values(options)
       .flatMap((opt: any) => Object.values(opt.args))
       .forEach((field: any) => {
-        const id = prefix + "|" + field.option_string;
+        const id = prefix + "|" + field.dest + "|" + field.option_string;
         onUpdate({
           [id]: field.default
         });
