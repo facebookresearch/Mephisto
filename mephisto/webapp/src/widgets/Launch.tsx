@@ -25,7 +25,8 @@ const Async = createAsync<RunningTasks>();
 const LaunchInfoAsync = createAsync<any>();
 
 export default (function LaunchWidget() {
-  const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
+  // const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
+  const runningTasksAsync = useAxios({ url: "task_runs/running" });
 
   return (
     <BaseWidget badge="Step 2" heading={<span>Launch it</span>}>
