@@ -72,6 +72,15 @@ class CrowdProvider(ABC):
         """
         return
 
+    @classmethod
+    @abstractmethod
+    def get_wrapper_js_path(cls):
+        """
+        Return the path to the `wrap_crowd_source.js` file for this
+        provider to be deployed to the server
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def initialize_provider_datastore(self, storage_path: str) -> Any:
         """

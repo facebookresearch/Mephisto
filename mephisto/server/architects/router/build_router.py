@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
 ROUTER_ROOT_DIR = os.path.dirname(router_module.__file__)
 SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "deploy")
+CROWD_SOURCE_PATH = "static/wrap_crowd_source.js"
 
 
 def can_build(build_dir: str, task_run: "TaskRun") -> bool:
@@ -60,27 +61,21 @@ def build_router(build_dir: str, task_run: "TaskRun") -> str:
     server_source_directory_path = SERVER_SOURCE_ROOT
     local_server_directory_path = os.path.join(build_dir, "router")
 
+
     # Delete old server files
     sh.rm(shlex.split("-rf " + local_server_directory_path))
 
     # Copy over a clean copy into the server directory
     shutil.copytree(server_source_directory_path, local_server_directory_path)
 
-    # Consolidate task files
-    # TODO any required management for task-related deployment files
-    # (html/static/task config)
-    # for file_path in task_files_to_copy:
-    #     try:
-    #         shutil.copy2(file_path, task_directory_path)
-    #     except IsADirectoryError:  # noqa: F821 we don't support python2
-    #         dir_name = os.path.basename(os.path.normpath(file_path))
-    #         shutil.copytree(file_path, os.path.join(task_directory_path, dir_name))
-    #     except FileNotFoundError:  # noqa: F821 we don't support python2
-    #         pass
+    # Copy the required wrap crowd source path
+    local_crowd_source_path = os.path.join(local_server_directory_path, CROWD_SOURCE_PATH)
+    CrowdProviderClass = task_run.get_provider()
+    shutil.copy2(CrowdProviderClass.get_wrapper_js_path(), local_crowd_source_path)
 
+    # Consolidate task files as defined by the task
     TaskBuilderClass = task_run.get_blueprint().TaskBuilderClass
-    # TODO pull options from the current set options for this run?
-    task_builder = TaskBuilderClass(task_run, {})
+    task_builder = TaskBuilderClass(task_run, task_run.task_config.args)
 
     task_builder.build_in_dir(local_server_directory_path)
 

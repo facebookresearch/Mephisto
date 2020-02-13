@@ -16,58 +16,21 @@ Returning None for the assignment_id means that the task is being
 previewed by the given worker.
 \------------------------------------------*/
 
-// TODO standardize this file, make one for every crowd provider
-
-// MOCK IMPLEMENTATION
-// function getWorkerName() {
-//     // Mock worker name is passed via url params
-//     urlParams = new URLSearchParams(window.location.search);
-//     return urlParams.get('worker_id');
-// }
-
-// function getAssignmentId() {
-//     // mock assignment id is passed via url params
-//     urlParams = new URLSearchParams(window.location.search);
-//     return urlParams.get('assignment_id');
-// }
-
-// function getWorkerRegistrationInfo() {
-//     // mock workers have no special registration
-//     return {
-//         worker_name: getWorkerName(),
-//         provider_type: 'mock',
-//     };
-// }
-
-// function getAgentRegistration(mephisto_worker_id) {
-//     // Mock agents are created using the Mephisto worker_id
-//     // and the supplied assignment id
-//     return {
-//         worker_id: mephisto_worker_id,
-//         assignment_id: getAssignmentId(),
-//         provider_type: 'mock',
-//     };
-// }
-
-// function handleSubmitToProvider(task_data) {
-//     // Mock agents won't ever submit to a real provider
-//     return true;
-// }
 
 function getWorkerName() {
-    // Mock worker name is passed via url params
+    // MTurk worker name is passed via url params
     let urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('workerId');
 }
 
 function getAssignmentId() {
-    // mock assignment id is passed via url params
+    // MTurk assignment id is passed via url params
     let urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('assignmentId');
 }
 
 function getWorkerRegistrationInfo() {
-    // mock workers have no special registration
+    // MTurk workers are registered by name only
     return {
         worker_name: getWorkerName(),
         provider_type: 'mturk',
@@ -75,7 +38,7 @@ function getWorkerRegistrationInfo() {
 }
 
 function getAgentRegistration(mephisto_worker_id) {
-    // Mock agents are created using the Mephisto worker_id
+    // MTurk agents are created using the Mephisto worker_id
     // and the supplied assignment id
     return {
         worker_id: mephisto_worker_id,
@@ -86,7 +49,7 @@ function getAgentRegistration(mephisto_worker_id) {
 }
 
 function handleSubmitToProvider(task_data) {
-    // Mock agents won't ever submit to a real provider
+    // MTurk agents need to submit some task parameters
     let urlParams = new URLSearchParams(window.location.search);
     task_data['assignmentId'] = getAssignmentId();
     task_data['workerId'] = getWorkerName();
