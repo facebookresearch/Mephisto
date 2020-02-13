@@ -104,11 +104,11 @@ class TaskBuilder(ABC):
     that will be used to deploy that task.
     """
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
+    def __init__(self, task_run: "TaskRun", opts: Dict[str, Any]):
         self.opts = opts
         self.task_run = task_run
 
-    def __new__(cls, task_run: "TaskRun", opts: Any) -> "TaskBuilder":
+    def __new__(cls, task_run: "TaskRun", opts: Dict[str, Any]) -> "TaskBuilder":
         """Get the correct TaskBuilder for this task run"""
         if cls == TaskBuilder:
             # We are trying to construct an TaskBuilder, find what type to use and
@@ -157,14 +157,14 @@ class TaskRunner(ABC):
     passing agents through a task.
     """
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
+    def __init__(self, task_run: "TaskRun", opts: Dict[str, Any]):
         self.opts = opts
         self.task_run = task_run
         self.running_assignments: Dict[str, TrackedAssignment] = {}
         # TODO populate some kind of local state for tasks that are being run
         # by this runner from the database.
 
-    def __new__(cls, task_run: "TaskRun", opts: Any) -> "TaskRunner":
+    def __new__(cls, task_run: "TaskRun", opts: Dict[str, Any]) -> "TaskRunner":
         """Get the correct TaskRunner for this task run"""
         if cls == TaskRunner:
             # We are trying to construct an AgentState, find what type to use and

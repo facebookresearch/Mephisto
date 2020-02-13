@@ -7,7 +7,7 @@
 
 import os
 from shutil import copytree
-from typing import List, Any, TYPE_CHECKING
+from typing import List, Any, TYPE_CHECKING, Dict
 import argparse
 import shlex
 
@@ -43,7 +43,7 @@ class TaskConfig:
         except SystemExit:
             raise Exception(f"Argparse broke on {param_string} - must fix")
         args = vars(arg_namespace)
-        self.args = args
+        self.args: Dict[str, Any] = args
         self.task_title: str = args["task_title"]
         self.task_description: str = args["task_description"]
         self.task_reward: float = args["task_reward"]
