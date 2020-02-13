@@ -111,8 +111,6 @@ function LaunchForm() {
     } else {
       nextState = { ...state, ...params };
     }
-
-    console.log(nextState);
     return nextState;
   }, {});
 
@@ -207,10 +205,8 @@ function LaunchForm() {
                   params.blueprint !== undefined &&
                   params.architect !== undefined &&
                   params.requester !== undefined;
-                console.log({ validated });
 
                 if (validated) {
-                  console.table(params);
                   addToParams("CLEAR_ALL");
 
                   launchTask(params);

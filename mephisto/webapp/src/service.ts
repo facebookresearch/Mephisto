@@ -20,7 +20,7 @@ function mapDataToExpectedPayload(data: any) {
       return [
         "blueprint_type",
         {
-          option_string: "--blueprint_type",
+          option_string: "--blueprint-type",
           value: value
         }
       ];
@@ -28,7 +28,7 @@ function mapDataToExpectedPayload(data: any) {
       return [
         "architect_type",
         {
-          option_string: "--architect_type",
+          option_string: "--architect-type",
           value: value
         }
       ];
@@ -36,7 +36,7 @@ function mapDataToExpectedPayload(data: any) {
       return [
         "requester_name",
         {
-          option_string: "--requester_name",
+          option_string: "--requester-name",
           value: value
         }
       ];
@@ -46,5 +46,6 @@ function mapDataToExpectedPayload(data: any) {
     }
   });
 
+  console.table(Object.fromEntries(transformed));
   return Object.fromEntries(transformed);
 }

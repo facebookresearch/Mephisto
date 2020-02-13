@@ -30,7 +30,12 @@ function OptionsForm({
           .flatMap((opt: any) => Object.values(opt.args))
           .map((field: any) => {
             return (
-              <FormField prefix={prefix} onUpdate={onUpdate} field={field} />
+              <FormField
+                key={prefix + field.dest}
+                prefix={prefix}
+                onUpdate={onUpdate}
+                field={field}
+              />
             );
           })}
       </div>
