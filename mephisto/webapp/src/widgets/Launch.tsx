@@ -21,10 +21,12 @@ import ArchitectSelect from "./components/ArchitectSelect";
 import RequesterSelect from "./components/RequesterSelect";
 import { toaster } from "../lib/toaster";
 import { launchTask } from "../service";
+import OptionsForm from "./components/OptionsForm";
 
 const Async = createAsync<RunningTasks>();
 const LaunchInfoAsync = createAsync<any>();
 const RequesterInfoAsync = createAsync<any>();
+const DefaultTaskInfoAsync = createAsync<any>();
 
 export default (function LaunchWidget() {
   // const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
@@ -89,6 +91,9 @@ function LaunchForm() {
   const requesterInfo = useAxios({
     url: "requesters"
   });
+  const defaultTaskInfo = useAxios({
+    url: "task_runs/options"
+  });
 
   const [params, addToParams] = React.useReducer((state, params) => {
     let nextState;
@@ -104,6 +109,13 @@ function LaunchForm() {
     } else if (params === "CLEAR_arch") {
       nextState = Object.keys(state)
         .filter(key => !key.startsWith("arch|"))
+        .reduce((obj: any, key: string) => {
+          obj[key] = state[key];
+          return obj;
+        }, {});
+    } else if (params === "CLEAR_task") {
+      nextState = Object.keys(state)
+        .filter(key => !key.startsWith("task|"))
         .reduce((obj: any, key: string) => {
           obj[key] = state[key];
           return obj;
@@ -193,6 +205,21 @@ function LaunchForm() {
                     onUpdate={(data: any) => {
                       addToParams(data);
                     }}
+                  />
+                </div>
+              )}
+              onError={() => <span>Error</span>}
+            />
+            <h2>Step 4. Final Task Options</h2>
+            <DefaultTaskInfoAsync
+              info={defaultTaskInfo}
+              onLoading={() => <span>Loading...</span>}
+              onData={({ data }) => (
+                <div>
+                  <OptionsForm
+                    prefix="task"
+                    options={data.options}
+                    onUpdate={(data: any) => addToParams(data)}
                   />
                 </div>
               )}

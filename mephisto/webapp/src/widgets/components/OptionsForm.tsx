@@ -1,6 +1,6 @@
 import React from "react";
 import FormField from "./FormField";
-import { Checkbox } from "@blueprintjs/core";
+import { Checkbox, Card } from "@blueprintjs/core";
 
 function OptionsForm({
   prefix,
@@ -26,18 +26,20 @@ function OptionsForm({
   return (
     <div>
       <div style={{ margin: "20px 0" }}>
-        {Object.values(options)
-          .flatMap((opt: any) => Object.values(opt.args))
-          .map((field: any) => {
-            return (
-              <FormField
-                key={prefix + field.dest}
-                prefix={prefix}
-                onUpdate={onUpdate}
-                field={field}
-              />
-            );
-          })}
+        <Card className="bp3-elevation-2">
+          {Object.values(options)
+            .flatMap((opt: any) => Object.values(opt.args))
+            .map((field: any) => {
+              return (
+                <FormField
+                  key={prefix + field.dest}
+                  prefix={prefix}
+                  onUpdate={onUpdate}
+                  field={field}
+                />
+              );
+            })}
+        </Card>
       </div>
     </div>
   );
