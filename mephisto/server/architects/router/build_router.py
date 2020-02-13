@@ -61,7 +61,6 @@ def build_router(build_dir: str, task_run: "TaskRun") -> str:
     server_source_directory_path = SERVER_SOURCE_ROOT
     local_server_directory_path = os.path.join(build_dir, "router")
 
-
     # Delete old server files
     sh.rm(shlex.split("-rf " + local_server_directory_path))
 
@@ -69,7 +68,9 @@ def build_router(build_dir: str, task_run: "TaskRun") -> str:
     shutil.copytree(server_source_directory_path, local_server_directory_path)
 
     # Copy the required wrap crowd source path
-    local_crowd_source_path = os.path.join(local_server_directory_path, CROWD_SOURCE_PATH)
+    local_crowd_source_path = os.path.join(
+        local_server_directory_path, CROWD_SOURCE_PATH
+    )
     CrowdProviderClass = task_run.get_provider()
     shutil.copy2(CrowdProviderClass.get_wrapper_js_path(), local_crowd_source_path)
 

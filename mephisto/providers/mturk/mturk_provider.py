@@ -117,4 +117,4 @@ class MTurkProvider(CrowdProvider):
         Return the path to the `wrap_crowd_source.js` file for this
         provider to be deployed to the server
         """
-        return os.path.join(os.path.dirname(__file__), 'wrap_crowd_source.js')
+        return os.path.join(os.path.dirname(__file__), "wrap_crowd_source.js")
