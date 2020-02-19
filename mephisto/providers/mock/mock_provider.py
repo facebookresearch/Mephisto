@@ -13,6 +13,8 @@ from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, TYPE_CHECKING
 
+import os
+
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit
@@ -60,3 +62,11 @@ class MockProvider(CrowdProvider):
     ) -> None:
         """Mocks don't do any initialization"""
         return None
+
+    @classmethod
+    def get_wrapper_js_path(cls):
+        """
+        Return the path to the `wrap_crowd_source.js` file for this
+        provider to be deployed to the server
+        """
+        return os.path.join(os.path.dirname(__file__), "wrap_crowd_source.js")

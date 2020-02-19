@@ -13,6 +13,7 @@ from mephisto.providers.mturk_sandbox.sandbox_mturk_requester import (
 from mephisto.providers.mturk_sandbox.sandbox_mturk_unit import SandboxMTurkUnit
 from mephisto.providers.mturk_sandbox.sandbox_mturk_worker import SandboxMTurkWorker
 
+import os
 
 from typing import Any, ClassVar, Type, List, TYPE_CHECKING
 
@@ -50,3 +51,11 @@ class SandboxMTurkProvider(MTurkProvider):
         """
         print("sandbox client", self)
         return self.datastore.get_sandbox_client_for_requester(requester_name)
+
+    @classmethod
+    def get_wrapper_js_path(cls):
+        """
+        Return the path to the `wrap_crowd_source.js` file for this
+        provider to be deployed to the server
+        """
+        return os.path.join(os.path.dirname(__file__), "wrap_crowd_source.js")
