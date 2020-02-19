@@ -15,9 +15,10 @@ from mephisto.core.utils import get_crowd_provider_from_type
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.assignment import Unit
+    from mephisto.data_model.assignment import Unit, Assignment
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.packet import Packet
+    from mephisto.data_model.task import Task, TaskRun
 
 
 # types of exceptions thrown when an agent exits the chat. These are thrown
@@ -76,6 +77,18 @@ class Agent(ABC):
         self.has_action = threading.Event()
         self.has_action.clear()
 
+        # TODO add these to the table
+        self.assignment_id = row["assignment_id"]
+        self.task_run_id = row["task_run_id"]
+        self.task_id = row["task_id"]
+
+        # Deferred loading of related entities
+        self.__worker: Optional["Worker"] = None
+        self.__unit: Optional["Unit"] = None
+        self.__assignment: Optional["Assignment"] = None
+        self.__task_run: Optional["TaskRun"] = None
+        self.__task: Optional["Task"] = None
+
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Agent":
         """
         The new method is overridden to be able to automatically generate
@@ -103,22 +116,65 @@ class Agent(ABC):
         """
         Return the worker that is using this agent for a task
         """
-        return Worker(self.db, self.worker_id)
+        if self.__worker is None:
+            self.__worker = Worker(self.db, self.worker_id)
+        return self.__worker
 
     def get_unit(self) -> "Unit":
         """
         Return the Unit that this agent is working on.
         """
-        from mephisto.data_model.assignment import Unit
+        if self.__unit is None:
+            from mephisto.data_model.assignment import Unit
 
-        return Unit(self.db, self.unit_id)
+            self.__unit = Unit(self.db, self.unit_id)
+        return self.__unit
+
+    def get_assignment(self) -> "Assignment":
+        """Return the assignment this agent is working on"""
+        if self.__assignment is None:
+            if self.__unit is not None:
+                self.__assignment = self.__unit.get_assignment()
+            else:
+                from mephisto.data_model.assignment import Assignment
+
+                self.__assignment = Assignment(self.db, self.assignment_id)
+        return self.__assignment
+
+    def get_task_run(self) -> "TaskRun":
+        """Return the TaskRun this agent is working within"""
+        if self.__task_run is None:
+            if self.__unit is not None:
+                self.__task_run = self.__unit.get_task_run()
+            elif self.__assignment is not None:
+                self.__task_run = self.__assignment.get_task_run()
+            else
+                from mephisto.data_model.task import TaskRun
+
+                self.__task_run = TaskRun(self.db, self.task_run_id)
+        return self.__task_run
+
+    def get_task_run(self) -> "Task":
+        """Return the Task this agent is working within"""
+        if self.__task is None:
+            if self.__unit is not None:
+                self.__task = self.__unit.get_task()
+            elif self.__assignment is not None:
+                self.__task = self.__assignment.get_task()
+            elif self.__task_run is not None:
+                self.__task = self.__task_run.get_task()
+            else
+                from mephisto.data_model.task import Task
+
+                self.__task = Task(self.db, self.task_id)
+        return self.__task
 
     def get_data_dir(self) -> str:
         """
         Return the directory to be storing any agent state for
         this agent into
         """
-        assignment_dir = self.get_unit().get_assignment().get_data_dir()
+        assignment_dir = self.get_assignment().get_data_dir()
         return os.path.join(assignment_dir, self.db_id)
 
     @staticmethod
@@ -128,8 +184,7 @@ class Agent(ABC):
         """
         Create this agent in the mephisto db with the correct setup
         """
-        task = unit.get_assignment().get_task_run().get_task()
-        db_id = db.new_agent(worker.db_id, unit.db_id, task.task_type, provider_type)
+        db_id = db.new_agent(worker.db_id, unit.db_id, unit.task_type, provider_type)
         return Agent(db, db_id)
 
     # Specialized child cases may need to implement the following

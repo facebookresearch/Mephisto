@@ -8,7 +8,7 @@
 from abc import ABC, abstractmethod
 from mephisto.core.utils import get_dir_for_run, get_crowd_provider_from_type
 from mephisto.data_model.assignment_state import AssignmentState
-from mephisto.data_model.task import TaskRun
+from mephisto.data_model.task import TaskRun, Task
 from mephisto.data_model.agent import Agent
 from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING, IO
 
@@ -54,9 +54,18 @@ class Assignment:
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_run_id = row["task_run_id"]
 
+        # TODO add to the table
+        self.sandbox = row["sandbox"]
+        self.task_id = row["task_id"]
+
+        # Deferred loading of related entities
+        self.__task_run: Optional["TaskRun"] = None
+        self.__task: Optional["Task"] = None
+
+
     def get_data_dir(self) -> str:
         """Return the directory we expect to find assignment data in"""
-        task_run = TaskRun(self.db, self.task_run_id)
+        task_run = self.get_task_run()
         run_dir = task_run.get_run_dir()
         return os.path.join(run_dir, self.db_id)
 
@@ -105,7 +114,20 @@ class Assignment:
         """
         Return the task run that this assignment is part of
         """
-        return TaskRun(self.db, self.task_run_id)
+        if self.__task_run is None:
+            self.__task_run = TaskRun(self.db, self.task_run_id)
+        return self.__task_run
+
+    def get_task(self) -> Task:
+        """
+        Return the task run that this assignment is part of
+        """
+        if self.__task is None:
+            if self.__task_run is not None:
+                self.__task = self.__task_run.get_task()
+            else:
+                self.__task = Task(self.db, self.task_id)
+        return self.__task
 
     def get_units(self, status: Optional[str] = None) -> List["Unit"]:
         """
@@ -124,6 +146,8 @@ class Assignment:
         """
         Get the list of workers that have worked on this specific assignment
         """
+        # TODO search the database directly for units that have a worker that 
+        # is not None
         units = self.get_units()
         pos_agents = [s.get_assigned_agent() for s in units]
         agents = [a for a in pos_agents if a is not None]
@@ -188,6 +212,22 @@ class Unit(ABC):
         self.agent_id = row["agent_id"]
         self.provider_type = row["provider_type"]
         self.db_status = row["status"]
+        
+        # TODO add these to the table
+        self.task_type = row["task_type"]
+        self.task_id = row["task_id"]
+        self.task_run_id = row["task_run_id"]
+        self.sandbox = row["sandbox"]
+        self.requester_id = row["requester_id"]
+        self.worker_id = row["worker_id"]
+
+        # Deferred loading of related entities
+        self.__task: Optional["Task"] = None
+        self.__task_run: Optional["TaskRun"] = None
+        self.__assignment: Optional["Assignment"] = None
+        self.__requester: Optional["Requester"] = None
+        self.__agent: Optional["Agent"] = None
+        self.__worker: Optional["Worker"] = None
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Unit":
         """
@@ -214,7 +254,6 @@ class Unit(ABC):
 
     def get_assignment_data(self) -> Optional[Dict[str, Any]]:
         """Return the specific assignment data for this assignment"""
-        # TODO maybe this is somewhat controlled by task-types?
         return self.get_assignment().get_assignment_data()
 
     def sync_status(self) -> None:
@@ -250,13 +289,46 @@ class Unit(ABC):
         """
         Return the assignment that this Unit is part of.
         """
-        return Assignment(self.db, self.assignment_id)
+        if self.__assignment is None:
+            self.__assignment = Assignment(self.db, self.assignment_id)
+        return self.__assignment
+
+    def get_task_run(self) -> TaskRun:
+        """
+        Return the task run that this assignment is part of
+        """
+        if self.__task_run is None:
+            if self.__assignment is not None:
+                self.__task_run = self.__assignment.get_task_run()
+            else:
+                self.__task_run = TaskRun(self.db, self.task_run_id)
+        return self.__task_run
+
+    def get_task(self) -> Task:
+        """
+        Return the task that this assignment is part of
+        """
+        if self.__task is None:
+            if self.__assignment is not None:
+                self.__task = self.__assignment.get_task()
+            elif self.__task_run is not None:
+                self.__task = self.__task_run.get_task()
+            else:
+                self.__task = Task(self.db, self.task_id)
+        return self.__task
 
     def get_requester(self) -> "Requester":
         """
         Return the requester who offered this Unit
         """
-        return self.get_assignment().get_task_run().get_requester()
+        if self.__requester is None:
+            if self.__assignment is not None:
+                self.__requester = self.__assignment.get_requester()
+            elif self.__task_run is not None:
+                self.__requester = self.__task_run.get_requester()
+            else:
+                self.__requester = Requester(self.db, self.requester_id)
+        return self.__requester
 
     def get_assigned_agent(self) -> Optional[Agent]:
         """
@@ -272,6 +344,7 @@ class Unit(ABC):
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
+        # TODO this may not be particularly efficient
         row = self.db.get_unit(self.db_id)
         assert row is not None, f"Unit {self.db_id} stopped existing in the db..."
         agent_id = row["agent_id"]
