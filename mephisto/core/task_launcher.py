@@ -51,7 +51,7 @@ class TaskLauncher:
         currently in the assignment config
         """
         task_run_id = self.task_run.db_id
-        task_config = self.task_run.task_config
+        task_config = self.task_run.get_task_config()
         for data in self.assignment_data_list:
             assignment_id = self.db.new_assignment(task_run_id)
             assignment = Assignment(self.db, assignment_id)
