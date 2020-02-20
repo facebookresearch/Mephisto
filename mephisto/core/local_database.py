@@ -19,6 +19,7 @@ from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.qualification import Qualification, GrantedQualification
 
 import sqlite3
 from sqlite3 import Connection, Cursor
@@ -167,6 +168,27 @@ CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
 """
 
 
+CREATE_QUALIFICATIONS_TABLE = """CREATE TABLE IF NOT EXISTS qualifications (
+    qualification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    qualification_name TEXT NOT NULL UNIQUE,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_GRANTED_QUALIFICATIONS_TABLE = """
+CREATE TABLE IF NOT EXISTS granted_qualifications (
+    granted_qualification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    worker_id INTEGER NOT NULL,
+    qualification_id INTEGER NOT NULL,
+    value INTEGER NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
+    FOREIGN KEY (qualification_id) REFERENCES qualifications (qualification_id),
+    UNIQUE (worker_id, qualification_id)
+);
+"""
+
+
 class StringIDRow(sqlite3.Row):
     def __getitem__(self, key: str) -> Any:
         val = super().__getitem__(key)
@@ -234,6 +256,8 @@ class LocalMephistoDB(MephistoDB):
             c.execute(CREATE_UNITS_TABLE)
             c.execute(CREATE_WORKERS_TABLE)
             c.execute(CREATE_AGENTS_TABLE)
+            c.execute(CREATE_QUALIFICATIONS_TABLE)
+            c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
             conn.commit()
 
     def __get_one_by_id(
@@ -1026,3 +1050,213 @@ class LocalMephistoDB(MephistoDB):
             )
             rows = c.fetchall()
             return [Agent(self, str(r["agent_id"])) for r in rows]
+
+    def make_qualification(
+        self,
+        qualification_name: str, 
+    ) -> str:
+        """
+        Make a new qualification, throws an error if a qualification by the given name 
+        already exists. Return the id for the qualification.
+        """
+        if qualification_name == "":
+            raise MephistoDBException("Empty string is not a valid qualification name")
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    "INSERT INTO qualifications(qualification_name) VALUES (?);",
+                    (qualification_name, ),
+                )
+                qualification_id = str(c.lastrowid)
+                conn.commit()
+                return qualification_id
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException()
+                raise MephistoDBException(e)
+
+    def find_qualifications(
+        self,
+        qualification_name: Optional[str] = None,
+    ) -> List[Qualification]:
+        """
+        Find a qualification. If no name is supplied, returns all qualifications.
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT qualification_id from qualifications
+                WHERE (?1 IS NULL OR qualification_name = ?1)
+                """,
+                (
+                    qualification_name,
+                ),
+            )
+            rows = c.fetchall()
+            return [Qualification(self, str(r["qualification_id"])) for r in rows]
+
+    def get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
+        """
+        Return qualification's fields by qualification_id, raise 
+        EntryDoesNotExistException if no id exists in qualifications
+
+        See Qualification for the expected fields for the returned mapping
+        """
+        return self.__get_one_by_id("qualifications", "qualification_id", qualification_id)
+
+    def delete_qualification(
+        self,
+        qualification_name: str,
+    ) -> None:
+        """
+        Remove this qualification from all workers that have it, then delete the qualification
+        """
+        qualifications = self.find_qualifications(qualification_name=qualification_name)
+        if len(qualifications) == 0:
+            raise EntryDoesNotExistException
+        qualification = qualifications[0]
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                "DELETE FROM granted_qualifications WHERE qualification_id = ?1;",
+                (int(qualification.db_id), ),
+            )
+            c.execute(
+                "DELETE FROM qualifications WHERE qualification_name = ?1;",
+                (qualification_name, ),
+            )
+            conn.commit()
+
+    def grant_qualification(
+        self,
+        qualification_id: str,
+        worker_id: str, 
+        value: int = 1,
+    ) -> None:
+        """
+        Grant a worker the given qualification. Update the qualification value if it 
+        already exists
+        """
+        try:
+            # Update existing entry
+            qual_row = self.get_granted_qualification(qualification_id, worker_id)
+            with self.table_access_condition:
+                if value != qual_row['value']:
+                    conn = self._get_connection()
+                    c = conn.cursor()
+                    c.execute(
+                        """
+                        UPDATE granted_qualifications
+                        SET value = ?
+                        WHERE (qualification_id = ?)
+                        AND (worker_id = ?);
+                        """,
+                        (value, int(qualification_id), int(worker_id)),
+                    )
+                    conn.commit()
+                return None
+        except EntryDoesNotExistException:
+            with self.table_access_condition:
+                conn = self._get_connection()
+                c = conn.cursor()
+                try:
+                    c.execute(
+                        """
+                        INSERT INTO granted_qualifications(
+                            qualification_id,
+                            worker_id,
+                            value
+                        ) VALUES (?, ?, ?);
+                        """,
+                        (int(qualification_id), int(worker_id), value),
+                    )
+                    qualification_id = str(c.lastrowid)
+                    conn.commit()
+                    return None
+                except sqlite3.IntegrityError as e:
+                    if is_unique_failure(e):
+                        raise EntryAlreadyExistsException()
+                    raise MephistoDBException(e)
+
+
+    def check_granted_qualifications(
+        self,
+        qualification_id: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        value: Optional[int] = None,
+    ) -> List[GrantedQualification]:
+        """
+        Find granted qualifications that match the given specifications
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from granted_qualifications
+                WHERE (?1 IS NULL OR qualification_id = ?1)
+                AND (?2 IS NULL OR worker_id = ?2)
+                AND (?3 IS NULL OR value = ?3)
+                """,
+                (
+                    qualification_id, worker_id, value
+                ),
+            )
+            rows = c.fetchall()
+            return [GrantedQualification(
+                self, 
+                str(r["qualification_id"]),
+                str(r["worker_id"]),
+            ) for r in rows]
+    
+    def get_granted_qualification(
+        self, 
+        qualification_id: Optional[str] = None,
+        worker_id: Optional[str] = None,
+    ) -> Mapping[str, Any]:
+        """
+        Return the granted qualification in the database between the given 
+        worker and qualification id
+
+        See GrantedQualification for the expected fields for the returned mapping
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                f"""
+                SELECT * FROM granted_qualifications
+                WHERE (qualification_id = ?1)
+                AND (worker_id = ?2);
+                """,
+                (nonesafe_int(qualification_id), nonesafe_int(worker_id)),
+            )
+            results = c.fetchall()
+            if len(results) != 1:
+                raise EntryDoesNotExistException
+            return results[0]
+
+    def revoke_qualification(
+        self,
+        qualification_id: str,
+        worker_id: str, 
+    ) -> None:
+        """
+        Remove the given qualification from the given worker
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """DELETE FROM granted_qualifications 
+                WHERE (qualification_id = ?1)
+                AND (worker_id = ?2);
+                """,
+                (int(qualification_id), int(worker_id)),
+            )
+            conn.commit()
