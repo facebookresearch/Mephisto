@@ -331,6 +331,7 @@ class TaskRun:
                 self.__run_dir = get_dir_for_run(self)
             else:
                 self.__run_dir = get_dir_for_run(self, project.project_name)
+            os.makedirs(self.__run_dir, exist_ok=True)
         return self.__run_dir
 
     def get_total_spend(self) -> float:

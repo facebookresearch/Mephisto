@@ -170,7 +170,12 @@ class Operator:
 
         # Create a new task run
         new_run_id = self.db.new_task_run(
-            task_id, requester_id, " ".join(task_args_string)
+            task_id, 
+            requester_id,
+            " ".join(task_args_string),
+            provider_type,
+            type_args.blueprint_type,
+            requester.is_sandbox()
         )
         task_run = TaskRun(self.db, new_run_id)
 

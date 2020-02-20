@@ -209,7 +209,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def new_assignment(self, task_run_id: str, requester_id: str, task_type: str, provider_type: str, sandbox: bool = True) -> str:
+    def new_assignment(self, task_id: str, task_run_id: str, requester_id: str, task_type: str, provider_type: str, sandbox: bool = True) -> str:
         """
         Create a new assignment for the given task
 
