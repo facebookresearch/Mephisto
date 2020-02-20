@@ -58,13 +58,36 @@ class MockBlueprintTests(BlueprintTests):
     def get_test_assignment(self) -> Assignment:
         """Create a test assignment for self.task_run using mock agents"""
         task_run = self.task_run
-        assignment_id = self.db.new_assignment(task_run.task_id, task_run.db_id, task_run.requester_id, task_run.task_type, task_run.provider_type)
+        assignment_id = self.db.new_assignment(
+            task_run.task_id,
+            task_run.db_id,
+            task_run.requester_id,
+            task_run.task_type,
+            task_run.provider_type,
+        )
         assign = Assignment(self.db, assignment_id)
-        unit_id = self.db.new_unit(task_run.task_id, task_run.db_id, task_run.requester_id, assignment_id, 0, 0, task_run.provider_type, task_run.task_type)
+        unit_id = self.db.new_unit(
+            task_run.task_id,
+            task_run.db_id,
+            task_run.requester_id,
+            assignment_id,
+            0,
+            0,
+            task_run.provider_type,
+            task_run.task_type,
+        )
         unit = MockUnit(self.db, unit_id)
         worker_id = self.db.new_worker("MOCK_TEST_WORKER", MOCK_PROVIDER_TYPE)
         worker = MockWorker(self.db, worker_id)
-        agent_id = self.db.new_agent(worker.db_id, unit_id, task_run.task_id, task_run.db_id, assignment_id, task_run.task_type, task_run.provider_type)
+        agent_id = self.db.new_agent(
+            worker.db_id,
+            unit_id,
+            task_run.task_id,
+            task_run.db_id,
+            assignment_id,
+            task_run.task_type,
+            task_run.provider_type,
+        )
         Agent = MockAgent(self.db, agent_id)
         return assign
 

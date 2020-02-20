@@ -182,7 +182,15 @@ class Agent(ABC):
         """
         Create this agent in the mephisto db with the correct setup
         """
-        db_id = db.new_agent(worker.db_id, unit.db_id, unit.task_id, unit.task_run_id, unit.assignment_id, unit.task_type, provider_type)
+        db_id = db.new_agent(
+            worker.db_id,
+            unit.db_id,
+            unit.task_id,
+            unit.task_run_id,
+            unit.assignment_id,
+            unit.task_type,
+            provider_type,
+        )
         return Agent(db, db_id)
 
     # Specialized child cases may need to implement the following

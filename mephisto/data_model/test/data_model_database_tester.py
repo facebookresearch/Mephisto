@@ -318,7 +318,9 @@ class BaseDatabaseTests(unittest.TestCase):
         # But not after we've created a task run
         requester_name, requester_id = get_test_requester(db)
         init_params = TaskConfig.get_mock_params()
-        task_run_id = db.new_task_run(task_id_2, requester_id, init_params, "mock", "mock")
+        task_run_id = db.new_task_run(
+            task_id_2, requester_id, init_params, "mock", "mock"
+        )
         with self.assertRaises(MephistoDBException):
             db.update_task(task_id_2, task_name=task_name_2)
 
@@ -450,7 +452,9 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Check creation and retrieval of a task_run
         init_params = TaskConfig.get_mock_params()
-        task_run_id = db.new_task_run(task_id, requester_id, init_params, "mock", "mock")
+        task_run_id = db.new_task_run(
+            task_id, requester_id, init_params, "mock", "mock"
+        )
         self.assertIsNotNone(task_run_id)
         self.assertTrue(isinstance(task_run_id, str))
         task_run_row = db.get_task_run(task_run_id)
@@ -531,7 +535,7 @@ class BaseDatabaseTests(unittest.TestCase):
             task_run_id,
             task_run.requester_id,
             task_run.task_type,
-            task_run.provider_type, 
+            task_run.provider_type,
             task_run.sandbox,
         )
         self.assertIsNotNone(assignment_id)
@@ -572,7 +576,7 @@ class BaseDatabaseTests(unittest.TestCase):
                 self.get_fake_id("TaskRun"),
                 task_run.requester_id,
                 task_run.task_type,
-                task_run.provider_type, 
+                task_run.provider_type,
                 task_run.sandbox,
             )
 
@@ -719,12 +723,12 @@ class BaseDatabaseTests(unittest.TestCase):
         unit = Unit(db, unit_id)
 
         agent_id = db.new_agent(
-            worker_id, 
-            unit_id, 
+            worker_id,
+            unit_id,
             unit.task_id,
             unit.task_run_id,
             unit.assignment_id,
-            unit.task_type, 
+            unit.task_type,
             unit.provider_type,
         )
         self.assertIsNotNone(agent_id)
@@ -771,29 +775,27 @@ class BaseDatabaseTests(unittest.TestCase):
         worker_name, worker_id = get_test_worker(db)
         unit = Unit(db, unit_id)
 
-        
-
         # Can't use invalid worker id
         with self.assertRaises(EntryDoesNotExistException):
             agent_id = db.new_agent(
-                self.get_fake_id("Worker"), 
-                unit_id, 
+                self.get_fake_id("Worker"),
+                unit_id,
                 unit.task_id,
                 unit.task_run_id,
                 unit.assignment_id,
-                unit.task_type, 
+                unit.task_type,
                 unit.provider_type,
             )
 
         # Can't use invalid unit id
         with self.assertRaises(EntryDoesNotExistException):
             agent_id = db.new_agent(
-                worker_id, 
-                self.get_fake_id("Unit"), 
+                worker_id,
+                self.get_fake_id("Unit"),
                 unit.task_id,
                 unit.task_run_id,
                 unit.assignment_id,
-                unit.task_type, 
+                unit.task_type,
                 unit.provider_type,
             )
 

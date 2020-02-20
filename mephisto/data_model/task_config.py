@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
-CONFIG_FILE_PATH = 'task_config.json'
+CONFIG_FILE_PATH = "task_config.json"
 
 
 class TaskConfig:
@@ -34,7 +34,7 @@ class TaskConfig:
         # Try to find existing parsed args
         arg_path = os.path.join(task_run.get_run_dir(), CONFIG_FILE_PATH)
         if os.path.exists(arg_path):
-            with open(arg_path, 'r') as config_file:
+            with open(arg_path, "r") as config_file:
                 args = json.load(config_file)
         else:
             # parse new arguments
@@ -51,12 +51,14 @@ class TaskConfig:
             TaskConfig.add_args_to_group(task_group)
 
             try:
-                arg_namespace, _unknown = parser.parse_known_args(shlex.split(param_string))
+                arg_namespace, _unknown = parser.parse_known_args(
+                    shlex.split(param_string)
+                )
             except SystemExit:
                 raise Exception(f"Argparse broke on {param_string} - must fix")
-            
+
             args = vars(arg_namespace)
-            with open(arg_path, 'w+') as config_file:
+            with open(arg_path, "w+") as config_file:
                 json.dump(args, config_file)
 
         # Parse out specific arguments for the task_config

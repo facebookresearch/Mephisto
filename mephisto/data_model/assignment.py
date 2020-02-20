@@ -55,15 +55,14 @@ class Assignment:
         self.task_run_id = row["task_run_id"]
         self.sandbox = row["sandbox"]
         self.task_id = row["task_id"]
-        self.requester_id = row['requester_id']
-        self.task_type = row['task_type']
-        self.provider_type = row['provider_type']
+        self.requester_id = row["requester_id"]
+        self.task_type = row["task_type"]
+        self.provider_type = row["provider_type"]
 
         # Deferred loading of related entities
         self.__task_run: Optional["TaskRun"] = None
         self.__task: Optional["Task"] = None
         self.__requester: Optional["Requester"] = None
-
 
     def get_data_dir(self) -> str:
         """Return the directory we expect to find assignment data in"""
@@ -191,7 +190,13 @@ class Assignment:
         # TODO consider offloading this state management to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
-        db_id = db.new_assignment(task_run.db_id, task_run.requester_id, task_run.task_type, task_run.provider_type, task_run.sandbox)
+        db_id = db.new_assignment(
+            task_run.db_id,
+            task_run.requester_id,
+            task_run.task_type,
+            task_run.provider_type,
+            task_run.sandbox,
+        )
         run_dir = task_run.get_run_dir()
         assign_dir = os.path.join(run_dir, db_id)
         os.makedirs(assign_dir)
@@ -373,7 +378,16 @@ class Unit(ABC):
         """
         Create an entry for this unit in the database
         """
-        db_id = db.new_unit(assignment.task_id, assignment.task_run_id, assignment.requester_id, assignment.db_id, index, pay_amount, provider_type, assignment.task_type)
+        db_id = db.new_unit(
+            assignment.task_id,
+            assignment.task_run_id,
+            assignment.requester_id,
+            assignment.db_id,
+            index,
+            pay_amount,
+            provider_type,
+            assignment.task_type,
+        )
         return Unit(db, db_id)
 
     def get_pay_amount(self) -> float:

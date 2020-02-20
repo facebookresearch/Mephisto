@@ -438,11 +438,11 @@ class LocalMephistoDB(MephistoDB):
                 raise MephistoDBException(e)
 
     def new_task_run(
-        self, 
-        task_id: str, 
-        requester_id: str, 
-        init_params: str, 
-        provider_type: str, 
+        self,
+        task_id: str,
+        requester_id: str,
+        init_params: str,
+        provider_type: str,
         task_type: str,
         sandbox: bool = True,
     ) -> str:
@@ -464,7 +464,15 @@ class LocalMephistoDB(MephistoDB):
                         sandbox
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?);""",
-                    (int(task_id), int(requester_id), init_params, False, provider_type, task_type, sandbox),
+                    (
+                        int(task_id),
+                        int(requester_id),
+                        init_params,
+                        False,
+                        provider_type,
+                        task_type,
+                        sandbox,
+                    ),
                 )
                 task_run_id = str(c.lastrowid)
                 conn.commit()
@@ -531,14 +539,23 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException()
                 raise MephistoDBException(e)
 
-    def new_assignment(self, task_id: str, task_run_id: str, requester_id: str, task_type: str, provider_type: str, sandbox: bool = True) -> str:
+    def new_assignment(
+        self,
+        task_id: str,
+        task_run_id: str,
+        requester_id: str,
+        task_type: str,
+        provider_type: str,
+        sandbox: bool = True,
+    ) -> str:
         """Create a new assignment for the given task"""
         with self.table_access_condition:
             # Ensure task run exists
             _task_run = self.get_task_run(task_run_id)
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute("""
+            c.execute(
+                """
                 INSERT INTO assignments(
                     task_id, 
                     task_run_id,
@@ -546,14 +563,15 @@ class LocalMephistoDB(MephistoDB):
                     task_type,
                     provider_type,
                     sandbox
-                ) VALUES (?, ?, ?, ?, ?, ?);""", (
+                ) VALUES (?, ?, ?, ?, ?, ?);""",
+                (
                     int(task_id),
                     int(task_run_id),
                     int(requester_id),
                     task_type,
                     provider_type,
                     sandbox,
-                )
+                ),
             )
             assignment_id = str(c.lastrowid)
             conn.commit()
@@ -568,7 +586,15 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("assignments", "assignment_id", assignment_id)
 
-    def find_assignments(self, task_run_id: Optional[str] = None, task_id: Optional[str] = None, requester_id: Optional[str] = None, task_type: Optional[str] = None, provider_type: Optional[str] = None, sandbox: Optional[bool] = None) -> List[Assignment]:
+    def find_assignments(
+        self,
+        task_run_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
+        task_type: Optional[str] = None,
+        provider_type: Optional[str] = None,
+        sandbox: Optional[bool] = None,
+    ) -> List[Assignment]:
         """
         Try to find any task that matches the above. When called with no arguments,
         return all tasks.
@@ -599,7 +625,16 @@ class LocalMephistoDB(MephistoDB):
             return [Assignment(self, str(r["assignment_id"])) for r in rows]
 
     def new_unit(
-        self, task_id: str, task_run_id: str, requester_id: str, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str, task_type: str, sandbox: bool = True
+        self,
+        task_id: str,
+        task_run_id: str,
+        requester_id: str,
+        assignment_id: str,
+        unit_index: int,
+        pay_amount: float,
+        provider_type: str,
+        task_type: str,
+        sandbox: bool = True,
     ) -> str:
         """
         Create a new unit with the given index. Raises EntryAlreadyExistsException
@@ -861,7 +896,14 @@ class LocalMephistoDB(MephistoDB):
             return [Worker(self, str(r["worker_id"])) for r in rows]
 
     def new_agent(
-        self, worker_id: str, unit_id: str, task_id: str, task_run_id: str, assignment_id: str, task_type: str, provider_type: str
+        self,
+        worker_id: str,
+        unit_id: str,
+        task_id: str,
+        task_run_id: str,
+        assignment_id: str,
+        task_type: str,
+        provider_type: str,
     ) -> str:
         """
         Create a new agent with the given name and provider type.

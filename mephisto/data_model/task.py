@@ -366,5 +366,11 @@ class TaskRun:
         """
         Create a new run for the given task with the given params
         """
-        db_id = db.new_task_run(task.db_id, requester.db_id, param_string, requester.provider_type, task.task_type)
+        db_id = db.new_task_run(
+            task.db_id,
+            requester.db_id,
+            param_string,
+            requester.provider_type,
+            task.task_type,
+        )
         return TaskRun(db, db_id)

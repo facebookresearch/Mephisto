@@ -57,7 +57,13 @@ def get_test_assignment(db: MephistoDB) -> str:
     """Helper to create an assignment for tests"""
     task_run_id = get_test_task_run(db)
     task_run = TaskRun(db, task_run_id)
-    return db.new_assignment(task_run.task_id, task_run_id, task_run.requester_id, task_run.task_type, task_run.provider_type)
+    return db.new_assignment(
+        task_run.task_id,
+        task_run_id,
+        task_run.requester_id,
+        task_run.task_type,
+        task_run.provider_type,
+    )
 
 
 def get_test_unit(db: MephistoDB, unit_index=0) -> str:
@@ -65,7 +71,16 @@ def get_test_unit(db: MephistoDB, unit_index=0) -> str:
     assignment_id = get_test_assignment(db)
     pay_amount = 15.0
     assignment = Assignment(db, assignment_id)
-    return db.new_unit(assignment.task_id, assignment.task_run_id, assignment.requester_id, assignment.db_id, 0, pay_amount, assignment.provider_type, assignment.task_type)
+    return db.new_unit(
+        assignment.task_id,
+        assignment.task_run_id,
+        assignment.requester_id,
+        assignment.db_id,
+        0,
+        pay_amount,
+        assignment.provider_type,
+        assignment.task_type,
+    )
 
 
 def get_test_agent(db: MephistoDB, unit_id=None) -> str:
@@ -76,7 +91,15 @@ def get_test_agent(db: MephistoDB, unit_id=None) -> str:
     provider_type = "mock"
     task_type = "mock"
     unit = Unit(db, unit_id)
-    return db.new_agent(worker_id, unit.db_id, unit.task_id, unit.task_run_id, unit.assignment_id, unit.task_type, unit.provider_type)
+    return db.new_agent(
+        worker_id,
+        unit.db_id,
+        unit.task_id,
+        unit.task_run_id,
+        unit.assignment_id,
+        unit.task_type,
+        unit.provider_type,
+    )
 
 
 def make_completed_unit(db: MephistoDB) -> str:
@@ -90,9 +113,32 @@ def make_completed_unit(db: MephistoDB) -> str:
     task_runs = db.find_task_runs(is_completed=False)
     assert len(task_runs) > 0, "Must be at least one incomplete task run"
     task_run = task_runs[-1]
-    assign_id = db.new_assignment(task_run.task_id, task_run.db_id, task_run.requester_id, task_run.task_type, task_run.provider_type)
-    unit_id = db.new_unit(task_run.task_id, task_run.db_id, task_run.requester_id, assign_id, 0, 0.2, task_run.provider_type, task_run.task_type)
-    agent_id = db.new_agent(worker.db_id, unit_id, task_run.task_id, task_run.db_id, assign_id, task_run.task_type, task_run.provider_type)
+    assign_id = db.new_assignment(
+        task_run.task_id,
+        task_run.db_id,
+        task_run.requester_id,
+        task_run.task_type,
+        task_run.provider_type,
+    )
+    unit_id = db.new_unit(
+        task_run.task_id,
+        task_run.db_id,
+        task_run.requester_id,
+        assign_id,
+        0,
+        0.2,
+        task_run.provider_type,
+        task_run.task_type,
+    )
+    agent_id = db.new_agent(
+        worker.db_id,
+        unit_id,
+        task_run.task_id,
+        task_run.db_id,
+        assign_id,
+        task_run.task_type,
+        task_run.provider_type,
+    )
     agent = Agent(db, agent_id)
     agent.mark_done()
     unit = Unit(db, unit_id)
