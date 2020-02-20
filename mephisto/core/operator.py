@@ -133,7 +133,6 @@ class Operator:
         """
         # Extract the abstractions being used
         parser = self._get_baseline_argparser()
-        print("Arg list:", arg_list)
         type_args, task_args_string = parser.parse_known_args(arg_list)
 
         requesters = self.db.find_requesters(requester_name=type_args.requester_name)
@@ -171,7 +170,6 @@ class Operator:
             task_id = tasks[0].db_id
 
         # Create a new task run
-        print("Arg string", task_args_string)
         new_run_id = self.db.new_task_run(
             task_id, requester_id, " ".join(task_args_string)
         )
