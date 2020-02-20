@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
 
 
+# TODO pull from utils, these are blueprints
 VALID_TASK_TYPES = ["legacy_parlai", "generic", "mock"]
 
 
@@ -91,11 +92,7 @@ class Task:
         """
         Return all of the assignments for all runs of this task
         """
-        # TODO get all assignments by task id
-        assigns: List["Assignment"] = []
-        for task_run in self.get_runs():
-            assigns += task_run.get_assignments()
-        return assigns
+        return self.db.find_assignments(task_id=self.db_id)
 
     def get_task_source(self) -> str:
         """
@@ -193,10 +190,9 @@ class TaskRun:
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
         self.start_time = row["creation_date"]
-
-        # TODO missing parameters 
         self.provider_type = row["provider_type"]
         self.task_type = row["task_type"]
+        self.sandbox = row["sandbox"]
 
         # properties with deferred loading
         self.__is_completed = row["is_completed"]
@@ -369,5 +365,5 @@ class TaskRun:
         """
         Create a new run for the given task with the given params
         """
-        db_id = db.new_task_run(task.db_id, requester.db_id, param_string)
+        db_id = db.new_task_run(task.db_id, requester.db_id, param_string, requester.provider_type, task.task_type)
         return TaskRun(db, db_id)

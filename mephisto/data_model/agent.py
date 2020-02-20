@@ -76,8 +76,6 @@ class Agent(ABC):
         self.pending_actions: List["Packet"] = []
         self.has_action = threading.Event()
         self.has_action.clear()
-
-        # TODO add these to the table
         self.assignment_id = row["assignment_id"]
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
@@ -148,13 +146,13 @@ class Agent(ABC):
                 self.__task_run = self.__unit.get_task_run()
             elif self.__assignment is not None:
                 self.__task_run = self.__assignment.get_task_run()
-            else
+            else:
                 from mephisto.data_model.task import TaskRun
 
                 self.__task_run = TaskRun(self.db, self.task_run_id)
         return self.__task_run
 
-    def get_task_run(self) -> "Task":
+    def get_task(self) -> "Task":
         """Return the Task this agent is working within"""
         if self.__task is None:
             if self.__unit is not None:
@@ -163,7 +161,7 @@ class Agent(ABC):
                 self.__task = self.__assignment.get_task()
             elif self.__task_run is not None:
                 self.__task = self.__task_run.get_task()
-            else
+            else:
                 from mephisto.data_model.task import Task
 
                 self.__task = Task(self.db, self.task_id)
@@ -184,7 +182,7 @@ class Agent(ABC):
         """
         Create this agent in the mephisto db with the correct setup
         """
-        db_id = db.new_agent(worker.db_id, unit.db_id, unit.task_type, provider_type)
+        db_id = db.new_agent(worker.db_id, unit.db_id, unit.task_id, unit.task_run_id, unit.assignment_id, unit.task_type, provider_type)
         return Agent(db, db_id)
 
     # Specialized child cases may need to implement the following

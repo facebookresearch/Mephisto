@@ -93,6 +93,9 @@ CREATE_TASK_RUNS_TABLE = """
     requester_id INTEGER NOT NULL,
     init_params TEXT NOT NULL,
     is_completed BOOLEAN NOT NULL,
+    provider_type TEXT NOT NULL,
+    task_type TEXT NOT NULL,
+    sandbox BOOLEAN NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks (task_id),
     FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
@@ -102,8 +105,11 @@ CREATE_TASK_RUNS_TABLE = """
 CREATE_ASSIGNMENTS_TABLE = """CREATE TABLE IF NOT EXISTS assignments (
     assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
     task_run_id INTEGER NOT NULL,
+    task_id INTEGER NOT NULL,
+    sandbox BOOLEAN NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id)
+    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id),
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id)
 );
 """
 
@@ -115,9 +121,19 @@ CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
     provider_type TEXT NOT NULL,
     status TEXT NOT NULL,
     agent_id INTEGER,
+    worker_id INTEGER,
+    task_type TEXT NOT NULL,
+    task_id INTEGER NOT NULL,
+    task_run_id INTEGER NOT NULL,
+    sandbox BOOLEAN NOT NULL,
+    requester_id INTEGER NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id),
     FOREIGN KEY (agent_id) REFERENCES agents (agent_id),
+    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id),
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
+    FOREIGN KEY (requester_id) REFERENCES requesters (requester_id),
+    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
     UNIQUE (assignment_id, unit_index)
 );
 """
@@ -414,7 +430,15 @@ class LocalMephistoDB(MephistoDB):
                     )
                 raise MephistoDBException(e)
 
-    def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
+    def new_task_run(
+        self, 
+        task_id: str, 
+        requester_id: str, 
+        init_params: str, 
+        provider_type: str, 
+        task_type: str,
+        sandbox: bool = True,
+    ) -> str:
         """Create a new task_run for the given task."""
         with self.table_access_condition:
             # Ensure given ids are valid
@@ -422,9 +446,18 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    """INSERT INTO task_runs(task_id, requester_id, init_params, is_completed)
-                    VALUES (?, ?, ?, ?);""",
-                    (int(task_id), int(requester_id), init_params, False),
+                    """
+                    INSERT INTO task_runs(
+                        task_id, 
+                        requester_id, 
+                        init_params, 
+                        is_completed,
+                        provider_type,
+                        task_type,
+                        sandbox,
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?);""",
+                    (int(task_id), int(requester_id), init_params, False, provider_type, task_type, sandbox),
                 )
                 task_run_id = str(c.lastrowid)
                 conn.commit()
@@ -533,7 +566,7 @@ class LocalMephistoDB(MephistoDB):
             return [Assignment(self, str(r["assignment_id"])) for r in rows]
 
     def new_unit(
-        self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str
+        self, task_id: str, task_run_id: str, requester_id: str, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str, task_type: str, sandbox: bool = True
     ) -> str:
         """
         Create a new unit with the given index. Raises EntryAlreadyExistsException
@@ -545,17 +578,27 @@ class LocalMephistoDB(MephistoDB):
             try:
                 c.execute(
                     """INSERT INTO units(
+                        task_id,
+                        task_run_id,
+                        requester_id,
                         assignment_id,
                         unit_index,
                         pay_amount,
                         provider_type,
+                        task_type,
+                        sandbox,
                         status
-                    ) VALUES (?, ?, ?, ?, ?);""",
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);""",
                     (
+                        int(task_id),
+                        int(task_run_id),
+                        int(requester_id),
                         int(assignment_id),
                         unit_index,
                         pay_amount,
                         provider_type,
+                        task_type,
+                        sandbox,
                         AssignmentState.CREATED,
                     ),
                 )

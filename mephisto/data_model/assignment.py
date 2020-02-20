@@ -53,14 +53,16 @@ class Assignment:
         row = db.get_assignment(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.task_run_id = row["task_run_id"]
-
-        # TODO add to the table
         self.sandbox = row["sandbox"]
         self.task_id = row["task_id"]
+        self.requester_id = row['requester_id']
+        self.task_type = row['task_type']
+        self.provider_type = row['provider_type']
 
         # Deferred loading of related entities
         self.__task_run: Optional["TaskRun"] = None
         self.__task: Optional["Task"] = None
+        self.__requester: Optional["Requester"] = None
 
 
     def get_data_dir(self) -> str:
@@ -129,6 +131,17 @@ class Assignment:
                 self.__task = Task(self.db, self.task_id)
         return self.__task
 
+    def get_requester(self) -> "Requester":
+        """
+        Return the requester who offered this Assignment
+        """
+        if self.__requester is None:
+            if self.__task_run is not None:
+                self.__requester = self.__task_run.get_requester()
+            else:
+                self.__requester = Requester(self.db, self.requester_id)
+        return self.__requester
+
     def get_units(self, status: Optional[str] = None) -> List["Unit"]:
         """
         Get units for this assignment, optionally
@@ -146,8 +159,7 @@ class Assignment:
         """
         Get the list of workers that have worked on this specific assignment
         """
-        # TODO search the database directly for units that have a worker that 
-        # is not None
+        # TODO maybe can be optimized by looking for assigned or completed units?
         units = self.get_units()
         pos_agents = [s.get_assigned_agent() for s in units]
         agents = [a for a in pos_agents if a is not None]
@@ -179,7 +191,7 @@ class Assignment:
         # TODO consider offloading this state management to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
-        db_id = db.new_assignment(task_run.db_id)
+        db_id = db.new_assignment(task_run.db_id, task_run.requester_id, task_run.task_type, task_run.provider_type, task_run.sandbox)
         run_dir = task_run.get_run_dir()
         assign_dir = os.path.join(run_dir, db_id)
         os.makedirs(assign_dir)
@@ -212,8 +224,6 @@ class Unit(ABC):
         self.agent_id = row["agent_id"]
         self.provider_type = row["provider_type"]
         self.db_status = row["status"]
-        
-        # TODO add these to the table
         self.task_type = row["task_type"]
         self.task_id = row["task_id"]
         self.task_run_id = row["task_run_id"]
@@ -363,7 +373,7 @@ class Unit(ABC):
         """
         Create an entry for this unit in the database
         """
-        db_id = db.new_unit(assignment.db_id, index, pay_amount, provider_type)
+        db_id = db.new_unit(assignment.task_id, assignment.task_run_id, assignment.requester_id, assignment.db_id, index, pay_amount, provider_type, assignment.task_type)
         return Unit(db, db_id)
 
     def get_pay_amount(self) -> float:
