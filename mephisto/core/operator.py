@@ -14,7 +14,7 @@ import threading
 
 from argparse import ArgumentParser
 
-from mephisto.core.supervisor import Supervisor
+from mephisto.core.supervisor import Supervisor, Job
 
 from typing import Dict, Optional, List, Any, Tuple, NamedTuple, Type, TYPE_CHECKING
 from mephisto.data_model.task_config import TaskConfig
@@ -42,6 +42,7 @@ class TrackedRun(NamedTuple):
     architect: "Architect"
     task_runner: "TaskRunner"
     task_launcher: TaskLauncher
+    job: Job
 
 
 class Operator:
@@ -132,6 +133,7 @@ class Operator:
         """
         # Extract the abstractions being used
         parser = self._get_baseline_argparser()
+        print("Arg list:", arg_list)
         type_args, task_args_string = parser.parse_known_args(arg_list)
 
         requesters = self.db.find_requesters(requester_name=type_args.requester_name)
@@ -169,6 +171,7 @@ class Operator:
             task_id = tasks[0].db_id
 
         # Create a new task run
+        print("Arg string", task_args_string)
         new_run_id = self.db.new_task_run(
             task_id,
             requester_id,
@@ -215,7 +218,7 @@ class Operator:
         launcher.launch_units(task_url)
 
         # Link the job together
-        self.supervisor.register_job(architect, task_runner, provider)
+        job = self.supervisor.register_job(architect, task_runner, provider)
         if self.supervisor.sending_thread is None:
             self.supervisor.launch_sending_thread()
 
@@ -224,6 +227,7 @@ class Operator:
             task_launcher=launcher,
             task_runner=task_runner,
             architect=architect,
+            job=job,
         )
 
     def _track_and_kill_runs(self):
@@ -236,6 +240,7 @@ class Operator:
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
                 if task_run.get_is_completed():
+                    self.supervisor.shutdown_job(tracked_run.job)
                     tracked_run.architect.shutdown()
                     # TODO kill the runner too?
                     del self._task_runs_tracked[task_run.db_id]
