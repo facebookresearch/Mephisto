@@ -1051,10 +1051,7 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [Agent(self, str(r["agent_id"])) for r in rows]
 
-    def make_qualification(
-        self,
-        qualification_name: str, 
-    ) -> str:
+    def make_qualification(self, qualification_name: str) -> str:
         """
         Make a new qualification, throws an error if a qualification by the given name 
         already exists. Return the id for the qualification.
@@ -1067,7 +1064,7 @@ class LocalMephistoDB(MephistoDB):
             try:
                 c.execute(
                     "INSERT INTO qualifications(qualification_name) VALUES (?);",
-                    (qualification_name, ),
+                    (qualification_name,),
                 )
                 qualification_id = str(c.lastrowid)
                 conn.commit()
@@ -1078,8 +1075,7 @@ class LocalMephistoDB(MephistoDB):
                 raise MephistoDBException(e)
 
     def find_qualifications(
-        self,
-        qualification_name: Optional[str] = None,
+        self, qualification_name: Optional[str] = None
     ) -> List[Qualification]:
         """
         Find a qualification. If no name is supplied, returns all qualifications.
@@ -1092,9 +1088,7 @@ class LocalMephistoDB(MephistoDB):
                 SELECT qualification_id from qualifications
                 WHERE (?1 IS NULL OR qualification_name = ?1)
                 """,
-                (
-                    qualification_name,
-                ),
+                (qualification_name,),
             )
             rows = c.fetchall()
             return [Qualification(self, str(r["qualification_id"])) for r in rows]
@@ -1106,12 +1100,11 @@ class LocalMephistoDB(MephistoDB):
 
         See Qualification for the expected fields for the returned mapping
         """
-        return self.__get_one_by_id("qualifications", "qualification_id", qualification_id)
+        return self.__get_one_by_id(
+            "qualifications", "qualification_id", qualification_id
+        )
 
-    def delete_qualification(
-        self,
-        qualification_name: str,
-    ) -> None:
+    def delete_qualification(self, qualification_name: str) -> None:
         """
         Remove this qualification from all workers that have it, then delete the qualification
         """
@@ -1124,19 +1117,16 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 "DELETE FROM granted_qualifications WHERE qualification_id = ?1;",
-                (int(qualification.db_id), ),
+                (int(qualification.db_id),),
             )
             c.execute(
                 "DELETE FROM qualifications WHERE qualification_name = ?1;",
-                (qualification_name, ),
+                (qualification_name,),
             )
             conn.commit()
 
     def grant_qualification(
-        self,
-        qualification_id: str,
-        worker_id: str, 
-        value: int = 1,
+        self, qualification_id: str, worker_id: str, value: int = 1
     ) -> None:
         """
         Grant a worker the given qualification. Update the qualification value if it 
@@ -1146,7 +1136,7 @@ class LocalMephistoDB(MephistoDB):
             # Update existing entry
             qual_row = self.get_granted_qualification(qualification_id, worker_id)
             with self.table_access_condition:
-                if value != qual_row['value']:
+                if value != qual_row["value"]:
                     conn = self._get_connection()
                     c = conn.cursor()
                     c.execute(
@@ -1183,7 +1173,6 @@ class LocalMephistoDB(MephistoDB):
                         raise EntryAlreadyExistsException()
                     raise MephistoDBException(e)
 
-
     def check_granted_qualifications(
         self,
         qualification_id: Optional[str] = None,
@@ -1203,21 +1192,18 @@ class LocalMephistoDB(MephistoDB):
                 AND (?2 IS NULL OR worker_id = ?2)
                 AND (?3 IS NULL OR value = ?3)
                 """,
-                (
-                    qualification_id, worker_id, value
-                ),
+                (qualification_id, worker_id, value),
             )
             rows = c.fetchall()
-            return [GrantedQualification(
-                self, 
-                str(r["qualification_id"]),
-                str(r["worker_id"]),
-            ) for r in rows]
-    
+            return [
+                GrantedQualification(
+                    self, str(r["qualification_id"]), str(r["worker_id"])
+                )
+                for r in rows
+            ]
+
     def get_granted_qualification(
-        self, 
-        qualification_id: Optional[str] = None,
-        worker_id: Optional[str] = None,
+        self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
     ) -> Mapping[str, Any]:
         """
         Return the granted qualification in the database between the given 
@@ -1241,11 +1227,7 @@ class LocalMephistoDB(MephistoDB):
                 raise EntryDoesNotExistException
             return results[0]
 
-    def revoke_qualification(
-        self,
-        qualification_id: str,
-        worker_id: str, 
-    ) -> None:
+    def revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
         """
         Remove the given qualification from the given worker
         """

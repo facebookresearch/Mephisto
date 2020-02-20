@@ -892,7 +892,9 @@ class BaseDatabaseTests(unittest.TestCase):
         qualifications = db.find_qualifications(qualification_name)
         self.assertEqual(len(qualifications), 0, "Qualification not remove")
         granted_quals = db.check_granted_qualifications()
-        self.assertEqual(len(granted_quals), 0, "Cascade granted qualification not removed")
+        self.assertEqual(
+            len(granted_quals), 0, "Cascade granted qualification not removed"
+        )
 
         # cant retrieve the qualification directly anymore
         with self.assertRaises(EntryDoesNotExistException):

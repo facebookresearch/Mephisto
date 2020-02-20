@@ -438,10 +438,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def make_qualification(
-        self,
-        qualification_name: str, 
-    ) -> str:
+    def make_qualification(self, qualification_name: str) -> str:
         """
         Make a new qualification, throws an error if a qualification by the given name 
         already exists. Return the id for the qualification.
@@ -450,8 +447,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def find_qualifications(
-        self,
-        qualification_name: Optional[str] = None,
+        self, qualification_name: Optional[str] = None
     ) -> List[Qualification]:
         """
         Find a qualification. If no name is supplied, returns all qualifications.
@@ -469,10 +465,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_qualification(
-        self,
-        qualification_name: str,
-    ) -> None:
+    def delete_qualification(self, qualification_name: str) -> None:
         """
         Remove this qualification from all workers that have it, then delete the qualification
         """
@@ -480,10 +473,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def grant_qualification(
-        self,
-        qualification_id: str,
-        worker_id: str, 
-        value: int = 1
+        self, qualification_id: str, worker_id: str, value: int = 1
     ) -> None:
         """
         Grant a worker the given qualification. Update the qualification value if it 
@@ -502,12 +492,10 @@ class MephistoDB(ABC):
         Find granted qualifications that match the given specifications
         """
         raise NotImplementedError()
-    
+
     @abstractmethod
     def get_granted_qualification(
-        self, 
-        qualification_id: Optional[str] = None,
-        worker_id: Optional[str] = None,
+        self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
     ) -> Mapping[str, Any]:
         """
         Return the granted qualification in the database between the given 
@@ -518,11 +506,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def revoke_qualification(
-        self,
-        qualification_id: str,
-        worker_id: str, 
-    ) -> None:
+    def revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
         """
         Remove the given qualification from the given worker
         """
