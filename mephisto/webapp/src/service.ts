@@ -42,7 +42,13 @@ function mapDataToExpectedPayload(data: any) {
       ];
     } else {
       const [namespace, arg_name, opt_string] = key.split("|");
-      return [arg_name, { option_string: opt_string, value: value }];
+      return [
+        arg_name,
+        {
+          option_string: opt_string,
+          value: value === null ? null : (value as any).toString()
+        }
+      ];
     }
   });
 

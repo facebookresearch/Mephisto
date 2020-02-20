@@ -19,7 +19,7 @@ operator = Operator(db)
 if not hasattr(app, "extensions"):
     app.extensions = {}
 app.extensions["db"] = db
-app.extensions["operator"] = db
+app.extensions["operator"] = operator
 
 
 @app.route("/", defaults={"path": "index.html"})
