@@ -212,6 +212,12 @@ class Supervisor:
             socket_info.thread.join()
         del self.sockets[socket_id]
 
+    def shutdown_job(self, job: Job):
+        """Close any sockets related to a job"""
+        job_sockets = job.registered_socket_ids
+        for socket_id in job_sockets:
+            self.close_socket(socket_id)
+
     def shutdown(self):
         """Close all of the sockets, join their threads"""
         sockets_to_close = list(self.sockets.keys())
