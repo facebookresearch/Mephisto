@@ -168,7 +168,15 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
+    def new_task_run(
+        self,
+        task_id: str,
+        requester_id: str,
+        init_params: str,
+        provider_type: str,
+        task_type: str,
+        sandbox: bool = True,
+    ) -> str:
         """
         Create a new task_run for the given task.
 
@@ -209,7 +217,15 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def new_assignment(self, task_run_id: str) -> str:
+    def new_assignment(
+        self,
+        task_id: str,
+        task_run_id: str,
+        requester_id: str,
+        task_type: str,
+        provider_type: str,
+        sandbox: bool = True,
+    ) -> str:
         """
         Create a new assignment for the given task
 
@@ -228,7 +244,15 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def find_assignments(self, task_run_id: Optional[str] = None) -> List[Assignment]:
+    def find_assignments(
+        self,
+        task_run_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
+        task_type: Optional[str] = None,
+        provider_type: Optional[str] = None,
+        sandbox: Optional[bool] = None,
+    ) -> List[Assignment]:
         """
         Try to find any task that matches the above. When called with no arguments,
         return all tasks.
@@ -237,7 +261,16 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def new_unit(
-        self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str
+        self,
+        task_id: str,
+        task_run_id: str,
+        requester_id: str,
+        assignment_id: str,
+        unit_index: int,
+        pay_amount: float,
+        provider_type: str,
+        task_type: str,
+        sandbox: bool = True,
     ) -> str:
         """
         Create a new unit with the given index. Raises EntryAlreadyExistsException
@@ -258,10 +291,16 @@ class MephistoDB(ABC):
     @abstractmethod
     def find_units(
         self,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
         assignment_id: Optional[str] = None,
         unit_index: Optional[int] = None,
         provider_type: Optional[str] = None,
+        task_type: Optional[str] = None,
         agent_id: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        sandbox: Optional[bool] = None,
         status: Optional[str] = None,
     ) -> List[Unit]:
         """
@@ -344,7 +383,14 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def new_agent(
-        self, worker_id: str, unit_id: str, task_type: str, provider_type: str
+        self,
+        worker_id: str,
+        unit_id: str,
+        task_id: str,
+        task_run_id: str,
+        assignment_id: str,
+        task_type: str,
+        provider_type: str,
     ) -> str:
         """
         Create a new agent for the given worker id to assign to the given unit
@@ -353,7 +399,6 @@ class MephistoDB(ABC):
         Should update the unit's status to ASSIGNED and the assigned agent to
         this one.
         """
-        # TODO ensure that provider type is a valid type
         raise NotImplementedError()
 
     @abstractmethod
@@ -379,6 +424,9 @@ class MephistoDB(ABC):
         status: Optional[str] = None,
         unit_id: Optional[str] = None,
         worker_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        assignment_id: Optional[str] = None,
         task_type: Optional[str] = None,
         provider_type: Optional[str] = None,
     ) -> List[Agent]:

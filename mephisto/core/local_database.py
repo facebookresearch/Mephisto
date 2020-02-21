@@ -93,6 +93,9 @@ CREATE_TASK_RUNS_TABLE = """
     requester_id INTEGER NOT NULL,
     init_params TEXT NOT NULL,
     is_completed BOOLEAN NOT NULL,
+    provider_type TEXT NOT NULL,
+    task_type TEXT NOT NULL,
+    sandbox BOOLEAN NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks (task_id),
     FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
@@ -101,9 +104,16 @@ CREATE_TASK_RUNS_TABLE = """
 
 CREATE_ASSIGNMENTS_TABLE = """CREATE TABLE IF NOT EXISTS assignments (
     assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
     task_run_id INTEGER NOT NULL,
+    requester_id INTEGER NOT NULL,
+    task_type TEXT NOT NULL,
+    provider_type TEXT NOT NULL,
+    sandbox BOOLEAN NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id)
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
+    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id),
+    FOREIGN KEY (requester_id) REFERENCES requesters (requester_id)
 );
 """
 
@@ -115,9 +125,19 @@ CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
     provider_type TEXT NOT NULL,
     status TEXT NOT NULL,
     agent_id INTEGER,
+    worker_id INTEGER,
+    task_type TEXT NOT NULL,
+    task_id INTEGER NOT NULL,
+    task_run_id INTEGER NOT NULL,
+    sandbox BOOLEAN NOT NULL,
+    requester_id INTEGER NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (assignment_id) REFERENCES assignments (assignment_id),
     FOREIGN KEY (agent_id) REFERENCES agents (agent_id),
+    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id),
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
+    FOREIGN KEY (requester_id) REFERENCES requesters (requester_id),
+    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
     UNIQUE (assignment_id, unit_index)
 );
 """
@@ -134,6 +154,9 @@ CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
     agent_id INTEGER PRIMARY KEY AUTOINCREMENT,
     worker_id INTEGER NOT NULL,
     unit_id INTEGER NOT NULL,
+    task_id INTEGER NOT NULL,
+    task_run_id INTEGER NOT NULL,
+    assignment_id INTEGER NOT NULL,
     task_type TEXT NOT NULL,
     provider_type TEXT NOT NULL,
     status TEXT NOT NULL,
@@ -414,7 +437,15 @@ class LocalMephistoDB(MephistoDB):
                     )
                 raise MephistoDBException(e)
 
-    def new_task_run(self, task_id: str, requester_id: str, init_params: str) -> str:
+    def new_task_run(
+        self,
+        task_id: str,
+        requester_id: str,
+        init_params: str,
+        provider_type: str,
+        task_type: str,
+        sandbox: bool = True,
+    ) -> str:
         """Create a new task_run for the given task."""
         with self.table_access_condition:
             # Ensure given ids are valid
@@ -422,9 +453,26 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             try:
                 c.execute(
-                    """INSERT INTO task_runs(task_id, requester_id, init_params, is_completed)
-                    VALUES (?, ?, ?, ?);""",
-                    (int(task_id), int(requester_id), init_params, False),
+                    """
+                    INSERT INTO task_runs(
+                        task_id, 
+                        requester_id, 
+                        init_params, 
+                        is_completed,
+                        provider_type,
+                        task_type,
+                        sandbox
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?);""",
+                    (
+                        int(task_id),
+                        int(requester_id),
+                        init_params,
+                        False,
+                        provider_type,
+                        task_type,
+                        sandbox,
+                    ),
                 )
                 task_run_id = str(c.lastrowid)
                 conn.commit()
@@ -491,7 +539,15 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException()
                 raise MephistoDBException(e)
 
-    def new_assignment(self, task_run_id: str) -> str:
+    def new_assignment(
+        self,
+        task_id: str,
+        task_run_id: str,
+        requester_id: str,
+        task_type: str,
+        provider_type: str,
+        sandbox: bool = True,
+    ) -> str:
         """Create a new assignment for the given task"""
         with self.table_access_condition:
             # Ensure task run exists
@@ -499,7 +555,23 @@ class LocalMephistoDB(MephistoDB):
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                "INSERT INTO assignments(task_run_id) VALUES (?);", (int(task_run_id),)
+                """
+                INSERT INTO assignments(
+                    task_id, 
+                    task_run_id,
+                    requester_id,
+                    task_type,
+                    provider_type,
+                    sandbox
+                ) VALUES (?, ?, ?, ?, ?, ?);""",
+                (
+                    int(task_id),
+                    int(task_run_id),
+                    int(requester_id),
+                    task_type,
+                    provider_type,
+                    sandbox,
+                ),
             )
             assignment_id = str(c.lastrowid)
             conn.commit()
@@ -514,7 +586,15 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("assignments", "assignment_id", assignment_id)
 
-    def find_assignments(self, task_run_id: Optional[str] = None) -> List[Assignment]:
+    def find_assignments(
+        self,
+        task_run_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
+        task_type: Optional[str] = None,
+        provider_type: Optional[str] = None,
+        sandbox: Optional[bool] = None,
+    ) -> List[Assignment]:
         """
         Try to find any task that matches the above. When called with no arguments,
         return all tasks.
@@ -524,16 +604,37 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT assignment_id from assignments
-                WHERE (?1 IS NULL OR task_run_id = ?1)
+                    SELECT assignment_id from assignments
+                    WHERE (?1 IS NULL OR task_run_id = ?1)
+                    AND (?2 IS NULL OR task_id = ?2)
+                    AND (?3 IS NULL OR requester_id = ?3)
+                    AND (?4 IS NULL OR task_type = ?4)
+                    AND (?5 IS NULL OR provider_type = ?5)
+                    AND (?6 IS NULL OR sandbox = ?6)
                 """,
-                (nonesafe_int(task_run_id),),
+                (
+                    nonesafe_int(task_run_id),
+                    nonesafe_int(task_id),
+                    nonesafe_int(requester_id),
+                    task_type,
+                    provider_type,
+                    sandbox,
+                ),
             )
             rows = c.fetchall()
             return [Assignment(self, str(r["assignment_id"])) for r in rows]
 
     def new_unit(
-        self, assignment_id: str, unit_index: int, pay_amount: float, provider_type: str
+        self,
+        task_id: str,
+        task_run_id: str,
+        requester_id: str,
+        assignment_id: str,
+        unit_index: int,
+        pay_amount: float,
+        provider_type: str,
+        task_type: str,
+        sandbox: bool = True,
     ) -> str:
         """
         Create a new unit with the given index. Raises EntryAlreadyExistsException
@@ -545,17 +646,27 @@ class LocalMephistoDB(MephistoDB):
             try:
                 c.execute(
                     """INSERT INTO units(
+                        task_id,
+                        task_run_id,
+                        requester_id,
                         assignment_id,
                         unit_index,
                         pay_amount,
                         provider_type,
+                        task_type,
+                        sandbox,
                         status
-                    ) VALUES (?, ?, ?, ?, ?);""",
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);""",
                     (
+                        int(task_id),
+                        int(task_run_id),
+                        int(requester_id),
                         int(assignment_id),
                         unit_index,
                         pay_amount,
                         provider_type,
+                        task_type,
+                        sandbox,
                         AssignmentState.CREATED,
                     ),
                 )
@@ -581,10 +692,16 @@ class LocalMephistoDB(MephistoDB):
 
     def find_units(
         self,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
         assignment_id: Optional[str] = None,
         unit_index: Optional[int] = None,
         provider_type: Optional[str] = None,
+        task_type: Optional[str] = None,
         agent_id: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        sandbox: Optional[bool] = None,
         status: Optional[str] = None,
     ) -> List[Unit]:
         """
@@ -597,17 +714,29 @@ class LocalMephistoDB(MephistoDB):
             c.execute(
                 """
                 SELECT unit_id from units
-                WHERE (?1 IS NULL OR assignment_id = ?1)
-                AND (?2 IS NULL OR unit_index = ?2)
-                AND (?3 IS NULL OR provider_type = ?3)
-                AND (?4 IS NULL OR agent_id = ?4)
-                AND (?5 IS NULL OR status = ?5)
+                WHERE (?1 IS NULL OR task_id = ?1)
+                AND (?2 IS NULL OR task_run_id = ?2)
+                AND (?3 IS NULL OR requester_id = ?3)
+                AND (?4 IS NULL OR assignment_id = ?4)
+                AND (?5 IS NULL OR unit_index = ?5)
+                AND (?6 IS NULL OR provider_type = ?6)
+                AND (?7 IS NULL OR task_type = ?7)
+                AND (?8 IS NULL OR agent_id = ?8)
+                AND (?9 IS NULL OR worker_id = ?9)
+                AND (?10 IS NULL OR sandbox = ?10)
+                AND (?11 IS NULL OR status = ?11)
                 """,
                 (
+                    nonesafe_int(task_id),
+                    nonesafe_int(task_run_id),
+                    nonesafe_int(requester_id),
                     nonesafe_int(assignment_id),
                     unit_index,
                     provider_type,
+                    task_type,
                     nonesafe_int(agent_id),
+                    nonesafe_int(worker_id),
+                    sandbox,
                     status,
                 ),
             )
@@ -767,7 +896,14 @@ class LocalMephistoDB(MephistoDB):
             return [Worker(self, str(r["worker_id"])) for r in rows]
 
     def new_agent(
-        self, worker_id: str, unit_id: str, task_type: str, provider_type: str
+        self,
+        worker_id: str,
+        unit_id: str,
+        task_id: str,
+        task_run_id: str,
+        assignment_id: str,
+        task_type: str,
+        provider_type: str,
     ) -> str:
         """
         Create a new agent with the given name and provider type.
@@ -783,13 +919,19 @@ class LocalMephistoDB(MephistoDB):
                     """INSERT INTO agents(
                         worker_id,
                         unit_id,
+                        task_id,
+                        task_run_id,
+                        assignment_id,
                         task_type,
                         provider_type,
                         status
-                    ) VALUES (?, ?, ?, ?, ?);""",
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);""",
                     (
                         int(worker_id),
                         int(unit_id),
+                        int(task_id),
+                        int(task_run_id),
+                        int(assignment_id),
                         task_type,
                         provider_type,
                         AgentState.STATUS_NONE,
@@ -846,6 +988,9 @@ class LocalMephistoDB(MephistoDB):
         status: Optional[str] = None,
         unit_id: Optional[str] = None,
         worker_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        assignment_id: Optional[str] = None,
         task_type: Optional[str] = None,
         provider_type: Optional[str] = None,
     ) -> List[Agent]:
@@ -862,13 +1007,19 @@ class LocalMephistoDB(MephistoDB):
                 WHERE (?1 IS NULL OR status = ?1)
                 AND (?2 IS NULL OR unit_id = ?2)
                 AND (?3 IS NULL OR worker_id = ?3)
-                AND (?4 IS NULL OR task_type = ?4)
-                AND (?5 IS NULL OR provider_type = ?5)
+                AND (?4 IS NULL OR task_id = ?4)
+                AND (?5 IS NULL OR task_run_id = ?5)
+                AND (?6 IS NULL OR assignment_id = ?6)
+                AND (?7 IS NULL OR task_type = ?7)
+                AND (?8 IS NULL OR provider_type = ?8)
                 """,
                 (
                     status,
                     nonesafe_int(unit_id),
                     nonesafe_int(worker_id),
+                    nonesafe_int(task_id),
+                    nonesafe_int(task_run_id),
+                    nonesafe_int(assignment_id),
                     task_type,
                     provider_type,
                 ),

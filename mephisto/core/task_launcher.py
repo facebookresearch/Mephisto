@@ -50,17 +50,32 @@ class TaskLauncher:
         Create an assignment and associated units for any data
         currently in the assignment config
         """
-        task_run_id = self.task_run.db_id
-        task_config = self.task_run.task_config
+        task_run = self.task_run
+        task_config = task_run.get_task_config()
         for data in self.assignment_data_list:
-            assignment_id = self.db.new_assignment(task_run_id)
+            assignment_id = self.db.new_assignment(
+                task_run.task_id,
+                task_run.db_id,
+                task_run.requester_id,
+                task_run.task_type,
+                task_run.provider_type,
+                task_run.sandbox,
+            )
             assignment = Assignment(self.db, assignment_id)
             assignment.write_assignment_data(data)
             self.assignments.append(assignment)
             unit_count = len(data["unit_data"])
             for unit_idx in range(unit_count):
                 unit_id = self.db.new_unit(
-                    assignment_id, unit_idx, task_config.task_reward, self.provider_type
+                    task_run.task_id,
+                    task_run.db_id,
+                    task_run.requester_id,
+                    assignment_id,
+                    unit_idx,
+                    task_config.task_reward,
+                    task_run.provider_type,
+                    task_run.task_type,
+                    task_run.sandbox,
                 )
                 self.units.append(Unit(self.db, unit_id))
 

@@ -6,6 +6,7 @@
 
 
 import os
+import json
 from shutil import copytree
 from typing import List, Any, TYPE_CHECKING, Dict
 import argparse
@@ -14,6 +15,9 @@ import shlex
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+CONFIG_FILE_PATH = "task_config.json"
 
 
 class TaskConfig:
@@ -26,30 +30,45 @@ class TaskConfig:
     # the options that come from different parts of the ecosystem
     def __init__(self, task_run: "TaskRun"):
         self.db = task_run.db
-        BlueprintClass = task_run.get_blueprint()
-        CrowdProviderClass = task_run.get_provider()
-        param_string = task_run.param_string
 
-        parser = argparse.ArgumentParser()
-        blueprint_group = parser.add_argument_group("blueprint")
-        BlueprintClass.add_args_to_group(blueprint_group)
-        provider_group = parser.add_argument_group("crowd_provider")
-        CrowdProviderClass.add_args_to_group(provider_group)
-        task_group = parser.add_argument_group("task_config")
-        TaskConfig.add_args_to_group(task_group)
+        # Try to find existing parsed args
+        arg_path = os.path.join(task_run.get_run_dir(), CONFIG_FILE_PATH)
+        if os.path.exists(arg_path):
+            with open(arg_path, "r") as config_file:
+                args = json.load(config_file)
+        else:
+            # parse new arguments
+            BlueprintClass = task_run.get_blueprint()
+            CrowdProviderClass = task_run.get_provider()
+            param_string = task_run.param_string
 
-        try:
-            arg_namespace, _unknown = parser.parse_known_args(shlex.split(param_string))
-        except SystemExit:
-            raise Exception(f"Argparse broke on {param_string} - must fix")
-        args = vars(arg_namespace)
+            parser = argparse.ArgumentParser()
+            blueprint_group = parser.add_argument_group("blueprint")
+            BlueprintClass.add_args_to_group(blueprint_group)
+            provider_group = parser.add_argument_group("crowd_provider")
+            CrowdProviderClass.add_args_to_group(provider_group)
+            task_group = parser.add_argument_group("task_config")
+            TaskConfig.add_args_to_group(task_group)
+
+            try:
+                arg_namespace, _unknown = parser.parse_known_args(
+                    shlex.split(param_string)
+                )
+            except SystemExit:
+                raise Exception(f"Argparse broke on {param_string} - must fix")
+
+            args = vars(arg_namespace)
+            with open(arg_path, "w+") as config_file:
+                json.dump(args, config_file)
+
+        # Parse out specific arguments for the task_config
         self.args: Dict[str, Any] = args
         self.task_title: str = args["task_title"]
         self.task_description: str = args["task_description"]
         self.task_reward: float = args["task_reward"]
         self.task_tags: List[str] = [s.strip() for s in args["task_tags"].split(",")]
         self.assignment_duration_in_seconds: int = args["assignment_duration_seconds"]
-        self.qualifications: List[Any] = []
+        self.qualifications: List[Any] = []  # TODO create qualification object?
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:

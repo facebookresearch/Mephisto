@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
 
 
+# TODO pull from utils, these are blueprints
 VALID_TASK_TYPES = ["legacy_parlai", "generic", "mock"]
 
 
@@ -53,9 +54,8 @@ def assert_task_is_valid(dir_name, task_type) -> None:
 class Task:
     """
     This class contains all of the required tidbits for launching a set of
-    assignments, including the place to find the frontend files (based on the
-    task name), task parameters. It also takes the project name if this
-    task is to be associated with a specific project.
+    assignments, primarily by leveraging a blueprint. It also takes the 
+    project name if this task is to be associated with a specific project.
     """
 
     def __init__(self, db: "MephistoDB", db_id: str):
@@ -92,17 +92,14 @@ class Task:
         """
         Return all of the assignments for all runs of this task
         """
-        assigns: List["Assignment"] = []
-        for task_run in self.get_runs():
-            assigns += task_run.get_assignments()
-        return assigns
+        return self.db.find_assignments(task_id=self.db_id)
 
     def get_task_source(self) -> str:
         """
         Return the path to the task content, such that the server architect
         can deploy the relevant frontend
         """
-        # FIXME will this ever be invalid? Must have tests
+        # TODO do we need a task source anymore?
         task_dir = get_dir_for_task(self.task_name)
         assert task_dir is not None, f"Task dir for {self} no longer exists!"
         return task_dir
@@ -192,11 +189,18 @@ class TaskRun:
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
-        self.task_type = self.get_task().task_type
         self.start_time = row["creation_date"]
-        self._is_completed = row["is_completed"]
-        self._has_assignments = False
-        self.task_config = TaskConfig(self)
+        self.provider_type = row["provider_type"]
+        self.task_type = row["task_type"]
+        self.sandbox = row["sandbox"]
+
+        # properties with deferred loading
+        self.__is_completed = row["is_completed"]
+        self.__has_assignments = False
+        self.__task_config: Optional["TaskConfig"] = None
+        self.__task: Optional["Task"] = None
+        self.__requester: Optional["Requester"] = None
+        self.__run_dir: Optional[str] = None
 
     def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
         """
@@ -204,6 +208,7 @@ class TaskRun:
         task run
         """
         # TODO handle any qualification or queueing required to filter
+        # TODO add onboarding as a qualification
         # TODO ensure inability to pair with ones-self
         # TODO this is pretty inefficient
         assignments = self.get_assignments()
@@ -242,24 +247,33 @@ class TaskRun:
 
     def get_provider(self) -> Type["CrowdProvider"]:
         """Return the crowd provider used to launch this task"""
-        return get_crowd_provider_from_type(self.get_requester().provider_type)
+        return get_crowd_provider_from_type(self.provider_type)
 
     def get_task(self) -> "Task":
         """Return the task used to initialize this run"""
-        return Task(self.db, self.task_id)
+        if self.__task is None:
+            self.__task = Task(self.db, self.task_id)
+        return self.__task
+
+    def get_task_config(self) -> "TaskConfig":
+        if self.__task_config is None:
+            self.__task_config = TaskConfig(self)
+        return self.__task_config
 
     def get_requester(self) -> Requester:
         """
         Return the requester that started this task.
         """
-        return Requester(self.db, self.requester_id)
+        if self.__requester is None:
+            self.__requester = Requester(self.db, self.requester_id)
+        return self.__requester
 
     def get_has_assignments(self) -> bool:
         """See if this task run has any assignments launched yet"""
-        if not self._has_assignments:
+        if not self.__has_assignments:
             if len(self.get_assignments()) > 0:
-                self._has_assignments = True
-        return self._has_assignments
+                self.__has_assignments = True
+        return self.__has_assignments
 
     def get_assignments(self, status: Optional[str] = None) -> List["Assignment"]:
         """
@@ -287,7 +301,7 @@ class TaskRun:
     def get_is_completed(self) -> bool:
         """get the completion status of this task"""
         self.sync_completion_status()
-        return self._is_completed
+        return self.__is_completed
 
     def sync_completion_status(self) -> None:
         """
@@ -296,7 +310,7 @@ class TaskRun:
         is not complete
         """
         # TODO revisit when/if it's possible to add tasks to a completed run
-        if not self._is_completed and self.get_has_assignments():
+        if not self.__is_completed and self.get_has_assignments():
             statuses = self.get_assignment_statuses()
             has_incomplete = False
             for status in AssignmentState.incomplete():
@@ -304,22 +318,21 @@ class TaskRun:
                     has_incomplete = True
             if not has_incomplete:
                 self.db.update_task_run(self.db_id, is_completed=True)
-                self._is_completed = True
-
-    def get_task_config(self) -> TaskConfig:
-        """Return the configuration options for this task"""
-        return self.task_config
+                self.__is_completed = True
 
     def get_run_dir(self) -> str:
         """
         Return the directory where the data from this run is stored
         """
-        task = Task(self.db, self.task_id)
-        project = task.get_project()
-        if project is None:
-            return get_dir_for_run(self)
-        else:
-            return get_dir_for_run(self, project.project_name)
+        if self.__run_dir is None:
+            task = self.get_task()
+            project = task.get_project()
+            if project is None:
+                self.__run_dir = get_dir_for_run(self)
+            else:
+                self.__run_dir = get_dir_for_run(self, project.project_name)
+            os.makedirs(self.__run_dir, exist_ok=True)
+        return self.__run_dir
 
     def get_total_spend(self) -> float:
         """
@@ -340,7 +353,7 @@ class TaskRun:
             "task_name": self.get_task().task_name,
             "task_type": self.task_type,
             "start_time": self.start_time,
-            "params": self.task_config.args,
+            "params": self.get_task_config().args,
             "param_string": self.param_string,
             "task_status": self.get_assignment_statuses(),
             "sandbox": self.get_requester().is_sandbox(),
@@ -353,5 +366,11 @@ class TaskRun:
         """
         Create a new run for the given task with the given params
         """
-        db_id = db.new_task_run(task.db_id, requester.db_id, param_string)
+        db_id = db.new_task_run(
+            task.db_id,
+            requester.db_id,
+            param_string,
+            requester.provider_type,
+            task.task_type,
+        )
         return TaskRun(db, db_id)
