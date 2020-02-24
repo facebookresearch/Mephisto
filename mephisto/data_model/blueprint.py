@@ -376,3 +376,58 @@ class AgentState(ABC):
         # on this Unit? Static tasks only have 2 turns max, dynamic
         # ones may have multiple turns or steps.
         raise NotImplementedError()
+
+
+class OnboardingRequired(object):
+    """
+    Compositional class for blueprints that may have an onboarding step
+    """
+
+    def init_onboarding_config(self, task_run: "TaskRun", opts: Dict[str, Any]):
+        self.onboarding_qualification_name = opts.get('onboarding_qualification')
+        self.use_onboarding = self.onboarding_qualification_name is not None
+        self.onboarding_qualification_id = None
+        if self.use_onboarding:
+            db = task_run.db
+            found_qualifications = db.find_qualifications(self.onboarding_qualification_name)
+            if len(found_qualifications) == 0:
+                self.onboarding_qualification_id = db.make_qualification(self.onboarding_qualification_name)
+            else:
+                self.onboarding_qualification_id = found_qualifications[0].db_id
+
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        Defines options that are relevant for tasks with onboarding steps. 
+
+        Blueprints that use OnboardingRequired should call this method as part
+        of add_args_to_group or supply these options themselves.
+        """
+        group.description = (
+            'For tasks with onboarding, you should specify a qualification '
+            'to grant to people who pass the onboarding '
+        )
+        group.add_argument(
+            '--onboarding-qualification', 
+            help='Specify the name of a qualification used to ',
+            dest="onboarding_qualification",
+        )
+        return
+
+    def get_onboarding_data(self) -> Dict[str, Any]:
+        """
+        If the onboarding task on the frontend requires any specialized data, the blueprint
+        should provide it for the user.
+
+        As onboarding qualifies a worker for all tasks from this blueprint, this should
+        generally be static data that can later be evaluated against.
+        """
+        return {}
+
+    def validate_onboarding(self, worker: "Worker", onboard_data: Dict[str, Any]) -> bool:
+        """
+        Check the incoming onboarding data and evaluate if the worker
+        has passed the qualification or not. Return True if the worker
+        has qualified.
+        """
+        return True

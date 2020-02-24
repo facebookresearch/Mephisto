@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.qualifications import GrantedQualification
 
 
 class Worker(ABC):
@@ -74,7 +75,7 @@ class Worker(ABC):
         return Worker(db, db_id)
 
     @classmethod
-    def new_from_provider_data(cls, db, creation_data: Dict[str, Any]) -> "Worker":
+    def new_from_provider_data(cls, db: "MephistoDB", creation_data: Dict[str, Any]) -> "Worker":
         """
         Given the parameters passed through wrap_crowd_source.js, construct
         a new worker
@@ -82,6 +83,55 @@ class Worker(ABC):
         Basic case simply takes the worker id and registers it
         """
         return cls.new(db, creation_data["worker_name"])
+
+    def get_granted_qualification(self, qualification_name: str) -> Optional["GrantedQualification"]:
+        """Return the granted qualification for this worker for the given name"""
+        found_qualifications = self.db.find_qualifications(qualification_name)
+        if len(found_qualifications) == 0:
+            return None
+        qualification = found_qualifications[0]
+        granted_qualifications = self.db.check_granted_qualifications(qualification.db_id, self.db_id)
+        if len(granted_qualifications) == 0:
+            return None
+        return granted_qualifications[0]
+
+    def is_disqualified(self, qualification_name: str):
+        """
+        Find out if the given worker has been disqualified by the given qualification
+        
+        Returns True if the qualification exists and has a falsey value
+        Returns False if the qualification doesn't exist or has a truthy value
+        """
+        qualification = self.get_granted_qualification(qualification_name)
+        if qualification is None:
+            return False
+        return not qualification.value
+
+    def is_qualified(self, qualification_name: str):
+        """
+        Find out if the given worker has qualified by the given qualification
+
+        Returns True if the qualification exists and is truthy value
+        Returns False if the qualification doesn't exist or falsey value
+        """
+        qualification = self.get_granted_qualification(qualification_name)
+        if qualification is None:
+            return False
+        return bool(qualification.value)
+
+    def qualify(self, qualification_name: str, value: int):
+        """
+        Grant a positive or negative qualification to this worker
+        """
+        # TODO eventually we need to sync this to crowd providers as
+        # well, in which case we need to also be able to 
+        # delete the qualification from a crowd provider when 
+        # we delete it locally
+        found_qualifications = self.db.find_qualifications(qualification_name)
+        if len(found_qualifications) == 0:
+            raise Exception(f"No qualification by the name {qualification_name} found in the db")
+        qualification = found_qualifications[0]
+        self.db.grant_qualification(qualification.db_id, self.db_id, value=value)
 
     # Children classes should implement the following methods
 
@@ -116,16 +166,22 @@ class Worker(ABC):
         """Register this worker with the crowdprovider, if necessary"""
         pass
 
-    @staticmethod
-    def get_register_args() -> Dict[str, str]:
-        """Get the args required to register this worker to the crowd provider"""
-        # TODO perhaps at some point we can support more than just string arguents?
-        return {
-            # Dict is a map from param name to query text, such as
-            # "HELP_TEXT": 'This key is used to put any important instruction text behind',
-            # "requester_secret_key": "What is the secret key to register this worker?"
-            # "worker_creation_confirmation": "What is the confirmation code to make this worker?"
-        }
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        Add the arguments to register this requester to the crowd provider,
+        the group's 'description' attribute should be used for any high level
+        help on how to get the details.
+
+        The `name` argument is required.
+
+        If the description field is left empty, the argument group is ignored
+        """
+        # group.description = 'For `Requester`, Retrieve the following at xyz'
+        # group.add_argument('--username', help='Login username for requester')
+        # group.add_argument('--secret-key', help='Secret key found...')
+        group.add_argument("--name", help="Identifier for MephistoDB")
+        return
 
     @staticmethod
     def new(db: "MephistoDB", worker_name: str) -> "Worker":

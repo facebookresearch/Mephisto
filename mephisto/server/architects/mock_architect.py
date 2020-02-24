@@ -20,6 +20,8 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_NEW_WORKER,
     PACKET_TYPE_NEW_AGENT,
     PACKET_TYPE_AGENT_ACTION,
+    PACKET_TYPE_SUBMIT_ONBOARDING,
+    PACKET_TYPE_REQUEST_AGENT_STATUS,
 )
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
@@ -71,6 +73,8 @@ class SocketHandler(WebSocketHandler):
             self.app.last_alive_packet = message
         elif message["packet_type"] == PACKET_TYPE_AGENT_ACTION:
             self.app.actions_observed += 1
+        elif message["packet_type"] != PACKET_TYPE_REQUEST_AGENT_STATUS:
+            self.app.last_packet = message
 
     def check_origin(self, origin):
         return True
@@ -93,8 +97,9 @@ class MockServer(tornado.web.Application):
         self.subs = {}
         self.port = port
         self.running_instance = None
-        self.last_alive_packet = None
+        self.last_alive_packet: Optional[Dict[str, Any]] = None
         self.actions_observed = 0
+        self.last_packet: Optional[Dict[str, Any]] = None
         tornado_settings = {
             "autoescape": None,
             "debug": "/dbg/" in __file__,
@@ -158,6 +163,26 @@ class MockServer(tornado.web.Application):
                         "worker_id": worker_id,
                         "agent_registration_id": agent_details,
                     },
+                },
+            }
+        )
+
+    def register_mock_agent_after_onboarding(self, worker_id, agent_details, onboard_data):
+        """
+        Send a packet asking to register a mock agent.
+        """
+        self._send_message(
+            {
+                "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,
+                "sender_id": "MockServer",
+                "receiver_id": "Mephisto",
+                "data": {
+                    "request_id": agent_details,
+                    "provider_data": {
+                        "worker_id": worker_id,
+                        "agent_registration_id": agent_details,
+                    },
+                    "onboard_data": onboard_data,
                 },
             }
         )

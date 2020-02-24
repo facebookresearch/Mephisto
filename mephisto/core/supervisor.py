@@ -24,8 +24,10 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_INIT_DATA,
     PACKET_TYPE_GET_INIT_DATA,
     PACKET_TYPE_PROVIDER_DETAILS,
+    PACKET_TYPE_SUBMIT_ONBOARDING,
 )
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.blueprint import OnboardingRequired
 from mephisto.core.utils import get_crowd_provider_from_type
 
 from recordclass import RecordClass
@@ -33,7 +35,7 @@ from recordclass import RecordClass
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.agent import Agent
+    from mephisto.data_model.agent import Agent, Unit
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import TaskRunner
@@ -288,34 +290,14 @@ class Supervisor:
             )
         )
 
-    def _register_agent(self, packet: Packet, socket_info: SocketInfo):
-        """Process an agent registration packet to register an agent"""
-        # First see if this is a reconnection
+    def _assign_unit_to_agent(self, packet: Packet, socket_info: SocketInfo, units: List["Unit"]):
+        """Handle creating an agent for the specific worker to register an agent"""
         crowd_data = packet.data["provider_data"]
-        agent_registration_id = crowd_data["agent_registration_id"]
-        if agent_registration_id in self.agents_by_registration_id:
-            agent = self.agents_by_registration_id[agent_registration_id].agent
-            # Update the source socket, in case it has changed
-            self.agents[agent.db_id].used_socket_id = socket_info.socket_id
-            self.message_queue.append(
-                Packet(
-                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_SOCKET_ID,
-                    receiver_id=socket_info.socket_id,
-                    data={
-                        "request_id": packet.data["request_id"],
-                        "agent_id": agent.db_id,
-                    },
-                )
-            )
-            return
-
-        # Process a new agent
         task_run = socket_info.job.task_runner.task_run
         crowd_provider = socket_info.job.provider
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
-        units = task_run.get_valid_units_for_worker(worker)
+
         reserved_unit = None
         while len(units) > 0 and reserved_unit is None:
             unit = units.pop(0)
@@ -357,25 +339,138 @@ class Supervisor:
             if None not in agents:
                 # Launch the backend for this assignment
                 # TODO async tasks should actually be launched one at a time,
-                # return to this when putting in the batch abstraction
+                # should check the blueprint to see what kind of launch is happening
                 tracked_agents = [self.agents[a.db_id].agent for a in agents]
                 socket_info.job.task_runner.launch_assignment(
                     assignment, tracked_agents
                 )
 
+    def _register_agent_from_onboarding(self, packet: Packet, socket_info: SocketInfo):
+        """Register an agent that has finished onboarding"""
+        task_runner = socket_info.job.task_runner
+        task_run = task_runner.task_run
+        blueprint = task_run.get_blueprint()
+        crowd_data = packet.data["provider_data"]
+        worker_id = crowd_data["worker_id"]
+        worker = Worker(self.db, worker_id)
+
+        assert isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding, (
+            "Should only be registering from onboarding if onboarding is required and set"
+        )
+        worker_passed = blueprint.validate_onboarding(worker, packet.data["onboard_data"])
+        worker.qualify(blueprint.onboarding_qualification_name, int(worker_passed))
+
+        if not worker_passed:
+            # TODO it may be worth investigating launching a dummy task for these
+            # instances where a worker has failed onboarding, but the onboarding
+            # task still allowed submission of the failed data (no front-end validation)
+            # units = [self.dummy_launcher.launch_dummy()]
+            # self._assign_unit_to_agent(packet, socket_info, units)
+            pass
+
+        # get the list of tentatively valid units
+        units = task_run.get_valid_units_for_worker(worker)
+        self._assign_unit_to_agent(packet, socket_info, units)
+
+    def _register_agent(self, packet: Packet, socket_info: SocketInfo):
+        """Process an agent registration packet to register an agent"""
+        # First see if this is a reconnection
+        crowd_data = packet.data["provider_data"]
+        agent_registration_id = crowd_data["agent_registration_id"]
+        if agent_registration_id in self.agents_by_registration_id:
+            agent = self.agents_by_registration_id[agent_registration_id].agent
+            # Update the source socket, in case it has changed
+            self.agents[agent.db_id].used_socket_id = socket_info.socket_id
+            self.message_queue.append(
+                Packet(
+                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                    sender_id=SYSTEM_SOCKET_ID,
+                    receiver_id=socket_info.socket_id,
+                    data={
+                        "request_id": packet.data["request_id"],
+                        "agent_id": agent.db_id,
+                    },
+                )
+            )
+            return
+
+        # Process a new agent
+        task_run = socket_info.job.task_runner.task_run
+        worker_id = crowd_data["worker_id"]
+        worker = Worker(self.db, worker_id)
+
+        # get the list of tentatively valid units
+        # TODO handle any extra qualifications filtering
+        units = task_run.get_valid_units_for_worker(worker)
+        if len(units) == 0:
+            self.message_queue.append(
+                Packet(
+                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                    sender_id=SYSTEM_SOCKET_ID,
+                    receiver_id=socket_info.socket_id,
+                    data={"request_id": packet.data["request_id"], "agent_id": None},
+                )
+            )
+
+        # If there's onboarding, see if this worker has already been disqualified
+        worker_id = crowd_data["worker_id"]
+        worker = Worker(self.db, worker_id)
+        blueprint = task_run.get_blueprint()
+        if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
+            if worker.is_disqualified(blueprint.onboarding_qualification_name):
+                self.message_queue.append(
+                    Packet(
+                        packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                        sender_id=SYSTEM_SOCKET_ID,
+                        receiver_id=socket_info.socket_id,
+                        data={"request_id": packet.data["request_id"], "agent_id": None},
+                    )
+                )
+                return
+            elif not worker.is_qualified(blueprint.onboarding_qualification_name):
+                # Send a packet with onboarding information
+                # TODO use the agent id request as the agent_id?
+                onboard_data = blueprint.get_onboarding_data()
+                self.message_queue.append(
+                    Packet(
+                        packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                        sender_id=SYSTEM_SOCKET_ID,
+                        receiver_id=socket_info.socket_id,
+                        data={
+                            "request_id": packet.data["request_id"], 
+                            "agent_id": 'onboarding',
+                            "onboard_data": onboard_data,
+                        },
+                    )
+                )
+                return
+        
+        # Not onboarding, so just register directly
+        self._assign_unit_to_agent(packet, socket_info, units)
+
     def _get_init_data(self, packet, socket_info: SocketInfo):
         """Get the initialization data for the assigned agent's task"""
-        # TODO need to find a reasonable way to "start" the task with more than
-        # one agent
         task_runner = socket_info.job.task_runner
         agent_id = packet.data["provider_data"]["agent_id"]
         agent_info = self.agents[agent_id]
         unit_data = task_runner.get_init_data_for_agent(agent_info.agent)
+        
+        # If there's onboarding, get an onboarding task if required
+        onboard_data = None
+        blueprint = task_runner.task_run.get_blueprint()
+        if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
+            if not worker.is_qualified(blueprint.onboarding_qualification_name):
+                onboard_data = blueprint.get_onboarding_data()
+
         agent_data_packet = Packet(
             packet_type=PACKET_TYPE_INIT_DATA,
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=socket_info.socket_id,
-            data={"request_id": packet.data["request_id"], "init_data": unit_data},
+            data={
+                "request_id": packet.data["request_id"], 
+                "init_data": unit_data,
+                "onboard_data": onboard_data,
+            },
         )
         self.message_queue.append(agent_data_packet)
 
@@ -385,6 +480,8 @@ class Supervisor:
             self._on_act(packet)
         elif packet.type == PACKET_TYPE_NEW_AGENT:
             self._register_agent(packet, socket_info)
+        elif packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:
+            self._register_agent_from_onboarding(packet, socket_info)
         elif packet.type == PACKET_TYPE_NEW_WORKER:
             self._register_worker(packet, socket_info)
         elif packet.type == PACKET_TYPE_GET_INIT_DATA:

@@ -11,6 +11,10 @@ from shutil import copytree
 from typing import List, Any, TYPE_CHECKING, Dict
 import argparse
 import shlex
+from mephisto.core.utils import (
+    get_blueprint_from_type,
+    get_crowd_provider_from_type,
+)
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -38,8 +42,8 @@ class TaskConfig:
                 args = json.load(config_file)
         else:
             # parse new arguments
-            BlueprintClass = task_run.get_blueprint()
-            CrowdProviderClass = task_run.get_provider()
+            BlueprintClass = get_blueprint_from_type(task_run.task_type)
+            CrowdProviderClass = get_crowd_provider_from_type(task_run.provider_type)
             param_string = task_run.param_string
 
             parser = argparse.ArgumentParser()
