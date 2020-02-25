@@ -10,12 +10,12 @@ from mephisto.core.utils import get_dir_for_run, get_crowd_provider_from_type
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun, Task
 from mephisto.data_model.agent import Agent
+from mephisto.data_model.requester import Requester
 from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING, IO
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.requester import Requester
     from mephisto.data_model.crowd_provider import CrowdProvider
 
 import os
@@ -130,7 +130,7 @@ class Assignment:
                 self.__task = Task(self.db, self.task_id)
         return self.__task
 
-    def get_requester(self) -> "Requester":
+    def get_requester(self) -> Requester:
         """
         Return the requester who offered this Assignment
         """

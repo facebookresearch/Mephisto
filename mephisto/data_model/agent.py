@@ -81,11 +81,11 @@ class Agent(ABC):
         self.task_id = row["task_id"]
 
         # Deferred loading of related entities
-        self.__worker: Optional["Worker"] = None
-        self.__unit: Optional["Unit"] = None
-        self.__assignment: Optional["Assignment"] = None
-        self.__task_run: Optional["TaskRun"] = None
-        self.__task: Optional["Task"] = None
+        self._worker: Optional["Worker"] = None
+        self._unit: Optional["Unit"] = None
+        self._assignment: Optional["Assignment"] = None
+        self._task_run: Optional["TaskRun"] = None
+        self._task: Optional["Task"] = None
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Agent":
         """
@@ -114,58 +114,58 @@ class Agent(ABC):
         """
         Return the worker that is using this agent for a task
         """
-        if self.__worker is None:
-            self.__worker = Worker(self.db, self.worker_id)
-        return self.__worker
+        if self._worker is None:
+            self._worker = Worker(self.db, self.worker_id)
+        return self._worker
 
     def get_unit(self) -> "Unit":
         """
         Return the Unit that this agent is working on.
         """
-        if self.__unit is None:
+        if self._unit is None:
             from mephisto.data_model.assignment import Unit
 
-            self.__unit = Unit(self.db, self.unit_id)
-        return self.__unit
+            self._unit = Unit(self.db, self.unit_id)
+        return self._unit
 
     def get_assignment(self) -> "Assignment":
         """Return the assignment this agent is working on"""
-        if self.__assignment is None:
-            if self.__unit is not None:
-                self.__assignment = self.__unit.get_assignment()
+        if self._assignment is None:
+            if self._unit is not None:
+                self._assignment = self._unit.get_assignment()
             else:
                 from mephisto.data_model.assignment import Assignment
 
-                self.__assignment = Assignment(self.db, self.assignment_id)
-        return self.__assignment
+                self._assignment = Assignment(self.db, self.assignment_id)
+        return self._assignment
 
     def get_task_run(self) -> "TaskRun":
         """Return the TaskRun this agent is working within"""
-        if self.__task_run is None:
-            if self.__unit is not None:
-                self.__task_run = self.__unit.get_task_run()
-            elif self.__assignment is not None:
-                self.__task_run = self.__assignment.get_task_run()
+        if self._task_run is None:
+            if self._unit is not None:
+                self._task_run = self._unit.get_task_run()
+            elif self._assignment is not None:
+                self._task_run = self._assignment.get_task_run()
             else:
                 from mephisto.data_model.task import TaskRun
 
-                self.__task_run = TaskRun(self.db, self.task_run_id)
-        return self.__task_run
+                self._task_run = TaskRun(self.db, self.task_run_id)
+        return self._task_run
 
     def get_task(self) -> "Task":
         """Return the Task this agent is working within"""
-        if self.__task is None:
-            if self.__unit is not None:
-                self.__task = self.__unit.get_task()
-            elif self.__assignment is not None:
-                self.__task = self.__assignment.get_task()
-            elif self.__task_run is not None:
-                self.__task = self.__task_run.get_task()
+        if self._task is None:
+            if self._unit is not None:
+                self._task = self._unit.get_task()
+            elif self._assignment is not None:
+                self._task = self._assignment.get_task()
+            elif self._task_run is not None:
+                self._task = self._task_run.get_task()
             else:
                 from mephisto.data_model.task import Task
 
-                self.__task = Task(self.db, self.task_id)
-        return self.__task
+                self._task = Task(self.db, self.task_id)
+        return self._task
 
     def get_data_dir(self) -> str:
         """
