@@ -71,7 +71,6 @@ class Agent(ABC):
         self.unit_id = row["unit_id"]
         self.task_type = row["task_type"]
         self.provider_type = row["provider_type"]
-        self.state = AgentState(self)
         self.pending_observations: List["Packet"] = []
         self.pending_actions: List["Packet"] = []
         self.has_action = threading.Event()
@@ -86,6 +85,9 @@ class Agent(ABC):
         self._assignment: Optional["Assignment"] = None
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
+
+        # Follow-up initialization
+        self.state = AgentState(self)
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Agent":
         """
