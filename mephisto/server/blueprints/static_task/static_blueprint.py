@@ -35,8 +35,8 @@ class StaticBlueprint(Blueprint):
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(self, task_run: "TaskRun", opts: Any):
-        super(StaticBlueprint, self).__init__(task_run, opts)
-        self.html_file = opts["html_source"]
+        super().__init__(task_run, opts)
+        self.html_file = os.path.expanduser(opts["task_source"])
         if not os.path.exists(self.html_file):
             raise FileNotFoundError(
                 f"Specified html file {self.html_file} was not found from {os.getcwd()}"
@@ -45,7 +45,7 @@ class StaticBlueprint(Blueprint):
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         task_file_name = os.path.basename(self.html_file)
         if opts.get("data_csv") is not None:
-            csv_file = opts["data_csv"]
+            csv_file = os.path.expanduser(opts["data_csv"])
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
                 csv_reader = csv.reader(csv_fp)
                 headers = next(csv_reader)
@@ -65,7 +65,7 @@ class StaticBlueprint(Blueprint):
         """
         Adds required options for StaticBlueprints.
 
-        html_source points to the file intending to be deployed for this task
+        task_source points to the file intending to be deployed for this task
         data_csv has the data to be deployed for this task.
         """
         super(StaticBlueprint, cls).add_args_to_group(group)
@@ -77,12 +77,29 @@ class StaticBlueprint(Blueprint):
             the html.
         """
         group.add_argument(
-            "--html-source",
-            dest="html_source",
+            "--task-source",
+            dest="task_source",
             help="Path to source HTML file for the task being run",
+            required=True,
         )
         group.add_argument(
-            "--data-csv", dest="data_csv", help="Path to csv file containing task data"
+            "--preview-source",
+            dest="preview_source",
+            help="Optional path to source HTML file to preview the task",
+        )
+        group.add_argument(
+            "--extra-source-dir",
+            dest="extra_source_dir",
+            help=(
+                "Optional path to sources that the HTML may "
+                "refer to (such as images/video/css/scripts)"
+            ),
+        )
+        group.add_argument(
+            "--data-csv",
+            dest="data_csv",
+            help="Path to csv file containing task data",
+            required=True,
         )
         return
 
