@@ -20,15 +20,15 @@ export default function TaskRunSummary({ run }: { run: TaskRun }) {
       <h5 className="bp3-heading" style={{ display: "inline" }}>
         {run.task_name}
       </h5>{" "}
-      &mdash; {moment(run.start_time).fromNow()}
-      <Tag
+      &mdash; {moment.utc(run.start_time).fromNow()}
+      {/* <Tag
         icon="play"
         intent={Intent.SUCCESS}
         interactive={false}
         style={{ float: "right", marginLeft: 10 }}
       >
         Running
-      </Tag>
+      </Tag> */}
       <code
         className="bp3-code params-list"
         style={{ display: "block", marginTop: 10 }}
