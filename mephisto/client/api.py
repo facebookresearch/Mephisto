@@ -123,13 +123,14 @@ def requester_details(requester_type):
 
 @api.route("/requester/<string:requester_type>/register", methods=["POST"])
 def requester_register(requester_type):
-    options = request.form.to_dict()
+    options = request.get_json()
     crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
 
     try:
         parsed_options = parse_arg_dict(RequesterClass, options)
     except Exception as e:
+        traceback.print_exc(file=sys.stdout)
         return jsonify(
             {"success": False, "msg": f"error in parsing arguments: {str(e)}"}
         )
