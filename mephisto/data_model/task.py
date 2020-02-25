@@ -244,7 +244,7 @@ class TaskRun:
             return None
         return unit
 
-    def get_blueprint(self,) -> "Blueprint":
+    def get_blueprint(self) -> "Blueprint":
         """Return the runner associated with this task run"""
         if self.__blueprint is None:
             BlueprintClass = get_blueprint_from_type(self.task_type)
