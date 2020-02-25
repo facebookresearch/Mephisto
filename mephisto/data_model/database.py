@@ -17,6 +17,7 @@ from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.qualification import Qualification, GrantedQualification
 
 # TODO investigate rate limiting against the db by caching locally where appropriate across the data model?
 # TODO investigate cursors for DB queries as the project scales
@@ -433,5 +434,80 @@ class MephistoDB(ABC):
         """
         Try to find any agent that matches the above. When called with no arguments,
         return all agents.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def make_qualification(self, qualification_name: str) -> str:
+        """
+        Make a new qualification, throws an error if a qualification by the given name 
+        already exists. Return the id for the qualification.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def find_qualifications(
+        self, qualification_name: Optional[str] = None
+    ) -> List[Qualification]:
+        """
+        Find a qualification. If no name is supplied, returns all qualifications.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
+        """
+        Return qualification's fields by qualification_id, raise 
+        EntryDoesNotExistException if no id exists in qualifications
+
+        See Qualification for the expected fields for the returned mapping
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def delete_qualification(self, qualification_name: str) -> None:
+        """
+        Remove this qualification from all workers that have it, then delete the qualification
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def grant_qualification(
+        self, qualification_id: str, worker_id: str, value: int = 1
+    ) -> None:
+        """
+        Grant a worker the given qualification. Update the qualification value if it 
+        already exists
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def check_granted_qualifications(
+        self,
+        qualification_id: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        value: Optional[int] = None,
+    ) -> List[GrantedQualification]:
+        """
+        Find granted qualifications that match the given specifications
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_granted_qualification(
+        self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
+    ) -> Mapping[str, Any]:
+        """
+        Return the granted qualification in the database between the given 
+        worker and qualification id
+
+        See GrantedQualification for the expected fields for the returned mapping
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
+        """
+        Remove the given qualification from the given worker
         """
         raise NotImplementedError()

@@ -27,6 +27,7 @@ from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.task_config import TaskConfig
+from mephisto.data_model.qualification import Qualification
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.database import (
     MephistoDB,
@@ -829,3 +830,72 @@ class BaseDatabaseTests(unittest.TestCase):
         # Can't update with a status that doesn't exist
         with self.assertRaises(MephistoDBException):
             db.update_agent(agent_id, status="FAKE_STATUS")
+
+    def test_qualifications(self) -> None:
+        """Test creating, assigning, revoking, and deleting qualifications"""
+        assert self.db is not None, "No db initialized"
+        db: MephistoDB = self.db
+
+        qualification_name = "TEST_QUALIFICATION_1"
+
+        # Create qualification
+        qual_id = db.make_qualification(qualification_name)
+
+        # ensure qualification has been made
+        qualifications = db.find_qualifications(qualification_name=qualification_name)
+
+        self.assertEqual(len(qualifications), 1, "Single qualification not created")
+        self.assertIsInstance(qualifications[0], Qualification)
+
+        # Can't create same qualification again
+        with self.assertRaises(EntryAlreadyExistsException):
+            qual_id = db.make_qualification(qualification_name)
+
+        qualifications = db.find_qualifications(qualification_name)
+        self.assertEqual(len(qualifications), 1, "More than one qualification created")
+
+        # Grant the qualification to a worker
+        worker_name, worker_id = get_test_worker(db)
+
+        db.grant_qualification(qual_id, worker_id)
+
+        # Ensure it was granted
+        granted_quals = db.check_granted_qualifications()
+        self.assertEqual(len(granted_quals), 1, "Single qualification not granted")
+        granted_qual = granted_quals[0]
+        self.assertEqual(granted_qual.worker_id, worker_id)
+        self.assertEqual(granted_qual.qualification_id, qual_id)
+        self.assertEqual(granted_qual.value, 1)
+
+        # Update the qualification
+        db.grant_qualification(qual_id, worker_id, value=3)
+        # Ensure it was updated
+        granted_quals = db.check_granted_qualifications()
+        self.assertEqual(len(granted_quals), 1, "Single qualification not granted")
+        granted_qual = granted_quals[0]
+        self.assertEqual(granted_qual.worker_id, worker_id)
+        self.assertEqual(granted_qual.qualification_id, qual_id)
+        self.assertEqual(granted_qual.value, 3)
+
+        # Delete the qualification
+        db.revoke_qualification(qual_id, worker_id)
+        granted_quals = db.check_granted_qualifications()
+        self.assertEqual(len(granted_quals), 0, "Single qualification not removed")
+
+        # Re-grant the qualification
+        db.grant_qualification(qual_id, worker_id)
+
+        # Delete the qualification entirely
+        db.delete_qualification(qualification_name)
+
+        # Ensure deleted and cascaded
+        qualifications = db.find_qualifications(qualification_name)
+        self.assertEqual(len(qualifications), 0, "Qualification not remove")
+        granted_quals = db.check_granted_qualifications()
+        self.assertEqual(
+            len(granted_quals), 0, "Cascade granted qualification not removed"
+        )
+
+        # cant retrieve the qualification directly anymore
+        with self.assertRaises(EntryDoesNotExistException):
+            qualification_row = db.get_granted_qualification(qual_id, worker_id)
