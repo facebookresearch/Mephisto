@@ -239,12 +239,12 @@ class TestSupervisor(unittest.TestCase):
         # Handle baseline setup
         sup = Supervisor(self.db)
         self.sup = sup
-        TEST_QUALIFICATION_NAME = 'test_onboarding_qualification'
+        TEST_QUALIFICATION_NAME = "test_onboarding_qualification"
 
         # Register onboarding arguments for blueprint
         task_run_args = self.task_run.get_task_config().args
-        task_run_args['use_onboarding'] = True
-        task_run_args['onboarding_qualification'] = TEST_QUALIFICATION_NAME
+        task_run_args["use_onboarding"] = True
+        task_run_args["onboarding_qualification"] = TEST_QUALIFICATION_NAME
 
         # Supervisor expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
@@ -296,28 +296,39 @@ class TestSupervisor(unittest.TestCase):
         self.db.grant_qualification(qualification_id, worker_1.db_id, 0)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         agents = self.db.find_agents()
-        self.assertEqual(len(agents), 0, "Agent should not be created yet, failed onboarding")
+        self.assertEqual(
+            len(agents), 0, "Agent should not be created yet, failed onboarding"
+        )
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertNotIn('onboard_data', last_packet['data'], "Onboarding triggered for disqualified worker")
-        self.assertIsNone(last_packet['data']['agent_id'], "worker assigned real agent id")
+        self.assertNotIn(
+            "onboard_data",
+            last_packet["data"],
+            "Onboarding triggered for disqualified worker",
+        )
+        self.assertIsNone(
+            last_packet["data"]["agent_id"], "worker assigned real agent id"
+        )
         self.architect.server.last_packet = None
         self.db.revoke_qualification(qualification_id, worker_id)
-
 
         # Register an agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         agents = self.db.find_agents()
-        self.assertEqual(len(agents), 0, "Agent should not be created yet - need onboarding")
+        self.assertEqual(
+            len(agents), 0, "Agent should not be created yet - need onboarding"
+        )
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn('onboard_data', last_packet['data'], "Onboarding not triggered")
+        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
-        onboard_data = {'should_pass': False}
-        self.architect.server.register_mock_agent_after_onboarding(worker_id, mock_agent_details, onboard_data)
+        onboard_data = {"should_pass": False}
+        self.architect.server.register_mock_agent_after_onboarding(
+            worker_id, mock_agent_details, onboard_data
+        )
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent not created after onboarding")
 
@@ -330,7 +341,9 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(len(sup.agents), 1, "Agent not registered with supervisor")
 
         self.assertEqual(
-            len(task_runner.running_assignments), 0, "Task was not yet ready, should not launch"
+            len(task_runner.running_assignments),
+            0,
+            "Task was not yet ready, should not launch",
         )
 
         # Register another worker
@@ -346,7 +359,11 @@ class TestSupervisor(unittest.TestCase):
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertNotIn('onboard_data', last_packet['data'], "Onboarding triggered for qualified agent")
+        self.assertNotIn(
+            "onboard_data",
+            last_packet["data"],
+            "Onboarding triggered for qualified agent",
+        )
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Second agent not created without onboarding")
 

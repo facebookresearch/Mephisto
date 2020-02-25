@@ -290,7 +290,9 @@ class Supervisor:
             )
         )
 
-    def _assign_unit_to_agent(self, packet: Packet, socket_info: SocketInfo, units: List["Unit"]):
+    def _assign_unit_to_agent(
+        self, packet: Packet, socket_info: SocketInfo, units: List["Unit"]
+    ):
         """Handle creating an agent for the specific worker to register an agent"""
         crowd_data = packet.data["provider_data"]
         task_run = socket_info.job.task_runner.task_run
@@ -354,10 +356,12 @@ class Supervisor:
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
 
-        assert isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding, (
-            "Should only be registering from onboarding if onboarding is required and set"
+        assert (
+            isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
+        ), "Should only be registering from onboarding if onboarding is required and set"
+        worker_passed = blueprint.validate_onboarding(
+            worker, packet.data["onboard_data"]
         )
-        worker_passed = blueprint.validate_onboarding(worker, packet.data["onboard_data"])
         worker.qualify(blueprint.onboarding_qualification_name, int(worker_passed))
 
         if not worker_passed:
@@ -423,7 +427,10 @@ class Supervisor:
                         packet_type=PACKET_TYPE_PROVIDER_DETAILS,
                         sender_id=SYSTEM_SOCKET_ID,
                         receiver_id=socket_info.socket_id,
-                        data={"request_id": packet.data["request_id"], "agent_id": None},
+                        data={
+                            "request_id": packet.data["request_id"],
+                            "agent_id": None,
+                        },
                     )
                 )
                 return
@@ -437,14 +444,14 @@ class Supervisor:
                         sender_id=SYSTEM_SOCKET_ID,
                         receiver_id=socket_info.socket_id,
                         data={
-                            "request_id": packet.data["request_id"], 
-                            "agent_id": 'onboarding',
+                            "request_id": packet.data["request_id"],
+                            "agent_id": "onboarding",
                             "onboard_data": onboard_data,
                         },
                     )
                 )
                 return
-        
+
         # Not onboarding, so just register directly
         self._assign_unit_to_agent(packet, socket_info, units)
 
@@ -454,22 +461,14 @@ class Supervisor:
         agent_id = packet.data["provider_data"]["agent_id"]
         agent_info = self.agents[agent_id]
         unit_data = task_runner.get_init_data_for_agent(agent_info.agent)
-        
-        # If there's onboarding, get an onboarding task if required
-        onboard_data = None
-        blueprint = task_runner.task_run.get_blueprint()
-        if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
-            if not worker.is_qualified(blueprint.onboarding_qualification_name):
-                onboard_data = blueprint.get_onboarding_data()
 
         agent_data_packet = Packet(
             packet_type=PACKET_TYPE_INIT_DATA,
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=socket_info.socket_id,
             data={
-                "request_id": packet.data["request_id"], 
+                "request_id": packet.data["request_id"],
                 "init_data": unit_data,
-                "onboard_data": onboard_data,
             },
         )
         self.message_queue.append(agent_data_packet)

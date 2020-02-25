@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.qualifications import GrantedQualification
+    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 class Worker(ABC):
@@ -75,7 +76,9 @@ class Worker(ABC):
         return Worker(db, db_id)
 
     @classmethod
-    def new_from_provider_data(cls, db: "MephistoDB", creation_data: Dict[str, Any]) -> "Worker":
+    def new_from_provider_data(
+        cls, db: "MephistoDB", creation_data: Dict[str, Any]
+    ) -> "Worker":
         """
         Given the parameters passed through wrap_crowd_source.js, construct
         a new worker
@@ -84,13 +87,17 @@ class Worker(ABC):
         """
         return cls.new(db, creation_data["worker_name"])
 
-    def get_granted_qualification(self, qualification_name: str) -> Optional["GrantedQualification"]:
+    def get_granted_qualification(
+        self, qualification_name: str
+    ) -> Optional["GrantedQualification"]:
         """Return the granted qualification for this worker for the given name"""
         found_qualifications = self.db.find_qualifications(qualification_name)
         if len(found_qualifications) == 0:
             return None
         qualification = found_qualifications[0]
-        granted_qualifications = self.db.check_granted_qualifications(qualification.db_id, self.db_id)
+        granted_qualifications = self.db.check_granted_qualifications(
+            qualification.db_id, self.db_id
+        )
         if len(granted_qualifications) == 0:
             return None
         return granted_qualifications[0]
@@ -124,12 +131,14 @@ class Worker(ABC):
         Grant a positive or negative qualification to this worker
         """
         # TODO eventually we need to sync this to crowd providers as
-        # well, in which case we need to also be able to 
-        # delete the qualification from a crowd provider when 
+        # well, in which case we need to also be able to
+        # delete the qualification from a crowd provider when
         # we delete it locally
         found_qualifications = self.db.find_qualifications(qualification_name)
         if len(found_qualifications) == 0:
-            raise Exception(f"No qualification by the name {qualification_name} found in the db")
+            raise Exception(
+                f"No qualification by the name {qualification_name} found in the db"
+            )
         qualification = found_qualifications[0]
         self.db.grant_qualification(qualification.db_id, self.db_id, value=value)
 

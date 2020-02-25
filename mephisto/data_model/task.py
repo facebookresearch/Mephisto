@@ -210,7 +210,7 @@ class TaskRun:
         task run
         """
         # TODO this is pretty inefficient
-        # TODO if an agent has failed onboarding, perhaps 
+        # TODO if an agent has failed onboarding, perhaps
         assignments = self.get_assignments()
         units = [u for assign in assignments for u in assign.get_units()]
         valid_units = [u for u in units if u.get_assigned_agent() is None]

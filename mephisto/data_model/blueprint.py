@@ -384,14 +384,20 @@ class OnboardingRequired(object):
     """
 
     def init_onboarding_config(self, task_run: "TaskRun", opts: Dict[str, Any]):
-        self.onboarding_qualification_name = opts.get('onboarding_qualification')
+        self.onboarding_qualification_name: Optional[str] = opts.get(
+            "onboarding_qualification"
+        )
         self.use_onboarding = self.onboarding_qualification_name is not None
         self.onboarding_qualification_id = None
-        if self.use_onboarding:
+        if self.onboarding_qualification_name is not None:
             db = task_run.db
-            found_qualifications = db.find_qualifications(self.onboarding_qualification_name)
+            found_qualifications = db.find_qualifications(
+                self.onboarding_qualification_name
+            )
             if len(found_qualifications) == 0:
-                self.onboarding_qualification_id = db.make_qualification(self.onboarding_qualification_name)
+                self.onboarding_qualification_id = db.make_qualification(
+                    self.onboarding_qualification_name
+                )
             else:
                 self.onboarding_qualification_id = found_qualifications[0].db_id
 
@@ -404,12 +410,12 @@ class OnboardingRequired(object):
         of add_args_to_group or supply these options themselves.
         """
         group.description = (
-            'For tasks with onboarding, you should specify a qualification '
-            'to grant to people who pass the onboarding '
+            "For tasks with onboarding, you should specify a qualification "
+            "to grant to people who pass the onboarding "
         )
         group.add_argument(
-            '--onboarding-qualification', 
-            help='Specify the name of a qualification used to ',
+            "--onboarding-qualification",
+            help="Specify the name of a qualification used to ",
             dest="onboarding_qualification",
         )
         return
@@ -424,7 +430,9 @@ class OnboardingRequired(object):
         """
         return {}
 
-    def validate_onboarding(self, worker: "Worker", onboard_data: Dict[str, Any]) -> bool:
+    def validate_onboarding(
+        self, worker: "Worker", onboard_data: Dict[str, Any]
+    ) -> bool:
         """
         Check the incoming onboarding data and evaluate if the worker
         has passed the qualification or not. Return True if the worker

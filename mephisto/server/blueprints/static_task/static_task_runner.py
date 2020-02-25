@@ -47,7 +47,7 @@ class StaticTaskRunner(TaskRunner):
             assignment = agent.get_unit().get_assignment()
             assignment_data = self.get_data_for_assignment(assignment)
             agent.state.set_init_state(assignment_data.shared)
-            return agent.state.get_init_state()
+            return assignment_data.shared
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
         """

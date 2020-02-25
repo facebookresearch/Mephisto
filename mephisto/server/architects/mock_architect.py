@@ -167,7 +167,9 @@ class MockServer(tornado.web.Application):
             }
         )
 
-    def register_mock_agent_after_onboarding(self, worker_id, agent_details, onboard_data):
+    def register_mock_agent_after_onboarding(
+        self, worker_id, agent_details, onboard_data
+    ):
         """
         Send a packet asking to register a mock agent.
         """

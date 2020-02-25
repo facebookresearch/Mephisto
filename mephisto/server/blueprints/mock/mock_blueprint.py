@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 
 BLUEPRINT_TYPE = "mock"
@@ -71,8 +72,10 @@ class MockBlueprint(Blueprint, OnboardingRequired):
             for i in range(self.opts["num_assignments"])
         ]
 
-    def validate_onboarding(self, worker: "Worker", onboard_data: Dict[str, Any]) -> bool:
+    def validate_onboarding(
+        self, worker: "Worker", onboard_data: Dict[str, Any]
+    ) -> bool:
         """
         Onboarding validation for MockBlueprints just returns the 'should_pass' field
         """
-        return onboard_data['should_pass']
+        return onboard_data["should_pass"]
