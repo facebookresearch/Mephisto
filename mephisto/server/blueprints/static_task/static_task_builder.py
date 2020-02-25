@@ -58,7 +58,7 @@ class StaticTaskBuilder(TaskBuilder):
     def build_in_dir(self, build_dir: str):
         """Build the frontend if it doesn't exist, then copy into the server directory"""
         # Only build this task if it hasn't already been built
-        if False:  # True: #not os.path.exists(FRONTEND_BUILD_DIR):
+        if not os.path.exists(FRONTEND_BUILD_DIR):
             self.rebuild_core()
 
         # Copy the built core and the given task file to the target path

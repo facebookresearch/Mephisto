@@ -18,7 +18,7 @@ ARG_STRING = (
     "--blueprint-type static "
     "--architect-type heroku "
     f"--requester-name {requester_name} "
-    '--task-title "Test-static-task-1" '
+    '--task-title "Test-static-task" '
     "--task-description description "
     "--task-reward 0.3 "
     "--task-tags static,task,testing "

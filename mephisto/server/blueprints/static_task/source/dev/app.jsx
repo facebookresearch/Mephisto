@@ -191,7 +191,7 @@ class MainApp extends React.Component {
       dangerouslySetInnerHTML={{__html: this.state.render_html}}
     />;
     let submit_button = <div />;
-    if (this.state.base_html !== null && this.state.assignment_id !== null) {
+    if (this.state.base_html !== null && this.state.agent_id !== null) {
       submit_button = (
         <div>
           <div style={{display: 'flex', justifyContent: 'center'}}>
