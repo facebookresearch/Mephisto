@@ -363,6 +363,7 @@ class Supervisor:
             worker, packet.data["onboard_data"]
         )
         worker.qualify(blueprint.onboarding_qualification_name, int(worker_passed))
+        # TODO we should save the onboarding data to be able to review later?
 
         if not worker_passed:
             # TODO it may be worth investigating launching a dummy task for these
