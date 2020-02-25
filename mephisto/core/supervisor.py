@@ -466,10 +466,7 @@ class Supervisor:
             packet_type=PACKET_TYPE_INIT_DATA,
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=socket_info.socket_id,
-            data={
-                "request_id": packet.data["request_id"],
-                "init_data": unit_data,
-            },
+            data={"request_id": packet.data["request_id"], "init_data": unit_data},
         )
         self.message_queue.append(agent_data_packet)
 
