@@ -29,12 +29,17 @@ export default function TaskRunSummary({ run }: { run: TaskRun }) {
       >
         Running
       </Tag> */}
-      <code
-        className="bp3-code params-list"
-        style={{ display: "block", marginTop: 10 }}
-      >
-        {run.param_string}
-      </code>
+      <div className="params-list" style={{ display: "block", marginTop: 10 }}>
+        {Object.entries(run.params).map(([key, value]) => (
+          <span
+            key={key}
+            style={{ display: "inline-block", marginRight: 5, fontSize: 12 }}
+          >
+            <span className="param-name">{key}</span>=
+            <strong className="param-value">{value}</strong>
+          </span>
+        ))}
+      </div>
       <div className="details">
         <div className="metrics highlight-first">
           <div className="metric">

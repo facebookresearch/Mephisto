@@ -84,7 +84,21 @@ h1 {
 
 .params-list {
   overflow-y: auto;
+  overflow-x: none;
   max-height: 50px;
+  color: #757677;
+  font-style: italic;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.2);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 2px 5px;
+}
+
+.params-list .param-name {
+}
+
+.params-list .param-value {
+  color: #333;
 }
 
 .details {
