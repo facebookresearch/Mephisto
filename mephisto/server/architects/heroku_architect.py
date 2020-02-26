@@ -19,7 +19,7 @@ import time
 from mephisto.core.utils import get_mephisto_tmp_dir
 from mephisto.data_model.architect import Architect
 from mephisto.server.architects.router.build_router import build_router
-from typing import Tuple, List, Dict, Optional, TYPE_CHECKING
+from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -47,7 +47,7 @@ class HerokuArchitect(Architect):
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, str],
+        opts: Dict[str, Any],
         task_run: "TaskRun",
         build_dir_root: str,
     ):
@@ -105,7 +105,7 @@ class HerokuArchitect(Architect):
         return
 
     @classmethod
-    def assert_task_args(cls, args: Any):
+    def assert_task_args(cls, args: Dict[str, Any]):
         """
         Assert that the provided arguments are valid. Should 
         fail if a task launched with these arguments would
