@@ -35,6 +35,9 @@ HEROKU_CLIENT_URL = (
 
 HEROKU_WAIT_TIME = 3
 
+HEROKU_TMP_DIR = os.path.join(get_mephisto_tmp_dir(), "heroku")
+os.makedirs(HEROKU_TMP_DIR, exist_ok=True)
+
 
 class HerokuArchitect(Architect):
     """
@@ -64,9 +67,6 @@ class HerokuArchitect(Architect):
         self.task_run = task_run
         self.deploy_name = f"{task_run.get_task().task_name}_{task_run.db_id}"
         self.build_dir = build_dir_root
-        self.tmp_dir = os.path.join(get_mephisto_tmp_dir(), "heroku")
-        if not os.path.exists(self.tmp_dir):
-            os.makedirs(self.tmp_dir)
 
         # Cache-able parameters
         self.__heroku_app_name: Optional[str] = None
@@ -104,69 +104,100 @@ class HerokuArchitect(Architect):
         )
         return
 
+    @classmethod
+    def assert_task_args(cls, args: Any):
+        """
+        Assert that the provided arguments are valid. Should 
+        fail if a task launched with these arguments would
+        not work. 
+
+        This should include throwing an exception if the architect
+        needs login details or something similar given the 
+        arguments passed in.
+        """
+        heroku_executable_path = HerokuArchitect.get_heroku_client_path()
+        try:
+            output = subprocess.check_output(
+                shlex.split(heroku_executable_path + " auth:whoami")
+            )
+        except subprocess.CalledProcessError:
+            raise Exception(
+                "A free Heroku account is required for launching tasks via "
+                "the HerokuArchitect. Please register at "
+                "https://signup.heroku.com/ and run `{} login` at the terminal "
+                "to login to Heroku before trying to use HerokuArchitect."
+                "".format(heroku_executable_path)
+            )
+        return
+
+    @staticmethod
+    def get_heroku_client_path() -> str:
+        """
+        Get the path to the heroku executable client, download a new one if it
+        doesnt exist.
+        """
+        print("Locating heroku...")
+        # Install Heroku CLI
+        os_name = None
+        bit_architecture = None
+
+        # Get the platform we are working on
+        platform_info = platform.platform()
+        if "Darwin" in platform_info:  # Mac OS X
+            os_name = "darwin"
+        elif "Linux" in platform_info:  # Linux
+            os_name = "linux"
+        else:
+            os_name = "windows"
+
+        # Find our architecture
+        bit_architecture_info = platform.architecture()[0]
+        if "64bit" in bit_architecture_info:
+            bit_architecture = "x64"
+        else:
+            bit_architecture = "x86"
+
+        # Find existing heroku files to use
+        existing_heroku_directory_names = glob.glob(
+            os.path.join(HEROKU_TMP_DIR, "heroku-cli-*")
+        )
+        if len(existing_heroku_directory_names) == 0:
+            print("Getting heroku")
+            if os.path.exists(os.path.join(HEROKU_TMP_DIR, "heroku.tar.gz")):
+                os.remove(os.path.join(HEROKU_TMP_DIR, "heroku.tar.gz"))
+
+            # Get the heroku client and unzip
+            tar_path = os.path.join(HEROKU_TMP_DIR, "heroku.tar.gz")
+            sh.wget(
+                shlex.split(
+                    "{}-{}-{}.tar.gz -O {}".format(
+                        HEROKU_CLIENT_URL, os_name, bit_architecture, tar_path
+                    )
+                )
+            )
+            sh.tar(shlex.split(f"-xvzf {tar_path} -C {HEROKU_TMP_DIR}"))
+
+            # Clean up the tar
+            if os.path.exists(tar_path):
+                os.remove(tar_path)
+
+        heroku_directory_name = glob.glob(
+            os.path.join(HEROKU_TMP_DIR, "heroku-cli-*")
+        )[0]
+        heroku_directory_path = os.path.join(HEROKU_TMP_DIR, heroku_directory_name)
+        return os.path.join(
+            heroku_directory_path, "bin", "heroku"
+        )
+
     def __get_heroku_client(self) -> Tuple[str, str]:
         """
-        Find the heroku executable client, download a new one if it
-        doesnt exist. Ensure that the user is authorized.
-
-        Return the executable path and authorization token
+        Get an authorized heroku client path and authorization token
         """
         if (
             self.__heroku_executable_path is None
             or self.__heroku_user_identifier is None
         ):
-            print("Locating heroku...")
-            # Install Heroku CLI
-            os_name = None
-            bit_architecture = None
-
-            # Get the platform we are working on
-            platform_info = platform.platform()
-            if "Darwin" in platform_info:  # Mac OS X
-                os_name = "darwin"
-            elif "Linux" in platform_info:  # Linux
-                os_name = "linux"
-            else:
-                os_name = "windows"
-
-            # Find our architecture
-            bit_architecture_info = platform.architecture()[0]
-            if "64bit" in bit_architecture_info:
-                bit_architecture = "x64"
-            else:
-                bit_architecture = "x86"
-
-            # Find existing heroku files to use
-            existing_heroku_directory_names = glob.glob(
-                os.path.join(self.tmp_dir, "heroku-cli-*")
-            )
-            if len(existing_heroku_directory_names) == 0:
-                print("Getting heroku")
-                if os.path.exists(os.path.join(self.tmp_dir, "heroku.tar.gz")):
-                    os.remove(os.path.join(self.tmp_dir, "heroku.tar.gz"))
-
-                # Get the heroku client and unzip
-                tar_path = os.path.join(self.tmp_dir, "heroku.tar.gz")
-                sh.wget(
-                    shlex.split(
-                        "{}-{}-{}.tar.gz -O {}".format(
-                            HEROKU_CLIENT_URL, os_name, bit_architecture, tar_path
-                        )
-                    )
-                )
-                sh.tar(shlex.split(f"-xvzf {tar_path} -C {self.tmp_dir}"))
-
-                # Clean up the tar
-                if os.path.exists(tar_path):
-                    os.remove(tar_path)
-
-            heroku_directory_name = glob.glob(
-                os.path.join(self.tmp_dir, "heroku-cli-*")
-            )[0]
-            heroku_directory_path = os.path.join(self.tmp_dir, heroku_directory_name)
-            heroku_executable_path = os.path.join(
-                heroku_directory_path, "bin", "heroku"
-            )
+            heroku_executable_path = HerokuArchitect.get_heroku_client_path()
 
             # get heroku credentials
             heroku_user_identifier = None

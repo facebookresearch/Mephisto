@@ -41,7 +41,11 @@ class Architect(ABC):
         """
         Assert that the provided arguments are valid. Should 
         fail if a task launched with these arguments would
-        not work
+        not work. 
+
+        This should include throwing an exception if the architect
+        needs login details or something similar given the 
+        arguments passed in.
         """
         return
 
