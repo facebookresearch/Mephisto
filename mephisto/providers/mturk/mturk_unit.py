@@ -156,7 +156,7 @@ class MTurkUnit(Unit):
         otherwise just return the maximum assignment duration
         """
         delay = 0
-        if self.get_status()  == AssignmentState.ASSIGNED:
+        if self.get_status() == AssignmentState.ASSIGNED:
             # The assignment is currently being worked on,
             # so we will set the wait time to be the
             # amount of time we granted for working on this assignment
