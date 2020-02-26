@@ -22,7 +22,7 @@ from mephisto.core.utils import (
 )
 
 
-from typing import Type, List, Optional, Tuple, Dict, cast, TYPE_CHECKING, Any
+from typing import List, Optional, Tuple, Dict, cast, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -201,20 +201,23 @@ class TaskRun:
         self.__task: Optional["Task"] = None
         self.__requester: Optional["Requester"] = None
         self.__run_dir: Optional[str] = None
+        self.__blueprint: Optional["Blueprint"] = None
+        self.__crowd_provider: Optional["CrowdProvider"] = None
 
     def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
         """
         Get any units that the given worker could work on in this
         task run
         """
-        # TODO handle any qualification or queueing required to filter
-        # TODO add onboarding as a qualification
-        # TODO ensure inability to pair with ones-self
         # TODO this is pretty inefficient
+        # TODO if an agent has failed onboarding, perhaps
         assignments = self.get_assignments()
         units = [u for assign in assignments for u in assign.get_units()]
         valid_units = [u for u in units if u.get_assigned_agent() is None]
-        return valid_units
+        if self.sandbox:
+            return valid_units  # can pair with self in the sandbox
+        unique_units = [u for u in valid_units if u.worker_id is not worker.db_id]
+        return unique_units
 
     def clear_reservation(self, unit: "Unit") -> None:
         """
@@ -241,13 +244,19 @@ class TaskRun:
             return None
         return unit
 
-    def get_blueprint(self) -> Type["Blueprint"]:
+    def get_blueprint(self) -> "Blueprint":
         """Return the runner associated with this task run"""
-        return get_blueprint_from_type(self.task_type)
+        if self.__blueprint is None:
+            BlueprintClass = get_blueprint_from_type(self.task_type)
+            self.__blueprint = BlueprintClass(self, self.get_task_config().args)
+        return self.__blueprint
 
-    def get_provider(self) -> Type["CrowdProvider"]:
+    def get_provider(self) -> "CrowdProvider":
         """Return the crowd provider used to launch this task"""
-        return get_crowd_provider_from_type(self.provider_type)
+        if self.__crowd_provider is None:
+            CrowdProviderClass = get_crowd_provider_from_type(self.provider_type)
+            self.__crowd_provider = CrowdProviderClass(self.db)
+        return self.__crowd_provider
 
     def get_task(self) -> "Task":
         """Return the task used to initialize this run"""

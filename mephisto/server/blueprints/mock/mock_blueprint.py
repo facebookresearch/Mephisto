@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
@@ -19,12 +19,13 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 
 BLUEPRINT_TYPE = "mock"
 
 
-class MockBlueprint(Blueprint):
+class MockBlueprint(Blueprint, OnboardingRequired):
     """Mock of a task type, for use in testing"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
@@ -33,13 +34,18 @@ class MockBlueprint(Blueprint):
     supported_architects: ClassVar[List[str]] = ["mock"]
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
+    def __init__(self, task_run: "TaskRun", opts: Dict[str, Any]):
+        super().__init__(task_run, opts)
+        self.init_onboarding_config(task_run, opts)
+
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
         MockBlueprints specify a count of assignments, as there 
         is no real data being sent
         """
-        super(MockBlueprint, cls).add_args_to_group(group)
+        super().add_args_to_group(group)
+        OnboardingRequired.add_args_to_group(group)
         group.description = "MockBlueprint arguments"
         group.add_argument(
             "--num-assignments",
@@ -47,6 +53,13 @@ class MockBlueprint(Blueprint):
             help="Number of assignments to launch",
             type=int,
             required=True,
+        )
+        group.add_argument(
+            "--use-onboarding",
+            dest="use_onboarding",
+            help="Whether onboarding should be required",
+            type=bool,
+            default=False,
         )
         return
 
@@ -58,3 +71,11 @@ class MockBlueprint(Blueprint):
             MockTaskRunner.get_mock_assignment_data()
             for i in range(self.opts["num_assignments"])
         ]
+
+    def validate_onboarding(
+        self, worker: "Worker", onboard_data: Dict[str, Any]
+    ) -> bool:
+        """
+        Onboarding validation for MockBlueprints just returns the 'should_pass' field
+        """
+        return onboard_data["should_pass"]

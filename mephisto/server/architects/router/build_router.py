@@ -71,8 +71,8 @@ def build_router(build_dir: str, task_run: "TaskRun") -> str:
     local_crowd_source_path = os.path.join(
         local_server_directory_path, CROWD_SOURCE_PATH
     )
-    CrowdProviderClass = task_run.get_provider()
-    shutil.copy2(CrowdProviderClass.get_wrapper_js_path(), local_crowd_source_path)
+    crowd_provider = task_run.get_provider()
+    shutil.copy2(crowd_provider.get_wrapper_js_path(), local_crowd_source_path)
 
     # Consolidate task files as defined by the task
     TaskBuilderClass = task_run.get_blueprint().TaskBuilderClass

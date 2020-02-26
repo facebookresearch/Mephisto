@@ -59,6 +59,7 @@ const PACKET_TYPE_NEW_WORKER = 'register_worker'
 const PACKET_TYPE_GET_INIT_DATA = 'init_data_request'
 const PACKET_TYPE_ALIVE = 'alive'
 const PACKET_TYPE_PROVIDER_DETAILS = 'provider_details'
+const PACKET_TYPE_SUBMIT_ONBOARDING = 'submit_onboarding'
 
 // State for agents tracked by the server
 class LocalAgentState {
@@ -286,6 +287,11 @@ app.post('/register_worker', function(req, res) {
 app.post('/request_agent', function(req, res) {
   var provider_data = req.body.provider_data;
   make_provider_request(PACKET_TYPE_NEW_AGENT, provider_data, res);
+});
+
+app.post('/submit_onboarding', function(req, res) {
+  var provider_data = req.body.provider_data;
+  make_provider_request(PACKET_TYPE_SUBMIT_ONBOARDING, provider_data, res);
 });
 
 app.post('/submit_task', function(req, res) {
