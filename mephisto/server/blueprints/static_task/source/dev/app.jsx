@@ -113,9 +113,11 @@ class MainApp extends React.Component {
     let base_html = html;
     let fin_html = base_html;
 
-    for (let [key, value] of Object.entries(this.state.task_data)) {
-      let find_string = "${" + key + "}";
-      fin_html = fin_html.replace(find_string, value);
+    if (this.state.task_data !== null) {
+      for (let [key, value] of Object.entries(this.state.task_data)) {
+        let find_string = "${" + key + "}";
+        fin_html = fin_html.replace(find_string, value);
+      }
     }
 
 
@@ -168,6 +170,8 @@ class MainApp extends React.Component {
     let assignment_id = this.state.assignment_id;
     if (assignment_id != null && provider_worker_id != null) {
       registerWorker(data => this.afterWorkerRegistration(data));
+    } else {
+      requestTaskHMTL('preview.html', data => this.handleIncomingTaskHTML(data));
     }
   }
 
@@ -187,7 +191,7 @@ class MainApp extends React.Component {
       dangerouslySetInnerHTML={{__html: this.state.render_html}}
     />;
     let submit_button = <div />;
-    if (this.base_html !== null) {
+    if (this.state.base_html !== null && this.state.agent_id !== null) {
       submit_button = (
         <div>
           <div style={{display: 'flex', justifyContent: 'center'}}>

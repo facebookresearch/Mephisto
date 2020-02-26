@@ -62,11 +62,26 @@ class StaticTaskBuilder(TaskBuilder):
             self.rebuild_core()
 
         # Copy the built core and the given task file to the target path
-        use_html_file = self.opts["html_source"]
+        use_html_file = os.path.expanduser(self.opts["task_source"])
+
         target_resource_dir = os.path.join(build_dir, "static")
         file_name = os.path.basename(use_html_file)
         target_path = os.path.join(target_resource_dir, file_name)
         shutil.copy2(use_html_file, target_path)
+
+        # Copy over the preview file as preview.html, default to the task file if none specified
+        use_preview_file = os.path.expanduser(
+            self.opts.get("preview_source", use_html_file)
+        )
+
+        target_path = os.path.join(target_resource_dir, "preview.html")
+        shutil.copy2(use_preview_file, target_path)
+
+        # If any additional task files are required via a source_dir, copy those as well
+        extra_dir_path = self.opts.get("extra_source_dir")
+        if extra_dir_path is not None:
+            extra_dir_path = os.path.expanduser(extra_dir_path)
+            copy_tree(extra_dir_path, target_resource_dir)
 
         bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, "bundle.js")
         target_path = os.path.join(target_resource_dir, "bundle.js")

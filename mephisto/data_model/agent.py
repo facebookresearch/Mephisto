@@ -87,7 +87,7 @@ class Agent(ABC):
         self._task: Optional["Task"] = None
 
         # Follow-up initialization
-        self.state = AgentState(self)
+        self.state = AgentState(self)  # type: ignore
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Agent":
         """

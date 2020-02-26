@@ -1,0 +1,79 @@
+<!-- Bootstrap v3.0.3 -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script><!-- Modal --><!-- MODAL -->
+<div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade in" id="exampleModal" role="dialog" tabindex="-1">
+<div class="modal-dialog" role="document">
+<div class="modal-content">
+<div class="modal-header"><button aria-label="Close" class="close" data-dismiss="modal" type="button"><span aria-hidden="true">&times;</span></button></div>
+
+<div class="modal-body" id="modal">&nbsp;</div>
+
+<div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal" type="button">Close</button></div>
+</div>
+</div>
+</div>
+<!-- Content -->
+
+<section class="container" id="Other" style="margin-bottom: 15px; padding: 10px; font-family: Verdana, Geneva, sans-serif; font-size: 0.9em;">
+<div class="row col-xs-12 col-md-12"><!-- Instructions -->
+<div class="panel panel-primary">
+<div class="panel-heading"><strong>Instructions</strong></div>
+
+<div class="panel-body" id="instructions">
+<p>Below you are given a character name and description for someone from a fantasy story. Please rate how well the character description matches the name. <br/> Below are some examples: </p>
+
+<ul>
+	<li>brave soldier - I fight to defend my honor. I will keep my village safe from any threat. It is my duty to protect my beloved wife. &nbsp; -<em> good </em> (the character name and description fit well)</li>
+	<li>noble - I am the daughter of a great warrior. My family name carries a lot of weight where I live, so I'm accepted amongst nobility.  &nbsp; - <em>passable</em> (the character description is technically not a noble, but accepted by nobles)</li>
+	<li>pig - I cannot stand being part of royalty. I long to adventure at sea. My father would never allow it though. &nbsp;- <em>bad</em> (the character is a pig, not royalty)</li>
+</ul>
+
+</div>
+</div>
+<!-- End Instructions --><!-- Content Body -->
+
+<div class="input_location">
+<p><strong>Character name:</strong> <span id="char">${character_name}</span></p>
+<p><strong>Description:</strong> <span id="persona">${character_description}</span></p>
+</div>
+
+<section>
+<fieldset>
+<div class="input-group">
+    <label>Rate the matching of character name to description</label>
+    <select class="form-control" name="rating">
+        <option selected="selected" value="">(select one)</option>
+        <option value="good">Good</option>
+        <option value="passable">Passable</option>
+        <option value="bad">Bad</option></select>
+</div>
+</fieldset>
+
+</section>
+<!-- End Content Body --></div>
+</section>
+<script>
+
+$(function()
+{
+    modal_body = $("#modal");
+    $("#instructions").clone().appendTo(modal_body);
+    $('.modal').modal('show');
+});
+</script>
+
+
+</script><!-- close container -->
+<style type="text/css">fieldset {
+    padding: 10px;
+    background:#fbfbfb;
+    border-radius:5px;
+    margin-bottom:5px;
+}
+
+.input_location {
+  background-color: blanchedalmond;
+  padding: 10px;
+}
+</style>
