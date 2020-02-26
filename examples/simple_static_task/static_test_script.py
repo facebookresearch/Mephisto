@@ -7,9 +7,10 @@ from mephisto.core.utils import get_root_dir
 
 db = LocalMephistoDB()
 
+operator = Operator(db)
+
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
-operator = Operator(db)
 requester = db.find_requesters(provider_type="mturk_sandbox")[-1]
 requester_name = requester.requester_name
 assert requester_name.endswith("_sandbox"), "Should use a sandbox for testing"
@@ -29,6 +30,7 @@ ARG_STRING = (
     f'--extra-source-dir "{TASK_DIRECTORY}/server_files/extra_refs" '
 )
 
+
 try:
     operator.parse_and_launch_run(shlex.split(ARG_STRING))
     print("task run supposedly launched?")
@@ -36,10 +38,11 @@ try:
     while len(operator.get_running_task_runs()) > 0:
         print(f"Operator running {operator.get_running_task_runs()}")
         time.sleep(10)
-except BaseException as e:
+except Exception as e:
     import traceback
 
     traceback.print_exc()
+except (KeyboardInterrupt, SystemExit) as e:
     pass
-
-operator.shutdown()
+finally:
+    operator.shutdown()

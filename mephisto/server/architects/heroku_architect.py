@@ -217,7 +217,7 @@ class HerokuArchitect(Architect):
                         "login` at the terminal to login to Heroku, and then run this "
                         "program again.".format(heroku_executable_path)
                     )
-                    raise SystemExit("Please login to heroku before trying again.")
+                    raise Exception("Please login to heroku before trying again.")
             self.__heroku_executable_path = heroku_executable_path
             self.__heroku_user_identifier = heroku_user_identifier
         return self.__heroku_executable_path, self.__heroku_user_identifier
@@ -306,7 +306,7 @@ class HerokuArchitect(Architect):
             # TODO check response codes to determine what actually happened
             print(e)
             sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
-            raise SystemExit(
+            raise Exception(
                 "You have hit your limit on concurrent apps with heroku, which are"
                 " required to run multiple concurrent tasks.\nPlease wait for some"
                 " of your existing tasks to complete. If you have no tasks "
@@ -345,7 +345,7 @@ class HerokuArchitect(Architect):
             except subprocess.CalledProcessError:  # User doesn't have hobby access
                 self.__delete_heroku_server()
                 sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
-                raise SystemExit(
+                raise Exception(
                     "Server launched with hobby flag but account cannot create "
                     "hobby servers."
                 )
