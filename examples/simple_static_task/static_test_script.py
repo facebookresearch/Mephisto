@@ -3,10 +3,11 @@ import time
 import shlex
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
+from mephisto.core.utils import get_root_dir
 
 db = LocalMephistoDB()
 
-TASK_DIRECTORY = "~/mephisto/examples/simple_static_task"
+TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
 operator = Operator(db)
 requester = db.find_requesters(provider_type="mturk_sandbox")[-1]

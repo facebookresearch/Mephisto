@@ -33,18 +33,24 @@ def ensure_user_confirm(display_text, skip_input=False) -> None:
     return
 
 
+def get_root_dir() -> str:
+    """Return the currently configured root mephisto directory"""
+    # TODO be able to configure this kind of thing
+    return os.path.expanduser("~/mephisto")
+
+
 def get_provider_dir() -> str:
     """
     Return the path to the mephisto providers diroctory
     """
-    return os.path.expanduser("~/Mephisto/mephisto/providers")
+    return os.path.join(get_root_dir(), "mephisto/providers")
 
 
 def get_gallery_dir() -> str:
     """
     Return the path to the mephisto task gallery
     """
-    return os.path.expanduser("~/mephisto/gallery/")
+    return os.path.join(get_root_dir(), "gallery")
 
 
 def get_dir_for_task(task_name: str, not_exists_ok: bool = False) -> Optional[str]:
@@ -66,16 +72,14 @@ def get_tasks_dir() -> str:
     Return the directory where the mephisto user has configured their personal tasks
     to exist in
     """
-    # TODO be able to configure this kind of thing
-    return os.path.expanduser("~/mephisto/mephisto/tasks/")
+    return os.path.join(get_root_dir(), "mephisto/tasks")
 
 
 def get_root_data_dir() -> str:
     """
     Return the directory where the mephisto data is expected to go
     """
-    # TODO be able to configure this kind of thing
-    return os.path.expanduser("~/mephisto/data")
+    return os.path.join(get_root_dir(), "data")
 
 
 def get_data_dir(root_dir: Optional[str] = None) -> str:
@@ -91,8 +95,7 @@ def get_mephisto_tmp_dir() -> str:
     """
     Return the directory where the mephisto temporary build files go
     """
-    # TODO be able to configure this kind of thing
-    return os.path.expanduser("~/mephisto/tmp")
+    return os.path.join(get_root_dir(), "tmp")
 
 
 def get_dir_for_run(task_run: "TaskRun", project_name: str = NO_PROJECT_NAME) -> str:
