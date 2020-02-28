@@ -249,36 +249,33 @@ function LaunchForm() {
                 if (validated) {
                   addToParams("CLEAR_ALL");
 
-                  launchTask(params);
+                  launchTask(params)
+                    .then(() => {
+                      setOpenForm(false);
 
-                  setOpenForm(false);
-
-                  toaster.show({
-                    message: "Launching task...",
-                    icon: "cloud-upload",
-                    intent: Intent.NONE,
-                    timeout: 2000
-                  });
-
-                  toaster.show({
-                    message: JSON.stringify(params),
-                    icon: "cloud-upload",
-                    intent: Intent.NONE,
-                    timeout: 6000
-                  });
-
-                  // TODO: Make request to /launch_task_run with `params`
-                  // Use axios?
-
-                  setTimeout(
-                    () =>
+                      toaster.dismiss("loading-msg");
                       toaster.show({
                         message: "Launched!",
                         icon: "cloud-upload",
                         intent: Intent.SUCCESS,
-                        timeout: 2000
-                      }),
-                    1000
+                        timeout: 3000
+                      });
+                    })
+                    .catch(() => {
+                      // TODO: Handle error, also check payload in case
+                      // it specifies an error, e.g. ensure that
+                      // payload.status === 'success'
+                    });
+
+                  toaster.show(
+                    {
+                      message:
+                        "Launching task... Please wait this may take a while.",
+                      icon: "cloud-upload",
+                      intent: Intent.NONE,
+                      timeout: 40000
+                    },
+                    "loading-msg"
                   );
                 } else {
                   toaster.show({

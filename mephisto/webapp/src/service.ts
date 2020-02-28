@@ -1,8 +1,9 @@
 import axios from "./axios";
+import { AxiosPromise } from "axios";
 
-export function launchTask(data: any) {
+export function launchTask(data: any): AxiosPromise<any> {
   const transformedPayload = mapDataToExpectedPayload(data);
-  axios.post("task_runs/launch", transformedPayload);
+  return axios.post("task_runs/launch", transformedPayload);
 }
 
 function mapDataToExpectedPayload(data: any) {
