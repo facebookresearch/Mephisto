@@ -23,9 +23,6 @@ if TYPE_CHECKING:
     from mephisto.providers.mturk.mturk_requester import MTurkRequester
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
 
-# TODO Fill in the duration with the task duration
-TODO_FILL_DURATION = 500
-
 
 class MTurkUnit(Unit):
     """
@@ -55,10 +52,10 @@ class MTurkUnit(Unit):
     def _sync_hit_mapping(self) -> None:
         """Sync with the datastore to see if any mappings have updated"""
         try:
-            mapping = self.datastore.get_hit_mapping(self.db_id)
+            mapping = dict(self.datastore.get_hit_mapping(self.db_id))
             self.hit_id = mapping["hit_id"]
-            self.mturk_assignment_id = mapping["assignment_id"]
-            self.assignment_time_in_seconds = mapping["assignment_time_in_seconds"]
+            self.mturk_assignment_id = mapping.get("assignment_id")
+            self.assignment_time_in_seconds = mapping.get("assignment_time_in_seconds")
         except IndexError:
             # HIT does not appear to exist
             self.hit_id = None
@@ -136,7 +133,9 @@ class MTurkUnit(Unit):
 
     def launch(self, task_url: str) -> None:
         """Create this HIT on MTurk (making it availalbe) and register the ids in the local db"""
-        run_id = self.get_assignment().get_task_run().db_id
+        task_run = self.get_assignment().get_task_run()
+        duration = task_run.get_task_config().assignment_duration_in_seconds
+        run_id = task_run.db_id
         hit_type_id = self.datastore.get_run(run_id)["hit_type_id"]
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
@@ -147,7 +146,7 @@ class MTurkUnit(Unit):
         )
         # TODO put the hit link somewhere retrievable
         print(hit_link)
-        self.datastore.new_hit(self.db_id, hit_id, TODO_FILL_DURATION)
+        self.datastore.new_hit(self.db_id, hit_id, duration)
         self.hit_id = hit_id
         return None
 
