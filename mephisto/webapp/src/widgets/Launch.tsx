@@ -228,10 +228,23 @@ function LaunchForm() {
 
             <Button
               onClick={() => {
-                const validated =
+                let validated =
                   params.blueprint !== undefined &&
                   params.architect !== undefined &&
                   params.requester !== undefined;
+
+                const allTaskParamsFilled = Object.entries(params).reduce(
+                  (allFilled, [key, value]) => {
+                    if (key.startsWith("task|")) {
+                      return allFilled && value !== null;
+                    } else {
+                      return allFilled;
+                    }
+                  },
+                  true
+                );
+
+                validated = validated && allTaskParamsFilled;
 
                 if (validated) {
                   addToParams("CLEAR_ALL");
@@ -269,7 +282,7 @@ function LaunchForm() {
                 } else {
                   toaster.show({
                     message:
-                      "Error: Must selected Blueprint + Architect + Requester",
+                      "Error: Must select Blueprint + Architect + Requester and fill all task params",
                     icon: "cloud-upload",
                     intent: Intent.DANGER,
                     timeout: 2000
