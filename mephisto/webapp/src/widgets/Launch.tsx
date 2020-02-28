@@ -129,7 +129,7 @@ function LaunchForm() {
   return (
     <div>
       <button className="bp3-button" onClick={() => setOpenForm(true)}>
-        [TODO] Launch a task
+        Launch a task
       </button>
       <Drawer
         icon="people"
@@ -252,6 +252,7 @@ function LaunchForm() {
                   launchTask(params);
 
                   setOpenForm(false);
+
                   toaster.show({
                     message: "Launching task...",
                     icon: "cloud-upload",
