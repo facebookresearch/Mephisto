@@ -77,7 +77,7 @@ def launch_options():
 @api.route("/task_runs/launch", methods=["POST"])
 def start_task_run():
     # Blueprint, CrowdProvider, Architect (Local/Heroku), Dict of arguments
-    
+
     info = request.get_json(force=True)
     input_arg_list = []
     for arg_content in info.values():
@@ -214,6 +214,7 @@ def get_architect_arguments(architect_type):
     ArchitectClass = get_architect_from_type(architect_type)
     params = get_extra_argument_dicts(ArchitectClass)
     return jsonify({"success": True, "options": params})
+
 
 @api.route("/error", defaults={"status_code": "501"})
 @api.route("/error/<string:status_code>")
