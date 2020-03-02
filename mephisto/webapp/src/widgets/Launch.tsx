@@ -197,9 +197,6 @@ function LaunchForm() {
               onLoading={() => <span>Loading...</span>}
               onData={({ data }) => (
                 <div>
-                  {/* {JSON.stringify(
-                    data.requesters.filter((r: any) => r.registered)
-                  )} */}
                   <RequesterSelect
                     data={data.requesters.filter((r: any) => r.registered)}
                     onUpdate={(data: any) => {
