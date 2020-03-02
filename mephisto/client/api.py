@@ -78,9 +78,6 @@ def launch_options():
 def start_task_run():
     # Blueprint, CrowdProvider, Architect (Local/Heroku), Dict of arguments
     
-    # TODO: HACK - Remove the following hardcoding for the path
-    # os.chdir("/Users/tikir/mephisto")
-
     info = request.get_json(force=True)
     input_arg_list = []
     for arg_content in info.values():
