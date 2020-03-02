@@ -14,6 +14,7 @@ from datetime import datetime
 from botocore import client
 from botocore.exceptions import ClientError
 from botocore.exceptions import ProfileNotFound
+from botocore.config import Config
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_config import TaskConfig
@@ -26,6 +27,8 @@ SANDBOX_ENDPOINT = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
 MTurkClient = Any
 
 MTURK_LOCALE_REQUIREMENT = "00000000000000000071"
+
+botoconfig = Config(retries=dict(max_attempts=10))
 
 
 def client_is_sandbox(client: MTurkClient) -> bool:
@@ -403,7 +406,7 @@ def setup_sns_topic(
 ) -> str:
     """Create an sns topic and return the arn identifier"""
     # Create the topic and subscribe to it so that our server receives notifs
-    client = session.client("sns", region_name="us-east-1")
+    client = session.client("sns", region_name="us-east-1", config=botoconfig)
     pattern = re.compile("[^a-zA-Z0-9_-]+")
     filtered_task_name = pattern.sub("", task_name)
     response = client.create_topic(Name=filtered_task_name)
@@ -474,7 +477,7 @@ def send_test_notif(client: MTurkClient, topic_arn: str, event_type: str) -> Non
 
 def delete_sns_topic(session: boto3.Session, topic_arn: str) -> None:
     """Remove the sns queue of the given identifier"""
-    client = session.client("sns", region_name="us-east-1")
+    client = session.client("sns", region_name="us-east-1", config=botoconfig)
     client.delete_topic(TopicArn=topic_arn)
 
 

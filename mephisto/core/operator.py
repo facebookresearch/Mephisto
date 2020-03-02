@@ -14,7 +14,7 @@ import threading
 
 from argparse import ArgumentParser
 
-from mephisto.core.supervisor import Supervisor
+from mephisto.core.supervisor import Supervisor, Job
 
 from typing import Dict, Optional, List, Any, Tuple, NamedTuple, Type, TYPE_CHECKING
 from mephisto.data_model.task_config import TaskConfig
@@ -42,6 +42,7 @@ class TrackedRun(NamedTuple):
     architect: "Architect"
     task_runner: "TaskRunner"
     task_launcher: TaskLauncher
+    job: Job
 
 
 class Operator:
@@ -215,7 +216,7 @@ class Operator:
         launcher.launch_units(task_url)
 
         # Link the job together
-        self.supervisor.register_job(architect, task_runner, provider)
+        job = self.supervisor.register_job(architect, task_runner, provider)
         if self.supervisor.sending_thread is None:
             self.supervisor.launch_sending_thread()
 
@@ -224,6 +225,7 @@ class Operator:
             task_launcher=launcher,
             task_runner=task_runner,
             architect=architect,
+            job=job,
         )
 
     def _track_and_kill_runs(self):
@@ -236,6 +238,7 @@ class Operator:
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
                 if task_run.get_is_completed():
+                    self.supervisor.shutdown_job(tracked_run.job)
                     tracked_run.architect.shutdown()
                     # TODO kill the runner too?
                     del self._task_runs_tracked[task_run.db_id]

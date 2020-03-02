@@ -18,13 +18,19 @@ import { createAsync, mockRequest } from "../lib/Async";
 import TaskRunSummary from "./TaskRunSummary";
 import BlueprintSelect from "./components/BlueprintSelect";
 import ArchitectSelect from "./components/ArchitectSelect";
+import RequesterSelect from "./components/RequesterSelect";
 import { toaster } from "../lib/toaster";
+import { launchTask } from "../service";
+import OptionsForm from "./components/OptionsForm";
 
 const Async = createAsync<RunningTasks>();
 const LaunchInfoAsync = createAsync<any>();
+const RequesterInfoAsync = createAsync<any>();
+const DefaultTaskInfoAsync = createAsync<any>();
 
 export default (function LaunchWidget() {
-  const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
+  // const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
+  const runningTasksAsync = useAxios({ url: "task_runs/running" });
 
   return (
     <BaseWidget badge="Step 2" heading={<span>Launch it</span>}>
@@ -82,6 +88,12 @@ export default (function LaunchWidget() {
 function LaunchForm() {
   const [openForm, setOpenForm] = React.useState(false);
   const launchInfo = useAxios({ url: "launch/options" });
+  const requesterInfo = useAxios({
+    url: "requesters"
+  });
+  const defaultTaskInfo = useAxios({
+    url: "task_runs/options"
+  });
 
   const [params, addToParams] = React.useReducer((state, params) => {
     let nextState;
@@ -89,14 +101,21 @@ function LaunchForm() {
       nextState = {};
     } else if (params === "CLEAR_bp") {
       nextState = Object.keys(state)
-        .filter(key => !key.startsWith("bp-"))
+        .filter(key => !key.startsWith("bp|"))
         .reduce((obj: any, key: string) => {
           obj[key] = state[key];
           return obj;
         }, {});
     } else if (params === "CLEAR_arch") {
       nextState = Object.keys(state)
-        .filter(key => !key.startsWith("arch-"))
+        .filter(key => !key.startsWith("arch|"))
+        .reduce((obj: any, key: string) => {
+          obj[key] = state[key];
+          return obj;
+        }, {});
+    } else if (params === "CLEAR_task") {
+      nextState = Object.keys(state)
+        .filter(key => !key.startsWith("task|"))
         .reduce((obj: any, key: string) => {
           obj[key] = state[key];
           return obj;
@@ -104,15 +123,13 @@ function LaunchForm() {
     } else {
       nextState = { ...state, ...params };
     }
-
-    console.log(nextState);
     return nextState;
   }, {});
 
   return (
     <div>
       <button className="bp3-button" onClick={() => setOpenForm(true)}>
-        [TODO] Launch a task
+        Launch a task
       </button>
       <Drawer
         icon="people"
@@ -171,48 +188,96 @@ function LaunchForm() {
               )}
               onError={() => <span>Error</span>}
             />
+            <h2>Step 3. Choose a Requester</h2>
+            <p className="bp3-text-muted">
+              A requester is the service account that will run your task.
+            </p>
+            <RequesterInfoAsync
+              info={requesterInfo}
+              onLoading={() => <span>Loading...</span>}
+              onData={({ data }) => (
+                <div>
+                  <RequesterSelect
+                    data={data.requesters.filter((r: any) => r.registered)}
+                    onUpdate={(data: any) => {
+                      addToParams(data);
+                    }}
+                  />
+                </div>
+              )}
+              onError={() => <span>Error</span>}
+            />
+            <h2>Step 4. Final Task Options</h2>
+            <DefaultTaskInfoAsync
+              info={defaultTaskInfo}
+              onLoading={() => <span>Loading...</span>}
+              onData={({ data }) => (
+                <div>
+                  <OptionsForm
+                    prefix="task"
+                    options={data.options}
+                    onUpdate={(data: any) => addToParams(data)}
+                  />
+                </div>
+              )}
+              onError={() => <span>Error</span>}
+            />
+
             <Button
               onClick={() => {
-                const validated =
+                let validated =
                   params.blueprint !== undefined &&
-                  params.architect !== undefined;
-                console.log({ validated });
+                  params.architect !== undefined &&
+                  params.requester !== undefined;
+
+                const allTaskParamsFilled = Object.entries(params).reduce(
+                  (allFilled, [key, value]) => {
+                    if (key.startsWith("task|")) {
+                      return allFilled && value !== null;
+                    } else {
+                      return allFilled;
+                    }
+                  },
+                  true
+                );
+
+                validated = validated && allTaskParamsFilled;
 
                 if (validated) {
-                  console.table(params);
                   addToParams("CLEAR_ALL");
 
-                  setOpenForm(false);
-                  toaster.show({
-                    message: "Launching task...",
-                    icon: "cloud-upload",
-                    intent: Intent.NONE,
-                    timeout: 2000
-                  });
+                  launchTask(params)
+                    .then(() => {
+                      setOpenForm(false);
 
-                  toaster.show({
-                    message: JSON.stringify(params),
-                    icon: "cloud-upload",
-                    intent: Intent.NONE,
-                    timeout: 6000
-                  });
-
-                  // TODO: Make request to /launch_task_run with `params`
-                  // Use axios?
-
-                  setTimeout(
-                    () =>
+                      toaster.dismiss("loading-msg");
                       toaster.show({
                         message: "Launched!",
                         icon: "cloud-upload",
                         intent: Intent.SUCCESS,
-                        timeout: 2000
-                      }),
-                    1000
+                        timeout: 3000
+                      });
+                    })
+                    .catch(() => {
+                      // TODO: Handle error, also check payload in case
+                      // it specifies an error, e.g. ensure that
+                      // payload.status === 'success'
+                    });
+
+                  toaster.show(
+                    {
+                      message:
+                        "Launching task... Please wait this may take a while.",
+                      icon: "cloud-upload",
+                      intent: Intent.NONE,
+                      timeout: 40000
+                    },
+                    "loading-msg"
                   );
                 } else {
                   toaster.show({
-                    message: "Error: Must selected Blueprint + Architect",
+                    message:
+                      "Error: Must select Blueprint + Architect + Requester and fill all task params",
                     icon: "cloud-upload",
                     intent: Intent.DANGER,
                     timeout: 2000

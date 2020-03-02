@@ -20,21 +20,26 @@ export default function TaskRunSummary({ run }: { run: TaskRun }) {
       <h5 className="bp3-heading" style={{ display: "inline" }}>
         {run.task_name}
       </h5>{" "}
-      &mdash; {moment(run.start_time).fromNow()}
-      <Tag
+      &mdash; {moment.utc(run.start_time).fromNow()}
+      {/* <Tag
         icon="play"
         intent={Intent.SUCCESS}
         interactive={false}
         style={{ float: "right", marginLeft: 10 }}
       >
         Running
-      </Tag>
-      <code
-        className="bp3-code params-list"
-        style={{ display: "block", marginTop: 10 }}
-      >
-        {run.param_string}
-      </code>
+      </Tag> */}
+      <div className="params-list" style={{ display: "block", marginTop: 10 }}>
+        {Object.entries(run.params).map(([key, value]) => (
+          <span
+            key={key}
+            style={{ display: "inline-block", marginRight: 5, fontSize: 12 }}
+          >
+            <span className="param-name">{key}</span>=
+            <strong className="param-value">{value}</strong>
+          </span>
+        ))}
+      </div>
       <div className="details">
         <div className="metrics highlight-first">
           <div className="metric">

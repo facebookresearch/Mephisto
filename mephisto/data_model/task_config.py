@@ -107,6 +107,7 @@ class TaskConfig:
             dest="assignment_duration_seconds",
             help="Time that workers have to work on your task once accepted.",
             default=30 * 60,
+            type=int,
         )
         return
 

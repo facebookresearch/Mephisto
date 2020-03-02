@@ -70,9 +70,8 @@ class StaticTaskBuilder(TaskBuilder):
         shutil.copy2(use_html_file, target_path)
 
         # Copy over the preview file as preview.html, default to the task file if none specified
-        use_preview_file = os.path.expanduser(
-            self.opts.get("preview_source", use_html_file)
-        )
+        preview_file = self.opts.get("preview_source") or use_html_file
+        use_preview_file = os.path.expanduser(preview_file)
 
         target_path = os.path.join(target_resource_dir, "preview.html")
         shutil.copy2(use_preview_file, target_path)

@@ -13,6 +13,7 @@ from mephisto.core.utils import (
     get_valid_architect_types,
 )
 from mephisto.data_model.task_config import TaskConfig
+import sys, traceback, os
 
 api = Blueprint("api", __name__)
 
@@ -76,6 +77,7 @@ def launch_options():
 @api.route("/task_runs/launch", methods=["POST"])
 def start_task_run():
     # Blueprint, CrowdProvider, Architect (Local/Heroku), Dict of arguments
+
     info = request.get_json(force=True)
     input_arg_list = []
     for arg_content in info.values():
@@ -88,6 +90,7 @@ def start_task_run():
         # perhaps a link to the task? Will look into soon!
         return jsonify({"status": "success", "data": info})
     except Exception as e:
+        traceback.print_exc(file=sys.stdout)
         return jsonify({"success": False, "msg": f"error in launching job: {str(e)}"})
 
 
@@ -117,13 +120,14 @@ def requester_details(requester_type):
 
 @api.route("/requester/<string:requester_type>/register", methods=["POST"])
 def requester_register(requester_type):
-    options = request.form.to_dict()
+    options = request.get_json()
     crowd_provider = get_crowd_provider_from_type(requester_type)
     RequesterClass = crowd_provider.RequesterClass
 
     try:
         parsed_options = parse_arg_dict(RequesterClass, options)
     except Exception as e:
+        traceback.print_exc(file=sys.stdout)
         return jsonify(
             {"success": False, "msg": f"error in parsing arguments: {str(e)}"}
         )

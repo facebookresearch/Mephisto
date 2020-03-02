@@ -4,6 +4,7 @@ import useAxios from "axios-hooks";
 import { createAsync, mockRequest } from "../lib/Async";
 import { Icon, Colors } from "@blueprintjs/core";
 import { ReviewableTasks } from "../models";
+import TaskRunSummary from "./TaskRunSummary";
 
 const Async = createAsync<ReviewableTasks>();
 
@@ -38,7 +39,13 @@ export default (function ReviewWidget() {
             </a>
           </span>
         )}
-        onData={({ data }) => <span>{JSON.stringify(data)}</span>}
+        onData={({ data }) => (
+          <span>
+            {data.task_runs.map(run => (
+              <TaskRunSummary key={run.task_run_id} run={run} />
+            ))}
+          </span>
+        )}
         checkIfEmptyFn={data => data.task_runs}
         onEmptyData={() => (
           <div>

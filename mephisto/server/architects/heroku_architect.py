@@ -95,6 +95,7 @@ class HerokuArchitect(Architect):
             dest="use_hobby",
             help="Launch on the Heroku Hobby tier",
             type=bool,
+            default=False,
         )
         group.add_argument(
             "--heroku-team",
