@@ -45,7 +45,7 @@ export default (function PrepareWidget() {
                   <Icon icon="warning-sign" color={Colors.ORANGE3} />
                   {"  "}
                   You have no accounts set up.{" "}
-                  <a>
+                  <a onClick={() => setRequesterDrawerOpen(true)}>
                     <strong>Configure</strong>
                   </a>
                 </span>
@@ -113,7 +113,12 @@ export default (function PrepareWidget() {
                       </div>
                     ))}
                     <div style={{ marginTop: 15 }}>
-                      <RequesterForm />
+                      <RequesterForm
+                        onFinish={() => {
+                          setRequesterDrawerOpen(false);
+                          window.location.reload();
+                        }}
+                      />
                     </div>
                   </div>
                 )}

@@ -4,14 +4,18 @@ import { InputGroup, FormGroup, Button } from "@blueprintjs/core";
 import useAxios from "axios-hooks";
 import { createAsync } from "../../lib/Async";
 import RequesterTypeSelect from "./RequesterTypeSelect";
+import { createRequester } from "../../service";
 
 type RequesterType = any;
 type RequesterTypeParams = any;
 
 const RequesterTypeParamsAsync = createAsync<RequesterTypeParams>();
+const LaunchOptionsAsync = createAsync<any>();
 
-function RequesterForm() {
-  const requesterTypes = ["mturk"];
+function RequesterForm({ data, onFinish }: { data: any; onFinish: any }) {
+  const requesterTypes = data.data.requester_types.filter(
+    (r: any) => r !== "__pycache__"
+  );
 
   const [selectedRequesterType, setSelectedRequesterType] = React.useState<
     string | null
@@ -50,7 +54,21 @@ function RequesterForm() {
               <Formik
                 initialValues={{}}
                 onSubmit={values => {
-                  console.log(values);
+                  const results = Object.fromEntries(
+                    Object.entries(details.args).map(
+                      ([param, paramDetails]) => {
+                        return [
+                          param,
+                          {
+                            option_string: (paramDetails as any).option_string,
+                            value: (values as any)[param]
+                          }
+                        ];
+                      }
+                    )
+                  );
+                  createRequester(selectedRequesterType, results);
+                  onFinish();
                 }}
               >
                 {({
@@ -99,4 +117,19 @@ function RequesterForm() {
   );
 }
 
-export default RequesterForm;
+function RequesterFormWithData({ onFinish }: { onFinish: any }) {
+  const allRequestersAsync = useAxios<RequesterType>({
+    url: `/launch/options`
+  });
+
+  return (
+    <LaunchOptionsAsync
+      info={allRequestersAsync}
+      onLoading={() => <span>Loading...</span>}
+      onError={() => <span>Error</span>}
+      onData={data => <RequesterForm onFinish={onFinish} data={data as any} />}
+    />
+  );
+}
+
+export default RequesterFormWithData;
