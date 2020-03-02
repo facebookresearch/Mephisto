@@ -1,20 +1,13 @@
 import React from "react";
 import { Select, ItemRenderer } from "@blueprintjs/select";
 import { Button, MenuItem } from "@blueprintjs/core";
-import { createAsync } from "../../lib/Async";
-import useAxios from "axios-hooks";
-import FormField from "./FormField";
-import OptionsForm from "./OptionsForm";
 import { Requester } from "../../models";
 
 type IRequester = Requester;
 
-type BlueprintParams = any;
+const RequesterSelect = Select.ofType<IRequester>();
 
-const BlueprintSelect = Select.ofType<IRequester>();
-const BlueprintParamsAsync = createAsync<BlueprintParams>();
-
-const renderBlueprintItem: ItemRenderer<IRequester> = (
+const renderRequesterItem: ItemRenderer<IRequester> = (
   requester,
   { handleClick, modifiers, query }
 ) => {
@@ -33,7 +26,7 @@ const renderBlueprintItem: ItemRenderer<IRequester> = (
   );
 };
 
-export default function BlueprintSelectComponent<T>({
+export default function RequesterSelectComponent<T>({
   data,
   onUpdate
 }: {
@@ -43,9 +36,9 @@ export default function BlueprintSelectComponent<T>({
   const [selected, setSelected] = React.useState<IRequester | null>(null);
   return (
     <div>
-      <BlueprintSelect
+      <RequesterSelect
         items={data}
-        itemRenderer={renderBlueprintItem}
+        itemRenderer={renderRequesterItem}
         onItemSelect={(requester: IRequester) => {
           onUpdate({ requester: requester.requester_name });
           setSelected(requester);
@@ -55,7 +48,7 @@ export default function BlueprintSelectComponent<T>({
         <Button icon="map" rightIcon="caret-down">
           {selected ? selected.requester_name : "Pick a requester..."}
         </Button>
-      </BlueprintSelect>
+      </RequesterSelect>
     </div>
   );
 }
