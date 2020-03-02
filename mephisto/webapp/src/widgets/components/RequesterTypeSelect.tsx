@@ -40,7 +40,7 @@ export default function RequesterTypeSelectComponent<T>({
         items={data}
         itemRenderer={renderRequesterTypeItem}
         onItemSelect={(requesterType: IRequesterType) => {
-          onUpdate({ requesterType: requesterType });
+          onUpdate(requesterType);
           setSelected(requesterType);
         }}
         activeItem={selected}
