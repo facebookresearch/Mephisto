@@ -7,6 +7,7 @@ import useAxios from "axios-hooks";
 import { Drawer, Classes, Position, Card } from "@blueprintjs/core";
 import { Requesters, Requester } from "../models";
 import { createAsync } from "../lib/Async";
+import RequesterForm from "../widgets/components/RequesterForm";
 
 const Async = createAsync<Requesters>();
 
@@ -112,9 +113,7 @@ export default (function PrepareWidget() {
                       </div>
                     ))}
                     <div style={{ marginTop: 15 }}>
-                      <Button disabled icon="new-person">
-                        [TODO] Add a new requester account...
-                      </Button>
+                      <RequesterForm />
                     </div>
                   </div>
                 )}

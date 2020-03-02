@@ -9,6 +9,8 @@ export interface Requesters {
   requesters: Requester[];
 }
 
+export type RequesterType = string;
+
 export interface TaskRun {
   param_string: string; // "--test --task --run"
   params: object; // { "run params": "Coming soon!"; status: "Not yet implemented"; }
