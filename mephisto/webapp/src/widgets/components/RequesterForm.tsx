@@ -3,41 +3,40 @@ import { Formik } from "formik";
 import { InputGroup, FormGroup, Button } from "@blueprintjs/core";
 import useAxios from "axios-hooks";
 import { createAsync } from "../../lib/Async";
-import RequesterTypeSelect from "./RequesterTypeSelect";
+import ProviderSelect from "./ProviderSelect";
 import { createRequester } from "../../service";
+import { ParamDetails } from "../../models";
 
-type RequesterType = any;
-type RequesterTypeParams = any;
+type Provider = any;
+type ProviderParams = any;
 
-const RequesterTypeParamsAsync = createAsync<RequesterTypeParams>();
+const ProviderParamsAsync = createAsync<ProviderParams>();
 const LaunchOptionsAsync = createAsync<any>();
 
 function RequesterForm({ data, onFinish }: { data: any; onFinish: any }) {
-  const requesterTypes = data.data.requester_types.filter(
-    (r: any) => r !== "__pycache__"
+  const requesterTypes = data.data.requester_types;
+
+  const [selectedProvider, setSelectedProvider] = React.useState<string | null>(
+    null
   );
 
-  const [selectedRequesterType, setSelectedRequesterType] = React.useState<
-    string | null
-  >(null);
-
-  const requesterTypesAsync = useAxios<RequesterType>({
-    url: `/requester/${selectedRequesterType}/options`
+  const requesterTypesAsync = useAxios<Provider>({
+    url: `/requester/${selectedProvider}/options`
   });
 
   return (
     <div style={{ margin: "40px 0 20px" }}>
       <h3 className="bp3-heading">Add a New Requester:</h3>
 
-      <RequesterTypeSelect
+      <ProviderSelect
         data={requesterTypes}
         onUpdate={(requesterType: string) => {
           console.log({ requesterType });
-          setSelectedRequesterType(requesterType);
+          setSelectedProvider(requesterType);
         }}
       />
-      {selectedRequesterType && (
-        <RequesterTypeParamsAsync
+      {selectedProvider && (
+        <ProviderParamsAsync
           info={requesterTypesAsync}
           onLoading={() => <span>Loading...</span>}
           onError={() => <span>Error</span>}
@@ -53,21 +52,21 @@ function RequesterForm({ data, onFinish }: { data: any; onFinish: any }) {
               </div>
               <Formik
                 initialValues={{}}
-                onSubmit={values => {
+                onSubmit={(values: Record<string, string>) => {
                   const results = Object.fromEntries(
-                    Object.entries(details.args).map(
+                    Object.entries<ParamDetails>(details.args).map(
                       ([param, paramDetails]) => {
                         return [
                           param,
                           {
-                            option_string: (paramDetails as any).option_string,
-                            value: (values as any)[param]
+                            option_string: paramDetails.option_string,
+                            value: values[param]
                           }
                         ];
                       }
                     )
                   );
-                  createRequester(selectedRequesterType, results);
+                  createRequester(selectedProvider, results);
                   onFinish();
                 }}
               >
@@ -118,7 +117,7 @@ function RequesterForm({ data, onFinish }: { data: any; onFinish: any }) {
 }
 
 function RequesterFormWithData({ onFinish }: { onFinish: any }) {
-  const allRequestersAsync = useAxios<RequesterType>({
+  const allRequestersAsync = useAxios<Provider>({
     url: `/launch/options`
   });
 
@@ -127,7 +126,7 @@ function RequesterFormWithData({ onFinish }: { onFinish: any }) {
       info={allRequestersAsync}
       onLoading={() => <span>Loading...</span>}
       onError={() => <span>Error</span>}
-      onData={data => <RequesterForm onFinish={onFinish} data={data as any} />}
+      onData={data => <RequesterForm onFinish={onFinish} data={data} />}
     />
   );
 }

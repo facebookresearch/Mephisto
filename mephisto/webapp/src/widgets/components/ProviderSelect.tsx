@@ -1,13 +1,13 @@
 import React from "react";
 import { Select, ItemRenderer } from "@blueprintjs/select";
 import { Button, MenuItem } from "@blueprintjs/core";
-import { RequesterType } from "../../models";
+import { Provider } from "../../models";
 
-type IRequesterType = RequesterType;
+type IProvider = Provider;
 
-const RequesterTypeSelect = Select.ofType<IRequesterType>();
+const ProviderSelect = Select.ofType<IProvider>();
 
-const renderRequesterTypeItem: ItemRenderer<IRequesterType> = (
+const renderProviderItem: ItemRenderer<IProvider> = (
   requesterType,
   { handleClick, modifiers, query }
 ) => {
@@ -26,20 +26,20 @@ const renderRequesterTypeItem: ItemRenderer<IRequesterType> = (
   );
 };
 
-export default function RequesterTypeSelectComponent<T>({
+export default function ProviderSelectComponent<T>({
   data,
   onUpdate
 }: {
-  data: IRequesterType[];
+  data: IProvider[];
   onUpdate: Function;
 }) {
-  const [selected, setSelected] = React.useState<IRequesterType | null>(null);
+  const [selected, setSelected] = React.useState<IProvider | null>(null);
   return (
     <div>
-      <RequesterTypeSelect
+      <ProviderSelect
         items={data}
-        itemRenderer={renderRequesterTypeItem}
-        onItemSelect={(requesterType: IRequesterType) => {
+        itemRenderer={renderProviderItem}
+        onItemSelect={(requesterType: IProvider) => {
           onUpdate(requesterType);
           setSelected(requesterType);
         }}
@@ -48,7 +48,7 @@ export default function RequesterTypeSelectComponent<T>({
         <Button icon="map" rightIcon="caret-down">
           {selected ? selected : "Pick a requester type..."}
         </Button>
-      </RequesterTypeSelect>
+      </ProviderSelect>
     </div>
   );
 }

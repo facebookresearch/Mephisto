@@ -9,7 +9,16 @@ export interface Requesters {
   requesters: Requester[];
 }
 
-export type RequesterType = string;
+export interface ParamDetails {
+  choices: string[] | null;
+  default: string;
+  dest: string;
+  help: string;
+  option_string: string;
+  type: string;
+}
+
+export type Provider = string;
 
 export interface TaskRun {
   param_string: string; // "--test --task --run"
