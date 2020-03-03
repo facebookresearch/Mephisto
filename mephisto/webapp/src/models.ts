@@ -9,6 +9,13 @@ export interface Requesters {
   requesters: Requester[];
 }
 
+export interface LaunchOptions {
+  architect_types: string[];
+  blueprint_types: { name: string; rank: number }[];
+  requester_types: string[];
+  success: boolean;
+}
+
 export interface ParamDetails {
   choices: string[] | null;
   default: string;

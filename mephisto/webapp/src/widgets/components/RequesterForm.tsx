@@ -5,7 +5,7 @@ import useAxios from "axios-hooks";
 import { createAsync } from "../../lib/Async";
 import ProviderSelect from "./ProviderSelect";
 import { createRequester } from "../../service";
-import { ParamDetails } from "../../models";
+import { ParamDetails, LaunchOptions } from "../../models";
 
 type Provider = any;
 type ProviderParams = any;
@@ -13,8 +13,14 @@ type ProviderParams = any;
 const ProviderParamsAsync = createAsync<ProviderParams>();
 const LaunchOptionsAsync = createAsync<any>();
 
-function RequesterForm({ data, onFinish }: { data: any; onFinish: any }) {
-  const requesterTypes = data.data.requester_types;
+function RequesterForm({
+  data,
+  onFinish
+}: {
+  data: LaunchOptions;
+  onFinish: Function;
+}) {
+  const requesterTypes = data.requester_types;
 
   const [selectedProvider, setSelectedProvider] = React.useState<string | null>(
     null
@@ -116,7 +122,7 @@ function RequesterForm({ data, onFinish }: { data: any; onFinish: any }) {
   );
 }
 
-function RequesterFormWithData({ onFinish }: { onFinish: any }) {
+function RequesterFormWithData({ onFinish }: { onFinish: Function }) {
   const allRequestersAsync = useAxios<Provider>({
     url: `/launch/options`
   });
@@ -126,7 +132,7 @@ function RequesterFormWithData({ onFinish }: { onFinish: any }) {
       info={allRequestersAsync}
       onLoading={() => <span>Loading...</span>}
       onError={() => <span>Error</span>}
-      onData={data => <RequesterForm onFinish={onFinish} data={data} />}
+      onData={({ data }) => <RequesterForm onFinish={onFinish} data={data} />}
     />
   );
 }
