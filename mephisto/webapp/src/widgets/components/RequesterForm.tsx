@@ -11,7 +11,7 @@ type Provider = any;
 type ProviderParams = any;
 
 const ProviderParamsAsync = createAsync<ProviderParams>();
-const LaunchOptionsAsync = createAsync<any>();
+const LaunchOptionsAsync = createAsync<LaunchOptions>();
 
 function RequesterForm({
   data,
