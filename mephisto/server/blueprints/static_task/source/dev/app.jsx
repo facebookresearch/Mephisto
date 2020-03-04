@@ -75,12 +75,18 @@ function requestTaskHMTL(target_html, callback_function) {
   });
 }
 
-function postCompleteTask(agent_id, complete_data, callback_function) {
-  postProviderRequest(
-    '/submit_task',
-    {'agent_id': agent_id, 'final_data': complete_data},
-    callback_function,
-  )
+function postCompleteTask(complete_data, callback_function) {
+  var oReq = new XMLHttpRequest();
+  oReq.open("POST", "/submit_task", true);
+  oReq.onload = function(oEvent) {
+    if (oReq.status == 200) {
+      console.log("Uploaded!");
+    } else {
+      console.log("Error " + oReq.status + " occurred when trying to post data");
+    }
+  };
+
+  oReq.send(complete_data);
 }
 
 /* ================= Application Components ================= */
@@ -177,11 +183,14 @@ class MainApp extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
+    console.log(event.target);
     const form_data = new FormData(event.target);
+    form_data.append('USED_AGENT_ID', this.state.agent_id);
+    console.log(form_data);
+    postCompleteTask(form_data);
     let obj_data = {}
     form_data.forEach((value, key) => {obj_data[key] = value});
     console.log(obj_data);
-    postCompleteTask(this.state.agent_id, obj_data);
     handleSubmitToProvider(obj_data);
   }
 
@@ -208,7 +217,7 @@ class MainApp extends React.Component {
     }
     return (
       <div>
-        <form enctype="multipart/form-data" onSubmit={this.handleSubmit.bind(this)}>
+        <form encType="multipart/form-data" onSubmit={this.handleSubmit.bind(this)}>
           {dangerous_html}
           {submit_button}
         </form>

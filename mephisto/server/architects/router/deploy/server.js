@@ -297,14 +297,16 @@ app.post('/submit_onboarding', function(req, res) {
   make_provider_request(PACKET_TYPE_SUBMIT_ONBOARDING, provider_data, res);
 });
 
-app.post('/submit_task', upload.array('files'), function(req, res) {
-  var provider_data = req.body.provider_data;
+app.post('/submit_task', upload.any(), function(req, res) {
+  var provider_data = req.body;
+  let agent_id = provider_data.USED_AGENT_ID;
+  delete provider_data.USED_AGENT_ID;
   let submit_packet = {
     packet_type: PACKET_TYPE_AGENT_ACTION,
-    sender_id: provider_data.agent_id,
+    sender_id: agent_id,
     receiver_id: SYSTEM_SOCKET_ID,
     data: {
-      'task_data': provider_data.final_data,
+      'task_data': provider_data,
       'is_submit': true,
       'files': req.files,
     },
