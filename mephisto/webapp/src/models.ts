@@ -12,7 +12,7 @@ export interface Requesters {
 export interface LaunchOptions {
   architect_types: string[];
   blueprint_types: { name: string; rank: number }[];
-  requester_types: string[];
+  provider_types: string[];
   success: boolean;
 }
 

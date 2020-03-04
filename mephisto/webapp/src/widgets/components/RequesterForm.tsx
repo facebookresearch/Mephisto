@@ -20,7 +20,7 @@ function RequesterForm({
   data: LaunchOptions;
   onFinish: Function;
 }) {
-  const requesterTypes = data.requester_types;
+  const requesterTypes = data.provider_types;
 
   const [selectedProvider, setSelectedProvider] = React.useState<string | null>(
     null
