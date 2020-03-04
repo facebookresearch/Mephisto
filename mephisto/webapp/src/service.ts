@@ -11,6 +11,13 @@ export function launchTask(data: any): AxiosPromise<any> {
   return axios.post("task_runs/launch", transformedPayload);
 }
 
+export function createRequester(
+  provider: string,
+  payload: any
+): AxiosPromise<any> {
+  return axios.post(`requester/${provider}/register`, payload);
+}
+
 function mapDataToExpectedPayload(data: any) {
   // We expect to receive a payload of the following format that
   // will then transform to suit the API's expectations:

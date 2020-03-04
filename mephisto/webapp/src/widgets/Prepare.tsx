@@ -7,6 +7,7 @@ import useAxios from "axios-hooks";
 import { Drawer, Classes, Position, Card } from "@blueprintjs/core";
 import { Requesters, Requester } from "../models";
 import { createAsync } from "../lib/Async";
+import RequesterForm from "../widgets/components/RequesterForm";
 
 const Async = createAsync<Requesters>();
 
@@ -44,7 +45,7 @@ export default (function PrepareWidget() {
                   <Icon icon="warning-sign" color={Colors.ORANGE3} />
                   {"  "}
                   You have no accounts set up.{" "}
-                  <a>
+                  <a onClick={() => setRequesterDrawerOpen(true)}>
                     <strong>Configure</strong>
                   </a>
                 </span>
@@ -112,9 +113,12 @@ export default (function PrepareWidget() {
                       </div>
                     ))}
                     <div style={{ marginTop: 15 }}>
-                      <Button disabled icon="new-person">
-                        [TODO] Add a new requester account...
-                      </Button>
+                      <RequesterForm
+                        onFinish={() => {
+                          setRequesterDrawerOpen(false);
+                          window.location.reload();
+                        }}
+                      />
                     </div>
                   </div>
                 )}

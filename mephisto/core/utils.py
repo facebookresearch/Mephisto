@@ -207,7 +207,10 @@ def get_valid_provider_types() -> List[str]:
         for f in os.listdir(providers_path)
         if os.path.isdir(os.path.join(providers_path, f))
     ]
-    return available_providers
+    # TODO: Un-hardcode these providers. Right now we have false positives
+    # flowing through, such as __pycache__.
+    return ['mock', 'mturk_sandbox', 'mturk']
+    # return available_providers
 
 
 @functools.lru_cache(maxsize=1)

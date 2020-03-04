@@ -9,6 +9,24 @@ export interface Requesters {
   requesters: Requester[];
 }
 
+export interface LaunchOptions {
+  architect_types: string[];
+  blueprint_types: { name: string; rank: number }[];
+  provider_types: string[];
+  success: boolean;
+}
+
+export interface ParamDetails {
+  choices: string[] | null;
+  default: string;
+  dest: string;
+  help: string;
+  option_string: string;
+  type: string;
+}
+
+export type Provider = string;
+
 export interface TaskRun {
   param_string: string; // "--test --task --run"
   params: object; // { "run params": "Coming soon!"; status: "Not yet implemented"; }

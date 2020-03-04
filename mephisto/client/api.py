@@ -62,10 +62,12 @@ def get_reviewable_task_runs():
 def launch_options():
     blueprint_types = get_valid_blueprint_types()
     architect_types = get_valid_architect_types()
+    provider_types = get_valid_provider_types()
     return jsonify(
         {
             "success": True,
             "architect_types": architect_types,
+            "provider_types": provider_types,
             "blueprint_types": [
                 {"name": bp, "rank": idx + 1}
                 for (idx, bp) in enumerate(blueprint_types)
