@@ -84,4 +84,6 @@ class StaticAgentState(AgentState):
             packet.data.get("is_submit") is True
         ), "Static tasks should only have final act"
         self.state.append(packet.data["task_data"])
+        if packet.data.get('files') != None:
+            print(str(packet.data['files'])[:100])
         self.save_data()

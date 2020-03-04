@@ -11,6 +11,7 @@ const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const WebSocket = require('ws');
+const multer  = require('multer');
 
 const task_directory_name = 'static';
 
@@ -34,6 +35,8 @@ app.use(
   })
 );
 app.use(bodyParser.json());
+
+let upload  = multer({ storage: multer.memoryStorage() });
 
 const server = http.createServer(app);
 
@@ -294,7 +297,7 @@ app.post('/submit_onboarding', function(req, res) {
   make_provider_request(PACKET_TYPE_SUBMIT_ONBOARDING, provider_data, res);
 });
 
-app.post('/submit_task', function(req, res) {
+app.post('/submit_task', upload.array('files'), function(req, res) {
   var provider_data = req.body.provider_data;
   let submit_packet = {
     packet_type: PACKET_TYPE_AGENT_ACTION,
@@ -302,7 +305,8 @@ app.post('/submit_task', function(req, res) {
     receiver_id: SYSTEM_SOCKET_ID,
     data: {
       'task_data': provider_data.final_data,
-      'is_submit': true
+      'is_submit': true,
+      'files': req.files,
     },
   };
   _send_message(mephisto_socket, submit_packet);

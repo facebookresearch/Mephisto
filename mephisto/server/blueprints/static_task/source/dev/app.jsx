@@ -208,7 +208,7 @@ class MainApp extends React.Component {
     }
     return (
       <div>
-        <form onSubmit={this.handleSubmit.bind(this)}>
+        <form enctype="multipart/form-data" onSubmit={this.handleSubmit.bind(this)}>
           {dangerous_html}
           {submit_button}
         </form>
