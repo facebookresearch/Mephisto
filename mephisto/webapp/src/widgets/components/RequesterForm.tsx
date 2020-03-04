@@ -86,7 +86,6 @@ function RequesterForm({
                   isSubmitting
                 }) => (
                   <div>
-                    {/* {JSON.stringify(details.args)} */}
                     {Object.entries(details.args).map(
                       ([param, details]: [any, any]) => {
                         return (
