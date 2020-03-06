@@ -262,9 +262,19 @@ class Supervisor:
             ),
         )
 
-    def _on_act(self, packet: Packet):
+    def _on_act(self, packet: Packet, socket_info: SocketInfo):
         """Handle an action as sent from an agent"""
         agent = self.agents[packet.sender_id].agent
+
+        # If the packet is_submit, and has files, we need to 
+        # process downloading those files first
+        if packet.data.get('MEPHISTO_is_submit') is True:
+            if packet.data.get('files') is not None:
+                save_dir = agent.get_data_dir()
+                architect = socket_info.job.architect
+                for f_obj in packet.data.get('files'):
+                    architect.download_file(f_obj['filename'], save_dir)
+
         agent.pending_actions.append(packet)
         agent.has_action.set()
 
@@ -480,7 +490,7 @@ class Supervisor:
     def _on_message(self, packet: Packet, socket_info: SocketInfo):
         """Handle incoming messages from the socket"""
         if packet.type == PACKET_TYPE_AGENT_ACTION:
-            self._on_act(packet)
+            self._on_act(packet, socket_info)
         elif packet.type == PACKET_TYPE_NEW_AGENT:
             self._register_agent(packet, socket_info)
         elif packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:

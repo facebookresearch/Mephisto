@@ -81,7 +81,9 @@ function postCompleteTask(complete_data, callback_function) {
   oReq.onload = function(oEvent) {
     if (oReq.status == 200) {
       console.log("Uploaded!");
+      callback_function();
     } else {
+      // TODO warn the user of an error somewhere
       console.log("Error " + oReq.status + " occurred when trying to post data");
     }
   };
@@ -187,11 +189,12 @@ class MainApp extends React.Component {
     const form_data = new FormData(event.target);
     form_data.append('USED_AGENT_ID', this.state.agent_id);
     console.log(form_data);
-    postCompleteTask(form_data);
-    let obj_data = {}
-    form_data.forEach((value, key) => {obj_data[key] = value});
-    console.log(obj_data);
-    handleSubmitToProvider(obj_data);
+    postCompleteTask(form_data, () => {
+      let obj_data = {}
+      form_data.forEach((value, key) => {obj_data[key] = value});
+      console.log(obj_data);
+      handleSubmitToProvider(obj_data);
+    });
   }
 
   render() {

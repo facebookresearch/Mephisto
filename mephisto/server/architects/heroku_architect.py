@@ -16,6 +16,7 @@ import shlex
 import shutil
 import subprocess
 import time
+import requests
 from mephisto.core.utils import get_mephisto_tmp_dir
 from mephisto.data_model.architect import Architect
 from mephisto.server.architects.router.build_router import build_router
@@ -77,6 +78,20 @@ class HerokuArchitect(Architect):
         """Returns the path to the heroku app socket"""
         heroku_app_name = self.__get_app_name()
         return ["wss://{}.herokuapp.com/".format(heroku_app_name)]
+
+    def download_file(self, target_filename: str, save_dir: str) -> None:
+        """
+        Heroku architects need to download the file
+        """
+        heroku_app_name = self.__get_app_name()
+        target_url = f'https://{heroku_app_name}.herokuapp.com/download_file/{target_filename}'
+        dest_path = os.path.join(save_dir, target_filename)
+        r = requests.get(target_url, stream = True)
+
+        with open(dest_path, "wb") as out_file:
+            for chunk in r.iter_content(chunk_size = 1024):
+                if chunk:
+                    out_file.write(chunk)
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:

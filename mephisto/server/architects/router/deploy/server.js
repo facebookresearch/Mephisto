@@ -12,6 +12,7 @@ const http = require('http');
 const fs = require('fs');
 const WebSocket = require('ws');
 const multer  = require('multer');
+const path = require('path');
 
 const task_directory_name = 'static';
 
@@ -36,7 +37,17 @@ app.use(
 );
 app.use(bodyParser.json());
 
-let upload  = multer({ storage: multer.memoryStorage() });
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.fieldname + '-' + file.originalname);
+  }
+})
+
+var upload = multer({ storage: storage })
 
 const server = http.createServer(app);
 
@@ -131,6 +142,7 @@ function _send_message(socket, packet) {
 function handle_alive(socket, alive_packet) {
   if (alive_packet.sender_id == SYSTEM_SOCKET_ID) {
     mephisto_socket = socket;
+    console.log(socket._socket.remoteAddress);
     if (main_thread_timeout === null) {
       console.log('launching main thread')
       main_thread_timeout = setTimeout(main_thread, 50);
@@ -307,7 +319,7 @@ app.post('/submit_task', upload.any(), function(req, res) {
     receiver_id: SYSTEM_SOCKET_ID,
     data: {
       'task_data': provider_data,
-      'is_submit': true,
+      'MEPHISTO_is_submit': true,
       'files': req.files,
     },
   };
@@ -328,6 +340,21 @@ app.get('/get_timestamp', function(req, res) {
 app.get('/task_index', function(req, res) {
   // TODO how do we pass the task config to the frontend?
   res.render('index.html');
+});
+
+app.get('/download_file/:file', function(req, res) {
+  var ip = req.ip || 
+    req.headers['x-forwarded-for'] || 
+    req.connection.remoteAddress || 
+    req.socket.remoteAddress ||
+    req.connection.socket.remoteAddress;
+  if (ip == mephisto_socket._socket.remoteAddress) {
+    console.log('was from mephisto_socket!');
+    console.log(req.params.file);
+    res.sendFile(path.join(__dirname, 'uploads', req.params.file));
+  } else {
+    res.end();
+  }
 });
 
 app.use(express.static('static'));
