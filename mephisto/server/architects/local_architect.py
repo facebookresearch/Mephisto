@@ -75,10 +75,10 @@ class LocalArchitect(Architect):
         """
         Local architects can just move from the local directory
         """
-        source_file = os.path.join(self.running_dir, 'uploads', target_filename)
+        source_file = os.path.join(self.running_dir, "uploads", target_filename)
         dest_path = os.path.join(save_dir, target_filename)
         shutil.copy2(source_file, dest_path)
-        
+
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """

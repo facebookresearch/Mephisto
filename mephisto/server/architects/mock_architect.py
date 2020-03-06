@@ -289,8 +289,8 @@ class MockArchitect(Architect):
         """
         Mock architects can just pretend to write a file
         """
-        with open(os.path.join(save_dir, target_filename), 'wb') as fp:
-            fp.write('mock')
+        with open(os.path.join(save_dir, target_filename), "wb") as fp:
+            fp.write("mock")
 
     def prepare(self) -> str:
         """Mark the preparation call"""

@@ -84,12 +84,14 @@ class HerokuArchitect(Architect):
         Heroku architects need to download the file
         """
         heroku_app_name = self.__get_app_name()
-        target_url = f'https://{heroku_app_name}.herokuapp.com/download_file/{target_filename}'
+        target_url = (
+            f"https://{heroku_app_name}.herokuapp.com/download_file/{target_filename}"
+        )
         dest_path = os.path.join(save_dir, target_filename)
-        r = requests.get(target_url, stream = True)
+        r = requests.get(target_url, stream=True)
 
         with open(dest_path, "wb") as out_file:
-            for chunk in r.iter_content(chunk_size = 1024):
+            for chunk in r.iter_content(chunk_size=1024):
                 if chunk:
                     out_file.write(chunk)
 

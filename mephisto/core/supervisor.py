@@ -266,14 +266,14 @@ class Supervisor:
         """Handle an action as sent from an agent"""
         agent = self.agents[packet.sender_id].agent
 
-        # If the packet is_submit, and has files, we need to 
+        # If the packet is_submit, and has files, we need to
         # process downloading those files first
-        if packet.data.get('MEPHISTO_is_submit') is True:
-            if packet.data.get('files') is not None:
+        if packet.data.get("MEPHISTO_is_submit") is True:
+            if packet.data.get("files") is not None:
                 save_dir = agent.get_data_dir()
                 architect = socket_info.job.architect
-                for f_obj in packet.data.get('files'):
-                    architect.download_file(f_obj['filename'], save_dir)
+                for f_obj in packet.data.get("files"):
+                    architect.download_file(f_obj["filename"], save_dir)
 
         agent.pending_actions.append(packet)
         agent.has_action.set()
