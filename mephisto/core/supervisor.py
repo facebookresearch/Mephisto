@@ -269,10 +269,11 @@ class Supervisor:
         # If the packet is_submit, and has files, we need to
         # process downloading those files first
         if packet.data.get("MEPHISTO_is_submit") is True:
-            if packet.data.get("files") is not None:
+            data_files = packet.data.get("files")
+            if data_files is not None:
                 save_dir = agent.get_data_dir()
                 architect = socket_info.job.architect
-                for f_obj in packet.data.get("files"):
+                for f_obj in data_files:
                     architect.download_file(f_obj["filename"], save_dir)
 
         agent.pending_actions.append(packet)

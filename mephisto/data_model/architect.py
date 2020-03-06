@@ -56,7 +56,7 @@ class Architect(ABC):
         """
         raise NotImplementedError()
 
-    def save_file(self, filename: str, save_dir: str) -> None:
+    def download_file(self, filename: str, save_dir: str) -> None:
         """
         Save the file that is noted as stored on the server to 
         the desired save location.

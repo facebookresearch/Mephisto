@@ -75,6 +75,7 @@ class LocalArchitect(Architect):
         """
         Local architects can just move from the local directory
         """
+        assert self.running_dir is not None, "cannot download a file if not running"
         source_file = os.path.join(self.running_dir, "uploads", target_filename)
         dest_path = os.path.join(save_dir, target_filename)
         shutil.copy2(source_file, dest_path)
