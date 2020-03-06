@@ -87,7 +87,6 @@ function postCompleteTask(complete_data, callback_function) {
       console.log("Error " + oReq.status + " occurred when trying to post data");
     }
   };
-
   oReq.send(complete_data);
 }
 
@@ -112,6 +111,7 @@ class MainApp extends React.Component {
       agent_id: null,
       assignment_id: assignment_id,
       task_data: null,
+      submitting: false,
     };
 
     this.raw_html_elem = null;
@@ -189,6 +189,7 @@ class MainApp extends React.Component {
     const form_data = new FormData(event.target);
     form_data.append('USED_AGENT_ID', this.state.agent_id);
     console.log(form_data);
+    this.setState({submitting: true});
     postCompleteTask(form_data, () => {
       let obj_data = {}
       form_data.forEach((value, key) => {obj_data[key] = value});
@@ -207,12 +208,12 @@ class MainApp extends React.Component {
       submit_button = (
         <div>
           <div style={{display: 'flex', justifyContent: 'center'}}>
-            <Button type="submit">
+            <Button type="submit" disabled={this.state.submitting}>
               <span
                 style={{ marginRight: 5 }}
                 className="glyphicon glyphicon-ok"
               />
-              Submit
+              {this.state.submitting? 'Submitting...' : 'Submit'}
             </Button>
           </div>
         </div>

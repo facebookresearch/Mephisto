@@ -349,8 +349,6 @@ app.get('/download_file/:file', function(req, res) {
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
   if (ip == mephisto_socket._socket.remoteAddress) {
-    console.log('was from mephisto_socket!');
-    console.log(req.params.file);
     res.sendFile(path.join(__dirname, 'uploads', req.params.file));
   } else {
     res.end();
