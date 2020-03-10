@@ -28,6 +28,7 @@ from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import AgentState
+    from mephsito.data_model.assignment import Assignment
 
 
 class MephistoAgentWrapper(ParlAIAgent):
@@ -40,7 +41,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         self.__agent_id = 'unnamed agent'
 
     @property
-    def agent_id():
+    def agent_id(self):
         '''
         Agent IDs in ParlAI are used to identify the speaker,
         and often are a label like "teacher"
@@ -86,7 +87,7 @@ class MephistoAgentWrapper(ParlAIAgent):
             data=act,
         )
         self.mephisto_agent.observe(packaged_act)
-        
+
 
 class ParlAIChatTaskRunner(TaskRunner):
     """
@@ -125,9 +126,9 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         for agent in agents:
             assert agent is not None, "task was not fully assigned"
-        opt = {} # TODO find a way to pass world options along
+        opt: Dict[str, Any] = {} # TODO find a way to pass world options along
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
-        world = self.parlai_world_module.make_world(opt, parlai_agents)
+        world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 

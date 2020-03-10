@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Optional, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
 from mephisto.data_model.blueprint import AgentState
 import os
 import json
@@ -31,7 +31,7 @@ class ParlAIChatAgentState(AgentState):
         if os.path.exists(data_file):
             self.load_data()
         else:
-            self.messages: List[Dict[str, Any]] = []
+            self.messages: List[Tuple[str, Dict[str, Any]]] = []
             self.init_data = None
             self.save_data()
 

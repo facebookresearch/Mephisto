@@ -40,13 +40,14 @@ class ParlAIChatBlueprint(Blueprint):
     def __init__(self, task_run: "TaskRun", opts: Any):
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         super().__init__(task_run, opts)
+        # TODO context should be put into task_data
         if opts.get("context_csv") is not None:
             csv_file = os.path.expanduser(opts["context_csv"])
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
                 csv_reader = csv.reader(csv_fp)
                 headers = next(csv_reader)
                 for row in csv_reader:
-                    row_data = {"html": task_file_name}
+                    row_data: Dict[str, Any] = {}
                     for i, col in enumerate(row):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
@@ -67,7 +68,7 @@ class ParlAIChatBlueprint(Blueprint):
         # how to get ParlAI to play with Poetry
         assert hasattr(world_module, "make_world")
         assert hasattr(world_module, "get_world_params")
-        self.agent_count = world_module.get_world_params()['agent_count']
+        self.agent_count = world_module.get_world_params()['agent_count']  # type: ignore
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
