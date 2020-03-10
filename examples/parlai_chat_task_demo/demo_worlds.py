@@ -33,10 +33,13 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
 
     def __init__(self, opt, agents=None, shared=None):
         # Add passed in agents directly.
-        print(f'making world with {agents}')
         self.agents = agents
         self.acts = [None] * len(agents)
         self.episodeDone = False
+        self.max_turns = opt.get('max_turns', 2)
+        self.current_turns = 0
+        for idx, agent in enumerate(self.agents):
+            agent.agent_id = f"Chat Agent {idx + 1}"
 
     def parley(self):
         """
@@ -45,6 +48,9 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         Then take an action yourself.
         """
         acts = self.acts
+        self.current_turns += 1
+        if self.current_turns >= self.max_turns:
+            self.episodeDone = True
         for index, agent in enumerate(self.agents):
             try:
                 acts[index] = agent.act(timeout=TURN_TIMEOUT_TIME)

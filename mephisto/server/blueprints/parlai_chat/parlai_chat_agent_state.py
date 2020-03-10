@@ -78,8 +78,8 @@ class ParlAIChatAgentState(AgentState):
 
     def update_data(self, packet: "Packet") -> None:
         """
-        Put new current Unit data into this AgentState
+        Append the incoming packet as well as who it came from
         """
         parsed_message = packet.data
-        # TODO ensure that we parse this right
-        self.messages.append(parsed_message)
+        self.messages.append((packet.sender_id, parsed_message))
+        self.save_data()

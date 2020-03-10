@@ -4,6 +4,8 @@
  */
 'use strict';
 
+const DEBUG = true
+
 // TODO add some testing to launch this server and communicate with it
 
 const bodyParser = require('body-parser');
@@ -110,6 +112,13 @@ var pending_provider_requests = {};
 var last_mephisto_ping = Date.now();
 
 
+function debug_log() {
+  if (DEBUG) {
+    console.log.apply(null, arguments);
+  }
+}
+
+
 // Handles sending a message through the socket
 function _send_message(socket, packet) {
   if (!socket) {
@@ -120,10 +129,6 @@ function _send_message(socket, packet) {
   if (socket.readyState == 3) {
     // Socket has already closed
     return;
-  }
-
-  if (packet.packet_type != PACKET_TYPE_HEARTBEAT && packet.packet_type != PACKET_TYPE_RETURN_AGENT_STATUS) {
-    console.log('actually sending', packet);
   }
 
   // Send the message through, with one retry a half second later
@@ -150,7 +155,7 @@ function handle_alive(socket, alive_packet) {
     mephisto_socket = socket;
     console.log(socket._socket.remoteAddress);
     if (main_thread_timeout === null) {
-      console.log('launching main thread')
+      debug_log('launching main thread')
       main_thread_timeout = setTimeout(main_thread, 50);
     }
   } else {
@@ -159,9 +164,6 @@ function handle_alive(socket, alive_packet) {
     if (agent === undefined) {
       var agent = new LocalAgentState(agent_id);
       agent_id_to_agent[agent_id] = agent;
-      console.log('Opening new agent: ' + agent_id);
-    } else {
-      console.log('using old agent', agent);
     }
     agent_id_to_socket[agent_id] = socket;
     socket_id_to_agent[socket.id] = agent;
@@ -189,10 +191,6 @@ function handle_forward(packet) {
   if (packet.receiver_id == SYSTEM_SOCKET_ID) {
     mephisto_message_queue.push(packet);
   } else {
-    if(packet.packet_type !== PACKET_TYPE_HEARTBEAT) {
-      console.log(agent_id_to_agent);
-      console.log('want to forward', packet);
-    }
     let agent = agent_id_to_agent[packet.receiver_id];
     if (agent === undefined) {
       agent = new LocalAgentState(packet.receiver_id);
@@ -229,16 +227,15 @@ wss.on('connection', function(socket) {
         // console.log(packet);
         handle_get_agent_status(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_AGENT_ACTION) {
-        console.log(packet);
+        debug_log('Agent action: ', packet);
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_ALIVE) {
-        console.log(packet);
+        debug_log('Agent alive: ', packet);
         handle_alive(socket, packet);
       } else if (packet['packet_type'] == PACKET_TYPE_UPDATE_AGENT_STATUS) {
-        console.log(packet);
+        debug_log('Update agent status', packet);
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_REQUEST_ACTION) {
-        console.log(packet);
         handle_forward(packet);
         // TODO update local status of this agent to know we want
         // their action? Perhaps also have some local state in 

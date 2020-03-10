@@ -12,10 +12,6 @@ import React from 'react';
 
 /* ================= Data Model Constants ================= */
 
-// Incoming message commands
-const COMMAND_SEND_MESSAGE = 'COMMAND_SEND_MESSAGE';
-const COMMAND_SUBMIT_HIT = 'COMMAND_SUBMIT_HIT';
-
 // System socket ids. Would be nice  to pull these from a centralized location
 const SERVER_SOCKET_ID = 'mephisto_server'
 const SYSTEM_SOCKET_ID = 'mephisto'
@@ -134,7 +130,6 @@ class SocketHandler extends React.Component {
   // Push a packet through the socket, call the callback on that packet data
   // if successful. Returns true on success and false on failure.
   safePacketSend(event) {
-    console.log('sending:', event);
     if (this.socket.readyState == 0) {
       return false;
     } else if (this.socket.readyState > 1) {
@@ -168,7 +163,6 @@ class SocketHandler extends React.Component {
   // Wrapper around packet sends that handles managing state
   // updates, as well as not sending packets that have already been sent
   sendHelper(event, queue_time) {
-    console.log(event);
     var success = this.safePacketSend(event);
 
     if (!success) {
@@ -191,7 +185,6 @@ class SocketHandler extends React.Component {
         var item = this.q.pop();
         var event = item[0];
         var t = item[1];
-        console.log(event);
         this.sendHelper(event, t);
       }
     }
@@ -215,7 +208,6 @@ class SocketHandler extends React.Component {
       callback: callback,
     };
 
-    console.log(event);
     this.q.push(event, time);
   }
 
@@ -255,12 +247,7 @@ class SocketHandler extends React.Component {
   sendAlive() {
     this.sendPacket(
       AGENT_ALIVE,
-      {
-        hit_id: this.props.hit_id,
-        assignment_id: this.props.assignment_id,
-        worker_id: this.props.worker_id,
-        conversation_id: this.props.conversation_id,
-      },
+      {},
       () => {
         this.props.onConfirmInit();
         this.props.onStatusChange('connected');
@@ -282,7 +269,6 @@ class SocketHandler extends React.Component {
 
   parseSocketMessage(event) {
     let packet = JSON.parse(event.data);
-    console.log('got:', packet);
     let msg = packet.data;
     if (packet.packet_type == PACKET_TYPE_REQUEST_ACTION) {
       this.handleRequestAct();
@@ -320,7 +306,7 @@ class SocketHandler extends React.Component {
     if (message.text === undefined) {
       message.text = '';
     }
-    
+
     this.props.onNewMessage(message);
 
     // Handle special case of receiving own sent message
@@ -357,12 +343,14 @@ class SocketHandler extends React.Component {
   // Handle updates to state
   handleStateUpdate(update_packet) {
     let agent_status = update_packet['agent_status'] || this.props.agent_status;
-    if (agent_status != this.props.agent_status) {
+    let agent_display_name = update_packet['agent_display_name'] || this.props.agent_display_name;
+    if (agent_status != this.props.agent_status || agent_display_name != this.props.agent_display_name) {
       this.props.onAgentStatusChange(
         agent_status,
+        agent_display_name,
         update_packet['done_text'],
       );
-    }
+    } 
     if (update_packet['is_final']) {
       this.closeSocket();
     }
@@ -470,7 +458,7 @@ class SocketHandler extends React.Component {
     // TODO fail properly and update state to closed when the host dies for
     // a long enough period. Once this says "disconnected" it should be
     // disconnected
-    if (this.state.socket_closed || this.props.run_static) {
+    if (this.state.socket_closed) {
       // No reason to keep a heartbeat if the socket is closed
       window.clearInterval(this.state.heartbeat_id);
       this.setState({ heartbeat_id: null });
@@ -499,8 +487,8 @@ class SocketHandler extends React.Component {
       this.closeSocket();
       let done_text =
         "Our server appears to have gone down during the \
-        duration of this HIT. Please send us a message if you've done \
-        substantial work and we can find out if the hit is complete enough to \
+        duration of this Task. Please send us a message if you've done \
+        substantial work and we can find out if the task is complete enough to \
         compensate.";
       window.clearInterval(this.state.heartbeat_id);
       this.setState({ heartbeat_id: null });

@@ -60,8 +60,6 @@ class StaticTaskRunner(TaskRunner):
         assert agent is not None, "Task was not fully assigned"
 
         agent_act = agent.act(timeout=TEST_TIMEOUT)
-        agent.mark_done()
-        del self.running_assignments[assignment.db_id]
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Simply mark that the assignment is no longer being tracked"""

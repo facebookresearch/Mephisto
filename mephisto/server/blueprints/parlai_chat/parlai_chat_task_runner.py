@@ -11,6 +11,7 @@ from parlai.core.agents import Agent as ParlAIAgent
 from mephisto.data_model.packet import (
     Packet, 
     PACKET_TYPE_AGENT_ACTION,
+    PACKET_TYPE_UPDATE_AGENT_STATUS,
 )
 
 from importlib import import_module
@@ -36,7 +37,31 @@ class MephistoAgentWrapper(ParlAIAgent):
     """
     def __init__(self, agent: Agent):
         self.mephisto_agent = agent
-        self.agent_id = 'agent'
+        self.__agent_id = 'unnamed agent'
+
+    @property
+    def agent_id():
+        '''
+        Agent IDs in ParlAI are used to identify the speaker,
+        and often are a label like "teacher"
+        '''
+        return self.__agent_id
+
+    @agent_id.setter
+    def agent_id(self, new_agent_id: str):
+        '''
+        We want to be able to display these labels to the 
+        frontend users, so when these are updated by a 
+        world we forward that to the frontend
+        '''
+        packaged_act = Packet(
+            packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
+            sender_id='mephisto',
+            receiver_id=self.mephisto_agent.db_id,
+            data={'agent_display_name': new_agent_id},
+        )
+        self.mephisto_agent.observe(packaged_act)
+        self.__agent_id = new_agent_id
 
     def act(self, timeout=None): 
         """
@@ -47,7 +72,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         else:
             gotten_act = self.mephisto_agent.act(timeout=timeout)
         parsed_act = gotten_act.data
-        parsed_act['id'] = self.agent_id
+        parsed_act['id'] = self.__agent_id
         return parsed_act
 
     def observe(self, act): 
@@ -61,6 +86,7 @@ class MephistoAgentWrapper(ParlAIAgent):
             data=act,
         )
         self.mephisto_agent.observe(packaged_act)
+        
 
 class ParlAIChatTaskRunner(TaskRunner):
     """
@@ -105,13 +131,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 
-        if assignnment.db_id not in self.running_assignments:
-            # TODO handle graceful cleanup?
-            pass
-        
-        for agent in agents:
-            agent.mark_done()
-        del self.running_assignments[assignment.db_id]
+        world.shutdown()
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Simply mark that the assignment is no longer being tracked"""

@@ -32,7 +32,7 @@ function isMobile() {
   );
 }
 
-// Sends a request to get the hit_config
+// Sends a request to get the task_config
 function getTaskConfig(callback_function) {
   $.ajax({
     url: '/task_config.json',
@@ -100,7 +100,10 @@ function postCompleteTask(agent_id, complete_data, callback_function) {
   postProviderRequest(
     '/submit_task',
     {'USED_AGENT_ID': agent_id, 'final_data': complete_data},
-    callback_function,
+    () => {
+      console.log('Submitted'); 
+      callback_function();
+    },
   )
 }
 
@@ -142,7 +145,7 @@ class ChatApp extends React.Component {
   }
 
   // TODO implement?
-  handleAgentStatusChange(agent_status, done_text) {
+  handleAgentStatusChange(agent_status, display_name, done_text) {
     console.log('Handling state update', agent_status, this.state.agent_status)
     if (agent_status != this.state.agent_status) {
       // Handle required state changes on a case-by-case basis.
@@ -155,6 +158,9 @@ class ChatApp extends React.Component {
         this.setState({ messages: [], chat_state: 'waiting' });
       }
       this.setState({ agent_status: agent_status, done_text: done_text});
+    }
+    if (display_name != this.state.agent_display_name) {
+      this.setState({ agent_display_name: display_name });
     }
   }
 
@@ -205,8 +211,11 @@ class ChatApp extends React.Component {
           })
         }
         onAgentStatusChange={
-          (agent_status, done_text) => this.handleAgentStatusChange(agent_status, done_text)
+          (agent_status, display_name, done_text) => this.handleAgentStatusChange(
+            agent_status, display_name, done_text
+          )
         }
+        agent_display_name={this.state.agent_display_name}
         onConfirmInit={() => this.setState({ initialization_status: 'done' })}
         onFailInit={() => this.setState({ initialization_status: 'failed' })}
         onStatusChange={status => this.setState({ socket_status: status })}
@@ -229,6 +238,7 @@ class ChatApp extends React.Component {
           socket_status={this.state.socket_status}
           messages={this.state.messages}
           agent_id={this.props.agent_id}
+          agent_display_name={this.state.agent_display_name}
           task_description={this.props.task_config.task_description}
           chat_title={this.props.task_config.chat_title}
           initialization_status={this.state.initialization_status}
