@@ -73,6 +73,10 @@ class ArchitectTests(unittest.TestCase):
         """
         Setup should put together any requirements for starting the database for a test.
         """
+        try:
+            _ = self.ArchitectClass
+        except:
+            raise unittest.SkipTest("Skipping test as no ArchitectClass set")
         if not self.warned_about_setup:
             print(
                 "Architect tests may require using an account with the server provider "
