@@ -7,12 +7,13 @@
 from mephisto.data_model.blueprint import Blueprint
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.parlai_chat.parlai_chat_agent_state import ParlAIChatAgentState
-from mephisto.server.blueprints.parlai_chat.parlai_chat_runner import ParlAIChatTaskRunner
-from mephisto.server.blueprints.parlai_chat.parlai_chat_builder import ParlAIChatTaskBuilder
+from mephisto.server.blueprints.parlai_chat.parlai_chat_task_runner import ParlAIChatTaskRunner
+from mephisto.server.blueprints.parlai_chat.parlai_chat_task_builder import ParlAIChatTaskBuilder
 
 import os
 import time
 import csv
+import sys
 
 from importlib import import_module
 
@@ -58,7 +59,10 @@ class ParlAIChatBlueprint(Blueprint):
             )
 
         world_file_path = os.path.expanduser(self.opts['world_file'])
-        world_module = import_module(world_file_path)
+        world_module_path = world_file_path[:-3]
+        sys.path.append(world_module_path)
+        world_module_name = os.path.basename(world_file_path)[:-3]
+        world_module = import_module(world_module_name)
         # TODO assert this is a ParlAI world after figuring out 
         # how to get ParlAI to play with Poetry
         assert hasattr(world_module, "make_world")
@@ -73,7 +77,7 @@ class ParlAIChatBlueprint(Blueprint):
         task_source points to the file intending to be deployed for this task
         context_csv has the data to be deployed for this task.
         """
-        super(StaticBlueprint, cls).add_args_to_group(group)
+        super(ParlAIChatBlueprint, cls).add_args_to_group(group)
 
         group.description = """
             ParlAIChatBlueprint: Tasks launched from static blueprints need a
@@ -114,8 +118,22 @@ class ParlAIChatBlueprint(Blueprint):
             "--num-conversations",
             dest="num_conversations",
             help="Optional count of conversations to have if no context provided",
+            type=int,
         )
         return
+
+    def get_frontend_args(self) -> Dict[str, Any]:
+        """
+        Specifies what options within a task_config should be fowarded 
+        to the client for use by the task's frontend
+        """
+        return {
+            'task_description': "This is a test task description for rendering in a task!",
+            'frame_height': 650,
+            'chat_title': "Example Chat",
+            'has_preview': self.opts.get('preview_source') is not None,
+            'block_mobile': True,
+        }
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
         """

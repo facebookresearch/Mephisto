@@ -84,6 +84,13 @@ class Blueprint(ABC):
         # group.add_argument('--task-option', help='Lets you customize')
         return
 
+    def get_frontend_args(self) -> Dict[str, Any]:
+        """
+        Specifies what options should be fowarded 
+        to the client for use by the task's frontend
+        """
+        return {}
+
     @abstractmethod
     def get_initialization_data(
         self

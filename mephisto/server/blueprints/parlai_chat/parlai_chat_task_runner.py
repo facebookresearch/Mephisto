@@ -5,12 +5,22 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.blueprint import TaskRunner
+from mephisto.data_model.agent import Agent
+from parlai.core.agents import Agent as ParlAIAgent
+
+from mephisto.data_model.packet import (
+    Packet, 
+    PACKET_TYPE_AGENT_ACTION,
+)
+
+from importlib import import_module
 
 import os
 import sh
 import shlex
 import shutil
 import subprocess
+import sys
 
 from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 
@@ -18,6 +28,39 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import AgentState
 
+
+class MephistoAgentWrapper(ParlAIAgent):
+    """
+    Class that wraps a mephisto agent to be used as an 
+    agent in ParlAI worlds
+    """
+    def __init__(self, agent: Agent):
+        self.mephisto_agent = agent
+        self.agent_id = 'agent'
+
+    def act(self, timeout=None): 
+        """
+        ParlAI Agents send an act dict, we must convert this
+        """
+        if timeout is None:
+            gotten_act = self.mephisto_agent.act()
+        else:
+            gotten_act = self.mephisto_agent.act(timeout=timeout)
+        parsed_act = gotten_act.data
+        parsed_act['id'] = self.agent_id
+        return parsed_act
+
+    def observe(self, act): 
+        """
+        ParlAI Agents observe a dict, we must convert these to  packets?
+        """
+        packaged_act = Packet(
+            packet_type=PACKET_TYPE_AGENT_ACTION,
+            sender_id='mephisto',
+            receiver_id=self.mephisto_agent.db_id,
+            data=act,
+        )
+        self.mephisto_agent.observe(packaged_act)
 
 class ParlAIChatTaskRunner(TaskRunner):
     """
@@ -27,7 +70,11 @@ class ParlAIChatTaskRunner(TaskRunner):
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
         world_file_path = os.path.expanduser(self.opts['world_file'])
-        self.parlai_world_module = import_module(world_file_path)
+        world_file_path = os.path.expanduser(self.opts['world_file'])
+        world_module_path = world_file_path[:-3]
+        sys.path.append(world_module_path)
+        world_module_name = os.path.basename(world_file_path)[:-3]
+        self.parlai_world_module = import_module(world_module_name)
 
     # TODO reconnects should get the same agent as was initially given
 
@@ -52,8 +99,9 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         for agent in agents:
             assert agent is not None, "task was not fully assigned"
-        opt = self.parlai_world_module['opt']
-        world = self.parlai_world_module.get_world(opt, agents)
+        opt = {} # TODO find a way to pass world options along
+        parlai_agents = [MephistoAgentWrapper(a) for a in agents]
+        world = self.parlai_world_module.make_world(opt, parlai_agents)
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 

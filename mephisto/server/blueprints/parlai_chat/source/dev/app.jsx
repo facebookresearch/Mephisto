@@ -11,27 +11,12 @@ import ReactDOM from 'react-dom';
 import Bowser from 'bowser';
 import {
   BaseFrontend,
-  StaticFrontend,
-  setCustomComponents,
 } from './components/core_components.jsx';
-import BuiltCustomComponents from 'custom_built_frontend';
-import CustomComponents from './components/custom.jsx';
 import SocketHandler from './components/socket_handler.jsx';
-import {
-  MTurkSubmitForm,
-  allDoneCallback,
-} from './components/mturk_submit_form.jsx';
 import 'fetch';
 import $ from 'jquery';
 
-var UseCustomComponents = {};
-if (Object.keys(BuiltCustomComponents).length) {
-  UseCustomComponents = BuiltCustomComponents;
-} else if (Object.keys(CustomComponents).length) {
-  UseCustomComponents = CustomComponents;
-}
-
-setCustomComponents(UseCustomComponents);
+// setCustomComponents(UseCustomComponents);
 
 /* global
   getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
@@ -50,7 +35,7 @@ function isMobile() {
 // Sends a request to get the hit_config
 function getTaskConfig(callback_function) {
   $.ajax({
-    url: '/get_task_config',
+    url: '/task_config.json',
     timeout: 3000, // in milliseconds
   }).then(function(data) {
     if (callback_function) {
@@ -137,11 +122,6 @@ const STATUS_MEPHISTO_DISCONNECT = 'mephisto disconnect';
 
 /* ================= Application Components ================= */
 
-/* global
-  FRAME_HEIGHT, HIT_ID, ASSIGNMENT_ID, WORKER_ID, TEMPLATE_TYPE, BLOCK_MOBILE,
-  DISPLAY_FEEDBACK, IS_COVER_PAGE
-*/
-
 // props: mephisto_worker_id, agent_id, task_config, onboarding = False
 class ChatApp extends React.Component {
   constructor(props) {
@@ -151,9 +131,9 @@ class ChatApp extends React.Component {
     this.state = {
       initialization_status: 'initializing',
       socket_status: null,  // TODO improve this functionality for disconnects
-      agent_state: STATUS_NONE,
+      agent_status: STATUS_WAITING, // TODO, start as STATUS_NONE when implementing onboarding
       done_text: null,
-      chat_state: 'idle', // idle, text_input, inactive, done
+      chat_state: 'waiting', // idle, text_input, inactive, done
       task_done: false,
       messages: [],
       task_data: {},
@@ -161,7 +141,9 @@ class ChatApp extends React.Component {
     };
   }
 
+  // TODO implement?
   handleAgentStatusChange(agent_status, done_text) {
+    console.log('Handling state update', agent_status, this.state.agent_status)
     if (agent_status != this.state.agent_status) {
       // Handle required state changes on a case-by-case basis.
       if ([STATUS_DONE, STATUS_PARTNER_DISCONNECT].includes(agent_status)) {
@@ -230,7 +212,7 @@ class ChatApp extends React.Component {
         onStatusChange={status => this.setState({ socket_status: status })}
         agent_id={this.props.agent_id}
         initialization_status={this.state.initialization_status}
-        agent_state={this.state.agent_state}
+        agent_status={this.state.agent_status}
         messages={this.state.messages}
         task_done={this.state.task_done}
         ref={m => {this.socket_handler = m}}
@@ -246,43 +228,27 @@ class ChatApp extends React.Component {
           onMessageSend={(m, d, c, s) => this.onMessageSend(m, d, c, s)}
           socket_status={this.state.socket_status}
           messages={this.state.messages}
-          agent_id={this.state.agent_id}
-          task_description={this.state.task_description}
+          agent_id={this.props.agent_id}
+          task_description={this.props.task_config.task_description}
+          chat_title={this.props.task_config.chat_title}
           initialization_status={this.state.initialization_status}
-          is_cover_page={this.state.is_cover_page}
-          frame_height={this.state.frame_height}
+          frame_height={this.props.task_config.frame_height}
           task_data={this.state.task_data}
-          world_state={this.state.agent_state}
-          v_id={this.state.agent_id}
-          allDoneCallback={() => allDoneCallback(
-            this.state.agent_id,
-            this.state.assignment_id,
-            this.state.worker_id,
-            [],
+          world_state={this.state.agent_status}
+          allDoneCallback={() => postCompleteTask(
+            this.props.agent_id, 
+            this.state.messages,
+            () => handleSubmitToProvider({}),
           )}
           volume={this.state.volume}
           onVolumeChange={v => this.setState({ volume: v })}
-          display_feedback={DISPLAY_FEEDBACK}
-        />
-        <MTurkSubmitForm
-          assignment_id={this.state.assignment_id}
-          hit_id={this.state.hit_id}
-          worker_id={this.state.worker_id}
-          mturk_submit_url={this.state.mturk_submit_url}
+          display_feedback={false}
         />
         {socket_handler}
       </div>
     );
   }
 }
-
-/* task_config:
-task_description:
-frame_height:
-has_preview:
-block_mobile:
-more eventually?
-*/
 
 class WorkerBlockedView  extends React.Component {
   // TODO actually have views for these block reasons
@@ -380,7 +346,7 @@ class MainApp extends React.Component {
   }
 
   componentDidMount() {
-    getHitConfig(data => this.handleIncomingTaskConfig(data));
+    getTaskConfig(data => this.handleIncomingTaskConfig(data));
   }
 
   handleSubmit(event) {

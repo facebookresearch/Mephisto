@@ -68,12 +68,15 @@ const PACKET_TYPE_REQUEST_AGENT_STATUS = 'request_status'
 const PACKET_TYPE_RETURN_AGENT_STATUS = 'return_status'
 const PACKET_TYPE_INIT_DATA = 'initial_data_send'
 const PACKET_TYPE_AGENT_ACTION = 'agent_action'
+const PACKET_TYPE_REQUEST_ACTION = 'request_act'
+const PACKET_TYPE_UPDATE_AGENT_STATUS = 'update_status'
 const PACKET_TYPE_NEW_AGENT = 'register_agent'
 const PACKET_TYPE_NEW_WORKER = 'register_worker'
 const PACKET_TYPE_GET_INIT_DATA = 'init_data_request'
 const PACKET_TYPE_ALIVE = 'alive'
 const PACKET_TYPE_PROVIDER_DETAILS = 'provider_details'
 const PACKET_TYPE_SUBMIT_ONBOARDING = 'submit_onboarding'
+const PACKET_TYPE_HEARTBEAT = 'heartbeat'
 
 // State for agents tracked by the server
 class LocalAgentState {
@@ -103,7 +106,8 @@ var mephisto_socket = null;
 var agent_id_to_agent = {};
 
 var pending_provider_requests = {};
-var pending_init_requests = {};
+
+var last_mephisto_ping = Date.now();
 
 
 // Handles sending a message through the socket
@@ -118,7 +122,9 @@ function _send_message(socket, packet) {
     return;
   }
 
-  console.log(packet);
+  if (packet.packet_type != PACKET_TYPE_HEARTBEAT && packet.packet_type != PACKET_TYPE_RETURN_AGENT_STATUS) {
+    console.log('actually sending', packet);
+  }
 
   // Send the message through, with one retry a half second later
   socket.send(JSON.stringify(packet), function ack(error) {
@@ -148,16 +154,23 @@ function handle_alive(socket, alive_packet) {
       main_thread_timeout = setTimeout(main_thread, 50);
     }
   } else {
-    var agent_id = alive_packet['sender_id']
-    var agent = LocalAgentState(agent_id);
+    var agent_id = alive_packet.sender_id;
+    var agent = agent_id_to_agent[agent_id]
+    if (agent === undefined) {
+      var agent = new LocalAgentState(agent_id);
+      agent_id_to_agent[agent_id] = agent;
+      console.log('Opening new agent: ' + agent_id);
+    } else {
+      console.log('using old agent', agent);
+    }
     agent_id_to_socket[agent_id] = socket;
     socket_id_to_agent[socket.id] = agent;
-    agent_id_to_agent[agent_id] = agent;
   }
 }
 
 // Return the status of all agents mapped by their agent id
 function handle_get_agent_status(status_packet) {
+  last_mephisto_ping = Date.now();
   let agent_statuses = {};
   for (let agent_id in agent_id_to_agent) {
     agent_statuses[agent_id] = agent_id_to_agent[agent_id].status;
@@ -173,10 +186,18 @@ function handle_get_agent_status(status_packet) {
 
 // Handle a message being sent to or from a frontend agent
 function handle_forward(packet) {
-  if (alive_packet.receiver_id == SYSTEM_SOCKET_ID) {
+  if (packet.receiver_id == SYSTEM_SOCKET_ID) {
     mephisto_message_queue.push(packet);
   } else {
+    if(packet.packet_type !== PACKET_TYPE_HEARTBEAT) {
+      console.log(agent_id_to_agent);
+      console.log('want to forward', packet);
+    }
     let agent = agent_id_to_agent[packet.receiver_id];
+    if (agent === undefined) {
+      agent = new LocalAgentState(packet.receiver_id);
+      agent_id_to_agent[packet.receiver_id] = agent;
+    }
     agent.unsent_messages.push(packet);
   }
 }
@@ -204,13 +225,24 @@ wss.on('connection', function(socket) {
   socket.on('message', function(packet) {
     try {
       packet = JSON.parse(packet);
-      console.log(packet);
       if (packet['packet_type'] == PACKET_TYPE_REQUEST_AGENT_STATUS) {
+        // console.log(packet);
         handle_get_agent_status(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_AGENT_ACTION) {
+        console.log(packet);
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_ALIVE) {
+        console.log(packet);
         handle_alive(socket, packet);
+      } else if (packet['packet_type'] == PACKET_TYPE_UPDATE_AGENT_STATUS) {
+        console.log(packet);
+        handle_forward(packet);
+      } else if (packet['packet_type'] == PACKET_TYPE_REQUEST_ACTION) {
+        console.log(packet);
+        handle_forward(packet);
+        // TODO update local status of this agent to know we want
+        // their action? Perhaps also have some local state in 
+        // here about the task as well?
       } else if (
         packet['packet_type'] == PACKET_TYPE_PROVIDER_DETAILS ||
         packet['packet_type'] == PACKET_TYPE_INIT_DATA
@@ -222,6 +254,12 @@ wss.on('connection', function(socket) {
         let res_obj = pending_provider_requests[request_id]
         res_obj.json(packet);
         delete pending_provider_requests[request_id]
+      } else if (packet['packet_type'] == PACKET_TYPE_HEARTBEAT) {
+        packet['data'] = {last_mephisto_ping: last_mephisto_ping};
+        let tmp = packet['receiver_id']
+        packet['receiver_id'] = packet['sender_id'];
+        packet['sender_id'] = tmp;
+        handle_forward(packet);
       }
     } catch (error) {
       console.log('Transient error on message');

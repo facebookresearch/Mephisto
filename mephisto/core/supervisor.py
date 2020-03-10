@@ -25,6 +25,8 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_GET_INIT_DATA,
     PACKET_TYPE_PROVIDER_DETAILS,
     PACKET_TYPE_SUBMIT_ONBOARDING,
+    PACKET_TYPE_REQUEST_ACTION,
+    PACKET_TYPE_UPDATE_AGENT_STATUS,
 )
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.blueprint import OnboardingRequired
@@ -359,7 +361,11 @@ class Supervisor:
                 # Launch the backend for this assignment
                 # TODO async tasks should actually be launched one at a time,
                 # should check the blueprint to see what kind of launch is happening
-                tracked_agents = [self.agents[a.db_id].agent for a in agents]
+                tracked_agents = []
+                for a in agents:
+                    agent_info = self.agents[a.db_id]
+                    tracked_agents.append(agent_info.agent)
+                    self._mark_agent_active(agent_info)
                 socket_info.job.task_runner.launch_assignment(
                     assignment, tracked_agents
                 )
@@ -534,6 +540,21 @@ class Supervisor:
                 self.message_queue.insert(0, curr_obs)
                 return  # something up with the socket, try later
 
+    def _mark_agent_active(self, agent_info: AgentInfo) -> None:
+        """
+        Handle telling the frontend agent that they have successfully
+        paired into a task
+        """
+        send_packet = Packet(
+            packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
+            sender_id=SYSTEM_SOCKET_ID,
+            receiver_id=agent_info.agent.db_id,
+            data={'agent_status': 'in_task', 'done_text': None},
+        )
+        socket_info = self.sockets[agent_info.used_socket_id]
+        self._send_through_socket(socket_info.socket, send_packet)
+
+
     def _handle_updated_agent_status(self, status_map: Dict[str, str]):
         """
         Handle updating the local statuses for agents based on
@@ -543,6 +564,21 @@ class Supervisor:
         """
         # TODO implement
         pass
+
+    def _request_action(self, agent_info: AgentInfo) -> None:
+        """
+        Request an act from the agent targetted here. If the 
+        agent is found by the server, this request will be 
+        forwarded.
+        """
+        send_packet = Packet(
+            packet_type=PACKET_TYPE_REQUEST_ACTION,
+            sender_id=SYSTEM_SOCKET_ID,
+            receiver_id=agent_info.agent.db_id,
+            data={},
+        )
+        socket_info = self.sockets[agent_info.used_socket_id]
+        self._send_through_socket(socket_info.socket, send_packet)
 
     def _request_status_update(self) -> None:
         """
@@ -577,6 +613,9 @@ class Supervisor:
         """Thread for handling outgoing messages through the socket"""
         while len(self.sockets) > 0:
             for agent_info in self.agents.values():
+                if agent_info.agent.wants_action.is_set():
+                    self._request_action(agent_info)
+                    agent_info.agent.wants_action.clear()
                 self._try_send_agent_messages(agent_info)
             self._send_message_queue()
             self._request_status_update()

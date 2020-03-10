@@ -30,20 +30,6 @@ import $ from 'jquery';
 
 import 'rc-slider/assets/index.css';
 
-var component_list = null; // Will fill this in at the bottom
-var CustomComponents = {};
-
-function getCorrectComponent(component_name, agent_id) {
-  if (CustomComponents[component_name] !== undefined) {
-    if (CustomComponents[component_name][agent_id] !== undefined) {
-      return CustomComponents[component_name][agent_id];
-    } else if (CustomComponents[component_name]['default'] !== undefined) {
-      return CustomComponents[component_name]['default'];
-    }
-  }
-  return component_list[component_name][1];
-}
-
 class ChatMessage extends React.Component {
   render() {
     let float_loc = 'left';
@@ -90,14 +76,13 @@ class MessageList extends React.Component {
     // Handles rendering messages from both the user and anyone else
     // on the thread - agent_ids for the sender of a message exist in
     // the m.id field.
-    let XChatMessage = getCorrectComponent('XChatMessage', this.props.v_id);
     let onClickMessage = this.props.onClickMessage;
     if (typeof onClickMessage !== 'function') {
       onClickMessage = idx => {};
     }
     return messages.map((m, idx) => (
       <div key={m.message_id} onClick={() => onClickMessage(idx)}>
-        <XChatMessage
+        <ChatMessage
           is_self={m.id == agent_id}
           agent_id={m.id}
           message={m.text}
@@ -485,10 +470,6 @@ class ChatPane extends React.Component {
   }
 
   render() {
-    let v_id = this.props.v_id;
-    let XMessageList = getCorrectComponent('XMessageList', v_id);
-    let XWaitingMessage = getCorrectComponent('XWaitingMessage', v_id);
-
     // TODO move to CSS
     let top_pane_style = {
       width: '100%',
@@ -512,15 +493,17 @@ class ChatPane extends React.Component {
     top_pane_style['height'] = this.state.chat_height + 'px';
 
     let wait_message = null;
+    // console.log('Should be making waiting message?');
+    // console.log(this.props);
     if (this.props.chat_state == 'waiting') {
-      wait_message = <XWaitingMessage {...this.props} />;
+      wait_message = <WaitingMessage {...this.props} />;
     }
 
     return (
       <div id="right-top-pane" style={top_pane_style}>
         <ChatNavbar {...this.props} />
         <div id="message-pane-segment" style={chat_style}>
-          <XMessageList {...this.props} />
+          <MessageList {...this.props} />
           {wait_message}
         </div>
       </div>
@@ -740,12 +723,8 @@ class DoneButton extends React.Component {
     );
     if (this.props.display_feedback) {
       if (this.state.feedback_shown) {
-        let XReviewButtons = getCorrectComponent(
-          'XReviewButtons',
-          this.props.v_id
-        );
         review_flow = (
-          <XReviewButtons
+          <ReviewButtons
             {...this.props}
             onChoice={did_give =>
               this.setState({
@@ -775,9 +754,6 @@ class DoneResponse extends React.Component {
   }
 
   render() {
-    let v_id = this.props.v_id;
-    let XDoneButton = getCorrectComponent('XDoneButton', v_id);
-
     let inactive_pane = null;
     if (this.props.done_text) {
       inactive_pane = (
@@ -794,7 +770,7 @@ class DoneResponse extends React.Component {
       paddingRight: '25px',
       float: 'left',
     };
-    let done_button = <XDoneButton {...this.props} />;
+    let done_button = <DoneButton {...this.props} />;
     if (!this.props.task_done) {
       done_button = null;
     }
@@ -1073,30 +1049,24 @@ class FormResponse extends React.Component {
 
 class ResponsePane extends React.Component {
   render() {
-    let v_id = this.props.v_id;
-    let XDoneResponse = getCorrectComponent('XDoneResponse', v_id);
-    let XTextResponse = getCorrectComponent('XTextResponse', v_id);
-    let XFormResponse = getCorrectComponent('XFormResponse', v_id);
-    let XIdleResponse = getCorrectComponent('XIdleResponse', v_id);
-
     let response_pane = null;
     switch (this.props.chat_state) {
       case 'done':
       case 'inactive':
-        response_pane = <XDoneResponse {...this.props} />;
+        response_pane = <DoneResponse {...this.props} />;
         break;
       case 'text_input':
       case 'waiting':
         if (this.props.task_data && this.props.task_data['respond_with_form']) {
           response_pane = (
-            <XFormResponse
+            <FormResponse
               {...this.props}
               active={this.props.chat_state == 'text_input'}
             />
           );
         } else {
           response_pane = (
-            <XTextResponse
+            <TextResponse
               {...this.props}
               active={this.props.chat_state == 'text_input'}
             />
@@ -1105,7 +1075,7 @@ class ResponsePane extends React.Component {
         break;
       case 'idle':
       default:
-        response_pane = <XIdleResponse {...this.props} />;
+        response_pane = <IdleResponse {...this.props} />;
         break;
     }
 
@@ -1130,10 +1100,6 @@ class RightPane extends React.Component {
   }
 
   render() {
-    let v_id = this.props.v_id;
-    let XChatPane = getCorrectComponent('XChatPane', v_id);
-    let XResponsePane = getCorrectComponent('XResponsePane', v_id);
-
     // TODO move to CSS
     let right_pane = {
       minHeight: '100%',
@@ -1144,14 +1110,14 @@ class RightPane extends React.Component {
 
     return (
       <div id="right-pane" style={right_pane}>
-        <XChatPane
+        <ChatPane
           message_count={this.props.messages.length}
           {...this.props}
           ref={pane => {
             this.chat_pane = pane;
           }}
         />
-        <XResponsePane
+        <ResponsePane
           {...this.props}
           onInputResize={() => this.handleResize()}
         />
@@ -1177,9 +1143,6 @@ class ContentPane extends React.Component {
 
 class StaticRightPane extends React.Component {
   render() {
-    let v_id = this.props.v_id;
-    let XContentPane = getCorrectComponent('XContentPane', v_id);
-
     // TODO move to CSS
     let right_pane = {
       minHeight: '100%',
@@ -1190,7 +1153,7 @@ class StaticRightPane extends React.Component {
 
     return (
       <div id="right-pane" style={right_pane}>
-        <XContentPane {...this.props} />
+        <ContentPane {...this.props} />
       </div>
     );
   }
@@ -1198,7 +1161,7 @@ class StaticRightPane extends React.Component {
 
 class TaskDescription extends React.Component {
   render() {
-    let header_text = CHAT_TITLE;
+    let header_text = this.props.chat_title;
     let task_desc = this.props.task_description || 'Task Description Loading';
     return (
       <div>
@@ -1261,7 +1224,6 @@ class LeftPane extends React.Component {
   }
 
   render() {
-    let v_id = this.props.v_id;
     let frame_height = this.props.frame_height;
     let frame_style = {
       height: frame_height + 'px',
@@ -1269,18 +1231,16 @@ class LeftPane extends React.Component {
       padding: '30px',
       overflow: 'auto',
     };
-    let XTaskDescription = getCorrectComponent('XTaskDescription', v_id);
     let pane_size = this.props.is_cover_page ? 'col-xs-12' : 'col-xs-4';
     let has_context = this.props.task_data.has_context;
     if (this.props.is_cover_page || !has_context) {
       return (
         <div id="left-pane" className={pane_size} style={frame_style}>
-          <XTaskDescription {...this.props} />
+          <TaskDescription {...this.props} />
           {this.props.children}
         </div>
       );
     } else {
-      let XContextView = getCorrectComponent('XContextView', v_id);
       // In a 2 panel layout, we need to tabulate the left pane to be able
       // to display both context and instructions
       let nav_items = [
@@ -1316,10 +1276,10 @@ class LeftPane extends React.Component {
       }
       let nav_panels = [
         <div style={display_instruction} key={'instructions-display'}>
-          <XTaskDescription {...this.props} />
+          <TaskDescription {...this.props} />
         </div>,
         <div style={display_context} key={'context-display'}>
-          <XContextView {...this.props} />
+          <ContextView {...this.props} />
         </div>,
       ];
 
@@ -1352,40 +1312,10 @@ class LeftPane extends React.Component {
 class ContentLayout extends React.Component {
   render() {
     let layout_style = '2-PANEL'; // Currently the only layout style is 2 panel
-    let v_id = this.props.v_id;
-    let XLeftPane = getCorrectComponent('XLeftPane', v_id);
-    let XRightPane = getCorrectComponent('XRightPane', v_id);
     return (
       <div className="row" id="ui-content">
-        <XLeftPane {...this.props} layout_style={layout_style} />
-        <XRightPane {...this.props} layout_style={layout_style} />
-      </div>
-    );
-  }
-}
-
-class StaticContentLayout extends React.Component {
-  render() {
-    let layout_style = '2-PANEL'; // Currently the only layout style is 2 panel
-    let v_id = this.props.v_id;
-    let XLeftPane = getCorrectComponent('XLeftPane', v_id);
-    let XStaticRightPane = getCorrectComponent('XStaticRightPane', v_id);
-    let XDoneResponse = getCorrectComponent('XDoneResponse', v_id);
-    let {frame_height, ...others} = this.props;
-    let done_button = null;
-    if (this.props.task_done) {
-      done_button = <XDoneResponse {...this.props} onInputResize={() => {}}/>
-    }
-    return (
-      <div className="row" id="ui-content">
-        <XLeftPane
-          {...others}
-          layout_style={layout_style}
-          frame_height={frame_height}
-        >
-          {done_button}
-        </XLeftPane>
-        <XStaticRightPane {...this.props} layout_style={layout_style} />
+        <LeftPane {...this.props} layout_style={layout_style} />
+        <RightPane {...this.props} layout_style={layout_style} />
       </div>
     );
   }
@@ -1393,15 +1323,11 @@ class StaticContentLayout extends React.Component {
 
 class BaseFrontend extends React.Component {
   render() {
-    let v_id = this.props.v_id;
-    let XLeftPane = getCorrectComponent('XLeftPane', v_id);
-    let XContentLayout = getCorrectComponent('XContentLayout', v_id);
-
     let content = null;
     if (this.props.is_cover_page) {
       content = (
         <div className="row" id="ui-content">
-          <XLeftPane {...this.props} />
+          <LeftPane {...this.props} />
         </div>
       );
     } else if (this.props.initialization_status == 'initializing') {
@@ -1423,7 +1349,7 @@ class BaseFrontend extends React.Component {
         </div>
       );
     } else {
-      content = <XContentLayout {...this.props} />;
+      content = <ContentLayout {...this.props} />;
     }
     return (
       <div className="container-fluid" id="ui-container">
@@ -1432,78 +1358,6 @@ class BaseFrontend extends React.Component {
     );
   }
 }
-
-// TODO Require a ContentLayout as a child of BaseFrontend, rather than having
-// the component juggle both sets of props and duplicating code between static
-// and base frontends
-class StaticFrontend extends React.Component {
-  render() {
-    let v_id = this.props.v_id;
-    let XLeftPane = getCorrectComponent('XLeftPane', v_id);
-    let XStaticContentLayout = getCorrectComponent('XStaticContentLayout', v_id);
-
-    let content = null;
-    if (this.props.is_cover_page) {
-      content = (
-        <div className="row" id="ui-content">
-          <XLeftPane {...this.props} />
-        </div>
-      );
-    } else if (this.props.initialization_status == 'initializing') {
-      content = <div id="ui-placeholder">Initializing...</div>;
-    } else if (this.props.initialization_status == 'websockets_failure') {
-      content = (
-        <div id="ui-placeholder">
-          Sorry, but we found that your browser does not support WebSockets.
-          Please consider updating your browser to a newer version or using
-          a different browser and check this HIT again.
-        </div>
-      );
-    } else if (this.props.initialization_status == 'failed') {
-      content = (
-        <div id="ui-placeholder">
-          Unable to initialize. We may be having issues with our servers.
-          Please refresh the page, or if that isn't working return the HIT and
-          try again later if you would like to work on this task.
-        </div>
-      );
-    } else {
-      content = <XStaticContentLayout {...this.props} />;
-    }
-    return (
-      <div className="container-fluid" id="ui-container">
-        {content}
-      </div>
-    );
-  }
-}
-
-
-function setCustomComponents(new_components) {
-  CustomComponents = new_components;
-}
-
-component_list = {
-  XContentLayout: ['XContentLayout', ContentLayout],
-  XLeftPane: ['XLeftPane', LeftPane],
-  XRightPane: ['XRightPane', RightPane],
-  XResponsePane: ['XResponsePane', ResponsePane],
-  XTextResponse: ['XTextResponse', TextResponse],
-  XFormResponse: ['XFormResponse', FormResponse],
-  XDoneResponse: ['XDoneResponse', DoneResponse],
-  XIdleResponse: ['XIdleResponse', IdleResponse],
-  XDoneButton: ['XDoneButton', DoneButton],
-  XChatPane: ['XChatPane', ChatPane],
-  XWaitingMessage: ['XWaitingMessage', WaitingMessage],
-  XMessageList: ['XMessageList', MessageList],
-  XChatMessage: ['XChatMessage', ChatMessage],
-  XTaskDescription: ['XTaskDescription', TaskDescription],
-  XReviewButtons: ['XReviewButtons', ReviewButtons],
-  XContextView: ['XContextView', ContextView],
-  XStaticRightPane: ['XStaticRightPane', StaticRightPane],
-  XContentPane: ['XContentPane', ContentPane],
-  XStaticContentLayout: ['XStaticContentLayout', StaticContentLayout],
-};
 
 export {
   // Original Components
@@ -1522,8 +1376,4 @@ export {
   LeftPane,
   ContentLayout,
   BaseFrontend,
-  StaticFrontend,
-  // Functions to update and get current components
-  setCustomComponents,
-  getCorrectComponent,
 };

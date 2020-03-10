@@ -11,7 +11,7 @@ module.exports = {
   entry: './dev/main.js',
   output: {
     path: __dirname,
-    filename: 'server/static/bundle.js',
+    filename: 'build/bundle.js',
   },
   node: {
     net: 'empty',

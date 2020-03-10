@@ -75,6 +75,8 @@ class Agent(ABC):
         self.pending_actions: List["Packet"] = []
         self.has_action = threading.Event()
         self.has_action.clear()
+        self.wants_action = threading.Event()
+        self.wants_action.clear()
         self.assignment_id = row["assignment_id"]
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
@@ -228,6 +230,7 @@ class Agent(ABC):
         to be returned.
         """
         if len(self.pending_actions) == 0:
+            self.wants_action.set()
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
