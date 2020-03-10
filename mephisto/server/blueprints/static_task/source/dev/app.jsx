@@ -75,12 +75,19 @@ function requestTaskHMTL(target_html, callback_function) {
   });
 }
 
-function postCompleteTask(agent_id, complete_data, callback_function) {
-  postProviderRequest(
-    '/submit_task',
-    {'agent_id': agent_id, 'final_data': complete_data},
-    callback_function,
-  )
+function postCompleteTask(complete_data, callback_function) {
+  var oReq = new XMLHttpRequest();
+  oReq.open("POST", "/submit_task", true);
+  oReq.onload = function(oEvent) {
+    if (oReq.status == 200) {
+      console.log("Uploaded!");
+      callback_function();
+    } else {
+      // TODO warn the user of an error somewhere
+      console.log("Error " + oReq.status + " occurred when trying to post data");
+    }
+  };
+  oReq.send(complete_data);
 }
 
 /* ================= Application Components ================= */
@@ -104,6 +111,7 @@ class MainApp extends React.Component {
       agent_id: null,
       assignment_id: assignment_id,
       task_data: null,
+      submitting: false,
     };
 
     this.raw_html_elem = null;
@@ -177,12 +185,17 @@ class MainApp extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
+    console.log(event.target);
     const form_data = new FormData(event.target);
-    let obj_data = {}
-    form_data.forEach((value, key) => {obj_data[key] = value});
-    console.log(obj_data);
-    postCompleteTask(this.state.agent_id, obj_data);
-    handleSubmitToProvider(obj_data);
+    form_data.append('USED_AGENT_ID', this.state.agent_id);
+    console.log(form_data);
+    this.setState({submitting: true});
+    postCompleteTask(form_data, () => {
+      let obj_data = {}
+      form_data.forEach((value, key) => {obj_data[key] = value});
+      console.log(obj_data);
+      handleSubmitToProvider(obj_data);
+    });
   }
 
   render() {
@@ -195,12 +208,12 @@ class MainApp extends React.Component {
       submit_button = (
         <div>
           <div style={{display: 'flex', justifyContent: 'center'}}>
-            <Button type="submit">
+            <Button type="submit" disabled={this.state.submitting}>
               <span
                 style={{ marginRight: 5 }}
                 className="glyphicon glyphicon-ok"
               />
-              Submit
+              {this.state.submitting? 'Submitting...' : 'Submit'}
             </Button>
           </div>
         </div>
@@ -208,7 +221,7 @@ class MainApp extends React.Component {
     }
     return (
       <div>
-        <form onSubmit={this.handleSubmit.bind(this)}>
+        <form encType="multipart/form-data" onSubmit={this.handleSubmit.bind(this)}>
           {dangerous_html}
           {submit_button}
         </form>

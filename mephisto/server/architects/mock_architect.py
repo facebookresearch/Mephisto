@@ -285,6 +285,13 @@ class MockArchitect(Architect):
         assert self.port is not None, "No ports for socket"
         return [f"ws://localhost:{self.port}/socket"]
 
+    def download_file(self, target_filename: str, save_dir: str) -> None:
+        """
+        Mock architects can just pretend to write a file
+        """
+        with open(os.path.join(save_dir, target_filename), "wb") as fp:
+            fp.write(b"mock\n")
+
     def prepare(self) -> str:
         """Mark the preparation call"""
         self.prepared = True

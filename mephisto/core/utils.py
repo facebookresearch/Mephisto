@@ -228,4 +228,4 @@ def get_valid_architect_types() -> List[str]:
     Return the valid provider types that are currently supported by
     the mephisto framework
     """
-    return ["mock", "heroku"]
+    return ["mock", "heroku", "local"]
