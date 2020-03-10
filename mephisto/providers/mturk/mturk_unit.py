@@ -160,7 +160,7 @@ class MTurkUnit(Unit):
             # The assignment is currently being worked on,
             # so we will set the wait time to be the
             # amount of time we granted for working on this assignment
-            if self.assignment_time_in_seconds is not None: 
+            if self.assignment_time_in_seconds is not None:
                 delay = self.assignment_time_in_seconds
         mturk_hit_id = self.get_mturk_hit_id()
         requester = self.get_requester()

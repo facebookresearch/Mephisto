@@ -8,8 +8,8 @@ from typing import Optional, Dict, Any
 
 PACKET_TYPE_INIT_DATA = "initial_data_send"
 PACKET_TYPE_AGENT_ACTION = "agent_action"
-PACKET_TYPE_REQUEST_ACTION = 'request_act'
-PACKET_TYPE_UPDATE_AGENT_STATUS = 'update_status'
+PACKET_TYPE_REQUEST_ACTION = "request_act"
+PACKET_TYPE_UPDATE_AGENT_STATUS = "update_status"
 PACKET_TYPE_NEW_AGENT = "register_agent"
 PACKET_TYPE_NEW_WORKER = "register_worker"
 PACKET_TYPE_REQUEST_AGENT_STATUS = "request_status"

@@ -215,7 +215,7 @@ def get_valid_provider_types() -> List[str]:
     ]
     # TODO: Un-hardcode these providers. Right now we have false positives
     # flowing through, such as __pycache__.
-    return ['mock', 'mturk_sandbox', 'mturk']
+    return ["mock", "mturk_sandbox", "mturk"]
     # return available_providers
 
 

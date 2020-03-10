@@ -77,10 +77,8 @@ def build_router(build_dir: str, task_run: "TaskRun") -> str:
     shutil.copy2(crowd_provider.get_wrapper_js_path(), local_crowd_source_path)
 
     # Copy the task_run's json configuration
-    local_task_config_path = os.path.join(
-        local_server_directory_path, TASK_CONFIG_PATH
-    )
-    with open(local_task_config_path, 'w+') as task_fp:
+    local_task_config_path = os.path.join(local_server_directory_path, TASK_CONFIG_PATH)
+    with open(local_task_config_path, "w+") as task_fp:
         json.dump(task_run.get_blueprint().get_frontend_args(), task_fp)
 
     # Consolidate task files as defined by the task

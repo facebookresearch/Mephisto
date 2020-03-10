@@ -64,7 +64,7 @@ class ParlAIChatAgentState(AgentState):
         with open(agent_file, "r") as state_json:
             state = json.load(state_json)
             self.messages = state["messages"]
-            self.init_data = state['init_data']
+            self.init_data = state["init_data"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""

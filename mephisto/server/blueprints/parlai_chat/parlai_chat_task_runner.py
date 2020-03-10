@@ -9,7 +9,7 @@ from mephisto.data_model.agent import Agent
 from parlai.core.agents import Agent as ParlAIAgent
 
 from mephisto.data_model.packet import (
-    Packet, 
+    Packet,
     PACKET_TYPE_AGENT_ACTION,
     PACKET_TYPE_UPDATE_AGENT_STATUS,
 )
@@ -36,35 +36,36 @@ class MephistoAgentWrapper(ParlAIAgent):
     Class that wraps a mephisto agent to be used as an 
     agent in ParlAI worlds
     """
+
     def __init__(self, agent: Agent):
         self.mephisto_agent = agent
-        self.__agent_id = 'unnamed agent'
+        self.__agent_id = "unnamed agent"
 
     @property
     def agent_id(self):
-        '''
+        """
         Agent IDs in ParlAI are used to identify the speaker,
         and often are a label like "teacher"
-        '''
+        """
         return self.__agent_id
 
     @agent_id.setter
     def agent_id(self, new_agent_id: str):
-        '''
+        """
         We want to be able to display these labels to the 
         frontend users, so when these are updated by a 
         world we forward that to the frontend
-        '''
+        """
         packaged_act = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
-            sender_id='mephisto',
+            sender_id="mephisto",
             receiver_id=self.mephisto_agent.db_id,
-            data={'agent_display_name': new_agent_id},
+            data={"agent_display_name": new_agent_id},
         )
         self.mephisto_agent.observe(packaged_act)
         self.__agent_id = new_agent_id
 
-    def act(self, timeout=None): 
+    def act(self, timeout=None):
         """
         ParlAI Agents send an act dict, we must convert this
         """
@@ -73,16 +74,16 @@ class MephistoAgentWrapper(ParlAIAgent):
         else:
             gotten_act = self.mephisto_agent.act(timeout=timeout)
         parsed_act = gotten_act.data
-        parsed_act['id'] = self.__agent_id
+        parsed_act["id"] = self.__agent_id
         return parsed_act
 
-    def observe(self, act): 
+    def observe(self, act):
         """
         ParlAI Agents observe a dict, we must convert these to  packets?
         """
         packaged_act = Packet(
             packet_type=PACKET_TYPE_AGENT_ACTION,
-            sender_id='mephisto',
+            sender_id="mephisto",
             receiver_id=self.mephisto_agent.db_id,
             data=act,
         )
@@ -96,8 +97,8 @@ class ParlAIChatTaskRunner(TaskRunner):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
-        world_file_path = os.path.expanduser(self.opts['world_file'])
-        world_file_path = os.path.expanduser(self.opts['world_file'])
+        world_file_path = os.path.expanduser(self.opts["world_file"])
+        world_file_path = os.path.expanduser(self.opts["world_file"])
         world_module_path = world_file_path[:-3]
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
@@ -126,7 +127,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         for agent in agents:
             assert agent is not None, "task was not fully assigned"
-        opt: Dict[str, Any] = {} # TODO find a way to pass world options along
+        opt: Dict[str, Any] = {}  # TODO find a way to pass world options along
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
         while not world.episode_done() and assignment.db_id in self.running_assignments:

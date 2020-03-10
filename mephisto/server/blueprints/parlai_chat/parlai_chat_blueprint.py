@@ -6,9 +6,15 @@
 
 from mephisto.data_model.blueprint import Blueprint
 from mephisto.data_model.assignment import InitializationData
-from mephisto.server.blueprints.parlai_chat.parlai_chat_agent_state import ParlAIChatAgentState
-from mephisto.server.blueprints.parlai_chat.parlai_chat_task_runner import ParlAIChatTaskRunner
-from mephisto.server.blueprints.parlai_chat.parlai_chat_task_builder import ParlAIChatTaskBuilder
+from mephisto.server.blueprints.parlai_chat.parlai_chat_agent_state import (
+    ParlAIChatAgentState,
+)
+from mephisto.server.blueprints.parlai_chat.parlai_chat_task_runner import (
+    ParlAIChatTaskRunner,
+)
+from mephisto.server.blueprints.parlai_chat.parlai_chat_task_builder import (
+    ParlAIChatTaskBuilder,
+)
 
 import os
 import time
@@ -34,7 +40,11 @@ class ParlAIChatBlueprint(Blueprint):
     AgentStateClass: ClassVar[Type["AgentState"]] = ParlAIChatAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = ParlAIChatTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = ParlAIChatTaskRunner
-    supported_architects: ClassVar[List[str]] = ["mock", "heroku", "local"]  # TODO update?
+    supported_architects: ClassVar[List[str]] = [
+        "mock",
+        "heroku",
+        "local",
+    ]  # TODO update?
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(self, task_run: "TaskRun", opts: Any):
@@ -59,16 +69,18 @@ class ParlAIChatBlueprint(Blueprint):
                 "Parsing static tasks directly from dicts or JSON is not supported yet"
             )
 
-        world_file_path = os.path.expanduser(self.opts['world_file'])
+        world_file_path = os.path.expanduser(self.opts["world_file"])
         world_module_path = world_file_path[:-3]
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
         world_module = import_module(world_module_name)
-        # TODO assert this is a ParlAI world after figuring out 
+        # TODO assert this is a ParlAI world after figuring out
         # how to get ParlAI to play with Poetry
         assert hasattr(world_module, "make_world")
         assert hasattr(world_module, "get_world_params")
-        self.agent_count = world_module.get_world_params()['agent_count']  # type: ignore
+        self.agent_count = world_module.get_world_params()[
+            "agent_count"
+        ]  # type: ignore
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
@@ -87,7 +99,7 @@ class ParlAIChatBlueprint(Blueprint):
             the html.
         """
         group.add_argument(
-            '--world-file',
+            "--world-file",
             dest="world_file",
             help="Path to file containing ParlAI world",
             required=True,
@@ -129,11 +141,11 @@ class ParlAIChatBlueprint(Blueprint):
         to the client for use by the task's frontend
         """
         return {
-            'task_description': "This is a test task description for rendering in a task!",
-            'frame_height': 650,
-            'chat_title': "Example Chat",
-            'has_preview': self.opts.get('preview_source') is not None,
-            'block_mobile': True,
+            "task_description": "This is a test task description for rendering in a task!",
+            "frame_height": 650,
+            "chat_title": "Example Chat",
+            "has_preview": self.opts.get("preview_source") is not None,
+            "block_mobile": True,
         }
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:

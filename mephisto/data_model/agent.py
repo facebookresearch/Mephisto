@@ -240,7 +240,7 @@ class Agent(ABC):
 
         act = self.pending_actions.pop(0)
 
-        if 'MEPHISTO_is_submit' in act.data and act.data['MEPHISTO_is_submit']:
+        if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
             self.did_submit.set()
 
         # TODO check to see if the act is one of the acts to ERROR on

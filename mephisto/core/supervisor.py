@@ -311,13 +311,16 @@ class Supervisor:
             )
         )
 
-    def _launch_and_run_assignment(self, assignment: "Assignment", agent_infos: List["AgentInfo"], task_runner: "TaskRunner"):
+    def _launch_and_run_assignment(
+        self,
+        assignment: "Assignment",
+        agent_infos: List["AgentInfo"],
+        task_runner: "TaskRunner",
+    ):
         """Launch a thread to supervise the completion of an assignment"""
         try:
             tracked_agents = [a.agent for a in agent_infos]
-            task_runner.launch_assignment(
-                assignment, tracked_agents
-            )
+            task_runner.launch_assignment(assignment, tracked_agents)
             for agent_info in agent_infos:
                 self._mark_agent_done(agent_info)
             # Wait for agents to be complete
@@ -331,6 +334,7 @@ class Supervisor:
                 agent.mark_done()
         except Exception as e:
             import traceback
+
             traceback.print_exc()
             # TODO handle runtime exceptions for assignments
             task_runner.cleanup_assignment(assignment)
@@ -388,10 +392,10 @@ class Supervisor:
                 # TODO async tasks should actually be launched one at a time,
                 # should check the blueprint to see what kind of launch is happening
                 agent_infos = [self.agents[a.db_id] for a in agents]
-                
+
                 assign_thread = threading.Thread(
-                    target=self._launch_and_run_assignment, 
-                    args=(assignment, agent_infos, socket_info.job.task_runner)
+                    target=self._launch_and_run_assignment,
+                    args=(assignment, agent_infos, socket_info.job.task_runner),
                 )
 
                 for agent_info in agent_infos:
@@ -579,7 +583,7 @@ class Supervisor:
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=agent_info.agent.db_id,
-            data={'agent_status': 'in_task', 'done_text': None},
+            data={"agent_status": "in_task", "done_text": None},
         )
         socket_info = self.sockets[agent_info.used_socket_id]
         self._send_through_socket(socket_info.socket, send_packet)
@@ -594,13 +598,12 @@ class Supervisor:
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=agent_info.agent.db_id,
             data={
-                'agent_status': 'done', 
-                'done_text': 'You have completed this task. Please submit.'
+                "agent_status": "done",
+                "done_text": "You have completed this task. Please submit.",
             },
         )
         socket_info = self.sockets[agent_info.used_socket_id]
         self._send_through_socket(socket_info.socket, send_packet)
-
 
     def _handle_updated_agent_status(self, status_map: Dict[str, str]):
         """

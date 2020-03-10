@@ -8,18 +8,18 @@ from parlai.core.worlds import validate
 from joblib import Parallel, delayed
 
 
-TURN_TIMEOUT_TIME = 30 # TODO make not a constant
+TURN_TIMEOUT_TIME = 30  # TODO make not a constant
 
 
 class MTurkMultiAgentDialogOnboardWorld(MTurkOnboardWorld):
     def parley(self):
-        self.mturk_agent.observe({'id': 'System', 'text': 'Welcome onboard!'})
+        self.mturk_agent.observe({"id": "System", "text": "Welcome onboard!"})
         self.mturk_agent.act()
         self.mturk_agent.observe(
             {
-                'id': 'System',
-                'text': 'Thank you for your input! Please wait while '
-                'we match you with another worker...',
+                "id": "System",
+                "text": "Thank you for your input! Please wait while "
+                "we match you with another worker...",
             }
         )
         self.episodeDone = True
@@ -36,7 +36,7 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         self.agents = agents
         self.acts = [None] * len(agents)
         self.episodeDone = False
-        self.max_turns = opt.get('max_turns', 2)
+        self.max_turns = opt.get("max_turns", 2)
         self.current_turns = 0
         for idx, agent in enumerate(self.agents):
             agent.agent_id = f"Chat Agent {idx + 1}"
@@ -56,7 +56,7 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
                 acts[index] = agent.act(timeout=TURN_TIMEOUT_TIME)
             except TypeError:
                 acts[index] = agent.act()  # not MTurkAgent
-            if acts[index]['episode_done']:
+            if acts[index]["episode_done"]:
                 self.episodeDone = True
             for other_agent in self.agents:
                 if other_agent != agent:
@@ -78,12 +78,14 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
             except Exception:
                 agent.shutdown()  # not MTurkAgent
 
-        Parallel(n_jobs=len(self.agents), backend='threading')(
+        Parallel(n_jobs=len(self.agents), backend="threading")(
             delayed(shutdown_agent)(agent) for agent in self.agents
         )
+
 
 def make_world(opt, agents):
     return MTurkMultiAgentDialogWorld(opt, agents)
 
+
 def get_world_params():
-    return {'agent_count': 2}
+    return {"agent_count": 2}
