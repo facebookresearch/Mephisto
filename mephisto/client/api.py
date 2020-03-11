@@ -3,6 +3,7 @@ from flask import current_app as app
 from mephisto.data_model.database import EntryAlreadyExistsException
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun
+from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.core.argparse_parser import get_extra_argument_dicts, parse_arg_dict
 from mephisto.core.utils import (
     get_blueprint_from_type,
@@ -150,6 +151,58 @@ def requester_register(requester_type):
         requester.register(parsed_options)
         return jsonify({"success": True})
     except Exception as e:
+        return jsonify({"success": False, "msg": str(e)})
+
+@api.route("/data/submitted_data")
+def get_submitted_data():
+    try:
+        task_run_ids = request.args.getlist('task_run_id')
+        task_names = request.args.getlist('task_name')
+        assignment_ids = request.args.getlist('assignment_id')
+        unit_ids = request.args.getlist('unit_ids')
+        statuses = request.args.getlist('status')
+
+        db = app.extensions["db"]
+        units = []
+        assignments = []
+        assert len(task_names) == 0, 'Searching via task names not yet supported'
+
+        task_runs = [TaskRun(db, task_run_id) for task_run_id in task_run_ids]
+        for task_run in task_runs: 
+            assignments += task_run.get_assignments()
+        
+        assignments += [Assignment(db, assignment_id) for assignment_id in assignment_ids]
+
+        if len(statuses) == 0:
+            statuses = AssignmentState.final_agent()
+        
+        filtered_assignments = [a for a in assignments if a.get_status() in statuses]
+
+        for assignment in assignments:
+            units += assignment.get_units()
+
+        units += [Unit(db, unit_id) for unit_id in unit_ids]
+
+        all_unit_data = []
+        for unit in units:
+            unit_data = {
+                'assignment_id': unit.assignment_id,
+                'task_run_id': unit.task_run_id,
+                'status': unit.db_status,
+                'unit_id': unit.db_id,
+                'worker_id': unit.worker_id,
+                'data': None,
+            }
+            agent = unit.get_assigned_agent()
+            if agent is not None:
+                unit_data['data'] = agent.state.get_data()
+            all_unit_data.append(unit_data)
+
+        print(all_unit_data)
+        return jsonify({"success": True, "units": all_unit_data})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "msg": str(e)})
 
 

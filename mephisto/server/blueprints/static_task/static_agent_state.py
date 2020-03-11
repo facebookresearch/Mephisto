@@ -30,7 +30,7 @@ class StaticAgentState(AgentState):
         input dict -> output dict pairs to disc
         """
         self.agent = agent
-        self.state: List[Dict[str, Any]] = []
+        self.state: Dict[str, Optional[Dict[str, Any]]] = {'inputs': None, 'outputs': None}
         self.load_data()
 
     def set_init_state(self, data: Any) -> bool:
@@ -39,7 +39,7 @@ class StaticAgentState(AgentState):
             # Initial state is already set
             return False
         else:
-            self.state.append(data)
+            self.state['inputs'] = data
             self.save_data()
             return True
 
@@ -48,10 +48,7 @@ class StaticAgentState(AgentState):
         Return the initial state for this agent,
         None if no such state exists
         """
-        if len(self.state) == 0:
-            return None
-        else:
-            return self.state[0]
+        return self.state['inputs']
 
     def load_data(self) -> None:
         """Load data for this agent from disk"""
@@ -61,7 +58,7 @@ class StaticAgentState(AgentState):
             with open(data_path, "r") as data_file:
                 self.state = json.load(data_file)
         else:
-            self.state = []
+            self.state = {}
 
     def get_data(self) -> List[Dict[str, Any]]:
         """Return dict of this agent's state"""
@@ -83,7 +80,7 @@ class StaticAgentState(AgentState):
         assert (
             packet.data.get("MEPHISTO_is_submit") is True
         ), "Static tasks should only have final act"
-        self.state.append(packet.data["task_data"])
+        self.state['outputs'] = packet.data["task_data"]
         if packet.data.get("files") != None:
             print("Got files:", str(packet.data["files"])[:500])
         self.save_data()
