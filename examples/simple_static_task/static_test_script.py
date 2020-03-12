@@ -13,41 +13,38 @@ operator = Operator(db)
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
-if USE_LOCAL:
-    requester = db.find_requesters(provider_type="mock")[-1]
-    requester_name = requester.requester_name
-    ARG_STRING = (
-        "--blueprint-type static "
-        "--architect-type local "
-        f"--requester-name {requester_name} "
-        '--task-title "Test-static-task" '
-        "--task-description description "
-        "--task-reward 0.3 "
-        "--task-tags static,task,testing "
-        f'--data-csv "{TASK_DIRECTORY}/data.csv" '
-        f'--task-source "{TASK_DIRECTORY}/server_files/demo_task.html" '
-        f'--preview-source "{TASK_DIRECTORY}/server_files/demo_preview.html" '
-        f'--extra-source-dir "{TASK_DIRECTORY}/server_files/extra_refs" '
-    )
-else:
-    requester = db.find_requesters(provider_type="mturk_sandbox")[-1]
-    requester_name = requester.requester_name
-    assert requester_name.endswith("_sandbox"), "Should use a sandbox for testing"
-    print(requester)
-    print(requester.provider_type)
-    ARG_STRING = (
-        "--blueprint-type static "
-        "--architect-type heroku "
-        f"--requester-name {requester_name} "
-        '--task-title "Test-static-task" '
-        "--task-description description "
-        "--task-reward 0.3 "
-        "--task-tags static,task,testing "
-        f'--data-csv "{TASK_DIRECTORY}/data.csv" '
-        f'--task-source "{TASK_DIRECTORY}/server_files/demo_task.html" '
-        f'--preview-source "{TASK_DIRECTORY}/server_files/demo_preview.html" '
-        f'--extra-source-dir "{TASK_DIRECTORY}/server_files/extra_refs" '
-    )
+# ARG_STRING goes through shlex.split twice, hence be careful if these 
+# strings contain anything which needs quoting.
+task_title = "Test static task"
+task_description = "This is a simple test of static tasks."
+
+provider_type = "mock" if USE_LOCAL else "mturk_sandbox"
+architect_type = "local" if USE_LOCAL else "heroku"
+
+# The first time round, need to call the following here.
+# db.new_requester("<some_email_address>", "mock")
+# db.new_requester("<your_email_address>_sandbox", "mturk_sandbox")
+
+requester = db.find_requesters(provider_type=provider_type)[-1]
+requester_name = requester.requester_name
+assert USE_LOCAL or requester_name.endswith('_sandbox'), "Should use a sandbox for testing"
+
+# The first time using mturk, need to call the following here
+# requester.register()
+
+ARG_STRING = (
+    "--blueprint-type static "
+    f"--architect-type {architect_type} "
+    f"--requester-name {requester_name} "
+    f'--task-title "\\"{task_title}\\"" '
+    f'--task-description "\\"{task_description}\\"" '
+    "--task-reward 0.3 "
+    "--task-tags static,task,testing "
+    f'--data-csv "{TASK_DIRECTORY}/data.csv" '
+    f'--task-source "{TASK_DIRECTORY}/server_files/demo_task.html" '
+    f'--preview-source "{TASK_DIRECTORY}/server_files/demo_preview.html" '
+    f'--extra-source-dir "{TASK_DIRECTORY}/server_files/extra_refs" '
+)
 
 try:
     operator.parse_and_launch_run(shlex.split(ARG_STRING))

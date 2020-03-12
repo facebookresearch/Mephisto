@@ -15,6 +15,7 @@ import sh
 import shlex
 import shutil
 import subprocess
+import sys
 import time
 import requests
 from mephisto.core.utils import get_mephisto_tmp_dir
@@ -160,10 +161,9 @@ class HerokuArchitect(Architect):
         bit_architecture = None
 
         # Get the platform we are working on
-        platform_info = platform.platform()
-        if "Darwin" in platform_info:  # Mac OS X
+        if sys.platform == "darwin":  # Mac OS X
             os_name = "darwin"
-        elif "Linux" in platform_info:  # Linux
+        elif sys.platform.startswith("linux"):  # Linux
             os_name = "linux"
         else:
             os_name = "windows"
