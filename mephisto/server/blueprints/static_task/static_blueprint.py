@@ -115,6 +115,8 @@ class StaticBlueprint(Blueprint):
         Return the InitializationData retrieved from the specified stream
         """
         return [
-            InitializationData(shared=d, unit_data=[{}] * self.opts['units_per_assignment'])
+            InitializationData(
+                shared=d, unit_data=[{}] * self.opts["units_per_assignment"]
+            )
             for d in self._initialization_data_dicts
         ]

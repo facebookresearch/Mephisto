@@ -340,10 +340,7 @@ class Supervisor:
             task_runner.cleanup_assignment(assignment)
 
     def _launch_and_run_unit(
-        self,
-        unit: "Unit",
-        agent_info: "AgentInfo",
-        task_runner: "TaskRunner",
+        self, unit: "Unit", agent_info: "AgentInfo", task_runner: "TaskRunner"
     ):
         """Launch a thread to supervise the completion of an assignment"""
         try:
@@ -410,11 +407,12 @@ class Supervisor:
             # TODO is this a safe enough place to un-reserve?
             task_run.clear_reservation(unit)
 
-            # Launch individual tasks 
+            # Launch individual tasks
             if not socket_info.job.task_runner.is_concurrent:
                 unit_thread = threading.Thread(
                     target=self._launch_and_run_unit,
                     args=(unit, agent_info, socket_info.job.task_runner),
+                    name=f"Unit-thread-{unit.db_id}",
                 )
                 agent_info.assignment_thread = unit_thread
                 unit_thread.start()
@@ -422,22 +420,23 @@ class Supervisor:
                 # See if the concurrent unit is ready to launch
                 assignment = unit.get_assignment()
                 agents = assignment.get_agents()
-                if None not in agents:
-                    # Launch the backend for this assignment
-                    # TODO async tasks should actually be launched one at a time,
-                    # should check the blueprint to see what kind of launch is happening
-                    agent_infos = [self.agents[a.db_id] for a in agents]
+                if None in agents:
+                    return  # need to wait for all agents to be here to launch
 
-                    assign_thread = threading.Thread(
-                        target=self._launch_and_run_assignment,
-                        args=(assignment, agent_infos, socket_info.job.task_runner),
-                    )
+                # Launch the backend for this assignment
+                agent_infos = [self.agents[a.db_id] for a in agents if a is not None]
 
-                    for agent_info in agent_infos:
-                        self._mark_agent_active(agent_info)
-                        agent_info.assignment_thread = assign_thread
+                assign_thread = threading.Thread(
+                    target=self._launch_and_run_assignment,
+                    args=(assignment, agent_infos, socket_info.job.task_runner),
+                    name=f"Assignment-thread-{assignment.db_id}",
+                )
 
-                    assign_thread.start()
+                for agent_info in agent_infos:
+                    self._mark_agent_active(agent_info)
+                    agent_info.assignment_thread = assign_thread
+
+                assign_thread.start()
 
     def _register_agent_from_onboarding(self, packet: Packet, socket_info: SocketInfo):
         """Register an agent that has finished onboarding"""

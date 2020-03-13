@@ -967,7 +967,12 @@ class LocalMephistoDB(MephistoDB):
                     SET status = ?, agent_id = ?, worker_id = ?
                     WHERE unit_id = ?;
                     """,
-                    (AssignmentState.ASSIGNED, int(agent_id), int(worker_id), int(unit_id)),
+                    (
+                        AssignmentState.ASSIGNED,
+                        int(agent_id),
+                        int(worker_id),
+                        int(unit_id),
+                    ),
                 )
                 conn.commit()
                 return agent_id

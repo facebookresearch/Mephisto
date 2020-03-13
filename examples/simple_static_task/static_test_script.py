@@ -13,7 +13,7 @@ operator = Operator(db)
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
-# ARG_STRING goes through shlex.split twice, hence be careful if these 
+# ARG_STRING goes through shlex.split twice, hence be careful if these
 # strings contain anything which needs quoting.
 task_title = "Test static task"
 task_description = "This is a simple test of static tasks."
@@ -27,7 +27,9 @@ architect_type = "local" if USE_LOCAL else "heroku"
 
 requester = db.find_requesters(provider_type=provider_type)[-1]
 requester_name = requester.requester_name
-assert USE_LOCAL or requester_name.endswith('_sandbox'), "Should use a sandbox for testing"
+assert USE_LOCAL or requester_name.endswith(
+    "_sandbox"
+), "Should use a sandbox for testing"
 
 # The first time using mturk, need to call the following here
 # requester.register()
@@ -44,7 +46,7 @@ ARG_STRING = (
     f'--task-source "{TASK_DIRECTORY}/server_files/demo_task.html" '
     f'--preview-source "{TASK_DIRECTORY}/server_files/demo_preview.html" '
     f'--extra-source-dir "{TASK_DIRECTORY}/server_files/extra_refs" '
-    f'--units-per-assignment 2 '
+    f"--units-per-assignment 2 "
 )
 
 try:

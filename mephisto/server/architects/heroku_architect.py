@@ -19,6 +19,7 @@ import sys
 import time
 import requests
 from mephisto.core.utils import get_mephisto_tmp_dir
+from mephisto.core.argparse_parser import str2bool
 from mephisto.data_model.architect import Architect
 from mephisto.server.architects.router.build_router import build_router
 from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING
@@ -112,7 +113,7 @@ class HerokuArchitect(Architect):
             "--use-hobby",
             dest="use_hobby",
             help="Launch on the Heroku Hobby tier",
-            type=bool,
+            type=str2bool,
             default=False,
         )
         group.add_argument(

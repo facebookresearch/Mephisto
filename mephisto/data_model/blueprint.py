@@ -178,9 +178,7 @@ class TaskRunner(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    def launch_unit(
-        self, unit: "Units", agent: "Agent"
-    ) -> None:
+    def launch_unit(self, unit: "Unit", agent: "Agent") -> None:
         """
         Validate the unit is prepared to launch, then run it
         """
@@ -234,11 +232,11 @@ class TaskRunner(ABC):
         """
         raise NotImplementedError()
 
-    # TaskRunners must implement either the unit or assignment versions of the 
+    # TaskRunners must implement either the unit or assignment versions of the
     # run and cleanup functions, depending on if the task is run at the assignment
     # level rather than on the the unit level.
-    
-    def run_unit(self, unit: "Unit", agents: List["Agent"]):
+
+    def run_unit(self, unit: "Unit", agent: "Agent"):
         """
         Handle setup for any resources required to get this unit running.
         This will be run in a background thread, and should be tolerant to

@@ -23,10 +23,7 @@ class StaticAgentState(AgentState):
     """
 
     def _get_empty_state(self) -> Dict[str, Optional[Dict[str, Any]]]:
-        return {
-            "inputs": None,
-            "outputs": None,
-        }
+        return {"inputs": None, "outputs": None}
 
     def __init__(self, agent: "Agent"):
         """
@@ -64,7 +61,7 @@ class StaticAgentState(AgentState):
         else:
             self.state = self._get_empty_state()
 
-    def get_data(self) -> List[Dict[str, Any]]:
+    def get_data(self) -> Dict[str, Optional[Dict[str, Any]]]:
         """Return dict of this agent's state"""
         return self.state
 

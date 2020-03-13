@@ -216,7 +216,7 @@ class TaskRun:
 
         # Cannot pair with self
         unit_assigns = [a.get_units() for a in assignments]
-        units = []
+        units: List["Unit"] = []
         for unit_set in unit_assigns:
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
             is_self = reduce(lambda x, y: x or y, is_self_set)
@@ -310,7 +310,9 @@ class TaskRun:
         assigns = self.get_assignments()
         assigns_with_status = [(x, x.get_status()) for x in assigns]
         return {
-            status: len([x for x, had_status in assigns_with_status if had_status == status])
+            status: len(
+                [x for x, had_status in assigns_with_status if had_status == status]
+            )
             for status in AssignmentState.valid()
         }
 
