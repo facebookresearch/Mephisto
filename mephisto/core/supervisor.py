@@ -339,6 +339,30 @@ class Supervisor:
             # TODO handle runtime exceptions for assignments
             task_runner.cleanup_assignment(assignment)
 
+    def _launch_and_run_unit(
+        self,
+        unit: "Unit",
+        agent_info: "AgentInfo",
+        task_runner: "TaskRunner",
+    ):
+        """Launch a thread to supervise the completion of an assignment"""
+        try:
+            agent = agent_info.agent
+            task_runner.launch_unit(unit, agent)
+            self._mark_agent_done(agent_info)
+            if not agent.did_submit.is_set():
+                # Wait for a submit to occur
+                # TODO make submit timeout configurable
+                agent.has_action.wait(timeout=300)
+                agent.act()
+            agent.mark_done()
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            # TODO handle runtime exceptions for assignments
+            task_runner.cleanup_unit(unit)
+
     def _assign_unit_to_agent(
         self, packet: Packet, socket_info: SocketInfo, units: List["Unit"]
     ):
@@ -382,27 +406,38 @@ class Supervisor:
             self.agents_by_registration_id[
                 crowd_data["agent_registration_id"]
             ] = agent_info
-            # See if the current unit is ready to launch
-            assignment = unit.get_assignment()
-            agents = assignment.get_agents()
+
             # TODO is this a safe enough place to un-reserve?
             task_run.clear_reservation(unit)
-            if None not in agents:
-                # Launch the backend for this assignment
-                # TODO async tasks should actually be launched one at a time,
-                # should check the blueprint to see what kind of launch is happening
-                agent_infos = [self.agents[a.db_id] for a in agents]
 
-                assign_thread = threading.Thread(
-                    target=self._launch_and_run_assignment,
-                    args=(assignment, agent_infos, socket_info.job.task_runner),
+            # Launch individual tasks 
+            if not socket_info.job.task_runner.is_concurrent:
+                unit_thread = threading.Thread(
+                    target=self._launch_and_run_unit,
+                    args=(unit, agent_info, socket_info.job.task_runner),
                 )
+                agent_info.assignment_thread = unit_thread
+                unit_thread.start()
+            else:
+                # See if the concurrent unit is ready to launch
+                assignment = unit.get_assignment()
+                agents = assignment.get_agents()
+                if None not in agents:
+                    # Launch the backend for this assignment
+                    # TODO async tasks should actually be launched one at a time,
+                    # should check the blueprint to see what kind of launch is happening
+                    agent_infos = [self.agents[a.db_id] for a in agents]
 
-                for agent_info in agent_infos:
-                    self._mark_agent_active(agent_info)
-                    agent_info.assignment_thread = assign_thread
+                    assign_thread = threading.Thread(
+                        target=self._launch_and_run_assignment,
+                        args=(assignment, agent_infos, socket_info.job.task_runner),
+                    )
 
-                assign_thread.start()
+                    for agent_info in agent_infos:
+                        self._mark_agent_active(agent_info)
+                        agent_info.assignment_thread = assign_thread
+
+                    assign_thread.start()
 
     def _register_agent_from_onboarding(self, packet: Packet, socket_info: SocketInfo):
         """Register an agent that has finished onboarding"""

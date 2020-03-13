@@ -25,7 +25,7 @@ from recordclass import RecordClass
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.assignment import Assignment, InitializationData
+    from mephisto.data_model.assignment import Assignment, InitializationData, Unit
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
@@ -162,6 +162,8 @@ class TaskRunner(ABC):
         self.opts = opts
         self.task_run = task_run
         self.running_assignments: Dict[str, "Assignment"] = {}
+        self.running_units: Dict[str, "Unit"] = {}
+        self.is_concurrent = False
         # TODO populate some kind of local state for tasks that are being run
         # by this runner from the database.
 
@@ -175,6 +177,26 @@ class TaskRunner(ABC):
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    def launch_unit(
+        self, unit: "Units", agent: "Agent"
+    ) -> None:
+        """
+        Validate the unit is prepared to launch, then run it
+        """
+        # TODO depending on if this is a synchronous task or not, we may
+        # want to check unit id instead
+        if unit.db_id in self.running_units:
+            print(f"Unit {unit.db_id} is already running")
+            return
+
+        print(f"Unit {unit.db_id} is launching with {agent}")
+
+        # At this point we're sure we want to run the unit
+        self.running_units[unit.db_id] = unit
+        self.run_unit(unit, agent)
+        del self.running_units[unit.db_id]
+        return
 
     def launch_assignment(
         self, assignment: "Assignment", agents: List["Agent"]
@@ -212,16 +234,40 @@ class TaskRunner(ABC):
         """
         raise NotImplementedError()
 
-    @abstractmethod
+    # TaskRunners must implement either the unit or assignment versions of the 
+    # run and cleanup functions, depending on if the task is run at the assignment
+    # level rather than on the the unit level.
+    
+    def run_unit(self, unit: "Unit", agents: List["Agent"]):
+        """
+        Handle setup for any resources required to get this unit running.
+        This will be run in a background thread, and should be tolerant to
+        being interrupted by cleanup_unit.
+
+        Only needs to be implemented by non-concurrent tasks
+        """
+        raise NotImplementedError()
+
+    def cleanup_unit(self, unit: "Unit"):
+        """
+        Handle ensuring resources for a given assignment are cleaned up following
+        a disconnect or other crash event
+
+        Does not need to be implemented if the run_unit method is
+        already error catching and handles its own cleanup
+        """
+        raise NotImplementedError()
+
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]):
         """
         Handle setup for any resources required to get this assignment running.
         This will be run in a background thread, and should be tolerant to
         being interrupted by cleanup_assignment.
+
+        Only needs to be implemented by concurrent tasks
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def cleanup_assignment(self, assignment: "Assignment"):
         """
         Handle ensuring resources for a given assignment are cleaned up following

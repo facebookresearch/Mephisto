@@ -14,7 +14,7 @@ from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.assignment import Assignment, InitializationData
+    from mephisto.data_model.assignment import Unit, InitializationData
     from mephisto.data_model.agent import Agent
 
 
@@ -32,8 +32,7 @@ class StaticTaskRunner(TaskRunner):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
-
-    # TODO reconnects should get the same agent as was initially given
+        self.is_concurrent = False
 
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """
@@ -49,19 +48,16 @@ class StaticTaskRunner(TaskRunner):
             agent.state.set_init_state(assignment_data.shared)
             return assignment_data.shared
 
-    def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
+    def run_unit(self, unit: "Unit", agent: "Agent") -> None:
         """
         Static runners will get the task data, send it to the user, then
         wait for the agent to act (the data to be completed)
         """
-        unit = assignment.get_units()[0]
-        assert unit.unit_index == 0, "Static units should always have index 0"
-        agent = agents[0]
-        assert agent is not None, "Task was not fully assigned"
-
+        # Frontend implicitly asks for the initialization data, so we just need
+        # to wait for a response
         agent_act = agent.act(timeout=TEST_TIMEOUT)
+        # TODO if agent_act is None, mark as incomplete?
 
-    def cleanup_assignment(self, assignment: "Assignment") -> None:
-        """Simply mark that the assignment is no longer being tracked"""
-        if assignment.db_id in self.running_assignments:
-            del self.running_assignments[assignment.db_id]
+    def cleanup_unit(self, unit: "Unit") -> None:
+        """There is currently no cleanup associated with killing an incomplete task"""
+        return
