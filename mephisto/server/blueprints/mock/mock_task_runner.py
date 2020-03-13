@@ -63,10 +63,6 @@ class MockTaskRunner(TaskRunner):
                 agent.observe(packet)
             agent.mark_done()
         del self.tracked_tasks[assignment.db_id]
-        if assignment.db_id in self.running_assignments:
-            # TODO can we automatically remove from running_assignments
-            # when this thread exits? Examine from supervisor
-            del self.running_assignments[assignment.db_id]
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:

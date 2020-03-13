@@ -9,18 +9,23 @@ python = "^3.6"
 click = "^7.0"
 flask = "^1.1"
 click_default_group = "^1.2"
-boto3 = "^1.10"
+boto3 = "^1.9"
 requests = "^2.22"
 sh = "^1.12"
 websocket-client = "^0.56.0"
 recordclass = "^0.12.0"
 argparse = "=1.1"
 tornado = "^6.0"
+parlai = {path = "../ParlAI", optional = true }
+torch = {version = "^1.4.0", optional = true }
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.0"
+pytest = "^5.0"
 pylint = "^2.4"
 mypy = "^0.761.0"
+
+[tool.poetry.extras]
+parlai = [ "parlai" , "torch" ]
 
 [tool.poetry.scripts]
 'mephisto' = 'mephisto.client.cli:cli'

@@ -10,6 +10,7 @@ import sh
 import shutil
 import shlex
 import subprocess
+import json
 
 from typing import TYPE_CHECKING
 
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
 ROUTER_ROOT_DIR = os.path.dirname(router_module.__file__)
 SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "deploy")
 CROWD_SOURCE_PATH = "static/wrap_crowd_source.js"
+TASK_CONFIG_PATH = "static/task_config.json"
 
 
 def can_build(build_dir: str, task_run: "TaskRun") -> bool:
@@ -73,6 +75,11 @@ def build_router(build_dir: str, task_run: "TaskRun") -> str:
     )
     crowd_provider = task_run.get_provider()
     shutil.copy2(crowd_provider.get_wrapper_js_path(), local_crowd_source_path)
+
+    # Copy the task_run's json configuration
+    local_task_config_path = os.path.join(local_server_directory_path, TASK_CONFIG_PATH)
+    with open(local_task_config_path, "w+") as task_fp:
+        json.dump(task_run.get_blueprint().get_frontend_args(), task_fp)
 
     # Consolidate task files as defined by the task
     TaskBuilderClass = task_run.get_blueprint().TaskBuilderClass

@@ -21,7 +21,6 @@ from typing import (
 )
 
 from recordclass import RecordClass
-import threading
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -30,11 +29,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
-
-
-class TrackedAssignment(RecordClass):
-    assignment: "Assignment"
-    thread: threading.Thread
 
 
 class Blueprint(ABC):
@@ -83,6 +77,13 @@ class Blueprint(ABC):
         # group.description = 'For `Blueprint`, you can supply...'
         # group.add_argument('--task-option', help='Lets you customize')
         return
+
+    def get_frontend_args(self) -> Dict[str, Any]:
+        """
+        Specifies what options should be fowarded 
+        to the client for use by the task's frontend
+        """
+        return {}
 
     @abstractmethod
     def get_initialization_data(
@@ -160,7 +161,7 @@ class TaskRunner(ABC):
     def __init__(self, task_run: "TaskRun", opts: Dict[str, Any]):
         self.opts = opts
         self.task_run = task_run
-        self.running_assignments: Dict[str, TrackedAssignment] = {}
+        self.running_assignments: Dict[str, "Assignment"] = {}
         # TODO populate some kind of local state for tasks that are being run
         # by this runner from the database.
 
@@ -179,21 +180,20 @@ class TaskRunner(ABC):
         self, assignment: "Assignment", agents: List["Agent"]
     ) -> None:
         """
-        Launch a thread for the given assignment, if one doesn't
-        exist already
+        Validate the assignment is prepared to launch, then run it
         """
+        # TODO depending on if this is a synchronous task or not, we may
+        # want to check unit id instead
         if assignment.db_id in self.running_assignments:
             print(f"Assignment {assignment.db_id} is already running")
             return
 
         print(f"Assignment {assignment.db_id} is launching with {agents}")
-        run_thread = threading.Thread(
-            target=self.run_assignment, args=(assignment, agents)
-        )
-        self.running_assignments[assignment.db_id] = TrackedAssignment(
-            assignment=assignment, thread=run_thread
-        )
-        run_thread.start()
+
+        # At this point we're sure we want to run the assignment
+        self.running_assignments[assignment.db_id] = assignment
+        self.run_assignment(assignment, agents)
+        del self.running_assignments[assignment.db_id]
         return
 
     @staticmethod

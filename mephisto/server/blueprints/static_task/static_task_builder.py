@@ -98,5 +98,5 @@ class StaticTaskBuilder(TaskBuilder):
 
     # TODO failed static tasks should be requeued?
     def cleanup_assignment(self, assignment: "Assignment"):
-        """No cleanup required yet for ending mock runs"""
+        """Failed static tasks may need to be requeued?"""
         pass

@@ -25,6 +25,8 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_GET_INIT_DATA,
     PACKET_TYPE_PROVIDER_DETAILS,
     PACKET_TYPE_SUBMIT_ONBOARDING,
+    PACKET_TYPE_REQUEST_ACTION,
+    PACKET_TYPE_UPDATE_AGENT_STATUS,
 )
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.blueprint import OnboardingRequired
@@ -36,6 +38,7 @@ from typing import Dict, Optional, List, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, Unit
+    from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import TaskRunner
@@ -74,6 +77,7 @@ class SocketInfo(RecordClass):
 class AgentInfo(RecordClass):
     agent: "Agent"
     used_socket_id: str
+    assignment_thread: Optional[threading.Thread] = None
 
 
 class Supervisor:
@@ -307,6 +311,34 @@ class Supervisor:
             )
         )
 
+    def _launch_and_run_assignment(
+        self,
+        assignment: "Assignment",
+        agent_infos: List["AgentInfo"],
+        task_runner: "TaskRunner",
+    ):
+        """Launch a thread to supervise the completion of an assignment"""
+        try:
+            tracked_agents = [a.agent for a in agent_infos]
+            task_runner.launch_assignment(assignment, tracked_agents)
+            for agent_info in agent_infos:
+                self._mark_agent_done(agent_info)
+            # Wait for agents to be complete
+            for agent_info in agent_infos:
+                agent = agent_info.agent
+                if not agent.did_submit.is_set():
+                    # Wait for a submit to occur
+                    # TODO make submit timeout configurable
+                    agent.has_action.wait(timeout=300)
+                    agent.act()
+                agent.mark_done()
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            # TODO handle runtime exceptions for assignments
+            task_runner.cleanup_assignment(assignment)
+
     def _assign_unit_to_agent(
         self, packet: Packet, socket_info: SocketInfo, units: List["Unit"]
     ):
@@ -359,10 +391,18 @@ class Supervisor:
                 # Launch the backend for this assignment
                 # TODO async tasks should actually be launched one at a time,
                 # should check the blueprint to see what kind of launch is happening
-                tracked_agents = [self.agents[a.db_id].agent for a in agents]
-                socket_info.job.task_runner.launch_assignment(
-                    assignment, tracked_agents
+                agent_infos = [self.agents[a.db_id] for a in agents]
+
+                assign_thread = threading.Thread(
+                    target=self._launch_and_run_assignment,
+                    args=(assignment, agent_infos, socket_info.job.task_runner),
                 )
+
+                for agent_info in agent_infos:
+                    self._mark_agent_active(agent_info)
+                    agent_info.assignment_thread = assign_thread
+
+                assign_thread.start()
 
     def _register_agent_from_onboarding(self, packet: Packet, socket_info: SocketInfo):
         """Register an agent that has finished onboarding"""
@@ -534,6 +574,37 @@ class Supervisor:
                 self.message_queue.insert(0, curr_obs)
                 return  # something up with the socket, try later
 
+    def _mark_agent_active(self, agent_info: AgentInfo) -> None:
+        """
+        Handle telling the frontend agent that they have successfully
+        paired into a task
+        """
+        send_packet = Packet(
+            packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
+            sender_id=SYSTEM_SOCKET_ID,
+            receiver_id=agent_info.agent.db_id,
+            data={"agent_status": "in_task", "done_text": None},
+        )
+        socket_info = self.sockets[agent_info.used_socket_id]
+        self._send_through_socket(socket_info.socket, send_packet)
+
+    def _mark_agent_done(self, agent_info: AgentInfo) -> None:
+        """
+        Handle marking an agent as done, and telling the frontend agent 
+        that they have successfully completed their task
+        """
+        send_packet = Packet(
+            packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
+            sender_id=SYSTEM_SOCKET_ID,
+            receiver_id=agent_info.agent.db_id,
+            data={
+                "agent_status": "done",
+                "done_text": "You have completed this task. Please submit.",
+            },
+        )
+        socket_info = self.sockets[agent_info.used_socket_id]
+        self._send_through_socket(socket_info.socket, send_packet)
+
     def _handle_updated_agent_status(self, status_map: Dict[str, str]):
         """
         Handle updating the local statuses for agents based on
@@ -543,6 +614,21 @@ class Supervisor:
         """
         # TODO implement
         pass
+
+    def _request_action(self, agent_info: AgentInfo) -> None:
+        """
+        Request an act from the agent targetted here. If the 
+        agent is found by the server, this request will be 
+        forwarded.
+        """
+        send_packet = Packet(
+            packet_type=PACKET_TYPE_REQUEST_ACTION,
+            sender_id=SYSTEM_SOCKET_ID,
+            receiver_id=agent_info.agent.db_id,
+            data={},
+        )
+        socket_info = self.sockets[agent_info.used_socket_id]
+        self._send_through_socket(socket_info.socket, send_packet)
 
     def _request_status_update(self) -> None:
         """
@@ -577,6 +663,9 @@ class Supervisor:
         """Thread for handling outgoing messages through the socket"""
         while len(self.sockets) > 0:
             for agent_info in self.agents.values():
+                if agent_info.agent.wants_action.is_set():
+                    self._request_action(agent_info)
+                    agent_info.agent.wants_action.clear()
                 self._try_send_agent_messages(agent_info)
             self._send_message_queue()
             self._request_status_update()

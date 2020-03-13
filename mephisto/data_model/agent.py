@@ -75,9 +75,12 @@ class Agent(ABC):
         self.pending_actions: List["Packet"] = []
         self.has_action = threading.Event()
         self.has_action.clear()
+        self.wants_action = threading.Event()
+        self.wants_action.clear()
         self.assignment_id = row["assignment_id"]
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
+        self.did_submit = threading.Event()
 
         # Deferred loading of related entities
         self._worker: Optional["Worker"] = None
@@ -228,6 +231,7 @@ class Agent(ABC):
         to be returned.
         """
         if len(self.pending_actions) == 0:
+            self.wants_action.set()
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
@@ -235,6 +239,9 @@ class Agent(ABC):
         assert len(self.pending_actions) > 0, "has_action released without an action!"
 
         act = self.pending_actions.pop(0)
+
+        if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
+            self.did_submit.set()
 
         # TODO check to see if the act is one of the acts to ERROR on
 
