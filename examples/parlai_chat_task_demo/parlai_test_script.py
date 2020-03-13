@@ -14,7 +14,7 @@ operator = Operator(db)
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/parlai_chat_task_demo")
 
 
-# ARG_STRING goes through shlex.split twice, hence be careful if these 
+# ARG_STRING goes through shlex.split twice, hence be careful if these
 # strings contain anything which needs quoting.
 task_title = "Test ParlAI Chat Task"
 task_description = (
@@ -31,7 +31,9 @@ architect_type = "local" if USE_LOCAL else "heroku"
 
 requester = db.find_requesters(provider_type=provider_type)[-1]
 requester_name = requester.requester_name
-assert USE_LOCAL or requester_name.endswith('_sandbox'), "Should use a sandbox for testing"
+assert USE_LOCAL or requester_name.endswith(
+    "_sandbox"
+), "Should use a sandbox for testing"
 
 # The first time using mturk, need to call the following here
 # requester.register()

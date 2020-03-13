@@ -281,7 +281,16 @@ class WorkerBlockedView  extends React.Component {
 
 class TaskPreviewView extends React.Component {
   render() {
-    return <div> {this.props.task_config.task_description} </div>;
+    let preview_style = {
+      backgroundColor: '#dff0d8',
+      padding: '30px',
+      overflow: 'auto',
+    };
+    return <div style={preview_style}>
+      <div
+        dangerouslySetInnerHTML={{__html: this.props.task_config.task_description}}
+      />;
+    </div>;
   }
 }
 

@@ -45,9 +45,11 @@ class Packet:
 
     @staticmethod
     def from_dict(input_dict: Dict[str, Any]) -> "Packet":
-        required_fields = ['packet_type', 'sender_id', 'receiver_id', 'data']
+        required_fields = ["packet_type", "sender_id", "receiver_id", "data"]
         for field in required_fields:
-            assert field in input_dict, f"Packet input dict {input_dict} missing required field {field}"
+            assert (
+                field in input_dict
+            ), f"Packet input dict {input_dict} missing required field {field}"
         return Packet(
             packet_type=input_dict["packet_type"],
             sender_id=input_dict["sender_id"],

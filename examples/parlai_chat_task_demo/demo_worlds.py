@@ -62,28 +62,37 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         if self.current_turns >= self.max_turns:
             self.episodeDone = True
             for agent in self.agents:
-                agent.observe({
-                    'id': 'Coordinator', 
-                    'text': 'Please fill out the form to complete the chat:',
-                    'task_data': {
-                        'respond_with_form': [
-                            {
-                                "type": "choices",
-                                "question": "How much did you enjoy talking to this user?",
-                                "choices": ["Not at all", "A little", "Somewhat", "A lot"]
-                            },
-                            {
-                                "type": "choices",
-                                "question": "Do you think this user is a bot or a human?",
-                                "choices": ["Definitely a bot", "Probably a bot", "Probably a human", "Definitely a human"]
-                            },
-                            {
-                                "type": "text",
-                                "question": "Enter any comment here",
-                            },
-                        ]
+                agent.observe(
+                    {
+                        "id": "Coordinator",
+                        "text": "Please fill out the form to complete the chat:",
+                        "task_data": {
+                            "respond_with_form": [
+                                {
+                                    "type": "choices",
+                                    "question": "How much did you enjoy talking to this user?",
+                                    "choices": [
+                                        "Not at all",
+                                        "A little",
+                                        "Somewhat",
+                                        "A lot",
+                                    ],
+                                },
+                                {
+                                    "type": "choices",
+                                    "question": "Do you think this user is a bot or a human?",
+                                    "choices": [
+                                        "Definitely a bot",
+                                        "Probably a bot",
+                                        "Probably a human",
+                                        "Definitely a human",
+                                    ],
+                                },
+                                {"type": "text", "question": "Enter any comment here"},
+                            ]
+                        },
                     }
-                })
+                )
                 agent.act()  # Request a response
             for agent in self.agents:  # Ensure you get the response
                 form_result = agent.act(timeout=TURN_TIMEOUT_TIME)

@@ -203,7 +203,7 @@ def get_submitted_data():
             agent = unit.get_assigned_agent()
             if agent is not None:
                 unit_data["data"] = agent.state.get_data()
-                unit_data["worker_id"] = agent['worker_id']
+                unit_data["worker_id"] = agent["worker_id"]
             all_unit_data.append(unit_data)
 
         print(all_unit_data)
