@@ -81,7 +81,7 @@ class MessageList extends React.Component {
       onClickMessage = idx => {};
     }
     return messages.map((m, idx) => (
-      <div key={m.message_id} onClick={() => onClickMessage(idx)}>
+      <div key={m.message_id + "-" + idx} onClick={() => onClickMessage(idx)}>
         <ChatMessage
           is_self={m.id == agent_id}
           agent_id={m.id == agent_id ? this.props.agent_display_name : m.id}
@@ -1138,24 +1138,6 @@ class ContentPane extends React.Component {
       content pane to render your task, and thus it doesn't work yet. See the
       image_captions_demo for an example of how to create this.
     </div>
-  }
-}
-
-class StaticRightPane extends React.Component {
-  render() {
-    // TODO move to CSS
-    let right_pane = {
-      minHeight: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'spaceBetween',
-    };
-
-    return (
-      <div id="right-pane" style={right_pane}>
-        <ContentPane {...this.props} />
-      </div>
-    );
   }
 }
 

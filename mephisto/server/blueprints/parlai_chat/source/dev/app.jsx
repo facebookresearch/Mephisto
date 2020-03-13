@@ -97,14 +97,14 @@ function getInitTaskData(mephisto_worker_id, agent_id, callback_function) {
 }
 
 function postCompleteTask(agent_id, complete_data, callback_function) {
-  postProviderRequest(
-    '/submit_task',
-    {'USED_AGENT_ID': agent_id, 'final_data': complete_data},
-    () => {
+  postData('/submit_task', {'USED_AGENT_ID': agent_id, 'final_data': complete_data})
+    .then(res => res.json())
+    .then(function(data) {
       console.log('Submitted'); 
-      callback_function();
-    },
-  )
+      if (callback_function) {
+        callback_function();
+      }
+    });
 }
 
 

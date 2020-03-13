@@ -34,6 +34,15 @@ if TYPE_CHECKING:
 BLUEPRINT_TYPE = "parlai_chat"
 
 
+MISSING_SOMETHING_TEXT = (
+    "<h1>"
+    "You didn't specify a --task-description-file and also didn't override the "
+    "frontend `TaskPreviewView` (if this is a preview) or the `TaskDescription` "
+    "component (if this is in-task)."
+    "</h1>"
+)
+
+
 class ParlAIChatBlueprint(Blueprint):
     """Blueprint for a task that runs a parlai chat """
 
@@ -82,6 +91,38 @@ class ParlAIChatBlueprint(Blueprint):
             "agent_count"
         ]  # type: ignore
 
+        self.full_task_description = MISSING_SOMETHING_TEXT
+        if opts.get('task_description_file') is not None:
+            full_path = os.path.expanduser(opts.get('task_description_file'))
+            assert os.path.exists(full_path), f"Target task description path {full_path} doesn't exist"
+            with open(full_path, 'r') as description_fp:
+                self.full_task_description = description_fp.read()
+
+    @classmethod
+    def assert_task_args(cls, args: Any) -> None:
+        """Ensure that arguments are properly configured to launch this task"""
+        # assert world file is valid
+        world_file_path = os.path.expanduser(args["world_file"])
+        world_module_path = world_file_path[:-3]
+        assert os.path.exists(world_file_path), f"Provided world path {world_file_path} doesn't exist"
+        sys.path.append(world_module_path)
+        world_module_name = os.path.basename(world_file_path)[:-3]
+        world_module = import_module(world_module_name)
+        # TODO assert this is a ParlAI world after figuring out
+        # how to get ParlAI to play with Poetry
+        assert hasattr(world_module, "make_world"), "Provided world file has no `make_world` method"
+        assert hasattr(world_module, "get_world_params"), "Provided world file has no `get_world_params` method"
+
+        # assert some method for determining quantity of conversations
+        if args.get('context_csv') is not None:
+            raise AssertionError("Specifying task quantity via context csv is not yet implemented")
+        elif args.get('num_conversations') is not None:
+            assert args.get('num_conversations') > 0, "Must have at least one conversation"
+        else:
+            raise AssertionError('Must specify one of --context-csv or --num-conversations')
+
+        # TODO assert source files exist when source files are implemented
+
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
@@ -108,6 +149,14 @@ class ParlAIChatBlueprint(Blueprint):
             "--preview-source",
             dest="preview_source",
             help="Optional path to source HTML file to preview the task",
+        )
+        group.add_argument(
+            "--task-description-file",
+            dest="task_description_file",
+            help=(
+                "Path to file for the extended description of the task. "
+                "Required if not providing a custom source bundle."
+            ),
         )
         group.add_argument(
             "--custom-source-bundle",
@@ -141,9 +190,9 @@ class ParlAIChatBlueprint(Blueprint):
         to the client for use by the task's frontend
         """
         return {
-            "task_description": "This is a test task description for rendering in a task!",
+            "task_description": self.full_task_description,
             "frame_height": 650,
-            "chat_title": "Example Chat",
+            "chat_title": self.opts['task_title'],
             "has_preview": self.opts.get("preview_source") is not None,
             "block_mobile": True,
         }
