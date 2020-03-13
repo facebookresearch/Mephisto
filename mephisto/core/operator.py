@@ -153,8 +153,6 @@ class Operator:
             BlueprintClass, ArchitectClass, CrowdProviderClass, task_args_string
         )
 
-        print(task_args, task_args_string, "TASK ARGS")
-
         # Load the classes to force argument validation before anything
         # is actually created in the database
         # TODO perhaps parse the arguments for these things one at a time?
