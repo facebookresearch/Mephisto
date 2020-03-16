@@ -21,6 +21,7 @@ from mephisto.core.utils import (
     get_crowd_provider_from_type,
 )
 
+from functools import reduce
 
 from typing import List, Optional, Tuple, Dict, cast, TYPE_CHECKING, Any
 
@@ -210,14 +211,18 @@ class TaskRun:
         task run
         """
         # TODO this is pretty inefficient
-        # TODO if an agent has failed onboarding, perhaps
+        # TODO if an agent has failed onboarding, can we give them a fake unit?
         assignments = self.get_assignments()
-        units = [u for assign in assignments for u in assign.get_units()]
+
+        # Cannot pair with self
+        unit_assigns = [a.get_units() for a in assignments]
+        units: List["Unit"] = []
+        for unit_set in unit_assigns:
+            is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
+            if not any(is_self_set):
+                units += unit_set
         valid_units = [u for u in units if u.get_assigned_agent() is None]
-        if self.sandbox:
-            return valid_units  # can pair with self in the sandbox
-        unique_units = [u for u in valid_units if u.worker_id is not worker.db_id]
-        return unique_units
+        return valid_units
 
     def clear_reservation(self, unit: "Unit") -> None:
         """
@@ -302,8 +307,11 @@ class TaskRun:
         Get the statistics for all of the assignments for this run.
         """
         assigns = self.get_assignments()
+        assigns_with_status = [(x, x.get_status()) for x in assigns]
         return {
-            status: len([x for x in assigns if x.get_status() == status])
+            status: len(
+                [x for x, had_status in assigns_with_status if had_status == status]
+            )
             for status in AssignmentState.valid()
         }
 

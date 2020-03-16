@@ -87,9 +87,9 @@ class ParlAIChatBlueprint(Blueprint):
         # how to get ParlAI to play with Poetry
         assert hasattr(world_module, "make_world")
         assert hasattr(world_module, "get_world_params")
-        self.agent_count = world_module.get_world_params()[
+        self.agent_count = world_module.get_world_params()[  # type: ignore
             "agent_count"
-        ]  # type: ignore
+        ]
 
         self.full_task_description = MISSING_SOMETHING_TEXT
         if opts.get("task_description_file") is not None:

@@ -101,6 +101,13 @@ class StaticBlueprint(Blueprint):
             help="Path to csv file containing task data",
             required=True,
         )
+        group.add_argument(
+            "--units-per-assignment",
+            dest="units_per_assignment",
+            help="How many workers you want to do each assignment",
+            default=1,
+            type=int,
+        )
         return
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
@@ -108,6 +115,8 @@ class StaticBlueprint(Blueprint):
         Return the InitializationData retrieved from the specified stream
         """
         return [
-            InitializationData(shared=d, unit_data=[{}])
+            InitializationData(
+                shared=d, unit_data=[{}] * self.opts["units_per_assignment"]
+            )
             for d in self._initialization_data_dicts
         ]

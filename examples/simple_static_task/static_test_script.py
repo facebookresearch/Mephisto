@@ -47,6 +47,7 @@ ARG_STRING = (
     f'--task-source "{TASK_DIRECTORY}/server_files/demo_task.html" '
     f'--preview-source "{TASK_DIRECTORY}/server_files/demo_preview.html" '
     f'--extra-source-dir "{TASK_DIRECTORY}/server_files/extra_refs" '
+    f"--units-per-assignment 2 "
 )
 
 try:

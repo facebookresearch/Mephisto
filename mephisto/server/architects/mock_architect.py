@@ -14,6 +14,7 @@ import logging
 import json
 import time
 
+from mephisto.core.argparse_parser import str2bool
 from mephisto.data_model.architect import Architect
 from mephisto.data_model.packet import (
     PACKET_TYPE_ALIVE,
@@ -273,7 +274,7 @@ class MockArchitect(Architect):
             dest="should_run_server",
             help="Whether a mock server should be launched",
             default=False,
-            type=bool,
+            type=str2bool,
         )
         group.add_argument(
             "--port", dest="port", help="Port to launch the server on", default="3000"

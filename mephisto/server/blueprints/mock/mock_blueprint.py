@@ -6,6 +6,7 @@
 
 from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
 from mephisto.data_model.assignment import InitializationData
+from mephisto.core.argparse_parser import str2bool
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
@@ -58,7 +59,7 @@ class MockBlueprint(Blueprint, OnboardingRequired):
             "--use-onboarding",
             dest="use_onboarding",
             help="Whether onboarding should be required",
-            type=bool,
+            type=str2bool,
             default=False,
         )
         return

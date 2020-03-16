@@ -22,7 +22,8 @@ class StaticAgentState(AgentState):
     Agent state for static tasks
     """
 
-    # TODO implement. Going to get frontend working first
+    def _get_empty_state(self) -> Dict[str, Optional[Dict[str, Any]]]:
+        return {"inputs": None, "outputs": None}
 
     def __init__(self, agent: "Agent"):
         """
@@ -30,10 +31,7 @@ class StaticAgentState(AgentState):
         input dict -> output dict pairs to disc
         """
         self.agent = agent
-        self.state: Dict[str, Optional[Dict[str, Any]]] = {
-            "inputs": None,
-            "outputs": None,
-        }
+        self.state: Dict[str, Optional[Dict[str, Any]]] = self._get_empty_state()
         self.load_data()
 
     def set_init_state(self, data: Any) -> bool:
@@ -61,9 +59,9 @@ class StaticAgentState(AgentState):
             with open(data_path, "r") as data_file:
                 self.state = json.load(data_file)
         else:
-            self.state = {}
+            self.state = self._get_empty_state()
 
-    def get_data(self) -> List[Dict[str, Any]]:
+    def get_data(self) -> Dict[str, Optional[Dict[str, Any]]]:
         """Return dict of this agent's state"""
         return self.state
 
