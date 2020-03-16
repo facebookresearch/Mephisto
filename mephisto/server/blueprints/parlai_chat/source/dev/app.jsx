@@ -33,14 +33,10 @@ function isMobile() {
 }
 
 // Sends a request to get the task_config
-function getTaskConfig(callback_function) {
-  $.ajax({
+function getTaskConfig() {
+  return $.ajax({
     url: '/task_config.json',
     timeout: 3000, // in milliseconds
-  }).then(function(data) {
-    if (callback_function) {
-      callback_function(data);
-    }
   });
 }
 
@@ -68,42 +64,33 @@ function postData(url = '', data = {}) {
   });
 }
 
-function postProviderRequest(endpoint, data, callback_function) {
+function postProviderRequest(endpoint, data) {
   var url = new URL(window.location.origin + endpoint);
-  postData(url, {provider_data: data})
-    .then(res => res.json())
-    .then(function(data) {
-      if (callback_function) {
-        callback_function(data);
-      }
-    });
+  return postData(url, {provider_data: data})
+    .then(res => res.json());
 }
 
-function requestAgent(mephisto_worker_id, callback_function) {
-  postProviderRequest('/request_agent', getAgentRegistration(mephisto_worker_id), callback_function);
+function requestAgent(mephisto_worker_id) {
+  return postProviderRequest('/request_agent', getAgentRegistration(mephisto_worker_id));
 }
 
-function registerWorker(callback_function) {
-  postProviderRequest('/register_worker', getWorkerRegistrationInfo(), callback_function);
+function registerWorker() {
+  return postProviderRequest('/register_worker', getWorkerRegistrationInfo());
 }
 
 // Sends a request to get the initial task data
-function getInitTaskData(mephisto_worker_id, agent_id, callback_function) {
-  postProviderRequest(
+function getInitTaskData(mephisto_worker_id, agent_id) {
+  return postProviderRequest(
     '/initial_task_data',
     {'mephisto_worker_id': mephisto_worker_id, 'agent_id': agent_id},
-    callback_function,
   );
 }
 
-function postCompleteTask(agent_id, complete_data, callback_function) {
-  postData('/submit_task', {'USED_AGENT_ID': agent_id, 'final_data': complete_data})
+function postCompleteTask(agent_id, complete_data) {
+  return postData('/submit_task', {'USED_AGENT_ID': agent_id, 'final_data': complete_data})
     .then(res => res.json())
     .then(function(data) {
       console.log('Submitted'); 
-      if (callback_function) {
-        callback_function();
-      }
     });
 }
 
@@ -175,7 +162,8 @@ class ChatApp extends React.Component {
   }
 
   componentDidMount() {
-    getInitTaskData(this.props.mephisto_worker_id, this.props.agent_id, data => this.handleIncomingTaskData(data));
+    getInitTaskData(this.props.mephisto_worker_id, this.props.agent_id)
+      .then(data => this.handleIncomingTaskData(data));
   }
 
   onMessageSend(text, data, callback, is_system) {
@@ -201,9 +189,8 @@ class ChatApp extends React.Component {
         onRequestMessage={() => this.setState({ chat_state: 'text_input' })}
         onForceDone={() => postCompleteTask(
           this.props.agent_id, 
-          this.state.messages,
-          () => handleSubmitToProvider({}),
-        )}
+          this.state.messages
+        ).then(() => handleSubmitToProvider({}))}
         onSuccessfulSend={() =>
           this.setState({
             chat_state: 'waiting',
@@ -248,8 +235,7 @@ class ChatApp extends React.Component {
           allDoneCallback={() => postCompleteTask(
             this.props.agent_id, 
             this.state.messages,
-            () => handleSubmitToProvider({}),
-          )}
+          ).then(() => handleSubmitToProvider({}))}
           volume={this.state.volume}
           onVolumeChange={v => this.setState({ volume: v })}
           display_feedback={false}
@@ -343,7 +329,7 @@ class MainApp extends React.Component {
     let mephisto_worker_id = worker_data_packet.data.worker_id;
     this.setState({mephisto_worker_id: mephisto_worker_id});
     if (mephisto_worker_id !== null) {
-      requestAgent(mephisto_worker_id, data => this.afterAgentRegistration(data))
+      requestAgent(mephisto_worker_id).then(data => this.afterAgentRegistration(data));
     } else {
       // TODO handle banned/blocked worker ids
       this.setState({blocked_reason: 'null_worker_id'});
@@ -357,7 +343,7 @@ class MainApp extends React.Component {
     if (task_config.block_mobile && isMobile()) {
       this.setState({blocked_reason: "no_mobile"})
     } else if (assignment_id != null && provider_worker_id != null) {
-      registerWorker(data => this.afterWorkerRegistration(data));
+      registerWorker().then(data => this.afterWorkerRegistration(data));
     } else if (task_config.has_preview) {
       requestTaskHMTL('preview.html', data => this.handleIncomingPreviewHTML(data));
     }
@@ -365,7 +351,7 @@ class MainApp extends React.Component {
   }
 
   componentDidMount() {
-    getTaskConfig(data => this.handleIncomingTaskConfig(data));
+    getTaskConfig().then(data => this.handleIncomingTaskConfig(data));
   }
 
   handleSubmit(event) {
