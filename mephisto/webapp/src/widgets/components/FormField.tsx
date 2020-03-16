@@ -18,14 +18,14 @@ function FormField({
   };
 
   React.useEffect(() => {
-    if (field.type === "bool") {
+    if (field.type === "str2bool") {
       dispatch(!!field.default); // for bools, type cast the default value
     } else if (!!field.default) {
       dispatch(field.default); // for non-bools, just use the uncasted value
     }
   }, [field.default]);
 
-  return field.type === "bool" ? (
+  return field.type === "str2bool" ? (
     <div key={field.dest}>
       <Checkbox
         defaultChecked={!!field.default}
