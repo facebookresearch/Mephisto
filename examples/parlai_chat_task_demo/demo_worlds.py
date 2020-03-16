@@ -8,7 +8,7 @@ from parlai.core.worlds import validate
 from joblib import Parallel, delayed
 
 
-TURN_TIMEOUT_TIME = 30  # TODO make not a constant
+TURN_TIMEOUT_TIME = 300  # TODO make not a constant
 
 
 class MTurkMultiAgentDialogOnboardWorld(MTurkOnboardWorld):
@@ -49,8 +49,6 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         """
         acts = self.acts
         self.current_turns += 1
-        if self.current_turns >= self.max_turns:
-            self.episodeDone = True
         for index, agent in enumerate(self.agents):
             try:
                 acts[index] = agent.act(timeout=TURN_TIMEOUT_TIME)
@@ -61,6 +59,43 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
             for other_agent in self.agents:
                 if other_agent != agent:
                     other_agent.observe(validate(acts[index]))
+        if self.current_turns >= self.max_turns:
+            self.episodeDone = True
+            for agent in self.agents:
+                agent.observe(
+                    {
+                        "id": "Coordinator",
+                        "text": "Please fill out the form to complete the chat:",
+                        "task_data": {
+                            "respond_with_form": [
+                                {
+                                    "type": "choices",
+                                    "question": "How much did you enjoy talking to this user?",
+                                    "choices": [
+                                        "Not at all",
+                                        "A little",
+                                        "Somewhat",
+                                        "A lot",
+                                    ],
+                                },
+                                {
+                                    "type": "choices",
+                                    "question": "Do you think this user is a bot or a human?",
+                                    "choices": [
+                                        "Definitely a bot",
+                                        "Probably a bot",
+                                        "Probably a human",
+                                        "Definitely a human",
+                                    ],
+                                },
+                                {"type": "text", "question": "Enter any comment here"},
+                            ]
+                        },
+                    }
+                )
+                agent.act()  # Request a response
+            for agent in self.agents:  # Ensure you get the response
+                form_result = agent.act(timeout=TURN_TIMEOUT_TIME)
 
     def episode_done(self):
         return self.episodeDone

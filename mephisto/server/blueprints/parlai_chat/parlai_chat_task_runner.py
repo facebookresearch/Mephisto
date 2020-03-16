@@ -73,6 +73,8 @@ class MephistoAgentWrapper(ParlAIAgent):
             gotten_act = self.mephisto_agent.act()
         else:
             gotten_act = self.mephisto_agent.act(timeout=timeout)
+        if gotten_act is None:
+            return None
         parsed_act = gotten_act.data
         parsed_act["id"] = self.__agent_id
         return parsed_act
@@ -132,6 +134,10 @@ class ParlAIChatTaskRunner(TaskRunner):
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
+
+        # TODO it would be nice to have individual agents be able to submit their
+        # final things without needing to wait for their partner, such
+        # as if one needs to rate and the other doesn't
 
         world.shutdown()
 

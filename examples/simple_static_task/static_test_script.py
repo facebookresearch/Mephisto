@@ -13,7 +13,7 @@ operator = Operator(db)
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
-# ARG_STRING goes through shlex.split twice, hence be careful if these 
+# ARG_STRING goes through shlex.split twice, hence be careful if these
 # strings contain anything which needs quoting.
 task_title = "Test static task"
 task_description = "This is a simple test of static tasks."
@@ -22,12 +22,15 @@ provider_type = "mock" if USE_LOCAL else "mturk_sandbox"
 architect_type = "local" if USE_LOCAL else "heroku"
 
 # The first time round, need to call the following here.
+# TODO make this more user friendly than needing to uncomment script lines
 # db.new_requester("<some_email_address>", "mock")
 # db.new_requester("<your_email_address>_sandbox", "mturk_sandbox")
 
 requester = db.find_requesters(provider_type=provider_type)[-1]
 requester_name = requester.requester_name
-assert USE_LOCAL or requester_name.endswith('_sandbox'), "Should use a sandbox for testing"
+assert USE_LOCAL or requester_name.endswith(
+    "_sandbox"
+), "Should use a sandbox for testing"
 
 # The first time using mturk, need to call the following here
 # requester.register()
