@@ -219,8 +219,7 @@ class TaskRun:
         units: List["Unit"] = []
         for unit_set in unit_assigns:
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
-            is_self = reduce(lambda x, y: x or y, is_self_set)
-            if not is_self:
+            if not any(is_self_set):
                 units += unit_set
         valid_units = [u for u in units if u.get_assigned_agent() is None]
         return valid_units
