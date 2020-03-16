@@ -267,37 +267,32 @@ class SocketHandler extends React.Component {
    * the mephisto host to change the frontend state.
    **/
 
-  parseSocketMessage(event) {
-    let packet = JSON.parse(event.data);
-    let msg = packet.data;
+  parseSocketMessage(packet) {
     if (packet.packet_type == PACKET_TYPE_REQUEST_ACTION) {
       this.handleRequestAct();
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_AGENT_STATUS) {
       this.handleStateUpdate(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
       this.handleNewAct(packet.data);
-    } else if (packet.packet_type == MESSAGE_BATCH) {
-      let messages = msg.messages;
-      for (const message of messages) {
-        this.handleMessage(message);
-      }
     } else if (packet.packet_type == UPDATE_STATE) {
-      this.handleStateUpdate(msg);
+      this.handleStateUpdate(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_HEARTBEAT) {
       this.setState({
-        last_mephisto_ping: msg['last_mephisto_ping'],
+        last_mephisto_ping: packet.data['last_mephisto_ping'],
         heartbeats_without_response: 0,
       });
-    }
-  }
-
-  // Handles both message types, the commands and acts, prevents duplicates
-  handleMessage(message) {
-    log(message, 3);
-    if (message.data.type === MESSAGE_TYPE_COMMAND) {
-      this.handleCommand(message.data);
-    } else if (message.data.type === MESSAGE_TYPE_ACT) {
-      this.handleNewAct(message.id, message.data);
+      if (packet.data.wants_act) {
+        this.handleRequestAct(packet);
+      }
+      if (packet.data.status && packet.data.status != this.props.agent_status) {
+        let agent_status = packet.data.status;
+        let agent_display_name = this.props.agent_display_name;
+        this.props.onAgentStatusChange(
+          agent_status,
+          agent_display_name,
+          null,
+        );
+      }
     }
   }
 
@@ -393,7 +388,7 @@ class SocketHandler extends React.Component {
     // other reasonable domain. If that succeeds, assume the server died.
 
     this.socket.onmessage = event => {
-      this.parseSocketMessage(event);
+      this.parseSocketMessage(JSON.parse(event.data));
     };
 
     this.socket.onopen = () => {

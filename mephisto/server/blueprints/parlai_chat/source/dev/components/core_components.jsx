@@ -83,7 +83,7 @@ class MessageList extends React.Component {
     return messages.map((m, idx) => (
       <div key={m.message_id + "-" + idx} onClick={() => onClickMessage(idx)}>
         <ChatMessage
-          is_self={m.id == agent_id}
+          is_self={m.id == agent_id || m.id = this.props.agent_display_name}
           agent_id={m.id == agent_id ? this.props.agent_display_name : m.id}
           message={m.text}
           task_data={m.task_data}
