@@ -22,6 +22,8 @@ from typing import (
 
 from recordclass import RecordClass
 
+from mephisto.data_model.agent import AgentReturnedError, AgentDisconnectedError, AgentTimeoutError
+
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.task import TaskRun
@@ -192,7 +194,18 @@ class TaskRunner(ABC):
 
         # At this point we're sure we want to run the unit
         self.running_units[unit.db_id] = unit
-        self.run_unit(unit, agent)
+        try:
+            self.run_unit(unit, agent)
+        except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
+            # TODO what needs to be done when a worker disconnects from a unit?
+            # it should be made available again for a new agent correct?
+            self.cleanup_unit(unit)
+        except Exception as e:
+            print(f'Unhandled exception in unit {unit}: {repr(e)}')
+            import traceback
+
+            traceback.print_exc()
+            self.cleanup_unit(unit)
         del self.running_units[unit.db_id]
         return
 
@@ -212,7 +225,22 @@ class TaskRunner(ABC):
 
         # At this point we're sure we want to run the assignment
         self.running_assignments[assignment.db_id] = assignment
-        self.run_assignment(assignment, agents)
+        try:
+            self.run_assignment(assignment, agents)
+        except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError) as e:
+            # TODO how do we manage dealing with new units on an assignment that
+            # wasn't completed? Is this an issue we can handle with 
+            disconnected_agent_id = e.agent_id
+            for agent in agents:
+                if agent.db_id != e.agent_id:
+                    agent.update_status(AgentState.STATUS_PARTNER_DISCONNECT)
+            self.cleanup_assignment(assignment)
+        except Exception as e:
+            print(f'Unhandled exception in assignment {assignment}: {repr(e)}')
+            import traceback
+
+            traceback.print_exc()
+            self.cleanup_assignment(assignment)
         del self.running_assignments[assignment.db_id]
         return
 
@@ -311,6 +339,7 @@ class AgentState(ABC):
     STATUS_IN_TASK = "in task"
     STATUS_COMPLETED = "completed"
     STATUS_DISCONNECT = "disconnect"
+    STATUS_TIMEOUT = "timeout"
     STATUS_PARTNER_DISCONNECT = "partner disconnect"
     STATUS_EXPIRED = "expired"
     STATUS_RETURNED = "returned"
@@ -334,6 +363,7 @@ class AgentState(ABC):
         return [
             AgentState.STATUS_COMPLETED,
             AgentState.STATUS_DISCONNECT,
+            AgentState.STATUS_TIMEOUT,
             AgentState.STATUS_PARTNER_DISCONNECT,
             AgentState.STATUS_EXPIRED,
             AgentState.STATUS_RETURNED,
@@ -350,6 +380,7 @@ class AgentState(ABC):
             AgentState.STATUS_IN_TASK,
             AgentState.STATUS_COMPLETED,
             AgentState.STATUS_DISCONNECT,
+            AgentState.STATUS_TIMEOUT,
             AgentState.STATUS_PARTNER_DISCONNECT,
             AgentState.STATUS_EXPIRED,
             AgentState.STATUS_RETURNED,

@@ -76,6 +76,7 @@ class Agent(ABC):
         self.has_action.clear()
         self.wants_action = threading.Event()
         self.wants_action.clear()
+        self.has_updated_status = threading.Event()
         self.assignment_id = row["assignment_id"]
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
@@ -179,6 +180,13 @@ class Agent(ABC):
         assignment_dir = self.get_assignment().get_data_dir()
         return os.path.join(assignment_dir, self.db_id)
 
+    def update_status(self, new_status: str) -> None:
+        """Update the database status of this agent, and
+        possibly send a message to the frontend agent informing
+        them of this update"""
+        self.db.update_agent(self.db_id, status=new_status)
+        self.has_updated_status.set()
+
     @staticmethod
     def _register_agent(
         db: "MephistoDB", worker: Worker, unit: "Unit", provider_type: str
@@ -242,6 +250,7 @@ class Agent(ABC):
                 raise AgentDisconnectedError(self.db_id)
             elif status == AgentState.STATUS_RETURNED:
                 raise AgentReturnedError(self.agent_id)
+            self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, agent_id)
         # TODO the below needs to be considered an agent timeout
         assert len(self.pending_actions) > 0, "has_action released without an action!"
