@@ -6,6 +6,7 @@
 
 from mephisto.data_model.requester import Requester
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
+from mephisto.core.argparse_parser import str2bool
 
 from typing import Optional, Dict, List, TYPE_CHECKING
 
@@ -52,7 +53,7 @@ class MockRequester(Requester):
         group.add_argument(
             "--force-fail",
             dest="force_fail",
-            type=bool,
+            type=str2bool,
             default=False,
             help="Trigger a failed registration",
         )

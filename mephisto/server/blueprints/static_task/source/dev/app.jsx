@@ -112,6 +112,7 @@ class MainApp extends React.Component {
       assignment_id: assignment_id,
       task_data: null,
       submitting: false,
+      reject_reason: null,
     };
 
     this.raw_html_elem = null;
@@ -156,9 +157,9 @@ class MainApp extends React.Component {
     if (agent_id !== null) {
       getInitTaskData(this.state.mephisto_worker_id, agent_id, data => this.handleIncomingTaskData(data));
     } else {
-      // TODO handle agent not being able to be
-      // assigned work
-      console.log('agent_id returned was null')
+      this.setState({
+        reject_reason: "Sorry, you have already worked on the maximum number of these tasks available to you"
+      })
     }
   }
 
@@ -168,8 +169,9 @@ class MainApp extends React.Component {
     if (mephisto_worker_id !== null) {
       requestAgent(mephisto_worker_id, data => this.afterAgentRegistration(data))
     } else {
-      // TODO handle banned/blocked worker ids
-      console.log('worker_id returned was null')
+      this.setState({
+        reject_reason: "Sorry, you are not eligible to work on any available tasks."
+      })
     }
   }
 
@@ -199,10 +201,15 @@ class MainApp extends React.Component {
   }
 
   render() {
-    let dangerous_html = <div
+    let core_html = <div
       ref={elem => {this.raw_html_elem = elem}}
       dangerouslySetInnerHTML={{__html: this.state.render_html}}
     />;
+
+    if (this.state.reject_reason !== null) {
+      core_html = <h1>{this.state.reject_reason}</h1>;
+    }
+
     let submit_button = <div />;
     if (this.state.base_html !== null && this.state.agent_id !== null) {
       submit_button = (
@@ -222,7 +229,7 @@ class MainApp extends React.Component {
     return (
       <div>
         <form encType="multipart/form-data" onSubmit={this.handleSubmit.bind(this)}>
-          {dangerous_html}
+          {core_html}
           {submit_button}
         </form>
       </div>

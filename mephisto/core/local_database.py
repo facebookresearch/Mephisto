@@ -964,10 +964,15 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(
                     """
                     UPDATE units
-                    SET status = ?, agent_id = ?
+                    SET status = ?, agent_id = ?, worker_id = ?
                     WHERE unit_id = ?;
                     """,
-                    (AssignmentState.ASSIGNED, agent_id, unit_id),
+                    (
+                        AssignmentState.ASSIGNED,
+                        int(agent_id),
+                        int(worker_id),
+                        int(unit_id),
+                    ),
                 )
                 conn.commit()
                 return agent_id

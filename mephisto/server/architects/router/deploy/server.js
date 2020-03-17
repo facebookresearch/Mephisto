@@ -289,9 +289,11 @@ wss.on('connection', function(socket) {
         if (request_id === undefined) {
           request_id = packet['receiver_id']
         }
-        let res_obj = pending_provider_requests[request_id]
-        res_obj.json(packet);
-        delete pending_provider_requests[request_id]
+        let res_obj = pending_provider_requests[request_id];
+        if (res_obj) {
+          res_obj.json(packet);
+          delete pending_provider_requests[request_id]
+        }
       } else if (packet['packet_type'] == PACKET_TYPE_HEARTBEAT) {
         packet['data'] = {last_mephisto_ping: last_mephisto_ping};
         let agent_id = packet['sender_id'];
