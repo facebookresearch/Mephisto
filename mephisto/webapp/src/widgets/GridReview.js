@@ -1,0 +1,108 @@
+import React from "react";
+import { useTable } from "react-table";
+import { createAsync } from "../lib/Async";
+import useAxios from "axios-hooks";
+
+const GridReviewAsync = createAsync();
+
+function GridReviewWithData() {
+  const gridReviewAsync = useAxios({ url: "data/submitted_data" });
+
+  return (
+    <GridReviewAsync
+      info={gridReviewAsync}
+      onData={({ data }) => (
+        <div>
+          {/* {JSON.stringify(data.units)} */}
+          <GridReview data={data} />
+        </div>
+      )}
+      onError={() => null}
+      onLoading={() => null}
+      onEmptyData={() => <div>There are no units to review...</div>}
+      // checkIfEmptyFn={({ units }) => units.length === 0}
+    />
+  );
+}
+
+function GridReview({ data }) {
+  const testData = [
+    {
+      assignment_id: "179",
+      data: {
+        inputs: {
+          character_description: "I'm a character loaded from Mephisto!",
+          character_name: "Loaded Character 1",
+          html: "demo_task.html"
+        },
+        outputs: { rating: "good" }
+      },
+      status: "expired",
+      task_run_id: "136",
+      unit_id: "231",
+      worker_id: "10"
+    }
+  ];
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow
+  } = useTable({
+    // data: testData,
+    data: data.units,
+    columns: [
+      { Header: "Assignment ID", accessor: "assignment_id" },
+      { Header: "Task Run ID", accessor: "task_run_id" },
+      { Header: "Unit ID", accessor: "unit_id" },
+      { Header: "Worker ID", accessor: "worker_id" },
+      {
+        Header: "Input",
+        accessor: "data.inputs",
+        Cell: ({ cell: { value } }) => JSON.stringify(value)
+      },
+      {
+        Header: "Output",
+        accessor: "data.outputs",
+        Cell: ({ cell: { value } }) => JSON.stringify(value)
+      },
+      { Header: "Status", accessor: "status" }
+    ]
+  });
+  return (
+    <div>
+      <table
+        className="bp3-html-table-striped bp3-html-table"
+        {...getTableProps()}
+      >
+        <thead>
+          {headerGroups.map(headerGroup => (
+            <tr {...headerGroup.getHeaderGroupProps()}>
+              {headerGroup.headers.map(column => (
+                <th {...column.getHeaderProps()}>{column.render("Header")}</th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody {...getTableBodyProps()}>
+          {rows.map((row, i) => {
+            prepareRow(row);
+            return (
+              <tr {...row.getRowProps()}>
+                {row.cells.map(cell => {
+                  return (
+                    <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default GridReviewWithData;

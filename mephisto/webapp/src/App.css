@@ -97,6 +97,14 @@ h1 {
 .params-list .param-name {
 }
 
+h1 a {
+  color: inherit;
+}
+
+h1 a:hover {
+  color: inherit;
+}
+
 .params-list .param-value {
   color: #333;
 }

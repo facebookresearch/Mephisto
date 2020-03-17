@@ -2,9 +2,10 @@ import React from "react";
 import BaseWidget from "./Base";
 import useAxios from "axios-hooks";
 import { createAsync, mockRequest } from "../lib/Async";
-import { Icon, Colors } from "@blueprintjs/core";
+import { Icon, Colors, Button, Intent } from "@blueprintjs/core";
 import { ReviewableTasks } from "../models";
 import TaskRunSummary from "./TaskRunSummary";
+import { Link } from "react-router-dom";
 
 const Async = createAsync<ReviewableTasks>();
 
@@ -61,6 +62,12 @@ export default (function ReviewWidget() {
           </div>
         )}
       />
+      <div style={{ textAlign: "center", marginTop: 15 }}>
+        <Link to="/review" className="bp3-success bp3-button">
+          <Icon icon="search" />
+          <span className="bp3-button-text">Review all tasks</span>
+        </Link>
+      </div>
     </BaseWidget>
   );
 } as React.FC);
