@@ -27,31 +27,30 @@ if TYPE_CHECKING:
 class AbsentAgentError(Exception):
     """Exceptions for when an agent leaves a task"""
 
-    def __init__(self, message, worker_id, assignment_id):
+    def __init__(self, message, agent_id):
         self.message = message
-        self.worker_id = worker_id
-        self.assignment_id = assignment_id
+        self.agent_id = agent_id
 
 
 class AgentDisconnectedError(AbsentAgentError):
     """Exception for a real disconnect event (no signal)"""
 
-    def __init__(self, worker_id, assignment_id):
-        super().__init__(f"Agent disconnected", worker_id, assignment_id)
+    def __init__(self, agent_id):
+        super().__init__(f"Agent disconnected", agent_id)
 
 
 class AgentTimeoutError(AbsentAgentError):
     """Exception for when a worker doesn't respond in time"""
 
-    def __init__(self, timeout, worker_id, assignment_id):
-        super().__init__(f"Agent exceeded {timeout}", worker_id, assignment_id)
+    def __init__(self, timeout, agent_id):
+        super().__init__(f"Agent exceeded {timeout}", agent_id)
 
 
 class AgentReturnedError(AbsentAgentError):
     """Exception for an explicit return event (worker returns task)"""
 
-    def __init__(self, worker_id, assignment_id):
-        super().__init__(f"Agent returned HIT", worker_id, assignment_id)
+    def __init__(self, agent_id):
+        super().__init__(f"Agent returned task", agent_id)
 
 
 class Agent(ABC):
@@ -234,7 +233,16 @@ class Agent(ABC):
             self.wants_action.set()
             if timeout is None or timeout == 0:
                 return None
-            self.has_action.wait(timeout)
+            self.has_action.wait(timeout)mm
+
+        if len(self.pending_actions) == 0:
+            # various disconnect cases
+            status = self.get_status()
+            if status == AgentState.STATUS_DISCONNECT:
+                raise AgentDisconnectedError(self.db_id)
+            elif status == AgentState.STATUS_RETURNED:
+                raise AgentReturnedError(self.agent_id)
+            raise AgentTimeoutError(timeout, agent_id)
         # TODO the below needs to be considered an agent timeout
         assert len(self.pending_actions) > 0, "has_action released without an action!"
 

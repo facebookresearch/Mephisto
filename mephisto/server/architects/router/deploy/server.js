@@ -236,6 +236,7 @@ function handle_possible_disconnect(agent) {
 
 // Register handlers
 wss.on('connection', function(socket) {
+  socket.id = uuidv4();
   console.log('Client connected');
   // Disconnects are logged
   socket.on('disconnect', function() {
@@ -243,10 +244,6 @@ wss.on('connection', function(socket) {
     var agent = socket_id_to_agent[socket.id];
     if (agent !== undefined) {
       handle_possible_disconnect(agent);
-      console.log(agent, "it was this agent! Disconnected!!!");
-      // TODO set a timeout to see if the agent reconnects,
-      // or consider them disconnected or if they've already
-      // completed the task
     }
   });
 
@@ -256,10 +253,6 @@ wss.on('connection', function(socket) {
     var agent = socket_id_to_agent[socket.id];
     if (agent !== undefined) {
       handle_possible_disconnect(agent);
-      console.log(agent, "it was this agent! Errored!!!!");
-      // TODO set a timeout to see if the agent reconnects,
-      // or consider them disconnected or if they've already
-      // completed the task
     }
   });
 
@@ -306,8 +299,15 @@ wss.on('connection', function(socket) {
         packet['receiver_id'] = agent_id;
         let agent = agent_id_to_agent[agent_id];
         if (agent !== undefined) {
+          agent.is_alive = true;
           packet.data.status = agent.status;
           packet.data.wants_act = agent.wants_act;
+          if (agent_id_to_socket[agent.agent_id] != socket) {
+            // Not communicating to the correct socket, update
+            debug_log('Updating socket for ', agent);
+            agent_id_to_socket[agent.agent_id] = socket;
+            socket_id_to_agent[socket.id] = agent;
+          }
         }
         handle_forward(packet);
       }
