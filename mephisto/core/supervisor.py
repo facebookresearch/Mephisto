@@ -612,7 +612,7 @@ class Supervisor:
 
         Takes as input a mapping from agent_id to server-side status
         """
-        # TODO implement
+        print(status_map)
         pass
 
     def _request_action(self, agent_info: AgentInfo) -> None:
@@ -642,6 +642,7 @@ class Supervisor:
 
         # If there are status_responses to check
         if len(self.status_responses) != 0:
+            print('found status response', self.status_responses)
             found_statuses: Dict[str, str] = {}
             for socket_id, status_map in self.status_responses.items():
                 if status_map is None:

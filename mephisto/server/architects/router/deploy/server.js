@@ -184,7 +184,9 @@ function handle_alive(socket, alive_packet) {
 function handle_get_agent_status(status_packet) {
   last_mephisto_ping = Date.now();
   let agent_statuses = {};
+  console.log('trying to find', agent_id_to_agent);
   for (let agent_id in agent_id_to_agent) {
+    console.log(agent_id_to_agent[agent_id])
     agent_statuses[agent_id] = agent_id_to_agent[agent_id].status;
   }
   let packet = {
@@ -193,6 +195,7 @@ function handle_get_agent_status(status_packet) {
     receiver_id: SYSTEM_SOCKET_ID,
     data: agent_statuses,
   };
+  console.log('Made status message', packet);
   mephisto_message_queue.push(packet);
 }
 
@@ -278,7 +281,9 @@ wss.on('connection', function(socket) {
         handle_alive(socket, packet);
       } else if (packet['packet_type'] == PACKET_TYPE_UPDATE_AGENT_STATUS) {
         debug_log('Update agent status', packet);
-        handle_update_local_status(packet);
+        if (packet.data.agent_status !== undefined) {
+          handle_update_local_status(packet);
+        }
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_REQUEST_ACTION) {
         update_wanted_acts(packet.receiver_id, true);

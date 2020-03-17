@@ -396,6 +396,7 @@ class SocketHandler extends React.Component {
       let setting_socket = false;
       this.sendAlive();
       window.setTimeout(() => this.failInitialize(), 10000);
+      window.setTimeout(() => this.sendHeartbeat(), 500);
       let heartbeat_id = null;
       if (this.state.heartbeat_id == null) {
         heartbeat_id = window.setInterval(
@@ -448,6 +449,18 @@ class SocketHandler extends React.Component {
     window.setInterval(() => this.sendingThread(), SEND_THREAD_REFRESH);
   }
 
+  sendHeartbeat() {
+    this.safePacketSend({ 
+      packet: {
+        packet_type: HEARTBEAT,
+        msg_id: uuidv4(),
+        receiver_id: SERVER_SOCKET_ID,
+        sender_id: this.props.agent_id,
+        data: {agent_status: this.props.agent_status},
+      },
+    });
+  }
+
   // Thread sends heartbeats through the socket for as long we are connected
   heartbeatThread() {
     // TODO fail properly and update state to closed when the host dies for
@@ -495,15 +508,7 @@ class SocketHandler extends React.Component {
       );
     }
 
-    this.safePacketSend({ 
-      packet: {
-        packet_type: HEARTBEAT,
-        msg_id: uuidv4(),
-        receiver_id: SERVER_SOCKET_ID,
-        sender_id: this.props.agent_id,
-        data: {agent_status: this.props.agent_status},
-      },
-    });
+    this.sendHeartbeat();
 
     this.setState({
       heartbeats_without_response: this.state.heartbeats_without_response + 1,
