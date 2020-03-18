@@ -364,7 +364,6 @@ class AgentState(ABC):
             AgentState.STATUS_COMPLETED,
             AgentState.STATUS_DISCONNECT,
             AgentState.STATUS_TIMEOUT,
-            AgentState.STATUS_PARTNER_DISCONNECT,
             AgentState.STATUS_EXPIRED,
             AgentState.STATUS_RETURNED,
         ]

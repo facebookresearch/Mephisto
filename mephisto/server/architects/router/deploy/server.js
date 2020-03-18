@@ -59,7 +59,7 @@ const FAILED_RECONNECT_TIME = 10000
 
 // TODO can we pull all these from somewhere, make sure they're testable
 // and show they're the same as the python ones?
-const STATUS_INIT = 'init'
+const STATUS_INIT = 'none'
 const STATUS_CONNECTED = 'connected'
 const STATUS_DISCONNECTED = 'disconnect'
 const STATUS_DONE = 'done'
@@ -90,6 +90,7 @@ class LocalAgentState {
     this.unsent_messages = [];
     this.wants_act = false;
     this.is_alive = false;
+    this.done_text = null;
   }
 
   get_sendable_messages() {
@@ -184,9 +185,7 @@ function handle_alive(socket, alive_packet) {
 function handle_get_agent_status(status_packet) {
   last_mephisto_ping = Date.now();
   let agent_statuses = {};
-  console.log('trying to find', agent_id_to_agent);
   for (let agent_id in agent_id_to_agent) {
-    console.log(agent_id_to_agent[agent_id])
     agent_statuses[agent_id] = agent_id_to_agent[agent_id].status;
   }
   let packet = {
@@ -195,7 +194,6 @@ function handle_get_agent_status(status_packet) {
     receiver_id: SYSTEM_SOCKET_ID,
     data: agent_statuses,
   };
-  console.log('Made status message', packet);
   mephisto_message_queue.push(packet);
 }
 
@@ -203,6 +201,7 @@ function handle_update_local_status(status_packet) {
   let agent_id = status_packet.receiver_id;
   let agent = find_or_create_agent(agent_id);
   agent.status = status_packet.data.agent_status;
+  agent.done_text = status_packet.data.done_text;
 }
 
 function update_wanted_acts(agent_id, wants_act) {
@@ -304,6 +303,7 @@ wss.on('connection', function(socket) {
           agent.is_alive = true;
           packet.data.status = agent.status;
           packet.data.wants_act = agent.wants_act;
+          packet.data.done_text = agent.done_text;
           if (agent_id_to_socket[agent.agent_id] != socket) {
             // Not communicating to the correct socket, update
             debug_log('Updating socket for ', agent);

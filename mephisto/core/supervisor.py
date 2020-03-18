@@ -52,6 +52,21 @@ if TYPE_CHECKING:
 
 # Mostly, the supervisor babysits the socket and the workers
 
+STATUS_TO_TEXT_MAP = {
+    AgentState.STATUS_EXPIRED: 
+        "This task is no longer available to be completed. "
+        "Please return it and try a different task",
+    AgentState.STATUS_TIMEOUT: 
+        "You took to long to respond to this task, and have timed out. "
+        "The task is no longer available, please return it.",
+    AgentState.STATUS_DISCONNECT: 
+        "You have disconnected from our server during the duration of the task. "
+        "If you have done substantial work, please reach out to see if we can recover it. ",
+    AgentState.STATUS_PARTNER_DISCONNECT:
+        "One of your partners has disconnected while working on this task. We won't penalize "
+        "you for them leaving, so please submit this task as is."
+}
+
 SYSTEM_SOCKET_ID = "mephisto"  # TODO pull from somewhere
 STATUS_CHECK_TIME = 4
 START_DEATH_TIME = 10
@@ -421,6 +436,7 @@ class Supervisor:
                 assignment = unit.get_assignment()
                 agents = assignment.get_agents()
                 if None in agents:
+                    agent.update_status(AgentState.STATUS_WAITING)
                     return  # need to wait for all agents to be here to launch
 
                 # Launch the backend for this assignment
@@ -576,7 +592,7 @@ class Supervisor:
             self._get_init_data(packet, socket_info)
         elif packet.type == PACKET_TYPE_RETURN_AGENT_STATUS:
             # Record this status response
-            self.status_responses[socket_info.socket_id] = packet.data
+            self._handle_updated_agent_status(packet.data)
         else:
             # PACKET_TYPE_REQUEST_AGENT_STATUS, PACKET_TYPE_ALIVE,
             # PACKET_TYPE_INIT_DATA
@@ -613,13 +629,15 @@ class Supervisor:
         Handle telling the frontend agent about a change in their
         active status. (Pushing a change in AgentState)
         """
-        # TODO retrieve done_text for various final statuses
         # TODO call this method on reconnect
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=agent_info.agent.db_id,
-            data={"agent_status": agent_info.agent.db_status, "done_text": None},
+            data={
+                "agent_status": agent_info.agent.db_status, 
+                "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
+            },
         )
         socket_info = self.sockets[agent_info.used_socket_id]
         self._send_through_socket(socket_info.socket, send_packet)
@@ -627,8 +645,13 @@ class Supervisor:
     def _mark_agent_done(self, agent_info: AgentInfo) -> None:
         """
         Handle marking an agent as done, and telling the frontend agent 
-        that they have successfully completed their task
+        that they have successfully completed their task.
+
+        If the agent is in a final non-successful status, or already 
+        told of partner disconnect, skip
         """
+        if agent_info.agent.db_status in AgentState.complete() + [AgentState.STATUS_PARTNER_DISCONNECT]:
+            return
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_SOCKET_ID,
@@ -653,7 +676,16 @@ class Supervisor:
                 # TODO update with logging
                 print(f"Invalid status for agent {agent_id}: {status}")
                 continue
+            if agent_id not in self.agents:
+                # no longer tracking agent
+                continue
             agent = self.agents[agent_id].agent
+            if agent.has_updated_status.is_set():
+                continue  # Incoming info may be stale if we have new info to send
+            if status == AgentState.STATUS_NONE:
+                # Stale or reconnect, send a status update
+                self._send_status_update(self.agents[agent_id])
+                continue
             if status != agent.db_status:
                 if agent.db_status in AgentState.complete():
                     print(f"Got updated status {status} when already final: {agent.db_status}")
@@ -685,17 +717,6 @@ class Supervisor:
             return
 
         self.last_status_check = time.time()
-
-        # If there are status_responses to check
-        if len(self.status_responses) != 0:
-            print('found status response', self.status_responses)
-            found_statuses: Dict[str, str] = {}
-            for socket_id, status_map in self.status_responses.items():
-                if status_map is None:
-                    # TODO handle what appears to be a broken socket
-                    raise Exception("Socket broken, what do?")
-                found_statuses.update(status_map)
-            self._handle_updated_agent_status(found_statuses)
 
         for socket_id, socket_info in self.sockets.items():
             send_packet = Packet(

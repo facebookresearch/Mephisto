@@ -290,7 +290,7 @@ class SocketHandler extends React.Component {
         this.props.onAgentStatusChange(
           agent_status,
           agent_display_name,
-          null,
+          packet.data.done_text,
         );
       }
     }

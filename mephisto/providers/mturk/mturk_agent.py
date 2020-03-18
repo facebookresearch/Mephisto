@@ -81,15 +81,6 @@ class MTurkAgent(Agent):
         client = self._get_client()
         reject_work(client, self.mturk_assignment_id, reason)
 
-    def get_status(self) -> str:
-        """Get the status of this agent in their work on their unit"""
-        # TODO move this default implementation to the regular agent.
-        if self.db_status not in AgentState.complete():
-            # TODO do we need to query any other statuses? perhaps from the MTurkUnit?
-            row = self.db.get_agent(self.db_id)
-            self.db_status = row["status"]
-        return self.db_status
-
     def mark_done(self) -> None:
         """
         MTurk agents are marked as done on the side of MTurk, so if this agent

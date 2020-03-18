@@ -162,6 +162,7 @@ class Agent(ABC):
         if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
             # Disconnect statuses should free any pending acts
             self.has_action.set()
+            self.did_submit.set()
 
     @staticmethod
     def _register_agent(
@@ -243,6 +244,14 @@ class Agent(ABC):
         self.state.update_data(act)
         return act
 
+    def get_status(self) -> str:
+        """Get the status of this agent in their work on their unit"""
+        if self.db_status not in AgentState.complete():
+            # TODO do we need to query any other statuses? perhaps from the MTurkUnit?
+            row = self.db.get_agent(self.db_id)
+            self.db_status = row["status"]
+        return self.db_status
+
     # Children classes should implement the following methods
 
     def approve_work(self) -> None:
@@ -253,9 +262,6 @@ class Agent(ABC):
         """Reject the work done on this agent's specific Unit"""
         raise NotImplementedError()
 
-    def get_status(self) -> str:
-        """Get the status of this agent in their work on their unit"""
-        raise NotImplementedError()
 
     def mark_done(self) -> None:
         """

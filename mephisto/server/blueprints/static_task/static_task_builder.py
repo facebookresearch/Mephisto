@@ -95,8 +95,3 @@ class StaticTaskBuilder(TaskBuilder):
     def task_dir_is_valid(task_dir: str) -> bool:
         """Mocks are always valid, we don't have any special resources"""
         return True
-
-    # TODO failed static tasks should be requeued?
-    def cleanup_assignment(self, assignment: "Assignment"):
-        """Failed static tasks may need to be requeued?"""
-        pass

@@ -40,7 +40,3 @@ class MockTaskBuilder(TaskBuilder):
         """
         super(MockTaskBuilder, cls).add_args_to_group(group)
         return
-
-    def cleanup_assignment(self, assignment: "Assignment"):
-        """No cleanup required yet for ending mock runs"""
-        pass

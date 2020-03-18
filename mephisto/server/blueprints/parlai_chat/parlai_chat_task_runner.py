@@ -143,6 +143,5 @@ class ParlAIChatTaskRunner(TaskRunner):
         world.shutdown()
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
-        """Simply mark that the assignment is no longer being tracked"""
-        if assignment.db_id in self.running_assignments:
-            del self.running_assignments[assignment.db_id]
+        """Handle cleanup for a specific assignment"""
+        pass  # TODO perhaps we need to requeue or do something additional?

@@ -141,7 +141,8 @@ class ChatApp extends React.Component {
         this.socket_handler.closeSocket();
       } else if ([STATUS_DISCONNECT, STATUS_RETURNED, STATUS_EXPIRED,
                   STATUS_MEPHISTO_DISCONNECT].includes(agent_status)) {
-        this.setState({ chat_state: 'inactive' });
+        this.setState({ chat_state: 'inactive', done_text: done_text });
+        this.socket_handler.closeSocket();
       } else if (agent_status == STATUS_WAITING) {
         this.setState({ messages: [], chat_state: 'waiting' });
       }
