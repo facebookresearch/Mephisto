@@ -104,8 +104,8 @@ const STATUS_WAITING = 'waiting';
 const STATUS_IN_TASK = 'in task';
 const STATUS_DONE = 'done';
 const STATUS_DISCONNECT = 'disconnect';
+const STATUS_TIMEOUT = 'timeout';
 const STATUS_PARTNER_DISCONNECT = 'partner disconnect';
-const STATUS_STATIC = 'static';
 const STATUS_EXPIRED = 'expired';
 const STATUS_RETURNED = 'returned';
 const STATUS_MEPHISTO_DISCONNECT = 'mephisto disconnect';
@@ -140,7 +140,7 @@ class ChatApp extends React.Component {
         this.setState({ task_done: true, chat_state: 'done' });
         this.socket_handler.closeSocket();
       } else if ([STATUS_DISCONNECT, STATUS_RETURNED, STATUS_EXPIRED,
-                  STATUS_MEPHISTO_DISCONNECT].includes(agent_status)) {
+                  STATUS_TIMEOUT, STATUS_MEPHISTO_DISCONNECT].includes(agent_status)) {
         this.setState({ chat_state: 'inactive', done_text: done_text });
         this.socket_handler.closeSocket();
       } else if (agent_status == STATUS_WAITING) {
