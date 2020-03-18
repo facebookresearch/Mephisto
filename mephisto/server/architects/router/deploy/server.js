@@ -41,7 +41,7 @@ app.use(bodyParser.json());
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, '/tmp/');
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -385,11 +385,23 @@ app.get('/download_file/:file', function(req, res) {
     req.connection.remoteAddress || 
     req.socket.remoteAddress ||
     req.connection.socket.remoteAddress;
-  if (ip == mephisto_socket._socket.remoteAddress) {
-    res.sendFile(path.join(__dirname, 'uploads', req.params.file));
-  } else {
-    res.end();
-  }
+    if (ip == mephisto_socket._socket.remoteAddress) {
+      res.sendFile(path.join('/tmp/', req.params.file), function(err) {
+        if(err) {
+          console.log(err);
+          res.status(err.status).end()
+        }
+      });
+    } else {
+      res.sendFile(path.join('/tmp/', req.params.file), function(err) {
+        if(err) {
+          console.log(err);
+          res.status(err.status).end()
+        }
+      });
+      // TODO only return the files for requests from the origin
+      // res.status(403).end();
+    }
 });
 
 app.use(express.static('static'));
