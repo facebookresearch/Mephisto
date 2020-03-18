@@ -131,7 +131,7 @@ class MTurkUnit(Unit):
         else:
             # Try checking agents for status changes
             agent_computed_status = super().get_status() 
-            if agent_status != != local_status:
+            if agent_status != local_status:
                 self.set_db_status(agent_computed_status)
 
         return self.db_status

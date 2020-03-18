@@ -121,7 +121,9 @@ class ParlAIChatTaskRunner(TaskRunner):
             assignment = agent.get_unit().get_assignment()
             assignment_data = self.get_data_for_assignment(assignment)
             agent.state.set_init_state(assignment_data.shared)
-            return agent.state.get_init_state()
+            new_state = agent.state.get_init_state()
+            assert new_state is not None, "Recently initialized state still None"
+            return new_state
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
         """

@@ -31,7 +31,7 @@ class ParlAIChatAgentState(AgentState):
         if os.path.exists(data_file):
             self.load_data()
         else:
-            self.messages: List[Tuple[str, Dict[str, Any]]] = []
+            self.messages: List[Dict[str, Any]] = []
             self.init_data = None
             self.save_data()
 
@@ -70,7 +70,7 @@ class ParlAIChatAgentState(AgentState):
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
-        return {"messages": self.messages, "init_data": self.init_data}
+        return {"outputs": self.messages, "inputs": self.init_data}
 
     def save_data(self) -> None:
         """Save all messages from this agent to """

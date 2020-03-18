@@ -226,9 +226,9 @@ class Agent(ABC):
             if status == AgentState.STATUS_DISCONNECT:
                 raise AgentDisconnectedError(self.db_id)
             elif status == AgentState.STATUS_RETURNED:
-                raise AgentReturnedError(self.agent_id)
+                raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
-            raise AgentTimeoutError(timeout, agent_id)
+            raise AgentTimeoutError(timeout, self.db_id)
         # TODO the below needs to be considered an agent timeout
         assert len(self.pending_actions) > 0, "has_action released without an action!"
 
