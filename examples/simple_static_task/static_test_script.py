@@ -5,7 +5,7 @@ from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 
-USE_LOCAL = False
+USE_LOCAL = True
 
 db = LocalMephistoDB()
 
