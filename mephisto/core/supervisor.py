@@ -29,7 +29,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_UPDATE_AGENT_STATUS,
 )
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.blueprint import OnboardingRequired
+from mephisto.data_model.blueprint import OnboardingRequired, AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
 
 from recordclass import RecordClass
@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 # Mostly, the supervisor babysits the socket and the workers
 
 SYSTEM_SOCKET_ID = "mephisto"  # TODO pull from somewhere
-STATUS_CHECK_TIME = 10
+STATUS_CHECK_TIME = 4
 START_DEATH_TIME = 10
 
 # State storage
@@ -433,7 +433,7 @@ class Supervisor:
                 )
 
                 for agent_info in agent_infos:
-                    self._mark_agent_active(agent_info)
+                    agent_info.agent.update_status(AgentState.STATUS_IN_TASK)
                     agent_info.assignment_thread = assign_thread
 
                 assign_thread.start()
@@ -608,16 +608,18 @@ class Supervisor:
                 self.message_queue.insert(0, curr_obs)
                 return  # something up with the socket, try later
 
-    def _mark_agent_active(self, agent_info: AgentInfo) -> None:
+    def _send_status_update(self, agent_info: AgentInfo) -> None:
         """
-        Handle telling the frontend agent that they have successfully
-        paired into a task
+        Handle telling the frontend agent about a change in their
+        active status. (Pushing a change in AgentState)
         """
+        # TODO retrieve done_text for various final statuses
+        # TODO call this method on reconnect
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=agent_info.agent.db_id,
-            data={"agent_status": "in_task", "done_text": None},
+            data={"agent_status": agent_info.agent.db_status, "done_text": None},
         )
         socket_info = self.sockets[agent_info.used_socket_id]
         self._send_through_socket(socket_info.socket, send_packet)
@@ -646,7 +648,17 @@ class Supervisor:
 
         Takes as input a mapping from agent_id to server-side status
         """
-        print(status_map)
+        for agent_id, status in status_map.items():
+            if status not in AgentState.valid():
+                # TODO update with logging
+                print(f"Invalid status for agent {agent_id}: {status}")
+                continue
+            agent = self.agents[agent_id].agent
+            if status != agent.db_status:
+                if agent.db_status in AgentState.complete():
+                    print(f"Got updated status {status} when already final: {agent.db_status}")
+                    continue
+                agent.update_status(status)
         pass
 
     def _request_action(self, agent_info: AgentInfo) -> None:
@@ -701,6 +713,9 @@ class Supervisor:
                 if agent_info.agent.wants_action.is_set():
                     self._request_action(agent_info)
                     agent_info.agent.wants_action.clear()
+                if agent_info.agent.has_updated_status.is_set():
+                    self._send_status_update(agent_info)
+                    agent_info.agent.has_updated_status.clear()
                 self._try_send_agent_messages(agent_info)
             self._send_message_queue()
             self._request_status_update()

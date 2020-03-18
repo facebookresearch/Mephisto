@@ -22,7 +22,7 @@ from typing import (
 
 from recordclass import RecordClass
 
-from mephisto.data_model.agent import AgentReturnedError, AgentDisconnectedError, AgentTimeoutError
+from mephisto.data_model.exceptions import AgentReturnedError, AgentDisconnectedError, AgentTimeoutError
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent

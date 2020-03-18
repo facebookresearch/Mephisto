@@ -55,7 +55,7 @@ const server = http.createServer(app);
 
 // ======= <Sockets and Agents> ========
 
-const FAILED_RECONNECT_TIME = 15000
+const FAILED_RECONNECT_TIME = 10000
 
 // TODO can we pull all these from somewhere, make sure they're testable
 // and show they're the same as the python ones?
@@ -451,7 +451,7 @@ app.get('/download_file/:file', function(req, res) {
   if (ip == mephisto_socket._socket.remoteAddress) {
     res.sendFile(path.join(__dirname, 'uploads', req.params.file));
   } else {
-    res.end();
+    res.status(403).end();
   }
 });
 

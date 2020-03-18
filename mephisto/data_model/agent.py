@@ -10,6 +10,7 @@ import threading
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.exceptions import AgentReturnedError, AgentDisconnectedError, AgentTimeoutError
 from mephisto.core.utils import get_crowd_provider_from_type
 
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
@@ -19,38 +20,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task import Task, TaskRun
-
-
-# types of exceptions thrown when an agent exits the chat. These are thrown
-# on a failed act call call. If one of these is thrown and not handled,
-# the world should die and enter cleanup.
-class AbsentAgentError(Exception):
-    """Exceptions for when an agent leaves a task"""
-
-    def __init__(self, message, agent_id):
-        self.message = message
-        self.agent_id = agent_id
-
-
-class AgentDisconnectedError(AbsentAgentError):
-    """Exception for a real disconnect event (no signal)"""
-
-    def __init__(self, agent_id):
-        super().__init__(f"Agent disconnected", agent_id)
-
-
-class AgentTimeoutError(AbsentAgentError):
-    """Exception for when a worker doesn't respond in time"""
-
-    def __init__(self, timeout, agent_id):
-        super().__init__(f"Agent exceeded {timeout}", agent_id)
-
-
-class AgentReturnedError(AbsentAgentError):
-    """Exception for an explicit return event (worker returns task)"""
-
-    def __init__(self, agent_id):
-        super().__init__(f"Agent returned task", agent_id)
 
 
 class Agent(ABC):
@@ -184,8 +153,15 @@ class Agent(ABC):
         """Update the database status of this agent, and
         possibly send a message to the frontend agent informing
         them of this update"""
+        assert self.db_status not in AgentState.complete(), (
+            f"Cannot update a final status, was {self.db_status} and want to set to {new_status}"
+        )
         self.db.update_agent(self.db_id, status=new_status)
+        self.db_status = new_status
         self.has_updated_status.set()
+        if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
+            # Disconnect statuses should free any pending acts
+            self.has_action.set()
 
     @staticmethod
     def _register_agent(
@@ -241,7 +217,7 @@ class Agent(ABC):
             self.wants_action.set()
             if timeout is None or timeout == 0:
                 return None
-            self.has_action.wait(timeout)mm
+            self.has_action.wait(timeout)
 
         if len(self.pending_actions) == 0:
             # various disconnect cases

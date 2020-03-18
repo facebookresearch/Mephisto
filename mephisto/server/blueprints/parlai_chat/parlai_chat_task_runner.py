@@ -105,6 +105,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
         self.parlai_world_module = import_module(world_module_name)
+        self.is_concurrent = True
 
     # TODO reconnects should get the same agent as was initially given
 
