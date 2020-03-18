@@ -52,7 +52,7 @@ class ParlAIChatAgentState(AgentState):
         """
         if self.init_data is None:
             return None
-        return {'task_data': self.init_data, 'raw_messages': self.messages}
+        return {"task_data": self.init_data, "raw_messages": self.messages}
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""

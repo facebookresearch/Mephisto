@@ -22,7 +22,11 @@ from typing import (
 
 from recordclass import RecordClass
 
-from mephisto.data_model.exceptions import AgentReturnedError, AgentDisconnectedError, AgentTimeoutError
+from mephisto.data_model.exceptions import (
+    AgentReturnedError,
+    AgentDisconnectedError,
+    AgentTimeoutError,
+)
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -201,7 +205,7 @@ class TaskRunner(ABC):
             # it should be made available again for a new agent correct?
             self.cleanup_unit(unit)
         except Exception as e:
-            print(f'Unhandled exception in unit {unit}: {repr(e)}')
+            print(f"Unhandled exception in unit {unit}: {repr(e)}")
             import traceback
 
             traceback.print_exc()
@@ -229,14 +233,14 @@ class TaskRunner(ABC):
             self.run_assignment(assignment, agents)
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError) as e:
             # TODO how do we manage dealing with new units on an assignment that
-            # wasn't completed? Is this an issue we can handle with 
+            # wasn't completed? Is this an issue we can handle with
             disconnected_agent_id = e.agent_id
             for agent in agents:
                 if agent.db_id != e.agent_id:
                     agent.update_status(AgentState.STATUS_PARTNER_DISCONNECT)
             self.cleanup_assignment(assignment)
         except Exception as e:
-            print(f'Unhandled exception in assignment {assignment}: {repr(e)}')
+            print(f"Unhandled exception in assignment {assignment}: {repr(e)}")
             import traceback
 
             traceback.print_exc()

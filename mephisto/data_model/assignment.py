@@ -118,12 +118,17 @@ class Assignment:
             # If any are still assigned, consider the whole thing assigned
             return AssignmentState.ASSIGNED
 
-        if all([s in [AssignmentState.ACCEPTED, AssignmentState.REJECTED] for s in statuses]):
+        if all(
+            [
+                s in [AssignmentState.ACCEPTED, AssignmentState.REJECTED]
+                for s in statuses
+            ]
+        ):
             return AssignmentState.MIXED
 
         if all([s in AssignmentState.final_agent() for s in statuses]):
             return AssignmentState.COMPLETED
-        
+
         raise NotImplementedError(f"Unexpected set of unit statuses {statuses}")
 
     def get_task_run(self) -> TaskRun:
@@ -442,9 +447,7 @@ class Unit(ABC):
                 AgentState.STATUS_IN_TASK,
             ]:
                 return AssignmentState.ASSIGNED
-            elif agent_status in [
-                AgentState.STATUS_COMPLETED,
-            ]:
+            elif agent_status in [AgentState.STATUS_COMPLETED]:
                 return AssignmentState.COMPLETED
             elif agent_status in [
                 AgentState.STATUS_DISCONNECT,

@@ -10,7 +10,11 @@ import threading
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.exceptions import AgentReturnedError, AgentDisconnectedError, AgentTimeoutError
+from mephisto.data_model.exceptions import (
+    AgentReturnedError,
+    AgentDisconnectedError,
+    AgentTimeoutError,
+)
 from mephisto.core.utils import get_crowd_provider_from_type
 
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
@@ -153,9 +157,9 @@ class Agent(ABC):
         """Update the database status of this agent, and
         possibly send a message to the frontend agent informing
         them of this update"""
-        assert self.db_status not in AgentState.complete(), (
-            f"Cannot update a final status, was {self.db_status} and want to set to {new_status}"
-        )
+        assert (
+            self.db_status not in AgentState.complete()
+        ), f"Cannot update a final status, was {self.db_status} and want to set to {new_status}"
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
         self.has_updated_status.set()
@@ -261,7 +265,6 @@ class Agent(ABC):
     def reject_work(self, reason) -> None:
         """Reject the work done on this agent's specific Unit"""
         raise NotImplementedError()
-
 
     def mark_done(self) -> None:
         """

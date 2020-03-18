@@ -62,4 +62,3 @@ class StaticTaskRunner(TaskRunner):
     def cleanup_unit(self, unit: "Unit") -> None:
         """There is currently no cleanup associated with killing an incomplete task"""
         return
-        

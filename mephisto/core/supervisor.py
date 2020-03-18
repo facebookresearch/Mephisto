@@ -53,18 +53,14 @@ if TYPE_CHECKING:
 # Mostly, the supervisor babysits the socket and the workers
 
 STATUS_TO_TEXT_MAP = {
-    AgentState.STATUS_EXPIRED: 
-        "This task is no longer available to be completed. "
-        "Please return it and try a different task",
-    AgentState.STATUS_TIMEOUT: 
-        "You took to long to respond to this task, and have timed out. "
-        "The task is no longer available, please return it.",
-    AgentState.STATUS_DISCONNECT: 
-        "You have disconnected from our server during the duration of the task. "
-        "If you have done substantial work, please reach out to see if we can recover it. ",
-    AgentState.STATUS_PARTNER_DISCONNECT:
-        "One of your partners has disconnected while working on this task. We won't penalize "
-        "you for them leaving, so please submit this task as is."
+    AgentState.STATUS_EXPIRED: "This task is no longer available to be completed. "
+    "Please return it and try a different task",
+    AgentState.STATUS_TIMEOUT: "You took to long to respond to this task, and have timed out. "
+    "The task is no longer available, please return it.",
+    AgentState.STATUS_DISCONNECT: "You have disconnected from our server during the duration of the task. "
+    "If you have done substantial work, please reach out to see if we can recover it. ",
+    AgentState.STATUS_PARTNER_DISCONNECT: "One of your partners has disconnected while working on this task. We won't penalize "
+    "you for them leaving, so please submit this task as is.",
 }
 
 SYSTEM_SOCKET_ID = "mephisto"  # TODO pull from somewhere
@@ -635,7 +631,7 @@ class Supervisor:
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=agent_info.agent.db_id,
             data={
-                "agent_status": agent_info.agent.db_status, 
+                "agent_status": agent_info.agent.db_status,
                 "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
             },
         )
@@ -650,7 +646,9 @@ class Supervisor:
         If the agent is in a final non-successful status, or already 
         told of partner disconnect, skip
         """
-        if agent_info.agent.db_status in AgentState.complete() + [AgentState.STATUS_PARTNER_DISCONNECT]:
+        if agent_info.agent.db_status in AgentState.complete() + [
+            AgentState.STATUS_PARTNER_DISCONNECT
+        ]:
             return
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
@@ -688,7 +686,9 @@ class Supervisor:
                 continue
             if status != agent.db_status:
                 if agent.db_status in AgentState.complete():
-                    print(f"Got updated status {status} when already final: {agent.db_status}")
+                    print(
+                        f"Got updated status {status} when already final: {agent.db_status}"
+                    )
                     continue
                 agent.update_status(status)
         pass
