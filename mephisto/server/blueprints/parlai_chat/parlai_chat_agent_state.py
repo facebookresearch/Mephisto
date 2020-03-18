@@ -65,12 +65,12 @@ class ParlAIChatAgentState(AgentState):
         agent_file = self._get_expected_data_file()
         with open(agent_file, "r") as state_json:
             state = json.load(state_json)
-            self.messages = state["messages"]
-            self.init_data = state["init_data"]
+            self.messages = state["outputs"]["messages"]
+            self.init_data = state["inputs"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
-        return {"outputs": self.messages, "inputs": self.init_data}
+        return {"outputs": {"messages": self.messages}, "inputs": self.init_data}
 
     def save_data(self) -> None:
         """Save all messages from this agent to """
