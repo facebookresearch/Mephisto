@@ -97,10 +97,7 @@ h1 {
 .params-list .param-name {
 }
 
-h1 a {
-  color: inherit;
-}
-
+h1 a,
 h1 a:hover {
   color: inherit;
 }
