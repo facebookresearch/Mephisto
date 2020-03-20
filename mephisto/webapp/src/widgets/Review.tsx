@@ -43,7 +43,12 @@ export default (function ReviewWidget() {
         onData={({ data }) => (
           <span>
             {data.task_runs.map(run => (
-              <TaskRunSummary key={run.task_run_id} run={run} />
+              <Link
+                to={"/review/" + run.task_run_id}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <TaskRunSummary key={run.task_run_id} run={run} />
+              </Link>
             ))}
           </span>
         )}

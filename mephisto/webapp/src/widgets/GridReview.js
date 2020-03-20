@@ -2,11 +2,14 @@ import React from "react";
 import { useTable } from "react-table";
 import { createAsync } from "../lib/Async";
 import useAxios from "axios-hooks";
+import { ButtonGroup } from "@blueprintjs/core";
 
 const GridReviewAsync = createAsync();
 
-function GridReviewWithData() {
-  const gridReviewAsync = useAxios({ url: "data/submitted_data" });
+function GridReviewWithData({ id }) {
+  const gridReviewAsync = useAxios({
+    url: "data/submitted_data?task_run_id=" + id
+  });
 
   return (
     <GridReviewAsync
@@ -61,14 +64,31 @@ function GridReview({ data }) {
       {
         Header: "Input",
         accessor: "data.inputs",
-        Cell: ({ cell: { value } }) => JSON.stringify(value)
+        Cell: ({ cell: { value } }) => JSON.stringify(value, null, 1)
       },
       {
         Header: "Output",
         accessor: "data.outputs",
-        Cell: ({ cell: { value } }) => JSON.stringify(value)
+        Cell: ({ cell: { value } }) => JSON.stringify(value, null, 1)
       },
-      { Header: "Status", accessor: "status" }
+      {
+        Header: "Status",
+        accessor: "status",
+        Cell: ({ cell: { value } }) => (
+          <span className="bp3-tag bp3-minimal">{value}</span>
+        )
+      },
+      {
+        Header: "Actions",
+        Cell: () => (
+          <div>
+            <ButtonGroup>
+              <button className="bp3-button bp3-small">Accept</button>
+              <button className="bp3-button bp3-small">Reject</button>
+            </ButtonGroup>
+          </div>
+        )
+      }
     ]
   });
   return (

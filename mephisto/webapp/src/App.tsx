@@ -34,13 +34,16 @@ const App: React.FC = () => {
                 <ReviewWidget />
               </div>
             </Route>
-            <Route path="/review">
-              <div style={{ margin: 30 }}>
-                <div className="bp3-card bp3-elevation-3 widget widget">
-                  <GridReview />
+            <Route
+              path="/review/:id"
+              render={({ match: { params } }) => (
+                <div style={{ margin: 30 }}>
+                  <div className="bp3-card bp3-elevation-3 widget widget">
+                    <GridReview id={params.id} />
+                  </div>
                 </div>
-              </div>
-            </Route>
+              )}
+            />
           </Switch>
         </div>
       </div>
