@@ -3,6 +3,7 @@ import { useTable } from "react-table";
 import { createAsync } from "../lib/Async";
 import useAxios from "axios-hooks";
 import { ButtonGroup } from "@blueprintjs/core";
+import { Link } from "react-router-dom";
 
 const GridReviewAsync = createAsync();
 
@@ -17,7 +18,7 @@ function GridReviewWithData({ id }) {
       onData={({ data }) => (
         <div>
           {/* {JSON.stringify(data.units)} */}
-          <GridReview data={data} />
+          <GridReview data={data} id={id} />
         </div>
       )}
       onError={() => null}
@@ -28,7 +29,7 @@ function GridReviewWithData({ id }) {
   );
 }
 
-function GridReview({ data }) {
+function GridReview({ data, id }) {
   const testData = [
     {
       assignment_id: "179",
@@ -58,7 +59,7 @@ function GridReview({ data }) {
     data: data.units,
     columns: [
       { Header: "Assignment ID", accessor: "assignment_id" },
-      { Header: "Task Run ID", accessor: "task_run_id" },
+      // { Header: "Task Run ID", accessor: "task_run_id" },
       { Header: "Unit ID", accessor: "unit_id" },
       { Header: "Worker ID", accessor: "worker_id" },
       {
@@ -83,8 +84,10 @@ function GridReview({ data }) {
         Cell: () => (
           <div>
             <ButtonGroup>
-              <button className="bp3-button bp3-small">Accept</button>
-              <button className="bp3-button bp3-small">Reject</button>
+              <button className="bp3-button bp3-small">Accept &amp; Pay</button>
+              <button className="bp3-button bp3-small">Reject &amp; Pay</button>
+              <button className="bp3-button bp3-small">Soft Block</button>
+              <button className="bp3-button bp3-small">Hard Block</button>
             </ButtonGroup>
           </div>
         )
@@ -93,6 +96,10 @@ function GridReview({ data }) {
   });
   return (
     <div>
+      <div style={{ margin: "10px 0px" }}>
+        <Link to="/">&laquo; Return</Link>
+      </div>
+      <h3>Task Run #{id}</h3>
       <table
         className="bp3-html-table-striped bp3-html-table"
         {...getTableProps()}

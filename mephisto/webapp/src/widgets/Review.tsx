@@ -44,6 +44,7 @@ export default (function ReviewWidget() {
           <span>
             {data.task_runs.map(run => (
               <Link
+                key={run.task_run_id}
                 to={"/review/" + run.task_run_id}
                 style={{ textDecoration: "none", color: "inherit" }}
               >
@@ -67,12 +68,12 @@ export default (function ReviewWidget() {
           </div>
         )}
       />
-      <div style={{ textAlign: "center", marginTop: 15 }}>
+      {/* <div style={{ textAlign: "center", marginTop: 15 }}>
         <Link to="/review" className="bp3-success bp3-button">
           <Icon icon="search" />
           <span className="bp3-button-text">Review all tasks</span>
         </Link>
-      </div>
+      </div> */}
     </BaseWidget>
   );
 } as React.FC);
