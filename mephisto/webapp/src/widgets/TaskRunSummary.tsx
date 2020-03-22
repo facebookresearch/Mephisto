@@ -5,18 +5,7 @@ import moment from "moment";
 
 export default function TaskRunSummary({ run }: { run: TaskRun }) {
   return (
-    <div
-      className="run-header"
-      style={{
-        backgroundColor: Colors.LIGHT_GRAY5,
-        padding: 10,
-        marginBottom: "10px",
-        borderColor: Colors.GRAY5,
-        borderWidth: 1,
-        borderStyle: "solid",
-        borderRadius: 5
-      }}
-    >
+    <div className="run-header">
       <h5 className="bp3-heading" style={{ display: "inline" }}>
         {run.task_name}
       </h5>{" "}
