@@ -7,7 +7,7 @@ import { AxiosPromise } from "axios";
 const SKIP_FIELD = null;
 
 export function launchTask(data: any): AxiosPromise<any> {
-  const transformedPayload = mapDataToExpectedPayload(data);
+  const transformedPayload = mapLaunchDataToExpectedPayload(data);
   return axios.post("task_runs/launch", transformedPayload);
 }
 
@@ -18,7 +18,7 @@ export function createRequester(
   return axios.post(`requester/${provider}/register`, payload);
 }
 
-function mapDataToExpectedPayload(data: any) {
+function mapLaunchDataToExpectedPayload(data: any) {
   // We expect to receive a payload of the following format that
   // will then transform to suit the API's expectations:
   //
@@ -77,3 +77,18 @@ function mapDataToExpectedPayload(data: any) {
   console.table(Object.fromEntries(transformed));
   return Object.fromEntries(transformed);
 }
+
+export const reviewActions = {
+  accept: function(id: string) {
+    return axios.post(`unit/${id}/accept`);
+  },
+  rejectAndPay: function(id: number) {
+    return axios.post(`unit/${id}/reject`);
+  },
+  softBlock: function(id: number) {
+    return axios.post(`unit/${id}/softBlock`);
+  },
+  hardBlock: function(id: number) {
+    return axios.post(`unit/${id}/hardBlock`);
+  }
+};

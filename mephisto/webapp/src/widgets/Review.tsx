@@ -2,9 +2,10 @@ import React from "react";
 import BaseWidget from "./Base";
 import useAxios from "axios-hooks";
 import { createAsync, mockRequest } from "../lib/Async";
-import { Icon, Colors } from "@blueprintjs/core";
+import { Icon, Colors, Button, Intent } from "@blueprintjs/core";
 import { ReviewableTasks } from "../models";
 import TaskRunSummary from "./TaskRunSummary";
+import { Link } from "react-router-dom";
 
 const Async = createAsync<ReviewableTasks>();
 
@@ -42,7 +43,13 @@ export default (function ReviewWidget() {
         onData={({ data }) => (
           <span>
             {data.task_runs.map(run => (
-              <TaskRunSummary key={run.task_run_id} run={run} />
+              <Link
+                key={run.task_run_id}
+                to={"/review/" + run.task_run_id}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <TaskRunSummary key={run.task_run_id} run={run} />
+              </Link>
             ))}
           </span>
         )}

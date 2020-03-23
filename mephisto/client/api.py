@@ -203,7 +203,7 @@ def get_submitted_data():
             agent = unit.get_assigned_agent()
             if agent is not None:
                 unit_data["data"] = agent.state.get_data()
-                unit_data["worker_id"] = agent["worker_id"]
+                unit_data["worker_id"] = agent.worker_id
             all_unit_data.append(unit_data)
 
         print(all_unit_data)
@@ -278,6 +278,27 @@ def get_architect_arguments(architect_type):
     ArchitectClass = get_architect_from_type(architect_type)
     params = get_extra_argument_dicts(ArchitectClass)
     return jsonify({"success": True, "options": params})
+
+
+@api.route("/unit/<string:unit_id>/accept", methods=["POST"])
+def accept_unit(unit_id):
+    return jsonify({"success": True})
+    pass
+
+@api.route("/unit/<string:unit_id>/reject", methods=["POST"])
+def reject_unit(unit_id):
+    return jsonify({"success": True})
+    pass
+
+@api.route("/unit/<string:unit_id>/softBlock", methods=["POST"])
+def soft_block_unit(unit_id):
+    return jsonify({"success": True})
+    pass
+
+@api.route("/unit/<string:unit_id>/hardBlock", methods=["POST"])
+def hard_block_unit(unit_id):
+    return jsonify({"success": True})
+    pass
 
 
 @api.route("/error", defaults={"status_code": "501"})

@@ -97,6 +97,11 @@ h1 {
 .params-list .param-name {
 }
 
+h1 a,
+h1 a:hover {
+  color: inherit;
+}
+
 .params-list .param-value {
   color: #333;
 }
@@ -128,4 +133,20 @@ h1 {
 .metric label {
   display: block;
   font-size: 12px;
+}
+
+.run-header {
+  background-color: rgb(245, 248, 250);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-color: rgb(191, 204, 214);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 5px;
+}
+
+.run-header:hover {
+  background-color: #ebf1f5;
+  transform: scale(1.02, 1.02);
+  transition: transform 0.1s ease-out;
 }
