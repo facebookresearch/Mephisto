@@ -280,6 +280,27 @@ def get_architect_arguments(architect_type):
     return jsonify({"success": True, "options": params})
 
 
+@api.route("/unit/<string:unit_id>/accept", methods=["POST"])
+def accept_unit(unit_id):
+    return jsonify({"success": True})
+    pass
+
+@api.route("/unit/<string:unit_id>/reject", methods=["POST"])
+def reject_unit(unit_id):
+    return jsonify({"success": True})
+    pass
+
+@api.route("/unit/<string:unit_id>/softBlock", methods=["POST"])
+def soft_block_unit(unit_id):
+    return jsonify({"success": True})
+    pass
+
+@api.route("/unit/<string:unit_id>/hardBlock", methods=["POST"])
+def hard_block_unit(unit_id):
+    return jsonify({"success": True})
+    pass
+
+
 @api.route("/error", defaults={"status_code": "501"})
 @api.route("/error/<string:status_code>")
 def intentional_error(status_code):

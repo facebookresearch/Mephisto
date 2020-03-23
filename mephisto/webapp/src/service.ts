@@ -79,6 +79,16 @@ function mapLaunchDataToExpectedPayload(data: any) {
 }
 
 export const reviewActions = {
-  approve: function() {},
-  softBlock: function() {}
+  accept: function(id: string) {
+    return axios.post(`unit/${id}/accept`);
+  },
+  rejectAndPay: function(id: number) {
+    return axios.post(`unit/${id}/reject`);
+  },
+  softBlock: function(id: number) {
+    return axios.post(`unit/${id}/softBlock`);
+  },
+  hardBlock: function(id: number) {
+    return axios.post(`unit/${id}/hardBlock`);
+  }
 };

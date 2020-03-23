@@ -4,6 +4,7 @@ import { createAsync } from "../lib/Async";
 import useAxios from "axios-hooks";
 import { ButtonGroup } from "@blueprintjs/core";
 import { Link } from "react-router-dom";
+import { reviewActions } from "../service";
 
 const GridReviewAsync = createAsync();
 
@@ -23,7 +24,7 @@ function GridReviewWithData({ id }) {
       onError={() => null}
       onLoading={() => null}
       onEmptyData={() => <div>There are no units to review...</div>}
-      checkIfEmptyFn={({ units }) => units.length === 0}
+      checkIfEmptyFn={data => data.units}
     />
   );
 }
@@ -79,16 +80,39 @@ function GridReview({ data, id }) {
       },
       {
         Header: "Actions",
-        Cell: () => (
-          <div>
-            <ButtonGroup>
-              <button className="bp3-button bp3-small">Accept &amp; Pay</button>
-              <button className="bp3-button bp3-small">Reject &amp; Pay</button>
-              <button className="bp3-button bp3-small">Soft Block</button>
-              <button className="bp3-button bp3-small">Hard Block</button>
-            </ButtonGroup>
-          </div>
-        )
+        Cell: ({ cell: { row } }) => {
+          const unitId = row.values.unit_id;
+          return (
+            <div>
+              <ButtonGroup>
+                <button
+                  className="bp3-button bp3-small"
+                  onClick={() => reviewActions.accept(unitId)}
+                >
+                  Accept &amp; Pay
+                </button>
+                <button
+                  className="bp3-button bp3-small"
+                  onClick={() => reviewActions.rejectAndPay(unitId)}
+                >
+                  Reject &amp; Pay
+                </button>
+                <button
+                  className="bp3-button bp3-small"
+                  onClick={() => reviewActions.softBlock(unitId)}
+                >
+                  Soft Block
+                </button>
+                <button
+                  className="bp3-button bp3-small"
+                  onClick={() => reviewActions.hardBlock(unitId)}
+                >
+                  Hard Block
+                </button>
+              </ButtonGroup>
+            </div>
+          );
+        }
       }
     ]
   });
