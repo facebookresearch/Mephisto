@@ -31,7 +31,7 @@ class ParlAIChatAgentState(AgentState):
         if os.path.exists(data_file):
             self.load_data()
         else:
-            self.messages: List[Tuple[str, Dict[str, Any]]] = []
+            self.messages: List[Dict[str, Any]] = []
             self.init_data = None
             self.save_data()
 
@@ -50,7 +50,9 @@ class ParlAIChatAgentState(AgentState):
         Return the initial state for this agent,
         None if no such state exists
         """
-        return self.init_data
+        if self.init_data is None:
+            return None
+        return {"task_data": self.init_data, "raw_messages": self.messages}
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""
@@ -63,12 +65,12 @@ class ParlAIChatAgentState(AgentState):
         agent_file = self._get_expected_data_file()
         with open(agent_file, "r") as state_json:
             state = json.load(state_json)
-            self.messages = state["messages"]
-            self.init_data = state["init_data"]
+            self.messages = state["outputs"]["messages"]
+            self.init_data = state["inputs"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
-        return {"messages": self.messages, "init_data": self.init_data}
+        return {"outputs": {"messages": self.messages}, "inputs": self.init_data}
 
     def save_data(self) -> None:
         """Save all messages from this agent to """
@@ -80,6 +82,5 @@ class ParlAIChatAgentState(AgentState):
         """
         Append the incoming packet as well as who it came from
         """
-        parsed_message = packet.data
-        self.messages.append((packet.sender_id, parsed_message))
+        self.messages.append(packet.to_sendable_dict())
         self.save_data()

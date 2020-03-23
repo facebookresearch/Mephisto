@@ -98,18 +98,38 @@ class Assignment:
         """
         units = self.get_units()
         statuses = set(unit.get_status() for unit in units)
+
         if len(statuses) == 1:
             return statuses.pop()
 
         if len(statuses) == 0:
             return AssignmentState.CREATED
 
-        # TODO parse statuses and return a computed status
-        # ASSIGNED is any are still assigned
-        # MIXED is any form of review status that remains
+        if AssignmentState.CREATED in statuses:
+            # TODO handle the case where new units are created after
+            # everything else is launched
+            return AssignmentState.CREATED
 
-        return AssignmentState.LAUNCHED
-        raise NotImplementedError()
+        if any([s == AssignmentState.LAUNCHED for s in statuses]):
+            # If any are only launched, consider the whole thing launched
+            return AssignmentState.LAUNCHED
+
+        if any([s == AssignmentState.ASSIGNED for s in statuses]):
+            # If any are still assigned, consider the whole thing assigned
+            return AssignmentState.ASSIGNED
+
+        if all(
+            [
+                s in [AssignmentState.ACCEPTED, AssignmentState.REJECTED]
+                for s in statuses
+            ]
+        ):
+            return AssignmentState.MIXED
+
+        if all([s in AssignmentState.final_agent() for s in statuses]):
+            return AssignmentState.COMPLETED
+
+        raise NotImplementedError(f"Unexpected set of unit statuses {statuses}")
 
     def get_task_run(self) -> TaskRun:
         """
@@ -397,7 +417,7 @@ class Unit(ABC):
         """
         return self.pay_amount
 
-    # Children classes should implement the below methods
+    # Children classes may need to override the following
 
     def get_status(self) -> str:
         """
@@ -405,10 +425,43 @@ class Unit(ABC):
         a worker working on it at the moment, and any other possible states. Should
         return one of UNIT_STATUSES
 
-        Status is crowd-provider dependent, and thus this method should be defined
-        in the child class.
+        Accurate status is crowd-provider dependent, and thus this method should be 
+        defined in the child class to ensure that the local record matches
+        the ground truth in the provider
         """
-        raise NotImplementedError()
+        from mephisto.data_model.blueprint import AgentState
+
+        agent = self.get_assigned_agent()
+        if agent is None:
+            row = self.db.get_unit(self.db_id)
+            return row["status"]
+        else:
+            agent_status = agent.get_status()
+            if agent_status == AgentState.STATUS_NONE:
+                return AssignmentState.LAUNCHED
+            elif agent_status in [
+                AgentState.STATUS_ACCEPTED,
+                AgentState.STATUS_ONBOARDING,
+                AgentState.STATUS_PARTNER_DISCONNECT,
+                AgentState.STATUS_WAITING,
+                AgentState.STATUS_IN_TASK,
+            ]:
+                return AssignmentState.ASSIGNED
+            elif agent_status in [AgentState.STATUS_COMPLETED]:
+                return AssignmentState.COMPLETED
+            elif agent_status in [
+                AgentState.STATUS_DISCONNECT,
+                AgentState.STATUS_EXPIRED,
+                AgentState.STATUS_RETURNED,
+            ]:
+                return AssignmentState.EXPIRED
+            elif agent_status == AgentState.STATUS_APPROVED:
+                return AssignmentState.ACCEPTED
+            elif agent_status == AgentState.STATUS_REJECTED:
+                return AssignmentState.REJECTED
+        return AssignmentState.LAUNCHED
+
+    # Children classes should implement the below methods
 
     def launch(self, task_url: str) -> None:
         """

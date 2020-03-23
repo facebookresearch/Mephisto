@@ -414,6 +414,7 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet, failed onboarding"
         )
+        time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -434,6 +435,7 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet - need onboarding"
         )
+        time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
@@ -472,6 +474,7 @@ class TestSupervisor(unittest.TestCase):
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -600,6 +603,7 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet, failed onboarding"
         )
+        time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -620,6 +624,7 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet - need onboarding"
         )
+        time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
@@ -656,6 +661,7 @@ class TestSupervisor(unittest.TestCase):
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(

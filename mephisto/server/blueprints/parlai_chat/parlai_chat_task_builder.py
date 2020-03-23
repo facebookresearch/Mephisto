@@ -19,19 +19,21 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
 
-STATIC_TASK_DIR = os.path.dirname(__file__)
-FRONTEND_SOURCE_DIR = os.path.join(STATIC_TASK_DIR, "source")
+PARLAI_TASK_DIR = os.path.dirname(__file__)
+FRONTEND_SOURCE_DIR = os.path.join(PARLAI_TASK_DIR, "source")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
+BUILT_FILE = "done.built"
 
-class StaticTaskBuilder(TaskBuilder):
+
+class ParlAIChatTaskBuilder(TaskBuilder):
     """
-    Builder for a static task, pulls the appropriate html,
+    Builder for a parlai chat task, pulls the appropriate html,
     builds the frontend (if a build doesn't already exist),
     then puts the file into the server directory
     """
 
-    BUILT_FILE = "done.built"
+    BUILT_FILE = BUILT_FILE
     BUILT_MESSAGE = "built!"
 
     def rebuild_core(self):
@@ -58,23 +60,16 @@ class StaticTaskBuilder(TaskBuilder):
     def build_in_dir(self, build_dir: str):
         """Build the frontend if it doesn't exist, then copy into the server directory"""
         # Only build this task if it hasn't already been built
-        if not os.path.exists(FRONTEND_BUILD_DIR):
+        if True:  # not os.path.exists(FRONTEND_BUILD_DIR):
             self.rebuild_core()
 
-        # Copy the built core and the given task file to the target path
-        use_html_file = os.path.expanduser(self.opts["task_source"])
-
+        # Copy over the preview file as preview.html, use the default if none specified
         target_resource_dir = os.path.join(build_dir, "static")
-        file_name = os.path.basename(use_html_file)
-        target_path = os.path.join(target_resource_dir, file_name)
-        shutil.copy2(use_html_file, target_path)
-
-        # Copy over the preview file as preview.html, default to the task file if none specified
-        preview_file = self.opts.get("preview_source") or use_html_file
-        use_preview_file = os.path.expanduser(preview_file)
-
-        target_path = os.path.join(target_resource_dir, "preview.html")
-        shutil.copy2(use_preview_file, target_path)
+        preview_file = self.opts.get("preview_source")
+        if preview_file is not None:
+            use_preview_file = os.path.expanduser(preview_file)
+            target_path = os.path.join(target_resource_dir, "preview.html")
+            shutil.copy2(use_preview_file, target_path)
 
         # If any additional task files are required via a source_dir, copy those as well
         extra_dir_path = self.opts.get("extra_source_dir")
@@ -86,6 +81,14 @@ class StaticTaskBuilder(TaskBuilder):
         target_path = os.path.join(target_resource_dir, "bundle.js")
         shutil.copy2(bundle_js_file, target_path)
 
+        # Copy over the static files for this task:
+        for fin_file in ["index.html", "notif.mp3"]:
+            bundle_js_file = os.path.join(
+                FRONTEND_SOURCE_DIR, "dev", "static", fin_file
+            )
+            target_path = os.path.join(target_resource_dir, fin_file)
+            shutil.copy2(bundle_js_file, target_path)
+
         # Write a built file confirmation
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:
             built_file.write(self.BUILT_MESSAGE)
@@ -93,5 +96,5 @@ class StaticTaskBuilder(TaskBuilder):
     # TODO update test validation
     @staticmethod
     def task_dir_is_valid(task_dir: str) -> bool:
-        """Mocks are always valid, we don't have any special resources"""
+        """ParlAIChat tasks are valid if built"""
         return True

@@ -55,9 +55,11 @@ const server = http.createServer(app);
 
 // ======= <Sockets and Agents> ========
 
+const FAILED_RECONNECT_TIME = 10000
+
 // TODO can we pull all these from somewhere, make sure they're testable
 // and show they're the same as the python ones?
-const STATUS_INIT = 'init'
+const STATUS_INIT = 'none'
 const STATUS_CONNECTED = 'connected'
 const STATUS_DISCONNECTED = 'disconnect'
 const STATUS_DONE = 'done'
@@ -86,6 +88,9 @@ class LocalAgentState {
     this.status = STATUS_INIT;
     this.agent_id = agent_id;
     this.unsent_messages = [];
+    this.wants_act = false;
+    this.is_alive = false;
+    this.done_text = null;
   }
 
   get_sendable_messages() {
@@ -148,6 +153,15 @@ function _send_message(socket, packet) {
   });
 }
 
+function find_or_create_agent(agent_id) {
+  var agent = agent_id_to_agent[agent_id]
+  if (agent === undefined) {
+    var agent = new LocalAgentState(agent_id);
+    agent_id_to_agent[agent_id] = agent;
+  }
+  return agent;
+}
+
 // Open connections send alives to identify who they are,
 // register them correctly here
 function handle_alive(socket, alive_packet) {
@@ -160,11 +174,8 @@ function handle_alive(socket, alive_packet) {
     }
   } else {
     var agent_id = alive_packet.sender_id;
-    var agent = agent_id_to_agent[agent_id]
-    if (agent === undefined) {
-      var agent = new LocalAgentState(agent_id);
-      agent_id_to_agent[agent_id] = agent;
-    }
+    var agent = find_or_create_agent(agent_id);
+    agent.is_alive = true;
     agent_id_to_socket[agent_id] = socket;
     socket_id_to_agent[socket.id] = agent;
   }
@@ -186,37 +197,62 @@ function handle_get_agent_status(status_packet) {
   mephisto_message_queue.push(packet);
 }
 
+function handle_update_local_status(status_packet) {
+  let agent_id = status_packet.receiver_id;
+  let agent = find_or_create_agent(agent_id);
+  agent.status = status_packet.data.agent_status;
+  agent.done_text = status_packet.data.done_text;
+}
+
+function update_wanted_acts(agent_id, wants_act) {
+  let agent = find_or_create_agent(agent_id);
+  agent.wants_act = wants_act;
+}
+
 // Handle a message being sent to or from a frontend agent
 function handle_forward(packet) {
   if (packet.receiver_id == SYSTEM_SOCKET_ID) {
     mephisto_message_queue.push(packet);
   } else {
-    let agent = agent_id_to_agent[packet.receiver_id];
-    if (agent === undefined) {
-      agent = new LocalAgentState(packet.receiver_id);
-      agent_id_to_agent[packet.receiver_id] = agent;
-    }
+    let agent = find_or_create_agent(packet.receiver_id);
     agent.unsent_messages.push(packet);
   }
 }
 
+
+function _followup_possible_disconnect(agent) {
+  if (!agent.is_alive) {
+    agent.status = STATUS_DISCONNECTED;
+    debug_log('Agent disconnected', agent);
+  }
+}
+
+function handle_possible_disconnect(agent) {
+  agent.is_alive = false;
+  // Give the agent some time to possibly reconnect
+  setTimeout(() => _followup_possible_disconnect(agent), FAILED_RECONNECT_TIME);
+}
+
 // Register handlers
 wss.on('connection', function(socket) {
+  socket.id = uuidv4();
   console.log('Client connected');
   // Disconnects are logged
   socket.on('disconnect', function() {
     console.log('disconnected')
     var agent = socket_id_to_agent[socket.id];
     if (agent !== undefined) {
-      // TODO set a timeout to see if the agent reconnects,
-      // or consider them disconnected or if they've already
-      // completed the task
+      handle_possible_disconnect(agent);
     }
   });
 
   socket.on('error', err => {
-    console.log('Caught socket error');
+    console.log('Caught socket error, probably closed!');
     console.log(err);
+    var agent = socket_id_to_agent[socket.id];
+    if (agent !== undefined) {
+      handle_possible_disconnect(agent);
+    }
   });
 
   // handles routing a packet to the desired recipient
@@ -228,18 +264,22 @@ wss.on('connection', function(socket) {
         handle_get_agent_status(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_AGENT_ACTION) {
         debug_log('Agent action: ', packet);
+        if (packet.receiver_id == SYSTEM_SOCKET_ID) {
+          update_wanted_acts(packet.sender_id, false);
+        }
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_ALIVE) {
         debug_log('Agent alive: ', packet);
         handle_alive(socket, packet);
       } else if (packet['packet_type'] == PACKET_TYPE_UPDATE_AGENT_STATUS) {
         debug_log('Update agent status', packet);
+        if (packet.data.agent_status !== undefined) {
+          handle_update_local_status(packet);
+        }
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_REQUEST_ACTION) {
+        update_wanted_acts(packet.receiver_id, true);
         handle_forward(packet);
-        // TODO update local status of this agent to know we want
-        // their action? Perhaps also have some local state in 
-        // here about the task as well?
       } else if (
         packet['packet_type'] == PACKET_TYPE_PROVIDER_DETAILS ||
         packet['packet_type'] == PACKET_TYPE_INIT_DATA
@@ -255,9 +295,22 @@ wss.on('connection', function(socket) {
         }
       } else if (packet['packet_type'] == PACKET_TYPE_HEARTBEAT) {
         packet['data'] = {last_mephisto_ping: last_mephisto_ping};
-        let tmp = packet['receiver_id']
-        packet['receiver_id'] = packet['sender_id'];
-        packet['sender_id'] = tmp;
+        let agent_id = packet['sender_id'];
+        packet['sender_id'] = packet['receiver_id'];
+        packet['receiver_id'] = agent_id;
+        let agent = agent_id_to_agent[agent_id];
+        if (agent !== undefined) {
+          agent.is_alive = true;
+          packet.data.status = agent.status;
+          packet.data.wants_act = agent.wants_act;
+          packet.data.done_text = agent.done_text;
+          if (agent_id_to_socket[agent.agent_id] != socket) {
+            // Not communicating to the correct socket, update
+            debug_log('Updating socket for ', agent);
+            agent_id_to_socket[agent.agent_id] = socket;
+            socket_id_to_agent[socket.id] = agent;
+          }
+        }
         handle_forward(packet);
       }
     } catch (error) {
@@ -362,6 +415,16 @@ app.post('/submit_task', upload.any(), function(req, res) {
   };
   _send_message(mephisto_socket, submit_packet);
   res.json({status: 'Submitted!'})
+  
+  // Cleanup local state for a task that's already submitted
+  if (agent_id in agent_id_to_agent) {
+    delete agent_id_to_agent[agent_id];
+  }
+  if (agent_id in agent_id_to_socket) {
+    let socket_id = agent_id_to_socket[agent_id].id;
+    delete agent_id_to_socket[agent_id];
+    delete socket_id_to_agent[socket_id];
+  }
 });
 
 // Quick status check for this server

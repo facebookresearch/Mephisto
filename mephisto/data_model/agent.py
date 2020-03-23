@@ -10,6 +10,11 @@ import threading
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.exceptions import (
+    AgentReturnedError,
+    AgentDisconnectedError,
+    AgentTimeoutError,
+)
 from mephisto.core.utils import get_crowd_provider_from_type
 
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
@@ -19,39 +24,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task import Task, TaskRun
-
-
-# types of exceptions thrown when an agent exits the chat. These are thrown
-# on a failed act call call. If one of these is thrown and not handled,
-# the world should die and enter cleanup.
-class AbsentAgentError(Exception):
-    """Exceptions for when an agent leaves a task"""
-
-    def __init__(self, message, worker_id, assignment_id):
-        self.message = message
-        self.worker_id = worker_id
-        self.assignment_id = assignment_id
-
-
-class AgentDisconnectedError(AbsentAgentError):
-    """Exception for a real disconnect event (no signal)"""
-
-    def __init__(self, worker_id, assignment_id):
-        super().__init__(f"Agent disconnected", worker_id, assignment_id)
-
-
-class AgentTimeoutError(AbsentAgentError):
-    """Exception for when a worker doesn't respond in time"""
-
-    def __init__(self, timeout, worker_id, assignment_id):
-        super().__init__(f"Agent exceeded {timeout}", worker_id, assignment_id)
-
-
-class AgentReturnedError(AbsentAgentError):
-    """Exception for an explicit return event (worker returns task)"""
-
-    def __init__(self, worker_id, assignment_id):
-        super().__init__(f"Agent returned HIT", worker_id, assignment_id)
 
 
 class Agent(ABC):
@@ -77,6 +49,7 @@ class Agent(ABC):
         self.has_action.clear()
         self.wants_action = threading.Event()
         self.wants_action.clear()
+        self.has_updated_status = threading.Event()
         self.assignment_id = row["assignment_id"]
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
@@ -180,6 +153,21 @@ class Agent(ABC):
         assignment_dir = self.get_assignment().get_data_dir()
         return os.path.join(assignment_dir, self.db_id)
 
+    def update_status(self, new_status: str) -> None:
+        """Update the database status of this agent, and
+        possibly send a message to the frontend agent informing
+        them of this update"""
+        assert (
+            self.db_status not in AgentState.complete()
+        ), f"Cannot update a final status, was {self.db_status} and want to set to {new_status}"
+        self.db.update_agent(self.db_id, status=new_status)
+        self.db_status = new_status
+        self.has_updated_status.set()
+        if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
+            # Disconnect statuses should free any pending acts
+            self.has_action.set()
+            self.did_submit.set()
+
     @staticmethod
     def _register_agent(
         db: "MephistoDB", worker: Worker, unit: "Unit", provider_type: str
@@ -235,6 +223,16 @@ class Agent(ABC):
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
+
+        if len(self.pending_actions) == 0:
+            # various disconnect cases
+            status = self.get_status()
+            if status == AgentState.STATUS_DISCONNECT:
+                raise AgentDisconnectedError(self.db_id)
+            elif status == AgentState.STATUS_RETURNED:
+                raise AgentReturnedError(self.db_id)
+            self.update_status(AgentState.STATUS_TIMEOUT)
+            raise AgentTimeoutError(timeout, self.db_id)
         # TODO the below needs to be considered an agent timeout
         assert len(self.pending_actions) > 0, "has_action released without an action!"
 
@@ -250,6 +248,14 @@ class Agent(ABC):
         self.state.update_data(act)
         return act
 
+    def get_status(self) -> str:
+        """Get the status of this agent in their work on their unit"""
+        if self.db_status not in AgentState.complete():
+            # TODO do we need to query any other statuses? perhaps from the MTurkUnit?
+            row = self.db.get_agent(self.db_id)
+            self.db_status = row["status"]
+        return self.db_status
+
     # Children classes should implement the following methods
 
     def approve_work(self) -> None:
@@ -258,10 +264,6 @@ class Agent(ABC):
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this agent's specific Unit"""
-        raise NotImplementedError()
-
-    def get_status(self) -> str:
-        """Get the status of this agent in their work on their unit"""
         raise NotImplementedError()
 
     def mark_done(self) -> None:

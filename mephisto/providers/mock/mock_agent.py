@@ -64,18 +64,13 @@ class MockAgent(Agent):
         # TODO implement with the db for the core system
         raise NotImplementedError()
 
-    def get_status(self) -> str:
-        """Get the status of this agent in their work on their unit"""
-        row = self.db.get_agent(self.db_id)
-        return row["status"]
-
     def mark_done(self) -> None:
         """
         Take any required step with the crowd_provider to ensure that
         the worker can submit their work and be marked as complete via
         a call to get_status
         """
-        if self.get_status() != AgentState.STATUS_DISCONNECT:
+        if self.get_status() not in AgentState.complete():
             self.db.update_agent(
                 agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
             )

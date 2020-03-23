@@ -89,7 +89,7 @@ class MTurkUnit(Unit):
     # Required Unit functions
 
     def get_status(self) -> str:
-        """Get status for this unit directly from MTurk"""
+        """Get status for this unit directly from MTurk, fall back on local info"""
         if self.db_status in [
             AssignmentState.CREATED,
             AssignmentState.ACCEPTED,
@@ -128,8 +128,13 @@ class MTurkUnit(Unit):
 
         if external_status != local_status:
             self.set_db_status(external_status)
+        else:
+            # Try checking agents for status changes
+            agent_computed_status = super().get_status()
+            if agent_status != local_status:
+                self.set_db_status(agent_computed_status)
 
-        return external_status
+        return self.db_status
 
     def launch(self, task_url: str) -> None:
         """Create this HIT on MTurk (making it availalbe) and register the ids in the local db"""
