@@ -17,20 +17,19 @@ function GridReviewWithData({ id }) {
       info={gridReviewAsync}
       onData={({ data }) => (
         <div>
-          {/* {JSON.stringify(data.units)} */}
           <GridReview data={data} id={id} />
         </div>
       )}
       onError={() => null}
       onLoading={() => null}
       onEmptyData={() => <div>There are no units to review...</div>}
-      // checkIfEmptyFn={({ units }) => units.length === 0}
+      checkIfEmptyFn={({ units }) => units.length === 0}
     />
   );
 }
 
 function GridReview({ data, id }) {
-  const testData = [
+  const sampleTestData = [
     {
       assignment_id: "179",
       data: {
@@ -55,11 +54,10 @@ function GridReview({ data, id }) {
     rows,
     prepareRow
   } = useTable({
-    // data: testData,
+    // data: sampleTestData,
     data: data.units,
     columns: [
       { Header: "Assignment ID", accessor: "assignment_id" },
-      // { Header: "Task Run ID", accessor: "task_run_id" },
       { Header: "Unit ID", accessor: "unit_id" },
       { Header: "Worker ID", accessor: "worker_id" },
       {
