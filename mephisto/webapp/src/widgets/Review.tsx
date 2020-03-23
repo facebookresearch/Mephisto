@@ -68,12 +68,6 @@ export default (function ReviewWidget() {
           </div>
         )}
       />
-      {/* <div style={{ textAlign: "center", marginTop: 15 }}>
-        <Link to="/review" className="bp3-success bp3-button">
-          <Icon icon="search" />
-          <span className="bp3-button-text">Review all tasks</span>
-        </Link>
-      </div> */}
     </BaseWidget>
   );
 } as React.FC);
