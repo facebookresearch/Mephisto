@@ -105,6 +105,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
         self.parlai_world_module = import_module(world_module_name)
+        self.is_concurrent = True
 
     # TODO reconnects should get the same agent as was initially given
 
@@ -120,7 +121,9 @@ class ParlAIChatTaskRunner(TaskRunner):
             assignment = agent.get_unit().get_assignment()
             assignment_data = self.get_data_for_assignment(assignment)
             agent.state.set_init_state(assignment_data.shared)
-            return assignment_data.shared
+            new_state = agent.state.get_init_state()
+            assert new_state is not None, "Recently initialized state still None"
+            return new_state
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
         """
@@ -142,6 +145,5 @@ class ParlAIChatTaskRunner(TaskRunner):
         world.shutdown()
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
-        """Simply mark that the assignment is no longer being tracked"""
-        if assignment.db_id in self.running_assignments:
-            del self.running_assignments[assignment.db_id]
+        """Handle cleanup for a specific assignment"""
+        pass  # TODO perhaps we need to requeue or do something additional?

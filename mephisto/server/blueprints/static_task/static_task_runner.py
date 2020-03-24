@@ -58,6 +58,7 @@ class StaticTaskRunner(TaskRunner):
         agent_act = agent.act(timeout=TEST_TIMEOUT)
         # TODO if agent_act is None, mark as incomplete?
 
+    # TODO failed static tasks should be requeued?
     def cleanup_unit(self, unit: "Unit") -> None:
         """There is currently no cleanup associated with killing an incomplete task"""
         return

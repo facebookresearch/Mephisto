@@ -104,8 +104,8 @@ const STATUS_WAITING = 'waiting';
 const STATUS_IN_TASK = 'in task';
 const STATUS_DONE = 'done';
 const STATUS_DISCONNECT = 'disconnect';
+const STATUS_TIMEOUT = 'timeout';
 const STATUS_PARTNER_DISCONNECT = 'partner disconnect';
-const STATUS_STATIC = 'static';
 const STATUS_EXPIRED = 'expired';
 const STATUS_RETURNED = 'returned';
 const STATUS_MEPHISTO_DISCONNECT = 'mephisto disconnect';
@@ -138,9 +138,11 @@ class ChatApp extends React.Component {
       // Handle required state changes on a case-by-case basis.
       if ([STATUS_DONE, STATUS_PARTNER_DISCONNECT].includes(agent_status)) {
         this.setState({ task_done: true, chat_state: 'done' });
+        this.socket_handler.closeSocket();
       } else if ([STATUS_DISCONNECT, STATUS_RETURNED, STATUS_EXPIRED,
-                  STATUS_MEPHISTO_DISCONNECT].includes(agent_status)) {
-        this.setState({ chat_state: 'inactive' });
+                  STATUS_TIMEOUT, STATUS_MEPHISTO_DISCONNECT].includes(agent_status)) {
+        this.setState({ chat_state: 'inactive', done_text: done_text });
+        this.socket_handler.closeSocket();
       } else if (agent_status == STATUS_WAITING) {
         this.setState({ messages: [], chat_state: 'waiting' });
       }
@@ -157,13 +159,18 @@ class ChatApp extends React.Component {
     audio.play();
   }
 
-  handleIncomingTaskData(task_data) {
-    this.setState({task_data: task_data});
+  handleIncomingTaskData(init_data) {
+    console.log('Got task data', init_data);
+    this.setState({task_data: init_data.task_data});
+    let messages = init_data.raw_messages;
+    for (const message of messages) {
+      this.socket_handler.parseSocketMessage(message);
+    }
   }
 
   componentDidMount() {
     getInitTaskData(this.props.mephisto_worker_id, this.props.agent_id)
-      .then(data => this.handleIncomingTaskData(data));
+      .then(packet => this.handleIncomingTaskData(packet.data.init_data));
   }
 
   onMessageSend(text, data, callback, is_system) {
@@ -257,7 +264,12 @@ class WorkerBlockedView  extends React.Component {
           </h1>
         </div>;
     } else if (this.props.blocked_reason == 'no_websockets') {
-
+      return <div>
+          <h1>
+            Sorry, your browser does not support the required version
+            of websockets for this task. Please upgrade to a modern browser.
+          </h1>
+        </div>;
     } else {
 
     }
