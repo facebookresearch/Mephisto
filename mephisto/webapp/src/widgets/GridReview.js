@@ -2,7 +2,7 @@ import React from "react";
 import { useTable } from "react-table";
 import { createAsync } from "../lib/Async";
 import useAxios from "axios-hooks";
-import { ButtonGroup } from "@blueprintjs/core";
+import { ButtonGroup, Tooltip, Icon } from "@blueprintjs/core";
 import { Link } from "react-router-dom";
 import { reviewActions } from "../service";
 
@@ -84,31 +84,41 @@ function GridReview({ data, id }) {
           const unitId = row.values.unit_id;
           return (
             <div>
+              <ButtonGroup style={{ marginRight: 20 }}>
+                <Tooltip content="Accept &amp; Pay">
+                  <button
+                    className="bp3-button bp3-intent-success"
+                    onClick={() => reviewActions.accept(unitId)}
+                  >
+                    <Icon icon="thumbs-up" />
+                  </button>
+                </Tooltip>
+                <Tooltip content="Reject &amp; Pay">
+                  <button
+                    className="bp3-button"
+                    onClick={() => reviewActions.rejectAndPay(unitId)}
+                  >
+                    <Icon icon="thumbs-down" />
+                  </button>
+                </Tooltip>
+              </ButtonGroup>
               <ButtonGroup>
-                <button
-                  className="bp3-button bp3-small"
-                  onClick={() => reviewActions.accept(unitId)}
-                >
-                  Accept &amp; Pay
-                </button>
-                <button
-                  className="bp3-button bp3-small"
-                  onClick={() => reviewActions.rejectAndPay(unitId)}
-                >
-                  Reject &amp; Pay
-                </button>
-                <button
-                  className="bp3-button bp3-small"
-                  onClick={() => reviewActions.softBlock(unitId)}
-                >
-                  Soft Block
-                </button>
-                <button
-                  className="bp3-button bp3-small"
-                  onClick={() => reviewActions.hardBlock(unitId)}
-                >
-                  Hard Block
-                </button>
+                <Tooltip content="Soft Block">
+                  <button
+                    className="bp3-button bp3-small"
+                    onClick={() => reviewActions.softBlock(unitId)}
+                  >
+                    <Icon icon="stopwatch" />
+                  </button>
+                </Tooltip>
+                <Tooltip content="Hard Block">
+                  <button
+                    className="bp3-button bp3-small bp3-intent-danger"
+                    onClick={() => reviewActions.hardBlock(unitId)}
+                  >
+                    <Icon icon="blocked-person" />
+                  </button>
+                </Tooltip>
               </ButtonGroup>
             </div>
           );
