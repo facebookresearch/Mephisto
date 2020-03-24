@@ -84,7 +84,7 @@ function GridReview({ data, id }) {
           const unitId = row.values.unit_id;
           return (
             <div>
-              <ButtonGroup style={{ marginRight: 20 }}>
+              <ButtonGroup style={{ marginRight: 20, marginBottom: 5 }}>
                 <Tooltip content="Accept &amp; Pay">
                   <button
                     className="bp3-button bp3-intent-success"
