@@ -100,10 +100,7 @@ class MTurkUnit(Unit):
             # These statuses don't change with a get_status call
             return self.db_status
 
-        if self.db_status in [
-            AssignmentState.COMPLETED,
-            AssignmentState.REJECTED,
-        ]:
+        if self.db_status in [AssignmentState.COMPLETED, AssignmentState.REJECTED]:
             # These statuses only change on agent dependent changes
             agent = self.get_assigned_agent()
             found_status = self.db_status
@@ -133,7 +130,6 @@ class MTurkUnit(Unit):
         local_status = self.db_status
         external_status = self.db_status
 
-
         if hit_data["HITStatus"] == "Assignable":
             external_status = AssignmentState.LAUNCHED
         elif hit_data["HITStatus"] == "Unassignable":
@@ -149,7 +145,10 @@ class MTurkUnit(Unit):
             raise Exception(f"Unexpected HIT status {hit_data['HITStatus']}")
 
         if external_status != local_status:
-            if local_status == AssignmentState.ASSIGNED and external_status == AssignmentState.LAUNCHED:
+            if (
+                local_status == AssignmentState.ASSIGNED
+                and external_status == AssignmentState.LAUNCHED
+            ):
                 # Treat this as a return event, this hit is now doable by someone else
                 self.clear_assigned_agent()
                 self.datastore.register_assignment_to_hit(mturk_hit_id)
@@ -203,12 +202,11 @@ class MTurkUnit(Unit):
             # otherwise there's a potential race condition here
             if len(unassigned_hit_ids) == 0:
                 return delay
-            hit_id = unassigned_hit_ids[0]['hit_id']
+            hit_id = unassigned_hit_ids[0]["hit_id"]
             expire_hit(client, hit_id)
             self.datastore.register_assignment_to_hit(hit_id, self.db_id)
             self.set_db_status(AssignmentState.EXPIRED)
             return delay
-
 
     def is_expired(self) -> bool:
         """

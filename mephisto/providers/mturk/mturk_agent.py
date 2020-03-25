@@ -66,7 +66,9 @@ class MTurkAgent(Agent):
         bookkeeping information from a crowd provider for this agent
         """
         datastore: "MTurkDatastore" = db.get_datastore_for_provider(cls.PROVIDER_TYPE)
-        datastore.register_assignment_to_hit(provider_data['hit_id'], unit.db_id, provider_data["assignment_id"])
+        datastore.register_assignment_to_hit(
+            provider_data["hit_id"], unit.db_id, provider_data["assignment_id"]
+        )
         return cls.new(db, worker, unit)
 
     # Required functions for Agent Interface

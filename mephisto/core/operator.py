@@ -125,7 +125,11 @@ class Operator:
 
     # TODO there should be a thread that shuts down servers when a task run is done
 
-    def parse_and_launch_run(self, arg_list: Optional[List[str]] = None, extra_args: Optional[Dict[str, Any]] = None):
+    def parse_and_launch_run(
+        self,
+        arg_list: Optional[List[str]] = None,
+        extra_args: Optional[Dict[str, Any]] = None,
+    ):
         """
         Parse the given arguments and launch a job.
 

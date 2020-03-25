@@ -109,12 +109,17 @@ class MTurkDatastore:
                 SELECT hit_id from hits
                 WHERE unit_id IS NULL
                 """,
-                ()
+                (),
             )
             results = c.fetchall()
             return results
 
-    def register_assignment_to_hit(self, hit_id: str, unit_id: Optional[str] = None, assignment_id: Optional[str] = None) -> None:
+    def register_assignment_to_hit(
+        self,
+        hit_id: str,
+        unit_id: Optional[str] = None,
+        assignment_id: Optional[str] = None,
+    ) -> None:
         """
         Register a specific assignment and hit to the given unit, 
         or clear the assignment after a return
@@ -130,7 +135,7 @@ class MTurkDatastore:
                 (assignment_id, unit_id, hit_id),
             )
             conn.commit()
-        
+
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""
         with self.table_access_condition:
