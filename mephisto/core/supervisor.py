@@ -478,7 +478,10 @@ class Supervisor:
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
-        self._assign_unit_to_agent(packet, socket_info, units)
+        usable_units = socket_info.job.task_runner.filter_units_for_worker(
+            units, worker
+        )
+        self._assign_unit_to_agent(packet, socket_info, usable_units)
 
     def _register_agent(self, packet: Packet, socket_info: SocketInfo):
         """Process an agent registration packet to register an agent"""
