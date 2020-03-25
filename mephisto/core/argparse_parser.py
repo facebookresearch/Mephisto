@@ -92,6 +92,7 @@ def get_arguments_from_group(group: argparse._ArgumentGroup) -> Dict[str, Any]:
             "type": type_string,
             "choices": action.choices,
             "option_string": action.option_strings[0],
+            "required": action.required,
         }
     return parsed_actions
 

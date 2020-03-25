@@ -40,6 +40,7 @@ class MTurkUnit(Unit):
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
+        self.hit_id: Optional[str] = None
         self._sync_hit_mapping()
         self.__requester: Optional["MTurkRequester"] = None
 
@@ -73,11 +74,12 @@ class MTurkUnit(Unit):
         ), "Only launched HITs have assignment ids"
         return self.mturk_assignment_id
 
-    def get_mturk_hit_id(self) -> str:
+    def get_mturk_hit_id(self) -> Optional[str]:
         """
         Return the MTurk hit id associated with this unit
         """
-        assert self.hit_id is not None, "Only launched HITs have hit ids"
+        if self.hit_id is None:
+            self._sync_hit_mapping()
         return self.hit_id
 
     def get_requester(self) -> "MTurkRequester":
@@ -95,9 +97,34 @@ class MTurkUnit(Unit):
             AssignmentState.ACCEPTED,
             AssignmentState.EXPIRED,
         ]:
+            # These statuses don't change with a get_status call
             return self.db_status
 
+        if self.db_status in [
+            AssignmentState.COMPLETED,
+            AssignmentState.REJECTED,
+        ]:
+            # These statuses only change on agent dependent changes
+            agent = self.get_assigned_agent()
+            found_status = self.db_status
+            if agent is not None:
+                # TODO warn if agent _is_ None
+                agent_status = agent.get_status()
+                if agent_status == AgentState.STATUS_APPROVED:
+                    found_status = AssignmentState.ACCEPTED
+                elif agent_status == AgentState.STATUS_REJECTED:
+                    found_status = AssignmentState.REJECTED
+            if found_status != self.db_status:
+                self.set_db_status(found_status)
+            return self.db_status
+
+        # Remaining statuses are tracking a live HIT
+
         mturk_hit_id = self.get_mturk_hit_id()
+        if mturk_hit_id is None:
+            # Can't determine anything if there is no HIT on this assignment
+            return self.db_status
+
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
         hit = get_hit(client, mturk_hit_id)
@@ -106,33 +133,27 @@ class MTurkUnit(Unit):
         local_status = self.db_status
         external_status = self.db_status
 
+
         if hit_data["HITStatus"] == "Assignable":
             external_status = AssignmentState.LAUNCHED
-            if hit_data["Expiration"] == datetime(2015, 1, 1):
-                external_status = AssignmentState.EXPIRED
         elif hit_data["HITStatus"] == "Unassignable":
             external_status = AssignmentState.ASSIGNED
         elif hit_data["HITStatus"] in ["Reviewable", "Reviewing"]:
             external_status = AssignmentState.COMPLETED
-            agent = self.get_assigned_agent()
-            if agent is not None:
-                agent_status = agent.get_status()
-                if agent_status == AgentState.STATUS_APPROVED:
-                    external_status = AssignmentState.ACCEPTED
-                elif agent_status == AgentState.STATUS_REJECTED:
-                    external_status = AssignmentState.REJECTED
+            if hit_data["NumberOfAssignmentsAvailable"] != 0:
+                external_status = AssignmentState.EXPIRED
         elif hit_data["HITStatus"] == "Disposed":
+            # The HIT was deleted, must rely on what we have
             external_status = local_status
         else:
             raise Exception(f"Unexpected HIT status {hit_data['HITStatus']}")
 
         if external_status != local_status:
+            if local_status == AssignmentState.ASSIGNED and external_status == AssignmentState.LAUNCHED:
+                # Treat this as a return event, this hit is now doable by someone else
+                self.clear_assigned_agent()
+                self.datastore.register_assignment_to_hit(mturk_hit_id)
             self.set_db_status(external_status)
-        else:
-            # Try checking agents for status changes
-            agent_computed_status = super().get_status()
-            if agent_status != local_status:
-                self.set_db_status(agent_computed_status)
 
         return self.db_status
 
@@ -149,10 +170,13 @@ class MTurkUnit(Unit):
         hit_link, hit_id, response = create_hit_with_hit_type(
             client, frame_height, task_url, hit_type_id
         )
-        # TODO put the hit link somewhere retrievable
+        # TODO get this link to the frontend
         print(hit_link)
-        self.datastore.new_hit(self.db_id, hit_id, duration)
-        self.hit_id = hit_id
+
+        # We create a hit for this unit, but note that this unit may not
+        # necessarily match with the same HIT that was launched for it.
+        self.datastore.new_hit(hit_id, hit_link, duration)
+        self.set_db_status(AssignmentState.LAUNCHED)
         return None
 
     def expire(self) -> float:
@@ -170,8 +194,21 @@ class MTurkUnit(Unit):
         mturk_hit_id = self.get_mturk_hit_id()
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
-        expire_hit(client, mturk_hit_id)
-        return delay
+        if mturk_hit_id is not None:
+            expire_hit(client, mturk_hit_id)
+            return delay
+        else:
+            unassigned_hit_ids = self.datastore.get_unassigned_hit_ids()
+            # TODO assert there is at least one unassigned hit id,
+            # otherwise there's a potential race condition here
+            if len(unassigned_hit_ids) == 0:
+                return delay
+            hit_id = unassigned_hit_ids[0]['hit_id']
+            expire_hit(client, hit_id)
+            self.datastore.register_assignment_to_hit(hit_id, self.db_id)
+            self.set_db_status(AssignmentState.EXPIRED)
+            return delay
+
 
     def is_expired(self) -> bool:
         """

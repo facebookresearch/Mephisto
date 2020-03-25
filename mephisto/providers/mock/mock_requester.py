@@ -28,8 +28,8 @@ class MockRequester(Requester):
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
         # TODO any additional init as is necessary once
-        # a mock DB exists
-        self.registered = False
+        # a mock DB exists, make register actually work
+        self.registered = self.requester_name == 'test_requester'
 
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Mock requesters don't actually register credentials"""

@@ -57,7 +57,7 @@ class Operator:
     architecture works in order to build custom jobs or workflows.
     """
 
-    def __init__(self, db: "MephistoDB"):
+    def __init__(self, db: "MephistoDB", extra_args: Optional[Dict[str, Any]] = None):
         self.db = db
         self.supervisor = Supervisor(db)
         self._task_runs_tracked: Dict[str, TrackedRun] = {}
@@ -66,6 +66,7 @@ class Operator:
             target=self._track_and_kill_runs, name="Operator-tracking-thread"
         )
         self._run_tracker_thread.start()
+        self.extra_args = extra_args if extra_args is not None else {}
 
     @staticmethod
     def _get_baseline_argparser() -> ArgumentParser:
@@ -152,6 +153,8 @@ class Operator:
         task_args, _unknown = self._parse_args_from_classes(
             BlueprintClass, ArchitectClass, CrowdProviderClass, task_args_string
         )
+
+        task_args.update(self.extra_args)
 
         # Load the classes to force argument validation before anything
         # is actually created in the database

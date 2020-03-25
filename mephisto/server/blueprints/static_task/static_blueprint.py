@@ -54,10 +54,35 @@ class StaticBlueprint(Blueprint):
                     for i, col in enumerate(row):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
-        else:
-            # TODO handle JSON and python dicts directly
+        elif opts.get("data_json") is not None:
+            # TODO handle JSON directly
             raise NotImplementedError(
-                "Parsing static tasks directly from dicts or JSON is not supported yet"
+                "Parsing static tasks directly from JSON is not supported yet"
+            )
+        elif opts.get("static_task_data") is not None:
+            for entry in opts['static_task_data']:
+                entry['html'] = task_file_name
+            self._initialization_data_dicts = opts['static_task_data']
+        else:
+            # instantiating a version of the blueprint, but not necessarily needing the data
+            pass
+
+    @classmethod
+    def assert_task_args(cls, opts: Any) -> None:
+        """Ensure that the data can be properly loaded"""
+        if opts.get("data_csv") is not None:
+            csv_file = os.path.expanduser(opts["data_csv"])
+            assert os.path.exists(csv_file), f"Provided csv file {csv_file} doesn't exist"
+        elif opts.get("data_json") is not None:
+            # TODO handle JSON directly
+            raise NotImplementedError(
+                "Parsing static tasks directly from JSON is not supported yet"
+            )
+        elif opts.get("static_task_data") is not None:
+            assert len(opts.get("static_task_data")) > 0, "Length of data dict provided was 0"
+        else:
+            raise AssertionError(
+                "Must provide one of a data csv, json, or a list of tasks"
             )
 
     @classmethod
@@ -99,7 +124,7 @@ class StaticBlueprint(Blueprint):
             "--data-csv",
             dest="data_csv",
             help="Path to csv file containing task data",
-            required=True,
+            required=False,
         )
         group.add_argument(
             "--units-per-assignment",

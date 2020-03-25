@@ -10,6 +10,7 @@ from mephisto.core.utils import get_dir_for_run, get_crowd_provider_from_type
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun, Task
 from mephisto.data_model.agent import Agent
+from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.requester import Requester
 from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING, IO
 
@@ -364,6 +365,13 @@ class Unit(ABC):
             else:
                 self.__requester = Requester(self.db, self.requester_id)
         return self.__requester
+
+    def clear_assigned_agent(self) -> None:
+        """Clear the agent that is assigned to this unit"""
+        agent = self.get_assigned_agent()
+        if agent is not None:
+            agent.update_status(AgentState.STATUS_RETURNED)
+        self.db.clear_unit_agent_assignment(self.db_id)
 
     def get_assigned_agent(self) -> Optional[Agent]:
         """

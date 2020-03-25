@@ -201,8 +201,7 @@ class TaskRunner(ABC):
         try:
             self.run_unit(unit, agent)
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
-            # TODO what needs to be done when a worker disconnects from a unit?
-            # it should be made available again for a new agent correct?
+            unit.clear_assigned_agent()
             self.cleanup_unit(unit)
         except Exception as e:
             print(f"Unhandled exception in unit {unit}: {repr(e)}")

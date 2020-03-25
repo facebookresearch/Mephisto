@@ -15,14 +15,15 @@ from datetime import datetime
 from botocore.exceptions import ClientError
 from botocore.exceptions import ProfileNotFound
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 MTURK_REGION_NAME = "us-east-1"
 
-CREATE_UNITS_TABLE = """CREATE TABLE IF NOT EXISTS units (
-    unit_id TEXT PRIMARY KEY UNIQUE,
-    hit_id TEXT NOT NULL UNIQUE,
+CREATE_HITS_TABLE = """CREATE TABLE IF NOT EXISTS hits (
+    hit_id TEXT PRIMARY KEY UNIQUE,
+    unit_id TEXT,
     assignment_id TEXT,
+    link TEXT,
     assignment_time_in_seconds INTEGER NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -76,40 +77,60 @@ class MTurkDatastore:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
             c = conn.cursor()
-            c.execute(CREATE_UNITS_TABLE)
+            c.execute(CREATE_HITS_TABLE)
             c.execute(CREATE_RUNS_TABLE)
             conn.commit()
 
-    def new_hit(self, unit_id: str, hit_id: str, duration: int) -> None:
+    def new_hit(self, hit_id: str, hit_link: str, duration: int) -> None:
         """Register a new HIT mapping in the table"""
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                """INSERT INTO units(
-                    unit_id,
+                """INSERT INTO hits(
                     hit_id,
+                    link,
                     assignment_time_in_seconds
                 ) VALUES (?, ?, ?);""",
-                (unit_id, hit_id, duration),
+                (hit_id, hit_link, duration),
             )
             conn.commit()
             return None
 
-    def register_assignment_to_hit(self, unit_id: str, assignment_id: str) -> None:
-        """Register a specific  assignment to the given unit"""
+    def get_unassigned_hit_ids(self):
+        """
+        Return a list of all HIT ids that haven't been assigned
+        """
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                """UPDATE units
-                SET assignment_id = ?
-                WHERE unit_id = ?
+                """
+                SELECT hit_id from hits
+                WHERE unit_id IS NULL
                 """,
-                (assignment_id, unit_id),
+                ()
+            )
+            results = c.fetchall()
+            return results
+
+    def register_assignment_to_hit(self, hit_id: str, unit_id: Optional[str] = None, assignment_id: Optional[str] = None) -> None:
+        """
+        Register a specific assignment and hit to the given unit, 
+        or clear the assignment after a return
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """UPDATE hits
+                SET assignment_id = ?, unit_id = ?
+                WHERE hit_id = ?
+                """,
+                (assignment_id, unit_id, hit_id),
             )
             conn.commit()
-
+        
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""
         with self.table_access_condition:
@@ -117,7 +138,7 @@ class MTurkDatastore:
             c = conn.cursor()
             c.execute(
                 """
-                SELECT * from units
+                SELECT * from hits
                 WHERE unit_id = ?
                 """,
                 (unit_id,),

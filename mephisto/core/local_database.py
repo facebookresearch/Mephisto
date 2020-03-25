@@ -766,6 +766,40 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [Unit(self, str(r["unit_id"])) for r in rows]
 
+    def clear_unit_agent_assignment(self, unit_id: str) -> None:
+        """
+        Update the given unit by removing the agent that is assigned to it, thus updating
+        the status to assignable.
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    """
+                    UPDATE units
+                    SET agent_id = ?
+                    WHERE unit_id = ?;
+                    """,
+                    (None, int(unit_id)),
+                )
+                c.execute(
+                    """
+                    UPDATE units
+                    SET status = ?
+                    WHERE unit_id = ?;
+                    """,
+                    (AssignmentState.LAUNCHED, int(unit_id)),
+                )
+                conn.commit()
+            except sqlite3.IntegrityError as e:
+                conn.rollback()
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException(
+                        f"Given unit_id {unit_id} not found in the database"
+                    )
+                raise MephistoDBException(e)
+
     def update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
@@ -799,9 +833,9 @@ class LocalMephistoDB(MephistoDB):
                 conn.commit()
             except sqlite3.IntegrityError as e:
                 conn.rollback()
-                if is_unique_failure(e):
+                if is_key_failure(e):
                     raise EntryDoesNotExistException(
-                        f"Given agent_id {agent_id} not found in the database"
+                        f"Given unit_id {unit_id} not found in the database"
                     )
                 raise MephistoDBException(e)
 

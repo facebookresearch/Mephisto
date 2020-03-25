@@ -251,8 +251,12 @@ class Agent(ABC):
     def get_status(self) -> str:
         """Get the status of this agent in their work on their unit"""
         if self.db_status not in AgentState.complete():
-            # TODO do we need to query any other statuses? perhaps from the MTurkUnit?
             row = self.db.get_agent(self.db_id)
+            if row["status"] != self.db_status:
+                if row["status"] in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
+                    # Disconnect statuses should free any pending acts
+                    self.has_action.set()
+                self.has_updated_status.set()
             self.db_status = row["status"]
         return self.db_status
 
