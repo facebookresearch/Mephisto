@@ -368,9 +368,6 @@ class Unit(ABC):
 
     def clear_assigned_agent(self) -> None:
         """Clear the agent that is assigned to this unit"""
-        agent = self.get_assigned_agent()
-        if agent is not None:
-            agent.update_status(AgentState.STATUS_RETURNED)
         self.db.clear_unit_agent_assignment(self.db_id)
 
     def get_assigned_agent(self) -> Optional[Agent]:

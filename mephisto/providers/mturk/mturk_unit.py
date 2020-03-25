@@ -69,9 +69,6 @@ class MTurkUnit(Unit):
         """
         if self.mturk_assignment_id is None:
             self._sync_hit_mapping()
-        assert (
-            self.mturk_assignment_id is not None
-        ), "Only launched HITs have assignment ids"
         return self.mturk_assignment_id
 
     def get_mturk_hit_id(self) -> Optional[str]:
@@ -87,6 +84,16 @@ class MTurkUnit(Unit):
         if self.__requester is None:
             self.__requester = cast("MTurkRequester", super().get_requester())
         return self.__requester
+
+    def clear_assigned_agent(self) -> None:
+        """
+        Additionally to clearing the agent, we also need to dissociate the
+        hit_id from this unit in the MTurkDatastore
+        """
+        super().clear_assigned_agent()
+        mturk_hit_id = self.get_mturk_hit_id()
+        if mturk_hit_id is not None:
+            self.datastore.register_assignment_to_hit(mturk_hit_id)
 
     # Required Unit functions
 
@@ -150,8 +157,11 @@ class MTurkUnit(Unit):
                 and external_status == AssignmentState.LAUNCHED
             ):
                 # Treat this as a return event, this hit is now doable by someone else
-                self.clear_assigned_agent()
-                self.datastore.register_assignment_to_hit(mturk_hit_id)
+                agent = self.get_assigned_agent()
+                if agent is not None:
+                    # mark the agent as having returned the HIT, to 
+                    # free any running tasks and have Blueprint decide on cleanup.
+                    agent.update_status(AgentState.STATUS_RETURNED)
             self.set_db_status(external_status)
 
         return self.db_status

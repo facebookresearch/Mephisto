@@ -45,6 +45,11 @@ class MTurkAgent(Agent):
         # TODO any additional init as is necessary once
         # a mock DB exists
 
+    def _get_mturk_assignment_id():
+        if self.mturk_assignment_id is None:
+            self.mturk_assignment_id = self.get_unit().get_mturk_assignment_id()
+        return self.mturk_assignment_id
+
     def _get_client(self) -> Any:
         """
         Get an mturk client for usage with mturk_utils for this agent
@@ -76,12 +81,12 @@ class MTurkAgent(Agent):
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""
         client = self._get_client()
-        approve_work(client, self.mturk_assignment_id, override_rejection=True)
+        approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
         client = self._get_client()
-        reject_work(client, self.mturk_assignment_id, reason)
+        reject_work(client, self._get_mturk_assignment_id(), reason)
 
     def mark_done(self) -> None:
         """
