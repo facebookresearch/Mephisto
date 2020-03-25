@@ -57,7 +57,7 @@ class Operator:
     architecture works in order to build custom jobs or workflows.
     """
 
-    def __init__(self, db: "MephistoDB", extra_args: Optional[Dict[str, Any]] = None):
+    def __init__(self, db: "MephistoDB"):
         self.db = db
         self.supervisor = Supervisor(db)
         self._task_runs_tracked: Dict[str, TrackedRun] = {}
@@ -66,7 +66,6 @@ class Operator:
             target=self._track_and_kill_runs, name="Operator-tracking-thread"
         )
         self._run_tracker_thread.start()
-        self.extra_args = extra_args if extra_args is not None else {}
 
     @staticmethod
     def _get_baseline_argparser() -> ArgumentParser:
@@ -126,12 +125,14 @@ class Operator:
 
     # TODO there should be a thread that shuts down servers when a task run is done
 
-    def parse_and_launch_run(self, arg_list: Optional[List[str]] = None):
+    def parse_and_launch_run(self, arg_list: Optional[List[str]] = None, extra_args: Optional[Dict[str, Any]] = None):
         """
         Parse the given arguments and launch a job.
 
         Read in arguments from the command line if none are provided
         """
+        if extra_args is None:
+            extra_args = {}
         # Extract the abstractions being used
         parser = self._get_baseline_argparser()
         type_args, task_args_string = parser.parse_known_args(arg_list)
@@ -154,7 +155,7 @@ class Operator:
             BlueprintClass, ArchitectClass, CrowdProviderClass, task_args_string
         )
 
-        task_args.update(self.extra_args)
+        task_args.update(extra_args)
 
         # Load the classes to force argument validation before anything
         # is actually created in the database
