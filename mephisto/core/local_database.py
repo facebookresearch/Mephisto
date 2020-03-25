@@ -778,18 +778,10 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(
                     """
                     UPDATE units
-                    SET agent_id = ?
+                    SET agent_id = ?, worker_id = ?, status = ?
                     WHERE unit_id = ?;
                     """,
-                    (None, int(unit_id)),
-                )
-                c.execute(
-                    """
-                    UPDATE units
-                    SET status = ?
-                    WHERE unit_id = ?;
-                    """,
-                    (AssignmentState.LAUNCHED, int(unit_id)),
+                    (None, None, AssignmentState.LAUNCHED, int(unit_id)),
                 )
                 conn.commit()
             except sqlite3.IntegrityError as e:
