@@ -72,8 +72,9 @@ function RequesterForm({
                       }
                     )
                   );
-                  createRequester(selectedProvider, results);
-                  onFinish();
+                  createRequester(selectedProvider, results).then(() => {
+                    onFinish();
+                  });
                 }}
               >
                 {({

@@ -48,7 +48,11 @@ export default (function ReviewWidget() {
                 to={"/review/" + run.task_run_id}
                 style={{ textDecoration: "none", color: "inherit" }}
               >
-                <TaskRunSummary key={run.task_run_id} run={run} />
+                <TaskRunSummary
+                  key={run.task_run_id}
+                  run={run}
+                  interactive={true}
+                />
               </Link>
             ))}
           </span>
