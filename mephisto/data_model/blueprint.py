@@ -264,6 +264,16 @@ class TaskRunner(ABC):
         """
         raise NotImplementedError()
 
+    def filter_units_for_worker(self, units: List["Unit"], worker: "Worker"):
+        """
+        Returns the list of Units that the given worker is eligible to work on.
+
+        Some tasks may want more direct control of what units a worker is 
+        allowed to work on, so this method should be overridden by children
+        classes.
+        """
+        return units
+
     # TaskRunners must implement either the unit or assignment versions of the
     # run and cleanup functions, depending on if the task is run at the assignment
     # level rather than on the the unit level.
