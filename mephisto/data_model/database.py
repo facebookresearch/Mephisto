@@ -311,6 +311,14 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def clear_unit_agent_assignment(self, unit_id: str) -> None:
+        """
+        Update the given unit by removing the agent that is assigned to it, thus updating
+        the status to assignable.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:

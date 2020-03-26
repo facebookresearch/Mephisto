@@ -201,8 +201,8 @@ class TaskRunner(ABC):
         try:
             self.run_unit(unit, agent)
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
-            # TODO what needs to be done when a worker disconnects from a unit?
-            # it should be made available again for a new agent correct?
+            # A returned Unit can be worked on again by someone else.
+            unit.clear_assigned_agent()
             self.cleanup_unit(unit)
         except Exception as e:
             print(f"Unhandled exception in unit {unit}: {repr(e)}")
@@ -232,12 +232,16 @@ class TaskRunner(ABC):
         try:
             self.run_assignment(assignment, agents)
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError) as e:
-            # TODO how do we manage dealing with new units on an assignment that
-            # wasn't completed? Is this an issue we can handle with
+            # TODO if some operator flag is set for counting complete tasks, launch a
+            # new assignment copied from the parameters of this one
             disconnected_agent_id = e.agent_id
             for agent in agents:
                 if agent.db_id != e.agent_id:
                     agent.update_status(AgentState.STATUS_PARTNER_DISCONNECT)
+                else:
+                    # Must expire the disconnected unit so that 
+                    # new workers aren't shown it
+                    agent.get_unit().expire()
             self.cleanup_assignment(assignment)
         except Exception as e:
             print(f"Unhandled exception in assignment {assignment}: {repr(e)}")

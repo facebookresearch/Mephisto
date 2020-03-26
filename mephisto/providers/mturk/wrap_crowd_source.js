@@ -29,6 +29,12 @@ function getAssignmentId() {
     return urlParams.get('assignmentId');
 }
 
+function getHITId() {
+    // MTurk assignment id is passed via url params
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('hitId');
+}
+
 function getWorkerRegistrationInfo() {
     // MTurk workers are registered by name only
     return {
@@ -44,6 +50,7 @@ function getAgentRegistration(mephisto_worker_id) {
         worker_id: mephisto_worker_id,
         agent_registration_id: getAssignmentId(),
         assignment_id: getAssignmentId(),
+        hit_id: getHITId(),
         provider_type: 'mturk',
     };
 }
