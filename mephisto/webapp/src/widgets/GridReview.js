@@ -66,7 +66,6 @@ function GridReview({ data, id }) {
         Header: "Input",
         accessor: "data.inputs",
         Cell: ({ cell: { value } }) => {
-          // return  JSON.stringify(value, null, 1)
           return (
             <div style={{ maxWidth: 500 }}>
               <ObjectInspector data={value} />
@@ -77,7 +76,13 @@ function GridReview({ data, id }) {
       {
         Header: "Output",
         accessor: "data.outputs",
-        Cell: ({ cell: { value } }) => JSON.stringify(value, null, 1)
+        Cell: ({ cell: { value } }) => {
+          return (
+            <div style={{ maxWidth: 500 }}>
+              <ObjectInspector data={value} />
+            </div>
+          );
+        }
       },
       {
         Header: "Status",
