@@ -145,7 +145,7 @@ h1 a:hover {
   border-radius: 5px;
 }
 
-.run-header:hover {
+.run-header.interactive:hover {
   background-color: #ebf1f5;
   transform: scale(1.02, 1.02);
   transition: transform 0.1s ease-out;

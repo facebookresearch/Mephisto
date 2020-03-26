@@ -2,10 +2,17 @@ import React from "react";
 import { TaskRun } from "../models";
 import { Tag, Intent, Colors } from "@blueprintjs/core";
 import moment from "moment";
+import cx from "classnames";
 
-export default function TaskRunSummary({ run }: { run: TaskRun }) {
+export default function TaskRunSummary({
+  run,
+  interactive
+}: {
+  run: TaskRun;
+  interactive?: boolean;
+}) {
   return (
-    <div className="run-header">
+    <div className={cx("run-header", { interactive: interactive })}>
       <h5 className="bp3-heading" style={{ display: "inline" }}>
         {run.task_name}
       </h5>{" "}
