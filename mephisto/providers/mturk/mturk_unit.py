@@ -63,7 +63,7 @@ class MTurkUnit(Unit):
             self.mturk_assignment_id = None
             self.assignment_time_in_seconds = -1
 
-    def get_mturk_assignment_id(self) -> str:
+    def get_mturk_assignment_id(self) -> Optional[str]:
         """
         Return the MTurk assignment id associated with this unit
         """

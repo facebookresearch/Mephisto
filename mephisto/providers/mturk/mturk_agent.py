@@ -45,7 +45,7 @@ class MTurkAgent(Agent):
         # TODO any additional init as is necessary once
         # a mock DB exists
 
-    def _get_mturk_assignment_id():
+    def _get_mturk_assignment_id(self):
         if self.mturk_assignment_id is None:
             self.mturk_assignment_id = self.get_unit().get_mturk_assignment_id()
         return self.mturk_assignment_id

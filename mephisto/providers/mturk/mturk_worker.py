@@ -60,11 +60,13 @@ class MTurkWorker(Worker):
         unit = cast("MTurkUnit", unit)
         requester = unit.get_assignment().get_task_run().get_requester()
         client = self._get_client(requester.requester_name)
+        mturk_assignment_id = unit.get_mturk_assignment_id() 
+        assert mturk_assignment_id is not None, "Cannot bonus for a unit with no agent"
         pay_bonus(
             client,
             self._worker_name,
             amount,
-            unit.get_mturk_assignment_id(),
+            mturk_assignment_id,
             reason,
             str(uuid4()),
         )

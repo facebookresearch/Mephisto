@@ -99,37 +99,37 @@ class Supervisor:
         self.message_queue: List[Packet] = []
         self.sending_thread: Optional[threading.Thread] = None
 
+    def _on_channel_open(self, channel_id: str):
+        """Handler for what to do when a socket opens, we send an alive"""
+        channel_info = self.channels[channel_id]
+        self._send_alive(channel_info)
+
+    def _on_catastrophic_disconnect(self, channel_id):
+        # TODO Catastrophic disconnect needs to trigger cleanup
+        print(f"Channel {channel_id} called on_catastrophic_disconnect")
+
+    def _on_channel_message(self, channel_id: str, packet: Packet):
+        """Incoming message handler defers to the internal handler"""
+        try:
+            channel_info = self.channels[channel_id]
+            self._on_message(packet, channel_info)
+        except Exception as e:
+            # TODO better error handling about failed messages
+            import traceback
+
+            traceback.print_exc()
+            print(repr(e))
+            raise
+
     def register_job(
         self,
         architect: "Architect",
         task_runner: "TaskRunner",
         provider: "CrowdProvider",
     ):
-        def on_channel_open(channel_id: str):
-            channel_info = self.channels[channel_id]
-            self._send_alive(channel_info)
-
-        def on_catastrophic_disconnect(channel_id):
-            # TODO Catastrophic disconnect needs to trigger cleanup
-            print(f"Channel {channel_id} called on_catastrophic_disconnect")
-
-        def on_message(channel_id: str, packet: Packet):
-            """Incoming message handler defers to the internal handler
-            """
-            try:
-                channel_info = self.channels[channel_id]
-                self._on_message(packet, channel_info)
-            except Exception as e:
-                # TODO better error handling about failed messages
-                import traceback
-
-                traceback.print_exc()
-                print(repr(e))
-                raise
-
         task_run = task_runner.task_run
         channels = architect.get_channels(
-            on_channel_open, on_catastrophic_disconnect, on_message
+            self._on_channel_open, self._on_catastrophic_disconnect, self._on_channel_message
         )
         job = Job(
             architect=architect,
@@ -399,7 +399,7 @@ class Supervisor:
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
-        usable_units = socket_info.job.task_runner.filter_units_for_worker(
+        usable_units = channel_info.job.task_runner.filter_units_for_worker(
             units, worker
         )
         self._assign_unit_to_agent(packet, channel_info, usable_units)
