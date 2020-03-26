@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 # and also provides some helping utility functions for
 # groups of workers or worker/agent compatibility.
 
-# Mostly, the supervisor oversees the communications 
+# Mostly, the supervisor oversees the communications
 # between jobs and workers over the channels
 
 STATUS_TO_TEXT_MAP = {
@@ -129,7 +129,9 @@ class Supervisor:
     ):
         task_run = task_runner.task_run
         channels = architect.get_channels(
-            self._on_channel_open, self._on_catastrophic_disconnect, self._on_channel_message
+            self._on_channel_open,
+            self._on_catastrophic_disconnect,
+            self._on_channel_message,
         )
         job = Job(
             architect=architect,
@@ -195,7 +197,7 @@ class Supervisor:
                 packet_type=PACKET_TYPE_ALIVE,
                 sender_id=SYSTEM_CHANNEL_ID,
                 receiver_id=channel_info.channel_id,
-            ),
+            )
         )
 
     def _on_act(self, packet: Packet, channel_info: ChannelInfo):
@@ -371,7 +373,9 @@ class Supervisor:
 
                 assign_thread.start()
 
-    def _register_agent_from_onboarding(self, packet: Packet, channel_info: ChannelInfo):
+    def _register_agent_from_onboarding(
+        self, packet: Packet, channel_info: ChannelInfo
+    ):
         """Register an agent that has finished onboarding"""
         task_runner = channel_info.job.task_runner
         task_run = task_runner.task_run

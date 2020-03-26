@@ -79,7 +79,6 @@ class HerokuArchitect(Architect):
         self.__heroku_executable_path: Optional[str] = None
         self.__heroku_user_identifier: Optional[str] = None
 
-
     def _get_socket_urls(self) -> List[str]:
         """Returns the path to the heroku app socket"""
         heroku_app_name = self.__get_app_name()
@@ -103,7 +102,8 @@ class HerokuArchitect(Architect):
                 on_catastrophic_disconnect=on_catastrophic_disconnect,
                 on_message=on_message,
                 socket_url=url,
-            ) for idx, url in enumerate(urls)
+            )
+            for idx, url in enumerate(urls)
         ]
 
     def download_file(self, target_filename: str, save_dir: str) -> None:

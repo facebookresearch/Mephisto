@@ -11,6 +11,7 @@ from mephisto.data_model.packet import Packet
 
 STATUS_CHECK_TIME = 4
 
+
 class Channel(ABC):
     """
     Manages the API between the Supervisor and the server that is produced 
@@ -21,7 +22,7 @@ class Channel(ABC):
     """
 
     def __init__(
-        self, 
+        self,
         channel_id: str,
         on_channel_open: Callable[[str], None],
         on_catastrophic_disconnect: Callable[[str], None],
@@ -83,5 +84,3 @@ class Channel(ABC):
         Send the packet given to the intended recipient. 
         Return True on success and False on failure.
         """
-
-    

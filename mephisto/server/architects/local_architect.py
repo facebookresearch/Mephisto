@@ -92,7 +92,8 @@ class LocalArchitect(Architect):
                 on_catastrophic_disconnect=on_catastrophic_disconnect,
                 on_message=on_message,
                 socket_url=url,
-            ) for idx, url in enumerate(urls)
+            )
+            for idx, url in enumerate(urls)
         ]
 
     def download_file(self, target_filename: str, save_dir: str) -> None:

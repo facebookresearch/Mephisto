@@ -21,7 +21,7 @@ class WebsocketChannel(Channel):
     """
 
     def __init__(
-        self, 
+        self,
         channel_id: str,
         on_channel_open: Callable[[str], None],
         on_catastrophic_disconnect: Callable[[str], None],
@@ -35,9 +35,9 @@ class WebsocketChannel(Channel):
         Requires a socket_url to connect with.
         """
         super().__init__(
-            channel_id=channel_id, 
-            on_channel_open=on_channel_open, 
-            on_catastrophic_disconnect=on_catastrophic_disconnect, 
+            channel_id=channel_id,
+            on_channel_open=on_channel_open,
+            on_catastrophic_disconnect=on_catastrophic_disconnect,
             on_message=on_message,
         )
         self.socket_url = socket_url
@@ -85,7 +85,9 @@ class WebsocketChannel(Channel):
             if hasattr(error, "errno"):
                 if error.errno == errno.ECONNREFUSED:
                     # TODO replace with channel exception
-                    raise Exception(f"Socket {self.socket_url} refused connection, cancelling")
+                    raise Exception(
+                        f"Socket {self.socket_url} refused connection, cancelling"
+                    )
             else:
                 print(f"Socket logged error: {error}")
                 try:
@@ -163,5 +165,3 @@ class WebsocketChannel(Channel):
             print("Unexpected socket error occured: {}".format(repr(e)))
             return False
         return True
-
-    

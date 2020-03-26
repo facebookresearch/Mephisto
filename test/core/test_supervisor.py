@@ -43,7 +43,7 @@ class TestSupervisor(unittest.TestCase):
         )
         self.architect.prepare()
         self.architect.deploy()
-        self.urls = self.architect._get_socket_urls() # FIXME
+        self.urls = self.architect._get_socket_urls()  # FIXME
         self.url = self.urls[0]
         self.provider = MockProvider(self.db)
         self.provider.setup_resources_for_task_run(self.task_run, self.url)
