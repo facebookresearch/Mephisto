@@ -5,13 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import errno
 import logging
-import json
 import threading
-import time
 from queue import PriorityQueue, Empty
-import websocket
 import time
 from mephisto.data_model.packet import (
     Packet,
@@ -31,6 +27,7 @@ from mephisto.data_model.packet import (
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.blueprint import OnboardingRequired, AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
+from mephisto.server.channels.channel import Channel, STATUS_CHECK_TIME
 
 from recordclass import RecordClass
 
@@ -50,7 +47,8 @@ if TYPE_CHECKING:
 # and also provides some helping utility functions for
 # groups of workers or worker/agent compatibility.
 
-# Mostly, the supervisor babysits the socket and the workers
+# Mostly, the supervisor oversees the communications 
+# between jobs and workers over the channels
 
 STATUS_TO_TEXT_MAP = {
     AgentState.STATUS_EXPIRED: "This task is no longer available to be completed. "
@@ -63,8 +61,7 @@ STATUS_TO_TEXT_MAP = {
     "you for them leaving, so please submit this task as is.",
 }
 
-SYSTEM_SOCKET_ID = "mephisto"  # TODO pull from somewhere
-STATUS_CHECK_TIME = 4
+SYSTEM_CHANNEL_ID = "mephisto"  # TODO pull from somewhere
 START_DEATH_TIME = 10
 
 # State storage
@@ -72,22 +69,18 @@ class Job(RecordClass):
     architect: "Architect"
     task_runner: "TaskRunner"
     provider: "CrowdProvider"
-    registered_socket_ids: List[str]
+    registered_channel_ids: List[str]
 
 
-class SocketInfo(RecordClass):
-    socket_id: str
-    url: str
+class ChannelInfo(RecordClass):
+    channel_id: str
     job: "Job"
-    is_closed: bool = False
-    is_alive: bool = False
-    socket: Optional[websocket.WebSocketApp] = None
-    thread: Optional[threading.Thread] = None
+    channel: Channel
 
 
 class AgentInfo(RecordClass):
     agent: "Agent"
-    used_socket_id: str
+    used_channel_id: str
     assignment_thread: Optional[threading.Thread] = None
 
 
@@ -97,11 +90,9 @@ class Supervisor:
         # Tracked state
         self.agents: Dict[str, AgentInfo] = {}
         self.agents_by_registration_id: Dict[str, AgentInfo] = {}
-        self.sockets: Dict[str, SocketInfo] = {}
-        self.socket_count = 0
+        self.channels: Dict[str, ChannelInfo] = {}
 
         # Agent status handling
-        self.status_responses: Dict[str, Dict[str, Any]] = {}
         self.last_status_check = time.time()
 
         # Message handling
@@ -114,97 +105,57 @@ class Supervisor:
         task_runner: "TaskRunner",
         provider: "CrowdProvider",
     ):
-        task_run = task_runner.task_run
-        urls = architect.get_socket_urls()
-        job = Job(
-            architect=architect,
-            task_runner=task_runner,
-            provider=provider,
-            registered_socket_ids=[],
-        )
-        for url in urls:
-            socket_id = self.setup_socket(url, job)
-            job.registered_socket_ids.append(socket_id)
-        return job
+        def on_channel_open(channel_id: str):
+            channel_info = self.channels[channel_id]
+            self._send_alive(channel_info)
 
-    def setup_socket(self, url: str, job: "Job") -> str:
-        """Set up a socket communicating with the server at the given url"""
-        # Clear status_responses, as we won't have one for this server
-        self.status_responses = {}
+        def on_catastrophic_disconnect(channel_id):
+            # TODO Catastrophic disconnect needs to trigger cleanup
+            print(f"Channel {channel_id} called on_catastrophic_disconnect")
 
-        socket_name = f"socket_{self.socket_count}"
-        self.socket_count += 1
-
-        socket_info = SocketInfo(socket_id=socket_name, url=url, job=job)
-        self.sockets[socket_name] = socket_info
-
-        def on_socket_open(*args):
-            socket_info.is_alive = True
-            self._send_alive(socket_info)
-            # TODO use logger?
-            print(f"socket open {args}")
-
-        def on_error(ws, error):
-            if hasattr(error, "errno"):
-                if error.errno == errno.ECONNREFUSED:
-                    raise Exception(f"Socket {url} refused connection, cancelling")
-            else:
-                print(f"Socket logged error: {error}")
-                try:
-                    ws.close()
-                except Exception:
-                    # Already closed
-                    pass
-
-        def on_disconnect(*args):
-            """Disconnect event is a no-op for us, as the server reconnects
-            automatically on a retry.
-            """
-            # TODO we need to set a timeout for reconnecting to the server
-            pass
-
-        def on_message(*args):
+        def on_message(channel_id: str, packet: Packet):
             """Incoming message handler defers to the internal handler
             """
             try:
-                packet_dict = json.loads(args[1])
-                packet = Packet.from_dict(packet_dict)
-                self._on_message(packet, socket_info)
+                channel_info = self.channels[channel_id]
+                self._on_message(packet, channel_info)
             except Exception as e:
+                # TODO better error handling about failed messages
                 import traceback
 
                 traceback.print_exc()
                 print(repr(e))
                 raise
 
-        def run_socket(*args):
-            while (
-                socket_name in self.sockets and not self.sockets[socket_name].is_closed
-            ):
-                try:
-                    socket = websocket.WebSocketApp(
-                        url,
-                        on_message=on_message,
-                        on_error=on_error,
-                        on_close=on_disconnect,
-                    )
-                    self.sockets[socket_name].socket = socket
-                    socket.on_open = on_socket_open
-                    socket.run_forever(ping_interval=8 * STATUS_CHECK_TIME)
-                except Exception as e:
-                    print(f"Socket error {repr(e)}, attempting restart")
-                time.sleep(0.2)
-
-        # Start listening thread
-        socket_info.thread = threading.Thread(
-            target=run_socket, name=f"socket-thread-{url}"
+        task_run = task_runner.task_run
+        channels = architect.get_channels(
+            on_channel_open, on_catastrophic_disconnect, on_message
         )
-        socket_info.thread.start()
+        job = Job(
+            architect=architect,
+            task_runner=task_runner,
+            provider=provider,
+            registered_channel_ids=[],
+        )
+        for channel in channels:
+            channel_id = self.register_channel(channel, job)
+            job.registered_channel_ids.append(channel_id)
+        return job
+
+    def register_channel(self, channel: Channel, job: "Job") -> str:
+        """Register the channel to the specific job"""
+        channel_id = channel.channel_id
+
+        channel_info = ChannelInfo(channel_id=channel_id, channel=channel, job=job)
+        self.channels[channel_id] = channel_info
+
+        channel.open()
+        self._send_alive(channel_info)
         start_time = time.time()
-        while not socket_info.is_alive:
+        while not channel.is_alive():
             if time.time() - start_time > START_DEATH_TIME:
-                # TODO better handle failing to connect with the server
-                self.sockets[socket_name].is_closed = True
+                # TODO better handle failing to connect with a channel
+                self.channels[channel_id].close()
                 raise ConnectionRefusedError(  # noqa F821 we only support py3
                     "Was not able to establish a connection with the server, "
                     "please try to run again. If that fails,"
@@ -212,72 +163,42 @@ class Supervisor:
                     "certs installed."
                 )
             try:
-                self._send_alive(socket_info)
+                self._send_alive(channel_info)
             except Exception:
                 pass
             time.sleep(0.3)
-        return socket_name
+        return channel_id
 
-    def close_socket(self, socket_id: str):
-        """Close the given socket by id"""
-        socket_info = self.sockets[socket_id]
-        socket_info.is_closed = True
-        if socket_info.socket is not None:
-            socket_info.socket.close()
-        socket_info.is_alive = False
-        if socket_info.thread is not None:
-            socket_info.thread.join()
-        del self.sockets[socket_id]
+    def close_channel(self, channel_id: str):
+        """Close the given channel by id"""
+        self.channels[channel_id].channel.close()
+        del self.channels[channel_id]
 
     def shutdown_job(self, job: Job):
-        """Close any sockets related to a job"""
-        job_sockets = job.registered_socket_ids
-        for socket_id in job_sockets:
-            self.close_socket(socket_id)
+        """Close any channels related to a job"""
+        job_channels = job.registered_channel_ids
+        for channel_id in job_channels:
+            self.close_channel(channel_id)
 
     def shutdown(self):
-        """Close all of the sockets, join their threads"""
-        sockets_to_close = list(self.sockets.keys())
-        for socket_id in sockets_to_close:
-            self.close_socket(socket_id)
+        """Close all of the channels, join threads"""
+        channels_to_close = list(self.channels.keys())
+        for channel_id in channels_to_close:
+            self.close_channel(channel_id)
         if self.sending_thread is not None:
             self.sending_thread.join()
 
-    def _send_through_socket(
-        self, socket: websocket.WebSocketApp, packet: Packet
-    ) -> bool:
-        """Send a packet through the socket, handle any errors"""
-        if socket is None:
-            return False
-        try:
-            data = packet.to_sendable_dict()
-            socket.send(json.dumps(data))
-        except websocket.WebSocketConnectionClosedException:
-            # The channel died mid-send, wait for it to come back up
-            return False
-        except BrokenPipeError:
-            # The channel died mid-send, wait for it to come back up
-            return False
-        except Exception as e:
-            import traceback
-
-            traceback.print_exc()
-            print("Unexpected socket error occured: {}".format(repr(e)))
-            return False
-        return True
-
-    def _send_alive(self, socket_info: SocketInfo) -> bool:
+    def _send_alive(self, channel_info: ChannelInfo) -> bool:
         print("sending alive")
-        return self._send_through_socket(
-            socket_info.socket,
+        return channel_info.channel.send(
             Packet(
                 packet_type=PACKET_TYPE_ALIVE,
-                sender_id=SYSTEM_SOCKET_ID,
-                receiver_id=socket_info.socket_id,
+                sender_id=SYSTEM_CHANNEL_ID,
+                receiver_id=channel_info.channel_id,
             ),
         )
 
-    def _on_act(self, packet: Packet, socket_info: SocketInfo):
+    def _on_act(self, packet: Packet, channel_info: ChannelInfo):
         """Handle an action as sent from an agent"""
         agent = self.agents[packet.sender_id].agent
 
@@ -287,17 +208,17 @@ class Supervisor:
             data_files = packet.data.get("files")
             if data_files is not None:
                 save_dir = agent.get_data_dir()
-                architect = socket_info.job.architect
+                architect = channel_info.job.architect
                 for f_obj in data_files:
                     architect.download_file(f_obj["filename"], save_dir)
 
         agent.pending_actions.append(packet)
         agent.has_action.set()
 
-    def _register_worker(self, packet: Packet, socket_info: SocketInfo):
+    def _register_worker(self, packet: Packet, channel_info: ChannelInfo):
         """Process a worker registration packet to register a worker"""
         crowd_data = packet.data["provider_data"]
-        crowd_provider = socket_info.job.provider
+        crowd_provider = channel_info.job.provider
         worker_name = crowd_data["worker_name"]
         workers = self.db.find_workers(worker_name=worker_name)
         if len(workers) == 0:
@@ -313,8 +234,8 @@ class Supervisor:
         self.message_queue.append(
             Packet(
                 packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                sender_id=SYSTEM_SOCKET_ID,
-                receiver_id=socket_info.socket_id,
+                sender_id=SYSTEM_CHANNEL_ID,
+                receiver_id=channel_info.channel_id,
                 data={
                     "request_id": packet.data["request_id"],
                     "worker_id": worker.db_id,
@@ -372,12 +293,12 @@ class Supervisor:
             task_runner.cleanup_unit(unit)
 
     def _assign_unit_to_agent(
-        self, packet: Packet, socket_info: SocketInfo, units: List["Unit"]
+        self, packet: Packet, channel_info: ChannelInfo, units: List["Unit"]
     ):
         """Handle creating an agent for the specific worker to register an agent"""
         crowd_data = packet.data["provider_data"]
-        task_run = socket_info.job.task_runner.task_run
-        crowd_provider = socket_info.job.provider
+        task_run = channel_info.job.task_runner.task_run
+        crowd_provider = channel_info.job.provider
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
 
@@ -389,8 +310,8 @@ class Supervisor:
             self.message_queue.append(
                 Packet(
                     packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_SOCKET_ID,
-                    receiver_id=socket_info.socket_id,
+                    sender_id=SYSTEM_CHANNEL_ID,
+                    receiver_id=channel_info.channel_id,
                     data={"request_id": packet.data["request_id"], "agent_id": None},
                 )
             )
@@ -401,15 +322,15 @@ class Supervisor:
             self.message_queue.append(
                 Packet(
                     packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_SOCKET_ID,
-                    receiver_id=socket_info.socket_id,
+                    sender_id=SYSTEM_CHANNEL_ID,
+                    receiver_id=channel_info.channel_id,
                     data={
                         "request_id": packet.data["request_id"],
                         "agent_id": agent.db_id,
                     },
                 )
             )
-            agent_info = AgentInfo(agent=agent, used_socket_id=socket_info.socket_id)
+            agent_info = AgentInfo(agent=agent, used_channel_id=channel_info.channel_id)
             self.agents[agent.db_id] = agent_info
             self.agents_by_registration_id[
                 crowd_data["agent_registration_id"]
@@ -419,10 +340,10 @@ class Supervisor:
             task_run.clear_reservation(unit)
 
             # Launch individual tasks
-            if not socket_info.job.task_runner.is_concurrent:
+            if not channel_info.job.task_runner.is_concurrent:
                 unit_thread = threading.Thread(
                     target=self._launch_and_run_unit,
-                    args=(unit, agent_info, socket_info.job.task_runner),
+                    args=(unit, agent_info, channel_info.job.task_runner),
                     name=f"Unit-thread-{unit.db_id}",
                 )
                 agent_info.assignment_thread = unit_thread
@@ -440,7 +361,7 @@ class Supervisor:
 
                 assign_thread = threading.Thread(
                     target=self._launch_and_run_assignment,
-                    args=(assignment, agent_infos, socket_info.job.task_runner),
+                    args=(assignment, agent_infos, channel_info.job.task_runner),
                     name=f"Assignment-thread-{assignment.db_id}",
                 )
 
@@ -450,9 +371,9 @@ class Supervisor:
 
                 assign_thread.start()
 
-    def _register_agent_from_onboarding(self, packet: Packet, socket_info: SocketInfo):
+    def _register_agent_from_onboarding(self, packet: Packet, channel_info: ChannelInfo):
         """Register an agent that has finished onboarding"""
-        task_runner = socket_info.job.task_runner
+        task_runner = channel_info.job.task_runner
         task_run = task_runner.task_run
         blueprint = task_run.get_blueprint()
         crowd_data = packet.data["provider_data"]
@@ -473,27 +394,27 @@ class Supervisor:
             # instances where a worker has failed onboarding, but the onboarding
             # task still allowed submission of the failed data (no front-end validation)
             # units = [self.dummy_launcher.launch_dummy()]
-            # self._assign_unit_to_agent(packet, socket_info, units)
+            # self._assign_unit_to_agent(packet, channel_info, units)
             pass
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
-        self._assign_unit_to_agent(packet, socket_info, units)
+        self._assign_unit_to_agent(packet, channel_info, units)
 
-    def _register_agent(self, packet: Packet, socket_info: SocketInfo):
+    def _register_agent(self, packet: Packet, channel_info: ChannelInfo):
         """Process an agent registration packet to register an agent"""
         # First see if this is a reconnection
         crowd_data = packet.data["provider_data"]
         agent_registration_id = crowd_data["agent_registration_id"]
         if agent_registration_id in self.agents_by_registration_id:
             agent = self.agents_by_registration_id[agent_registration_id].agent
-            # Update the source socket, in case it has changed
-            self.agents[agent.db_id].used_socket_id = socket_info.socket_id
+            # Update the source channel, in case it has changed
+            self.agents[agent.db_id].used_channel_id = channel_info.channel_id
             self.message_queue.append(
                 Packet(
                     packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_SOCKET_ID,
-                    receiver_id=socket_info.socket_id,
+                    sender_id=SYSTEM_CHANNEL_ID,
+                    receiver_id=channel_info.channel_id,
                     data={
                         "request_id": packet.data["request_id"],
                         "agent_id": agent.db_id,
@@ -503,7 +424,7 @@ class Supervisor:
             return
 
         # Process a new agent
-        task_run = socket_info.job.task_runner.task_run
+        task_run = channel_info.job.task_runner.task_run
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
 
@@ -514,8 +435,8 @@ class Supervisor:
             self.message_queue.append(
                 Packet(
                     packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_SOCKET_ID,
-                    receiver_id=socket_info.socket_id,
+                    sender_id=SYSTEM_CHANNEL_ID,
+                    receiver_id=channel_info.channel_id,
                     data={"request_id": packet.data["request_id"], "agent_id": None},
                 )
             )
@@ -529,8 +450,8 @@ class Supervisor:
                 self.message_queue.append(
                     Packet(
                         packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                        sender_id=SYSTEM_SOCKET_ID,
-                        receiver_id=socket_info.socket_id,
+                        sender_id=SYSTEM_CHANNEL_ID,
+                        receiver_id=channel_info.channel_id,
                         data={
                             "request_id": packet.data["request_id"],
                             "agent_id": None,
@@ -545,8 +466,8 @@ class Supervisor:
                 self.message_queue.append(
                     Packet(
                         packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                        sender_id=SYSTEM_SOCKET_ID,
-                        receiver_id=socket_info.socket_id,
+                        sender_id=SYSTEM_CHANNEL_ID,
+                        receiver_id=channel_info.channel_id,
                         data={
                             "request_id": packet.data["request_id"],
                             "agent_id": "onboarding",
@@ -557,35 +478,35 @@ class Supervisor:
                 return
 
         # Not onboarding, so just register directly
-        self._assign_unit_to_agent(packet, socket_info, units)
+        self._assign_unit_to_agent(packet, channel_info, units)
 
-    def _get_init_data(self, packet, socket_info: SocketInfo):
+    def _get_init_data(self, packet, channel_info: ChannelInfo):
         """Get the initialization data for the assigned agent's task"""
-        task_runner = socket_info.job.task_runner
+        task_runner = channel_info.job.task_runner
         agent_id = packet.data["provider_data"]["agent_id"]
         agent_info = self.agents[agent_id]
         unit_data = task_runner.get_init_data_for_agent(agent_info.agent)
 
         agent_data_packet = Packet(
             packet_type=PACKET_TYPE_INIT_DATA,
-            sender_id=SYSTEM_SOCKET_ID,
-            receiver_id=socket_info.socket_id,
+            sender_id=SYSTEM_CHANNEL_ID,
+            receiver_id=channel_info.channel_id,
             data={"request_id": packet.data["request_id"], "init_data": unit_data},
         )
         self.message_queue.append(agent_data_packet)
 
-    def _on_message(self, packet: Packet, socket_info: SocketInfo):
-        """Handle incoming messages from the socket"""
+    def _on_message(self, packet: Packet, channel_info: ChannelInfo):
+        """Handle incoming messages from the channel"""
         if packet.type == PACKET_TYPE_AGENT_ACTION:
-            self._on_act(packet, socket_info)
+            self._on_act(packet, channel_info)
         elif packet.type == PACKET_TYPE_NEW_AGENT:
-            self._register_agent(packet, socket_info)
+            self._register_agent(packet, channel_info)
         elif packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:
-            self._register_agent_from_onboarding(packet, socket_info)
+            self._register_agent_from_onboarding(packet, channel_info)
         elif packet.type == PACKET_TYPE_NEW_WORKER:
-            self._register_worker(packet, socket_info)
+            self._register_worker(packet, channel_info)
         elif packet.type == PACKET_TYPE_GET_INIT_DATA:
-            self._get_init_data(packet, socket_info)
+            self._get_init_data(packet, channel_info)
         elif packet.type == PACKET_TYPE_RETURN_AGENT_STATUS:
             # Record this status response
             self._handle_updated_agent_status(packet.data)
@@ -597,28 +518,28 @@ class Supervisor:
     # TODO maybe batching these is better?
     def _try_send_agent_messages(self, agent_info: AgentInfo):
         """Handle sending any possible messages for a specific agent"""
-        socket_info = self.sockets[agent_info.used_socket_id]
+        channel_info = self.channels[agent_info.used_channel_id]
         agent = agent_info.agent
         while len(agent.pending_observations) > 0:
             curr_obs = agent.pending_observations.pop(0)
-            did_send = self._send_through_socket(socket_info.socket, curr_obs)
+            did_send = channel_info.channel.send(curr_obs)
             if not did_send:
-                print(f"Failed to send packet {curr_obs} to {socket_info.url}")
+                print(f"Failed to send packet {curr_obs} to {channel_info}")
                 agent.pending_observations.insert(0, curr_obs)
-                return  # something up with the socket, try later
+                return  # something up with the channel, try later
 
     def _send_message_queue(self) -> None:
         """Send all of the messages in the system queue"""
         while len(self.message_queue) > 0:
             curr_obs = self.message_queue.pop(0)
-            socket = self.sockets[curr_obs.receiver_id].socket
-            did_send = self._send_through_socket(socket, curr_obs)
+            channel = self.channels[curr_obs.receiver_id].channel
+            did_send = channel.send(curr_obs)
             if not did_send:
                 print(
                     f"Failed to send packet {curr_obs} to server {curr_obs.receiver_id}"
                 )
                 self.message_queue.insert(0, curr_obs)
-                return  # something up with the socket, try later
+                return  # something up with the channel, try later
 
     def _send_status_update(self, agent_info: AgentInfo) -> None:
         """
@@ -628,15 +549,15 @@ class Supervisor:
         # TODO call this method on reconnect
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
-            sender_id=SYSTEM_SOCKET_ID,
+            sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.db_id,
             data={
                 "agent_status": agent_info.agent.db_status,
                 "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
             },
         )
-        socket_info = self.sockets[agent_info.used_socket_id]
-        self._send_through_socket(socket_info.socket, send_packet)
+        channel_info = self.channels[agent_info.used_channel_id]
+        channel_info.channel.send(send_packet)
 
     def _mark_agent_done(self, agent_info: AgentInfo) -> None:
         """
@@ -652,15 +573,15 @@ class Supervisor:
             return
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
-            sender_id=SYSTEM_SOCKET_ID,
+            sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.db_id,
             data={
                 "agent_status": "done",
                 "done_text": "You have completed this task. Please submit.",
             },
         )
-        socket_info = self.sockets[agent_info.used_socket_id]
-        self._send_through_socket(socket_info.socket, send_packet)
+        channel_info = self.channels[agent_info.used_channel_id]
+        channel_info.channel.send(send_packet)
 
     def _handle_updated_agent_status(self, status_map: Dict[str, str]):
         """
@@ -701,12 +622,12 @@ class Supervisor:
         """
         send_packet = Packet(
             packet_type=PACKET_TYPE_REQUEST_ACTION,
-            sender_id=SYSTEM_SOCKET_ID,
+            sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.db_id,
             data={},
         )
-        socket_info = self.sockets[agent_info.used_socket_id]
-        self._send_through_socket(socket_info.socket, send_packet)
+        channel_info = self.channels[agent_info.used_channel_id]
+        channel_info.channel.send(send_packet)
 
     def _request_status_update(self) -> None:
         """
@@ -718,18 +639,18 @@ class Supervisor:
 
         self.last_status_check = time.time()
 
-        for socket_id, socket_info in self.sockets.items():
+        for channel_id, channel_info in self.channels.items():
             send_packet = Packet(
                 packet_type=PACKET_TYPE_REQUEST_AGENT_STATUS,
-                sender_id=SYSTEM_SOCKET_ID,
-                receiver_id=socket_id,
+                sender_id=SYSTEM_CHANNEL_ID,
+                receiver_id=channel_id,
                 data={},
             )
-            self._send_through_socket(socket_info.socket, send_packet)
+            channel_info.channel.send(send_packet)
 
-    def _socket_handling_thread(self) -> None:
-        """Thread for handling outgoing messages through the socket"""
-        while len(self.sockets) > 0:
+    def _channel_handling_thread(self) -> None:
+        """Thread for handling outgoing messages through the channels"""
+        while len(self.channels) > 0:
             for agent_info in self.agents.values():
                 if agent_info.agent.wants_action.is_set():
                     self._request_action(agent_info)
@@ -747,6 +668,6 @@ class Supervisor:
     def launch_sending_thread(self) -> None:
         """Launch the sending thread for this supervisor"""
         self.sending_thread = threading.Thread(
-            target=self._socket_handling_thread, name=f"socket-sending-thread"
+            target=self._channel_handling_thread, name=f"channel-sending-thread"
         )
         self.sending_thread.start()
