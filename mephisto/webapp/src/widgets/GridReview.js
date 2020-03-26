@@ -5,7 +5,7 @@ import useAxios from "axios-hooks";
 import { ButtonGroup, Tooltip, Icon } from "@blueprintjs/core";
 import { Link } from "react-router-dom";
 import { reviewActions } from "../service";
-import { ObjectInspector, TableInspector } from "react-inspector";
+import { ObjectInspector } from "react-inspector";
 
 const GridReviewAsync = createAsync();
 
