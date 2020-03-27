@@ -132,7 +132,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         for agent in agents:
             assert agent is not None, "task was not fully assigned"
-        opt: Dict[str, Any] = {}  # TODO find a way to pass world options along
+        opt: Dict[str, Any] = self.opts.get('world_opt', {})
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
         while not world.episode_done() and assignment.db_id in self.running_assignments:
