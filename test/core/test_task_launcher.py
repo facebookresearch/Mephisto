@@ -8,6 +8,7 @@ import unittest
 import shutil
 import os
 import tempfile
+from typing import List
 
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.core.local_database import LocalMephistoDB
@@ -18,6 +19,7 @@ from mephisto.data_model.task import TaskRun
 
 from mephisto.providers.mock.mock_provider import MockProvider
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
+from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
 
 class TestTaskLauncher(unittest.TestCase):
@@ -36,8 +38,8 @@ class TestTaskLauncher(unittest.TestCase):
         self.db.shutdown()
         shutil.rmtree(self.data_dir)
 
-    def get_mock_assignment_data_array(self) -> InitializationData:
-        return [MockBlueprint.TaskRunnerClass.get_mock_assignment_data()]
+    def get_mock_assignment_data_array(self) -> List[InitializationData]:
+        return [MockTaskRunner.get_mock_assignment_data()]
 
     def test_init_on_task_run(self):
         """Initialize a launcher on a task_run"""

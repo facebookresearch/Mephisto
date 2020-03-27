@@ -11,7 +11,10 @@ import os
 import tempfile
 import time
 
+from typing import List
+
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
+from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.server.architects.mock_architect import MockArchitect
 from mephisto.providers.mock.mock_provider import MockProvider
 from mephisto.core.local_database import LocalMephistoDB
@@ -63,8 +66,8 @@ class TestSupervisor(unittest.TestCase):
         self.db.shutdown()
         shutil.rmtree(self.data_dir)
 
-    def get_mock_assignment_data_array(self) -> InitializationData:
-        mock_data = MockBlueprint.TaskRunnerClass.get_mock_assignment_data()
+    def get_mock_assignment_data_array(self) -> List[InitializationData]:
+        mock_data = MockTaskRunner.get_mock_assignment_data()
         return [mock_data, mock_data]
 
     def test_initialize_supervisor(self):

@@ -85,7 +85,7 @@ class TestArgparseParser(unittest.TestCase):
     def test_argparse_version(self) -> None:
         """Ensure the argparse version is supported"""
         SUPPORTED_ARGPARSERS = ["1.1"]
-        self.assertIn(argparse.__version__, SUPPORTED_ARGPARSERS)
+        self.assertIn(argparse.__version__, SUPPORTED_ARGPARSERS)  # type: ignore
 
     def test_collect_groups_recurse(self) -> None:
         """Ensure group collection works as intended"""
@@ -117,7 +117,7 @@ class TestArgparseParser(unittest.TestCase):
         group_dict = get_argument_groups(self.argparser)
         self.assertEqual(len(group_dict), 3, f"Expected 3 groups, found {group_dict}")
         self.assertEqual(
-            len(group_dict["__NO_TITLE__"]),
+            len(group_dict["__NO_TITLE__"]),  # type: ignore
             0,
             f"Expected no unnamed groups, found {group_dict['__NO_TITLE__']}.",
         )
@@ -131,7 +131,7 @@ class TestArgparseParser(unittest.TestCase):
         group_dict = get_argument_groups(self.argparser)
         self.assertEqual(len(group_dict), 1, f"Expected 1 group, found {group_dict}")
         self.assertEqual(
-            len(group_dict["__NO_TITLE__"]),
+            len(group_dict["__NO_TITLE__"]),  # type: ignore
             0,
             f"Expected no unnamed groups, found {group_dict['__NO_TITLE__']}.",
         )
@@ -170,6 +170,7 @@ class TestArgparseParser(unittest.TestCase):
         MockCustomizableClass.add_args_to_group(self.test_group)
         group_as_dict = get_argument_group_dict(self.test_group)
         self.assertIsNotNone(group_as_dict)
+        assert group_as_dict is not None
         self.assertEqual(group_as_dict["desc"], MockCustomizableClass.TEST_DESCRIPTION)
         self.assertDictEqual(
             group_as_dict["args"], get_arguments_from_group(self.test_group)

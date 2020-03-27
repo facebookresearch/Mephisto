@@ -148,7 +148,9 @@ class LocalArchitect(Architect):
         return_dir = os.getcwd()
         os.chdir(self.running_dir)
         self.server_process = subprocess.Popen(
-            ["node", "server.js"], preexec_fn=os.setpgrp
+            ["node", "server.js"], 
+            preexec_fn=os.setpgrp,
+            env=dict(os.environ, PORT=f"{self.port}"),
         )
         self.server_process_pid = self.server_process.pid
         os.chdir(return_dir)
