@@ -478,7 +478,10 @@ class Supervisor:
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
-        self._assign_unit_to_agent(packet, socket_info, units)
+        usable_units = socket_info.job.task_runner.filter_units_for_worker(
+            units, worker
+        )
+        self._assign_unit_to_agent(packet, socket_info, usable_units)
 
     def _register_agent(self, packet: Packet, socket_info: SocketInfo):
         """Process an agent registration packet to register an agent"""
@@ -655,7 +658,7 @@ class Supervisor:
             sender_id=SYSTEM_SOCKET_ID,
             receiver_id=agent_info.agent.db_id,
             data={
-                "agent_status": "done",
+                "agent_status": "completed",
                 "done_text": "You have completed this task. Please submit.",
             },
         )
@@ -678,14 +681,15 @@ class Supervisor:
                 # no longer tracking agent
                 continue
             agent = self.agents[agent_id].agent
+            db_status = agent.get_status()
             if agent.has_updated_status.is_set():
                 continue  # Incoming info may be stale if we have new info to send
             if status == AgentState.STATUS_NONE:
                 # Stale or reconnect, send a status update
                 self._send_status_update(self.agents[agent_id])
                 continue
-            if status != agent.db_status:
-                if agent.db_status in AgentState.complete():
+            if status != db_status:
+                if db_status in AgentState.complete():
                     print(
                         f"Got updated status {status} when already final: {agent.db_status}"
                     )

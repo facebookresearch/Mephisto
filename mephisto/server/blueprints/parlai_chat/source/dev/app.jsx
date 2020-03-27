@@ -102,7 +102,7 @@ const STATUS_NONE = 'none';
 const STATUS_ONBOARDING = 'onboarding';
 const STATUS_WAITING = 'waiting';
 const STATUS_IN_TASK = 'in task';
-const STATUS_DONE = 'done';
+const STATUS_COMPLETED = 'completed';
 const STATUS_DISCONNECT = 'disconnect';
 const STATUS_TIMEOUT = 'timeout';
 const STATUS_PARTNER_DISCONNECT = 'partner disconnect';
@@ -136,7 +136,7 @@ class ChatApp extends React.Component {
     console.log('Handling state update', agent_status, this.state.agent_status)
     if (agent_status != this.state.agent_status) {
       // Handle required state changes on a case-by-case basis.
-      if ([STATUS_DONE, STATUS_PARTNER_DISCONNECT].includes(agent_status)) {
+      if ([STATUS_COMPLETED, STATUS_PARTNER_DISCONNECT].includes(agent_status)) {
         this.setState({ task_done: true, chat_state: 'done' });
         this.socket_handler.closeSocket();
       } else if ([STATUS_DISCONNECT, STATUS_RETURNED, STATUS_EXPIRED,

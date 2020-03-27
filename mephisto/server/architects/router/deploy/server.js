@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const DEBUG = true
+const DEBUG = false;
 
 // TODO add some testing to launch this server and communicate with it
 
@@ -62,7 +62,7 @@ const FAILED_RECONNECT_TIME = 10000
 const STATUS_INIT = 'none'
 const STATUS_CONNECTED = 'connected'
 const STATUS_DISCONNECTED = 'disconnect'
-const STATUS_DONE = 'done'
+const STATUS_COMPLETED = 'completed'
 
 const SYSTEM_SOCKET_ID = 'mephisto'  // TODO pull from somewhere
 // TODO use registered socket id from on_alive
