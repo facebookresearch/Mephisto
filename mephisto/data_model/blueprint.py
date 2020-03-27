@@ -239,7 +239,7 @@ class TaskRunner(ABC):
                 if agent.db_id != e.agent_id:
                     agent.update_status(AgentState.STATUS_PARTNER_DISCONNECT)
                 else:
-                    # Must expire the disconnected unit so that 
+                    # Must expire the disconnected unit so that
                     # new workers aren't shown it
                     agent.get_unit().expire()
             self.cleanup_assignment(assignment)

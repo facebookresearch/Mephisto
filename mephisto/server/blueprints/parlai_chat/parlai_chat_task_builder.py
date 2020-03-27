@@ -77,7 +77,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
             extra_dir_path = os.path.expanduser(extra_dir_path)
             copy_tree(extra_dir_path, target_resource_dir)
 
-        bundle_js_file = self.opts.get('custom_source_bundle')
+        bundle_js_file = self.opts.get("custom_source_bundle")
         if bundle_js_file is None:
             bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, "bundle.js")
         target_path = os.path.join(target_resource_dir, "bundle.js")

@@ -51,9 +51,7 @@ ARG_STRING = (
     "--num-conversations 1 "
 )
 
-world_opt = {
-    'num_turns': 3,
-}
+world_opt = {"num_turns": 3}
 
 if DEMO_CUSTOM_BUNDLE:
     bundle_file_path = f"{TASK_DIRECTORY}/source/build/bundle.js"
@@ -61,12 +59,10 @@ if DEMO_CUSTOM_BUNDLE:
         "Must build the custom bundle with `npm install; npm run dev` from within "
         f"the {TASK_DIRECTORY}/source directory in order to demo a custom bundle "
     )
-    world_opt['send_task_data'] = True
+    world_opt["send_task_data"] = True
     ARG_STRING += f"--custom-source-bundle {bundle_file_path} "
 
-extra_args = {
-    'world_opt': world_opt,
-}
+extra_args = {"world_opt": world_opt}
 
 try:
     operator = Operator(db)
