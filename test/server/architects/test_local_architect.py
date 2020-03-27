@@ -54,6 +54,7 @@ class LocalArchitectTests(ArchitectTests):
     def server_is_shutdown(self) -> bool:
         """Ensure process is no longer running"""
         assert self.curr_architect is not None, "No architect to check"
+        assert self.curr_architect.server_process is not None, "architect has no server process"
         return self.curr_architect.server_process.returncode is not None
 
     # TODO maybe a test where we need to re-instance an architect?
