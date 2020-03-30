@@ -38,6 +38,7 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         self.episodeDone = False
         self.max_turns = opt.get("max_turns", 2)
         self.current_turns = 0
+        self.send_task_data = opt.get("send_task_data", False)
         for idx, agent in enumerate(self.agents):
             agent.agent_id = f"Chat Agent {idx + 1}"
 
@@ -52,6 +53,12 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         for index, agent in enumerate(self.agents):
             try:
                 acts[index] = agent.act(timeout=TURN_TIMEOUT_TIME)
+                if self.send_task_data:
+                    acts[index]["task_data"] = {
+                        "last_acting_agent": agent.agent_id,
+                        "current_dialogue_turn": self.current_turns,
+                        "utterance_count": self.current_turns + index,
+                    }
             except TypeError:
                 acts[index] = agent.act()  # not MTurkAgent
             if acts[index]["episode_done"]:
