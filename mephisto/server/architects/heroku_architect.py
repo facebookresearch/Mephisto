@@ -22,9 +22,12 @@ from mephisto.core.utils import get_mephisto_tmp_dir
 from mephisto.core.argparse_parser import str2bool
 from mephisto.data_model.architect import Architect
 from mephisto.server.architects.router.build_router import build_router
-from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING
+from mephisto.server.channels.websocket_channel import WebsocketChannel
+from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
+    from mephisto.server.channels.channel import Channel
+    from mephsito.data_model.packet import Packet
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
@@ -76,10 +79,32 @@ class HerokuArchitect(Architect):
         self.__heroku_executable_path: Optional[str] = None
         self.__heroku_user_identifier: Optional[str] = None
 
-    def get_socket_urls(self) -> List[str]:
+    def _get_socket_urls(self) -> List[str]:
         """Returns the path to the heroku app socket"""
         heroku_app_name = self.__get_app_name()
         return ["wss://{}.herokuapp.com/".format(heroku_app_name)]
+
+    def get_channels(
+        self,
+        on_channel_open: Callable[[str], None],
+        on_catastrophic_disconnect: Callable[[str], None],
+        on_message: Callable[[str, "Packet"], None],
+    ) -> List["Channel"]:
+        """
+        Return a list of all relevant channels that the Supervisor will
+        need to register to in order to function
+        """
+        urls = self._get_socket_urls()
+        return [
+            WebsocketChannel(
+                f"heroku_channel_{self.deploy_name}_{idx}",
+                on_channel_open=on_channel_open,
+                on_catastrophic_disconnect=on_catastrophic_disconnect,
+                on_message=on_message,
+                socket_url=url,
+            )
+            for idx, url in enumerate(urls)
+        ]
 
     def download_file(self, target_filename: str, save_dir: str) -> None:
         """

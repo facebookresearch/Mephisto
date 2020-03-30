@@ -5,9 +5,11 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, TYPE_CHECKING
+from typing import Dict, List, Any, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
+    from mephisto.server.channels.channel import Channel
+    from mephsito.data_model.packet import Packet
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
@@ -49,10 +51,15 @@ class Architect(ABC):
         """
         return
 
-    def get_socket_urls(self) -> List[str]:
+    def get_channels(
+        self,
+        on_channel_open: Callable[[str], None],
+        on_catastrophic_disconnect: Callable[[str], None],
+        on_message: Callable[[str, "Packet"], None],
+    ) -> List["Channel"]:
         """
-        Return a list of all relevant sockets that the Supervisor will
-        need to attach to in order to function
+        Return a list of all relevant channels that the Supervisor will
+        need to register to in order to function
         """
         raise NotImplementedError()
 

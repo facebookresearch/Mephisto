@@ -24,9 +24,12 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_REQUEST_AGENT_STATUS,
 )
-from typing import List, Dict, Any, Optional, TYPE_CHECKING
+from mephisto.server.channels.websocket_channel import WebsocketChannel
+from typing import List, Dict, Any, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
+    from mephisto.server.channels.channel import Channel
+    from mephsito.data_model.packet import Packet
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
@@ -281,10 +284,32 @@ class MockArchitect(Architect):
         )
         return
 
-    def get_socket_urls(self) -> List[str]:
+    def _get_socket_urls(self) -> List[str]:
         """Return the path to the local server socket"""
         assert self.port is not None, "No ports for socket"
         return [f"ws://localhost:{self.port}/socket"]
+
+    def get_channels(
+        self,
+        on_channel_open: Callable[[str], None],
+        on_catastrophic_disconnect: Callable[[str], None],
+        on_message: Callable[[str, "Packet"], None],
+    ) -> List["Channel"]:
+        """
+        Return a list of all relevant channels that the Supervisor will
+        need to register to in order to function
+        """
+        urls = self._get_socket_urls()
+        return [
+            WebsocketChannel(
+                f"mock_channel_{self.task_run_id}_{idx}",
+                on_channel_open=on_channel_open,
+                on_catastrophic_disconnect=on_catastrophic_disconnect,
+                on_message=on_message,
+                socket_url=url,
+            )
+            for idx, url in enumerate(urls)
+        ]
 
     def download_file(self, target_filename: str, save_dir: str) -> None:
         """

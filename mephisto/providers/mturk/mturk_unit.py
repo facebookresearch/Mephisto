@@ -63,7 +63,7 @@ class MTurkUnit(Unit):
             self.mturk_assignment_id = None
             self.assignment_time_in_seconds = -1
 
-    def get_mturk_assignment_id(self) -> str:
+    def get_mturk_assignment_id(self) -> Optional[str]:
         """
         Return the MTurk assignment id associated with this unit
         """
@@ -159,7 +159,7 @@ class MTurkUnit(Unit):
                 # Treat this as a return event, this hit is now doable by someone else
                 agent = self.get_assigned_agent()
                 if agent is not None:
-                    # mark the agent as having returned the HIT, to 
+                    # mark the agent as having returned the HIT, to
                     # free any running tasks and have Blueprint decide on cleanup.
                     agent.update_status(AgentState.STATUS_RETURNED)
             self.set_db_status(external_status)

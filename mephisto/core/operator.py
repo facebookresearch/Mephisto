@@ -202,8 +202,6 @@ class Operator:
         # retrieve the exact build directory to review a task for real
         architect.cleanup()
 
-        socket_urls = architect.get_socket_urls()
-
         # Create the backend runner
         task_runner = BlueprintClass.TaskRunnerClass(task_run, task_args)
 

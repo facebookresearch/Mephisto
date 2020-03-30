@@ -28,7 +28,8 @@ from mephisto.core.supervisor import Supervisor, Job
 
 class TestSupervisor(unittest.TestCase):
     """
-    Unit testing for the Mephisto Supervisor
+    Unit testing for the Mephisto Supervisor, 
+    uses WebsocketChannel and MockArchitect
     """
 
     def setUp(self):
@@ -45,7 +46,7 @@ class TestSupervisor(unittest.TestCase):
         )
         self.architect.prepare()
         self.architect.deploy()
-        self.urls = self.architect.get_socket_urls()
+        self.urls = self.architect._get_socket_urls()  # FIXME
         self.url = self.urls[0]
         self.provider = MockProvider(self.db)
         self.provider.setup_resources_for_task_run(self.task_run, self.url)
@@ -74,12 +75,12 @@ class TestSupervisor(unittest.TestCase):
         sup = Supervisor(self.db)
         self.assertIsNotNone(sup)
         self.assertDictEqual(sup.agents, {})
-        self.assertDictEqual(sup.sockets, {})
+        self.assertDictEqual(sup.channels, {})
         sup.shutdown()
 
-    def test_socket_operations(self):
+    def test_channel_operations(self):
         """
-        Initialize a socket, and ensure the basic 
+        Initialize a channel, and ensure the basic 
         startup and shutdown functions are working
         """
         sup = Supervisor(self.db)
@@ -92,28 +93,18 @@ class TestSupervisor(unittest.TestCase):
             architect=self.architect,
             task_runner=task_runner,
             provider=self.provider,
-            registered_socket_ids=[],
+            registered_channel_ids=[],
         )
-        socket_id = sup.setup_socket(self.url, test_job)
-        self.assertIsNotNone(socket_id)
-        self.assertEqual(sup.socket_count, 1)
-        self.assertIn(socket_id, sup.sockets)
-        socket_info = sup.sockets[socket_id]
-        self.assertTrue(socket_info.is_alive)
-        self.assertEqual(
-            len(self.architect.server.subs),
-            1,
-            "MockServer doesn't see registered socket",
+
+        channels = self.architect.get_channels(
+            sup._on_channel_open, sup._on_catastrophic_disconnect, sup._on_message
         )
-        self.assertIsNotNone(
-            self.architect.server.last_alive_packet,
-            "No alive packet received by server",
-        )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
-        sup.shutdown()
-        self.assertTrue(socket_info.is_closed)
-        self.assertEqual(len(self.architect.server.subs), 0)
+        channel = channels[0]
+        channel.open()
+        channel_id = channel.channel_id
+        self.assertIsNotNone(channel_id)
+        channel.close()
+        self.assertTrue(channel.is_closed())
 
     def test_register_concurrent_job(self):
         """Test registering and running a job that requires multiple workers"""
@@ -126,18 +117,17 @@ class TestSupervisor(unittest.TestCase):
         task_runner_args["is_concurrent"] = False
         task_runner = TaskRunnerClass(self.task_run, task_runner_args)
         sup.register_job(self.architect, task_runner, self.provider)
-        self.assertEqual(len(sup.sockets), sup.socket_count)
-        self.assertEqual(sup.socket_count, 1)
-        socket_info = list(sup.sockets.values())[0]
-        self.assertIsNotNone(socket_info)
-        self.assertTrue(socket_info.is_alive)
-        socket_id = socket_info.socket_id
-        task_runner = socket_info.job.task_runner
-        self.assertIsNotNone(socket_id)
+        self.assertEqual(len(sup.channels), 1)
+        channel_info = list(sup.channels.values())[0]
+        self.assertIsNotNone(channel_info)
+        self.assertTrue(channel_info.channel.is_alive)
+        channel_id = channel_info.channel_id
+        task_runner = channel_info.job.task_runner
+        self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
             1,
-            "MockServer doesn't see registered socket",
+            "MockServer doesn't see registered channel",
         )
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
@@ -232,7 +222,7 @@ class TestSupervisor(unittest.TestCase):
         )
 
         sup.shutdown()
-        self.assertTrue(socket_info.is_closed)
+        self.assertTrue(channel_info.channel.is_closed)
 
     def test_register_job(self):
         """Test registering and running a job run asynchronously"""
@@ -244,18 +234,17 @@ class TestSupervisor(unittest.TestCase):
         task_runner_args["timeout_time"] = 5
         task_runner = TaskRunnerClass(self.task_run, task_runner_args)
         sup.register_job(self.architect, task_runner, self.provider)
-        self.assertEqual(len(sup.sockets), sup.socket_count)
-        self.assertEqual(sup.socket_count, 1)
-        socket_info = list(sup.sockets.values())[0]
-        self.assertIsNotNone(socket_info)
-        self.assertTrue(socket_info.is_alive)
-        socket_id = socket_info.socket_id
-        task_runner = socket_info.job.task_runner
-        self.assertIsNotNone(socket_id)
+        self.assertEqual(len(sup.channels), 1)
+        channel_info = list(sup.channels.values())[0]
+        self.assertIsNotNone(channel_info)
+        self.assertTrue(channel_info.channel.is_alive())
+        channel_id = channel_info.channel_id
+        task_runner = channel_info.job.task_runner
+        self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
             1,
-            "MockServer doesn't see registered socket",
+            "MockServer doesn't see registered channel",
         )
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
@@ -352,7 +341,7 @@ class TestSupervisor(unittest.TestCase):
         )
 
         sup.shutdown()
-        self.assertTrue(socket_info.is_closed)
+        self.assertTrue(channel_info.channel.is_closed())
 
     def test_register_concurrent_job_with_onboarding(self):
         """Test registering and running a job with onboarding"""
@@ -374,18 +363,17 @@ class TestSupervisor(unittest.TestCase):
         task_runner_args["timeout_time"] = 5
         task_runner = TaskRunnerClass(self.task_run, task_runner_args)
         sup.register_job(self.architect, task_runner, self.provider)
-        self.assertEqual(len(sup.sockets), sup.socket_count)
-        self.assertEqual(sup.socket_count, 1)
-        socket_info = list(sup.sockets.values())[0]
-        self.assertIsNotNone(socket_info)
-        self.assertTrue(socket_info.is_alive)
-        socket_id = socket_info.socket_id
-        task_runner = socket_info.job.task_runner
-        self.assertIsNotNone(socket_id)
+        self.assertEqual(len(sup.channels), 1)
+        channel_info = list(sup.channels.values())[0]
+        self.assertIsNotNone(channel_info)
+        self.assertTrue(channel_info.channel.is_alive())
+        channel_id = channel_info.channel_id
+        task_runner = channel_info.job.task_runner
+        self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
             1,
-            "MockServer doesn't see registered socket",
+            "MockServer doesn't see registered channel",
         )
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
@@ -540,7 +528,7 @@ class TestSupervisor(unittest.TestCase):
         )
 
         sup.shutdown()
-        self.assertTrue(socket_info.is_closed)
+        self.assertTrue(channel_info.channel.is_closed())
 
     def test_register_job_with_onboarding(self):
         """Test registering and running a job with onboarding"""
@@ -563,18 +551,17 @@ class TestSupervisor(unittest.TestCase):
         task_runner_args["is_concurrent"] = False
         task_runner = TaskRunnerClass(self.task_run, task_runner_args)
         sup.register_job(self.architect, task_runner, self.provider)
-        self.assertEqual(len(sup.sockets), sup.socket_count)
-        self.assertEqual(sup.socket_count, 1)
-        socket_info = list(sup.sockets.values())[0]
-        self.assertIsNotNone(socket_info)
-        self.assertTrue(socket_info.is_alive)
-        socket_id = socket_info.socket_id
-        task_runner = socket_info.job.task_runner
-        self.assertIsNotNone(socket_id)
+        self.assertEqual(len(sup.channels), 1)
+        channel_info = list(sup.channels.values())[0]
+        self.assertIsNotNone(channel_info)
+        self.assertTrue(channel_info.channel.is_alive())
+        channel_id = channel_info.channel_id
+        task_runner = channel_info.job.task_runner
+        self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
             1,
-            "MockServer doesn't see registered socket",
+            "MockServer doesn't see registered channel",
         )
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
@@ -725,6 +712,6 @@ class TestSupervisor(unittest.TestCase):
         )
 
         sup.shutdown()
-        self.assertTrue(socket_info.is_closed)
+        self.assertTrue(channel_info.channel.is_closed())
 
     # TODO handle testing for disconnecting in and out of tasks

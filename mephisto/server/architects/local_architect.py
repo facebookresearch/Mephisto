@@ -14,14 +14,17 @@ import time
 import requests
 
 from mephisto.data_model.architect import Architect
-from typing import Any, Optional, Dict, List, TYPE_CHECKING
+from typing import Any, Optional, Dict, List, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
+    from mephisto.server.channels.channel import Channel
+    from mephsito.data_model.packet import Packet
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
 
 from mephisto.server.architects.router.build_router import build_router
+from mephisto.server.channels.websocket_channel import WebsocketChannel
 from mephisto.core.utils import get_mephisto_tmp_dir
 
 
@@ -52,7 +55,7 @@ class LocalArchitect(Architect):
         self.port: Optional[str] = opts.get("port")
         self.cleanup_called = False
 
-    def get_socket_urls(self) -> List[str]:
+    def _get_socket_urls(self) -> List[str]:
         """Return the path to the local server socket"""
         assert self.hostname is not None, "No hostname for socket"
         assert self.port is not None, "No ports for socket"
@@ -71,12 +74,34 @@ class LocalArchitect(Architect):
 
         return [f"{protocol}://{basename}:{self.port}/"]
 
+    def get_channels(
+        self,
+        on_channel_open: Callable[[str], None],
+        on_catastrophic_disconnect: Callable[[str], None],
+        on_message: Callable[[str, "Packet"], None],
+    ) -> List["Channel"]:
+        """
+        Return a list of all relevant channels that the Supervisor will
+        need to register to in order to function
+        """
+        urls = self._get_socket_urls()
+        return [
+            WebsocketChannel(
+                f"local_channel_{self.task_run_id}_{idx}",
+                on_channel_open=on_channel_open,
+                on_catastrophic_disconnect=on_catastrophic_disconnect,
+                on_message=on_message,
+                socket_url=url,
+            )
+            for idx, url in enumerate(urls)
+        ]
+
     def download_file(self, target_filename: str, save_dir: str) -> None:
         """
         Local architects can just move from the local directory
         """
         assert self.running_dir is not None, "cannot download a file if not running"
-        source_file = os.path.join(self.running_dir, "uploads", target_filename)
+        source_file = os.path.join("/tmp/", target_filename)
         dest_path = os.path.join(save_dir, target_filename)
         shutil.copy2(source_file, dest_path)
 
