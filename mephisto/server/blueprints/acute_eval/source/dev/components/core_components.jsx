@@ -818,7 +818,6 @@ class BaseFrontend extends React.Component {
 
   render() {
     let task_config = this.props.task_config;
-    let all_tasks_data = this.props.task_data;
     let done_button = null;
     let passed_props = {
       onValidDataChange: (valid, data) => this.onValidData(valid, data),
@@ -836,7 +835,6 @@ class BaseFrontend extends React.Component {
       <div className="container-fluid" id="ui-container">
         <div className="row" id="ui-content">
           <LeftPane
-            {...others}
             {...passed_props}
             frame_height={frame_height}
           >

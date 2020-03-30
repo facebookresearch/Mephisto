@@ -10,9 +10,11 @@ from mephisto.server.blueprints.acute_eval.acute_eval_agent_state import AcuteEv
 from mephisto.server.blueprints.acute_eval.acute_eval_runner import AcuteEvalRunner
 from mephisto.server.blueprints.acute_eval.acute_eval_builder import AcuteEvalBuilder
 
+import json
+import queue
+import random
 import os
 import time
-import csv
 
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
@@ -41,21 +43,11 @@ class AcuteEvalBlueprint(Blueprint):
         super().__init__(task_run, opts)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         task_file_name = os.path.basename(self.html_file)
-        if opts.get("data_csv") is not None:
-            csv_file = os.path.expanduser(opts["data_csv"])
-            with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
-                csv_reader = csv.reader(csv_fp)
-                headers = next(csv_reader)
-                for row in csv_reader:
-                    row_data = {}
-                    for i, col in enumerate(row):
-                        row_data[headers[i]] = col
-                    self._initialization_data_dicts.append(row_data)
-        elif opts.get("data_json") is not None:
-            # TODO handle JSON directly
-            raise NotImplementedError(
-                "Parsing static tasks directly from JSON is not supported yet"
-            )
+        if opts.get("pairings_filepath") is not None:
+            pairings_filepath = os.path.expanduser(opts["pairings_filepath"])
+            with open(pairings_filepath, "r", encoding="utf-8-sig") as pairings_fp:
+                
+                self._initialization_data_dicts.append(row_data)
         elif opts.get("pairings_task_data") is not None:
             self._initialization_data_dicts = opts["pairings_task_data"]
         else:
@@ -65,16 +57,11 @@ class AcuteEvalBlueprint(Blueprint):
     @classmethod
     def assert_task_args(cls, opts: Any) -> None:
         """Ensure that the data can be properly loaded"""
-        if opts.get("data_csv") is not None:
-            csv_file = os.path.expanduser(opts["data_csv"])
+        if opts.get("pairings_filepath") is not None:
+            pairings_filepath = os.path.expanduser(opts["pairings_filepath"])
             assert os.path.exists(
-                csv_file
-            ), f"Provided csv file {csv_file} doesn't exist"
-        elif opts.get("data_json") is not None:
-            # TODO handle JSON directly
-            raise NotImplementedError(
-                "Parsing static tasks directly from JSON is not supported yet"
-            )
+                pairings_filepath,
+            ), f"Provided file {pairings_filepath} doesn't exist"
         elif opts.get("pairings_task_data") is not None:
             assert (
                 len(opts.get("pairings_task_data")) > 0
@@ -90,7 +77,7 @@ class AcuteEvalBlueprint(Blueprint):
         Adds required options for AcuteEvalBlueprints.
 
         task_source points to the file intending to be deployed for this task
-        data_csv has the data to be deployed for this task.
+        pairings_filepath has the data to be deployed for this task.
         """
         super(AcuteEvalBlueprint, cls).add_args_to_group(group)
 
@@ -102,10 +89,81 @@ class AcuteEvalBlueprint(Blueprint):
             pairings_task_data dict into extra_args.
         """
         group.add_argument(
-            "--data-csv",
-            dest="data_csv",
-            help="Path to csv file containing task data",
-            required=False,
+            '--annotations-per-pair',
+            dest="annotations_per_pair",
+            type=int,
+            default=1,
+            help='Number of annotations per conversation comparison pair',
+        )
+        group.add_argument(
+            '--pairings-filepath',
+            dest="pairings_filepath",
+            type=str,
+            default=None,
+            help='path to the file containing the task dictionaries',
+        )
+        # group.add_argument(
+        #     '--task-config',
+        #     type=dict,
+        #     default=DEFAULT_TASK_CONFIG,
+        #     help='dict with keys "hit_title", "hit_description", "hit_keywords", '
+        #     'determining how task is displayed on MTurk site',
+        # )
+        group.add_argument(
+            '--s1-choice',
+            dest="s1_choice",
+            type=str,
+            default='I would prefer to talk to <Speaker 1>',
+            help='text next to speaker 1 radio button',
+        )
+        group.add_argument(
+            '--s2-choice',
+            dest="s2_choice",
+            type=str,
+            default='I would prefer to talk to <Speaker 2>',
+            help='text next to speaker 2 radio button',
+        )
+        group.add_argument(
+            '--eval-question',
+            dest="eval_question",
+            type=str,
+            default='Who would you prefer to talk to for a long conversation?',
+            help='question to present to turker for comparison (e.g. "Which speaker is better?")',
+        )
+        group.add_argument(
+            '--block-on-onboarding-fail',
+            dest="block_on_onboarding_fail",
+            type=bool,
+            default=True,
+            help='whether to block on onboarding failure',
+        )
+        group.add_argument(
+            '--subtasks-per-unit',
+            dest="subtasks_per_unit",
+            type=int,
+            default=5,
+            help='number of subtasks/comparisons to do per unit',
+        )
+        group.add_argument(
+            '--onboarding-threshold',
+            dest="onboarding_threshold",
+            type=float,
+            default=0.75,
+            help='minimum accuracy on onboarding tasks, as a float 0-1.0',
+        )
+        group.add_argument(
+            '--random-seed', 
+            dest="random_seed", 
+            type=int, 
+            default=42, 
+            help='seed for random',
+        )
+        group.add_argument(
+            '--softblock-list-path',
+            dest="softblock_list_path",
+            type=str,
+            default=None,
+            help='Path to list of workers to softblock, separated by line breaks',
         )
         return
 
@@ -113,6 +171,7 @@ class AcuteEvalBlueprint(Blueprint):
         """
         Return the InitializationData retrieved from the specified stream
         """
+        # TODO nothing needs to go into here
         return [
             InitializationData(
                 shared=d, unit_data=[{}]
