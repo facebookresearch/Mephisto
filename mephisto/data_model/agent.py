@@ -157,6 +157,8 @@ class Agent(ABC):
         """Update the database status of this agent, and
         possibly send a message to the frontend agent informing
         them of this update"""
+        if self.db_status == new_status:
+            return  # Noop, this is already the case
         assert (
             self.db_status not in AgentState.complete()
         ), f"Cannot update a final status, was {self.db_status} and want to set to {new_status}"

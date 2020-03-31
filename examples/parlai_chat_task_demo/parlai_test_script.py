@@ -6,10 +6,9 @@ from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 
 USE_LOCAL = True
+DEMO_CUSTOM_BUNDLE = False
 
 db = LocalMephistoDB()
-
-operator = Operator(db)
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/parlai_chat_task_demo")
 
@@ -52,8 +51,22 @@ ARG_STRING = (
     "--num-conversations 1 "
 )
 
+world_opt = {"num_turns": 3}
+
+if DEMO_CUSTOM_BUNDLE:
+    bundle_file_path = f"{TASK_DIRECTORY}/source/build/bundle.js"
+    assert os.path.exists(bundle_file_path), (
+        "Must build the custom bundle with `npm install; npm run dev` from within "
+        f"the {TASK_DIRECTORY}/source directory in order to demo a custom bundle "
+    )
+    world_opt["send_task_data"] = True
+    ARG_STRING += f"--custom-source-bundle {bundle_file_path} "
+
+extra_args = {"world_opt": world_opt}
+
 try:
-    operator.parse_and_launch_run(shlex.split(ARG_STRING))
+    operator = Operator(db)
+    operator.parse_and_launch_run(shlex.split(ARG_STRING), extra_args=extra_args)
     print("task run supposedly launched?")
     print(operator.get_running_task_runs())
     while len(operator.get_running_task_runs()) > 0:

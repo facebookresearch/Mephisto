@@ -135,7 +135,23 @@ class ParlAIChatBlueprint(Blueprint):
                 "Must specify one of --context-csv or --num-conversations"
             )
 
-        # TODO assert source files exist when source files are implemented
+        if args.get("custom_source_bundle") is not None:
+            custom_source_file_path = os.path.expanduser(args["custom_source_bundle"])
+            assert os.path.exists(
+                custom_source_file_path
+            ), f"Provided custom source doesn't exist at {custom_source_file_path}"
+
+        if args.get("preview_source") is not None:
+            preview_source_file = os.path.expanduser(args["preview_source"])
+            assert os.path.exists(
+                preview_source_file
+            ), f"Provided preview source doesn't exist at {preview_source_file}"
+
+        if args.get("extra_source_dir") is not None:
+            extra_source_dir = os.path.expanduser(args["extra_source_dir"])
+            assert os.path.exists(
+                extra_source_dir
+            ), f"Provided extra resource dir doesn't exist at {extra_source_dir}"
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
@@ -174,7 +190,7 @@ class ParlAIChatBlueprint(Blueprint):
         )
         group.add_argument(
             "--custom-source-bundle",
-            dest="custom_source-bundle",
+            dest="custom_source_bundle",
             help="Optional path to a fully custom frontend bundle",
         )
         group.add_argument(

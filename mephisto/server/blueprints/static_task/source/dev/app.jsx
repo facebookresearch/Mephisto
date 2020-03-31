@@ -125,7 +125,8 @@ class MainApp extends React.Component {
     if (this.state.task_data !== null) {
       for (let [key, value] of Object.entries(this.state.task_data)) {
         let find_string = "${" + key + "}";
-        fin_html = fin_html.replace(find_string, value);
+        // Could be better done with a regex for performant code
+        fin_html = fin_html.split(find_string).join(value);
       }
     }
 
