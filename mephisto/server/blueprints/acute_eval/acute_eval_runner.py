@@ -10,7 +10,7 @@ import os
 import time
 import threading
 
-from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -27,17 +27,17 @@ DEFAULT_TASK_CONFIG = {
     'hit_keywords': 'chat,evaluation,comparison,conversation',
 }
 
-AGENT_DISPLAY_NAME = 'RatingWorker'
 
-
-class AcuteEvaluator():
+# TODO ask the run to enqueue new tasks when running out and still
+# unfinished tasks remain.
+class AcuteEvalRunner(TaskRunner):
     """
-    Run ACUTE Eval.
+    Managing class for the acute evaluator process
 
     Relevant args are parsed in the `setup_args` function above.
     """
 
-    def __init__(self, opt):
+    def __init__(self, task_run: "TaskRun", opts: Any):
         """
         Initialize the AcuteEvaluator.
 
@@ -52,13 +52,14 @@ class AcuteEvaluator():
         ``worker_data``: A mapping from worker ID to data about the worker, including
         their tasks completed, conversations seen, and onboarding todo
 
-        ``failed_onboard``:   The set of workers who have failed onboarding
-        """
-        random.seed(opt['seed'])
-        self.opt = opt
+        ``failed_onboard``: The set of workers who have failed onboarding
 
-        # add additional opt args
-        self._supplement_opt()
+        ``unit_agent_map``: Map from unit id to the worker_id and task data for cleanup
+        """
+        super().__init__(task_run, opts)
+        random.seed(opt['seed'])
+        self.is_concurrent = False
+        self.opt = opt
 
         # class attributes
         self.onboarding_tasks: List[Dict] = []
@@ -66,15 +67,13 @@ class AcuteEvaluator():
         self.task_queue: queue.Queue = queue.Queue()
         self.worker_data: Dict[str, Dict[str, List]] = {}
         self.failed_onboard: Set = set()
+        self.unit_agent_map: Dict[str, Tuple[str, Dict[str, Any]]] = {}
 
         # read in conversations data
         self._load_conversation_data()
 
         # setup the task queue
         self._setup_task_queue()
-
-        # instantiate Manager
-        self.manager = StaticMTurkManager(opt=self.opt)
 
     def _get_worker_data(self, worker_id: str) -> Dict[str, List]:
         """
@@ -92,40 +91,29 @@ class AcuteEvaluator():
         )
         return self.worker_data[worker_id]
 
-    def _supplement_opt(self):
-        """
-        Add additional args to opt.
-
-        Useful to add relevant options after args are parsed.
-        """
-        self.opt.update(
-            {
-                'task': os.path.basename(os.path.dirname(os.path.abspath(__file__))),
-                'task_description': {
-                    'num_subtasks': self.opt['subtasks_per_hit'],
-                    'question': self.opt['question'],
-                },
-                'frontend_version': 1,
-            }
-        )
-        self.opt.update(self.opt['task_config'])
-
-    def set_block_qual(self, task_group_id: str):
+    def set_block_qual(self, task_id: str):
         """
         Set block qualification if necessary.
 
-        :param task_group_id:
+        :param task_id:
             task id used to set block qualification, if necessary.
         """
-        if (
-            self.opt['block_on_onboarding_fail']
-            and self.opt['block_qualification'] is None
-        ):
-            self.opt['block_qualification'] = task_group_id
-            warn_once(
-                "No block_qualification set in opt, automatically creating "
-                "new qualification {}".format(task_group_id)
+        if self.opt['block_on_onboarding_fail']:
+            self.block_qualification = self.opt['block_qualification']
+            if self.block_qualification is None:
+                self.block_qualification = f"{task_id}_failed_onboarding"
+                self.opt['block_qualification'] = default_block_qualification
+                warn_once(
+                    "No block_qualification set in opt, automatically creating "
+                    "new qualification {}".format(default_block_qualification)
+                )
+            found_qualifications = self.db.find_qualifications(
+                self.block_qualification 
             )
+            if len(found_qualifications) == 0:
+                self.db.make_qualification(
+                    self.block_qualification 
+                )
 
     def _load_conversation_data(self):
         """
@@ -133,9 +121,13 @@ class AcuteEvaluator():
 
         Loads in the data from the pairs filepath.
         """
+        preset_pairs = self.opts.get("pairings_task_data")
+        if preset_pairs is not None:
+            self.onboarding_tasks = preset_pairs['onboarding'] 
+            self.desired_tasks = preset_pairs['desired']
+            return
+
         pairs_path = self.opt.get('pairings_filepath')
-        if not os.path.exists(pairs_path):
-            raise RuntimeError('You MUST specify a valid pairings filepath')
 
         with open(pairs_path) as pf:
             for i, l in enumerate(pf.readlines()):
@@ -230,7 +222,7 @@ class AcuteEvaluator():
                 worker_data['tasks_completed'].append(pair_id)
                 worker_data['conversations_seen'].extend(dialogue_ids)
                 task_data.append(next_task)
-                if len(task_data) == self.opt['subtasks_per_hit']:
+                if len(task_data) == self.opt['subtasks_per_unit']:
                     return task_data
             else:
                 self.task_queue.put(next_task)
@@ -244,7 +236,7 @@ class AcuteEvaluator():
         Top up worker task data.
 
         This function is called if ``self.task_queue`` is exhausted but
-        task_data for the worker is less than the `tasks_per_hit`.
+        task_data for the worker is less than the `tasks_per_unit`.
 
         Make sure that all added tasks have not been seen by the worker.
 
@@ -258,7 +250,7 @@ class AcuteEvaluator():
             a list of tasks for a worker to complete
         """
         worker_data = self._get_worker_data(worker_id)
-        tasks_still_needed = self.opt['subtasks_per_hit'] - len(task_data)
+        tasks_still_needed = self.opt['subtasks_per_unit'] - len(task_data)
         tasks_remaining = [
             t_id
             for t_id in range(len(self.desired_tasks))
@@ -301,18 +293,18 @@ class AcuteEvaluator():
         :return task_data:
             A list of tasks for the worker to complete
         """
-        tasks_per_hit = self.opt['subtasks_per_hit']
+        tasks_per_unit = self.opt['subtasks_per_unit']
         # first add onboarding tasks
         task_data = self.get_onboarding_tasks(worker_id)
-        if len(task_data) == tasks_per_hit:
+        if len(task_data) == tasks_per_unit:
             return task_data
 
         # poll the task queue for more tasks
         task_data = self._poll_task_queue(worker_id, task_data)
-        if len(task_data) == tasks_per_hit:
+        if len(task_data) == tasks_per_unit:
             return task_data
 
-        # top up the task_data if we don't hit the desired tasks_per_hit
+        # top up the task_data if we don't hit the desired tasks_per_unit
         task_data = self._top_up_task_data(worker_id, task_data)
         return task_data
 
@@ -342,7 +334,7 @@ class AcuteEvaluator():
                 except ValueError:
                     # Task may have shown up in worker's task queue twice
                     # due to some unfortunate race condition
-                    warn_once(f'could not remove task from worker {worker_id} history')
+                    print(f'could not remove task from worker {worker_id} history')
 
     def get_onboarding_tasks(self, worker_id: str) -> List[Dict[str, Any]]:
         """
@@ -363,23 +355,27 @@ class AcuteEvaluator():
             # worker has completed all required onboarding tasks
             return []
         # get onboarding tasks for workers needing them
-        num_tasks_to_return = min(len(onboarding_todo), self.opt['subtasks_per_hit'])
+        num_tasks_to_return = min(len(onboarding_todo), self.opt['subtasks_per_unit'])
         onboarding_tasks_chosen = onboarding_todo[:num_tasks_to_return]
         worker_data['onboarding_todo'] = onboarding_todo[num_tasks_to_return:]
         return [self.onboarding_tasks[t_id] for t_id in onboarding_tasks_chosen]
 
     def check_and_update_worker_approval(
-        self, worker_id: str, save_data: Dict[str, Any]
+        self, agent: "Agent", save_data: Dict[str, Any]
     ):
         """
         Soft block workers who fail onboarding tasks, keep track of their status.
 
-        :param worker_id:
-            worker id
+        :param agent:
+            Agent that the worker completed the task with.
 
         :param save_data:
             data from the worker's completed tasks
         """
+        # TODO remove after I find out what this is
+        print(save_data)
+        worker = agent.get_worker()
+        worker_id = worker.db_id
         all_task_data = save_data['worker_data'][worker_id]['task_data']
         response_data = save_data['worker_data'][worker_id]['response']['task_data']
         num_onboarding_tasks = 0
@@ -406,9 +402,10 @@ class AcuteEvaluator():
             # worker passed onboarding
             return
         # worker failed onboarding, soft block and record
-        self.manager.soft_block_worker(worker_id)
+        worker.qualify(self.block_qualification)
         self.failed_onboard.add(worker_id)
 
+    # TODO this should be a util in a provider, not here
     def softblock_workers(self):
         """
         Softblock workers if necessary.
@@ -427,80 +424,6 @@ class AcuteEvaluator():
                     print(f'Did not soft block worker {w}: {e}')
                 time.sleep(0.1)
 
-    def run(self):
-        self.manager.setup_server(
-            task_directory_path=os.path.dirname(os.path.abspath(__file__))
-        )
-        self.manager.set_onboard_function(onboard_function=None)
-        task_group_id: str = None
-
-        try:
-            # Initialize run information
-            self.manager.start_new_run()
-
-            task_group_id = self.manager.task_group_id
-            self.set_block_qual(task_group_id)
-            self.manager.ready_to_accept_workers()
-            self.manager.create_hits()
-
-            def check_worker_eligibility(worker):
-                return True
-
-            def assign_worker_roles(workers):
-                workers[0].id = AGENT_DISPLAY_NAME
-
-            def run_conversation(mturk_manager, opt, workers):
-                task_data = self.get_new_task_data(workers[0].worker_id)
-                world = StaticMTurkTaskWorld(
-                    opt, mturk_agent=workers[0], task_data=task_data
-                )
-                while not world.episode_done():
-                    world.parley()
-
-                world.shutdown()
-
-                save_data = world.prep_save_data(workers)
-
-                if not world.did_complete():
-                    self.requeue_task_data(workers[0].worker_id, task_data)
-                else:
-                    if opt['block_on_onboarding_fail']:
-                        # check whether workers failed onboarding
-                        self.check_and_update_worker_approval(
-                            workers[0].worker_id, save_data
-                        )
-                return save_data
-
-            # Soft-block all chosen workers
-            self.softblock_workers()
-            print("This run id: {}".format(task_group_id))
-
-            # Begin the task, allowing mturk_manager to start running the task
-            # world on any workers who connect
-            self.manager.start_task(
-                eligibility_function=check_worker_eligibility,
-                assign_role_function=assign_worker_roles,
-                task_function=run_conversation,
-            )
-        finally:
-            self.manager.expire_all_unassigned_hits()
-            self.manager.shutdown()
-
-        return task_group_id
-
-
-class AcuteEvalRunner(TaskRunner):
-    """
-    Task runner for a static task
-
-    Static tasks always assume single unit assignments,
-    as only one person can work on them at a time
-    """
-
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        super().__init__(task_run, opts)
-        self.is_concurrent = False
-
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """
         Return the data for an agent already assigned to a particular unit
@@ -510,10 +433,11 @@ class AcuteEvalRunner(TaskRunner):
             # reconnecting agent, give what we've got
             return init_state
         else:
-            assignment = agent.get_unit().get_assignment()
-            assignment_data = self.get_data_for_assignment(assignment)
-            agent.state.set_init_state(assignment_data.shared)
-            return assignment_data.shared
+            worker = agent.get_worker()
+            task_data = self.get_new_task_data(worker.db_id)
+            agent.state.set_init_state(task_data)
+            self.unit_agent_map[agent.get_unit().db_id] = (worker.db_id, task_data)
+            return task_data
 
     def run_unit(self, unit: "Unit", agent: "Agent") -> None:
         """
@@ -523,12 +447,18 @@ class AcuteEvalRunner(TaskRunner):
         # Frontend implicitly asks for the initialization data, so we just need
         # to wait for a response
         agent_act = agent.act(timeout=TEST_TIMEOUT)
-        # TODO if agent_act is None, mark as incomplete?
+        print(agent_act)
+        if opt['block_on_onboarding_fail']:
+            # check whether workers failed onboarding
+            self.check_and_update_worker_approval(
+                workers[0].worker_id, save_data
+            )
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """
         An incomplete task needs to have the contents of that task requeued
         into the overall task queue.
         """
-        # TODO implement
-        return
+        worker_id, task_data = self.unit_agent_map[unit.db_id]
+        del self.unit_agent_map[unit.db_id]
+        self.requeue_task_data(worker_id, task_data)

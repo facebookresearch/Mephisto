@@ -158,14 +158,27 @@ class AcuteEvalBlueprint(Blueprint):
             default=42, 
             help='seed for random',
         )
-        group.add_argument(
-            '--softblock-list-path',
-            dest="softblock_list_path",
-            type=str,
-            default=None,
-            help='Path to list of workers to softblock, separated by line breaks',
-        )
+        # group.add_argument(
+        #     '--softblock-list-path',
+        #     dest="softblock_list_path",
+        #     type=str,
+        #     default=None,
+        #     help='Path to list of workers to softblock, separated by line breaks',
+        # )
         return
+
+    def get_frontend_args(self) -> Dict[str, Any]:
+        """
+        Specifies what options within a task_config should be fowarded 
+        to the client for use by the task's frontend
+        """
+        return {
+            "task_description": "Placeholder Task Description - Javascript failed to load",
+            "frame_height": 650,
+            'num_subtasks': self.opt['subtasks_per_unit'],
+            'question': self.opt['eval_question'],
+            "block_mobile": True,
+        }
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
         """
