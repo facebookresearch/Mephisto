@@ -3,7 +3,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-from parlai.mturk.tasks.acute_eval.run import AcuteEvaluator, add_args
+import os
+import time
+import shlex
+from mephisto.core.local_database import LocalMephistoDB
+from mephisto.core.operator import Operator
+from mephisto.core.utils import get_root_dir
+
 
 """
 Example script for running ACUTE-EVAL.
@@ -19,47 +25,79 @@ The following args are useful to tweak to fit your specific needs;
 Help strings for the other arguments can be found in run.py.
 """
 
+USE_LOCAL = True
 
-def set_args():
-    args = add_args()
-    # pairings file
-    args['pairings_filepath'] = 'parlai/mturk/tasks/acute_eval/example/pairings.jsonl'
+db = LocalMephistoDB()
 
-    # onboarding and blocking
-    args['block_on_onboarding_fail'] = True
-    args['block_qualification'] = 'onboarding_qual_name'
+TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/acute_eval_demo")
 
-    # general ParlAI mturk settings
-    args['assignment_duration_in_seconds'] = 600
-    args['reward'] = 0.5  # amount to pay workers per hit
-    args['max_hits_per_worker'] = 2  # max # hits a worker may complete
-    args['is_sandbox'] = True  # set to False to release real hits
+# ARG_STRING goes through shlex.split twice, hence be careful if these
+# strings contain anything which needs quoting.
+task_title = 'Which Conversational Partner is Better?'
+task_description = 'Evaluate quality of conversations through comparison.'
+hit_keywords = 'chat,evaluation,comparison,conversation'
 
-    args['annotations_per_pair'] = 1  # num times to use the same conversation pair
-    args['num_matchup_pairs'] = 2  # num pairs of conversations to be compared
-    args['seed'] = 42  # random seed
-    args['subtasks_per_hit'] = 2  # num comparisons to show within one hit
+provider_type = "mock" if USE_LOCAL else "mturk_sandbox"
+architect_type = "local" if USE_LOCAL else "heroku"
+
+# The first time round, need to call the following here.
+# TODO make this more user friendly than needing to uncomment script lines
+# db.new_requester("<some_email_address>", "mock")
+# db.new_requester("<your_email_address>_sandbox", "mturk_sandbox")
+
+requester = db.find_requesters(provider_type=provider_type)[-1]
+requester_name = requester.requester_name
+assert USE_LOCAL or requester_name.endswith(
+    "_sandbox"
+), "Should use a sandbox for testing"
+
+# The first time using mturk, need to call the following here
+# requester.register()
+
+ARG_STRING = (
+    "--blueprint-type acute_eval "
+    f"--architect-type {architect_type} "
+    f"--requester-name {requester_name} "
+    f'--task-title "\\"{task_title}\\"" '
+    f'--task-description "\\"{task_description}\\"" '
+    "--task-reward 0.5 "
+    f"--task-tags {hit_keywords} "
+)
+
+extra_args = {
+    'pairings_filepath': f"{TASK_DIRECTORY}/pairings.jsonl",
+    'block_on_onboarding_fail': True,
+    'block_qualification': 'onboarding_qual_name',
+    'annotations_per_pair': 1,  # num times to use the same conversation pair
+    'num_matchup_pairs': 2,  # num pairs of conversations to be compared
+    'random_seed': 42,  # random seed
+    'subtasks_per_hit': 2,  # num comparisons to show within one hit
 
     # question phrasing
-    args['s1_choice'] = 'I would prefer to talk to <Speaker 1>'
-    args['s2_choice'] = 'I would prefer to talk to <Speaker 2>'
-    args['question'] = 'Who would you prefer to talk to for a long conversation?'
+    's1_choice': 'I would prefer to talk to <Speaker 1>',
+    's2_choice': 'I would prefer to talk to <Speaker 2>',
+    'eval_question': 'Who would you prefer to talk to for a long conversation?',
+}
 
-    args['num_conversations'] = int(
-        args['num_matchup_pairs'] / max((args['subtasks_per_hit'] - 1), 1)
-    )  # release enough hits to finish all annotations requested
+try:
+    operator = Operator(db)
+    operator.parse_and_launch_run(shlex.split(ARG_STRING))
+    print("task run supposedly launched?")
+    print(operator.get_running_task_runs())
+    while len(operator.get_running_task_runs()) > 0:
+        print(f"Operator running {operator.get_running_task_runs()}")
+        time.sleep(10)
+except Exception as e:
+    import traceback
 
-    # Task display on MTurk
-    args['task_config'] = {
-        'hit_title': 'Which Conversational Partner is Better?',
-        'hit_description': 'Evaluate quality of conversations through comparison.',
-        'hit_keywords': 'chat,evaluation,comparison,conversation',
-    }
-
-    return args
+    traceback.print_exc()
+except (KeyboardInterrupt, SystemExit) as e:
+    pass
+finally:
+    operator.shutdown()
 
 
-if __name__ == '__main__':
-    args = set_args()
-    runner = AcuteEvaluator(args)
-    runner.run()
+# TODO these args are not yet configurable in mephisto
+# args['assignment_duration_in_seconds'] = 600
+# args['max_hits_per_worker'] = 2  # max # hits a worker may complete
+# args['allowed_conversations'] = 1

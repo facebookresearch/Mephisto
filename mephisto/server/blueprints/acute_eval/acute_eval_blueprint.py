@@ -43,16 +43,12 @@ class AcuteEvalBlueprint(Blueprint):
         super().__init__(task_run, opts)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         task_file_name = os.path.basename(self.html_file)
-        if opts.get("pairings_filepath") is not None:
-            pairings_filepath = os.path.expanduser(opts["pairings_filepath"])
-            with open(pairings_filepath, "r", encoding="utf-8-sig") as pairings_fp:
-                
-                self._initialization_data_dicts.append(row_data)
-        elif opts.get("pairings_task_data") is not None:
-            self._initialization_data_dicts = opts["pairings_task_data"]
-        else:
-            # instantiating a version of the blueprint, but not necessarily needing the data
-            pass
+        # TODO once we can release HITs over time, configure this to 
+        # release as many as needed thusfar and top off when 
+        # onboardings fail
+        self.num_conversations = int(
+            args['num_matchup_pairs'] / max((args['subtasks_per_hit'] - 1), 1)
+        )  # release enough hits to finish all annotations requested
 
     @classmethod
     def assert_task_args(cls, opts: Any) -> None:
@@ -187,7 +183,7 @@ class AcuteEvalBlueprint(Blueprint):
         # TODO nothing needs to go into here
         return [
             InitializationData(
-                shared=d, unit_data=[{}]
+                shared={}, unit_data=[{}]
             )
-            for d in self._initialization_data_dicts
+            for d in range(self.num_conversations)
         ]
