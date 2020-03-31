@@ -63,6 +63,7 @@ class AcuteEvalBuilder(TaskBuilder):
 
         # Copy the built core and the given task file to the target path
         bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, "bundle.js")
+        target_resource_dir = os.path.join(build_dir, "static")
         target_path = os.path.join(target_resource_dir, "bundle.js")
         shutil.copy2(bundle_js_file, target_path)
 

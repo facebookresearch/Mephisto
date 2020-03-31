@@ -10,8 +10,6 @@ from mephisto.server.blueprints.acute_eval.acute_eval_agent_state import AcuteEv
 from mephisto.server.blueprints.acute_eval.acute_eval_runner import AcuteEvalRunner
 from mephisto.server.blueprints.acute_eval.acute_eval_builder import AcuteEvalBuilder
 
-import json
-import queue
 import random
 import os
 import time
@@ -34,21 +32,10 @@ class AcuteEvalBlueprint(Blueprint):
     """
 
     AgentStateClass: ClassVar[Type["AgentState"]] = AcuteEvalAgentState
-    TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = AcuteEvalRunner
-    TaskRunnerClass: ClassVar[Type["TaskRunner"]] = AcuteEvalBuilder
+    TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = AcuteEvalBuilder
+    TaskRunnerClass: ClassVar[Type["TaskRunner"]] = AcuteEvalRunner
     supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
-
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        super().__init__(task_run, opts)
-        self._initialization_data_dicts: List[Dict[str, Any]] = []
-        task_file_name = os.path.basename(self.html_file)
-        # TODO once we can release HITs over time, configure this to 
-        # release as many as needed thusfar and top off when 
-        # onboardings fail
-        self.num_conversations = int(
-            args['num_matchup_pairs'] / max((args['subtasks_per_hit'] - 1), 1)
-        )  # release enough hits to finish all annotations requested
 
     @classmethod
     def assert_task_args(cls, opts: Any) -> None:
@@ -171,8 +158,8 @@ class AcuteEvalBlueprint(Blueprint):
         return {
             "task_description": "Placeholder Task Description - Javascript failed to load",
             "frame_height": 650,
-            'num_subtasks': self.opt['subtasks_per_unit'],
-            'question': self.opt['eval_question'],
+            'num_subtasks': self.opts['subtasks_per_unit'],
+            'question': self.opts['eval_question'],
             "block_mobile": True,
         }
 
@@ -180,10 +167,16 @@ class AcuteEvalBlueprint(Blueprint):
         """
         Return the InitializationData retrieved from the specified stream
         """
-        # TODO nothing needs to go into here
+        # TODO once we can release HITs over time, configure this to 
+        # release as many as needed thusfar and top off when 
+        # onboardings fail
+        print(self.opts)
+        num_conversations = int(
+            self.opts['num_matchup_pairs'] / max((self.opts['subtasks_per_unit'] - 1), 1)
+        )  # release enough hits to finish all annotations requested
         return [
             InitializationData(
                 shared={}, unit_data=[{}]
             )
-            for d in range(self.num_conversations)
+            for d in range(num_conversations)
         ]

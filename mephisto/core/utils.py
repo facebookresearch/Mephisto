@@ -178,6 +178,12 @@ def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
         )
 
         return ParlAIChatBlueprint
+    if task_type == "acute_eval":
+        from mephisto.server.blueprints.acute_eval.acute_eval_blueprint import (
+            AcuteEvalBlueprint,
+        )
+
+        return AcuteEvalBlueprint
     raise NotImplementedError(f"Missing task type {task_type}")
 
 
@@ -225,7 +231,7 @@ def get_valid_blueprint_types() -> List[str]:
     Return the valid provider types that are currently supported by
     the mephisto framework
     """
-    return ["mock", "static", "parlai_chat"]
+    return ["mock", "static", "parlai_chat", "acute_eval"]
 
 
 @functools.lru_cache(maxsize=1)

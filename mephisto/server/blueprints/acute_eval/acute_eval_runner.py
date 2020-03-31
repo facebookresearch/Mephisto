@@ -9,6 +9,9 @@ from mephisto.data_model.blueprint import TaskRunner
 import os
 import time
 import threading
+import random
+import queue
+import json
 
 from typing import ClassVar, List, Type, Any, Dict, Tuple, TYPE_CHECKING
 
@@ -57,9 +60,8 @@ class AcuteEvalRunner(TaskRunner):
         ``unit_agent_map``: Map from unit id to the worker_id and task data for cleanup
         """
         super().__init__(task_run, opts)
-        random.seed(opt['seed'])
+        random.seed(opts['random_seed'])
         self.is_concurrent = False
-        self.opt = opt
 
         # class attributes
         self.onboarding_tasks: List[Dict] = []
@@ -98,11 +100,11 @@ class AcuteEvalRunner(TaskRunner):
         :param task_id:
             task id used to set block qualification, if necessary.
         """
-        if self.opt['block_on_onboarding_fail']:
-            self.block_qualification = self.opt['block_qualification']
+        if self.opts['block_on_onboarding_fail']:
+            self.block_qualification = self.opts['block_qualification']
             if self.block_qualification is None:
                 self.block_qualification = f"{task_id}_failed_onboarding"
-                self.opt['block_qualification'] = default_block_qualification
+                self.opts['block_qualification'] = default_block_qualification
                 warn_once(
                     "No block_qualification set in opt, automatically creating "
                     "new qualification {}".format(default_block_qualification)
@@ -127,7 +129,7 @@ class AcuteEvalRunner(TaskRunner):
             self.desired_tasks = preset_pairs['desired']
             return
 
-        pairs_path = self.opt.get('pairings_filepath')
+        pairs_path = self.opts.get('pairings_filepath')
 
         with open(pairs_path) as pf:
             for i, l in enumerate(pf.readlines()):
@@ -143,9 +145,9 @@ class AcuteEvalRunner(TaskRunner):
                 model_left_idx = random.choice([0, 1])
                 task = {
                     'task_specs': {
-                        's1_choice': self.opt['s1_choice'],
-                        's2_choice': self.opt['s2_choice'],
-                        'question': self.opt['question'],
+                        's1_choice': self.opts['s1_choice'],
+                        's2_choice': self.opts['s2_choice'],
+                        'question': self.opts['eval_question'],
                         'is_onboarding': convo_pair['is_onboarding'],
                         'model_left': {
                             'name': eval_speakers[model_left_idx],
@@ -172,7 +174,7 @@ class AcuteEvalRunner(TaskRunner):
         """
         Fill task queue with conversation pairs.
         """
-        for _i in range(self.opt['annotations_per_pair']):
+        for _i in range(self.opts['annotations_per_pair']):
             all_task_keys = list(range(len(self.desired_tasks)))
             random.shuffle(all_task_keys)
             for p_id in all_task_keys:
@@ -222,7 +224,7 @@ class AcuteEvalRunner(TaskRunner):
                 worker_data['tasks_completed'].append(pair_id)
                 worker_data['conversations_seen'].extend(dialogue_ids)
                 task_data.append(next_task)
-                if len(task_data) == self.opt['subtasks_per_unit']:
+                if len(task_data) == self.opts['subtasks_per_unit']:
                     return task_data
             else:
                 self.task_queue.put(next_task)
@@ -250,7 +252,7 @@ class AcuteEvalRunner(TaskRunner):
             a list of tasks for a worker to complete
         """
         worker_data = self._get_worker_data(worker_id)
-        tasks_still_needed = self.opt['subtasks_per_unit'] - len(task_data)
+        tasks_still_needed = self.opts['subtasks_per_unit'] - len(task_data)
         tasks_remaining = [
             t_id
             for t_id in range(len(self.desired_tasks))
@@ -293,7 +295,7 @@ class AcuteEvalRunner(TaskRunner):
         :return task_data:
             A list of tasks for the worker to complete
         """
-        tasks_per_unit = self.opt['subtasks_per_unit']
+        tasks_per_unit = self.opts['subtasks_per_unit']
         # first add onboarding tasks
         task_data = self.get_onboarding_tasks(worker_id)
         if len(task_data) == tasks_per_unit:
@@ -355,7 +357,7 @@ class AcuteEvalRunner(TaskRunner):
             # worker has completed all required onboarding tasks
             return []
         # get onboarding tasks for workers needing them
-        num_tasks_to_return = min(len(onboarding_todo), self.opt['subtasks_per_unit'])
+        num_tasks_to_return = min(len(onboarding_todo), self.opts['subtasks_per_unit'])
         onboarding_tasks_chosen = onboarding_todo[:num_tasks_to_return]
         worker_data['onboarding_todo'] = onboarding_todo[num_tasks_to_return:]
         return [self.onboarding_tasks[t_id] for t_id in onboarding_tasks_chosen]
@@ -398,7 +400,7 @@ class AcuteEvalRunner(TaskRunner):
                 # worker already failed onboarding, add pairings back to queue
                 self.requeue_task_data(worker_id, all_task_data)
             return
-        if (num_correct / num_onboarding_tasks) >= self.opt['onboarding_threshold']:
+        if (num_correct / num_onboarding_tasks) >= self.opts['onboarding_threshold']:
             # worker passed onboarding
             return
         # worker failed onboarding, soft block and record
@@ -410,9 +412,9 @@ class AcuteEvalRunner(TaskRunner):
         """
         Softblock workers if necessary.
         """
-        if not self.opt['is_sandbox'] and self.opt['softblock_list_path'] is not None:
+        if not self.opts['is_sandbox'] and self.opts['softblock_list_path'] is not None:
             softblock_list = set()
-            with open(self.opt['softblock_list_path']) as f:
+            with open(self.opts['softblock_list_path']) as f:
                 for line in f:
                     softblock_list.add(line.strip())
             print(f'Will softblock {len(softblock_list):d} workers.')

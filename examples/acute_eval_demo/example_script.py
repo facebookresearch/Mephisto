@@ -20,7 +20,7 @@ The following args are useful to tweak to fit your specific needs;
     - ``annotations_per_pair``: A useful arg if you'd like to evaluate a given conversation pair
                                 more than once.
     - ``num_matchup_pairs``:    Essentially, how many pairs of conversations you would like to evaluate
-    - ``subtasks_per_hit``:     How many comparisons you'd like a turker to complete in one HIT
+    - ``subtasks_per_unit``:     How many comparisons you'd like a turker to complete in one HIT
 
 Help strings for the other arguments can be found in run.py.
 """
@@ -62,6 +62,8 @@ ARG_STRING = (
     f'--task-description "\\"{task_description}\\"" '
     "--task-reward 0.5 "
     f"--task-tags {hit_keywords} "
+    f"--subtasks-per-unit 2 " # num comparisons to show within one unit
+
 )
 
 extra_args = {
@@ -69,9 +71,9 @@ extra_args = {
     'block_on_onboarding_fail': True,
     'block_qualification': 'onboarding_qual_name',
     'annotations_per_pair': 1,  # num times to use the same conversation pair
-    'num_matchup_pairs': 2,  # num pairs of conversations to be compared
     'random_seed': 42,  # random seed
-    'subtasks_per_hit': 2,  # num comparisons to show within one hit
+    'subtasks_per_unit': 2,  # num comparisons to show within one hit
+    'num_matchup_pairs': 2, # num pairs of conversations to be compared
 
     # question phrasing
     's1_choice': 'I would prefer to talk to <Speaker 1>',
@@ -81,7 +83,7 @@ extra_args = {
 
 try:
     operator = Operator(db)
-    operator.parse_and_launch_run(shlex.split(ARG_STRING))
+    operator.parse_and_launch_run(shlex.split(ARG_STRING), extra_args=extra_args)
     print("task run supposedly launched?")
     print(operator.get_running_task_runs())
     while len(operator.get_running_task_runs()) > 0:
@@ -99,5 +101,5 @@ finally:
 
 # TODO these args are not yet configurable in mephisto
 # args['assignment_duration_in_seconds'] = 600
-# args['max_hits_per_worker'] = 2  # max # hits a worker may complete
+# args['max_units_per_worker'] = 2  # max # hits a worker may complete
 # args['allowed_conversations'] = 1
