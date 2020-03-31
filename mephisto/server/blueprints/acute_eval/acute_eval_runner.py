@@ -298,16 +298,19 @@ class AcuteEvalRunner(TaskRunner):
         tasks_per_unit = self.opts['subtasks_per_unit']
         # first add onboarding tasks
         task_data = self.get_onboarding_tasks(worker_id)
+        print('Onboarding task data gotten: ', len(task_data))
         if len(task_data) == tasks_per_unit:
             return task_data
 
         # poll the task queue for more tasks
         task_data = self._poll_task_queue(worker_id, task_data)
+        print('Task queue data gotten: ', len(task_data))
         if len(task_data) == tasks_per_unit:
             return task_data
 
         # top up the task_data if we don't hit the desired tasks_per_unit
         task_data = self._top_up_task_data(worker_id, task_data)
+        print('Topped off data gotten: ', len(task_data))
         return task_data
 
     def requeue_task_data(self, worker_id: str, task_data: List[Dict[str, Any]]):
@@ -362,9 +365,7 @@ class AcuteEvalRunner(TaskRunner):
         worker_data['onboarding_todo'] = onboarding_todo[num_tasks_to_return:]
         return [self.onboarding_tasks[t_id] for t_id in onboarding_tasks_chosen]
 
-    def check_and_update_worker_approval(
-        self, agent: "Agent", save_data: Dict[str, Any]
-    ):
+    def check_and_update_worker_approval(self, agent: "Agent"):
         """
         Soft block workers who fail onboarding tasks, keep track of their status.
 
@@ -374,12 +375,11 @@ class AcuteEvalRunner(TaskRunner):
         :param save_data:
             data from the worker's completed tasks
         """
-        # TODO remove after I find out what this is
-        print(save_data)
         worker = agent.get_worker()
         worker_id = worker.db_id
-        all_task_data = save_data['worker_data'][worker_id]['task_data']
-        response_data = save_data['worker_data'][worker_id]['response']['task_data']
+        save_data = agent.state.get_data()
+        all_task_data = save_data['inputs']
+        response_data = save_data['outputs']['final_data']
         num_onboarding_tasks = 0
         num_correct = 0
 
@@ -449,12 +449,10 @@ class AcuteEvalRunner(TaskRunner):
         # Frontend implicitly asks for the initialization data, so we just need
         # to wait for a response
         agent_act = agent.act(timeout=TEST_TIMEOUT)
-        print(agent_act)
-        if opt['block_on_onboarding_fail']:
+        if self.opts['block_on_onboarding_fail']:
             # check whether workers failed onboarding
-            self.check_and_update_worker_approval(
-                workers[0].worker_id, save_data
-            )
+            self.check_and_update_worker_approval(agent)
+        print('Acute eval done for ', agent)
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """

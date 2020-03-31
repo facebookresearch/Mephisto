@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
 
-STATIC_TASK_DIR = os.path.dirname(__file__)
-FRONTEND_SOURCE_DIR = os.path.join(STATIC_TASK_DIR, "source")
+ACUTE_TASK_DIR = os.path.dirname(__file__)
+FRONTEND_SOURCE_DIR = os.path.join(ACUTE_TASK_DIR, "source")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
 
@@ -66,6 +66,12 @@ class AcuteEvalBuilder(TaskBuilder):
         target_resource_dir = os.path.join(build_dir, "static")
         target_path = os.path.join(target_resource_dir, "bundle.js")
         shutil.copy2(bundle_js_file, target_path)
+
+        copied_static_file = os.path.join(
+            FRONTEND_SOURCE_DIR, "dev", "static", "index.html"
+        )
+        target_path = os.path.join(target_resource_dir, "index.html")
+        shutil.copy2(copied_static_file, target_path)
 
         # Write a built file confirmation
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:

@@ -88,13 +88,13 @@ class StaticApp extends React.Component {
     super(props);
     
     this.state = {
-      task_data: {},
+      task_data: null,
     };
   }
 
-  handleIncomingTaskData(init_data) {
-    console.log('Got task data', init_data);
-    this.setState({task_data: init_data.task_data});
+  handleIncomingTaskData(task_data) {
+    console.log('Got task data', task_data);
+    this.setState({task_data: task_data});
   }
 
   componentDidMount() {
@@ -103,11 +103,14 @@ class StaticApp extends React.Component {
   }
 
   handleSubmit(data) {
-    postCompleteTask(this.state.agent_id, data);
+    postCompleteTask(this.props.agent_id, data);
     handleSubmitToProvider(data);
   }
 
   render() {
+    if (this.state.task_data === null) {
+      return <h1>Loading...</h1>
+    }
     return <BaseFrontend 
       task_config={this.props.task_config} 
       onSubmit={(data) => {this.handleSubmit(data)}}
@@ -212,7 +215,10 @@ class MainApp extends React.Component {
       if (this.state.task_config === null) {
         return <div>Loading...</div>;
       } else {
-        return <TaskDescription task_config={this.state.task_config} />;
+        return <TaskDescription 
+          task_config={this.state.task_config} 
+          is_cover_page={true}
+        />;
       }
     } else if (this.state.agent_id === null) {
       return <div>Loading...</div>;

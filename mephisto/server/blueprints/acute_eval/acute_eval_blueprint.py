@@ -161,6 +161,7 @@ class AcuteEvalBlueprint(Blueprint):
             'num_subtasks': self.opts['subtasks_per_unit'],
             'question': self.opts['eval_question'],
             "block_mobile": True,
+            'get_task_feedback': False, # TODO make option
         }
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:

@@ -8,6 +8,7 @@
 
 import React from 'react';
 import {
+  Button,
   Col,
   ControlLabel,
   Form,
@@ -154,12 +155,11 @@ class ChatPane extends React.Component {
     let top_pane_style = {
       width: "100%",
       position: "relative",
-      overflowY: "scroll"
     };
-
+    
     let chat_style = {
       width: "100%",
-      height: "100%",
+      height: this.state.chat_height + "px",
       paddingTop: "60px",
       paddingLeft: "20px",
       paddingRight: "20px",
@@ -175,7 +175,7 @@ class ChatPane extends React.Component {
 
     return (
       <div id="right-top-pane" style={top_pane_style}>
-        <Grid className="show-grid" style={{ width: "auto" }}>
+        <Grid className="show-grid" style={{ width: "auto", padding: "0px"}}>
           <Row>
             <Col sm={6}>
               <div id="message-pane-segment-left" style={chat_style}>
@@ -217,9 +217,22 @@ class EvalResponse extends React.Component {
     this.props.onInputResize();
   }
 
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (
+      nextProps.current_subtask_index != null &&
+      nextProps.current_subtask_index !== prevState.subtaskIndexSeen
+    ) {
+      return {
+        subtaskIndexSeen: nextProps.current_subtask_index,
+        textReason: "",
+        speakerChoice: ""
+      };
+    }
+    return {};
+   }
+
   checkValidData() {
-    console.log(this.state);
-    if (this.state.speakerChoice !== "") {
+    if (this.state.speakerChoice !== "" && this.state.textReason.length > 4) {
       let response_data = {
         speakerChoice: this.state.speakerChoice,
         textReason: this.state.textReason
@@ -231,7 +244,6 @@ class EvalResponse extends React.Component {
   }
 
   handleInputChange(event) {
-    console.log(event);
     let target = event.target;
     let value = target.value;
     let name = target.name;
@@ -241,7 +253,7 @@ class EvalResponse extends React.Component {
 
   handleEnterKey(event) {
     event.preventDefault();
-    if (this.props.task_done) {
+    if (this.props.should_submit) {
       this.props.allDoneCallback();
     } else if (this.props.subtask_done && this.props.show_next_task_button) {
       this.props.nextButtonCallback();
@@ -249,16 +261,7 @@ class EvalResponse extends React.Component {
   }
 
   render() {
-    if (
-      this.props.current_subtask_index != null &&
-      this.props.current_subtask_index !== this.state.subtaskIndexSeen
-    ) {
-      this.setState({
-        subtaskIndexSeen: this.props.current_subtask_index,
-        textReason: "",
-        speakerChoice: ""
-      });
-    }
+    console.log('Eval props', this.props);
     if (
       this.props.task_data === undefined ||
       this.props.task_data.task_specs === undefined
@@ -284,7 +287,7 @@ class EvalResponse extends React.Component {
           id="id_text_input"
           name="textReason"
           style={{
-            width: "80%",
+            width: "73%",
             height: "100%",
             float: "left",
             fontSize: "16px"
@@ -293,6 +296,20 @@ class EvalResponse extends React.Component {
           placeholder="Please enter here..."
           onChange={this.handleInputChange}
         />
+        <Button
+          className="btn-primary"
+          type="submit"
+          id="next_or_done_button"
+          style={{
+            width: "26%",
+            height: "100%",
+            float: "left",
+            fontSize: "16px"
+          }}
+          disabled={!(this.props.task_done || this.props.subtask_done)}
+        > 
+          {this.props.should_submit ? "SUBMIT TASK" : "NEXT"} 
+        </Button>
       </div>
     );
     let speaker1_div = <div style={speaker1_style}>Speaker 1</div>;
@@ -316,7 +333,7 @@ class EvalResponse extends React.Component {
         id="response-type-text-input"
         className="response-type-module"
         style={{
-          paddingTop: "15px",
+          padding: "15px",
           float: "left",
           width: "100%",
           backgroundColor: "#eeeeee"
@@ -330,7 +347,7 @@ class EvalResponse extends React.Component {
           <div className="container" style={{ width: "auto" }}>
             <ControlLabel> {form_question} </ControlLabel>
             <FormGroup>
-              <Col sm={6}>
+              <Col sm={6} style={{ padding: "0px" }}>
                 <Radio
                   name="speakerChoice"
                   value={s1_name}
@@ -341,7 +358,7 @@ class EvalResponse extends React.Component {
                   {choice1}
                 </Radio>
               </Col>
-              <Col sm={6}>
+              <Col sm={6} style={{ padding: "0px" }}>
                 <Radio
                   name="speakerChoice"
                   value={s2_name}
@@ -356,81 +373,6 @@ class EvalResponse extends React.Component {
             {text_reason}
           </div>
         </Form>
-      </div>
-    );
-  }
-}
-
-class DoneButton extends React.Component {
-  // This component is responsible for initiating the click
-  // on the mturk form's submit button.
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      feedback_shown: this.props.display_feedback,
-      feedback_given: null,
-    };
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.props.onInputResize !== undefined) {
-      this.props.onInputResize();
-    }
-  }
-
-  render() {
-    let review_flow = null;
-    let done_button = (
-      <button
-        id="done-button"
-        type="button"
-        className="btn btn-primary btn-lg"
-        onClick={() => this.props.allDoneCallback()}
-      >
-        <span className="glyphicon glyphicon-ok-circle" aria-hidden="true" />{' '}
-        Done with this HIT
-      </button>
-    );
-    return (
-      <div>
-        {review_flow}
-        <div>{done_button}</div>
-      </div>
-    );
-  }
-}
-
-class DoneResponse extends React.Component {
-  render() {
-    let inactive_pane = null;
-    if (this.props.done_text) {
-      inactive_pane = (
-        <span id="inactive" style={{ fontSize: '14pt', marginRight: '15px' }}>
-          {this.props.done_text}
-        </span>
-      );
-    }
-    // TODO maybe move to CSS?
-    let pane_style = {
-      paddingLeft: '25px',
-      paddingTop: '20px',
-      paddingBottom: '20px',
-      paddingRight: '25px',
-      float: 'left',
-    };
-    let done_button = <DoneButton {...this.props} />;
-    if (!this.props.task_done) {
-      done_button = null;
-    }
-    return (
-      <div
-        id="response-type-done"
-        className="response-type-module"
-        style={pane_style}
-      >
-        {inactive_pane}
-        {done_button}
       </div>
     );
   }
@@ -501,7 +443,7 @@ class TaskFeedbackPane extends React.Component {
         <div></div>
       );
     }
-    let text_question = "If you have any feedback regarding this hit, please leave it here.\nOtherwise, click the [Done with Hit] button on the left.";
+    let text_question = "If you have any feedback regarding this hit, please leave it here.\nOtherwise, click the [Done with Task] button.";
     let text_reason = (
       <div>
         <h3>(Optional)</h3>
@@ -534,6 +476,13 @@ class TaskFeedbackPane extends React.Component {
                 className="container"
                 style={{'width': 'auto',}}>
                 {text_reason}
+                <Button
+                  className="btn-primary"
+                  type="submit"
+                  id="done_button"
+                >
+                  Done with task
+                </Button>
               </div>
             </Form>
       </div>
@@ -543,22 +492,12 @@ class TaskFeedbackPane extends React.Component {
 
 class ResponsePane extends React.Component {
   render() {
-    let response_pane = null;
-    switch (this.props.task_state) {
-      case "done":
-        response_pane = <DoneResponse {...this.props} />;
-        break;
-      default:
-        response_pane = <EvalResponse {...this.props} />;
-        break;
-    }
-
     return (
       <div
         id="right-bottom-pane"
-        style={{ width: "100%", backgroundColor: "#eee" }}
+        style={{ backgroundColor: "#eee", position: "absolute", bottom: "0px" }}
       >
-        {response_pane}
+        <EvalResponse {...this.props} />
       </div>
     );
   }
@@ -566,11 +505,8 @@ class ResponsePane extends React.Component {
 
 class PairwiseEvalPane extends React.Component {
   handleResize() {
-    console.log("HANDLE RESIZE CALLED");
     if (this.chat_pane !== undefined && this.chat_pane !== null) {
-      console.log(this.chat_pane);
       if (this.chat_pane.handleResize !== undefined) {
-        console.log(this.chat_pane.handleResize);
         this.chat_pane.handleResize();
       }
     }
@@ -586,7 +522,7 @@ class PairwiseEvalPane extends React.Component {
     };
     if (
       this.props.current_subtask_index >=
-      this.props.task_description.num_subtasks
+      this.props.task_config.num_subtasks
     ) {
       return (
         <div id="right-pane" style={right_pane}>
@@ -600,12 +536,10 @@ class PairwiseEvalPane extends React.Component {
         </div>
       );
     }
-    console.log("RETURNING");
     return (
       <div id="right-pane" style={right_pane}>
         <ChatPane
           {...this.props}
-          message_count={this.props.messages.length}
           ref={pane => {
             this.chat_pane = pane;
           }}
@@ -619,28 +553,10 @@ class PairwiseEvalPane extends React.Component {
   }
 }
 
-class RightPane extends React.Component {
-  render() {
-    // TODO move to CSS
-    let right_pane = {
-      minHeight: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'spaceBetween',
-    };
-
-    return (
-      <div id="right-pane" style={right_pane}>
-        <PairwiseEvalPane {...this.props} />
-      </div>
-    );
-  }
-}
-
 class TaskDescription extends React.Component {
   render() {
     let header_text = "Which Conversational Partner is Better?";
-    if (this.props.task_description === null) {
+    if (this.props.task_config === null) {
       return <div>Loading</div>;
     }
     let task_config = this.props.task_config
@@ -712,8 +628,7 @@ class TaskDescription extends React.Component {
           <b>
             {" "}
             You will do this for {num_subtasks} pairs of conversations.&nbsp;
-            After completing each judgement, use the [NEXT] button (which will
-            appear below after you finish your judgement).
+            After completing each judgement, use the [NEXT] button.
           </b>
           <br />
         </div>
@@ -751,36 +666,46 @@ class LeftPane extends React.Component {
   }
 }
 
-class BaseFrontend extends React.Component {
+class MultitaskFrontend extends React.Component {
   constructor(props) {
     super(props);
 
-    // task_description is in task_config.task_description
     // frame_height is in task_config.frame_height
     // get_task_feedback is in task_config.get_task_feedback
     // TODO move constants to props rather than state
     this.state = {
       task_done: false,
       subtask_done: false,
-      task_data: {},
+      task_data: this.props.task_data[0],
       all_tasks_data: this.props.task_data,
-      num_subtasks: 0,
+      num_subtasks: this.props.task_config.num_subtasks,
       response_data: [],
-      current_subtask_index: null,
+      current_subtask_index: 0,
+      should_submit: false,
     };
   }
 
+  computeShouldSubmit(new_index) {
+    // Return true if either all tasks are done this round and there is no feedback 
+    // to do, or all tasks are done and we're on the feedback pane
+    return !(
+      (new_index < this.state.num_subtasks - 1 && !this.props.task_config.get_task_feedback) ||
+        (new_index == this.state.num_subtasks - 1 && this.props.task_config.get_task_feedback))
+  }
+
   onValidData(valid, response_data) {
+    console.log('onValidData', valid, response_data)
     let all_response_data = this.state.response_data;
     let show_next_task_button = false;
     let task_done = true;
     all_response_data[this.state.current_subtask_index] = response_data;
-    if ((this.state.current_subtask_index < this.state.num_subtasks - 1 ) ||
-          (this.state.current_subtask_index == this.state.num_subtasks - 1 &&
-            this.state.task_description.get_task_feedback)) {
+    if (!this.state.should_submit) {
       show_next_task_button = true;
       task_done = false;
     }
+    console.log('Current state: ', this.state.current_subtask_index, this.state.num_subtasks, this.props.task_config.get_task_feedback);
+    console.log('Computed show next task, task done', show_next_task_button, task_done, this.computeShouldSubmit());
+    console.log('Setting data for index {} to {}', this.state.current_subtask_index, response_data);
     this.setState(
       {
         show_next_task_button: show_next_task_button,
@@ -800,6 +725,7 @@ class BaseFrontend extends React.Component {
           task_data: Object.assign({}, this.state.task_data, {}),
           subtask_done: true,
           task_done: true,
+          should_submit: this.computeShouldSubmit(next_subtask_index),
         },
       );
     } else {
@@ -811,6 +737,7 @@ class BaseFrontend extends React.Component {
             this.state.task_data,
             this.state.all_tasks_data[next_subtask_index]),
           subtask_done: false,
+          should_submit: this.computeShouldSubmit(next_subtask_index),
         },
       );
     }
@@ -818,29 +745,26 @@ class BaseFrontend extends React.Component {
 
   render() {
     let task_config = this.props.task_config;
-    let done_button = null;
+    let frame_height = task_config.frame_height || 650;
     let passed_props = {
       onValidDataChange: (valid, data) => this.onValidData(valid, data),
       nextButtonCallback: () => this.nextButtonCallback(),
+      allDoneCallback: () => this.props.onSubmit(this.state.response_data),
+      show_next_task_button: this.state.show_next_task_button,
+      frame_height: frame_height,
       task_config: task_config,
-      next_subtask_index: this.state.next_subtask_index,
+      current_subtask_index: this.state.current_subtask_index,
+      num_subtasks: this.state.num_subtasks,
       task_data: this.state.task_data,
       task_done: this.state.task_done,
       subtask_done: this.state.subtask_done,
+      should_submit: this.state.should_submit,
     };
-    if (this.state.task_done) {
-      done_button = <DoneResponse {...this.passed_props} />
-    }
     return (
       <div className="container-fluid" id="ui-container">
-        <div className="row" id="ui-content">
-          <LeftPane
-            {...passed_props}
-            frame_height={frame_height}
-          >
-            {done_button}
-          </LeftPane>
-          <RightPane {...passed_props}/>
+        <div className="row" id="ui-content" style={{ position: "relative" }}>
+          <LeftPane {...passed_props} />
+          <PairwiseEvalPane {...passed_props}/>
         </div>
       </div>
     );
@@ -849,5 +773,5 @@ class BaseFrontend extends React.Component {
 
 export {
   TaskDescription,
-  BaseFrontend,
+  MultitaskFrontend as BaseFrontend,
 };

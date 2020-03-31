@@ -83,11 +83,11 @@ class ParlAIChatTaskBuilder(TaskBuilder):
 
         # Copy over the static files for this task:
         for fin_file in ["index.html", "notif.mp3"]:
-            bundle_js_file = os.path.join(
+            copied_static_file = os.path.join(
                 FRONTEND_SOURCE_DIR, "dev", "static", fin_file
             )
             target_path = os.path.join(target_resource_dir, fin_file)
-            shutil.copy2(bundle_js_file, target_path)
+            shutil.copy2(copied_static_file, target_path)
 
         # Write a built file confirmation
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:
