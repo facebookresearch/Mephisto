@@ -13,7 +13,7 @@ import random
 import queue
 import json
 
-from typing import ClassVar, List, Type, Any, Dict, Tuple, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Tuple, Set, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -29,6 +29,10 @@ DEFAULT_TASK_CONFIG = {
     'hit_description': 'Evaluate quality of conversations through comparison.',
     'hit_keywords': 'chat,evaluation,comparison,conversation',
 }
+
+PairingsDict = Dict[str, Any]
+WorkerID = str
+UnitID = str
 
 
 # TODO ask the run to enqueue new tasks when running out and still
@@ -67,9 +71,9 @@ class AcuteEvalRunner(TaskRunner):
         self.onboarding_tasks: List[Dict] = []
         self.desired_tasks: List[Dict] = []
         self.task_queue: queue.Queue = queue.Queue()
-        self.worker_data: Dict[str, Dict[str, List]] = {}
+        self.worker_data: Dict[WorkerID, Dict[str, List]] = {}
         self.failed_onboard: Set = set()
-        self.unit_agent_map: Dict[str, Tuple[str, Dict[str, Any]]] = {}
+        self.unit_agent_map: Dict[UnitID, Tuple[WorkerID, List[PairingsDict]]] = {}
 
         # read in conversations data
         self._load_conversation_data()
@@ -104,16 +108,17 @@ class AcuteEvalRunner(TaskRunner):
             self.block_qualification = self.opts['block_qualification']
             if self.block_qualification is None:
                 self.block_qualification = f"{task_id}_failed_onboarding"
-                self.opts['block_qualification'] = default_block_qualification
-                warn_once(
+                self.opts['block_qualification'] = self.block_qualification
+                # TODO move to logger
+                print(
                     "No block_qualification set in opt, automatically creating "
-                    "new qualification {}".format(default_block_qualification)
+                    "new qualification {}".format(self.block_qualification)
                 )
-            found_qualifications = self.db.find_qualifications(
+            found_qualifications = self.task_run.db.find_qualifications(
                 self.block_qualification 
             )
             if len(found_qualifications) == 0:
-                self.db.make_qualification(
+                self.task_run.db.make_qualification(
                     self.block_qualification 
                 )
 
@@ -191,7 +196,7 @@ class AcuteEvalRunner(TaskRunner):
 
     def _poll_task_queue(
         self, worker_id: str, task_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    ) -> List[PairingsDict]:
         """
         Poll task queue for tasks for a worker.
 
@@ -233,7 +238,7 @@ class AcuteEvalRunner(TaskRunner):
 
     def _top_up_task_data(
         self, worker_id: str, task_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    ) -> List[PairingsDict]:
         """
         Top up worker task data.
 
@@ -279,7 +284,7 @@ class AcuteEvalRunner(TaskRunner):
 
         return task_data
 
-    def get_new_task_data(self, worker_id: str) -> List[Dict[str, Any]]:
+    def get_new_task_data(self, worker_id: str) -> List[PairingsDict]:
         """
         Get next task for worker.
 
@@ -313,7 +318,7 @@ class AcuteEvalRunner(TaskRunner):
         print('Topped off data gotten: ', len(task_data))
         return task_data
 
-    def requeue_task_data(self, worker_id: str, task_data: List[Dict[str, Any]]):
+    def requeue_task_data(self, worker_id: str, task_data: List[PairingsDict]):
         """
         Return task to task_queue.
 
@@ -341,7 +346,7 @@ class AcuteEvalRunner(TaskRunner):
                     # due to some unfortunate race condition
                     print(f'could not remove task from worker {worker_id} history')
 
-    def get_onboarding_tasks(self, worker_id: str) -> List[Dict[str, Any]]:
+    def get_onboarding_tasks(self, worker_id: str) -> List[PairingsDict]:
         """
         Get next onboarding task for given worker.
 
@@ -404,7 +409,7 @@ class AcuteEvalRunner(TaskRunner):
             # worker passed onboarding
             return
         # worker failed onboarding, soft block and record
-        worker.qualify(self.block_qualification)
+        worker.qualify(self.block_qualification, 1)
         self.failed_onboard.add(worker_id)
 
     # TODO this should be a util in a provider, not here
@@ -426,7 +431,7 @@ class AcuteEvalRunner(TaskRunner):
                     print(f'Did not soft block worker {w}: {e}')
                 time.sleep(0.1)
 
-    def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
+    def get_init_data_for_agent(self, agent: "Agent") -> List[PairingsDict]:
         """
         Return the data for an agent already assigned to a particular unit
         """
