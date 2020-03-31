@@ -33,9 +33,9 @@ TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/acute_eval_demo")
 
 # ARG_STRING goes through shlex.split twice, hence be careful if these
 # strings contain anything which needs quoting.
-task_title = 'Which Conversational Partner is Better?'
-task_description = 'Evaluate quality of conversations through comparison.'
-hit_keywords = 'chat,evaluation,comparison,conversation'
+task_title = "Which Conversational Partner is Better?"
+task_description = "Evaluate quality of conversations through comparison."
+hit_keywords = "chat,evaluation,comparison,conversation"
 
 provider_type = "mock" if USE_LOCAL else "mturk_sandbox"
 architect_type = "local" if USE_LOCAL else "heroku"
@@ -62,23 +62,21 @@ ARG_STRING = (
     f'--task-description "\\"{task_description}\\"" '
     "--task-reward 0.5 "
     f"--task-tags {hit_keywords} "
-    f"--subtasks-per-unit 2 " # num comparisons to show within one unit
-
+    f"--subtasks-per-unit 2 "  # num comparisons to show within one unit
 )
 
 extra_args = {
-    'pairings_filepath': f"{TASK_DIRECTORY}/pairings.jsonl",
-    'block_on_onboarding_fail': True,
-    'block_qualification': 'onboarding_qual_name',
-    'annotations_per_pair': 1,  # num times to use the same conversation pair
-    'random_seed': 42,  # random seed
-    'subtasks_per_unit': 2,  # num comparisons to show within one hit
-    'num_matchup_pairs': 2, # num pairs of conversations to be compared
-
+    "pairings_filepath": f"{TASK_DIRECTORY}/pairings.jsonl",
+    "block_on_onboarding_fail": True,
+    "block_qualification": "onboarding_qual_name",
+    "annotations_per_pair": 1,  # num times to use the same conversation pair
+    "random_seed": 42,  # random seed
+    "subtasks_per_unit": 2,  # num comparisons to show within one hit
+    "num_matchup_pairs": 2,  # num pairs of conversations to be compared
     # question phrasing
-    's1_choice': 'I would prefer to talk to <Speaker 1>',
-    's2_choice': 'I would prefer to talk to <Speaker 2>',
-    'eval_question': 'Who would you prefer to talk to for a long conversation?',
+    "s1_choice": "I would prefer to talk to <Speaker 1>",
+    "s2_choice": "I would prefer to talk to <Speaker 2>",
+    "eval_question": "Who would you prefer to talk to for a long conversation?",
 }
 
 try:

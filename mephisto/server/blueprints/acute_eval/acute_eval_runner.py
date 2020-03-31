@@ -25,9 +25,9 @@ TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
 
 
 DEFAULT_TASK_CONFIG = {
-    'hit_title': 'Which Conversational Partner is Better?',
-    'hit_description': 'Evaluate quality of conversations through comparison.',
-    'hit_keywords': 'chat,evaluation,comparison,conversation',
+    "hit_title": "Which Conversational Partner is Better?",
+    "hit_description": "Evaluate quality of conversations through comparison.",
+    "hit_keywords": "chat,evaluation,comparison,conversation",
 }
 
 PairingsDict = Dict[str, Any]
@@ -64,7 +64,7 @@ class AcuteEvalRunner(TaskRunner):
         ``unit_agent_map``: Map from unit id to the worker_id and task data for cleanup
         """
         super().__init__(task_run, opts)
-        random.seed(opts['random_seed'])
+        random.seed(opts["random_seed"])
         self.is_concurrent = False
 
         # class attributes
@@ -90,9 +90,9 @@ class AcuteEvalRunner(TaskRunner):
         self.worker_data[worker_id] = self.worker_data.get(
             worker_id,
             {
-                'tasks_completed': [],
-                'conversations_seen': [],
-                'onboarding_todo': onboarding_todo,
+                "tasks_completed": [],
+                "conversations_seen": [],
+                "onboarding_todo": onboarding_todo,
             },
         )
         return self.worker_data[worker_id]
@@ -104,23 +104,21 @@ class AcuteEvalRunner(TaskRunner):
         :param task_id:
             task id used to set block qualification, if necessary.
         """
-        if self.opts['block_on_onboarding_fail']:
-            self.block_qualification = self.opts['block_qualification']
+        if self.opts["block_on_onboarding_fail"]:
+            self.block_qualification = self.opts["block_qualification"]
             if self.block_qualification is None:
                 self.block_qualification = f"{task_id}_failed_onboarding"
-                self.opts['block_qualification'] = self.block_qualification
+                self.opts["block_qualification"] = self.block_qualification
                 # TODO move to logger
                 print(
                     "No block_qualification set in opt, automatically creating "
                     "new qualification {}".format(self.block_qualification)
                 )
             found_qualifications = self.task_run.db.find_qualifications(
-                self.block_qualification 
+                self.block_qualification
             )
             if len(found_qualifications) == 0:
-                self.task_run.db.make_qualification(
-                    self.block_qualification 
-                )
+                self.task_run.db.make_qualification(self.block_qualification)
 
     def _load_conversation_data(self):
         """
@@ -130,47 +128,47 @@ class AcuteEvalRunner(TaskRunner):
         """
         preset_pairs = self.opts.get("pairings_task_data")
         if preset_pairs is not None:
-            self.onboarding_tasks = preset_pairs['onboarding'] 
-            self.desired_tasks = preset_pairs['desired']
+            self.onboarding_tasks = preset_pairs["onboarding"]
+            self.desired_tasks = preset_pairs["desired"]
             return
 
-        pairs_path = self.opts.get('pairings_filepath')
+        pairs_path = self.opts.get("pairings_filepath")
 
         with open(pairs_path) as pf:
             for i, l in enumerate(pf.readlines()):
                 convo_pair = json.loads(l.strip())
                 eval_speakers = [
                     s
-                    for d in convo_pair['dialogue_dicts']
-                    for s in d['speakers']
-                    if s in convo_pair['speakers_to_eval']
+                    for d in convo_pair["dialogue_dicts"]
+                    for s in d["speakers"]
+                    if s in convo_pair["speakers_to_eval"]
                 ]
                 # make sure order is preserved
-                assert eval_speakers == convo_pair['speakers_to_eval']
+                assert eval_speakers == convo_pair["speakers_to_eval"]
                 model_left_idx = random.choice([0, 1])
                 task = {
-                    'task_specs': {
-                        's1_choice': self.opts['s1_choice'],
-                        's2_choice': self.opts['s2_choice'],
-                        'question': self.opts['eval_question'],
-                        'is_onboarding': convo_pair['is_onboarding'],
-                        'model_left': {
-                            'name': eval_speakers[model_left_idx],
-                            'dialogue': convo_pair['dialogue_dicts'][model_left_idx][
-                                'dialogue'
+                    "task_specs": {
+                        "s1_choice": self.opts["s1_choice"],
+                        "s2_choice": self.opts["s2_choice"],
+                        "question": self.opts["eval_question"],
+                        "is_onboarding": convo_pair["is_onboarding"],
+                        "model_left": {
+                            "name": eval_speakers[model_left_idx],
+                            "dialogue": convo_pair["dialogue_dicts"][model_left_idx][
+                                "dialogue"
                             ],
                         },
-                        'model_right': {
-                            'name': eval_speakers[1 - model_left_idx],
-                            'dialogue': convo_pair['dialogue_dicts'][
+                        "model_right": {
+                            "name": eval_speakers[1 - model_left_idx],
+                            "dialogue": convo_pair["dialogue_dicts"][
                                 1 - model_left_idx
-                            ]['dialogue'],
+                            ]["dialogue"],
                         },
                     },
-                    'pairing_dict': convo_pair,
-                    'pair_id': i,
+                    "pairing_dict": convo_pair,
+                    "pair_id": i,
                 }
-                if convo_pair.get('is_onboarding'):
+                if convo_pair.get("is_onboarding"):
                     self.onboarding_tasks.append(task)
                 else:
                     self.desired_tasks.append(task)
@@ -179,7 +177,7 @@ class AcuteEvalRunner(TaskRunner):
         """
         Fill task queue with conversation pairs.
         """
-        for _i in range(self.opts['annotations_per_pair']):
+        for _i in range(self.opts["annotations_per_pair"]):
             all_task_keys = list(range(len(self.desired_tasks)))
             random.shuffle(all_task_keys)
             for p_id in all_task_keys:
@@ -192,7 +190,7 @@ class AcuteEvalRunner(TaskRunner):
         :return dialogue_ids:
             A list of two ids which correspond to the id for each conversation
         """
-        return task['pairing_dict']['dialogue_ids']
+        return task["pairing_dict"]["dialogue_ids"]
 
     def _poll_task_queue(
         self, worker_id: str, task_data: List[Dict[str, Any]]
@@ -218,18 +216,18 @@ class AcuteEvalRunner(TaskRunner):
                 break
             num_attempts += 1
 
-            pair_id = next_task['pair_id']
+            pair_id = next_task["pair_id"]
             dialogue_ids = self._get_dialogue_ids(next_task)
 
             # make sure worker has not seen these conversations before
-            if pair_id not in worker_data['tasks_completed'] and all(
-                d_id not in worker_data['conversations_seen'] for d_id in dialogue_ids
+            if pair_id not in worker_data["tasks_completed"] and all(
+                d_id not in worker_data["conversations_seen"] for d_id in dialogue_ids
             ):
                 # track tasks and conversations seen
-                worker_data['tasks_completed'].append(pair_id)
-                worker_data['conversations_seen'].extend(dialogue_ids)
+                worker_data["tasks_completed"].append(pair_id)
+                worker_data["conversations_seen"].extend(dialogue_ids)
                 task_data.append(next_task)
-                if len(task_data) == self.opts['subtasks_per_unit']:
+                if len(task_data) == self.opts["subtasks_per_unit"]:
                     return task_data
             else:
                 self.task_queue.put(next_task)
@@ -257,27 +255,27 @@ class AcuteEvalRunner(TaskRunner):
             a list of tasks for a worker to complete
         """
         worker_data = self._get_worker_data(worker_id)
-        tasks_still_needed = self.opts['subtasks_per_unit'] - len(task_data)
+        tasks_still_needed = self.opts["subtasks_per_unit"] - len(task_data)
         tasks_remaining = [
             t_id
             for t_id in range(len(self.desired_tasks))
-            if t_id not in worker_data['tasks_completed']
+            if t_id not in worker_data["tasks_completed"]
         ]
         # get any pairings with conversations this worker has not seen to fill this hit
         additional_tasks = [
             t
             for t in tasks_remaining
             if all(
-                d_id not in worker_data['conversations_seen']
+                d_id not in worker_data["conversations_seen"]
                 for d_id in self._get_dialogue_ids(self.desired_tasks[t])
             )
         ]
         if tasks_still_needed < len(additional_tasks):
             additional_tasks = random.sample(additional_tasks, tasks_still_needed)
-        worker_data['tasks_completed'].extend(additional_tasks)
+        worker_data["tasks_completed"].extend(additional_tasks)
 
         for t in additional_tasks:
-            worker_data['conversations_seen'].extend(
+            worker_data["conversations_seen"].extend(
                 self._get_dialogue_ids(self.desired_tasks[t])
             )
             task_data.extend(self.desired_tasks[t])
@@ -300,22 +298,22 @@ class AcuteEvalRunner(TaskRunner):
         :return task_data:
             A list of tasks for the worker to complete
         """
-        tasks_per_unit = self.opts['subtasks_per_unit']
+        tasks_per_unit = self.opts["subtasks_per_unit"]
         # first add onboarding tasks
         task_data = self.get_onboarding_tasks(worker_id)
-        print('Onboarding task data gotten: ', len(task_data))
+        print("Onboarding task data gotten: ", len(task_data))
         if len(task_data) == tasks_per_unit:
             return task_data
 
         # poll the task queue for more tasks
         task_data = self._poll_task_queue(worker_id, task_data)
-        print('Task queue data gotten: ', len(task_data))
+        print("Task queue data gotten: ", len(task_data))
         if len(task_data) == tasks_per_unit:
             return task_data
 
         # top up the task_data if we don't hit the desired tasks_per_unit
         task_data = self._top_up_task_data(worker_id, task_data)
-        print('Topped off data gotten: ', len(task_data))
+        print("Topped off data gotten: ", len(task_data))
         return task_data
 
     def requeue_task_data(self, worker_id: str, task_data: List[PairingsDict]):
@@ -333,18 +331,18 @@ class AcuteEvalRunner(TaskRunner):
         """
         worker_data = self._get_worker_data(worker_id)
         for subtask_data in task_data:
-            if subtask_data['task_specs'].get('is_onboarding', False):
-                worker_data['onboarding_todo'].append(subtask_data['pair_id'])
+            if subtask_data["task_specs"].get("is_onboarding", False):
+                worker_data["onboarding_todo"].append(subtask_data["pair_id"])
             else:
                 self.task_queue.put(subtask_data)
                 try:
-                    worker_data['tasks_completed'].remove(subtask_data['pair_id'])
+                    worker_data["tasks_completed"].remove(subtask_data["pair_id"])
                     for d_id in self._get_dialogue_ids(subtask_data):
-                        worker_data['conversations_seen'].remove(d_id)
+                        worker_data["conversations_seen"].remove(d_id)
                 except ValueError:
                     # Task may have shown up in worker's task queue twice
                     # due to some unfortunate race condition
-                    print(f'could not remove task from worker {worker_id} history')
+                    print(f"could not remove task from worker {worker_id} history")
 
     def get_onboarding_tasks(self, worker_id: str) -> List[PairingsDict]:
         """
@@ -360,14 +358,14 @@ class AcuteEvalRunner(TaskRunner):
             return []
 
         worker_data = self._get_worker_data(worker_id)
-        onboarding_todo = worker_data['onboarding_todo']
+        onboarding_todo = worker_data["onboarding_todo"]
         if not onboarding_todo:
             # worker has completed all required onboarding tasks
             return []
         # get onboarding tasks for workers needing them
-        num_tasks_to_return = min(len(onboarding_todo), self.opts['subtasks_per_unit'])
+        num_tasks_to_return = min(len(onboarding_todo), self.opts["subtasks_per_unit"])
         onboarding_tasks_chosen = onboarding_todo[:num_tasks_to_return]
-        worker_data['onboarding_todo'] = onboarding_todo[num_tasks_to_return:]
+        worker_data["onboarding_todo"] = onboarding_todo[num_tasks_to_return:]
         return [self.onboarding_tasks[t_id] for t_id in onboarding_tasks_chosen]
 
     def check_and_update_worker_approval(self, agent: "Agent"):
@@ -383,18 +381,18 @@ class AcuteEvalRunner(TaskRunner):
         worker = agent.get_worker()
         worker_id = worker.db_id
         save_data = agent.state.get_data()
-        all_task_data = save_data['inputs']
-        response_data = save_data['outputs']['final_data']
+        all_task_data = save_data["inputs"]
+        response_data = save_data["outputs"]["final_data"]
         num_onboarding_tasks = 0
         num_correct = 0
 
         for i in range(len(all_task_data)):
-            is_onboarding = all_task_data[i]['pairing_dict'].get('is_onboarding', False)
+            is_onboarding = all_task_data[i]["pairing_dict"].get("is_onboarding", False)
             if not is_onboarding:
                 # not an onboarding task, no need to check correctness
                 continue
-            worker_response = response_data[i]['speakerChoice']
-            expected_response = all_task_data[i]['pairing_dict']['correct_answer']
+            worker_response = response_data[i]["speakerChoice"]
+            expected_response = all_task_data[i]["pairing_dict"]["correct_answer"]
             num_onboarding_tasks += 1
             if worker_response == expected_response:
                 # count correct answers
@@ -405,7 +403,7 @@ class AcuteEvalRunner(TaskRunner):
                 # worker already failed onboarding, add pairings back to queue
                 self.requeue_task_data(worker_id, all_task_data)
             return
-        if (num_correct / num_onboarding_tasks) >= self.opts['onboarding_threshold']:
+        if (num_correct / num_onboarding_tasks) >= self.opts["onboarding_threshold"]:
             # worker passed onboarding
             return
         # worker failed onboarding, soft block and record
@@ -417,18 +415,18 @@ class AcuteEvalRunner(TaskRunner):
         """
         Softblock workers if necessary.
         """
-        if not self.opts['is_sandbox'] and self.opts['softblock_list_path'] is not None:
+        if not self.opts["is_sandbox"] and self.opts["softblock_list_path"] is not None:
             softblock_list = set()
-            with open(self.opts['softblock_list_path']) as f:
+            with open(self.opts["softblock_list_path"]) as f:
                 for line in f:
                     softblock_list.add(line.strip())
-            print(f'Will softblock {len(softblock_list):d} workers.')
+            print(f"Will softblock {len(softblock_list):d} workers.")
             for w in softblock_list:
                 try:
-                    print('Soft Blocking {}\n'.format(w))
+                    print("Soft Blocking {}\n".format(w))
                     self.manager.soft_block_worker(w)
                 except Exception as e:
-                    print(f'Did not soft block worker {w}: {e}')
+                    print(f"Did not soft block worker {w}: {e}")
                 time.sleep(0.1)
 
     def get_init_data_for_agent(self, agent: "Agent") -> List[PairingsDict]:
@@ -454,10 +452,10 @@ class AcuteEvalRunner(TaskRunner):
         # Frontend implicitly asks for the initialization data, so we just need
         # to wait for a response
         agent_act = agent.act(timeout=TEST_TIMEOUT)
-        if self.opts['block_on_onboarding_fail']:
+        if self.opts["block_on_onboarding_fail"]:
             # check whether workers failed onboarding
             self.check_and_update_worker_approval(agent)
-        print('Acute eval done for ', agent)
+        print("Acute eval done for ", agent)
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """

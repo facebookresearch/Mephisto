@@ -6,7 +6,9 @@
 
 from mephisto.data_model.blueprint import Blueprint
 from mephisto.data_model.assignment import InitializationData
-from mephisto.server.blueprints.acute_eval.acute_eval_agent_state import AcuteEvalAgentState
+from mephisto.server.blueprints.acute_eval.acute_eval_agent_state import (
+    AcuteEvalAgentState,
+)
 from mephisto.server.blueprints.acute_eval.acute_eval_runner import AcuteEvalRunner
 from mephisto.server.blueprints.acute_eval.acute_eval_builder import AcuteEvalBuilder
 
@@ -43,7 +45,7 @@ class AcuteEvalBlueprint(Blueprint):
         if opts.get("pairings_filepath") is not None:
             pairings_filepath = os.path.expanduser(opts["pairings_filepath"])
             assert os.path.exists(
-                pairings_filepath,
+                pairings_filepath
             ), f"Provided file {pairings_filepath} doesn't exist"
         elif opts.get("pairings_task_data") is not None:
             assert (
@@ -72,18 +74,18 @@ class AcuteEvalBlueprint(Blueprint):
             pairings_task_data dict into extra_args.
         """
         group.add_argument(
-            '--annotations-per-pair',
+            "--annotations-per-pair",
             dest="annotations_per_pair",
             type=int,
             default=1,
-            help='Number of annotations per conversation comparison pair',
+            help="Number of annotations per conversation comparison pair",
         )
         group.add_argument(
-            '--pairings-filepath',
+            "--pairings-filepath",
             dest="pairings_filepath",
             type=str,
             default=None,
-            help='path to the file containing the task dictionaries',
+            help="path to the file containing the task dictionaries",
         )
         # group.add_argument(
         #     '--task-config',
@@ -93,53 +95,53 @@ class AcuteEvalBlueprint(Blueprint):
         #     'determining how task is displayed on MTurk site',
         # )
         group.add_argument(
-            '--s1-choice',
+            "--s1-choice",
             dest="s1_choice",
             type=str,
-            default='I would prefer to talk to <Speaker 1>',
-            help='text next to speaker 1 radio button',
+            default="I would prefer to talk to <Speaker 1>",
+            help="text next to speaker 1 radio button",
         )
         group.add_argument(
-            '--s2-choice',
+            "--s2-choice",
             dest="s2_choice",
             type=str,
-            default='I would prefer to talk to <Speaker 2>',
-            help='text next to speaker 2 radio button',
+            default="I would prefer to talk to <Speaker 2>",
+            help="text next to speaker 2 radio button",
         )
         group.add_argument(
-            '--eval-question',
+            "--eval-question",
             dest="eval_question",
             type=str,
-            default='Who would you prefer to talk to for a long conversation?',
+            default="Who would you prefer to talk to for a long conversation?",
             help='question to present to turker for comparison (e.g. "Which speaker is better?")',
         )
         group.add_argument(
-            '--block-on-onboarding-fail',
+            "--block-on-onboarding-fail",
             dest="block_on_onboarding_fail",
             type=bool,
             default=True,
-            help='whether to block on onboarding failure',
+            help="whether to block on onboarding failure",
         )
         group.add_argument(
-            '--subtasks-per-unit',
+            "--subtasks-per-unit",
             dest="subtasks_per_unit",
             type=int,
             default=5,
-            help='number of subtasks/comparisons to do per unit',
+            help="number of subtasks/comparisons to do per unit",
         )
         group.add_argument(
-            '--onboarding-threshold',
+            "--onboarding-threshold",
             dest="onboarding_threshold",
             type=float,
             default=0.75,
-            help='minimum accuracy on onboarding tasks, as a float 0-1.0',
+            help="minimum accuracy on onboarding tasks, as a float 0-1.0",
         )
         group.add_argument(
-            '--random-seed', 
-            dest="random_seed", 
-            type=int, 
-            default=42, 
-            help='seed for random',
+            "--random-seed",
+            dest="random_seed",
+            type=int,
+            default=42,
+            help="seed for random",
         )
         # group.add_argument(
         #     '--softblock-list-path',
@@ -158,26 +160,25 @@ class AcuteEvalBlueprint(Blueprint):
         return {
             "task_description": "Placeholder Task Description - Javascript failed to load",
             "frame_height": 650,
-            'num_subtasks': self.opts['subtasks_per_unit'],
-            'question': self.opts['eval_question'],
+            "num_subtasks": self.opts["subtasks_per_unit"],
+            "question": self.opts["eval_question"],
             "block_mobile": True,
-            'get_task_feedback': False, # TODO make option
+            "get_task_feedback": False,  # TODO make option
         }
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
         """
         Return the InitializationData retrieved from the specified stream
         """
-        # TODO once we can release HITs over time, configure this to 
-        # release as many as needed thusfar and top off when 
+        # TODO once we can release HITs over time, configure this to
+        # release as many as needed thusfar and top off when
         # onboardings fail
         print(self.opts)
         num_conversations = int(
-            self.opts['num_matchup_pairs'] / max((self.opts['subtasks_per_unit'] - 1), 1)
+            self.opts["num_matchup_pairs"]
+            / max((self.opts["subtasks_per_unit"] - 1), 1)
         )  # release enough hits to finish all annotations requested
         return [
-            InitializationData(
-                shared={}, unit_data=[{}]
-            )
+            InitializationData(shared={}, unit_data=[{}])
             for d in range(num_conversations)
         ]
