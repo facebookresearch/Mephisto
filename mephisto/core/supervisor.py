@@ -224,6 +224,9 @@ class Supervisor:
         onboarding_id = packet.sender_id
         agent_info = self.agents[onboarding_id]
         agent = agent_info.agent
+        # Update the request id for the original packet (which has the required 
+        # registration data) to be the new submission packet (so that we answer
+        # back properly under the new request)
         self.onboarding_packets[onboarding_id].data["request_id"] = packet.data[
             "request_id"
         ]
