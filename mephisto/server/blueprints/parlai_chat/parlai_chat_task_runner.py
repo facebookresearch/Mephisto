@@ -134,12 +134,13 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         opt: Dict[str, Any] = self.opts.get("onboarding_world_opt", {})
         parlai_agent = MephistoAgentWrapper(agent)
-        world = self.parlai_world_module.make_onboarding_world(
+        world = self.parlai_world_module.make_onboarding_world(  # type: ignore
             opt, parlai_agent
-        )  # type: ignore
+        )
         self.id_to_worlds[agent.get_agent_id()] = world
         while (
-            not world.episode_done() and agent.get_agent_id() in self.running_onboardings
+            not world.episode_done()
+            and agent.get_agent_id() in self.running_onboardings
         ):
             world.parley()
         world.shutdown()

@@ -175,6 +175,7 @@ class MockServer(tornado.web.Application):
         """
         Send a packet asking to register a mock agent.
         """
+        onboard_data['request_id'] = '1234'
         self._send_message(
             {
                 "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,

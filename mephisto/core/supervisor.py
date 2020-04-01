@@ -224,8 +224,10 @@ class Supervisor:
         onboarding_id = packet.sender_id
         agent_info = self.agents[onboarding_id]
         agent = agent_info.agent
-        self.onboarding_packets[onboarding_id].data['request_id'] = packet.data['request_id']
-        del packet.data['request_id']
+        self.onboarding_packets[onboarding_id].data["request_id"] = packet.data[
+            "request_id"
+        ]
+        del packet.data["request_id"]
         assert isinstance(
             agent, OnboardingAgent
         ), "Only onboarding agents should submit onboarding"

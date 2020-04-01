@@ -50,7 +50,7 @@ ARG_STRING = (
     "--task-tags dynamic,chat,testing "
     f'--world-file "{TASK_DIRECTORY}/demo_worlds.py" '
     f'--task-description-file "{TASK_DIRECTORY}/task_description.html" '
-    "--num-conversations 1 "   
+    "--num-conversations 1 "
 )
 
 if USE_ONBOARDING:

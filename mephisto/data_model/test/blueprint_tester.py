@@ -183,7 +183,7 @@ class BlueprintTests(unittest.TestCase):
             cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
 
-        task_runner.run_assignment(assignment, agents)
+        task_runner.launch_assignment(assignment, agents)
         self.assertTrue(self.assignment_completed_successfully(assignment))
 
     def test_can_exit_gracefully(self) -> None:
@@ -195,7 +195,7 @@ class BlueprintTests(unittest.TestCase):
         assert isinstance(fail_agent, MockAgent), "Agent must be mock agent for testing"
         fail_agent.mark_disconnected()
         try:
-            task_runner.run_assignment(assignment, [fail_agent])
+            task_runner.launch_assignment(assignment, [fail_agent])
         except Exception as e:
             task_runner.cleanup_assignment(assignment)
 
@@ -210,7 +210,7 @@ class BlueprintTests(unittest.TestCase):
             cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
         task_thread = threading.Thread(
-            target=task_runner.run_assignment, args=(assignment, agents)
+            target=task_runner.launch_assignment, args=(assignment, agents)
         )
         self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
         task_thread.start()
