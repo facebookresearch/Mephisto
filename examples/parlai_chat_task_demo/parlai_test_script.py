@@ -1,7 +1,6 @@
 import os
 import time
 import shlex
-import random
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
@@ -54,7 +53,7 @@ ARG_STRING = (
 )
 
 if USE_ONBOARDING:
-    ARG_STRING += f"--onboarding-qualification test-parlai-chat-qualification-{str(random.random())[2:]} "
+    ARG_STRING += f"--onboarding-qualification test-parlai-chat-qualification "
 
 world_opt = {"num_turns": 3}
 
