@@ -911,10 +911,7 @@ class BaseDatabaseTests(unittest.TestCase):
         worker_name, worker_id = get_test_worker(db)
 
         onboarding_agent_id = db.new_onboarding_agent(
-            worker_id,
-            task.db_id,
-            task_run_id,
-            'mock',
+            worker_id, task.db_id, task_run_id, "mock"
         )
         self.assertIsNotNone(onboarding_agent_id)
 
@@ -927,4 +924,3 @@ class BaseDatabaseTests(unittest.TestCase):
         found_agent = found_agents[0]
         self.assertEqual(found_agent.db_id, onboarding_agent_id)
         self.assertEqual(found_agent.get_status(), AgentState.STATUS_NONE)
-

@@ -447,12 +447,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def new_onboarding_agent(
-        self,
-        worker_id: str,
-        task_id: str,
-        task_run_id: str,
-        task_type: str,
-        provider_type: str,
+        self, worker_id: str, task_id: str, task_run_id: str, task_type: str
     ) -> str:
         """
         Create a new agent for the given worker id to assign to the given unit
@@ -474,7 +469,9 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_onboarding_agent(self, onboarding_agent_id: str, status: Optional[str] = None) -> None:
+    def update_onboarding_agent(
+        self, onboarding_agent_id: str, status: Optional[str] = None
+    ) -> None:
         """
         Update the given onboarding agent with the given parameters if possible, 
         raise appropriate exception otherwise.
@@ -482,14 +479,13 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def find_agents(
+    def find_onboarding_agents(
         self,
         status: Optional[str] = None,
         worker_id: Optional[str] = None,
         task_id: Optional[str] = None,
         task_run_id: Optional[str] = None,
         task_type: Optional[str] = None,
-        provider_type: Optional[str] = None,
     ) -> List[OnboardingAgent]:
         """
         Try to find any onboarding agent that matches the above. When called with no arguments,

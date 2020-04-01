@@ -25,17 +25,17 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_UPDATE_AGENT_STATUS,
 )
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.blueprint import OnboardingRequired, AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
 from mephisto.server.channels.channel import Channel, STATUS_CHECK_TIME
 
 from recordclass import RecordClass
 
-from typing import Dict, Optional, List, Any, TYPE_CHECKING
+from typing import Dict, Set, Optional, List, Any, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.agent import Agent, Unit
-    from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.assignment import Assignment, Unit
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import TaskRunner
@@ -79,7 +79,7 @@ class ChannelInfo(RecordClass):
 
 
 class AgentInfo(RecordClass):
-    agent: "Agent"
+    agent: Union["Agent", "OnboardingAgent"]
     used_channel_id: str
     assignment_thread: Optional[threading.Thread] = None
 
@@ -91,6 +91,8 @@ class Supervisor:
         self.agents: Dict[str, AgentInfo] = {}
         self.agents_by_registration_id: Dict[str, AgentInfo] = {}
         self.channels: Dict[str, ChannelInfo] = {}
+        # Map from onboarding id to agent request packet
+        self.onboarding_packets: Dict[str, Packet] = {}
 
         # Agent status handling
         self.last_status_check = time.time()
@@ -217,6 +219,15 @@ class Supervisor:
         agent.pending_actions.append(packet)
         agent.has_action.set()
 
+    def _on_submit_onboarding(self, packet: Packet, channel_info: ChannelInfo):
+        """Handle the submission of onboarding data"""
+        agent = self.agents[packet.sender_id].agent
+        assert isinstance(
+            agent, OnboardingAgent
+        ), "Only onboarding agents should submit onboarding"
+        agent.pending_actions.append(packet)
+        agent.has_action.set()
+
     def _register_worker(self, packet: Packet, channel_info: ChannelInfo):
         """Process a worker registration packet to register a worker"""
         crowd_data = packet.data["provider_data"]
@@ -245,6 +256,29 @@ class Supervisor:
             )
         )
 
+    def _launch_and_run_onboarding(
+        self, agent_info: "AgentInfo", task_runner: "TaskRunner"
+    ):
+        """Launch a thread to supervise the completion of onboarding for a task"""
+        tracked_agent = agent_info.agent
+        assert isinstance(tracked_agent, OnboardingAgent), (
+            "Can launch onboarding for OnboardingAgents, not Agents"
+            f", got {tracked_agent}"
+        )
+        try:
+            task_runner.launch_onboarding(tracked_agent)
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            task_runner.cleanup_onboarding(tracked_agent)
+        finally:
+            if tracked_agent.get_status() == AgentState.STATUS_COMPLETED:
+                self._register_agent_from_onboarding(agent_info)
+            onboarding_id = tracked_agent.get_onboarding_id()
+            del self.agents[onboarding_id]
+            del self.onboarding_packets[onboarding_id]
+
     def _launch_and_run_assignment(
         self,
         assignment: "Assignment",
@@ -253,7 +287,12 @@ class Supervisor:
     ):
         """Launch a thread to supervise the completion of an assignment"""
         try:
-            tracked_agents = [a.agent for a in agent_infos]
+            tracked_agents: List["Agent"] = []
+            for a in agent_infos:
+                assert isinstance(
+                    a.agent, Agent
+                ), f"Can launch assignments for Agents, not OnboardingAgents, got {a.agent}"
+                tracked_agents.append(a.agent)
             task_runner.launch_assignment(assignment, tracked_agents)
             for agent_info in agent_infos:
                 self._mark_agent_done(agent_info)
@@ -279,6 +318,9 @@ class Supervisor:
         """Launch a thread to supervise the completion of an assignment"""
         try:
             agent = agent_info.agent
+            assert isinstance(
+                agent, Agent
+            ), f"Can launch units for Agents, not OnboardingAgents, got {agent}"
             task_runner.launch_unit(unit, agent)
             self._mark_agent_done(agent_info)
             if not agent.did_submit.is_set():
@@ -373,25 +415,24 @@ class Supervisor:
 
                 assign_thread.start()
 
-    def _register_agent_from_onboarding(
-        self, packet: Packet, channel_info: ChannelInfo
-    ):
-        """Register an agent that has finished onboarding"""
+    def _register_agent_from_onboarding(self, onboarding_agent_info: AgentInfo):
+        """
+        Convert the onboarding agent to a full agent
+        """
+        onboarding_agent = onboarding_agent_info.agent
+        current_status = onboarding_agent.get_status()
+        channel_id = onboarding_agent_info.used_channel_id
+        channel_info = self.channels[channel_id]
         task_runner = channel_info.job.task_runner
         task_run = task_runner.task_run
         blueprint = task_run.get_blueprint()
-        crowd_data = packet.data["provider_data"]
-        worker_id = crowd_data["worker_id"]
-        worker = Worker(self.db, worker_id)
+        worker = onboarding_agent.get_worker()
 
         assert (
             isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
         ), "Should only be registering from onboarding if onboarding is required and set"
-        worker_passed = blueprint.validate_onboarding(
-            worker, packet.data["onboard_data"]
-        )
+        worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
         worker.qualify(blueprint.onboarding_qualification_name, int(worker_passed))
-        # TODO we should save the onboarding data to be able to review later?
 
         if not worker_passed:
             # TODO it may be worth investigating launching a dummy task for these
@@ -406,6 +447,7 @@ class Supervisor:
         usable_units = channel_info.job.task_runner.filter_units_for_worker(
             units, worker
         )
+        packet = self.onboarding_packets[onboarding_agent.get_onboarding_id()]
         self._assign_unit_to_agent(packet, channel_info, usable_units)
 
     def _register_agent(self, packet: Packet, channel_info: ChannelInfo):
@@ -468,8 +510,15 @@ class Supervisor:
                 return
             elif not worker.is_qualified(blueprint.onboarding_qualification_name):
                 # Send a packet with onboarding information
-                # TODO use the agent id request as the agent_id?
-                onboard_data = blueprint.get_onboarding_data()
+                onboard_data = blueprint.get_onboarding_data(worker.db_id)
+                onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
+                agent_info = AgentInfo(
+                    agent=onboard_agent, used_channel_id=channel_info.channel_id
+                )
+                onboard_id = onboard_agent.get_onboarding_id()
+                # register onboarding agent
+                self.agents[onboard_id] = agent_info
+                self.onboarding_packets[onboard_id] = packet
                 self.message_queue.append(
                     Packet(
                         packet_type=PACKET_TYPE_PROVIDER_DETAILS,
@@ -477,11 +526,22 @@ class Supervisor:
                         receiver_id=channel_info.channel_id,
                         data={
                             "request_id": packet.data["request_id"],
-                            "agent_id": "onboarding",
+                            "agent_id": onboard_id,
                             "onboard_data": onboard_data,
                         },
                     )
                 )
+
+                # Create an onboarding thread
+                onboard_thread = threading.Thread(
+                    target=self._launch_and_run_onboarding,
+                    args=(agent_info, channel_info.job.task_runner),
+                    name=f"Onboard-thread-{onboard_id}",
+                )
+
+                onboard_agent.update_status(AgentState.STATUS_ONBOARDING)
+                agent_info.assignment_thread = onboard_thread
+                onboard_thread.start()
                 return
 
         # Not onboarding, so just register directly
@@ -492,6 +552,9 @@ class Supervisor:
         task_runner = channel_info.job.task_runner
         agent_id = packet.data["provider_data"]["agent_id"]
         agent_info = self.agents[agent_id]
+        assert isinstance(
+            agent_info.agent, Agent
+        ), f"Can only get init unit data for Agents, not OnboardingAgents, got {agent_info}"
         unit_data = task_runner.get_init_data_for_agent(agent_info.agent)
 
         agent_data_packet = Packet(
@@ -504,12 +567,15 @@ class Supervisor:
 
     def _on_message(self, packet: Packet, channel_info: ChannelInfo):
         """Handle incoming messages from the channel"""
+        # TODO this method currently assumes that the packet's sender_id will
+        # always be a valid agent in our list of agent_infos. At the moment this
+        # is a valid assumption, but will not be on recovery from catastrophic failure.
         if packet.type == PACKET_TYPE_AGENT_ACTION:
             self._on_act(packet, channel_info)
         elif packet.type == PACKET_TYPE_NEW_AGENT:
             self._register_agent(packet, channel_info)
         elif packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:
-            self._register_agent_from_onboarding(packet, channel_info)
+            self._on_submit_onboarding(packet, channel_info)
         elif packet.type == PACKET_TYPE_NEW_WORKER:
             self._register_worker(packet, channel_info)
         elif packet.type == PACKET_TYPE_GET_INIT_DATA:
@@ -659,14 +725,19 @@ class Supervisor:
     def _channel_handling_thread(self) -> None:
         """Thread for handling outgoing messages through the channels"""
         while len(self.channels) > 0:
-            for agent_info in self.agents.values():
+            current_agents = list(self.agents.values())
+            for agent_info in current_agents:
+                # Send requests for action
                 if agent_info.agent.wants_action.is_set():
                     self._request_action(agent_info)
                     agent_info.agent.wants_action.clear()
+                # Pass updated statuses
                 if agent_info.agent.has_updated_status.is_set():
                     self._send_status_update(agent_info)
                     agent_info.agent.has_updated_status.clear()
+                # clear the message queue for this agent
                 self._try_send_agent_messages(agent_info)
+            # Send all messages from the system
             self._send_message_queue()
             self._request_status_update()
             # TODO is there a way we can trigger this when

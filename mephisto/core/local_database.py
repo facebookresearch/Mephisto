@@ -292,7 +292,9 @@ class LocalMephistoDB(MephistoDB):
             )
             results = c.fetchall()
             if len(results) != 1:
-                raise EntryDoesNotExistException
+                raise EntryDoesNotExistException(
+                    f"Table {table_name} has no {id_name} {db_id}"
+                )
             return results[0]
 
     def new_project(self, project_name: str) -> str:
@@ -317,7 +319,9 @@ class LocalMephistoDB(MephistoDB):
                 if is_key_failure(e):
                     raise EntryDoesNotExistException()
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException()
+                    raise EntryAlreadyExistsException(
+                        f"Project {project_name} already exists"
+                    )
                 raise MephistoDBException(e)
 
     def get_project(self, project_id: str) -> Mapping[str, Any]:
@@ -384,9 +388,9 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 conn.rollback()
                 if is_key_failure(e):
-                    raise EntryDoesNotExistException()
+                    raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException()
+                    raise EntryAlreadyExistsException(e)
                 raise MephistoDBException(e)
 
     def get_task(self, task_id: str) -> Mapping[str, Any]:
@@ -467,7 +471,7 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 conn.rollback()
                 if is_key_failure(e):
-                    raise EntryDoesNotExistException()
+                    raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
                     raise EntryAlreadyExistsException(
                         f"Task name {task_name} is already in use"
@@ -516,7 +520,7 @@ class LocalMephistoDB(MephistoDB):
                 return task_run_id
             except sqlite3.IntegrityError as e:
                 if is_key_failure(e):
-                    raise EntryDoesNotExistException()
+                    raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
     def get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
@@ -573,7 +577,7 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 conn.rollback()
                 if is_key_failure(e):
-                    raise EntryDoesNotExistException()
+                    raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
     def new_assignment(
@@ -713,9 +717,9 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 conn.rollback()
                 if is_key_failure(e):
-                    raise EntryDoesNotExistException()
+                    raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException()
+                    raise EntryAlreadyExistsException(e)
                 raise MephistoDBException(e)
 
     def get_unit(self, unit_id: str) -> Mapping[str, Any]:
@@ -1019,7 +1023,7 @@ class LocalMephistoDB(MephistoDB):
             except sqlite3.IntegrityError as e:
                 conn.rollback()
                 if is_key_failure(e):
-                    raise EntryDoesNotExistException()
+                    raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
     def get_agent(self, agent_id: str) -> Mapping[str, Any]:
@@ -1154,7 +1158,9 @@ class LocalMephistoDB(MephistoDB):
         """
         qualifications = self.find_qualifications(qualification_name=qualification_name)
         if len(qualifications) == 0:
-            raise EntryDoesNotExistException
+            raise EntryDoesNotExistException(
+                f"No qualification found by name {qualification_name}"
+            )
         qualification = qualifications[0]
         with self.table_access_condition:
             conn = self._get_connection()
@@ -1246,6 +1252,7 @@ class LocalMephistoDB(MephistoDB):
                 for r in rows
             ]
 
+    # TODO these should not be optional
     def get_granted_qualification(
         self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
     ) -> Mapping[str, Any]:
@@ -1268,7 +1275,9 @@ class LocalMephistoDB(MephistoDB):
             )
             results = c.fetchall()
             if len(results) != 1:
-                raise EntryDoesNotExistException
+                raise EntryDoesNotExistException(
+                    f"No such granted qualification {qualification_id}, {worker_id}"
+                )
             return results[0]
 
     def revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
@@ -1288,11 +1297,7 @@ class LocalMephistoDB(MephistoDB):
             conn.commit()
 
     def new_onboarding_agent(
-        self,
-        worker_id: str,
-        task_id: str,
-        task_run_id: str,
-        task_type: str,
+        self, worker_id: str, task_id: str, task_run_id: str, task_type: str
     ) -> str:
         """
         Create a new agent for the given worker id to assign to the given unit
@@ -1318,11 +1323,12 @@ class LocalMephistoDB(MephistoDB):
                         AgentState.STATUS_NONE,
                     ),
                 )
+                conn.commit()
                 return str(c.lastrowid)
             except sqlite3.IntegrityError as e:
                 conn.rollback()
                 if is_key_failure(e):
-                    raise EntryDoesNotExistException()
+                    raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
     def get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
@@ -1333,12 +1339,12 @@ class LocalMephistoDB(MephistoDB):
         Returns a SQLite Row object with the expected fields
         """
         return self.__get_one_by_id(
-            "onboarding_agents", 
-            "onboarding_agent_id", 
-            onboarding_agent_id,
+            "onboarding_agents", "onboarding_agent_id", onboarding_agent_id
         )
 
-    def update_onboarding_agent(self, onboarding_agent_id: str, status: Optional[str] = None) -> None:
+    def update_onboarding_agent(
+        self, onboarding_agent_id: str, status: Optional[str] = None
+    ) -> None:
         """
         Update the given onboarding agent with the given parameters if possible, 
         raise appropriate exception otherwise.

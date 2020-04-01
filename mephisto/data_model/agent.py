@@ -308,6 +308,8 @@ class OnboardingAgent(ABC):
     method.
     """
 
+    DISPLAY_PREFIX = "onboarding_"
+
     def __init__(self, db: "MephistoDB", db_id: str):
         self.db_id: str = db_id
         self.db: "MephistoDB" = db
@@ -336,6 +338,23 @@ class OnboardingAgent(ABC):
         self.state = AgentState(self)  # type: ignore
 
     # TODO do we want to store task working time or completion time here?
+
+    def get_onboarding_id(self) -> str:
+        """Return an id to use for onboarding agent requests"""
+        return f"{self.DISPLAY_PREFIX}{self.db_id}"
+
+    @classmethod
+    def is_onboarding_id(cls, agent_id: str) -> bool:
+        """return if the given id is for an onboarding agent"""
+        return agent_id.startswith(cls.DISPLAY_PREFIX)
+
+    @classmethod
+    def get_db_id_from_agent_id(cls, agent_id: str) -> str:
+        """Extract the db_id for an onboarding_agent"""
+        assert agent_id.startswith(
+            cls.DISPLAY_PREFIX
+        ), f"Provided id {agent_id} is not an onboarding_id"
+        return agent_id[len(cls.DISPLAY_PREFIX) :]
 
     def get_worker(self) -> Worker:
         """
@@ -450,15 +469,16 @@ class OnboardingAgent(ABC):
             self.db_status = row["status"]
         return self.db_status
 
+    def mark_done(self) -> None:
+        """Mark this agent as done by setting the status to completed"""
+        self.update_status(AgentState.STATUS_COMPLETED)
+
     @staticmethod
     def new(db: "MephistoDB", worker: Worker, task_run: "TaskRun") -> "OnboardingAgent":
         """
         Create an OnboardingAgent for a worker to use as part of a task run
         """
         db_id = db.new_onboarding_agent(
-            worker.db_id,
-            task_run.task_id,
-            task_run.db_id,
-            unit.task_type,
+            worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
-        return OnboardingAgent(db, db_id) 
+        return OnboardingAgent(db, db_id)
