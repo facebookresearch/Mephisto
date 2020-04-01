@@ -121,18 +121,18 @@ class TaskRunner(ABC):
         """
         Validate that onboarding is ready, then launch. Catch disconnect conditions
         """
-        if onboarding_agent.db_id in self.running_onboardings:
-            print(f"Onboarding {onboarding_agent.db_id} is already running")
+        onboarding_id = onboarding_agent.get_agent_id()
+        if onboarding_id in self.running_onboardings:
+            print(f"Onboarding {onboarding_id} is already running")
             return
 
-        print(
-            f"Onboarding {onboarding_agent.db_id} is launching with {onboarding_agent}"
-        )
+        print(f"Onboarding {onboarding_id} is launching with {onboarding_agent}")
 
         # At this point we're sure we want to run Onboarding
-        self.running_onboardings[onboarding_agent.db_id] = onboarding_agent
+        self.running_onboardings[onboarding_id] = onboarding_agent
         try:
             self.run_onboarding(onboarding_agent)
+            onboarding_agent.mark_done()
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
             self.cleanup_onboarding(onboarding_agent)
         except Exception as e:
@@ -141,7 +141,7 @@ class TaskRunner(ABC):
 
             traceback.print_exc()
             self.cleanup_onboarding(onboarding_agent)
-        del self.running_onboardings[onboarding_agent.db_id]
+        del self.running_onboardings[onboarding_id]
         return
 
     def launch_unit(self, unit: "Unit", agent: "Agent") -> None:
@@ -219,8 +219,6 @@ class TaskRunner(ABC):
     def get_init_data_for_agent(self, agent: "Agent"):
         """
         Return the data that an agent will need for their task.
-
-        When all agents get their data, launch the task
         """
         raise NotImplementedError()
 

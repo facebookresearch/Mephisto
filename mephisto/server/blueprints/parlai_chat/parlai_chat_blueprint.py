@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.parlai_chat.parlai_chat_agent_state import (
     ParlAIChatAgentState,
@@ -26,6 +26,8 @@ from importlib import import_module
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from mephisto.data_model.worker import Worker
+    from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
@@ -43,10 +45,11 @@ MISSING_SOMETHING_TEXT = (
 )
 
 
-class ParlAIChatBlueprint(Blueprint):
+class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     """Blueprint for a task that runs a parlai chat """
 
     AgentStateClass: ClassVar[Type["AgentState"]] = ParlAIChatAgentState
+    OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = ParlAIChatAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = ParlAIChatTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = ParlAIChatTaskRunner
     supported_architects: ClassVar[List[str]] = [
@@ -57,8 +60,9 @@ class ParlAIChatBlueprint(Blueprint):
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(self, task_run: "TaskRun", opts: Any):
-        self._initialization_data_dicts: List[Dict[str, Any]] = []
         super().__init__(task_run, opts)
+        self._initialization_data_dicts: List[Dict[str, Any]] = []
+        self.init_onboarding_config(task_run, opts)
         # TODO context should be put into task_data
         if opts.get("context_csv") is not None:
             csv_file = os.path.expanduser(opts["context_csv"])
@@ -83,6 +87,7 @@ class ParlAIChatBlueprint(Blueprint):
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
         world_module = import_module(world_module_name)
+        self.world_module = world_module
         # TODO assert this is a ParlAI world after figuring out
         # how to get ParlAI to play with Poetry
         assert hasattr(world_module, "make_world")
@@ -162,7 +167,7 @@ class ParlAIChatBlueprint(Blueprint):
         context_csv has the data to be deployed for this task.
         """
         super(ParlAIChatBlueprint, cls).add_args_to_group(group)
-
+        OnboardingRequired.add_args_to_group(group)
         group.description = """
             ParlAIChatBlueprint: Tasks launched from static blueprints need a
             source html file to display to workers, as well as a csv
@@ -225,6 +230,7 @@ class ParlAIChatBlueprint(Blueprint):
             "chat_title": self.opts["task_title"],
             "has_preview": self.opts.get("preview_source") is not None,
             "block_mobile": True,
+            "frontend_task_opts": self.opts.get("task_opts", {}),
         }
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
@@ -235,3 +241,12 @@ class ParlAIChatBlueprint(Blueprint):
             InitializationData(shared=d, unit_data=[{}] * self.agent_count)
             for d in self._initialization_data_dicts
         ]
+
+    def validate_onboarding(
+        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
+    ) -> bool:
+        if hasattr(self.world_module, "validate_onboarding"):
+            return self.world_module.validate_onboarding(  # type: ignore
+                onboarding_agent.state.get_data()
+            )
+        return True

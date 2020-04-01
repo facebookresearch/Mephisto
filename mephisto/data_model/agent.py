@@ -88,6 +88,10 @@ class Agent(ABC):
 
     # TODO do we want to store task working time or completion time here?
 
+    def get_agent_id(self) -> str:
+        """Return this agent's id"""
+        return self.db_id
+
     def get_worker(self) -> Worker:
         """
         Return the worker that is using this agent for a task
@@ -339,7 +343,7 @@ class OnboardingAgent(ABC):
 
     # TODO do we want to store task working time or completion time here?
 
-    def get_onboarding_id(self) -> str:
+    def get_agent_id(self) -> str:
         """Return an id to use for onboarding agent requests"""
         return f"{self.DISPLAY_PREFIX}{self.db_id}"
 
@@ -400,7 +404,7 @@ class OnboardingAgent(ABC):
         assert (
             self.db_status not in AgentState.complete()
         ), f"Cannot update a final status, was {self.db_status} and want to set to {new_status}"
-        self.db.update_agent(self.db_id, status=new_status)
+        self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
         self.has_updated_status.set()
         if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
@@ -414,7 +418,7 @@ class OnboardingAgent(ABC):
         queue the information to be pushed to the user
         """
         sending_packet = packet.copy()
-        sending_packet.receiver_id = self.db_id
+        sending_packet.receiver_id = self.get_agent_id()
         self.state.update_data(sending_packet)
         self.pending_observations.append(sending_packet)
 
@@ -471,7 +475,7 @@ class OnboardingAgent(ABC):
 
     def mark_done(self) -> None:
         """Mark this agent as done by setting the status to completed"""
-        self.update_status(AgentState.STATUS_COMPLETED)
+        self.update_status(AgentState.STATUS_WAITING)
 
     @staticmethod
     def new(db: "MephistoDB", worker: Worker, task_run: "TaskRun") -> "OnboardingAgent":

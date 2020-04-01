@@ -439,7 +439,7 @@ class TestSupervisor(unittest.TestCase):
         # Submit onboarding from the agent
         onboard_data = {"should_pass": False}
         self.architect.server.register_mock_agent_after_onboarding(
-            worker_id, onboard_agents[0].get_onboarding_id(), onboard_data
+            worker_id, onboard_agents[0].get_agent_id(), onboard_data
         )
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent not created after onboarding")
@@ -631,7 +631,7 @@ class TestSupervisor(unittest.TestCase):
         # Submit onboarding from the agent
         onboard_data = {"should_pass": False}
         self.architect.server.register_mock_agent_after_onboarding(
-            worker_id, onboard_agents[0].get_onboarding_id(), onboard_data
+            worker_id, onboard_agents[0].get_agent_id(), onboard_data
         )
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent not created after onboarding")

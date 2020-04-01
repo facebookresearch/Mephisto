@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.blueprint import TaskRunner
-from mephisto.data_model.agent import Agent
+from mephisto.data_model.agent import Agent, OnboardingAgent
 from parlai.core.agents import Agent as ParlAIAgent
 
 from mephisto.data_model.packet import (
@@ -23,7 +23,7 @@ import shutil
 import subprocess
 import sys
 
-from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -37,9 +37,10 @@ class MephistoAgentWrapper(ParlAIAgent):
     agent in ParlAI worlds
     """
 
-    def __init__(self, agent: Agent):
+    def __init__(self, agent: Union[Agent, OnboardingAgent]):
         self.mephisto_agent = agent
         self.__agent_id = "unnamed agent"
+        self.__mephisto_agent_id = agent.get_agent_id()
 
     @property
     def agent_id(self):
@@ -59,7 +60,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         packaged_act = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id="mephisto",
-            receiver_id=self.mephisto_agent.db_id,
+            receiver_id=self.__mephisto_agent_id,
             data={"agent_display_name": new_agent_id},
         )
         self.mephisto_agent.observe(packaged_act)
@@ -86,7 +87,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         packaged_act = Packet(
             packet_type=PACKET_TYPE_AGENT_ACTION,
             sender_id="mephisto",
-            receiver_id=self.mephisto_agent.db_id,
+            receiver_id=self.__mephisto_agent_id,
             data=act,
         )
         self.mephisto_agent.observe(packaged_act)
@@ -106,6 +107,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         world_module_name = os.path.basename(world_file_path)[:-3]
         self.parlai_world_module = import_module(world_module_name)
         self.is_concurrent = True
+        self.id_to_worlds: Dict[str, Any] = {}
 
     # TODO reconnects should get the same agent as was initially given
 
@@ -125,16 +127,40 @@ class ParlAIChatTaskRunner(TaskRunner):
             assert new_state is not None, "Recently initialized state still None"
             return new_state
 
+    def run_onboarding(self, agent: "OnboardingAgent") -> None:
+        """
+        ParlAI Onboarding will initialize an onboarding 
+        world, then run it to completion if possible
+        """
+        opt: Dict[str, Any] = self.opts.get("onboarding_world_opt", {})
+        parlai_agent = MephistoAgentWrapper(agent)
+        world = self.parlai_world_module.make_onboarding_world(
+            opt, parlai_agent
+        )  # type: ignore
+        self.id_to_worlds[agent.get_agent_id()] = world
+        while (
+            not world.episode_done() and agent.get_agent_id() in self.running_onboardings
+        ):
+            world.parley()
+        world.shutdown()
+
+    def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
+        """Shutdown the world"""
+        onboarding_id = agent.get_agent_id()
+        self.id_to_worlds[onboarding_id].shutdown()
+        del self.id_to_worlds[onboarding_id]
+
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
         """
-        Static runners will get the task data, send it to the user, then
-        wait for the agent to act (the data to be completed)
+        ParlAI runners will initialize a task world, then run them to completion
+        if possible
         """
         for agent in agents:
             assert agent is not None, "task was not fully assigned"
         opt: Dict[str, Any] = self.opts.get("world_opt", {})
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
+        self.id_to_worlds[assignment.db_id] = world
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 
@@ -146,4 +172,5 @@ class ParlAIChatTaskRunner(TaskRunner):
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Handle cleanup for a specific assignment"""
-        pass  # TODO perhaps we need to requeue or do something additional?
+        self.id_to_worlds[assignment.db_id].shutdown()
+        del self.id_to_worlds[assignment.db_id]

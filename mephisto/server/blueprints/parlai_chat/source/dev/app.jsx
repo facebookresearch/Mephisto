@@ -70,6 +70,10 @@ function postProviderRequest(endpoint, data) {
     .then(res => res.json());
 }
 
+function completeOnboarding(agent_id) {
+  return postProviderRequest('/submit_onboarding', { USED_AGENT_ID: agent_id });
+}
+
 function requestAgent(mephisto_worker_id) {
   return postProviderRequest('/request_agent', getAgentRegistration(mephisto_worker_id));
 }
@@ -116,19 +120,31 @@ const STATUS_MEPHISTO_DISCONNECT = 'mephisto disconnect';
 class ChatApp extends React.Component {
   constructor(props) {
     super(props);
-    
+
     // TODO move constants to props rather than state
     this.state = {
       initialization_status: 'initializing',
       socket_status: null,  // TODO improve this functionality for disconnects
-      agent_status: STATUS_WAITING, // TODO, start as STATUS_NONE when implementing onboarding
+      agent_status: props.agent_id.startsWith("onboarding") ? STATUS_ONBOARDING : STATUS_WAITING, 
       done_text: null,
       chat_state: 'waiting', // idle, text_input, inactive, done
       task_done: false,
       messages: [],
       task_data: {},
       volume: 1, // min volume is 0, max is 1, TODO pull from local-storage?
+      needs_init_data: false,
+      agent_display_name: null
     };
+  }
+
+  componentDidUpdate(prev_props, prev_state) {
+    if (prev_props.agent_id.startsWith('onboarding') && ! this.props.agent_id.startsWith('onboarding')) {
+      getInitTaskData(this.props.mephisto_worker_id, this.props.agent_id)
+        .then(packet => this.handleIncomingTaskData(packet.data.init_data));
+    }
+    if (this.state.agent_status == STATUS_IN_TASK && prev_state.agent_status == STATUS_WAITING) {
+      this.setState({ messages: [] })
+    }
   }
 
   // TODO implement?
@@ -136,7 +152,9 @@ class ChatApp extends React.Component {
     console.log('Handling state update', agent_status, this.state.agent_status)
     if (agent_status != this.state.agent_status) {
       // Handle required state changes on a case-by-case basis.
-      if ([STATUS_COMPLETED, STATUS_PARTNER_DISCONNECT].includes(agent_status)) {
+      if (this.state.agent_status == STATUS_ONBOARDING && agent_status == STATUS_WAITING) {
+        this.props.transferFromOnboarding()
+      } else if ([STATUS_COMPLETED, STATUS_PARTNER_DISCONNECT].includes(agent_status)) {
         this.setState({ task_done: true, chat_state: 'done' });
         this.socket_handler.closeSocket();
       } else if ([STATUS_DISCONNECT, STATUS_RETURNED, STATUS_EXPIRED,
@@ -169,6 +187,9 @@ class ChatApp extends React.Component {
   }
 
   componentDidMount() {
+    if (this.props.agent_id.startsWith('onboarding')) {
+      return;
+    }
     getInitTaskData(this.props.mephisto_worker_id, this.props.agent_id)
       .then(packet => this.handleIncomingTaskData(packet.data.init_data));
   }
@@ -237,6 +258,7 @@ class ChatApp extends React.Component {
           chat_title={this.props.task_config.chat_title}
           initialization_status={this.state.initialization_status}
           frame_height={this.props.task_config.frame_height}
+          task_config={this.props.task_config}
           task_data={this.state.task_data}
           world_state={this.state.agent_status}
           allDoneCallback={() => postCompleteTask(
@@ -324,13 +346,15 @@ class MainApp extends React.Component {
     this.setState({preview_html: html});
   }
 
+  afterAgentOnboarding() {
+    completeOnboarding(this.state.agent_id)
+      .then(data => this.afterAgentRegistration(data));
+  }
+
   afterAgentRegistration(agent_data_packet) {
-    console.log(agent_data_packet);
     let agent_id = agent_data_packet.data.agent_id;
     this.setState({agent_id: agent_id});
-    if (agent_id == 'onboarding') {
-      // TODO handle the onboarding case
-    } else if (agent_id == null) {
+    if (agent_id == null) {
       // TODO  handle  the no  task case
       console.log('agent_id returned was null')
       this.setState({blocked_reason: 'null_agent_id'});
@@ -371,7 +395,6 @@ class MainApp extends React.Component {
     const form_data = new FormData(event.target);
     let obj_data = {}
     form_data.forEach((value, key) => {obj_data[key] = value});
-    console.log(obj_data);
     postCompleteTask(this.state.agent_id, obj_data);
     handleSubmitToProvider(obj_data);
   }
@@ -396,14 +419,12 @@ class MainApp extends React.Component {
       }
     } else if (this.state.agent_id === null) {
       return <div>Loading...</div>;
-    } else if (this.state.agent_id == 'onboarding') {
-      // TODO handle the onboarding case
-      return <div> Not yet Implemented </div>;
     } else {
       return <ChatApp 
         task_config={this.state.task_config} 
         agent_id={this.state.agent_id} 
         mephisto_worker_id={this.state.mephisto_worker_id}
+        transferFromOnboarding={() => this.afterAgentOnboarding()}
       />;
     }
   }

@@ -221,12 +221,19 @@ class Supervisor:
 
     def _on_submit_onboarding(self, packet: Packet, channel_info: ChannelInfo):
         """Handle the submission of onboarding data"""
-        agent = self.agents[packet.sender_id].agent
+        onboarding_id = packet.sender_id
+        agent_info = self.agents[onboarding_id]
+        agent = agent_info.agent
+        self.onboarding_packets[onboarding_id].data['request_id'] = packet.data['request_id']
+        del packet.data['request_id']
         assert isinstance(
             agent, OnboardingAgent
         ), "Only onboarding agents should submit onboarding"
         agent.pending_actions.append(packet)
         agent.has_action.set()
+        self._register_agent_from_onboarding(agent_info)
+        del self.agents[onboarding_id]
+        del self.onboarding_packets[onboarding_id]
 
     def _register_worker(self, packet: Packet, channel_info: ChannelInfo):
         """Process a worker registration packet to register a worker"""
@@ -273,11 +280,10 @@ class Supervisor:
             traceback.print_exc()
             task_runner.cleanup_onboarding(tracked_agent)
         finally:
-            if tracked_agent.get_status() == AgentState.STATUS_COMPLETED:
-                self._register_agent_from_onboarding(agent_info)
-            onboarding_id = tracked_agent.get_onboarding_id()
-            del self.agents[onboarding_id]
-            del self.onboarding_packets[onboarding_id]
+            if tracked_agent.get_status() != AgentState.STATUS_WAITING:
+                onboarding_id = tracked_agent.get_agent_id()
+                del self.agents[onboarding_id]
+                del self.onboarding_packets[onboarding_id]
 
     def _launch_and_run_assignment(
         self,
@@ -370,12 +376,12 @@ class Supervisor:
                     receiver_id=channel_info.channel_id,
                     data={
                         "request_id": packet.data["request_id"],
-                        "agent_id": agent.db_id,
+                        "agent_id": agent.get_agent_id(),
                     },
                 )
             )
             agent_info = AgentInfo(agent=agent, used_channel_id=channel_info.channel_id)
-            self.agents[agent.db_id] = agent_info
+            self.agents[agent.get_agent_id()] = agent_info
             self.agents_by_registration_id[
                 crowd_data["agent_registration_id"]
             ] = agent_info
@@ -447,7 +453,9 @@ class Supervisor:
         usable_units = channel_info.job.task_runner.filter_units_for_worker(
             units, worker
         )
-        packet = self.onboarding_packets[onboarding_agent.get_onboarding_id()]
+        packet = self.onboarding_packets[onboarding_agent.get_agent_id()]
+        self._try_send_agent_messages(onboarding_agent_info)
+        self._send_status_update(onboarding_agent_info)
         self._assign_unit_to_agent(packet, channel_info, usable_units)
 
     def _register_agent(self, packet: Packet, channel_info: ChannelInfo):
@@ -458,7 +466,7 @@ class Supervisor:
         if agent_registration_id in self.agents_by_registration_id:
             agent = self.agents_by_registration_id[agent_registration_id].agent
             # Update the source channel, in case it has changed
-            self.agents[agent.db_id].used_channel_id = channel_info.channel_id
+            self.agents[agent.get_agent_id()].used_channel_id = channel_info.channel_id
             self.message_queue.append(
                 Packet(
                     packet_type=PACKET_TYPE_PROVIDER_DETAILS,
@@ -466,7 +474,7 @@ class Supervisor:
                     receiver_id=channel_info.channel_id,
                     data={
                         "request_id": packet.data["request_id"],
-                        "agent_id": agent.db_id,
+                        "agent_id": agent.get_agent_id(),
                     },
                 )
             )
@@ -512,10 +520,11 @@ class Supervisor:
                 # Send a packet with onboarding information
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
+                onboard_agent.state.set_init_state(onboard_data)
                 agent_info = AgentInfo(
                     agent=onboard_agent, used_channel_id=channel_info.channel_id
                 )
-                onboard_id = onboard_agent.get_onboarding_id()
+                onboard_id = onboard_agent.get_agent_id()
                 # register onboarding agent
                 self.agents[onboard_id] = agent_info
                 self.onboarding_packets[onboard_id] = packet
@@ -623,7 +632,7 @@ class Supervisor:
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_CHANNEL_ID,
-            receiver_id=agent_info.agent.db_id,
+            receiver_id=agent_info.agent.get_agent_id(),
             data={
                 "agent_status": agent_info.agent.db_status,
                 "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
@@ -647,7 +656,7 @@ class Supervisor:
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_CHANNEL_ID,
-            receiver_id=agent_info.agent.db_id,
+            receiver_id=agent_info.agent.get_agent_id(),
             data={
                 "agent_status": "completed",
                 "done_text": "You have completed this task. Please submit.",
@@ -685,6 +694,8 @@ class Supervisor:
                         f"Got updated status {status} when already final: {agent.db_status}"
                     )
                     continue
+                elif status == AgentState.STATUS_COMPLETED:
+                    continue  # COMPLETED can only be marked locally
                 agent.update_status(status)
         pass
 
@@ -697,7 +708,7 @@ class Supervisor:
         send_packet = Packet(
             packet_type=PACKET_TYPE_REQUEST_ACTION,
             sender_id=SYSTEM_CHANNEL_ID,
-            receiver_id=agent_info.agent.db_id,
+            receiver_id=agent_info.agent.get_agent_id(),
             data={},
         )
         channel_info = self.channels[agent_info.used_channel_id]

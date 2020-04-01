@@ -233,6 +233,7 @@ class SocketHandler extends React.Component {
       },
       msg => {
         if (!is_system) {
+          msg.data.id = this.props.agent_display_name;
           this.props.messages.push(msg.data);
           this.props.onSuccessfulSend();
         }
@@ -268,6 +269,8 @@ class SocketHandler extends React.Component {
    **/
 
   parseSocketMessage(packet) {
+    log('Incoming message', 4);
+    log(packet, 4);
     if (packet.packet_type == PACKET_TYPE_REQUEST_ACTION) {
       this.handleRequestAct();
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_AGENT_STATUS) {

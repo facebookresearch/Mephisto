@@ -401,6 +401,8 @@ app.post('/submit_onboarding', function(req, res) {
   let agent_id = provider_data.USED_AGENT_ID;
   delete provider_data.USED_AGENT_ID;
 
+  provider_data.request_id = request_id;
+
   let submit_packet = {
     packet_type: PACKET_TYPE_SUBMIT_ONBOARDING,
     sender_id: agent_id,

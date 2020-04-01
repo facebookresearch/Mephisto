@@ -55,7 +55,6 @@ class MockTaskRunner(TaskRunner):
         """
         packet = onboarding_agent.act(timeout=self.timeout)
         onboarding_agent.did_submit.set()
-        onboarding_agent.mark_done()
 
     def run_unit(self, unit: "Unit", agent: "Agent"):
         """
@@ -73,7 +72,6 @@ class MockTaskRunner(TaskRunner):
         if packet is not None:
             agent.observe(packet)
         agent.did_submit.set()
-        agent.mark_done()
         del self.tracked_tasks[unit.db_id]
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]):
@@ -93,7 +91,6 @@ class MockTaskRunner(TaskRunner):
             if packet is not None:
                 agent.observe(packet)
             agent.did_submit.set()
-            agent.mark_done()
         del self.tracked_tasks[assignment.db_id]
 
     @classmethod

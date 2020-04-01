@@ -13,13 +13,16 @@ TURN_TIMEOUT_TIME = 300  # TODO make not a constant
 
 class MTurkMultiAgentDialogOnboardWorld(MTurkOnboardWorld):
     def parley(self):
+        self.mturk_agent.agent_id = "Onboarding Agent"
         self.mturk_agent.observe({"id": "System", "text": "Welcome onboard!"})
-        self.mturk_agent.act()
+        x = self.mturk_agent.act(timeout=TURN_TIMEOUT_TIME)
+        print("got onboarding act", x)
         self.mturk_agent.observe(
             {
                 "id": "System",
                 "text": "Thank you for your input! Please wait while "
                 "we match you with another worker...",
+                "episode_done": True,
             }
         )
         self.episodeDone = True
@@ -123,6 +126,16 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         Parallel(n_jobs=len(self.agents), backend="threading")(
             delayed(shutdown_agent)(agent) for agent in self.agents
         )
+
+
+def make_onboarding_world(opt, agent):
+    return MTurkMultiAgentDialogOnboardWorld(opt, agent)
+
+
+def validate_onboarding(data):
+    """Check the contents of the data to ensure they are valid"""
+    print(f"Validating onboarding data {data}")
+    return True
 
 
 def make_world(opt, agents):
