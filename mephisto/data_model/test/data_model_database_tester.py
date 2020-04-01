@@ -19,7 +19,7 @@ from mephisto.data_model.test.utils import (
 )
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants import NO_PROJECT_NAME
-from mephisto.data_model.agent import Agent
+from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.data_model.assignment_state import AssignmentState
@@ -899,3 +899,32 @@ class BaseDatabaseTests(unittest.TestCase):
         # cant retrieve the qualification directly anymore
         with self.assertRaises(EntryDoesNotExistException):
             qualification_row = db.get_granted_qualification(qual_id, worker_id)
+
+    def test_onboarding_agents(self) -> None:
+        """Ensure that the db can create and manipulate onboarding agents"""
+        assert self.db is not None, "No db initialized"
+        db: MephistoDB = self.db
+
+        task_run_id = get_test_task_run(db)
+        task_run = TaskRun(db, task_run_id)
+        task = task_run.get_task()
+        worker_name, worker_id = get_test_worker(db)
+
+        onboarding_agent_id = db.new_onboarding_agent(
+            worker_id,
+            task.db_id,
+            task_run_id,
+            'mock',
+        )
+        self.assertIsNotNone(onboarding_agent_id)
+
+        onboarding_agent = OnboardingAgent(db, onboarding_agent_id)
+        self.assertIsInstance(onboarding_agent, OnboardingAgent)
+
+        found_agents = db.find_onboarding_agents(worker_id=worker_id)
+        self.assertEqual(len(found_agents), 1)
+        self.assertIsInstance(found_agents[0], OnboardingAgent)
+        found_agent = found_agents[0]
+        self.assertEqual(found_agent.db_id, onboarding_agent_id)
+        self.assertEqual(found_agent.get_status(), AgentState.STATUS_NONE)
+

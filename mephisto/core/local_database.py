@@ -12,7 +12,7 @@ from mephisto.data_model.database import (
 )
 from typing import Mapping, Optional, Any, List
 from mephisto.core.utils import get_data_dir, get_valid_provider_types
-from mephisto.data_model.agent import Agent, AgentState
+from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
 from mephisto.data_model.assignment import Assignment, Unit, AssignmentState
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.project import Project
@@ -167,6 +167,19 @@ CREATE_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS agents (
 );
 """
 
+CREATE_ONBOARDING_AGENTS_TABLE = """CREATE TABLE IF NOT EXISTS onboarding_agents (
+    onboarding_agent_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    worker_id INTEGER NOT NULL,
+    task_id INTEGER NOT NULL,
+    task_run_id INTEGER NOT NULL,
+    task_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
+    FOREIGN KEY (task_run_id) REFERENCES task_runs (task_run_id)
+);
+"""
+
 CREATE_QUALIFICATIONS_TABLE = """CREATE TABLE IF NOT EXISTS qualifications (
     qualification_id INTEGER PRIMARY KEY AUTOINCREMENT,
     qualification_name TEXT NOT NULL UNIQUE,
@@ -257,6 +270,7 @@ class LocalMephistoDB(MephistoDB):
             c.execute(CREATE_AGENTS_TABLE)
             c.execute(CREATE_QUALIFICATIONS_TABLE)
             c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
+            c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
             conn.commit()
 
     def __get_one_by_id(
@@ -1272,3 +1286,110 @@ class LocalMephistoDB(MephistoDB):
                 (int(qualification_id), int(worker_id)),
             )
             conn.commit()
+
+    def new_onboarding_agent(
+        self,
+        worker_id: str,
+        task_id: str,
+        task_run_id: str,
+        task_type: str,
+    ) -> str:
+        """
+        Create a new agent for the given worker id to assign to the given unit
+        Raises EntryAlreadyExistsException
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            try:
+                c.execute(
+                    """INSERT INTO onboarding_agents(
+                        worker_id,
+                        task_id,
+                        task_run_id,
+                        task_type,
+                        status
+                    ) VALUES (?, ?, ?, ?, ?);""",
+                    (
+                        int(worker_id),
+                        int(task_id),
+                        int(task_run_id),
+                        task_type,
+                        AgentState.STATUS_NONE,
+                    ),
+                )
+                return str(c.lastrowid)
+            except sqlite3.IntegrityError as e:
+                conn.rollback()
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException()
+                raise MephistoDBException(e)
+
+    def get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
+        """
+        Return onboarding agent's fields by onboarding_agent_id, raise 
+        EntryDoesNotExistException if no id exists in onboarding_agents
+
+        Returns a SQLite Row object with the expected fields
+        """
+        return self.__get_one_by_id(
+            "onboarding_agents", 
+            "onboarding_agent_id", 
+            onboarding_agent_id,
+        )
+
+    def update_onboarding_agent(self, onboarding_agent_id: str, status: Optional[str] = None) -> None:
+        """
+        Update the given onboarding agent with the given parameters if possible, 
+        raise appropriate exception otherwise.
+        """
+        if status not in AgentState.valid():
+            raise MephistoDBException(f"Invalid status {status} for an agent")
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            if status is not None:
+                c.execute(
+                    """
+                    UPDATE onboarding_agents
+                    SET status = ?
+                    WHERE onboarding_agent_id = ?;
+                    """,
+                    (status, int(onboarding_agent_id)),
+                )
+            conn.commit()
+
+    def find_onboarding_agents(
+        self,
+        status: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        task_type: Optional[str] = None,
+    ) -> List[OnboardingAgent]:
+        """
+        Try to find any onboarding agent that matches the above. When called with no arguments,
+        return all onboarding agents.
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT onboarding_agent_id from onboarding_agents
+                WHERE (?1 IS NULL OR status = ?1)
+                AND (?2 IS NULL OR worker_id = ?2)
+                AND (?3 IS NULL OR task_id = ?3)
+                AND (?4 IS NULL OR task_run_id = ?4)
+                AND (?5 IS NULL OR task_type = ?5)
+                """,
+                (
+                    status,
+                    nonesafe_int(worker_id),
+                    nonesafe_int(task_id),
+                    nonesafe_int(task_run_id),
+                    task_type,
+                ),
+            )
+            rows = c.fetchall()
+            return [OnboardingAgent(self, str(r["onboarding_agent_id"])) for r in rows]

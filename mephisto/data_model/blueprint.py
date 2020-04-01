@@ -29,80 +29,12 @@ from mephisto.data_model.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from mephisto.data_model.agent import Agent
+    from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment, InitializationData, Unit
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
-
-
-class Blueprint(ABC):
-    """
-    Configuration class for the various parts of building, launching,
-    and running a task of a specific task. Provides utility functions
-    for managing between the three main components, which are separated
-    into separate classes in acknowledgement that some tasks may have
-    particularly complicated processes for them
-    """
-
-    AgentStateClass: ClassVar[Type["AgentState"]]
-    TaskRunnerClass: ClassVar[Type["TaskRunner"]]
-    TaskBuilderClass: ClassVar[Type["TaskBuilder"]]
-    supported_architects: ClassVar[List[str]]
-    BLUEPRINT_TYPE: str
-
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        self.opts = opts
-
-    @classmethod
-    def assert_task_args(cls, args: Any):
-        """
-        Assert that the provided arguments are valid. Should 
-        fail if a task launched with these arguments would
-        not work
-        """
-        return
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines options that are potentially usable for this task type,
-        and adds them to the given argparser group. The group's 'description'
-        attribute should be used to put any general help for these options.
-
-        These options are used to configure the way that the blueprint
-        looks or otherwise runs tasks.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        runner_group = group.add_argument_group("task_runner_args")
-        builder_group = group.add_argument_group("task_builder_args")
-        cls.TaskRunnerClass.add_args_to_group(runner_group)
-        cls.TaskBuilderClass.add_args_to_group(builder_group)
-        # group.description = 'For `Blueprint`, you can supply...'
-        # group.add_argument('--task-option', help='Lets you customize')
-        return
-
-    def get_frontend_args(self) -> Dict[str, Any]:
-        """
-        Specifies what options should be fowarded 
-        to the client for use by the task's frontend
-        """
-        return {}
-
-    @abstractmethod
-    def get_initialization_data(
-        self
-    ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
-        """
-        Get all of the data used to initialize tasks from this blueprint.
-        Can either be a simple iterable if all the assignments can 
-        be processed at once, or an AsyncIterator if the number
-        of tasks is unknown or changes based on something running
-        concurrently with the job.
-        """
-        raise NotImplementedError
 
 
 class TaskBuilder(ABC):
@@ -364,12 +296,17 @@ class AgentState(ABC):
     STATUS_APPROVED = "approved"
     STATUS_REJECTED = "rejected"
 
-    def __new__(cls, agent: "Agent") -> "AgentState":
+    def __new__(cls, agent: Union["Agent", "OnboardingAgent"]) -> "AgentState":
         """Return the correct agent state for the given agent"""
         if cls == AgentState:
+            from mephisto.data_model.agent import Agent
+
             # We are trying to construct an AgentState, find what type to use and
             # create that instead
-            correct_class = get_blueprint_from_type(agent.task_type).AgentStateClass
+            if isinstance(agent, Agent):
+                correct_class = get_blueprint_from_type(agent.task_type).AgentStateClass
+            else:
+                correct_class = get_blueprint_from_type(agent.task_type).OnboardingAgentStateClass
             return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
@@ -531,3 +468,72 @@ class OnboardingRequired(object):
         has qualified.
         """
         return True
+
+
+class Blueprint(ABC):
+    """
+    Configuration class for the various parts of building, launching,
+    and running a task of a specific task. Provides utility functions
+    for managing between the three main components, which are separated
+    into separate classes in acknowledgement that some tasks may have
+    particularly complicated processes for them
+    """
+
+    AgentStateClass: ClassVar[Type["AgentState"]]
+    OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = AgentState
+    TaskRunnerClass: ClassVar[Type["TaskRunner"]]
+    TaskBuilderClass: ClassVar[Type["TaskBuilder"]]
+    supported_architects: ClassVar[List[str]]
+    BLUEPRINT_TYPE: str
+
+    def __init__(self, task_run: "TaskRun", opts: Any):
+        self.opts = opts
+
+    @classmethod
+    def assert_task_args(cls, args: Any):
+        """
+        Assert that the provided arguments are valid. Should 
+        fail if a task launched with these arguments would
+        not work
+        """
+        return
+
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        Defines options that are potentially usable for this task type,
+        and adds them to the given argparser group. The group's 'description'
+        attribute should be used to put any general help for these options.
+
+        These options are used to configure the way that the blueprint
+        looks or otherwise runs tasks.
+
+        If the description field is left empty, the argument group is ignored
+        """
+        runner_group = group.add_argument_group("task_runner_args")
+        builder_group = group.add_argument_group("task_builder_args")
+        cls.TaskRunnerClass.add_args_to_group(runner_group)
+        cls.TaskBuilderClass.add_args_to_group(builder_group)
+        # group.description = 'For `Blueprint`, you can supply...'
+        # group.add_argument('--task-option', help='Lets you customize')
+        return
+
+    def get_frontend_args(self) -> Dict[str, Any]:
+        """
+        Specifies what options should be fowarded 
+        to the client for use by the task's frontend
+        """
+        return {}
+
+    @abstractmethod
+    def get_initialization_data(
+        self
+    ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
+        """
+        Get all of the data used to initialize tasks from this blueprint.
+        Can either be a simple iterable if all the assignments can 
+        be processed at once, or an AsyncIterator if the number
+        of tasks is unknown or changes based on something running
+        concurrently with the job.
+        """
+        raise NotImplementedError

@@ -30,6 +30,7 @@ class MockBlueprint(Blueprint, OnboardingRequired):
     """Mock of a task type, for use in testing"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
+    OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = MockTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
     supported_architects: ClassVar[List[str]] = ["mock"]

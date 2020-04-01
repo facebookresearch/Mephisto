@@ -292,3 +292,173 @@ class Agent(ABC):
         can be successfully created to have it put into the db.
         """
         raise NotImplementedError()
+
+
+class OnboardingAgent(ABC):
+    """
+    Onboarding agents are a special extension of agents used
+    in tasks that have a separate onboarding step. These agents
+    are designed to work without being linked to an explicit
+    unit, and instead are tied to the task run and task name. 
+    
+    
+    Blueprints that require OnboardingAgents should implement an 
+    OnboardingAgentState (to process the special task), and their 
+    TaskRunners should have a run_onboarding and cleanup_onboarding
+    method.
+    """
+
+    def __init__(self, db: "MephistoDB", db_id: str):
+        self.db_id: str = db_id
+        self.db: "MephistoDB" = db
+        row = db.get_onboarding_agent(db_id)
+        assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_status = row["status"]
+        self.worker_id = row["worker_id"]
+        self.task_type = row["task_type"]
+        self.pending_observations: List["Packet"] = []
+        self.pending_actions: List["Packet"] = []
+        self.has_action = threading.Event()
+        self.has_action.clear()
+        self.wants_action = threading.Event()
+        self.wants_action.clear()
+        self.has_updated_status = threading.Event()
+        self.task_run_id = row["task_run_id"]
+        self.task_id = row["task_id"]
+        self.did_submit = threading.Event()
+
+        # Deferred loading of related entities
+        self._worker: Optional["Worker"] = None
+        self._task_run: Optional["TaskRun"] = None
+        self._task: Optional["Task"] = None
+
+        # Follow-up initialization
+        self.state = AgentState(self)  # type: ignore
+
+    # TODO do we want to store task working time or completion time here?
+
+    def get_worker(self) -> Worker:
+        """
+        Return the worker that is using this agent for a task
+        """
+        if self._worker is None:
+            self._worker = Worker(self.db, self.worker_id)
+        return self._worker
+
+    def get_task_run(self) -> "TaskRun":
+        """Return the TaskRun this agent is working within"""
+        if self._task_run is None:
+            from mephisto.data_model.task import TaskRun
+
+            self._task_run = TaskRun(self.db, self.task_run_id)
+        return self._task_run
+
+    def get_task(self) -> "Task":
+        """Return the Task this agent is working within"""
+        if self._task is None:
+            if self._task_run is not None:
+                self._task = self._task_run.get_task()
+            else:
+                from mephisto.data_model.task import Task
+
+                self._task = Task(self.db, self.task_id)
+        return self._task
+
+    def get_data_dir(self) -> str:
+        """
+        Return the directory to be storing any agent state for
+        this agent into
+        """
+        task_run_dir = self.get_task_run().get_run_dir()
+        return os.path.join(task_run_dir, "onboarding")
+
+    def update_status(self, new_status: str) -> None:
+        """Update the database status of this agent, and
+        possibly send a message to the frontend agent informing
+        them of this update"""
+        if self.db_status == new_status:
+            return  # Noop, this is already the case
+        assert (
+            self.db_status not in AgentState.complete()
+        ), f"Cannot update a final status, was {self.db_status} and want to set to {new_status}"
+        self.db.update_agent(self.db_id, status=new_status)
+        self.db_status = new_status
+        self.has_updated_status.set()
+        if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
+            # Disconnect statuses should free any pending acts
+            self.has_action.set()
+            self.did_submit.set()
+
+    def observe(self, packet: "Packet") -> None:
+        """
+        Pass the observed information to the AgentState, then
+        queue the information to be pushed to the user
+        """
+        sending_packet = packet.copy()
+        sending_packet.receiver_id = self.db_id
+        self.state.update_data(sending_packet)
+        self.pending_observations.append(sending_packet)
+
+    def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
+        """
+        Request information from the Agent's frontend. If non-blocking,
+        (timeout is None) should return None if no actions are ready
+        to be returned.
+        """
+        if len(self.pending_actions) == 0:
+            self.wants_action.set()
+            if timeout is None or timeout == 0:
+                return None
+            self.has_action.wait(timeout)
+
+        if len(self.pending_actions) == 0:
+            # various disconnect cases
+            status = self.get_status()
+            if status == AgentState.STATUS_DISCONNECT:
+                raise AgentDisconnectedError(self.db_id)
+            elif status == AgentState.STATUS_RETURNED:
+                raise AgentReturnedError(self.db_id)
+            self.update_status(AgentState.STATUS_TIMEOUT)
+            raise AgentTimeoutError(timeout, self.db_id)
+        # TODO the below needs to be considered an agent timeout
+        assert len(self.pending_actions) > 0, "has_action released without an action!"
+
+        act = self.pending_actions.pop(0)
+
+        if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
+            self.did_submit.set()
+
+        # TODO check to see if the act is one of the acts to ERROR on
+
+        if len(self.pending_actions) == 0:
+            self.has_action.clear()
+        self.state.update_data(act)
+        return act
+
+    def get_status(self) -> str:
+        """Get the status of this agent in their work on their unit"""
+        if self.db_status not in AgentState.complete():
+            row = self.db.get_onboarding_agent(self.db_id)
+            if row["status"] != self.db_status:
+                if row["status"] in [
+                    AgentState.STATUS_RETURNED,
+                    AgentState.STATUS_DISCONNECT,
+                ]:
+                    # Disconnect statuses should free any pending acts
+                    self.has_action.set()
+                self.has_updated_status.set()
+            self.db_status = row["status"]
+        return self.db_status
+
+    @staticmethod
+    def new(db: "MephistoDB", worker: Worker, task_run: "TaskRun") -> "OnboardingAgent":
+        """
+        Create an OnboardingAgent for a worker to use as part of a task run
+        """
+        db_id = db.new_onboarding_agent(
+            worker.db_id,
+            task_run.task_id,
+            task_run.db_id,
+            unit.task_type,
+        )
+        return OnboardingAgent(db, db_id) 
