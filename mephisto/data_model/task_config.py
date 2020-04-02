@@ -69,6 +69,8 @@ class TaskConfig:
         self.task_reward: float = args["task_reward"]
         self.task_tags: List[str] = [s.strip() for s in args["task_tags"].split(",")]
         self.assignment_duration_in_seconds: int = args["assignment_duration_seconds"]
+        self.allowed_concurrent: int = args["allowed_concurrent"]
+        self.maximum_units_per_worker: int = args["maximum_units_per_worker"]
         self.qualifications: List[Any] = []  # TODO create qualification object?
 
     @classmethod
@@ -95,6 +97,7 @@ class TaskConfig:
             dest="task_reward",
             help="Amount to pay per worker per unit.",
             type=float,
+            required=True,
         )
         group.add_argument(
             "--task-tags",
@@ -109,6 +112,29 @@ class TaskConfig:
             default=30 * 60,
             type=int,
         )
+        group.add_argument(
+            "--allowed-concurrent",
+            dest="allowed_concurrent",
+            help="Maximum units a worker is allowed to work on at once. (0 is infinite)",
+            default=0,
+            type=int,
+        )
+        group.add_argument(
+            "--maximum-units-per-worker",
+            dest="maximum_units_per_worker",
+            help=(
+                "Maximum tasks of this task name that a worker can work on across all "
+                "tasks that share this task_name. (0 is infinite)"
+            ),
+            default=0,
+            type=int,
+        )
+        group.add_argument(
+            "--task-name",
+            dest="task_name",
+            help="Grouping to launch this task run under, none defaults to the blueprint type",
+        )
+
         return
 
     @classmethod
