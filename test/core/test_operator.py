@@ -54,13 +54,12 @@ class TestOperator(unittest.TestCase):
 
     def await_server_start(self, architect: "MockArchitect"):
         start_time = time.time()
+        assert architect.server is not None, "Cannot wait on empty server"
         while time.time() - start_time < 5:
             if len(architect.server.subs) > 0:
                 break
             time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, 5, "Mock server not up in time"
-        )
+        self.assertLess(time.time() - start_time, 5, "Mock server not up in time")
 
     def test_initialize_supervisor(self):
         """Quick test to ensure that the operator can be initialized"""
@@ -371,12 +370,19 @@ class TestOperator(unittest.TestCase):
         mock_agent_details = "FAKE_ASSIGNMENT_7"
         architect.server.register_mock_agent(worker_id_1, mock_agent_details)
         agents = self.db.find_agents()
-        self.assertEqual(len(agents), 6, "Additional agent was created for worker exceeding max units")
+        self.assertEqual(
+            len(agents),
+            6,
+            "Additional agent was created for worker exceeding max units",
+        )
         mock_agent_details = "FAKE_ASSIGNMENT_7"
         architect.server.register_mock_agent(worker_id_2, mock_agent_details)
         agents = self.db.find_agents()
-        self.assertEqual(len(agents), 6, "Additional agent was created for worker exceeding max units")
-
+        self.assertEqual(
+            len(agents),
+            6,
+            "Additional agent was created for worker exceeding max units",
+        )
 
         # Three and four should though
         mock_agent_details = "FAKE_ASSIGNMENT_7"
@@ -387,7 +393,6 @@ class TestOperator(unittest.TestCase):
         architect.server.register_mock_agent(worker_id_4, mock_agent_details)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 8, "Additional agent was not created")
-
 
         # Ensure the task run completed and that all assignments are done
         start_time = time.time()

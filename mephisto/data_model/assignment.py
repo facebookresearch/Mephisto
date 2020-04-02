@@ -467,7 +467,7 @@ class Unit(ABC):
                 computed_status = AssignmentState.ACCEPTED
             elif agent_status == AgentState.STATUS_REJECTED:
                 computed_status = AssignmentState.REJECTED
-        
+
         if computed_status != db_status:
             self.set_db_status(computed_status)
 

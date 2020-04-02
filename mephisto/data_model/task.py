@@ -211,29 +211,36 @@ class TaskRun:
         task run
         """
         config = self.get_task_config()
-        
+
         if config.allowed_concurrent != 0 or config.maximum_units_per_worker:
             current_units = self.db.find_units(
                 task_run_id=self.db_id,
                 worker_id=worker.db_id,
                 status=AssignmentState.ASSIGNED,
             )
-            currently_active = len(self.db.find_units(
-                task_run_id=self.db_id,
-                worker_id=worker.db_id,
-                status=AssignmentState.ASSIGNED,
-            ))
+            currently_active = len(
+                self.db.find_units(
+                    task_run_id=self.db_id,
+                    worker_id=worker.db_id,
+                    status=AssignmentState.ASSIGNED,
+                )
+            )
             if config.allowed_concurrent != 0:
                 if currently_active >= config.allowed_concurrent:
                     return []  # currently at the maximum number of concurrent units
             if config.maximum_units_per_worker != 0:
-                currently_completed = len(self.db.find_units(
-                    task_id=self.task_id,
-                    worker_id=worker.db_id,
-                    status=AssignmentState.COMPLETED,
-                ))
-                if currently_active + currently_completed >= config.maximum_units_per_worker:
-                    return [] # Currently at the maximum number of units for this task
+                currently_completed = len(
+                    self.db.find_units(
+                        task_id=self.task_id,
+                        worker_id=worker.db_id,
+                        status=AssignmentState.COMPLETED,
+                    )
+                )
+                if (
+                    currently_active + currently_completed
+                    >= config.maximum_units_per_worker
+                ):
+                    return []  # Currently at the maximum number of units for this task
 
         # TODO if an agent has failed onboarding, can we give them a fake unit?
         assignments = self.get_assignments()
