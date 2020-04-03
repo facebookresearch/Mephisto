@@ -19,21 +19,19 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment
 
-PARLAI_TASK_DIR = os.path.dirname(__file__)
-FRONTEND_SOURCE_DIR = os.path.join(PARLAI_TASK_DIR, "source")
+ACUTE_TASK_DIR = os.path.dirname(__file__)
+FRONTEND_SOURCE_DIR = os.path.join(ACUTE_TASK_DIR, "source")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
-BUILT_FILE = "done.built"
 
-
-class ParlAIChatTaskBuilder(TaskBuilder):
+class AcuteEvalBuilder(TaskBuilder):
     """
-    Builder for a parlai chat task, pulls the appropriate html,
+    Builder for a static task, pulls the appropriate html,
     builds the frontend (if a build doesn't already exist),
     then puts the file into the server directory
     """
 
-    BUILT_FILE = BUILT_FILE
+    BUILT_FILE = "done.built"
     BUILT_MESSAGE = "built!"
 
     def rebuild_core(self):
@@ -63,33 +61,17 @@ class ParlAIChatTaskBuilder(TaskBuilder):
         if True:  # not os.path.exists(FRONTEND_BUILD_DIR):
             self.rebuild_core()
 
-        # Copy over the preview file as preview.html, use the default if none specified
+        # Copy the built core and the given task file to the target path
+        bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, "bundle.js")
         target_resource_dir = os.path.join(build_dir, "static")
-        preview_file = self.opts.get("preview_source")
-        if preview_file is not None:
-            use_preview_file = os.path.expanduser(preview_file)
-            target_path = os.path.join(target_resource_dir, "preview.html")
-            shutil.copy2(use_preview_file, target_path)
-
-        # If any additional task files are required via a source_dir, copy those as well
-        extra_dir_path = self.opts.get("extra_source_dir")
-        if extra_dir_path is not None:
-            extra_dir_path = os.path.expanduser(extra_dir_path)
-            copy_tree(extra_dir_path, target_resource_dir)
-
-        bundle_js_file = self.opts.get("custom_source_bundle")
-        if bundle_js_file is None:
-            bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, "bundle.js")
         target_path = os.path.join(target_resource_dir, "bundle.js")
         shutil.copy2(bundle_js_file, target_path)
 
-        # Copy over the static files for this task:
-        for fin_file in ["index.html", "notif.mp3"]:
-            copied_static_file = os.path.join(
-                FRONTEND_SOURCE_DIR, "dev", "static", fin_file
-            )
-            target_path = os.path.join(target_resource_dir, fin_file)
-            shutil.copy2(copied_static_file, target_path)
+        copied_static_file = os.path.join(
+            FRONTEND_SOURCE_DIR, "dev", "static", "index.html"
+        )
+        target_path = os.path.join(target_resource_dir, "index.html")
+        shutil.copy2(copied_static_file, target_path)
 
         # Write a built file confirmation
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:
@@ -98,5 +80,5 @@ class ParlAIChatTaskBuilder(TaskBuilder):
     # TODO update test validation
     @staticmethod
     def task_dir_is_valid(task_dir: str) -> bool:
-        """ParlAIChat tasks are valid if built"""
+        """Acute eval is always valid, we don't have any special resources"""
         return True
