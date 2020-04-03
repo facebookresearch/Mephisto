@@ -63,6 +63,8 @@ ARG_STRING = (
     "--task-reward 0.5 "
     f"--task-tags {hit_keywords} "
     f"--subtasks-per-unit 2 "  # num comparisons to show within one unit
+    f"--maximum-units-per-worker 0 " # Num of units a worker is allowed to do, 0 is infinite
+    f"--allowed-concurrent 1" # Workers can only do one task at a time, or onboarding may break
 )
 
 extra_args = {
@@ -99,5 +101,3 @@ finally:
 
 # TODO these args are not yet configurable in mephisto
 # args['assignment_duration_in_seconds'] = 600
-# args['max_units_per_worker'] = 2  # max # hits a worker may complete
-# args['allowed_conversations'] = 1
