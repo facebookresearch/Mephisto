@@ -16,7 +16,7 @@ from typing import ClassVar, List, Type, Any, Dict, Union, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment, Unit
-    from mephisto.data_model.agent import Agent
+    from mephisto.data_model.agent import Agent, OnboardingAgent
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
@@ -47,6 +47,15 @@ class MockTaskRunner(TaskRunner):
         """
         # TODO implement
         pass
+
+    def run_onboarding(self, onboarding_agent: "OnboardingAgent"):
+        """
+        Mock runners simply wait for an act to come in with whether 
+        or not onboarding is complete
+        """
+        packet = onboarding_agent.act(timeout=self.timeout)
+        onboarding_agent.did_submit.set()
+        onboarding_agent.mark_done()
 
     def run_unit(self, unit: "Unit", agent: "Agent"):
         """
@@ -120,4 +129,8 @@ class MockTaskRunner(TaskRunner):
 
     def cleanup_unit(self, unit: "Unit"):
         """No cleanup required yet for ending mock runs"""
+        pass
+
+    def cleanup_onboarding(self, onboarding_agent: "OnboardingAgent"):
+        """No cleanup required yet for ending onboarding in mocks"""
         pass

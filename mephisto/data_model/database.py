@@ -11,7 +11,7 @@ import sqlite3
 from abc import ABC, abstractmethod
 from mephisto.core.utils import get_crowd_provider_from_type, get_data_dir
 from typing import Mapping, Optional, Any, List
-from mephisto.data_model.agent import Agent
+from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
@@ -442,6 +442,54 @@ class MephistoDB(ABC):
         """
         Try to find any agent that matches the above. When called with no arguments,
         return all agents.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def new_onboarding_agent(
+        self, worker_id: str, task_id: str, task_run_id: str, task_type: str
+    ) -> str:
+        """
+        Create a new agent for the given worker id to assign to the given unit
+        Raises EntryAlreadyExistsException
+
+        Should update the unit's status to ASSIGNED and the assigned agent to
+        this one.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
+        """
+        Return onboarding agent's fields by onboarding_agent_id, raise 
+        EntryDoesNotExistException if no id exists in onboarding_agents
+
+        See OnboardingAgent for the expected fields for the returned mapping
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def update_onboarding_agent(
+        self, onboarding_agent_id: str, status: Optional[str] = None
+    ) -> None:
+        """
+        Update the given onboarding agent with the given parameters if possible, 
+        raise appropriate exception otherwise.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def find_onboarding_agents(
+        self,
+        status: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        task_type: Optional[str] = None,
+    ) -> List[OnboardingAgent]:
+        """
+        Try to find any onboarding agent that matches the above. When called with no arguments,
+        return all onboarding agents.
         """
         raise NotImplementedError()
 

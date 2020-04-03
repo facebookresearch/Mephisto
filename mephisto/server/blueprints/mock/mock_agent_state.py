@@ -11,6 +11,7 @@ import json
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
+    from mephisto.data_model.packet import Packet
 
 
 class MockAgentState(AgentState):
@@ -53,8 +54,8 @@ class MockAgentState(AgentState):
         """Mock agents don't save data (yet)"""
         pass
 
-    def update_data(self, state) -> None:
+    def update_data(self, packet: "Packet") -> None:
         """Put new data into this mock state"""
         # TODO this should actually take in packets instead
         # update once we use packets
-        self.state = state
+        self.state = packet.data

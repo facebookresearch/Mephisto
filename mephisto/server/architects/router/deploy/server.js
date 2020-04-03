@@ -396,7 +396,22 @@ app.post('/request_agent', function(req, res) {
 
 app.post('/submit_onboarding', function(req, res) {
   var provider_data = req.body.provider_data;
-  make_provider_request(PACKET_TYPE_SUBMIT_ONBOARDING, provider_data, res);
+  var request_id = uuidv4();
+
+  let agent_id = provider_data.USED_AGENT_ID;
+  delete provider_data.USED_AGENT_ID;
+
+  provider_data.request_id = request_id;
+
+  let submit_packet = {
+    packet_type: PACKET_TYPE_SUBMIT_ONBOARDING,
+    sender_id: agent_id,
+    receiver_id: SYSTEM_SOCKET_ID,
+    data: provider_data,
+  };
+
+  pending_provider_requests[request_id] = res;
+  _send_message(mephisto_socket, submit_packet);
 });
 
 app.post('/submit_task', upload.any(), function(req, res) {

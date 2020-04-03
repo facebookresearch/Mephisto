@@ -17,6 +17,7 @@ import time
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from mephsito.data_model.agent import OnboardingAgent
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
@@ -30,6 +31,7 @@ class MockBlueprint(Blueprint, OnboardingRequired):
     """Mock of a task type, for use in testing"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
+    OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = MockTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
     supported_architects: ClassVar[List[str]] = ["mock"]
@@ -73,10 +75,11 @@ class MockBlueprint(Blueprint, OnboardingRequired):
             for i in range(self.opts["num_assignments"])
         ]
 
+    # TODO this should probably be part of the TaskRunner, which is actually privy to the task
     def validate_onboarding(
-        self, worker: "Worker", onboard_data: Dict[str, Any]
+        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
     ) -> bool:
         """
         Onboarding validation for MockBlueprints just returns the 'should_pass' field
         """
-        return onboard_data["should_pass"]
+        return onboarding_agent.state.get_data()["should_pass"]

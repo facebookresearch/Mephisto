@@ -7,6 +7,7 @@ from mephisto.core.utils import get_root_dir
 
 USE_LOCAL = True
 DEMO_CUSTOM_BUNDLE = False
+USE_ONBOARDING = True
 
 db = LocalMephistoDB()
 
@@ -50,6 +51,9 @@ ARG_STRING = (
     f'--task-description-file "{TASK_DIRECTORY}/task_description.html" '
     "--num-conversations 1 "
 )
+
+if USE_ONBOARDING:
+    ARG_STRING += f"--onboarding-qualification test-parlai-chat-qualification "
 
 world_opt = {"num_turns": 3}
 

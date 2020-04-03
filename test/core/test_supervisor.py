@@ -426,6 +426,10 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet - need onboarding"
         )
+        onboard_agents = self.db.find_onboarding_agents()
+        self.assertEqual(
+            len(onboard_agents), 1, "Onboarding agent should have been created"
+        )
         time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
@@ -435,7 +439,7 @@ class TestSupervisor(unittest.TestCase):
         # Submit onboarding from the agent
         onboard_data = {"should_pass": False}
         self.architect.server.register_mock_agent_after_onboarding(
-            worker_id, mock_agent_details, onboard_data
+            worker_id, onboard_agents[0].get_agent_id(), onboard_data
         )
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent not created after onboarding")
@@ -614,6 +618,10 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet - need onboarding"
         )
+        onboard_agents = self.db.find_onboarding_agents()
+        self.assertEqual(
+            len(onboard_agents), 1, "Onboarding agent should have been created"
+        )
         time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
@@ -623,7 +631,7 @@ class TestSupervisor(unittest.TestCase):
         # Submit onboarding from the agent
         onboard_data = {"should_pass": False}
         self.architect.server.register_mock_agent_after_onboarding(
-            worker_id, mock_agent_details, onboard_data
+            worker_id, onboard_agents[0].get_agent_id(), onboard_data
         )
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent not created after onboarding")

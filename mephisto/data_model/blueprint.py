@@ -29,80 +29,12 @@ from mephisto.data_model.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from mephisto.data_model.agent import Agent
+    from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Assignment, InitializationData, Unit
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
-
-
-class Blueprint(ABC):
-    """
-    Configuration class for the various parts of building, launching,
-    and running a task of a specific task. Provides utility functions
-    for managing between the three main components, which are separated
-    into separate classes in acknowledgement that some tasks may have
-    particularly complicated processes for them
-    """
-
-    AgentStateClass: ClassVar[Type["AgentState"]]
-    TaskRunnerClass: ClassVar[Type["TaskRunner"]]
-    TaskBuilderClass: ClassVar[Type["TaskBuilder"]]
-    supported_architects: ClassVar[List[str]]
-    BLUEPRINT_TYPE: str
-
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        self.opts = opts
-
-    @classmethod
-    def assert_task_args(cls, args: Any):
-        """
-        Assert that the provided arguments are valid. Should 
-        fail if a task launched with these arguments would
-        not work
-        """
-        return
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines options that are potentially usable for this task type,
-        and adds them to the given argparser group. The group's 'description'
-        attribute should be used to put any general help for these options.
-
-        These options are used to configure the way that the blueprint
-        looks or otherwise runs tasks.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        runner_group = group.add_argument_group("task_runner_args")
-        builder_group = group.add_argument_group("task_builder_args")
-        cls.TaskRunnerClass.add_args_to_group(runner_group)
-        cls.TaskBuilderClass.add_args_to_group(builder_group)
-        # group.description = 'For `Blueprint`, you can supply...'
-        # group.add_argument('--task-option', help='Lets you customize')
-        return
-
-    def get_frontend_args(self) -> Dict[str, Any]:
-        """
-        Specifies what options should be fowarded 
-        to the client for use by the task's frontend
-        """
-        return {}
-
-    @abstractmethod
-    def get_initialization_data(
-        self
-    ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
-        """
-        Get all of the data used to initialize tasks from this blueprint.
-        Can either be a simple iterable if all the assignments can 
-        be processed at once, or an AsyncIterator if the number
-        of tasks is unknown or changes based on something running
-        concurrently with the job.
-        """
-        raise NotImplementedError
 
 
 class TaskBuilder(ABC):
@@ -169,6 +101,7 @@ class TaskRunner(ABC):
         self.task_run = task_run
         self.running_assignments: Dict[str, "Assignment"] = {}
         self.running_units: Dict[str, "Unit"] = {}
+        self.running_onboardings: Dict[str, "OnboardingAgent"] = {}
         self.is_concurrent = False
         # TODO populate some kind of local state for tasks that are being run
         # by this runner from the database.
@@ -184,12 +117,37 @@ class TaskRunner(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
+    def launch_onboarding(self, onboarding_agent: "OnboardingAgent") -> None:
+        """
+        Validate that onboarding is ready, then launch. Catch disconnect conditions
+        """
+        onboarding_id = onboarding_agent.get_agent_id()
+        if onboarding_id in self.running_onboardings:
+            print(f"Onboarding {onboarding_id} is already running")
+            return
+
+        print(f"Onboarding {onboarding_id} is launching with {onboarding_agent}")
+
+        # At this point we're sure we want to run Onboarding
+        self.running_onboardings[onboarding_id] = onboarding_agent
+        try:
+            self.run_onboarding(onboarding_agent)
+            onboarding_agent.mark_done()
+        except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
+            self.cleanup_onboarding(onboarding_agent)
+        except Exception as e:
+            print(f"Unhandled exception in onboarding {onboarding_agent}: {repr(e)}")
+            import traceback
+
+            traceback.print_exc()
+            self.cleanup_onboarding(onboarding_agent)
+        del self.running_onboardings[onboarding_id]
+        return
+
     def launch_unit(self, unit: "Unit", agent: "Agent") -> None:
         """
         Validate the unit is prepared to launch, then run it
         """
-        # TODO depending on if this is a synchronous task or not, we may
-        # want to check unit id instead
         if unit.db_id in self.running_units:
             print(f"Unit {unit.db_id} is already running")
             return
@@ -219,8 +177,6 @@ class TaskRunner(ABC):
         """
         Validate the assignment is prepared to launch, then run it
         """
-        # TODO depending on if this is a synchronous task or not, we may
-        # want to check unit id instead
         if assignment.db_id in self.running_assignments:
             print(f"Assignment {assignment.db_id} is already running")
             return
@@ -263,8 +219,6 @@ class TaskRunner(ABC):
     def get_init_data_for_agent(self, agent: "Agent"):
         """
         Return the data that an agent will need for their task.
-
-        When all agents get their data, launch the task
         """
         raise NotImplementedError()
 
@@ -281,6 +235,23 @@ class TaskRunner(ABC):
     # TaskRunners must implement either the unit or assignment versions of the
     # run and cleanup functions, depending on if the task is run at the assignment
     # level rather than on the the unit level.
+
+    def run_onboarding(self, agent: "OnboardingAgent"):
+        """
+        Handle setup for any resources to run an onboarding task. This
+        will be run in a background thread, and should be tolerant to being
+        interrupted by cleanup_onboarding.
+
+        Only required by tasks that want to implement onboarding
+        """
+        raise NotImplementedError()
+
+    def cleanup_onboarding(self, agent: "OnboardingAgent"):
+        """
+        Handle cleaning up the resources that were being used to onboard
+        the given agent.
+        """
+        raise NotImplementedError()
 
     def run_unit(self, unit: "Unit", agent: "Agent"):
         """
@@ -364,12 +335,19 @@ class AgentState(ABC):
     STATUS_APPROVED = "approved"
     STATUS_REJECTED = "rejected"
 
-    def __new__(cls, agent: "Agent") -> "AgentState":
+    def __new__(cls, agent: Union["Agent", "OnboardingAgent"]) -> "AgentState":
         """Return the correct agent state for the given agent"""
         if cls == AgentState:
+            from mephisto.data_model.agent import Agent
+
             # We are trying to construct an AgentState, find what type to use and
             # create that instead
-            correct_class = get_blueprint_from_type(agent.task_type).AgentStateClass
+            if isinstance(agent, Agent):
+                correct_class = get_blueprint_from_type(agent.task_type).AgentStateClass
+            else:
+                correct_class = get_blueprint_from_type(
+                    agent.task_type
+                ).OnboardingAgentStateClass
             return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
@@ -512,7 +490,7 @@ class OnboardingRequired(object):
         )
         return
 
-    def get_onboarding_data(self) -> Dict[str, Any]:
+    def get_onboarding_data(self, worker_id: str) -> Dict[str, Any]:
         """
         If the onboarding task on the frontend requires any specialized data, the blueprint
         should provide it for the user.
@@ -523,7 +501,7 @@ class OnboardingRequired(object):
         return {}
 
     def validate_onboarding(
-        self, worker: "Worker", onboard_data: Dict[str, Any]
+        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
     ) -> bool:
         """
         Check the incoming onboarding data and evaluate if the worker
@@ -531,3 +509,72 @@ class OnboardingRequired(object):
         has qualified.
         """
         return True
+
+
+class Blueprint(ABC):
+    """
+    Configuration class for the various parts of building, launching,
+    and running a task of a specific task. Provides utility functions
+    for managing between the three main components, which are separated
+    into separate classes in acknowledgement that some tasks may have
+    particularly complicated processes for them
+    """
+
+    AgentStateClass: ClassVar[Type["AgentState"]]
+    OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = AgentState  # type: ignore
+    TaskRunnerClass: ClassVar[Type["TaskRunner"]]
+    TaskBuilderClass: ClassVar[Type["TaskBuilder"]]
+    supported_architects: ClassVar[List[str]]
+    BLUEPRINT_TYPE: str
+
+    def __init__(self, task_run: "TaskRun", opts: Any):
+        self.opts = opts
+
+    @classmethod
+    def assert_task_args(cls, args: Any):
+        """
+        Assert that the provided arguments are valid. Should 
+        fail if a task launched with these arguments would
+        not work
+        """
+        return
+
+    @classmethod
+    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
+        """
+        Defines options that are potentially usable for this task type,
+        and adds them to the given argparser group. The group's 'description'
+        attribute should be used to put any general help for these options.
+
+        These options are used to configure the way that the blueprint
+        looks or otherwise runs tasks.
+
+        If the description field is left empty, the argument group is ignored
+        """
+        runner_group = group.add_argument_group("task_runner_args")
+        builder_group = group.add_argument_group("task_builder_args")
+        cls.TaskRunnerClass.add_args_to_group(runner_group)
+        cls.TaskBuilderClass.add_args_to_group(builder_group)
+        # group.description = 'For `Blueprint`, you can supply...'
+        # group.add_argument('--task-option', help='Lets you customize')
+        return
+
+    def get_frontend_args(self) -> Dict[str, Any]:
+        """
+        Specifies what options should be fowarded 
+        to the client for use by the task's frontend
+        """
+        return {}
+
+    @abstractmethod
+    def get_initialization_data(
+        self
+    ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
+        """
+        Get all of the data used to initialize tasks from this blueprint.
+        Can either be a simple iterable if all the assignments can 
+        be processed at once, or an AsyncIterator if the number
+        of tasks is unknown or changes based on something running
+        concurrently with the job.
+        """
+        raise NotImplementedError
