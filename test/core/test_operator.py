@@ -42,6 +42,25 @@ class TestOperator(unittest.TestCase):
             f"Expected only main thread at teardown, found {threading.enumerate()}",
         )
 
+    def wait_for_complete_assignment(self, assignment, timeout: int):
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if assignment.get_status() == AssignmentState.COMPLETED:
+                break
+            time.sleep(0.1)
+        self.assertLess(
+            time.time() - start_time, timeout, "Assignment not completed in time"
+        )
+
+    def await_server_start(self, architect: "MockArchitect"):
+        start_time = time.time()
+        assert architect.server is not None, "Cannot wait on empty server"
+        while time.time() - start_time < 5:
+            if len(architect.server.subs) > 0:
+                break
+            time.sleep(0.1)
+        self.assertLess(time.time() - start_time, 5, "Mock server not up in time")
+
     def test_initialize_supervisor(self):
         """Quick test to ensure that the operator can be initialized"""
         self.operator = Operator(self.db)
@@ -189,3 +208,203 @@ class TestOperator(unittest.TestCase):
         task_run = tracked_run.task_run
         assignment = task_run.get_assignments()[0]
         self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
+
+    def test_run_jobs_with_restrictions(self):
+        """Ensure allowed_concurrent and maximum_units_per_worker work"""
+        self.operator = Operator(self.db)
+        ARG_STRING = (
+            "--blueprint-type mock "
+            "--architect-type mock "
+            f"--requester-name {self.requester_name} "
+            "--num-assignments 3 "
+            "--task-title title "
+            "--task-description description "
+            "--task-reward 0.3 "
+            "--task-tags 1,2,3 "
+            "--should-run-server true "
+            "--is-concurrent true "
+            "--task-name max-unit-test "
+            "--allowed-concurrent 1 "
+            "--maximum-units-per-worker 2 "
+        )
+        self.operator.parse_and_launch_run(shlex.split(ARG_STRING))
+        tracked_runs = self.operator.get_running_task_runs()
+        self.assertEqual(len(tracked_runs), 1, "Run not launched")
+        task_run_id, tracked_run = list(tracked_runs.items())[0]
+
+        self.assertIsNotNone(tracked_run)
+        self.assertIsNotNone(tracked_run.task_launcher)
+        self.assertIsNotNone(tracked_run.task_runner)
+        self.assertIsNotNone(tracked_run.architect)
+        self.assertIsNotNone(tracked_run.task_run)
+        self.assertEqual(tracked_run.task_run.db_id, task_run_id)
+
+        self.await_server_start(tracked_run.architect)
+
+        # Create two agents to step through the task
+        architect = tracked_run.architect
+        self.assertIsInstance(architect, MockArchitect, "Must use mock in testing")
+        # Register a worker
+        mock_worker_name = "MOCK_WORKER"
+        architect.server.register_mock_worker(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name)
+        worker_id_1 = workers[0].db_id
+
+        self.assertEqual(len(tracked_run.task_runner.running_assignments), 0)
+
+        # Register an agent
+        mock_agent_details = "FAKE_ASSIGNMENT"
+        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 1, "Agent was not created properly")
+        agent = agents[0]
+        self.assertIsNotNone(agent)
+
+        # Try to register a second agent, which should fail due to concurrency
+        mock_agent_details = "FAKE_ASSIGNMENT_2"
+        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 1, "Second agent was created")
+
+        # Register another worker
+        mock_worker_name = "MOCK_WORKER_2"
+        architect.server.register_mock_worker(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name)
+        worker_id_2 = workers[0].db_id
+
+        # Register an agent
+        mock_agent_details = "FAKE_ASSIGNMENT_2"
+        architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 2, "Second agent was not created")
+
+        # wait for task to pass
+        self.wait_for_complete_assignment(agents[1].get_unit().get_assignment(), 3)
+
+        # Pass a second task as well
+        mock_agent_details = "FAKE_ASSIGNMENT_3"
+        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 3, "Agent was not created properly")
+        mock_agent_details = "FAKE_ASSIGNMENT_4"
+        architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 4, "Fourth agent was not created")
+
+        # wait for task to pass
+        self.wait_for_complete_assignment(agents[3].get_unit().get_assignment(), 3)
+
+        # Both workers should have saturated their tasks, and not be granted agents
+        mock_agent_details = "FAKE_ASSIGNMENT_5"
+        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 4, "Additional agent was created")
+        architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 4, "Additional agent was created")
+
+        # new workers should be able to work on these just fine though
+        mock_worker_name = "MOCK_WORKER_3"
+        architect.server.register_mock_worker(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name)
+        worker_id_3 = workers[0].db_id
+        mock_worker_name = "MOCK_WORKER_4"
+        architect.server.register_mock_worker(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name)
+        worker_id_4 = workers[0].db_id
+
+        # Register agents from new workers
+        mock_agent_details = "FAKE_ASSIGNMENT_5"
+        architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 5, "Additional agent was not created")
+        mock_agent_details = "FAKE_ASSIGNMENT_6"
+        architect.server.register_mock_agent(worker_id_4, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 6, "Additional agent was not created")
+
+        # wait for task to pass
+        self.wait_for_complete_assignment(agents[5].get_unit().get_assignment(), 3)
+
+        # Give up to 5 seconds for whole mock task to complete
+        start_time = time.time()
+        TIMEOUT_TIME = 3
+        while time.time() - start_time < TIMEOUT_TIME:
+            if len(self.operator.get_running_task_runs()) == 0:
+                break
+            time.sleep(0.1)
+        self.assertLess(
+            time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
+        )
+
+        # Ensure all assignments are completed
+        task_run = tracked_run.task_run
+        assignments = task_run.get_assignments()
+        for assignment in assignments:
+            self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
+
+        # Create a new task
+        ARG_STRING = (
+            "--blueprint-type mock "
+            "--architect-type mock "
+            f"--requester-name {self.requester_name} "
+            "--num-assignments 1 "
+            "--task-title title "
+            "--task-description description "
+            "--task-reward 0.3 "
+            "--task-tags 1,2,3 "
+            "--should-run-server true "
+            "--is-concurrent true "
+            "--task-name max-unit-test "
+            "--allowed-concurrent 1 "
+            "--maximum-units-per-worker 2 "
+        )
+        self.operator.parse_and_launch_run(shlex.split(ARG_STRING))
+        tracked_runs = self.operator.get_running_task_runs()
+        self.assertEqual(len(tracked_runs), 1, "Run not launched")
+        task_run_id, tracked_run = list(tracked_runs.items())[0]
+        self.await_server_start(tracked_run.architect)
+        architect = tracked_run.architect
+
+        # Workers one and two still shouldn't be able to make agents
+        mock_agent_details = "FAKE_ASSIGNMENT_7"
+        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(
+            len(agents),
+            6,
+            "Additional agent was created for worker exceeding max units",
+        )
+        mock_agent_details = "FAKE_ASSIGNMENT_7"
+        architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(
+            len(agents),
+            6,
+            "Additional agent was created for worker exceeding max units",
+        )
+
+        # Three and four should though
+        mock_agent_details = "FAKE_ASSIGNMENT_7"
+        architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 7, "Additional agent was not created")
+        mock_agent_details = "FAKE_ASSIGNMENT_8"
+        architect.server.register_mock_agent(worker_id_4, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 8, "Additional agent was not created")
+
+        # Ensure the task run completed and that all assignments are done
+        start_time = time.time()
+        TIMEOUT_TIME = 3
+        while time.time() - start_time < TIMEOUT_TIME:
+            if len(self.operator.get_running_task_runs()) == 0:
+                break
+            time.sleep(0.1)
+        self.assertLess(
+            time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
+        )
+        task_run = tracked_run.task_run
+        assignments = task_run.get_assignments()
+        for assignment in assignments:
+            self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)

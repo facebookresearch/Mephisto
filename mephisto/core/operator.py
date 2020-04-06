@@ -169,7 +169,9 @@ class Operator:
         CrowdProviderClass.assert_task_args(task_args)
 
         # Find an existing task or create a new one
-        task_name = task_args.get("task_name", type_args.blueprint_type)
+        task_name = task_args.get("task_name")
+        if task_name is None:
+            task_name = type_args.blueprint_type
         tasks = self.db.find_tasks(task_name=task_name)
         task_id = None
         if len(tasks) == 0:

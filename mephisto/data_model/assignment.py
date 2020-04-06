@@ -436,14 +436,17 @@ class Unit(ABC):
         """
         from mephisto.data_model.blueprint import AgentState
 
+        db_status = self.db_status
+        computed_status = AssignmentState.LAUNCHED
+
         agent = self.get_assigned_agent()
         if agent is None:
             row = self.db.get_unit(self.db_id)
-            return row["status"]
+            computed_status = row["status"]
         else:
             agent_status = agent.get_status()
             if agent_status == AgentState.STATUS_NONE:
-                return AssignmentState.LAUNCHED
+                computed_status = AssignmentState.LAUNCHED
             elif agent_status in [
                 AgentState.STATUS_ACCEPTED,
                 AgentState.STATUS_ONBOARDING,
@@ -451,20 +454,24 @@ class Unit(ABC):
                 AgentState.STATUS_WAITING,
                 AgentState.STATUS_IN_TASK,
             ]:
-                return AssignmentState.ASSIGNED
+                computed_status = AssignmentState.ASSIGNED
             elif agent_status in [AgentState.STATUS_COMPLETED]:
-                return AssignmentState.COMPLETED
+                computed_status = AssignmentState.COMPLETED
             elif agent_status in [
                 AgentState.STATUS_DISCONNECT,
                 AgentState.STATUS_EXPIRED,
                 AgentState.STATUS_RETURNED,
             ]:
-                return AssignmentState.EXPIRED
+                computed_status = AssignmentState.EXPIRED
             elif agent_status == AgentState.STATUS_APPROVED:
-                return AssignmentState.ACCEPTED
+                computed_status = AssignmentState.ACCEPTED
             elif agent_status == AgentState.STATUS_REJECTED:
-                return AssignmentState.REJECTED
-        return AssignmentState.LAUNCHED
+                computed_status = AssignmentState.REJECTED
+
+        if computed_status != db_status:
+            self.set_db_status(computed_status)
+
+        return computed_status
 
     # Children classes should implement the below methods
 
