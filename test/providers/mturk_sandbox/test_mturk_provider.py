@@ -145,5 +145,6 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
                 "MTurk did not register qualification deletion",
             )
 
+
 if __name__ == "__main__":
     unittest.main()

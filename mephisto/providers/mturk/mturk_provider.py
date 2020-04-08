@@ -126,9 +126,9 @@ class MTurkProvider(CrowdProvider):
         mapping = self.datastore.get_qualification_mapping(qualification_name)
         if mapping is None:
             return None
-        
-        requester_id = mapping['requester_id']
+
+        requester_id = mapping["requester_id"]
         requester = Requester(self.db, requester_id)
         assert isinstance(requester, MTurkRequester), "Must be an mturk requester"
         client = requester._get_client(requester._requester_name)
-        delete_qualification(client, mapping['mturk_qualification_id'])
+        delete_qualification(client, mapping["mturk_qualification_id"])

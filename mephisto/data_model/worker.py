@@ -176,7 +176,9 @@ class Worker(ABC):
 
     # Children classes can implement the following methods
 
-    def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
+    def grant_crowd_qualification(
+        self, qualification_name: str, value: int = 1
+    ) -> None:
         """
         Grant a qualification by the given name to this worker
 
