@@ -78,26 +78,17 @@ class MTurkProvider(CrowdProvider):
         task_config = task_run.get_task_config()
 
         # Set up SNS queue
+        # TODO implement arn?
         task_run_id = task_run.db_id
         # task_name = task_run.get_task().task_name
         # arn_id = setup_sns_topic(session, task_name, server_url, task_run_id)
         arn_id = "TEST"
 
         # Set up HIT config
-        # TODO refactor these opts into something gettable elsewhere?
-        # TODO these might actually be more relevant to task type
-        # and the frontend deployed based on task type
         config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
-        # os.mkdirs(config_dir, exist_ok=True)
-        # opt = {
-        #     'frame_height': 650,
-        #     'allow_reviews': False,
-        #     'block_mobile': True,
-        #     'template_type': 'default',
-        #     'run_dir': config_dir,
-        # }
-        # create_hit_config(opt, task_config, self.is_sandbox())
         task_config = TaskConfig(task_run)
+
+        # TODO register qualifications for this run
 
         # Set up HIT type
         client = self._get_client(requester._requester_name)

@@ -13,14 +13,11 @@ from mephisto.providers.mturk.mturk_utils import (
     unblock_worker,
     is_worker_blocked,
     give_worker_qualification,
-    find_or_create_qualification,
     remove_worker_qualification,
 )
 from mephisto.providers.mturk.mturk_requester import MTurkRequester
 
 from uuid import uuid4
-import time
-import random
 
 from typing import List, Optional, Tuple, Dict, Any, cast, TYPE_CHECKING
 
@@ -31,9 +28,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.providers.mturk.mturk_requester import MTurkRequester
-
-
-MAX_QUALIFICATION_ATTEMPTS = 300
 
 
 class MTurkWorker(Worker):
@@ -61,49 +55,6 @@ class MTurkWorker(Worker):
         """
         return self.datastore.get_client_for_requester(requester_name)
 
-    def _create_new_mturk_qualification(
-        self, requester: "MTurkRequester", qualification_name: str
-    ) -> str:
-        """
-        Create a new qualification on MTurk owned by the requester provided
-        """
-        client = self._get_client(requester._requester_name)
-        qualification_desc = f"Equivalent qualification for {qualification_name}."
-        use_qualification_name = qualification_name
-        qualification_id = find_or_create_qualification(
-            client, qualification_name, qualification_desc, must_be_owned=True
-        )
-        if qualification_id is None:
-            # Try to append time to make the qualification unique
-            use_qualification_name = f"{qualification_name}_{time.time()}"
-            qualification_id = find_or_create_qualification(
-                client, use_qualification_name, qualification_desc, must_be_owned=True
-            )
-            attempts = 0
-            while qualification_id is None:
-                # Append something somewhat random
-                use_qualification_name = f"{qualification_name}_{str(uuid4())}"
-                qualification_id = find_or_create_qualification(
-                    client,
-                    use_qualification_name,
-                    qualification_desc,
-                    must_be_owned=True,
-                )
-                attempts += 1
-                if attempts > MAX_QUALIFICATION_ATTEMPTS:
-                    raise Exception(
-                        "Something has gone extremely wrong with creating qualification "
-                        f"{qualification_name} for requester {requester.requester_name}"
-                    )
-        # Store the new qualification in the datastore
-        self.datastore.create_qualification_mapping(
-            qualification_name,
-            requester.db_id,
-            use_qualification_name,
-            qualification_id,
-        )
-        return qualification_id
-
     def grant_crowd_qualification(
         self, qualification_name: str, value: int = 1
     ) -> None:
@@ -130,9 +81,7 @@ class MTurkWorker(Worker):
             assert isinstance(
                 requester, MTurkRequester
             ), "find_requesters must return mturk requester for given provider types"
-            qualification_id = self._create_new_mturk_qualification(
-                requester, qualification_name
-            )
+            qualification_id = requester._create_new_mturk_qualification(qualification_name)
         assert isinstance(
             requester, MTurkRequester
         ), "Must be an MTurk requester for MTurk quals"
