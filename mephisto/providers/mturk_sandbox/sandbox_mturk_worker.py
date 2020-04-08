@@ -32,6 +32,24 @@ class SandboxMTurkWorker(MTurkWorker):
         # sandbox workers use a different name
         self._worker_name = self.worker_name[:-8]
 
+    def grant_crowd_qualification(
+        self, qualification_name: str, value: int = 1
+    ) -> None:
+        """
+        Grant a qualification by the given name to this worker. Check the local 
+        MTurk db to find the matching MTurk qualification to grant, and pass 
+        that. If no qualification exists, try to create one.
+        """
+        return super().grant_crowd_qualification(qualification_name + "_sandbox", value)
+
+    def revoke_crowd_qualification(self, qualification_name: str) -> None:
+        """
+        Revoke the qualification by the given name from this worker. Check the local 
+        MTurk db to find the matching MTurk qualification to revoke, pass if
+        no such qualification exists.
+        """
+        return super().revoke_crowd_qualification(qualification_name + "_sandbox")
+
     def _get_client(self, requester_name: str) -> Any:
         """
         Get an mturk client for usage with mturk_utils

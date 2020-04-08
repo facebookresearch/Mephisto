@@ -221,11 +221,6 @@ def find_qualification(
     for qualification in response["QualificationTypes"]:
         if qualification["Name"] == qualification_name:
             if must_be_owned:
-                print(
-                    "Sorry, the qualification name {} is already owned, "
-                    "please use a different name for your qualification."
-                    "".format(qualification_name)
-                )
                 return (False, qualification["QualificationTypeId"])
             return (True, qualification["QualificationTypeId"])
     return (True, None)
@@ -238,8 +233,8 @@ def find_or_create_qualification(
     must_be_owned: bool = True,
 ) -> Optional[str]:
     """Query amazon to find the existing qualification name, return the Id. If
-    it exists and must_be_owned is true but we don't own it, this prints an
-    error and returns none. If it doesn't exist, the qualification is created
+    it exists and must_be_owned is true but we don't own it, this returns none. 
+    If it doesn't exist, the qualification is created
     """
     qual_usable, qual_id = find_qualification(
         client, qualification_name, must_be_owned=must_be_owned

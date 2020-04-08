@@ -224,7 +224,7 @@ class Supervisor:
         onboarding_id = packet.sender_id
         agent_info = self.agents[onboarding_id]
         agent = agent_info.agent
-        # Update the request id for the original packet (which has the required 
+        # Update the request id for the original packet (which has the required
         # registration data) to be the new submission packet (so that we answer
         # back properly under the new request)
         self.onboarding_packets[onboarding_id].data["request_id"] = packet.data[
@@ -443,7 +443,9 @@ class Supervisor:
             isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
         ), "Should only be registering from onboarding if onboarding is required and set"
         worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
-        worker.qualify(blueprint.onboarding_qualification_name, int(worker_passed))
+        worker.grant_qualification(
+            blueprint.onboarding_qualification_name, int(worker_passed)
+        )
 
         if not worker_passed:
             # TODO it may be worth investigating launching a dummy task for these

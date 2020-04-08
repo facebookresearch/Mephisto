@@ -5,15 +5,22 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.requester import Requester
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.providers.mturk.mturk_utils import (
     pay_bonus,
     block_worker,
     unblock_worker,
     is_worker_blocked,
+    give_worker_qualification,
+    find_or_create_qualification,
+    remove_worker_qualification,
 )
+from mephisto.providers.mturk.mturk_requester import MTurkRequester
 
 from uuid import uuid4
+import time
+import random
 
 from typing import List, Optional, Tuple, Dict, Any, cast, TYPE_CHECKING
 
@@ -22,9 +29,11 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit
-    from mephisto.data_model.requester import Requester
     from mephisto.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.providers.mturk.mturk_requester import MTurkRequester
+
+
+MAX_QUALIFICATION_ATTEMPTS = 300
 
 
 class MTurkWorker(Worker):
@@ -43,11 +52,119 @@ class MTurkWorker(Worker):
         )
         self._worker_name = self.worker_name  # sandbox workers use a different name
 
+    def get_mturk_worker_id(self):
+        return self._worker_name
+
     def _get_client(self, requester_name: str) -> Any:
         """
         Get an mturk client for usage with mturk_utils
         """
         return self.datastore.get_client_for_requester(requester_name)
+
+    def _create_new_mturk_qualification(
+        self, requester: "MTurkRequester", qualification_name: str
+    ) -> str:
+        """
+        Create a new qualification on MTurk owned by the requester provided
+        """
+        client = self._get_client(requester._requester_name)
+        qualification_desc = f"Equivalent qualification for {qualification_name}."
+        use_qualification_name = qualification_name
+        qualification_id = find_or_create_qualification(
+            client, qualification_name, qualification_desc, must_be_owned=True
+        )
+        if qualification_id is None:
+            # Try to append time to make the qualification unique
+            use_qualification_name = f"{qualification_name}_{time.time()}"
+            qualification_id = find_or_create_qualification(
+                client, use_qualification_name, qualification_desc, must_be_owned=True
+            )
+            attempts = 0
+            while qualification_id is None:
+                # Append something somewhat random
+                use_qualification_name = f"{qualification_name}_{str(uuid4())}"
+                qualification_id = find_or_create_qualification(
+                    client,
+                    use_qualification_name,
+                    qualification_desc,
+                    must_be_owned=True,
+                )
+                attempts += 1
+                if attempts > MAX_QUALIFICATION_ATTEMPTS:
+                    raise Exception(
+                        "Something has gone extremely wrong with creating qualification "
+                        f"{qualification_name} for requester {requester.requester_name}"
+                    )
+        # Store the new qualification in the datastore
+        self.datastore.create_qualification_mapping(
+            qualification_name,
+            requester.db_id,
+            use_qualification_name,
+            qualification_id,
+        )
+        return qualification_id
+
+    def grant_crowd_qualification(
+        self, qualification_name: str, value: int = 1
+    ) -> None:
+        """
+        Grant a qualification by the given name to this worker. Check the local 
+        MTurk db to find the matching MTurk qualification to grant, and pass 
+        that. If no qualification exists, try to create one.
+
+        In creating a new qualification, Mephisto resolves the ambiguity over which 
+        requester to associate that qualification with by using the FIRST requester
+        of the given account type (either `mturk` or `mturk_sandbox`)
+        """
+        mturk_qual_details = self.datastore.get_qualification_mapping(
+            qualification_name
+        )
+        if mturk_qual_details is not None:
+            requester = Requester(self.db, mturk_qual_details["requester_id"])
+            qualification_id = mturk_qual_details["mturk_qualification_id"]
+        else:
+            target_type = (
+                "mturk_sandbox" if qualification_name.endswith("sandbox") else "mturk"
+            )
+            requester = self.db.find_requesters(provider_type=target_type)[0]
+            assert isinstance(requester, MTurkRequester), (
+                "find_requesters must return mturk requester for given provider types"
+            )
+            qualification_id = self._create_new_mturk_qualification(
+                requester, qualification_name
+            )
+        assert isinstance(
+            requester, MTurkRequester
+        ), "Must be an MTurk requester for MTurk quals"
+        client = self._get_client(requester._requester_name)
+        give_worker_qualification(
+            client, self.get_mturk_worker_id(), qualification_id, value
+        )
+        return None
+
+    def revoke_crowd_qualification(self, qualification_name: str) -> None:
+        """
+        Revoke the qualification by the given name from this worker. Check the local 
+        MTurk db to find the matching MTurk qualification to revoke, pass if
+        no such qualification exists.
+        """
+        mturk_qual_details = self.datastore.get_qualification_mapping(
+            qualification_name
+        )
+        if mturk_qual_details is None:
+            # TODO log this
+            return None
+
+        requester = Requester(self.db, mturk_qual_details["requester_id"])
+        assert isinstance(
+            requester, MTurkRequester
+        ), "Must be an MTurk requester from MTurk quals"
+        client = self._get_client(requester._requester_name)
+        qualification_id = mturk_qual_details["mturk_qualification_id"]
+        remove_worker_qualification(
+            client, self.get_mturk_worker_id(), qualification_id
+        )
+        return None
 
     def bonus_worker(
         self, amount: float, reason: str, unit: Optional["Unit"] = None
