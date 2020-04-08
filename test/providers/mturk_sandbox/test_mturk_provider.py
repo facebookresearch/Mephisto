@@ -82,7 +82,10 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
         client = worker._get_client(requester._requester_name)
 
         def cleanup_qualification():
-            delete_qualification(client, qual_mapping["mturk_qualification_id"])
+            try:
+                delete_qualification(client, qual_mapping["mturk_qualification_id"])
+            except:
+                pass
 
         self.addCleanup(cleanup_qualification)
 
@@ -126,6 +129,21 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
             worker.revoke_qualification(qualification_name), "Can't revoke qual twice"
         )
 
+        db.delete_qualification(qualification_name)
+
+        owned, found_qual = find_qualification(
+            client, qual_mapping["mturk_qualification_name"]
+        )
+        start_time = time.time()
+        while found_qual is not None:
+            time.sleep(1)
+            owned, found_qual = find_qualification(
+                client, qual_mapping["mturk_qualification_name"]
+            )
+            self.assertFalse(
+                time.time() - start_time > 20,
+                "MTurk did not register qualification deletion",
+            )
 
 if __name__ == "__main__":
     unittest.main()

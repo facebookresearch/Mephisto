@@ -59,3 +59,7 @@ class SandboxMTurkProvider(MTurkProvider):
         provider to be deployed to the server
         """
         return os.path.join(os.path.dirname(__file__), "wrap_crowd_source.js")
+
+    def cleanup_qualification(self, qualification_name: str) -> None:
+        """Remove the qualification from the sandbox server"""
+        return super().cleanup_qualification(f"{qualification_name}_sandbox")

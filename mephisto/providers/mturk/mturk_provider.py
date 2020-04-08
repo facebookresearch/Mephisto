@@ -18,15 +18,17 @@ from mephisto.providers.mturk.mturk_utils import (
     create_hit_config,
     setup_sns_topic,
     delete_sns_topic,
+    delete_qualification,
 )
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, cast, TYPE_CHECKING
+
+from mephisto.data_model.requester import Requester
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.requester import Requester
     from mephisto.data_model.agent import Agent
 
 
@@ -118,3 +120,15 @@ class MTurkProvider(CrowdProvider):
         provider to be deployed to the server
         """
         return os.path.join(os.path.dirname(__file__), "wrap_crowd_source.js")
+
+    def cleanup_qualification(self, qualification_name: str) -> None:
+        """Remove the qualification from the sandbox server, if it exists"""
+        mapping = self.datastore.get_qualification_mapping(qualification_name)
+        if mapping is None:
+            return None
+        
+        requester_id = mapping['requester_id']
+        requester = Requester(self.db, requester_id)
+        assert isinstance(requester, MTurkRequester), "Must be an mturk requester"
+        client = requester._get_client(requester._requester_name)
+        delete_qualification(client, mapping['mturk_qualification_id'])
