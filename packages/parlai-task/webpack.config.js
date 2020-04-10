@@ -8,10 +8,12 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
-  entry: "./src/main.js",
+  entry: "./src/index.js",
   output: {
     path: __dirname,
     filename: "build/bundle.js",
+    library: "",
+    libraryTarget: "commonjs",
   },
   node: {
     net: "empty",

@@ -68,7 +68,7 @@ class AcuteEvalBuilder(TaskBuilder):
         shutil.copy2(bundle_js_file, target_path)
 
         copied_static_file = os.path.join(
-            FRONTEND_SOURCE_DIR, "dev", "static", "index.html"
+            FRONTEND_SOURCE_DIR, "src", "static", "index.html"
         )
         target_path = os.path.join(target_resource_dir, "index.html")
         shutil.copy2(copied_static_file, target_path)
