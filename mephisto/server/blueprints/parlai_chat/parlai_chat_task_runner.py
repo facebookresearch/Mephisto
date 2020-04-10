@@ -7,6 +7,7 @@
 from mephisto.data_model.blueprint import TaskRunner
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from parlai.core.agents import Agent as ParlAIAgent
+from parlai.core.message import Message
 
 from mephisto.data_model.packet import (
     Packet,
@@ -78,7 +79,7 @@ class MephistoAgentWrapper(ParlAIAgent):
             return None
         parsed_act = gotten_act.data
         parsed_act["id"] = self.__agent_id
-        return parsed_act
+        return Message(parsed_act)
 
     def observe(self, act):
         """
