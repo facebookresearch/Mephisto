@@ -126,14 +126,36 @@ class Worker(ABC):
             return False
         return bool(qualification.value)
 
-    def qualify(self, qualification_name: str, value: int):
+    def revoke_qualification(self, qualification_name) -> bool:
+        """
+        Remove this user's qualification if it exists
+
+        Returns True if removal happens locally and externally, False if an exception
+        happens with the crowd provider
+        """
+        granted_qualification = self.get_granted_qualification(qualification_name)
+        if granted_qualification is None:
+            return False
+
+        self.db.revoke_qualification(granted_qualification.qualification_id, self.db_id)
+        try:
+            self.revoke_crowd_qualification(qualification_name)
+            return True
+        except Exception as e:
+            # TODO logging
+            import traceback
+
+            traceback.print_exc()
+            print(f"Found error while trying to revoke qualification: {repr(e)}")
+            return False
+
+    def grant_qualification(self, qualification_name: str, value: int = 1):
         """
         Grant a positive or negative qualification to this worker
+
+        Returns True if granting happens locally and externally, False if an exception
+        happens with the crowd provider
         """
-        # TODO eventually we need to sync this to crowd providers as
-        # well, in which case we need to also be able to
-        # delete the qualification from a crowd provider when
-        # we delete it locally
         found_qualifications = self.db.find_qualifications(qualification_name)
         if len(found_qualifications) == 0:
             raise Exception(
@@ -141,6 +163,38 @@ class Worker(ABC):
             )
         qualification = found_qualifications[0]
         self.db.grant_qualification(qualification.db_id, self.db_id, value=value)
+        try:
+            self.grant_crowd_qualification(qualification_name, value)
+            return True
+        except Exception as e:
+            # TODO logging
+            import traceback
+
+            traceback.print_exc()
+            print(f"Found error while trying to grant qualification: {repr(e)}")
+            return False
+
+    # Children classes can implement the following methods
+
+    def grant_crowd_qualification(
+        self, qualification_name: str, value: int = 1
+    ) -> None:
+        """
+        Grant a qualification by the given name to this worker
+
+        If the CrowdProvider has a notion of qualifications, they can be granted
+        in sync with Mephisto's qualifications
+        """
+        return None
+
+    def revoke_crowd_qualification(self, qualification_name: str) -> None:
+        """
+        Revoke the qualification by the given name from this worker
+
+        If the CrowdProvider has a notion of qualifications, they can be revoked
+        in sync with Mephisto's qualifications
+        """
+        return None
 
     # Children classes should implement the following methods
 

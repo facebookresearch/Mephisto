@@ -1152,7 +1152,7 @@ class LocalMephistoDB(MephistoDB):
             "qualifications", "qualification_id", qualification_id
         )
 
-    def delete_qualification(self, qualification_name: str) -> None:
+    def _delete_qualification(self, qualification_name: str) -> None:
         """
         Remove this qualification from all workers that have it, then delete the qualification
         """

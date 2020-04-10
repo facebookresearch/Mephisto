@@ -63,8 +63,8 @@ ARG_STRING = (
     "--task-reward 0.5 "
     f"--task-tags {hit_keywords} "
     f"--subtasks-per-unit 2 "  # num comparisons to show within one unit
-    f"--maximum-units-per-worker 0 " # Num of units a worker is allowed to do, 0 is infinite
-    f"--allowed-concurrent 1 " # Workers can only do one task at a time, or onboarding may break
+    f"--maximum-units-per-worker 0 "  # Num of units a worker is allowed to do, 0 is infinite
+    f"--allowed-concurrent 1 "  # Workers can only do one task at a time, or onboarding may break
 )
 
 extra_args = {

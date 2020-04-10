@@ -9,7 +9,11 @@ import os
 import sqlite3
 
 from abc import ABC, abstractmethod
-from mephisto.core.utils import get_crowd_provider_from_type, get_data_dir
+from mephisto.core.utils import (
+    get_crowd_provider_from_type,
+    get_data_dir,
+    get_valid_provider_types,
+)
 from typing import Mapping, Optional, Any, List
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.assignment import Assignment, Unit
@@ -75,6 +79,16 @@ class MephistoDB(ABC):
     def set_datastore_for_provider(self, provider_type: str, datastore: Any) -> None:
         """Set the provider datastore registered with this db"""
         self.__provider_datastores[provider_type] = datastore
+
+    def delete_qualification(self, qualification_name: str) -> None:
+        """
+        Remove this qualification from all workers that have it, then delete the qualification
+        """
+        self._delete_qualification(qualification_name)
+        for crowd_provider_name in get_valid_provider_types():
+            ProviderClass = get_crowd_provider_from_type(crowd_provider_name)
+            provider = ProviderClass(self)
+            provider.cleanup_qualification(qualification_name)
 
     @abstractmethod
     def shutdown(self) -> None:
@@ -521,7 +535,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_qualification(self, qualification_name: str) -> None:
+    def _delete_qualification(self, qualification_name: str) -> None:
         """
         Remove this qualification from all workers that have it, then delete the qualification
         """

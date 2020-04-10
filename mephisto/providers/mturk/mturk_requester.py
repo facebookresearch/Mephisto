@@ -4,11 +4,16 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from uuid import uuid4
+import time
+import random
+
 from mephisto.data_model.requester import Requester
 from mephisto.providers.mturk.mturk_utils import (
     setup_aws_credentials,
     get_requester_balance,
     check_aws_credentials,
+    find_or_create_qualification,
 )
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 
@@ -19,6 +24,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+MAX_QUALIFICATION_ATTEMPTS = 300
 
 
 class MTurkRequester(Requester):
@@ -95,6 +103,47 @@ class MTurkRequester(Requester):
         """Get the available budget from MTurk"""
         client = self._get_client(self._requester_name)
         return get_requester_balance(client)
+
+    def _create_new_mturk_qualification(self, qualification_name: str) -> str:
+        """
+        Create a new qualification on MTurk owned by the requester provided
+        """
+        client = self._get_client(self._requester_name)
+        qualification_desc = f"Equivalent qualification for {qualification_name}."
+        use_qualification_name = qualification_name
+        qualification_id = find_or_create_qualification(
+            client, qualification_name, qualification_desc, must_be_owned=True
+        )
+        if qualification_id is None:
+            # Try to append time to make the qualification unique
+            use_qualification_name = f"{qualification_name}_{time.time()}"
+            qualification_id = find_or_create_qualification(
+                client, use_qualification_name, qualification_desc, must_be_owned=True
+            )
+            attempts = 0
+            while qualification_id is None:
+                # Append something somewhat random
+                use_qualification_name = f"{qualification_name}_{str(uuid4())}"
+                qualification_id = find_or_create_qualification(
+                    client,
+                    use_qualification_name,
+                    qualification_desc,
+                    must_be_owned=True,
+                )
+                attempts += 1
+                if attempts > MAX_QUALIFICATION_ATTEMPTS:
+                    raise Exception(
+                        "Something has gone extremely wrong with creating qualification "
+                        f"{qualification_name} for requester {self.requester_name}"
+                    )
+        # Store the new qualification in the datastore
+        self.datastore.create_qualification_mapping(
+            qualification_name,
+            self.db_id,
+            use_qualification_name,
+            qualification_id,
+        )
+        return qualification_id
 
     @staticmethod
     def new(db: "MephistoDB", requester_name: str) -> "Requester":

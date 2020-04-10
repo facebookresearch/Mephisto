@@ -56,6 +56,7 @@ class CrowdProvider(ABC):
         and use that one if available, otherwise make a new one
         and register it with the database.
         """
+        self.db = db
         if db.has_datastore_for_provider(self.PROVIDER_TYPE):
             self.datastore = db.get_datastore_for_provider(self.PROVIDER_TYPE)
         else:
@@ -122,3 +123,9 @@ class CrowdProvider(ABC):
         Destroy any resources set up specifically for this task run
         """
         raise NotImplementedError()
+
+    def cleanup_qualification(self, qualification_name: str) -> None:
+        """
+        Remove the linked qualification from the crowdprovider if it exists
+        """
+        return None

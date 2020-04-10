@@ -18,15 +18,17 @@ from mephisto.providers.mturk.mturk_utils import (
     create_hit_config,
     setup_sns_topic,
     delete_sns_topic,
+    delete_qualification,
 )
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, cast, TYPE_CHECKING
+
+from mephisto.data_model.requester import Requester
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.requester import Requester
     from mephisto.data_model.agent import Agent
 
 
@@ -76,26 +78,17 @@ class MTurkProvider(CrowdProvider):
         task_config = task_run.get_task_config()
 
         # Set up SNS queue
+        # TODO implement arn?
         task_run_id = task_run.db_id
         # task_name = task_run.get_task().task_name
         # arn_id = setup_sns_topic(session, task_name, server_url, task_run_id)
         arn_id = "TEST"
 
         # Set up HIT config
-        # TODO refactor these opts into something gettable elsewhere?
-        # TODO these might actually be more relevant to task type
-        # and the frontend deployed based on task type
         config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
-        # os.mkdirs(config_dir, exist_ok=True)
-        # opt = {
-        #     'frame_height': 650,
-        #     'allow_reviews': False,
-        #     'block_mobile': True,
-        #     'template_type': 'default',
-        #     'run_dir': config_dir,
-        # }
-        # create_hit_config(opt, task_config, self.is_sandbox())
         task_config = TaskConfig(task_run)
+
+        # TODO register qualifications for this run
 
         # Set up HIT type
         client = self._get_client(requester._requester_name)
@@ -118,3 +111,15 @@ class MTurkProvider(CrowdProvider):
         provider to be deployed to the server
         """
         return os.path.join(os.path.dirname(__file__), "wrap_crowd_source.js")
+
+    def cleanup_qualification(self, qualification_name: str) -> None:
+        """Remove the qualification from the sandbox server, if it exists"""
+        mapping = self.datastore.get_qualification_mapping(qualification_name)
+        if mapping is None:
+            return None
+
+        requester_id = mapping["requester_id"]
+        requester = Requester(self.db, requester_id)
+        assert isinstance(requester, MTurkRequester), "Must be an mturk requester"
+        client = requester._get_client(requester._requester_name)
+        delete_qualification(client, mapping["mturk_qualification_id"])

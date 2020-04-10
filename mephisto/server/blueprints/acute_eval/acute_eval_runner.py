@@ -407,7 +407,7 @@ class AcuteEvalRunner(TaskRunner):
             # worker passed onboarding
             return
         # worker failed onboarding, soft block and record
-        worker.qualify(self.block_qualification, 1)
+        worker.grant_qualification(self.block_qualification, 1)
         self.failed_onboard.add(worker_id)
 
     # TODO this should be a util in a provider, not here

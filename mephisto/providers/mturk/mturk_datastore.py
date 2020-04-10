@@ -38,6 +38,15 @@ CREATE_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS runs (
 );
 """
 
+CREATE_QUALIFICATIONS_TABLE = """CREATE TABLE IF NOT EXISTS qualifications (
+    qualification_name TEXT PRIMARY KEY UNIQUE,
+    requester_id TEXT,
+    mturk_qualification_name TEXT,
+    mturk_qualification_id TEXT,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
 
 class MTurkDatastore:
     """
@@ -79,6 +88,7 @@ class MTurkDatastore:
             c = conn.cursor()
             c.execute(CREATE_HITS_TABLE)
             c.execute(CREATE_RUNS_TABLE)
+            c.execute(CREATE_QUALIFICATIONS_TABLE)
             conn.commit()
 
     def new_hit(self, hit_id: str, hit_link: str, duration: int) -> None:
@@ -183,6 +193,56 @@ class MTurkDatastore:
                 (run_id,),
             )
             results = c.fetchall()
+            return results[0]
+
+    def create_qualification_mapping(
+        self,
+        qualification_name: str,
+        requester_id: str,
+        mturk_qualification_name: str,
+        mturk_qualification_id: str,
+    ) -> None:
+        """
+        Create a mapping between mephisto qualification name and mturk
+        qualification details in the local datastore
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """INSERT INTO qualifications(
+                    qualification_name,
+                    requester_id,
+                    mturk_qualification_name,
+                    mturk_qualification_id
+                ) VALUES (?, ?, ?, ?);""",
+                (
+                    qualification_name,
+                    requester_id,
+                    mturk_qualification_name,
+                    mturk_qualification_id,
+                ),
+            )
+            conn.commit()
+            return None
+
+    def get_qualification_mapping(
+        self, qualification_name: str
+    ) -> Optional[sqlite3.Row]:
+        """Get the mapping between Mephisto qualifications and MTurk qualifications"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from qualifications
+                WHERE qualification_name = ?
+                """,
+                (qualification_name,),
+            )
+            results = c.fetchall()
+            if len(results) == 0:
+                return None
             return results[0]
 
     def get_session_for_requester(self, requester_name: str) -> boto3.Session:

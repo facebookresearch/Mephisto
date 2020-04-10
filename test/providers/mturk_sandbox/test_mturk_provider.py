@@ -8,11 +8,22 @@ import unittest
 import shutil
 import os
 import tempfile
+import time
 
 from typing import Type
+from mephisto.data_model.test.utils import get_test_requester
 from mephisto.data_model.test.crowd_provider_tester import CrowdProviderTests
 from mephisto.data_model.crowd_provider import CrowdProvider
 from mephisto.providers.mturk_sandbox.sandbox_mturk_provider import SandboxMTurkProvider
+from mephisto.providers.mturk_sandbox.sandbox_mturk_requester import (
+    SandboxMTurkRequester,
+)
+from mephisto.providers.mturk_sandbox.sandbox_mturk_worker import SandboxMTurkWorker
+
+from mephisto.providers.mturk.mturk_utils import (
+    delete_qualification,
+    find_qualification,
+)
 
 
 class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
@@ -38,7 +49,101 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
         """Return the account balance we expect for a requester on sandbox"""
         return 10000
 
-    # TODO are there any other unit tests we'd like to have?
+    def test_grant_and_revoke_qualifications(self) -> None:
+        """Ensure we can grant and revoke qualifications for a worker"""
+        db = self.db
+        test_requester = SandboxMTurkRequester.new(db, self.get_test_requester_name())
+        worker: SandboxMTurkWorker = SandboxMTurkWorker.new(  # type: ignore
+            db, self.get_test_worker_name()
+        )
+        qualification_name = f"mephisto_test_qualification_{int(time.time())}"
+        extended_qualification_name = f"{qualification_name}_sandbox"
+
+        qual_mapping = worker.datastore.get_qualification_mapping(
+            extended_qualification_name
+        )
+        self.assertIsNone(qual_mapping)
+
+        mephisto_qual_id = db.make_qualification(qualification_name)
+
+        self.assertTrue(
+            worker.grant_qualification(qualification_name), "Qualification not granted"
+        )
+
+        # ensure the qualification exists
+        qual_mapping = worker.datastore.get_qualification_mapping(
+            extended_qualification_name
+        )
+        self.assertIsNotNone(qual_mapping)
+        assert qual_mapping is not None, "For typing, already asserted this isn't None"
+
+        qualification_id = qual_mapping["mturk_qualification_id"]
+        requester = SandboxMTurkRequester(db, qual_mapping["requester_id"])
+        client = worker._get_client(requester._requester_name)
+
+        def cleanup_qualification():
+            try:
+                delete_qualification(client, qual_mapping["mturk_qualification_id"])
+            except:
+                pass
+
+        self.addCleanup(cleanup_qualification)
+
+        self.assertTrue(
+            worker.revoke_qualification(qualification_name), "Qualification not revoked"
+        )
+
+        owned, found_qual = find_qualification(
+            client, qual_mapping["mturk_qualification_name"]
+        )
+        start_time = time.time()
+        while found_qual is None:
+            time.sleep(1)
+            owned, found_qual = find_qualification(
+                client, qual_mapping["mturk_qualification_name"]
+            )
+            self.assertFalse(
+                time.time() - start_time > 20,
+                "MTurk did not register qualification creation",
+            )
+
+        self.assertTrue(owned)
+        self.assertIsNotNone(found_qual)
+        self.assertEqual(found_qual, qualification_id)
+
+        # TODO assert the worker does not have the qualification
+
+        self.assertTrue(
+            worker.grant_qualification(qualification_name), "Qualification not granted"
+        )
+
+        # TODO assert that the worker has the qualification
+
+        self.assertTrue(
+            worker.revoke_qualification(qualification_name), "Qualification not revoked"
+        )
+
+        # TODO assert the worker no longer has the qualification again
+
+        self.assertFalse(
+            worker.revoke_qualification(qualification_name), "Can't revoke qual twice"
+        )
+
+        db.delete_qualification(qualification_name)
+
+        owned, found_qual = find_qualification(
+            client, qual_mapping["mturk_qualification_name"]
+        )
+        start_time = time.time()
+        while found_qual is not None:
+            time.sleep(1)
+            owned, found_qual = find_qualification(
+                client, qual_mapping["mturk_qualification_name"]
+            )
+            self.assertFalse(
+                time.time() - start_time > 20,
+                "MTurk did not register qualification deletion",
+            )
 
 
 if __name__ == "__main__":
