@@ -184,7 +184,7 @@ class Operator:
         new_run_id = self.db.new_task_run(
             task_id,
             requester_id,
-            ' '.join([shlex.quote(x) for x in task_args_string]),
+            " ".join([shlex.quote(x) for x in task_args_string]),
             provider_type,
             type_args.blueprint_type,
             requester.is_sandbox(),

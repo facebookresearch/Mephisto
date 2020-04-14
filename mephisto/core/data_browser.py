@@ -16,7 +16,7 @@ from mephisto.data_model.assignment_state import AssignmentState
 from typing import List, Optional, Any, Dict
 
 
-class DataBrowser():
+class DataBrowser:
     """
     Class with convenience methods for getting completed data 
     back from runs to parse and manage with other scripts
@@ -51,19 +51,18 @@ class DataBrowser():
     def get_units_for_run_id(self, run_id: str) -> List[Unit]:
         task_run = TaskRun(self.db, run_id)
         return self._get_units_for_task_runs([task_run])
-        
+
     def get_data_from_unit(self, unit: Unit) -> Dict[str, Any]:
-        unit: Unit = unit
-        agent: Agent = unit.get_assigned_agent()
-        assert agent is not None, (
-            f"Trying to get completed data from unassigned unit {unit}"
-        )
+        agent = unit.get_assigned_agent()
+        assert (
+            agent is not None
+        ), f"Trying to get completed data from unassigned unit {unit}"
         return {
-            'worker_id': agent.worker_id,
-            'unit_id': unit.db_id,
-            'assignment_id': unit.assignment_id,
-            'status': agent.db_status,
-            'data': agent.state.get_parsed_data(),
-            'task_start': agent.state.get_task_start(),
-            'task_end': agent.state.get_task_end(), 
+            "worker_id": agent.worker_id,
+            "unit_id": unit.db_id,
+            "assignment_id": unit.assignment_id,
+            "status": agent.db_status,
+            "data": agent.state.get_parsed_data(),
+            "task_start": agent.state.get_task_start(),
+            "task_end": agent.state.get_task_end(),
         }

@@ -24,7 +24,11 @@ class StaticAgentState(AgentState):
     """
 
     def _get_empty_state(self) -> Dict[str, Optional[Dict[str, Any]]]:
-        return {"inputs": None, "outputs": None, "task_start": 0, "task_end": 0}
+        return {
+            "inputs": None,
+            "outputs": None,
+            "times": {"task_start": 0, "task_end": 0},
+        }
 
     def __init__(self, agent: "Agent"):
         """
@@ -42,7 +46,10 @@ class StaticAgentState(AgentState):
             return False
         else:
             self.state["inputs"] = data
-            self.state["task_start"] = time.time()
+            times_dict = self.state["times"]
+            # TODO this typing may be better handled another way
+            assert isinstance(times_dict, dict)
+            times_dict["task_start"] = time.time()
             self.save_data()
             return True
 
@@ -63,7 +70,7 @@ class StaticAgentState(AgentState):
         else:
             self.state = self._get_empty_state()
 
-    def get_data(self) -> Dict[str, Optional[Dict[str, Any]]]:
+    def get_data(self) -> Dict[str, Any]:
         """Return dict of this agent's state"""
         return self.state
 
@@ -86,7 +93,10 @@ class StaticAgentState(AgentState):
             packet.data.get("MEPHISTO_is_submit") is True
         ), "Static tasks should only have final act"
         self.state["outputs"] = packet.data["task_data"]
-        self.state["task_end"] = time.time()
+        times_dict = self.state["times"]
+        # TODO this typing may be better handled another way
+        assert isinstance(times_dict, dict)
+        times_dict["task_end"] = time.time()
         if packet.data.get("files") != None:
             print("Got files:", str(packet.data["files"])[:500])
         self.save_data()

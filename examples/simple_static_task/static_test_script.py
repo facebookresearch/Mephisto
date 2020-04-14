@@ -28,6 +28,7 @@ architect_type = "local" if USE_LOCAL else "heroku"
 
 if USE_LOCAL:
     from mephisto.core.utils import get_mock_requester
+
     requester = get_mock_requester(db)
 else:
     requester = db.find_requesters(provider_type=provider_type)[-1]

@@ -138,10 +138,7 @@ class MTurkRequester(Requester):
                     )
         # Store the new qualification in the datastore
         self.datastore.create_qualification_mapping(
-            qualification_name,
-            self.db_id,
-            use_qualification_name,
-            qualification_id,
+            qualification_name, self.db_id, use_qualification_name, qualification_id
         )
         return qualification_id
 

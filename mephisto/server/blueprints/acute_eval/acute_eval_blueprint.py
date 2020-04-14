@@ -55,7 +55,7 @@ class AcuteEvalBlueprint(Blueprint):
             raise AssertionError(
                 "Must provide one of a data csv, json, or a list of tasks"
             )
-        
+
         if opts.get("block_on_onboarding_fail") is True:
             if opts.get("block_qualification") is None:
                 raise AssertionError(

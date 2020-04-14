@@ -91,6 +91,7 @@ class WebsocketChannel(Channel):
             else:
                 print(f"Socket logged error: {error}")
                 import traceback
+
                 traceback.print_exc()
                 try:
                     ws.close()

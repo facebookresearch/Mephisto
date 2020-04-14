@@ -42,14 +42,14 @@ def get_root_dir() -> str:
     return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
-def get_mock_requester(db) -> 'Requester':
+def get_mock_requester(db) -> "Requester":
     """Get or create a mock requester to use for test tasks"""
     # TODO Need to split utils into those operating for the data model
     # and those operating on the data model, and those operating beyond
-    mock_requesters = db.find_requesters(provider_type='mock')
+    mock_requesters = db.find_requesters(provider_type="mock")
     if len(mock_requesters) == 0:
         db.new_requester("MOCK_REQUESTER", "mock")
-    mock_requesters = db.find_requesters(provider_type='mock')
+    mock_requesters = db.find_requesters(provider_type="mock")
     return mock_requesters[0]
 
 
@@ -271,6 +271,7 @@ def find_or_create_qualification(db, qualification_name) -> None:
     creating it if it doesn't already
     """
     from mephisto.data_model.database import EntryAlreadyExistsException
+
     try:
         db.make_qualification(qualification_name)
     except EntryAlreadyExistsException:

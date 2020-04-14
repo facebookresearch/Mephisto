@@ -25,11 +25,16 @@ class AcuteEvalAgentState(StaticAgentState):
 
     def get_parsed_data(self) -> List[Dict[str, Any]]:
         data = self.get_data()
+        assert data is not None, "Should only check parsed data for completed tasks"
         response_list = []
-        for idx in range(len(data['inputs'])):
-            entry = {}
-            entry.update(data['inputs'][idx])
-            entry.update(data['outputs']['final_data'][idx])
+        inputs: List[Dict[str, Any]] = data["inputs"]
+        outputs = data["outputs"]
+        assert inputs is not None
+        assert outputs is not None
+        for idx in range(len(inputs)):
+            entry: Dict[str, Any] = {}
+            entry.update(inputs[idx])
+            entry.update(outputs["final_data"][idx])
             response_list.append(entry)
         return response_list
 
