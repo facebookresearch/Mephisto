@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from mephisto.core.utils import get_blueprint_from_type
+from mephisto.core.utils import get_blueprint_from_type, find_or_create_qualification
 from typing import (
     ClassVar,
     Optional,
@@ -105,6 +105,10 @@ class TaskRunner(ABC):
         self.is_concurrent = False
         # TODO populate some kind of local state for tasks that are being run
         # by this runner from the database.
+
+        self.block_qualification = opts.get("block_qualification")
+        if self.block_qualification is not None:
+            find_or_create_qualification(task_run.db, self.block_qualification)
 
     def __new__(cls, task_run: "TaskRun", opts: Dict[str, Any]) -> "TaskRunner":
         """Get the correct TaskRunner for this task run"""
@@ -417,12 +421,23 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_data(self) -> Any:
+    def get_data(self) -> Dict[str, Any]:
         """
         Return the currently stored data for this task in the format
         expected by any frontend displays
         """
         raise NotImplementedError()
+
+    def get_parsed_data(self) -> Any:
+        """
+        Return the portion of the data that is relevant to a human
+        who wants to parse or analyze the data
+
+        Utility function to handle stripping the data of any 
+        context that is only important for reproducing the task
+        exactly. By default is just `get_data`
+        """
+        return self.get_data()
 
     @abstractmethod
     def save_data(self) -> None:
@@ -446,6 +461,18 @@ class AgentState(ABC):
         # on this Unit? Static tasks only have 2 turns max, dynamic
         # ones may have multiple turns or steps.
         raise NotImplementedError()
+
+    def get_task_start(self) -> Optional[float]:
+        """
+        Return the start time for this task, if it is available
+        """
+        return 0.0
+
+    def get_task_end(self) -> Optional[float]:
+        """
+        Return the end time for this task, if it is available
+        """
+        return 0.0
 
 
 class OnboardingRequired(object):

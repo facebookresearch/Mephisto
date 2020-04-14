@@ -49,6 +49,8 @@ class SandboxMTurkRequester(MTurkRequester):
 
     @staticmethod
     def new(db: "MephistoDB", requester_name: str) -> "Requester":
+        if not requester_name.endswith("_sandbox"):
+            requester_name += "_sandbox"
         return SandboxMTurkRequester._register_requester(
-            db, requester_name + "_sandbox", PROVIDER_TYPE
+            db, requester_name, PROVIDER_TYPE
         )

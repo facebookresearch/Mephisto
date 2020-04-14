@@ -23,6 +23,16 @@ class AcuteEvalAgentState(StaticAgentState):
     doesn't have file IO
     """
 
+    def get_parsed_data(self) -> List[Dict[str, Any]]:
+        data = self.get_data()
+        response_list = []
+        for idx in range(len(data['inputs'])):
+            entry = {}
+            entry.update(data['inputs'][idx])
+            entry.update(data['outputs']['final_data'][idx])
+            response_list.append(entry)
+        return response_list
+
     def update_data(self, packet: "Packet") -> None:
         """
         Process the incoming data packet, and handle

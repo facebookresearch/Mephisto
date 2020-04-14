@@ -42,10 +42,14 @@ architect_type = "local" if USE_LOCAL else "heroku"
 
 # The first time round, need to call the following here.
 # TODO make this more user friendly than needing to uncomment script lines
-# db.new_requester("<some_email_address>", "mock")
-# db.new_requester("<your_email_address>_sandbox", "mturk_sandbox")
+# db.new_requester("<mturk_account_name>", "mturk")
+# db.new_requester("<mturk_account_name>_sandbox", "mturk_sandbox")
 
-requester = db.find_requesters(provider_type=provider_type)[-1]
+if USE_LOCAL:
+    from mephisto.core.utils import get_mock_requester
+    requester = get_mock_requester(db)
+else:
+    requester = db.find_requesters(provider_type=provider_type)[-1]
 requester_name = requester.requester_name
 assert USE_LOCAL or requester_name.endswith(
     "_sandbox"

@@ -276,7 +276,6 @@ class ChatApp extends React.Component {
 }
 
 class WorkerBlockedView  extends React.Component {
-  // TODO actually have views for these block reasons
   render() {
     if (this.props.blocked_reason == 'no_mobile') {
       return <div>
@@ -292,8 +291,19 @@ class WorkerBlockedView  extends React.Component {
             of websockets for this task. Please upgrade to a modern browser.
           </h1>
         </div>;
-    } else {
-
+    } else if (this.props.blocked_reason == 'null_agent_id') {
+      return <div>
+          <h1>
+            Sorry, you have already worked on the maximum number of 
+            these tasks available to you
+          </h1>
+        </div>;
+    } else if (this.props.blocked_reason == 'null_worker_id') {
+      return <div>
+          <h1>
+            Sorry, you are not eligible to work on any available tasks.
+          </h1>
+        </div>;
     }
     return <div> {this.props.blocked_reason} </div> ;
   }

@@ -7,16 +7,18 @@
 import os
 import sys, glob, importlib
 
+import shlex
 import functools
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
-from typing import Optional, Any, List, Type, TYPE_CHECKING
+from typing import Optional, Dict, Any, List, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
     from mephisto.data_model.task_runner import TaskRunner
     from mephisto.data_model.architect import Architect
     from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.requester import Requester
 
 
 def ensure_user_confirm(display_text, skip_input=False) -> None:
@@ -36,7 +38,19 @@ def ensure_user_confirm(display_text, skip_input=False) -> None:
 def get_root_dir() -> str:
     """Return the currently configured root mephisto directory"""
     # TODO be able to configure this kind of thing
-    return os.path.expanduser("~/mephisto")
+    # This file is at ROOT/mephisto/core/utils.py
+    return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
+
+def get_mock_requester(db) -> 'Requester':
+    """Get or create a mock requester to use for test tasks"""
+    # TODO Need to split utils into those operating for the data model
+    # and those operating on the data model, and those operating beyond
+    mock_requesters = db.find_requesters(provider_type='mock')
+    if len(mock_requesters) == 0:
+        db.new_requester("MOCK_REQUESTER", "mock")
+    mock_requesters = db.find_requesters(provider_type='mock')
+    return mock_requesters[0]
 
 
 def get_provider_dir() -> str:
@@ -241,3 +255,23 @@ def get_valid_architect_types() -> List[str]:
     the mephisto framework
     """
     return ["mock", "heroku", "local"]
+
+
+def build_arg_list_from_dict(in_dict: Dict[str, Any]) -> List[str]:
+    arg_list = []
+    for key, val in in_dict.items():
+        arg_list.append(f"--{key.replace('_', '-')}")
+        arg_list.append(str(val))
+    return arg_list
+
+
+def find_or_create_qualification(db, qualification_name) -> None:
+    """
+    Ensure the given qualification exists in the db, 
+    creating it if it doesn't already
+    """
+    from mephisto.data_model.database import EntryAlreadyExistsException
+    try:
+        db.make_qualification(qualification_name)
+    except EntryAlreadyExistsException:
+        pass  # qualification already exists
