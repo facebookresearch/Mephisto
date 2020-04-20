@@ -56,6 +56,12 @@ class AcuteEvalBlueprint(Blueprint):
                 "Must provide one of a data csv, json, or a list of tasks"
             )
 
+        if opts.get("block_on_onboarding_fail") is True:
+            if opts.get("block_qualification") is None:
+                raise AssertionError(
+                    "Must provide `block_qualification` to use `block_on_onboarding_fail`"
+                )
+
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
@@ -175,7 +181,7 @@ class AcuteEvalBlueprint(Blueprint):
         # onboardings fail
         print(self.opts)
         num_conversations = int(
-            self.opts["num_matchup_pairs"]
+            self.opts.get("num_matchup_pairs", 8)
             / max((self.opts["subtasks_per_unit"] - 1), 1)
         )  # release enough hits to finish all annotations requested
         return [

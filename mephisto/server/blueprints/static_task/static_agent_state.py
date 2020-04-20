@@ -8,6 +8,7 @@ from typing import List, Dict, Optional, Any, TYPE_CHECKING
 from mephisto.data_model.blueprint import AgentState
 import os
 import json
+import time
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -23,7 +24,11 @@ class StaticAgentState(AgentState):
     """
 
     def _get_empty_state(self) -> Dict[str, Optional[Dict[str, Any]]]:
-        return {"inputs": None, "outputs": None}
+        return {
+            "inputs": None,
+            "outputs": None,
+            "times": {"task_start": 0, "task_end": 0},
+        }
 
     def __init__(self, agent: "Agent"):
         """
@@ -41,6 +46,10 @@ class StaticAgentState(AgentState):
             return False
         else:
             self.state["inputs"] = data
+            times_dict = self.state["times"]
+            # TODO this typing may be better handled another way
+            assert isinstance(times_dict, dict)
+            times_dict["task_start"] = time.time()
             self.save_data()
             return True
 
@@ -61,7 +70,7 @@ class StaticAgentState(AgentState):
         else:
             self.state = self._get_empty_state()
 
-    def get_data(self) -> Dict[str, Optional[Dict[str, Any]]]:
+    def get_data(self) -> Dict[str, Any]:
         """Return dict of this agent's state"""
         return self.state
 
@@ -69,9 +78,11 @@ class StaticAgentState(AgentState):
         """Save static agent data to disk"""
         data_dir = self.agent.get_data_dir()
         os.makedirs(data_dir, exist_ok=True)
-        with open(os.path.join(data_dir, DATA_FILE), "w+") as data_file:
+        out_filename = os.path.join(data_dir, DATA_FILE)
+        with open(out_filename, "w+") as data_file:
             json.dump(self.state, data_file)
-        print("SAVED_DATA_TO_DISC", self.state)
+        # TODO move to logger
+        print(f"SAVED_DATA_TO_DISC at {out_filename}")
 
     def update_data(self, packet: "Packet") -> None:
         """
@@ -82,6 +93,10 @@ class StaticAgentState(AgentState):
             packet.data.get("MEPHISTO_is_submit") is True
         ), "Static tasks should only have final act"
         self.state["outputs"] = packet.data["task_data"]
+        times_dict = self.state["times"]
+        # TODO this typing may be better handled another way
+        assert isinstance(times_dict, dict)
+        times_dict["task_end"] = time.time()
         if packet.data.get("files") != None:
             print("Got files:", str(packet.data["files"])[:500])
         self.save_data()

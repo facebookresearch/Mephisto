@@ -407,6 +407,9 @@ class AcuteEvalRunner(TaskRunner):
             # worker passed onboarding
             return
         # worker failed onboarding, soft block and record
+        assert (
+            self.block_qualification is not None
+        ), "Should not be blocking without a block qualification set"
         worker.grant_qualification(self.block_qualification, 1)
         self.failed_onboard.add(worker_id)
 

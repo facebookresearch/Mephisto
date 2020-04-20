@@ -11,6 +11,7 @@ import os
 import tempfile
 import time
 import threading
+import shlex
 
 from argparse import ArgumentParser
 
@@ -129,7 +130,7 @@ class Operator:
         self,
         arg_list: Optional[List[str]] = None,
         extra_args: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> str:
         """
         Parse the given arguments and launch a job.
 
@@ -183,7 +184,7 @@ class Operator:
         new_run_id = self.db.new_task_run(
             task_id,
             requester_id,
-            " ".join(task_args_string),
+            " ".join([shlex.quote(x) for x in task_args_string]),
             provider_type,
             type_args.blueprint_type,
             requester.is_sandbox(),
@@ -235,6 +236,7 @@ class Operator:
             architect=architect,
             job=job,
         )
+        return task_run.db_id
 
     def _track_and_kill_runs(self):
         """

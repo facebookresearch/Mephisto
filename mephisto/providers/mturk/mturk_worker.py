@@ -81,7 +81,9 @@ class MTurkWorker(Worker):
             assert isinstance(
                 requester, MTurkRequester
             ), "find_requesters must return mturk requester for given provider types"
-            qualification_id = requester._create_new_mturk_qualification(qualification_name)
+            qualification_id = requester._create_new_mturk_qualification(
+                qualification_name
+            )
         assert isinstance(
             requester, MTurkRequester
         ), "Must be an MTurk requester for MTurk quals"
