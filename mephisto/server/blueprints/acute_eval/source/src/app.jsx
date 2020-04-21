@@ -14,7 +14,7 @@ import {
 } from "./components/core_components.jsx";
 import "fetch";
 import $ from "jquery";
-import { ParlAITask } from "parlai-task";
+import { ParlAITask } from "mephisto-task";
 
 function postData(url = "", data = {}) {
   // Default options are marked with *
