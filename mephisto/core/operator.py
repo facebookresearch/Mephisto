@@ -193,7 +193,6 @@ class Operator:
 
         build_dir = os.path.join(task_run.get_run_dir(), "build")
         os.makedirs(build_dir, exist_ok=True)
-        # TODO maybe this can be simplifies, and the task_run can be responsible for task_args?
         architect = ArchitectClass(self.db, task_args, task_run, build_dir)
 
         # Setup and deploy the server
@@ -210,7 +209,7 @@ class Operator:
 
         # Register the task with the provider
         provider = CrowdProviderClass(self.db)
-        provider.setup_resources_for_task_run(task_run, task_url)
+        provider.setup_resources_for_task_run(task_run, task_args, task_url)
 
         blueprint = BlueprintClass(task_run, task_args)
         initialization_data_array = blueprint.get_initialization_data()
