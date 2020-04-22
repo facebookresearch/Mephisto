@@ -74,7 +74,7 @@ class MTurkWorker(Worker):
             requester = Requester(self.db, mturk_qual_details["requester_id"])
             qualification_id = mturk_qual_details["mturk_qualification_id"]
         else:
-            print(f'Attempting to grant qualification {qualification_name}')
+            print(f"Attempting to grant qualification {qualification_name}")
             target_type = (
                 "mturk_sandbox" if qualification_name.endswith("sandbox") else "mturk"
             )

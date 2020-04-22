@@ -209,12 +209,14 @@ class Operator:
         task_runner = BlueprintClass.TaskRunnerClass(task_run, task_args)
 
         # Small hack for auto appending block qualification
-        existing_qualifications = task_args.get('qualifications', [])
-        if task_args['block_qualification'] is not None:
+        existing_qualifications = task_args.get("qualifications", [])
+        if task_args.get("block_qualification") is not None:
             existing_qualifications.append(
-                make_qualification_dict(task_args['block_qualification'], QUAL_NOT_EXIST, None)
+                make_qualification_dict(
+                    task_args["block_qualification"], QUAL_NOT_EXIST, None
+                )
             )
-        task_args['qualifications'] = existing_qualifications
+        task_args["qualifications"] = existing_qualifications
 
         # Register the task with the provider
         provider = CrowdProviderClass(self.db)
@@ -233,7 +235,9 @@ class Operator:
         launcher.launch_units(task_url)
 
         # Link the job together
-        job = self.supervisor.register_job(architect, task_runner, provider, existing_qualifications)
+        job = self.supervisor.register_job(
+            architect, task_runner, provider, existing_qualifications
+        )
         if self.supervisor.sending_thread is None:
             self.supervisor.launch_sending_thread()
 

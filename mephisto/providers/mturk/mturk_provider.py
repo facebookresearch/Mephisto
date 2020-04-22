@@ -90,16 +90,21 @@ class MTurkProvider(CrowdProvider):
 
         # Find or create relevant qualifications
         qualifications = []
-        for qualification in task_args.get('qualifications', []):
-            applicable_providers = qualification['applicable_providers']
-            if applicable_providers is None or self.PROVIDER_TYPE in applicable_providers:
+        for qualification in task_args.get("qualifications", []):
+            applicable_providers = qualification["applicable_providers"]
+            if (
+                applicable_providers is None
+                or self.PROVIDER_TYPE in applicable_providers
+            ):
                 qualifications.append(qualification)
         for qualification in qualifications:
-            qualification_name = qualification['qualification_name']
-            if requester.PROVIDER_TYPE == 'mturk_sandbox':
-                qualification_name += '_sandbox'
+            qualification_name = qualification["qualification_name"]
+            if requester.PROVIDER_TYPE == "mturk_sandbox":
+                qualification_name += "_sandbox"
             if self.datastore.get_qualification_mapping(qualification_name) is None:
-                qualification['QualificationTypeId'] = requester._create_new_mturk_qualification(qualification_name)
+                qualification[
+                    "QualificationTypeId"
+                ] = requester._create_new_mturk_qualification(qualification_name)
 
         # Set up HIT type
         client = self._get_client(requester._requester_name)

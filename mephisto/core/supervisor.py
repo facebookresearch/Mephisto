@@ -268,10 +268,7 @@ class Supervisor:
                     packet_type=PACKET_TYPE_PROVIDER_DETAILS,
                     sender_id=SYSTEM_CHANNEL_ID,
                     receiver_id=channel_info.channel_id,
-                    data={
-                        "request_id": packet.data["request_id"],
-                        "worker_id": None,
-                    },
+                    data={"request_id": packet.data["request_id"], "worker_id": None},
                 )
             )
         else:
