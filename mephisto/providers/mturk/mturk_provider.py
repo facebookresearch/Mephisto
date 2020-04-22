@@ -20,7 +20,6 @@ from mephisto.providers.mturk.mturk_utils import (
     delete_sns_topic,
     delete_qualification,
 )
-from mephisto.data_model.qualification import make_qualification_dict, QUAL_EXISTS
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, cast, TYPE_CHECKING
 
@@ -89,14 +88,18 @@ class MTurkProvider(CrowdProvider):
         config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
         task_config = TaskConfig(task_run)
 
+        # Find or create relevant qualifications
         qualifications = []
         for qualification in task_args.get('qualifications', []):
             applicable_providers = qualification['applicable_providers']
             if applicable_providers is None or self.PROVIDER_TYPE in applicable_providers:
                 qualifications.append(qualification)
-        block_qualification = task_args.get('block_qualification', None)
-        if block_qualification:
-            qualifications.append(make_qualification_dict(block_qualification, QUAL_EXISTS, False))
+        for qualification in qualifications:
+            qualification_name = qualification['qualification_name']
+            if requester.PROVIDER_TYPE == 'mturk_sandbox':
+                qualification_name += '_sandbox'
+            if self.datastore.get_qualification_mapping(qualification_name) is None:
+                qualification['QualificationTypeId'] = requester._create_new_mturk_qualification(qualification_name)
 
         # Set up HIT type
         client = self._get_client(requester._requester_name)

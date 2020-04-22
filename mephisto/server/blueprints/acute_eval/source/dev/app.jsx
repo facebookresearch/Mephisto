@@ -103,8 +103,9 @@ class StaticApp extends React.Component {
   }
 
   handleSubmit(data) {
-    postCompleteTask(this.props.agent_id, data);
-    handleSubmitToProvider(data);
+    postCompleteTask(this.props.agent_id, data).then(
+      _data => handleSubmitToProvider(data)
+    );
   }
 
   render() {

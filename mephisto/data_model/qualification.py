@@ -12,6 +12,7 @@ from typing import List, Optional, Dict, TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 
 QUAL_GREATER = 'GreaterThan'
@@ -38,8 +39,49 @@ SUPPORTED_COMPARATORS = [
     QUAL_NOT_IN_LIST,
 ]
 
+COMPARATOR_OPERATIONS = {
+    QUAL_GREATER: lambda x, y: x > y,
+    QUAL_GREATER_EQUAL: lambda x, y: x >= y,
+    QUAL_LESS: lambda x, y: x < y,
+    QUAL_LESS_EQUAL: lambda x, y: x <= y,
+    QUAL_EQUAL: lambda x, y: x == y,
+    QUAL_NOT_EQUAL: lambda x, y: not x == y,
+    QUAL_IN_LIST: lambda x, y: x in y,
+    QUAL_NOT_IN_LIST: lambda x, y: x not in y,
+}
 
-def is_valid_qualification_dict(qual_dict: Dict[str, Any]) -> bool:
+
+def worker_is_qualified(worker: "Worker", qualifications: List[Dict[str, Any]]):
+    db = worker.db
+    for qualification in qualifications:
+        print(f"Checking qualification {qualification}")
+        qual_name = qualification['qualification_name']
+        qual_objs = db.find_qualifications(qual_name)
+        if len(qual_objs) == 0:
+            # TODO warn users of missing qualification object
+            continue
+        qual_obj = qual_objs[0]
+        granted_quals = db.check_granted_qualifications(
+            qualification_id=qual_obj.db_id, 
+            worker_id=worker.db_id,
+        )
+        comp = qualification['comparator']
+        compare_value = qualification['value']
+        if comp == QUAL_EXISTS and len(granted_quals) == 0:
+            return False
+        elif comp == QUAL_NOT_EXIST and len(granted_quals) != 0:
+            return False
+        elif comp in [QUAL_EXISTS, QUAL_NOT_EXIST]:
+            continue
+        else:
+            granted_qual = granted_quals[0]
+            if not COMPARATOR_OPERATIONS[comp](granted_qual.value, compare_value):
+                return False
+    return True
+
+
+
+def as_valid_qualification_dict(qual_dict: Dict[str, Any]) -> bool:
     """
     Check to ensure that a qualification dict properly checks
     against a Mephisto qualification

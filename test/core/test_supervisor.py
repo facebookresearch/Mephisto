@@ -93,6 +93,7 @@ class TestSupervisor(unittest.TestCase):
             architect=self.architect,
             task_runner=task_runner,
             provider=self.provider,
+            qualifications=[],
             registered_channel_ids=[],
         )
 

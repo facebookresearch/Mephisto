@@ -22,6 +22,7 @@ from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.database import MephistoDB, EntryDoesNotExistException
+from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.core.argparse_parser import get_default_arg_dict
 from mephisto.core.task_launcher import TaskLauncher
 from mephisto.core.utils import (
@@ -207,6 +208,14 @@ class Operator:
         # Create the backend runner
         task_runner = BlueprintClass.TaskRunnerClass(task_run, task_args)
 
+        # Small hack for auto appending block qualification
+        existing_qualifications = task_args.get('qualifications', [])
+        if task_args['block_qualification'] is not None:
+            existing_qualifications.append(
+                make_qualification_dict(task_args['block_qualification'], QUAL_NOT_EXIST, None)
+            )
+        task_args['qualifications'] = existing_qualifications
+
         # Register the task with the provider
         provider = CrowdProviderClass(self.db)
         provider.setup_resources_for_task_run(task_run, task_args, task_url)
@@ -224,7 +233,7 @@ class Operator:
         launcher.launch_units(task_url)
 
         # Link the job together
-        job = self.supervisor.register_job(architect, task_runner, provider)
+        job = self.supervisor.register_job(architect, task_runner, provider, existing_qualifications)
         if self.supervisor.sending_thread is None:
             self.supervisor.launch_sending_thread()
 
