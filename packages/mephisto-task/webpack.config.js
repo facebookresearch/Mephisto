@@ -12,12 +12,23 @@ module.exports = {
   output: {
     path: __dirname,
     filename: "build/bundle.js",
-    library: "",
-    libraryTarget: "commonjs",
+    library: "mephisto-task",
+    libraryTarget: "umd",
+  },
+  target: "web",
+  externals: {
+    react: "react",
+    "react-dom": "react-dom",
   },
   node: {
     net: "empty",
     dns: "empty",
+  },
+  resolve: {
+    alias: {
+      react: path.resolve(__dirname, "./node_modules/react"),
+    },
+    symlinks: false,
   },
   module: {
     rules: [

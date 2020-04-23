@@ -46,7 +46,7 @@ class AcuteEvalBuilder(TaskBuilder):
                 "please make sure npm is installed, otherwise view "
                 "the above error for more info."
             )
-
+        subprocess.call(["npm", "link", "mephisto-task"])
         webpack_complete = subprocess.call(["npm", "run", "dev"])
         if webpack_complete != 0:
             raise Exception(

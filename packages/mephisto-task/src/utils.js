@@ -1,6 +1,15 @@
 import $ from "jquery";
 import "fetch";
 
+/*
+  The following global methods are to be specified in wrap_crowd_source.js
+  They are sideloaded and exposed as global import during the build process:
+*/
+/* global
+  getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
+  getAgentRegistration, handleSubmitToProvider
+*/
+
 /* ================= Utility functions ================= */
 
 export function postData(url = "", data = {}) {

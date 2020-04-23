@@ -1,7 +1,74 @@
 import React from "react";
 import { getTaskConfig, registerWorker, requestAgent, isMobile } from "./utils";
+export * from "./utils";
 
-class ParlAITask extends React.Component {
+/*
+  The following global methods are to be specified in wrap_crowd_source.js
+  They are sideloaded and exposed as global import during the build process:
+*/
+/* global
+  getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
+  getAgentRegistration, handleSubmitToProvider
+*/
+
+const useMephistoTask = function () {
+  const provider_worker_id = getWorkerName();
+  const assignment_id = getAssignmentId();
+  const is_preview = provider_worker_id === null || assignment_id === null;
+
+  const reducerFn = (state, action) => ({
+    ...state,
+    ...action,
+  });
+  const initialState = {
+    provider_worker_id: provider_worker_id,
+    mephisto_worker_id: null,
+    agent_id: null,
+    assignment_id: assignment_id,
+    task_config: null,
+    is_preview: is_preview,
+    preview_html: null,
+    blocked_reason: null,
+  };
+
+  const [state, setState] = React.useReducer(reducerFn, initialState);
+
+  function handleIncomingTaskConfig(task_config) {
+    if (task_config.block_mobile && isMobile()) {
+      setState({ blocked_reason: "no_mobile" });
+    } else if (!state.is_preview) {
+      registerWorker().then((data) => afterWorkerRegistration(data));
+    }
+    setState({ task_config: task_config });
+  }
+  function afterAgentRegistration(data_packet) {
+    const { agent_id } = data_packet.data;
+
+    setState({ agent_id: agent_id });
+    if (agent_id === null) {
+      setState({ blocked_reason: "null_agent_id" });
+    }
+  }
+  function afterWorkerRegistration(data_packet) {
+    const { worker_id } = data_packet.data;
+    setState({ mephisto_worker_id: worker_id });
+    if (worker_id !== null) {
+      requestAgent(worker_id).then((data) => afterAgentRegistration(data));
+    } else {
+      // TODO handle banned/blocked worker ids
+      setState({ blocked_reason: "null_worker_id" });
+      console.log("worker_id returned was null");
+    }
+  }
+
+  React.useEffect(() => {
+    getTaskConfig().then((data) => handleIncomingTaskConfig(data));
+  }, []);
+
+  return state;
+};
+
+class MephistoTask extends React.Component {
   constructor(props) {
     super(props);
 
@@ -76,7 +143,7 @@ class ParlAITask extends React.Component {
   }
 }
 
-export { ParlAITask };
+export { MephistoTask, useMephistoTask };
 
 function ChatMessage({ message, color }) {
   return (
