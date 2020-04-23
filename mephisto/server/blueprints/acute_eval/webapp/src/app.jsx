@@ -32,6 +32,8 @@ function StaticApp({ task_config, mephisto_worker_id, agent_id }) {
     );
   }, []);
 
+  /* TODO: Discuss - should handleSubmitToProvider call be included
+  within the postCompleteTask implementation? */
   const handleSubmit = React.useCallback(
     (data) => {
       postCompleteTask(agent_id, data);
