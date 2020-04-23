@@ -73,7 +73,21 @@ function WorkerBlockedView({ blocked_reason }) {
         </h1>
       </div>
     );
-  } else {
+  } else if (blocked_reason === "null_agent_id") {
+    return (
+      <div>
+        <h1>
+          Sorry, you have already worked on the maximum number of these tasks
+          available to you
+        </h1>
+      </div>
+    );
+  } else if (blocked_reason === "null_worker_id") {
+    return (
+      <div>
+        <h1>Sorry, you are not eligible to work on any available tasks.</h1>
+      </div>
+    );
   }
   return <div> {blocked_reason} </div>;
 }
