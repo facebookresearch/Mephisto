@@ -122,9 +122,9 @@ class Operator:
         """Return the currently running task runs and their handlers"""
         return self._task_runs_tracked.copy()
 
-    # TODO there should be a way to provide default arguments via a config file
+    # TODO(#94) there should be a way to provide default arguments via a config file
 
-    # TODO there should be a thread that shuts down servers when a task run is done
+    # TODO(#96) there should be a thread that shuts down servers when a task run is done
 
     def parse_and_launch_run(
         self,
@@ -164,7 +164,7 @@ class Operator:
 
         # Load the classes to force argument validation before anything
         # is actually created in the database
-        # TODO perhaps parse the arguments for these things one at a time?
+        # TODO(#94) perhaps parse the arguments for these things one at a time?
         BlueprintClass.assert_task_args(task_args)
         ArchitectClass.assert_task_args(task_args)
         CrowdProviderClass.assert_task_args(task_args)
@@ -200,7 +200,7 @@ class Operator:
         built_dir = architect.prepare()
         task_url = architect.deploy()
 
-        # TODO maybe the cleanup (destruction of the server configuration?) should only
+        # TODO(#102) maybe the cleanup (destruction of the server configuration?) should only
         # happen after everything has already been reviewed, this way it's possible to
         # retrieve the exact build directory to review a task for real
         architect.cleanup()
@@ -214,7 +214,7 @@ class Operator:
 
         blueprint = BlueprintClass(task_run, task_args)
         initialization_data_array = blueprint.get_initialization_data()
-        # TODO extend
+        # TODO(#99) extend
         if not isinstance(initialization_data_array, list):
             raise NotImplementedError(
                 "Non-list initialization data is not yet supported"
@@ -250,19 +250,19 @@ class Operator:
                 if task_run.get_is_completed():
                     self.supervisor.shutdown_job(tracked_run.job)
                     tracked_run.architect.shutdown()
-                    # TODO kill the runner too?
+                    # TODO(#96) kill the runner too?
                     del self._task_runs_tracked[task_run.db_id]
-            # TODO find a way to subscribe to completed or
+            # TODO(#96?) find a way to subscribe to completed or
             # expired tasks to be able to avoid a sleep call
             time.sleep(2)
 
     def shutdown(self):
-        print("operator shutting down")  # TODO logger
+        print("operator shutting down")  # TODO(#93) logger
         self.is_shutdown = True
         for tracked_run in self._task_runs_tracked.values():
             tracked_run.task_launcher.expire_units()
-            # TODO wait for the run to be marked complete in general
-            # TODO perhaps kill things in the task runner?
+            # TODO(#96) wait for the run to be marked complete in general
+            # TODO(#96) perhaps kill things in the task runner?
             tracked_run.architect.shutdown()
         self.supervisor.shutdown()
         self._run_tracker_thread.join()

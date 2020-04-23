@@ -22,7 +22,7 @@ provider_type = "mock" if USE_LOCAL else "mturk_sandbox"
 architect_type = "local" if USE_LOCAL else "heroku"
 
 # The first time round, need to call the following here.
-# TODO make this more user friendly than needing to uncomment script lines
+# TODO(#95) make this more user friendly than needing to uncomment script lines
 # db.new_requester("<mturk_account_name>", "mturk")
 # db.new_requester("<mturk_account_name>_sandbox", "mturk_sandbox")
 

@@ -55,7 +55,7 @@ class StaticBlueprint(Blueprint):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
         elif opts.get("data_json") is not None:
-            # TODO handle JSON directly
+            # TODO(#95) handle JSON directly
             raise NotImplementedError(
                 "Parsing static tasks directly from JSON is not supported yet"
             )
@@ -76,7 +76,7 @@ class StaticBlueprint(Blueprint):
                 csv_file
             ), f"Provided csv file {csv_file} doesn't exist"
         elif opts.get("data_json") is not None:
-            # TODO handle JSON directly
+            # TODO(#95) handle JSON directly
             raise NotImplementedError(
                 "Parsing static tasks directly from JSON is not supported yet"
             )

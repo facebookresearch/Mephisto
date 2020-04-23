@@ -26,7 +26,6 @@ from recordclass import RecordClass
 
 ASSIGNMENT_DATA_FILE = "assign_data.json"
 
-# TODO update from RecordClass to python dataclasses after migrating to 3.7
 class InitializationData(RecordClass):
     shared: Dict[str, Any]
     unit_data: List[Dict[str, Any]]
@@ -107,7 +106,7 @@ class Assignment:
             return AssignmentState.CREATED
 
         if AssignmentState.CREATED in statuses:
-            # TODO handle the case where new units are created after
+            # TODO(#99) handle the case where new units are created after
             # everything else is launched
             return AssignmentState.CREATED
 
@@ -179,7 +178,6 @@ class Assignment:
         """
         Get the list of workers that have worked on this specific assignment
         """
-        # TODO maybe can be optimized by looking for assigned or completed units?
         units = self.get_units()
         pos_agents = [s.get_assigned_agent() for s in units]
         agents = [a for a in pos_agents if a is not None]
@@ -197,7 +195,7 @@ class Assignment:
             sum_cost += unit.get_pay_amount()
         return sum_cost
 
-    # TODO add helpers to manage retrieving results as well
+    # TODO(100) add helpers to manage retrieving results as well
 
     @staticmethod
     def new(
@@ -208,7 +206,7 @@ class Assignment:
         the results for this assignment. Can take assignment_data to save and
         load for this particular assignment.
         """
-        # TODO consider offloading this state management to the MephistoDB
+        # TODO(101) consider offloading this state management to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
         db_id = db.new_assignment(
@@ -297,7 +295,7 @@ class Unit(ABC):
         Ensure that the queried status from this unit and the db status
         are up to date
         """
-        # TODO this will need to be run periodically/on crashes
+        # TODO(102) this will need to be run periodically/on crashes
         # to sync any lost state
         self.set_db_status(self.get_status())
 
@@ -376,7 +374,7 @@ class Unit(ABC):
         """
         # In these statuses, we know the agent isn't changing anymore, and thus will
         # not need to be re-queried
-        # TODO add test to ensure this behavior/assumption holds always
+        # TODO(#97) add test to ensure this behavior/assumption holds always
         if self.db_status in AssignmentState.final_unit():
             if self.agent_id is None:
                 return None
@@ -384,7 +382,7 @@ class Unit(ABC):
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
-        # TODO this may not be particularly efficient
+        # TODO(#101) this may not be particularly efficient
         row = self.db.get_unit(self.db_id)
         assert row is not None, f"Unit {self.db_id} stopped existing in the db..."
         agent_id = row["agent_id"]

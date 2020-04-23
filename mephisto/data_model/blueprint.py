@@ -103,7 +103,7 @@ class TaskRunner(ABC):
         self.running_units: Dict[str, "Unit"] = {}
         self.running_onboardings: Dict[str, "OnboardingAgent"] = {}
         self.is_concurrent = False
-        # TODO populate some kind of local state for tasks that are being run
+        # TODO(102) populate some kind of local state for tasks that are being run
         # by this runner from the database.
 
         self.block_qualification = opts.get("block_qualification")
@@ -192,7 +192,7 @@ class TaskRunner(ABC):
         try:
             self.run_assignment(assignment, agents)
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError) as e:
-            # TODO if some operator flag is set for counting complete tasks, launch a
+            # TODO(#99) if some operator flag is set for counting complete tasks, launch a
             # new assignment copied from the parameters of this one
             disconnected_agent_id = e.agent_id
             for agent in agents:
@@ -311,7 +311,7 @@ class TaskRunner(ABC):
         return
 
 
-# TODO what is the best method for creating new ones of these for different task types
+# TODO(#101) what is the best method for creating new ones of these for different task types
 # in ways that are supported by different backends? Perhaps abstract additional
 # methods into the required db interface? Move any file manipulations into a
 # extra_data_handler subcomponent of the MephistoDB class?
@@ -371,7 +371,7 @@ class AgentState(ABC):
     @staticmethod
     def valid() -> List[str]:
         """Return all valid Agent statuses"""
-        # TODO write a test that ensures all AgentState statuses are here
+        # TODO(#97) write a test that ensures all AgentState statuses are here
         return [
             AgentState.STATUS_NONE,
             AgentState.STATUS_ONBOARDING,
@@ -451,7 +451,7 @@ class AgentState(ABC):
         """
         Put new current Unit data into this AgentState
         """
-        # TODO maybe refine the signature for this function once use cases
+        # TODO(#100) maybe refine the signature for this function once use cases
         # are fully scoped
 
         # Some use cases might just be appending new data, some

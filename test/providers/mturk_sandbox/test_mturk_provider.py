@@ -37,12 +37,12 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
 
     def get_test_worker_name(self) -> str:
         """Return a worker name that is usable for testing with this crowdprovider"""
-        # TODO get this from somewhere else!
+        # TODO(#97) get this from somewhere else!
         return "ALNAP8V96IIO0"
 
     def get_test_requester_name(self) -> str:
         """Return a requester name that is usable for testing with this crowdprovider"""
-        # TODO this requester must be registered!!
+        # TODO(#97) this requester must be registered!!
         return "UNIT_TEST_REQUESTER"
 
     def get_test_requester_balance(self, worker_name: str) -> float:
@@ -111,19 +111,19 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
         self.assertIsNotNone(found_qual)
         self.assertEqual(found_qual, qualification_id)
 
-        # TODO assert the worker does not have the qualification
+        # TODO(#97) assert the worker does not have the qualification
 
         self.assertTrue(
             worker.grant_qualification(qualification_name), "Qualification not granted"
         )
 
-        # TODO assert that the worker has the qualification
+        # TODO(#97) assert that the worker has the qualification
 
         self.assertTrue(
             worker.revoke_qualification(qualification_name), "Qualification not revoked"
         )
 
-        # TODO assert the worker no longer has the qualification again
+        # TODO(#97) assert the worker no longer has the qualification again
 
         self.assertFalse(
             worker.revoke_qualification(qualification_name), "Can't revoke qual twice"

@@ -45,7 +45,7 @@ class LocalArchitect(Architect):
         self.task_run = task_run
         self.build_dir = build_dir_root
         self.task_run_id = task_run.db_id
-        # TODO move some of this into the db, server status
+        # TODO(#102) move some of this into the db, server status
         # needs to be in order to restart
         self.server_process_pid: Optional[int] = None
         self.server_process: Optional[subprocess.Popen] = None
@@ -127,7 +127,7 @@ class LocalArchitect(Architect):
         group.add_argument(
             "--port", dest="port", help="Port to launch the server on", default="3000"
         )
-        # TODO be able to specify the public address location
+        # TODO(OWN) be able to specify the public address location
         # separately from the hostname
         return
 

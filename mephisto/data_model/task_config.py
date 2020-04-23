@@ -27,7 +27,7 @@ class TaskConfig:
     that is required to launch for all providers and task types
     """
 
-    # TODO TaskConfigs should probably be immutable, and could ideally separate
+    # TODO(#94?) TaskConfigs should probably be immutable, and could ideally separate
     # the options that come from different parts of the ecosystem
     def __init__(self, task_run: "TaskRun"):
         self.db = task_run.db

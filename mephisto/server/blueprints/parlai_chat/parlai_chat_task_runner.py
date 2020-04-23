@@ -110,8 +110,6 @@ class ParlAIChatTaskRunner(TaskRunner):
         self.is_concurrent = True
         self.id_to_worlds: Dict[str, Any] = {}
 
-    # TODO reconnects should get the same agent as was initially given
-
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """
         Return the data for an agent already assigned to a particular unit
@@ -166,7 +164,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 
-        # TODO it would be nice to have individual agents be able to submit their
+        # TODO(WISH) it would be nice to have individual agents be able to submit their
         # final things without needing to wait for their partner, such
         # as if one needs to rate and the other doesn't
 

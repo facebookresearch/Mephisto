@@ -42,7 +42,7 @@ class MTurkAgent(Agent):
         )
         unit: "MTurkUnit" = self.get_unit()
         self.mturk_assignment_id = unit.get_mturk_assignment_id()
-        # TODO any additional init as is necessary once
+        # TODO(#97) any additional init as is necessary once
         # a mock DB exists
 
     def _get_mturk_assignment_id(self):

@@ -56,12 +56,12 @@ class MockAgent(Agent):
 
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""
-        # TODO implement with the db for the core system
+        # TODO(#97) implement with the db for the core system
         raise NotImplementedError()
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
-        # TODO implement with the db for the core system
+        # TODO(#97) implement with the db for the core system
         raise NotImplementedError()
 
     def mark_done(self) -> None:
@@ -82,5 +82,4 @@ class MockAgent(Agent):
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":
         """Create an agent for this worker to be used for work on the given Unit."""
-        # TODO initialize anything necessary in the mockdb if required
         return MockAgent._register_agent(db, worker, unit, PROVIDER_TYPE)

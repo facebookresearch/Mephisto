@@ -107,7 +107,7 @@ class Supervisor:
         self._send_alive(channel_info)
 
     def _on_catastrophic_disconnect(self, channel_id):
-        # TODO Catastrophic disconnect needs to trigger cleanup
+        # TODO(#102) Catastrophic disconnect needs to trigger cleanup
         print(f"Channel {channel_id} called on_catastrophic_disconnect")
 
     def _on_channel_message(self, channel_id: str, packet: Packet):
@@ -116,7 +116,7 @@ class Supervisor:
             channel_info = self.channels[channel_id]
             self._on_message(packet, channel_info)
         except Exception as e:
-            # TODO better error handling about failed messages
+            # TODO(#93) better error handling about failed messages
             import traceback
 
             traceback.print_exc()
@@ -158,7 +158,7 @@ class Supervisor:
         start_time = time.time()
         while not channel.is_alive():
             if time.time() - start_time > START_DEATH_TIME:
-                # TODO better handle failing to connect with a channel
+                # TODO(OWN) Ask channel why it might have failed to connect?
                 self.channels[channel_id].close()
                 raise ConnectionRefusedError(  # noqa F821 we only support py3
                     "Was not able to establish a connection with the server, "
@@ -247,7 +247,7 @@ class Supervisor:
         worker_name = crowd_data["worker_name"]
         workers = self.db.find_workers(worker_name=worker_name)
         if len(workers) == 0:
-            # TODO get rid of sandbox designation
+            # TODO(WISH) get rid of sandbox designation
             workers = self.db.find_workers(worker_name=worker_name + "_sandbox")
         if len(workers) == 0:
             worker = crowd_provider.WorkerClass.new_from_provider_data(
@@ -312,7 +312,7 @@ class Supervisor:
                 agent = agent_info.agent
                 if not agent.did_submit.is_set():
                     # Wait for a submit to occur
-                    # TODO make submit timeout configurable
+                    # TODO(#94) make submit timeout configurable
                     agent.has_action.wait(timeout=300)
                     agent.act()
                 agent.mark_done()
@@ -320,7 +320,7 @@ class Supervisor:
             import traceback
 
             traceback.print_exc()
-            # TODO handle runtime exceptions for assignments
+            # TODO(#93) handle runtime exceptions for assignments
             task_runner.cleanup_assignment(assignment)
 
     def _launch_and_run_unit(
@@ -336,7 +336,7 @@ class Supervisor:
             self._mark_agent_done(agent_info)
             if not agent.did_submit.is_set():
                 # Wait for a submit to occur
-                # TODO make submit timeout configurable
+                # TODO(#94) make submit timeout configurable
                 agent.has_action.wait(timeout=300)
                 agent.act()
             agent.mark_done()
@@ -344,7 +344,7 @@ class Supervisor:
             import traceback
 
             traceback.print_exc()
-            # TODO handle runtime exceptions for assignments
+            # TODO(#93) handle runtime exceptions for assignments
             task_runner.cleanup_unit(unit)
 
     def _assign_unit_to_agent(
@@ -391,7 +391,7 @@ class Supervisor:
                 crowd_data["agent_registration_id"]
             ] = agent_info
 
-            # TODO is this a safe enough place to un-reserve?
+            # TODO(#102) is this a safe enough place to un-reserve?
             task_run.clear_reservation(unit)
 
             # Launch individual tasks
@@ -448,7 +448,7 @@ class Supervisor:
         )
 
         if not worker_passed:
-            # TODO it may be worth investigating launching a dummy task for these
+            # TODO(WISH) it may be worth investigating launching a dummy task for these
             # instances where a worker has failed onboarding, but the onboarding
             # task still allowed submission of the failed data (no front-end validation)
             # units = [self.dummy_launcher.launch_dummy()]
@@ -583,7 +583,7 @@ class Supervisor:
 
     def _on_message(self, packet: Packet, channel_info: ChannelInfo):
         """Handle incoming messages from the channel"""
-        # TODO this method currently assumes that the packet's sender_id will
+        # TODO(#102) this method currently assumes that the packet's sender_id will
         # always be a valid agent in our list of agent_infos. At the moment this
         # is a valid assumption, but will not be on recovery from catastrophic failure.
         if packet.type == PACKET_TYPE_AGENT_ACTION:
@@ -604,7 +604,7 @@ class Supervisor:
             # PACKET_TYPE_INIT_DATA
             raise Exception(f"Unexpected packet type {packet.type}")
 
-    # TODO maybe batching these is better?
+    # TODO(#103) maybe batching these is better?
     def _try_send_agent_messages(self, agent_info: AgentInfo):
         """Handle sending any possible messages for a specific agent"""
         channel_info = self.channels[agent_info.used_channel_id]
@@ -635,7 +635,6 @@ class Supervisor:
         Handle telling the frontend agent about a change in their
         active status. (Pushing a change in AgentState)
         """
-        # TODO call this method on reconnect
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_CHANNEL_ID,
@@ -681,7 +680,7 @@ class Supervisor:
         """
         for agent_id, status in status_map.items():
             if status not in AgentState.valid():
-                # TODO update with logging
+                # TODO(#93) update with logging
                 print(f"Invalid status for agent {agent_id}: {status}")
                 continue
             if agent_id not in self.agents:
@@ -758,7 +757,7 @@ class Supervisor:
             # Send all messages from the system
             self._send_message_queue()
             self._request_status_update()
-            # TODO is there a way we can trigger this when
+            # TODO(#103) is there a way we can trigger this when
             # agents observe instead?
             time.sleep(0.1)
 

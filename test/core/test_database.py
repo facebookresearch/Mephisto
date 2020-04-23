@@ -30,7 +30,7 @@ class TestLocalMephistoDB(BaseDatabaseTests):
         self.db.shutdown()
         shutil.rmtree(self.data_dir)
 
-    # TODO are there any other unit tests we'd like to have?
+    # TODO(#97) are there any other unit tests we'd like to have?
 
 
 if __name__ == "__main__":

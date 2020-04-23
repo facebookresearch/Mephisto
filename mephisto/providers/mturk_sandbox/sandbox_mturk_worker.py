@@ -25,7 +25,6 @@ class SandboxMTurkWorker(MTurkWorker):
 
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
-        # TODO are there MTurk specific worker things to track?
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )

@@ -40,7 +40,6 @@ class MTurkWorker(Worker):
 
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
-        # TODO are there MTurk specific worker things to track?
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
@@ -103,7 +102,7 @@ class MTurkWorker(Worker):
             qualification_name
         )
         if mturk_qual_details is None:
-            # TODO log this
+            # TODO(#93) log this
             return None
 
         requester = Requester(self.db, mturk_qual_details["requester_id"])
@@ -122,7 +121,7 @@ class MTurkWorker(Worker):
     ) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return tuple of success and failure message"""
         if unit is None:
-            # TODO implement
+            # TODO(WISH) implement
             return False, "bonusing via compensation tasks not yet available"
 
         unit = cast("MTurkUnit", unit)
@@ -143,16 +142,13 @@ class MTurkWorker(Worker):
     ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         if unit is None and requester is None:
-            # TODO soft block from all requesters? Maybe have the master
+            # TODO(WISH) soft block from all requesters? Maybe have the master
             # requester soft block?
-            # revisit when qualifications are done
             return (
                 False,
                 "Blocking without a unit or requester not yet supported for MTurkWorkers",
             )
         elif unit is not None and requester is None:
-            # TODO disqual from this worker, so all others can disqual as well
-            # revisit when qualifications are done
             requester = unit.get_assignment().get_task_run().get_requester()
         requester = cast("MTurkRequester", requester)
         client = self._get_client(requester._requester_name)
@@ -177,8 +173,6 @@ class MTurkWorker(Worker):
         Qualifications are handled primarily by MTurk, so if a worker is able to get
         through to be able to access the task, they should be eligible
         """
-        # TODO check to see if the worker has exceeded the max number of
-        # units for this assignment
         return True
 
     @staticmethod

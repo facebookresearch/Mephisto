@@ -63,7 +63,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         super().__init__(task_run, opts)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         self.init_onboarding_config(task_run, opts)
-        # TODO context should be put into task_data
+        # TODO(#95) context should be put into task_data
         if opts.get("context_csv") is not None:
             csv_file = os.path.expanduser(opts["context_csv"])
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
@@ -77,7 +77,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         elif opts.get("num_conversations") is not None:
             self._initialization_data_dicts = [{}] * opts.get("num_conversations")
         else:
-            # TODO handle JSON and python dicts directly
+            # TODO(#95) handle JSON and python dicts directly
             raise NotImplementedError(
                 "Parsing static tasks directly from dicts or JSON is not supported yet"
             )
@@ -88,8 +88,6 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         world_module_name = os.path.basename(world_file_path)[:-3]
         world_module = import_module(world_module_name)
         self.world_module = world_module
-        # TODO assert this is a ParlAI world after figuring out
-        # how to get ParlAI to play with Poetry
         assert hasattr(world_module, "make_world")
         assert hasattr(world_module, "get_world_params")
         self.agent_count = world_module.get_world_params()[  # type: ignore
@@ -117,8 +115,6 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
         world_module = import_module(world_module_name)
-        # TODO assert this is a ParlAI world after figuring out
-        # how to get ParlAI to play with Poetry
         assert hasattr(
             world_module, "make_world"
         ), "Provided world file has no `make_world` method"

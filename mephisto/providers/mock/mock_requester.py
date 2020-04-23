@@ -27,7 +27,7 @@ class MockRequester(Requester):
 
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
-        # TODO any additional init as is necessary once
+        # TODO(#97) any additional init as is necessary once
         # a mock DB exists, make register actually work
         self.registered = self.requester_name == "test_requester"
 

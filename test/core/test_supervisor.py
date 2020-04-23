@@ -722,4 +722,4 @@ class TestSupervisor(unittest.TestCase):
         sup.shutdown()
         self.assertTrue(channel_info.channel.is_closed())
 
-    # TODO handle testing for disconnecting in and out of tasks
+    # TODO(#97) handle testing for disconnecting in and out of tasks

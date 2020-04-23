@@ -67,7 +67,7 @@ class HerokuArchitect(Architect):
         This means that we can shutdown a server that is still running after a
         catastrophic failure.
         """
-        # TODO put the expected info into the MephistoDB rather than storing here?
+        # TODO(#102) put the expected info into the MephistoDB rather than storing here?
         # Servers will have a status which needs to be kept track of.
         self.opts = opts
         self.task_run = task_run
@@ -347,7 +347,7 @@ class HerokuArchitect(Architect):
                     )
                 )
         except subprocess.CalledProcessError as e:  # User has too many apps?
-            # TODO check response codes to determine what actually happened
+            # TODO(#93) check response codes to determine what actually happened
             print(e)
             sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
             raise Exception(

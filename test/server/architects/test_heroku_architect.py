@@ -21,7 +21,7 @@ from mephisto.data_model.architect import Architect
 from mephisto.data_model.assignment_state import AssignmentState
 
 
-# TODO these tests should be marked as nightly's rather than on every run?
+# TODO(#104) these tests should be marked as nightly's rather than on every run?
 # Maybe with some kind of LONG TEST flag? Investigate
 class HerokuArchitectTests(ArchitectTests):
     """
@@ -58,7 +58,7 @@ class HerokuArchitectTests(ArchitectTests):
         assert self.curr_architect is not None, "No architect to check"
         return not self.curr_architect.server_is_running()
 
-    # TODO maybe a test where we need to re-instance an architect?
+    # TODO(#102) maybe a test where we need to re-instance an architect?
 
     def tearDown(self) -> None:
         """Overrides teardown to kill the server if it exists"""

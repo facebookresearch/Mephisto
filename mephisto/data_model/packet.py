@@ -40,7 +40,7 @@ class Packet:
         self.sender_id = sender_id
         self.receiver_id = receiver_id
         self.data = {} if data is None else data
-        # TODO Packet validation! Only certain packets can be sent
+        # TODO(#97) Packet validation! Only certain packets can be sent
         # with no data
 
     @staticmethod

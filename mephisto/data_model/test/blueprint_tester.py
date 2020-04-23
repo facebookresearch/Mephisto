@@ -80,9 +80,9 @@ class BlueprintTests(unittest.TestCase):
         self.build_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
-        # TODO we need to actually pull the task type from the Blueprint
+        # TODO(#97) we need to actually pull the task type from the Blueprint
         self.task_run = TaskRun(self.db, get_test_task_run(self.db))
-        # TODO create a mock agent with the given task type?
+        # TODO(#97) create a mock agent with the given task type?
         self.TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
         self.AgentStateClass = self.BlueprintClass.AgentStateClass
         self.TaskBuilderClass = self.BlueprintClass.TaskBuilderClass
@@ -110,7 +110,7 @@ class BlueprintTests(unittest.TestCase):
 
     def test_options(self) -> None:
         """Test the default options, and try to break the initialization"""
-        # TODO implement with options implementations
+        # TODO(#94?) implement with options implementations
         pass
 
     def test_has_required_class_members(self) -> None:
@@ -147,7 +147,7 @@ class BlueprintTests(unittest.TestCase):
             self.BlueprintClass.supported_architects,
             "Must support at least the mock architecture for testing",
         )
-        # TODO implement getting the defaults of TaskRunnerClass.get_extra_options() when
+        # TODO(#94?) implement getting the defaults of TaskRunnerClass.get_extra_options() when
         # options are improved
 
     def test_abstract_initialization_works(self) -> None:
@@ -166,7 +166,7 @@ class BlueprintTests(unittest.TestCase):
         """Ensure the subclasses of a Blueprint can be properly initialized"""
         task_runner = self._get_init_task_runner()
         task_builder = self._get_init_task_builder()
-        # TODO uncomment after creating a mock agent as part of this test
+        # TODO(#97) uncomment after creating a mock agent as part of this test
         # agent_state = self.AgentStateClass(self.agent)
 
     def test_can_build_task(self) -> None:

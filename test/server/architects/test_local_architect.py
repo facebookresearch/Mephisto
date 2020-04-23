@@ -59,7 +59,7 @@ class LocalArchitectTests(ArchitectTests):
         ), "architect has no server process"
         return self.curr_architect.server_process.returncode is not None
 
-    # TODO maybe a test where we need to re-instance an architect?
+    # TODO(#102) maybe a test where we need to re-instance an architect?
 
     def tearDown(self) -> None:
         """Overrides teardown to remove server dir"""

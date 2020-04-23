@@ -55,7 +55,7 @@ def get_reviewable_task_runs():
     task_run_ids = set([u.get_assignment().get_task_run().db_id for u in units])
     task_runs = [TaskRun(db, db_id) for db_id in task_run_ids]
     dict_tasks = [t.to_dict() for t in task_runs]
-    # TODO maybe include warning for auto approve date once that's tracked
+    # TODO(OWN) maybe include warning for auto approve date once that's tracked
     return jsonify({"task_runs": dict_tasks, "total_reviewable": reviewable_count})
 
 

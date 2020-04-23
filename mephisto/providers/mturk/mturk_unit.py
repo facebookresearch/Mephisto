@@ -112,7 +112,7 @@ class MTurkUnit(Unit):
             agent = self.get_assigned_agent()
             found_status = self.db_status
             if agent is not None:
-                # TODO warn if agent _is_ None
+                # TODO(#93) warn if agent _is_ None
                 agent_status = agent.get_status()
                 if agent_status == AgentState.STATUS_APPROVED:
                     found_status = AssignmentState.ACCEPTED
@@ -174,12 +174,11 @@ class MTurkUnit(Unit):
         hit_type_id = self.datastore.get_run(run_id)["hit_type_id"]
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
-        # TODO we need to pull the config file from somewhere
         frame_height = 650
         hit_link, hit_id, response = create_hit_with_hit_type(
             client, frame_height, task_url, hit_type_id
         )
-        # TODO get this link to the frontend
+        # TODO(OWN) get this link to the frontend
         print(hit_link)
 
         # We create a hit for this unit, but note that this unit may not
@@ -208,7 +207,7 @@ class MTurkUnit(Unit):
             return delay
         else:
             unassigned_hit_ids = self.datastore.get_unassigned_hit_ids()
-            # TODO assert there is at least one unassigned hit id,
+            # TODO(#93) assert there is at least one unassigned hit id,
             # otherwise there's a potential race condition here
             if len(unassigned_hit_ids) == 0:
                 return delay
