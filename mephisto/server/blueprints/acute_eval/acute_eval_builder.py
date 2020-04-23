@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 ACUTE_TASK_DIR = os.path.dirname(__file__)
-FRONTEND_SOURCE_DIR = os.path.join(ACUTE_TASK_DIR, "source")
+FRONTEND_SOURCE_DIR = os.path.join(ACUTE_TASK_DIR, "webapp")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
 
