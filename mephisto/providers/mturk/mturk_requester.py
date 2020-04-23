@@ -117,7 +117,6 @@ class MTurkRequester(Requester):
         if qualification_id is None:
             # Try to append time to make the qualification unique
             use_qualification_name = f"{qualification_name}_{time.time()}"
-            print(client)
             qualification_id = find_or_create_qualification(
                 client, use_qualification_name, qualification_desc, must_be_owned=True
             )
