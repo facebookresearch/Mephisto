@@ -45,7 +45,7 @@ Both the `MockProvider` and `MTurkProvider` are strong examples of implementing 
 ### `<Crowd>Provider`
 The `CrowdProvider` implementation is mostly a place to centralize all of the components for this provider, and as such it should set `UnitClass`, `RequesterClass`, `WorkerClass`, and `AgentClass`. Beyond this it should implement the following:
 - `initialize_provider_datastore`: This method should return a connection to any of the data required to keep tabs on the crowd provider. Ideally it should store important information to disk somehow (such as in a SQL database).
-- `setup_resources_for_task_run`: This method is called prior to launching a task run, and should setup any kind of details with the provider that are required. For instance, this might register the task before requesting instances, or do any other required prep work such as setting up listeners.
+- `setup_resources_for_task_run`: This method is called prior to launching a task run, and should setup any kind of details with the provider that are required. For instance, this might register the task before requesting instances, find and register required qualifications, or do any other required prep work such as setting up listeners.
 
 ### `<Crowd>Worker`
 The `<Crowd>Worker` implementation needs to handle worker interactions, generally from the perspective of a requester:

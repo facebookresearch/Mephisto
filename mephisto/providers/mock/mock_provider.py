@@ -52,7 +52,7 @@ class MockProvider(CrowdProvider):
         return {"agents": {}, "requesters": {}, "units": {}, "workers": {}}
 
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", server_url: str
+        self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str
     ) -> None:
         """Mocks don't do any initialization"""
         return None

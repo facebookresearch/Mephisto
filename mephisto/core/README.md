@@ -6,6 +6,12 @@ The goal is to make components of the Mephisto architecture reusable without nee
 ## `LocalMephistoDB`
 An implementation of the Mephisto Data Model outlined in `MephistoDB`. This database stores all of the information locally via SQLite. Some helper functions are included to make the implementation cleaner by abstracting away SQLite error parsing and string formatting, however it's pretty straightforward from the requirements of MephistoDB.
 
+## `Operator`
+**This section is still underway**
+The Operator is responsible for actually coordinating launching tasks. This is managed using the `parse_and_launch_run` function. It takes in an `arg_list` of the string arguments corresponding to the blueprint, architect, and crowd-provider of choice. It can also take a dict of `extra_args` to pass information that wouldn't normally be able to be parsed on the command line, or where it would be more convenient to put as a dict.
+
+One important extra argumnet is `extra_args['qualifications']`, which allows configuring a task with requirements for workers to be eligibible to work on the task. Functionality for this can be seen in `data_model.qualifications`, with examples in how `operator` handles the `block_qualification`.
+
 ## `Supervisor`
 The supervisor is responsible for interfacing between human agents and the rest of the mephisto system. In short, it is the layer that abstracts humans and human work into `Worker`s and `Agent`s that take actions. To that end, it has to set up a socket to connect to the task server, poll status on any agents currently working on tasks, and process incoming agent actions over the socket to put them into the `Agent` so that a task can use the data. It also handles the initialization of an `Agent` from a `Worker`, which is the operation that occurs when a human connecting to the service is accepting a task.
 

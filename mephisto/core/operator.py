@@ -22,6 +22,7 @@ from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.database import MephistoDB, EntryDoesNotExistException
+from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.core.argparse_parser import get_default_arg_dict
 from mephisto.core.task_launcher import TaskLauncher
 from mephisto.core.utils import (
@@ -193,7 +194,6 @@ class Operator:
 
         build_dir = os.path.join(task_run.get_run_dir(), "build")
         os.makedirs(build_dir, exist_ok=True)
-        # TODO maybe this can be simplifies, and the task_run can be responsible for task_args?
         architect = ArchitectClass(self.db, task_args, task_run, build_dir)
 
         # Setup and deploy the server
@@ -208,9 +208,19 @@ class Operator:
         # Create the backend runner
         task_runner = BlueprintClass.TaskRunnerClass(task_run, task_args)
 
+        # Small hack for auto appending block qualification
+        existing_qualifications = task_args.get("qualifications", [])
+        if task_args.get("block_qualification") is not None:
+            existing_qualifications.append(
+                make_qualification_dict(
+                    task_args["block_qualification"], QUAL_NOT_EXIST, None
+                )
+            )
+        task_args["qualifications"] = existing_qualifications
+
         # Register the task with the provider
         provider = CrowdProviderClass(self.db)
-        provider.setup_resources_for_task_run(task_run, task_url)
+        provider.setup_resources_for_task_run(task_run, task_args, task_url)
 
         blueprint = BlueprintClass(task_run, task_args)
         initialization_data_array = blueprint.get_initialization_data()
@@ -225,7 +235,9 @@ class Operator:
         launcher.launch_units(task_url)
 
         # Link the job together
-        job = self.supervisor.register_job(architect, task_runner, provider)
+        job = self.supervisor.register_job(
+            architect, task_runner, provider, existing_qualifications
+        )
         if self.supervisor.sending_thread is None:
             self.supervisor.launch_sending_thread()
 
