@@ -29,7 +29,6 @@
     "react-dom": "16.13.1"
   },
   "dependencies": {
-    "fetch": "^1.1.0",
-    "jquery": "^3.5.0"
+    "fetch": "^1.1.0"
   }
 }

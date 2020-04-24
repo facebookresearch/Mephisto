@@ -1,4 +1,3 @@
-import $ from "jquery";
 import "fetch";
 
 /*
@@ -32,10 +31,7 @@ export function isMobile() {
 
 // Sends a request to get the task_config
 export function getTaskConfig() {
-  return $.ajax({
-    url: "/task_config.json",
-    timeout: 3000, // in milliseconds
-  });
+  return fetch("/task_config.json");
 }
 
 export function postProviderRequest(endpoint, data) {
