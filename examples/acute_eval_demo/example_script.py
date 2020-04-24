@@ -25,7 +25,7 @@ The following args are useful to tweak to fit your specific needs;
 Help strings for the other arguments can be found in run.py.
 """
 
-USE_LOCAL = False
+USE_LOCAL = True
 
 db = LocalMephistoDB()
 

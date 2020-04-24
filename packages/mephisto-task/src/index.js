@@ -19,63 +19,63 @@ export * from "./utils";
 */
 
 const useMephistoTask = function () {
-  const provider_worker_id = getWorkerName();
-  const assignment_id = getAssignmentId();
-  const is_preview = provider_worker_id === null || assignment_id === null;
+  const providerWorkerId = getWorkerName();
+  const assignmentId = getAssignmentId();
+  const isPreview = providerWorkerId === null || assignmentId === null;
 
   const reducerFn = (state, action) => ({
     ...state,
     ...action,
   });
   const initialState = {
-    provider_worker_id: provider_worker_id,
-    mephisto_worker_id: null,
-    agent_id: null,
-    assignment_id: assignment_id,
-    task_config: null,
-    is_preview: is_preview,
-    preview_html: null,
-    blocked_reason: null,
-    task_data: null,
+    providerWorkerId: providerWorkerId,
+    mephistoWorkerId: null,
+    agentId: null,
+    assignmentId: assignmentId,
+    taskConfig: null,
+    isPreview: isPreview,
+    previewHtml: null,
+    blockedReason: null,
+    taskData: null,
   };
 
   const [state, setState] = React.useReducer(reducerFn, initialState);
 
   const handleSubmit = React.useCallback(
-    (data) => postCompleteTask(state.agent_id, data),
-    [state.agent_id]
+    (data) => postCompleteTask(state.agentId, data),
+    [state.agentId]
   );
 
-  function handleIncomingTaskConfig(task_config) {
-    if (task_config.block_mobile && isMobile()) {
-      setState({ blocked_reason: "no_mobile" });
-    } else if (!state.is_preview) {
+  function handleIncomingTaskConfig(taskConfig) {
+    if (taskConfig.block_mobile && isMobile()) {
+      setState({ blockedReason: "no_mobile" });
+    } else if (!state.isPreview) {
       registerWorker().then((data) => afterWorkerRegistration(data));
     }
-    setState({ task_config: task_config });
+    setState({ taskConfig: taskConfig });
   }
-  function afterAgentRegistration(worker_id, data_packet) {
-    const { agent_id } = data_packet.data;
+  function afterAgentRegistration(workerId, dataPacket) {
+    const agentId = dataPacket.data.agent_id;
 
-    setState({ agent_id: agent_id });
-    if (agent_id === null) {
-      setState({ blocked_reason: "null_agent_id" });
+    setState({ agentId: agentId });
+    if (agentId === null) {
+      setState({ blockedReason: "null_agent_id" });
     } else {
-      getInitTaskData(worker_id, agent_id).then((packet) =>
-        setState({ task_data: packet.data.init_data })
+      getInitTaskData(workerId, agentId).then((packet) =>
+        setState({ taskData: packet.data.init_data })
       );
     }
   }
-  function afterWorkerRegistration(data_packet) {
-    const { worker_id } = data_packet.data;
-    setState({ mephisto_worker_id: worker_id });
-    if (worker_id !== null) {
-      requestAgent(worker_id).then((data) =>
-        afterAgentRegistration(worker_id, data)
+  function afterWorkerRegistration(dataPacket) {
+    const workerId = dataPacket.data.worker_id;
+    setState({ mephistoWorkerId: workerId });
+    if (workerId !== null) {
+      requestAgent(workerId).then((data) =>
+        afterAgentRegistration(workerId, data)
       );
     } else {
       // TODO handle banned/blocked worker ids
-      setState({ blocked_reason: "null_worker_id" });
+      setState({ blockedReason: "null_worker_id" });
       console.log("worker_id returned was null");
     }
   }
@@ -163,11 +163,3 @@ class DEPRECATED_MephistoTask extends React.Component {
 }
 
 export { DEPRECATED_MephistoTask, useMephistoTask };
-
-function ChatMessage({ message, color }) {
-  return (
-    <div style={message_container_style}>
-      <div style={message_style}>{message}</div>
-    </div>
-  );
-}

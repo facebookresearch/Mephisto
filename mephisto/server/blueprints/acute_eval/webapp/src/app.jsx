@@ -18,35 +18,35 @@ import { useMephistoTask, getBlockedExplanation } from "mephisto-task";
 
 function MainApp() {
   const {
-    blocked_reason,
-    task_config,
-    is_preview,
-    agent_id,
-    task_data,
+    blockedReason,
+    taskConfig,
+    isPreview,
+    agentId,
+    taskData,
     handleSubmit,
   } = useMephistoTask();
 
-  if (blocked_reason !== null) {
-    return <h1>{getBlockedExplanation(blocked_reason)}</h1>;
+  if (blockedReason !== null) {
+    return <h1>{getBlockedExplanation(blockedReason)}</h1>;
   }
-  if (task_config === null) {
+  if (taskConfig === null) {
     return <div>Initializing...</div>;
   }
-  if (is_preview) {
-    return <TaskDescription task_config={task_config} is_cover_page={true} />;
+  if (isPreview) {
+    return <TaskDescription task_config={taskConfig} is_cover_page={true} />;
   }
-  if (agent_id === null) {
+  if (agentId === null) {
     return <div>Initializing...</div>;
   }
-  if (task_data === null) {
+  if (taskData === null) {
     return <h1>Gathering data...</h1>;
   }
 
   return (
     <div>
       <BaseFrontend
-        task_data={task_data}
-        task_config={task_config}
+        task_data={taskData}
+        task_config={taskConfig}
         onSubmit={handleSubmit}
       />
     </div>
