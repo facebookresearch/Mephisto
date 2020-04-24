@@ -25,7 +25,7 @@ The following args are useful to tweak to fit your specific needs;
 Help strings for the other arguments can be found in run.py.
 """
 
-USE_LOCAL = True
+USE_LOCAL = False
 
 db = LocalMephistoDB()
 
@@ -75,7 +75,7 @@ ARG_STRING = (
 extra_args = {
     "pairings_filepath": f"{TASK_DIRECTORY}/pairings.jsonl",
     "block_on_onboarding_fail": True,
-    "block_qualification": "onboarding_qual_name",
+    "block_qualification": f"acute_eval_{int(time.time())}_block",
     "annotations_per_pair": 1,  # num times to use the same conversation pair
     "random_seed": 42,  # random seed
     "subtasks_per_unit": 2,  # num comparisons to show within one hit

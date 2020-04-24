@@ -206,7 +206,6 @@ def find_qualification(
     response = client.list_qualification_types(
         Query=qualification_name, MustBeRequestable=True, MustBeOwnedByCaller=True
     )
-
     for qualification in response["QualificationTypes"]:
         if qualification["Name"] == qualification_name:
             return (True, qualification["QualificationTypeId"])
@@ -285,9 +284,67 @@ def remove_worker_qualification(
     )
 
 
+def convert_mephisto_qualifications(
+    client: MTurkClient, qualifications: List[Dict[str, Any]]
+):
+    """Convert qualifications from mephisto's format to MTurk's"""
+    converted_qualifications = []
+    for qualification in qualifications:
+        converted = {}
+        mturk_keys = [
+            "QualificationTypeId",
+            "Comparator",
+            "IntegerValue",
+            "LocaleValues",
+            "ActionsGuarded",
+        ]
+        for key in mturk_keys:
+            converted[key] = qualification.get(key)
+
+        if converted["QualificationTypeId"] is None:
+            qualification_name = qualification["qualification_name"]
+            if client_is_sandbox(client):
+                qualification_name += "_sandbox"
+            qual_id = find_or_create_qualification(
+                client,
+                qualification_name,
+                "Qualification required for Mephisto-launched tasks",
+                False,
+            )
+            if qual_id is None:
+                # TODO log more loudly that this qualification is being skipped?
+                print(
+                    f"Qualification name {qualification_name} can not be found or created on MTurk"
+                )
+            converted["QualificationTypeId"] = qual_id
+
+        if converted["Comparator"] is None:
+            converted["Comparator"] = qualification["comparator"]
+
+        if converted["IntegerValue"] is None and converted["LocaleValues"] is None:
+            value = qualification["value"]
+            if isinstance(value, list):
+                converted["IntegerValues"] = value
+            elif isinstance(value, int):
+                converted["IntegerValue"] = value
+            else:
+                del converted["IntegerValue"]
+
+        if converted["LocaleValues"] is None:
+            del converted["LocaleValues"]
+
+        if converted["ActionsGuarded"] is None:
+            converted["ActionsGuarded"] = "DiscoverPreviewAndAccept"
+
+        converted_qualifications.append(converted)
+    return converted_qualifications
+
+
+
 def create_hit_type(
     client: MTurkClient,
     task_config: "TaskConfig",
+    qualifications: List[Dict[str, Any]],
     auto_approve_delay: Optional[int] = 7 * 24 * 3600,  # default 1 week
 ) -> str:
     """Create a HIT type to be used to generate HITs of the requested params"""
@@ -296,17 +353,17 @@ def create_hit_type(
     hit_keywords = ",".join(task_config.task_tags)
     hit_reward = task_config.task_reward
     assignment_duration_in_seconds = task_config.assignment_duration_in_seconds
-    qualifications = task_config.qualifications
+    existing_qualifications = convert_mephisto_qualifications(client, qualifications)
 
     # If the user hasn't specified a location qualification, we assume to
     # restrict the HIT to some english-speaking countries.
     locale_requirements: List[Any] = []
     has_locale_qual = False
-    if qualifications is not None:
-        for q in qualifications:
+    if existing_qualifications is not None:
+        for q in existing_qualifications:
             if q["QualificationTypeId"] == MTURK_LOCALE_REQUIREMENT:
                 has_locale_qual = True
-        locale_requirements += qualifications
+        locale_requirements += existing_qualifications
 
     if not has_locale_qual:
         locale_requirements.append(
@@ -323,8 +380,6 @@ def create_hit_type(
                 "RequiredToPreview": True,
             }
         )
-
-    # TODO pull block qualifications from all workers
 
     # Create the HIT type
     response = client.create_hit_type(

@@ -25,6 +25,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_UPDATE_AGENT_STATUS,
 )
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.blueprint import OnboardingRequired, AgentState
 from mephisto.core.utils import get_crowd_provider_from_type
@@ -69,6 +70,7 @@ class Job(RecordClass):
     architect: "Architect"
     task_runner: "TaskRunner"
     provider: "CrowdProvider"
+    qualifications: List[Dict[str, Any]]
     registered_channel_ids: List[str]
 
 
@@ -128,7 +130,10 @@ class Supervisor:
         architect: "Architect",
         task_runner: "TaskRunner",
         provider: "CrowdProvider",
+        qualifications: Optional[List[Dict[str, Any]]] = None,
     ):
+        if qualifications is None:
+            qualifications = []
         task_run = task_runner.task_run
         channels = architect.get_channels(
             self._on_channel_open,
@@ -139,6 +144,7 @@ class Supervisor:
             architect=architect,
             task_runner=task_runner,
             provider=provider,
+            qualifications=qualifications,
             registered_channel_ids=[],
         )
         for channel in channels:
@@ -255,18 +261,28 @@ class Supervisor:
             )
         else:
             worker = workers[0]
-        # TODO any sort of processing to see if this worker is blocked from the provider side?
-        self.message_queue.append(
-            Packet(
-                packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                sender_id=SYSTEM_CHANNEL_ID,
-                receiver_id=channel_info.channel_id,
-                data={
-                    "request_id": packet.data["request_id"],
-                    "worker_id": worker.db_id,
-                },
+
+        if not worker_is_qualified(worker, channel_info.job.qualifications):
+            self.message_queue.append(
+                Packet(
+                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                    sender_id=SYSTEM_CHANNEL_ID,
+                    receiver_id=channel_info.channel_id,
+                    data={"request_id": packet.data["request_id"], "worker_id": None},
+                )
             )
-        )
+        else:
+            self.message_queue.append(
+                Packet(
+                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                    sender_id=SYSTEM_CHANNEL_ID,
+                    receiver_id=channel_info.channel_id,
+                    data={
+                        "request_id": packet.data["request_id"],
+                        "worker_id": worker.db_id,
+                    },
+                )
+            )
 
     def _launch_and_run_onboarding(
         self, agent_info: "AgentInfo", task_runner: "TaskRunner"
@@ -493,7 +509,6 @@ class Supervisor:
         worker = Worker(self.db, worker_id)
 
         # get the list of tentatively valid units
-        # TODO handle any extra qualifications filtering
         units = task_run.get_valid_units_for_worker(worker)
         if len(units) == 0:
             self.message_queue.append(

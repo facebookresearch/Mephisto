@@ -71,7 +71,6 @@ class TaskConfig:
         self.assignment_duration_in_seconds: int = args["assignment_duration_seconds"]
         self.allowed_concurrent: int = args["allowed_concurrent"]
         self.maximum_units_per_worker: int = args["maximum_units_per_worker"]
-        self.qualifications: List[Any] = []  # TODO create qualification object?
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:

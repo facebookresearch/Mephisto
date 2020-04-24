@@ -67,7 +67,7 @@ class MTurkProvider(CrowdProvider):
         return self.datastore.get_client_for_requester(requester_name)
 
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", server_url: str
+        self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str
     ) -> None:
         """
         Set up SNS queue to recieve agent events from MTurk, and produce the
@@ -88,11 +88,27 @@ class MTurkProvider(CrowdProvider):
         config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
         task_config = TaskConfig(task_run)
 
-        # TODO register qualifications for this run
+        # Find or create relevant qualifications
+        qualifications = []
+        for qualification in task_args.get("qualifications", []):
+            applicable_providers = qualification["applicable_providers"]
+            if (
+                applicable_providers is None
+                or self.PROVIDER_TYPE in applicable_providers
+            ):
+                qualifications.append(qualification)
+        for qualification in qualifications:
+            qualification_name = qualification["qualification_name"]
+            if requester.PROVIDER_TYPE == "mturk_sandbox":
+                qualification_name += "_sandbox"
+            if self.datastore.get_qualification_mapping(qualification_name) is None:
+                qualification[
+                    "QualificationTypeId"
+                ] = requester._create_new_mturk_qualification(qualification_name)
 
         # Set up HIT type
         client = self._get_client(requester._requester_name)
-        hit_type_id = create_hit_type(client, task_config)
+        hit_type_id = create_hit_type(client, task_config, qualifications)
         self.datastore.register_run(task_run_id, arn_id, hit_type_id, config_dir)
 
     def cleanup_resources_from_task_run(
