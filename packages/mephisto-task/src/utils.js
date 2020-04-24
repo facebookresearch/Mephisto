@@ -68,7 +68,30 @@ export function postCompleteTask(agent_id, complete_data) {
     final_data: complete_data,
   })
     .then((res) => res.json())
+    .then((data) => {
+      handleSubmitToProvider(complete_data);
+      return data;
+    })
     .then(function (data) {
       console.log("Submitted");
     });
+}
+
+export function getBlockedExplanation(reason) {
+  const explanations = {
+    no_mobile:
+      "Sorry, this task cannot be completed on mobile devices. Please use a computer.",
+    no_websockets:
+      "Sorry, your browser does not support the required version of websockets for this task. Please upgrade to a modern browser.",
+    null_agent_id:
+      "Sorry, you have already worked on the maximum number of these tasks available to you",
+    null_worker_id:
+      "Sorry, you are not eligible to work on any available tasks.",
+  };
+
+  if (reason in explanations) {
+    return explanations[reason];
+  } else {
+    return `Sorry, you are not able to work on this task. (code: ${reason})`;
+  }
 }

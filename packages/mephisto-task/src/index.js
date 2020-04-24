@@ -1,5 +1,11 @@
 import React from "react";
-import { getTaskConfig, registerWorker, requestAgent, isMobile } from "./utils";
+import {
+  getTaskConfig,
+  registerWorker,
+  requestAgent,
+  isMobile,
+  getInitTaskData,
+} from "./utils";
 export * from "./utils";
 
 /*
@@ -29,9 +35,15 @@ const useMephistoTask = function () {
     is_preview: is_preview,
     preview_html: null,
     blocked_reason: null,
+    task_data: null,
   };
 
   const [state, setState] = React.useReducer(reducerFn, initialState);
+
+  const handleSubmit = React.useCallback(
+    (data) => postCompleteTask(state.agent_id, data),
+    [state.agent_id]
+  );
 
   function handleIncomingTaskConfig(task_config) {
     if (task_config.block_mobile && isMobile()) {
@@ -41,19 +53,25 @@ const useMephistoTask = function () {
     }
     setState({ task_config: task_config });
   }
-  function afterAgentRegistration(data_packet) {
+  function afterAgentRegistration(worker_id, data_packet) {
     const { agent_id } = data_packet.data;
 
     setState({ agent_id: agent_id });
     if (agent_id === null) {
       setState({ blocked_reason: "null_agent_id" });
+    } else {
+      getInitTaskData(worker_id, agent_id).then((packet) =>
+        setState({ task_data: packet.data.init_data })
+      );
     }
   }
   function afterWorkerRegistration(data_packet) {
     const { worker_id } = data_packet.data;
     setState({ mephisto_worker_id: worker_id });
     if (worker_id !== null) {
-      requestAgent(worker_id).then((data) => afterAgentRegistration(data));
+      requestAgent(worker_id).then((data) =>
+        afterAgentRegistration(worker_id, data)
+      );
     } else {
       // TODO handle banned/blocked worker ids
       setState({ blocked_reason: "null_worker_id" });
@@ -65,10 +83,10 @@ const useMephistoTask = function () {
     getTaskConfig().then((data) => handleIncomingTaskConfig(data));
   }, []);
 
-  return state;
+  return { ...state, handleSubmit };
 };
 
-class MephistoTask extends React.Component {
+class DEPRECATED_MephistoTask extends React.Component {
   constructor(props) {
     super(props);
 
@@ -143,7 +161,7 @@ class MephistoTask extends React.Component {
   }
 }
 
-export { MephistoTask, useMephistoTask };
+export { DEPRECATED_MephistoTask, useMephistoTask };
 
 function ChatMessage({ message, color }) {
   return (
