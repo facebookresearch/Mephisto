@@ -5,6 +5,7 @@ import {
   requestAgent,
   isMobile,
   getInitTaskData,
+  postCompleteTask,
 } from "./utils";
 export * from "./utils";
 
