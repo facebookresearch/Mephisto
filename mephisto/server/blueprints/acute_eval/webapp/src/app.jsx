@@ -12,7 +12,6 @@ import {
   TaskDescription,
   BaseFrontend,
 } from "./components/core_components.jsx";
-import "fetch";
 import { useMephistoTask, getBlockedExplanation } from "mephisto-task";
 
 /* ================= Application Components ================= */
