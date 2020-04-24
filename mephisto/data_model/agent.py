@@ -86,8 +86,6 @@ class Agent(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    # TODO do we want to store task working time or completion time here?
-
     def get_agent_id(self) -> str:
         """Return this agent's id"""
         return self.db_id
@@ -239,15 +237,12 @@ class Agent(ABC):
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        # TODO the below needs to be considered an agent timeout
         assert len(self.pending_actions) > 0, "has_action released without an action!"
 
         act = self.pending_actions.pop(0)
 
         if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
             self.did_submit.set()
-
-        # TODO check to see if the act is one of the acts to ERROR on
 
         if len(self.pending_actions) == 0:
             self.has_action.clear()
@@ -340,8 +335,6 @@ class OnboardingAgent(ABC):
 
         # Follow-up initialization
         self.state = AgentState(self)  # type: ignore
-
-    # TODO do we want to store task working time or completion time here?
 
     def get_agent_id(self) -> str:
         """Return an id to use for onboarding agent requests"""
@@ -443,15 +436,12 @@ class OnboardingAgent(ABC):
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        # TODO the below needs to be considered an agent timeout
         assert len(self.pending_actions) > 0, "has_action released without an action!"
 
         act = self.pending_actions.pop(0)
 
         if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
             self.did_submit.set()
-
-        # TODO check to see if the act is one of the acts to ERROR on
 
         if len(self.pending_actions) == 0:
             self.has_action.clear()

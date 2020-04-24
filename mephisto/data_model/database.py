@@ -23,8 +23,8 @@ from mephisto.data_model.task import Task, TaskRun
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import Qualification, GrantedQualification
 
-# TODO investigate rate limiting against the db by caching locally where appropriate across the data model?
-# TODO investigate cursors for DB queries as the project scales
+# TODO(#101) investigate rate limiting against the db by caching locally where appropriate across the data model?
+# TODO(#101) investigate cursors for DB queries as the project scales
 
 
 class MephistoDBException(Exception):
@@ -348,7 +348,6 @@ class MephistoDB(ABC):
         Raises EntryAlreadyExistsException
         if there is already a requester with this name
         """
-        # TODO ensure that provider type is a valid type
         raise NotImplementedError()
 
     @abstractmethod
@@ -381,7 +380,6 @@ class MephistoDB(ABC):
         worker_name should be the unique identifier by which the crowd provider
         is using to keep track of this worker
         """
-        # TODO ensure that provider type is a valid type
         raise NotImplementedError()
 
     @abstractmethod

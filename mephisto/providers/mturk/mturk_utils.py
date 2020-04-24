@@ -23,7 +23,6 @@ MTURK_TASK_FEE = 0.2
 MTURK_BONUS_FEE = 0.2
 SANDBOX_ENDPOINT = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
 
-# TODO can we do better than this?
 MTurkClient = Any
 
 MTURK_LOCALE_REQUIREMENT = "00000000000000000071"
@@ -161,7 +160,6 @@ def check_mturk_balance(client: MTurkClient, balance_needed: float):
         return True
 
 
-# TODO refactor this with TaskLauncher
 def create_hit_config(
     opt: Dict[str, Any], task_description: str, unique_worker: bool, is_sandbox: bool
 ) -> None:
@@ -342,6 +340,7 @@ def convert_mephisto_qualifications(
     return converted_qualifications
 
 
+
 def create_hit_type(
     client: MTurkClient,
     task_config: "TaskConfig",
@@ -359,7 +358,6 @@ def create_hit_type(
     # If the user hasn't specified a location qualification, we assume to
     # restrict the HIT to some english-speaking countries.
     locale_requirements: List[Any] = []
-    # TODO move qualification generation into quals class
     has_locale_qual = False
     if existing_qualifications is not None:
         for q in existing_qualifications:
@@ -397,7 +395,6 @@ def create_hit_type(
     return hit_type_id
 
 
-# TODO refactor this with TaskLauncher
 def create_hit_with_hit_type(
     client: MTurkClient,
     frame_height: int,

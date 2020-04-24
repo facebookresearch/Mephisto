@@ -205,7 +205,7 @@ class MockServer(tornado.web.Application):
         """
         Mark a mock agent as disconnected.
         """
-        # TODO implement when handling disconnections
+        # TODO(#97) implement when handling disconnections
         pass
 
     def launch_mock(self):
@@ -247,7 +247,7 @@ class MockArchitect(Architect):
         self.should_run_server = opts.get("should_run_server")
         self.port = opts.get("port")
         self.server: Optional["MockServer"] = None
-        # TODO track state in parent class?
+        # TODO(#97) track state in parent class?
         self.prepared = False
         self.deployed = False
         self.cleaned = False

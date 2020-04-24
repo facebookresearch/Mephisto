@@ -95,7 +95,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:
             built_file.write(self.BUILT_MESSAGE)
 
-    # TODO update test validation
+    # TODO(#97) update test validation
     @staticmethod
     def task_dir_is_valid(task_dir: str) -> bool:
         """ParlAIChat tasks are valid if built"""

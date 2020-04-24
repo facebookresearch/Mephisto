@@ -37,14 +37,13 @@ def ensure_user_confirm(display_text, skip_input=False) -> None:
 
 def get_root_dir() -> str:
     """Return the currently configured root mephisto directory"""
-    # TODO be able to configure this kind of thing
     # This file is at ROOT/mephisto/core/utils.py
     return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
 def get_mock_requester(db) -> "Requester":
     """Get or create a mock requester to use for test tasks"""
-    # TODO Need to split utils into those operating for the data model
+    # TODO(#98) Need to split utils into those operating for the data model
     # and those operating on the data model, and those operating beyond
     mock_requesters = db.find_requesters(provider_type="mock")
     if len(mock_requesters) == 0:
@@ -175,7 +174,7 @@ def get_blueprint_from_type(task_type: str) -> Type["TaskRunner"]:
     """
     Return the task runner class for the given string
     """
-    # TODO construct this map automatically
+    # TODO(#98) construct this map automatically
     if task_type == "mock":
         from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 
@@ -205,7 +204,7 @@ def get_architect_from_type(architect_type: str) -> Type["Architect"]:
     """
     Return the task runner class for the given string
     """
-    # TODO construct this map automatically
+    # TODO(#98) construct this map automatically
     if architect_type == "mock":
         from mephisto.server.architects.mock_architect import MockArchitect
 

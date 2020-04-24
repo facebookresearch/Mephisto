@@ -77,7 +77,7 @@ class AcuteEvalBuilder(TaskBuilder):
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:
             built_file.write(self.BUILT_MESSAGE)
 
-    # TODO update test validation
+    # TODO(#97) update test validation
     @staticmethod
     def task_dir_is_valid(task_dir: str) -> bool:
         """Acute eval is always valid, we don't have any special resources"""

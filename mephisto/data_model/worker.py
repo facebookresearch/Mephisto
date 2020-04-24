@@ -31,7 +31,7 @@ class Worker(ABC):
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.provider_type = row["provider_type"]
         self.worker_name = row["worker_name"]
-        # TODO Do we want any other attributes here?
+        # TODO(#101) Do we want any other attributes here?
 
     def __new__(cls, db: "MephistoDB", db_id: str) -> "Worker":
         """
@@ -54,8 +54,7 @@ class Worker(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    # TODO make getters for helpful worker statistics
-    # TODO add worker qualification tracking?
+    # TODO(#101) make getters for helpful worker statistics
 
     def get_agents(self, status: Optional[str] = None) -> List["Agent"]:
         """
@@ -142,7 +141,7 @@ class Worker(ABC):
             self.revoke_crowd_qualification(qualification_name)
             return True
         except Exception as e:
-            # TODO logging
+            # TODO(#93) logging
             import traceback
 
             traceback.print_exc()
@@ -167,7 +166,7 @@ class Worker(ABC):
             self.grant_crowd_qualification(qualification_name, value)
             return True
         except Exception as e:
-            # TODO logging
+            # TODO(#93) logging
             import traceback
 
             traceback.print_exc()

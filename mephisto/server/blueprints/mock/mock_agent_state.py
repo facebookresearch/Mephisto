@@ -56,6 +56,4 @@ class MockAgentState(AgentState):
 
     def update_data(self, packet: "Packet") -> None:
         """Put new data into this mock state"""
-        # TODO this should actually take in packets instead
-        # update once we use packets
         self.state = packet.data

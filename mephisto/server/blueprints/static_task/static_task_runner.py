@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
 
 
-SYSTEM_SENDER = "mephisto"  # TODO pull from somewhere
-TEST_TIMEOUT = 3000  # TODO pull this from the task run max completion time
+SYSTEM_SENDER = "mephisto"  # TODO(CLEAN) pull from somewhere
+TEST_TIMEOUT = 3000  # TODO(#95) pull this from the task run max completion time
 
 
 class StaticTaskRunner(TaskRunner):
@@ -56,9 +56,7 @@ class StaticTaskRunner(TaskRunner):
         # Frontend implicitly asks for the initialization data, so we just need
         # to wait for a response
         agent_act = agent.act(timeout=TEST_TIMEOUT)
-        # TODO if agent_act is None, mark as incomplete?
 
-    # TODO failed static tasks should be requeued?
     def cleanup_unit(self, unit: "Unit") -> None:
         """There is currently no cleanup associated with killing an incomplete task"""
         return

@@ -69,7 +69,7 @@ class MTurkDatastore:
         """Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
-        # TODO is there a problem with having just one db connection?
+        # TODO(#101) is there a problem with having just one db connection?
         # Will this cause bugs with failed commits?
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:

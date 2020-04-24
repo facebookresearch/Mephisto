@@ -128,7 +128,7 @@ class CrowdProviderTests(unittest.TestCase):
         )
 
         # Ensure credential registration works
-        # TODO ensure registration fails when we programatically login to an account
+        # TODO(#97) ensure registration fails when we programatically login to an account
         # in the future
         # self.assertFalse(test_requester.is_registered())
         test_requester.register()
@@ -162,9 +162,9 @@ class CrowdProviderTests(unittest.TestCase):
         test_worker.unblock_worker("Test reason", requester=requester)
         self.assertFalse(test_worker.is_blocked(requester))
 
-        # TODO is it possible to test worker bonuses?
-        # TODO is it possible to test eligibility?
+        # TODO(#97) is it possible to test worker bonuses?
+        # TODO(#97) is it possible to test eligibility?
 
-    # TODO implmeent the following after test tasks are possible
+    # TODO(#97) implmeent the following after test tasks are possible
     # def test_unit(self) -> None:
     # def test_agent(self) -> None:

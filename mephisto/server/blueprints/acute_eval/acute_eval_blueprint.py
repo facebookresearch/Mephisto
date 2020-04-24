@@ -169,14 +169,14 @@ class AcuteEvalBlueprint(Blueprint):
             "num_subtasks": self.opts["subtasks_per_unit"],
             "question": self.opts["eval_question"],
             "block_mobile": True,
-            "get_task_feedback": False,  # TODO make option
+            "get_task_feedback": False,  # TODO(#95) make option
         }
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
         """
         Return the InitializationData retrieved from the specified stream
         """
-        # TODO once we can release HITs over time, configure this to
+        # TODO(#99) once we can release HITs over time, configure this to
         # release as many as needed thusfar and top off when
         # onboardings fail
         print(self.opts)

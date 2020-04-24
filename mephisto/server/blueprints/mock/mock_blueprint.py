@@ -75,7 +75,7 @@ class MockBlueprint(Blueprint, OnboardingRequired):
             for i in range(self.opts["num_assignments"])
         ]
 
-    # TODO this should probably be part of the TaskRunner, which is actually privy to the task
+    # TODO(OWN) this should probably be part of the TaskRunner, which is actually privy to the task
     def validate_onboarding(
         self, worker: "Worker", onboarding_agent: "OnboardingAgent"
     ) -> bool:

@@ -28,7 +28,7 @@ class MockUnit(Unit):
 
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
-        # TODO any additional init as is necessary once
+        # TODO(#97) any additional init as is necessary once
         # a mock DB exists
 
     def launch(self, task_url: str) -> None:
@@ -43,7 +43,7 @@ class MockUnit(Unit):
 
     def is_expired(self) -> bool:
         """Determine if this unit is expired as according to the vendor."""
-        # TODO pull from the mockdb
+        # TODO(#97) pull from the mockdb
         return True
 
     @staticmethod

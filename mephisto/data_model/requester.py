@@ -135,10 +135,6 @@ class Requester(ABC):
             "registered": self.is_registered(),
         }
 
-    # TODO add a way to manage creation and validation of qualifications
-    # for a given requester?
-    # TODO add qualifications to the data model
-
     @staticmethod
     def new(db: "MephistoDB", requester_name: str) -> "Requester":
         """

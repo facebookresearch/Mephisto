@@ -28,10 +28,10 @@ def can_build(build_dir: str, task_run: "TaskRun") -> bool:
     being able to have the router built within. This is a
     validation step that should be run before build_router.
     """
-    # TODO incorporate this step into the blueprint
+    # TODO(#97) incorporate this step into the blueprint
     # task builder test, as once the task is built, it
     # should be able to have the server build as well.
-    # TODO actually implement this when the full build
+    # TODO(#97) actually implement this when the full build
     # process for the router is decided
     return True
 

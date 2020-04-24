@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
 
 
-# TODO pull from utils, these are blueprints
+# TODO(#98) pull from utils, these are blueprints
 VALID_TASK_TYPES = ["legacy_parlai", "generic", "mock"]
 
 
@@ -43,13 +43,13 @@ def assert_task_is_valid(dir_name, task_type) -> None:
     Go through the given task directory and ensure it is valid under the
     given task type
     """
-    # TODO actually check to ensure all the expected files are there
+    # TODO(#97) actually check to ensure all the expected files are there
     pass
 
 
-# TODO find a way to repair the database if a user moves folders and files around
-# in an unexpected way, primarily resulting in tasks no longer being executable
-# and becoming just storage for other information.
+# TODO(#102) find a way to repair the database if a user moves folders and files
+# around in an unexpected way, primarily resulting in tasks no longer being
+# executable and becoming just storage for other information.
 
 
 class Task:
@@ -80,7 +80,7 @@ class Task:
 
     def set_project(self, project: Project) -> None:
         if self.project_id != project.db_id:
-            # TODO this constitutes an update, must go back to the db
+            # TODO(#101) this constitutes an update, must go back to the db
             raise NotImplementedError()
 
     def get_runs(self) -> List["TaskRun"]:
@@ -100,7 +100,7 @@ class Task:
         Return the path to the task content, such that the server architect
         can deploy the relevant frontend
         """
-        # TODO do we need a task source anymore?
+        # TODO(#101) do we need a task source anymore?
         task_dir = get_dir_for_task(self.task_name)
         assert task_dir is not None, f"Task dir for {self} no longer exists!"
         return task_dir
@@ -128,7 +128,7 @@ class Task:
         exists and has the expected directories and files. If a project is
         specified, register the task underneath it
         """
-        # TODO consider offloading this state management to the MephistoDB
+        # TODO(#101) consider offloading this state management to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
         assert (
@@ -242,7 +242,7 @@ class TaskRun:
                 ):
                     return []  # Currently at the maximum number of units for this task
 
-        # TODO if an agent has failed onboarding, can we give them a fake unit?
+        # TODO(WISH) if an agent has failed onboarding, can we give them a fake unit?
         assignments = self.get_assignments()
 
         # Cannot pair with self
@@ -357,7 +357,7 @@ class TaskRun:
         of subassignments. If this task run has no subassignments yet, it
         is not complete
         """
-        # TODO revisit when/if it's possible to add tasks to a completed run
+        # TODO(#99) revisit when/if it's possible to add tasks to a completed run
         if not self.__is_completed and self.get_has_assignments():
             statuses = self.get_assignment_statuses()
             has_incomplete = False

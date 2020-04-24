@@ -8,7 +8,7 @@ from parlai.core.worlds import validate
 from joblib import Parallel, delayed
 
 
-TURN_TIMEOUT_TIME = 300  # TODO make not a constant
+TURN_TIMEOUT_TIME = 300  # TODO(#95) make not a constant
 
 
 class MTurkMultiAgentDialogOnboardWorld(MTurkOnboardWorld):

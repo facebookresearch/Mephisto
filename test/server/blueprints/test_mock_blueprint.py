@@ -22,8 +22,7 @@ from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.test.utils import get_test_task_run
 
-# TODO be able to pull the assignment mocking process out from
-# somewhere else, such as the worker pool or matcher
+# TODO(#97) Update supervisor to be able to provide mock setups to test against a blueprint
 from mephisto.providers.mock.mock_agent import MockAgent
 from mephisto.providers.mock.mock_unit import MockUnit
 from mephisto.providers.mock.mock_worker import MockWorker
@@ -102,7 +101,7 @@ class MockBlueprintTests(BlueprintTests):
         assert isinstance(task_runner, MockTaskRunner), "Must be a mock runner"
         return assignment.db_id in task_runner.tracked_tasks
 
-    # TODO are there any other unit tests we'd like to have?
+    # TODO(#97) are there any other unit tests we'd like to have?
 
 
 if __name__ == "__main__":

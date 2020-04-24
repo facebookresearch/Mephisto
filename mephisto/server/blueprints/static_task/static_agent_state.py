@@ -47,7 +47,7 @@ class StaticAgentState(AgentState):
         else:
             self.state["inputs"] = data
             times_dict = self.state["times"]
-            # TODO this typing may be better handled another way
+            # TODO(#103) this typing may be better handled another way
             assert isinstance(times_dict, dict)
             times_dict["task_start"] = time.time()
             self.save_data()
@@ -81,7 +81,7 @@ class StaticAgentState(AgentState):
         out_filename = os.path.join(data_dir, DATA_FILE)
         with open(out_filename, "w+") as data_file:
             json.dump(self.state, data_file)
-        # TODO move to logger
+        # TODO(#93) move to logger
         print(f"SAVED_DATA_TO_DISC at {out_filename}")
 
     def update_data(self, packet: "Packet") -> None:
@@ -94,7 +94,7 @@ class StaticAgentState(AgentState):
         ), "Static tasks should only have final act"
         self.state["outputs"] = packet.data["task_data"]
         times_dict = self.state["times"]
-        # TODO this typing may be better handled another way
+        # TODO(#013) this typing may be better handled another way
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
         if packet.data.get("files") != None:

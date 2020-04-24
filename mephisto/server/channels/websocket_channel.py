@@ -78,13 +78,13 @@ class WebsocketChannel(Channel):
         def on_socket_open(*args):
             self._is_alive = True
             self.on_channel_open(self.channel_id)
-            # TODO logger
+            # TODO(#93) logger
             print(f"channel open {args}")
 
         def on_error(ws, error):
             if hasattr(error, "errno"):
                 if error.errno == errno.ECONNREFUSED:
-                    # TODO replace with channel exception
+                    # TODO(CLEAN) replace with channel exception
                     raise Exception(
                         f"Socket {self.socket_url} refused connection, cancelling"
                     )
@@ -96,7 +96,7 @@ class WebsocketChannel(Channel):
                 try:
                     ws.close()
                 except Exception:
-                    # TODO only catch socket closed connection
+                    # TODO(CLEAN) only catch socket closed connection
                     # Already closed
                     pass
 
@@ -104,7 +104,7 @@ class WebsocketChannel(Channel):
             """Disconnect event is a no-op for us, as the server reconnects
             automatically on a retry.
             """
-            # TODO we need to set a timeout for reconnecting to the server,
+            # TODO(OWN) we need to set a timeout for reconnecting to the server,
             # if it fails it's time to call on_catastrophic_disconnect
             pass
 
@@ -116,7 +116,7 @@ class WebsocketChannel(Channel):
                 packet = Packet.from_dict(packet_dict)
                 self.on_message(self.channel_id, packet)
             except Exception as e:
-                # TODO properly handle only failed from_dict calls
+                # TODO(CLEAN) properly handle only failed from_dict calls
                 import traceback
 
                 traceback.print_exc()
