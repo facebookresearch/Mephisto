@@ -340,7 +340,6 @@ def convert_mephisto_qualifications(
     return converted_qualifications
 
 
-
 def create_hit_type(
     client: MTurkClient,
     task_config: "TaskConfig",

@@ -12,6 +12,7 @@ from mephisto.providers.mturk_sandbox.sandbox_mturk_requester import (
 )
 from mephisto.providers.mturk_sandbox.sandbox_mturk_unit import SandboxMTurkUnit
 from mephisto.providers.mturk_sandbox.sandbox_mturk_worker import SandboxMTurkWorker
+from mephisto.core.registry import register_mephisto_abstraction
 
 import os
 
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
 
 
+@register_mephisto_abstraction()
 class SandboxMTurkProvider(MTurkProvider):
     """
     Mock implementation of a CrowdProvider that stores everything

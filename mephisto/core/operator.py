@@ -25,7 +25,7 @@ from mephisto.data_model.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.core.argparse_parser import get_default_arg_dict
 from mephisto.core.task_launcher import TaskLauncher
-from mephisto.core.utils import (
+from mephisto.core.registry import (
     get_blueprint_from_type,
     get_crowd_provider_from_type,
     get_architect_from_type,

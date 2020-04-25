@@ -11,7 +11,7 @@ from shutil import copytree
 from typing import List, Any, TYPE_CHECKING, Dict
 import argparse
 import shlex
-from mephisto.core.utils import get_blueprint_from_type, get_crowd_provider_from_type
+from mephisto.core.registry import get_blueprint_from_type, get_crowd_provider_from_type
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun

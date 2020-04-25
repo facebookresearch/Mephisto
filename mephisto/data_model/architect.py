@@ -21,6 +21,8 @@ class Architect(ABC):
     onto that server.
     """
 
+    ARCHITECT_TYPE: str
+
     def __init__(
         self,
         db: "MephistoDB",

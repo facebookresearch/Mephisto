@@ -10,6 +10,7 @@ from mephisto.providers.mock.mock_requester import MockRequester
 from mephisto.providers.mock.mock_unit import MockUnit
 from mephisto.providers.mock.mock_worker import MockWorker
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
+from mephisto.core.registry import register_mephisto_abstraction
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, TYPE_CHECKING
 
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
 
 
+@register_mephisto_abstraction()
 class MockProvider(CrowdProvider):
     """
     Mock implementation of a CrowdProvider that stores everything

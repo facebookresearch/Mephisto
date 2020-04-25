@@ -15,6 +15,7 @@ from mephisto.server.blueprints.parlai_chat.parlai_chat_task_runner import (
 from mephisto.server.blueprints.parlai_chat.parlai_chat_task_builder import (
     ParlAIChatTaskBuilder,
 )
+from mephisto.core.registry import register_mephisto_abstraction
 
 import os
 import time
@@ -45,6 +46,7 @@ MISSING_SOMETHING_TEXT = (
 )
 
 
+@register_mephisto_abstraction()
 class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     """Blueprint for a task that runs a parlai chat """
 

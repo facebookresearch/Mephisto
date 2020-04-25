@@ -20,6 +20,7 @@ from mephisto.providers.mturk.mturk_utils import (
     delete_sns_topic,
     delete_qualification,
 )
+from mephisto.core.registry import register_mephisto_abstraction
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, cast, TYPE_CHECKING
 
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
 
 
+@register_mephisto_abstraction()
 class MTurkProvider(CrowdProvider):
     """
     Implementation of a crowdprovider that interfaces with MTurk

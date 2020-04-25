@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 from mephisto.data_model.blueprint import AgentState
-from mephisto.core.utils import get_crowd_provider_from_type
+from mephisto.core.registry import get_crowd_provider_from_type
 from typing import Any, List, Optional, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
