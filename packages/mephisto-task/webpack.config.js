@@ -24,12 +24,6 @@ module.exports = {
     net: "empty",
     dns: "empty",
   },
-  resolve: {
-    alias: {
-      react: path.resolve(__dirname, "./node_modules/react"),
-    },
-    symlinks: false,
-  },
   module: {
     rules: [
       {
