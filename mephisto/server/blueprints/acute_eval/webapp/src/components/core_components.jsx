@@ -695,23 +695,6 @@ class MultitaskFrontend extends React.Component {
       show_next_task_button = true;
       task_done = false;
     }
-    console.log(
-      "Current state: ",
-      this.state.current_subtask_index,
-      this.state.num_subtasks,
-      this.props.task_config.get_task_feedback
-    );
-    console.log(
-      "Computed show next task, task done",
-      show_next_task_button,
-      task_done,
-      this.computeShouldSubmit()
-    );
-    console.log(
-      "Setting data for index {} to {}",
-      this.state.current_subtask_index,
-      response_data
-    );
     this.setState({
       show_next_task_button: show_next_task_button,
       subtask_done: valid,
