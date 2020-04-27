@@ -74,7 +74,6 @@ const useMephistoTask = function () {
         afterAgentRegistration(workerId, data)
       );
     } else {
-      // TODO handle banned/blocked worker ids
       setState({ blockedReason: "null_worker_id" });
       console.log("worker_id returned was null");
     }
