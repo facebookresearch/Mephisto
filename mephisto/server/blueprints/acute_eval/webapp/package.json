@@ -13,9 +13,9 @@
     "fetch": "^1.1.0",
     "jquery": "^3.0.0",
     "popper.js": "^1.14.4",
-    "react": "^16.5.2",
+    "react": "16.13.1",
     "react-bootstrap": "^0.32.4",
-    "react-dom": "^16.5.2",
+    "react-dom": "16.13.1",
     "react-table": "^6.8.6"
   },
   "devDependencies": {

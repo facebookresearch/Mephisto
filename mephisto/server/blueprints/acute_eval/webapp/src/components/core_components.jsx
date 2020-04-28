@@ -6,7 +6,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React from 'react';
+import React from "react";
 import {
   Button,
   Col,
@@ -17,8 +17,8 @@ import {
   Grid,
   Radio,
   Row,
-} from 'react-bootstrap';
-import $ from 'jquery';
+} from "react-bootstrap";
+import $ from "jquery";
 
 // blue
 const speaker1_color = "#29BFFF";
@@ -32,84 +32,75 @@ const speaker1_style = {
   padding: "1px 4px",
   display: "inline-block",
   backgroundColor: speaker1_color,
-  color: "white"
+  color: "white",
 };
 const speaker2_style = {
   borderRadius: 3,
   padding: "1px 4px",
   display: "inline-block",
   backgroundColor: speaker2_color,
-  color: "white"
+  color: "white",
 };
 const otherspeaker_style = {
   borderRadius: 3,
   padding: "1px 4px",
   display: "inline-block",
-  backgroundColor: otherspeaker_color
+  backgroundColor: otherspeaker_color,
 };
 
-class ChatMessage extends React.Component {
-  render() {
-    let message = this.props.message;
-    let primary_speaker_color = this.props.model === "model_left"
-      ? speaker1_color
-      : speaker2_color;
-    let message_container_style = {
-      display: "block",
-      width: "100%",
-      ...(this.props.is_primary_speaker
-        ? {
-            float: "left"
-          }
-        : {
-            float: "right"
-          })
-    };
-    let message_style = {
-      borderRadius: 6,
-      marginBottom: 10,
-      padding: "5px 10px",
-      ...(this.props.is_primary_speaker
-        ? {
-            marginRight: 20,
-            textAlign: "left",
-            float: "left",
-            color: "white",
-            display: "inline-block",
-            backgroundColor: primary_speaker_color
-          }
-        : {
-            textAlign: "right",
-            float: "right",
-            display: "inline-block",
-            marginLeft: 20,
-            backgroundColor: otherspeaker_color
-          })
-    };
-    return (
-      <div style={message_container_style}>
-        <div style={message_style}>{message}</div>
-      </div>
-    );
-  }
+function ChatMessage({ message, model, is_primary_speaker }) {
+  let primary_speaker_color =
+    model === "model_left" ? speaker1_color : speaker2_color;
+  let message_container_style = {
+    display: "block",
+    width: "100%",
+    ...{
+      float: is_primary_speaker ? "left" : "right",
+    },
+  };
+  let message_style = {
+    borderRadius: 6,
+    marginBottom: 10,
+    padding: "5px 10px",
+    ...(is_primary_speaker
+      ? {
+          marginRight: 20,
+          textAlign: "left",
+          float: "left",
+          color: "white",
+          display: "inline-block",
+          backgroundColor: primary_speaker_color,
+        }
+      : {
+          textAlign: "right",
+          float: "right",
+          display: "inline-block",
+          marginLeft: 20,
+          backgroundColor: otherspeaker_color,
+        }),
+  };
+  return (
+    <div style={message_container_style}>
+      <div style={message_style}>{message}</div>
+    </div>
+  );
 }
 
-class MessageList extends React.Component {
-  makeMessages() {
-    if (this.props.task_data.pairing_dict === undefined) {
-      return (
-        <div>
-          <p> Loading chats </p>
-        </div>
-      );
-    }
-    let task_data = this.props.task_data;
-    let model = this.props.index === 0
-      ? "model_left"
-      : "model_right";
+function MessageList({ task_data, index }) {
+  let messageList;
+
+  if (task_data.pairing_dict === undefined) {
+    messageLists = (
+      <div>
+        <p> Loading chats </p>
+      </div>
+    );
+  } else {
+    let model = index === 0 ? "model_left" : "model_right";
     let messages = task_data.task_specs[model]["dialogue"];
     let primary_speaker = task_data.task_specs[model]["name"];
-    return messages.map((m, idx) => (
+
+    messageList = messages.map((m, idx) => (
       <div key={model + "_" + idx}>
         <ChatMessage
           message={m.text}
@@ -120,13 +111,11 @@ class MessageList extends React.Component {
     ));
   }
 
-  render() {
-    return (
-      <div id="message_thread" style={{ width: "100%" }}>
-        {this.makeMessages()}
-      </div>
-    );
-  }
+  return (
+    <div id="message_thread" style={{ width: "100%" }}>
+      {messageList}
+    </div>
+  );
 }
 
 class ChatPane extends React.Component {
@@ -156,7 +145,7 @@ class ChatPane extends React.Component {
       width: "100%",
       position: "relative",
     };
-    
+
     let chat_style = {
       width: "100%",
       height: this.state.chat_height + "px",
@@ -164,7 +153,7 @@ class ChatPane extends React.Component {
       paddingLeft: "20px",
       paddingRight: "20px",
       paddingBottom: "20px",
-      overflowY: "scroll"
+      overflowY: "scroll",
     };
 
     window.setTimeout(() => {
@@ -175,7 +164,7 @@ class ChatPane extends React.Component {
 
     return (
       <div id="right-top-pane" style={top_pane_style}>
-        <Grid className="show-grid" style={{ width: "auto", padding: "0px"}}>
+        <Grid className="show-grid" style={{ width: "auto", padding: "0px" }}>
           <Row>
             <Col sm={6}>
               <div id="message-pane-segment-left" style={chat_style}>
@@ -201,7 +190,7 @@ class EvalResponse extends React.Component {
       speakerChoice: "",
       textReason: "",
       taskData: [],
-      subtaskIndexSeen: 0
+      subtaskIndexSeen: 0,
     };
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleEnterKey = this.handleEnterKey.bind(this);
@@ -225,17 +214,17 @@ class EvalResponse extends React.Component {
       return {
         subtaskIndexSeen: nextProps.current_subtask_index,
         textReason: "",
-        speakerChoice: ""
+        speakerChoice: "",
       };
     }
     return {};
-   }
+  }
 
   checkValidData() {
     if (this.state.speakerChoice !== "" && this.state.textReason.length > 4) {
       let response_data = {
         speakerChoice: this.state.speakerChoice,
-        textReason: this.state.textReason
+        textReason: this.state.textReason,
       };
       this.props.onValidDataChange(true, response_data);
       return;
@@ -261,7 +250,7 @@ class EvalResponse extends React.Component {
   }
 
   render() {
-    console.log('Eval props', this.props);
+    console.log("Eval props", this.props);
     if (
       this.props.task_data === undefined ||
       this.props.task_data.task_specs === undefined
@@ -290,7 +279,7 @@ class EvalResponse extends React.Component {
             width: "73%",
             height: "100%",
             float: "left",
-            fontSize: "16px"
+            fontSize: "16px",
           }}
           value={this.state.textReason}
           placeholder="Please enter here..."
@@ -304,11 +293,11 @@ class EvalResponse extends React.Component {
             width: "26%",
             height: "100%",
             float: "left",
-            fontSize: "16px"
+            fontSize: "16px",
           }}
           disabled={!(this.props.task_done || this.props.subtask_done)}
-        > 
-          {this.props.should_submit ? "SUBMIT TASK" : "NEXT"} 
+        >
+          {this.props.should_submit ? "SUBMIT TASK" : "NEXT"}
         </Button>
       </div>
     );
@@ -336,7 +325,7 @@ class EvalResponse extends React.Component {
           padding: "15px",
           float: "left",
           width: "100%",
-          backgroundColor: "#eeeeee"
+          backgroundColor: "#eeeeee",
         }}
       >
         <Form
@@ -382,14 +371,14 @@ class TaskFeedbackPane extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      feedbackText: '',
+      feedbackText: "",
     };
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleEnterKey = this.handleEnterKey.bind(this);
   }
 
   getChatHeight() {
-    let entry_pane = $('div#right-bottom-pane').get(0);
+    let entry_pane = $("div#right-bottom-pane").get(0);
     let bottom_height = 90;
     if (entry_pane !== undefined) {
       bottom_height = entry_pane.scrollHeight;
@@ -399,7 +388,7 @@ class TaskFeedbackPane extends React.Component {
 
   handleResize() {
     if (this.getChatHeight() != this.state.chat_height) {
-      this.setState({chat_height: this.getChatHeight()});
+      this.setState({ chat_height: this.getChatHeight() });
     }
   }
 
@@ -416,7 +405,7 @@ class TaskFeedbackPane extends React.Component {
   checkValidData() {
     let response_data = {
       feedbackText: this.state.feedbackText,
-    }
+    };
     this.props.onValidDataChange(true, response_data);
   }
 
@@ -425,10 +414,7 @@ class TaskFeedbackPane extends React.Component {
     let value = target.value;
     let name = target.name;
 
-    this.setState(
-      {[name]: value},
-      this.checkValidData
-    );
+    this.setState({ [name]: value }, this.checkValidData);
   }
 
   handleEnterKey(event) {
@@ -437,13 +423,14 @@ class TaskFeedbackPane extends React.Component {
   }
 
   render() {
-    if (this.props.task_data === undefined ||
-        this.props.task_data.task_specs === undefined){
-      return (
-        <div></div>
-      );
+    if (
+      this.props.task_data === undefined ||
+      this.props.task_data.task_specs === undefined
+    ) {
+      return <div></div>;
     }
-    let text_question = "If you have any feedback regarding this hit, please leave it here.\nOtherwise, click the [Done with Task] button.";
+    let text_question =
+      "If you have any feedback regarding this hit, please leave it here.\nOtherwise, click the [Done with Task] button.";
     let text_reason = (
       <div>
         <h3>(Optional)</h3>
@@ -452,39 +439,42 @@ class TaskFeedbackPane extends React.Component {
           componentClass="textarea"
           id="id_text_input"
           name="feedbackText"
-          style={{width: '100%', height: '100%', float: 'left', 'rows': 8, 'fontSize': '16px'}}
+          style={{
+            width: "100%",
+            height: "100%",
+            float: "left",
+            rows: 8,
+            fontSize: "16px",
+          }}
           value={this.state.feedbackText}
           placeholder="Please enter here..."
           onChange={this.handleInputChange}
-          />
-        </div>
+        />
+      </div>
     );
     return (
       <div
         id="response-type-text-input"
         className="response-type-module"
-        style={{'paddingTop': '15px',
-                'float': 'left',
-                'width': '100%',
-                'backgroundColor': '#ffd585'}}>
-            <Form
-              horizontal
-              style={{backgroundColor: '#ffd585', paddingBottom: '10px'}}
-              onSubmit={this.handleEnterKey}
-              >
-              <div
-                className="container"
-                style={{'width': 'auto',}}>
-                {text_reason}
-                <Button
-                  className="btn-primary"
-                  type="submit"
-                  id="done_button"
-                >
-                  Done with task
-                </Button>
-              </div>
-            </Form>
+        style={{
+          paddingTop: "15px",
+          float: "left",
+          width: "100%",
+          backgroundColor: "#ffd585",
+        }}
+      >
+        <Form
+          horizontal
+          style={{ backgroundColor: "#ffd585", paddingBottom: "10px" }}
+          onSubmit={this.handleEnterKey}
+        >
+          <div className="container" style={{ width: "auto" }}>
+            {text_reason}
+            <Button className="btn-primary" type="submit" id="done_button">
+              Done with task
+            </Button>
+          </div>
+        </Form>
       </div>
     );
   }
@@ -518,17 +508,16 @@ class PairwiseEvalPane extends React.Component {
       display: "flex",
       flexDirection: "column",
       justifyContent: "spaceBetween",
-      width: "auto"
+      width: "auto",
     };
     if (
-      this.props.current_subtask_index >=
-      this.props.task_config.num_subtasks
+      this.props.current_subtask_index >= this.props.task_config.num_subtasks
     ) {
       return (
         <div id="right-pane" style={right_pane}>
           <TaskFeedbackPane
             {...this.props}
-            ref={pane => {
+            ref={(pane) => {
               this.chat_pane = pane;
             }}
             onInputResize={() => this.handleResize()}
@@ -540,7 +529,7 @@ class PairwiseEvalPane extends React.Component {
       <div id="right-pane" style={right_pane}>
         <ChatPane
           {...this.props}
-          ref={pane => {
+          ref={(pane) => {
             this.chat_pane = pane;
           }}
         />
@@ -559,7 +548,7 @@ class TaskDescription extends React.Component {
     if (this.props.task_config === null) {
       return <div>Loading</div>;
     }
-    let task_config = this.props.task_config
+    let task_config = this.props.task_config;
     let num_subtasks = task_config.num_subtasks;
     let question = task_config.question;
     let content = (
@@ -648,12 +637,12 @@ class LeftPane extends React.Component {
   render() {
     let frame_height = this.props.frame_height;
     let frame_style = {
-      height: frame_height + 'px',
-      backgroundColor: '#dff0d8',
-      padding: '30px',
-      overflow: 'auto',
+      height: frame_height + "px",
+      backgroundColor: "#dff0d8",
+      padding: "30px",
+      overflow: "auto",
     };
-    let pane_size = this.props.is_cover_page ? 'col-xs-12' : 'col-xs-4';
+    let pane_size = this.props.is_cover_page ? "col-xs-12" : "col-xs-4";
     let has_context = this.props.task_data.has_context;
     if (this.props.is_cover_page || !has_context) {
       return (
@@ -686,15 +675,18 @@ class MultitaskFrontend extends React.Component {
   }
 
   computeShouldSubmit(new_index) {
-    // Return true if either all tasks are done this round and there is no feedback 
+    // Return true if either all tasks are done this round and there is no feedback
     // to do, or all tasks are done and we're on the feedback pane
     return !(
-      (new_index < this.state.num_subtasks - 1 && !this.props.task_config.get_task_feedback) ||
-        (new_index == this.state.num_subtasks - 1 && this.props.task_config.get_task_feedback))
+      (new_index < this.state.num_subtasks - 1 &&
+        !this.props.task_config.get_task_feedback) ||
+      (new_index == this.state.num_subtasks - 1 &&
+        this.props.task_config.get_task_feedback)
+    );
   }
 
   onValidData(valid, response_data) {
-    console.log('onValidData', valid, response_data)
+    console.log("onValidData", valid, response_data);
     let all_response_data = this.state.response_data;
     let show_next_task_button = false;
     let task_done = true;
@@ -703,43 +695,35 @@ class MultitaskFrontend extends React.Component {
       show_next_task_button = true;
       task_done = false;
     }
-    console.log('Current state: ', this.state.current_subtask_index, this.state.num_subtasks, this.props.task_config.get_task_feedback);
-    console.log('Computed show next task, task done', show_next_task_button, task_done, this.computeShouldSubmit());
-    console.log('Setting data for index {} to {}', this.state.current_subtask_index, response_data);
-    this.setState(
-      {
-        show_next_task_button: show_next_task_button,
-        subtask_done: valid,
-        task_done: task_done,
-        response_data: all_response_data,
-      },
-    );
+    this.setState({
+      show_next_task_button: show_next_task_button,
+      subtask_done: valid,
+      task_done: task_done,
+      response_data: all_response_data,
+    });
   }
 
   nextButtonCallback() {
     let next_subtask_index = this.state.current_subtask_index + 1;
     if (next_subtask_index == this.state.num_subtasks) {
-      this.setState(
-        {
-          current_subtask_index: next_subtask_index,
-          task_data: Object.assign({}, this.state.task_data, {}),
-          subtask_done: true,
-          task_done: true,
-          should_submit: this.computeShouldSubmit(next_subtask_index),
-        },
-      );
+      this.setState({
+        current_subtask_index: next_subtask_index,
+        task_data: Object.assign({}, this.state.task_data, {}),
+        subtask_done: true,
+        task_done: true,
+        should_submit: this.computeShouldSubmit(next_subtask_index),
+      });
     } else {
-      this.setState(
-        {
-          current_subtask_index: next_subtask_index,
-          task_data: Object.assign(
-            {}, 
-            this.state.task_data,
-            this.state.all_tasks_data[next_subtask_index]),
-          subtask_done: false,
-          should_submit: this.computeShouldSubmit(next_subtask_index),
-        },
-      );
+      this.setState({
+        current_subtask_index: next_subtask_index,
+        task_data: Object.assign(
+          {},
+          this.state.task_data,
+          this.state.all_tasks_data[next_subtask_index]
+        ),
+        subtask_done: false,
+        should_submit: this.computeShouldSubmit(next_subtask_index),
+      });
     }
   }
 
@@ -764,14 +748,11 @@ class MultitaskFrontend extends React.Component {
       <div className="container-fluid" id="ui-container">
         <div className="row" id="ui-content" style={{ position: "relative" }}>
           <LeftPane {...passed_props} />
-          <PairwiseEvalPane {...passed_props}/>
+          <PairwiseEvalPane {...passed_props} />
         </div>
       </div>
     );
   }
 }
 
-export {
-  TaskDescription,
-  MultitaskFrontend as BaseFrontend,
-};
+export { TaskDescription, MultitaskFrontend as BaseFrontend };

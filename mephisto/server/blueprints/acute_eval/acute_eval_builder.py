@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 ACUTE_TASK_DIR = os.path.dirname(__file__)
-FRONTEND_SOURCE_DIR = os.path.join(ACUTE_TASK_DIR, "source")
+FRONTEND_SOURCE_DIR = os.path.join(ACUTE_TASK_DIR, "webapp")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
 
@@ -46,7 +46,7 @@ class AcuteEvalBuilder(TaskBuilder):
                 "please make sure npm is installed, otherwise view "
                 "the above error for more info."
             )
-
+        subprocess.call(["npm", "link", "mephisto-task"])
         webpack_complete = subprocess.call(["npm", "run", "dev"])
         if webpack_complete != 0:
             raise Exception(
@@ -68,7 +68,7 @@ class AcuteEvalBuilder(TaskBuilder):
         shutil.copy2(bundle_js_file, target_path)
 
         copied_static_file = os.path.join(
-            FRONTEND_SOURCE_DIR, "dev", "static", "index.html"
+            FRONTEND_SOURCE_DIR, "src", "static", "index.html"
         )
         target_path = os.path.join(target_resource_dir, "index.html")
         shutil.copy2(copied_static_file, target_path)
