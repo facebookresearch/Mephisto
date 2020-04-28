@@ -11,7 +11,8 @@ from mephisto.data_model.database import (
     EntryDoesNotExistException,
 )
 from typing import Mapping, Optional, Any, List
-from mephisto.core.utils import get_data_dir, get_valid_provider_types
+from mephisto.core.utils import get_data_dir
+from mephisto.core.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
 from mephisto.data_model.assignment import Assignment, Unit, AssignmentState
 from mephisto.data_model.constants import NO_PROJECT_NAME

@@ -15,7 +15,7 @@ from mephisto.data_model.exceptions import (
     AgentDisconnectedError,
     AgentTimeoutError,
 )
-from mephisto.core.utils import get_crowd_provider_from_type
+from mephisto.core.registry import get_crowd_provider_from_type
 
 from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
 

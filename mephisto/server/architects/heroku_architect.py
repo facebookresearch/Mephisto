@@ -23,6 +23,7 @@ from mephisto.core.argparse_parser import str2bool
 from mephisto.data_model.architect import Architect
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel
+from mephisto.core.registry import register_mephisto_abstraction
 from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
@@ -45,10 +46,13 @@ HEROKU_TMP_DIR = os.path.join(get_mephisto_tmp_dir(), "heroku")
 os.makedirs(HEROKU_TMP_DIR, exist_ok=True)
 
 
+@register_mephisto_abstraction()
 class HerokuArchitect(Architect):
     """
     Sets up a server on heroku and deploys the task on that server
     """
+
+    ARCHITECT_TYPE = "heroku"
 
     def __init__(
         self,

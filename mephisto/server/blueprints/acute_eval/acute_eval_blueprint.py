@@ -11,6 +11,7 @@ from mephisto.server.blueprints.acute_eval.acute_eval_agent_state import (
 )
 from mephisto.server.blueprints.acute_eval.acute_eval_runner import AcuteEvalRunner
 from mephisto.server.blueprints.acute_eval.acute_eval_builder import AcuteEvalBuilder
+from mephisto.core.registry import register_mephisto_abstraction
 
 import random
 import os
@@ -28,6 +29,7 @@ BLUEPRINT_TYPE = "acute_eval"
 
 
 # WISH AcuteEval's blueprint can probably be extended to compare more than just convos
+@register_mephisto_abstraction()
 class AcuteEvalBlueprint(Blueprint):
     """
     Blueprint for a task that asks humans to compare conversational outputs

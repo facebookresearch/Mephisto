@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from mephisto.core.utils import get_blueprint_from_type, find_or_create_qualification
+from mephisto.core.utils import find_or_create_qualification
 from typing import (
     ClassVar,
     Optional,
@@ -49,6 +49,8 @@ class TaskBuilder(ABC):
 
     def __new__(cls, task_run: "TaskRun", opts: Dict[str, Any]) -> "TaskBuilder":
         """Get the correct TaskBuilder for this task run"""
+        from mephisto.core.registry import get_blueprint_from_type
+
         if cls == TaskBuilder:
             # We are trying to construct an TaskBuilder, find what type to use and
             # create that instead
@@ -113,6 +115,8 @@ class TaskRunner(ABC):
     def __new__(cls, task_run: "TaskRun", opts: Dict[str, Any]) -> "TaskRunner":
         """Get the correct TaskRunner for this task run"""
         if cls == TaskRunner:
+            from mephisto.core.registry import get_blueprint_from_type
+
             # We are trying to construct an AgentState, find what type to use and
             # create that instead
             correct_class = get_blueprint_from_type(task_run.task_type).TaskRunnerClass
@@ -343,6 +347,7 @@ class AgentState(ABC):
         """Return the correct agent state for the given agent"""
         if cls == AgentState:
             from mephisto.data_model.agent import Agent
+            from mephisto.core.registry import get_blueprint_from_type
 
             # We are trying to construct an AgentState, find what type to use and
             # create that instead

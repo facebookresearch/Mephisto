@@ -5,7 +5,10 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.core.utils import get_crowd_provider_from_type, get_valid_provider_types
+from mephisto.core.registry import (
+    get_crowd_provider_from_type,
+    get_valid_provider_types,
+)
 
 from typing import List, Optional, Dict, TYPE_CHECKING, Any
 

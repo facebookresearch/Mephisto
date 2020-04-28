@@ -10,6 +10,7 @@ from mephisto.core.argparse_parser import str2bool
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
+from mephisto.core.registry import register_mephisto_abstraction
 
 import os
 import time
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
 BLUEPRINT_TYPE = "mock"
 
 
+@register_mephisto_abstraction()
 class MockBlueprint(Blueprint, OnboardingRequired):
     """Mock of a task type, for use in testing"""
 

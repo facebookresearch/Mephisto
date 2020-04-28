@@ -28,7 +28,7 @@ from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.blueprint import OnboardingRequired, AgentState
-from mephisto.core.utils import get_crowd_provider_from_type
+from mephisto.core.registry import get_crowd_provider_from_type
 from mephisto.server.channels.channel import Channel, STATUS_CHECK_TIME
 
 from recordclass import RecordClass

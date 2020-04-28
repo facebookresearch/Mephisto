@@ -24,6 +24,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_REQUEST_AGENT_STATUS,
 )
+from mephisto.core.registry import register_mephisto_abstraction
 from mephisto.server.channels.websocket_channel import WebsocketChannel
 from typing import List, Dict, Any, Optional, TYPE_CHECKING, Callable
 
@@ -227,11 +228,14 @@ class MockServer(tornado.web.Application):
         self.__server_thread.join()
 
 
+@register_mephisto_abstraction()
 class MockArchitect(Architect):
     """
     The MockArchitect runs a mock server on the localhost so that
     we can send special packets and assert connections have been made
     """
+
+    ARCHITECT_TYPE = "mock"
 
     def __init__(
         self,

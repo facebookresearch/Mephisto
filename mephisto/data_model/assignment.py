@@ -6,7 +6,8 @@
 
 
 from abc import ABC, abstractmethod
-from mephisto.core.utils import get_dir_for_run, get_crowd_provider_from_type
+from mephisto.core.utils import get_dir_for_run
+from mephisto.core.registry import get_crowd_provider_from_type
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun, Task
 from mephisto.data_model.agent import Agent
@@ -25,6 +26,7 @@ from recordclass import RecordClass
 
 
 ASSIGNMENT_DATA_FILE = "assign_data.json"
+
 
 class InitializationData(RecordClass):
     shared: Dict[str, Any]

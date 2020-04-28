@@ -9,6 +9,7 @@ from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.static_task.static_agent_state import StaticAgentState
 from mephisto.server.blueprints.static_task.static_task_runner import StaticTaskRunner
 from mephisto.server.blueprints.static_task.static_task_builder import StaticTaskBuilder
+from mephisto.core.registry import register_mephisto_abstraction
 
 import os
 import time
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 BLUEPRINT_TYPE = "static_task"
 
 
+@register_mephisto_abstraction()
 class StaticBlueprint(Blueprint):
     """Blueprint for a task that runs off of templated static HTML"""
 

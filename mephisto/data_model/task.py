@@ -17,9 +17,8 @@ from mephisto.core.utils import (
     get_dir_for_task,
     ensure_user_confirm,
     get_dir_for_run,
-    get_blueprint_from_type,
-    get_crowd_provider_from_type,
 )
+from mephisto.core.registry import get_blueprint_from_type, get_crowd_provider_from_type
 
 from functools import reduce
 
