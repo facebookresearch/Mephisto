@@ -28,11 +28,6 @@ import {
 
 // props: mephisto_worker_id, agent_id, task_config, onboarding = False
 class ChatApp extends React.Component {
-
-
-
-
-
   onMessageSend(text, data, callback, is_system) {
     if (text === "") {
       return;
@@ -41,7 +36,6 @@ class ChatApp extends React.Component {
   }
 
   render() {
-    
     return (
       <div>
         <BaseFrontend
@@ -89,6 +83,11 @@ function TaskPreviewView({ taskConfig }) {
 }
 
 function MainApp() {
+  const [messages, addMessage] = React.useReducer(
+    (allMessages, newMessage) => [...allMessages, newMessage],
+    []
+  );
+
   let {
     blockedReason,
     taskConfig,
@@ -99,10 +98,21 @@ function MainApp() {
     handleSubmit,
     agentStatus,
     agentState,
-    onNewData,
     postData,
-    serverStatus, // lo pri
-  } = useMephistoLiveTask();
+    serverStatus, // lo pris
+  } = useMephistoLiveTask({
+    onNewData: (newData) => {
+      addMessage(newData);
+      // and more!
+    },
+  });
+
+  const [appState, setAppState] = React.useState({
+    chat_state: "waiting", // idle, text_input, inactive, done
+    messages: [],
+    task_data: {},
+    volume: 1, // min volume is 0, max is 1, TODO pull from local-storage?
+  });
 
   // TODO: move to useMephistoLiveTask
   if (!doesSupportWebsockets()) {
@@ -137,11 +147,12 @@ function MainApp() {
       agent_id={agentId}
       mephisto_worker_id={mephistoWorkerId}
       onSubmit={handleSubmit}
+      done_text={agentState.done_text} // TODO: remove after agentState refactor
+      task_done={agentState.task_done} // TODO: remove after agentState refactor
       taskData={taskData}
-      agentState={agentState}
+      // agentState={agentState}
       onMessageSend={(data) => postData(data)}
       socket_status={serverStatus}
-      
       messages={this.state.messages}
       agent_id={this.props.agent_id}
       agent_display_name={this.state.agent_display_name}

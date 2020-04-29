@@ -1,6 +1,5 @@
 import { useMephistoTask } from "./index";
 
-
 // REQUIRED STATE
 // state = {
 //   initialization_status: "initializing", // "initializing", "done", "failed", "browser_incompatible"
@@ -85,8 +84,7 @@ import { useMephistoTask } from "./index";
 //     }}
 //     playNotifSound={() => this.playNotifSound()}
 //   />
-    // );
-
+// );
 
 /* ================= Agent State Constants ================= */
 
@@ -103,15 +101,16 @@ const STATUS_EXPIRED = "expired";
 const STATUS_RETURNED = "returned";
 const STATUS_MEPHISTO_DISCONNECT = "mephisto disconnect";
 
-const useMephistoLiveTask = function () {
+const useMephistoLiveTask = function (config) {
   const hookProps = useMephistoTask();
   const liveProps = {
     agentStatus: null,
     agentState: null,
-    onNewData: () => {},
     postData: () => {},
     serverStatus: {},
   };
+
+  // TODO: at some point be sure to call config.onNewData()
 
   return { ...hookProps, ...liveProps };
 };
