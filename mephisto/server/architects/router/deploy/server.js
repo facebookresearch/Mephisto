@@ -88,9 +88,8 @@ class LocalAgentState {
     this.status = STATUS_INIT;
     this.agent_id = agent_id;
     this.unsent_messages = [];
-    this.wants_act = false;
+    this.state = {wants_act: false, done_text: null};
     this.is_alive = false;
-    this.done_text = null;
   }
 
   get_sendable_messages() {
@@ -201,12 +200,12 @@ function handle_update_local_status(status_packet) {
   let agent_id = status_packet.receiver_id;
   let agent = find_or_create_agent(agent_id);
   agent.status = status_packet.data.agent_status;
-  agent.done_text = status_packet.data.done_text;
+  agent.state = Object.assign(agent.state, status_packet.data.state);
 }
 
 function update_wanted_acts(agent_id, wants_act) {
   let agent = find_or_create_agent(agent_id);
-  agent.wants_act = wants_act;
+  agent.state.wants_act = wants_act;
 }
 
 // Handle a message being sent to or from a frontend agent
@@ -302,8 +301,7 @@ wss.on('connection', function(socket) {
         if (agent !== undefined) {
           agent.is_alive = true;
           packet.data.status = agent.status;
-          packet.data.wants_act = agent.wants_act;
-          packet.data.done_text = agent.done_text;
+          packet.data.state = agent.state;
           if (agent_id_to_socket[agent.agent_id] != socket) {
             // Not communicating to the correct socket, update
             debug_log('Updating socket for ', agent);

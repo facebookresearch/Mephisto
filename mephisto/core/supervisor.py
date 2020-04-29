@@ -655,8 +655,8 @@ class Supervisor:
             sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.get_agent_id(),
             data={
-                "agent_status": agent_info.agent.db_status,
-                "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
+                'status': agent_info.agent.db_status,
+                'state': {"done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status)}
             },
         )
         channel_info = self.channels[agent_info.used_channel_id]
@@ -679,8 +679,8 @@ class Supervisor:
             sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.get_agent_id(),
             data={
-                "agent_status": "completed",
-                "done_text": "You have completed this task. Please submit.",
+                'status': "completed", 
+                'state': {"done_text": "You have completed this task. Please submit."},
             },
         )
         channel_info = self.channels[agent_info.used_channel_id]
