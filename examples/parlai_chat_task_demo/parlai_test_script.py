@@ -63,7 +63,7 @@ if USE_ONBOARDING:
 world_opt = {"num_turns": 3}
 
 if DEMO_CUSTOM_BUNDLE:
-    bundle_file_path = f"{TASK_DIRECTORY}/source/build/bundle.js"
+    bundle_file_path = f"{TASK_DIRECTORY}/webapp/build/bundle.js"
     assert os.path.exists(bundle_file_path), (
         "Must build the custom bundle with `npm install; npm run dev` from within "
         f"the {TASK_DIRECTORY}/source directory in order to demo a custom bundle "
