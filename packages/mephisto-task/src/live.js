@@ -86,6 +86,22 @@ import { useMephistoTask } from "./index";
 //   />
 // );
 
+  // // Handle updates to state
+  // handleStateUpdate(update_packet) {
+  //   let agent_status = update_packet['agent_status'] || this.props.agent_status;
+  //   let agent_display_name = update_packet['agent_display_name'] || this.props.agent_display_name;
+  //   if (agent_status != this.props.agent_status || agent_display_name != this.props.agent_display_name) {
+  //     this.props.onAgentStatusChange(
+  //       agent_status,
+  //       agent_display_name,
+  //       update_packet['done_text'],
+  //     );
+  //   } 
+  //   if (update_packet['is_final']) {
+  //     this.closeSocket();
+  //   }
+  // }
+
 /* ================= Agent State Constants ================= */
 
 // TODO move to shared file

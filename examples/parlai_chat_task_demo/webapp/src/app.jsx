@@ -26,44 +26,6 @@ import {
 
 /* ================= Application Components ================= */
 
-// props: mephisto_worker_id, agent_id, task_config, onboarding = False
-class ChatApp extends React.Component {
-  onMessageSend(text, data, callback, is_system) {
-    if (text === "") {
-      return;
-    }
-    this.socket_handler.handleQueueMessage(text, data, callback, is_system);
-  }
-
-  render() {
-    return (
-      <div>
-        <BaseFrontend
-          task_done={this.state.task_done}
-          done_text={this.state.done_text}
-          chat_state={this.state.chat_state}
-          onMessageSend={(m, d, c, s) => this.onMessageSend(m, d, c, s)}
-          socket_status={this.state.socket_status}
-          messages={this.state.messages}
-          agent_id={this.props.agent_id}
-          agent_display_name={this.state.agent_display_name}
-          task_description={this.props.task_config.task_description}
-          chat_title={this.props.task_config.chat_title}
-          initialization_status={this.state.initialization_status}
-          frame_height={this.props.task_config.frame_height}
-          task_data={this.state.task_data}
-          world_state={this.state.agent_status}
-          allDoneCallback={() => handleSubmit({})}
-          volume={this.state.volume}
-          onVolumeChange={(v) => this.setState({ volume: v })}
-          display_feedback={false}
-        />
-        {socket_handler}
-      </div>
-    );
-  }
-}
-
 function TaskPreviewView({ taskConfig }) {
   let previewStyle = {
     backgroundColor: "#dff0d8",
@@ -83,6 +45,18 @@ function TaskPreviewView({ taskConfig }) {
 }
 
 function MainApp() {
+  const [appState, setAppState] = React.useState({
+    chat_state: "waiting", // idle, text_input, inactive, done
+    task_data: {},
+    volume: 1, // min volume is 0, max is 1, TODO pull from local-storage?
+  });
+
+  function playNotifSound() {
+    let audio = new Audio("./notif.mp3");
+    audio.volume = appState.volume;
+    audio.play();
+  }
+
   const [messages, addMessage] = React.useReducer(
     (allMessages, newMessage) => [...allMessages, newMessage],
     []
@@ -104,15 +78,48 @@ function MainApp() {
     onNewData: (newData) => {
       addMessage(newData);
       // and more!
-    },
+      // Determine the type of newData package - action request or an action
+
+      // if request act type:
+      //   // // Handle incoming command messages
+      //   // handleRequestAct(msg) {
+      //   //   // Update UI to wait for the worker to submit a message
+      //   //   this.props.onRequestMessage();
+      //   //   if (this.state.message_request_time === null) {
+      //   //     this.props.playNotifSound();
+      //   //   }
+      //   //   this.setState({ message_request_time: new Date().getTime() });
+      //   //   log('Waiting for worker input', 4);
+      //   // }
+      // else:
+      //   addMessage(newData);
+      //   if (message.text === undefined) {
+      //     message.text = '';
+      //   }
+    
+      //   this.props.onNewMessage(message);
+    
+      //   // Handle special case of receiving own sent message
+      //   if (message.id == this.props.agent_id) {
+      //     this.props.onSuccessfulSend();
+      //   }
+    
+      //   // Task data handling
+      //   if (message.task_data !== undefined) {
+      //     let has_context = false;
+      //     for (let key of Object.keys(message.task_data)) {
+      //       if (key !== 'respond_with_form') {
+      //         has_context = true;
+      //       }
+      //     }
+    
+      //     message.task_data.last_update = new Date().getTime();
+      //     message.task_data.has_context = has_context;
+      //     this.props.onNewTaskData(message.task_data);
+      //   }
+      // },
   });
 
-  const [appState, setAppState] = React.useState({
-    chat_state: "waiting", // idle, text_input, inactive, done
-    messages: [],
-    task_data: {},
-    volume: 1, // min volume is 0, max is 1, TODO pull from local-storage?
-  });
 
   // TODO: move to useMephistoLiveTask
   if (!doesSupportWebsockets()) {
@@ -149,22 +156,21 @@ function MainApp() {
       onSubmit={handleSubmit}
       done_text={agentState.done_text} // TODO: remove after agentState refactor
       task_done={agentState.task_done} // TODO: remove after agentState refactor
-      taskData={taskData}
+      agent_display_name={agentState.agent_display_name} // TODO: remove after agentState refactor
+      task_data={taskData}
       // agentState={agentState}
-      onMessageSend={(data) => postData(data)}
-      socket_status={serverStatus}
-      messages={this.state.messages}
-      agent_id={this.props.agent_id}
-      agent_display_name={this.state.agent_display_name}
-      task_description={this.props.task_config.task_description}
-      chat_title={this.props.task_config.chat_title}
-      initialization_status={this.state.initialization_status}
-      frame_height={this.props.task_config.frame_height}
-      task_data={this.state.task_data}
-      world_state={this.state.agent_status}
+      onMessageSend={(data) => postData(data)} // TODO we're using a slightly different format, need to package ourselves
+      socket_status={serverStatus} // TODO coalesce with the initialization status
+      messages={messages}
+      agent_id={agentId}
+      task_description={taskConfig.task_description} // TODO coalescs taskConfig
+      frame_height={taskConfig.frame_height} // TODO coalescs taskConfig
+      chat_title={taskConfig.chat_title} // TODO coalescs taskConfig
+      initialization_status={serverStatus} // TODO remove and just have one server status
+      world_state={agentStatus}
       allDoneCallback={() => handleSubmit({})}
-      volume={this.state.volume}
-      onVolumeChange={(v) => this.setState({ volume: v })}
+      volume={appState.volume}
+      onVolumeChange={(v) => setAppState({ ...appState, volume: v })}
       display_feedback={false}
     />
   );

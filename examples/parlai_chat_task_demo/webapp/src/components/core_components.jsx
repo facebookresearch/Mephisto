@@ -1308,16 +1308,6 @@ class ContentLayout extends React.Component {
 }
 
 class BaseFrontend extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  playNotifSound() {
-    let audio = new Audio("./notif.mp3");
-    audio.volume = this.state.volume;
-    audio.play();
-  }
-
   render() {
     let content = null;
     if (this.props.is_cover_page) {

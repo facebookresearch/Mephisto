@@ -21,26 +21,15 @@ const SYSTEM_SOCKET_ID = 'mephisto'
 const STATUS_MEPHISTO_DISCONNECT = 'mephisto disconnect';
 
 // Socket function types
-const PACKET_TYPE_REQUEST_ACTION = 'request_act'
-const AGENT_MESSAGE = 'agent message'  // Message from an agent
-const HEARTBEAT = 'heartbeat'   // Heartbeat from agent, carries current state
-const MESSAGE_BATCH = 'message batch' // packet containing batch of messages
-const AGENT_ALIVE = 'alive'  // packet from an agent alive event
-const UPDATE_STATE = 'update state'  // packet for updating agent client state
-const PACKET_TYPE_UPDATE_AGENT_STATUS = 'update_status'
-const PACKET_TYPE_AGENT_ACTION = 'agent_action'
-const PACKET_TYPE_ALIVE = 'alive'
-const PACKET_TYPE_HEARTBEAT = 'heartbeat'
+const PACKET_TYPE_HEARTBEAT = 'heartbeat'   // Heartbeat from agent, carries current state
+const PACKET_TYPE_AGENT_ALIVE = 'alive'  // packet from an agent alive event
 
-// Message types
-const MESSAGE_TYPE_ACT = 'MESSAGE';
-const MESSAGE_TYPE_COMMAND = 'COMMAND';
+const PACKET_TYPE_UPDATE_STATE = 'update state'  // packet for updating agent client state
+const PACKET_TYPE_AGENT_ACTION = 'agent_action'
 
 /* ================= Local Constants ================= */
 
 const SEND_THREAD_REFRESH = 100;
-const STATUS_ACK = 'ack';
-const STATUS_INIT = 'init';
 const CONNECTION_DEAD_MEPHISTO_PING = 60000; // A minute of downtime is death
 const REFRESH_SOCKET_MISSED_RESPONSES = 10;
 const HEARTBEAT_TIME = 6000; // One heartbeat every 3 seconds
@@ -246,7 +235,7 @@ class SocketHandler extends React.Component {
   // way to send alive packets when expected to
   sendAlive() {
     this.sendPacket(
-      AGENT_ALIVE,
+      PACKET_TYPE_AGENT_ALIVE,
       {},
       () => {
         this.props.onConfirmInit();
@@ -259,97 +248,23 @@ class SocketHandler extends React.Component {
    * ----- Packet reception infra and functions ------
    *
    * The following functions are all related to
-   * handling incoming messages. parseSocketMessage
-   * filters out actions based on the type of message.
-   * handleNewAct is used to process an incoming Message that
-   * is supposed to be entered into the chat. handleCommand
-   * handles the various commands that are sent from
-   * the mephisto host to change the frontend state.
+   * handling incoming messages. It calls relevant callbacks
+   * from the mephistoLiveTask
    **/
 
   parseSocketMessage(packet) {
-    if (packet.packet_type == PACKET_TYPE_REQUEST_ACTION) {
-      this.handleRequestAct();
-    } else if (packet.packet_type == PACKET_TYPE_UPDATE_AGENT_STATUS) {
-      this.handleStateUpdate(packet.data);
-    } else if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
-      this.handleNewAct(packet.data);
-    } else if (packet.packet_type == UPDATE_STATE) {
-      this.handleStateUpdate(packet.data);
+    if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
+      this.props.onNewData(packet.data);
+    } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATE) {
+      this.props.handleStateUpdate(packet.data); // Update packet {agentState: {}, agentStatus: "<>"}
     } else if (packet.packet_type == PACKET_TYPE_HEARTBEAT) {
       this.setState({
         last_mephisto_ping: packet.data['last_mephisto_ping'],
         heartbeats_without_response: 0,
       });
-      if (packet.data.wants_act) {
-        this.handleRequestAct(packet);
-      }
-      if (packet.data.status && packet.data.status != this.props.agent_status) {
-        let agent_status = packet.data.status;
-        let agent_display_name = this.props.agent_display_name;
-        this.props.onAgentStatusChange(
-          agent_status,
-          agent_display_name,
-          packet.data.done_text,
-        );
-      }
     }
   }
 
-  // Handles an incoming act message
-  handleNewAct(message) {
-    if (message.text === undefined) {
-      message.text = '';
-    }
-
-    this.props.onNewMessage(message);
-
-    // Handle special case of receiving own sent message
-    if (message.id == this.props.agent_id) {
-      this.props.onSuccessfulSend();
-    }
-
-    // Task data handling
-    if (message.task_data !== undefined) {
-      let has_context = false;
-      for (let key of Object.keys(message.task_data)) {
-        if (key !== 'respond_with_form') {
-          has_context = true;
-        }
-      }
-
-      message.task_data.last_update = new Date().getTime();
-      message.task_data.has_context = has_context;
-      this.props.onNewTaskData(message.task_data);
-    }
-  }
-
-  // Handle incoming command messages
-  handleRequestAct(msg) {
-    // Update UI to wait for the worker to submit a message
-    this.props.onRequestMessage();
-    if (this.state.message_request_time === null) {
-      this.props.playNotifSound();
-    }
-    this.setState({ message_request_time: new Date().getTime() });
-    log('Waiting for worker input', 4);
-  }
-
-  // Handle updates to state
-  handleStateUpdate(update_packet) {
-    let agent_status = update_packet['agent_status'] || this.props.agent_status;
-    let agent_display_name = update_packet['agent_display_name'] || this.props.agent_display_name;
-    if (agent_status != this.props.agent_status || agent_display_name != this.props.agent_display_name) {
-      this.props.onAgentStatusChange(
-        agent_status,
-        agent_display_name,
-        update_packet['done_text'],
-      );
-    } 
-    if (update_packet['is_final']) {
-      this.closeSocket();
-    }
-  }
 
 
   /**************************************************
@@ -452,7 +367,7 @@ class SocketHandler extends React.Component {
   sendHeartbeat() {
     this.safePacketSend({ 
       packet: {
-        packet_type: HEARTBEAT,
+        packet_type: PACKET_TYPE_HEARTBEAT,
         msg_id: uuidv4(),
         receiver_id: SERVER_SOCKET_ID,
         sender_id: this.props.agent_id,
@@ -498,14 +413,15 @@ class SocketHandler extends React.Component {
         duration of this Task. Please send us a message if you've done \
         substantial work and we can find out if the task is complete enough to \
         compensate.";
+      this.props.handleStateUpdate({
+        agentState: {
+          done_text: done_text,
+          task_done: true,
+        },
+        agentStatus: STATUS_MEPHISTO_DISCONNECT, 
+      });
       window.clearInterval(this.state.heartbeat_id);
       this.setState({ heartbeat_id: null });
-      this.props.onAgentStatusChange(
-        STATUS_MEPHISTO_DISCONNECT,
-        this.props.conversation_id,
-        done_text,
-        this.props.agent_id,
-      );
     }
 
     this.sendHeartbeat();
