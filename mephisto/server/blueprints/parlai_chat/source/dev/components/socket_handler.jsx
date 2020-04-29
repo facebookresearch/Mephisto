@@ -113,6 +113,7 @@ class SocketHandler extends React.Component {
       heartbeats_without_response: 0, // HBs to the router without a pong back
       last_mephisto_ping: Date.now(),
       message_request_time: null, // Last request for a message to find delay
+      used_message_ids: [],
     };
   }
 
@@ -303,6 +304,16 @@ class SocketHandler extends React.Component {
   handleNewAct(message) {
     if (message.text === undefined) {
       message.text = '';
+    }
+
+    var used_message_ids = this.state.used_message_ids;
+
+    if (used_message_ids.includes(message.message_id)) {
+      // Skip this message
+      return
+    } else {
+      used_message_ids.push(message.message_id)
+      this.setState({used_message_ids: used_message_ids})
     }
 
     this.props.onNewMessage(message);
