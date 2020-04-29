@@ -278,6 +278,12 @@ wss.on('connection', function(socket) {
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_REQUEST_ACTION) {
         update_wanted_acts(packet.receiver_id, true);
+        let agent = find_or_create_agent(agent_id);
+        packet['packet_type'] = PACKET_TYPE_UPDATE_AGENT_STATUS
+        packet['data'] = {
+          'status': agent.status,
+          'state': agent.state,
+        }
         handle_forward(packet);
       } else if (
         packet['packet_type'] == PACKET_TYPE_PROVIDER_DETAILS ||
