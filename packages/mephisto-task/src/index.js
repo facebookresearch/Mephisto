@@ -58,6 +58,9 @@ const useMephistoTask = function () {
     const agentId = dataPacket.data.agent_id;
 
     setState({ agentId: agentId });
+    if (agentId === "onboarding") {
+      // TODO handle the onboarding case
+    }
     if (agentId === null) {
       setState({ blockedReason: "null_agent_id" });
     } else {

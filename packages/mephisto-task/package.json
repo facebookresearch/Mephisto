@@ -29,6 +29,7 @@
     "react-dom": "16.13.1"
   },
   "dependencies": {
+    "bowser": "^2.9.0",
     "fetch": "^1.1.0"
   }
 }

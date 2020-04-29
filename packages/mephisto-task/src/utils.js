@@ -1,4 +1,5 @@
 import "fetch";
+import Bowser from "bowser";
 
 /*
   The following global methods are to be specified in wrap_crowd_source.js
@@ -27,6 +28,19 @@ export function isMobile() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   );
+}
+
+// Check if the current browser support WebSockets. using *bowser*
+const browser = Bowser.getParser(window.navigator.userAgent);
+export function doesSupportWebsockets() {
+  return browser.satisfies({
+    "internet explorer": ">=10",
+    chrome: ">=16",
+    firefox: ">=11",
+    opera: ">=12.1",
+    safari: ">=7",
+    "android browser": ">=3",
+  });
 }
 
 // Sends a request to get the task_config
