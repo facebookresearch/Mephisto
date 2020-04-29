@@ -171,12 +171,7 @@ class ChatApp extends React.Component {
           frame_height={this.props.task_config.frame_height}
           task_data={this.state.task_data}
           world_state={this.state.agent_status}
-          allDoneCallback={() =>
-            postCompleteTask(
-              this.props.agent_id,
-              this.state.messages
-            ).then(() => handleSubmitToProvider({}))
-          }
+          allDoneCallback={() => handleSubmit({})}
           volume={this.state.volume}
           onVolumeChange={(v) => this.setState({ volume: v })}
           display_feedback={false}
