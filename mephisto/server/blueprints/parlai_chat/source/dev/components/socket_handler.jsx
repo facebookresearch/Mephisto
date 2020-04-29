@@ -308,7 +308,7 @@ class SocketHandler extends React.Component {
 
     var used_message_ids = this.state.used_message_ids;
 
-    if (message.message_id in used_message_ids) {
+    if (used_message_ids.includes(message.message_id)) {
       // Skip this message
       return
     } else {
