@@ -1304,6 +1304,23 @@ class ContentLayout extends React.Component {
 }
 
 class BaseFrontend extends React.Component {
+  constructor(props) {
+    super(props);
+    
+    this.state = {
+      chat_state: "waiting", // idle, text_input, inactive, done
+      messages: [],
+      task_data: {},
+      volume: 1, // min volume is 0, max is 1, TODO pull from local-storage?
+    };
+  }
+
+  playNotifSound() {
+    let audio = new Audio("./notif.mp3");
+    audio.volume = this.state.volume;
+    audio.play();
+  }
+
   render() {
     let content = null;
     if (this.props.is_cover_page) {
