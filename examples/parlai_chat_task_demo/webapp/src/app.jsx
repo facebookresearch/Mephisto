@@ -9,15 +9,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { BaseFrontend } from "./components/core_components.jsx";
-import SocketHandler from "./components/socket_handler.jsx";
 
 import {
-  useMephistoTask,
+  useMephistoLiveTask,
   getBlockedExplanation,
   doesSupportWebsockets,
 } from "mephisto-task";
 
-// setCustomComponents(UseCustomComponents);
 
 /* global
   getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
@@ -45,15 +43,16 @@ function TaskPreviewView({ taskConfig }) {
 }
 
 function MainApp() {
-  const [appState, setAppState] = React.useState({
-    chat_state: "waiting", // idle, text_input, inactive, done
-    task_data: {},
-    volume: 1, // min volume is 0, max is 1, TODO pull from local-storage?
-  });
+  const [lastWantsAct, updateWantsAct] = React.useState(false);
+  const [volume, setVolume] = React.useState(1);
+  const [taskContext, updateContext] = React.useReducer(
+    (oldContext, newContext) => Object.assign(oldContext, newContext),
+    {}
+  );
 
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
-    audio.volume = appState.volume;
+    audio.volume = volume;
     audio.play();
   }
 
@@ -71,55 +70,57 @@ function MainApp() {
     mephistoWorkerId,
     handleSubmit,
     agentStatus,
-    agentState,
+    agentState, // Contains done_text, task_done, agent_display_name, wants_act
     postData,
     serverStatus, // lo pris
   } = useMephistoLiveTask({
-    onNewData: (newData) => {
-      addMessage(newData);
-      // and more!
-      // Determine the type of newData package - action request or an action
-
-      // if request act type:
-      //   // // Handle incoming command messages
-      //   // handleRequestAct(msg) {
-      //   //   // Update UI to wait for the worker to submit a message
-      //   //   this.props.onRequestMessage();
-      //   //   if (this.state.message_request_time === null) {
-      //   //     this.props.playNotifSound();
-      //   //   }
-      //   //   this.setState({ message_request_time: new Date().getTime() });
-      //   //   log('Waiting for worker input', 4);
-      //   // }
-      // else:
-      //   addMessage(newData);
-      //   if (message.text === undefined) {
-      //     message.text = '';
-      //   }
-    
-      //   this.props.onNewMessage(message);
-    
-      //   // Handle special case of receiving own sent message
-      //   if (message.id == this.props.agent_id) {
-      //     this.props.onSuccessfulSend();
-      //   }
-    
-      //   // Task data handling
-      //   if (message.task_data !== undefined) {
-      //     let has_context = false;
-      //     for (let key of Object.keys(message.task_data)) {
-      //       if (key !== 'respond_with_form') {
-      //         has_context = true;
-      //       }
-      //     }
-    
-      //     message.task_data.last_update = new Date().getTime();
-      //     message.task_data.has_context = has_context;
-      //     this.props.onNewTaskData(message.task_data);
-      //   }
-      // },
+    onNewData: (message) => {
+      if (message.text === undefined) {
+        message.text = '';
+      }
+  
+      addMessage(message);
+  
+      // Task data handling
+      if (message.task_data !== undefined) {
+        let has_context = false;
+        for (let key of Object.keys(message.task_data)) {
+          if (key !== 'respond_with_form') {
+            has_context = true;
+          }
+        }
+  
+        message.task_data.last_update = new Date().getTime();
+        message.task_data.has_context = has_context;
+        updateContext(message.task_data);
+      }
+    },
   });
 
+  // TODO pratik is this sketchy?
+  if (lastWantsAct != agentState.wants_act) {
+    if (agentState.wants_act) {
+      playNotifSound()
+    }
+    updateWantsAct(agentState.wants_act);
+  }
+  
+  var chatState = "waiting"
+  if (agentState.task_done) {
+    chatState = "done";
+  } else if ( 
+    [
+      STATUS_DISCONNECT,
+      STATUS_RETURNED,
+      STATUS_EXPIRED,
+      STATUS_TIMEOUT,
+      STATUS_MEPHISTO_DISCONNECT,
+    ].includes(agent_status)
+  ) {
+    chatState = "inactive";
+  } else if (agentState.wants_act) {
+    chatState = "text_input";
+  } 
 
   // TODO: move to useMephistoLiveTask
   if (!doesSupportWebsockets()) {
@@ -151,13 +152,15 @@ function MainApp() {
   return (
     <BaseFrontend
       task_config={taskConfig}
+      chat_state={chatState}
       agent_id={agentId}
       mephisto_worker_id={mephistoWorkerId}
       onSubmit={handleSubmit}
       done_text={agentState.done_text} // TODO: remove after agentState refactor
       task_done={agentState.task_done} // TODO: remove after agentState refactor
       agent_display_name={agentState.agent_display_name} // TODO: remove after agentState refactor
-      task_data={taskData}
+      taskData={taskData}
+      task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
       // agentState={agentState}
       onMessageSend={(data) => postData(data)} // TODO we're using a slightly different format, need to package ourselves
       socket_status={serverStatus} // TODO coalesce with the initialization status
@@ -170,7 +173,7 @@ function MainApp() {
       world_state={agentStatus}
       allDoneCallback={() => handleSubmit({})}
       volume={appState.volume}
-      onVolumeChange={(v) => setAppState({ ...appState, volume: v })}
+      onVolumeChange={(v) => setVolume(v)}
       display_feedback={false}
     />
   );
