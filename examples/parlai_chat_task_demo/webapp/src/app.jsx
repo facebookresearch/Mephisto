@@ -14,8 +14,8 @@ import {
   useMephistoLiveTask,
   getBlockedExplanation,
   doesSupportWebsockets,
+  STATUS,
 } from "mephisto-task";
-
 
 /* global
   getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
@@ -73,23 +73,24 @@ function MainApp() {
     agentState, // Contains done_text, task_done, agent_display_name, wants_act
     postData,
     serverStatus, // lo pris
+    InsertRequiredSocketComponent,
   } = useMephistoLiveTask({
     onNewData: (message) => {
       if (message.text === undefined) {
-        message.text = '';
+        message.text = "";
       }
-  
+
       addMessage(message);
-  
+
       // Task data handling
       if (message.task_data !== undefined) {
         let has_context = false;
         for (let key of Object.keys(message.task_data)) {
-          if (key !== 'respond_with_form') {
+          if (key !== "respond_with_form") {
             has_context = true;
           }
         }
-  
+
         message.task_data.last_update = new Date().getTime();
         message.task_data.has_context = has_context;
         updateContext(message.task_data);
@@ -100,28 +101,27 @@ function MainApp() {
   // TODO pratik is this sketchy?
   if (lastWantsAct != agentState.wants_act) {
     if (agentState.wants_act) {
-      playNotifSound()
+      playNotifSound();
     }
     updateWantsAct(agentState.wants_act);
   }
-  
-  var chatState = "waiting"
+
+  var chatState = "waiting";
   if (agentState.task_done) {
     chatState = "done";
-  } else if ( 
+  } else if (
     [
-      STATUS_DISCONNECT,
-      STATUS_RETURNED,
-      STATUS_EXPIRED,
-      STATUS_TIMEOUT,
-      STATUS_MEPHISTO_DISCONNECT,
+      STATUS.STATUS_DISCONNECT,
+      STATUS.STATUS_RETURNED,
+      STATUS.STATUS_EXPIRED,
+      STATUS.STATUS_TIMEOUT,
+      STATUS.STATUS_MEPHISTO_DISCONNECT,
     ].includes(agent_status)
   ) {
     chatState = "inactive";
   } else if (agentState.wants_act) {
     chatState = "text_input";
-  } 
-
+  }
   // TODO: move to useMephistoLiveTask
   if (!doesSupportWebsockets()) {
     blockedReason = "no_websockets";
@@ -150,32 +150,35 @@ function MainApp() {
     return <div>Onboarding not yet implemented</div>;
   }
   return (
-    <BaseFrontend
-      task_config={taskConfig}
-      chat_state={chatState}
-      agent_id={agentId}
-      mephisto_worker_id={mephistoWorkerId}
-      onSubmit={handleSubmit}
-      done_text={agentState.done_text} // TODO: remove after agentState refactor
-      task_done={agentState.task_done} // TODO: remove after agentState refactor
-      agent_display_name={agentState.agent_display_name} // TODO: remove after agentState refactor
-      taskData={taskData}
-      task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
-      // agentState={agentState}
-      onMessageSend={(data) => postData(data)} // TODO we're using a slightly different format, need to package ourselves
-      socket_status={serverStatus} // TODO coalesce with the initialization status
-      messages={messages}
-      agent_id={agentId}
-      task_description={taskConfig.task_description} // TODO coalescs taskConfig
-      frame_height={taskConfig.frame_height} // TODO coalescs taskConfig
-      chat_title={taskConfig.chat_title} // TODO coalescs taskConfig
-      initialization_status={serverStatus} // TODO remove and just have one server status
-      world_state={agentStatus}
-      allDoneCallback={() => handleSubmit({})}
-      volume={appState.volume}
-      onVolumeChange={(v) => setVolume(v)}
-      display_feedback={false}
-    />
+    <div>
+      <InsertRequiredSocketComponent />
+      <BaseFrontend
+        task_config={taskConfig}
+        chat_state={chatState}
+        agent_id={agentId}
+        mephisto_worker_id={mephistoWorkerId}
+        onSubmit={handleSubmit}
+        done_text={agentState.done_text} // TODO: remove after agentState refactor
+        task_done={agentState.task_done} // TODO: remove after agentState refactor
+        agent_display_name={agentState.agent_display_name} // TODO: remove after agentState refactor
+        taskData={taskData}
+        task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
+        // agentState={agentState}
+        onMessageSend={(data) => postData(data)} // TODO we're using a slightly different format, need to package ourselves
+        socket_status={serverStatus} // TODO coalesce with the initialization status
+        messages={messages}
+        agent_id={agentId}
+        task_description={taskConfig.task_description} // TODO coalescs taskConfig
+        frame_height={taskConfig.frame_height} // TODO coalescs taskConfig
+        chat_title={taskConfig.chat_title} // TODO coalescs taskConfig
+        initialization_status={serverStatus} // TODO remove and just have one server status
+        world_state={agentStatus}
+        allDoneCallback={() => handleSubmit({})}
+        volume={appState.volume}
+        onVolumeChange={(v) => setVolume(v)}
+        display_feedback={false}
+      />
+    </div>
   );
 }
 

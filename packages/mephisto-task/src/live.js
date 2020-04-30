@@ -86,25 +86,24 @@ import { useMephistoTask } from "./index";
 //   />
 // );
 
-  // // Handle updates to state
-  // handleStateUpdate(update_packet) {
-  //   let agent_status = update_packet['agent_status'] || this.props.agent_status;
-  //   let agent_display_name = update_packet['agent_display_name'] || this.props.agent_display_name;
-  //   if (agent_status != this.props.agent_status || agent_display_name != this.props.agent_display_name) {
-  //     this.props.onAgentStatusChange(
-  //       agent_status,
-  //       agent_display_name,
-  //       update_packet['done_text'],
-  //     );
-  //   } 
-  //   if (update_packet['is_final']) {
-  //     this.closeSocket();
-  //   }
-  // }
+// // Handle updates to state
+// handleStateUpdate(update_packet) {
+//   let agent_status = update_packet['agent_status'] || this.props.agent_status;
+//   let agent_display_name = update_packet['agent_display_name'] || this.props.agent_display_name;
+//   if (agent_status != this.props.agent_status || agent_display_name != this.props.agent_display_name) {
+//     this.props.onAgentStatusChange(
+//       agent_status,
+//       agent_display_name,
+//       update_packet['done_text'],
+//     );
+//   }
+//   if (update_packet['is_final']) {
+//     this.closeSocket();
+//   }
+// }
 
 /* ================= Agent State Constants ================= */
 
-// TODO move to shared file
 const STATUS_NONE = "none";
 const STATUS_ONBOARDING = "onboarding";
 const STATUS_WAITING = "waiting";
@@ -117,13 +116,62 @@ const STATUS_EXPIRED = "expired";
 const STATUS_RETURNED = "returned";
 const STATUS_MEPHISTO_DISCONNECT = "mephisto disconnect";
 
-const useMephistoLiveTask = function (config) {
+const STATUS = {
+  STATUS_NONE,
+  STATUS_ONBOARDING,
+  STATUS_WAITING,
+  STATUS_IN_TASK,
+  STATUS_DONE,
+  STATUS_DISCONNECT,
+  STATUS_TIMEOUT,
+  STATUS_PARTNER_DISCONNECT,
+  STATUS_EXPIRED,
+  STATUS_RETURNED,
+  STATUS_MEPHISTO_DISCONNECT,
+};
+
+const useMephistoLiveTask = function ({ onNewData }) {
   const hookProps = useMephistoTask();
+
+  const [serverStatus, setServerStatus] = React.useState(null);
+  const [agentState, setAgentState] = React.useState(null);
+  const [agentStatus, setAgentStatus] = React.useState(null);
+
+  let callQueueMessage = () => {};
+  // (text, task_data, callback)
+
+  const InsertRequiredSocketComponent = (
+    <SocketHandler
+      agent_id={hookProps.agentId}
+      agent_status={agentStatus}
+      onNewData={onNewData}
+      onStatusChange={(status) => {
+        setServerStatus(status);
+      }}
+      handleStateUpdate={({ state, status }) => {
+        setAgentState(state);
+        setAgentStatus(status);
+      }}
+    >
+      {(handleQueueMessage) => {
+        queueMessageCallback = handleQueueMessage;
+      }}
+    </SocketHandler>
+
+    // Provide functionality for handleQueueMessage
+    // when the frontend calls postData, need to marshall
+    // that data onject to handleQueueMessage. previously done
+    // via a ref.
+  );
+
   const liveProps = {
-    agentStatus: null,
-    agentState: null,
-    postData: () => {},
-    serverStatus: {},
+    agentStatus: agentStatus,
+    agentState: agentState,
+    postData: () => {
+      callQueueMessage(text, task_data);
+    },
+    serverStatus: serverStatus,
+    InsertRequiredSocketComponent: InsertRequiredSocketComponent,
   };
 
   // TODO: at some point be sure to call config.onNewData()
@@ -131,4 +179,4 @@ const useMephistoLiveTask = function (config) {
   return { ...hookProps, ...liveProps };
 };
 
-export { useMephistoLiveTask };
+export { useMephistoLiveTask, STATUS };

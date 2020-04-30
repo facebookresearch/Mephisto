@@ -8,24 +8,24 @@
 
 /* eslint-disable react/no-direct-mutation-state */
 
-import React from 'react';
+import React from "react";
 
 /* ================= Data Model Constants ================= */
 
 // System socket ids. Would be nice  to pull these from a centralized location
-const SERVER_SOCKET_ID = 'mephisto_server'
-const SYSTEM_SOCKET_ID = 'mephisto'
+const SERVER_SOCKET_ID = "mephisto_server";
+const SYSTEM_SOCKET_ID = "mephisto";
 
 // TODO figure out how to catch this state in the server and save it
 // so that we can update the mephisto local state to acknowledge the occurrence
-const STATUS_MEPHISTO_DISCONNECT = 'mephisto disconnect';
+const STATUS_MEPHISTO_DISCONNECT = "mephisto disconnect";
 
 // Socket function types
-const PACKET_TYPE_HEARTBEAT = 'heartbeat'   // Heartbeat from agent, carries current state
-const PACKET_TYPE_AGENT_ALIVE = 'alive'  // packet from an agent alive event
+const PACKET_TYPE_HEARTBEAT = "heartbeat"; // Heartbeat from agent, carries current state
+const PACKET_TYPE_AGENT_ALIVE = "alive"; // packet from an agent alive event
 
-const PACKET_TYPE_UPDATE_STATE = 'update state'  // packet for updating agent client state
-const PACKET_TYPE_AGENT_ACTION = 'agent_action'
+const PACKET_TYPE_UPDATE_STATE = "update state"; // packet for updating agent client state
+const PACKET_TYPE_AGENT_ACTION = "agent_action";
 
 /* ================= Local Constants ================= */
 
@@ -46,8 +46,7 @@ class PriorityQueue {
   // Pushes an element as far back as it needs to go in order to insert
   push(element, priority) {
     priority = +priority;
-    for (var i = 0; i < this.data.length && this.data[i][0] < priority; i++)
-      ;
+    for (var i = 0; i < this.data.length && this.data[i][0] < priority; i++);
     this.data.splice(i, 0, [element, priority]);
   }
   // Remove and return the front element of the queue
@@ -83,9 +82,9 @@ function log(data, level) {
 
 // Generate a random id
 function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = (Math.random() * 16) | 0,
-      v = c == 'x' ? r : (r & 0x3) | 0x8;
+      v = c == "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -122,7 +121,7 @@ class SocketHandler extends React.Component {
     if (this.socket.readyState == 0) {
       return false;
     } else if (this.socket.readyState > 1) {
-      log('Socket not in ready state, restarting if possible', 2);
+      log("Socket not in ready state, restarting if possible", 2);
       try {
         this.socket.close();
       } catch (e) {
@@ -138,7 +137,7 @@ class SocketHandler extends React.Component {
       }
       return true;
     } catch (e) {
-      log('Had error ' + e + ' sending message, trying to restart', 2);
+      log("Had error " + e + " sending message, trying to restart", 2);
       try {
         this.socket.close();
       } catch (e) {
@@ -155,7 +154,7 @@ class SocketHandler extends React.Component {
     var success = this.safePacketSend(event);
 
     if (!success) {
-      this.q.push(packet, queue_time);  // This message needs to be retried
+      this.q.push(packet, queue_time); // This message needs to be retried
     }
   }
 
@@ -202,10 +201,10 @@ class SocketHandler extends React.Component {
 
   // Required function - The BaseApp class will call this function to enqueue
   // packet sends that are requested by the frontend user (worker)
-  handleQueueMessage(text, task_data, callback, is_system = false) {
+  handleQueueMessage(text, task_data, callback) {
     let new_message_id = uuidv4();
     let duration = null;
-    if (!is_system && this.state.message_request_time != null) {
+    if (this.state.message_request_time != null) {
       let cur_time = new Date().getTime();
       duration = cur_time - this.state.message_request_time;
       this.setState({ message_request_time: null });
@@ -220,11 +219,7 @@ class SocketHandler extends React.Component {
         episode_done: false,
         duration: duration,
       },
-      msg => {
-        if (!is_system) {
-          this.props.messages.push(msg.data);
-          this.props.onSuccessfulSend();
-        }
+      (msg) => {
         if (callback !== undefined) {
           callback();
         }
@@ -234,14 +229,9 @@ class SocketHandler extends React.Component {
 
   // way to send alive packets when expected to
   sendAlive() {
-    this.sendPacket(
-      PACKET_TYPE_AGENT_ALIVE,
-      {},
-      () => {
-        this.props.onConfirmInit();
-        this.props.onStatusChange('connected');
-      }
-    );
+    this.sendPacket(PACKET_TYPE_AGENT_ALIVE, {}, () => {
+      this.props.onStatusChange("connected");
+    });
   }
 
   /**************************************************
@@ -256,16 +246,18 @@ class SocketHandler extends React.Component {
     if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
       this.props.onNewData(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATE) {
-      this.props.handleStateUpdate(packet.data); // Update packet {agentState: {}, agentStatus: "<>"}
+      this.props.handleStateUpdate(packet.data); // Update packet {state: {}, status: "<>"}
+      // TODO: Document that is_final is what closes the socket
+      if (packet.data.state.is_final) {
+        this.closeSocket();
+      }
     } else if (packet.packet_type == PACKET_TYPE_HEARTBEAT) {
       this.setState({
-        last_mephisto_ping: packet.data['last_mephisto_ping'],
+        last_mephisto_ping: packet.data["last_mephisto_ping"],
         heartbeats_without_response: 0,
       });
     }
   }
-
-
 
   /**************************************************
    * ---------- socket lifecycle functions -----------
@@ -293,21 +285,21 @@ class SocketHandler extends React.Component {
     window.setTimeout(() => this.setState({ setting_socket: false }), 4000);
 
     let url = window.location;
-    if (url.hostname == 'localhost') {
+    if (url.hostname == "localhost") {
       // Localhost can't always handle secure websockets, so we special case
-      this.socket = new WebSocket('ws://' + url.hostname + ':' + url.port);
+      this.socket = new WebSocket("ws://" + url.hostname + ":" + url.port);
     } else {
-      this.socket = new WebSocket('wss://' + url.hostname + ':' + url.port);
+      this.socket = new WebSocket("wss://" + url.hostname + ":" + url.port);
     }
     // TODO if socket setup fails here, see if 404 or timeout, then check
     // other reasonable domain. If that succeeds, assume the server died.
 
-    this.socket.onmessage = event => {
+    this.socket.onmessage = (event) => {
       this.parseSocketMessage(JSON.parse(event.data));
     };
 
     this.socket.onopen = () => {
-      log('Server connected.', 2);
+      log("Server connected.", 2);
       let setting_socket = false;
       this.sendAlive();
       window.setTimeout(() => this.failInitialize(), 10000);
@@ -328,34 +320,34 @@ class SocketHandler extends React.Component {
     };
 
     this.socket.onerror = () => {
-      log('Server disconnected.', 3);
+      log("Server disconnected.", 3);
       try {
         this.socket.close();
       } catch (e) {
-        log('Server had error ' + e + ' when closing after an error', 1);
+        log("Server had error " + e + " when closing after an error", 1);
       }
       window.setTimeout(() => this.setupSocket(), 500);
     };
 
     this.socket.onclose = () => {
-      log('Server closing.', 3);
-      this.props.onStatusChange('disconnected');
+      log("Server closing.", 3);
+      this.props.onStatusChange("disconnected");
     };
   }
 
   failInitialize() {
-    if (this.props.initialization_status == 'initializing') {
-      this.props.onFailInit();
+    if (this.socket.readyState !== 1) {
+      this.props.onStatusChange("failed");
     }
   }
 
   closeSocket() {
     if (!this.state.socket_closed) {
-      log('Socket closing', 3);
+      log("Socket closing", 3);
       this.socket.close();
       this.setState({ socket_closed: true });
     } else {
-      log('Socket already closed', 2);
+      log("Socket already closed", 2);
     }
   }
 
@@ -365,13 +357,13 @@ class SocketHandler extends React.Component {
   }
 
   sendHeartbeat() {
-    this.safePacketSend({ 
+    this.safePacketSend({
       packet: {
         packet_type: PACKET_TYPE_HEARTBEAT,
         msg_id: uuidv4(),
         receiver_id: SERVER_SOCKET_ID,
         sender_id: this.props.agent_id,
-        data: {agent_status: this.props.agent_status},
+        data: { agent_status: this.props.agent_status },
       },
     });
   }
@@ -414,11 +406,11 @@ class SocketHandler extends React.Component {
         substantial work and we can find out if the task is complete enough to \
         compensate.";
       this.props.handleStateUpdate({
-        agentState: {
+        state: {
           done_text: done_text,
           task_done: true,
         },
-        agentStatus: STATUS_MEPHISTO_DISCONNECT, 
+        status: STATUS_MEPHISTO_DISCONNECT,
       });
       window.clearInterval(this.state.heartbeat_id);
       this.setState({ heartbeat_id: null });
@@ -432,13 +424,13 @@ class SocketHandler extends React.Component {
     if (this.state.heartbeats_without_response >= ROUTER_DEAD_TIMEOUT) {
       this.closeSocket();
     } else if (this.state.heartbeats_without_response >= 3) {
-      this.props.onStatusChange('reconnecting_router');
+      this.props.onStatusChange("reconnecting_router");
     }
   }
 
   // No rendering component for the SocketHandler
-  render() {
-    return null;
+  render({ children }) {
+    return children(this.handleQueueMessage);
   }
 }
 

@@ -8,6 +8,7 @@ import {
   postCompleteTask,
 } from "./utils";
 export * from "./utils";
+export * from "./live";
 
 /*
   The following global methods are to be specified in wrap_crowd_source.js
