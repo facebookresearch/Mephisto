@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 BLUEPRINT_TYPE = "static_task"
 
 
+# TODO refactor to pull from abstract.static_task and rename static_html_task
 @register_mephisto_abstraction()
 class StaticBlueprint(Blueprint):
     """Blueprint for a task that runs off of templated static HTML"""
