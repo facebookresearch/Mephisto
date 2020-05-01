@@ -165,7 +165,7 @@ class Supervisor:
         while not channel.is_alive():
             if time.time() - start_time > START_DEATH_TIME:
                 # TODO(OWN) Ask channel why it might have failed to connect?
-                self.channels[channel_id].close()
+                self.channels[channel_id].channel.close()
                 raise ConnectionRefusedError(  # noqa F821 we only support py3
                     "Was not able to establish a connection with the server, "
                     "please try to run again. If that fails,"
