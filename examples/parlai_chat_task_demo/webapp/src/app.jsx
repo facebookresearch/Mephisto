@@ -189,7 +189,7 @@ function MainApp() {
         taskData={taskData}
         task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
         // agentState={agentState}
-        onMessageSend={(data) => postData(data)} // TODO we're using a slightly different format, need to package ourselves
+        onMessageSend={(data) => sendMessage(data)} // TODO we're using a slightly different format, need to package ourselves
         socket_status={serverStatus} // TODO coalesce with the initialization status
         messages={messages}
         agent_id={agentId}
