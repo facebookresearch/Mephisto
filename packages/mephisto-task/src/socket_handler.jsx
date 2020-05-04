@@ -463,6 +463,8 @@ function useMephistoSocket({
       heartbeatThread: heartbeatThread,
       closeSocket: closeSocket,
       setupWebsocket: setupWebsocket,
+      enqueuePacket: enqueuePacket,
+      sendHeartbeat: sendHeartbeat,
     };
   });
 
@@ -528,6 +530,7 @@ function useMephistoSocket({
   }
 
   function enqueuePacket(eventType, data, callback) {
+    console.log(state.agentId);
     var time = Date.now();
     let messageId = uuidv4();
 
@@ -548,8 +551,9 @@ function useMephistoSocket({
   }
 
   function sendMessage(text, task_data, callback) {
+    console.log(state.agentId);
     let new_message_id = uuidv4();
-    enqueuePacket(
+    callbacks.current.enqueuePacket(
       PACKET_TYPE_AGENT_ACTION,
       {
         text: text,
@@ -598,7 +602,7 @@ function useMephistoSocket({
       log("Server connected.", 2);
 
       /* sendAlive */
-      enqueuePacket(PACKET_TYPE_AGENT_ALIVE, {}, () => {
+      callbacks.current.enqueuePacket(PACKET_TYPE_AGENT_ALIVE, {}, () => {
         onStatusChange("connected");
       });
 
@@ -607,7 +611,7 @@ function useMephistoSocket({
           onStatusChange("failed");
         }
       }, 10000);
-      window.setTimeout(() => sendHeartbeat(), 500);
+      window.setTimeout(() => callbacks.current.sendHeartbeat(), 500);
 
       if (state.heartbeat_id == null) {
         const heartbeat_id = window.setInterval(
@@ -696,10 +700,11 @@ function useMephistoSocket({
       return;
     }
 
-    sendHeartbeat();
+    callbacks.current.sendHeartbeat();
   }
 
   function sendHeartbeat() {
+    console.log(state.agentId);
     resilientPacketSend({
       packet: {
         packet_type: PACKET_TYPE_HEARTBEAT,
