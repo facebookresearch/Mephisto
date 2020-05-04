@@ -6,7 +6,7 @@
 
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.abstract.static_task.static_blueprint import StaticBlueprint
-from mephisto.server.blueprints.static_task.static_task_builder import StaticTaskBuilder
+from mephisto.server.blueprints.static_react_task.static_react_task_builder import StaticReactTaskBuilder
 from mephisto.core.registry import register_mephisto_abstraction
 
 import os
@@ -28,7 +28,7 @@ BLUEPRINT_TYPE = "static_react_task"
 class StaticReactBlueprint(StaticBlueprint):
     """Blueprint for a task that runs off of a built react javascript bundle"""
 
-    TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = StaticTaskBuilder
+    TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = StaticReactTaskBuilder
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(self, task_run: "TaskRun", opts: Any):

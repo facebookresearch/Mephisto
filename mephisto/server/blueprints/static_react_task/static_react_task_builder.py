@@ -8,9 +8,10 @@ from mephisto.data_model.blueprint import TaskBuilder
 
 from distutils.dir_util import copy_tree
 import os
+import shutil
 
 
-class StaticTaskBuilder(TaskBuilder):
+class StaticReactTaskBuilder(TaskBuilder):
     """
     Builder for a static task, puts required files into
     the server directory for deployment.
@@ -32,7 +33,7 @@ class StaticTaskBuilder(TaskBuilder):
         # Copy the built core and the given task file to the target path
         use_bundle = os.path.expanduser(self.opts["task_source"])
         target_path = os.path.join(target_resource_dir, "bundle.js")
-        shutil.copy2(bundle_js_file, target_path)
+        shutil.copy2(use_bundle, target_path)
 
         # Write a built file confirmation
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:

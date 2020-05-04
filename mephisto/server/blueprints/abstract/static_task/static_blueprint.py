@@ -40,7 +40,6 @@ class StaticBlueprint(Blueprint):
         super().__init__(task_run, opts)
 
         self._initialization_data_dicts: List[Dict[str, Any]] = []
-        task_file_name = os.path.basename(self.html_file)
         if opts.get("data_csv") is not None:
             csv_file = os.path.expanduser(opts["data_csv"])
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
