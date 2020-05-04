@@ -11,7 +11,8 @@ import ReactDOM from "react-dom";
 import { BaseFrontend } from "./components/core_components.jsx";
 
 import {
-  useMephistoLiveTask,
+  useMephistoTask,
+  useMephistoSocket,
   getBlockedExplanation,
   doesSupportWebsockets,
   STATUS,
@@ -50,6 +51,11 @@ function MainApp() {
     {}
   );
 
+  const [appState, setAppState] = React.useState({ volume: 1 });
+  const [serverStatus, setServerStatus] = React.useState("");
+  const [agentState, setAgentState] = React.useState(null);
+  const [agentStatus, setAgentStatus] = React.useState(null);
+
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
     audio.volume = volume;
@@ -69,13 +75,40 @@ function MainApp() {
     agentId,
     mephistoWorkerId,
     handleSubmit,
-    agentStatus,
-    agentState, // Contains done_text, task_done, agent_display_name, wants_act
-    postData,
-    serverStatus, // lo pris
-    InsertRequiredSocketComponent,
-  } = useMephistoLiveTask({
-    onNewData: (message) => {
+    // agentStatus,
+    // agentState, // Contains done_text, task_done, agent_display_name, wants_act
+    // postData,
+    // serverStatus, // lo pris
+    // InsertRequiredSocketComponent,
+  } = useMephistoTask();
+
+  const [chatState, setChatState] = React.useState("waiting");
+
+  const { connect, destroy, sendMessage } = useMephistoSocket({
+    onStatusChange: (status) => {
+      setServerStatus(status);
+    },
+    onStateUpdate: ({ state, status }) => {
+      setAgentState(state);
+      setAgentStatus(status);
+
+      if (state.task_done) {
+        setChatState("done");
+      } else if (
+        [
+          STATUS.STATUS_DISCONNECT,
+          STATUS.STATUS_RETURNED,
+          STATUS.STATUS_EXPIRED,
+          STATUS.STATUS_TIMEOUT,
+          STATUS.STATUS_MEPHISTO_DISCONNECT,
+        ].includes(status)
+      ) {
+        setChatState("inactive");
+      } else if (state.wants_act) {
+        setChatState("text_input");
+      }
+    },
+    onMessageReceived: (message) => {
       if (message.text === undefined) {
         message.text = "";
       }
@@ -98,30 +131,22 @@ function MainApp() {
     },
   });
 
-  // TODO pratik is this sketchy?
-  if (lastWantsAct != agentState.wants_act) {
-    if (agentState.wants_act) {
-      playNotifSound();
+  React.useEffect(() => {
+    if (agentId) {
+      console.log("connecting...");
+      connect(agentId);
     }
-    updateWantsAct(agentState.wants_act);
-  }
+  }, [agentId]);
 
-  var chatState = "waiting";
-  if (agentState.task_done) {
-    chatState = "done";
-  } else if (
-    [
-      STATUS.STATUS_DISCONNECT,
-      STATUS.STATUS_RETURNED,
-      STATUS.STATUS_EXPIRED,
-      STATUS.STATUS_TIMEOUT,
-      STATUS.STATUS_MEPHISTO_DISCONNECT,
-    ].includes(agent_status)
-  ) {
-    chatState = "inactive";
-  } else if (agentState.wants_act) {
-    chatState = "text_input";
-  }
+  // if (agentState) {
+  //   // TODO pratik is this sketchy?
+  //   if (lastWantsAct != agentState.wants_act) {
+  //     if (agentState.wants_act) {
+  //       playNotifSound();
+  //     }
+  //     updateWantsAct(agentState.wants_act);
+  //   }
+
   // TODO: move to useMephistoLiveTask
   if (!doesSupportWebsockets()) {
     blockedReason = "no_websockets";
@@ -151,16 +176,16 @@ function MainApp() {
   }
   return (
     <div>
-      <InsertRequiredSocketComponent />
+      {/* <InsertRequiredSocketComponent /> */}
       <BaseFrontend
         task_config={taskConfig}
         chat_state={chatState}
         agent_id={agentId}
         mephisto_worker_id={mephistoWorkerId}
         onSubmit={handleSubmit}
-        done_text={agentState.done_text} // TODO: remove after agentState refactor
-        task_done={agentState.task_done} // TODO: remove after agentState refactor
-        agent_display_name={agentState.agent_display_name} // TODO: remove after agentState refactor
+        done_text={agentState?.done_text} // TODO: remove after agentState refactor
+        task_done={agentState?.task_done} // TODO: remove after agentState refactor
+        agent_display_name={agentState?.agent_display_name} // TODO: remove after agentState refactor
         taskData={taskData}
         task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
         // agentState={agentState}
@@ -175,7 +200,7 @@ function MainApp() {
         world_state={agentStatus}
         allDoneCallback={() => handleSubmit({})}
         volume={appState.volume}
-        onVolumeChange={(v) => setVolume(v)}
+        onVolumeChange={(v) => setAppState({ volume: v })}
         display_feedback={false}
       />
     </div>

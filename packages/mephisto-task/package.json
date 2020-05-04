@@ -4,7 +4,8 @@
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
-    "dev": "webpack --mode development -q"
+    "dev": "webpack --mode development -q",
+    "dev:watch": "webpack --mode development -q --watch"
   },
   "keywords": [],
   "author": "",
