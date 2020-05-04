@@ -196,10 +196,17 @@ function handle_get_agent_status(status_packet) {
   mephisto_message_queue.push(packet);
 }
 
+function get_agent_state(agent_id) {
+  let agent = find_or_create_agent(agent_id);
+  return agent.state;
+}
+
 function handle_update_local_status(status_packet) {
   let agent_id = status_packet.receiver_id;
   let agent = find_or_create_agent(agent_id);
-  agent.status = status_packet.data.agent_status;
+  if (status_packet.data.status != undefined) {
+    agent.status = status_packet.data.status;
+  }
   agent.state = Object.assign(agent.state, status_packet.data.state);
 }
 
@@ -259,7 +266,6 @@ wss.on('connection', function(socket) {
     try {
       packet = JSON.parse(packet);
       if (packet['packet_type'] == PACKET_TYPE_REQUEST_AGENT_STATUS) {
-        // console.log(packet);
         handle_get_agent_status(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_AGENT_ACTION) {
         debug_log('Agent action: ', packet);
@@ -272,13 +278,13 @@ wss.on('connection', function(socket) {
         handle_alive(socket, packet);
       } else if (packet['packet_type'] == PACKET_TYPE_UPDATE_AGENT_STATUS) {
         debug_log('Update agent status', packet);
-        if (packet.data.agent_status !== undefined) {
-          handle_update_local_status(packet);
-        }
+        handle_update_local_status(packet);
+        packet.data.state = get_agent_state(packet.receiver_id);
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_REQUEST_ACTION) {
+        debug_log('Requesting act', packet);
         update_wanted_acts(packet.receiver_id, true);
-        let agent_id = packet["sender_id"];
+        let agent_id = packet["receiver_id"];
         let agent = find_or_create_agent(agent_id);
         packet['packet_type'] = PACKET_TYPE_UPDATE_AGENT_STATUS
         packet['data'] = {

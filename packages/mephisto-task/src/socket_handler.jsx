@@ -24,7 +24,7 @@ const STATUS_MEPHISTO_DISCONNECT = "mephisto disconnect";
 const PACKET_TYPE_HEARTBEAT = "heartbeat"; // Heartbeat from agent, carries current state
 const PACKET_TYPE_AGENT_ALIVE = "alive"; // packet from an agent alive event
 
-const PACKET_TYPE_UPDATE_STATE = "update state"; // packet for updating agent client state
+const PACKET_TYPE_UPDATE_STATE = "update_status"; // packet for updating agent client state
 const PACKET_TYPE_AGENT_ACTION = "agent_action";
 
 /* ================= Local Constants ================= */
@@ -470,8 +470,10 @@ function useMephistoSocket({
 
   function connect(agentId) {
     callbacks.current.setupWebsocket();
+    console.log("Connecting");
+    callbacks.current.sendingThread();
     const messageSenderThreadId = window.setInterval(
-      callbacks.current.sendingThread,
+      () => callbacks.current.sendingThread(),
       SEND_THREAD_REFRESH
     );
     setState({ agentId, messageSenderThreadId });
@@ -489,6 +491,9 @@ function useMephistoSocket({
       if (Date.now() > queue.current.peek()[1]) {
         const item = queue.current.pop();
         const [event, queue_time] = item;
+
+        console.log("sending")
+        console.log(event)
 
         const success = resilientPacketSend(event);
         if (!success) {
@@ -530,7 +535,6 @@ function useMephistoSocket({
   }
 
   function enqueuePacket(eventType, data, callback) {
-    console.log(state.agentId);
     var time = Date.now();
     let messageId = uuidv4();
 
@@ -551,7 +555,6 @@ function useMephistoSocket({
   }
 
   function sendMessage(text, task_data, callback) {
-    console.log(state.agentId);
     let new_message_id = uuidv4();
     callbacks.current.enqueuePacket(
       PACKET_TYPE_AGENT_ACTION,
@@ -704,7 +707,6 @@ function useMephistoSocket({
   }
 
   function sendHeartbeat() {
-    console.log(state.agentId);
     resilientPacketSend({
       packet: {
         packet_type: PACKET_TYPE_HEARTBEAT,
