@@ -568,7 +568,7 @@ function useMephistoSocket({
       },
       (msg) => {
         if (callback !== undefined) {
-          callback();
+          callback(msg.data);
         }
       }
     );
