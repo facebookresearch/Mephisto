@@ -88,7 +88,11 @@ const useMephistoTask = function () {
     getTaskConfig().then((data) => handleIncomingTaskConfig(data));
   }, []);
 
-  return { ...state, handleSubmit };
+  return {
+    ...state,
+    isLoading: state.agentId === null || taskConfig === null,
+    handleSubmit,
+  };
 };
 
 class DEPRECATED_MephistoTask extends React.Component {

@@ -11,10 +11,8 @@ import ReactDOM from "react-dom";
 import { BaseFrontend } from "./components/core_components.jsx";
 
 import {
-  useMephistoTask,
-  useMephistoSocket,
+  useMephistoLiveTask,
   getBlockedExplanation,
-  doesSupportWebsockets,
   STATUS,
 } from "mephisto-task";
 
@@ -44,7 +42,6 @@ function TaskPreviewView({ taskConfig }) {
 }
 
 function MainApp() {
-  const [lastWantsAct, updateWantsAct] = React.useState(false);
   const [volume, setVolume] = React.useState(1);
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
@@ -55,6 +52,7 @@ function MainApp() {
   const [serverStatus, setServerStatus] = React.useState("");
   const [agentState, setAgentState] = React.useState(null);
   const [agentStatus, setAgentStatus] = React.useState(null);
+  const [chatState, setChatState] = React.useState("waiting");
 
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
@@ -62,36 +60,23 @@ function MainApp() {
     audio.play();
   }
 
-  const [messages, addMessage] = React.useReducer(
-    (allMessages, newMessage) => [...allMessages, newMessage],
-    []
-  );
-
   let {
     blockedReason,
     taskConfig,
     taskData,
     isPreview,
+    isLoading,
     agentId,
     mephistoWorkerId,
     handleSubmit,
-    // agentStatus,
-    // agentState, // Contains done_text, task_done, agent_display_name, wants_act
-    // postData,
-    // serverStatus, // lo pris
-    // InsertRequiredSocketComponent,
-  } = useMephistoTask();
-
-  const [chatState, setChatState] = React.useState("waiting");
-
-  const { connect, destroy, sendMessage } = useMephistoSocket({
-    onStatusChange: (status) => {
-      setServerStatus(status);
-    },
+    connect,
+    sendMessage,
+    agentState,
+    agentStatus,
+    connectionStatus,
+    messages,
+  } = useMephistoLiveTask({
     onStateUpdate: ({ state, status }) => {
-      setAgentState(state);
-      setAgentStatus(status);
-
       if (state.task_done) {
         setChatState("done");
       } else if (
@@ -109,12 +94,6 @@ function MainApp() {
       }
     },
     onMessageReceived: (message) => {
-      if (message.text === undefined) {
-        message.text = "";
-      }
-
-      addMessage(message);
-
       // Task data handling
       if (message.task_data !== undefined) {
         let has_context = false;
@@ -138,24 +117,17 @@ function MainApp() {
     }
   }, [agentId]);
 
-  // if (agentState) {
-  //   // TODO pratik is this sketchy?
-  //   if (lastWantsAct != agentState.wants_act) {
-  //     if (agentState.wants_act) {
-  //       playNotifSound();
-  //     }
-  //     updateWantsAct(agentState.wants_act);
-  //   }
-
-  // TODO: move to useMephistoLiveTask
-  if (!doesSupportWebsockets()) {
-    blockedReason = "no_websockets";
-  }
+  const wantsAct = agentState ? agentState.wants_act : false;
+  React.useEffect(() => {
+    if (wantsAct) {
+      playNotifSound();
+    }
+  }, [wantsAct]);
 
   if (blockedReason !== null) {
     return <h1>{getBlockedExplanation(blockedReason)}</h1>;
   }
-  if (taskConfig === null) {
+  if (isLoading) {
     return <div>Initializing...</div>;
   }
   if (isPreview) {
@@ -166,9 +138,6 @@ function MainApp() {
       return <div>Loading...</div>;
     }
     return <div dangerouslySetInnerHTML={{ __html: previewHtml }} />;
-  }
-  if (agentId === null) {
-    return <div>Initializing...</div>;
   }
   if (agentId === "onboarding") {
     // TODO handle the onboarding case
@@ -194,13 +163,13 @@ function MainApp() {
             addMessage(msg);
           });
         }} // TODO we're using a slightly different format, need to package ourselves
-        socket_status={serverStatus} // TODO coalesce with the initialization status
+        socket_status={connectionStatus} // TODO coalesce with the initialization status
         messages={messages}
         agent_id={agentId}
         task_description={taskConfig.task_description} // TODO coalescs taskConfig
         frame_height={taskConfig.frame_height} // TODO coalescs taskConfig
         chat_title={taskConfig.chat_title} // TODO coalescs taskConfig
-        initialization_status={serverStatus} // TODO remove and just have one server status
+        initialization_status={connectionStatus} // TODO remove and just have one server status
         world_state={agentStatus}
         allDoneCallback={() => handleSubmit({})}
         volume={appState.volume}

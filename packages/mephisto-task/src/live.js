@@ -1,5 +1,5 @@
 import React, { Children } from "react";
-import { useMephistoTask } from "./index";
+import { useMephistoTask, doesSupportWebsockets } from "./index";
 import { useMephistoSocket } from "./socket_handler.jsx";
 
 // REQUIRED STATE
@@ -132,100 +132,48 @@ const STATUS = {
   STATUS_MEPHISTO_DISCONNECT,
 };
 
-const useMephistoLiveTask = function ({ onNewData }) {
-  const hookProps = useMephistoTask();
-
-  const [serverStatus, setServerStatus] = React.useState(null);
+const useMephistoLiveTask = function (props) {
+  const [connectionStatus, setConnectionStatus] = React.useState("");
   const [agentState, setAgentState] = React.useState(null);
   const [agentStatus, setAgentStatus] = React.useState(null);
 
-  let callQueueMessage = () => {};
-  // (text, task_data, callback)
+  const [messages, addMessage] = React.useReducer(
+    (allMessages, newMessage) => [...allMessages, newMessage],
+    []
+  );
 
-  console.log("agentId: ", hookProps.agentId);
-
-  const InsertRequiredSocketComponent = () => null;
-
-  //   const InsertRequiredSocketComponent = !hookProps.completed
-  //     ? () => null
-  //     : () => (
-  //         <SocketHandler
-  //           agent_id={hookProps.agentId}
-  //           agent_status={agentStatus}
-  //           onNewData={onNewData}
-  //           onStatusChange={(status) => {
-  //             setServerStatus(status);
-  //           }}
-  //           handleStateUpdate={({ state, status }) => {
-  //             setAgentState(state);
-  //             setAgentStatus(status);
-  //           }}
-  //         >
-  //           {(handleQueueMessage) => {
-  //             callQueueMessage = handleQueueMessage;
-  //           }}
-  //         </SocketHandler>
-  //       );
-
-  // Provide functionality for handleQueueMessage
-  // when the frontend calls postData, need to marshall
-  // that data onject to handleQueueMessage. previously done
-  // via a ref.
-
-  const liveProps = {
-    agentStatus: agentStatus,
-    agentState: agentState,
-    postData: (text, task_data, callback) => {
-      callQueueMessage(text, task_data);
+  const taskProps = useMephistoTask();
+  const socketProps = useMephistoSocket({
+    onStatusChange: (status) => {
+      setConnectionStatus(status);
+      props.onStatusChange(status);
     },
-    serverStatus: serverStatus,
-    InsertRequiredSocketComponent: InsertRequiredSocketComponent,
+    onStateUpdate: ({ state, status }) => {
+      setAgentState(state);
+      setAgentStatus(status);
+      props.onStateUpdate({ state, status });
+    },
+    onMessageReceived: (message) => {
+      if (message.text === undefined) {
+        message.text = "";
+      }
+      addMessage(message);
+      props.onMessageReceived(message);
+    },
+  });
+
+  if (!doesSupportWebsockets()) {
+    taskProps.blockedReason = "no_websockets";
+  }
+
+  return {
+    ...taskProps,
+    ...socketProps,
+    connectionStatus,
+    agentState,
+    agentStatus,
+    messages,
   };
-
-  // TODO: at some point be sure to call config.onNewData()
-
-  return { ...hookProps, ...liveProps };
 };
 
-function MephistoLiveTask({ children }) {
-  const hookProps = useMephistoTask();
-
-  const [serverStatus, setServerStatus] = React.useState(null);
-  const [agentState, setAgentState] = React.useState(null);
-  const [agentStatus, setAgentStatus] = React.useState(null);
-
-  let callQueueMessage = () => {};
-  // (text, task_data, callback)
-
-  console.log("agentId: ", hookProps.agentId);
-
-  const InsertRequiredSocketComponent = () => null;
-
-  //   const InsertRequiredSocketComponent = !hookProps.completed
-  //     ? () => null
-  //     : () => (
-  //         <SocketHandler
-  //           agent_id={hookProps.agentId}
-  //           agent_status={agentStatus}
-  //           onNewData={onNewData}
-  //           onStatusChange={(status) => {
-  //             setServerStatus(status);
-  //           }}
-  //           handleStateUpdate={({ state, status }) => {
-  //             setAgentState(state);
-  //             setAgentStatus(status);
-  //           }}
-  //         >
-  //           {(handleQueueMessage) => {
-  //             callQueueMessage = handleQueueMessage;
-  //           }}
-  //         </SocketHandler>
-  //       );
-
-  // Provide functionality for handleQueueMessage
-  // when the frontend calls postData, need to marshall
-  // that data onject to handleQueueMessage. previously done
-  // via a ref.
-}
-
-export { useMephistoLiveTask, MephistoLiveTask, useMephistoSocket, STATUS };
+export { useMephistoLiveTask, useMephistoSocket, STATUS };
