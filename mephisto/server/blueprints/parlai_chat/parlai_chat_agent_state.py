@@ -6,7 +6,10 @@
 
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
 from mephisto.data_model.blueprint import AgentState
-from mephisto.data_model.packet import PACKET_TYPE_AGENT_ACTION, PACKET_TYPE_UPDATE_AGENT_STATUS
+from mephisto.data_model.packet import (
+    PACKET_TYPE_AGENT_ACTION,
+    PACKET_TYPE_UPDATE_AGENT_STATUS,
+)
 import os
 import json
 
@@ -77,12 +80,16 @@ class ParlAIChatAgentState(AgentState):
         """Return the formatted input, conversations, and final data"""
         init_data = self.init_data
         save_data = None
-        messages = [m['data'] for m in self.messages if m['packet_type'] == PACKET_TYPE_AGENT_ACTION]
+        messages = [
+            m["data"]
+            for m in self.messages
+            if m["packet_type"] == PACKET_TYPE_AGENT_ACTION
+        ]
         agent_name = None
         for m in self.messages:
-            if m['packet_type'] == PACKET_TYPE_UPDATE_AGENT_STATUS:
-                if "agent_display_name" in m['data']:
-                    agent_name = m['data']['agent_display_name']
+            if m["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS:
+                if "agent_display_name" in m["data"]:
+                    agent_name = m["data"]["agent_display_name"]
                     break
         if "MEPHISTO_is_submit" in messages[-1]:
             messages = messages[:-1]
@@ -90,10 +97,10 @@ class ParlAIChatAgentState(AgentState):
             save_data = messages[-1]["WORLD_DATA"]
             messages = messages[:-1]
         return {
-            "agent_name": agent_name, 
-            "initial_data": init_data, 
-            "messages": messages, 
-            "save_data": save_data
+            "agent_name": agent_name,
+            "initial_data": init_data,
+            "messages": messages,
+            "save_data": save_data,
         }
 
     def save_data(self) -> None:
