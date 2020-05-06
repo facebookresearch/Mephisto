@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List, Dict, Optional, Any, TYPE_CHECKING
-from mephisto.server.blueprints.static_task.static_agent_state import StaticAgentState
+from mephisto.server.blueprints.abstract.static_task.static_agent_state import StaticAgentState
 import os
 import json
 
