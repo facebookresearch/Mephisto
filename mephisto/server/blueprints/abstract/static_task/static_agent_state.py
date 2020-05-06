@@ -90,13 +90,13 @@ class StaticAgentState(AgentState):
         updating the state
         """
         assert (
-            packet.data.get("MEPHISTO_is_submit") is True or
-            packet.data.get("onboarding_data") is not None
+            packet.data.get("MEPHISTO_is_submit") is True
+            or packet.data.get("onboarding_data") is not None
         ), "Static tasks should only have final act"
 
         if packet.data.get("onboarding_data") is not None:
             self.state["outputs"] = packet.data["onboarding_data"]
-        else:    
+        else:
             self.state["outputs"] = packet.data["task_data"]
         times_dict = self.state["times"]
         # TODO(#013) this typing may be better handled another way

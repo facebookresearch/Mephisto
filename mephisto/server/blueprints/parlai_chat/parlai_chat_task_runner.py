@@ -86,8 +86,8 @@ class MephistoAgentWrapper(ParlAIAgent):
         """
         ParlAI Agents observe a dict, we must convert these to  packets?
         """
-        if act.get('message_id') is None:
-            act['message_id'] = str(uuid4())
+        if act.get("message_id") is None:
+            act["message_id"] = str(uuid4())
         packaged_act = Packet(
             packet_type=PACKET_TYPE_AGENT_ACTION,
             sender_id="mephisto",

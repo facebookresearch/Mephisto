@@ -5,8 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.assignment import InitializationData
-from mephisto.server.blueprints.abstract.static_task.static_blueprint import StaticBlueprint
-from mephisto.server.blueprints.static_react_task.static_react_task_builder import StaticReactTaskBuilder
+from mephisto.server.blueprints.abstract.static_task.static_blueprint import (
+    StaticBlueprint,
+)
+from mephisto.server.blueprints.static_react_task.static_react_task_builder import (
+    StaticReactTaskBuilder,
+)
 from mephisto.core.registry import register_mephisto_abstraction
 
 import os
@@ -45,11 +49,13 @@ class StaticReactBlueprint(StaticBlueprint):
         super().assert_task_args(opts)
 
         found_task_source = opts.get("task_source")
-        assert found_task_source is not None, "Must provide a path to a javascript bundle in `task_source`"
+        assert (
+            found_task_source is not None
+        ), "Must provide a path to a javascript bundle in `task_source`"
         found_task_path = os.path.expanduser(found_task_source)
-        assert os.path.exists(found_task_path), (
-            f"Provided task source {found_task_path} does not exist."
-        )
+        assert os.path.exists(
+            found_task_path
+        ), f"Provided task source {found_task_path} does not exist."
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:

@@ -6,9 +6,15 @@
 
 from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
 from mephisto.data_model.assignment import InitializationData
-from mephisto.server.blueprints.abstract.static_task.static_agent_state import StaticAgentState
-from mephisto.server.blueprints.abstract.static_task.static_task_runner import StaticTaskRunner
-from mephisto.server.blueprints.abstract.static_task.empty_task_builder import EmptyStaticTaskBuilder
+from mephisto.server.blueprints.abstract.static_task.static_agent_state import (
+    StaticAgentState,
+)
+from mephisto.server.blueprints.abstract.static_task.static_task_runner import (
+    StaticTaskRunner,
+)
+from mephisto.server.blueprints.abstract.static_task.empty_task_builder import (
+    EmptyStaticTaskBuilder,
+)
 from mephisto.core.registry import register_mephisto_abstraction
 
 import os
