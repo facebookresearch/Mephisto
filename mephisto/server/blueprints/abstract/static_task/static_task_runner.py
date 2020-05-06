@@ -48,6 +48,17 @@ class StaticTaskRunner(TaskRunner):
             agent.state.set_init_state(assignment_data.shared)
             return assignment_data.shared
 
+    def run_onboarding(self, agent: "OnboardingAgent"):
+        """
+        Static onboarding flows eaxactly like a regular task, waiting for
+        the submit to come through 
+        """
+        agent_act = agent.act(timeout=TEST_TIMEOUT)
+
+    def cleanup_onboarding(self, agent: "OnboardingAgent"):
+        """Nothing to clean up in a static onboarding"""
+        return
+
     def run_unit(self, unit: "Unit", agent: "Agent") -> None:
         """
         Static runners will get the task data, send it to the user, then

@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.abstract.static_task.static_agent_state import StaticAgentState
 from mephisto.server.blueprints.abstract.static_task.static_task_runner import StaticTaskRunner
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
-class StaticBlueprint(Blueprint):
+class StaticBlueprint(Blueprint, OnboardingRequired):
     """
     Abstract blueprint for a task that runs without any extensive backend. 
     These are generally one-off tasks sending data to the frontend and then
@@ -32,12 +32,14 @@ class StaticBlueprint(Blueprint):
     """
 
     AgentStateClass: ClassVar[Type["AgentState"]] = StaticAgentState
+    OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = StaticAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = EmptyStaticTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
     supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
+        self.init_onboarding_config(task_run, opts)
 
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         if opts.get("data_csv") is not None:
@@ -92,6 +94,7 @@ class StaticBlueprint(Blueprint):
         data_csv has the data to be deployed for this task.
         """
         super(StaticBlueprint, cls).add_args_to_group(group)
+        OnboardingRequired.add_args_to_group(group)
 
         group.description = """
             StaticBlueprint: Static tasks need to be launched 
