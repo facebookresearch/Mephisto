@@ -107,6 +107,10 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
             for agent in self.agents:  # Ensure you get the response
                 form_result = agent.act(timeout=TURN_TIMEOUT_TIME)
 
+    def prep_save_data(self, agent):
+        """Process and return any additional data from this world you may want to store"""
+        return {"example_key": "example_value"}
+
     def episode_done(self):
         return self.episodeDone
 
