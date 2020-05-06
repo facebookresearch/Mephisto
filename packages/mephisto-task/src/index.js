@@ -6,6 +6,7 @@ import {
   isMobile,
   getInitTaskData,
   postCompleteTask,
+  postCompleteOnboarding,
 } from "./utils";
 export * from "./utils";
 
@@ -37,12 +38,21 @@ const useMephistoTask = function () {
     previewHtml: null,
     blockedReason: null,
     taskData: null,
+    isOnboarding: null,
   };
 
   const [state, setState] = React.useReducer(reducerFn, initialState);
 
   const handleSubmit = React.useCallback(
-    (data) => postCompleteTask(state.agentId, data),
+    (data) => {
+      if (state.isOnboarding) {
+        postCompleteOnboarding(state.agentId, data).then((packet) => {
+          afterAgentRegistration(state.workerId, packet);
+        })
+      } else {
+        postCompleteTask(state.agentId, data)
+      }
+    },
     [state.agentId]
   );
 
@@ -57,7 +67,7 @@ const useMephistoTask = function () {
   function afterAgentRegistration(workerId, dataPacket) {
     const agentId = dataPacket.data.agent_id;
 
-    setState({ agentId: agentId });
+    setState({ agentId: agentId, isOnboarding: agentId.startsWith("onboarding") });
     if (agentId === null) {
       setState({ blockedReason: "null_agent_id" });
     } else {

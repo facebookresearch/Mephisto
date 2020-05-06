@@ -58,6 +58,13 @@ export function getInitTaskData(mephisto_worker_id, agent_id) {
   });
 }
 
+export function postCompleteOnboarding(agent_id, onboarding_data) {
+  return postProviderRequest('/submit_onboarding', {
+    USED_AGENT_ID: agent_id,
+    onboarding_data: onboarding_data,
+  });
+}
+
 export function postCompleteTask(agent_id, complete_data) {
   return postData("/submit_task", {
     USED_AGENT_ID: agent_id,
