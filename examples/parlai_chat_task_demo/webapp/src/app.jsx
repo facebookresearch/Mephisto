@@ -13,7 +13,7 @@ import { BaseFrontend } from "./components/core_components.jsx";
 import {
   useMephistoLiveTask,
   getBlockedExplanation,
-  STATUS,
+  AGENT_STATUS,
 } from "mephisto-task";
 
 /* global
@@ -65,7 +65,6 @@ function MainApp() {
   let {
     blockedReason,
     taskConfig,
-    taskData,
     isPreview,
     isLoading,
     agentId,
@@ -82,11 +81,11 @@ function MainApp() {
         setChatState("done");
       } else if (
         [
-          STATUS.STATUS_DISCONNECT,
-          STATUS.STATUS_RETURNED,
-          STATUS.STATUS_EXPIRED,
-          STATUS.STATUS_TIMEOUT,
-          STATUS.STATUS_MEPHISTO_DISCONNECT,
+          AGENT_STATUS.DISCONNECT,
+          AGENT_STATUS.RETURNED,
+          AGENT_STATUS.EXPIRED,
+          AGENT_STATUS.TIMEOUT,
+          AGENT_STATUS.MEPHISTO_DISCONNECT,
         ].includes(status)
       ) {
         setChatState("inactive");
@@ -96,8 +95,6 @@ function MainApp() {
       }
     },
     onMessageReceived: (message) => {
-      const { task_data, ...messageProps } = message;
-
       if (message.text === undefined) {
         message.text = "";
       }

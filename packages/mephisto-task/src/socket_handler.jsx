@@ -112,7 +112,7 @@ function useValue(value, defaultValue) {
 /* ===================================================== */
 
 function useMephistoSocket({
-  onStatusChange,
+  onConnectionStatusChange,
   onMessageReceived,
   onStateUpdate /*, onStateUpdate */,
   config = {},
@@ -164,7 +164,7 @@ function useMephistoSocket({
   // The function exposed to the frontend client to start
   // the socket. Expects an agentId to be specified.
   function connect(agentId) {
-    onStatusChange(CONNECTION_STATUS.INITIALIZING);
+    onConnectionStatusChange(CONNECTION_STATUS.INITIALIZING);
     callbacks.current.setupWebsocket();
     callbacks.current.sendingThread();
     const messageSenderThreadId = window.setInterval(
@@ -305,12 +305,12 @@ function useMephistoSocket({
 
       /* sendAlive */
       callbacks.current.enqueuePacket(PACKET_TYPE_AGENT_ALIVE, {}, () => {
-        onStatusChange(CONNECTION_STATUS.CONNECTED);
+        onConnectionStatusChange(CONNECTION_STATUS.CONNECTED);
       });
 
       window.setTimeout(() => {
         if (socket.current.readyState !== 1) {
-          onStatusChange(CONNECTION_STATUS.FAILED);
+          onConnectionStatusChange(CONNECTION_STATUS.FAILED);
         }
       }, 10000);
       window.setTimeout(() => callbacks.current.sendHeartbeat(), 500);
@@ -335,7 +335,7 @@ function useMephistoSocket({
 
     socket.current.onclose = () => {
       log("Server closing.", 3);
-      onStatusChange(CONNECTION_STATUS.DISCONNECTED);
+      onConnectionStatusChange(CONNECTION_STATUS.DISCONNECTED);
     };
   }
 
@@ -376,7 +376,7 @@ function useMephistoSocket({
         REFRESH_SOCKET_MISSED_RESPONSES
       )
     ) {
-      onStatusChange(CONNECTION_STATUS.RECONNECTING_ROUTER);
+      onConnectionStatusChange(CONNECTION_STATUS.RECONNECTING_ROUTER);
       attemptSocketRestart();
     }
 
@@ -388,7 +388,7 @@ function useMephistoSocket({
         useValue(config.routerDeadTimeout, ROUTER_DEAD_TIMEOUT)
       )
     ) {
-      onStatusChange(CONNECTION_STATUS.DISCONNECTED_ROUTER);
+      onConnectionStatusChange(CONNECTION_STATUS.DISCONNECTED_ROUTER);
       callbacks.current.closeSocket();
     }
 
@@ -411,7 +411,7 @@ function useMephistoSocket({
         },
         status: STATUS_MEPHISTO_DISCONNECT,
       });
-      onStatusChange(CONNECTION_STATUS.DISCONNECTED_SERVER);
+      onConnectionStatusChange(CONNECTION_STATUS.DISCONNECTED_SERVER);
       window.clearInterval(state.heartbeat_id);
       setState({ heartbeat_id: null });
       return;

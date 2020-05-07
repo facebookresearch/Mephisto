@@ -1,33 +1,21 @@
-import React, { Children } from "react";
+import React from "react";
 import { useMephistoTask, doesSupportWebsockets } from "./index";
 import { useMephistoSocket, CONNECTION_STATUS } from "./socket_handler.jsx";
 
 /* ================= Agent State Constants ================= */
 
-const STATUS_NONE = "none";
-const STATUS_ONBOARDING = "onboarding";
-const STATUS_WAITING = "waiting";
-const STATUS_IN_TASK = "in task";
-const STATUS_DONE = "done";
-const STATUS_DISCONNECT = "disconnect";
-const STATUS_TIMEOUT = "timeout";
-const STATUS_PARTNER_DISCONNECT = "partner disconnect";
-const STATUS_EXPIRED = "expired";
-const STATUS_RETURNED = "returned";
-const STATUS_MEPHISTO_DISCONNECT = "mephisto disconnect";
-
-const STATUS = {
-  STATUS_NONE,
-  STATUS_ONBOARDING,
-  STATUS_WAITING,
-  STATUS_IN_TASK,
-  STATUS_DONE,
-  STATUS_DISCONNECT,
-  STATUS_TIMEOUT,
-  STATUS_PARTNER_DISCONNECT,
-  STATUS_EXPIRED,
-  STATUS_RETURNED,
-  STATUS_MEPHISTO_DISCONNECT,
+const AGENT_STATUS = {
+  NONE: "none",
+  ONBOARDING: "onboarding",
+  WAITING: "waiting",
+  IN_TASK: "in task",
+  DONE: "done",
+  DISCONNECT: "disconnect",
+  TIMEOUT: "timeout",
+  PARTNER_DISCONNECT: "partner disconnect",
+  EXPIRED: "expired",
+  RETURNED: "returned",
+  MEPHISTO_DISCONNECT: "mephisto disconnect",
 };
 
 const useMephistoLiveTask = function (props) {
@@ -37,9 +25,8 @@ const useMephistoLiveTask = function (props) {
 
   const taskProps = useMephistoTask();
   const socketProps = useMephistoSocket({
-    onStatusChange: (status) => {
-      setConnectionStatus(status);
-      //props.onStatusChange(status);
+    onConnectionStatusChange: (connectionStatus) => {
+      setConnectionStatus(connectionStatus);
     },
     onStateUpdate: ({ state, status }) => {
       setAgentState(state);
@@ -64,4 +51,9 @@ const useMephistoLiveTask = function (props) {
   };
 };
 
-export { useMephistoLiveTask, useMephistoSocket, STATUS, CONNECTION_STATUS };
+export {
+  useMephistoLiveTask,
+  useMephistoSocket,
+  AGENT_STATUS,
+  CONNECTION_STATUS,
+};

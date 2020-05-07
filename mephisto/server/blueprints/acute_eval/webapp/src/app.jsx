@@ -21,31 +21,28 @@ function MainApp() {
     blockedReason,
     taskConfig,
     isPreview,
-    agentId,
-    taskData,
+    isLoading,
+    initialTaskData,
     handleSubmit,
   } = useMephistoTask();
 
   if (blockedReason !== null) {
     return <h1>{getBlockedExplanation(blockedReason)}</h1>;
   }
-  if (taskConfig === null) {
-    return <div>Initializing...</div>;
-  }
   if (isPreview) {
     return <TaskDescription task_config={taskConfig} is_cover_page={true} />;
   }
-  if (agentId === null) {
+  if (isLoading) {
     return <div>Initializing...</div>;
   }
-  if (taskData === null) {
+  if (initialTaskData === null) {
     return <h1>Gathering data...</h1>;
   }
 
   return (
     <div>
       <BaseFrontend
-        task_data={taskData}
+        task_data={initialTaskData}
         task_config={taskConfig}
         onSubmit={handleSubmit}
       />

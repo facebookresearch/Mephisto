@@ -37,7 +37,7 @@ const useMephistoTask = function () {
     isPreview: isPreview,
     previewHtml: null,
     blockedReason: null,
-    taskData: null,
+    initialTaskData: null,
     completed: false,
   };
 
@@ -67,7 +67,7 @@ const useMephistoTask = function () {
       setState({ blockedReason: "null_agent_id" });
     } else {
       getInitTaskData(workerId, agentId).then((packet) => {
-        setState({ taskData: packet.data.init_data, completed: true })
+        setState({ initialTaskData: packet.data.init_data, completed: true });
       });
     }
   }
