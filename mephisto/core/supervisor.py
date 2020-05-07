@@ -665,7 +665,10 @@ class Supervisor:
             receiver_id=agent_info.agent.get_agent_id(),
             data={
                 'status': agent_info.agent.db_status,
-                'state': {"done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status)}
+                'state': {
+                    "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
+                    "task_done": agent_info.agent.db_status == AgentState.STATUS_PARTNER_DISCONNECT,
+                }
             },
         )
         channel_info = self.channels[agent_info.used_channel_id]

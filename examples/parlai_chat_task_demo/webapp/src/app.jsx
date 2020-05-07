@@ -78,9 +78,6 @@ function MainApp() {
     connectionStatus,
   } = useMephistoLiveTask({
     onStateUpdate: ({ state, status }) => {
-      console.log(`[Event] State updated. [Status: ${status}]`);
-      console.table(state);
-
       if (state.task_done) {
         setChatState("done");
       } else if (
@@ -99,16 +96,11 @@ function MainApp() {
       }
     },
     onMessageReceived: (message) => {
-      console.log(`[Event] Message received`);
-
       const { task_data, ...messageProps } = message;
-      console.table(messageProps);
-      console.table(task_data);
 
       if (message.text === undefined) {
         message.text = "";
       }
-      addMessage(message);
 
       // Task data handling
       if (message.task_data !== undefined) {
@@ -123,6 +115,8 @@ function MainApp() {
         message.task_data.has_context = has_context;
         updateContext(message.task_data);
       }
+
+      addMessage(message);
     },
   });
 
@@ -154,7 +148,6 @@ function MainApp() {
   }
   return (
     <div>
-      {/* <InsertRequiredSocketComponent /> */}
       <BaseFrontend
         task_config={taskConfig}
         chat_state={chatState}
@@ -168,8 +161,6 @@ function MainApp() {
         task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
         // agentState={agentState}
         onMessageSend={(text, task_data) => {
-          console.log(`[Event] Message sent`);
-          console.table(task_data);
           return sendMessage(text, task_data)
             .then((msg) => {
               addMessage(msg);

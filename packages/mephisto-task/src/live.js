@@ -150,7 +150,6 @@ const useMephistoLiveTask = function (props) {
       props.onStateUpdate({ state, status });
     },
     onMessageReceived: (message) => {
-      console.log(message);
       props.onMessageReceived(message);
     },
   });
