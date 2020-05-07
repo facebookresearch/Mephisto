@@ -93,6 +93,7 @@ function MainApp() {
         setChatState("inactive");
       } else if (state.wants_act) {
         setChatState("text_input");
+        playNotifSound();
       }
     },
     onMessageReceived: (message) => {
@@ -123,13 +124,6 @@ function MainApp() {
       connect(agentId);
     }
   }, [agentId]);
-
-  const wantsAct = agentState ? agentState.wants_act : false;
-  React.useEffect(() => {
-    if (wantsAct) {
-      playNotifSound();
-    }
-  }, [wantsAct]);
 
   if (blockedReason !== null) {
     return <h1>{getBlockedExplanation(blockedReason)}</h1>;
