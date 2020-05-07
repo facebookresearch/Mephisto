@@ -31,10 +31,10 @@ const useMephistoLiveTask = function (props) {
     onStateUpdate: ({ state, status }) => {
       setAgentState(state);
       setAgentStatus(status);
-      props.onStateUpdate({ state, status });
+      props.onStateUpdate && props.onStateUpdate({ state, status });
     },
     onMessageReceived: (message) => {
-      props.onMessageReceived(message);
+      props.onMessageReceived && props.onMessageReceived(message);
     },
   });
 
