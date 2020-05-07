@@ -42,7 +42,6 @@ function TaskPreviewView({ taskConfig }) {
 }
 
 function MainApp() {
-  const [volume, setVolume] = React.useState(1);
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
     {}
@@ -58,7 +57,7 @@ function MainApp() {
 
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
-    audio.volume = volume;
+    audio.volume = appState.volume;
     audio.play();
   }
 
