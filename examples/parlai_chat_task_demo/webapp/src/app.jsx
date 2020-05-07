@@ -52,12 +52,12 @@ function MainApp() {
     []
   );
 
-  const [appState, setAppState] = React.useState({ volume: 1 });
+  const [appSettings, setAppSettings] = React.useState({ volume: 1 });
   const [chatState, setChatState] = React.useState("waiting");
 
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
-    audio.volume = appState.volume;
+    audio.volume = appSettings.volume;
     audio.play();
   }
 
@@ -164,8 +164,8 @@ function MainApp() {
           destroy();
           handleSubmit({});
         }}
-        volume={appState.volume}
-        onVolumeChange={(v) => setAppState({ volume: v })}
+        volume={appSettings.volume}
+        onVolumeChange={(v) => setAppSettings({ volume: v })}
         display_feedback={false}
       />
     </div>
