@@ -42,7 +42,6 @@ function TaskPreviewView({ taskConfig }) {
 }
 
 function MainApp() {
-  console.log("rendering!");
   const [volume, setVolume] = React.useState(1);
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
@@ -79,6 +78,9 @@ function MainApp() {
     connectionStatus,
   } = useMephistoLiveTask({
     onStateUpdate: ({ state, status }) => {
+      console.log(`[Event] State updated. [Status: ${status}]`);
+      console.table(state);
+
       if (state.task_done) {
         setChatState("done");
       } else if (
@@ -97,6 +99,12 @@ function MainApp() {
       }
     },
     onMessageReceived: (message) => {
+      console.log(`[Event] Message received`);
+
+      const { task_data, ...messageProps } = message;
+      console.table(messageProps);
+      console.table(task_data);
+
       if (message.text === undefined) {
         message.text = "";
       }
@@ -160,9 +168,13 @@ function MainApp() {
         task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
         // agentState={agentState}
         onMessageSend={(text, task_data) => {
-          return sendMessage(text, task_data).then((msg) => {
-            addMessage(msg);
-          });
+          console.log(`[Event] Message sent`);
+          console.table(task_data);
+          return sendMessage(text, task_data)
+            .then((msg) => {
+              addMessage(msg);
+            })
+            .then(() => setChatState("waiting"));
         }} // TODO we're using a slightly different format, need to package ourselves
         socket_status={connectionStatus} // TODO coalesce with the initialization status
         messages={messages}

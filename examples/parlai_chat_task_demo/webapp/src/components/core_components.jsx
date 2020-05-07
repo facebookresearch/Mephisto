@@ -79,7 +79,7 @@ class MessageList extends React.Component {
     let onClickMessage = this.props.onClickMessage;
     if (typeof onClickMessage !== "function") {
       onClickMessage = (idx) => {
-        alert("You've clicked on message number: " + idx);
+        // alert("You've clicked on message number: " + idx);
       };
     }
     return messages.map((m, idx) => (
