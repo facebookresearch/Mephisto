@@ -33,7 +33,7 @@ function MyApp() {
         agentId,
         assignmentId,
 
-        taskData,
+        initialTaskData,
         handleSubmit,
         isPreview,
         previewHtml,
@@ -66,7 +66,7 @@ Example:
 ### `agentId`
 ### `assignmentId`
 
-### `taskData`
+### `initialTaskData`
 
 The initial data to populate your task with. The crowdworker will use this data to perform their action.
 
