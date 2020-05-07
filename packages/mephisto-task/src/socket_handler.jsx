@@ -44,7 +44,7 @@ const CONNECTION_STATUS = {
 const SEND_THREAD_REFRESH = 100;
 const CONNECTION_DEAD_MEPHISTO_PING = 20 * 1000; // A minute of downtime is death
 const REFRESH_SOCKET_MISSED_RESPONSES = 5;
-const HEARTBEAT_TIME = 10 * 1000; // How often to send a heartbeat
+const HEARTBEAT_TIME = 6 * 1000; // How often to send a heartbeat
 const ROUTER_DEAD_TIMEOUT = 10; // Failed heartbeats before checking server
 // TODO rework server connectivity functionality.
 

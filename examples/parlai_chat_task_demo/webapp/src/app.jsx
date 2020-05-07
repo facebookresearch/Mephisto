@@ -155,15 +155,14 @@ function MainApp() {
         task_done={agentState?.task_done} // TODO: remove after agentState refactor
         agent_display_name={agentState?.agent_display_name} // TODO: remove after agentState refactor
         task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
-        // agentState={agentState}
         onMessageSend={(text, task_data) => {
           return sendMessage(text, task_data)
             .then((msg) => {
               addMessage(msg);
             })
             .then(() => setChatState("waiting"));
-        }} // TODO we're using a slightly different format, need to package ourselves
-        connection_status={connectionStatus} // TODO coalesce with the initialization status
+        }}
+        connection_status={connectionStatus}
         messages={messages}
         agent_id={agentId}
         task_description={taskConfig.task_description} // TODO coalescs taskConfig
