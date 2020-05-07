@@ -479,11 +479,12 @@ class ChatPane extends React.Component {
     let top_pane_style = {
       width: "100%",
       position: "relative",
+      height: this.state.chat_height + "px",
     };
 
     let chat_style = {
       width: "100%",
-      height: "100%",
+      height: this.state.chat_height + "px",
       paddingTop: "60px",
       paddingLeft: "20px",
       paddingRight: "20px",
@@ -494,8 +495,6 @@ class ChatPane extends React.Component {
     window.setTimeout(() => {
       this.handleResize();
     }, 10);
-
-    top_pane_style["height"] = this.state.chat_height + "px";
 
     let wait_message = null;
     // console.log('Should be making waiting message?');

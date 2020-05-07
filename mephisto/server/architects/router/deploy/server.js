@@ -240,6 +240,20 @@ function handle_possible_disconnect(agent) {
   setTimeout(() => _followup_possible_disconnect(agent), FAILED_RECONNECT_TIME);
 }
 
+function send_status_for_agent(agent_id) {
+  let agent = find_or_create_agent(agent_id);
+  let packet = {
+    packet_type: PACKET_TYPE_UPDATE_AGENT_STATUS,
+    sender_id: SERVER_SOCKET_ID,
+    receiver_id: agent_id,
+    data: {
+      status: agent.status,
+      state: agent.state,
+    },
+  };
+  handle_forward(packet);
+}
+
 // Register handlers
 wss.on('connection', function(socket) {
   socket.id = uuidv4();
@@ -270,10 +284,11 @@ wss.on('connection', function(socket) {
         handle_get_agent_status(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_AGENT_ACTION) {
         debug_log('Agent action: ', packet);
+        handle_forward(packet);
         if (packet.receiver_id == SYSTEM_SOCKET_ID) {
           update_wanted_acts(packet.sender_id, false);
+          send_status_for_agent(packet.sender_id);
         }
-        handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_ALIVE) {
         debug_log('Agent alive: ', packet);
         handle_alive(socket, packet);
@@ -286,13 +301,7 @@ wss.on('connection', function(socket) {
         debug_log('Requesting act', packet);
         update_wanted_acts(packet.receiver_id, true);
         let agent_id = packet["receiver_id"];
-        let agent = find_or_create_agent(agent_id);
-        packet['packet_type'] = PACKET_TYPE_UPDATE_AGENT_STATUS
-        packet['data'] = {
-          'status': agent.status,
-          'state': agent.state,
-        }
-        handle_forward(packet);
+        send_status_for_agent(agent_id);
       } else if (
         packet['packet_type'] == PACKET_TYPE_PROVIDER_DETAILS ||
         packet['packet_type'] == PACKET_TYPE_INIT_DATA

@@ -45,7 +45,7 @@ export function doesSupportWebsockets() {
 
 // Sends a request to get the task_config
 export function getTaskConfig() {
-  return fetch("/task_config.json");
+  return fetch("/task_config.json").then((res) => res.json());
 }
 
 export function postProviderRequest(endpoint, data) {
