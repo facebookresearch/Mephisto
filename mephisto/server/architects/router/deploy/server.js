@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const DEBUG = false;
+const DEBUG = true;
 
 // TODO add some testing to launch this server and communicate with it
 
@@ -235,6 +235,7 @@ function _followup_possible_disconnect(agent) {
 
 function handle_possible_disconnect(agent) {
   agent.is_alive = false;
+
   // Give the agent some time to possibly reconnect
   setTimeout(() => _followup_possible_disconnect(agent), FAILED_RECONNECT_TIME);
 }
@@ -303,7 +304,7 @@ wss.on('connection', function(socket) {
         let res_obj = pending_provider_requests[request_id];
         if (res_obj) {
           res_obj.json(packet);
-          delete pending_provider_requests[request_id]
+          delete pending_provider_requests[request_id];
         }
       } else if (packet['packet_type'] == PACKET_TYPE_HEARTBEAT) {
         packet['data'] = {last_mephisto_ping: last_mephisto_ping};
@@ -344,6 +345,9 @@ function main_thread() {
   // Handle active connections message sends
   for (const agent_id in agent_id_to_socket) {
     let agent_state = agent_id_to_agent[agent_id];
+    if (!agent_state.is_alive) {
+      continue;
+    }
     let sendable_messages = agent_state.get_sendable_messages();
     if (sendable_messages.length > 0) {
       let socket = agent_id_to_socket[agent_id];

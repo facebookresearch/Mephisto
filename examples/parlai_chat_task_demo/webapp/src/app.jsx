@@ -42,16 +42,19 @@ function TaskPreviewView({ taskConfig }) {
 }
 
 function MainApp() {
+  console.log("rendering!");
   const [volume, setVolume] = React.useState(1);
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
     {}
   );
 
+  const [messages, addMessage] = React.useReducer(
+    (allMessages, newMessage) => [...allMessages, newMessage],
+    []
+  );
+
   const [appState, setAppState] = React.useState({ volume: 1 });
-  const [serverStatus, setServerStatus] = React.useState("");
-  const [agentState, setAgentState] = React.useState(null);
-  const [agentStatus, setAgentStatus] = React.useState(null);
   const [chatState, setChatState] = React.useState("waiting");
 
   function playNotifSound() {
@@ -74,7 +77,6 @@ function MainApp() {
     agentState,
     agentStatus,
     connectionStatus,
-    messages,
   } = useMephistoLiveTask({
     onStateUpdate: ({ state, status }) => {
       if (state.task_done) {
@@ -94,6 +96,11 @@ function MainApp() {
       }
     },
     onMessageReceived: (message) => {
+      if (message.text === undefined) {
+        message.text = "";
+      }
+      addMessage(message);
+
       // Task data handling
       if (message.task_data !== undefined) {
         let has_context = false;

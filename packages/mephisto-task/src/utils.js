@@ -66,6 +66,7 @@ export function registerWorker() {
 
 // Sends a request to get the initial task data
 export function getInitTaskData(mephisto_worker_id, agent_id) {
+  console.log("getInitTaskData called")
   return postProviderRequest("/initial_task_data", {
     mephisto_worker_id: mephisto_worker_id,
     agent_id: agent_id,

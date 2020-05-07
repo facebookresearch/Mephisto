@@ -137,16 +137,12 @@ const useMephistoLiveTask = function (props) {
   const [agentState, setAgentState] = React.useState(null);
   const [agentStatus, setAgentStatus] = React.useState(null);
 
-  const [messages, addMessage] = React.useReducer(
-    (allMessages, newMessage) => [...allMessages, newMessage],
-    []
-  );
 
   const taskProps = useMephistoTask();
   const socketProps = useMephistoSocket({
     onStatusChange: (status) => {
       setConnectionStatus(status);
-      props.onStatusChange(status);
+      //props.onStatusChange(status);
     },
     onStateUpdate: ({ state, status }) => {
       setAgentState(state);
@@ -154,10 +150,7 @@ const useMephistoLiveTask = function (props) {
       props.onStateUpdate({ state, status });
     },
     onMessageReceived: (message) => {
-      if (message.text === undefined) {
-        message.text = "";
-      }
-      addMessage(message);
+      console.log(message);
       props.onMessageReceived(message);
     },
   });
@@ -172,7 +165,6 @@ const useMephistoLiveTask = function (props) {
     connectionStatus,
     agentState,
     agentStatus,
-    messages,
   };
 };
 

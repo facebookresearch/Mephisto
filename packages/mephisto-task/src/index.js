@@ -49,6 +49,7 @@ const useMephistoTask = function () {
   );
 
   function handleIncomingTaskConfig(taskConfig) {
+    console.log("HandleIncomingTaskConfig", taskConfig)
     if (taskConfig.block_mobile && isMobile()) {
       setState({ blockedReason: "no_mobile" });
     } else if (!state.isPreview) {
@@ -57,6 +58,7 @@ const useMephistoTask = function () {
     setState({ taskConfig: taskConfig });
   }
   function afterAgentRegistration(workerId, dataPacket) {
+    console.log("afterAgentRegistration", dataPacket)
     const agentId = dataPacket.data.agent_id;
 
     setState({ agentId: agentId });
@@ -66,9 +68,10 @@ const useMephistoTask = function () {
     if (agentId === null) {
       setState({ blockedReason: "null_agent_id" });
     } else {
-      getInitTaskData(workerId, agentId).then((packet) =>
+      getInitTaskData(workerId, agentId).then((packet) => {
         setState({ taskData: packet.data.init_data, completed: true })
-      );
+        console.log("Init data packet:", packet)
+      });
     }
   }
   function afterWorkerRegistration(dataPacket) {
@@ -90,7 +93,7 @@ const useMephistoTask = function () {
 
   return {
     ...state,
-    isLoading: state.agentId === null || taskConfig === null,
+    isLoading: state.agentId === null || state.taskConfig === null,
     handleSubmit,
   };
 };

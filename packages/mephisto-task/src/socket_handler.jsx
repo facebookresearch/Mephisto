@@ -237,6 +237,7 @@ class SocketHandler extends React.Component {
    **/
 
   parseSocketMessage(packet) {
+    console.log(packet);
     if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
       this.props.onNewData(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATE) {
@@ -644,6 +645,7 @@ function useMephistoSocket({
     if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
       onMessageReceived(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATE) {
+      console.log(packet);
       onStateUpdate(packet.data); // Update packet {state: {}, status: "<>"}
       // TODO: Document that is_final is what closes the socket
       if (packet.data.state.is_final) {
