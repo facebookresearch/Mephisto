@@ -157,7 +157,6 @@ function MainApp() {
         done_text={agentState?.done_text} // TODO: remove after agentState refactor
         task_done={agentState?.task_done} // TODO: remove after agentState refactor
         agent_display_name={agentState?.agent_display_name} // TODO: remove after agentState refactor
-        taskData={taskData}
         task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
         // agentState={agentState}
         onMessageSend={(text, task_data) => {
@@ -167,13 +166,12 @@ function MainApp() {
             })
             .then(() => setChatState("waiting"));
         }} // TODO we're using a slightly different format, need to package ourselves
-        socket_status={connectionStatus} // TODO coalesce with the initialization status
+        connection_status={connectionStatus} // TODO coalesce with the initialization status
         messages={messages}
         agent_id={agentId}
         task_description={taskConfig.task_description} // TODO coalescs taskConfig
         frame_height={taskConfig.frame_height} // TODO coalescs taskConfig
         chat_title={taskConfig.chat_title} // TODO coalescs taskConfig
-        initialization_status={connectionStatus} // TODO remove and just have one server status
         world_state={agentStatus}
         allDoneCallback={() => handleSubmit({})}
         volume={appState.volume}

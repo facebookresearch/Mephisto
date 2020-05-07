@@ -27,6 +27,7 @@ import {
 } from "react-bootstrap";
 import Slider from "rc-slider";
 import $ from "jquery";
+import { CONNECTION_STATUS } from "mephisto-task";
 
 import "rc-slider/assets/index.css";
 
@@ -114,21 +115,21 @@ class ConnectionIndicator extends React.Component {
       float: "right",
     };
     let text = "";
-    switch (this.props.socket_status) {
-      case "connected":
+    switch (this.props.connection_status) {
+      case CONNECTION_STATUS.CONNECTED:
         indicator_style["background"] = "#5cb85c";
         text = "connected";
         break;
-      case "reconnecting_router":
+      case CONNECTION_STATUS.RECONNECTING_ROUTER:
         indicator_style["background"] = "#f0ad4e";
         text = "reconnecting to router";
         break;
-      case "reconnecting_server":
+      case CONNECTION_STATUS.RECONNECTING_SERVER:
         indicator_style["background"] = "#f0ad4e";
         text = "reconnecting to server";
         break;
-      case "disconnected_server":
-      case "disconnected_router":
+      case CONNECTION_STATUS.DISCONNECTED_SERVER:
+      case CONNECTION_STATUS.DISCONNECTED_ROUTER:
       default:
         indicator_style["background"] = "#d9534f";
         text = "disconnected";
@@ -1310,9 +1311,13 @@ class BaseFrontend extends React.Component {
           <LeftPane {...this.props} />
         </div>
       );
-    } else if (this.props.initialization_status == "initializing") {
+    } else if (
+      this.props.connection_status === CONNECTION_STATUS.INITIALIZING
+    ) {
       content = <div id="ui-placeholder">Initializing...</div>;
-    } else if (this.props.initialization_status == "websockets_failure") {
+    } else if (
+      this.props.connection_status === CONNECTION_STATUS.WEBSOCKETS_FAILURE
+    ) {
       content = (
         <div id="ui-placeholder">
           Sorry, but we found that your browser does not support WebSockets.
@@ -1320,7 +1325,7 @@ class BaseFrontend extends React.Component {
           different browser and check this HIT again.
         </div>
       );
-    } else if (this.props.initialization_status == "failed") {
+    } else if (this.props.connection_status == CONNECTION_STATUS.FAILED) {
       content = (
         <div id="ui-placeholder">
           Unable to initialize. We may be having issues with our servers. Please
