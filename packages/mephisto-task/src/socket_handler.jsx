@@ -32,7 +32,7 @@ const PACKET_TYPE_AGENT_ACTION = "agent_action";
 const SEND_THREAD_REFRESH = 100;
 const CONNECTION_DEAD_MEPHISTO_PING = 20 * 1000; // A minute of downtime is death
 const REFRESH_SOCKET_MISSED_RESPONSES = 5;
-const HEARTBEAT_TIME = 6000; // One heartbeat every so often
+const HEARTBEAT_TIME = 10 * 1000; // One heartbeat every so often
 const ROUTER_DEAD_TIMEOUT = 10; // Failed heartbeats before checking server
 // TODO rework server connectivity functionality.
 
@@ -645,7 +645,6 @@ function useMephistoSocket({
     if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
       onMessageReceived(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATE) {
-      console.log(packet);
       onStateUpdate(packet.data); // Update packet {state: {}, status: "<>"}
       // TODO: Document that is_final is what closes the socket
       if (packet.data.state.is_final) {
