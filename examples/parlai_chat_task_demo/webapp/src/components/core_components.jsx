@@ -86,8 +86,13 @@ class MessageList extends React.Component {
     return messages.map((m, idx) => (
       <div key={m.message_id + "-" + idx} onClick={() => onClickMessage(idx)}>
         <ChatMessage
-          is_self={m.id == agent_id || m.id == this.props.agent_display_name}
-          agent_id={m.id == agent_id ? this.props.agent_display_name : m.id}
+          is_self={
+            m.id == agent_id ||
+            m.id == this.props.agent_state.agent_display_name
+          }
+          agent_id={
+            m.id == agent_id ? this.props.agent_state.agent_display_name : m.id
+          }
           message={m.text}
           task_data={m.task_data}
           message_id={m.message_id}
@@ -425,7 +430,7 @@ class WaitingMessage extends React.Component {
       backgroundColor: "#fff",
     };
     let text = "Waiting for the next person to speak...";
-    if (this.props.world_state == "waiting") {
+    if (this.props.agent_status == "waiting") {
       text = "Waiting to pair with a task...";
     }
     return (
@@ -466,7 +471,7 @@ class ChatPane extends React.Component {
     if (entry_pane !== undefined) {
       bottom_height = entry_pane.scrollHeight;
     }
-    return this.props.frame_height - bottom_height;
+    return this.props.task_config.frame_height - bottom_height;
   }
 
   handleResize() {
@@ -757,10 +762,10 @@ class DoneResponse extends React.Component {
 
   render() {
     let inactive_pane = null;
-    if (this.props.done_text) {
+    if (this.props.agent_state.done_text) {
       inactive_pane = (
         <span id="inactive" style={{ fontSize: "14pt", marginRight: "15px" }}>
-          {this.props.done_text}
+          {this.props.agent_state.done_text}
         </span>
       );
     }
@@ -773,7 +778,7 @@ class DoneResponse extends React.Component {
       float: "left",
     };
     let done_button = <DoneButton {...this.props} />;
-    if (!this.props.task_done) {
+    if (!this.props.agent_state.task_done) {
       done_button = null;
     }
     return (
@@ -1128,8 +1133,9 @@ class RightPane extends React.Component {
 
 class CustomTaskDescription extends React.Component {
   render() {
-    let header_text = this.props.chat_title;
-    let task_desc = this.props.task_description || "Task Description Loading";
+    let header_text = this.props.task_config.chat_title;
+    let task_desc =
+      this.props.task_config.task_description || "Task Description Loading";
     return (
       <div>
         <h1>{header_text}</h1>
@@ -1205,7 +1211,7 @@ class LeftPane extends React.Component {
   }
 
   render() {
-    let frame_height = this.props.frame_height;
+    let frame_height = this.props.task_config.frame_height;
     let frame_style = {
       height: frame_height + "px",
       backgroundColor: "#dff0d8",

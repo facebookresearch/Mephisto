@@ -68,9 +68,9 @@ function MainApp() {
     isPreview,
     isLoading,
     agentId,
-    mephistoWorkerId,
     handleSubmit,
     connect,
+    destroy,
     sendMessage,
     agentState,
     agentStatus,
@@ -149,12 +149,11 @@ function MainApp() {
         task_config={taskConfig}
         chat_state={chatState}
         agent_id={agentId}
-        mephisto_worker_id={mephistoWorkerId}
-        onSubmit={handleSubmit}
-        done_text={agentState?.done_text} // TODO: remove after agentState refactor
-        task_done={agentState?.task_done} // TODO: remove after agentState refactor
-        agent_display_name={agentState?.agent_display_name} // TODO: remove after agentState refactor
+        agent_status={agentStatus}
+        agent_state={agentState || {}}
+        connection_status={connectionStatus}
         task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
+        messages={messages}
         onMessageSend={(text, task_data) => {
           return sendMessage(text, task_data)
             .then((msg) => {
@@ -162,14 +161,10 @@ function MainApp() {
             })
             .then(() => setChatState("waiting"));
         }}
-        connection_status={connectionStatus}
-        messages={messages}
-        agent_id={agentId}
-        task_description={taskConfig.task_description} // TODO coalescs taskConfig
-        frame_height={taskConfig.frame_height} // TODO coalescs taskConfig
-        chat_title={taskConfig.chat_title} // TODO coalescs taskConfig
-        world_state={agentStatus}
-        allDoneCallback={() => handleSubmit({})}
+        allDoneCallback={() => {
+          destroy();
+          handleSubmit({});
+        }}
         volume={appState.volume}
         onVolumeChange={(v) => setAppState({ volume: v })}
         display_feedback={false}
