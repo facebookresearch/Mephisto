@@ -46,7 +46,6 @@ const CONNECTION_DEAD_MEPHISTO_PING = 20 * 1000; // A minute of downtime is deat
 const REFRESH_SOCKET_MISSED_RESPONSES = 5;
 const HEARTBEAT_TIME = 6 * 1000; // How often to send a heartbeat
 const ROUTER_DEAD_TIMEOUT = 10; // Failed heartbeats before checking server
-// TODO rework server connectivity functionality.
 
 /* ============== Priority Queue Data Structure ============== */
 
