@@ -91,8 +91,13 @@ class StaticAgentState(AgentState):
         """
         assert (
             packet.data.get("MEPHISTO_is_submit") is True
+            or packet.data.get("onboarding_data") is not None
         ), "Static tasks should only have final act"
-        self.state["outputs"] = packet.data["task_data"]
+
+        if packet.data.get("onboarding_data") is not None:
+            self.state["outputs"] = packet.data["onboarding_data"]
+        else:
+            self.state["outputs"] = packet.data["task_data"]
         times_dict = self.state["times"]
         # TODO(#013) this typing may be better handled another way
         assert isinstance(times_dict, dict)

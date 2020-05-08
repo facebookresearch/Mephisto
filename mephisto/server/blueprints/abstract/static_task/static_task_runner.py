@@ -15,7 +15,7 @@ from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit, InitializationData
-    from mephisto.data_model.agent import Agent
+    from mephisto.data_model.agent import Agent, OnboardingAgent
 
 
 SYSTEM_SENDER = "mephisto"  # TODO(CLEAN) pull from somewhere
@@ -47,6 +47,17 @@ class StaticTaskRunner(TaskRunner):
             assignment_data = self.get_data_for_assignment(assignment)
             agent.state.set_init_state(assignment_data.shared)
             return assignment_data.shared
+
+    def run_onboarding(self, agent: "OnboardingAgent"):
+        """
+        Static onboarding flows eaxactly like a regular task, waiting for
+        the submit to come through 
+        """
+        agent_act = agent.act(timeout=TEST_TIMEOUT)
+
+    def cleanup_onboarding(self, agent: "OnboardingAgent"):
+        """Nothing to clean up in a static onboarding"""
+        return
 
     def run_unit(self, unit: "Unit", agent: "Agent") -> None:
         """
