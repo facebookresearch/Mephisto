@@ -82,10 +82,8 @@ A boolean flag to be used to render a preview view for workers, e.g. on mTurk.
 
 ### `isLoading`
 
-Essentially a proxy for `agentId === null && taskConfig === null`.
 
-A boolean flag to be used to render a loading state while a task is handshaking with the Mephisto backend
-and initializing.
+A boolean flag to be used to render a loading state while a task is handshaking with the server backend and initializing. Once the initialTaskData is loaded, this will be set to `true`.
 
 ### `previewHtml`
 

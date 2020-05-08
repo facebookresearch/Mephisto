@@ -38,7 +38,7 @@ const useMephistoTask = function () {
     previewHtml: null,
     blockedReason: null,
     initialTaskData: null,
-    completed: false,
+    loaded: false,
   };
 
   const [state, setState] = React.useReducer(reducerFn, initialState);
@@ -67,7 +67,7 @@ const useMephistoTask = function () {
       setState({ blockedReason: "null_agent_id" });
     } else {
       getInitTaskData(workerId, agentId).then((packet) => {
-        setState({ initialTaskData: packet.data.init_data, completed: true });
+        setState({ initialTaskData: packet.data.init_data, loaded: true });
       });
     }
   }
@@ -90,7 +90,7 @@ const useMephistoTask = function () {
 
   return {
     ...state,
-    isLoading: state.agentId === null || state.taskConfig === null,
+    isLoading: !state.loaded,
     handleSubmit,
   };
 };
