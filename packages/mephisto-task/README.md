@@ -3,8 +3,6 @@
 ## Installation
 
 ```bash
-# Currently unsupported until the package is published to npm:
-
 npm install mephisto-task
 ```
 
