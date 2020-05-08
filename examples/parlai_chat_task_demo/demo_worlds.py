@@ -57,11 +57,14 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
             try:
                 acts[index] = agent.act(timeout=TURN_TIMEOUT_TIME)
                 if self.send_task_data:
-                    acts[index]["task_data"] = {
-                        "last_acting_agent": agent.agent_id,
-                        "current_dialogue_turn": self.current_turns,
-                        "utterance_count": self.current_turns + index,
-                    }
+                    acts[index].force_set(
+                        "task_data",
+                        {
+                            "last_acting_agent": agent.agent_id,
+                            "current_dialogue_turn": self.current_turns,
+                            "utterance_count": self.current_turns + index,
+                        },
+                    )
             except TypeError:
                 acts[index] = agent.act()  # not MTurkAgent
             if acts[index]["episode_done"]:

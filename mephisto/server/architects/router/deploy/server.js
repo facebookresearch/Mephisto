@@ -88,9 +88,8 @@ class LocalAgentState {
     this.status = STATUS_INIT;
     this.agent_id = agent_id;
     this.unsent_messages = [];
-    this.wants_act = false;
+    this.state = {wants_act: false, done_text: null};
     this.is_alive = false;
-    this.done_text = null;
   }
 
   get_sendable_messages() {
@@ -197,16 +196,23 @@ function handle_get_agent_status(status_packet) {
   mephisto_message_queue.push(packet);
 }
 
+function get_agent_state(agent_id) {
+  let agent = find_or_create_agent(agent_id);
+  return agent.state;
+}
+
 function handle_update_local_status(status_packet) {
   let agent_id = status_packet.receiver_id;
   let agent = find_or_create_agent(agent_id);
-  agent.status = status_packet.data.agent_status;
-  agent.done_text = status_packet.data.done_text;
+  if (status_packet.data.status != undefined) {
+    agent.status = status_packet.data.status;
+  }
+  agent.state = Object.assign(agent.state, status_packet.data.state);
 }
 
 function update_wanted_acts(agent_id, wants_act) {
   let agent = find_or_create_agent(agent_id);
-  agent.wants_act = wants_act;
+  agent.state.wants_act = wants_act;
 }
 
 // Handle a message being sent to or from a frontend agent
@@ -229,8 +235,23 @@ function _followup_possible_disconnect(agent) {
 
 function handle_possible_disconnect(agent) {
   agent.is_alive = false;
+
   // Give the agent some time to possibly reconnect
   setTimeout(() => _followup_possible_disconnect(agent), FAILED_RECONNECT_TIME);
+}
+
+function send_status_for_agent(agent_id) {
+  let agent = find_or_create_agent(agent_id);
+  let packet = {
+    packet_type: PACKET_TYPE_UPDATE_AGENT_STATUS,
+    sender_id: SERVER_SOCKET_ID,
+    receiver_id: agent_id,
+    data: {
+      status: agent.status,
+      state: agent.state,
+    },
+  };
+  handle_forward(packet);
 }
 
 // Register handlers
@@ -260,26 +281,27 @@ wss.on('connection', function(socket) {
     try {
       packet = JSON.parse(packet);
       if (packet['packet_type'] == PACKET_TYPE_REQUEST_AGENT_STATUS) {
-        // console.log(packet);
         handle_get_agent_status(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_AGENT_ACTION) {
         debug_log('Agent action: ', packet);
+        handle_forward(packet);
         if (packet.receiver_id == SYSTEM_SOCKET_ID) {
           update_wanted_acts(packet.sender_id, false);
+          send_status_for_agent(packet.sender_id);
         }
-        handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_ALIVE) {
         debug_log('Agent alive: ', packet);
         handle_alive(socket, packet);
       } else if (packet['packet_type'] == PACKET_TYPE_UPDATE_AGENT_STATUS) {
         debug_log('Update agent status', packet);
-        if (packet.data.agent_status !== undefined) {
-          handle_update_local_status(packet);
-        }
+        handle_update_local_status(packet);
+        packet.data.state = get_agent_state(packet.receiver_id);
         handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_REQUEST_ACTION) {
+        debug_log('Requesting act', packet);
         update_wanted_acts(packet.receiver_id, true);
-        handle_forward(packet);
+        let agent_id = packet["receiver_id"];
+        send_status_for_agent(agent_id);
       } else if (
         packet['packet_type'] == PACKET_TYPE_PROVIDER_DETAILS ||
         packet['packet_type'] == PACKET_TYPE_INIT_DATA
@@ -291,7 +313,7 @@ wss.on('connection', function(socket) {
         let res_obj = pending_provider_requests[request_id];
         if (res_obj) {
           res_obj.json(packet);
-          delete pending_provider_requests[request_id]
+          delete pending_provider_requests[request_id];
         }
       } else if (packet['packet_type'] == PACKET_TYPE_HEARTBEAT) {
         packet['data'] = {last_mephisto_ping: last_mephisto_ping};
@@ -302,8 +324,7 @@ wss.on('connection', function(socket) {
         if (agent !== undefined) {
           agent.is_alive = true;
           packet.data.status = agent.status;
-          packet.data.wants_act = agent.wants_act;
-          packet.data.done_text = agent.done_text;
+          packet.data.state = agent.state;
           if (agent_id_to_socket[agent.agent_id] != socket) {
             // Not communicating to the correct socket, update
             debug_log('Updating socket for ', agent);
@@ -333,6 +354,9 @@ function main_thread() {
   // Handle active connections message sends
   for (const agent_id in agent_id_to_socket) {
     let agent_state = agent_id_to_agent[agent_id];
+    if (!agent_state.is_alive) {
+      continue;
+    }
     let sendable_messages = agent_state.get_sendable_messages();
     if (sendable_messages.length > 0) {
       let socket = agent_id_to_socket[agent_id];

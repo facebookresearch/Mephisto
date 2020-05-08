@@ -594,7 +594,15 @@ class Supervisor:
             receiver_id=channel_info.channel_id,
             data={"request_id": packet.data["request_id"], "init_data": unit_data},
         )
+
         self.message_queue.append(agent_data_packet)
+
+        if unit_data.get("raw_messages") is not None:
+            # TODO bring these into constants somehow
+            for message in unit_data.get("raw_messages"):
+                packet = Packet.from_dict(message)
+                packet.receiver_id = agent_id
+                agent_info.agent.pending_observations.append(packet)
 
     def _on_message(self, packet: Packet, channel_info: ChannelInfo):
         """Handle incoming messages from the channel"""
@@ -655,8 +663,12 @@ class Supervisor:
             sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.get_agent_id(),
             data={
-                "agent_status": agent_info.agent.db_status,
-                "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
+                "status": agent_info.agent.db_status,
+                "state": {
+                    "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
+                    "task_done": agent_info.agent.db_status
+                    == AgentState.STATUS_PARTNER_DISCONNECT,
+                },
             },
         )
         channel_info = self.channels[agent_info.used_channel_id]
@@ -679,8 +691,11 @@ class Supervisor:
             sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.get_agent_id(),
             data={
-                "agent_status": "completed",
-                "done_text": "You have completed this task. Please submit.",
+                "status": "completed",
+                "state": {
+                    "done_text": "You have completed this task. Please submit.",
+                    "task_done": True,
+                },
             },
         )
         channel_info = self.channels[agent_info.used_channel_id]
