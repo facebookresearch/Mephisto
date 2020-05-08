@@ -54,7 +54,7 @@ const useMephistoTask = function () {
     } else if (!state.isPreview) {
       registerWorker().then((data) => afterWorkerRegistration(data));
     }
-    setState({ taskConfig: taskConfig });
+    setState({ taskConfig: taskConfig, loaded: isPreview });
   }
   function afterAgentRegistration(workerId, dataPacket) {
     const agentId = dataPacket.data.agent_id;
