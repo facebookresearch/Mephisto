@@ -23,6 +23,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+from uuid import uuid4
 
 from typing import ClassVar, List, Type, Any, Dict, Union, TYPE_CHECKING
 
@@ -85,6 +86,8 @@ class MephistoAgentWrapper(ParlAIAgent):
         """
         ParlAI Agents observe a dict, we must convert these to  packets?
         """
+        if act.get('message_id') is None:
+            act['message_id'] = str(uuid4())
         packaged_act = Packet(
             packet_type=PACKET_TYPE_AGENT_ACTION,
             sender_id="mephisto",
