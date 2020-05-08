@@ -80,7 +80,7 @@ class MessageList extends React.Component {
     let onClickMessage = this.props.onClickMessage;
     if (typeof onClickMessage !== "function") {
       onClickMessage = (idx) => {
-        // alert("You've clicked on message number: " + idx);
+        alert("You've clicked on message number: " + idx);
       };
     }
     return messages.map((m, idx) => (
@@ -88,10 +88,10 @@ class MessageList extends React.Component {
         <ChatMessage
           is_self={
             m.id == agent_id ||
-            m.id == this.props.agent_state.agent_display_name
+            (m.id in this.props.displayNames)
           }
           agent_id={
-            m.id == agent_id ? this.props.agent_state.agent_display_name : m.id
+            m.id in this.props.displayNames ? this.props.displayNames[m.id] : m.id
           }
           message={m.text}
           task_data={m.task_data}
