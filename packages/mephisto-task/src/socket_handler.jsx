@@ -446,7 +446,6 @@ function useMephistoSocket({
   }
 
   return {
-    state: state,
     connect: connect,
     destroy: () => callbacks.current.closeSocket(),
     sendMessage: sendMessage,

@@ -18,9 +18,9 @@ cd <app folder>
 npm link mephisto-task
 ```
 
-## Usage
+## Usage (`useMephistoTask`)
 
-In your component, you can call `useMephistoTask`:
+In your component, you can call `useMephistoTask` for simple, static tasks or `useMephistoLiveTask` for multi-turn socket-based communications:
 
 ```jsx
 import { useMephistoTask } from "mephisto-task";
@@ -80,6 +80,13 @@ Essentially a proxy for `providerWorkerId === null && assignmentId === null`.
 
 A boolean flag to be used to render a preview view for workers, e.g. on mTurk.
 
+### `isLoading`
+
+Essentially a proxy for `agentId === null && taskConfig === null`.
+
+A boolean flag to be used to render a loading state while a task is handshaking with the Mephisto backend
+and initializing.
+
 ### `previewHtml`
 
 A preview HTML snippet to show for the task in preview mode.
@@ -99,4 +106,51 @@ const blockedReason = 'no_mobile':
 getBlockedExplanation(blockedReason)
 // returns -> "Sorry, this task cannot be completed on mobile devices. Please use a computer.
 
+```
+
+
+---
+
+## Usage (`useMephistoLiveTask`)
+
+```jsx
+import { useMephistoLiveTask } from "mephisto-task";
+
+function MyApp() {
+    const {
+        // This hook includes ALL of the props
+        // specified above with useMephistoTask,
+        // while also including the following:
+        connect,
+        destroy,
+        sendMessage
+
+        connectionStatus,
+        agentState,
+        agentStatus,
+    } = useMephistoLiveTask(
+        onConnectionStatusChange: (connectionStatus) => {
+            
+        },
+        onStateUpdate: ({state, status}) => {
+
+        },
+        onMessageReceived: (message) => {
+
+        },
+        config // optional overrides
+    );
+}
+```
+
+### Override options with the `config` object
+
+```js
+{
+    sendThreadRefresh /* = 100 */,    
+    heartbeatTime /* = 6000 */,
+    refreshSocketMissedResponses /* = 5 */,
+    routerDeadTimeout /* = 10 */,
+    connectionDeadMephistoPing /* = 20000 */
+}
 ```
