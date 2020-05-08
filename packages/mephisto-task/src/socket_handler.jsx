@@ -426,7 +426,6 @@ function useMephistoSocket({
         msg_id: uuidv4(),
         receiver_id: SERVER_SOCKET_ID,
         sender_id: state.agentId,
-        // data: { agent_status: this.props.agent_status },
       },
     });
     setState({
