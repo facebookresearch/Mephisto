@@ -1134,8 +1134,9 @@ class RightPane extends React.Component {
 
 class TaskDescription extends React.Component {
   render() {
-    let header_text = this.props.chat_title;
-    let task_desc = this.props.task_description || 'Task Description Loading';
+    let header_text = this.props.task_config.chat_title;
+    let task_desc =
+      this.props.task_config.task_description || "Task Description Loading";
     return (
       <div>
         <h1>{header_text}</h1>
