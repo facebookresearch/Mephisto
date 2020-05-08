@@ -676,7 +676,7 @@ class ReviewButtons extends React.Component {
                   reason: this.state.text,
                 };
                 this.props
-                  .onMessageSend("[PEER_REVIEW]", feedback_data)
+                  .onMessageSend({ text: "[PEER_REVIEW]", task_data: feedback_data })
                   .then(() => this.setState({ submitted: true }));
                 this.props.onChoice(true);
               }}
@@ -814,7 +814,7 @@ class TextResponse extends React.Component {
     if (this.state.textval != "" && this.props.active && !this.state.sending) {
       this.setState({ sending: true });
       this.props
-        .onMessageSend(this.state.textval, {})
+        .onMessageSend({ text: this.state.textval, task_data: {} })
         .then(() => this.setState({ textval: "", sending: false }));
     }
   }
@@ -934,7 +934,10 @@ class FormResponse extends React.Component {
     if (all_response_filled && this.props.active && !this.state.sending) {
       this.setState({ sending: true });
       this.props
-        .onMessageSend(response_text, { form_responses: response_data })
+        .onMessageSend({ 
+          text: response_text, 
+          task_data: { form_responses: response_data },
+        })
         .then(() => this.setState({ sending: false }));
       // clear answers once sent
       this.setState((prevState) => {

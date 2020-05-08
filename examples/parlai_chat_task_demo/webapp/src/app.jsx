@@ -153,8 +153,10 @@ function MainApp() {
         connection_status={connectionStatus}
         task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
         messages={messages}
-        onMessageSend={(text, task_data) => {
-          return sendMessage(text, task_data)
+        onMessageSend={(message) => {
+          message.id = agentId;
+          message.episode_done = agentState?.task_done || false; 
+          return sendMessage(message)
             .then((msg) => {
               addMessage(msg);
             })

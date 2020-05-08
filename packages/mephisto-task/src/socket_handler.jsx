@@ -252,19 +252,14 @@ function useMephistoSocket({
     queue.current.push(event, time);
   }
 
-  function sendMessage(text, task_data) {
-    let new_message_id = uuidv4();
+  function sendMessage(message) {
+    if (message.message_id === undefined) {
+      message.message_id = uuidv4();
+    }
     return new Promise((resolve) => {
       callbacks.current.enqueuePacket(
         PACKET_TYPE_AGENT_ACTION,
-        {
-          text: text,
-          task_data: task_data /* required */,
-          id: state.agentId /* required */,
-          message_id: new_message_id /* required */,
-          episode_done: false,
-          /* TODO: ^perhaps extract out of this library into client code */
-        },
+        message,
         (msg) => {
           resolve(msg.data);
         }
