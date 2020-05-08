@@ -37,6 +37,7 @@ function MyApp() {
         handleSubmit,
         isPreview,
         previewHtml,
+        isOnboarding,
         blockedReason,
     } = useMephistoTask();
 }
@@ -82,12 +83,15 @@ A boolean flag to be used to render a preview view for workers, e.g. on mTurk.
 
 ### `isLoading`
 
-
 A boolean flag to be used to render a loading state while a task is handshaking with the server backend and initializing. Once the initialTaskData is loaded, this will be set to `true`.
 
 ### `previewHtml`
 
 A preview HTML snippet to show for the task in preview mode.
+
+### `isOnboarding`
+
+A flag to determine if the current task data is from a real task or an onboarding task. Allows rendering different views for onboarding. Submission is still handled with `handleSubmit`.
 
 ### `blockedReason`
 
