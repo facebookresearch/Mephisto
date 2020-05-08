@@ -7,3 +7,11 @@
 .rt-th:focus {
   outline: none !important;
 }
+
+#ui-container {
+  display: flex;
+}
+
+#right-top-pane {
+  flex: 1;
+}

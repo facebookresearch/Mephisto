@@ -63,7 +63,7 @@ class MephistoAgentWrapper(ParlAIAgent):
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id="mephisto",
             receiver_id=self.__mephisto_agent_id,
-            data={"agent_display_name": new_agent_id},
+            data={"state": {"agent_display_name": new_agent_id}},
         )
         self.mephisto_agent.observe(packaged_act)
         self.__agent_id = new_agent_id

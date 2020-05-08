@@ -4,7 +4,8 @@
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
-    "dev": "webpack --mode development -q"
+    "dev": "webpack --mode development -q",
+    "dev:watch": "webpack --mode development -q --watch"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +30,7 @@
     "react-dom": "16.13.1"
   },
   "dependencies": {
+    "bowser": "^2.9.0",
     "fetch": "^1.1.0"
   }
 }

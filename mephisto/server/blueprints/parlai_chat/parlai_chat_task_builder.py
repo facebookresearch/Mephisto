@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 PARLAI_TASK_DIR = os.path.dirname(__file__)
-FRONTEND_SOURCE_DIR = os.path.join(PARLAI_TASK_DIR, "source")
+FRONTEND_SOURCE_DIR = os.path.join(PARLAI_TASK_DIR, "webapp")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
 BUILT_FILE = "done.built"
@@ -86,7 +86,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
         # Copy over the static files for this task:
         for fin_file in ["index.html", "notif.mp3"]:
             copied_static_file = os.path.join(
-                FRONTEND_SOURCE_DIR, "dev", "static", fin_file
+                FRONTEND_SOURCE_DIR, "src", "static", fin_file
             )
             target_path = os.path.join(target_resource_dir, fin_file)
             shutil.copy2(copied_static_file, target_path)

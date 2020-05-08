@@ -6,8 +6,8 @@ from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 
 USE_LOCAL = True
-DEMO_CUSTOM_BUNDLE = False
-USE_ONBOARDING = True
+DEMO_CUSTOM_BUNDLE = True
+USE_ONBOARDING = False
 
 db = LocalMephistoDB()
 
@@ -63,10 +63,10 @@ if USE_ONBOARDING:
 world_opt = {"num_turns": 3}
 
 if DEMO_CUSTOM_BUNDLE:
-    bundle_file_path = f"{TASK_DIRECTORY}/source/build/bundle.js"
+    bundle_file_path = f"{TASK_DIRECTORY}/webapp/build/bundle.js"
     assert os.path.exists(bundle_file_path), (
         "Must build the custom bundle with `npm install; npm run dev` from within "
-        f"the {TASK_DIRECTORY}/source directory in order to demo a custom bundle "
+        f"the {TASK_DIRECTORY}/webapp directory in order to demo a custom bundle "
     )
     world_opt["send_task_data"] = True
     ARG_STRING += f"--custom-source-bundle {bundle_file_path} "
