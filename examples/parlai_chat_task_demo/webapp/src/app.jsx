@@ -163,7 +163,6 @@ function MainApp() {
     return <div dangerouslySetInnerHTML={{ __html: previewHtml }} />;
   }
 
-  // Both onboarding
   return (
     <div>
       <BaseFrontend
