@@ -141,3 +141,15 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
             )
             for d in self._initialization_data_dicts
         ]
+
+    def validate_onboarding(
+        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
+    ) -> bool:
+        """
+        Check the incoming onboarding data and evaluate if the worker
+        has passed the qualification or not. Return True if the worker
+        has qualified.
+        """
+        data = onboarding_agent.state.get_data()
+        return data['outputs'].get('success', True)
+        

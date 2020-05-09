@@ -49,7 +49,7 @@ const useMephistoTask = function () {
     (data) => {
       if (state.isOnboarding) {
         postCompleteOnboarding(state.agentId, data).then((packet) => {
-          setState({ taskData: null, loaded: false });
+          setState({ initialTaskData: null, loaded: false });
           afterAgentRegistration(state.workerId, packet);
         })
       } else {
@@ -69,12 +69,12 @@ const useMephistoTask = function () {
   }
   function afterAgentRegistration(workerId, dataPacket) {
     const agentId = dataPacket.data.agent_id;
-    const isOnboarding = agentId.startsWith("onboarding");
+    const isOnboarding = agentId != null && agentId.startsWith("onboarding");
     setState({ agentId: agentId, isOnboarding: isOnboarding });
     if (agentId === null) {
       setState({ blockedReason: "null_agent_id" });
     } else if (isOnboarding) {
-      setState({ taskData: dataPacket.data.onboard_data, loaded: true  })
+      setState({ initialTaskData: dataPacket.data.onboard_data, loaded: true  })
     } else {
       getInitTaskData(workerId, agentId).then((packet) => {
         setState({ initialTaskData: packet.data.init_data, loaded: true });
