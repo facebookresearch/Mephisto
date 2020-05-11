@@ -21,6 +21,7 @@ from typing import Dict, Optional, List, Any, Tuple, NamedTuple, Type, TYPE_CHEC
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.requester import Requester
+from mephisto.data_model.blueprint import OnboardingRequired
 from mephisto.data_model.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.core.argparse_parser import get_default_arg_dict
@@ -30,6 +31,7 @@ from mephisto.core.registry import (
     get_crowd_provider_from_type,
     get_architect_from_type,
 )
+
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -214,6 +216,14 @@ class Operator:
             existing_qualifications.append(
                 make_qualification_dict(
                     task_args["block_qualification"], QUAL_NOT_EXIST, None
+                )
+            )
+        if task_args.get("onboarding_qualification") is not None:
+            existing_qualifications.append(
+                make_qualification_dict(
+                    OnboardingRequired.get_failed_qual(task_args["onboarding_qualification"]),
+                    QUAL_NOT_EXIST, 
+                    None,
                 )
             )
         task_args["qualifications"] = existing_qualifications
