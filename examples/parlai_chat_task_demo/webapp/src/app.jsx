@@ -145,7 +145,7 @@ function MainApp() {
     if (isOnboarding && agentStatus == AGENT_STATUS.WAITING) {
       handleSubmit();
     }
-  });
+  }, [isOnboarding, agentStatus]);
 
   if (blockedReason !== null) {
     return <h1>{getBlockedExplanation(blockedReason)}</h1>;
