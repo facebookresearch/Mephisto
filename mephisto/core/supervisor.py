@@ -473,7 +473,6 @@ class Supervisor:
             units, worker
         )
 
-
         if not worker_passed:
             # TODO(WISH) it may be worth investigating launching a dummy task for these
             # instances where a worker has failed onboarding, but the onboarding

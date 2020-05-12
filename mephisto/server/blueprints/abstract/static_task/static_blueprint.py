@@ -25,8 +25,14 @@ from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
+    from mephisto.data_model.blueprint import (
+        AgentState,
+        TaskRunner,
+        TaskBuilder,
+        OnboardingAgent,
+    )
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
@@ -151,5 +157,4 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
         has qualified.
         """
         data = onboarding_agent.state.get_data()
-        return data['outputs'].get('success', True)
-        
+        return data["outputs"].get("success", True)

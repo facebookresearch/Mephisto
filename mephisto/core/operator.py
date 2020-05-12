@@ -221,8 +221,10 @@ class Operator:
         if task_args.get("onboarding_qualification") is not None:
             existing_qualifications.append(
                 make_qualification_dict(
-                    OnboardingRequired.get_failed_qual(task_args["onboarding_qualification"]),
-                    QUAL_NOT_EXIST, 
+                    OnboardingRequired.get_failed_qual(
+                        task_args["onboarding_qualification"]
+                    ),
+                    QUAL_NOT_EXIST,
                     None,
                 )
             )

@@ -487,8 +487,8 @@ class OnboardingRequired(object):
 
     @staticmethod
     def get_failed_qual(qual_name: str) -> str:
-        '''Returns the wrapper for a qualification to represent failing an onboarding'''
-        return qual_name + '-failed'
+        """Returns the wrapper for a qualification to represent failing an onboarding"""
+        return qual_name + "-failed"
 
     def init_onboarding_config(self, task_run: "TaskRun", opts: Dict[str, Any]):
         self.onboarding_qualification_name: Optional[str] = opts.get(
@@ -507,14 +507,14 @@ class OnboardingRequired(object):
                 )
             else:
                 self.onboarding_qualification_id = found_qualifications[0].db_id
-            
+
             # We need to keep a separate qualification for failed onboarding
             # to push to a crowd provider in order to prevent workers
             # who have failed from being shown our task
-            self.onboarding_failed_name = self.get_failed_qual(self.onboarding_qualification_name)
-            found_qualifications = db.find_qualifications(
-                self.onboarding_failed_name
+            self.onboarding_failed_name = self.get_failed_qual(
+                self.onboarding_qualification_name
             )
+            found_qualifications = db.find_qualifications(self.onboarding_failed_name)
             if len(found_qualifications) == 0:
                 self.onboarding_failed_id = db.make_qualification(
                     self.onboarding_failed_name

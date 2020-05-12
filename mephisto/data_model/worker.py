@@ -149,7 +149,9 @@ class Worker(ABC):
             return False
         return True
 
-    def grant_qualification(self, qualification_name: str, value: int = 1, skip_crowd=False):
+    def grant_qualification(
+        self, qualification_name: str, value: int = 1, skip_crowd=False
+    ):
         """
         Grant a positive or negative qualification to this worker
 
