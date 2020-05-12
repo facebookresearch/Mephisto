@@ -147,6 +147,7 @@ class Worker(ABC):
             traceback.print_exc()
             print(f"Found error while trying to revoke qualification: {repr(e)}")
             return False
+        return True
 
     def grant_qualification(self, qualification_name: str, value: int = 1, skip_crowd=False):
         """
