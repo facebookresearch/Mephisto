@@ -101,7 +101,7 @@ export function getBlockedExplanation(reason) {
     no_websockets:
       "Sorry, your browser does not support the required version of websockets for this task. Please upgrade to a modern browser.",
     null_agent_id:
-      "Sorry, you have already worked on the maximum number of these tasks available to you",
+      "Sorry, you have already worked on the maximum number of these tasks available to you, or are no longer eligible to work on this task.",
     null_worker_id:
       "Sorry, you are not eligible to work on any available tasks.",
   };

@@ -460,7 +460,17 @@ class Supervisor:
         ), "Should only be registering from onboarding if onboarding is required and set"
         worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
         worker.grant_qualification(
-            blueprint.onboarding_qualification_name, int(worker_passed)
+            blueprint.onboarding_qualification_name, int(worker_passed), skip_crowd=True
+        )
+        if not worker_passed:
+            worker.grant_qualification(
+                blueprint.onboarding_failed_name, int(worker_passed)
+            )
+
+        # get the list of tentatively valid units
+        units = task_run.get_valid_units_for_worker(worker)
+        usable_units = channel_info.job.task_runner.filter_units_for_worker(
+            units, worker
         )
 
         if not worker_passed:
@@ -469,13 +479,8 @@ class Supervisor:
             # task still allowed submission of the failed data (no front-end validation)
             # units = [self.dummy_launcher.launch_dummy()]
             # self._assign_unit_to_agent(packet, channel_info, units)
-            pass
+            usable_units = []
 
-        # get the list of tentatively valid units
-        units = task_run.get_valid_units_for_worker(worker)
-        usable_units = channel_info.job.task_runner.filter_units_for_worker(
-            units, worker
-        )
         packet = self.onboarding_packets[onboarding_agent.get_agent_id()]
         self._try_send_agent_messages(onboarding_agent_info)
         self._send_status_update(onboarding_agent_info)

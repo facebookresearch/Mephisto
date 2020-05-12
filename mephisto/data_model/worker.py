@@ -147,8 +147,11 @@ class Worker(ABC):
             traceback.print_exc()
             print(f"Found error while trying to revoke qualification: {repr(e)}")
             return False
+        return True
 
-    def grant_qualification(self, qualification_name: str, value: int = 1):
+    def grant_qualification(
+        self, qualification_name: str, value: int = 1, skip_crowd=False
+    ):
         """
         Grant a positive or negative qualification to this worker
 
@@ -162,16 +165,17 @@ class Worker(ABC):
             )
         qualification = found_qualifications[0]
         self.db.grant_qualification(qualification.db_id, self.db_id, value=value)
-        try:
-            self.grant_crowd_qualification(qualification_name, value)
-            return True
-        except Exception as e:
-            # TODO(#93) logging
-            import traceback
+        if not skip_crowd:
+            try:
+                self.grant_crowd_qualification(qualification_name, value)
+                return True
+            except Exception as e:
+                # TODO(#93) logging
+                import traceback
 
-            traceback.print_exc()
-            print(f"Found error while trying to grant qualification: {repr(e)}")
-            return False
+                traceback.print_exc()
+                print(f"Found error while trying to grant qualification: {repr(e)}")
+                return False
 
     # Children classes can implement the following methods
 
