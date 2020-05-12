@@ -69,7 +69,7 @@ const useMephistoTask = function () {
   }
   function afterAgentRegistration(workerId, dataPacket) {
     const agentId = dataPacket.data.agent_id;
-    const isOnboarding = agentId != null && agentId.startsWith("onboarding");
+    const isOnboarding = agentId !== null && agentId.startsWith("onboarding");
     setState({ agentId: agentId, isOnboarding: isOnboarding });
     if (agentId === null) {
       setState({ blockedReason: "null_agent_id" });
