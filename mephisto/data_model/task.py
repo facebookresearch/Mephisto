@@ -213,9 +213,7 @@ class TaskRun:
         # TODO(#99) When we want to launch additional tasks, we'll need
         # a way to reset this cache
         if self.__unit_cache is None:
-            self.__unit_cache = self.db.find_units(
-                task_run_id=self.db_id,
-            )
+            self.__unit_cache = self.db.find_units(task_run_id=self.db_id)
         return self.__unit_cache
 
     def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
@@ -248,10 +246,10 @@ class TaskRun:
                     >= config.maximum_units_per_worker
                 ):
                     return []  # Currently at the maximum number of units for this task
-        
-        current_units: List["Unit"] = self.get_units()
+
+        task_units: List["Unit"] = self.get_units()
         unit_assigns: Dict[str, List["Unit"]] = {}
-        for unit in current_units:
+        for unit in task_units:
             assignment_id = unit.assignment_id
             if assignment_id not in unit_assigns:
                 unit_assigns[assignment_id] = []
