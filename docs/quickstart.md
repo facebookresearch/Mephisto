@@ -16,7 +16,16 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poet
 ### Step 1. Set up a requester
 
 ```
-$ mephisto register 
+$ mephisto register mturk \
+        --name:my_mturk_user \
+        --access-key-id:$ACCESS_KEY\
+        --secret-access-key:$SECRET_KEY
+AWS credentials successfully saved in ~/.aws/credentials file.
+
+Registered successfully.
+
 ```
 
 ### Step 2. Run your first task
+
+TODO: add here
