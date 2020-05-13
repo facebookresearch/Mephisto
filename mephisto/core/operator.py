@@ -242,16 +242,16 @@ class Operator:
                 "Non-list initialization data is not yet supported"
             )
 
-        launcher = TaskLauncher(self.db, task_run, initialization_data_array)
-        launcher.create_assignments()
-        launcher.launch_units(task_url)
-
         # Link the job together
         job = self.supervisor.register_job(
             architect, task_runner, provider, existing_qualifications
         )
         if self.supervisor.sending_thread is None:
             self.supervisor.launch_sending_thread()
+
+        launcher = TaskLauncher(self.db, task_run, initialization_data_array)
+        launcher.create_assignments()
+        launcher.launch_units(task_url)
 
         self._task_runs_tracked[task_run.db_id] = TrackedRun(
             task_run=task_run,
