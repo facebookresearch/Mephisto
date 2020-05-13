@@ -263,7 +263,7 @@ class TaskRun:
 
         # Cannot pair with self
         units: List["Unit"] = []
-        for unit_set in unit_assigns:
+        for unit_set in unit_assigns.values():
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
             if not any(is_self_set):
                 units += unit_set
