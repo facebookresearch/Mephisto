@@ -234,15 +234,22 @@ class TaskRun:
                     >= config.maximum_units_per_worker
                 ):
                     return []  # Currently at the maximum number of units for this task
-        import time
-        print("Before get assignments", time.time())
-        # TODO(WISH) if an agent has failed onboarding, can we give them a fake unit?
-        assignments = self.get_assignments()
-        print("After get assignments", time.time())
-        # Cannot pair with self
-        unit_assigns = [a.get_units() for a in assignments]
-        units: List["Unit"] = []
+        
+        print("Before get units", time.time())
+        current_units: List["Unit"] = self.db.find_units(
+            task_run_id=self.db_id,
+        )
         print("After get units", time.time())
+        unit_assigns: Dict[str, List["Unit"]] = {}
+        for unit in current_units:
+            assignment_id = unit.assignment_id
+            if assignment_id not in unit_assigns:
+                unit_assigns[assignment_id] = {}
+            unit_assigns[assignment_id].append(unit)
+        print("After organize units", time.time())
+
+        # Cannot pair with self
+        units: List["Unit"] = []
         for unit_set in unit_assigns:
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
             if not any(is_self_set):
