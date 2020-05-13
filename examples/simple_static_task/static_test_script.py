@@ -4,6 +4,7 @@ import shlex
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
+from mephisto.server.blueprints.static_task.static_blueprint import BLUEPRINT_TYPE
 
 USE_LOCAL = True
 
@@ -41,7 +42,7 @@ assert USE_LOCAL or requester_name.endswith(
 # requester.register()
 
 ARG_STRING = (
-    "--blueprint-type static "
+    f"--blueprint-type {BLUEPRINT_TYPE} "
     f"--architect-type {architect_type} "
     f"--requester-name {requester_name} "
     f'--task-title "\\"{task_title}\\"" '

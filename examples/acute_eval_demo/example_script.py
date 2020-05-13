@@ -9,7 +9,7 @@ import shlex
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
-
+from mephisto.server.blueprints.acute_eval.acute_eval_blueprint import BLUEPRINT_TYPE
 
 """
 Example script for running ACUTE-EVAL.
@@ -60,7 +60,7 @@ assert USE_LOCAL or requester_name.endswith(
 # requester.register()
 
 ARG_STRING = (
-    "--blueprint-type acute_eval "
+    f"--blueprint-type {BLUEPRINT_TYPE} "
     f"--architect-type {architect_type} "
     f"--requester-name {requester_name} "
     f'--task-title "\\"{task_title}\\"" '
