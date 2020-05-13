@@ -235,6 +235,7 @@ class TaskRun:
                 ):
                     return []  # Currently at the maximum number of units for this task
         
+        import time.time()
         print("Before get units", time.time())
         current_units: List["Unit"] = self.db.find_units(
             task_run_id=self.db_id,
