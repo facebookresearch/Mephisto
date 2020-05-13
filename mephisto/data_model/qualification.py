@@ -57,7 +57,6 @@ COMPARATOR_OPERATIONS = {
 def worker_is_qualified(worker: "Worker", qualifications: List[Dict[str, Any]]):
     db = worker.db
     for qualification in qualifications:
-        print(f"Checking qualification {qualification}")
         qual_name = qualification["qualification_name"]
         qual_objs = db.find_qualifications(qual_name)
         if len(qual_objs) == 0:
