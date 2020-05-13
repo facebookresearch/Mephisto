@@ -15,4 +15,8 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poet
 
 ### Step 1. Set up a requester
 
+```
+$ mephisto register 
+```
+
 ### Step 2. Run your first task
