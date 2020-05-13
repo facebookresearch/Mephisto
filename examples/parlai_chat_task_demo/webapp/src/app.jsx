@@ -48,9 +48,20 @@ function MainApp() {
   );
 
   const [messages, addMessage] = React.useReducer(
-    (allMessages, newMessage) => [...allMessages, newMessage],
+    (allMessages, newMessage) => {
+        // we clear messages by sending false
+        if (newMessage === false) {
+          return []
+        }
+        return [...allMessages, newMessage]
+      },
     []
   );
+
+  const [displayNames, addName] = React.useReducer(
+    (allNames, newName) => {return { ...allNames, ...newName }},
+    {}
+  )
 
   const [appSettings, setAppSettings] = React.useState({ volume: 1 });
   const [chatState, setChatState] = React.useState("waiting");
@@ -71,11 +82,18 @@ function MainApp() {
     connect,
     destroy,
     sendMessage,
+    isOnboarding,
     agentState,
     agentStatus,
     connectionStatus,
   } = useMephistoLiveTask({
     onStateUpdate: ({ state, status }) => {
+      let curr_name = state.agent_display_name;
+      if (curr_name !== undefined && !(curr_name in displayNames)) {
+        let name_entry = {};
+        name_entry[agentId] = curr_name;
+        addName(name_entry);
+      }
       if (state.task_done) {
         setChatState("done");
       } else if (
@@ -123,6 +141,12 @@ function MainApp() {
     }
   }, [agentId]);
 
+  React.useEffect(() => {
+    if (isOnboarding && agentStatus == AGENT_STATUS.WAITING) {
+      handleSubmit();
+    }
+  }, [isOnboarding, agentStatus]);
+
   if (blockedReason !== null) {
     return <h1>{getBlockedExplanation(blockedReason)}</h1>;
   }
@@ -138,10 +162,7 @@ function MainApp() {
     }
     return <div dangerouslySetInnerHTML={{ __html: previewHtml }} />;
   }
-  if (agentId === "onboarding") {
-    // TODO handle the onboarding case
-    return <div>Onboarding not yet implemented</div>;
-  }
+
   return (
     <div>
       <BaseFrontend
@@ -166,6 +187,8 @@ function MainApp() {
           destroy();
           handleSubmit({});
         }}
+        displayNames={displayNames}
+        isOnboarding={isOnboarding}
         volume={appSettings.volume}
         onVolumeChange={(v) => setAppSettings({ volume: v })}
         display_feedback={false}

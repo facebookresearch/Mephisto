@@ -6,7 +6,7 @@ from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 
 USE_LOCAL = True
-DEMO_CUSTOM_BUNDLE = True
+DEMO_CUSTOM_BUNDLE = False
 USE_ONBOARDING = False
 
 db = LocalMephistoDB()

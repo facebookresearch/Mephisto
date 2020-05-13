@@ -530,6 +530,7 @@ class Supervisor:
         worker = Worker(self.db, worker_id)
         blueprint = task_run.get_blueprint()
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
+            print("we're using onboarding!", blueprint.onboarding_qualification_name)
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
                 self.message_queue.append(
                     Packet(
