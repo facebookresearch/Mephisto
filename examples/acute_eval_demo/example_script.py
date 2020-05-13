@@ -31,8 +31,6 @@ db = LocalMephistoDB()
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/acute_eval_demo")
 
-# ARG_STRING goes through shlex.split twice, hence be careful if these
-# strings contain anything which needs quoting.
 task_title = "Which Conversational Partner is Better?"
 task_description = "Evaluate quality of conversations through comparison."
 hit_keywords = "chat,evaluation,comparison,conversation"
@@ -86,22 +84,9 @@ extra_args = {
     "eval_question": "Who would you prefer to talk to for a long conversation?",
 }
 
-try:
-    operator = Operator(db)
-    operator.parse_and_launch_run(shlex.split(ARG_STRING), extra_args=extra_args)
-    print("task run supposedly launched?")
-    print(operator.get_running_task_runs())
-    while len(operator.get_running_task_runs()) > 0:
-        print(f"Operator running {operator.get_running_task_runs()}")
-        time.sleep(10)
-except Exception as e:
-    import traceback
-
-    traceback.print_exc()
-except (KeyboardInterrupt, SystemExit) as e:
-    pass
-finally:
-    operator.shutdown()
+operator = Operator(db)
+operator.parse_and_launch_run(shlex.split(ARG_STRING), extra_args=extra_args)
+operator.wait_for_runs_then_shutdown(log_rate=30)
 
 
 # TODO(#94) these args are not yet configurable in mephisto

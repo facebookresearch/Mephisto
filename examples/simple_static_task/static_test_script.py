@@ -13,8 +13,6 @@ operator = Operator(db)
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
-# ARG_STRING goes through shlex.split twice, hence be careful if these
-# strings contain anything which needs quoting.
 task_title = "Test static task"
 task_description = "This is a simple test of static tasks."
 
@@ -55,18 +53,5 @@ ARG_STRING = (
     f"--units-per-assignment 2 "
 )
 
-try:
-    operator.parse_and_launch_run(shlex.split(ARG_STRING))
-    print("task run supposedly launched?")
-    print(operator.get_running_task_runs())
-    while len(operator.get_running_task_runs()) > 0:
-        print(f"Operator running {operator.get_running_task_runs()}")
-        time.sleep(10)
-except Exception as e:
-    import traceback
-
-    traceback.print_exc()
-except (KeyboardInterrupt, SystemExit) as e:
-    pass
-finally:
-    operator.shutdown()
+operator.parse_and_launch_run(shlex.split(ARG_STRING))
+operator.wait_for_runs_then_shutdown(log_rate=30)
