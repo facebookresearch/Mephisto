@@ -13,7 +13,7 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poet
 
 4. Voila! Test that mephisto is installed correctly:
 
-```bash
+```
 $ mephisto check
 Mephisto seems to be set up correctly.
 ```
