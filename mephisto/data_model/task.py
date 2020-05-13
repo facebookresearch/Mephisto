@@ -253,11 +253,11 @@ class TaskRun:
         print("Before get units", time.time())
         current_units: List["Unit"] = self.get_units()
         print("After get units", time.time())
-        unit_assigns: Dict[str, List["Unit"]] = []
+        unit_assigns: Dict[str, List["Unit"]] = {}
         for unit in current_units:
             assignment_id = unit.assignment_id
             if assignment_id not in unit_assigns:
-                unit_assigns[assignment_id] = {}
+                unit_assigns[assignment_id] = []
             unit_assigns[assignment_id].append(unit)
         print("After organize units", time.time())
 
