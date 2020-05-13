@@ -217,13 +217,7 @@ class TaskRun:
                 worker_id=worker.db_id,
                 status=AssignmentState.ASSIGNED,
             )
-            currently_active = len(
-                self.db.find_units(
-                    task_run_id=self.db_id,
-                    worker_id=worker.db_id,
-                    status=AssignmentState.ASSIGNED,
-                )
-            )
+            currently_active = len(current_units)
             if config.allowed_concurrent != 0:
                 if currently_active >= config.allowed_concurrent:
                     return []  # currently at the maximum number of concurrent units
@@ -240,18 +234,21 @@ class TaskRun:
                     >= config.maximum_units_per_worker
                 ):
                     return []  # Currently at the maximum number of units for this task
-
+        import time
+        print("Before get assignments", time.time())
         # TODO(WISH) if an agent has failed onboarding, can we give them a fake unit?
         assignments = self.get_assignments()
-
+        print("After get assignments", time.time())
         # Cannot pair with self
         unit_assigns = [a.get_units() for a in assignments]
         units: List["Unit"] = []
+        print("After get units", time.time())
         for unit_set in unit_assigns:
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
             if not any(is_self_set):
                 units += unit_set
         valid_units = [u for u in units if u.get_assigned_agent() is None]
+        print("After get valid units", time.time())
         return valid_units
 
     def clear_reservation(self, unit: "Unit") -> None:
