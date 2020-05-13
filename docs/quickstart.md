@@ -11,7 +11,12 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poet
 
 3. Run `poetry install` in the root mephisto project folder.
 
-4. Voila! Test that mephisto is installed correctly by running the optional web interface with `mephisto web`.
+4. Voila! Test that mephisto is installed correctly:
+
+```bash
+$ mephisto check
+Mephisto seems to be set up correctly.
+```
 
 ### Step 1. Set up a requester
 
