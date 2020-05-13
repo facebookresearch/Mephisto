@@ -175,6 +175,8 @@ class Operator:
         # Find an existing task or create a new one
         task_name = task_args.get("task_name")
         if task_name is None:
+            # TODO warn that the task is being launched with the blueprint type
+            # as the task name
             task_name = type_args.blueprint_type
         tasks = self.db.find_tasks(task_name=task_name)
         task_id = None
@@ -290,3 +292,33 @@ class Operator:
             tracked_run.architect.shutdown()
         self.supervisor.shutdown()
         self._run_tracker_thread.join()
+
+    def print_run_details(self):
+        """Print details about running tasks"""
+        # TODO(#93) parse these tasks and get the full details
+        print(f"Operator running {self.get_running_task_runs()}")
+
+    def wait_for_runs_then_shutdown(self, log_rate: Optional[int] = None) -> None:
+        """
+        Wait for task_runs to complete, and then shutdown.  
+
+        Set log_rate to get print statements of currently running tasks
+        at the specified interval
+        """
+        try:
+            last_log = 0
+            while len(self.get_running_task_runs()) > 0:
+                if log_rate is not None:
+                    if time.time() - last_log > log_rate:
+                        last_log = time.time()
+                        self.print_run_details()
+                time.sleep(10)
+            
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+        except (KeyboardInterrupt, SystemExit) as e:
+            print("Cleaning up after keyboard interrupt, please wait!")
+        finally:
+            self.shutdown()

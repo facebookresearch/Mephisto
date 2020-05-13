@@ -14,9 +14,6 @@ db = LocalMephistoDB()
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/parlai_chat_task_demo")
 
-
-# ARG_STRING goes through shlex.split twice, hence be careful if these
-# strings contain anything which needs quoting.
 task_title = "Test ParlAI Chat Task"
 task_description = (
     "This is a simple chat between two people used to demonstrate "
@@ -74,19 +71,6 @@ if DEMO_CUSTOM_BUNDLE:
 
 extra_args = {"world_opt": world_opt}
 
-try:
-    operator = Operator(db)
-    operator.parse_and_launch_run(shlex.split(ARG_STRING), extra_args=extra_args)
-    print("task run supposedly launched?")
-    print(operator.get_running_task_runs())
-    while len(operator.get_running_task_runs()) > 0:
-        print(f"Operator running {operator.get_running_task_runs()}")
-        time.sleep(10)
-except Exception as e:
-    import traceback
-
-    traceback.print_exc()
-except (KeyboardInterrupt, SystemExit) as e:
-    pass
-finally:
-    operator.shutdown()
+operator = Operator(db)
+operator.parse_and_launch_run(shlex.split(ARG_STRING), extra_args=extra_args)
+operator.wait_for_runs_then_shutdown(log_rate=30)
