@@ -627,3 +627,41 @@ def email_worker(
         return (False, failure_message["NotifyWorkersFailureMessage"])
     else:
         return (True, "")
+
+
+def get_outstanding_hits(client: MTurkClient) -> Dict[str, List[Dict[str, Any]]]:
+    """Return the HITs sorted by HITTypeId that are still on the MTurk Server"""
+    new_hits = client.list_hits(MaxResults=100)
+    all_hits = new_hits["HITs"]
+    while len(new_hits["HITs"]) > 0:
+        new_hits = client.list_hits(MaxResults=100, NextToken=new_hits["NextToken"])
+        all_hits += new_hits["HITs"]
+
+    hit_by_type: Dict[str, List[Dict[str, Any]]] = {}
+    for h in all_hits:
+        hit_type = h["HITTypeId"]
+        if hit_type not in hit_by_type:
+            hit_by_type[hit_type] = []
+        hit_by_type[hit_type].append(h)
+
+    return hit_by_type
+
+
+def expire_and_dispose_hits(
+    client: MTurkClient, hits: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """
+    Loops over attempting to expire and dispose any hits in the hits list that can be disposed
+
+    Returns any HITs that could not be disposed of
+    """
+    non_disposed_hits = []
+    for h in hits:
+        try:
+            client.delete_hit(HITId=h["HITId"])
+        except:
+            client.update_expiration_for_hit(
+                HITId=h["HITId"], ExpireAt=datetime(2015, 1, 1)
+            )
+            non_disposed_hits.append(h)
+    return non_disposed_hits
