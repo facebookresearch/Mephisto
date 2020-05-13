@@ -48,7 +48,7 @@ def collect_groups_recurse(group: argparse._ArgumentGroup):
 
 
 def get_argument_groups(
-    parser: argparse.ArgumentParser
+    parser: argparse.ArgumentParser,
 ) -> Dict[str, argparse._ArgumentGroup]:
     """
     Extract all of the groups from an arg parser and
@@ -97,9 +97,7 @@ def get_arguments_from_group(group: argparse._ArgumentGroup) -> Dict[str, Any]:
     return parsed_actions
 
 
-def get_argument_group_dict(
-    group: argparse._ArgumentGroup,
-) -> Optional[Dict[str, Any]]:
+def get_argument_group_dict(group: argparse._ArgumentGroup) -> Optional[Dict[str, Any]]:
     """
     Extract an argument group (to be ready to send it to frontend)
     """

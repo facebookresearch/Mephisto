@@ -27,7 +27,7 @@ def register_mephisto_abstraction():
     """
 
     def register_cls(
-        base_class: Union[Type["Blueprint"], Type["Architect"], Type["CrowdProvider"]],
+        base_class: Union[Type["Blueprint"], Type["Architect"], Type["CrowdProvider"]]
     ):
         from mephisto.data_model.blueprint import Blueprint
         from mephisto.data_model.crowd_provider import CrowdProvider

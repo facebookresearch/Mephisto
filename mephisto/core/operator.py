@@ -313,7 +313,7 @@ class Operator:
                         last_log = time.time()
                         self.print_run_details()
                 time.sleep(10)
-            
+
         except Exception as e:
             import traceback
 
