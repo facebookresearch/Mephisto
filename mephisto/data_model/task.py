@@ -249,17 +249,13 @@ class TaskRun:
                 ):
                     return []  # Currently at the maximum number of units for this task
         
-        import time
-        print("Before get units", time.time())
         current_units: List["Unit"] = self.get_units()
-        print("After get units", time.time())
         unit_assigns: Dict[str, List["Unit"]] = {}
         for unit in current_units:
             assignment_id = unit.assignment_id
             if assignment_id not in unit_assigns:
                 unit_assigns[assignment_id] = []
             unit_assigns[assignment_id].append(unit)
-        print("After organize units", time.time())
 
         # Cannot pair with self
         units: List["Unit"] = []
@@ -268,7 +264,6 @@ class TaskRun:
             if not any(is_self_set):
                 units += unit_set
         valid_units = [u for u in units if u.get_assigned_agent() is None]
-        print("After get valid units", time.time())
         return valid_units
 
     def clear_reservation(self, unit: "Unit") -> None:
