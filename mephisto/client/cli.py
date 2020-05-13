@@ -14,6 +14,21 @@ def web():
     app.run(debug=False)
 
 
+@cli.command("check")
+def check():
+    """Checks that mephisto is setup correctly"""
+    from mephisto.core.local_database import LocalMephistoDB
+    from mephisto.core.utils import get_mock_requester
+
+    try:
+        db = LocalMephistoDB()
+        get_mock_requester(db)
+    except Exception as e:
+        click.echo("Something went wrong.")
+        click.echo(e)
+        return
+    click.echo("Mephisto seems to be set up correctly.")
+
 @cli.command("requesters")
 def list_requesters():
     from mephisto.core.local_database import LocalMephistoDB
