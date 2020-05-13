@@ -36,15 +36,22 @@ def register_provider(args):
     from mephisto.core.registry import (
         get_crowd_provider_from_type,
     )
-    from mephisto.core.argparse_parser import parse_arg_dict
+    from mephisto.core.argparse_parser import parse_arg_dict, get_extra_argument_dicts
 
     provider_type, requester_args = args[0], args[1:]
     args_dict = dict(arg.split(':') for arg in requester_args)
     transformed = dict( (key, {'option_string': key, 'value': value}) for (key, value) in args_dict.items())
-    click.echo(transformed)
 
     crowd_provider = get_crowd_provider_from_type(provider_type)
     RequesterClass = crowd_provider.RequesterClass
+
+    if len(requester_args) == 0:
+        from tabulate import tabulate
+        params = get_extra_argument_dicts(RequesterClass)
+        for param in params:
+            click.echo(param['desc'])
+            click.echo(tabulate(param['args'].values(), headers='keys'))
+        return
 
     try:
         parsed_options = parse_arg_dict(RequesterClass, transformed)
@@ -61,7 +68,6 @@ def register_provider(args):
     else:
         requester = requesters[0]
     try:
-        print(parsed_options)
         requester.register(parsed_options)
         click.echo("Registered successfully.")
     except Exception as e:
