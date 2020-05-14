@@ -2,7 +2,8 @@ import click
 from click_default_group import DefaultGroup
 
 
-@click.group(cls=DefaultGroup, default="web", default_if_no_args=True)
+# @click.group(cls=DefaultGroup, default="web", default_if_no_args=True)
+@click.group(cls=DefaultGroup)
 def cli():
     pass
 
@@ -31,6 +32,7 @@ def check():
 
 @cli.command("requesters")
 def list_requesters():
+    """Lists all registered requesters"""
     from mephisto.core.local_database import LocalMephistoDB
     from tabulate import tabulate
 
@@ -42,7 +44,7 @@ def list_requesters():
 @cli.command("register", context_settings={"ignore_unknown_options": True})
 @click.argument('args', nargs=-1)
 def register_provider(args):
-
+    """Register a requester with a crowd provider"""
     if len(args) == 0:
         click.echo("Usage: mephisto register <provider_type> --arg1:value --arg2:value")
         return
