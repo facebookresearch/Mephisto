@@ -25,7 +25,8 @@ Alteratively, you can install mephisto by running the following in the root dire
 ```
 pip install -e .
 ```
-This however will not give you access to the optional `mephisto` CLI command. You can still use the `mephisto` CLI command though by replacing invoking it directly yourself with `python mephisto/client/cli.py` instead, or setting up an alias on your local system.
+This however will not give you access to the optional `mephisto` CLI command.
+You can still use the `mephisto` CLI command though by invoking it directly yourself with `python mephisto/client/cli.py`. You can choose to alias this to `mephisto` on your local system as a workaround.
 
 ## Step 1. Run your first task (locally)
 
