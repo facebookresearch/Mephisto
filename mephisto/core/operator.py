@@ -306,7 +306,7 @@ class Operator:
         at the specified interval
         """
         try:
-            last_log = 0
+            last_log = 0.0
             while len(self.get_running_task_runs()) > 0:
                 if log_rate is not None:
                     if time.time() - last_log > log_rate:
