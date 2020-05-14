@@ -100,6 +100,6 @@ class StaticAgentState(AgentState):
         if packet.data.get("files") != None:
             print("Got files:", str(packet.data["files"])[:500])
             self.state["outputs"]["files"] = [
-                f['filename'] for f in packet.data["files"]
+                f["filename"] for f in packet.data["files"]
             ]
         self.save_data()
