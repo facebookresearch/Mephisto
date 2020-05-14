@@ -106,8 +106,6 @@ class StaticAgentState(AgentState):
         times_dict["task_end"] = time.time()
         if packet.data.get("files") != None:
             print("Got files:", str(packet.data["files"])[:500])
-            outputs["files"] = [
-                f["filename"] for f in packet.data["files"]
-            ]
+            outputs["files"] = [f["filename"] for f in packet.data["files"]]
         self.state["outputs"] = outputs
         self.save_data()
