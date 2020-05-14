@@ -203,6 +203,18 @@ class TaskRun:
         self.__run_dir: Optional[str] = None
         self.__blueprint: Optional["Blueprint"] = None
         self.__crowd_provider: Optional["CrowdProvider"] = None
+        self.__unit_cache: Optional[List["Unit"]] = None
+
+    def get_units(self) -> List["Unit"]:
+        """
+        Return the units associated with this task run, cached to 
+        prevent repeated reloads.
+        """
+        # TODO(#99) When we want to launch additional tasks, we'll need
+        # a way to reset this cache
+        if self.__unit_cache is None:
+            self.__unit_cache = self.db.find_units(task_run_id=self.db_id)
+        return self.__unit_cache
 
     def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
         """
@@ -217,13 +229,7 @@ class TaskRun:
                 worker_id=worker.db_id,
                 status=AssignmentState.ASSIGNED,
             )
-            currently_active = len(
-                self.db.find_units(
-                    task_run_id=self.db_id,
-                    worker_id=worker.db_id,
-                    status=AssignmentState.ASSIGNED,
-                )
-            )
+            currently_active = len(current_units)
             if config.allowed_concurrent != 0:
                 if currently_active >= config.allowed_concurrent:
                     return []  # currently at the maximum number of concurrent units
@@ -241,13 +247,17 @@ class TaskRun:
                 ):
                     return []  # Currently at the maximum number of units for this task
 
-        # TODO(WISH) if an agent has failed onboarding, can we give them a fake unit?
-        assignments = self.get_assignments()
+        task_units: List["Unit"] = self.get_units()
+        unit_assigns: Dict[str, List["Unit"]] = {}
+        for unit in task_units:
+            assignment_id = unit.assignment_id
+            if assignment_id not in unit_assigns:
+                unit_assigns[assignment_id] = []
+            unit_assigns[assignment_id].append(unit)
 
         # Cannot pair with self
-        unit_assigns = [a.get_units() for a in assignments]
         units: List["Unit"] = []
-        for unit_set in unit_assigns:
+        for unit_set in unit_assigns.values():
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
             if not any(is_self_set):
                 units += unit_set
