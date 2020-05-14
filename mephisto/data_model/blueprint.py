@@ -619,7 +619,7 @@ class Blueprint(ABC):
 
     @abstractmethod
     def get_initialization_data(
-        self
+        self,
     ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
         """
         Get all of the data used to initialize tasks from this blueprint.

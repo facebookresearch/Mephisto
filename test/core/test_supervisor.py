@@ -430,7 +430,9 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(len(sup.agents), 0, "Failed agent registered with supervisor")
 
         self.assertEqual(
-            len(task_runner.running_units), 0, "Task should not launch with failed worker"
+            len(task_runner.running_units),
+            0,
+            "Task should not launch with failed worker",
         )
 
         # Register a worker
@@ -696,7 +698,9 @@ class TestSupervisor(unittest.TestCase):
         self.assertEqual(len(sup.agents), 0, "Failed agent registered with supervisor")
 
         self.assertEqual(
-            len(task_runner.running_units), 0, "Task should not launch with failed worker"
+            len(task_runner.running_units),
+            0,
+            "Task should not launch with failed worker",
         )
 
         # Register another worker
@@ -758,14 +762,15 @@ class TestSupervisor(unittest.TestCase):
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Agent not created after onboarding")
 
-
         # Re-register as if refreshing
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Duplicate agent created after onboarding")
         agent = agents[1]
         self.assertIsNotNone(agent)
-        self.assertEqual(len(sup.agents), 2, "Agent not registered supervisor after onboarding")
+        self.assertEqual(
+            len(sup.agents), 2, "Agent not registered supervisor after onboarding"
+        )
 
         self.assertEqual(
             len(task_runner.running_units), 2, "Task not launched after onboarding"
