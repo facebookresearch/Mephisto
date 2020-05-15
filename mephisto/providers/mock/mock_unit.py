@@ -34,6 +34,14 @@ class MockUnit(Unit):
     def launch(self, task_url: str) -> None:
         """Mock launches do nothing right now beyond updating state"""
         self.db.update_unit(self.db_id, status=AssignmentState.LAUNCHED)
+
+        # TODO(OWN) get this link to the frontend
+        port = task_url.split(":")[1].split("/")[0]
+        print(
+            f"Mock task launched: localhost:{port} for preview, "
+            f"localhost:{port}/?worker_id=x&assignment_id={self.db_id} for task"
+        )
+
         return None
 
     def expire(self) -> float:
