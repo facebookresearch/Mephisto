@@ -87,4 +87,8 @@ class TaskLauncher:
     def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""
         for unit in self.units:
-            unit.expire()
+            try:
+                unit.expire()
+            except Exception as e:
+                # TODO(#93) logger
+                print(f"Warning: failed to expire unit {unit.db_id}. Stated error: {e}")
