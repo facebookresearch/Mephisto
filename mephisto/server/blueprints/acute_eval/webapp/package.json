@@ -13,6 +13,7 @@
     "fetch": "^1.1.0",
     "jquery": "^3.0.0",
     "popper.js": "^1.14.4",
+    "mephisto-task": "^1.0.3",
     "react": "16.13.1",
     "react-bootstrap": "^0.32.4",
     "react-dom": "16.13.1",
