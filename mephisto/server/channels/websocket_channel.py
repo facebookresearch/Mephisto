@@ -92,7 +92,7 @@ class WebsocketChannel(Channel):
                 print(f"Socket logged error: {error}")
                 if isinstance(error, websocket._exceptions.WebSocketException):
                     return
-                
+
                 import traceback
 
                 traceback.print_exc()

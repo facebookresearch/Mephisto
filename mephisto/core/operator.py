@@ -255,7 +255,7 @@ class Operator:
                 self.supervisor.launch_sending_thread()
         except (KeyboardInterrupt, Exception) as e:
             # TODO(#93) logging
-            print('Encountered error while launching run, shutting down')
+            print("Encountered error while launching run, shutting down")
             try:
                 architect.shutdown()
             except (KeyboardInterrupt, Exception) as architect_exception:
@@ -307,7 +307,9 @@ class Operator:
                         next_runs.append(tracked_run)
                 if len(next_runs) > 0:
                     # TODO(#93) logger
-                    print(f"Waiting on {len(remaining_runs)} task runs, Ctrl-C ONCE to FORCE QUIT")
+                    print(
+                        f"Waiting on {len(remaining_runs)} task runs, Ctrl-C ONCE to FORCE QUIT"
+                    )
                     time.sleep(30)
                 remaining_runs = next_runs
         except Exception as e:
@@ -315,8 +317,10 @@ class Operator:
 
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
-             # TODO(#93) logger
-            print("Skipping waiting for outstanding task completions, shutting down servers now!")
+            # TODO(#93) logger
+            print(
+                "Skipping waiting for outstanding task completions, shutting down servers now!"
+            )
             for tracked_run in remaining_runs:
                 tracked_run.architect.shutdown()
         finally:
@@ -336,7 +340,7 @@ class Operator:
             return self.parse_and_launch_run(arg_list=arg_list, extra_args=extra_args)
         except (KeyboardInterrupt, Exception) as e:
             # TODO(#93)
-            print('Ran into error while launching run: ')
+            print("Ran into error while launching run: ")
             traceback.print_exc()
             return None
 
@@ -345,7 +349,9 @@ class Operator:
         # TODO(#93) parse these tasks and get the full details
         print(f"Operator running {self.get_running_task_runs()}")
 
-    def wait_for_runs_then_shutdown(self, skip_input=False, log_rate: Optional[int] = None) -> None:
+    def wait_for_runs_then_shutdown(
+        self, skip_input=False, log_rate: Optional[int] = None
+    ) -> None:
         """
         Wait for task_runs to complete, and then shutdown.  
 
@@ -365,13 +371,13 @@ class Operator:
             except Exception as e:
                 if skip_input:
                     raise e
-    
+
                 traceback.print_exc()
                 should_quit = input(
                     "The above exception happened while running a task, do "
                     "you want to shut down? (y)/n: "
                 )
-                if should_quit not in ['n', 'N', 'no', 'No']:
+                if should_quit not in ["n", "N", "no", "No"]:
                     raise e
 
         except Exception as e:
