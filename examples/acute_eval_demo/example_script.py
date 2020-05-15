@@ -85,8 +85,8 @@ extra_args = {
 }
 
 operator = Operator(db)
-operator.parse_and_launch_run(shlex.split(ARG_STRING), extra_args=extra_args)
-operator.wait_for_runs_then_shutdown(log_rate=30)
+operator.parse_and_launch_run_wrapper(shlex.split(ARG_STRING), extra_args=extra_args)
+operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
 # TODO(#94) these args are not yet configurable in mephisto
