@@ -84,9 +84,8 @@ class TaskLauncher:
         for unit in self.units:
             unit.launch(url)
 
-    def expire_units(self):
+    def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""
-        wait_len = 0
         for unit in self.units:
             try:
                 unit.expire()
