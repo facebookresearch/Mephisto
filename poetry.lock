@@ -956,6 +956,17 @@ test = ["pytest"]
 
 [[package]]
 category = "main"
+description = "Pretty-print tabular data"
+name = "tabulate"
+optional = false
+python-versions = "*"
+version = "0.8.7"
+
+[package.extras]
+widechars = ["wcwidth"]
+
+[[package]]
+category = "main"
 description = "Fast and Customizable Tokenizers"
 name = "tokenizers"
 optional = true
@@ -1106,7 +1117,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 parlai = ["parlai", "torch", "pyyaml"]
 
 [metadata]
-content-hash = "3cdc6fe8f371e0cbb8d20e51cfc593a77d9fba66c08aa71cc8b150b0000eb387"
+content-hash = "e48c0572a313d1ff5c7deecb3019a061fe56d2f1d6c275623aa33379c568ab20"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1647,6 +1658,10 @@ sphinxcontrib-qthelp = [
 sphinxcontrib-serializinghtml = [
     {file = "sphinxcontrib-serializinghtml-1.1.4.tar.gz", hash = "sha256:eaa0eccc86e982a9b939b2b82d12cc5d013385ba5eadcc7e4fed23f4405f77bc"},
     {file = "sphinxcontrib_serializinghtml-1.1.4-py2.py3-none-any.whl", hash = "sha256:f242a81d423f59617a8e5cf16f5d4d74e28ee9a66f9e5b637a18082991db5a9a"},
+]
+tabulate = [
+    {file = "tabulate-0.8.7-py3-none-any.whl", hash = "sha256:ac64cb76d53b1231d364babcd72abbb16855adac7de6665122f97b593f1eb2ba"},
+    {file = "tabulate-0.8.7.tar.gz", hash = "sha256:db2723a20d04bcda8522165c73eea7c300eda74e0ce852d9022e0159d7895007"},
 ]
 tokenizers = [
     {file = "tokenizers-0.4.2-cp35-cp35m-macosx_10_15_x86_64.whl", hash = "sha256:aa1071b1ce179da97c074e645fd28537aa5efddebb24b33882aaf68f3f8724a0"},
