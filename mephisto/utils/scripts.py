@@ -122,7 +122,7 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
                         f"or `python mephisto/client/cli.py register {provider_type}` if you haven't "
                         "installed Mephisto using poetry."
                     )
-                    raise AssertionError("No requesters existed for the provided type")
+                    exit(1)
                 elif len(reqs) == 1:
                     req = reqs[0]
                     requester_name = req.requester_name
@@ -144,6 +144,7 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
                     f"No requesters found under name {requester_name}, "
                     "have you registered with `mephisto register`?"
                 )
+                exit(1)
             provider_type = reqs[0].provider_type
 
         # provider type and requester name now set, ensure architect
