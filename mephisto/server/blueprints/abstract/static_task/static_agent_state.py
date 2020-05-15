@@ -94,17 +94,18 @@ class StaticAgentState(AgentState):
             or packet.data.get("onboarding_data") is not None
         ), "Static tasks should only have final act"
 
+        outputs: Dict[str, Any]
+
         if packet.data.get("onboarding_data") is not None:
-            self.state["outputs"] = packet.data["onboarding_data"]
+            outputs = packet.data["onboarding_data"]
         else:
-            self.state["outputs"] = packet.data["task_data"]
+            outputs = packet.data["task_data"]
         times_dict = self.state["times"]
         # TODO(#013) this typing may be better handled another way
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
         if packet.data.get("files") != None:
             print("Got files:", str(packet.data["files"])[:500])
-            self.state["outputs"]["files"] = [
-                f["filename"] for f in packet.data["files"]
-            ]
+            outputs["files"] = [f["filename"] for f in packet.data["files"]]
+        self.state["outputs"] = outputs
         self.save_data()
