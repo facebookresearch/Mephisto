@@ -26,10 +26,9 @@ FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
 # ARG_STRING goes through shlex.split twice, hence be careful if these
 # strings contain anything which needs quoting.
-task_title = "Determining character motivations in a Fantasy Text World"
+task_title = "Rating a sentence as good or bad"
 task_description = (
-    "In this task, you'll be given a scenario and a character. You'll write a few sentences describing "
-    "why the character might be motivated to take the given action, and give possible previous and next actions."
+    "In this task, you'll be given a sentence. It is your job to rate it as either good or bad."
 )
 
 provider_type = "mock" if USE_LOCAL else "mturk_sandbox"
