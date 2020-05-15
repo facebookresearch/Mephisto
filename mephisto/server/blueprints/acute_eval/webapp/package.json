@@ -10,7 +10,6 @@
   "author": "",
   "dependencies": {
     "bootstrap": "^4.3.1",
-    "fetch": "^1.1.0",
     "jquery": "^3.0.0",
     "popper.js": "^1.14.4",
     "react": "16.13.1",
