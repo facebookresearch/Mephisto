@@ -14,6 +14,7 @@ from mephisto.core.utils import get_mock_requester, get_root_data_dir
 import argparse
 from typing import Tuple, Dict, Any, TYPE_CHECKING
 import os
+
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
 
@@ -32,13 +33,11 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
         from parse_known_args
         """
         super().__init__(
-            description=description,
-            allow_abbrev=False,
-            conflict_handler='resolve',
+            description=description, allow_abbrev=False, conflict_handler="resolve"
         )
-        self.register('type', 'nonestr', str2none)
-        self.register('type', 'bool', str2bool)
-        self.register('type', 'floats', str2floats)
+        self.register("type", "nonestr", str2none)
+        self.register("type", "bool", str2bool)
+        self.register("type", "floats", str2floats)
         self.add_requester_args()
         self.add_architect_args()
         self.add_datapath_arg()
@@ -50,16 +49,13 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
         if argument_group is None:
             argument_group = self
         argument_group.add_argument(
-            '-ptype',
-            '--provider-type',
-            default=None,
-            help='Provider type to use',
+            "-ptype", "--provider-type", default=None, help="Provider type to use"
         )
         argument_group.add_argument(
-            '-rname',
-            '--requester-name',
+            "-rname",
+            "--requester-name",
             default=None,
-            help='Requester name to launch with',
+            help="Requester name to launch with",
         )
 
     def add_architect_args(self, argument_group=None):
@@ -69,10 +65,10 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
         if argument_group is None:
             argument_group = self
         argument_group.add_argument(
-            '-atype',
-            '--architect-type',
+            "-atype",
+            "--architect-type",
             default=None,
-            help='Architect type to use for launch',
+            help="Architect type to use for launch",
         )
 
     def add_datapath_arg(self, argument_group=None):
@@ -82,13 +78,12 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
         if argument_group is None:
             argument_group = self
         argument_group.add_argument(
-            '-dpath',
-            '--datapath',
-            default=None,
-            help='Data path for this mephisto run',
+            "-dpath", "--datapath", default=None, help="Data path for this mephisto run"
         )
 
-    def parse_launch_arguments(self, args=None) -> Tuple[str, str, "MephistoDB", Dict[str, Any]]:
+    def parse_launch_arguments(
+        self, args=None
+    ) -> Tuple[str, str, "MephistoDB", Dict[str, Any]]:
         """
         Parse common arguments out from the command line, returns a 
         tuple of the architect type, the requester name to use, the
@@ -99,22 +94,22 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
         """
         args, _unknown = self.parse_known_args(args=args)
         arg_dict = vars(args)
-        requester_name = arg_dict['requester_name']
-        provider_type = arg_dict['provider_type']
-        architect_type = arg_dict['architect_type']
-        datapath = arg_dict['datapath']
+        requester_name = arg_dict["requester_name"]
+        provider_type = arg_dict["provider_type"]
+        architect_type = arg_dict["architect_type"]
+        datapath = arg_dict["datapath"]
 
         if datapath is None:
             datapath = get_root_data_dir()
-        
-        database_path = os.path.join(datapath, 'database.db')
+
+        database_path = os.path.join(datapath, "database.db")
         db = LocalMephistoDB(database_path=database_path)
 
         if requester_name is None:
             if provider_type is None:
                 print("No requester specified, defaulting to mock")
-                provider_type = 'mock'
-            if provider_type == 'mock':
+                provider_type = "mock"
+            if provider_type == "mock":
                 req = get_mock_requester(db)
                 requester_name = req.requester_name
             else:
@@ -131,7 +126,9 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
                 elif len(reqs) == 1:
                     req = reqs[0]
                     requester_name = req.requester_name
-                    print(f"Found one `{provider_type}` requester to launch with: {requester_name}")
+                    print(
+                        f"Found one `{provider_type}` requester to launch with: {requester_name}"
+                    )
                 else:
                     req = reqs[-1]
                     requester_name = req.requester_name
@@ -151,13 +148,13 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
 
         # provider type and requester name now set, ensure architect
         if architect_type is None:
-            if provider_type == 'mock':
+            if provider_type == "mock":
                 architect_type = "local"
-            elif provider_type == 'mturk_sandbox':
+            elif provider_type == "mturk_sandbox":
                 architect_type = "heroku"
-            elif provider_type == 'mturk':
+            elif provider_type == "mturk":
                 architect_type = "heroku"
-            else: 
+            else:
                 architect_type = "local"
 
             # TODO (#93) proper logging
@@ -165,8 +162,10 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
                 f"No architect specified, defaulting to architect "
                 f"`{architect_type}` for provider `{provider_type}`"
             )
-        
+
+        if provider_type in ["mturk"]:
+            input(
+                f"This task is going to launch live on {provider_type}, press enter to continue: "
+            )
+
         return architect_type, requester_name, db, arg_dict
-
-
-

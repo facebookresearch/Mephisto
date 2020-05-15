@@ -6,10 +6,10 @@
 import os
 import time
 import shlex
-from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 from mephisto.server.blueprints.acute_eval.acute_eval_blueprint import BLUEPRINT_TYPE
+from mephisto.utils.scripts import MephistoRunScriptParser, str2bool
 
 """
 Example script for running ACUTE-EVAL.
@@ -22,8 +22,38 @@ The following args are useful to tweak to fit your specific needs;
     - ``num_matchup_pairs``:    Essentially, how many pairs of conversations you would like to evaluate
     - ``subtasks_per_unit``:     How many comparisons you'd like a turker to complete in one HIT
 
-Help strings for the other arguments can be found in run.py.
 """
+
+parser = MephistoRunScriptParser()
+parser.add_argument(
+    "-pfp",
+    "--pairings-filepath",
+    default=f"{TASK_DIRECTORY}/pairings.jsonl",
+    help="Path to pairings file",
+)
+parser.add_argument(
+    "-app",
+    "--annotations-per-pair",
+    default=1,
+    help="Annotations per pairing, to ensure worker agreement, default 1",
+    type=int,
+)
+parser.add_argument(
+    "-nmp",
+    "--num-matchup-pairs",
+    default=2,
+    help="Number of pairs per model matchup, default 2",
+    type=int,
+)
+parser.add_argument(
+    "-spu",
+    "--subtasks-per-unit",
+    default=False,
+    help="Number of conversations to evaluate per task, default 5",
+    type=int,
+)
+
+architect_type, requester_name, db, args = parser.parse_launch_arguments()
 
 USE_LOCAL = True
 
@@ -35,28 +65,6 @@ task_title = "Which Conversational Partner is Better?"
 task_description = "Evaluate quality of conversations through comparison."
 hit_keywords = "chat,evaluation,comparison,conversation"
 
-provider_type = "mock" if USE_LOCAL else "mturk_sandbox"
-architect_type = "local" if USE_LOCAL else "heroku"
-
-# The first time round, need to call the following here.
-# TODO(#95) make this more user friendly than needing to uncomment script lines
-# db.new_requester("<mturk_account_name>", "mturk")
-# db.new_requester("<mturk_account_name>_sandbox", "mturk_sandbox")
-
-if USE_LOCAL:
-    from mephisto.core.utils import get_mock_requester
-
-    requester = get_mock_requester(db)
-else:
-    requester = db.find_requesters(provider_type=provider_type)[-1]
-requester_name = requester.requester_name
-assert USE_LOCAL or requester_name.endswith(
-    "_sandbox"
-), "Should use a sandbox for testing"
-
-# The first time using mturk, need to call the following here
-# requester.register()
-
 ARG_STRING = (
     f"--blueprint-type {BLUEPRINT_TYPE} "
     f"--architect-type {architect_type} "
@@ -65,7 +73,6 @@ ARG_STRING = (
     f'--task-description "\\"{task_description}\\"" '
     "--task-reward 0.5 "
     f"--task-tags {hit_keywords} "
-    f"--subtasks-per-unit 2 "  # num comparisons to show within one unit
     f"--maximum-units-per-worker 0 "  # Num of units a worker is allowed to do, 0 is infinite
     f"--allowed-concurrent 1 "  # Workers can only do one task at a time, or onboarding may break
 )
@@ -74,10 +81,15 @@ extra_args = {
     "pairings_filepath": f"{TASK_DIRECTORY}/pairings.jsonl",
     "block_on_onboarding_fail": True,
     "block_qualification": f"acute_eval_{int(time.time())}_block",
-    "annotations_per_pair": 1,  # num times to use the same conversation pair
+    # num times to use the same conversation pair
+    "annotations_per_pair": args["annotations_per_pair"],
     "random_seed": 42,  # random seed
-    "subtasks_per_unit": 2,  # num comparisons to show within one hit
-    "num_matchup_pairs": 2,  # num pairs of conversations to be compared
+    "subtasks_per_unit": args[
+        "subtask_per_unit"
+    ],  # num comparisons to show within one unit
+    "num_matchup_pairs": args[
+        "num_matchup_pairs"
+    ],  # num pairs of conversations to be compared
     # question phrasing
     "s1_choice": "I would prefer to talk to <Speaker 1>",
     "s2_choice": "I would prefer to talk to <Speaker 2>",

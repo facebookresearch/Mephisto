@@ -6,7 +6,12 @@ from mephisto.core.utils import get_root_dir
 from mephisto.server.blueprints.static_task.static_html_blueprint import BLUEPRINT_TYPE
 from mephisto.utils.scripts import MephistoRunScriptParser
 
-architect_type, requester_name, db, args = MephistoRunScriptParser().parse_launch_arguments()
+(
+    architect_type,
+    requester_name,
+    db,
+    _args,
+) = MephistoRunScriptParser().parse_launch_arguments()
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 

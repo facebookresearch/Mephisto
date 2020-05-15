@@ -36,7 +36,7 @@ def str2none(value: str):
 
     Otherwise, return the original value.
     """
-    if value.lower() == 'none':
+    if value.lower() == "none":
         return None
     else:
         return value
@@ -46,7 +46,7 @@ def str2floats(s):
     """
     Look for single float or comma-separated floats.
     """
-    return tuple(float(f) for f in s.split(','))
+    return tuple(float(f) for f in s.split(","))
 
 
 def collect_groups_recurse(group: argparse._ArgumentGroup):
