@@ -8,15 +8,15 @@ from parlai.core.worlds import validate
 from joblib import Parallel, delayed
 
 
-TURN_TIMEOUT_TIME = 300  # TODO(#95) make not a constant
-
-
 class MTurkMultiAgentDialogOnboardWorld(MTurkOnboardWorld):
+    def __init__(self, opt, mturk_agent):
+        super().__init__(opt, mturk_agent)
+        self.opt = opt
+
     def parley(self):
         self.mturk_agent.agent_id = "Onboarding Agent"
         self.mturk_agent.observe({"id": "System", "text": "Welcome onboard!"})
-        x = self.mturk_agent.act(timeout=TURN_TIMEOUT_TIME)
-        print("got onboarding act", x)
+        x = self.mturk_agent.act(timeout=self.opt["turn_timeout"])
         self.mturk_agent.observe(
             {
                 "id": "System",
@@ -42,6 +42,7 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         self.max_turns = opt.get("max_turns", 2)
         self.current_turns = 0
         self.send_task_data = opt.get("send_task_data", False)
+        self.opt = opt
         for idx, agent in enumerate(self.agents):
             agent.agent_id = f"Chat Agent {idx + 1}"
 
@@ -55,7 +56,7 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
         self.current_turns += 1
         for index, agent in enumerate(self.agents):
             try:
-                acts[index] = agent.act(timeout=TURN_TIMEOUT_TIME)
+                acts[index] = agent.act(timeout=self.opt["turn_timeout"])
                 if self.send_task_data:
                     acts[index].force_set(
                         "task_data",
@@ -108,7 +109,7 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
                 )
                 agent.act()  # Request a response
             for agent in self.agents:  # Ensure you get the response
-                form_result = agent.act(timeout=TURN_TIMEOUT_TIME)
+                form_result = agent.act(timeout=self.opt["turn_timeout"])
 
     def episode_done(self):
         return self.episodeDone

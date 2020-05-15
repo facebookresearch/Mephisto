@@ -21,6 +21,13 @@ parser.add_argument(
     help="Launch task with custom javascript from build",
     type=str2bool,
 )
+parser.add_argument(
+    "-tt",
+    "--turn-timeout",
+    default=300,
+    help="Maximum response time before kicking a worker out, default 300 seconds",
+    type=int,
+)
 
 architect_type, requester_name, db, args = parser.parse_launch_arguments()
 
@@ -52,7 +59,7 @@ ARG_STRING = (
 if USE_ONBOARDING:
     ARG_STRING += f"--onboarding-qualification test-parlai-chat-qualification "
 
-world_opt = {"num_turns": 3}
+world_opt = {"num_turns": 3, "turn_timeout": args["turn_timeout"]}
 
 if DEMO_CUSTOM_BUNDLE:
     bundle_file_path = f"{TASK_DIRECTORY}/webapp/build/bundle.js"
@@ -63,7 +70,7 @@ if DEMO_CUSTOM_BUNDLE:
     world_opt["send_task_data"] = True
     ARG_STRING += f"--custom-source-bundle {bundle_file_path} "
 
-extra_args = {"world_opt": world_opt}
+extra_args = {"world_opt": world_opt, "onboarding_world_opt": world_opt}
 
 operator = Operator(db)
 operator.parse_and_launch_run_wrapper(shlex.split(ARG_STRING), extra_args=extra_args)
