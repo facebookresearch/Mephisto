@@ -1,5 +1,5 @@
-import "fetch";
 import Bowser from "bowser";
+const axios = require("axios");
 
 /*
   The following global methods are to be specified in wrap_crowd_source.js
@@ -14,13 +14,14 @@ import Bowser from "bowser";
 
 export function postData(url = "", data = {}) {
   // Default options are marked with *
-  return fetch(url, {
+  return axios({
+    url: url,
     method: "POST", // *GET, POST, PUT, DELETE, etc.
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(data), // body data type must match "Content-Type" header
-  });
+    data: data, // body data type must match "Content-Type" header
+  }).then((res) => res.data);
 }
 
 // Determine if the browser is a mobile phone
@@ -45,12 +46,12 @@ export function doesSupportWebsockets() {
 
 // Sends a request to get the task_config
 export function getTaskConfig() {
-  return fetch("/task_config.json").then((res) => res.json());
+  return axios("/task_config.json").then((res) => res.data);
 }
 
 export function postProviderRequest(endpoint, data) {
   var url = new URL(window.location.origin + endpoint);
-  return postData(url, { provider_data: data }).then((res) => res.json());
+  return postData(url, { provider_data: data });
 }
 
 export function requestAgent(mephisto_worker_id) {
@@ -73,7 +74,7 @@ export function getInitTaskData(mephisto_worker_id, agent_id) {
 }
 
 export function postCompleteOnboarding(agent_id, onboarding_data) {
-  return postProviderRequest('/submit_onboarding', {
+  return postProviderRequest("/submit_onboarding", {
     USED_AGENT_ID: agent_id,
     onboarding_data: onboarding_data,
   });
@@ -84,7 +85,6 @@ export function postCompleteTask(agent_id, complete_data) {
     USED_AGENT_ID: agent_id,
     final_data: complete_data,
   })
-    .then((res) => res.json())
     .then((data) => {
       handleSubmitToProvider(complete_data);
       return data;

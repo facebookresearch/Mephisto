@@ -1,6 +1,6 @@
 {
   "name": "mephisto-task",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "react-dom": "16.13.1"
   },
   "dependencies": {
-    "bowser": "^2.9.0",
-    "fetch": "^1.1.0"
+    "axios": "^0.19.2",
+    "bowser": "^2.9.0"
   }
 }
