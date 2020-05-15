@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const DEBUG = false;
+const DEBUG = true;
 
 // TODO add some testing to launch this server and communicate with it
 
@@ -126,6 +126,7 @@ function debug_log() {
 // Handles sending a message through the socket
 function _send_message(socket, packet) {
   if (!socket) {
+    debug_log("No socket to send packet to", packet)
     // Socket doesn't exist - odd
     return;
   }
@@ -218,9 +219,11 @@ function update_wanted_acts(agent_id, wants_act) {
 // Handle a message being sent to or from a frontend agent
 function handle_forward(packet) {
   if (packet.receiver_id == SYSTEM_SOCKET_ID) {
+    debug_log("Adding message to mephisto queue", packet);
     mephisto_message_queue.push(packet);
   } else {
     let agent = find_or_create_agent(packet.receiver_id);
+    debug_log("Adding message to agent queue", packet);
     agent.unsent_messages.push(packet);
   }
 }
@@ -234,6 +237,7 @@ function _followup_possible_disconnect(agent) {
 }
 
 function handle_possible_disconnect(agent) {
+  debug_log("Possible disconnect", agent)
   agent.is_alive = false;
 
   // Give the agent some time to possibly reconnect
@@ -260,7 +264,7 @@ wss.on('connection', function(socket) {
   console.log('Client connected');
   // Disconnects are logged
   socket.on('disconnect', function() {
-    console.log('disconnected')
+    console.log('socket disconnected')
     var agent = socket_id_to_agent[socket.id];
     if (agent !== undefined) {
       handle_possible_disconnect(agent);
@@ -281,6 +285,7 @@ wss.on('connection', function(socket) {
     try {
       packet = JSON.parse(packet);
       if (packet['packet_type'] == PACKET_TYPE_REQUEST_AGENT_STATUS) {
+        debug_log("Mephisto requesting status");
         handle_get_agent_status(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_AGENT_ACTION) {
         debug_log('Agent action: ', packet);
@@ -351,31 +356,36 @@ server.listen(PORT, function() {
 
 // TODO add crash checking around this thread?
 function main_thread() {
-  // Handle active connections message sends
-  for (const agent_id in agent_id_to_socket) {
-    let agent_state = agent_id_to_agent[agent_id];
-    if (!agent_state.is_alive) {
-      continue;
-    }
-    let sendable_messages = agent_state.get_sendable_messages();
-    if (sendable_messages.length > 0) {
-      let socket = agent_id_to_socket[agent_id];
-      // TODO send all these messages in a batch
-      for (const packet of sendable_messages) {
-        _send_message(socket, packet);
+  try {
+    // Handle active connections message sends
+    for (const agent_id in agent_id_to_socket) {
+      let agent_state = agent_id_to_agent[agent_id];
+      if (!agent_state.is_alive) {
+        continue;
+      }
+      let sendable_messages = agent_state.get_sendable_messages();
+      if (sendable_messages.length > 0) {
+        let socket = agent_id_to_socket[agent_id];
+        // TODO send all these messages in a batch
+        for (const packet of sendable_messages) {
+          _send_message(socket, packet);
+        }
       }
     }
-  }
 
-  // Handle sending batches to the mephisto python client
-  let mephisto_messages = []
-  while (mephisto_message_queue.length > 0) {
-    mephisto_messages.push(mephisto_message_queue.shift());
-  }
-  if (mephisto_messages.length > 0) {
-    for (const packet of mephisto_messages) {
-      _send_message(mephisto_socket, packet);
+    // Handle sending batches to the mephisto python client
+    let mephisto_messages = []
+    while (mephisto_message_queue.length > 0) {
+      mephisto_messages.push(mephisto_message_queue.shift());
     }
+    if (mephisto_messages.length > 0) {
+      for (const packet of mephisto_messages) {
+        _send_message(mephisto_socket, packet);
+      }
+    }
+  } catch (error) {
+    console.log('Transient error in main thread?');
+    console.log(error);
   }
 
   // Re-call this thead, as it should run forever
