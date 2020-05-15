@@ -10,8 +10,6 @@ USE_LOCAL = True
 
 db = LocalMephistoDB()
 
-operator = Operator(db)
-
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
 task_title = "Test static task"
@@ -54,5 +52,6 @@ ARG_STRING = (
     f"--units-per-assignment 2 "
 )
 
-operator.parse_and_launch_run(shlex.split(ARG_STRING))
-operator.wait_for_runs_then_shutdown(log_rate=30)
+operator = Operator(db)
+operator.parse_and_launch_run_wrapper(shlex.split(ARG_STRING))
+operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)

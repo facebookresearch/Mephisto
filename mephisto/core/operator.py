@@ -12,6 +12,7 @@ import tempfile
 import time
 import threading
 import shlex
+import traceback
 
 from argparse import ArgumentParser
 
@@ -127,8 +128,6 @@ class Operator:
 
     # TODO(#94) there should be a way to provide default arguments via a config file
 
-    # TODO(#96) there should be a thread that shuts down servers when a task run is done
-
     def parse_and_launch_run(
         self,
         arg_list: Optional[List[str]] = None,
@@ -136,8 +135,6 @@ class Operator:
     ) -> str:
         """
         Parse the given arguments and launch a job.
-
-        Read in arguments from the command line if none are provided
         """
         if extra_args is None:
             extra_args = {}
@@ -185,6 +182,9 @@ class Operator:
         else:
             task_id = tasks[0].db_id
 
+        # TODO(#93) logging
+        print(f"Creating a task run under task name: {task_name}")
+
         # Create a new task run
         new_run_id = self.db.new_task_run(
             task_id,
@@ -196,60 +196,71 @@ class Operator:
         )
         task_run = TaskRun(self.db, new_run_id)
 
-        build_dir = os.path.join(task_run.get_run_dir(), "build")
-        os.makedirs(build_dir, exist_ok=True)
-        architect = ArchitectClass(self.db, task_args, task_run, build_dir)
+        try:
+            # If anything fails after here, we have to cleanup the architect
 
-        # Setup and deploy the server
-        built_dir = architect.prepare()
-        task_url = architect.deploy()
+            build_dir = os.path.join(task_run.get_run_dir(), "build")
+            os.makedirs(build_dir, exist_ok=True)
+            architect = ArchitectClass(self.db, task_args, task_run, build_dir)
 
-        # TODO(#102) maybe the cleanup (destruction of the server configuration?) should only
-        # happen after everything has already been reviewed, this way it's possible to
-        # retrieve the exact build directory to review a task for real
-        architect.cleanup()
+            # Setup and deploy the server
+            built_dir = architect.prepare()
+            task_url = architect.deploy()
 
-        # Create the backend runner
-        task_runner = BlueprintClass.TaskRunnerClass(task_run, task_args)
+            # TODO(#102) maybe the cleanup (destruction of the server configuration?) should only
+            # happen after everything has already been reviewed, this way it's possible to
+            # retrieve the exact build directory to review a task for real
+            architect.cleanup()
 
-        # Small hack for auto appending block qualification
-        existing_qualifications = task_args.get("qualifications", [])
-        if task_args.get("block_qualification") is not None:
-            existing_qualifications.append(
-                make_qualification_dict(
-                    task_args["block_qualification"], QUAL_NOT_EXIST, None
+            # Create the backend runner
+            task_runner = BlueprintClass.TaskRunnerClass(task_run, task_args)
+
+            # Small hack for auto appending block qualification
+            existing_qualifications = task_args.get("qualifications", [])
+            if task_args.get("block_qualification") is not None:
+                existing_qualifications.append(
+                    make_qualification_dict(
+                        task_args["block_qualification"], QUAL_NOT_EXIST, None
+                    )
                 )
-            )
-        if task_args.get("onboarding_qualification") is not None:
-            existing_qualifications.append(
-                make_qualification_dict(
-                    OnboardingRequired.get_failed_qual(
-                        task_args["onboarding_qualification"]
-                    ),
-                    QUAL_NOT_EXIST,
-                    None,
+            if task_args.get("onboarding_qualification") is not None:
+                existing_qualifications.append(
+                    make_qualification_dict(
+                        OnboardingRequired.get_failed_qual(
+                            task_args["onboarding_qualification"]
+                        ),
+                        QUAL_NOT_EXIST,
+                        None,
+                    )
                 )
+            task_args["qualifications"] = existing_qualifications
+
+            # Register the task with the provider
+            provider = CrowdProviderClass(self.db)
+            provider.setup_resources_for_task_run(task_run, task_args, task_url)
+
+            blueprint = BlueprintClass(task_run, task_args)
+            initialization_data_array = blueprint.get_initialization_data()
+            # TODO(#99) extend
+            if not isinstance(initialization_data_array, list):
+                raise NotImplementedError(
+                    "Non-list initialization data is not yet supported"
+                )
+
+            # Link the job together
+            job = self.supervisor.register_job(
+                architect, task_runner, provider, existing_qualifications
             )
-        task_args["qualifications"] = existing_qualifications
-
-        # Register the task with the provider
-        provider = CrowdProviderClass(self.db)
-        provider.setup_resources_for_task_run(task_run, task_args, task_url)
-
-        blueprint = BlueprintClass(task_run, task_args)
-        initialization_data_array = blueprint.get_initialization_data()
-        # TODO(#99) extend
-        if not isinstance(initialization_data_array, list):
-            raise NotImplementedError(
-                "Non-list initialization data is not yet supported"
-            )
-
-        # Link the job together
-        job = self.supervisor.register_job(
-            architect, task_runner, provider, existing_qualifications
-        )
-        if self.supervisor.sending_thread is None:
-            self.supervisor.launch_sending_thread()
+            if self.supervisor.sending_thread is None:
+                self.supervisor.launch_sending_thread()
+        except (KeyboardInterrupt, Exception) as e:
+            # TODO(#93) logging
+            print('Encountered error while launching run, shutting down')
+            try:
+                architect.shutdown()
+            except (KeyboardInterrupt, Exception) as architect_exception:
+                print(f"Could not shut down architect: {architect_exception}")
+            raise e
 
         launcher = TaskLauncher(self.db, task_run, initialization_data_array)
         launcher.create_assignments()
@@ -276,29 +287,65 @@ class Operator:
                 if task_run.get_is_completed():
                     self.supervisor.shutdown_job(tracked_run.job)
                     tracked_run.architect.shutdown()
-                    # TODO(#96) kill the runner too?
                     del self._task_runs_tracked[task_run.db_id]
-            # TODO(#96?) find a way to subscribe to completed or
-            # expired tasks to be able to avoid a sleep call
             time.sleep(2)
 
-    def shutdown(self):
+    def shutdown(self, skip_input=True):
         print("operator shutting down")  # TODO(#93) logger
         self.is_shutdown = True
         for tracked_run in self._task_runs_tracked.values():
+            print("expring units")  # TODO(#93) logger
             tracked_run.task_launcher.expire_units()
-            # TODO(#96) wait for the run to be marked complete in general
-            # TODO(#96) perhaps kill things in the task runner?
-            tracked_run.architect.shutdown()
-        self.supervisor.shutdown()
-        self._run_tracker_thread.join()
+        try:
+            remaining_runs = self._task_runs_tracked.values()
+            while len(remaining_runs) > 0:
+                next_runs = []
+                for tracked_run in remaining_runs:
+                    if tracked_run.task_run.get_is_completed():
+                        tracked_run.architect.shutdown()
+                    else:
+                        next_runs.append(tracked_run)
+                if len(next_runs) > 0:
+                    # TODO(#93) logger
+                    print(f"Waiting on {len(remaining_runs)} task runs, Ctrl-C ONCE to FORCE QUIT")
+                    time.sleep(30)
+                remaining_runs = next_runs
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+        except (KeyboardInterrupt, SystemExit) as e:
+             # TODO(#93) logger
+            print("Skipping waiting for outstanding task completions, shutting down servers now!")
+            for tracked_run in remaining_runs:
+                tracked_run.architect.shutdown()
+        finally:
+            self.supervisor.shutdown()
+            self._run_tracker_thread.join()
+
+    def parse_and_launch_run_wrapper(
+        self,
+        arg_list: Optional[List[str]] = None,
+        extra_args: Optional[Dict[str, Any]] = None,
+    ) -> Optional[str]:
+        """
+        Wrapper around parse and launch run that prints errors on failure, rather
+        than throwing. Generally for use in scripts.
+        """
+        try:
+            return self.parse_and_launch_run(arg_list=arg_list, extra_args=extra_args)
+        except (KeyboardInterrupt, Exception) as e:
+            # TODO(#93)
+            print('Ran into error while launching run: ')
+            traceback.print_exc()
+            return None
 
     def print_run_details(self):
         """Print details about running tasks"""
         # TODO(#93) parse these tasks and get the full details
         print(f"Operator running {self.get_running_task_runs()}")
 
-    def wait_for_runs_then_shutdown(self, log_rate: Optional[int] = None) -> None:
+    def wait_for_runs_then_shutdown(self, skip_input=False, log_rate: Optional[int] = None) -> None:
         """
         Wait for task_runs to complete, and then shutdown.  
 
@@ -306,13 +353,26 @@ class Operator:
         at the specified interval
         """
         try:
-            last_log = 0
-            while len(self.get_running_task_runs()) > 0:
-                if log_rate is not None:
-                    if time.time() - last_log > log_rate:
-                        last_log = time.time()
-                        self.print_run_details()
-                time.sleep(10)
+            try:
+                last_log = 0
+                while len(self.get_running_task_runs()) > 0:
+                    if log_rate is not None:
+                        if time.time() - last_log > log_rate:
+                            last_log = time.time()
+                            self.print_run_details()
+                    time.sleep(10)
+
+            except Exception as e:
+                if skip_input:
+                    raise e
+    
+                traceback.print_exc()
+                should_quit = input(
+                    "The above exception happened while running a task, do "
+                    "you want to shut down? (y)/n: "
+                )
+                if should_quit not in ['n', 'N', 'no', 'No']:
+                    raise e
 
         except Exception as e:
             import traceback
