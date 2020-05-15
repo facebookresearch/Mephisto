@@ -21,8 +21,8 @@ USE_LOCAL = True
 db = LocalMephistoDB()
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_SOURCE_DIR = os.path.join(TASK_DIRECTORY, 'webapp')
-FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, 'build')
+FRONTEND_SOURCE_DIR = os.path.join(TASK_DIRECTORY, "webapp")
+FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
 # ARG_STRING goes through shlex.split twice, hence be careful if these
 # strings contain anything which needs quoting.
@@ -56,9 +56,9 @@ ARG_STRING = (
 )
 
 extra_args = {
-    'static_task_data': [
-        {'text': "This text is good text!"},
-        {'text': "This text is bad text!"},
+    "static_task_data": [
+        {"text": "This text is good text!"},
+        {"text": "This text is bad text!"},
     ]
 }
 
@@ -83,6 +83,7 @@ def build_task():
             "frontend. See the above error for more information."
         )
     os.chdir(return_dir)
+
 
 build_task()
 
