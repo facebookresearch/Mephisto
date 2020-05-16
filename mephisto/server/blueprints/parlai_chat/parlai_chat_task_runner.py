@@ -6,11 +6,12 @@
 
 from mephisto.data_model.blueprint import TaskRunner
 from mephisto.data_model.agent import Agent, OnboardingAgent
+
 try:
     from parlai.core.agents import Agent as ParlAIAgent
     from parlai.core.message import Message
 except:
-    pass # ParlAI is not installed. TODO remove when we move this blueprint to ParlAI
+    pass  # ParlAI is not installed. TODO remove when we move this blueprint to ParlAI
 
 from mephisto.data_model.packet import (
     Packet,
