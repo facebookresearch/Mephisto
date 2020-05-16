@@ -6,10 +6,11 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import Bowser from 'bowser';
-import {Button} from 'react-bootstrap';
+import React from "react";
+import ReactDOM from "react-dom";
+import { Button } from "react-bootstrap";
+import { useMephistoTask } from "mephisto-task";
+const axios = require("axios");
 
 /* global
   getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
@@ -18,236 +19,103 @@ import {Button} from 'react-bootstrap';
 
 /* ================= Utility functions ================= */
 
-// Determine if the browser is a mobile phone
-function isMobile() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  );
-}
-
-function postData(url = '', data = {}) {
-  // Default options are marked with *
-  return fetch(url, {
-    method: 'POST', // *GET, POST, PUT, DELETE, etc.
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data) // body data type must match "Content-Type" header
-  });
-}
-
-function postProviderRequest(endpoint, data, callback_function) {
-  var url = new URL(window.location.origin + endpoint);
-  postData(url, {provider_data: data})
-    .then(res => res.json())
-    .then(function(data) {
-      if (callback_function) {
-        callback_function(data);
-      }
-    });
-}
-
-function requestAgent(mephisto_worker_id, callback_function) {
-  postProviderRequest('/request_agent', getAgentRegistration(mephisto_worker_id), callback_function);
-}
-
-function registerWorker(callback_function) {
-  postProviderRequest('/register_worker', getWorkerRegistrationInfo(), callback_function);
-}
-
-// Sends a request to get the initial task data
-function getInitTaskData(mephisto_worker_id, agent_id, callback_function) {
-  postProviderRequest(
-    '/initial_task_data',
-    {'mephisto_worker_id': mephisto_worker_id, 'agent_id': agent_id},
-    callback_function,
-  );
-}
-
-function requestTaskHMTL(target_html, callback_function) {
-  var url = new URL(window.location.origin + "/" + target_html);
-  fetch(url)
-    .then(res => res.text())
-    .then(function(html) {
-      if (callback_function) {
-        callback_function(html);
-      }
-  });
-}
-
-function postCompleteTask(complete_data, callback_function) {
-  var oReq = new XMLHttpRequest();
-  oReq.open("POST", "/submit_task", true);
-  oReq.onload = function(oEvent) {
-    if (oReq.status == 200) {
-      console.log("Uploaded!");
-      callback_function();
-    } else {
-      // TODO warn the user of an error somewhere
-      console.log("Error " + oReq.status + " occurred when trying to post data");
-    }
-  };
-  oReq.send(complete_data);
+function requestTaskHMTL(targetHtml) {
+  var url = new URL(window.location.origin + "/" + targetHtml);
+  return axios.get(url).then((res) => res.data);
 }
 
 /* ================= Application Components ================= */
 
-class MainApp extends React.Component {
-  constructor(props) {
-    super(props);
+function MainApp() {
+  const {
+    blockedReason,
+    blockedExplanation,
+    isPreview,
+    isLoading,
+    initialTaskData,
+    handleSubmit,
+  } = useMephistoTask();
 
-    let provider_worker_id = getWorkerName();
-    let assignment_id = getAssignmentId();
-    let render_html = "<h1>Display Preview Here</h1>";
-    if (provider_worker_id !== null && assignment_id !== null) {
-      render_html =  "<h1>Loading...</h1>";
-    }
-
-    this.state = {
-      base_html: null,
-      render_html: render_html,
-      provider_worker_id: provider_worker_id,
-      mephisto_worker_id: null,
-      agent_id: null,
-      assignment_id: assignment_id,
-      task_data: null,
-      submitting: false,
-      reject_reason: null,
-    };
-
-    this.raw_html_elem = null;
+  if (blockedReason !== null) {
+    return <h1>{blockedExplanation}</h1>;
   }
-
-  handleIncomingTaskHTML(html) {
-    let base_html = html;
-    let fin_html = base_html;
-
-    if (this.state.task_data !== null) {
-      for (let [key, value] of Object.entries(this.state.task_data)) {
-        let find_string = "${" + key + "}";
-        // Could be better done with a regex for performant code
-        fin_html = fin_html.split(find_string).join(value);
-      }
-    }
-
-
-    this.setState({
-      base_html: base_html,
-      render_html: fin_html,
-    });
+  if (isPreview) {
+    return <ShowURL url="preview.html" />;
   }
-
-  handleIncomingTaskData(packet) {
-    console.log(packet);
-    let unit_data = packet.data.init_data;
-    let html_target = unit_data['html'];
-    delete unit_data['html'];
-    let task_data = unit_data;
-
-    this.setState({
-      task_data: task_data,
-    });
-
-    requestTaskHMTL(html_target, data => this.handleIncomingTaskHTML(data));
+  if (isLoading) {
+    return <div>Initializing...</div>;
   }
-
-  afterAgentRegistration(agent_data_packet) {
-    console.log(agent_data_packet);
-    let agent_id = agent_data_packet.data.agent_id;
-    this.setState({agent_id: agent_id});
-    if (agent_id !== null) {
-      getInitTaskData(this.state.mephisto_worker_id, agent_id, data => this.handleIncomingTaskData(data));
-    } else {
-      this.setState({
-        reject_reason: "Sorry, you have already worked on the maximum number of these tasks available to you"
-      })
-    }
+  if (initialTaskData === null) {
+    return <div>Loading...</div>;
   }
+  return (
+    <SubmitFrame onSubmit={(data) => handleSubmit(data)}>
+      <ShowURL url={initialTaskData["html"]} data={initialTaskData} />
+    </SubmitFrame>
+  );
+}
 
-  afterWorkerRegistration(worker_data_packet) {
-    let mephisto_worker_id = worker_data_packet.data.worker_id;
-    this.setState({mephisto_worker_id: mephisto_worker_id});
-    if (mephisto_worker_id !== null) {
-      requestAgent(mephisto_worker_id, data => this.afterAgentRegistration(data))
-    } else {
-      this.setState({
-        reject_reason: "Sorry, you are not eligible to work on any available tasks."
-      })
-    }
-  }
+function SubmitFrame({ children, onSubmit }) {
+  const [submitting, setSubmitting] = React.useState(false);
 
-  componentDidMount() {
-    let provider_worker_id = this.state.provider_worker_id;
-    let assignment_id = this.state.assignment_id;
-    if (assignment_id != null && provider_worker_id != null) {
-      registerWorker(data => this.afterWorkerRegistration(data));
-    } else {
-      requestTaskHMTL('preview.html', data => this.handleIncomingTaskHTML(data));
-    }
-  }
-
-  handleSubmit(event) {
+  function handleFormSubmit(event) {
     event.preventDefault();
-    console.log(event.target);
-    const form_data = new FormData(event.target);
-    form_data.append('USED_AGENT_ID', this.state.agent_id);
-    console.log(form_data);
-    this.setState({submitting: true});
-    postCompleteTask(form_data, () => {
-      let obj_data = {}
-      form_data.forEach((value, key) => {obj_data[key] = value});
-      console.log(obj_data);
-      handleSubmitToProvider(obj_data);
+    setSubmitting(true);
+    const formData = new FormData(event.target);
+    let objData = {};
+    formData.forEach((value, key) => {
+      objData[key] = value;
     });
+    onSubmit(objData);
   }
 
-  render() {
-    let core_html = <div
-      ref={elem => {this.raw_html_elem = elem}}
-      dangerouslySetInnerHTML={{__html: this.state.render_html}}
-    />;
-
-    if (this.state.reject_reason !== null) {
-      core_html = <h1>{this.state.reject_reason}</h1>;
-    }
-
-    let submit_button = <div />;
-    if (this.state.base_html !== null && this.state.agent_id !== null) {
-      submit_button = (
+  return (
+    <div>
+      <form encType="multipart/form-data" onSubmit={handleFormSubmit}>
+        {children}
         <div>
-          <div style={{display: 'flex', justifyContent: 'center'}}>
-            <Button type="submit" disabled={this.state.submitting}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <Button type="submit" disabled={submitting}>
               <span
                 style={{ marginRight: 5 }}
                 className="glyphicon glyphicon-ok"
               />
-              {this.state.submitting? 'Submitting...' : 'Submit'}
+              {submitting ? "Submitting..." : "Submit"}
             </Button>
           </div>
         </div>
-      )
-    }
-    return (
-      <div>
-        <form encType="multipart/form-data" onSubmit={this.handleSubmit.bind(this)}>
-          {core_html}
-          {submit_button}
-        </form>
-      </div>
-    );
-  }
+      </form>
+    </div>
+  );
+}
 
-  handleUpdatingRemainingScripts(curr_counter, scripts_left) {
+function ShowURL({ url, data = null }) {
+  const [retrievedHtml, setRetrievedHtml] = React.useState(
+    "<h1>Loading...</h1>"
+  );
+
+  React.useEffect(() => {
+    console.log(url);
+    requestTaskHMTL(url).then((data) => setRetrievedHtml(data));
+  }, []);
+
+  return <HtmlRenderer html={retrievedHtml} data={data} />;
+}
+
+function HtmlRenderer({ html, data }) {
+  const elRef = React.useRef();
+
+  function handleUpdatingRemainingScripts(curr_counter, scripts_left) {
     if (scripts_left.length == 0) {
       return;
     }
-    let curr_script_name = "POST_LOADED_SCRIPT_" + curr_counter;
-    let script_to_load = scripts_left.shift()
-    if (script_to_load.text == '') {
-      var head= document.getElementsByTagName('head')[0];
-      var script= document.createElement('script');
+    // let curr_script_name = "POST_LOADED_SCRIPT_" + curr_counter;
+    let script_to_load = scripts_left.shift();
+    if (script_to_load.text == "") {
+      var head = document.getElementsByTagName("head")[0];
+      var script = document.createElement("script");
       script.onload = () => {
-        this.handleUpdatingRemainingScripts(curr_counter+1, scripts_left)
+        handleUpdatingRemainingScripts(curr_counter + 1, scripts_left);
       };
       script.async = 1;
       script.src = script_to_load.src;
@@ -256,26 +124,44 @@ class MainApp extends React.Component {
       const script_text = script_to_load.text;
       // This magic lets us evaluate a script from the global context
       (1, eval)(script_text);
-      this.handleUpdatingRemainingScripts(curr_counter+1, scripts_left);
+      handleUpdatingRemainingScripts(curr_counter + 1, scripts_left);
     }
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    // When the inner html has changed, we need to execute scripts!
-    if (this.state.render_html != prevState.render_html) {
-      let children = this.raw_html_elem.children;
-      let scripts_to_load = [];
-      for (let child of children) {
-        let post_load_script_count = 0
-        if (child.tagName == "SCRIPT") {
-          scripts_to_load.push(child);
-        }
-      }
-      if (scripts_to_load.length > 0) {
-        this.handleUpdatingRemainingScripts(0, scripts_to_load);
+  function interpolateHtml(html, dataObj = null) {
+    let base_html = html;
+    let fin_html = base_html;
+
+    if (dataObj !== null) {
+      for (let [key, value] of Object.entries(dataObj)) {
+        let find_string = "${" + key + "}";
+        // Could be better done with a regex for performant code
+        fin_html = fin_html.split(find_string).join(value);
       }
     }
+
+    return fin_html;
   }
+
+  React.useEffect(() => {
+    let children = elRef.current.children;
+    let scripts_to_load = [];
+    for (let child of children) {
+      if (child.tagName == "SCRIPT") {
+        scripts_to_load.push(child);
+      }
+    }
+    if (scripts_to_load.length > 0) {
+      handleUpdatingRemainingScripts(0, scripts_to_load);
+    }
+  }, [elRef.current]);
+
+  return (
+    <div
+      ref={elRef}
+      dangerouslySetInnerHTML={{ __html: interpolateHtml(html, data) }}
+    />
+  );
 }
 
-ReactDOM.render(<MainApp />, document.getElementById('app'));
+ReactDOM.render(<MainApp />, document.getElementById("app"));

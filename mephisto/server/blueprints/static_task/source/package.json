@@ -9,9 +9,9 @@
   "keywords": [],
   "author": "",
   "dependencies": {
+    "axios": "^0.19.2",
     "bootstrap": "^4.3.1",
-    "bowser": "^2.0",
-    "fetch": "^1.1.0",
+    "mephisto-task": "^1.0.4",
     "popper.js": "^1.14.4",
     "rc-slider": "^8.6.3",
     "react": "^16.5.2",
