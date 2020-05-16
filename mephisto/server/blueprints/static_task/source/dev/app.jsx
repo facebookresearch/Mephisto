@@ -95,7 +95,6 @@ function ShowURL({ url, data = null }) {
   );
 
   React.useEffect(() => {
-    console.log(url);
     requestTaskHMTL(url).then((data) => setRetrievedHtml(data));
   }, []);
 
@@ -109,7 +108,6 @@ function HtmlRenderer({ html, data }) {
     if (scripts_left.length == 0) {
       return;
     }
-    // let curr_script_name = "POST_LOADED_SCRIPT_" + curr_counter;
     let script_to_load = scripts_left.shift();
     if (script_to_load.text == "") {
       var head = document.getElementsByTagName("head")[0];
