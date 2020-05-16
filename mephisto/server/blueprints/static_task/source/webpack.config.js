@@ -4,34 +4,39 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var path = require('path');
-var webpack = require('webpack');
+var path = require("path");
+var webpack = require("webpack");
 
 module.exports = {
-  entry: './dev/main.js',
+  entry: "./dev/main.js",
   output: {
     path: __dirname,
-    filename: 'build/bundle.js',
+    filename: "build/bundle.js",
+  },
+  resolve: {
+    alias: {
+      react: path.resolve("./node_modules/react"),
+    },
   },
   module: {
     rules: [
       {
         test: /\.(js|jsx)$/,
-        loader: 'babel-loader',
+        loader: "babel-loader",
         exclude: /node_modules/,
-        options: { presets: ['@babel/env'] },
+        options: { presets: ["@babel/env"] },
       },
       {
         test: /\.css$/,
-        loader: 'style-loader!css-loader',
+        loader: "style-loader!css-loader",
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: 'url-loader?limit=100000',
+        loader: "url-loader?limit=100000",
       },
       {
         test: /\.jpg$/,
-        loader: 'file-loader',
+        loader: "file-loader",
       },
     ],
   },
