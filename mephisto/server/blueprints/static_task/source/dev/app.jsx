@@ -43,7 +43,7 @@ function MainApp() {
     return <ShowURL url="preview.html" />;
   }
   if (isLoading) {
-    return <div>Initializing...</div>;
+    return <div>Loading..</div>;
   }
   if (initialTaskData === null) {
     return <div>Loading...</div>;
@@ -91,7 +91,7 @@ function SubmitFrame({ children, onSubmit }) {
 
 function ShowURL({ url, data = null }) {
   const [retrievedHtml, setRetrievedHtml] = React.useState(
-    "<h1>Loading...</h1>"
+    "<div>Loading..</div>"
   );
 
   React.useEffect(() => {
