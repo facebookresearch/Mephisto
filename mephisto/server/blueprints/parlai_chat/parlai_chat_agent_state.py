@@ -12,6 +12,7 @@ from mephisto.data_model.packet import (
 )
 import os
 import json
+import time
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -113,5 +114,7 @@ class ParlAIChatAgentState(AgentState):
         """
         Append the incoming packet as well as who it came from
         """
-        self.messages.append(packet.to_sendable_dict())
+        message_data = packet.to_sendable_dict()
+        message_data['timestamp'] = time.time()
+        self.messages.append(message_data)
         self.save_data()
