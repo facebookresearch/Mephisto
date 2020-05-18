@@ -94,12 +94,9 @@ extra_args = {
     "s1_choice": "I would prefer to talk to <Speaker 1>",
     "s2_choice": "I would prefer to talk to <Speaker 2>",
     "eval_question": "Who would you prefer to talk to for a long conversation?",
+    "assignment_duration_in_seconds": 600,
 }
 
 operator = Operator(db)
 operator.parse_and_launch_run_wrapper(shlex.split(ARG_STRING), extra_args=extra_args)
 operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
-
-
-# TODO(#94) these args are not yet configurable in mephisto
-# args['assignment_duration_in_seconds'] = 600
