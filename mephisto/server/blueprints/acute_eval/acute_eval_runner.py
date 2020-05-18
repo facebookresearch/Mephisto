@@ -63,7 +63,7 @@ class AcuteEvalRunner(TaskRunner):
         super().__init__(task_run, opts)
         random.seed(opts["random_seed"])
         self.is_concurrent = False
-        self.assignment_time_in_seconds = task_run.get_task_config().assignment_duration_in_seconds
+        self.assignment_duration_in_seconds = task_run.get_task_config().assignment_duration_in_seconds
 
         # class attributes
         self.onboarding_tasks: List[Dict] = []
@@ -452,7 +452,7 @@ class AcuteEvalRunner(TaskRunner):
         """
         # Frontend implicitly asks for the initialization data, so we just need
         # to wait for a response
-        agent_act = agent.act(timeout=self.assignment_time_in_seconds)
+        agent_act = agent.act(timeout=self.assignment_duration_in_seconds)
         if self.opts["block_on_onboarding_fail"]:
             # check whether workers failed onboarding
             self.check_and_update_worker_approval(agent)

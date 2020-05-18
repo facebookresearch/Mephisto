@@ -105,7 +105,7 @@ class TaskConfig:
             required=True,
         )
         group.add_argument(
-            "--assignment-duration-seconds",
+            "--assignment-duration-in-seconds",
             dest="assignment_duration_in_seconds",
             help="Time that workers have to work on your task once accepted.",
             default=30 * 60,
