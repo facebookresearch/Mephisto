@@ -632,7 +632,7 @@ class ReviewButtons extends React.Component {
 
     // Create other text
     if (dropdown != null && this.state.dropdown_value == "Other") {
-      // Optional input for if the user says other
+      // Optional input for if the  user says other
       other_input = (
         <FormControl
           type="text"
