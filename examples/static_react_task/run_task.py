@@ -18,11 +18,12 @@ import random
 
 USE_LOCAL = True
 
-db = LocalMephistoDB()
-
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_SOURCE_DIR = os.path.join(TASK_DIRECTORY, "webapp")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
+STATIC_FILES_DIR = os.path.join(FRONTEND_SOURCE_DIR, "src", "static")
+
+db = LocalMephistoDB()
 
 # ARG_STRING goes through shlex.split twice, hence be careful if these
 # strings contain anything which needs quoting.
@@ -52,6 +53,7 @@ ARG_STRING = (
     f'--task-source "{TASK_DIRECTORY}/webapp/build/bundle.js" '
     f"--units-per-assignment 1 "
     f"--task-name light-quest-pilot-test "
+    f'--extra-source-dir "{STATIC_FILES_DIR}" '
 )
 
 extra_args = {

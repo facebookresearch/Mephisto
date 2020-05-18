@@ -7,78 +7,79 @@
  */
 
 import React from "react";
-import {
-  Button,
-} from "react-bootstrap";
 
-
-class TaskDescription extends React.Component {
-  render() {
-    return (
-      <div>
-        This is an incredibly simple task to demonstrate how creating Mephisto tasks with
-        react works! Inside you'll be asked to rate a given sentence as good or bad.
-      </div>
-    );
-  }
+function OnboardingComponent({ onSubmit }) {
+  return (
+    <div>
+      <Directions>
+        This component only renders if you have chosen to assign an onboarding
+        qualification for your task. Click the button to move on to the main
+        task.
+      </Directions>
+      <button
+        className="button is-link"
+        onClick={() => onSubmit({ submitted: true })}
+      >
+        Move to main task.
+      </button>
+    </div>
+  );
 }
 
-class OnboardingComponent extends React.Component {
-  render() {
-    return (
-      <div>
-        <p>
-          This component only renders if you have chosen to assign an onboarding qualification
-          for your task. Click the button to move on to the main task.
-        </p>
-        <Button 
-          type="button" 
-          onClick={() => this.props.onSubmit({submitted: true})}
-        >
-          Move to main task.
-        </Button>
-      </div>
-    )
-  }
+function LoadingScreen() {
+  return <Directions>Loading...</Directions>;
 }
 
-class SimpleFrontend extends React.Component {
-  render() {
-    if (!this.props.task_data) {
-      return <div>Loading</div>;
-    }
-    if (this.props.isOnboarding) {
-      return <OnboardingComponent onSubmit={(data) => this.props.onSubmit(data)} />;
-    }
-    let good_button = (
-      <Button 
-        type="button" 
-        onClick={() => this.props.onSubmit({rating: "good"})}
-      >
-        Mark as Good
-      </Button>
-    )
-    let bad_button = (
-      <Button 
-        type="button" 
-        onClick={() => this.props.onSubmit({rating: "bad"})}
-      >
-        Mark as Bad
-      </Button>
-    );
-    return (
-      <div>
-        <h1>Please rate the below sentence as good or bad</h1>
-        <p>
-          {this.props.task_data.text}
-        </p>
-        <div>
-          {good_button}
-          {bad_button}
+function Directions({ children }) {
+  return (
+    <section class="hero is-light">
+      <div class="hero-body">
+        <div class="container">
+          <p class="subtitle is-5">{children}</p>
         </div>
       </div>
-    )
-  }
+    </section>
+  );
 }
 
-export { TaskDescription, SimpleFrontend as BaseFrontend };
+function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
+  if (!taskData) {
+    return <LoadingScreen />;
+  }
+  if (isOnboarding) {
+    return <OnboardingComponent onSubmit={onSubmit} />;
+  }
+  return (
+    <div>
+      <Directions>
+        Directions: Please rate the below sentence as good or bad.
+      </Directions>
+      <section class="section">
+        <div className="container">
+          <p className="subtitle is-5"></p>
+          <p className="title is-3 is-spaced">{taskData.text}</p>
+          <div className="field is-grouped">
+            <div className="control">
+              <button
+                className="button is-success is-large"
+                onClick={() => onSubmit({ rating: "good" })}
+              >
+                Mark as Good
+              </button>
+            </div>
+            <div className="control">
+              <button
+                className="button is-danger is-large"
+                onClick={() => onSubmit({ rating: "bad" })}
+              >
+                Mark as Bad
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export { LoadingScreen, SimpleFrontend as BaseFrontend };

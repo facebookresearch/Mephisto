@@ -8,46 +8,53 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import {
-  TaskDescription,
-  BaseFrontend,
-} from "./components/core_components.jsx";
-import { useMephistoTask, getBlockedExplanation } from "mephisto-task";
+import { BaseFrontend, LoadingScreen } from "./components/core_components.jsx";
+import { useMephistoTask } from "mephisto-task";
 
 /* ================= Application Components ================= */
 
 function MainApp() {
   const {
     blockedReason,
-    taskConfig,
+    blockedExplanation,
     isPreview,
-    agentId,
+    isLoading,
     initialTaskData,
     handleSubmit,
     isOnboarding,
   } = useMephistoTask();
 
   if (blockedReason !== null) {
-    return <h1>{getBlockedExplanation(blockedReason)}</h1>;
+    return (
+      <section className="hero is-medium is-danger">
+        <div class="hero-body">
+          <h2 className="title is-3">{blockedExplanation}</h2>{" "}
+        </div>
+      </section>
+    );
   }
-  if (taskConfig === null) {
-    return <div>Initializing...</div>;
+  if (isLoading) {
+    return <LoadingScreen />;
   }
   if (isPreview) {
-    return <TaskDescription task_config={taskConfig} is_cover_page={true} />;
-  }
-  if (agentId === null) {
-    return <div>Initializing...</div>;
-  }
-  if (initialTaskData === null) {
-    return <h1>Gathering data...</h1>;
+    return (
+      <section className="hero is-medium is-link">
+        <div class="hero-body">
+          <div className="title is-3">
+            This is an incredibly simple React task working with Mephisto!
+          </div>
+          <div className="subtitle is-4">
+            Inside you'll be asked to rate a given sentence as good or bad.
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
     <div>
       <BaseFrontend
-        task_data={initialTaskData}
-        task_config={taskConfig}
+        taskData={initialTaskData}
         onSubmit={handleSubmit}
         isOnboarding={isOnboarding}
       />
