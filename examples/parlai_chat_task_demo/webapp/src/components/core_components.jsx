@@ -33,19 +33,21 @@ import "rc-slider/assets/index.css";
 
 class ChatMessage extends React.Component {
   render() {
+    const { is_self, duration, agent_id, message } = this.props;
+
     let float_loc = "left";
     let alert_class = "alert-warning";
-    if (this.props.is_self) {
+    if (is_self) {
       float_loc = "right";
       alert_class = "alert-info";
     }
     let duration = null;
-    if (this.props.duration !== undefined) {
-      let duration_seconds = Math.floor(this.props.duration / 1000) % 60;
-      let duration_minutes = Math.floor(this.props.duration / 60000);
+    if (duration !== undefined) {
+      let duration_seconds = Math.floor(duration / 1000) % 60;
+      let duration_minutes = Math.floor(duration / 60000);
       let min_text = duration_minutes > 0 ? duration_minutes + " min" : "";
       let sec_text = duration_seconds > 0 ? duration_seconds + " sec" : "";
-      duration = (
+      duration_text = (
         <small>
           <br />
           <i>Duration: </i>
@@ -61,9 +63,9 @@ class ChatMessage extends React.Component {
           style={{ float: float_loc, display: "table" }}
         >
           <span style={{ fontSize: "16px", whiteSpace: "pre-wrap" }}>
-            <b>{this.props.agent_id}</b>: {this.props.message}
+            <b>{agent_id}</b>: {message}
           </span>
-          {duration}
+          {duration_text}
         </div>
       </div>
     );
@@ -71,87 +73,84 @@ class ChatMessage extends React.Component {
 }
 
 class MessageList extends React.Component {
-  makeMessages() {
-    let agent_id = this.props.agent_id;
-    let messages = this.props.messages;
+  render() {
+    const {
+      agent_id,
+      messages,
+      onClickMessage,
+      displayNames,
+      is_review,
+    } = this.props;
+
     // Handles rendering messages from both the user and anyone else
     // on the thread - agent_ids for the sender of a message exist in
     // the m.id field.
-    let onClickMessage = this.props.onClickMessage;
     if (typeof onClickMessage !== "function") {
       onClickMessage = (idx) => {
         alert("You've clicked on message number: " + idx);
       };
     }
-    return messages.map((m, idx) => (
-      <div key={m.message_id + "-" + idx} onClick={() => onClickMessage(idx)}>
-        <ChatMessage
-          is_self={
-            m.id == agent_id ||
-            (m.id in this.props.displayNames)
-          }
-          agent_id={
-            m.id in this.props.displayNames ? this.props.displayNames[m.id] : m.id
-          }
-          message={m.text}
-          task_data={m.task_data}
-          message_id={m.message_id}
-          duration={this.props.is_review ? m.duration : undefined}
-        />
-      </div>
-    ));
-  }
-
-  render() {
     return (
       <div id="message_thread" style={{ width: "100%" }}>
-        {this.makeMessages()}
+        {messages.map((m, idx) => (
+          <div
+            key={m.message_id + "-" + idx}
+            onClick={() => onClickMessage(idx)}
+          >
+            <ChatMessage
+              is_self={m.id == agent_id || m.id in displayNames}
+              agent_id={m.id in displayNames ? displayNames[m.id] : m.id}
+              message={m.text}
+              task_data={m.task_data}
+              message_id={m.message_id}
+              duration={is_review ? m.duration : undefined}
+            />
+          </div>
+        ))}
       </div>
     );
   }
 }
 
-class ConnectionIndicator extends React.Component {
-  render() {
-    let indicator_style = {
-      opacity: "1",
-      fontSize: "11px",
-      color: "white",
-      float: "right",
-    };
-    let text = "";
-    switch (this.props.connection_status) {
-      case CONNECTION_STATUS.CONNECTED:
-        indicator_style["background"] = "#5cb85c";
-        text = "connected";
-        break;
-      case CONNECTION_STATUS.RECONNECTING_ROUTER:
-        indicator_style["background"] = "#f0ad4e";
-        text = "reconnecting to router";
-        break;
-      case CONNECTION_STATUS.RECONNECTING_SERVER:
-        indicator_style["background"] = "#f0ad4e";
-        text = "reconnecting to server";
-        break;
-      case CONNECTION_STATUS.DISCONNECTED_SERVER:
-      case CONNECTION_STATUS.DISCONNECTED_ROUTER:
-      default:
-        indicator_style["background"] = "#d9534f";
-        text = "disconnected";
-        break;
-    }
-
-    return (
-      <button
-        id="connected-button"
-        className="btn btn-lg"
-        style={indicator_style}
-        disabled={true}
-      >
-        {text}
-      </button>
-    );
+function ConnectionIndicator({ connection_status }) {
+  let indicator_style = {
+    opacity: "1",
+    fontSize: "11px",
+    color: "white",
+    float: "right",
+  };
+  let text = "";
+  switch (connection_status) {
+    case CONNECTION_STATUS.CONNECTED:
+      indicator_style["background"] = "#5cb85c";
+      text = "connected";
+      break;
+    case CONNECTION_STATUS.RECONNECTING_ROUTER:
+      indicator_style["background"] = "#f0ad4e";
+      text = "reconnecting to router";
+      break;
+    case CONNECTION_STATUS.RECONNECTING_SERVER:
+      indicator_style["background"] = "#f0ad4e";
+      text = "reconnecting to server";
+      break;
+    case CONNECTION_STATUS.DISCONNECTED_SERVER:
+    case CONNECTION_STATUS.DISCONNECTED_ROUTER:
+    default:
+      indicator_style["background"] = "#d9534f";
+      text = "disconnected";
+      break;
   }
+
+  return (
+    <button
+      id="connected-button"
+      className="btn btn-lg"
+      style={indicator_style}
+      disabled={true}
+    >
+      {text}
+    </button>
+  );
 }
 
 class VolumeControl extends React.Component {
@@ -161,6 +160,8 @@ class VolumeControl extends React.Component {
   }
 
   render() {
+    const { volume, onVolumeChange } = this.props;
+
     let volume_control_style = {
       opacity: "1",
       fontSize: "11px",
@@ -182,9 +183,9 @@ class VolumeControl extends React.Component {
         <div style={volume_control_style}>
           <div style={slider_style}>
             <Slider
-              onChange={(v) => this.props.onVolumeChange(v / 100)}
+              onChange={(v) => onVolumeChange(v / 100)}
               style={{ marginTop: 10 }}
-              defaultValue={this.props.volume * 100}
+              defaultValue={volume * 100}
             />
           </div>
           <Button onClick={() => this.setState({ slider_shown: false })}>
@@ -387,8 +388,11 @@ class ChatNavbar extends React.Component {
     };
     return (
       <div style={nav_style}>
-        <ConnectionIndicator {...this.props} />
-        <VolumeControl {...this.props} />
+        <ConnectionIndicator connection_status={this.props.connection_status} />
+        <VolumeControl
+          volume={this.props.volume}
+          onVolumeChange={this.props.onVolumeChange}
+        />
         {displayChatBox && (
           <ChatBox
             off_chat_messages={this.state.chat}
@@ -403,49 +407,45 @@ class ChatNavbar extends React.Component {
   }
 }
 
-class Hourglass extends React.Component {
-  render() {
-    // TODO move to CSS document
-    let hourglass_style = {
-      marginTop: "-1px",
-      marginRight: "5px",
-      display: "inline",
-      float: "left",
-    };
-
-    // TODO animate?
-    return (
-      <div id="hourglass" style={hourglass_style}>
-        <span className="glyphicon glyphicon-hourglass" aria-hidden="true" />
-      </div>
-    );
-  }
+function Hourglass() {
+  // TODO animate?
+  return (
+    <div
+      id="hourglass"
+      style={{
+        marginTop: "-1px",
+        marginRight: "5px",
+        display: "inline",
+        float: "left",
+      }}
+    >
+      <span className="glyphicon glyphicon-hourglass" aria-hidden="true" />
+    </div>
+  );
 }
 
-class WaitingMessage extends React.Component {
-  render() {
-    let message_style = {
-      float: "left",
-      display: "table",
-      backgroundColor: "#fff",
-    };
-    let text = "Waiting for the next person to speak...";
-    if (this.props.agent_status == "waiting") {
-      text = "Waiting to pair with a task...";
-    }
-    return (
-      <div
-        id="waiting-for-message"
-        className="row"
-        style={{ marginLeft: "0", marginRight: "0" }}
-      >
-        <div className="alert alert-warning" role="alert" style={message_style}>
-          <Hourglass />
-          <span style={{ fontSize: "16px" }}>{text}</span>
-        </div>
-      </div>
-    );
+function WaitingMessage({ agent_status }) {
+  let message_style = {
+    float: "left",
+    display: "table",
+    backgroundColor: "#fff",
+  };
+  let text = "Waiting for the next person to speak...";
+  if (agent_status === "waiting") {
+    text = "Waiting to pair with a task...";
   }
+  return (
+    <div
+      id="waiting-for-message"
+      className="row"
+      style={{ marginLeft: "0", marginRight: "0" }}
+    >
+      <div className="alert alert-warning" role="alert" style={message_style}>
+        <Hourglass />
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      </div>
+    </div>
+  );
 }
 
 class ChatPane extends React.Component {
@@ -506,7 +506,7 @@ class ChatPane extends React.Component {
     // console.log('Should be making waiting message?');
     // console.log(this.props);
     if (this.props.chat_state == "waiting") {
-      wait_message = <WaitingMessage {...this.props} />;
+      wait_message = <WaitingMessage agent_status={this.props.agent_status} />;
     }
 
     return (
@@ -676,7 +676,10 @@ class ReviewButtons extends React.Component {
                   reason: this.state.text,
                 };
                 this.props
-                  .onMessageSend({ text: "[PEER_REVIEW]", task_data: feedback_data })
+                  .onMessageSend({
+                    text: "[PEER_REVIEW]",
+                    task_data: feedback_data,
+                  })
                   .then(() => this.setState({ submitted: true }));
                 this.props.onChoice(true);
               }}
@@ -761,11 +764,15 @@ class DoneResponse extends React.Component {
   }
 
   render() {
+    const {
+      agent_state: { done_text, task_done },
+    } = this.props;
+
     let inactive_pane = null;
-    if (this.props.agent_state.done_text) {
+    if (done_text) {
       inactive_pane = (
         <span id="inactive" style={{ fontSize: "14pt", marginRight: "15px" }}>
-          {this.props.agent_state.done_text}
+          {done_text}
         </span>
       );
     }
@@ -778,7 +785,7 @@ class DoneResponse extends React.Component {
       float: "left",
     };
     let done_button = <DoneButton {...this.props} />;
-    if (!this.props.agent_state.task_done) {
+    if (!task_done) {
       done_button = null;
     }
     return (
@@ -934,8 +941,8 @@ class FormResponse extends React.Component {
     if (all_response_filled && this.props.active && !this.state.sending) {
       this.setState({ sending: true });
       this.props
-        .onMessageSend({ 
-          text: response_text, 
+        .onMessageSend({
+          text: response_text,
           task_data: { form_responses: response_data },
         })
         .then(() => this.setState({ sending: false }));
@@ -1057,27 +1064,23 @@ class FormResponse extends React.Component {
 
 class ResponsePane extends React.Component {
   render() {
+    const { chat_state, task_data } = this.props;
+
     let response_pane = null;
-    switch (this.props.chat_state) {
+    switch (chat_state) {
       case "done":
       case "inactive":
         response_pane = <DoneResponse {...this.props} />;
         break;
       case "text_input":
       case "waiting":
-        if (this.props.task_data && this.props.task_data["respond_with_form"]) {
+        if (task_data && task_data["respond_with_form"]) {
           response_pane = (
-            <FormResponse
-              {...this.props}
-              active={this.props.chat_state == "text_input"}
-            />
+            <FormResponse {...this.props} active={chat_state == "text_input"} />
           );
         } else {
           response_pane = (
-            <TextResponse
-              {...this.props}
-              active={this.props.chat_state == "text_input"}
-            />
+            <TextResponse {...this.props} active={chat_state == "text_input"} />
           );
         }
         break;
@@ -1134,65 +1137,59 @@ class RightPane extends React.Component {
   }
 }
 
-class CustomTaskDescription extends React.Component {
-  render() {
-    let header_text = this.props.task_config.chat_title;
-    let task_desc =
-      this.props.task_config.task_description || "Task Description Loading";
-    return (
-      <div>
-        <h1>{header_text}</h1>
-        <hr style={{ borderTop: "1px solid #555" }} />
-        <h2>This is a custom Task Description loaded from a custom bundle</h2>
-        <p>
-          It has the ability to do a number of things, like directly access the
-          contents of task data, view the number of messages so far, and pretty
-          much anything you make like. We're also able to control other
-          components as well, as in this example we've made it so that if you
-          click a message, it will alert with that message idx.
-        </p>
-        <p>
-          The current contents of task data are as follows:{" "}
-          {JSON.stringify(this.props.task_data)}
-        </p>
-        <p>The regular task description content will now appear below:</p>
-        <hr style={{ borderTop: "1px solid #555" }} />
-        <span
-          id="task-description"
-          style={{ fontSize: "16px" }}
-          dangerouslySetInnerHTML={{ __html: task_desc }}
-        />
-      </div>
-    );
-  }
+function CustomTaskDescription({ task_config, task_data }) {
+  let header_text = task_config.chat_title;
+  let task_desc = task_config.task_description || "Task Description Loading";
+  return (
+    <div>
+      <h1>{header_text}</h1>
+      <hr style={{ borderTop: "1px solid #555" }} />
+      <h2>This is a custom Task Description loaded from a custom bundle</h2>
+      <p>
+        It has the ability to do a number of things, like directly access the
+        contents of task data, view the number of messages so far, and pretty
+        much anything you make like. We're also able to control other components
+        as well, as in this example we've made it so that if you click a
+        message, it will alert with that message idx.
+      </p>
+      <p>
+        The current contents of task data are as follows:{" "}
+        {JSON.stringify(task_data)}
+      </p>
+      <p>The regular task description content will now appear below:</p>
+      <hr style={{ borderTop: "1px solid #555" }} />
+      <span
+        id="task-description"
+        style={{ fontSize: "16px" }}
+        dangerouslySetInnerHTML={{ __html: task_desc }}
+      />
+    </div>
+  );
 }
 
-class ContextView extends React.Component {
-  render() {
-    // TODO pull context title from templating variable
-    let header_text = "Context";
-    let context =
-      "To render context here, write or select a ContextView " +
-      "that can render your task_data, or write the desired " +
-      "content into the task_data.html field of your act";
-    if (
-      this.props.task_data !== undefined &&
-      this.props.task_data.html !== undefined
-    ) {
-      context = this.props.task_data.html;
-    }
-    return (
-      <div>
-        <h1>{header_text}</h1>
-        <hr style={{ borderTop: "1px solid #555" }} />
-        <span
-          id="context"
-          style={{ fontSize: "16px" }}
-          dangerouslySetInnerHTML={{ __html: context }}
-        />
-      </div>
-    );
+function ContextView({ task_data }) {
+  const { task_data } = this.props;
+
+  // TODO pull context title from templating variable
+  let header_text = "Context";
+  let context =
+    "To render context here, write or select a ContextView " +
+    "that can render your task_data, or write the desired " +
+    "content into the task_data.html field of your act";
+  if (task_data !== undefined && task_data.html !== undefined) {
+    context = task_data.html;
   }
+  return (
+    <div>
+      <h1>{header_text}</h1>
+      <hr style={{ borderTop: "1px solid #555" }} />
+      <span
+        id="context"
+        style={{ fontSize: "16px" }}
+        dangerouslySetInnerHTML={{ __html: context }}
+      />
+    </div>
+  );
 }
 
 class LeftPane extends React.Component {
@@ -1214,20 +1211,22 @@ class LeftPane extends React.Component {
   }
 
   render() {
-    let frame_height = this.props.task_config.frame_height;
+    const { task_config, is_cover_page, children } = this.props;
+
+    let frame_height = task_config.frame_height;
     let frame_style = {
       height: frame_height + "px",
       backgroundColor: "#dff0d8",
       padding: "30px",
       overflow: "auto",
     };
-    let pane_size = this.props.is_cover_page ? "col-xs-12" : "col-xs-4";
+    let pane_size = is_cover_page ? "col-xs-12" : "col-xs-4";
     let has_context = false; // We'll be rendering context inline
-    if (this.props.is_cover_page || !has_context) {
+    if (is_cover_page || !has_context) {
       return (
         <div id="left-pane" className={pane_size} style={frame_style}>
           <CustomTaskDescription {...this.props} />
-          {this.props.children}
+          {children}
         </div>
       );
     } else {
@@ -1292,65 +1291,58 @@ class LeftPane extends React.Component {
             {nav_items}
           </Nav>
           {nav_panels}
-          {this.props.children}
+          {children}
         </div>
       );
     }
   }
 }
 
-class ContentLayout extends React.Component {
-  render() {
-    let layout_style = "2-PANEL"; // Currently the only layout style is 2 panel
-    return (
+function ContentLayout(props) {
+  let layout_style = "2-PANEL"; // Currently the only layout style is 2 panel
+  return (
+    <div className="row" id="ui-content">
+      <LeftPane {...props} layout_style={layout_style} />
+      <RightPane {...props} layout_style={layout_style} />
+    </div>
+  );
+}
+
+function BaseFrontend(props) {
+  const { is_cover_page, connection_status } = props;
+  let content = null;
+  if (is_cover_page) {
+    content = (
       <div className="row" id="ui-content">
-        <LeftPane {...this.props} layout_style={layout_style} />
-        <RightPane {...this.props} layout_style={layout_style} />
+        <LeftPane {...this.props} />
       </div>
     );
-  }
-}
-
-class BaseFrontend extends React.Component {
-  render() {
-    let content = null;
-    if (this.props.is_cover_page) {
-      content = (
-        <div className="row" id="ui-content">
-          <LeftPane {...this.props} />
-        </div>
-      );
-    } else if (
-      this.props.connection_status === CONNECTION_STATUS.INITIALIZING
-    ) {
-      content = <div id="ui-placeholder">Initializing...</div>;
-    } else if (
-      this.props.connection_status === CONNECTION_STATUS.WEBSOCKETS_FAILURE
-    ) {
-      content = (
-        <div id="ui-placeholder">
-          Sorry, but we found that your browser does not support WebSockets.
-          Please consider updating your browser to a newer version or using a
-          different browser and check this HIT again.
-        </div>
-      );
-    } else if (this.props.connection_status == CONNECTION_STATUS.FAILED) {
-      content = (
-        <div id="ui-placeholder">
-          Unable to initialize. We may be having issues with our servers. Please
-          refresh the page, or if that isn't working return the HIT and try
-          again later if you would like to work on this task.
-        </div>
-      );
-    } else {
-      content = <ContentLayout {...this.props} />;
-    }
-    return (
-      <div className="container-fluid" id="ui-container">
-        {content}
+  } else if (connection_status === CONNECTION_STATUS.INITIALIZING) {
+    content = <div id="ui-placeholder">Initializing...</div>;
+  } else if (connection_status === CONNECTION_STATUS.WEBSOCKETS_FAILURE) {
+    content = (
+      <div id="ui-placeholder">
+        Sorry, but we found that your browser does not support WebSockets.
+        Please consider updating your browser to a newer version or using a
+        different browser and check this HIT again.
       </div>
     );
+  } else if (connection_status == CONNECTION_STATUS.FAILED) {
+    content = (
+      <div id="ui-placeholder">
+        Unable to initialize. We may be having issues with our servers. Please
+        refresh the page, or if that isn't working return the HIT and try again
+        later if you would like to work on this task.
+      </div>
+    );
+  } else {
+    content = <ContentLayout {...props} />;
   }
+  return (
+    <div className="container-fluid" id="ui-container">
+      {content}
+    </div>
+  );
 }
 
 export {
