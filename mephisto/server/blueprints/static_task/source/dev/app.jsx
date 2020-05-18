@@ -34,6 +34,7 @@ function MainApp() {
     isLoading,
     initialTaskData,
     handleSubmit,
+    isOnboarding,
   } = useMephistoTask();
 
   if (blockedReason !== null) {
@@ -44,6 +45,11 @@ function MainApp() {
   }
   if (isLoading) {
     return <div>Loading..</div>;
+  }
+  if (isOnboarding) {
+    <SubmitFrame onSubmit={(data) => handleSubmit(data)}>
+      <ShowURL url='onboarding.html' data={initialTaskData} />
+    </SubmitFrame>
   }
   if (initialTaskData === null) {
     return <div>Loading...</div>;
