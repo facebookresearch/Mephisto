@@ -150,6 +150,19 @@ class ParlAIChatTaskRunner(TaskRunner):
         ):
             world.parley()
         world.shutdown()
+        if hasattr(world, "prep_save_data"):
+            agent.observe(
+                Packet(
+                    packet_type=PACKET_TYPE_AGENT_ACTION,
+                    sender_id="mephisto",
+                    receiver_id=agent.db_id,
+                    data={
+                        "id": "SUBMIT_WORLD_DATA",
+                        "WORLD_DATA": world.prep_save_data(parlai_agent),
+                        "text": "",
+                    },
+                )
+            )
 
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
         """Shutdown the world"""
@@ -176,6 +189,20 @@ class ParlAIChatTaskRunner(TaskRunner):
         # as if one needs to rate and the other doesn't
 
         world.shutdown()
+        if hasattr(world, "prep_save_data"):
+            for idx in range(len(parlai_agents)):
+                agents[idx].observe(
+                    Packet(
+                        packet_type=PACKET_TYPE_AGENT_ACTION,
+                        sender_id="mephisto",
+                        receiver_id=agent.db_id,
+                        data={
+                            "id": "SUBMIT_WORLD_DATA",
+                            "WORLD_DATA": world.prep_save_data(parlai_agents[idx]),
+                            "text": "",
+                        },
+                    )
+                )
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Handle cleanup for a specific assignment"""
