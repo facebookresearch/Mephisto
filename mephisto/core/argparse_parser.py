@@ -30,6 +30,25 @@ def str2bool(v):
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
+def str2none(value: str):
+    """
+    If the value is a variant of `none`, return None.
+
+    Otherwise, return the original value.
+    """
+    if value.lower() == "none":
+        return None
+    else:
+        return value
+
+
+def str2floats(s):
+    """
+    Look for single float or comma-separated floats.
+    """
+    return tuple(float(f) for f in s.split(","))
+
+
 def collect_groups_recurse(group: argparse._ArgumentGroup):
     """
     Recursively traverse an argument group, returning

@@ -6,8 +6,13 @@
 
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
 from mephisto.data_model.blueprint import AgentState
+from mephisto.data_model.packet import (
+    PACKET_TYPE_AGENT_ACTION,
+    PACKET_TYPE_UPDATE_AGENT_STATUS,
+)
 import os
 import json
+import time
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -72,6 +77,33 @@ class ParlAIChatAgentState(AgentState):
         """Return dict with the messages of this agent"""
         return {"outputs": {"messages": self.messages}, "inputs": self.init_data}
 
+    def get_parsed_data(self) -> Dict[str, Any]:
+        """Return the formatted input, conversations, and final data"""
+        init_data = self.init_data
+        save_data = None
+        messages = [
+            m["data"]
+            for m in self.messages
+            if m["packet_type"] == PACKET_TYPE_AGENT_ACTION
+        ]
+        agent_name = None
+        for m in self.messages:
+            if m["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS:
+                if "agent_display_name" in m["data"]:
+                    agent_name = m["data"]["agent_display_name"]
+                    break
+        if "MEPHISTO_is_submit" in messages[-1]:
+            messages = messages[:-1]
+        if "WORLD_DATA" in messages[-1]:
+            save_data = messages[-1]["WORLD_DATA"]
+            messages = messages[:-1]
+        return {
+            "agent_name": agent_name,
+            "initial_data": init_data,
+            "messages": messages,
+            "save_data": save_data,
+        }
+
     def save_data(self) -> None:
         """Save all messages from this agent to """
         agent_file = self._get_expected_data_file()
@@ -82,5 +114,7 @@ class ParlAIChatAgentState(AgentState):
         """
         Append the incoming packet as well as who it came from
         """
-        self.messages.append(packet.to_sendable_dict())
+        message_data = packet.to_sendable_dict()
+        message_data['timestamp'] = time.time()
+        self.messages.append(message_data)
         self.save_data()

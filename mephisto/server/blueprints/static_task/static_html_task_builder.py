@@ -24,7 +24,7 @@ FRONTEND_SOURCE_DIR = os.path.join(STATIC_TASK_DIR, "source")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
 
-class StaticTaskBuilder(TaskBuilder):
+class StaticHTMLTaskBuilder(TaskBuilder):
     """
     Builder for a static task, pulls the appropriate html,
     builds the frontend (if a build doesn't already exist),

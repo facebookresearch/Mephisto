@@ -603,7 +603,7 @@ class Supervisor:
 
         self.message_queue.append(agent_data_packet)
 
-        if unit_data.get("raw_messages") is not None:
+        if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
             # TODO bring these into constants somehow
             for message in unit_data.get("raw_messages"):
                 packet = Packet.from_dict(message)

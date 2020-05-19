@@ -6,11 +6,12 @@
 
 from mephisto.data_model.blueprint import TaskRunner
 from mephisto.data_model.agent import Agent, OnboardingAgent
+
 try:
     from parlai.core.agents import Agent as ParlAIAgent
     from parlai.core.message import Message
 except:
-    pass # ParlAI is not installed. TODO remove when we move this blueprint to ParlAI
+    pass  # ParlAI is not installed. TODO remove when we move this blueprint to ParlAI
 
 from mephisto.data_model.packet import (
     Packet,
@@ -149,6 +150,19 @@ class ParlAIChatTaskRunner(TaskRunner):
         ):
             world.parley()
         world.shutdown()
+        if hasattr(world, "prep_save_data"):
+            agent.observe(
+                Packet(
+                    packet_type=PACKET_TYPE_AGENT_ACTION,
+                    sender_id="mephisto",
+                    receiver_id=agent.db_id,
+                    data={
+                        "id": "SUBMIT_WORLD_DATA",
+                        "WORLD_DATA": world.prep_save_data(parlai_agent),
+                        "text": "",
+                    },
+                )
+            )
 
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
         """Shutdown the world"""
@@ -175,6 +189,20 @@ class ParlAIChatTaskRunner(TaskRunner):
         # as if one needs to rate and the other doesn't
 
         world.shutdown()
+        if hasattr(world, "prep_save_data"):
+            for idx in range(len(parlai_agents)):
+                agents[idx].observe(
+                    Packet(
+                        packet_type=PACKET_TYPE_AGENT_ACTION,
+                        sender_id="mephisto",
+                        receiver_id=agent.db_id,
+                        data={
+                            "id": "SUBMIT_WORLD_DATA",
+                            "WORLD_DATA": world.prep_save_data(parlai_agents[idx]),
+                            "text": "",
+                        },
+                    )
+                )
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Handle cleanup for a specific assignment"""

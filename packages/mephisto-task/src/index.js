@@ -7,6 +7,7 @@ import {
   getInitTaskData,
   postCompleteTask,
   postCompleteOnboarding,
+  getBlockedExplanation,
 } from "./utils";
 export * from "./utils";
 export * from "./live";
@@ -51,9 +52,9 @@ const useMephistoTask = function () {
         postCompleteOnboarding(state.agentId, data).then((packet) => {
           setState({ initialTaskData: null, loaded: false });
           afterAgentRegistration(state.workerId, packet);
-        })
+        });
       } else {
-        postCompleteTask(state.agentId, data)
+        postCompleteTask(state.agentId, data);
       }
     },
     [state.agentId]
@@ -74,7 +75,7 @@ const useMephistoTask = function () {
     if (agentId === null) {
       setState({ blockedReason: "null_agent_id" });
     } else if (isOnboarding) {
-      setState({ initialTaskData: dataPacket.data.onboard_data, loaded: true  })
+      setState({ initialTaskData: dataPacket.data.onboard_data, loaded: true });
     } else {
       getInitTaskData(workerId, agentId).then((packet) => {
         setState({ initialTaskData: packet.data.init_data, loaded: true });
@@ -101,6 +102,7 @@ const useMephistoTask = function () {
   return {
     ...state,
     isLoading: !state.loaded,
+    blockedExplanation: blockedReason && getBlockedExplanation(blockedReason),
     handleSubmit,
   };
 };
