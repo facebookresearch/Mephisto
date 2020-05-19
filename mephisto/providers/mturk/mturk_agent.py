@@ -82,11 +82,13 @@ class MTurkAgent(Agent):
         """Approve the work done on this specific Unit"""
         client = self._get_client()
         approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
+        self.update_status(AgentState.STATUS_APPROVED)
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
         client = self._get_client()
         reject_work(client, self._get_mturk_assignment_id(), reason)
+        self.update_status(AgentState.STATUS_REJECTED)
 
     def mark_done(self) -> None:
         """

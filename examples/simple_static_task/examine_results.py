@@ -23,13 +23,14 @@ def format_for_printing_data(data):
     contents = data["data"]
     duration = contents["times"]["task_end"] - contents["times"]["task_start"]
     metadata_string = (
-        f"Worker: {worker_name}\nUnit: {data['unit_id']}\nDuration: {int(duration)}\n"
+        f"Worker: {worker_name}\nUnit: {data['unit_id']}\n"
+        f"Duration: {int(duration)}\nStatus: {data['status']}\n"
     )
 
     inputs = contents["inputs"]
     inputs_string = f"Character: {inputs['character_name']}\nDescription: {inputs['character_description']}\n"
 
-    outputs = contents["outputs"]
+    outputs = contents["outputs"]['final_data']
     output_string = f"   Rating: {outputs['rating']}\n"
     found_files = outputs.get("files")
     if found_files is not None:
@@ -45,7 +46,7 @@ disqualification_name = None
 for unit in units:
     print(format_for_printing_data(mephisto_data_browser.get_data_from_unit(unit)))
     if DO_REVIEW:
-        keep = input("Do you want to accept this work? (a)ccept, (r)eject, (p)ass")
+        keep = input("Do you want to accept this work? (a)ccept, (r)eject, (p)ass: ")
         if keep == "a":
             unit.get_assigned_agent().approve_work()
         elif keep == "r":
@@ -54,14 +55,13 @@ for unit in units:
         elif keep == "p":
             # General best practice is to accept borderline work and then disqualify
             # the worker from working on more of these tasks
-            # Can also mark this task as being something to leave out of your dataset
-            # by keeping track of the UnitID somewhere
-            # TODO(#93) it would be nice to be able to put that into the database as PASSED
-            if disqualification_name == None:
-                disqualification_name = input(
-                    "Please input the qualification name you are using to soft block for this task: "
-                )
             agent = unit.get_assigned_agent()
-            agent.approve_work()
-            worker = agent.get_worker()
-            worker.grant_qualification(disqualification_name, 1)
+            agent.soft_reject_work()
+            should_soft_block = input("Do you want to soft block this worker? (y)es/(n)o: ")
+            if should_soft_block.lower() in ['y', 'yes']:
+                if disqualification_name == None:
+                    disqualification_name = input(
+                        "Please input the qualification name you are using to soft block for this task: "
+                    )
+                worker = agent.get_worker()
+                worker.grant_qualification(disqualification_name, 1)

@@ -103,6 +103,7 @@ class MTurkUnit(Unit):
             AssignmentState.CREATED,
             AssignmentState.ACCEPTED,
             AssignmentState.EXPIRED,
+            AssignmentState.SOFT_REJECTED,
         ]:
             # These statuses don't change with a get_status call
             return self.db_status
@@ -118,6 +119,8 @@ class MTurkUnit(Unit):
                     found_status = AssignmentState.ACCEPTED
                 elif agent_status == AgentState.STATUS_REJECTED:
                     found_status = AssignmentState.REJECTED
+                elif agent_status == AgentState.STATUS_SOFT_REJECTED:
+                    found_status = AssignmentState.SOFT_REJECTED
             if found_status != self.db_status:
                 self.set_db_status(found_status)
             return self.db_status

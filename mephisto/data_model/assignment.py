@@ -457,6 +457,9 @@ class Unit(ABC):
                 computed_status = AssignmentState.ASSIGNED
             elif agent_status in [AgentState.STATUS_COMPLETED]:
                 computed_status = AssignmentState.COMPLETED
+                computed_status = AssignmentState.ASSIGNED
+            elif agent_status in [AgentState.STATUS_SOFT_REJECTED]:
+                computed_status = AssignmentState.SOFT_REJECTED
             elif agent_status in [
                 AgentState.STATUS_DISCONNECT,
                 AgentState.STATUS_EXPIRED,
