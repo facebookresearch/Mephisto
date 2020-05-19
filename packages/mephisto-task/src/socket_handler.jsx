@@ -303,7 +303,7 @@ function useMephistoSocket({
       });
 
       window.setTimeout(() => {
-        if (socket.current.readyState !== 1) {
+        if ((socket.current.readyState !== 1) && (!state.socket_terminated)) {
           onConnectionStatusChange(CONNECTION_STATUS.FAILED);
         }
       }, 10000);
@@ -377,10 +377,7 @@ function useMephistoSocket({
     // we won't try any more, fails
     if (
       state.heartbeats_without_response >=
-      useValue(
-        config.routerDeadTimeout,
-        useValue(config.routerDeadTimeout, ROUTER_DEAD_TIMEOUT)
-      )
+      useValue(config.routerDeadTimeout, ROUTER_DEAD_TIMEOUT)
     ) {
       onConnectionStatusChange(CONNECTION_STATUS.DISCONNECTED_ROUTER);
       callbacks.current.closeSocket();
