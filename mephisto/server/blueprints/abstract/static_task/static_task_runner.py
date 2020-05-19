@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 
 
 SYSTEM_SENDER = "mephisto"  # TODO(CLEAN) pull from somewhere
-TEST_TIMEOUT = 3000  # TODO(#95) pull this from the task run max completion time
 
 
 class StaticTaskRunner(TaskRunner):
@@ -33,6 +32,7 @@ class StaticTaskRunner(TaskRunner):
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
         self.is_concurrent = False
+        self.assignment_duration_in_seconds = task_run.get_task_config().assignment_duration_in_seconds
 
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """
@@ -53,7 +53,7 @@ class StaticTaskRunner(TaskRunner):
         Static onboarding flows eaxactly like a regular task, waiting for
         the submit to come through 
         """
-        agent_act = agent.act(timeout=TEST_TIMEOUT)
+        agent_act = agent.act(timeout=self.assignment_duration_in_seconds)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent"):
         """Nothing to clean up in a static onboarding"""
@@ -66,7 +66,7 @@ class StaticTaskRunner(TaskRunner):
         """
         # Frontend implicitly asks for the initialization data, so we just need
         # to wait for a response
-        agent_act = agent.act(timeout=TEST_TIMEOUT)
+        agent_act = agent.act(timeout=self.assignment_duration_in_seconds)
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """There is currently no cleanup associated with killing an incomplete task"""

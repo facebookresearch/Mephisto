@@ -68,7 +68,7 @@ class TaskConfig:
         self.task_description: str = args["task_description"]
         self.task_reward: float = args["task_reward"]
         self.task_tags: List[str] = [s.strip() for s in args["task_tags"].split(",")]
-        self.assignment_duration_in_seconds: int = args["assignment_duration_seconds"]
+        self.assignment_duration_in_seconds: int = args["assignment_duration_in_seconds"]
         self.allowed_concurrent: int = args["allowed_concurrent"]
         self.maximum_units_per_worker: int = args["maximum_units_per_worker"]
 
@@ -105,8 +105,8 @@ class TaskConfig:
             required=True,
         )
         group.add_argument(
-            "--assignment-duration-seconds",
-            dest="assignment_duration_seconds",
+            "--assignment-duration-in-seconds",
+            dest="assignment_duration_in_seconds",
             help="Time that workers have to work on your task once accepted.",
             default=30 * 60,
             type=int,

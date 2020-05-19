@@ -65,7 +65,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         super().__init__(task_run, opts)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         self.init_onboarding_config(task_run, opts)
-        # TODO(#95) context should be put into task_data
+        
         if opts.get("context_csv") is not None:
             csv_file = os.path.expanduser(opts["context_csv"])
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
