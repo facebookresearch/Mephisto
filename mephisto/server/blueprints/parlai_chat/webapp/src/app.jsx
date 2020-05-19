@@ -51,7 +51,17 @@ function MainApp() {
     (allMessages, newMessage) => {
         // we clear messages by sending false
         if (newMessage === false) {
-          return []
+          return [];
+        }
+        // We skip empty messages
+        if (newMessage.text == "") {
+          return allMessages;
+        }
+        // We skip repeat messages
+        for (let m_idx in allMessages) {
+          if (allMessages[m_idx].message_id == newMessage.message_id) {
+            return allMessages;
+          }
         }
         return [...allMessages, newMessage]
       },
