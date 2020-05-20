@@ -10,37 +10,33 @@ import shlex
 import sh
 import shutil
 import subprocess
-from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
+from mephisto.server.blueprints.static_react_task.static_react_blueprint import BLUEPRINT_TYPE
+from mephisto.utils.scripts import MephistoRunScriptParser, str2bool
 
 import random
 
-USE_LOCAL = True
+parser = MephistoRunScriptParser()
+parser.add_argument(
+    "-uo",
+    "--use-onboarding",
+    default=False,
+    help="Launch task with an onboarding world",
+    type=str2bool,
+)
+architect_type, requester_name, db, args = parser.parse_launch_arguments()
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_SOURCE_DIR = os.path.join(TASK_DIRECTORY, "webapp")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 STATIC_FILES_DIR = os.path.join(FRONTEND_SOURCE_DIR, "src", "static")
+USE_ONBOARDING = args["use_onboarding"]
 
-db = LocalMephistoDB()
-
-# ARG_STRING goes through shlex.split twice, hence be careful if these
-# strings contain anything which needs quoting.
 task_title = "Rating a sentence as good or bad"
 task_description = (
     "In this task, you'll be given a sentence. It is your job to rate it as either good or bad."
 )
-
-provider_type = "mock" if USE_LOCAL else "mturk_sandbox"
-architect_type = "local" if USE_LOCAL else "heroku"
-
-requester_name = db.find_requesters(provider_type=provider_type)[-1].requester_name
-
-assert USE_LOCAL or requester_name.endswith(
-    "_sandbox"
-), "Should use a sandbox for testing"
-
 
 ARG_STRING = (
     "--blueprint-type static_react_task "
@@ -52,9 +48,12 @@ ARG_STRING = (
     "--task-tags test,simple,button "
     f'--task-source "{TASK_DIRECTORY}/webapp/build/bundle.js" '
     f"--units-per-assignment 1 "
-    f"--task-name light-quest-pilot-test "
+    f"--task-name react-static-task-example "
     f'--extra-source-dir "{STATIC_FILES_DIR}" '
 )
+
+if USE_ONBOARDING:
+    ARG_STRING += f"--onboarding-qualification test-react-static-qualification "
 
 extra_args = {
     "static_task_data": [
