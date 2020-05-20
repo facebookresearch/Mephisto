@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.packet import Packet
+    from mephisto.providers.mock.mock_datastore import MockDatastore
 
 
 class MockAgent(Agent):
@@ -26,9 +27,9 @@ class MockAgent(Agent):
 
     def __init__(self, db: "MephistoDB", db_id: str):
         super().__init__(db, db_id)
-        self.datastore = db.get_datastore_for_provider(PROVIDER_TYPE)
-        if db_id not in self.datastore["agents"]:
-            self.datastore["agents"][db_id] = {
+        self.datastore: "MockDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
+        if db_id not in self.datastore.agent_data:
+            self.datastore.agent_data[db_id] = {
                 "observed": [],
                 "pending_acts": [],
                 "acts": [],
@@ -36,7 +37,7 @@ class MockAgent(Agent):
 
     def observe(self, packet: "Packet") -> None:
         """Put observations into this mock agent's observation list"""
-        self.datastore["agents"][self.db_id]["observed"].append(packet)
+        self.datastore.agent_data[self.db_id]["observed"].append(packet)
         super().observe(packet)
 
     def act(self, timeout=None) -> Optional["Packet"]:
@@ -45,24 +46,28 @@ class MockAgent(Agent):
         by tests and other mock purposes) or request a regular act
         (for use in manual testing).
         """
-        if len(self.datastore["agents"][self.db_id]["pending_acts"]) > 0:
-            act = self.datastore["agents"][self.db_id]["pending_acts"].pop(0)
+        if len(self.datastore.agent_data[self.db_id]["pending_acts"]) > 0:
+            act = self.datastore.agent_data[self.db_id]["pending_acts"].pop(0)
         else:
             act = super().act(timeout=timeout)
 
         if act is not None:
-            self.datastore["agents"][self.db_id]["acts"].append(act)
+            self.datastore.agent_data[self.db_id]["acts"].append(act)
         return act
 
     def approve_work(self) -> None:
-        """Approve the work done on this specific Unit"""
-        # TODO(#97) implement with the db for the core system
-        raise NotImplementedError()
+        """
+        Approve the work done on this specific Unit
+        
+        Mock Units 
+        """
+        self.update_status(AgentState.STATUS_APPROVED)
 
     def reject_work(self, reason) -> None:
-        """Reject the work done on this specific Unit"""
-        # TODO(#97) implement with the db for the core system
-        raise NotImplementedError()
+        """
+        Reject the work done on this specific Unit
+        """
+        self.update_status(AgentState.STATUS_REJECTED)
 
     def mark_done(self) -> None:
         """
