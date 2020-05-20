@@ -15,6 +15,16 @@ if tasks_to_show in ["all", "a"]:
     DO_REVIEW = False
 else:
     units = [u for u in units if u.get_status() == "completed"]
+    print(
+        "You will be reviewing actual tasks with this flow. Tasks that you either Accept or Pass "
+        "will be paid out to the worker, while rejected tasks will not. Passed tasks will be "
+        "specially marked such that you can leave them out of your dataset. \n"
+        "When you pass on a task, the script gives you an option to disqualify the worker "
+        "from future tasks by assigning a qualification. If provided, this worker will no "
+        "longer be able to work on tasks where the set --block-qualification shares the same name.\n"
+        "You should only reject tasks when it is clear the worker has acted in bad faith, and "
+        "didn't actually do the task. Prefer to pass on tasks that were misunderstandings."
+    )
 
 
 def format_for_printing_data(data):
