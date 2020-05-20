@@ -102,7 +102,8 @@ const useMephistoTask = function () {
   return {
     ...state,
     isLoading: !state.loaded,
-    blockedExplanation: blockedReason && getBlockedExplanation(blockedReason),
+    blockedExplanation:
+      state.blockedReason && getBlockedExplanation(state.blockedReason),
     handleSubmit,
   };
 };
