@@ -31,85 +31,72 @@ import { CONNECTION_STATUS } from "mephisto-task";
 
 import "rc-slider/assets/index.css";
 
-class ChatMessage extends React.Component {
-  render() {
-    const { is_self, duration, agent_id, message } = this.props;
+function ChatMessage(props) {
+  const { is_self, duration, agent_id, message } = props;
 
-    let float_loc = "left";
-    let alert_class = "alert-warning";
-    if (is_self) {
-      float_loc = "right";
-      alert_class = "alert-info";
-    }
-    let duration = null;
-    if (duration !== undefined) {
-      let duration_seconds = Math.floor(duration / 1000) % 60;
-      let duration_minutes = Math.floor(duration / 60000);
-      let min_text = duration_minutes > 0 ? duration_minutes + " min" : "";
-      let sec_text = duration_seconds > 0 ? duration_seconds + " sec" : "";
-      duration_text = (
-        <small>
-          <br />
-          <i>Duration: </i>
-          {min_text + " " + sec_text}
-        </small>
-      );
-    }
-    return (
-      <div className={"row"} style={{ marginLeft: "0", marginRight: "0" }}>
-        <div
-          className={"alert " + alert_class}
-          role="alert"
-          style={{ float: float_loc, display: "table" }}
-        >
-          <span style={{ fontSize: "16px", whiteSpace: "pre-wrap" }}>
-            <b>{agent_id}</b>: {message}
-          </span>
-          {duration_text}
-        </div>
-      </div>
+  let float_loc = "left";
+  let alert_class = "alert-warning";
+  if (is_self) {
+    float_loc = "right";
+    alert_class = "alert-info";
+  }
+  let duration = null;
+  if (duration !== undefined) {
+    let duration_seconds = Math.floor(duration / 1000) % 60;
+    let duration_minutes = Math.floor(duration / 60000);
+    let min_text = duration_minutes > 0 ? duration_minutes + " min" : "";
+    let sec_text = duration_seconds > 0 ? duration_seconds + " sec" : "";
+    duration_text = (
+      <small>
+        <br />
+        <i>Duration: </i>
+        {min_text + " " + sec_text}
+      </small>
     );
   }
+  return (
+    <div className={"row"} style={{ marginLeft: "0", marginRight: "0" }}>
+      <div
+        className={"alert " + alert_class}
+        role="alert"
+        style={{ float: float_loc, display: "table" }}
+      >
+        <span style={{ fontSize: "16px", whiteSpace: "pre-wrap" }}>
+          <b>{agent_id}</b>: {message}
+        </span>
+        {duration_text}
+      </div>
+    </div>
+  );
 }
 
-class MessageList extends React.Component {
-  render() {
-    const {
-      agent_id,
-      messages,
-      onClickMessage,
-      displayNames,
-      is_review,
-    } = this.props;
+function MessageList(props) {
+  const { agent_id, messages, onClickMessage, displayNames, is_review } = props;
 
-    // Handles rendering messages from both the user and anyone else
-    // on the thread - agent_ids for the sender of a message exist in
-    // the m.id field.
-    if (typeof onClickMessage !== "function") {
-      onClickMessage = (idx) => {
-        alert("You've clicked on message number: " + idx);
-      };
-    }
-    return (
-      <div id="message_thread" style={{ width: "100%" }}>
-        {messages.map((m, idx) => (
-          <div
-            key={m.message_id + "-" + idx}
-            onClick={() => onClickMessage(idx)}
-          >
-            <ChatMessage
-              is_self={m.id == agent_id || m.id in displayNames}
-              agent_id={m.id in displayNames ? displayNames[m.id] : m.id}
-              message={m.text}
-              task_data={m.task_data}
-              message_id={m.message_id}
-              duration={is_review ? m.duration : undefined}
-            />
-          </div>
-        ))}
-      </div>
-    );
+  // Handles rendering messages from both the user and anyone else
+  // on the thread - agent_ids for the sender of a message exist in
+  // the m.id field.
+  if (typeof onClickMessage !== "function") {
+    onClickMessage = (idx) => {
+      alert("You've clicked on message number: " + idx);
+    };
   }
+  return (
+    <div id="message_thread" style={{ width: "100%" }}>
+      {messages.map((m, idx) => (
+        <div key={m.message_id + "-" + idx} onClick={() => onClickMessage(idx)}>
+          <ChatMessage
+            is_self={m.id == agent_id || m.id in displayNames}
+            agent_id={m.id in displayNames ? displayNames[m.id] : m.id}
+            message={m.text}
+            task_data={m.task_data}
+            message_id={m.message_id}
+            duration={is_review ? m.duration : undefined}
+          />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function ConnectionIndicator({ connection_status }) {
@@ -521,10 +508,8 @@ class ChatPane extends React.Component {
   }
 }
 
-class IdleResponse extends React.Component {
-  render() {
-    return <div id="response-type-idle" className="response-type-module" />;
-  }
+function IdleResponse() {
+  return <div id="response-type-idle" className="response-type-module" />;
 }
 
 class ReviewButtons extends React.Component {
@@ -1062,43 +1047,41 @@ class FormResponse extends React.Component {
   }
 }
 
-class ResponsePane extends React.Component {
-  render() {
-    const { chat_state, task_data } = this.props;
+function ResponsePane(props) {
+  const { chat_state, task_data } = props;
 
-    let response_pane = null;
-    switch (chat_state) {
-      case "done":
-      case "inactive":
-        response_pane = <DoneResponse {...this.props} />;
-        break;
-      case "text_input":
-      case "waiting":
-        if (task_data && task_data["respond_with_form"]) {
-          response_pane = (
-            <FormResponse {...this.props} active={chat_state == "text_input"} />
-          );
-        } else {
-          response_pane = (
-            <TextResponse {...this.props} active={chat_state == "text_input"} />
-          );
-        }
-        break;
-      case "idle":
-      default:
-        response_pane = <IdleResponse {...this.props} />;
-        break;
-    }
-
-    return (
-      <div
-        id="right-bottom-pane"
-        style={{ width: "100%", backgroundColor: "#eee" }}
-      >
-        {response_pane}
-      </div>
-    );
+  let response_pane = null;
+  switch (chat_state) {
+    case "done":
+    case "inactive":
+      response_pane = <DoneResponse {...this.props} />;
+      break;
+    case "text_input":
+    case "waiting":
+      if (task_data && task_data["respond_with_form"]) {
+        response_pane = (
+          <FormResponse {...this.props} active={chat_state == "text_input"} />
+        );
+      } else {
+        response_pane = (
+          <TextResponse {...this.props} active={chat_state == "text_input"} />
+        );
+      }
+      break;
+    case "idle":
+    default:
+      response_pane = <IdleResponse {...this.props} />;
+      break;
   }
+
+  return (
+    <div
+      id="right-bottom-pane"
+      style={{ width: "100%", backgroundColor: "#eee" }}
+    >
+      {response_pane}
+    </div>
+  );
 }
 
 class RightPane extends React.Component {
