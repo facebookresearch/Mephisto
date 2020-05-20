@@ -7,7 +7,7 @@ python examples/static_react_task/run_task.py
 ```
 and can additionally be launched with an onboarding step using:
 ```console
-python examples/static_react_task/run_task.py
+python examples/static_react_task/run_task.py --use-onboarding true
 ```
 
 ## Implementation
