@@ -18,7 +18,7 @@ function OnboardingComponent({ onSubmit }) {
       </Directions>
       <button
         className="button is-link"
-        onClick={() => onSubmit({ submitted: true })}
+        onClick={() => onSubmit({ success: true })}
       >
         Move to main task.
       </button>
