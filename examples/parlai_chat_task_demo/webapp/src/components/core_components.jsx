@@ -7,71 +7,65 @@
  */
 
 import React from "react";
-import ReactDOM from "react-dom";
 import {
   FormControl,
   Button,
-  ButtonGroup,
-  InputGroup,
   FormGroup,
-  MenuItem,
-  DropdownButton,
-  Badge,
-  Popover,
-  Overlay,
   Nav,
   NavItem,
   Col,
   ControlLabel,
   Form,
 } from "react-bootstrap";
+import WorkerChatPopup from "./WorkerChatPopup";
+import ReviewButtons from "./ReviewButtons";
+
 import Slider from "rc-slider";
 import $ from "jquery";
 import { CONNECTION_STATUS } from "mephisto-task";
 
 import "rc-slider/assets/index.css";
 
+function ShowDuration({ duration }) {
+  if (!duration) return null;
+
+  const durationSeconds = Math.floor(duration / 1000) % 60;
+  const durationMinutes = Math.floor(duration / 60000);
+  const minutesText = durationMinutes > 0 ? `${durationMinutes} min` : "";
+  const secondsText = durationSeconds > 0 ? `${durationSeconds} sec` : "";
+  return (
+    <small>
+      <br />
+      <i>Duration: </i>
+      {minutesText + " " + secondsText}
+    </small>
+  );
+}
+
 function ChatMessage(props) {
   const { is_self, duration, agent_id, message } = props;
 
-  let float_loc = "left";
-  let alert_class = "alert-warning";
-  if (is_self) {
-    float_loc = "right";
-    alert_class = "alert-info";
-  }
-  let duration = null;
-  if (duration !== undefined) {
-    let duration_seconds = Math.floor(duration / 1000) % 60;
-    let duration_minutes = Math.floor(duration / 60000);
-    let min_text = duration_minutes > 0 ? duration_minutes + " min" : "";
-    let sec_text = duration_seconds > 0 ? duration_seconds + " sec" : "";
-    duration_text = (
-      <small>
-        <br />
-        <i>Duration: </i>
-        {min_text + " " + sec_text}
-      </small>
-    );
-  }
+  const floatToSide = is_self ? "right" : "left";
+  const alertStyle = is_self ? "alert-info" : "alert-warning";
+
   return (
     <div className={"row"} style={{ marginLeft: "0", marginRight: "0" }}>
       <div
-        className={"alert " + alert_class}
+        className={"alert " + alertStyle}
         role="alert"
-        style={{ float: float_loc, display: "table" }}
+        style={{ float: floatToSide, display: "table" }}
       >
         <span style={{ fontSize: "16px", whiteSpace: "pre-wrap" }}>
           <b>{agent_id}</b>: {message}
         </span>
-        {duration_text}
+        <ShowDuration duration={duration} />
       </div>
     </div>
   );
 }
 
 function MessageList(props) {
-  const { agent_id, messages, onClickMessage, displayNames, is_review } = props;
+  let { agent_id, messages, onClickMessage, displayNames, is_review } = props;
 
   // Handles rendering messages from both the user and anyone else
   // on the thread - agent_ids for the sender of a message exist in
@@ -86,7 +80,7 @@ function MessageList(props) {
       {messages.map((m, idx) => (
         <div key={m.message_id + "-" + idx} onClick={() => onClickMessage(idx)}>
           <ChatMessage
-            is_self={m.id == agent_id || m.id in displayNames}
+            is_self={m.id === agent_id || m.id in displayNames}
             agent_id={m.id in displayNames ? displayNames[m.id] : m.id}
             message={m.text}
             task_data={m.task_data}
@@ -140,262 +134,101 @@ function ConnectionIndicator({ connection_status }) {
   );
 }
 
-class VolumeControl extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { slider_shown: false };
-  }
+function VolumeControl(props) {
+  const { volume, onVolumeChange } = props;
+  const [showSlider, setShowSlider] = React.useState(false);
 
-  render() {
-    const { volume, onVolumeChange } = this.props;
-
-    let volume_control_style = {
-      opacity: "1",
-      fontSize: "11px",
-      color: "white",
-      float: "right",
-      marginRight: "10px",
-    };
-
-    let slider_style = {
-      height: 26,
-      width: 150,
-      marginRight: 14,
-      float: "left",
-    };
-
-    let content = null;
-    if (this.state.slider_shown) {
-      content = (
-        <div style={volume_control_style}>
-          <div style={slider_style}>
-            <Slider
-              onChange={(v) => onVolumeChange(v / 100)}
-              style={{ marginTop: 10 }}
-              defaultValue={volume * 100}
-            />
-          </div>
-          <Button onClick={() => this.setState({ slider_shown: false })}>
-            <span
-              style={{ marginRight: 5 }}
-              className="glyphicon glyphicon-remove"
-            />
-            Hide Volume
-          </Button>
-        </div>
-      );
-    } else {
-      content = (
-        <div style={volume_control_style}>
-          <Button onClick={() => this.setState({ slider_shown: true })}>
-            <span
-              className="glyphicon glyphicon glyphicon-volume-up"
-              style={{ marginRight: 5 }}
-              aria-hidden="true"
-            />
-            Volume
-          </Button>
-        </div>
-      );
-    }
-    return content;
-  }
-}
-
-class ChatBox extends React.Component {
-  state = {
-    hidden: true,
-    msg: "",
+  let volume_control_style = {
+    opacity: "1",
+    fontSize: "11px",
+    color: "white",
+    float: "right",
+    marginRight: "10px",
   };
 
-  smoothlyAnimateToBottom() {
-    if (this.bottomAnchorRef) {
-      this.bottomAnchorRef.scrollIntoView({ block: "end", behavior: "smooth" });
-    }
-  }
-
-  instantlyJumpToBottom() {
-    if (this.chatContainerRef) {
-      this.chatContainerRef.scrollTop = this.chatContainerRef.scrollHeight;
-    }
-  }
-
-  componentDidMount() {
-    this.instantlyJumpToBottom();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    // Use requestAnimationFrame to defer UI-based updates
-    // until the next browser paint
-    if (prevState.hidden === true && this.state.hidden === false) {
-      requestAnimationFrame(() => {
-        this.instantlyJumpToBottom();
-      });
-    } else if (prevProps.off_chat_messages !== this.props.off_chat_messages) {
-      requestAnimationFrame(() => {
-        this.smoothlyAnimateToBottom();
-      });
-    }
-  }
-
-  // TODO: Replace with enhanced logic to determine if the
-  // chat message belongs to the current user.
-  isOwnMessage = (message) => message.owner === 0;
-
-  render() {
-    const unreadCount = this.props.has_new_message;
-    const messages = this.props.off_chat_messages || [];
-
-    return (
-      <div style={{ float: "right", marginRight: 7 }}>
-        <Button
-          onClick={() => this.setState({ hidden: !this.state.hidden })}
-          ref={(el) => {
-            this.buttonRef = el;
-          }}
-        >
-          Chat Messages&nbsp;
-          {!!unreadCount && (
-            <Badge style={{ backgroundColor: "#d9534f", marginLeft: 3 }}>
-              {unreadCount}
-            </Badge>
-          )}
-        </Button>
-
-        <Overlay
-          rootClose
-          show={!this.state.hidden}
-          onHide={() => this.setState({ hidden: true })}
-          placement="bottom"
-          target={this.buttonRef}
-        >
-          <Popover id="chat_messages" title={"Chat Messages"}>
-            <div
-              className="chat-list"
-              ref={(el) => {
-                this.chatContainerRef = el;
-              }}
-              style={{ minHeight: 300, maxHeight: 300, overflowY: "scroll" }}
-            >
-              {messages.map((message, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    textAlign: this.isOwnMessage(message) ? "right" : "left",
-                  }}
-                >
-                  <div
-                    style={{
-                      borderRadius: 4,
-                      marginBottom: 10,
-                      padding: "5px 10px",
-                      display: "inline-block",
-                      ...(this.isOwnMessage(message)
-                        ? {
-                            marginLeft: 20,
-                            textAlign: "right",
-                            backgroundColor: "#dff1d7",
-                          }
-                        : {
-                            marginRight: 20,
-                            backgroundColor: "#eee",
-                          }),
-                    }}
-                  >
-                    {message.msg}
-                  </div>
-                </div>
-              ))}
-              <div
-                className="bottom-anchor"
-                ref={(el) => {
-                  this.bottomAnchorRef = el;
-                }}
-              />
-            </div>
-            <form
-              style={{ paddingTop: 10 }}
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (this.state.msg === "") return;
-                this.props.onMessageSend(this.state.msg);
-                this.setState({ msg: "" });
-              }}
-            >
-              <FormGroup>
-                <InputGroup>
-                  <FormControl
-                    type="text"
-                    value={this.state.msg}
-                    onChange={(e) => this.setState({ msg: e.target.value })}
-                  />
-                  <InputGroup.Button>
-                    <Button
-                      className="btn-primary"
-                      disabled={this.state.msg === ""}
-                      type="submit"
-                    >
-                      Send
-                    </Button>
-                  </InputGroup.Button>
-                </InputGroup>
-              </FormGroup>
-            </form>
-          </Popover>
-        </Overlay>
-      </div>
-    );
-  }
-}
-
-class ChatNavbar extends React.Component {
-  state = {
-    // TODO: replace hardcoded initial chat state with some API integration
-    chat: [
-      { msg: "hey", owner: 3 },
-      { msg: "anyone else there?", owner: 3 },
-    ],
+  let slider_style = {
+    height: 26,
+    width: 150,
+    marginRight: 14,
+    float: "left",
   };
 
-  render() {
-    // const displayChatBox = true;
-    const displayChatBox = this.props.displayChatBox || false;
-    let nav_style = {
-      position: "absolute",
-      backgroundColor: "#EEEEEE",
-      borderColor: "#e7e7e7",
-      height: 46,
-      top: 0,
-      borderWidth: "0 0 1px",
-      borderRadius: 0,
-      right: 0,
-      left: 0,
-      zIndez: 1030,
-      padding: 5,
-    };
+  if (showSlider) {
     return (
-      <div style={nav_style}>
-        <ConnectionIndicator connection_status={this.props.connection_status} />
-        <VolumeControl
-          volume={this.props.volume}
-          onVolumeChange={this.props.onVolumeChange}
-        />
-        {displayChatBox && (
-          <ChatBox
-            off_chat_messages={this.state.chat}
-            onMessageSend={(msg) =>
-              this.setState({ chat: [...this.state.chat, { msg, owner: 0 }] })
-            }
-            has_new_message={2}
+      <div style={volume_control_style}>
+        <div style={slider_style}>
+          <Slider
+            onChange={(v) => onVolumeChange(v / 100)}
+            style={{ marginTop: 10 }}
+            defaultValue={volume * 100}
           />
-        )}
+        </div>
+        <Button onClick={() => setShowSlider(false)}>
+          <span
+            style={{ marginRight: 5 }}
+            className="glyphicon glyphicon-remove"
+          />
+          Hide Volume
+        </Button>
+      </div>
+    );
+  } else {
+    return (
+      <div style={volume_control_style}>
+        <Button onClick={() => setShowSlider(true)}>
+          <span
+            className="glyphicon glyphicon glyphicon-volume-up"
+            style={{ marginRight: 5 }}
+            aria-hidden="true"
+          />
+          Volume
+        </Button>
       </div>
     );
   }
+}
+
+function ChatStatusBar(props) {
+  const {
+    displayWorkerChatPopup = false,
+    connection_status,
+    volume,
+    onVolumeChange,
+  } = props;
+
+  const [chatMessages, setChatMessages] = React.useState([]);
+
+  let nav_style = {
+    position: "absolute",
+    backgroundColor: "#EEEEEE",
+    borderColor: "#e7e7e7",
+    height: 46,
+    top: 0,
+    borderWidth: "0 0 1px",
+    borderRadius: 0,
+    right: 0,
+    left: 0,
+    zIndez: 1030,
+    padding: 5,
+  };
+  return (
+    <div style={nav_style}>
+      <ConnectionIndicator connection_status={connection_status} />
+      <VolumeControl volume={volume} onVolumeChange={onVolumeChange} />
+      {displayWorkerChatPopup && (
+        <WorkerChatPopup
+          off_chat_messages={chatMessages}
+          onMessageSend={(msg) =>
+            setChatMessages([...chatMessages, { msg, owner: 0 }])
+          }
+          has_new_message={2}
+        />
+      )}
+    </div>
+  );
 }
 
 function Hourglass() {
-  // TODO animate?
   return (
     <div
       id="hourglass"
@@ -442,7 +275,7 @@ class ChatPane extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.props.message_count != prevProps.message_count) {
+    if (this.props.message_count !== prevProps.message_count) {
       $("div#message-pane-segment").animate(
         {
           scrollTop: $("div#message-pane-segment").get(0).scrollHeight,
@@ -462,7 +295,7 @@ class ChatPane extends React.Component {
   }
 
   handleResize() {
-    if (this.getChatHeight() != this.state.chat_height) {
+    if (this.getChatHeight() !== this.state.chat_height) {
       this.setState({ chat_height: this.getChatHeight() });
     }
   }
@@ -492,13 +325,13 @@ class ChatPane extends React.Component {
     let wait_message = null;
     // console.log('Should be making waiting message?');
     // console.log(this.props);
-    if (this.props.chat_state == "waiting") {
+    if (this.props.chat_state === "waiting") {
       wait_message = <WaitingMessage agent_status={this.props.agent_status} />;
     }
 
     return (
       <div id="right-top-pane" style={top_pane_style}>
-        <ChatNavbar {...this.props} />
+        <ChatStatusBar {...this.props} />
         <div id="message-pane-segment" style={chat_style}>
           <MessageList {...this.props} />
           {wait_message}
@@ -510,179 +343,6 @@ class ChatPane extends React.Component {
 
 function IdleResponse() {
   return <div id="response-type-idle" className="response-type-module" />;
-}
-
-class ReviewButtons extends React.Component {
-  GOOD_REASONS = ["Not specified", "Interesting/Creative", "Other"];
-
-  BAD_REASONS = [
-    "Not specified",
-    "Didn't understand task",
-    "Bad grammar/spelling",
-    "Total nonsense",
-    "Slow responder",
-    "Other",
-  ];
-
-  RATING_VALUES = [1, 2, 3, 4, 5];
-
-  RATING_TITLES = [
-    "Terrible",
-    "Bad",
-    "Average/Good",
-    "Great",
-    "Above and Beyond",
-  ];
-
-  constructor(props) {
-    super(props);
-    let init_state = props.init_state;
-    if (init_state !== undefined) {
-      this.state = init_state;
-    } else {
-      this.state = {
-        current_rating: null,
-        submitting: false,
-        submitted: false,
-        text: "",
-        dropdown_value: "Not specified",
-      };
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.props.onInputResize !== undefined) {
-      this.props.onInputResize();
-    }
-  }
-
-  render() {
-    // Create basic button selector
-    let current_rating = this.state.current_rating;
-    let button_vals = this.RATING_VALUES;
-    let rating_titles = this.RATING_TITLES;
-    let buttons = button_vals.map((v) => {
-      let use_style = "info";
-      if (v < 3) {
-        use_style = "danger";
-      } else if (v > 3) {
-        use_style = "success";
-      }
-
-      return (
-        <Button
-          onClick={() =>
-            this.setState({
-              current_rating: v,
-              text: "",
-              dropdown_value: "Not specified",
-            })
-          }
-          bsStyle={current_rating == v ? use_style : "default"}
-          disabled={this.state.submitting}
-          key={"button-rating-" + v}
-        >
-          {rating_titles[v - 1]}
-        </Button>
-      );
-    });
-
-    // Dropdown and other only appear in some cases
-    let dropdown = null;
-    let other_input = null;
-    let reason_input = null;
-    if (current_rating != null && current_rating != 3) {
-      let options = current_rating > 3 ? this.GOOD_REASONS : this.BAD_REASONS;
-      let dropdown_vals = options.map((opt) => (
-        <MenuItem
-          key={"dropdown-item-" + opt}
-          eventKey={opt}
-          onSelect={(key) => this.setState({ dropdown_value: key, text: "" })}
-        >
-          {opt}
-        </MenuItem>
-      ));
-      dropdown = (
-        <DropdownButton
-          dropup={true}
-          componentClass={InputGroup.Button}
-          title={this.state.dropdown_value}
-          id={"review-dropdown"}
-          disabled={this.state.submitting}
-        >
-          {dropdown_vals}
-        </DropdownButton>
-      );
-    }
-
-    // Create other text
-    if (dropdown != null && this.state.dropdown_value == "Other") {
-      // Optional input for if the  user says other
-      other_input = (
-        <FormControl
-          type="text"
-          placeholder="Enter reason (optional)"
-          value={this.state.text}
-          onChange={(t) => this.setState({ text: t.target.value })}
-          disabled={this.state.submitting}
-        />
-      );
-    }
-    if (dropdown != null) {
-      reason_input = (
-        <div style={{ marginBottom: "8px" }}>
-          Give a reason for your rating (optional):
-          <InputGroup>
-            {dropdown}
-            {other_input}
-          </InputGroup>
-        </div>
-      );
-    }
-
-    // Assemble flow components
-    let disable_submit = this.state.submitting || current_rating == null;
-    let review_flow = (
-      <div>
-        Rate your chat partner (fully optional & confidential):
-        <br />
-        <ButtonGroup>{buttons}</ButtonGroup>
-        {reason_input}
-        <div style={{ marginBottom: "8px" }}>
-          <ButtonGroup style={{ marginBottom: "8px" }}>
-            <Button
-              disabled={disable_submit}
-              bsStyle="info"
-              onClick={() => {
-                this.setState({ submitting: true });
-                let feedback_data = {
-                  rating: this.state.current_rating,
-                  reason_category: this.state.dropdown_value,
-                  reason: this.state.text,
-                };
-                this.props
-                  .onMessageSend({
-                    text: "[PEER_REVIEW]",
-                    task_data: feedback_data,
-                  })
-                  .then(() => this.setState({ submitted: true }));
-                this.props.onChoice(true);
-              }}
-            >
-              {this.state.submitted ? "Submitted!" : "Submit Review"}
-            </Button>
-            <Button
-              disabled={this.state.submitting}
-              onClick={() => this.props.onChoice(false)}
-            >
-              Decline Review
-            </Button>
-          </ButtonGroup>
-        </div>
-      </div>
-    );
-    return review_flow;
-  }
 }
 
 class DoneButton extends React.Component {
@@ -803,7 +463,7 @@ class TextResponse extends React.Component {
   }
 
   tryMessageSend() {
-    if (this.state.textval != "" && this.props.active && !this.state.sending) {
+    if (this.state.textval !== "" && this.props.active && !this.state.sending) {
       this.setState({ sending: true });
       this.props
         .onMessageSend({ text: this.state.textval, task_data: {} })
@@ -868,7 +528,7 @@ class TextResponse extends React.Component {
         style={submit_style}
         id="id_send_msg_button"
         disabled={
-          this.state.textval == "" || !this.props.active || this.state.sending
+          this.state.textval === "" || !this.props.active || this.state.sending
         }
         onClick={() => this.tryMessageSend()}
       >
@@ -913,7 +573,7 @@ class FormResponse extends React.Component {
     for (let ind in form_elements) {
       let question = form_elements[ind]["question"];
       let response = this.state.responses[ind];
-      if (response == "") {
+      if (response === "") {
         all_response_filled = false;
       }
       response_data.push({
@@ -943,7 +603,7 @@ class FormResponse extends React.Component {
     let form_elements = this.props.task_data["respond_with_form"];
     const listFormElements = form_elements.map((form_elem, index) => {
       let question = form_elem["question"];
-      if (form_elem["type"] == "choices") {
+      if (form_elem["type"] === "choices") {
         let choices = [<option key="empty_option" />].concat(
           form_elem["choices"].map((option_label, index) => {
             return (
@@ -1013,7 +673,7 @@ class FormResponse extends React.Component {
         style={{ height: "40px", width: "100px", fontSize: "16px" }}
         id="id_send_msg_button"
         disabled={
-          this.state.textval == "" || !this.props.active || this.state.sending
+          this.state.textval === "" || !this.props.active || this.state.sending
         }
         onClick={() => this.tryMessageSend()}
       >
@@ -1060,11 +720,11 @@ function ResponsePane(props) {
     case "waiting":
       if (task_data && task_data["respond_with_form"]) {
         response_pane = (
-          <FormResponse {...this.props} active={chat_state == "text_input"} />
+          <FormResponse {...this.props} active={chat_state === "text_input"} />
         );
       } else {
         response_pane = (
-          <TextResponse {...this.props} active={chat_state == "text_input"} />
+          <TextResponse {...this.props} active={chat_state === "text_input"} />
         );
       }
       break;
@@ -1151,8 +811,6 @@ function CustomTaskDescription({ task_config, task_data }) {
 }
 
 function ContextView({ task_data }) {
-  const { task_data } = this.props;
-
   // TODO pull context title from templating variable
   let header_text = "Context";
   let context =
@@ -1241,14 +899,14 @@ class LeftPane extends React.Component {
         padding: "10px 20px 20px 20px",
         flex: "1 1 auto",
       };
-      if (this.state.current_pane == "context") {
+      if (this.state.current_pane === "context") {
         display_instruction.display = "none";
       } else {
         display_context.display = "none";
       }
       let nav_panels = [
         <div style={display_instruction} key={"instructions-display"}>
-          <TaskDescription {...this.props} />
+          <CustomTaskDescription {...this.props} />
         </div>,
         <div style={display_context} key={"context-display"}>
           <ContextView {...this.props} />
@@ -1310,7 +968,7 @@ function BaseFrontend(props) {
         different browser and check this HIT again.
       </div>
     );
-  } else if (connection_status == CONNECTION_STATUS.FAILED) {
+  } else if (connection_status === CONNECTION_STATUS.FAILED) {
     content = (
       <div id="ui-placeholder">
         Unable to initialize. We may be having issues with our servers. Please

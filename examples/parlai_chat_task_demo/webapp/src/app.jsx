@@ -16,11 +16,6 @@ import {
   AGENT_STATUS,
 } from "mephisto-task";
 
-/* global
-  getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
-  getAgentRegistration, handleSubmitToProvider
-*/
-
 /* ================= Application Components ================= */
 
 function TaskPreviewView({ taskConfig }) {
@@ -47,21 +42,17 @@ function MainApp() {
     {}
   );
 
-  const [messages, addMessage] = React.useReducer(
-    (allMessages, newMessage) => {
-        // we clear messages by sending false
-        if (newMessage === false) {
-          return []
-        }
-        return [...allMessages, newMessage]
-      },
-    []
-  );
+  const [messages, addMessage] = React.useReducer((allMessages, newMessage) => {
+    // we clear messages by sending false
+    if (newMessage === false) {
+      return [];
+    }
+    return [...allMessages, newMessage];
+  }, []);
 
-  const [displayNames, addName] = React.useReducer(
-    (allNames, newName) => {return { ...allNames, ...newName }},
-    {}
-  )
+  const [displayNames, addName] = React.useReducer((allNames, newName) => {
+    return { ...allNames, ...newName };
+  }, {});
 
   const [appSettings, setAppSettings] = React.useState({ volume: 1 });
   const [chatState, setChatState] = React.useState("waiting");
@@ -76,6 +67,7 @@ function MainApp() {
     blockedReason,
     taskConfig,
     isPreview,
+    previewHtml,
     isLoading,
     agentId,
     handleSubmit,
@@ -139,13 +131,13 @@ function MainApp() {
       console.log("connecting...");
       connect(agentId);
     }
-  }, [agentId]);
+  }, [agentId, connect]);
 
   React.useEffect(() => {
-    if (isOnboarding && agentStatus == AGENT_STATUS.WAITING) {
+    if (isOnboarding && agentStatus === AGENT_STATUS.WAITING) {
       handleSubmit();
     }
-  }, [isOnboarding, agentStatus]);
+  }, [isOnboarding, agentStatus, handleSubmit]);
 
   if (blockedReason !== null) {
     return <h1>{getBlockedExplanation(blockedReason)}</h1>;
@@ -176,7 +168,7 @@ function MainApp() {
         messages={messages}
         onMessageSend={(message) => {
           message.id = agentId;
-          message.episode_done = agentState?.task_done || false; 
+          message.episode_done = agentState?.task_done || false;
           return sendMessage(message)
             .then((msg) => {
               addMessage(msg);
