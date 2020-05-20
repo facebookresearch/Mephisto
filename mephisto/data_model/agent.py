@@ -206,7 +206,9 @@ class Agent(ABC):
         Wrapper around the new method that allows registering additional
         bookkeeping information from a crowd provider for this agent
         """
-        return cls.new(db, worker, unit)
+        agent = cls.new(db, worker, unit)
+        unit.worker_id = worker.db_id
+        return agent
 
     def observe(self, packet: "Packet") -> None:
         """
