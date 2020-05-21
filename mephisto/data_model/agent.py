@@ -161,7 +161,7 @@ class Agent(ABC):
         them of this update"""
         if self.db_status == new_status:
             return  # Noop, this is already the case
-        if self.db_status in AgentState.complete(): 
+        if self.db_status in AgentState.complete():
             print(
                 f"Updating a final status, was {self.db_status} "
                 f"and want to set to {new_status}"
@@ -280,7 +280,7 @@ class Agent(ABC):
         quality bar for this assignment
         """
         # TODO(OWN) extend this method to assign a soft block
-        # qualification automatically if a threshold of 
+        # qualification automatically if a threshold of
         # soft rejects as a proportion of total accepts
         # is exceeded
         self.approve_work()

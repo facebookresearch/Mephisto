@@ -37,6 +37,7 @@ CREATE_WORKERS_TABLE = """CREATE TABLE IF NOT EXISTS workers (
 );
 """
 
+
 class MockDatastore:
     """
     Handles storing mock results and statuses across processes for use
@@ -121,7 +122,7 @@ class MockDatastore:
                 (requester_id,),
             )
             results = c.fetchall()
-            return results[0]['is_registered']
+            return results[0]["is_registered"]
 
     def ensure_worker_exists(self, worker_id: str) -> None:
         """Create a record of this worker if it doesn't exist"""
@@ -168,7 +169,7 @@ class MockDatastore:
                 (worker_id,),
             )
             results = c.fetchall()
-            return results[0]['is_blocked']
+            return results[0]["is_blocked"]
 
     def ensure_unit_exists(self, unit_id: str) -> None:
         """Create a record of this unit if it doesn't exist"""
@@ -215,4 +216,4 @@ class MockDatastore:
                 (unit_id,),
             )
             results = c.fetchall()
-            return results[0]['is_expired']
+            return results[0]["is_expired"]

@@ -73,8 +73,8 @@ class AssignmentState:
     def final_unit() -> List[str]:
         """Return all statuses that are terminal for a Unit"""
         return [
-            AssignmentState.ACCEPTED, 
-            AssignmentState.EXPIRED, 
+            AssignmentState.ACCEPTED,
+            AssignmentState.EXPIRED,
             AssignmentState.SOFT_REJECTED,
         ]
 

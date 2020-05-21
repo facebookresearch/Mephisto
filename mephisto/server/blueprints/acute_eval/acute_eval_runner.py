@@ -63,7 +63,9 @@ class AcuteEvalRunner(TaskRunner):
         super().__init__(task_run, opts)
         random.seed(opts["random_seed"])
         self.is_concurrent = False
-        self.assignment_duration_in_seconds = task_run.get_task_config().assignment_duration_in_seconds
+        self.assignment_duration_in_seconds = (
+            task_run.get_task_config().assignment_duration_in_seconds
+        )
 
         # class attributes
         self.onboarding_tasks: List[Dict] = []

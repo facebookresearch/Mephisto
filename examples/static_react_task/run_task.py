@@ -12,7 +12,9 @@ import shutil
 import subprocess
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
-from mephisto.server.blueprints.static_react_task.static_react_blueprint import BLUEPRINT_TYPE
+from mephisto.server.blueprints.static_react_task.static_react_blueprint import (
+    BLUEPRINT_TYPE,
+)
 from mephisto.utils.scripts import MephistoRunScriptParser, str2bool
 
 import random
@@ -34,9 +36,7 @@ STATIC_FILES_DIR = os.path.join(FRONTEND_SOURCE_DIR, "src", "static")
 USE_ONBOARDING = args["use_onboarding"]
 
 task_title = "Rating a sentence as good or bad"
-task_description = (
-    "In this task, you'll be given a sentence. It is your job to rate it as either good or bad."
-)
+task_description = "In this task, you'll be given a sentence. It is your job to rate it as either good or bad."
 
 ARG_STRING = (
     "--blueprint-type static_react_task "
