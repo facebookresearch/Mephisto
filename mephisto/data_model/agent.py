@@ -208,6 +208,7 @@ class Agent(ABC):
         """
         agent = cls.new(db, worker, unit)
         unit.worker_id = worker.db_id
+        agent._unit = unit
         return agent
 
     def observe(self, packet: "Packet") -> None:

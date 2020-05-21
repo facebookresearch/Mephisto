@@ -29,6 +29,12 @@ CREATE_HITS_TABLE = """CREATE TABLE IF NOT EXISTS hits (
 );
 """
 
+CREATE_RUN_MAP_TABLE = """CREATE TABLE IF NOT EXISTS run_mappings (
+    hit_id TEXT,
+    run_id TEXT
+);
+"""
+
 CREATE_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS runs (
     run_id TEXT PRIMARY KEY UNIQUE,
     arn_id TEXT,
@@ -88,10 +94,11 @@ class MTurkDatastore:
             c = conn.cursor()
             c.execute(CREATE_HITS_TABLE)
             c.execute(CREATE_RUNS_TABLE)
+            c.execute(CREATE_RUN_MAP_TABLE)
             c.execute(CREATE_QUALIFICATIONS_TABLE)
             conn.commit()
 
-    def new_hit(self, hit_id: str, hit_link: str, duration: int) -> None:
+    def new_hit(self, hit_id: str, hit_link: str, duration: int, run_id: str) -> None:
         """Register a new HIT mapping in the table"""
         with self.table_access_condition:
             conn = self._get_connection()
@@ -104,10 +111,17 @@ class MTurkDatastore:
                 ) VALUES (?, ?, ?);""",
                 (hit_id, hit_link, duration),
             )
+            c.execute(
+                """INSERT INTO run_mappings(
+                    hit_id,
+                    run_id
+                ) VALUES (?, ?);""",
+                (hit_id, run_id),
+            )
             conn.commit()
             return None
 
-    def get_unassigned_hit_ids(self):
+    def get_unassigned_hit_ids(self, run_id: str):
         """
         Return a list of all HIT ids that haven't been assigned
         """
@@ -116,13 +130,21 @@ class MTurkDatastore:
             c = conn.cursor()
             c.execute(
                 """
-                SELECT hit_id from hits
+                SELECT
+                    hit_id,
+                    unit_id,
+                    run_id
+                FROM
+                    hits
+                INNER JOIN run_mappings 
+                    USING  (hit_id)
                 WHERE unit_id IS NULL
+                AND run_id = ?;
                 """,
-                (),
+                (run_id, ),
             )
             results = c.fetchall()
-            return results
+            return [r['hit_id'] for r in results]
 
     def register_assignment_to_hit(
         self,

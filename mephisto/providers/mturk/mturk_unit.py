@@ -186,7 +186,7 @@ class MTurkUnit(Unit):
 
         # We create a hit for this unit, but note that this unit may not
         # necessarily match with the same HIT that was launched for it.
-        self.datastore.new_hit(hit_id, hit_link, duration)
+        self.datastore.new_hit(hit_id, hit_link, duration, run_id)
         self.set_db_status(AssignmentState.LAUNCHED)
         return None
 
@@ -209,12 +209,12 @@ class MTurkUnit(Unit):
             expire_hit(client, mturk_hit_id)
             return delay
         else:
-            unassigned_hit_ids = self.datastore.get_unassigned_hit_ids()
+            unassigned_hit_ids = self.datastore.get_unassigned_hit_ids(self.task_run_id)
             # TODO(#93) assert there is at least one unassigned hit id,
             # otherwise there's a potential race condition here
             if len(unassigned_hit_ids) == 0:
                 return delay
-            hit_id = unassigned_hit_ids[0]["hit_id"]
+            hit_id = unassigned_hit_ids[0]
             expire_hit(client, hit_id)
             self.datastore.register_assignment_to_hit(hit_id, self.db_id)
             self.set_db_status(AssignmentState.EXPIRED)
