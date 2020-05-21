@@ -4,8 +4,18 @@
 
 First, clone this repo to your local system.
 
-### Option A
-Install [poetry](https://github.com/python-poetry/poetry) to help with easy install and dependency management:
+### Option A (via pip install)
+Run the following in the root directory:
+```
+$ pip install -e .
+
+# Verify that mephisto is installed correctly:
+$ mephisto check
+Mephisto seems to be set up correctly.
+```
+
+### Option B (via poetry)
+Alteratively, you can install [poetry](https://github.com/python-poetry/poetry) to help with easy install, dependency management, and automatic virtual environment isolation:
 
 ```
 # install poetry
@@ -19,14 +29,6 @@ $ mephisto check
 Mephisto seems to be set up correctly.
 
 ```
-
-### Option B
-Alteratively, you can install mephisto by running the following in the root directory. This may be a more familiar and easier approach for some:
-```
-pip install -e .
-```
-This however will not give you access to the optional `mephisto` CLI command.
-You can still use the `mephisto` CLI command though by invoking it directly yourself with `python mephisto/client/cli.py`. You can choose to alias this to `mephisto` on your local system as a workaround.
 
 ## Step 1. Run your first task (locally)
 
