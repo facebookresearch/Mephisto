@@ -43,7 +43,7 @@ $ python static_test_script.py
 # Once completed, a helper script is available for you to quickly
 # examine the results of the task:
 
-$ python examples/simple_static_task/examine_results.py
+$ python examine_results.py
 
 ```
 
