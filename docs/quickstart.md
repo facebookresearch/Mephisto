@@ -32,19 +32,19 @@ Mephisto seems to be set up correctly.
 
 ## Step 1. Run your first task (locally)
 
-This should launch a local server with the task hosted. You can then navigate to the task in your browser and complete it:
-
 ```
 $ cd examples/simple_static_task
 $ python static_test_script.py
-```
 
-A helper script is available for you to quickly examine the results of the task:
+# This should launch a local server with the task hosted.
+# You can then navigate to the task in your browser and complete it.
 
-```
+# Once completed, a helper script is available for you to quickly
+# examine the results of the task:
+
 $ python examples/simple_static_task/examine_results.py
-```
 
+```
 
 ## Step 2. Run the same task again, but now on mTurk
 
