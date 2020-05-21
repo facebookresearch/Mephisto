@@ -40,7 +40,7 @@ def format_for_printing_data(data):
     inputs = contents["inputs"]
     inputs_string = f"Character: {inputs['character_name']}\nDescription: {inputs['character_description']}\n"
 
-    outputs = contents["outputs"]['final_data']
+    outputs = contents["outputs"]["final_data"]
     output_string = f"   Rating: {outputs['rating']}\n"
     found_files = outputs.get("files")
     if found_files is not None:
@@ -67,8 +67,10 @@ for unit in units:
             # the worker from working on more of these tasks
             agent = unit.get_assigned_agent()
             agent.soft_reject_work()
-            should_soft_block = input("Do you want to soft block this worker? (y)es/(n)o: ")
-            if should_soft_block.lower() in ['y', 'yes']:
+            should_soft_block = input(
+                "Do you want to soft block this worker? (y)es/(n)o: "
+            )
+            if should_soft_block.lower() in ["y", "yes"]:
                 if disqualification_name == None:
                     disqualification_name = input(
                         "Please input the qualification name you are using to soft block for this task: "
