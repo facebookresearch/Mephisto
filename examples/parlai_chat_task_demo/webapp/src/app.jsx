@@ -10,15 +10,11 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { BaseFrontend } from "./components/core_components.jsx";
 
-import {
-  useMephistoLiveTask,
-  getBlockedExplanation,
-  AGENT_STATUS,
-} from "mephisto-task";
+import { useMephistoLiveTask, AGENT_STATUS } from "mephisto-task";
 
 /* ================= Application Components ================= */
 
-function TaskPreviewView({ taskConfig }) {
+function TaskPreviewView({ description }) {
   let previewStyle = {
     backgroundColor: "#dff0d8",
     padding: "30px",
@@ -28,7 +24,7 @@ function TaskPreviewView({ taskConfig }) {
     <div style={previewStyle}>
       <div
         dangerouslySetInnerHTML={{
-          __html: taskConfig.task_description,
+          __html: description,
         }}
       />
       ;
@@ -65,6 +61,7 @@ function MainApp() {
 
   let {
     blockedReason,
+    blockedExplanation,
     taskConfig,
     isPreview,
     previewHtml,
@@ -140,14 +137,14 @@ function MainApp() {
   }, [isOnboarding, agentStatus, handleSubmit]);
 
   if (blockedReason !== null) {
-    return <h1>{getBlockedExplanation(blockedReason)}</h1>;
+    return <h1>{blockedExplanation}</h1>;
   }
   if (isLoading) {
     return <div>Initializing...</div>;
   }
   if (isPreview) {
     if (!taskConfig.has_preview) {
-      return <TaskPreviewView taskConfig={taskConfig} />;
+      return <TaskPreviewView description={taskConfig.task_description} />;
     }
     if (previewHtml === null) {
       return <div>Loading...</div>;

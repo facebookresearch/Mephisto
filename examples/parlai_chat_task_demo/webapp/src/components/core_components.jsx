@@ -17,8 +17,8 @@ import {
   ControlLabel,
   Form,
 } from "react-bootstrap";
-import WorkerChatPopup from "./WorkerChatPopup";
-import ReviewButtons from "./ReviewButtons";
+import WorkerChatPopup from "./WorkerChatPopup.jsx";
+import ReviewButtons from "./ReviewButtons.jsx";
 
 import Slider from "rc-slider";
 import $ from "jquery";
@@ -780,12 +780,13 @@ class RightPane extends React.Component {
   }
 }
 
-function CustomTaskDescription({ task_config, task_data }) {
-  let header_text = task_config.chat_title;
-  let task_desc = task_config.task_description || "Task Description Loading";
+function CustomTaskDescription({
+  task_config: { chat_title, task_description },
+  task_data,
+}) {
   return (
     <div>
-      <h1>{header_text}</h1>
+      <h1>{chat_title}</h1>
       <hr style={{ borderTop: "1px solid #555" }} />
       <h2>This is a custom Task Description loaded from a custom bundle</h2>
       <p>
@@ -804,7 +805,9 @@ function CustomTaskDescription({ task_config, task_data }) {
       <span
         id="task-description"
         style={{ fontSize: "16px" }}
-        dangerouslySetInnerHTML={{ __html: task_desc }}
+        dangerouslySetInnerHTML={{
+          __html: task_description || "Task Description Loading",
+        }}
       />
     </div>
   );
@@ -833,109 +836,101 @@ function ContextView({ task_data }) {
   );
 }
 
-class LeftPane extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { current_pane: "instruction", last_update: 0 };
+function LeftPane(props) {
+  const { task_config, is_cover_page, children, task_data } = this.props;
+
+  const [state, setState] = React.useState({
+    current_pane: "instruction",
+    last_update: 0,
+  });
+
+  if (
+    task_data.last_update !== undefined &&
+    task_data.last_update > state.last_update
+  ) {
+    setState({
+      current_pane: "context",
+      last_update: task_data.last_update,
+    });
   }
 
-  static getDerivedStateFromProps(nextProps, prevState) {
-    if (
-      nextProps.task_data.last_update !== undefined &&
-      nextProps.task_data.last_update > prevState.last_update
-    ) {
-      return {
-        current_pane: "context",
-        last_update: nextProps.task_data.last_update,
-      };
-    } else return null;
-  }
+  let frame_height = task_config.frame_height;
+  let frame_style = {
+    height: frame_height + "px",
+    backgroundColor: "#dff0d8",
+    padding: "30px",
+    overflow: "auto",
+  };
+  let pane_size = is_cover_page ? "col-xs-12" : "col-xs-4";
+  let has_context = false; // We'll be rendering context inline
+  if (is_cover_page || !has_context) {
+    return (
+      <div id="left-pane" className={pane_size} style={frame_style}>
+        <CustomTaskDescription {...props} />
+        {children}
+      </div>
+    );
+  } else {
+    // In a 2 panel layout, we need to tabulate the left pane to be able
+    // to display both context and instructions
+    let nav_items = [
+      <NavItem
+        eventKey={"instruction"}
+        key={"instruction-selector"}
+        title={"Task Instructions"}
+      >
+        {"Task Instructions"}
+      </NavItem>,
+      <NavItem eventKey={"context"} key={"context-selector"} title={"Context"}>
+        {"Context"}
+      </NavItem>,
+    ];
+    let display_instruction = {
+      backgroundColor: "#dff0d8",
+      padding: "10px 20px 20px 20px",
+      flex: "1 1 auto",
+    };
+    let display_context = {
+      backgroundColor: "#dff0d8",
+      padding: "10px 20px 20px 20px",
+      flex: "1 1 auto",
+    };
+    if (state.current_pane === "context") {
+      display_instruction.display = "none";
+    } else {
+      display_context.display = "none";
+    }
+    let nav_panels = [
+      <div style={display_instruction} key={"instructions-display"}>
+        <CustomTaskDescription {...props} />
+      </div>,
+      <div style={display_context} key={"context-display"}>
+        <ContextView {...props} />
+      </div>,
+    ];
 
-  render() {
-    const { task_config, is_cover_page, children } = this.props;
-
-    let frame_height = task_config.frame_height;
     let frame_style = {
       height: frame_height + "px",
-      backgroundColor: "#dff0d8",
-      padding: "30px",
+      backgroundColor: "#eee",
+      padding: "10px 0px 0px 0px",
       overflow: "auto",
+      display: "flex",
+      flexFlow: "column",
     };
-    let pane_size = is_cover_page ? "col-xs-12" : "col-xs-4";
-    let has_context = false; // We'll be rendering context inline
-    if (is_cover_page || !has_context) {
-      return (
-        <div id="left-pane" className={pane_size} style={frame_style}>
-          <CustomTaskDescription {...this.props} />
-          {children}
-        </div>
-      );
-    } else {
-      // In a 2 panel layout, we need to tabulate the left pane to be able
-      // to display both context and instructions
-      let nav_items = [
-        <NavItem
-          eventKey={"instruction"}
-          key={"instruction-selector"}
-          title={"Task Instructions"}
-        >
-          {"Task Instructions"}
-        </NavItem>,
-        <NavItem
-          eventKey={"context"}
-          key={"context-selector"}
-          title={"Context"}
-        >
-          {"Context"}
-        </NavItem>,
-      ];
-      let display_instruction = {
-        backgroundColor: "#dff0d8",
-        padding: "10px 20px 20px 20px",
-        flex: "1 1 auto",
-      };
-      let display_context = {
-        backgroundColor: "#dff0d8",
-        padding: "10px 20px 20px 20px",
-        flex: "1 1 auto",
-      };
-      if (this.state.current_pane === "context") {
-        display_instruction.display = "none";
-      } else {
-        display_context.display = "none";
-      }
-      let nav_panels = [
-        <div style={display_instruction} key={"instructions-display"}>
-          <CustomTaskDescription {...this.props} />
-        </div>,
-        <div style={display_context} key={"context-display"}>
-          <ContextView {...this.props} />
-        </div>,
-      ];
 
-      let frame_style = {
-        height: frame_height + "px",
-        backgroundColor: "#eee",
-        padding: "10px 0px 0px 0px",
-        overflow: "auto",
-        display: "flex",
-        flexFlow: "column",
-      };
-
-      return (
-        <div id="left-pane" className={pane_size} style={frame_style}>
-          <Nav
-            bsStyle="tabs"
-            activeKey={this.state.current_pane}
-            onSelect={(key) => this.setState({ current_pane: key })}
-          >
-            {nav_items}
-          </Nav>
-          {nav_panels}
-          {children}
-        </div>
-      );
-    }
+    return (
+      <div id="left-pane" className={pane_size} style={frame_style}>
+        <Nav
+          bsStyle="tabs"
+          activeKey={state.current_pane}
+          onSelect={(key) => setState({ current_pane: key })}
+        >
+          {nav_items}
+        </Nav>
+        {nav_panels}
+        {children}
+      </div>
+    );
   }
 }
 
