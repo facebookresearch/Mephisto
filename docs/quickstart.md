@@ -63,6 +63,6 @@ Registered successfully.
 
 2. Next, update `examples/simple_static_task/static_test_script.py` by changing the `USE_LOCAL` flag at the top of the file to `false`. This will tell the remainder of the script to use the mturk provider and the heroku architect (as opposed to the mock provider and local architect).
 
-3. Run `python static_test_script.py`. If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
+3. As above, run `python static_test_script.py` in the example directory. **Note**: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
 
-4. As above, you can examine/review the results of the task by running: `python examples/simple_static_task/examine_results.py`
+4. As above, you can examine/review the results of the task by running `python examine_results.py` in the example directory.
