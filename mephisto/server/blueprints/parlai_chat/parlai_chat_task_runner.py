@@ -11,6 +11,19 @@ try:
     from parlai.core.agents import Agent as ParlAIAgent
     from parlai.core.message import Message
 except:
+
+    class ParlAIAgent:
+        def __init__(self, *args, **kwargs):
+            raise NotImplementedError(
+                "You need to install ParlAI to use this blueprint"
+            )
+
+    class Message:
+        def __init__(self, *args, **kwargs):
+            raise NotImplementedError(
+                "You need to install ParlAI to use this blueprint"
+            )
+
     pass  # ParlAI is not installed. TODO remove when we move this blueprint to ParlAI
 
 from mephisto.data_model.packet import (
