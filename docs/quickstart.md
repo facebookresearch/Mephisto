@@ -38,7 +38,7 @@ $ cd examples/simple_static_task
 $ python static_test_script.py
 
 # This should launch a local server with the task hosted.
-# You can then navigate to the task in your browser and complete the task.
+# You can then navigate to the task in your browser to complete the task.
 
 # TIP:
 # By default, tasks are run using a "mock" requester, and a "local" architect.
