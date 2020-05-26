@@ -119,6 +119,11 @@ def get_root_data_dir() -> str:
                 ).lower().strip()
                 if len(should_migrate) == 0 or should_migrate[0] == 'y':
                     copy_tree(default_data_dir, data_dir_location)
+                    print(
+                        "Mephisto data successfully copied, once you've confirmed the migration worked, "
+                        "feel free to remove all of the contents in "
+                        f"{default_data_dir} EXCEPT for `README.md` and `DATA_LOC`."
+                    )
             with open(actual_data_dir_file, 'w+') as data_dir_file:
                 data_dir_file.write(data_dir_location)
         with open(actual_data_dir_file, 'r') as data_dir_file:
