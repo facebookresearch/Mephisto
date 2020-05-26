@@ -38,7 +38,16 @@ $ cd examples/simple_static_task
 $ python static_test_script.py
 
 # This should launch a local server with the task hosted.
-# You can then navigate to the task in your browser and complete it.
+# You can then navigate to the task in your browser to complete the task.
+
+# TIP:
+# By default, tasks are run using a "mock" requester, and a "local" architect.
+# The "local" architect is reponsible for running a server on your local machine
+# to host the task, and the "mock" requester is a dummy account since we won't
+# be using an external crowd-provider platform such as mTurk to launch the task on.
+#
+# In the next step, we'll show you how to override these defaults so that you can
+# host the task on Heroku and run it on mTurk instead.
 
 # Once completed, a helper script is available for you to quickly
 # examine the results of the task:
@@ -61,8 +70,17 @@ AWS credentials successfully saved in ~/.aws/credentials file.
 Registered successfully.
 ```
 
-2. Next, update `examples/simple_static_task/static_test_script.py` by changing the `USE_LOCAL` flag at the top of the file to `false`. This will tell the remainder of the script to use the mturk provider and the heroku architect (as opposed to the mock provider and local architect).
+2. Next, let's run the task script again, but this time we'll override the requester and the architect.
 
-3. As above, run `python static_test_script.py` in the example directory. **Note**: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
+```bash
+$ cd examples/simple_static_task
+$ python static_test_script.py -atype heroku -rname my_mturk_user
 
-4. As above, you can examine/review the results of the task by running `python examine_results.py` in the example directory.
+# Note: my_mturk_user is what we used to name the requester
+# when we registered the mturk account in the previous step.
+```
+The flags `-atype` (or `--architect-type`) and `-rname` (or `--requester-name`) will tell the the script to use the mturk provider and the heroku architect (as opposed to the mock provider and local architect).
+
+**Note**: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
+
+3. As above, you can examine/review the results of the task by running `python examine_results.py` in the example directory.
