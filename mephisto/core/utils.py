@@ -21,6 +21,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.requester import Requester
 
 
+loaded_data_dir = None
+
+
 def ensure_user_confirm(display_text, skip_input=False) -> None:
     """
     Helper to provide the flow for having a user confirm a specific occurrence
@@ -92,7 +95,33 @@ def get_root_data_dir() -> str:
     """
     Return the directory where the mephisto data is expected to go
     """
-    return os.path.join(get_root_dir(), "data")
+    global loaded_data_dir
+    if loaded_data_dir is None:
+        default_data_dir = os.path.join(get_root_dir(), "data")
+        actual_data_dir_file = os.path.join(default_data_dir, "DATA_LOC")
+        if not os.path.exists(actual_data_dir_file):
+            data_dir_location = input(
+                "Please enter the full path to a location to store Mephisto run data. By default this "
+                f"would be at '{default_data_dir}'. This dir should NOT be on a distributed file "
+                "store. Press enter to use the default: "
+            ).strip()
+            if len(data_dir_location) == 0:
+                data_dir_location = default_data_dir
+            data_dir_location = os.path.expanduser(data_dir_location)
+            os.makedirs(data_dir_location, exist_ok=True)
+            with open(actual_data_dir_file, 'w+') as data_dir_file:
+                data_dir_file.write(data_dir_location)
+        with open(actual_data_dir_file, 'r') as data_dir_file:
+            loaded_data_dir = data_dir_file.read().strip()
+        
+        if not os.path.isdir(loaded_data_dir):
+            raise NotADirectoryError(
+                f"The provided Mephisto data directory {loaded_data_dir} as set in "
+                f"{actual_data_dir_file} is not a directory! Please locate your Mephisto "
+                f"data directory and update {actual_data_dir_file} to point to it."
+            )
+
+    return loaded_data_dir
 
 
 def get_data_dir(root_dir: Optional[str] = None) -> str:
