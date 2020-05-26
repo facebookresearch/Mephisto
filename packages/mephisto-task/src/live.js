@@ -23,8 +23,11 @@ const useMephistoLiveTask = function (props) {
   const [agentState, setAgentState] = React.useState(null);
   const [agentStatus, setAgentStatus] = React.useState(null);
 
+  const defaultMephistoSocket = useMephistoSocket;
+  const useSocketHook = props.customSocketHook || defaultMephistoSocket;
+
   const taskProps = useMephistoTask();
-  const socketProps = useMephistoSocket({
+  const socketProps = useSocketHook({
     onConnectionStatusChange: (connectionStatus) => {
       setConnectionStatus(connectionStatus);
     },
