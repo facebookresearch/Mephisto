@@ -8,6 +8,7 @@ import os
 import sys, glob, importlib
 
 import shlex
+from distutils.dir_util import copy_tree
 import functools
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
@@ -109,6 +110,15 @@ def get_root_data_dir() -> str:
                 data_dir_location = default_data_dir
             data_dir_location = os.path.expanduser(data_dir_location)
             os.makedirs(data_dir_location, exist_ok=True)
+            # Check to see if there is existing data to possibly move to the data dir:
+            database_loc = os.path.join(default_data_dir, 'database.db')
+            if os.path.exists(database_loc) and data_dir_location != default_data_dir:
+                should_migrate = input(
+                    "We have found an existing database in the default data directory, do you want to "
+                    f"copy any existing data from the default location to {data_dir_location}? (y)es/no: "
+                ).lower().strip()
+                if len(should_migrate) == 0 or should_migrate[0] == 'y':
+                    copy_tree(default_data_dir, data_dir_location)
             with open(actual_data_dir_file, 'w+') as data_dir_file:
                 data_dir_file.write(data_dir_location)
         with open(actual_data_dir_file, 'r') as data_dir_file:

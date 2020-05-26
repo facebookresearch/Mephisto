@@ -10,8 +10,9 @@ Run the following in the root directory:
 ```bash
 $ pip install -e .
 
-# Verify that mephisto is installed correctly:
+# Verify that mephisto is installed correctly, and handle any required config:
 $ mephisto check
+Please enter the full path to a location to store Mephisto run data. By default this would be at '/private/home/jju/mephisto/data'. This dir should NOT be on a distributed file store. Press enter to use the default:  
 Mephisto seems to be set up correctly.
 ```
 
@@ -27,6 +28,7 @@ $ poetry install
 
 # Verify that mephisto is installed correctly:
 $ mephisto check
+Please enter the full path to a location to store Mephisto run data. By default this would be at '/private/home/jju/mephisto/data'. This dir should NOT be on a distributed file store. Press enter to use the default: 
 Mephisto seems to be set up correctly.
 
 ```
