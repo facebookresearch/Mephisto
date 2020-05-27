@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.agent import OnboardingAgent
+    from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 
 BLUEPRINT_TYPE = "static_task"

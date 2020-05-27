@@ -605,7 +605,7 @@ class Supervisor:
 
         if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
             # TODO bring these into constants somehow
-            for message in unit_data.get("raw_messages"):
+            for message in unit_data["raw_messages"]:
                 packet = Packet.from_dict(message)
                 packet.receiver_id = agent_id
                 agent_info.agent.pending_observations.append(packet)
