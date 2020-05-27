@@ -38,8 +38,9 @@ ARG_STRING = (
 )
 
 def onboarding_is_valid(onboarding_data):
-    print(onboarding_data)
-    return onboarding_data.get('answer') == CORRECT_ANSWER
+    inputs = onboarding_data['inputs']
+    outputs = onboarding_data['outputs']
+    return outputs.get('answer') == inputs.get('correct_answer')
 
 extra_args = {
     "validate_onboarding": onboarding_is_valid,

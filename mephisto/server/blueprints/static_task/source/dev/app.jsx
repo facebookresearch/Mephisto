@@ -47,9 +47,11 @@ function MainApp() {
     return <div>Loading..</div>;
   }
   if (isOnboarding) {
-    <SubmitFrame onSubmit={(data) => handleSubmit(data)}>
-      <ShowURL url='onboarding.html' data={initialTaskData} />
-    </SubmitFrame>
+    return (
+      <SubmitFrame onSubmit={(data) => handleSubmit(data)}>
+        <ShowURL url={'onboarding.html'} data={initialTaskData} />
+      </SubmitFrame>
+    );
   }
   if (initialTaskData === null) {
     return <div>Loading...</div>;

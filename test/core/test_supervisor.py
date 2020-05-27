@@ -359,7 +359,7 @@ class TestSupervisor(unittest.TestCase):
         task_run_args["onboarding_qualification"] = TEST_QUALIFICATION_NAME
 
         # Supervisor expects that blueprint setup has already occurred
-        blueprint = self.task_run.get_blueprint()
+        blueprint = self.task_run.cache=False)
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         task_runner_args = get_default_arg_dict(TaskRunnerClass)
