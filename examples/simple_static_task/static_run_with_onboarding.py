@@ -37,10 +37,12 @@ ARG_STRING = (
     f"--onboarding-qualification static-test-onboarding-qual"
 )
 
+
 def onboarding_is_valid(onboarding_data):
-    inputs = onboarding_data['inputs']
-    outputs = onboarding_data['outputs']
-    return outputs.get('answer') == inputs.get('correct_answer')
+    inputs = onboarding_data["inputs"]
+    outputs = onboarding_data["outputs"]
+    return outputs.get("answer") == inputs.get("correct_answer")
+
 
 extra_args = {
     "validate_onboarding": onboarding_is_valid,

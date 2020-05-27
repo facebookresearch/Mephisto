@@ -87,7 +87,6 @@ class StaticHTMLBlueprint(StaticBlueprint):
                 "with static tasks."
             )
 
-
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
         """
@@ -130,4 +129,4 @@ class StaticHTMLBlueprint(StaticBlueprint):
         has passed the qualification or not. Return True if the worker
         has qualified.
         """
-        return self.opts['validate_onboarding'](onboarding_agent.state.get_data())
+        return self.opts["validate_onboarding"](onboarding_agent.state.get_data())
