@@ -556,7 +556,6 @@ class OnboardingRequired(object):
         As onboarding qualifies a worker for all tasks from this blueprint, this should
         generally be static data that can later be evaluated against.
         """
-        print(self.opts)
         return self.opts.get("onboarding_data", {})
 
     def validate_onboarding(
