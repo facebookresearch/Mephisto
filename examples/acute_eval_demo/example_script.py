@@ -24,6 +24,8 @@ The following args are useful to tweak to fit your specific needs;
 
 """
 
+TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/acute_eval_demo")
+
 parser = MephistoRunScriptParser()
 parser.add_argument(
     "-pfp",
@@ -58,8 +60,6 @@ architect_type, requester_name, db, args = parser.parse_launch_arguments()
 USE_LOCAL = True
 
 db = LocalMephistoDB()
-
-TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/acute_eval_demo")
 
 task_title = "Which Conversational Partner is Better?"
 task_description = "Evaluate quality of conversations through comparison."
