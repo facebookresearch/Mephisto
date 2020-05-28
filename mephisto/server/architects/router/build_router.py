@@ -78,11 +78,12 @@ def build_router(build_dir: str, task_run: "TaskRun") -> str:
 
     # Copy the task_run's json configuration
     local_task_config_path = os.path.join(local_server_directory_path, TASK_CONFIG_PATH)
+    blueprint = task_run.get_blueprint()
     with open(local_task_config_path, "w+") as task_fp:
-        json.dump(task_run.get_blueprint().get_frontend_args(), task_fp)
+        json.dump(blueprint.get_frontend_args(), task_fp)
 
     # Consolidate task files as defined by the task
-    TaskBuilderClass = task_run.get_blueprint().TaskBuilderClass
+    TaskBuilderClass = blueprint.TaskBuilderClass
     task_builder = TaskBuilderClass(task_run, task_run.get_task_config().args)
 
     task_builder.build_in_dir(local_server_directory_path)

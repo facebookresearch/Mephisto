@@ -289,11 +289,18 @@ class TaskRun:
             return None
         return unit
 
-    def get_blueprint(self) -> "Blueprint":
+    def get_blueprint(self, opts: Optional[Dict[str, Any]] = None) -> "Blueprint":
         """Return the runner associated with this task run"""
         if self.__blueprint is None:
+            cache = False
+            task_args = self.get_task_config().args
+            if opts is not None:
+                task_args.update(opts) 
+                cache = True
             BlueprintClass = get_blueprint_from_type(self.task_type)
-            self.__blueprint = BlueprintClass(self, self.get_task_config().args)
+            if not cache:
+                return BlueprintClass(self, task_args)
+            self.__blueprint = BlueprintClass(self, task_args)
         return self.__blueprint
 
     def get_provider(self) -> "CrowdProvider":

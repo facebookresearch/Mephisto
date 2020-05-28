@@ -74,7 +74,7 @@ class TestTaskLauncher(unittest.TestCase):
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.CREATED)
 
-        launcher.launch_units("dummy-url")
+        launcher.launch_units("dummy-url:3000")
 
         for unit in launcher.units:
             self.assertEqual(unit.get_db_status(), AssignmentState.LAUNCHED)

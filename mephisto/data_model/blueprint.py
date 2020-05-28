@@ -501,6 +501,7 @@ class OnboardingRequired(object):
         self.onboarding_qualification_name: Optional[str] = opts.get(
             "onboarding_qualification"
         )
+        self.onboarding_data = opts.get("onboarding_data", {})
         self.use_onboarding = self.onboarding_qualification_name is not None
         self.onboarding_qualification_id = None
         if self.onboarding_qualification_name is not None:
@@ -556,7 +557,7 @@ class OnboardingRequired(object):
         As onboarding qualifies a worker for all tasks from this blueprint, this should
         generally be static data that can later be evaluated against.
         """
-        return {}
+        return self.onboarding_data
 
     def validate_onboarding(
         self, worker: "Worker", onboarding_agent: "OnboardingAgent"

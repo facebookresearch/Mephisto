@@ -185,8 +185,8 @@ class TestSupervisor(unittest.TestCase):
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
-        agent_1_data = agents[0].datastore["agents"][agent_id_1]
-        agent_2_data = agents[1].datastore["agents"][agent_id_2]
+        agent_1_data = agents[0].datastore.agent_data[agent_id_1]
+        agent_2_data = agents[1].datastore.agent_data[agent_id_2]
         self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
         self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
 
@@ -304,8 +304,8 @@ class TestSupervisor(unittest.TestCase):
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
-        agent_1_data = agents[0].datastore["agents"][agent_id_1]
-        agent_2_data = agents[1].datastore["agents"][agent_id_2]
+        agent_1_data = agents[0].datastore.agent_data[agent_id_1]
+        agent_2_data = agents[1].datastore.agent_data[agent_id_2]
         self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
         self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
 
@@ -547,8 +547,8 @@ class TestSupervisor(unittest.TestCase):
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
-        agent_1_data = agents[0].datastore["agents"][agent_id_1]
-        agent_2_data = agents[1].datastore["agents"][agent_id_2]
+        agent_1_data = agents[0].datastore.agent_data[agent_id_1]
+        agent_2_data = agents[1].datastore.agent_data[agent_id_2]
         self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
         self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
 
@@ -780,8 +780,8 @@ class TestSupervisor(unittest.TestCase):
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
-        agent_1_data = agents[0].datastore["agents"][agent_id_1]
-        agent_2_data = agents[1].datastore["agents"][agent_id_2]
+        agent_1_data = agents[0].datastore.agent_data[agent_id_1]
+        agent_2_data = agents[1].datastore.agent_data[agent_id_2]
         self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
         self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
 
