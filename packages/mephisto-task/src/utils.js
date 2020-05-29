@@ -18,9 +18,12 @@ const axios = require("axios");
 
 /* ================= Utility functions ================= */
 
+const axiosInstance = axios.create();
+export { axiosInstance };
+
 export function postData(url = "", data = {}) {
   // Default options are marked with *
-  return axios({
+  return axiosInstance({
     url: url,
     method: "POST", // *GET, POST, PUT, DELETE, etc.
     headers: {
@@ -52,7 +55,7 @@ export function doesSupportWebsockets() {
 
 // Sends a request to get the task_config
 export function getTaskConfig() {
-  return axios("/task_config.json").then((res) => res.data);
+  return axiosInstance("/task_config.json").then((res) => res.data);
 }
 
 export function postProviderRequest(endpoint, data) {
