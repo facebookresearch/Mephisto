@@ -22,11 +22,23 @@ const axiosInstance = axios.create();
 export { axiosInstance };
 
 function resolveProviderURLParams() {
-  if (getProviderURLParams) {
-    if (typeof getProviderURLParams === "function") {
-      return getProviderURLParams();
-    } else return getProviderURLParams;
-  } else return null;
+  try {
+    if (getProviderURLParams) {
+      if (typeof getProviderURLParams === "function") {
+        return getProviderURLParams();
+      } else return getProviderURLParams;
+    } else return null;
+  } catch {
+    if (e instanceof ReferenceError) {
+      // if getProviderURLParams isn't defined in wrap_crowd_source.js
+      // just return nothing
+      return null;
+    } else {
+      // some other error occured, probably when executing the code in
+      // getProviderURLParams if it was a function. bubble the error up
+      throw e;
+    }
+  }
 }
 
 axiosInstance.interceptors.request.use((config) => {
