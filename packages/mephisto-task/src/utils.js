@@ -13,13 +13,30 @@ const axios = require("axios");
 */
 /* global
   getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
-  getAgentRegistration, handleSubmitToProvider
+  getAgentRegistration, handleSubmitToProvider, getProviderURLParams
 */
 
 /* ================= Utility functions ================= */
 
 const axiosInstance = axios.create();
 export { axiosInstance };
+
+function resolveProviderURLParams() {
+  if (getProviderURLParams) {
+    if (typeof getProviderURLParams === "function") {
+      return getProviderURLParams();
+    } else return getProviderURLParams;
+  } else return null;
+}
+
+axiosInstance.interceptors.request.use((config) => {
+  const additionalParams = resolveProviderURLParams();
+  if (!additionalParams) return config;
+
+  // merge params
+  config.params = { ...config.params, ...additionalParams };
+  return config;
+});
 
 export function postData(url = "", data = {}) {
   // Default options are marked with *
@@ -59,7 +76,7 @@ export function getTaskConfig() {
 }
 
 export function postProviderRequest(endpoint, data) {
-  var url = new URL(window.location.origin + endpoint);
+  var url = new URL(window.location.origin + endpoint).toString();
   return postData(url, { provider_data: data });
 }
 
