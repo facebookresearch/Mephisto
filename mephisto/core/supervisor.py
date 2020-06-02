@@ -222,8 +222,8 @@ class Supervisor:
                 for f_obj in data_files:
                     architect.download_file(f_obj["filename"], save_dir)
 
-        # TODO(OWN) Packets stored as info from workers can also be 
-        # saved somewhere locally just in case the world dies, and 
+        # TODO(OWN) Packets stored as info from workers can also be
+        # saved somewhere locally just in case the world dies, and
         # then cleaned up once the world completes successfully
         agent.pending_actions.append(packet)
         agent.has_action.set()
@@ -329,13 +329,13 @@ class Supervisor:
             # Wait for agents to be complete
             for agent_info in agent_infos:
                 agent = agent_info.agent
-                if not agent.did_submit.is_set():
-                    # Wait for a submit to occur
-                    # TODO(#94) make submit timeout configurable
-                    agent.has_action.wait(timeout=300)
-                    agent.act()
-                # TODO only mark if not disconnected
-                agent.mark_done()
+                if agent.get_status() not in AgentState.complete():
+                    if not agent.did_submit.is_set():
+                        # Wait for a submit to occur
+                        # TODO(#94) make submit timeout configurable
+                        agent.has_action.wait(timeout=300)
+                        agent.act()
+                    agent.mark_done()
         except Exception as e:
             import traceback
 
@@ -357,14 +357,14 @@ class Supervisor:
                 agent, Agent
             ), f"Can launch units for Agents, not OnboardingAgents, got {agent}"
             task_runner.launch_unit(unit, agent)
-            self._mark_agent_done(agent_info)
-            if not agent.did_submit.is_set():
-                # Wait for a submit to occur
-                # TODO(#94) make submit timeout configurable
-                agent.has_action.wait(timeout=300)
-                agent.act()
-            # TODO only mark if not disconnected
-            agent.mark_done()
+            if agent.get_status() not in AgentState.complete():
+                self._mark_agent_done(agent_info)
+                if not agent.did_submit.is_set():
+                    # Wait for a submit to occur
+                    # TODO(#94) make submit timeout configurable
+                    agent.has_action.wait(timeout=300)
+                    agent.act()
+                agent.mark_done()
         except Exception as e:
             import traceback
 
