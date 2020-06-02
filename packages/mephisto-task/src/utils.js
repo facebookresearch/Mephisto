@@ -28,7 +28,7 @@ function resolveProviderURLParams() {
         return getProviderURLParams();
       } else return getProviderURLParams;
     } else return null;
-  } catch {
+  } catch (e) {
     if (e instanceof ReferenceError) {
       // if getProviderURLParams isn't defined in wrap_crowd_source.js
       // just return nothing
