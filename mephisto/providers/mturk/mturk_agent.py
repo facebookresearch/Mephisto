@@ -98,7 +98,6 @@ class MTurkAgent(Agent):
         is marked as done there's nothing else we need to do as the task has been
         submitted.
         """
-        # TODO more cases than just DISCONNECT to address
         if self.get_status() != AgentState.STATUS_DISCONNECT:
             self.db.update_agent(
                 agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
