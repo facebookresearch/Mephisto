@@ -344,13 +344,13 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT project_id from projects
+                SELECT * from projects
                 WHERE (?1 IS NULL OR project_name = ?1)
                 """,
                 (project_name,),
             )
             rows = c.fetchall()
-            return [Project(self, str(r["project_id"])) for r in rows]
+            return [Project(self, str(r["project_id"]), row=r) for r in rows]
 
     def new_task(
         self,
@@ -418,7 +418,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT task_id from tasks
+                SELECT * from tasks
                 WHERE (?1 IS NULL OR task_name = ?1)
                 AND (?2 IS NULL OR project_id = ?2)
                 AND (?3 IS NULL OR parent_task_id = ?3)
@@ -426,7 +426,7 @@ class LocalMephistoDB(MephistoDB):
                 (task_name, nonesafe_int(project_id), nonesafe_int(parent_task_id)),
             )
             rows = c.fetchall()
-            return [Task(self, str(r["task_id"])) for r in rows]
+            return [Task(self, str(r["task_id"]), row=r) for r in rows]
 
     def update_task(
         self,
@@ -548,7 +548,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT task_run_id from task_runs
+                SELECT * from task_runs
                 WHERE (?1 IS NULL OR task_id = ?1)
                 AND (?2 IS NULL OR requester_id = ?2)
                 AND (?3 IS NULL OR is_completed = ?3)
@@ -556,7 +556,7 @@ class LocalMephistoDB(MephistoDB):
                 (nonesafe_int(task_id), nonesafe_int(requester_id), is_completed),
             )
             rows = c.fetchall()
-            return [TaskRun(self, str(r["task_run_id"])) for r in rows]
+            return [TaskRun(self, str(r["task_run_id"]), row=r) for r in rows]
 
     def update_task_run(self, task_run_id: str, is_completed: bool):
         """
@@ -646,7 +646,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                    SELECT assignment_id from assignments
+                    SELECT * from assignments
                     WHERE (?1 IS NULL OR task_run_id = ?1)
                     AND (?2 IS NULL OR task_id = ?2)
                     AND (?3 IS NULL OR requester_id = ?3)
@@ -664,7 +664,7 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [Assignment(self, str(r["assignment_id"])) for r in rows]
+            return [Assignment(self, str(r["assignment_id"]), row=r) for r in rows]
 
     def new_unit(
         self,
@@ -755,7 +755,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT unit_id from units
+                SELECT * from units
                 WHERE (?1 IS NULL OR task_id = ?1)
                 AND (?2 IS NULL OR task_run_id = ?2)
                 AND (?3 IS NULL OR requester_id = ?3)
@@ -783,7 +783,7 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [Unit(self, str(r["unit_id"])) for r in rows]
+            return [Unit(self, str(r["unit_id"]), row=r) for r in rows]
 
     def clear_unit_agent_assignment(self, unit_id: str) -> None:
         """
@@ -896,14 +896,14 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT requester_id from requesters
+                SELECT * from requesters
                 WHERE (?1 IS NULL OR requester_name = ?1)
                 AND (?2 IS NULL OR provider_type = ?2)
                 """,
                 (requester_name, provider_type),
             )
             rows = c.fetchall()
-            return [Requester(self, str(r["requester_id"])) for r in rows]
+            return [Requester(self, str(r["requester_id"]), row=r) for r in rows]
 
     def new_worker(self, worker_name: str, provider_type: str) -> str:
         """
@@ -954,14 +954,14 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT worker_id from workers
+                SELECT * from workers
                 WHERE (?1 IS NULL OR worker_name = ?1)
                 AND (?2 IS NULL OR provider_type = ?2)
                 """,
                 (worker_name, provider_type),
             )
             rows = c.fetchall()
-            return [Worker(self, str(r["worker_id"])) for r in rows]
+            return [Worker(self, str(r["worker_id"]), row=r) for r in rows]
 
     def new_agent(
         self,
@@ -1076,7 +1076,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT agent_id from agents
+                SELECT * from agents
                 WHERE (?1 IS NULL OR status = ?1)
                 AND (?2 IS NULL OR unit_id = ?2)
                 AND (?3 IS NULL OR worker_id = ?3)
@@ -1098,7 +1098,7 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [Agent(self, str(r["agent_id"])) for r in rows]
+            return [Agent(self, str(r["agent_id"]), row=r) for r in rows]
 
     def make_qualification(self, qualification_name: str) -> str:
         """
@@ -1134,13 +1134,15 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT qualification_id from qualifications
+                SELECT * from qualifications
                 WHERE (?1 IS NULL OR qualification_name = ?1)
                 """,
                 (qualification_name,),
             )
             rows = c.fetchall()
-            return [Qualification(self, str(r["qualification_id"])) for r in rows]
+            return [
+                Qualification(self, str(r["qualification_id"]), row=r) for r in rows
+            ]
 
     def get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
         """
@@ -1383,7 +1385,7 @@ class LocalMephistoDB(MephistoDB):
             c = conn.cursor()
             c.execute(
                 """
-                SELECT onboarding_agent_id from onboarding_agents
+                SELECT * from onboarding_agents
                 WHERE (?1 IS NULL OR status = ?1)
                 AND (?2 IS NULL OR worker_id = ?2)
                 AND (?3 IS NULL OR task_id = ?3)
@@ -1399,4 +1401,7 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [OnboardingAgent(self, str(r["onboarding_agent_id"])) for r in rows]
+            return [
+                OnboardingAgent(self, str(r["onboarding_agent_id"]), row=r)
+                for r in rows
+            ]

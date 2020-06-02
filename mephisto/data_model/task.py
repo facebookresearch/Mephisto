@@ -22,7 +22,7 @@ from mephisto.core.registry import get_blueprint_from_type, get_crowd_provider_f
 
 from functools import reduce
 
-from typing import List, Optional, Tuple, Dict, cast, TYPE_CHECKING, Any
+from typing import List, Optional, Tuple, Dict, cast, Mapping, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -58,11 +58,14 @@ class Task:
     project name if this task is to be associated with a specific project.
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_task(db_id)
+        if row is None:
+            row = db.get_task(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["task_id"]
         self.task_name: str = row["task_name"]
         self.task_type: str = row["task_type"]
         self.project_id: Optional[str] = row["project_id"]
@@ -181,11 +184,14 @@ class TaskRun:
     for the set of assignments within
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_task_run(db_id)
+        if row is None:
+            row = db.get_task_run(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["task_run_id"]
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
@@ -289,7 +295,7 @@ class TaskRun:
             cache = False
             task_args = self.get_task_config().args
             if opts is not None:
-                task_args.update(opts) 
+                task_args.update(opts)
                 cache = True
             BlueprintClass = get_blueprint_from_type(self.task_type)
             if not cache:

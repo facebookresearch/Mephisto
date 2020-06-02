@@ -13,7 +13,7 @@ from mephisto.data_model.task import TaskRun, Task
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.requester import Requester
-from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING, IO
+from typing import List, Optional, Tuple, Mapping, Dict, Any, Type, TYPE_CHECKING, IO
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -49,11 +49,14 @@ class Assignment:
     for the set of units within via abstracted database helpers
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_assignment(db_id)
+        if row is None:
+            row = db.get_assignment(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["assignment_id"]
         self.task_run_id = row["task_run_id"]
         self.sandbox = row["sandbox"]
         self.task_id = row["task_id"]
@@ -239,11 +242,14 @@ class Unit(ABC):
     It should be extended for usage with a specific crowd provider
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_unit(db_id)
+        if row is None:
+            row = db.get_unit(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["unit_id"]
         self.assignment_id = row["assignment_id"]
         self.unit_index = row["unit_index"]
         self.pay_amount = row["pay_amount"]
@@ -265,7 +271,9 @@ class Unit(ABC):
         self.__agent: Optional["Agent"] = None
         self.__worker: Optional["Worker"] = None
 
-    def __new__(cls, db: "MephistoDB", db_id: str) -> "Unit":
+    def __new__(
+        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ) -> "Unit":
         """
         The new method is overridden to be able to automatically generate
         the expected Unit class without needing to specifically find it
@@ -276,7 +284,8 @@ class Unit(ABC):
         if cls == Unit:
             # We are trying to construct a Unit, find what type to use and
             # create that instead
-            row = db.get_unit(db_id)
+            if row is None:
+                row = db.get_unit(db_id)
             assert row is not None, f"Given db_id {db_id} did not exist in given db"
             correct_class = get_crowd_provider_from_type(row["provider_type"]).UnitClass
             return super().__new__(correct_class)

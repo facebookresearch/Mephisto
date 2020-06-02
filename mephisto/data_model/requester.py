@@ -7,7 +7,7 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.core.registry import get_crowd_provider_from_type
 
-from typing import List, Optional, Dict, TYPE_CHECKING, Any
+from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -22,15 +22,20 @@ class Requester(ABC):
     with whatever implementation details are required to get those to work.
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_requester(db_id)
+        if row is None:
+            row = db.get_requester(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["requester_id"]
         self.provider_type: str = row["provider_type"]
         self.requester_name: str = row["requester_name"]
 
-    def __new__(cls, db: "MephistoDB", db_id: str) -> "Requester":
+    def __new__(
+        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ) -> "Requester":
         """
         The new method is overridden to be able to automatically generate
         the expected Requester class without needing to specifically find it
@@ -41,7 +46,8 @@ class Requester(ABC):
         if cls == Requester:
             # We are trying to construct a Requester, find what type to use and
             # create that instead
-            row = db.get_requester(db_id)
+            if row is None:
+                row = db.get_requester(db_id)
             assert row is not None, f"Given db_id {db_id} did not exist in given db"
             correct_class = get_crowd_provider_from_type(
                 row["provider_type"]

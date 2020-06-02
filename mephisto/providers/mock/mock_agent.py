@@ -8,7 +8,7 @@ from mephisto.data_model.agent import Agent
 from mephisto.data_model.blueprint import AgentState
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 
-from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
@@ -25,8 +25,10 @@ class MockAgent(Agent):
     connection status, etc.
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        super().__init__(db, db_id)
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
+        super().__init__(db, db_id, row=row)
         self.datastore: "MockDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
         if db_id not in self.datastore.agent_data:
             self.datastore.agent_data[db_id] = {

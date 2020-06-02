@@ -6,7 +6,7 @@
 
 from mephisto.data_model.worker import Worker
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
-from typing import List, Optional, Tuple, Dict, Type, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Mapping, Type, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -21,8 +21,10 @@ class MockWorker(Worker):
     This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        super().__init__(db, db_id)
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
+        super().__init__(db, db_id, row=row)
         self.datastore: "MockDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
 
     def bonus_worker(
