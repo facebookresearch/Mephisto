@@ -141,10 +141,10 @@ class MTurkDatastore:
                 WHERE unit_id IS NULL
                 AND run_id = ?;
                 """,
-                (run_id, ),
+                (run_id,),
             )
             results = c.fetchall()
-            return [r['hit_id'] for r in results]
+            return [r["hit_id"] for r in results]
 
     def register_assignment_to_hit(
         self,
