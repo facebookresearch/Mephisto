@@ -203,18 +203,13 @@ class TaskRun:
         self.__run_dir: Optional[str] = None
         self.__blueprint: Optional["Blueprint"] = None
         self.__crowd_provider: Optional["CrowdProvider"] = None
-        self.__unit_cache: Optional[List["Unit"]] = None
 
     def get_units(self) -> List["Unit"]:
         """
         Return the units associated with this task run, cached to 
         prevent repeated reloads.
         """
-        # TODO(#99) When we want to launch additional tasks, we'll need
-        # a way to reset this cache
-        if self.__unit_cache is None:
-            self.__unit_cache = self.db.find_units(task_run_id=self.db_id)
-        return self.__unit_cache
+        return self.db.find_units(task_run_id=self.db_id)
 
     def get_valid_units_for_worker(self, worker: "Worker") -> List["Unit"]:
         """
