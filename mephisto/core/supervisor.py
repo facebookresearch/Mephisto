@@ -222,6 +222,9 @@ class Supervisor:
                 for f_obj in data_files:
                     architect.download_file(f_obj["filename"], save_dir)
 
+        # TODO(OWN) Packets stored as info from workers can also be 
+        # saved somewhere locally just in case the world dies, and 
+        # then cleaned up once the world completes successfully
         agent.pending_actions.append(packet)
         agent.has_action.set()
 
@@ -331,6 +334,7 @@ class Supervisor:
                     # TODO(#94) make submit timeout configurable
                     agent.has_action.wait(timeout=300)
                     agent.act()
+                # TODO only mark if not disconnected
                 agent.mark_done()
         except Exception as e:
             import traceback
@@ -359,6 +363,7 @@ class Supervisor:
                 # TODO(#94) make submit timeout configurable
                 agent.has_action.wait(timeout=300)
                 agent.act()
+            # TODO only mark if not disconnected
             agent.mark_done()
         except Exception as e:
             import traceback
