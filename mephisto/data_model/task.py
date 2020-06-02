@@ -206,8 +206,7 @@ class TaskRun:
 
     def get_units(self) -> List["Unit"]:
         """
-        Return the units associated with this task run, cached to 
-        prevent repeated reloads.
+        Return the units associated with this task run.
         """
         return self.db.find_units(task_run_id=self.db_id)
 

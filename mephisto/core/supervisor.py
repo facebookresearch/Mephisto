@@ -338,6 +338,10 @@ class Supervisor:
             traceback.print_exc()
             # TODO(#93) handle runtime exceptions for assignments
             task_runner.cleanup_assignment(assignment)
+        finally:
+            task_run = task_runner.task_run
+            for unit in assignment.get_units():
+                task_run.clear_reservation(unit)
 
     def _launch_and_run_unit(
         self, unit: "Unit", agent_info: "AgentInfo", task_runner: "TaskRunner"
@@ -362,6 +366,8 @@ class Supervisor:
             traceback.print_exc()
             # TODO(#93) handle runtime exceptions for assignments
             task_runner.cleanup_unit(unit)
+        finally:
+            task_runner.task_run.clear_reservation(unit)
 
     def _assign_unit_to_agent(
         self, packet: Packet, channel_info: ChannelInfo, units: List["Unit"]
@@ -406,9 +412,6 @@ class Supervisor:
             self.agents_by_registration_id[
                 crowd_data["agent_registration_id"]
             ] = agent_info
-
-            # TODO(#102) is this a safe enough place to un-reserve?
-            task_run.clear_reservation(unit)
 
             # Launch individual tasks
             if not channel_info.job.task_runner.is_concurrent:
