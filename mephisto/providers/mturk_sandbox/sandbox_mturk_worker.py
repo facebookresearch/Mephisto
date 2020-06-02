@@ -7,7 +7,7 @@
 from mephisto.providers.mturk.mturk_worker import MTurkWorker
 from mephisto.providers.mturk_sandbox.provider_type import PROVIDER_TYPE
 
-from typing import Any, TYPE_CHECKING
+from typing import Any, Mapping, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
@@ -23,8 +23,10 @@ class SandboxMTurkWorker(MTurkWorker):
     # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        super().__init__(db, db_id)
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
+        super().__init__(db, db_id, row=row)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )

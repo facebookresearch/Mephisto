@@ -13,7 +13,7 @@ from mephisto.providers.mturk.mturk_utils import (
     get_assignment,
 )
 
-from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
@@ -35,8 +35,10 @@ class MTurkAgent(Agent):
     # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        super().__init__(db, db_id)
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
+        super().__init__(db, db_id, row=row)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )

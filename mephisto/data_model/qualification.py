@@ -10,7 +10,7 @@ from mephisto.core.registry import (
     get_valid_provider_types,
 )
 
-from typing import List, Optional, Dict, TYPE_CHECKING, Any
+from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -165,20 +165,30 @@ def make_qualification_dict(
 class Qualification:
     """Simple convenience wrapper for Qualifications in the data model"""
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_qualification(db_id)
+        if row is None:
+            row = db.get_qualification(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["qualification_id"]
         self.qualification_name: str = row["qualification_name"]
 
 
 class GrantedQualification:
     """Convenience wrapper for tracking granted qualifications"""
 
-    def __init__(self, db: "MephistoDB", qualification_id: str, worker_id: str):
+    def __init__(
+        self,
+        db: "MephistoDB",
+        qualification_id: str,
+        worker_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_granted_qualification(qualification_id, worker_id)
+        if row is None:
+            row = db.get_granted_qualification(qualification_id, worker_id)
         assert row is not None, f"Granted qualification did not exist in given db"
         self.worker_id: str = row["worker_id"]
         self.qualification_id: str = row["qualification_id"]

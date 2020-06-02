@@ -46,7 +46,7 @@ class MockProvider(CrowdProvider):
 
     curr_db_location: ClassVar[str]
 
-    def initialize_provider_datastore(self, storage_path: str = None) -> Any:
+    def initialize_provider_datastore(self, storage_path: str) -> Any:
         """Mocks don't need any initialization"""
         return MockDatastore(datastore_root=storage_path)
 

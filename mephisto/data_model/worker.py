@@ -7,7 +7,7 @@
 from abc import ABC, abstractmethod
 from mephisto.data_model.blueprint import AgentState
 from mephisto.core.registry import get_crowd_provider_from_type
-from typing import Any, List, Optional, Tuple, Dict, Type, Tuple, TYPE_CHECKING
+from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -24,16 +24,21 @@ class Worker(ABC):
     This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_worker(db_id)
+        if row is None:
+            row = db.get_worker(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["worker_id"]
         self.provider_type = row["provider_type"]
         self.worker_name = row["worker_name"]
         # TODO(#101) Do we want any other attributes here?
 
-    def __new__(cls, db: "MephistoDB", db_id: str) -> "Worker":
+    def __new__(
+        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ) -> "Worker":
         """
         The new method is overridden to be able to automatically generate
         the expected Worker class without needing to specifically find it
@@ -44,7 +49,8 @@ class Worker(ABC):
         if cls == Worker:
             # We are trying to construct a Worker, find what type to use and
             # create that instead
-            row = db.get_worker(db_id)
+            if row is None:
+                row = db.get_worker(db_id)
             assert row is not None, f"Given db_id {db_id} did not exist in given db"
             correct_class: Type[Worker] = get_crowd_provider_from_type(
                 row["provider_type"]

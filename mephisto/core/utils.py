@@ -111,24 +111,28 @@ def get_root_data_dir() -> str:
             data_dir_location = os.path.expanduser(data_dir_location)
             os.makedirs(data_dir_location, exist_ok=True)
             # Check to see if there is existing data to possibly move to the data dir:
-            database_loc = os.path.join(default_data_dir, 'database.db')
+            database_loc = os.path.join(default_data_dir, "database.db")
             if os.path.exists(database_loc) and data_dir_location != default_data_dir:
-                should_migrate = input(
-                    "We have found an existing database in the default data directory, do you want to "
-                    f"copy any existing data from the default location to {data_dir_location}? (y)es/no: "
-                ).lower().strip()
-                if len(should_migrate) == 0 or should_migrate[0] == 'y':
+                should_migrate = (
+                    input(
+                        "We have found an existing database in the default data directory, do you want to "
+                        f"copy any existing data from the default location to {data_dir_location}? (y)es/no: "
+                    )
+                    .lower()
+                    .strip()
+                )
+                if len(should_migrate) == 0 or should_migrate[0] == "y":
                     copy_tree(default_data_dir, data_dir_location)
                     print(
                         "Mephisto data successfully copied, once you've confirmed the migration worked, "
                         "feel free to remove all of the contents in "
                         f"{default_data_dir} EXCEPT for `README.md` and `DATA_LOC`."
                     )
-            with open(actual_data_dir_file, 'w+') as data_dir_file:
+            with open(actual_data_dir_file, "w+") as data_dir_file:
                 data_dir_file.write(data_dir_location)
-        with open(actual_data_dir_file, 'r') as data_dir_file:
+        with open(actual_data_dir_file, "r") as data_dir_file:
             loaded_data_dir = data_dir_file.read().strip()
-        
+
         if not os.path.isdir(loaded_data_dir):
             raise NotADirectoryError(
                 f"The provided Mephisto data directory {loaded_data_dir} as set in "

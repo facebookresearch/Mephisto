@@ -9,7 +9,7 @@ from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.blueprint import AgentState
 
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
-from typing import List, Optional, Tuple, Dict, Any, Type, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Mapping, Any, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -27,8 +27,10 @@ class MockUnit(Unit):
     It should be extended for usage with a specific crowd provider
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        super().__init__(db, db_id)
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
+        super().__init__(db, db_id, row=row)
         self.datastore: "MockDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
 
     def launch(self, task_url: str) -> None:
@@ -52,7 +54,7 @@ class MockUnit(Unit):
 
     def is_expired(self) -> bool:
         """Determine if this unit is expired as according to the vendor."""
-        return self.datastore.get_unit_expired(db_id)
+        return self.datastore.get_unit_expired(self.db_id)
 
     @staticmethod
     def new(

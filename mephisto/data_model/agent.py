@@ -17,7 +17,7 @@ from mephisto.data_model.exceptions import (
 )
 from mephisto.core.registry import get_crowd_provider_from_type
 
-from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Mapping, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit, Assignment
@@ -33,11 +33,14 @@ class Agent(ABC):
     connection status, etc.
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_agent(db_id)
+        if row is None:
+            row = db.get_agent(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["agent_id"]
         self.db_status = row["status"]
         self.worker_id = row["worker_id"]
         self.unit_id = row["unit_id"]
@@ -65,7 +68,9 @@ class Agent(ABC):
         # Follow-up initialization
         self.state = AgentState(self)  # type: ignore
 
-    def __new__(cls, db: "MephistoDB", db_id: str) -> "Agent":
+    def __new__(
+        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ) -> "Agent":
         """
         The new method is overridden to be able to automatically generate
         the expected Agent class without needing to specifically find it
@@ -76,7 +81,8 @@ class Agent(ABC):
         if cls == Agent:
             # We are trying to construct a Agent, find what type to use and
             # create that instead
-            row = db.get_agent(db_id)
+            if row is None:
+                row = db.get_agent(db_id)
             assert row is not None, f"Given db_id {db_id} did not exist in given db"
             correct_class = get_crowd_provider_from_type(
                 row["provider_type"]
@@ -326,11 +332,14 @@ class OnboardingAgent(ABC):
 
     DISPLAY_PREFIX = "onboarding_"
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = db.get_onboarding_agent(db_id)
+        if row is None:
+            row = db.get_onboarding_agent(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["onboarding_agent_id"]
         self.db_status = row["status"]
         self.worker_id = row["worker_id"]
         self.task_type = row["task_type"]
