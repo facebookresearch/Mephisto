@@ -555,7 +555,7 @@ def approve_work(
         # TODO(#93) Break down this error to the many reasons why approve may fail,
         # only silently pass on approving an already approved assignment
         print(
-            "Approving MTurk assignment failed, likely because it has auto-approved. Details:", 
+            "Approving MTurk assignment failed, likely because it has auto-approved. Details:",
             e,
         )
 
@@ -568,7 +568,7 @@ def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
         # TODO(#93) Break down this error to the many reasons why approve may fail,
         # only silently pass on approving an already approved assignment
         print(
-            "Rejecting MTurk assignment failed, likely because it has auto-approved. Details:", 
+            "Rejecting MTurk assignment failed, likely because it has auto-approved. Details:",
             e,
         )
 
