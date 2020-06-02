@@ -547,14 +547,30 @@ def approve_work(
     client: MTurkClient, assignment_id: str, override_rejection: bool = False
 ) -> None:
     """approve work for a given assignment through the mturk client"""
-    client.approve_assignment(
-        AssignmentId=assignment_id, OverrideRejection=override_rejection
-    )
+    try:
+        client.approve_assignment(
+            AssignmentId=assignment_id, OverrideRejection=override_rejection
+        )
+    except Exception as e:
+        # TODO(#93) Break down this error to the many reasons why approve may fail,
+        # only silently pass on approving an already approved assignment
+        print(
+            "Approving MTurk assignment failed, likely because it has auto-approved. Details:", 
+            e,
+        )
 
 
 def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
     """reject work for a given assignment through the mturk client"""
-    client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
+    try:
+        client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
+    except Exception as e:
+        # TODO(#93) Break down this error to the many reasons why approve may fail,
+        # only silently pass on approving an already approved assignment
+        print(
+            "Rejecting MTurk assignment failed, likely because it has auto-approved. Details:", 
+            e,
+        )
 
 
 def approve_assignments_for_hit(
