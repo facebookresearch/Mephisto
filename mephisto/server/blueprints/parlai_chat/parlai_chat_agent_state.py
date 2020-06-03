@@ -115,6 +115,6 @@ class ParlAIChatAgentState(AgentState):
         Append the incoming packet as well as who it came from
         """
         message_data = packet.to_sendable_dict()
-        message_data['timestamp'] = time.time()
+        message_data["timestamp"] = time.time()
         self.messages.append(message_data)
         self.save_data()

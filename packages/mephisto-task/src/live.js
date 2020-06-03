@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import React from "react";
 import { useMephistoTask, doesSupportWebsockets } from "./index";
 import { useMephistoSocket, CONNECTION_STATUS } from "./socket_handler.jsx";
@@ -23,8 +29,11 @@ const useMephistoLiveTask = function (props) {
   const [agentState, setAgentState] = React.useState(null);
   const [agentStatus, setAgentStatus] = React.useState(null);
 
+  const defaultConnectionHook = useMephistoSocket;
+  const useConnectionHook = props.customConnectionHook || defaultConnectionHook;
+
   const taskProps = useMephistoTask();
-  const socketProps = useMephistoSocket({
+  const socketProps = useConnectionHook({
     onConnectionStatusChange: (connectionStatus) => {
       setConnectionStatus(connectionStatus);
     },

@@ -138,7 +138,8 @@ function MyApp() {
         onMessageReceived: (message) => {
 
         },
-        config // optional overrides
+        config, // optional overrides
+        customConnectionHook, // optional - provide your own hook for managing the under-the-hood connection mechanism to communicate with the Mephisto server. The default (useMephistoSocket) uses websockets.
     );
 }
 ```

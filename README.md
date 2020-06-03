@@ -1,10 +1,14 @@
 # Mephisto
 
-Mephisto makes crowdsourcing easier.
+Mephisto makes crowdsourcing easier. 
+
+We provide a platform for launching, monitoring, and reviewing your crowdsourcing tasks. Tasks made on Mephisto can easily be open sourced as part of other projects. 
+
+As of now we're in an early alpha release, more details to come.
 
 ## Quickstart
 
-[Get started in 5 minutes - TBD][quickstart]
+[Get started in 10 minutes][quickstart]
 
 ## Changelog
 
@@ -15,3 +19,6 @@ Check out our [guidelines for contributing](https://github.com/facebookresearch/
 
 [quickstart]: https://github.com/facebookresearch/mephisto/blob/master/docs/quickstart.md
 
+
+## License
+Mephisto is MIT licensed. See the LICENSE file for details.

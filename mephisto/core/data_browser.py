@@ -35,9 +35,10 @@ class DataBrowser:
                 found_units = assignment.get_units()
                 for unit in found_units:
                     if unit.get_status() in [
-                        AgentState.STATUS_COMPLETED,
-                        AgentState.STATUS_APPROVED,
-                        AgentState.STATUS_REJECTED,
+                        AssignmentState.COMPLETED,
+                        AssignmentState.ACCEPTED,
+                        AssignmentState.REJECTED,
+                        AssignmentState.SOFT_REJECTED,
                     ]:
                         units.append(unit)
         return units

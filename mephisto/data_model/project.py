@@ -6,7 +6,7 @@
 
 from mephisto.data_model.constants import NO_PROJECT_NAME
 
-from typing import List, TYPE_CHECKING
+from typing import List, Mapping, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -21,11 +21,14 @@ class Project:
     Abstracts relevant queries behind usable functions.
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        self.db_id: str = db_id
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
         self.db: "MephistoDB" = db
-        row = self.db.get_project(db_id)
+        if row is None:
+            row = self.db.get_project(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
+        self.db_id: str = row["project_id"]
         self.project_name: str = row["project_name"]
 
     def get_tasks(self) -> List["Task"]:

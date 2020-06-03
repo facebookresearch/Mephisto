@@ -9,7 +9,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { Button } from "react-bootstrap";
-import { useMephistoTask } from "mephisto-task";
+import { useMephistoTask, postData } from "mephisto-task";
 const axios = require("axios");
 
 /* global
@@ -34,7 +34,28 @@ function MainApp() {
     isLoading,
     initialTaskData,
     handleSubmit,
+    isOnboarding,
+    agentId,
   } = useMephistoTask();
+
+  function submitFromFrame(formData, objData) {
+    if (isOnboarding) {
+      handleSubmit(objData);
+    } else {
+      formData.append('USED_AGENT_ID', agentId);
+      formData.append('final_data', objData);
+      postData("/submit_task", formData)
+        .then((data) => {
+          handleSubmitToProvider(objData);
+          return data;
+        })
+        .then(function (data) {
+          console.log("Submitted");
+          console.log(formData);
+          console.table(objData);
+        });
+    }
+  }
 
   if (blockedReason !== null) {
     return <h1>{blockedExplanation}</h1>;
@@ -45,17 +66,24 @@ function MainApp() {
   if (isLoading) {
     return <div>Loading..</div>;
   }
+  if (isOnboarding) {
+    return (
+      <SubmitFrame onSubmit={submitFromFrame}>
+        <ShowURL url={'onboarding.html'} data={initialTaskData} />
+      </SubmitFrame>
+    );
+  }
   if (initialTaskData === null) {
     return <div>Loading...</div>;
   }
   return (
-    <SubmitFrame onSubmit={(data) => handleSubmit(data)}>
+    <SubmitFrame onSubmit={submitFromFrame}>
       <ShowURL url={initialTaskData["html"]} data={initialTaskData} />
     </SubmitFrame>
   );
 }
 
-function SubmitFrame({ children, onSubmit }) {
+function SubmitFrame({ children, onSubmit}) {
   const [submitting, setSubmitting] = React.useState(false);
 
   function handleFormSubmit(event) {
@@ -66,7 +94,7 @@ function SubmitFrame({ children, onSubmit }) {
     formData.forEach((value, key) => {
       objData[key] = value;
     });
-    onSubmit(objData);
+    onSubmit(formData, objData);
   }
 
   return (

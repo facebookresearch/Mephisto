@@ -9,6 +9,7 @@ from mephisto.providers.mock.mock_agent import MockAgent
 from mephisto.providers.mock.mock_requester import MockRequester
 from mephisto.providers.mock.mock_unit import MockUnit
 from mephisto.providers.mock.mock_worker import MockWorker
+from mephisto.providers.mock.mock_datastore import MockDatastore
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.core.registry import register_mephisto_abstraction
 
@@ -45,13 +46,9 @@ class MockProvider(CrowdProvider):
 
     curr_db_location: ClassVar[str]
 
-    def initialize_provider_datastore(self, storage_path: str = None) -> Any:
+    def initialize_provider_datastore(self, storage_path: str) -> Any:
         """Mocks don't need any initialization"""
-        # TODO(#102) when writing tests for the rest of the system, maybe
-        # we do have a local database that we set up and
-        # tear down
-        # Mock providers create a dict to store any important info in
-        return {"agents": {}, "requesters": {}, "units": {}, "workers": {}}
+        return MockDatastore(datastore_root=storage_path)
 
     def setup_resources_for_task_run(
         self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str

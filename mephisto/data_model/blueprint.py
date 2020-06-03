@@ -341,6 +341,7 @@ class AgentState(ABC):
     STATUS_EXPIRED = "expired"
     STATUS_RETURNED = "returned"
     STATUS_APPROVED = "approved"
+    STATUS_SOFT_REJECTED = "soft_rejected"
     STATUS_REJECTED = "rejected"
 
     def __new__(cls, agent: Union["Agent", "OnboardingAgent"]) -> "AgentState":
@@ -364,13 +365,16 @@ class AgentState(ABC):
 
     @staticmethod
     def complete() -> List[str]:
-        """Return all final Agent statuses which cannot be updated"""
+        """Return all final Agent statuses which will not be updated by the supervisor"""
         return [
             AgentState.STATUS_COMPLETED,
             AgentState.STATUS_DISCONNECT,
             AgentState.STATUS_TIMEOUT,
             AgentState.STATUS_EXPIRED,
             AgentState.STATUS_RETURNED,
+            AgentState.STATUS_SOFT_REJECTED,
+            AgentState.STATUS_APPROVED,
+            AgentState.STATUS_REJECTED,
         ]
 
     @staticmethod
@@ -388,6 +392,9 @@ class AgentState(ABC):
             AgentState.STATUS_PARTNER_DISCONNECT,
             AgentState.STATUS_EXPIRED,
             AgentState.STATUS_RETURNED,
+            AgentState.STATUS_SOFT_REJECTED,
+            AgentState.STATUS_APPROVED,
+            AgentState.STATUS_REJECTED,
         ]
 
     # Implementations of an AgentState must implement the following:
@@ -494,6 +501,7 @@ class OnboardingRequired(object):
         self.onboarding_qualification_name: Optional[str] = opts.get(
             "onboarding_qualification"
         )
+        self.onboarding_data = opts.get("onboarding_data", {})
         self.use_onboarding = self.onboarding_qualification_name is not None
         self.onboarding_qualification_id = None
         if self.onboarding_qualification_name is not None:
@@ -549,7 +557,7 @@ class OnboardingRequired(object):
         As onboarding qualifies a worker for all tasks from this blueprint, this should
         generally be static data that can later be evaluated against.
         """
-        return {}
+        return self.onboarding_data
 
     def validate_onboarding(
         self, worker: "Worker", onboarding_agent: "OnboardingAgent"

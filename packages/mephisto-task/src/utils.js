@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import Bowser from "bowser";
 const axios = require("axios");
 
@@ -7,14 +13,46 @@ const axios = require("axios");
 */
 /* global
   getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
-  getAgentRegistration, handleSubmitToProvider
+  getAgentRegistration, handleSubmitToProvider, getProviderURLParams
 */
 
 /* ================= Utility functions ================= */
 
+const axiosInstance = axios.create();
+export { axiosInstance };
+
+function resolveProviderURLParams() {
+  try {
+    if (getProviderURLParams) {
+      if (typeof getProviderURLParams === "function") {
+        return getProviderURLParams();
+      } else return getProviderURLParams;
+    } else return null;
+  } catch (e) {
+    if (e instanceof ReferenceError) {
+      // if getProviderURLParams isn't defined in wrap_crowd_source.js
+      // just return nothing
+      return null;
+    } else {
+      // some other error occured, probably when executing the code in
+      // getProviderURLParams if it was a function. bubble the error up
+      throw e;
+    }
+  }
+}
+
+axiosInstance.interceptors.request.use((config) => {
+  const additionalParams = resolveProviderURLParams();
+  if (!additionalParams) return config;
+
+  // merge params
+  config.params = { ...config.params, ...additionalParams };
+  return config;
+});
+
 export function postData(url = "", data = {}) {
   // Default options are marked with *
-  return axios({
+  return axiosInstance({
     url: url,
     method: "POST", // *GET, POST, PUT, DELETE, etc.
     headers: {
@@ -46,11 +84,11 @@ export function doesSupportWebsockets() {
 
 // Sends a request to get the task_config
 export function getTaskConfig() {
-  return axios("/task_config.json").then((res) => res.data);
+  return axiosInstance("/task_config.json").then((res) => res.data);
 }
 
 export function postProviderRequest(endpoint, data) {
-  var url = new URL(window.location.origin + endpoint);
+  var url = new URL(window.location.origin + endpoint).toString();
   return postData(url, { provider_data: data });
 }
 

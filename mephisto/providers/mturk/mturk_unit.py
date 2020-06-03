@@ -15,7 +15,7 @@ from mephisto.providers.mturk.mturk_utils import (
     create_hit_with_hit_type,
 )
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
-from typing import List, Optional, Tuple, Dict, Any, Type, cast, TYPE_CHECKING
+from typing import List, Optional, Tuple, Mapping, Dict, Any, Type, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -35,8 +35,10 @@ class MTurkUnit(Unit):
     # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        super().__init__(db, db_id)
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
+        super().__init__(db, db_id, row=row)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
@@ -103,6 +105,7 @@ class MTurkUnit(Unit):
             AssignmentState.CREATED,
             AssignmentState.ACCEPTED,
             AssignmentState.EXPIRED,
+            AssignmentState.SOFT_REJECTED,
         ]:
             # These statuses don't change with a get_status call
             return self.db_status
@@ -118,6 +121,8 @@ class MTurkUnit(Unit):
                     found_status = AssignmentState.ACCEPTED
                 elif agent_status == AgentState.STATUS_REJECTED:
                     found_status = AssignmentState.REJECTED
+                elif agent_status == AgentState.STATUS_SOFT_REJECTED:
+                    found_status = AssignmentState.SOFT_REJECTED
             if found_status != self.db_status:
                 self.set_db_status(found_status)
             return self.db_status
@@ -183,7 +188,7 @@ class MTurkUnit(Unit):
 
         # We create a hit for this unit, but note that this unit may not
         # necessarily match with the same HIT that was launched for it.
-        self.datastore.new_hit(hit_id, hit_link, duration)
+        self.datastore.new_hit(hit_id, hit_link, duration, run_id)
         self.set_db_status(AssignmentState.LAUNCHED)
         return None
 
@@ -206,12 +211,12 @@ class MTurkUnit(Unit):
             expire_hit(client, mturk_hit_id)
             return delay
         else:
-            unassigned_hit_ids = self.datastore.get_unassigned_hit_ids()
+            unassigned_hit_ids = self.datastore.get_unassigned_hit_ids(self.task_run_id)
             # TODO(#93) assert there is at least one unassigned hit id,
             # otherwise there's a potential race condition here
             if len(unassigned_hit_ids) == 0:
                 return delay
-            hit_id = unassigned_hit_ids[0]["hit_id"]
+            hit_id = unassigned_hit_ids[0]
             expire_hit(client, hit_id)
             self.datastore.register_assignment_to_hit(hit_id, self.db_id)
             self.set_db_status(AssignmentState.EXPIRED)

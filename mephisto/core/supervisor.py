@@ -338,6 +338,10 @@ class Supervisor:
             traceback.print_exc()
             # TODO(#93) handle runtime exceptions for assignments
             task_runner.cleanup_assignment(assignment)
+        finally:
+            task_run = task_runner.task_run
+            for unit in assignment.get_units():
+                task_run.clear_reservation(unit)
 
     def _launch_and_run_unit(
         self, unit: "Unit", agent_info: "AgentInfo", task_runner: "TaskRunner"
@@ -362,6 +366,8 @@ class Supervisor:
             traceback.print_exc()
             # TODO(#93) handle runtime exceptions for assignments
             task_runner.cleanup_unit(unit)
+        finally:
+            task_runner.task_run.clear_reservation(unit)
 
     def _assign_unit_to_agent(
         self, packet: Packet, channel_info: ChannelInfo, units: List["Unit"]
@@ -407,9 +413,6 @@ class Supervisor:
                 crowd_data["agent_registration_id"]
             ] = agent_info
 
-            # TODO(#102) is this a safe enough place to un-reserve?
-            task_run.clear_reservation(unit)
-
             # Launch individual tasks
             if not channel_info.job.task_runner.is_concurrent:
                 unit_thread = threading.Thread(
@@ -452,7 +455,7 @@ class Supervisor:
         channel_info = self.channels[channel_id]
         task_runner = channel_info.job.task_runner
         task_run = task_runner.task_run
-        blueprint = task_run.get_blueprint()
+        blueprint = task_run.get_blueprint(opts=task_runner.opts)
         worker = onboarding_agent.get_worker()
 
         assert (
@@ -509,7 +512,8 @@ class Supervisor:
             return
 
         # Process a new agent
-        task_run = channel_info.job.task_runner.task_run
+        task_runner = channel_info.job.task_runner
+        task_run = task_runner.task_run
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
 
@@ -528,9 +532,8 @@ class Supervisor:
         # If there's onboarding, see if this worker has already been disqualified
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
-        blueprint = task_run.get_blueprint()
+        blueprint = task_run.get_blueprint(opts=task_runner.opts)
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
-            print("we're using onboarding!", blueprint.onboarding_qualification_name)
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
                 self.message_queue.append(
                     Packet(
@@ -605,7 +608,7 @@ class Supervisor:
 
         if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
             # TODO bring these into constants somehow
-            for message in unit_data.get("raw_messages"):
+            for message in unit_data["raw_messages"]:
                 packet = Packet.from_dict(message)
                 packet.receiver_id = agent_id
                 agent_info.agent.pending_observations.append(packet)

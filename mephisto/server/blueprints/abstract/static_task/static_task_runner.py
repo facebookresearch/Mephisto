@@ -32,7 +32,9 @@ class StaticTaskRunner(TaskRunner):
     def __init__(self, task_run: "TaskRun", opts: Any):
         super().__init__(task_run, opts)
         self.is_concurrent = False
-        self.assignment_duration_in_seconds = task_run.get_task_config().assignment_duration_in_seconds
+        self.assignment_duration_in_seconds = (
+            task_run.get_task_config().assignment_duration_in_seconds
+        )
 
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """

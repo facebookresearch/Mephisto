@@ -13,7 +13,7 @@ from mephisto.providers.mturk.mturk_utils import (
     get_assignment,
 )
 
-from typing import List, Optional, Tuple, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
@@ -35,8 +35,10 @@ class MTurkAgent(Agent):
     # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        super().__init__(db, db_id)
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
+        super().__init__(db, db_id, row=row)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
@@ -74,7 +76,7 @@ class MTurkAgent(Agent):
         datastore.register_assignment_to_hit(
             provider_data["hit_id"], unit.db_id, provider_data["assignment_id"]
         )
-        return cls.new(db, worker, unit)
+        return super().new_from_provider_data(db, worker, unit, provider_data)
 
     # Required functions for Agent Interface
 
@@ -82,11 +84,13 @@ class MTurkAgent(Agent):
         """Approve the work done on this specific Unit"""
         client = self._get_client()
         approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
+        self.update_status(AgentState.STATUS_APPROVED)
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
         client = self._get_client()
         reject_work(client, self._get_mturk_assignment_id(), reason)
+        self.update_status(AgentState.STATUS_REJECTED)
 
     def mark_done(self) -> None:
         """

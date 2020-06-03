@@ -76,6 +76,13 @@ class StaticHTMLTaskBuilder(TaskBuilder):
         target_path = os.path.join(target_resource_dir, "preview.html")
         shutil.copy2(use_preview_file, target_path)
 
+        # Copy over the onboarding file as onboarding.html if it's specified
+        onboarding_html_file = self.opts.get("onboarding_source", None)
+        if onboarding_html_file is not None:
+            onboarding_html_file = os.path.expanduser(onboarding_html_file)
+            target_path = os.path.join(target_resource_dir, "onboarding.html")
+            shutil.copy2(onboarding_html_file, target_path)
+
         # If any additional task files are required via a source_dir, copy those as well
         extra_dir_path = self.opts.get("extra_source_dir")
         if extra_dir_path is not None:

@@ -8,11 +8,12 @@ from mephisto.data_model.requester import Requester
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.core.argparse_parser import str2bool
 
-from typing import Optional, Dict, List, TYPE_CHECKING
+from typing import Optional, Dict, List, Mapping, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
+    from mephisto.providers.mock.mock_datastore import MockDatastore
     from argparse import _ArgumentGroup as ArgumentGroup
 
 MOCK_BUDGET = 100000.0
@@ -25,11 +26,11 @@ class MockRequester(Requester):
     with whatever implementation details are required to get those to work.
     """
 
-    def __init__(self, db: "MephistoDB", db_id: str):
-        super().__init__(db, db_id)
-        # TODO(#97) any additional init as is necessary once
-        # a mock DB exists, make register actually work
-        self.registered = self.requester_name == "test_requester"
+    def __init__(
+        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+    ):
+        super().__init__(db, db_id, row=row)
+        self.datastore: "MockDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
 
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Mock requesters don't actually register credentials"""
@@ -37,7 +38,7 @@ class MockRequester(Requester):
             if args.get("force_fail") is True:
                 raise Exception("Forced failure test exception was set")
         else:
-            self.registered = True
+            self.datastore.set_requester_registered(self.db_id, True)
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
@@ -57,11 +58,11 @@ class MockRequester(Requester):
             default=False,
             help="Trigger a failed registration",
         )
-        return
+        return None
 
     def is_registered(self) -> bool:
         """Return the registration status"""
-        return self.registered
+        return self.datastore.get_requester_registered(self.db_id)
 
     def get_available_budget(self) -> float:
         """MockRequesters have $100000 to spend"""

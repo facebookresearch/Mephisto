@@ -16,6 +16,7 @@ class AssignmentState:
     ACCEPTED = "accepted"
     MIXED = "mixed"
     REJECTED = "rejected"
+    SOFT_REJECTED = "soft_rejected"
     EXPIRED = "expired"
 
     @staticmethod
@@ -30,6 +31,7 @@ class AssignmentState:
             AssignmentState.ACCEPTED,
             AssignmentState.MIXED,
             AssignmentState.REJECTED,
+            AssignmentState.SOFT_REJECTED,
             AssignmentState.EXPIRED,
         ]
 
@@ -50,6 +52,7 @@ class AssignmentState:
             AssignmentState.ASSIGNED,
             AssignmentState.COMPLETED,
             AssignmentState.ACCEPTED,
+            AssignmentState.SOFT_REJECTED,
         ]
 
     @staticmethod
@@ -62,13 +65,18 @@ class AssignmentState:
             AssignmentState.COMPLETED,
             AssignmentState.ACCEPTED,
             AssignmentState.REJECTED,
+            AssignmentState.SOFT_REJECTED,
             AssignmentState.EXPIRED,
         ]
 
     @staticmethod
     def final_unit() -> List[str]:
         """Return all statuses that are terminal for a Unit"""
-        return [AssignmentState.ACCEPTED, AssignmentState.EXPIRED]
+        return [
+            AssignmentState.ACCEPTED,
+            AssignmentState.EXPIRED,
+            AssignmentState.SOFT_REJECTED,
+        ]
 
     @staticmethod
     def final_agent() -> List[str]:
@@ -77,5 +85,6 @@ class AssignmentState:
             AssignmentState.COMPLETED,
             AssignmentState.ACCEPTED,
             AssignmentState.REJECTED,
+            AssignmentState.SOFT_REJECTED,
             AssignmentState.EXPIRED,
         ]
