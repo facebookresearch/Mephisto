@@ -43,7 +43,7 @@ function MainApp() {
       handleSubmit(objData);
     } else {
       formData.append('USED_AGENT_ID', agentId);
-      formData.append('final_data', objData);
+      formData.append('final_data', JSON.stringify(objData));
       postData("/submit_task", formData)
         .then((data) => {
           handleSubmitToProvider(objData);
