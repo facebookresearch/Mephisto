@@ -3,8 +3,8 @@ import logging
 loggers = {}
 
 
-def my_logger(name, verbose=True, log_file=None, level="info"):
-    '''
+def core_logger(name, verbose=True, log_file=None, level="info"):
+    """
     Gets the logger corresponds to each module
             Parameters:
                     name (string): the module name (__name__).
@@ -14,7 +14,7 @@ def my_logger(name, verbose=True, log_file=None, level="info"):
 
             Returns:
                     logger (logging.Logger): the corresponding logger to the given module name.
-    '''
+    """
 
     global loggers
     if loggers.get(name):
@@ -34,7 +34,9 @@ def my_logger(name, verbose=True, log_file=None, level="info"):
             handler = logging.StreamHandler()
         else:
             handler = logging.RotatingFileHandler(log_file)
-        formatter = logging.Formatter('%(asctime)s - In module: %(name)s - %(levelname)-10s %(message)s')
+        formatter = logging.Formatter(
+            '[%(asctime)s] p%(process)s {%(filename)s:%(lineno)d} %(levelname)5s - %(message)s','%m-%d %H:%M:%S'
+        )
 
         handler.setFormatter(formatter)
         logger.addHandler(handler)

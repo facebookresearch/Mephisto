@@ -20,6 +20,12 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
 
+from mephisto.core.logger_core import core_logger
+import logging
+
+logger = core_logger(name=__name__, verbose=True, level='info')
+logger = logging.getLogger(__name__)
+
 
 class TaskLauncher:
     """
@@ -90,5 +96,4 @@ class TaskLauncher:
             try:
                 unit.expire()
             except Exception as e:
-                # TODO(#93) logger
-                print(f"Warning: failed to expire unit {unit.db_id}. Stated error: {e}")
+                logger.exception(f"Warning: failed to expire unit {unit.db_id}. Stated error: {e}", exc_info=True)

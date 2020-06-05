@@ -33,6 +33,11 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
 
+from mephisto.core.logger_core import core_logger
+import logging
+
+logger = core_logger(name=__name__, verbose=True, level='info')
+logger = logging.getLogger(__name__)
 
 USER_NAME = getpass.getuser()
 HEROKU_SERVER_BUILD_DIRECTORY = "heroku_server"
@@ -352,7 +357,7 @@ class HerokuArchitect(Architect):
                 )
         except subprocess.CalledProcessError as e:  # User has too many apps?
             # TODO(#93) check response codes to determine what actually happened
-            print(e)
+            logger.exception(e, exc_info=True)
             sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
             raise Exception(
                 "You have hit your limit on concurrent apps with heroku, which are"

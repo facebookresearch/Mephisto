@@ -16,6 +16,12 @@ from botocore.exceptions import ClientError
 from botocore.exceptions import ProfileNotFound
 from botocore.config import Config
 
+from mephisto.core.logger_core import core_logger
+import logging
+
+logger = core_logger(name=__name__, verbose=True, level='info')
+logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from mephisto.data_model.task_config import TaskConfig
 
@@ -554,9 +560,8 @@ def approve_work(
     except Exception as e:
         # TODO(#93) Break down this error to the many reasons why approve may fail,
         # only silently pass on approving an already approved assignment
-        print(
-            "Approving MTurk assignment failed, likely because it has auto-approved. Details:",
-            e,
+        logger.exception(
+            f"Approving MTurk assignment failed, likely because it has auto-approved. Details: {e}", exc_info=True
         )
 
 
@@ -567,9 +572,8 @@ def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
     except Exception as e:
         # TODO(#93) Break down this error to the many reasons why approve may fail,
         # only silently pass on approving an already approved assignment
-        print(
-            "Rejecting MTurk assignment failed, likely because it has auto-approved. Details:",
-            e,
+        logger.exception(
+            f"Rejecting MTurk assignment failed, likely because it has auto-approved. Details:{e}", exc_info=True
         )
 
 

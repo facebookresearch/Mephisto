@@ -8,6 +8,12 @@ from abc import ABC, abstractmethod
 from mephisto.data_model.blueprint import AgentState
 from mephisto.core.registry import get_crowd_provider_from_type
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
+from mephisto.core.logger_core import core_logger
+import logging
+
+logger = core_logger(name=__name__, verbose=True, level='info')
+logger = logging.getLogger(__name__)
+
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -147,11 +153,7 @@ class Worker(ABC):
             self.revoke_crowd_qualification(qualification_name)
             return True
         except Exception as e:
-            # TODO(#93) logging
-            import traceback
-
-            traceback.print_exc()
-            print(f"Found error while trying to revoke qualification: {repr(e)}")
+            logger.exception(f"Found error while trying to revoke qualification: {repr(e)}", exc_info=True)
             return False
         return True
 
@@ -176,11 +178,7 @@ class Worker(ABC):
                 self.grant_crowd_qualification(qualification_name, value)
                 return True
             except Exception as e:
-                # TODO(#93) logging
-                import traceback
-
-                traceback.print_exc()
-                print(f"Found error while trying to grant qualification: {repr(e)}")
+                logger.exception(f"Found error while trying to grant qualification: {repr(e)}", exc_info=True)
                 return False
 
     # Children classes can implement the following methods

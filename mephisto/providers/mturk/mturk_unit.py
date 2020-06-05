@@ -23,6 +23,12 @@ if TYPE_CHECKING:
     from mephisto.providers.mturk.mturk_requester import MTurkRequester
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
 
+from mephisto.core.logger_core import core_logger
+import logging
+
+logger = core_logger(name=__name__, verbose=True, level='info')
+logger = logging.getLogger(__name__)
+
 
 class MTurkUnit(Unit):
     """
@@ -115,7 +121,6 @@ class MTurkUnit(Unit):
             agent = self.get_assigned_agent()
             found_status = self.db_status
             if agent is not None:
-                # TODO(#93) warn if agent _is_ None
                 agent_status = agent.get_status()
                 if agent_status == AgentState.STATUS_APPROVED:
                     found_status = AssignmentState.ACCEPTED
@@ -123,6 +128,8 @@ class MTurkUnit(Unit):
                     found_status = AssignmentState.REJECTED
                 elif agent_status == AgentState.STATUS_SOFT_REJECTED:
                     found_status = AssignmentState.SOFT_REJECTED
+            else:
+                logger.warning("Agent is None")
             if found_status != self.db_status:
                 self.set_db_status(found_status)
             return self.db_status
@@ -212,8 +219,8 @@ class MTurkUnit(Unit):
             return delay
         else:
             unassigned_hit_ids = self.datastore.get_unassigned_hit_ids(self.task_run_id)
-            # TODO(#93) assert there is at least one unassigned hit id,
-            # otherwise there's a potential race condition here
+            if unassigned_hit_ids > 1:
+                logger.warning(f"Number of unassigned hit IDs more than 1; Potential RACE CONDITION")
             if len(unassigned_hit_ids) == 0:
                 return delay
             hit_id = unassigned_hit_ids[0]
