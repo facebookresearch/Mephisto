@@ -22,11 +22,13 @@ def core_logger(name, verbose=True, log_file=None, level="info"):
     else:
         logger = logging.getLogger(name)
 
-        level_dict = {"info": logging.INFO,
-                      "debug": logging.DEBUG,
-                      "warning": logging.WARNING,
-                      "error": logging.ERROR,
-                      "critical": logging.CRITICAL}
+        level_dict = {
+            "info": logging.INFO,
+            "debug": logging.DEBUG,
+            "warning": logging.WARNING,
+            "error": logging.ERROR,
+            "critical": logging.CRITICAL,
+        }
 
         logger.setLevel(logging.INFO if verbose else logging.DEBUG)
         logger.setLevel(level_dict[level.lower()])
@@ -35,7 +37,8 @@ def core_logger(name, verbose=True, log_file=None, level="info"):
         else:
             handler = logging.RotatingFileHandler(log_file)
         formatter = logging.Formatter(
-            '[%(asctime)s] p%(process)s {%(filename)s:%(lineno)d} %(levelname)5s - %(message)s','%m-%d %H:%M:%S'
+            "[%(asctime)s] p%(process)s {%(filename)s:%(lineno)d} %(levelname)5s - %(message)s",
+            "%m-%d %H:%M:%S",
         )
 
         handler.setFormatter(formatter)

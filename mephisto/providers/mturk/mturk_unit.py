@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 from mephisto.core.logger_core import core_logger
 import logging
 
-logger = core_logger(name=__name__, verbose=True, level='info')
+logger = core_logger(name=__name__, verbose=True, level="info")
 logger = logging.getLogger(__name__)
 
 
@@ -220,7 +220,9 @@ class MTurkUnit(Unit):
         else:
             unassigned_hit_ids = self.datastore.get_unassigned_hit_ids(self.task_run_id)
             if unassigned_hit_ids > 1:
-                logger.warning(f"Number of unassigned hit IDs more than 1; Potential RACE CONDITION")
+                logger.warning(
+                    f"Number of unassigned hit IDs more than 1; Potential RACE CONDITION"
+                )
             if len(unassigned_hit_ids) == 0:
                 return delay
             hit_id = unassigned_hit_ids[0]

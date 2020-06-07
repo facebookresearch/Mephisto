@@ -36,7 +36,7 @@ from mephisto.core.registry import (
 from mephisto.core.logger_core import core_logger
 import logging
 
-logger = core_logger(name=__name__, verbose=True, level='info')
+logger = core_logger(name=__name__, verbose=True, level="info")
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -177,10 +177,10 @@ class Operator:
         # Find an existing task or create a new one
         task_name = task_args.get("task_name")
         if task_name is None:
-            # TODO warn that the task is being launched with the blueprint type
-            # as the task name
             task_name = type_args.blueprint_type
-            logger.warning(f"Task is being launched with {task_name} blueprint")
+            logger.warning(
+                f"Task is using the default blueprint name {task_name} as a name, as no task_name is provided"
+            )
         tasks = self.db.find_tasks(task_name=task_name)
         task_id = None
         if len(tasks) == 0:
@@ -259,11 +259,16 @@ class Operator:
             if self.supervisor.sending_thread is None:
                 self.supervisor.launch_sending_thread()
         except (KeyboardInterrupt, Exception) as e:
-            logger.error("Encountered error while launching run, shutting down", exc_info=True)
+            logger.error(
+                "Encountered error while launching run, shutting down", exc_info=True
+            )
             try:
                 architect.shutdown()
             except (KeyboardInterrupt, Exception) as architect_exception:
-                logger.exception(f"Could not shut down architect: {architect_exception}", exc_info=True)
+                logger.exception(
+                    f"Could not shut down architect: {architect_exception}",
+                    exc_info=True,
+                )
             raise e
 
         launcher = TaskLauncher(self.db, task_run, initialization_data_array)
@@ -316,7 +321,9 @@ class Operator:
                     time.sleep(30)
                 remaining_runs = next_runs
         except Exception as e:
-            logger.exception(f"Encountered problem during shutting down {e}", exc_info=True)
+            logger.exception(
+                f"Encountered problem during shutting down {e}", exc_info=True
+            )
             import traceback
 
             traceback.print_exc()
@@ -388,6 +395,8 @@ class Operator:
 
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
-            logger.exception("Cleaning up after keyboard interrupt, please wait!", exc_info=True)
+            logger.exception(
+                "Cleaning up after keyboard interrupt, please wait!", exc_info=True
+            )
         finally:
             self.shutdown()

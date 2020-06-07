@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 from mephisto.core.logger_core import core_logger
 import logging
 
-logger = core_logger(name=__name__, verbose=True, level='info')
+logger = core_logger(name=__name__, verbose=True, level="info")
 logger = logging.getLogger(__name__)
 
 DEFAULT_TASK_CONFIG = {
@@ -346,7 +346,10 @@ class AcuteEvalRunner(TaskRunner):
                 except ValueError:
                     # Task may have shown up in worker's task queue twice
                     # due to some unfortunate race condition
-                    logger.exception(f"could not remove task from worker {worker_id} history", exc_info=True)
+                    logger.exception(
+                        f"could not remove task from worker {worker_id} history",
+                        exc_info=True,
+                    )
 
     def get_onboarding_tasks(self, worker_id: str) -> List[PairingsDict]:
         """
@@ -433,7 +436,9 @@ class AcuteEvalRunner(TaskRunner):
                     logger.info(f"Soft Blocking {w}\n")
                     self.manager.soft_block_worker(w)
                 except Exception as e:
-                    logger.exception(f"Did not soft block worker {w}: {e}", exc_info=True)
+                    logger.exception(
+                        f"Did not soft block worker {w}: {e}", exc_info=True
+                    )
                 time.sleep(0.1)
 
     def get_init_data_for_agent(self, agent: "Agent") -> List[PairingsDict]:

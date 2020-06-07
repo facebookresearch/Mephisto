@@ -17,7 +17,7 @@ import time
 from mephisto.core.logger_core import core_logger
 import logging
 
-logger = core_logger(name=__name__, verbose=True, level='info')
+logger = core_logger(name=__name__, verbose=True, level="info")
 logger = logging.getLogger(__name__)
 
 
@@ -141,7 +141,9 @@ class WebsocketChannel(Channel):
                     socket.on_open = on_socket_open
                     socket.run_forever(ping_interval=8 * STATUS_CHECK_TIME)
                 except Exception as e:
-                    logger.exception(f"Socket error {repr(e)}, attempting restart", exc_info=True)
+                    logger.exception(
+                        f"Socket error {repr(e)}, attempting restart", exc_info=True
+                    )
                 time.sleep(0.2)
 
         # Start listening thread
@@ -167,6 +169,8 @@ class WebsocketChannel(Channel):
             # The channel died mid-send, wait for it to come back up
             return False
         except Exception as e:
-            logger.exception(f"Unexpected socket error occured: {repr(e)}", exc_info=True)
+            logger.exception(
+                f"Unexpected socket error occured: {repr(e)}", exc_info=True
+            )
             return False
         return True

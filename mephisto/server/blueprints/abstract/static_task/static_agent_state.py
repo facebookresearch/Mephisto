@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 from mephisto.core.logger_core import core_logger
 import logging
 
-logger = core_logger(name=__name__, verbose=True, level='info')
+logger = core_logger(name=__name__, verbose=True, level="info")
 logger = logging.getLogger(__name__)
 
 DATA_FILE = "agent_data.json"
