@@ -219,11 +219,11 @@ class MTurkUnit(Unit):
             return delay
         else:
             unassigned_hit_ids = self.datastore.get_unassigned_hit_ids(self.task_run_id)
-            if unassigned_hit_ids > 1:
+
+            if len(unassigned_hit_ids) == 0:
                 logger.warning(
                     f"Number of unassigned hit IDs more than 1; Potential RACE CONDITION"
                 )
-            if len(unassigned_hit_ids) == 0:
                 return delay
             hit_id = unassigned_hit_ids[0]
             expire_hit(client, hit_id)
