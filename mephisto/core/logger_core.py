@@ -3,7 +3,9 @@ import logging
 loggers = {}
 
 
-def get_logger(name, verbose=True, log_file=None, level="info") -> logging.Logger:
+def get_logger(
+    name: str, verbose: bool = True, log_file: str = None, level: str = "info"
+) -> logging.Logger:
     """
     Gets the logger corresponds to each module
             Parameters:
