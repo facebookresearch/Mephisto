@@ -8,11 +8,9 @@ from abc import ABC, abstractmethod
 from mephisto.data_model.blueprint import AgentState
 from mephisto.core.registry import get_crowd_provider_from_type
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
-from mephisto.core.logger_core import core_logger
-import logging
+from mephisto.core.logger_core import get_logger
 
-logger = core_logger(name=__name__, verbose=True, level="info")
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 
 if TYPE_CHECKING:

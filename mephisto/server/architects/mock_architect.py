@@ -10,7 +10,6 @@ from tornado.websocket import WebSocketHandler
 import os
 import threading
 import uuid
-import logging
 import json
 import time
 

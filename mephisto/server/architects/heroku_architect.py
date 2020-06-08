@@ -33,11 +33,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
 
-from mephisto.core.logger_core import core_logger
-import logging
+from mephisto.core.logger_core import get_logger
 
-logger = core_logger(name=__name__, verbose=True, level="info")
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 USER_NAME = getpass.getuser()
 HEROKU_SERVER_BUILD_DIRECTORY = "heroku_server"

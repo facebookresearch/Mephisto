@@ -33,11 +33,9 @@ from mephisto.core.registry import (
     get_architect_from_type,
 )
 
-from mephisto.core.logger_core import core_logger
-import logging
+from mephisto.core.logger_core import get_logger
 
-logger = core_logger(name=__name__, verbose=True, level="info")
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent

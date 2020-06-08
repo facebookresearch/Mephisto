@@ -19,11 +19,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit, InitializationData
     from mephisto.data_model.agent import Agent
-from mephisto.core.logger_core import core_logger
-import logging
+from mephisto.core.logger_core import get_logger
 
-logger = core_logger(name=__name__, verbose=True, level="info")
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 DEFAULT_TASK_CONFIG = {
     "hit_title": "Which Conversational Partner is Better?",

@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import logging
 import threading
 from queue import PriorityQueue, Empty
 import time
@@ -43,11 +42,10 @@ if TYPE_CHECKING:
     from mephisto.data_model.crowd_provider import CrowdProvider
     from mephisto.data_model.architect import Architect
 
-from mephisto.core.logger_core import core_logger
-import logging
+from mephisto.core.logger_core import get_logger
 
-logger = core_logger(name=__name__, verbose=True, level="info")
-logger = logging.getLogger(__name__)
+logger = get_logger(name=__name__, verbose=True, level="info")
+
 # This class manages communications between the server
 # and workers, ensures that their status is properly tracked,
 # and also provides some helping utility functions for
