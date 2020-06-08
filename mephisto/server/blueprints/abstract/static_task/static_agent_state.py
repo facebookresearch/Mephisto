@@ -107,7 +107,7 @@ class StaticAgentState(AgentState):
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
         if packet.data.get("files") != None:
-            logger.info("Got files:", str(packet.data["files"])[:500])
+            logger.info(f"Got files: {str(packet.data['files'])[:500]}")
             outputs["files"] = [f["filename"] for f in packet.data["files"]]
         self.state["outputs"] = outputs
         self.save_data()
