@@ -14,6 +14,10 @@ import threading
 import json
 import time
 
+from mephisto.core.logger_core import get_logger
+
+logger = get_logger(name=__name__, verbose=True, level="info")
+
 
 class WebsocketChannel(Channel):
     """
@@ -78,8 +82,7 @@ class WebsocketChannel(Channel):
         def on_socket_open(*args):
             self._is_alive = True
             self.on_channel_open(self.channel_id)
-            # TODO(#93) logger
-            print(f"channel open {args}")
+            logger.info(f"channel open {args}")
 
         def on_error(ws, error):
             if hasattr(error, "errno"):
@@ -89,7 +92,7 @@ class WebsocketChannel(Channel):
                         f"Socket {self.socket_url} refused connection, cancelling"
                     )
             else:
-                print(f"Socket logged error: {error}")
+                logger.error(f"Socket logged error: {error}")
                 if isinstance(error, websocket._exceptions.WebSocketException):
                     return
 
@@ -120,10 +123,7 @@ class WebsocketChannel(Channel):
                 self.on_message(self.channel_id, packet)
             except Exception as e:
                 # TODO(CLEAN) properly handle only failed from_dict calls
-                import traceback
-
-                traceback.print_exc()
-                print(repr(e))
+                logger.exception(repr(e), exc_info=True)
                 raise
 
         def run_socket(*args):
@@ -139,7 +139,9 @@ class WebsocketChannel(Channel):
                     socket.on_open = on_socket_open
                     socket.run_forever(ping_interval=8 * STATUS_CHECK_TIME)
                 except Exception as e:
-                    print(f"Socket error {repr(e)}, attempting restart")
+                    logger.exception(
+                        f"Socket error {repr(e)}, attempting restart", exc_info=True
+                    )
                 time.sleep(0.2)
 
         # Start listening thread
@@ -165,9 +167,8 @@ class WebsocketChannel(Channel):
             # The channel died mid-send, wait for it to come back up
             return False
         except Exception as e:
-            import traceback
-
-            traceback.print_exc()
-            print("Unexpected socket error occured: {}".format(repr(e)))
+            logger.exception(
+                f"Unexpected socket error occured: {repr(e)}", exc_info=True
+            )
             return False
         return True

@@ -26,6 +26,10 @@ import sqlite3
 from sqlite3 import Connection, Cursor
 import threading
 
+from mephisto.core.logger_core import get_logger
+
+logger = get_logger(name=__name__, verbose=True, level="info")
+
 
 def nonesafe_int(in_string: Optional[str]) -> Optional[int]:
     """Cast input to an int or None"""
@@ -257,6 +261,8 @@ class LocalMephistoDB(MephistoDB):
         """
         # TODO(#93) maybe raise flag when the schema of existing tables isn't what we expect
         # it to be?
+        # "How to know that schema changes?"
+        # logger.warning("some message")
         with self.table_access_condition:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")

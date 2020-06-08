@@ -16,6 +16,10 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.providers.mock.mock_datastore import MockDatastore
 
+from mephisto.core.logger_core import get_logger
+
+logger = get_logger(name=__name__, verbose=True, level="info")
+
 
 class MockUnit(Unit):
     """
@@ -40,6 +44,10 @@ class MockUnit(Unit):
         # TODO(OWN) get this link to the frontend
         port = task_url.split(":")[1].split("/")[0]
         print(
+            f"Mock task launched: localhost:{port} for preview, "
+            f"localhost:{port}/?worker_id=x&assignment_id={self.db_id} for task"
+        )
+        logger.info(
             f"Mock task launched: localhost:{port} for preview, "
             f"localhost:{port}/?worker_id=x&assignment_id={self.db_id} for task"
         )

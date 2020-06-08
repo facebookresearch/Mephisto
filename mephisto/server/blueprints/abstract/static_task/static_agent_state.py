@@ -14,6 +14,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.packet import Packet
 
+from mephisto.core.logger_core import get_logger
+
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 DATA_FILE = "agent_data.json"
 
@@ -81,8 +84,7 @@ class StaticAgentState(AgentState):
         out_filename = os.path.join(data_dir, DATA_FILE)
         with open(out_filename, "w+") as data_file:
             json.dump(self.state, data_file)
-        # TODO(#93) move to logger
-        print(f"SAVED_DATA_TO_DISC at {out_filename}")
+        logger.info(f"SAVED_DATA_TO_DISC at {out_filename}")
 
     def update_data(self, packet: "Packet") -> None:
         """
@@ -105,7 +107,7 @@ class StaticAgentState(AgentState):
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
         if packet.data.get("files") != None:
-            print("Got files:", str(packet.data["files"])[:500])
+            logger.info(f"Got files: {str(packet.data['files'])[:500]}")
             outputs["files"] = [f["filename"] for f in packet.data["files"]]
         self.state["outputs"] = outputs
         self.save_data()

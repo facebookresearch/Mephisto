@@ -19,13 +19,16 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit, InitializationData
     from mephisto.data_model.agent import Agent
+from mephisto.core.logger_core import get_logger
 
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 DEFAULT_TASK_CONFIG = {
     "hit_title": "Which Conversational Partner is Better?",
     "hit_description": "Evaluate quality of conversations through comparison.",
     "hit_keywords": "chat,evaluation,comparison,conversation",
 }
+
 
 PairingsDict = Dict[str, Any]
 WorkerID = str
@@ -109,8 +112,7 @@ class AcuteEvalRunner(TaskRunner):
             if self.block_qualification is None:
                 self.block_qualification = f"{task_id}_failed_onboarding"
                 self.opts["block_qualification"] = self.block_qualification
-                # TODO(#93) move to logger
-                print(
+                logger.warning(
                     "No block_qualification set in opt, automatically creating "
                     "new qualification {}".format(self.block_qualification)
                 )
@@ -301,19 +303,19 @@ class AcuteEvalRunner(TaskRunner):
         tasks_per_unit = self.opts["subtasks_per_unit"]
         # first add onboarding tasks
         task_data = self.get_onboarding_tasks(worker_id)
-        print("Onboarding task data gotten: ", len(task_data))
+        logger.debug("Onboarding task data gotten: ", len(task_data))
         if len(task_data) == tasks_per_unit:
             return task_data
 
         # poll the task queue for more tasks
         task_data = self._poll_task_queue(worker_id, task_data)
-        print("Task queue data gotten: ", len(task_data))
+        logger.debug("Task queue data gotten: ", len(task_data))
         if len(task_data) == tasks_per_unit:
             return task_data
 
         # top up the task_data if we don't hit the desired tasks_per_unit
         task_data = self._top_up_task_data(worker_id, task_data)
-        print("Topped off data gotten: ", len(task_data))
+        logger.debug("Topped off data gotten: ", len(task_data))
         return task_data
 
     def requeue_task_data(self, worker_id: str, task_data: List[PairingsDict]):
@@ -342,7 +344,10 @@ class AcuteEvalRunner(TaskRunner):
                 except ValueError:
                     # Task may have shown up in worker's task queue twice
                     # due to some unfortunate race condition
-                    print(f"could not remove task from worker {worker_id} history")
+                    logger.exception(
+                        f"could not remove task from worker {worker_id} history",
+                        exc_info=True,
+                    )
 
     def get_onboarding_tasks(self, worker_id: str) -> List[PairingsDict]:
         """
@@ -423,13 +428,15 @@ class AcuteEvalRunner(TaskRunner):
             with open(self.opts["softblock_list_path"]) as f:
                 for line in f:
                     softblock_list.add(line.strip())
-            print(f"Will softblock {len(softblock_list):d} workers.")
+            logger.info(f"Will softblock {len(softblock_list):d} workers.")
             for w in softblock_list:
                 try:
-                    print("Soft Blocking {}\n".format(w))
+                    logger.info(f"Soft Blocking {w}\n")
                     self.manager.soft_block_worker(w)
                 except Exception as e:
-                    print(f"Did not soft block worker {w}: {e}")
+                    logger.exception(
+                        f"Did not soft block worker {w}: {e}", exc_info=True
+                    )
                 time.sleep(0.1)
 
     def get_init_data_for_agent(self, agent: "Agent") -> List[PairingsDict]:
@@ -458,7 +465,7 @@ class AcuteEvalRunner(TaskRunner):
         if self.opts["block_on_onboarding_fail"]:
             # check whether workers failed onboarding
             self.check_and_update_worker_approval(agent)
-        print("Acute eval done for ", agent)
+        logger.info("Acute eval done for ", agent)
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """

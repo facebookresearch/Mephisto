@@ -33,6 +33,9 @@ from mephisto.core.registry import (
     get_architect_from_type,
 )
 
+from mephisto.core.logger_core import get_logger
+
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -172,9 +175,10 @@ class Operator:
         # Find an existing task or create a new one
         task_name = task_args.get("task_name")
         if task_name is None:
-            # TODO warn that the task is being launched with the blueprint type
-            # as the task name
             task_name = type_args.blueprint_type
+            logger.warning(
+                f"Task is using the default blueprint name {task_name} as a name, as no task_name is provided"
+            )
         tasks = self.db.find_tasks(task_name=task_name)
         task_id = None
         if len(tasks) == 0:
@@ -182,8 +186,7 @@ class Operator:
         else:
             task_id = tasks[0].db_id
 
-        # TODO(#93) logging
-        print(f"Creating a task run under task name: {task_name}")
+        logger.info(f"Creating a task run under task name: {task_name}")
 
         # Create a new task run
         new_run_id = self.db.new_task_run(
@@ -254,12 +257,16 @@ class Operator:
             if self.supervisor.sending_thread is None:
                 self.supervisor.launch_sending_thread()
         except (KeyboardInterrupt, Exception) as e:
-            # TODO(#93) logging
-            print("Encountered error while launching run, shutting down")
+            logger.error(
+                "Encountered error while launching run, shutting down", exc_info=True
+            )
             try:
                 architect.shutdown()
             except (KeyboardInterrupt, Exception) as architect_exception:
-                print(f"Could not shut down architect: {architect_exception}")
+                logger.exception(
+                    f"Could not shut down architect: {architect_exception}",
+                    exc_info=True,
+                )
             raise e
 
         launcher = TaskLauncher(self.db, task_run, initialization_data_array)
@@ -291,10 +298,10 @@ class Operator:
             time.sleep(2)
 
     def shutdown(self, skip_input=True):
-        print("operator shutting down")  # TODO(#93) logger
+        logger.info("operator shutting down")
         self.is_shutdown = True
         for tracked_run in self._task_runs_tracked.values():
-            print("expring units")  # TODO(#93) logger
+            logger.info("expiring units")
             tracked_run.task_launcher.expire_units()
         try:
             remaining_runs = self._task_runs_tracked.values()
@@ -306,19 +313,20 @@ class Operator:
                     else:
                         next_runs.append(tracked_run)
                 if len(next_runs) > 0:
-                    # TODO(#93) logger
-                    print(
+                    logger.info(
                         f"Waiting on {len(remaining_runs)} task runs, Ctrl-C ONCE to FORCE QUIT"
                     )
                     time.sleep(30)
                 remaining_runs = next_runs
         except Exception as e:
+            logger.exception(
+                f"Encountered problem during shutting down {e}", exc_info=True
+            )
             import traceback
 
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
-            # TODO(#93) logger
-            print(
+            logger.info(
                 "Skipping waiting for outstanding task completions, shutting down servers now!"
             )
             for tracked_run in remaining_runs:
@@ -339,15 +347,15 @@ class Operator:
         try:
             return self.parse_and_launch_run(arg_list=arg_list, extra_args=extra_args)
         except (KeyboardInterrupt, Exception) as e:
-            # TODO(#93)
-            print("Ran into error while launching run: ")
+            logger.error("Ran into error while launching run: ", exc_info=True)
             traceback.print_exc()
             return None
 
     def print_run_details(self):
         """Print details about running tasks"""
         # TODO(#93) parse these tasks and get the full details
-        print(f"Operator running {self.get_running_task_runs()}")
+        for task in self.get_running_task_runs():
+            logger.info(f"Operator running task ID = {task}")
 
     def wait_for_runs_then_shutdown(
         self, skip_input=False, log_rate: Optional[int] = None
@@ -385,6 +393,8 @@ class Operator:
 
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
-            print("Cleaning up after keyboard interrupt, please wait!")
+            logger.exception(
+                "Cleaning up after keyboard interrupt, please wait!", exc_info=True
+            )
         finally:
             self.shutdown()

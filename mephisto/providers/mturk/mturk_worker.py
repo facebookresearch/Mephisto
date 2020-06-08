@@ -29,6 +29,10 @@ if TYPE_CHECKING:
     from mephisto.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.providers.mturk.mturk_requester import MTurkRequester
 
+from mephisto.core.logger_core import get_logger
+
+logger = get_logger(name=__name__, verbose=True, level="info")
+
 
 class MTurkWorker(Worker):
     """
@@ -104,7 +108,9 @@ class MTurkWorker(Worker):
             qualification_name
         )
         if mturk_qual_details is None:
-            # TODO(#93) log this
+            logger.error(
+                f"No locally stored MTurk qualification to revoke for name {qualification_name}"
+            )
             return None
 
         requester = Requester(self.db, mturk_qual_details["requester_id"])

@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import logging
 import threading
 from queue import PriorityQueue, Empty
 import time
@@ -42,6 +41,10 @@ if TYPE_CHECKING:
     from mephisto.data_model.blueprint import TaskRunner
     from mephisto.data_model.crowd_provider import CrowdProvider
     from mephisto.data_model.architect import Architect
+
+from mephisto.core.logger_core import get_logger
+
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 # This class manages communications between the server
 # and workers, ensures that their status is properly tracked,
@@ -110,7 +113,7 @@ class Supervisor:
 
     def _on_catastrophic_disconnect(self, channel_id):
         # TODO(#102) Catastrophic disconnect needs to trigger cleanup
-        print(f"Channel {channel_id} called on_catastrophic_disconnect")
+        logger.error(f"Channel {channel_id} called on_catastrophic_disconnect")
 
     def _on_channel_message(self, channel_id: str, packet: Packet):
         """Incoming message handler defers to the internal handler"""
@@ -119,10 +122,10 @@ class Supervisor:
             self._on_message(packet, channel_info)
         except Exception as e:
             # TODO(#93) better error handling about failed messages
-            import traceback
-
-            traceback.print_exc()
-            print(repr(e))
+            logger.exception(
+                f"Channel {channel_id} encountered error on packet {packet}",
+                exc_info=True,
+            )
             raise
 
     def register_job(
@@ -199,7 +202,7 @@ class Supervisor:
             self.sending_thread.join()
 
     def _send_alive(self, channel_info: ChannelInfo) -> bool:
-        print("sending alive")
+        logger.info("Sending alive")
         return channel_info.channel.send(
             Packet(
                 packet_type=PACKET_TYPE_ALIVE,
@@ -337,10 +340,7 @@ class Supervisor:
                         agent.act()
                     agent.mark_done()
         except Exception as e:
-            import traceback
-
-            traceback.print_exc()
-            # TODO(#93) handle runtime exceptions for assignments
+            logger.exception(f"Cleaning up assignment: {e}", exc_info=True)
             task_runner.cleanup_assignment(assignment)
         finally:
             task_run = task_runner.task_run
@@ -366,10 +366,7 @@ class Supervisor:
                     agent.act()
                 agent.mark_done()
         except Exception as e:
-            import traceback
-
-            traceback.print_exc()
-            # TODO(#93) handle runtime exceptions for assignments
+            logger.exception(f"Cleaning up unit: {e}", exc_info=True)
             task_runner.cleanup_unit(unit)
         finally:
             task_runner.task_run.clear_reservation(unit)
@@ -650,7 +647,7 @@ class Supervisor:
             curr_obs = agent.pending_observations.pop(0)
             did_send = channel_info.channel.send(curr_obs)
             if not did_send:
-                print(f"Failed to send packet {curr_obs} to {channel_info}")
+                logger.error(f"Failed to send packet {curr_obs} to {channel_info}")
                 agent.pending_observations.insert(0, curr_obs)
                 return  # something up with the channel, try later
 
@@ -661,7 +658,7 @@ class Supervisor:
             channel = self.channels[curr_obs.receiver_id].channel
             did_send = channel.send(curr_obs)
             if not did_send:
-                print(
+                logger.error(
                     f"Failed to send packet {curr_obs} to server {curr_obs.receiver_id}"
                 )
                 self.message_queue.insert(0, curr_obs)
@@ -724,8 +721,7 @@ class Supervisor:
         """
         for agent_id, status in status_map.items():
             if status not in AgentState.valid():
-                # TODO(#93) update with logging
-                print(f"Invalid status for agent {agent_id}: {status}")
+                logger.warning(f"Invalid status for agent {agent_id}: {status}")
                 continue
             if agent_id not in self.agents:
                 # no longer tracking agent
@@ -740,7 +736,7 @@ class Supervisor:
                 continue
             if status != db_status:
                 if db_status in AgentState.complete():
-                    print(
+                    logger.info(
                         f"Got updated status {status} when already final: {agent.db_status}"
                     )
                     continue
