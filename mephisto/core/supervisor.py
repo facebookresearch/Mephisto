@@ -122,7 +122,10 @@ class Supervisor:
             self._on_message(packet, channel_info)
         except Exception as e:
             # TODO(#93) better error handling about failed messages
-            logger.exception(e, exc_info=True)
+            logger.exception(
+                f"Channel {channel_id} encountered error on packet {packet}",
+                exc_info=True,
+            )
             raise
 
     def register_job(
