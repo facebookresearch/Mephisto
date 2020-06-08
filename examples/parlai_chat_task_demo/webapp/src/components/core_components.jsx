@@ -42,9 +42,7 @@ function ShowDuration({ duration }) {
   );
 }
 
-function ChatMessage(props) {
-  const { is_self, duration, agent_id, message } = props;
-
+function ChatMessage({ is_self, duration, agent_id, message }) {
   const floatToSide = is_self ? "right" : "left";
   const alertStyle = is_self ? "alert-info" : "alert-warning";
 
@@ -323,8 +321,6 @@ class ChatPane extends React.Component {
     }, 10);
 
     let wait_message = null;
-    // console.log('Should be making waiting message?');
-    // console.log(this.props);
     if (this.props.chat_state === "waiting") {
       wait_message = <WaitingMessage agent_status={this.props.agent_status} />;
     }
@@ -935,11 +931,10 @@ function LeftPane(props) {
 }
 
 function ContentLayout(props) {
-  let layout_style = "2-PANEL"; // Currently the only layout style is 2 panel
   return (
     <div className="row" id="ui-content">
-      <LeftPane {...props} layout_style={layout_style} />
-      <RightPane {...props} layout_style={layout_style} />
+      <LeftPane {...props} />
+      <RightPane {...props} />
     </div>
   );
 }
