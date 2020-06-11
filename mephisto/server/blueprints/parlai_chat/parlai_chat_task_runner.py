@@ -171,7 +171,7 @@ class ParlAIChatTaskRunner(TaskRunner):
                     receiver_id=agent.db_id,
                     data={
                         "id": "SUBMIT_WORLD_DATA",
-                        "WORLD_DATA": world.prep_save_data(parlai_agent),
+                        "WORLD_DATA": world.prep_save_data([parlai_agent]),
                         "text": "",
                     },
                 )
@@ -211,7 +211,7 @@ class ParlAIChatTaskRunner(TaskRunner):
                         receiver_id=agent.db_id,
                         data={
                             "id": "SUBMIT_WORLD_DATA",
-                            "WORLD_DATA": world.prep_save_data(parlai_agents[idx]),
+                            "WORLD_DATA": world.prep_save_data([parlai_agents[idx]]),
                             "text": "",
                         },
                     )
