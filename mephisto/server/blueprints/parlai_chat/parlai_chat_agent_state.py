@@ -87,16 +87,17 @@ class ParlAIChatAgentState(AgentState):
             if m["packet_type"] == PACKET_TYPE_AGENT_ACTION
         ]
         agent_name = None
-        for m in self.messages:
-            if m["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS:
-                if "agent_display_name" in m["data"]:
-                    agent_name = m["data"]["agent_display_name"]
-                    break
-        if "MEPHISTO_is_submit" in messages[-1]:
-            messages = messages[:-1]
-        if "WORLD_DATA" in messages[-1]:
-            save_data = messages[-1]["WORLD_DATA"]
-            messages = messages[:-1]
+        if len(messages) > 0:
+            for m in self.messages:
+                if m["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS:
+                    if "agent_display_name" in m["data"]:
+                        agent_name = m["data"]["agent_display_name"]
+                        break
+            if "MEPHISTO_is_submit" in messages[-1]:
+                messages = messages[:-1]
+            if "WORLD_DATA" in messages[-1]:
+                save_data = messages[-1]["WORLD_DATA"]
+                messages = messages[:-1]
         return {
             "agent_name": agent_name,
             "initial_data": init_data,
