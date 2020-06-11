@@ -10,7 +10,12 @@
 # interface could be like an iterator. This class will launch tasks
 # as if the loader is an iterator.
 
-from mephisto.data_model.assignment import Assignment, Unit, InitializationData
+from mephisto.data_model.assignment import (
+    Assignment,
+    Unit,
+    InitializationData,
+    AssignmentState,
+)
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
 
@@ -20,6 +25,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
 
+import threading
 from mephisto.core.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
@@ -37,6 +43,7 @@ class TaskLauncher:
         db: "MephistoDB",
         task_run: "TaskRun",
         assignment_data_list: List[InitializationData],
+        max_num_concurrent_units: int = 1,
     ):
         """Prepare the task launcher to get it ready to launch the assignments"""
         self.db = db
@@ -45,6 +52,10 @@ class TaskLauncher:
         self.assignments: List[Assignment] = []
         self.units: List[Unit] = []
         self.provider_type = task_run.get_provider().PROVIDER_TYPE
+        self.max_num_concurrent_units = max_num_concurrent_units
+        self.num_running_units = 0
+        self.launched_units: Dict[Any, Any] = {}
+        self.unlaunched_units: Dict[Any, Any] = {}
 
         run_dir = task_run.get_run_dir()
         os.makedirs(run_dir, exist_ok=True)
@@ -83,10 +94,39 @@ class TaskLauncher:
                 )
                 self.units.append(Unit(self.db, unit_id))
 
+        for unit in self.units:
+            self.unlaunched_units[unit.db_id] = unit
+
+    def generate_units(self):
+        for unit in self.units:
+            yield unit
+
+    def _launch_limited_units(self, units_generator, url):
+        while len(self.unlaunched_units.keys()) != 0:
+            if self.num_running_units < self.max_num_concurrent_units:
+                unit = next(units_generator)
+                self.launched_units[unit.db_id] = unit
+                self.unlaunched_units.pop(unit.db_id)
+                unit.launch(url)
+                self.num_running_units += 1
+            for _, unit in self.launched_units.copy().items():
+                if unit.get_status() == AssignmentState.COMPLETED:
+                    self.num_running_units -= 1
+                    self.launched_units.pop(unit.db_id)
+
     def launch_units(self, url: str) -> None:
         """launch any units registered by this TaskLauncher"""
-        for unit in self.units:
-            unit.launch(url)
+        # define units generator
+        units_generator = self.generate_units()
+
+        if self.max_num_concurrent_units == 0:  # launch all units (no limit)
+            for _ in self.units:
+                next(units_generator).launch(url)
+        else:  # start the thread that launches units according to the max_unit limit
+            thread = threading.Thread(
+                target=self._launch_limited_units, args=(units_generator, url)
+            )
+            thread.start()
 
     def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""
