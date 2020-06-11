@@ -33,7 +33,7 @@ class ReviewButtons extends React.Component {
 
   constructor(props) {
     super(props);
-    let init_state = props.init_state;
+    let init_state = props.initState;
     if (init_state !== undefined) {
       this.state = init_state;
     } else {
@@ -44,12 +44,6 @@ class ReviewButtons extends React.Component {
         text: "",
         dropdown_value: "Not specified",
       };
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.props.onInputResize !== undefined) {
-      this.props.onInputResize();
     }
   }
 

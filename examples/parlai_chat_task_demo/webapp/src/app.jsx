@@ -14,23 +14,16 @@ import { useMephistoLiveTask, AGENT_STATUS } from "mephisto-task";
 
 /* ================= Application Components ================= */
 
-function TaskPreviewView({ description }) {
-  let previewStyle = {
-    backgroundColor: "#dff0d8",
-    padding: "30px",
-    overflow: "auto",
-  };
-  return (
-    <div style={previewStyle}>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: description,
-        }}
-      />
-      ;
-    </div>
-  );
-}
+const MephistoContext = React.createContext(null);
+const CHAT_MODE = {
+  WAITING: "waiting",
+  INACTIVE: "inactive",
+  DONE: "done",
+  READY_FOR_INPUT: "ready_for_input",
+  IDLE: "idle",
+};
+
+export { MephistoContext, CHAT_MODE };
 
 function MainApp() {
   const [taskContext, updateContext] = React.useReducer(
@@ -38,26 +31,61 @@ function MainApp() {
     {}
   );
 
-  const [messages, addMessage] = React.useReducer((allMessages, newMessage) => {
-    // we clear messages by sending false
-    if (newMessage === false) {
-      return [];
-    }
-    return [...allMessages, newMessage];
-  }, []);
+  const [messages, addMessage] = React.useReducer(
+    (previousMessages, newMessage) => {
+      // we clear messages by sending false
+      return newMessage === false ? [] : [...previousMessages, newMessage];
+    },
+    []
+  );
 
-  const [displayNames, addName] = React.useReducer((allNames, newName) => {
-    return { ...allNames, ...newName };
-  }, {});
-
-  const [appSettings, setAppSettings] = React.useState({ volume: 1 });
-  const [chatState, setChatState] = React.useState("waiting");
+  const initialAppSettings = { volume: 1, isReview: false, isCoverPage: false };
+  const [appSettings, setAppSettings] = React.useReducer(
+    (prevSettings, newSettings) => Object.assign(prevSettings, newSettings),
+    initialAppSettings
+  );
+  const [chatMode, setChatMode] = React.useState(CHAT_MODE.WAITING);
 
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
     audio.volume = appSettings.volume;
     audio.play();
   }
+
+  function trackAgentName(agentName) {
+    if (agentName !== undefined) {
+      const previousAgents = taskContext.allAgentNames || {};
+      const newAgent = { [agentId]: agentName };
+      const allAgentNames = { ...previousAgents, ...newAgent };
+      updateContext({ allAgentNames: allAgentNames });
+    }
+  }
+
+  let mephistoProps = useMephistoLiveTask({
+    onStateUpdate: ({ state, status }) => {
+      trackAgentName(state.agent_display_name);
+      if (state.task_done) {
+        setChatMode(CHAT_MODE.DONE);
+      } else if (
+        [
+          AGENT_STATUS.DISCONNECT,
+          AGENT_STATUS.RETURNED,
+          AGENT_STATUS.EXPIRED,
+          AGENT_STATUS.TIMEOUT,
+          AGENT_STATUS.MEPHISTO_DISCONNECT,
+        ].includes(status)
+      ) {
+        setChatMode(CHAT_MODE.INACTIVE);
+      } else if (state.wants_act) {
+        setChatMode(CHAT_MODE.READY_FOR_INPUT);
+        playNotifSound();
+      }
+    },
+    onMessageReceived: (message) => {
+      updateContext(message.task_data);
+      addMessage(message);
+    },
+  });
 
   let {
     blockedReason,
@@ -74,67 +102,20 @@ function MainApp() {
     isOnboarding,
     agentState,
     agentStatus,
-    connectionStatus,
-  } = useMephistoLiveTask({
-    onStateUpdate: ({ state, status }) => {
-      let curr_name = state.agent_display_name;
-      if (curr_name !== undefined && !(curr_name in displayNames)) {
-        let name_entry = {};
-        name_entry[agentId] = curr_name;
-        addName(name_entry);
-      }
-      if (state.task_done) {
-        setChatState("done");
-      } else if (
-        [
-          AGENT_STATUS.DISCONNECT,
-          AGENT_STATUS.RETURNED,
-          AGENT_STATUS.EXPIRED,
-          AGENT_STATUS.TIMEOUT,
-          AGENT_STATUS.MEPHISTO_DISCONNECT,
-        ].includes(status)
-      ) {
-        setChatState("inactive");
-      } else if (state.wants_act) {
-        setChatState("text_input");
-        playNotifSound();
-      }
-    },
-    onMessageReceived: (message) => {
-      if (message.text === undefined) {
-        message.text = "";
-      }
-
-      // Task data handling
-      if (message.task_data !== undefined) {
-        let has_context = false;
-        for (let key of Object.keys(message.task_data)) {
-          if (key !== "respond_with_form") {
-            has_context = true;
-          }
-        }
-
-        message.task_data.last_update = new Date().getTime();
-        message.task_data.has_context = has_context;
-        updateContext(message.task_data);
-      }
-
-      addMessage(message);
-    },
-  });
+  } = mephistoProps;
 
   React.useEffect(() => {
     if (agentId) {
       console.log("connecting...");
       connect(agentId);
     }
-  }, [agentId, connect]);
+  }, [agentId]);
 
   React.useEffect(() => {
     if (isOnboarding && agentStatus === AGENT_STATUS.WAITING) {
       handleSubmit();
     }
-  }, [isOnboarding, agentStatus, handleSubmit]);
+  }, [isOnboarding, agentStatus]);
 
   if (blockedReason !== null) {
     return <h1>{blockedExplanation}</h1>;
@@ -153,35 +134,52 @@ function MainApp() {
   }
 
   return (
-    <div>
-      <BaseFrontend
-        task_config={taskConfig}
-        chat_state={chatState}
-        agent_id={agentId}
-        agent_status={agentStatus}
-        agent_state={agentState || {}}
-        connection_status={connectionStatus}
-        task_data={taskContext} // TODO fix naming issues - taskData is the initial data for a task, task_context may change through a task
-        messages={messages}
-        onMessageSend={(message) => {
-          message.id = agentId;
-          message.episode_done = agentState?.task_done || false;
-          return sendMessage(message)
-            .then((msg) => {
-              addMessage(msg);
-            })
-            .then(() => setChatState("waiting"));
-        }}
-        allDoneCallback={() => {
+    <MephistoContext.Provider
+      value={{
+        ...mephistoProps,
+        chatMode,
+        taskContext,
+        appSettings,
+        setAppSettings,
+        allDoneCallback: () => {
           destroy();
           handleSubmit({});
+        },
+      }}
+    >
+      <div className="container-fluid" id="ui-container">
+        <BaseFrontend
+          messages={messages}
+          onMessageSend={(message) => {
+            message = {
+              ...message,
+              id: agentId,
+              episode_done: agentState?.task_done || false,
+            };
+            return sendMessage(message)
+              .then(addMessage)
+              .then(() => setChatMode(CHAT_MODE.WAITING));
+          }}
+        />
+      </div>
+    </MephistoContext.Provider>
+  );
+}
+
+function TaskPreviewView({ description }) {
+  let previewStyle = {
+    backgroundColor: "#dff0d8",
+    padding: "30px",
+    overflow: "auto",
+  };
+  return (
+    <div style={previewStyle}>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: description,
         }}
-        displayNames={displayNames}
-        isOnboarding={isOnboarding}
-        volume={appSettings.volume}
-        onVolumeChange={(v) => setAppSettings({ volume: v })}
-        display_feedback={false}
       />
+      ;
     </div>
   );
 }

@@ -15,3 +15,15 @@
 #right-top-pane {
   flex: 1;
 }
+
+.connection-indicator {
+  opacity: 1;
+  font-size: 11px;
+  color: white;
+  float: right;
+}
+
+.hourglass-container {
+  margin-right: 5px;
+  display: inline;
+}
