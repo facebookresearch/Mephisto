@@ -19,7 +19,7 @@ OLD_DATA_CONFIG_LOC = os.path.join(os.path.dirname(os.path.dirname(os.path.dirna
 def get_config() -> Dict[str, Any]:
     """Get the data out of the YAML config file"""
     with open(DEFAULT_CONFIG_FILE, "r") as config_file:
-        return config_file.read().strip()
+        return yaml.safe_load(config_file.read().strip())
 
 
 def write_config(config_data: Dict[str, Any]):
@@ -40,7 +40,7 @@ def init_config() -> None:
             config_file.write(yaml.dump({CORE_SECTION: {DATA_STORAGE_KEY: loaded_data_dir}}))
         print(f"Removing DATA_LOC configuration file from {OLD_DATA_CONFIG_LOC}")
         os.unlink(OLD_DATA_CONFIG_LOC)
-    else:
+    elif not os.path.exists(DEFAULT_CONFIG_FILE):
         with open(DEFAULT_CONFIG_FILE, 'w') as config_fp:
             config_fp.write(yaml.dump({CORE_SECTION: {}}))
 

@@ -17,6 +17,7 @@ from botocore.exceptions import ProfileNotFound
 from botocore.config import Config
 
 from mephisto.core.logger_core import get_logger
+from mephisto.core.config_handler import get_config_arg
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 
@@ -368,18 +369,21 @@ def create_hit_type(
                 has_locale_qual = True
         locale_requirements += existing_qualifications
 
-    if not has_locale_qual:
+    if not has_locale_qual and not client_is_sandbox(client):
+        allowed_locales = get_config_arg('mturk', 'allowed_locales')
+        if allowed_locales is None:
+            allowed_locales = [
+                {"Country": "US"},
+                {"Country": "CA"},
+                {"Country": "GB"},
+                {"Country": "AU"},
+                {"Country": "NZ"},
+            ]
         locale_requirements.append(
             {
                 "QualificationTypeId": MTURK_LOCALE_REQUIREMENT,
                 "Comparator": "In",
-                "LocaleValues": [
-                    {"Country": "US"},
-                    {"Country": "CA"},
-                    {"Country": "GB"},
-                    {"Country": "AU"},
-                    {"Country": "NZ"},
-                ],
+                "LocaleValues": allowed_locales,
                 "RequiredToPreview": True,
             }
         )
