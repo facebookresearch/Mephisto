@@ -14,7 +14,6 @@ requests = "^2.22"
 sh = "^1.12"
 websocket-client = "^0.56.0"
 recordclass = "^0.12.0"
-argparse = "=1.1"
 tornado = "^6.0"
 parlai = {version = "^0.1.2", optional = true }
 torch = {version = "^1.4.0", optional = true }
