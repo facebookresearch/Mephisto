@@ -57,4 +57,4 @@ def add_config_arg(section: str, key: str, value: Any) -> None:
 def get_config_arg(section: str, key: str) -> Any:
     """Get an argument from the YAML config. Return None if it doesn't exist"""
     config = get_config()
-    return config.get(section, {key: None})[key]
+    return config.get(section, {}).get(key, None)
