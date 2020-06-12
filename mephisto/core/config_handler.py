@@ -4,16 +4,18 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os 
+import os
 import yaml
 from typing import Dict, Any
 
 CORE_SECTION = "core"
-DATA_STORAGE_KEY = 'main_data_directory'
+DATA_STORAGE_KEY = "main_data_directory"
 
-DEFAULT_CONFIG_FOLDER = os.path.expanduser('~/.mephisto/')
-DEFAULT_CONFIG_FILE = os.path.join(DEFAULT_CONFIG_FOLDER, 'config.yml')
-OLD_DATA_CONFIG_LOC = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'DATA_LOC')
+DEFAULT_CONFIG_FOLDER = os.path.expanduser("~/.mephisto/")
+DEFAULT_CONFIG_FILE = os.path.join(DEFAULT_CONFIG_FOLDER, "config.yml")
+OLD_DATA_CONFIG_LOC = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "DATA_LOC"
+)
 
 
 def get_config() -> Dict[str, Any]:
@@ -33,15 +35,19 @@ def init_config() -> None:
         os.mkdir(DEFAULT_CONFIG_FOLDER)
 
     if os.path.exists(OLD_DATA_CONFIG_LOC):
-        print(f"We are migrating Mephisto's configuration to a YAML file stored at {DEFAULT_CONFIG_FILE}")
+        print(
+            f"We are migrating Mephisto's configuration to a YAML file stored at {DEFAULT_CONFIG_FILE}"
+        )
         with open(OLD_DATA_CONFIG_LOC, "r") as data_dir_file:
             loaded_data_dir = data_dir_file.read().strip()
         with open(DEFAULT_CONFIG_FILE, "w") as config_file:
-            config_file.write(yaml.dump({CORE_SECTION: {DATA_STORAGE_KEY: loaded_data_dir}}))
+            config_file.write(
+                yaml.dump({CORE_SECTION: {DATA_STORAGE_KEY: loaded_data_dir}})
+            )
         print(f"Removing DATA_LOC configuration file from {OLD_DATA_CONFIG_LOC}")
         os.unlink(OLD_DATA_CONFIG_LOC)
     elif not os.path.exists(DEFAULT_CONFIG_FILE):
-        with open(DEFAULT_CONFIG_FILE, 'w') as config_fp:
+        with open(DEFAULT_CONFIG_FILE, "w") as config_fp:
             config_fp.write(yaml.dump({CORE_SECTION: {}}))
 
 

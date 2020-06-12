@@ -370,7 +370,7 @@ def create_hit_type(
         locale_requirements += existing_qualifications
 
     if not has_locale_qual and not client_is_sandbox(client):
-        allowed_locales = get_config_arg('mturk', 'allowed_locales')
+        allowed_locales = get_config_arg("mturk", "allowed_locales")
         if allowed_locales is None:
             allowed_locales = [
                 {"Country": "US"},

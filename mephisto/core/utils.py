@@ -11,7 +11,13 @@ import shlex
 from distutils.dir_util import copy_tree
 import functools
 from mephisto.data_model.constants import NO_PROJECT_NAME
-from mephisto.core.config_handler import add_config_arg, get_config_arg, CORE_SECTION, DATA_STORAGE_KEY, DEFAULT_CONFIG_FILE
+from mephisto.core.config_handler import (
+    add_config_arg,
+    get_config_arg,
+    CORE_SECTION,
+    DATA_STORAGE_KEY,
+    DEFAULT_CONFIG_FILE,
+)
 
 from typing import Optional, Dict, Any, List, Type, TYPE_CHECKING
 
@@ -130,7 +136,7 @@ def get_root_data_dir() -> str:
                         f"{default_data_dir} EXCEPT for `README.md`."
                     )
             add_config_arg(CORE_SECTION, DATA_STORAGE_KEY, data_dir_location)
-        
+
         loaded_data_dir = get_config_arg(CORE_SECTION, DATA_STORAGE_KEY)
 
         if not os.path.isdir(loaded_data_dir):
