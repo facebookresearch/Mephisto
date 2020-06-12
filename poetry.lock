@@ -7,14 +7,6 @@ python-versions = "*"
 version = "0.7.12"
 
 [[package]]
-category = "main"
-description = "Python command-line parsing library"
-name = "argparse"
-optional = false
-python-versions = "*"
-version = "1.1"
-
-[[package]]
 category = "dev"
 description = "An abstract syntax tree for Python with inference support."
 name = "astroid"
@@ -1117,17 +1109,13 @@ testing = ["jaraco.itertools", "func-timeout"]
 parlai = ["parlai", "torch", "pyyaml"]
 
 [metadata]
-content-hash = "e48c0572a313d1ff5c7deecb3019a061fe56d2f1d6c275623aa33379c568ab20"
+content-hash = "d1f539fdeb88cd1feb140dbe2b9479b9fa16ca7ba1e261337d796280ebe37296"
 python-versions = "^3.6"
 
 [metadata.files]
 alabaster = [
     {file = "alabaster-0.7.12-py2.py3-none-any.whl", hash = "sha256:446438bdcca0e05bd45ea2de1668c1d9b032e1a9154c2c259092d77031ddd359"},
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
-]
-argparse = [
-    {file = "argparse-1.1.win32.msi", hash = "sha256:83aa6d2a117c3fb5ada747c652972cb437ba7f2bb2b63c5fee94be79d1de0403"},
-    {file = "argparse-1.1.zip", hash = "sha256:ee6da1aaad8b08a74a33eb82264b1a2bf12a7d5aefc7e9d7d40a8f8fa9912e62"},
 ]
 astroid = [
     {file = "astroid-2.4.0-py3-none-any.whl", hash = "sha256:2fecea42b20abb1922ed65c7b5be27edfba97211b04b2b6abc6a43549a024ea6"},
