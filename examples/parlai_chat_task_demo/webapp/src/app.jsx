@@ -8,14 +8,14 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { BaseFrontend } from "./components/core_components.jsx";
+import { BaseFrontend } from "./components/Core.jsx";
 
 import { useMephistoLiveTask, AGENT_STATUS } from "mephisto-task";
 
 /* ================= Application Components ================= */
 
 const MephistoContext = React.createContext(null);
-const CHAT_MODE = {
+const INPUT_MODE = {
   WAITING: "waiting",
   INACTIVE: "inactive",
   DONE: "done",
@@ -23,7 +23,7 @@ const CHAT_MODE = {
   IDLE: "idle",
 };
 
-export { MephistoContext, CHAT_MODE };
+export { MephistoContext, INPUT_MODE };
 
 function MainApp() {
   const [taskContext, updateContext] = React.useReducer(
@@ -44,7 +44,7 @@ function MainApp() {
     (prevSettings, newSettings) => Object.assign(prevSettings, newSettings),
     initialAppSettings
   );
-  const [chatMode, setChatMode] = React.useState(CHAT_MODE.WAITING);
+  const [inputMode, setInputMode] = React.useState(INPUT_MODE.WAITING);
 
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
@@ -53,11 +53,11 @@ function MainApp() {
   }
 
   function trackAgentName(agentName) {
-    if (agentName !== undefined) {
-      const previousAgents = taskContext.allAgentNames || {};
-      const newAgent = { [agentId]: agentName };
-      const allAgentNames = { ...previousAgents, ...newAgent };
-      updateContext({ allAgentNames: allAgentNames });
+    if (agentName) {
+      const previouslyTrackedNames = taskContext.currentAgentNames || {};
+      const newAgentName = { [agentId]: agentName };
+      const currentAgentNames = { ...previouslyTrackedNames, ...newAgentName };
+      updateContext({ currentAgentNames: currentAgentNames });
     }
   }
 
@@ -65,7 +65,7 @@ function MainApp() {
     onStateUpdate: ({ state, status }) => {
       trackAgentName(state.agent_display_name);
       if (state.task_done) {
-        setChatMode(CHAT_MODE.DONE);
+        setInputMode(INPUT_MODE.DONE);
       } else if (
         [
           AGENT_STATUS.DISCONNECT,
@@ -75,9 +75,9 @@ function MainApp() {
           AGENT_STATUS.MEPHISTO_DISCONNECT,
         ].includes(status)
       ) {
-        setChatMode(CHAT_MODE.INACTIVE);
+        setInputMode(INPUT_MODE.INACTIVE);
       } else if (state.wants_act) {
-        setChatMode(CHAT_MODE.READY_FOR_INPUT);
+        setInputMode(INPUT_MODE.READY_FOR_INPUT);
         playNotifSound();
       }
     },
@@ -137,7 +137,6 @@ function MainApp() {
     <MephistoContext.Provider
       value={{
         ...mephistoProps,
-        chatMode,
         taskContext,
         appSettings,
         setAppSettings,
@@ -149,6 +148,7 @@ function MainApp() {
     >
       <div className="container-fluid" id="ui-container">
         <BaseFrontend
+          inputMode={inputMode}
           messages={messages}
           onMessageSend={(message) => {
             message = {
@@ -158,7 +158,7 @@ function MainApp() {
             };
             return sendMessage(message)
               .then(addMessage)
-              .then(() => setChatMode(CHAT_MODE.WAITING));
+              .then(() => setInputMode(INPUT_MODE.WAITING));
           }}
         />
       </div>
@@ -167,13 +167,8 @@ function MainApp() {
 }
 
 function TaskPreviewView({ description }) {
-  let previewStyle = {
-    backgroundColor: "#dff0d8",
-    padding: "30px",
-    overflow: "auto",
-  };
   return (
-    <div style={previewStyle}>
+    <div className="preview-screen">
       <div
         dangerouslySetInnerHTML={{
           __html: description,
