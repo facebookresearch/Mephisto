@@ -9,7 +9,7 @@ import shlex
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 from mephisto.server.blueprints.acute_eval.acute_eval_blueprint import BLUEPRINT_TYPE
-from mephisto.utils.scripts import MephistoRunScriptParser, str2bool
+from mephisto.utils.scripts import MephistoRunScriptParser
 
 """
 Example script for running ACUTE-EVAL.
@@ -58,8 +58,6 @@ parser.add_argument(
 architect_type, requester_name, db, args = parser.parse_launch_arguments()
 
 USE_LOCAL = True
-
-db = LocalMephistoDB()
 
 task_title = "Which Conversational Partner is Better?"
 task_description = "Evaluate quality of conversations through comparison."
