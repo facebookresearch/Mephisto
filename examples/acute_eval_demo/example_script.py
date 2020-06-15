@@ -59,8 +59,6 @@ architect_type, requester_name, db, args = parser.parse_launch_arguments()
 
 USE_LOCAL = True
 
-db = LocalMephistoDB()
-
 task_title = "Which Conversational Partner is Better?"
 task_description = "Evaluate quality of conversations through comparison."
 hit_keywords = "chat,evaluation,comparison,conversation"
