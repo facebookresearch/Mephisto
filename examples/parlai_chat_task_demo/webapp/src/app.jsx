@@ -15,7 +15,7 @@ import { useMephistoLiveTask, AGENT_STATUS } from "mephisto-task";
 /* ================= Application Components ================= */
 
 const AppContext = React.createContext({});
-const MephistoContext = React.createContext(null);
+const MephistoContext = React.createContext({});
 
 const INPUT_MODE = {
   WAITING: "waiting",
