@@ -17,9 +17,9 @@ import ConnectionIndicator from "./ConnectionIndicator.jsx";
 import { MephistoContext, AppContext, INPUT_MODE } from "../app.jsx";
 import { CONNECTION_STATUS } from "mephisto-task";
 
-function ChatMessage({ is_self, duration, agent_name, message = "" }) {
-  const floatToSide = is_self ? "right" : "left";
-  const alertStyle = is_self ? "alert-info" : "alert-warning";
+function ChatMessage({ isSelf, duration, agentName, message = "" }) {
+  const floatToSide = isSelf ? "right" : "left";
+  const alertStyle = isSelf ? "alert-info" : "alert-warning";
 
   return (
     <div className="row" style={{ marginLeft: "0", marginRight: "0" }}>
@@ -29,7 +29,7 @@ function ChatMessage({ is_self, duration, agent_name, message = "" }) {
         style={{ float: floatToSide }}
       >
         <span style={{ fontSize: "16px", whiteSpace: "pre-wrap" }}>
-          <b>{agent_name}</b>: {message}
+          <b>{agentName}</b>: {message}
         </span>
         <ShowDuration duration={duration} />
       </div>
@@ -74,13 +74,13 @@ function MessageList({ messages, onMessageClick }) {
       {messages.map((m, idx) => (
         <div key={m.message_id + "-" + idx} onClick={() => onMessageClick(idx)}>
           <ChatMessage
-            is_self={m.id === agentId || m.id in currentAgentNames}
-            agent_name={
+            isSelf={m.id === agentId || m.id in currentAgentNames}
+            agentName={
               m.id in currentAgentNames ? currentAgentNames[m.id] : m.id
             }
             message={m.text}
-            task_data={m.task_data}
-            message_id={m.message_id}
+            taskData={m.task_data}
+            messageId={m.message_id}
             duration={appSettings.isReview ? m.duration : undefined}
           />
         </div>
