@@ -182,7 +182,6 @@ function TaskPreviewView({ description }) {
           __html: description,
         }}
       />
-      ;
     </div>
   );
 }
