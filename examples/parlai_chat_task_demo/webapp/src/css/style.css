@@ -27,11 +27,13 @@
 
 .message-pane-segment {
   width: 100%;
-  padding-top: 60px;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-bottom: 20px;
+  padding: 20px;
   overflow-y: scroll;
+  position: absolute;
+  top: 46px;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .preview-screen,

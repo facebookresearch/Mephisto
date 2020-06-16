@@ -17,15 +17,6 @@ import ConnectionIndicator from "./ConnectionIndicator.jsx";
 import { MephistoContext, INPUT_MODE } from "../app.jsx";
 import { CONNECTION_STATUS } from "mephisto-task";
 
-/*
-  REMOVED:
-  Tabbed navigation view option for context. Context now just shown in
-    the left bar w/ description instead of a separate tab
-  ContextView component
-  All the resize stuff
-  Got rid of display_feedback from BaseFrontend
-*/
-
 function ChatMessage({ is_self, duration, agent_name, message = "" }) {
   const floatToSide = is_self ? "right" : "left";
   const alertStyle = is_self ? "alert-info" : "alert-warning";
@@ -97,7 +88,7 @@ function MessageList({ messages, onClickMessage }) {
   );
 }
 
-function ChatStatusBar({ displayWorkerChatPopup = false }) {
+function ChatStatusBar() {
   const { appSettings, setAppSettings, connectionStatus } = React.useContext(
     MephistoContext
   );
