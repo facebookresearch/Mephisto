@@ -14,7 +14,7 @@ import TextResponse from "./TextResponse.jsx";
 import VolumeControl from "./VolumeControl.jsx";
 import ConnectionIndicator from "./ConnectionIndicator.jsx";
 
-import { MephistoContext, INPUT_MODE } from "../app.jsx";
+import { MephistoContext, AppContext, INPUT_MODE } from "../app.jsx";
 import { CONNECTION_STATUS } from "mephisto-task";
 
 function ChatMessage({ is_self, duration, agent_name, message = "" }) {
@@ -53,25 +53,26 @@ function ShowDuration({ duration }) {
   );
 }
 
-function MessageList({ messages, onClickMessage }) {
+function MessageList({ messages, onMessageClick }) {
+  const { agentId } = React.useContext(MephistoContext);
   const {
-    agentId,
     taskContext: { currentAgentNames },
     appSettings,
-  } = React.useContext(MephistoContext);
+  } = React.useContext(AppContext);
 
   // Handles rendering messages from both the user and anyone else
   // on the thread - agent_ids for the sender of a message exist in
   // the m.id field.
-  if (typeof onClickMessage !== "function") {
-    onClickMessage = (idx) => {
+  if (typeof onMessageClick !== "function") {
+    onMessageClick = (idx) => {
       alert("You've clicked on message number: " + idx);
     };
   }
+
   return (
     <div id="message_thread" style={{ width: "100%" }}>
       {messages.map((m, idx) => (
-        <div key={m.message_id + "-" + idx} onClick={() => onClickMessage(idx)}>
+        <div key={m.message_id + "-" + idx} onClick={() => onMessageClick(idx)}>
           <ChatMessage
             is_self={m.id === agentId || m.id in currentAgentNames}
             agent_name={
@@ -89,9 +90,8 @@ function MessageList({ messages, onClickMessage }) {
 }
 
 function ChatStatusBar() {
-  const { appSettings, setAppSettings, connectionStatus } = React.useContext(
-    MephistoContext
-  );
+  const { connectionStatus } = React.useContext(MephistoContext);
+  const { appSettings, setAppSettings } = React.useContext(AppContext);
 
   return (
     <div className="chat-status-bar">
@@ -146,7 +146,7 @@ function DoneButton({ displayFeedback = false }) {
   // on the mturk form's submit button.
   const [showFeedback, setShowFeedback] = React.useState(displayFeedback);
   const [feedbackGiven, setFeedbackGiven] = React.useState(null);
-  const { allDoneCallback } = React.useContext(MephistoContext);
+  const { onTaskComplete } = React.useContext(AppContext);
 
   let review_flow = null;
   let done_button = (
@@ -154,7 +154,7 @@ function DoneButton({ displayFeedback = false }) {
       id="done-button"
       type="button"
       className="btn btn-primary btn-lg"
-      onClick={() => allDoneCallback()}
+      onClick={() => onTaskComplete()}
     >
       <span className="glyphicon glyphicon-ok-circle" aria-hidden="true" /> Done
       with this HIT
@@ -214,7 +214,7 @@ function DoneResponse({ onMessageSend }) {
 }
 
 function CustomTaskDescription({ chatTitle, taskDescription }) {
-  const { taskContext } = React.useContext(MephistoContext);
+  const { taskContext } = React.useContext(AppContext);
 
   return (
     <div>
@@ -243,30 +243,27 @@ function CustomTaskDescription({ chatTitle, taskDescription }) {
   );
 }
 
-function LeftPane({ stretch = false, frameHeight, children }) {
+function LeftPane({ stretch = false, children }) {
   let pane_size = stretch ? "col-xs-12" : "col-xs-4";
-  return (
-    <div
-      className={pane_size + " left-pane"}
-      style={{
-        height: frameHeight,
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <div className={pane_size + " left-pane"}>{children}</div>;
 }
 
 function RightPane({ children }) {
-  return (
-    <div id="right-pane" className="right-pane">
-      {children}
-    </div>
-  );
+  return <div className="right-pane">{children}</div>;
 }
 
 function ChatPane({ messages, inputMode }) {
   const { agentStatus } = React.useContext(MephistoContext);
+
+  const bottomAnchorRef = React.useRef(null);
+  React.useEffect(() => {
+    if (bottomAnchorRef.current) {
+      bottomAnchorRef.current.scrollIntoView({
+        block: "end",
+        behavior: "smooth",
+      });
+    }
+  }, [messages.length, inputMode]);
 
   return (
     <div className="right-top-pane">
@@ -276,13 +273,14 @@ function ChatPane({ messages, inputMode }) {
         {inputMode === INPUT_MODE.WAITING ? (
           <WaitingMessage agentStatus={agentStatus} />
         ) : null}
+        <div className="bottom-anchor" ref={bottomAnchorRef} />
       </div>
     </div>
   );
 }
 
 function ResponsePane({ onMessageSend, inputMode }) {
-  const { taskContext } = React.useContext(MephistoContext);
+  const { taskContext } = React.useContext(AppContext);
 
   let response_pane = null;
   switch (inputMode) {
@@ -319,9 +317,8 @@ function ResponsePane({ onMessageSend, inputMode }) {
 }
 
 function BaseFrontend({ messages, onMessageSend, inputMode }) {
-  const { connectionStatus, appSettings, taskConfig } = React.useContext(
-    MephistoContext
-  );
+  const { connectionStatus, taskConfig } = React.useContext(MephistoContext);
+  const { appSettings } = React.useContext(AppContext);
 
   if (connectionStatus === CONNECTION_STATUS.INITIALIZING) {
     return <div id="ui-placeholder">Initializing...</div>;
@@ -348,10 +345,7 @@ function BaseFrontend({ messages, onMessageSend, inputMode }) {
         id="ui-content"
         style={{ height: taskConfig.frame_height }}
       >
-        <LeftPane
-          stretch={appSettings.isCoverPage}
-          frameHeight={taskConfig.frame_height}
-        >
+        <LeftPane stretch={appSettings.isCoverPage}>
           <CustomTaskDescription
             chatTitle={taskConfig.chat_title}
             taskDescription={taskConfig.task_description}

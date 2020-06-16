@@ -14,7 +14,9 @@ import { useMephistoLiveTask, AGENT_STATUS } from "mephisto-task";
 
 /* ================= Application Components ================= */
 
+const AppContext = React.createContext({});
 const MephistoContext = React.createContext(null);
+
 const INPUT_MODE = {
   WAITING: "waiting",
   INACTIVE: "inactive",
@@ -23,7 +25,7 @@ const INPUT_MODE = {
   IDLE: "idle",
 };
 
-export { MephistoContext, INPUT_MODE };
+export { MephistoContext, AppContext, INPUT_MODE };
 
 function MainApp() {
   const [taskContext, updateContext] = React.useReducer(
@@ -117,6 +119,20 @@ function MainApp() {
     }
   }, [isOnboarding, agentStatus]);
 
+  const handleMessageSend = React.useCallback(
+    (message) => {
+      message = {
+        ...message,
+        id: agentId,
+        episode_done: agentState?.task_done || false,
+      };
+      return sendMessage(message)
+        .then(addMessage)
+        .then(() => setInputMode(INPUT_MODE.WAITING));
+    },
+    [agentId, agentState?.task_done, addMessage, setInputMode]
+  );
+
   if (blockedReason !== null) {
     return <h1>{blockedExplanation}</h1>;
   }
@@ -134,34 +150,26 @@ function MainApp() {
   }
 
   return (
-    <MephistoContext.Provider
-      value={{
-        ...mephistoProps,
-        taskContext,
-        appSettings,
-        setAppSettings,
-        allDoneCallback: () => {
-          destroy();
-          handleSubmit({});
-        },
-      }}
-    >
-      <div className="container-fluid" id="ui-container">
-        <BaseFrontend
-          inputMode={inputMode}
-          messages={messages}
-          onMessageSend={(message) => {
-            message = {
-              ...message,
-              id: agentId,
-              episode_done: agentState?.task_done || false,
-            };
-            return sendMessage(message)
-              .then(addMessage)
-              .then(() => setInputMode(INPUT_MODE.WAITING));
-          }}
-        />
-      </div>
+    <MephistoContext.Provider value={mephistoProps}>
+      <AppContext.Provider
+        value={{
+          taskContext,
+          appSettings,
+          setAppSettings,
+          onTaskComplete: () => {
+            destroy();
+            handleSubmit({});
+          },
+        }}
+      >
+        <div className="container-fluid" id="ui-container">
+          <BaseFrontend
+            inputMode={inputMode}
+            messages={messages}
+            onMessageSend={handleMessageSend}
+          />
+        </div>
+      </AppContext.Provider>
     </MephistoContext.Provider>
   );
 }
