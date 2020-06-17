@@ -20,6 +20,8 @@ from mephisto.data_model.assignment import (
 from typing import Dict, Optional, List, Any, TYPE_CHECKING
 
 import os
+import time
+from datetime import datetime
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -97,39 +99,36 @@ class TaskLauncher:
         for unit in self.units:
             self.unlaunched_units[unit.db_id] = unit
 
-    def generate_units(self):
-        for unit in self.units:
-            yield unit
-
-    def _launch_limited_units(self, units_generator, url):
-        while len(self.unlaunched_units.keys()) != 0:
-            if self.num_running_units < self.max_num_concurrent_units:
-                unit = next(units_generator)
-                self.launched_units[unit.db_id] = unit
-                self.unlaunched_units.pop(unit.db_id)
-                unit.launch(url)
-                self.num_running_units += 1
-            for _, unit in self.launched_units.copy().items():
-                if unit.get_status() == AssignmentState.COMPLETED:
+    def generate_units(self, url):
+        while True:
+            for _, launched_unit in self.launched_units.copy().items():
+                if (
+                    launched_unit.get_status() != AssignmentState.LAUNCHED
+                    and launched_unit.get_status() != AssignmentState.ASSIGNED
+                ):
                     self.num_running_units -= 1
-                    self.launched_units.pop(unit.db_id)
+                    self.launched_units.pop(launched_unit.db_id)
+
+            num_avail_units = self.max_num_concurrent_units - self.num_running_units
+            for i, item in enumerate(self.unlaunched_units.copy().items()):
+                db_id, unit = item
+                if i < num_avail_units:
+                    self.launched_units[unit.db_id] = unit
+                    self.unlaunched_units.pop(unit.db_id)
+                    self.num_running_units += 1
+                    unit.launch(url)
+            time.sleep(10)
+            if self.unlaunched_units == {}:
+                break
 
     def launch_units(self, url: str) -> None:
-        """launch any units registered by this TaskLauncher"""
-        # define units generator
-        units_generator = self.generate_units()
-
-        if self.max_num_concurrent_units == 0:  # launch all units (no limit)
-            for _ in self.units:
-                next(units_generator).launch(url)
-        else:  # start the thread that launches units according to the max_unit limit
-            thread = threading.Thread(
-                target=self._launch_limited_units, args=(units_generator, url)
-            )
-            thread.start()
+        """launch any units registered by this TaskLauncher with a limit in max_num_concurrent_units"""
+        thread = threading.Thread(target=self.generate_units, args=(url,))
+        thread.start()
 
     def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""
+
         for unit in self.units:
             try:
                 unit.expire()
