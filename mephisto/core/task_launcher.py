@@ -99,7 +99,9 @@ class TaskLauncher:
         for unit in self.units:
             self.unlaunched_units[unit.db_id] = unit
 
-    def generate_units(self, url):
+    def generate_units(self):
+        """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
+        i.e. in the LAUNCHED or ASSIGNED states """
         while True:
             for _, launched_unit in self.launched_units.copy().items():
                 if (
@@ -116,14 +118,19 @@ class TaskLauncher:
                     self.launched_units[unit.db_id] = unit
                     self.unlaunched_units.pop(unit.db_id)
                     self.num_running_units += 1
-                    unit.launch(url)
+                    yield unit
             time.sleep(10)
             if self.unlaunched_units == {}:
                 break
 
+    def _launch_limited_units(self, url: str) -> None:
+        """ use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
+        for unit in self.generate_units():
+            unit.launch(url)
+
     def launch_units(self, url: str) -> None:
-        """launch any units registered by this TaskLauncher with a limit in max_num_concurrent_units"""
-        thread = threading.Thread(target=self.generate_units, args=(url,))
+        """launch any units registered by this TaskLauncher"""
+        thread = threading.Thread(target=self._launch_limited_units, args=(url,))
         thread.start()
 
     def expire_units(self) -> None:
