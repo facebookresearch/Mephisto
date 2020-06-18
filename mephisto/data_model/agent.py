@@ -196,7 +196,9 @@ class Agent(ABC):
             unit.task_type,
             provider_type,
         )
-        return Agent(db, db_id)
+        a = Agent(db, db_id)
+        a.update_status(AgentState.STATUS_ACCEPTED)
+        return a
 
     # Specialized child cases may need to implement the following
 

@@ -168,7 +168,8 @@ class TaskRunner(ABC):
             self.run_unit(unit, agent)
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
             # A returned Unit can be worked on again by someone else.
-            unit.clear_assigned_agent()
+            if unit.get_assigned_agent().db_id == agent.db_id:
+                unit.clear_assigned_agent()
             self.cleanup_unit(unit)
         except Exception as e:
             print(f"Unhandled exception in unit {unit}: {repr(e)}")
