@@ -168,7 +168,8 @@ class TaskRunner(ABC):
             self.run_unit(unit, agent)
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
             # A returned Unit can be worked on again by someone else.
-            unit.clear_assigned_agent()
+            if unit.get_assigned_agent().db_id == agent.db_id:
+                unit.clear_assigned_agent()
             self.cleanup_unit(unit)
         except Exception as e:
             print(f"Unhandled exception in unit {unit}: {repr(e)}")
@@ -383,6 +384,7 @@ class AgentState(ABC):
         # TODO(#97) write a test that ensures all AgentState statuses are here
         return [
             AgentState.STATUS_NONE,
+            AgentState.STATUS_ACCEPTED,
             AgentState.STATUS_ONBOARDING,
             AgentState.STATUS_WAITING,
             AgentState.STATUS_IN_TASK,
