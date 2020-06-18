@@ -384,6 +384,7 @@ class AgentState(ABC):
         # TODO(#97) write a test that ensures all AgentState statuses are here
         return [
             AgentState.STATUS_NONE,
+            AgentState.STATUS_ACCEPTED,
             AgentState.STATUS_ONBOARDING,
             AgentState.STATUS_WAITING,
             AgentState.STATUS_IN_TASK,
