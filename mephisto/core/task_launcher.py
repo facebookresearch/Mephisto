@@ -55,9 +55,8 @@ class TaskLauncher:
         self.units: List[Unit] = []
         self.provider_type = task_run.get_provider().PROVIDER_TYPE
         self.max_num_concurrent_units = max_num_concurrent_units
-        self.num_running_units = 0
-        self.launched_units: Dict[Any, Any] = {}
-        self.unlaunched_units: Dict[Any, Any] = {}
+        self.launched_units: List[Unit] = []
+        self.unlaunched_units: Dict[Any, Unit] = {}
 
         run_dir = task_run.get_run_dir()
         os.makedirs(run_dir, exist_ok=True)
@@ -103,24 +102,26 @@ class TaskLauncher:
         """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
         i.e. in the LAUNCHED or ASSIGNED states """
         while True:
-            for _, launched_unit in self.launched_units.copy().items():
+            for i in range(len(self.launched_units)):
+                unit = self.launched_units[i]
+                status = unit.get_status()
                 if (
-                    launched_unit.get_status() != AssignmentState.LAUNCHED
-                    and launched_unit.get_status() != AssignmentState.ASSIGNED
+                    status != AssignmentState.LAUNCHED
+                    and status != AssignmentState.ASSIGNED
                 ):
-                    self.num_running_units -= 1
-                    self.launched_units.pop(launched_unit.db_id)
+                    self.launched_units.pop(i)
 
-            num_avail_units = self.max_num_concurrent_units - self.num_running_units
-            for i, item in enumerate(self.unlaunched_units.copy().items()):
-                db_id, unit = item
+            num_avail_units = self.max_num_concurrent_units - len(self.launched_units)
+            for i in range(len(self.unlaunched_units)):
+                unit = self.unlaunched_units[i]
                 if i < num_avail_units:
-                    self.launched_units[unit.db_id] = unit
-                    self.unlaunched_units.pop(unit.db_id)
-                    self.num_running_units += 1
+                    self.launched_units.append(unit)
+                    self.unlaunched_units.pop(i)
                     yield unit
+                else:
+                    break
             time.sleep(10)
-            if self.unlaunched_units == {}:
+            if not self.unlaunched_units:
                 break
 
     def _launch_limited_units(self, url: str) -> None:
