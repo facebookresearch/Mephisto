@@ -32,6 +32,8 @@ from mephisto.core.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 
+UNIT_GENERATOR_WAIT_SECONDS = 10
+
 
 class TaskLauncher:
     """
@@ -45,7 +47,7 @@ class TaskLauncher:
         db: "MephistoDB",
         task_run: "TaskRun",
         assignment_data_list: List[InitializationData],
-        max_num_concurrent_units: int = 1,
+        max_num_concurrent_units: int = 2,
     ):
         """Prepare the task launcher to get it ready to launch the assignments"""
         self.db = db
@@ -55,7 +57,7 @@ class TaskLauncher:
         self.units: List[Unit] = []
         self.provider_type = task_run.get_provider().PROVIDER_TYPE
         self.max_num_concurrent_units = max_num_concurrent_units
-        self.launched_units: List[Unit] = []
+        self.launched_units: Dict[str, Unit] = {}
         self.unlaunched_units: List[Unit] = []
 
         run_dir = task_run.get_run_dir()
@@ -100,25 +102,27 @@ class TaskLauncher:
         """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
         i.e. in the LAUNCHED or ASSIGNED states """
         while True:
-            for i in range(len(self.launched_units)):
-                unit = self.launched_units[i]
+            units_id_to_remove = []
+            for db_id, unit in self.launched_units.items():
                 status = unit.get_status()
                 if (
                     status != AssignmentState.LAUNCHED
                     and status != AssignmentState.ASSIGNED
                 ):
-                    self.launched_units.pop(i)
+                    units_id_to_remove.append(db_id)
+            for db_id in units_id_to_remove:
+                self.launched_units.pop(db_id)
 
             num_avail_units = self.max_num_concurrent_units - len(self.launched_units)
             for i in range(len(self.unlaunched_units)):
                 if i < num_avail_units:
                     unit = self.unlaunched_units[i]
-                    self.launched_units.append(unit)
+                    self.launched_units[unit.db_id] = unit
                     self.unlaunched_units.pop(i)
                     yield unit
                 else:
                     break
-            time.sleep(10)
+            time.sleep(UNIT_GENERATOR_WAIT_SECONDS)
             if not self.unlaunched_units:
                 break
 
