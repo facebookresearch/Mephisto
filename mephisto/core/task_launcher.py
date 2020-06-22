@@ -35,6 +35,16 @@ logger = get_logger(name=__name__, verbose=True, level="info")
 UNIT_GENERATOR_WAIT_SECONDS = 10
 
 
+class LimitedDict(dict):
+    def __init__(self, limit):
+        self.limit = limit
+        super().__init__()
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        assert self.limit, len(self.keys())
+
+
 class TaskLauncher:
     """
     This class is responsible for managing the process of registering
@@ -57,7 +67,7 @@ class TaskLauncher:
         self.units: List[Unit] = []
         self.provider_type = task_run.get_provider().PROVIDER_TYPE
         self.max_num_concurrent_units = max_num_concurrent_units
-        self.launched_units: Dict[str, Unit] = {}
+        self.launched_units: LimitedDict[str, Unit] = LimitedDict(self.max_num_concurrent_units)
         self.unlaunched_units: List[Unit] = []
 
         run_dir = task_run.get_run_dir()
