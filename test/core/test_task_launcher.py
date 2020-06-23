@@ -9,6 +9,7 @@ import shutil
 import os
 import tempfile
 from typing import List
+import time
 
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.core.local_database import LocalMephistoDB
@@ -22,13 +23,17 @@ from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
 
-class LimitedDict(dict, unittest.TestCase):
+class LimitedDict(dict):
     def __init__(self, limit):
         self.limit = limit
+        self.exceed_limit = False
         super().__init__()
 
     def __setitem__(self, key, value):
-        self.assertLessEqual(len(self.keys()), self.limit)
+        if len(self.keys()) > self.limit:
+            self.exceed_limit = True
+        time.sleep(10)
+        value.set_db_status(AssignmentState.ASSIGNED)
         super().__setitem__(key, value)
 
 
@@ -101,8 +106,8 @@ class TestTaskLauncher(unittest.TestCase):
         )
         launcher.launched_units = LimitedDict(launcher.max_num_concurrent_units)
         launcher.create_assignments()
-
         launcher.launch_units("dummy-url:3000")
+        self.assertEqual(launcher.launched_units.exceed_limit, False)
         launcher.expire_units()
 
 
