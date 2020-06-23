@@ -35,16 +35,6 @@ logger = get_logger(name=__name__, verbose=True, level="info")
 UNIT_GENERATOR_WAIT_SECONDS = 10
 
 
-class LimitedDict(dict):
-    def __init__(self, limit):
-        self.limit = limit
-        super().__init__()
-
-    def __setitem__(self, key, value):
-        super().__setitem__(key, value)
-        assert self.limit, len(self.keys())
-
-
 class TaskLauncher:
     """
     This class is responsible for managing the process of registering
@@ -57,7 +47,7 @@ class TaskLauncher:
         db: "MephistoDB",
         task_run: "TaskRun",
         assignment_data_list: List[InitializationData],
-        max_num_concurrent_units: int = 2,
+        max_num_concurrent_units: int = 0,
     ):
         """Prepare the task launcher to get it ready to launch the assignments"""
         self.db = db
@@ -67,7 +57,7 @@ class TaskLauncher:
         self.units: List[Unit] = []
         self.provider_type = task_run.get_provider().PROVIDER_TYPE
         self.max_num_concurrent_units = max_num_concurrent_units
-        self.launched_units: LimitedDict[str, Unit] = LimitedDict(self.max_num_concurrent_units)
+        self.launched_units: Dict[str, Unit] = {}
         self.unlaunched_units: List[Unit] = []
 
         run_dir = task_run.get_run_dir()
@@ -143,8 +133,12 @@ class TaskLauncher:
 
     def launch_units(self, url: str) -> None:
         """launch any units registered by this TaskLauncher"""
-        thread = threading.Thread(target=self._launch_limited_units, args=(url,))
-        thread.start()
+        if self.max_num_concurrent_units > 0:
+            thread = threading.Thread(target=self._launch_limited_units, args=(url,))
+            thread.start()
+        else:
+            for unit in self.unlaunched_units:
+                unit.launch(url)
 
     def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""

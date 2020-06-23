@@ -22,6 +22,16 @@ from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
 
+class LimitedDict(dict, unittest.TestCase):
+    def __init__(self, limit):
+        self.limit = limit
+        super().__init__()
+
+    def __setitem__(self, key, value):
+        self.assertLessEqual(len(self.keys()), self.limit)
+        super().__setitem__(key, value)
+
+
 class TestTaskLauncher(unittest.TestCase):
     """
     Unit testing for the Mephisto TaskLauncher
@@ -52,10 +62,12 @@ class TestTaskLauncher(unittest.TestCase):
         self.assertEqual(len(launcher.units), 0)
         self.assertEqual(launcher.provider_type, MockProvider.PROVIDER_TYPE)
 
-    def test_create_launch_expire_assignments(self):
+    def test_create_expire_assignments(self):
         """Initialize a launcher on a task run, then create the assignments"""
         mock_data_array = self.get_mock_assignment_data_array()
-        launcher = TaskLauncher(self.db, self.task_run, mock_data_array)
+        launcher = TaskLauncher(
+            self.db, self.task_run, mock_data_array, max_num_concurrent_units=1
+        )
         launcher.create_assignments()
 
         self.assertEqual(
@@ -74,19 +86,24 @@ class TestTaskLauncher(unittest.TestCase):
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.CREATED)
 
-        launcher.launch_units("dummy-url:3000")
-
-        for unit in launcher.units:
-            self.assertEqual(unit.get_db_status(), AssignmentState.LAUNCHED)
-        for assignment in launcher.assignments:
-            self.assertEqual(assignment.get_status(), AssignmentState.LAUNCHED)
-
         launcher.expire_units()
 
         for unit in launcher.units:
             self.assertEqual(unit.get_db_status(), AssignmentState.EXPIRED)
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.EXPIRED)
+
+    def test_launch_assignments(self):
+        """Initialize a launcher on a task run, then create the assignments"""
+        mock_data_array = self.get_mock_assignment_data_array()
+        launcher = TaskLauncher(
+            self.db, self.task_run, mock_data_array, max_num_concurrent_units=1
+        )
+        launcher.launched_units = LimitedDict(launcher.max_num_concurrent_units)
+        launcher.create_assignments()
+
+        launcher.launch_units("dummy-url:3000")
+        launcher.expire_units()
 
 
 if __name__ == "__main__":
