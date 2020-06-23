@@ -112,7 +112,7 @@ class TestTaskLauncher(unittest.TestCase):
                 time.sleep(10)
         self.assertEqual(launcher.launched_units.exceed_limit, False)
 
-        # launcher.expire_units()
+        launcher.expire_units()
 
 
 if __name__ == "__main__":
