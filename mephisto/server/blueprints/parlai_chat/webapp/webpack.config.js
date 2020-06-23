@@ -17,6 +17,11 @@ module.exports = {
     net: "empty",
     dns: "empty",
   },
+  resolve: {
+    alias: {
+      react: path.resolve("./node_modules/react"),
+    },
+  },
   module: {
     rules: [
       {

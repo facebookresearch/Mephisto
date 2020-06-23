@@ -64,9 +64,7 @@ function MessageList({ messages, onMessageClick }) {
   // on the thread - agent_ids for the sender of a message exist in
   // the m.id field.
   if (typeof onMessageClick !== "function") {
-    onMessageClick = (idx) => {
-      alert("You've clicked on message number: " + idx);
-    };
+    onMessageClick = (idx) => {};
   }
 
   return (
@@ -219,17 +217,6 @@ function CustomTaskDescription({ chatTitle, taskDescription }) {
   return (
     <div>
       <h1>{chatTitle}</h1>
-      <hr style={{ borderTop: "1px solid #555" }} />
-      <h2>This is a custom Task Description loaded from a custom bundle</h2>
-      <p>
-        It has the ability to do a number of things, like directly access the
-        contents of task data, view the number of messages so far, and pretty
-        much anything you make like. We're also able to control other components
-        as well, as in this example we've made it so that if you click a
-        message, it will alert with that message idx.
-      </p>
-      <p>The regular task description content will now appear below:</p>
-      <hr style={{ borderTop: "1px solid #555" }} />
       <p>The current contents of task data are as follows: </p>
       <pre>{JSON.stringify(taskContext, null, 2)}</pre>
       <span

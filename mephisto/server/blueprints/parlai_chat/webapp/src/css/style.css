@@ -7,3 +7,75 @@
 .rt-th:focus {
   outline: none !important;
 }
+
+#ui-container {
+  display: flex;
+}
+
+.right-top-pane {
+  flex: 1;
+  width: 100%;
+  position: relative;
+}
+
+.right-pane {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.message-pane-segment {
+  width: 100%;
+  padding: 20px;
+  overflow-y: scroll;
+  position: absolute;
+  top: 46px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.preview-screen,
+.left-pane {
+  background-color: #dff0d8;
+  height: 100%;
+  padding: 30px;
+  overflow: auto;
+}
+
+.right-bottom-pane {
+  width: 100%;
+  background-color: #eee;
+}
+
+.connection-indicator {
+  opacity: 1;
+  font-size: 11px;
+  color: white;
+  float: right;
+}
+
+.hourglass-container {
+  margin-right: 5px;
+  display: inline;
+}
+
+.chat-status-bar {
+  position: absolute;
+  background-color: #eeeeee;
+  border-color: #e7e7e7;
+  height: 46px;
+  top: 0;
+  border-width: 0 0 1px;
+  border-radius: 0;
+  right: 0;
+  left: 0;
+  z-index: 1030;
+  padding: 5px;
+}
+
+.chat-message {
+  float: left;
+  display: table;
+}
