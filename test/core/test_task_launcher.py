@@ -32,8 +32,6 @@ class LimitedDict(dict):
     def __setitem__(self, key, value):
         if len(self.keys()) > self.limit:
             self.exceed_limit = True
-        time.sleep(10)
-        value.set_db_status(AssignmentState.ASSIGNED)
         super().__setitem__(key, value)
 
 
@@ -107,8 +105,14 @@ class TestTaskLauncher(unittest.TestCase):
         launcher.launched_units = LimitedDict(launcher.max_num_concurrent_units)
         launcher.create_assignments()
         launcher.launch_units("dummy-url:3000")
+
+        for unit in launcher.units:
+            if unit.get_status() == AssignmentState.LAUNCHED:
+                unit.set_db_status(AssignmentState.COMPLETED)
+                time.sleep(10)
         self.assertEqual(launcher.launched_units.exceed_limit, False)
-        launcher.expire_units()
+
+        # launcher.expire_units()
 
 
 if __name__ == "__main__":

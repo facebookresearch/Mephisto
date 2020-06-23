@@ -58,7 +58,7 @@ class TaskLauncher:
         self.provider_type = task_run.get_provider().PROVIDER_TYPE
         self.max_num_concurrent_units = max_num_concurrent_units
         self.launched_units: Dict[str, Unit] = {}
-        self.unlaunched_units: List[Unit] = []
+        self.unlaunched_units: Dict[str, Unit] = {}
 
         run_dir = task_run.get_run_dir()
         os.makedirs(run_dir, exist_ok=True)
@@ -96,7 +96,7 @@ class TaskLauncher:
                     task_run.sandbox,
                 )
                 self.units.append(Unit(self.db, unit_id))
-                self.unlaunched_units.append(Unit(self.db, unit_id))
+                self.unlaunched_units[unit_id] = Unit(self.db, unit_id)
 
     def generate_units(self):
         """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
@@ -114,14 +114,18 @@ class TaskLauncher:
                 self.launched_units.pop(db_id)
 
             num_avail_units = self.max_num_concurrent_units - len(self.launched_units)
-            for i in range(len(self.unlaunched_units)):
+            units_id_to_remove = []
+            for i, item in enumerate(self.unlaunched_units.items()):
+                db_id, unit = item
                 if i < num_avail_units:
-                    unit = self.unlaunched_units[i]
                     self.launched_units[unit.db_id] = unit
-                    self.unlaunched_units.pop(i)
+                    units_id_to_remove.append(db_id)
                     yield unit
                 else:
                     break
+            for db_id in units_id_to_remove:
+                self.unlaunched_units.pop(db_id)
+
             time.sleep(UNIT_GENERATOR_WAIT_SECONDS)
             if not self.unlaunched_units:
                 break
