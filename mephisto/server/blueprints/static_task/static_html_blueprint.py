@@ -65,10 +65,15 @@ class StaticHTMLBlueprint(StaticBlueprint):
                 csv_file
             ), f"Provided csv file {csv_file} doesn't exist"
         elif opts.get("data_json") is not None:
-            # TODO(#95) handle JSON directly
-            raise NotImplementedError(
-                "Parsing static tasks directly from JSON is not supported yet"
-            )
+            json_file = os.path.expanduser(opts["data_json"])
+            assert os.path.exists(
+                json_file
+            ), f"Provided JSON file {json_file} doesn't exist"
+        elif opts.get("data_jsonl") is not None:
+            jsonl_file = os.path.expanduser(opts["data_jsonl"])
+            assert os.path.exists(
+                jsonl_file
+            ), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif opts.get("static_task_data") is not None:
             assert (
                 len(opts.get("static_task_data")) > 0
