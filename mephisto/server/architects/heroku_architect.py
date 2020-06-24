@@ -232,7 +232,7 @@ class HerokuArchitect(Architect):
             if os.path.exists(tar_path):
                 os.remove(tar_path)
 
-        heroku_directory_name = os.path.dirname(
+        heroku_directory_name = os.path.basename(
             glob.glob(os.path.join(HEROKU_TMP_DIR, "heroku-cli-*"))[0]
         )
         heroku_directory_path = os.path.join(HEROKU_TMP_DIR, heroku_directory_name)
