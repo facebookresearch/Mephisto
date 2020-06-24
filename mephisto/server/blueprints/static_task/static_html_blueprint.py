@@ -58,7 +58,6 @@ class StaticHTMLBlueprint(StaticBlueprint):
 
     @classmethod
     def assert_task_args(cls, opts: Any) -> None:
-        print(f'data_json: {opts}')
         """Ensure that the data can be properly loaded"""
         if opts.get("data_csv") is not None:
             csv_file = os.path.expanduser(opts["data_csv"])
