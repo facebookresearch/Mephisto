@@ -49,7 +49,7 @@ def ensure_user_confirm(display_text, skip_input=False) -> None:
 def get_root_dir() -> str:
     """Return the currently configured root mephisto directory"""
     # This file is at ROOT/mephisto/core/utils.py
-    return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def get_mock_requester(db) -> "Requester":
