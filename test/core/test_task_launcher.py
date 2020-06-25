@@ -105,7 +105,6 @@ class TestTaskLauncher(unittest.TestCase):
         """Initialize a launcher on a task run, then create the assignments"""
         cap_values = [1, 2, 3, 4, 5]
         for max_num_units in cap_values:
-            self.setUp()
             mock_data_array = self.get_mock_assignment_data_array()
             launcher = TaskLauncher(
                 self.db,
@@ -127,6 +126,7 @@ class TestTaskLauncher(unittest.TestCase):
                 self.assertEqual(launcher.launched_units.exceed_limit, False)
 
             launcher.expire_units()
+            self.setUp()
 
 
 if __name__ == "__main__":
