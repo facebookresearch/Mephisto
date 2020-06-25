@@ -65,7 +65,7 @@ class TestTaskLauncher(unittest.TestCase):
         self.assertEqual(len(launcher.units), 0)
         self.assertEqual(launcher.provider_type, MockProvider.PROVIDER_TYPE)
 
-    def test_create_expire_assignments(self):
+    def test_create_launch_expire_assignments(self):
         """Initialize a launcher on a task run, then create the assignments"""
         mock_data_array = self.get_mock_assignment_data_array()
         launcher = TaskLauncher(self.db, self.task_run, mock_data_array)
@@ -87,6 +87,13 @@ class TestTaskLauncher(unittest.TestCase):
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.CREATED)
 
+        launcher.launch_units("dummy-url:3000")
+
+        for unit in launcher.units:
+            self.assertEqual(unit.get_db_status(), AssignmentState.LAUNCHED)
+        for assignment in launcher.assignments:
+            self.assertEqual(assignment.get_status(), AssignmentState.LAUNCHED)
+
         launcher.expire_units()
 
         for unit in launcher.units:
@@ -94,23 +101,32 @@ class TestTaskLauncher(unittest.TestCase):
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.EXPIRED)
 
-    def test_launch_assignments(self):
+    def test_launch_assignments_with_concurrent_unit_cap(self):
         """Initialize a launcher on a task run, then create the assignments"""
-        mock_data_array = self.get_mock_assignment_data_array()
-        launcher = TaskLauncher(
-            self.db, self.task_run, mock_data_array, max_num_concurrent_units=1
-        )
-        launcher.launched_units = LimitedDict(launcher.max_num_concurrent_units)
-        launcher.create_assignments()
-        launcher.launch_units("dummy-url:3000")
+        cap_values = [1, 2, 3, 4, 5]
+        for max_num_units in cap_values:
+            self.setUp()
+            mock_data_array = self.get_mock_assignment_data_array()
+            launcher = TaskLauncher(
+                self.db,
+                self.task_run,
+                mock_data_array,
+                max_num_concurrent_units=max_num_units,
+            )
+            launcher.launched_units = LimitedDict(launcher.max_num_concurrent_units)
+            launcher.create_assignments()
+            launcher.launch_units("dummy-url:3000")
 
-        for unit in launcher.units:
-            if unit.get_status() == AssignmentState.LAUNCHED:
-                unit.set_db_status(AssignmentState.COMPLETED)
-                time.sleep(10)
-        self.assertEqual(launcher.launched_units.exceed_limit, False)
+            while set([u.get_status() for u in launcher.units]) != {
+                AssignmentState.COMPLETED
+            }:
+                for unit in launcher.units:
+                    if unit.get_status() == AssignmentState.LAUNCHED:
+                        unit.set_db_status(AssignmentState.COMPLETED)
+                    time.sleep(0.1)
+                self.assertEqual(launcher.launched_units.exceed_limit, False)
 
-        launcher.expire_units()
+            launcher.expire_units()
 
 
 if __name__ == "__main__":
