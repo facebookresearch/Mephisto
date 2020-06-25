@@ -21,7 +21,6 @@ from typing import Dict, Optional, List, Any, TYPE_CHECKING
 
 import os
 import time
-from datetime import datetime
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -47,7 +46,7 @@ class TaskLauncher:
         db: "MephistoDB",
         task_run: "TaskRun",
         assignment_data_list: List[InitializationData],
-        max_num_concurrent_units: int = 0,
+        max_num_concurrent_units: int = 2,
     ):
         """Prepare the task launcher to get it ready to launch the assignments"""
         self.db = db
@@ -59,7 +58,7 @@ class TaskLauncher:
         self.max_num_concurrent_units = max_num_concurrent_units
         self.launched_units: Dict[str, Unit] = {}
         self.unlaunched_units: Dict[str, Unit] = {}
-
+        self.keep_launching: bool = False
         run_dir = task_run.get_run_dir()
         os.makedirs(run_dir, exist_ok=True)
 
@@ -97,11 +96,12 @@ class TaskLauncher:
                 )
                 self.units.append(Unit(self.db, unit_id))
                 self.unlaunched_units[unit_id] = Unit(self.db, unit_id)
+                self.keep_launching = True
 
     def generate_units(self):
         """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
         i.e. in the LAUNCHED or ASSIGNED states """
-        while True:
+        while self.keep_launching:
             units_id_to_remove = []
             for db_id, unit in self.launched_units.items():
                 status = unit.get_status()
@@ -146,7 +146,7 @@ class TaskLauncher:
 
     def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""
-
+        self.keep_launching = False
         for unit in self.units:
             try:
                 unit.expire()

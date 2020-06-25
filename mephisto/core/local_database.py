@@ -228,7 +228,7 @@ class LocalMephistoDB(MephistoDB):
     """
 
     def __init__(self, database_path=None):
-        logger.info(f"database path: {database_path}")
+        logger.debug(f"database path: {database_path}")
         self.conn: Dict[int, Connection] = {}
         self.table_access_condition = threading.Condition()
         super().__init__(database_path)

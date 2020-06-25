@@ -68,9 +68,7 @@ class TestTaskLauncher(unittest.TestCase):
     def test_create_expire_assignments(self):
         """Initialize a launcher on a task run, then create the assignments"""
         mock_data_array = self.get_mock_assignment_data_array()
-        launcher = TaskLauncher(
-            self.db, self.task_run, mock_data_array, max_num_concurrent_units=1
-        )
+        launcher = TaskLauncher(self.db, self.task_run, mock_data_array)
         launcher.create_assignments()
 
         self.assertEqual(
