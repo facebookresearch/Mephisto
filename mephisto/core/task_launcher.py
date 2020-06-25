@@ -141,7 +141,7 @@ class TaskLauncher:
             thread = threading.Thread(target=self._launch_limited_units, args=(url,))
             thread.start()
         else:
-            for unit in self.unlaunched_units:
+            for db_id, unit in self.unlaunched_units.items():
                 unit.launch(url)
 
     def expire_units(self) -> None:
