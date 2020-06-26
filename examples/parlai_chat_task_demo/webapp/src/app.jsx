@@ -8,9 +8,9 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { BaseFrontend } from "./components/Core.jsx";
 
 import { useMephistoLiveTask, AGENT_STATUS } from "mephisto-task";
+import BaseFrontend from "./BaseFrontend.jsx";
 
 /* ================= Application Components ================= */
 
