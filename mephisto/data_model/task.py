@@ -261,7 +261,7 @@ class TaskRun:
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
             if not any(is_self_set):
                 units += unit_set
-        valid_units = [u for u in units if u.get_assigned_agent() is None]
+        valid_units = [u for u in units if u.get_status() == AssignmentState.LAUNCHED]
         return valid_units
 
     def clear_reservation(self, unit: "Unit") -> None:

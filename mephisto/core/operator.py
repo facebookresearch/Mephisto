@@ -348,7 +348,6 @@ class Operator:
             return self.parse_and_launch_run(arg_list=arg_list, extra_args=extra_args)
         except (KeyboardInterrupt, Exception) as e:
             logger.error("Ran into error while launching run: ", exc_info=True)
-            traceback.print_exc()
             return None
 
     def print_run_details(self):

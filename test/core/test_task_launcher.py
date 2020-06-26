@@ -9,6 +9,7 @@ import shutil
 import os
 import tempfile
 from typing import List
+import time
 
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.core.local_database import LocalMephistoDB
@@ -20,6 +21,20 @@ from mephisto.data_model.task import TaskRun
 from mephisto.providers.mock.mock_provider import MockProvider
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
+
+MAX_WAIT_TIME_UNIT_LAUNCH = 15
+
+
+class LimitedDict(dict):
+    def __init__(self, limit):
+        self.limit = limit
+        self.exceed_limit = False
+        super().__init__()
+
+    def __setitem__(self, key, value):
+        if len(self.keys()) > self.limit:
+            self.exceed_limit = True
+        super().__setitem__(key, value)
 
 
 class TestTaskLauncher(unittest.TestCase):
@@ -87,6 +102,36 @@ class TestTaskLauncher(unittest.TestCase):
             self.assertEqual(unit.get_db_status(), AssignmentState.EXPIRED)
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.EXPIRED)
+
+    def test_launch_assignments_with_concurrent_unit_cap(self):
+        """Initialize a launcher on a task run, then create the assignments"""
+        cap_values = [1, 2, 3, 4, 5]
+        for max_num_units in cap_values:
+            mock_data_array = self.get_mock_assignment_data_array()
+            launcher = TaskLauncher(
+                self.db,
+                self.task_run,
+                mock_data_array,
+                max_num_concurrent_units=max_num_units,
+            )
+            launcher.launched_units = LimitedDict(launcher.max_num_concurrent_units)
+            launcher.create_assignments()
+            launcher.launch_units("dummy-url:3000")
+
+            start_time = time.time()
+            while set([u.get_status() for u in launcher.units]) != {
+                AssignmentState.COMPLETED
+            }:
+                for unit in launcher.units:
+                    if unit.get_status() == AssignmentState.LAUNCHED:
+                        unit.set_db_status(AssignmentState.COMPLETED)
+                    time.sleep(0.1)
+                self.assertEqual(launcher.launched_units.exceed_limit, False)
+                curr_time = time.time()
+                self.assertLessEqual(curr_time - start_time, MAX_WAIT_TIME_UNIT_LAUNCH)
+            launcher.expire_units()
+            self.tearDown()
+            self.setUp()
 
 
 if __name__ == "__main__":
