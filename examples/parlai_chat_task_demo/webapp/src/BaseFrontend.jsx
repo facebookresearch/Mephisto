@@ -123,7 +123,7 @@ function ChatStatusBar() {
 }
 
 function ResponsePane({ onMessageSend, inputMode }) {
-  const { taskContext } = React.useContext(AppContext);
+  const { taskContext, onTaskComplete } = React.useContext(AppContext);
   const { agentState = {} } = React.useContext(MephistoContext);
 
   let response_pane = null;
@@ -132,6 +132,7 @@ function ResponsePane({ onMessageSend, inputMode }) {
     case INPUT_MODE.INACTIVE:
       response_pane = (
         <DoneResponse
+          onTaskComplete={onTaskComplete}
           onMessageSend={onMessageSend}
           doneText={agentState.done_text || null}
           isTaskDone={agentState.task_done || null}
