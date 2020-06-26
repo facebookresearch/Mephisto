@@ -22,6 +22,8 @@ from mephisto.providers.mock.mock_provider import MockProvider
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
+MAX_WAIT_TIME_UNIT_LAUNCH = 15
+
 
 class LimitedDict(dict):
     def __init__(self, limit):
@@ -116,6 +118,7 @@ class TestTaskLauncher(unittest.TestCase):
             launcher.create_assignments()
             launcher.launch_units("dummy-url:3000")
 
+            start_time = time.time()
             while set([u.get_status() for u in launcher.units]) != {
                 AssignmentState.COMPLETED
             }:
@@ -124,7 +127,9 @@ class TestTaskLauncher(unittest.TestCase):
                         unit.set_db_status(AssignmentState.COMPLETED)
                     time.sleep(0.1)
                 self.assertEqual(launcher.launched_units.exceed_limit, False)
-
+                curr_time = time.time()
+                if curr_time - start_time > MAX_WAIT_TIME_UNIT_LAUNCH:
+                    break
             launcher.expire_units()
             self.setUp()
 
