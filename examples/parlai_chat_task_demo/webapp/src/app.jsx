@@ -9,13 +9,16 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-import { useMephistoLiveTask, AGENT_STATUS } from "mephisto-task";
+import {
+  MephistoContext,
+  useMephistoLiveTask,
+  AGENT_STATUS,
+} from "mephisto-task";
 import BaseFrontend from "./BaseFrontend.jsx";
 
 /* ================= Application Components ================= */
 
 const AppContext = React.createContext({});
-const MephistoContext = React.createContext({});
 
 const INPUT_MODE = {
   WAITING: "waiting",
@@ -25,7 +28,7 @@ const INPUT_MODE = {
   IDLE: "idle",
 };
 
-export { MephistoContext, AppContext, INPUT_MODE };
+export { AppContext, INPUT_MODE };
 
 function MainApp() {
   const [taskContext, updateContext] = React.useReducer(

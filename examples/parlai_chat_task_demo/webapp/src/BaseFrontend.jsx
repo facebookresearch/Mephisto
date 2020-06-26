@@ -19,7 +19,8 @@ import {
   DefaultTaskDescription,
   ChatPane,
 } from "bootstrap-chat";
-import { MephistoContext, AppContext, INPUT_MODE } from "./app.jsx";
+import { MephistoContext } from "mephisto-task";
+import { AppContext, INPUT_MODE } from "./app.jsx";
 
 function BaseFrontend({ messages, onMessageSend, inputMode }) {
   const { connectionStatus, agentStatus, taskConfig } = React.useContext(

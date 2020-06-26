@@ -15,6 +15,8 @@ import {
   postCompleteOnboarding,
   getBlockedExplanation,
 } from "./utils";
+
+export * from "./MephistoContext";
 export * from "./utils";
 export * from "./live";
 
