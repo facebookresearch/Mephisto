@@ -19,6 +19,7 @@ import DoneButton from "./DoneButton.jsx";
 import DoneResponse from "./DoneResponse.jsx";
 import ConnectionStatusBoundary from "./ConnectionStatusBoundary.jsx";
 import DefaultTaskDescription from "./DefaultTaskDescription.jsx";
+import ChatPane from "./ChatPane.jsx";
 
 export {
   ConnectionIndicator,
@@ -34,4 +35,5 @@ export {
   ChatMessage,
   ConnectionStatusBoundary,
   DefaultTaskDescription,
+  ChatPane,
 };

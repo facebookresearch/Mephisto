@@ -17,11 +17,14 @@ import {
   DoneResponse,
   ConnectionStatusBoundary,
   DefaultTaskDescription,
+  ChatPane,
 } from "bootstrap-chat";
 import { MephistoContext, AppContext, INPUT_MODE } from "./app.jsx";
 
 function BaseFrontend({ messages, onMessageSend, inputMode }) {
-  const { connectionStatus, taskConfig } = React.useContext(MephistoContext);
+  const { connectionStatus, agentStatus, taskConfig } = React.useContext(
+    MephistoContext
+  );
   const { appSettings, taskContext } = React.useContext(AppContext);
   const sidePaneSize = appSettings.isCoverPage ? "col-xs-12" : "col-xs-4";
 
@@ -50,8 +53,14 @@ function BaseFrontend({ messages, onMessageSend, inputMode }) {
         <div className="chat-container-pane">
           <div className="right-top-pane">
             <ChatStatusBar />
-            <ChatPane scrollBottomKey={messages.length} inputMode={inputMode}>
+            <ChatPane scrollBottomKey={messages.length + "-" + inputMode}>
               <MessageList messages={messages} />
+              {inputMode === INPUT_MODE.WAITING ? (
+                <SystemMessage
+                  glyphicon="hourglass"
+                  text={getWaitingMessage(agentStatus)}
+                />
+              ) : null}
             </ChatPane>
           </div>
           <ResponsePane inputMode={inputMode} onMessageSend={onMessageSend} />
@@ -59,6 +68,12 @@ function BaseFrontend({ messages, onMessageSend, inputMode }) {
       </div>
     </ConnectionStatusBoundary>
   );
+}
+
+function getWaitingMessage(agentStatus) {
+  return agentStatus === "waiting"
+    ? "Waiting to pair with a task..."
+    : "Waiting for the next person to speak...";
 }
 
 function MessageList({ messages, onMessageClick }) {
@@ -103,39 +118,6 @@ function ChatStatusBar() {
         volume={appSettings.volume}
         onVolumeChange={(v) => setAppSettings({ volume: v })}
       />
-    </div>
-  );
-}
-
-function ChatPane({ inputMode, scrollBottomKey, children }) {
-  const { agentStatus } = React.useContext(MephistoContext);
-
-  function getWaitingMessage(agentStatus) {
-    return agentStatus === "waiting"
-      ? "Waiting to pair with a task..."
-      : "Waiting for the next person to speak...";
-  }
-
-  const bottomAnchorRef = React.useRef(null);
-  React.useEffect(() => {
-    if (bottomAnchorRef.current) {
-      bottomAnchorRef.current.scrollIntoView({
-        block: "end",
-        behavior: "smooth",
-      });
-    }
-  }, [scrollBottomKey, inputMode]);
-
-  return (
-    <div className="message-pane-segment">
-      {children}
-      {inputMode === INPUT_MODE.WAITING ? (
-        <SystemMessage
-          glyphicon="hourglass"
-          text={getWaitingMessage(agentStatus)}
-        />
-      ) : null}
-      <div className="bottom-anchor" ref={bottomAnchorRef} />
     </div>
   );
 }
