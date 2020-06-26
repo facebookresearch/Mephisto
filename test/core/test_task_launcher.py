@@ -131,6 +131,7 @@ class TestTaskLauncher(unittest.TestCase):
                 if curr_time - start_time > MAX_WAIT_TIME_UNIT_LAUNCH:
                     break
             launcher.expire_units()
+            self.tearDown()
             self.setUp()
 
 
