@@ -128,8 +128,7 @@ class TestTaskLauncher(unittest.TestCase):
                     time.sleep(0.1)
                 self.assertEqual(launcher.launched_units.exceed_limit, False)
                 curr_time = time.time()
-                if curr_time - start_time > MAX_WAIT_TIME_UNIT_LAUNCH:
-                    break
+                self.assertLessEqual(curr_time - start_time, MAX_WAIT_TIME_UNIT_LAUNCH)
             launcher.expire_units()
             self.tearDown()
             self.setUp()
