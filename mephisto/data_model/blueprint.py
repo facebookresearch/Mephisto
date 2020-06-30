@@ -616,6 +616,17 @@ class Blueprint(ABC):
         builder_group = group.add_argument_group("task_builder_args")
         cls.TaskRunnerClass.add_args_to_group(runner_group)
         cls.TaskBuilderClass.add_args_to_group(builder_group)
+
+        group.add_argument(
+            "--block-qualification",
+            dest="block_qualification",
+            help=(
+                "Name of qualification to use in order to soft block workers "
+                "from working on this task (or any task using this block "
+                "qualification name)."
+            ),
+            required=False,
+        )
         # group.description = 'For `Blueprint`, you can supply...'
         # group.add_argument('--task-option', help='Lets you customize')
         return
