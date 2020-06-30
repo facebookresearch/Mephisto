@@ -384,7 +384,7 @@ def create_hit_type(
                 "QualificationTypeId": MTURK_LOCALE_REQUIREMENT,
                 "Comparator": "In",
                 "LocaleValues": allowed_locales,
-                "RequiredToPreview": True,
+                "ActionsGuarded": "DiscoverPreviewAndAccept",
             }
         )
 
