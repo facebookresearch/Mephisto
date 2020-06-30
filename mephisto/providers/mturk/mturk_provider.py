@@ -108,6 +108,8 @@ class MTurkProvider(CrowdProvider):
                     "QualificationTypeId"
                 ] = requester._create_new_mturk_qualification(qualification_name)
 
+        qualifications += task_args.get("mturk_specific_qualifications", [])
+
         # Set up HIT type
         client = self._get_client(requester._requester_name)
         hit_type_id = create_hit_type(client, task_config, qualifications)
