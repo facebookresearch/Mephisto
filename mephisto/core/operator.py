@@ -270,8 +270,7 @@ class Operator:
             raise e
 
         launcher = TaskLauncher(self.db, task_run, initialization_data_array)
-        launcher.create_assignments()
-        launcher.launch_units(task_url)
+        launcher.start(task_url)
 
         self._task_runs_tracked[task_run.db_id] = TrackedRun(
             task_run=task_run,
