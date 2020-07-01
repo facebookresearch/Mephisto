@@ -8,7 +8,7 @@ import unittest
 import shutil
 import os
 import tempfile
-from typing import List
+from typing import List, Iterable
 import time
 
 from mephisto.data_model.test.utils import get_test_task_run
@@ -23,6 +23,8 @@ from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
 MAX_WAIT_TIME_UNIT_LAUNCH = 15
+NUM_GENERATED_ASSIGNMENTS = 10
+WAIT_TIME_TILL_NEXT_ASSIGNMENT = 1
 
 
 class LimitedDict(dict):
@@ -55,6 +57,12 @@ class TestTaskLauncher(unittest.TestCase):
 
     def get_mock_assignment_data_array(self) -> List[InitializationData]:
         return [MockTaskRunner.get_mock_assignment_data()]
+
+    @staticmethod
+    def get_mock_assignment_data_generator() -> Iterable[InitializationData]:
+        for _ in range(NUM_GENERATED_ASSIGNMENTS):
+            yield MockTaskRunner.get_mock_assignment_data()
+            time.sleep(WAIT_TIME_TILL_NEXT_ASSIGNMENT)
 
     def test_init_on_task_run(self):
         """Initialize a launcher on a task_run"""
@@ -132,6 +140,35 @@ class TestTaskLauncher(unittest.TestCase):
             launcher.expire_units()
             self.tearDown()
             self.setUp()
+
+    def test_assignments_generator(self):
+        """Initialize a launcher on a task run, then create the assignments"""
+        mock_data_array = self.get_mock_assignment_data_generator()
+        launcher = TaskLauncher(self.db, self.task_run, mock_data_array)
+
+        start_time = time.time()
+        launcher.create_assignments()
+        end_time = time.time()
+        self.assertLessEqual(end_time-start_time, (NUM_GENERATED_ASSIGNMENTS * WAIT_TIME_TILL_NEXT_ASSIGNMENT)/2)
+
+        for unit in launcher.units:
+            self.assertEqual(unit.get_db_status(), AssignmentState.CREATED)
+        for assignment in launcher.assignments:
+            self.assertEqual(assignment.get_status(), AssignmentState.CREATED)
+
+        launcher.launch_units("dummy-url:3000")
+
+        for unit in launcher.units:
+            self.assertEqual(unit.get_db_status(), AssignmentState.LAUNCHED)
+        for assignment in launcher.assignments:
+            self.assertEqual(assignment.get_status(), AssignmentState.LAUNCHED)
+
+        launcher.expire_units()
+
+        for unit in launcher.units:
+            self.assertEqual(unit.get_db_status(), AssignmentState.EXPIRED)
+        for assignment in launcher.assignments:
+            self.assertEqual(assignment.get_status(), AssignmentState.EXPIRED)
 
 
 if __name__ == "__main__":
