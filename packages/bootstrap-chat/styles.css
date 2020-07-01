@@ -18,7 +18,7 @@
   position: relative;
 }
 
-.right-pane {
+.chat-container-pane {
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -37,7 +37,7 @@
 }
 
 .preview-screen,
-.left-pane {
+.side-pane {
   background-color: #dff0d8;
   height: 100%;
   padding: 30px;
@@ -56,7 +56,7 @@
   float: right;
 }
 
-.hourglass-container {
+.icon-container {
   margin-right: 5px;
   display: inline;
 }

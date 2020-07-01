@@ -7,15 +7,17 @@
  */
 
 import React from "react";
-import ReactDOM from "react-dom";
-import { BaseFrontend } from "./components/Core.jsx";
 
-import { useMephistoLiveTask, AGENT_STATUS } from "mephisto-task";
+import {
+  MephistoContext,
+  useMephistoLiveTask,
+  AGENT_STATUS,
+} from "mephisto-task";
+import BaseFrontend from "./BaseFrontend.jsx";
 
 /* ================= Application Components ================= */
 
 const AppContext = React.createContext({});
-const MephistoContext = React.createContext({});
 
 const INPUT_MODE = {
   WAITING: "waiting",
@@ -25,9 +27,7 @@ const INPUT_MODE = {
   IDLE: "idle",
 };
 
-export { MephistoContext, AppContext, INPUT_MODE };
-
-function MainApp() {
+function ChatApp({ renderMessage, renderSidePane }) {
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
     {}
@@ -167,6 +167,8 @@ function MainApp() {
             inputMode={inputMode}
             messages={messages}
             onMessageSend={handleMessageSend}
+            renderMessage={renderMessage}
+            renderSidePane={renderSidePane}
           />
         </div>
       </AppContext.Provider>
@@ -186,4 +188,4 @@ function TaskPreviewView({ description }) {
   );
 }
 
-ReactDOM.render(<MainApp />, document.getElementById("app"));
+export { ChatApp, AppContext, INPUT_MODE };
