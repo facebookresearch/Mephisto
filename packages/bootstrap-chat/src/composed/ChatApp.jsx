@@ -18,7 +18,6 @@ import BaseFrontend from "./BaseFrontend.jsx";
 /* ================= Application Components ================= */
 
 const AppContext = React.createContext({});
-console.log(MephistoContext);
 
 const INPUT_MODE = {
   WAITING: "waiting",
