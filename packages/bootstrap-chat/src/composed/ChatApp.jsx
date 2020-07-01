@@ -6,8 +6,17 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+/*
+
+ This is basically a basic app, that sets everything
+ up, only exposing back to the user the CustomTaskDescription,
+ The ChatMessage/MessageList, and (perhaps) the DoneButton.
+
+ AppContext will most likely not be used here.
+
+ */
+
 import React from "react";
-import ReactDOM from "react-dom";
 
 import {
   MephistoContext,
@@ -19,6 +28,7 @@ import BaseFrontend from "./BaseFrontend.jsx";
 /* ================= Application Components ================= */
 
 const AppContext = React.createContext({});
+console.log(MephistoContext);
 
 const INPUT_MODE = {
   WAITING: "waiting",
@@ -28,9 +38,7 @@ const INPUT_MODE = {
   IDLE: "idle",
 };
 
-export { AppContext, INPUT_MODE };
-
-function MainApp() {
+function ChatApp({ renderMessage, renderSidePane }) {
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
     {}
@@ -170,6 +178,8 @@ function MainApp() {
             inputMode={inputMode}
             messages={messages}
             onMessageSend={handleMessageSend}
+            renderMessage={renderMessage}
+            renderSidePane={renderSidePane}
           />
         </div>
       </AppContext.Provider>
@@ -189,4 +199,4 @@ function TaskPreviewView({ description }) {
   );
 }
 
-ReactDOM.render(<MainApp />, document.getElementById("app"));
+export { ChatApp, AppContext, INPUT_MODE };

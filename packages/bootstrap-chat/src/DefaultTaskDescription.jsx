@@ -8,29 +8,18 @@
 
 import React from "react";
 
-function DefaultTaskDescription({
-  chatTitle,
-  taskDescription,
-  taskContext,
-  children,
-}) {
+function DefaultTaskDescription({ chatTitle, taskDescriptionHtml, children }) {
   return (
     <div>
       <h1>{chatTitle}</h1>
       <hr style={{ borderTop: "1px solid #555" }} />
       {children}
       {children ? <hr style={{ borderTop: "1px solid #555" }} /> : null}
-      {taskContext ? (
-        <>
-          <p>The current contents of the task context are as follows: </p>
-          <pre>{JSON.stringify(taskContext, null, 2)}</pre>
-        </>
-      ) : null}
       <span
         id="task-description"
         style={{ fontSize: "16px" }}
         dangerouslySetInnerHTML={{
-          __html: taskDescription || "Task Description Loading",
+          __html: taskDescriptionHtml || "Task Description Loading",
         }}
       />
     </div>
