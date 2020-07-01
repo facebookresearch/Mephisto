@@ -6,16 +6,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-/*
-
- This is basically a basic app, that sets everything
- up, only exposing back to the user the CustomTaskDescription,
- The ChatMessage/MessageList, and (perhaps) the DoneButton.
-
- AppContext will most likely not be used here.
-
- */
-
 import React from "react";
 
 import {
