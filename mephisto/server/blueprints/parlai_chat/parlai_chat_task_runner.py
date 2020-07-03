@@ -127,7 +127,8 @@ class ParlAIChatTaskRunner(TaskRunner):
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
         self.parlai_world_module = import_module(world_module_name)
-        self.is_concurrent = True
+        world_params = self.parlai_world_module.get_world_params()
+        self.is_concurrent = world_params['agent_count'] > 1
         self.id_to_worlds: Dict[str, Any] = {}
 
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
