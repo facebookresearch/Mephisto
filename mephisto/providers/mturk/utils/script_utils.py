@@ -12,8 +12,8 @@ from mephisto.data_model.requester import Requester
 
 
 def direct_soft_block_mturk_workers(
-    worker_list: List[str], 
-    soft_block_qual_name: str, 
+    worker_list: List[str],
+    soft_block_qual_name: str,
     requester_name: Optional[str] = None,
 ):
     db = LocalMephistoDB()
@@ -31,15 +31,7 @@ def direct_soft_block_mturk_workers(
         qualification_id = requester._create_new_mturk_qualification(
             soft_block_qual_name
         )
-    
+
     mturk_client = requester._get_client(requester._requester_name)
     for worker_id in worker_list:
-        give_worker_qualification(
-            mturk_client,
-            worker_id,
-            qualification_id,
-            value=1,
-        )
-
-
-
+        give_worker_qualification(mturk_client, worker_id, qualification_id, value=1)

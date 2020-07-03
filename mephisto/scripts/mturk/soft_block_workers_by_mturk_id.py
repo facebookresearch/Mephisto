@@ -23,8 +23,4 @@ while True:
         break
     workers_to_block.append(new_id)
 
-direct_soft_block_mturk_workers(
-    workers_to_block,
-    soft_block_qual_name, 
-    requester_name,
-)
+direct_soft_block_mturk_workers(workers_to_block, soft_block_qual_name, requester_name)
