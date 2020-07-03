@@ -4,19 +4,20 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from mephisto.providers.mturk.mturk_utils import give_worker_qualification
-from mephisto.core.local_database import LocalMephistoDB
 from mephisto.data_model.requester import Requester
 
+if TYPE_CHECKING:
+    from mephisto.data_model.database import MephistoDB
 
 def direct_soft_block_mturk_workers(
+    db: "MephistoDB",
     worker_list: List[str],
     soft_block_qual_name: str,
     requester_name: Optional[str] = None,
 ):
-    db = LocalMephistoDB()
     reqs = db.find_requesters(requester_name=requester_name, provider_type="mturk")
     requester = reqs[0]
 
