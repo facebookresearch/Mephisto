@@ -25,7 +25,7 @@ def direct_soft_block_mturk_workers(
     in the database
     """
     reqs = db.find_requesters(requester_name=requester_name, provider_type="mturk")
-    requester = reqs[0]
+    requester = reqs[-1]
 
     mturk_qual_details = requester.datastore.get_qualification_mapping(
         soft_block_qual_name
