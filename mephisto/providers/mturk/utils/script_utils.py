@@ -20,9 +20,9 @@ def direct_soft_block_mturk_workers(
 ):
     """
     Directly assign the soft blocking MTurk qualification that Mephisto 
-    associates with soft_block_qual_name to all of the workers in worker_list.
-    If requester_name is not provided, it will use the first mturk requester
-    in the database
+    associates with soft_block_qual_name to all of the MTurk worker ids 
+    in worker_list. If requester_name is not provided, it will use the 
+    most recently registered mturk requester in the database.
     """
     reqs = db.find_requesters(requester_name=requester_name, provider_type="mturk")
     requester = reqs[-1]

@@ -18,7 +18,7 @@ soft_block_qual_name = input("Provide a soft blocking qualification name: ")
 
 workers_to_block = []
 while True:
-    new_id = input("MTurk Worker Id to soft block (blank to continue): ")
+    new_id = input("MTurk Worker Id to soft block (blank to block all entered): ")
     if len(new_id.strip()) == 0:
         break
     workers_to_block.append(new_id)
