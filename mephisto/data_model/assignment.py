@@ -378,6 +378,8 @@ class Unit(ABC):
     def clear_assigned_agent(self) -> None:
         """Clear the agent that is assigned to this unit"""
         self.db.clear_unit_agent_assignment(self.db_id)
+        self.agent_id = None
+        self.__agent = None
 
     def get_assigned_agent(self) -> Optional[Agent]:
         """
@@ -468,12 +470,13 @@ class Unit(ABC):
                 computed_status = AssignmentState.COMPLETED
             elif agent_status in [AgentState.STATUS_SOFT_REJECTED]:
                 computed_status = AssignmentState.SOFT_REJECTED
+            elif agent_status in [AgentState.STATUS_EXPIRED]:
+                computed_status = AssignmentState.EXPIRED
             elif agent_status in [
                 AgentState.STATUS_DISCONNECT,
-                AgentState.STATUS_EXPIRED,
                 AgentState.STATUS_RETURNED,
             ]:
-                computed_status = AssignmentState.EXPIRED
+                computed_status = AssignmentState.ASSIGNED
             elif agent_status == AgentState.STATUS_APPROVED:
                 computed_status = AssignmentState.ACCEPTED
             elif agent_status == AgentState.STATUS_REJECTED:
