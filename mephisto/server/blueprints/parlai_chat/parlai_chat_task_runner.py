@@ -147,6 +147,10 @@ class ParlAIChatTaskRunner(TaskRunner):
             assert new_state is not None, "Recently initialized state still None"
             return new_state
 
+    def get_world_id(self, world_type: str, extra_id: str) -> str:
+        """Get a world id specific to the given world type"""
+        return f"{world_type}-{extra_id}"
+
     def run_onboarding(self, agent: "OnboardingAgent") -> None:
         """
         ParlAI Onboarding will initialize an onboarding 
@@ -157,7 +161,8 @@ class ParlAIChatTaskRunner(TaskRunner):
         world = self.parlai_world_module.make_onboarding_world(  # type: ignore
             opt, parlai_agent
         )
-        self.id_to_worlds[agent.get_agent_id()] = world
+        world_id = self.get_world_id('onboard', agent.get_agent_id())
+        self.id_to_worlds[world_id] = world
         while (
             not world.episode_done()
             and agent.get_agent_id() in self.running_onboardings
@@ -181,8 +186,9 @@ class ParlAIChatTaskRunner(TaskRunner):
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
         """Shutdown the world"""
         onboarding_id = agent.get_agent_id()
-        self.id_to_worlds[onboarding_id].shutdown()
-        del self.id_to_worlds[onboarding_id]
+        world_id = self.get_world_id('onboard', onboarding_id)
+        self.id_to_worlds[world_id].shutdown()
+        del self.id_to_worlds[world_id]
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
         """
@@ -194,7 +200,8 @@ class ParlAIChatTaskRunner(TaskRunner):
         opt: Dict[str, Any] = self.opts.get("world_opt", {})
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
-        self.id_to_worlds[assignment.db_id] = world
+        world_id = self.get_world_id('assignment', assignment.db_id)
+        self.id_to_worlds[world_id] = world
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 
@@ -209,7 +216,7 @@ class ParlAIChatTaskRunner(TaskRunner):
                     Packet(
                         packet_type=PACKET_TYPE_AGENT_ACTION,
                         sender_id="mephisto",
-                        receiver_id=agent.db_id,
+                        receiver_id=agents[idx].db_id,
                         data={
                             "id": "SUBMIT_WORLD_DATA",
                             "WORLD_DATA": world.prep_save_data([parlai_agents[idx]]),
@@ -220,5 +227,45 @@ class ParlAIChatTaskRunner(TaskRunner):
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Handle cleanup for a specific assignment"""
-        self.id_to_worlds[assignment.db_id].shutdown()
-        del self.id_to_worlds[assignment.db_id]
+        world_id = self.get_world_id('assignment', assignment.db_id)
+        self.id_to_worlds[world_id].shutdown()
+        del self.id_to_worlds[world_id]
+
+    def run_unit(self, unit: "Unit", agent: "Agent") -> None:
+        """
+        ParlAI runners will initialize a task world, then run them to completion
+        if possible
+        """
+        agents = [agent]
+        opt: Dict[str, Any] = self.opts.get("world_opt", {})
+        parlai_agents = [MephistoAgentWrapper(a) for a in agents]
+        world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
+        world_id = self.get_world_id('unit', unit.db_id)
+        self.id_to_worlds[world_id] = world
+        while not world.episode_done() and unit.db_id in self.running_units:
+            world.parley()
+
+        # TODO(WISH) it would be nice to have individual agents be able to submit their
+        # final things without needing to wait for their partner, such
+        # as if one needs to rate and the other doesn't
+
+        world.shutdown()
+        if hasattr(world, "prep_save_data"):
+            agent.observe(
+                Packet(
+                    packet_type=PACKET_TYPE_AGENT_ACTION,
+                    sender_id="mephisto",
+                    receiver_id=agent.db_id,
+                    data={
+                        "id": "SUBMIT_WORLD_DATA",
+                        "WORLD_DATA": world.prep_save_data(parlai_agents),
+                        "text": "",
+                    },
+                )
+            )
+
+    def cleanup_unit(self, unit: "Unit") -> None:
+        """Handle cleanup for a specific unit"""
+        world_id = self.get_world_id('unit', unit.db_id)
+        self.id_to_worlds[world_id].shutdown()
+        del self.id_to_worlds[world_id]
