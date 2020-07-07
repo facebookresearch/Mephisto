@@ -50,7 +50,7 @@ parser.add_argument(
 parser.add_argument(
     "-spu",
     "--subtasks-per-unit",
-    default=False,
+    default=5,
     help="Number of conversations to evaluate per task, default 5",
     type=int,
 )
@@ -83,7 +83,7 @@ extra_args = {
     "annotations_per_pair": args["annotations_per_pair"],
     "random_seed": 42,  # random seed
     "subtasks_per_unit": args[
-        "subtask_per_unit"
+        "subtasks_per_unit"
     ],  # num comparisons to show within one unit
     "num_matchup_pairs": args[
         "num_matchup_pairs"
