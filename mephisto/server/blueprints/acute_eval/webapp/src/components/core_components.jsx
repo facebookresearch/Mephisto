@@ -103,7 +103,9 @@ function MessageList({ task_data, index }) {
     messageList = messages.map((m, idx) => (
       <div key={model + "_" + idx}>
         <ChatMessage
-          message={m.text}
+          message={m.image_src !== undefined ? m.text + (
+            <img src={m.image_src} alt='Image'/>
+          ) : m.text}
           is_primary_speaker={m.id == primary_speaker}
           model={model}
         />
