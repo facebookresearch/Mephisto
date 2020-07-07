@@ -16,6 +16,7 @@ from mephisto.core.registry import register_mephisto_abstraction
 import random
 import os
 import time
+import math
 
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
@@ -182,7 +183,7 @@ class AcuteEvalBlueprint(Blueprint):
         # release as many as needed thusfar and top off when
         # onboardings fail
         print(self.opts)
-        num_conversations = int(
+        num_conversations = math.ceil(
             self.opts.get("num_matchup_pairs", 8)
             / max((self.opts["subtasks_per_unit"] - 1), 1)
         )  # release enough hits to finish all annotations requested

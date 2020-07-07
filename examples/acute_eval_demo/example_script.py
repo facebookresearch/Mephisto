@@ -50,7 +50,7 @@ parser.add_argument(
 parser.add_argument(
     "-spu",
     "--subtasks-per-unit",
-    default=False,
+    default=5,
     help="Number of conversations to evaluate per task, default 5",
     type=int,
 )
