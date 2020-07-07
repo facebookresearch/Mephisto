@@ -563,7 +563,6 @@ class TaskDescription extends React.Component {
     let num_subtasks = task_config.num_subtasks;
     let question = task_config.question;
     let additional_task_description = task_config.additional_task_description;
-    console.log(additional_task_description);
     let content = (
       <div>
         In this task, you will read two conversations and judge&nbsp;
