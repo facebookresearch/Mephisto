@@ -57,11 +57,99 @@ class ParlAIChatTaskBuilder(TaskBuilder):
             )
         os.chdir(return_dir)
 
+    def build_and_return_custom_bundle(self, custom_build_dir):
+        """Locate all of the custom files used for a custom build, create
+        a prebuild directory containing all of them, then build the 
+        custom source.
+
+        Check dates to only go through this build process when files have changes
+        """
+        # TODO add custom component directories, and recursively check those
+        TARGET_BUILD_FILES = {
+            'main.js': 'src/main.js',
+            'package.json': 'package.json',
+        }
+
+        prebuild_path = os.path.join(custom_build_dir, 'pre_build')
+        build_path = os.path.join(prebuild_path, 'build', 'bundle.js')
+        
+        # see if we need to rebuild
+        if os.path.exists(build_path):
+            created_date = os.path.getmtime(build_path)
+            up_to_date = True
+            for fn in TARGET_BUILD_FILES.keys():
+                possible_conflict = os.path.join(custom_build_dir, fn)
+                if os.path.exists(possible_conflict):
+                    if os.path.getmtime(possible_conflict) > created_date:
+                        up_to_date = False
+                        break
+            if up_to_date:
+                return build_path
+
+        # build anew
+        REQUIRED_SOURCE_FILES = [
+            '.babelrc',
+            '.eslintrc',
+            'package.json',
+            'webpack.config.js',
+        ]
+        REQUIRED_SOURCE_DIRS = [
+            'src',
+        ]
+        if not os.path.exists(os.path.join(prebuild_path, 'build')):
+            os.makedirs(os.path.join(prebuild_path, 'build'), exist_ok=True)
+
+        # Copy default files
+        for src_dir in REQUIRED_SOURCE_DIRS:
+            src_path = os.path.join(FRONTEND_SOURCE_DIR, src_dir)
+            dst_path = os.path.join(prebuild_path, src_dir)
+            if os.path.exists(dst_path):
+                shutil.rmtree(dst_path)
+            shutil.copytree(src_path, dst_path)
+        for src_file in REQUIRED_SOURCE_FILES:
+            src_path = os.path.join(FRONTEND_SOURCE_DIR, src_file)
+            dst_path = os.path.join(prebuild_path, src_file)
+            shutil.copy2(src_path, dst_path)
+
+        # copy custom files
+        for src_file in TARGET_BUILD_FILES.keys():
+            src_path = os.path.join(custom_build_dir, src_file)
+            if os.path.exists(src_path):
+                dst_path = os.path.join(prebuild_path, TARGET_BUILD_FILES[src_file])
+                shutil.copy2(src_path, dst_path)
+
+        # navigate and build
+        return_dir = os.getcwd()
+        os.chdir(prebuild_path)
+        packages_installed = subprocess.call(["npm", "install"])
+        if packages_installed != 0:
+            raise Exception(
+                "please make sure npm is installed, otherwise view "
+                "the above error for more info."
+            )
+
+        webpack_complete = subprocess.call(["npm", "run", "dev"])
+        if webpack_complete != 0:
+            raise Exception(
+                "Webpack appears to have failed to build your "
+                "frontend. See the above error for more information."
+            )
+
+        # cleanup and return
+        os.chdir(return_dir)
+        return build_path
+
     def build_in_dir(self, build_dir: str):
         """Build the frontend if it doesn't exist, then copy into the server directory"""
         # Only build this task if it hasn't already been built
-        if True:  # not os.path.exists(FRONTEND_BUILD_DIR):
+        if not os.path.exists(FRONTEND_BUILD_DIR):
             self.rebuild_core()
+
+        custom_source_dir = self.opts.get("custom_source_dir")
+        build_bundle = None
+        if custom_source_dir is not None:
+            custom_source_dir = os.path.expanduser(custom_source_dir)
+            build_bundle = self.build_and_return_custom_bundle(custom_source_dir)
 
         # Copy over the preview file as preview.html, use the default if none specified
         target_resource_dir = os.path.join(build_dir, "static")
@@ -79,7 +167,10 @@ class ParlAIChatTaskBuilder(TaskBuilder):
 
         bundle_js_file = self.opts.get("custom_source_bundle")
         if bundle_js_file is None:
-            bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, "bundle.js")
+            if build_bundle is not None:
+                bundle_js_file = build_bundle
+            else:
+                bundle_js_file = os.path.join(FRONTEND_BUILD_DIR, "bundle.js")
         target_path = os.path.join(target_resource_dir, "bundle.js")
         shutil.copy2(bundle_js_file, target_path)
 

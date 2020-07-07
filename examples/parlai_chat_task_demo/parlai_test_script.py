@@ -24,7 +24,14 @@ parser.add_argument(
     "-uct",
     "--use-custom-task",
     default=False,
-    help="Launch task with custom javascript from build",
+    help="Launch task with custom pre-built javascript",
+    type=str2bool,
+)
+parser.add_argument(
+    "-bct",
+    "--build-custom-task",
+    default=False,
+    help="Launch task after building new custom js",
     type=str2bool,
 )
 parser.add_argument(
@@ -39,6 +46,7 @@ architect_type, requester_name, db, args = parser.parse_launch_arguments()
 
 USE_LOCAL = True
 DEMO_CUSTOM_BUNDLE = args["use_custom_task"]
+DEMO_BUILD_SIMPLE = args["build_custom_task"]
 USE_ONBOARDING = args["use_onboarding"]
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/parlai_chat_task_demo")
@@ -75,6 +83,9 @@ if DEMO_CUSTOM_BUNDLE:
     )
     world_opt["send_task_data"] = True
     ARG_STRING += f"--custom-source-bundle {bundle_file_path} "
+if DEMO_BUILD_SIMPLE:
+    source_dir_path = f"{TASK_DIRECTORY}/custom_simple"
+    ARG_STRING += f"--custom-source-dir {source_dir_path} "
 
 extra_args = {"world_opt": world_opt, "onboarding_world_opt": world_opt}
 

@@ -142,7 +142,13 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
             custom_source_file_path = os.path.expanduser(args["custom_source_bundle"])
             assert os.path.exists(
                 custom_source_file_path
-            ), f"Provided custom source doesn't exist at {custom_source_file_path}"
+            ), f"Provided custom bundle doesn't exist at {custom_source_file_path}"
+
+        if args.get("custom_source_dir") is not None:
+            custom_source_dir_path = os.path.expanduser(args["custom_source_dir"])
+            assert os.path.exists(
+                custom_source_dir_path
+            ), f"Provided custom source dir doesn't exist at {custom_source_dir_path}"
 
         if args.get("preview_source") is not None:
             preview_source_file = os.path.expanduser(args["preview_source"])
@@ -195,6 +201,11 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
             "--custom-source-bundle",
             dest="custom_source_bundle",
             help="Optional path to a fully custom frontend bundle",
+        )
+        group.add_argument(
+            "--custom-source-dir",
+            dest="custom_source_dir",
+            help="Optional path to a directory containing custom js code",
         )
         group.add_argument(
             "--extra-source-dir",

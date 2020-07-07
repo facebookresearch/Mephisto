@@ -9,6 +9,9 @@ tmp/*
 mephisto/server/**/package-lock.json
 mephisto/server/blueprints/**/build/*
 examples/**/build/*
+**/*.log
+**/build/*
+**/pre_build/*
 
 # temporary files for inspiration from ParlAI-MTurk
 old_code/*
