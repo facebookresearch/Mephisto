@@ -76,7 +76,7 @@ ARG_STRING = (
 )
 
 extra_args = {
-    "pairings_filepath": f"{TASK_DIRECTORY}/pairings.jsonl",
+    "pairings_filepath": args['pairings_filepath'],
     "block_on_onboarding_fail": True,
     "block_qualification": f"acute_eval_{int(time.time())}_block",
     # num times to use the same conversation pair
