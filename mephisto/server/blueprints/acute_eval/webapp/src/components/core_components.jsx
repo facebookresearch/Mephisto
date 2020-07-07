@@ -48,7 +48,7 @@ const otherspeaker_style = {
   backgroundColor: otherspeaker_color,
 };
 
-function ChatMessage({ message, model, is_primary_speaker }) {
+function ChatMessage({ message, model, is_primary_speaker, image_src }) {
   let primary_speaker_color =
     model === "model_left" ? speaker1_color : speaker2_color;
   let message_container_style = {
@@ -79,11 +79,21 @@ function ChatMessage({ message, model, is_primary_speaker }) {
           backgroundColor: otherspeaker_color,
         }),
   };
-  return (
-    <div style={message_container_style}>
-      <div style={message_style}>{message}</div>
-    </div>
-  );
+  if (image_src !== null) {
+    return (
+      <div style={message_container_style}>
+        <div style={message_style}>
+          {message}<img src={image_src} width="320" alt='Image'/>
+        </div>
+      </div>
+    );
+  } else {
+    return (
+      <div style={message_container_style}>
+        <div style={message_style}>{message}</div>
+      </div>
+    );
+  }
 }
 
 function MessageList({ task_data, index }) {
@@ -103,12 +113,10 @@ function MessageList({ task_data, index }) {
     messageList = messages.map((m, idx) => (
       <div key={model + "_" + idx}>
         <ChatMessage
-          message={
-            m.image_src !== undefined && m.image_src !== null
-              ? m.text + "<img src={m.image_src} alt='Image'/>" : m.text
-          }
+          message={m.text}
           is_primary_speaker={m.id == primary_speaker}
           model={model}
+          image_src={m.image_src !== undefined ? m.image_src : null}
         />
       </div>
     ));
@@ -555,6 +563,7 @@ class TaskDescription extends React.Component {
     let num_subtasks = task_config.num_subtasks;
     let question = task_config.question;
     let additional_task_description = task_config.additional_task_description;
+    console.log(additional_task_description);
     let content = (
       <div>
         In this task, you will read two conversations and judge&nbsp;
@@ -585,6 +594,8 @@ class TaskDescription extends React.Component {
         Additional pages will show errors or fail to load and you wll not be
         able to submit the hit.&nbsp;
         <h4>Please accept the task if you're ready.</h4>
+        <br />
+        {additional_task_description}
       </div>
     );
     if (!this.props.is_cover_page) {
@@ -623,6 +634,7 @@ class TaskDescription extends React.Component {
             You will do this for {num_subtasks} pairs of conversations.&nbsp;
             After completing each judgement, use the [NEXT] button.
           </b>
+          <br />
           <br />
           {additional_task_description}
         </div>
