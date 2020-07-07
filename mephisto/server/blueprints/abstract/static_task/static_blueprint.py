@@ -162,13 +162,6 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
             default=1,
             type=int,
         )
-        group.add_argument(
-            "--subtasks-per-unit",
-            dest="subtasks_per_unit",
-            type=int,
-            default=5,
-            help="number of subtasks/comparisons to do per unit",
-        )
         return
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
