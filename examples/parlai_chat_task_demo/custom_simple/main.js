@@ -50,7 +50,7 @@ function MainApp() {
           chatTitle={taskConfig.chat_title}
           taskDescriptionHtml={taskConfig.task_description}
         >
-          <h2>This is a custom Task Description loaded from a custom bundle</h2>
+          <h2>This is a custom Task Description built from a source dir</h2>
           <p>
             It has the ability to do a number of things, like directly access
             the contents of task data, view the number of messages so far, and
