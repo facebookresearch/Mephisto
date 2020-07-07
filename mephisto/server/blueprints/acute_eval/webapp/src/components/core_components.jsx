@@ -90,7 +90,7 @@ function MessageList({ task_data, index }) {
   let messageList;
 
   if (task_data.pairing_dict === undefined) {
-    messageLists = (
+    messageList = (
       <div>
         <p> Loading chats </p>
       </div>
@@ -103,9 +103,10 @@ function MessageList({ task_data, index }) {
     messageList = messages.map((m, idx) => (
       <div key={model + "_" + idx}>
         <ChatMessage
-          message={m.image_src !== undefined ? m.text + (
-            <img src={m.image_src} alt='Image'/>
-          ) : m.text}
+          message={
+            m.image_src !== undefined && m.image_src !== null
+              ? m.text + "<img src={m.image_src} alt='Image'/>" : m.text
+          }
           is_primary_speaker={m.id == primary_speaker}
           model={model}
         />
@@ -553,6 +554,7 @@ class TaskDescription extends React.Component {
     let task_config = this.props.task_config;
     let num_subtasks = task_config.num_subtasks;
     let question = task_config.question;
+    let additional_task_description = task_config.additional_task_description;
     let content = (
       <div>
         In this task, you will read two conversations and judge&nbsp;
@@ -622,6 +624,7 @@ class TaskDescription extends React.Component {
             After completing each judgement, use the [NEXT] button.
           </b>
           <br />
+          {additional_task_description}
         </div>
       );
     }

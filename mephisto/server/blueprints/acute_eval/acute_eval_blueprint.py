@@ -159,11 +159,18 @@ class AcuteEvalBlueprint(Blueprint):
         #     default=None,
         #     help='Path to list of workers to softblock, separated by line breaks',
         # )
+        group.add_argument(
+            "--additional-task-description",
+            dest="additional_task_description",
+            type=str,
+            default='',
+            help="Additional text to show on the left pane",
+        )
         return
 
     def get_frontend_args(self) -> Dict[str, Any]:
         """
-        Specifies what options within a task_config should be fowarded 
+        Specifies what options within a task_config should be forwarded
         to the client for use by the task's frontend
         """
         return {
@@ -173,6 +180,7 @@ class AcuteEvalBlueprint(Blueprint):
             "question": self.opts["eval_question"],
             "block_mobile": True,
             "get_task_feedback": False,  # TODO(#95) make option
+            "additional_task_description": self.opts['additional_task_description'],
         }
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
