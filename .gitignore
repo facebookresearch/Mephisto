@@ -13,3 +13,6 @@ examples/**/build/*
 # temporary files for inspiration from ParlAI-MTurk
 old_code/*
 mephisto/server/architects/router_old/*
+
+# PyCharm
+.idea

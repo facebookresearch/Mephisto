@@ -62,6 +62,8 @@ This is a template of the expected format with the minimal expected fields:
       ]
     }
 
+You can add an `"image_src"` key to an entry of `"dialogue"` to append an image to a chat message. The value of the key should be a serialized image, starting with a string such `data:image/jpeg;base64,`.
+
 For onboarding tasks - tasks used to filter workers, see below for more details - you must additionally set a `correct_answer` field:
 
     {
