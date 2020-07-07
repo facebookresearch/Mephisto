@@ -89,8 +89,8 @@ function ChatMessage({ message, model, is_primary_speaker }) {
 function MessageList({ task_data, index }) {
   let messageList;
 
-  if (task_data.pairing_dict === undefined) {
-    messageLists = (
+  if (task_data === undefined || task_data.pairing_dict === undefined) {
+    messageList = (
       <div>
         <p> Loading chats </p>
       </div>
@@ -584,7 +584,10 @@ class TaskDescription extends React.Component {
       </div>
     );
     if (!this.props.is_cover_page) {
-      if (this.props.task_data.task_specs === undefined) {
+      if (
+        this.props.task_data === undefined || 
+        this.props.task_data.task_specs === undefined
+      ) {
         return <div>Loading</div>;
       }
       let num_subtasks = this.props.num_subtasks;
@@ -643,7 +646,9 @@ class LeftPane extends React.Component {
       overflow: "auto",
     };
     let pane_size = this.props.is_cover_page ? "col-xs-12" : "col-xs-4";
-    let has_context = this.props.task_data.has_context;
+    let has_context = (
+      this.props.task_data !== undefined ? this.props.task_data.has_context : false
+    );
     if (this.props.is_cover_page || !has_context) {
       return (
         <div id="left-pane" className={pane_size} style={frame_style}>

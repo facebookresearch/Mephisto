@@ -83,7 +83,7 @@ extra_args = {
     "annotations_per_pair": args["annotations_per_pair"],
     "random_seed": 42,  # random seed
     "subtasks_per_unit": args[
-        "subtask_per_unit"
+        "subtasks_per_unit"
     ],  # num comparisons to show within one unit
     "num_matchup_pairs": args[
         "num_matchup_pairs"
