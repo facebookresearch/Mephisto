@@ -75,7 +75,7 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
             jsonl_file = os.path.expanduser(opts["data_jsonl"])
             with open(jsonl_file, "r", encoding="utf-8-sig") as jsonl_fp:
                 line = jsonl_fp.readline()
-                while (line):
+                while line:
                     j = json.loads(line)
                     self._initialization_data_dicts.append(j)
                     line = jsonl_fp.readline()

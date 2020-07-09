@@ -246,9 +246,7 @@ class Operator:
             initialization_data_array = blueprint.get_initialization_data()
             # TODO(#99) extend
             if not isinstance(initialization_data_array, list):
-                raise NotImplementedError(
-                    "Non-list initialization data is not yet supported"
-                )
+                logger.info("Non-list initialization data is now supported")
 
             # Link the job together
             job = self.supervisor.register_job(
@@ -270,7 +268,8 @@ class Operator:
             raise e
 
         launcher = TaskLauncher(self.db, task_run, initialization_data_array)
-        launcher.start(task_url)
+        launcher.create_assignments()
+        launcher.launch_units(task_url)
 
         self._task_runs_tracked[task_run.db_id] = TrackedRun(
             task_run=task_run,

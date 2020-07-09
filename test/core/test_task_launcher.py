@@ -55,7 +55,8 @@ class TestTaskLauncher(unittest.TestCase):
         self.db.shutdown()
         shutil.rmtree(self.data_dir)
 
-    def get_mock_assignment_data_array(self) -> List[InitializationData]:
+    @staticmethod
+    def get_mock_assignment_data_array() -> List[InitializationData]:
         return [MockTaskRunner.get_mock_assignment_data()]
 
     @staticmethod
@@ -142,33 +143,17 @@ class TestTaskLauncher(unittest.TestCase):
             self.setUp()
 
     def test_assignments_generator(self):
-        """Initialize a launcher on a task run, then create the assignments"""
+        """Initialize a launcher on a task run, then try generate the assignments"""
         mock_data_array = self.get_mock_assignment_data_generator()
-        launcher = TaskLauncher(self.db, self.task_run, mock_data_array)
 
         start_time = time.time()
+        launcher = TaskLauncher(self.db, self.task_run, mock_data_array)
         launcher.create_assignments()
         end_time = time.time()
-        self.assertLessEqual(end_time-start_time, (NUM_GENERATED_ASSIGNMENTS * WAIT_TIME_TILL_NEXT_ASSIGNMENT)/2)
-
-        for unit in launcher.units:
-            self.assertEqual(unit.get_db_status(), AssignmentState.CREATED)
-        for assignment in launcher.assignments:
-            self.assertEqual(assignment.get_status(), AssignmentState.CREATED)
-
-        launcher.launch_units("dummy-url:3000")
-
-        for unit in launcher.units:
-            self.assertEqual(unit.get_db_status(), AssignmentState.LAUNCHED)
-        for assignment in launcher.assignments:
-            self.assertEqual(assignment.get_status(), AssignmentState.LAUNCHED)
-
-        launcher.expire_units()
-
-        for unit in launcher.units:
-            self.assertEqual(unit.get_db_status(), AssignmentState.EXPIRED)
-        for assignment in launcher.assignments:
-            self.assertEqual(assignment.get_status(), AssignmentState.EXPIRED)
+        self.assertLessEqual(
+            end_time - start_time,
+            (NUM_GENERATED_ASSIGNMENTS * WAIT_TIME_TILL_NEXT_ASSIGNMENT) / 2,
+        )
 
 
 if __name__ == "__main__":
