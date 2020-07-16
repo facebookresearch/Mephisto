@@ -40,5 +40,10 @@ def direct_soft_block_mturk_workers(
         )
 
     mturk_client = requester._get_client(requester._requester_name)
-    for worker_id in worker_list:
-        give_worker_qualification(mturk_client, worker_id, qualification_id, value=1)
+    for idx, worker_id in enumerate(worker_list):
+        if idx % 50 == 0:
+            print(f'Blocked {idx + 1} workers so far.')
+        try:
+            give_worker_qualification(mturk_client, worker_id, qualification_id, value=1)
+        except Exception as e:
+            print(f'Failed to give worker with ID: \"{worker_id}\" qualification with error: {e}. Skipping.')
