@@ -17,6 +17,12 @@ Further, you can try running a task using a customized frontend bundle with:
 python examples/parlai_chat_task_demo/parlai_test_script.py --use-custom-task true
 ```
 
+### Command line arguments
+- `--use-onboarding` (bool): Whether or not to launch this demo task with an onboarding world to see how onboarding worlds work.
+- `--build-custom-task` (bool): Whether to use the `ParlAIChatTaskBuilder` to build a custom frontend source from the `custom_simple` directory. See usage of `--custom-source-dir` in the Task Arguments section to use this for your task.
+- `--use-custom-task` (bool): Whether or not to launch the task with a prebuilt frontend source file (not created with the `TaskBuilder`), expected to by this script to be at `webapp/build/bundle.js`.
+- `--turn-timeout` (int): Maximum time in seconds to wait for a response between turns before marking a worker as timed out (default 300 seconds).
+
 ## Implementation
 ### Configuration
 The run script for this example task is configured using the `MephistoRunScriptParser`, and more details about using this utility can be found viewing other examples, or by checking the documentation (TODO). This task adds an additional argument for `--use-onboarding` to demonstrate how to have an onboarding step before the main task world, as well as a `--use-custom-task` argument to demonstrate how to get ParlAI tasks to load a custom frontend.
@@ -45,10 +51,11 @@ Within the run script, you'll find a number of arguments set up via an `ARG_STRI
 - `--task-reward` - The reward paid out in dollars for completing your task
 - `--onboarding-qualification` (optional) - The qualification to grant to a worker when they have completed onboarding, such that they no longer need to do onboarding in future tasks where you specify the same qualification name. This qualification will 
 - `--task-name` - This task name will be used to consolidate your data across runs. Generally we suggest using `descriptive-string-pilot-#` when piloting and `descriptive-task-string` for your main collection. More details on this are in the (TODO) Mephisto argument instructions.
-#### ParlAI arguments
+#### ParlAI-specific arguments
 - `--world-file` - Path to the python file containing your worlds. Detailed requirements of this file in the "The worlds file" section.
 - `--task-description-file` - Path to an HTML file containing the task preview and basic instructions for your task. If you use a custom built frontend, you can omit this argument and directly edit the `TaskPreviewView` in `app.jsx` instead. 
 - `--num-conversations` - Number of conversations to have. This currently leads to `--num-conversations` * `agent_count` tasks being launched for workers to do. Incomplete tasks are _currently_ not relaunched.
+- `--custom-source-dir` - Path to a folder containing, at the very least, a `main.js` for a custom ParlAI frontend view. Can also contain an updated `package.json` if that file imports anything outside of the defaults used in `server/blueprints/parlai_chat/webapp/package.json`. Providing this flag will make Mephisto build that frontend in a `_generated` directory, and refer to that build when launching your task. Mephisto will only rebuild when the source files in the provided `--custom-source-dir` are updated.
 - `--custom-source-bundle` - Path to a custom built source bundle to deploy to the frontend instead of the standard ParlAI view. For this task we specify a build in the `webapp` directory, but you'll need to run `npm install; npm run dev` in that directory the first time you use a bundle (and whenever you make changes to the `src` that you want to be picked up)
 - `world_opt` (passed via `extra_args`) - The world option will be passed to the `make_world` function as the first argument. Passing contents through `world_opt` is the preferred way to share important state between different calls to `make_world`, as this dict will be shared amongst all calls.
 - `onboarding_world_opt` (passed via `extra_args`) - The world option will be passed to the `make_onboarding_world` function as the first argument. 
