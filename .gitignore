@@ -11,7 +11,7 @@ mephisto/server/blueprints/**/build/*
 examples/**/build/*
 **/*.log
 **/build/*
-**/pre_build/*
+**/_generated/*
 
 # temporary files for inspiration from ParlAI-MTurk
 old_code/*

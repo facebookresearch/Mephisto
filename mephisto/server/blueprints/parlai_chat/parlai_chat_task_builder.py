@@ -24,7 +24,7 @@ FRONTEND_SOURCE_DIR = os.path.join(PARLAI_TASK_DIR, "webapp")
 FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 
 BUILT_FILE = "done.built"
-
+CUSTOM_BUILD_DIRNAME = "_generated"
 
 class ParlAIChatTaskBuilder(TaskBuilder):
     """
@@ -57,7 +57,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
             )
         os.chdir(return_dir)
 
-    def build_and_return_custom_bundle(self, custom_build_dir):
+    def build_and_return_custom_bundle(self, custom_src_dir):
         """Locate all of the custom files used for a custom build, create
         a prebuild directory containing all of them, then build the 
         custom source.
@@ -70,7 +70,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
             'package.json': 'package.json',
         }
 
-        prebuild_path = os.path.join(custom_build_dir, 'pre_build')
+        prebuild_path = os.path.join(custom_src_dir, CUSTOM_BUILD_DIRNAME)
         build_path = os.path.join(prebuild_path, 'build', 'bundle.js')
         
         # see if we need to rebuild
@@ -78,7 +78,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
             created_date = os.path.getmtime(build_path)
             up_to_date = True
             for fn in TARGET_BUILD_FILES.keys():
-                possible_conflict = os.path.join(custom_build_dir, fn)
+                possible_conflict = os.path.join(custom_src_dir, fn)
                 if os.path.exists(possible_conflict):
                     if os.path.getmtime(possible_conflict) > created_date:
                         up_to_date = False
@@ -113,7 +113,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
 
         # copy custom files
         for src_file in TARGET_BUILD_FILES.keys():
-            src_path = os.path.join(custom_build_dir, src_file)
+            src_path = os.path.join(custom_src_dir, src_file)
             if os.path.exists(src_path):
                 dst_path = os.path.join(prebuild_path, TARGET_BUILD_FILES[src_file])
                 shutil.copy2(src_path, dst_path)
