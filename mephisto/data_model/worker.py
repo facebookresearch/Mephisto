@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.qualifications import GrantedQualification
+    from mephisto.data_model.qualification import GrantedQualification
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
