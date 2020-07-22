@@ -206,6 +206,11 @@ class Operator:
             os.makedirs(build_dir, exist_ok=True)
             architect = ArchitectClass(self.db, task_args, task_run, build_dir)
 
+            # Register the blueprint with args to the task run,
+            # ensure cached
+            blueprint = BlueprintClass(task_run, task_args)
+            task_run.get_blueprint(opts=task_args)
+
             # Setup and deploy the server
             built_dir = architect.prepare()
             task_url = architect.deploy()
@@ -242,7 +247,6 @@ class Operator:
             provider = CrowdProviderClass(self.db)
             provider.setup_resources_for_task_run(task_run, task_args, task_url)
 
-            blueprint = BlueprintClass(task_run, task_args)
             initialization_data_array = blueprint.get_initialization_data()
             # TODO(#99) extend
             if not isinstance(initialization_data_array, list):

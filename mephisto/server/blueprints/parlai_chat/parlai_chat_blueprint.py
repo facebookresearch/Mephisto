@@ -233,7 +233,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         Specifies what options within a task_config should be fowarded 
         to the client for use by the task's frontend
         """
-        return {
+        frontend_task_config = {
             "task_description": self.full_task_description,
             "frame_height": 650,
             "chat_title": self.opts["task_title"],
@@ -241,6 +241,8 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
             "block_mobile": True,
             "frontend_task_opts": self.opts.get("task_opts", {}),
         }
+        frontend_task_config.update(super().get_frontend_args())
+        return frontend_task_config
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
         """
