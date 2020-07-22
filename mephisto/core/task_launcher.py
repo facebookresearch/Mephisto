@@ -37,9 +37,9 @@ GENERATOR_WAIT_SECONDS = 0.5
 
 
 class GeneratorType(enum.Enum):
-    none = 0
-    unit = 1
-    assignment = 2
+    NONE = 0
+    UNIT = 1
+    ASSIGNMENT = 2
 
 
 class TaskLauncher:
@@ -68,28 +68,16 @@ class TaskLauncher:
         self.unlaunched_units: Dict[str, Unit] = {}
         self.keep_launching_units: bool = False
         self.finished_generators: bool = False
-        self.did_create_assignments = False
         self.did_launch_units = False
         self.unlaunched_units_access_condition = threading.Condition()
         if isinstance(self.assignment_data_iterable, types.GeneratorType):
-            self.generator_type = GeneratorType.assignment
+            self.generator_type = GeneratorType.ASSIGNMENT
         else:
-            self.generator_type = GeneratorType.none
+            self.generator_type = GeneratorType.NONE
         run_dir = task_run.get_run_dir()
         os.makedirs(run_dir, exist_ok=True)
 
         logger.debug(f"type of assignment data: {type(self.assignment_data_iterable)}")
-        if self.generator_type is not GeneratorType.none:
-            self.finished_generators = False
-            main_thread = threading.Thread(target=self.manage_generators, args=())
-            main_thread.start()
-
-    def manage_generators(self) -> None:
-        while not self.finished_generators:
-            if self.did_create_assignments:
-                # try generating assignments
-                self._try_generate_assignments()
-            time.sleep(GENERATOR_WAIT_SECONDS)
 
     def _create_single_assignment(self, assignment_data) -> None:
         """ Create a single assignment in the database using its read assignment_data """
@@ -124,23 +112,25 @@ class TaskLauncher:
                 self.unlaunched_units[unit_id] = Unit(self.db, unit_id)
             self.keep_launching_units = True
 
-    def _try_generate_assignments(self) -> None:
+    def _try_generating_assignments(self) -> None:
         """ Try to generate more assignments from the assignments_data_iterator"""
-        try:
-            data = next(self.assignment_data_iterable)
-            self._create_single_assignment(data)
-        except StopIteration:
-            self.did_create_assignments = False
-            self.did_launch_units = False
-            self.finished_generators = True
+        while not self.finished_generators:
+            try:
+                data = next(self.assignment_data_iterable)
+                self._create_single_assignment(data)
+            except StopIteration:
+                self.did_launch_units = False
+                self.finished_generators = True
+            time.sleep(GENERATOR_WAIT_SECONDS)
 
     def create_assignments(self) -> None:
         """ Create an assignment and associated units for the generated assignment data """
-        if self.generator_type == GeneratorType.none:
+        if self.generator_type == GeneratorType.NONE:
             for data in self.assignment_data_iterable:
                 self._create_single_assignment(data)
         else:
-            self.did_create_assignments = True
+            main_thread = threading.Thread(target=self._try_generating_assignments, args=())
+            main_thread.start()
             self.did_launch_units = True
 
     def generate_units(self):
@@ -187,7 +177,7 @@ class TaskLauncher:
         while self.did_launch_units:
             for unit in self.generate_units():
                 unit.launch(url)
-            if self.generator_type == GeneratorType.none:
+            if self.generator_type == GeneratorType.NONE:
                 self.did_launch_units = False
                 break
 

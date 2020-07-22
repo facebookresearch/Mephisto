@@ -244,9 +244,6 @@ class Operator:
 
             blueprint = BlueprintClass(task_run, task_args)
             initialization_data_array = blueprint.get_initialization_data()
-            # TODO(#99) extend
-            if not isinstance(initialization_data_array, list):
-                logger.info("Non-list initialization data is now supported")
 
             # Link the job together
             job = self.supervisor.register_job(
