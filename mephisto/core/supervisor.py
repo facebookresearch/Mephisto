@@ -235,8 +235,8 @@ class Supervisor:
         """Handle the submission of onboarding data"""
         onboarding_id = packet.sender_id
         if onboarding_id not in self.agents:
-            logger.warn(
-                f"Onboarding agent {onboarding_id} already registered or disconnected, "
+            logger.warning(
+                f"Onboarding agent {onboarding_id} already submitted or disconnected, "
                 f"but is calling _on_submit_onboarding again"
             )
             return
