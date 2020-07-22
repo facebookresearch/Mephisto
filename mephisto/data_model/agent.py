@@ -414,7 +414,7 @@ class OnboardingAgent(ABC):
         this agent into
         """
         task_run_dir = self.get_task_run().get_run_dir()
-        return os.path.join(task_run_dir, "onboarding")
+        return os.path.join(task_run_dir, "onboarding", self.get_agent_id())
 
     def update_status(self, new_status: str) -> None:
         """Update the database status of this agent, and
