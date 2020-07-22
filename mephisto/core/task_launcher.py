@@ -68,7 +68,6 @@ class TaskLauncher:
         self.unlaunched_units: Dict[str, Unit] = {}
         self.keep_launching_units: bool = False
         self.finished_generators: bool = False
-        self.did_launch_units = False
         self.unlaunched_units_access_condition = threading.Condition()
         if isinstance(self.assignment_data_iterable, types.GeneratorType):
             self.generator_type = GeneratorType.ASSIGNMENT
@@ -119,7 +118,6 @@ class TaskLauncher:
                 data = next(self.assignment_data_iterable)
                 self._create_single_assignment(data)
             except StopIteration:
-                self.did_launch_units = False
                 self.finished_generators = True
             time.sleep(GENERATOR_WAIT_SECONDS)
 
@@ -131,7 +129,6 @@ class TaskLauncher:
         else:
             main_thread = threading.Thread(target=self._try_generating_assignments, args=())
             main_thread.start()
-            self.did_launch_units = True
 
     def generate_units(self):
         """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
@@ -174,16 +171,14 @@ class TaskLauncher:
 
     def _launch_limited_units(self, url: str) -> None:
         """ use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
-        while self.did_launch_units:
+        while not self.finished_generators:
             for unit in self.generate_units():
                 unit.launch(url)
             if self.generator_type == GeneratorType.NONE:
-                self.did_launch_units = False
                 break
 
     def launch_units(self, url: str) -> None:
         """launch any units registered by this TaskLauncher"""
-        self.did_launch_units = True
         thread = threading.Thread(target=self._launch_limited_units, args=(url,))
         thread.start()
 
