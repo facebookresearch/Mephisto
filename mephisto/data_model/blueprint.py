@@ -590,6 +590,7 @@ class Blueprint(ABC):
 
     def __init__(self, task_run: "TaskRun", opts: Any):
         self.opts = opts
+        self.frontend_task_config = opts.get('task_config', {})
 
     @classmethod
     def assert_task_args(cls, args: Any):
@@ -636,7 +637,7 @@ class Blueprint(ABC):
         Specifies what options should be fowarded 
         to the client for use by the task's frontend
         """
-        return {}
+        return self.frontend_task_config
 
     @abstractmethod
     def get_initialization_data(

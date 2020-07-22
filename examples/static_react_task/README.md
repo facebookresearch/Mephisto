@@ -39,6 +39,10 @@ which if you look at the `webapp/src/components/core_components.jsx` file you ca
 ```
 This is the flow for providing data to a static react task.
 
+#### Adding taskConfig
+
+You can also pass an additional dict under the key `task_config` as a part of `extra_args` to populate the frontend's `taskConfig` with those values for every task in a run.
+
 ### Getting data back
 From within the frontend, any call to the `handleSubmit` method will store the data in any object passed as an argument to the local filestorage:
 
