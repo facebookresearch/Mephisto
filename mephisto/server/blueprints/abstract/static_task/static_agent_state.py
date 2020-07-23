@@ -61,7 +61,7 @@ class StaticAgentState(AgentState):
         Return the initial state for this agent,
         None if no such state exists
         """
-        return self.state["inputs"]
+        return self.state["inputs"].copy()
 
     def load_data(self) -> None:
         """Load data for this agent from disk"""
@@ -75,7 +75,7 @@ class StaticAgentState(AgentState):
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict of this agent's state"""
-        return self.state
+        return self.state.copy()
 
     def save_data(self) -> None:
         """Save static agent data to disk"""

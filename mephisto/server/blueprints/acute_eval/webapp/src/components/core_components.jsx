@@ -232,15 +232,15 @@ class EvalResponse extends React.Component {
   }
 
   checkValidData() {
+    let response_data = {
+      speakerChoice: this.state.speakerChoice,
+      textReason: this.state.textReason,
+    };
     if (this.state.speakerChoice !== "" && this.state.textReason.length > 4) {
-      let response_data = {
-        speakerChoice: this.state.speakerChoice,
-        textReason: this.state.textReason,
-      };
       this.props.onValidDataChange(true, response_data);
       return;
     }
-    this.props.onValidDataChange(false, {});
+    this.props.onValidDataChange(false, response_data);
   }
 
   handleInputChange(event) {
