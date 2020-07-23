@@ -100,6 +100,7 @@ class MTurkUnit(Unit):
         mturk_hit_id = self.get_mturk_hit_id()
         if mturk_hit_id is not None:
             self.datastore.register_assignment_to_hit(mturk_hit_id)
+            self._sync_hit_mapping()
 
     # Required Unit functions
 
