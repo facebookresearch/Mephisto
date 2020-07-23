@@ -9,6 +9,7 @@ from mephisto.server.blueprints.abstract.static_task.static_agent_state import (
     StaticAgentState,
 )
 import os
+import time
 import json
 
 if TYPE_CHECKING:
@@ -48,5 +49,6 @@ class AcuteEvalAgentState(StaticAgentState):
         assert (
             packet.data.get("MEPHISTO_is_submit") is True
         ), "Static tasks should only have final act"
+        self.state["times"]["task_end"] = time.time()
         self.state["outputs"] = packet.data["task_data"]
         self.save_data()
