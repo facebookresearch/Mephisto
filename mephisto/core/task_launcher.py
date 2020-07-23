@@ -33,7 +33,7 @@ import types
 logger = get_logger(name=__name__, verbose=True, level="debug")
 
 UNIT_GENERATOR_WAIT_SECONDS = 10
-GENERATOR_WAIT_SECONDS = 0.5
+ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
 
 
 class GeneratorType(enum.Enum):
@@ -109,7 +109,6 @@ class TaskLauncher:
             self.units.append(Unit(self.db, unit_id))
             with self.unlaunched_units_access_condition:
                 self.unlaunched_units[unit_id] = Unit(self.db, unit_id)
-            self.keep_launching_units = True
 
     def _try_generating_assignments(self) -> None:
         """ Try to generate more assignments from the assignments_data_iterator"""
@@ -119,16 +118,19 @@ class TaskLauncher:
                 self._create_single_assignment(data)
             except StopIteration:
                 self.finished_generators = True
-            time.sleep(GENERATOR_WAIT_SECONDS)
+            time.sleep(ASSIGNMENT_GENERATOR_WAIT_SECONDS)
 
     def create_assignments(self) -> None:
         """ Create an assignment and associated units for the generated assignment data """
+        self.keep_launching_units = True
         if self.generator_type == GeneratorType.NONE:
             for data in self.assignment_data_iterable:
                 self._create_single_assignment(data)
         else:
-            main_thread = threading.Thread(target=self._try_generating_assignments, args=())
-            main_thread.start()
+            assignment_gen_thread = threading.Thread(
+                target=self._try_generating_assignments, args=()
+            )
+            assignment_gen_thread.start()
 
     def generate_units(self):
         """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
