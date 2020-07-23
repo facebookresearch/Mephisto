@@ -326,7 +326,11 @@ def convert_mephisto_qualifications(
         if converted["Comparator"] is None:
             converted["Comparator"] = qualification["comparator"]
 
-        if converted["IntegerValue"] is None and converted["LocaleValues"] is None:
+        if (
+            converted["IntegerValue"] is None
+            and converted["IntegerValues"] is None
+            and converted["LocaleValues"] is None
+        ):
             value = qualification["value"]
             if isinstance(value, list):
                 converted["IntegerValues"] = value
