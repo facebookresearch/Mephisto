@@ -25,7 +25,7 @@ from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 MAX_WAIT_TIME_UNIT_LAUNCH = 15
 NUM_GENERATED_ASSIGNMENTS = 10
 WAIT_TIME_TILL_NEXT_ASSIGNMENT = 1
-
+WAIT_TIME_TILL_NEXT_UNIT = 0.01
 
 class LimitedDict(dict):
     def __init__(self, limit):
@@ -102,6 +102,7 @@ class TestTaskLauncher(unittest.TestCase):
 
         for unit in launcher.units:
             self.assertEqual(unit.get_db_status(), AssignmentState.LAUNCHED)
+            time.sleep(WAIT_TIME_TILL_NEXT_UNIT)
         for assignment in launcher.assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.LAUNCHED)
 
