@@ -300,6 +300,7 @@ def convert_mephisto_qualifications(
             "QualificationTypeId",
             "Comparator",
             "IntegerValue",
+            "IntegerValues",
             "LocaleValues",
             "ActionsGuarded",
         ]
