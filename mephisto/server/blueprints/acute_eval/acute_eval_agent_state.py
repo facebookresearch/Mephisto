@@ -49,6 +49,6 @@ class AcuteEvalAgentState(StaticAgentState):
         assert (
             packet.data.get("MEPHISTO_is_submit") is True
         ), "Static tasks should only have final act"
-        times_dict["task_end"] = time.time()
+        self.state["times"]["task_end"] = time.time()
         self.state["outputs"] = packet.data["task_data"]
         self.save_data()
