@@ -335,10 +335,13 @@ def convert_mephisto_qualifications(
             value = qualification["value"]
             if isinstance(value, list):
                 converted["IntegerValues"] = value
+                del converted["IntegerValue"]
             elif isinstance(value, int):
                 converted["IntegerValue"] = value
+                del converted["IntegerValues"]
             else:
                 del converted["IntegerValue"]
+                del converted["IntegerValues"]
 
         if converted["LocaleValues"] is None:
             del converted["LocaleValues"]
