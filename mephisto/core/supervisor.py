@@ -234,6 +234,12 @@ class Supervisor:
     def _on_submit_onboarding(self, packet: Packet, channel_info: ChannelInfo):
         """Handle the submission of onboarding data"""
         onboarding_id = packet.sender_id
+        if onboarding_id not in self.agents:
+            logger.warning(
+                f"Onboarding agent {onboarding_id} already submitted or disconnected, "
+                f"but is calling _on_submit_onboarding again"
+            )
+            return
         agent_info = self.agents[onboarding_id]
         agent = agent_info.agent
         # Update the request id for the original packet (which has the required
@@ -249,6 +255,7 @@ class Supervisor:
         agent.pending_actions.append(packet)
         agent.has_action.set()
         self._register_agent_from_onboarding(agent_info)
+        logger.info(f"Onboarding agent {onboarding_id} registered out from onboarding")
         del self.agents[onboarding_id]
         del self.onboarding_packets[onboarding_id]
 
@@ -309,6 +316,10 @@ class Supervisor:
         finally:
             if tracked_agent.get_status() != AgentState.STATUS_WAITING:
                 onboarding_id = tracked_agent.get_agent_id()
+                logger.info(
+                    f"Onboarding agent {onboarding_id} disconnected or errored, "
+                    f"final status {tracked_agent.get_status()}."
+                )
                 del self.agents[onboarding_id]
                 del self.onboarding_packets[onboarding_id]
 
