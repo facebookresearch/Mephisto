@@ -77,6 +77,8 @@ class TaskLauncher:
         os.makedirs(run_dir, exist_ok=True)
 
         logger.debug(f"type of assignment data: {type(self.assignment_data_iterable)}")
+        self.units_thread = None
+        self.assignments_thread = None
 
     def _create_single_assignment(self, assignment_data) -> None:
         """ Create a single assignment in the database using its read assignment_data """
@@ -127,10 +129,10 @@ class TaskLauncher:
             for data in self.assignment_data_iterable:
                 self._create_single_assignment(data)
         else:
-            assignment_gen_thread = threading.Thread(
+            self.assignments_thread = threading.Thread(
                 target=self._try_generating_assignments, args=()
             )
-            assignment_gen_thread.start()
+            self.assignments_thread.start()
 
     def generate_units(self):
         """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
@@ -181,8 +183,10 @@ class TaskLauncher:
 
     def launch_units(self, url: str) -> None:
         """launch any units registered by this TaskLauncher"""
-        thread = threading.Thread(target=self._launch_limited_units, args=(url,))
-        thread.start()
+        self.units_thread = threading.Thread(
+            target=self._launch_limited_units, args=(url,)
+        )
+        self.units_thread.start()
 
     def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""
@@ -196,3 +200,6 @@ class TaskLauncher:
                     f"Warning: failed to expire unit {unit.db_id}. Stated error: {e}",
                     exc_info=True,
                 )
+        if self.units_thread is not None and self.assignments_thread is not None:
+            self.units_thread.join()
+            self.assignments_thread.join()
