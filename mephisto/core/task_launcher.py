@@ -32,8 +32,8 @@ import types
 
 logger = get_logger(name=__name__, verbose=True, level="debug")
 
-UNIT_GENERATOR_WAIT_SECONDS = 1
-ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.05
+UNIT_GENERATOR_WAIT_SECONDS = 10
+ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
 
 
 class GeneratorType(enum.Enum):
