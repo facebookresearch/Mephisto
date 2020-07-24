@@ -32,8 +32,8 @@ import types
 
 logger = get_logger(name=__name__, verbose=True, level="debug")
 
-UNIT_GENERATOR_WAIT_SECONDS = 10
-ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
+UNIT_GENERATOR_WAIT_SECONDS = 1
+ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.05
 
 
 class GeneratorType(enum.Enum):
@@ -200,6 +200,9 @@ class TaskLauncher:
                     f"Warning: failed to expire unit {unit.db_id}. Stated error: {e}",
                     exc_info=True,
                 )
-        if self.units_thread is not None and self.assignments_thread is not None:
-            self.units_thread.join()
+
+    def shutdown(self) -> None:
+        """Clean up running threads for generating assignments and units"""
+        if self.assignments_thread is not None:
             self.assignments_thread.join()
+        self.units_thread.join()

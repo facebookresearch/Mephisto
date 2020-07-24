@@ -289,6 +289,7 @@ class Operator:
                 if task_run.get_is_completed():
                     self.supervisor.shutdown_job(tracked_run.job)
                     tracked_run.architect.shutdown()
+                    tracked_run.task_launcher.shutdown()
                     del self._task_runs_tracked[task_run.db_id]
             time.sleep(2)
 
@@ -297,6 +298,7 @@ class Operator:
         self.is_shutdown = True
         for tracked_run in self._task_runs_tracked.values():
             logger.info("expiring units")
+            tracked_run.task_launcher.shutdown()
             tracked_run.task_launcher.expire_units()
         try:
             remaining_runs = self._task_runs_tracked.values()
