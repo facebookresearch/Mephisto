@@ -482,6 +482,9 @@ class Supervisor:
             worker.grant_qualification(
                 blueprint.onboarding_failed_name, int(worker_passed)
             )
+            onboarding_agent.update_status(AgentState.STATUS_REJECTED)
+        else:
+            onboarding_agent.update_status(AgentState.STATUS_APPROVED)
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)

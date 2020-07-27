@@ -422,9 +422,11 @@ class OnboardingAgent(ABC):
         them of this update"""
         if self.db_status == new_status:
             return  # Noop, this is already the case
-        assert (
-            self.db_status not in AgentState.complete()
-        ), f"Cannot update a final status, was {self.db_status} and want to set to {new_status}"
+        if self.db_status in AgentState.complete():
+            print(
+                f"Updating a final status, was {self.db_status} "
+                f"and want to set to {new_status}"
+            )
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
         self.has_updated_status.set()
