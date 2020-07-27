@@ -61,6 +61,8 @@ class StaticAgentState(AgentState):
         Return the initial state for this agent,
         None if no such state exists
         """
+        if self.state["inputs"] is None:
+            return None
         return self.state["inputs"].copy()
 
     def load_data(self) -> None:
