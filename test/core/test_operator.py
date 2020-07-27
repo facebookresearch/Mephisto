@@ -19,6 +19,8 @@ from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
 from mephisto.server.architects.mock_architect import MockArchitect
 
+TIMEOUT_TIME = 10
+
 
 class TestOperator(unittest.TestCase):
     """
@@ -123,7 +125,6 @@ class TestOperator(unittest.TestCase):
 
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
-        TIMEOUT_TIME = 3
         while time.time() - start_time < TIMEOUT_TIME:
             if len(self.operator.get_running_task_runs()) == 0:
                 break
@@ -195,7 +196,6 @@ class TestOperator(unittest.TestCase):
 
         # Give up to 5 seconds for both tasks to complete
         start_time = time.time()
-        TIMEOUT_TIME = 3
         while time.time() - start_time < TIMEOUT_TIME:
             if len(self.operator.get_running_task_runs()) == 0:
                 break
@@ -328,7 +328,6 @@ class TestOperator(unittest.TestCase):
 
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
-        TIMEOUT_TIME = 3
         while time.time() - start_time < TIMEOUT_TIME:
             if len(self.operator.get_running_task_runs()) == 0:
                 break
@@ -396,7 +395,6 @@ class TestOperator(unittest.TestCase):
 
         # Ensure the task run completed and that all assignments are done
         start_time = time.time()
-        TIMEOUT_TIME = 3
         while time.time() - start_time < TIMEOUT_TIME:
             if len(self.operator.get_running_task_runs()) == 0:
                 break

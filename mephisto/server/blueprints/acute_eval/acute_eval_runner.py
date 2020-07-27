@@ -303,19 +303,19 @@ class AcuteEvalRunner(TaskRunner):
         tasks_per_unit = self.opts["subtasks_per_unit"]
         # first add onboarding tasks
         task_data = self.get_onboarding_tasks(worker_id)
-        logger.debug("Onboarding task data gotten: ", len(task_data))
+        logger.debug(f"Onboarding task data gotten: {len(task_data)}")
         if len(task_data) == tasks_per_unit:
             return task_data
 
         # poll the task queue for more tasks
         task_data = self._poll_task_queue(worker_id, task_data)
-        logger.debug("Task queue data gotten: ", len(task_data))
+        logger.debug(f"Task queue data gotten: {len(task_data)}")
         if len(task_data) == tasks_per_unit:
             return task_data
 
         # top up the task_data if we don't hit the desired tasks_per_unit
         task_data = self._top_up_task_data(worker_id, task_data)
-        logger.debug("Topped off data gotten: ", len(task_data))
+        logger.debug(f"Topped off data gotten: {len(task_data)}")
         return task_data
 
     def requeue_task_data(self, worker_id: str, task_data: List[PairingsDict]):
