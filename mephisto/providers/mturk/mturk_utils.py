@@ -338,11 +338,6 @@ def convert_mephisto_qualifications(
                 converted["IntegerValues"] = value
             elif isinstance(value, int):
                 converted["IntegerValue"] = value
-            else:
-                raise Exception(
-                    f"Unexpected qualification value {value} given in "
-                    f"qualification {qualification}, expected types list or int"
-                )
 
         # IntegerValue is deprecated, and needs conversion to IntegerValues
         if converted["IntegerValue"] is not None:
