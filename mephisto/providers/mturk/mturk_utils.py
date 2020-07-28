@@ -327,6 +327,7 @@ def convert_mephisto_qualifications(
         if converted["Comparator"] is None:
             converted["Comparator"] = qualification["comparator"]
 
+        # if no Mturk Values are set, pull from the qualification's value
         if (
             converted["IntegerValue"] is None
             and converted["IntegerValues"] is None
@@ -335,13 +336,21 @@ def convert_mephisto_qualifications(
             value = qualification["value"]
             if isinstance(value, list):
                 converted["IntegerValues"] = value
-                del converted["IntegerValue"]
             elif isinstance(value, int):
                 converted["IntegerValue"] = value
-                del converted["IntegerValues"]
             else:
-                del converted["IntegerValue"]
-                del converted["IntegerValues"]
+                raise Exception(
+                    f"Unexpected qualification value {value} given in "
+                    f"qualification {qualification}, expected types list or int"
+                )
+
+        # IntegerValue is deprecated, and needs conversion to IntegerValues
+        if converted["IntegerValue"] is not None:
+            converted["IntegerValues"] = [converted["IntegerValue"]]
+        del converted["IntegerValue"]
+
+        if converted["IntegerValues"] is None:
+            del converted["IntegerValues"]
 
         if converted["LocaleValues"] is None:
             del converted["LocaleValues"]
