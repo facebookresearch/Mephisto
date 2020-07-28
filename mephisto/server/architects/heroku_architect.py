@@ -18,6 +18,7 @@ import subprocess
 import sys
 import time
 import requests
+import re
 from mephisto.core.utils import get_mephisto_tmp_dir
 from mephisto.core.argparse_parser import str2bool
 from mephisto.data_model.architect import Architect
@@ -298,8 +299,8 @@ class HerokuArchitect(Architect):
             heroku_app_name = heroku_app_name.replace("_", "-")
             while heroku_app_name[-1] == "-":
                 heroku_app_name = heroku_app_name[:-1]
-            self.heroku_app_name = heroku_app_name.replace("_", "-")
-        return self.heroku_app_name
+            self.__heroku_app_name = re.sub(r'[^a-zA-Z0-9-]','', heroku_app_name)
+        return self.__heroku_app_name
 
     def __compile_server(self) -> str:
         """
