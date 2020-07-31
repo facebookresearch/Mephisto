@@ -314,7 +314,11 @@ class Supervisor:
             traceback.print_exc()
             task_runner.cleanup_onboarding(tracked_agent)
         finally:
-            if tracked_agent.get_status() != AgentState.STATUS_WAITING:
+            if tracked_agent.get_status() not in [
+                AgentState.STATUS_WAITING,
+                AgentState.STATUS_APPROVED,
+                AgentState.STATUS_REJECTED,
+            ]:
                 onboarding_id = tracked_agent.get_agent_id()
                 logger.info(
                     f"Onboarding agent {onboarding_id} disconnected or errored, "
