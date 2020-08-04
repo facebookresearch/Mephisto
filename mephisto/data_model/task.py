@@ -199,6 +199,7 @@ class TaskRun:
         self.provider_type = row["provider_type"]
         self.task_type = row["task_type"]
         self.sandbox = row["sandbox"]
+        self.assignment_generators_done: bool = False
 
         # properties with deferred loading
         self.__is_completed = row["is_completed"]
@@ -380,7 +381,7 @@ class TaskRun:
             for status in AssignmentState.incomplete():
                 if statuses[status] > 0:
                     has_incomplete = True
-            if not has_incomplete:
+            if not has_incomplete and self.assignment_generators_done:
                 self.db.update_task_run(self.db_id, is_completed=True)
                 self.__is_completed = True
 
