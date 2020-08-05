@@ -10,7 +10,7 @@ from mephisto.data_model.database import (
     EntryAlreadyExistsException,
     EntryDoesNotExistException,
 )
-from typing import Mapping, Optional, Any, List
+from typing import Mapping, Optional, Any, List, Dict
 from mephisto.core.utils import get_data_dir
 from mephisto.core.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
@@ -267,19 +267,19 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
-            c = conn.cursor()
-            c.execute(CREATE_PROJECTS_TABLE)
-            c.execute(CREATE_TASKS_TABLE)
-            c.execute(CREATE_REQUESTERS_TABLE)
-            c.execute(CREATE_TASK_RUNS_TABLE)
-            c.execute(CREATE_ASSIGNMENTS_TABLE)
-            c.execute(CREATE_UNITS_TABLE)
-            c.execute(CREATE_WORKERS_TABLE)
-            c.execute(CREATE_AGENTS_TABLE)
-            c.execute(CREATE_QUALIFICATIONS_TABLE)
-            c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
-            c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
-            conn.commit()
+            with conn:
+                c = conn.cursor()
+                c.execute(CREATE_PROJECTS_TABLE)
+                c.execute(CREATE_TASKS_TABLE)
+                c.execute(CREATE_REQUESTERS_TABLE)
+                c.execute(CREATE_TASK_RUNS_TABLE)
+                c.execute(CREATE_ASSIGNMENTS_TABLE)
+                c.execute(CREATE_UNITS_TABLE)
+                c.execute(CREATE_WORKERS_TABLE)
+                c.execute(CREATE_AGENTS_TABLE)
+                c.execute(CREATE_QUALIFICATIONS_TABLE)
+                c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
+                c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
 
     def __get_one_by_id(
         self, table_name: str, id_name: str, db_id: str
@@ -312,18 +312,15 @@ class LocalMephistoDB(MephistoDB):
         """
         if project_name in [NO_PROJECT_NAME, ""]:
             raise MephistoDBException(f'Invalid project name "{project_name}')
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
                     "INSERT INTO projects(project_name) VALUES (?);", (project_name,)
                 )
                 project_id = str(c.lastrowid)
-                conn.commit()
                 return project_id
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException()
                 elif is_unique_failure(e):
@@ -372,8 +369,7 @@ class LocalMephistoDB(MephistoDB):
         """
         if task_name in [""]:
             raise MephistoDBException(f'Invalid task name "{task_name}')
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -391,10 +387,8 @@ class LocalMephistoDB(MephistoDB):
                     ),
                 )
                 task_id = str(c.lastrowid)
-                conn.commit()
                 return task_id
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
@@ -453,8 +447,7 @@ class LocalMephistoDB(MephistoDB):
             )
         if task_name in [""]:
             raise MephistoDBException(f'Invalid task name "{task_name}')
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 if task_name is not None:
@@ -475,9 +468,7 @@ class LocalMephistoDB(MephistoDB):
                         """,
                         (int(project_id), int(task_id)),
                     )
-                conn.commit()
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
@@ -496,9 +487,8 @@ class LocalMephistoDB(MephistoDB):
         sandbox: bool = True,
     ) -> str:
         """Create a new task_run for the given task."""
-        with self.table_access_condition:
+        with self.table_access_condition, self._get_connection() as conn:
             # Ensure given ids are valid
-            conn = self._get_connection()
             c = conn.cursor()
             try:
                 c.execute(
@@ -524,7 +514,6 @@ class LocalMephistoDB(MephistoDB):
                     ),
                 )
                 task_run_id = str(c.lastrowid)
-                conn.commit()
                 return task_run_id
             except sqlite3.IntegrityError as e:
                 if is_key_failure(e):
@@ -569,8 +558,7 @@ class LocalMephistoDB(MephistoDB):
         """
         Update a task run. At the moment, can only update completion status
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -581,9 +569,7 @@ class LocalMephistoDB(MephistoDB):
                     """,
                     (is_completed, int(task_run_id)),
                 )
-                conn.commit()
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
@@ -598,10 +584,9 @@ class LocalMephistoDB(MephistoDB):
         sandbox: bool = True,
     ) -> str:
         """Create a new assignment for the given task"""
-        with self.table_access_condition:
-            # Ensure task run exists
-            _task_run = self.get_task_run(task_run_id)
-            conn = self._get_connection()
+        # Ensure task run exists
+        self.get_task_run(task_run_id)
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """
@@ -623,7 +608,6 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             assignment_id = str(c.lastrowid)
-            conn.commit()
             return assignment_id
 
     def get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
@@ -689,8 +673,7 @@ class LocalMephistoDB(MephistoDB):
         Create a new unit with the given index. Raises EntryAlreadyExistsException
         if there is already a unit for the given assignment with the given index.
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -720,10 +703,8 @@ class LocalMephistoDB(MephistoDB):
                     ),
                 )
                 unit_id = str(c.lastrowid)
-                conn.commit()
                 return unit_id
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
@@ -797,8 +778,7 @@ class LocalMephistoDB(MephistoDB):
         Update the given unit by removing the agent that is assigned to it, thus updating
         the status to assignable.
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -809,9 +789,7 @@ class LocalMephistoDB(MephistoDB):
                     """,
                     (None, None, AssignmentState.LAUNCHED, int(unit_id)),
                 )
-                conn.commit()
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(
                         f"Given unit_id {unit_id} not found in the database"
@@ -826,8 +804,7 @@ class LocalMephistoDB(MephistoDB):
         """
         if status not in AssignmentState.valid_unit():
             raise MephistoDBException(f"Invalid status {status} for a unit")
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 if agent_id is not None:
@@ -848,9 +825,7 @@ class LocalMephistoDB(MephistoDB):
                         """,
                         (status, int(unit_id)),
                     )
-                conn.commit()
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(
                         f"Given unit_id {unit_id} not found in the database"
@@ -866,8 +841,7 @@ class LocalMephistoDB(MephistoDB):
         if requester_name == "":
             raise MephistoDBException("Empty string is not a valid requester name")
         assert_valid_provider(provider_type)
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -875,7 +849,6 @@ class LocalMephistoDB(MephistoDB):
                     (requester_name, provider_type),
                 )
                 requester_id = str(c.lastrowid)
-                conn.commit()
                 return requester_id
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
@@ -924,8 +897,7 @@ class LocalMephistoDB(MephistoDB):
         if worker_name == "":
             raise MephistoDBException("Empty string is not a valid requester name")
         assert_valid_provider(provider_type)
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -933,7 +905,6 @@ class LocalMephistoDB(MephistoDB):
                     (worker_name, provider_type),
                 )
                 worker_id = str(c.lastrowid)
-                conn.commit()
                 return worker_id
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
@@ -986,8 +957,7 @@ class LocalMephistoDB(MephistoDB):
         if there is already a agent with this name
         """
         assert_valid_provider(provider_type)
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -1026,10 +996,8 @@ class LocalMephistoDB(MephistoDB):
                         int(unit_id),
                     ),
                 )
-                conn.commit()
                 return agent_id
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
@@ -1049,19 +1017,17 @@ class LocalMephistoDB(MephistoDB):
         """
         if status not in AgentState.valid():
             raise MephistoDBException(f"Invalid status {status} for an agent")
-        with self.table_access_condition:
-            conn = self._get_connection()
+
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
-            if status is not None:
-                c.execute(
-                    """
-                    UPDATE agents
-                    SET status = ?
-                    WHERE agent_id = ?;
-                    """,
-                    (status, int(agent_id)),
-                )
-            conn.commit()
+            c.execute(
+                """
+                UPDATE agents
+                SET status = ?
+                WHERE agent_id = ?;
+                """,
+                (status, int(agent_id)),
+            )
 
     def find_agents(
         self,
@@ -1114,8 +1080,7 @@ class LocalMephistoDB(MephistoDB):
         """
         if qualification_name == "":
             raise MephistoDBException("Empty string is not a valid qualification name")
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -1123,7 +1088,6 @@ class LocalMephistoDB(MephistoDB):
                     (qualification_name,),
                 )
                 qualification_id = str(c.lastrowid)
-                conn.commit()
                 return qualification_id
             except sqlite3.IntegrityError as e:
                 if is_unique_failure(e):
@@ -1172,8 +1136,7 @@ class LocalMephistoDB(MephistoDB):
                 f"No qualification found by name {qualification_name}"
             )
         qualification = qualifications[0]
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 "DELETE FROM granted_qualifications WHERE qualification_id = ?1;",
@@ -1183,7 +1146,6 @@ class LocalMephistoDB(MephistoDB):
                 "DELETE FROM qualifications WHERE qualification_name = ?1;",
                 (qualification_name,),
             )
-            conn.commit()
 
     def grant_qualification(
         self, qualification_id: str, worker_id: str, value: int = 1
@@ -1192,46 +1154,19 @@ class LocalMephistoDB(MephistoDB):
         Grant a worker the given qualification. Update the qualification value if it 
         already exists
         """
-        try:
-            # Update existing entry
-            qual_row = self.get_granted_qualification(qualification_id, worker_id)
-            with self.table_access_condition:
-                if value != qual_row["value"]:
-                    conn = self._get_connection()
-                    c = conn.cursor()
-                    c.execute(
-                        """
-                        UPDATE granted_qualifications
-                        SET value = ?
-                        WHERE (qualification_id = ?)
-                        AND (worker_id = ?);
-                        """,
-                        (value, int(qualification_id), int(worker_id)),
-                    )
-                    conn.commit()
-                return None
-        except EntryDoesNotExistException:
-            with self.table_access_condition:
-                conn = self._get_connection()
-                c = conn.cursor()
-                try:
-                    c.execute(
-                        """
-                        INSERT INTO granted_qualifications(
-                            qualification_id,
-                            worker_id,
-                            value
-                        ) VALUES (?, ?, ?);
-                        """,
-                        (int(qualification_id), int(worker_id), value),
-                    )
-                    qualification_id = str(c.lastrowid)
-                    conn.commit()
-                    return None
-                except sqlite3.IntegrityError as e:
-                    if is_unique_failure(e):
-                        raise EntryAlreadyExistsException()
-                    raise MephistoDBException(e)
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                """
+                INSERT INTO granted_qualifications(
+                    qualification_id,
+                    worker_id,
+                    value
+                ) VALUES (?1, ?2, ?3)
+                ON CONFLICT DO UPDATE SET value = ?3;
+                """,
+                (int(qualification_id), int(worker_id), value),
+            )
 
     def check_granted_qualifications(
         self,
@@ -1294,8 +1229,7 @@ class LocalMephistoDB(MephistoDB):
         """
         Remove the given qualification from the given worker
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """DELETE FROM granted_qualifications 
@@ -1304,7 +1238,6 @@ class LocalMephistoDB(MephistoDB):
                 """,
                 (int(qualification_id), int(worker_id)),
             )
-            conn.commit()
 
     def new_onboarding_agent(
         self, worker_id: str, task_id: str, task_run_id: str, task_type: str
@@ -1313,8 +1246,7 @@ class LocalMephistoDB(MephistoDB):
         Create a new agent for the given worker id to assign to the given unit
         Raises EntryAlreadyExistsException
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
                 c.execute(
@@ -1333,10 +1265,8 @@ class LocalMephistoDB(MephistoDB):
                         AgentState.STATUS_NONE,
                     ),
                 )
-                conn.commit()
                 return str(c.lastrowid)
             except sqlite3.IntegrityError as e:
-                conn.rollback()
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
@@ -1361,8 +1291,7 @@ class LocalMephistoDB(MephistoDB):
         """
         if status not in AgentState.valid():
             raise MephistoDBException(f"Invalid status {status} for an agent")
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             if status is not None:
                 c.execute(
@@ -1373,7 +1302,6 @@ class LocalMephistoDB(MephistoDB):
                     """,
                     (status, int(onboarding_agent_id)),
                 )
-            conn.commit()
 
     def find_onboarding_agents(
         self,

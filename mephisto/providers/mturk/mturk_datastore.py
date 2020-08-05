@@ -91,17 +91,16 @@ class MTurkDatastore:
         with self.table_access_condition:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
-            c = conn.cursor()
-            c.execute(CREATE_HITS_TABLE)
-            c.execute(CREATE_RUNS_TABLE)
-            c.execute(CREATE_RUN_MAP_TABLE)
-            c.execute(CREATE_QUALIFICATIONS_TABLE)
-            conn.commit()
+            with conn:
+                c = conn.cursor()
+                c.execute(CREATE_HITS_TABLE)
+                c.execute(CREATE_RUNS_TABLE)
+                c.execute(CREATE_RUN_MAP_TABLE)
+                c.execute(CREATE_QUALIFICATIONS_TABLE)
 
     def new_hit(self, hit_id: str, hit_link: str, duration: int, run_id: str) -> None:
         """Register a new HIT mapping in the table"""
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """INSERT INTO hits(
@@ -118,8 +117,6 @@ class MTurkDatastore:
                 ) VALUES (?, ?);""",
                 (hit_id, run_id),
             )
-            conn.commit()
-            return None
 
     def get_unassigned_hit_ids(self, run_id: str):
         """
@@ -156,8 +153,7 @@ class MTurkDatastore:
         Register a specific assignment and hit to the given unit, 
         or clear the assignment after a return
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """UPDATE hits
@@ -166,7 +162,6 @@ class MTurkDatastore:
                 """,
                 (assignment_id, unit_id, hit_id),
             )
-            conn.commit()
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""
@@ -187,8 +182,7 @@ class MTurkDatastore:
         self, run_id: str, arn_id: str, hit_type_id: str, hit_config_path: str
     ) -> None:
         """Register a new task run in the mturk table"""
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """INSERT INTO runs(
@@ -199,8 +193,6 @@ class MTurkDatastore:
                 ) VALUES (?, ?, ?, ?);""",
                 (run_id, arn_id, hit_type_id, hit_config_path),
             )
-            conn.commit()
-            return None
 
     def get_run(self, run_id: str) -> sqlite3.Row:
         """Get the details for a run by task_run_id"""
@@ -228,8 +220,7 @@ class MTurkDatastore:
         Create a mapping between mephisto qualification name and mturk
         qualification details in the local datastore
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """INSERT INTO qualifications(
@@ -245,7 +236,6 @@ class MTurkDatastore:
                     mturk_qualification_id,
                 ),
             )
-            conn.commit()
             return None
 
     def get_qualification_mapping(
