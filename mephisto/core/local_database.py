@@ -1156,17 +1156,22 @@ class LocalMephistoDB(MephistoDB):
         """
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
-            c.execute(
-                """
-                INSERT INTO granted_qualifications(
-                    qualification_id,
-                    worker_id,
-                    value
-                ) VALUES (?1, ?2, ?3)
-                ON CONFLICT DO UPDATE SET value = ?3;
-                """,
-                (int(qualification_id), int(worker_id), value),
-            )
+            try:
+                c.execute(
+                    """
+                    INSERT INTO granted_qualifications(
+                        qualification_id,
+                        worker_id,
+                        value
+                    ) VALUES (?1, ?2, ?3)
+                    ON CONFLICT DO UPDATE SET value = ?3;
+                    """,
+                    (int(qualification_id), int(worker_id), value),
+                )
+            except sqlite3.IntegrityError as e:
+                if is_unique_failure(e):
+                    raise EntryAlreadyExistsException()
+                raise MephistoDBException(e)
 
     def check_granted_qualifications(
         self,
