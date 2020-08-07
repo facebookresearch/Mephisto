@@ -363,6 +363,11 @@ class TaskRun:
             for status in AssignmentState.valid()
         }
 
+    def update_completion_progress(self, task_launcher) -> None:
+        """ Flag the task run that the assignments' generator has finished """
+        if task_launcher.assignment_thread_done:
+            self.assignment_generators_done = True
+
     def get_is_completed(self) -> bool:
         """get the completion status of this task"""
         self.sync_completion_status()

@@ -290,12 +290,10 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
-                if not tracked_run.task_launcher.assignment_thread_done:
+                task_run.update_completion_progress(tracked_run.task_launcher)
+                if not task_run.get_is_completed():
                     continue
                 else:
-                    task_run.assignment_generators_done = True
-
-                if task_run.get_is_completed():
                     self.supervisor.shutdown_job(tracked_run.job)
                     tracked_run.architect.shutdown()
                     tracked_run.task_launcher.shutdown()

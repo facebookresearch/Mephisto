@@ -73,7 +73,7 @@ class TaskLauncher:
         self.unlaunched_units_access_condition = threading.Condition()
         if isinstance(self.assignment_data_iterable, types.GeneratorType):
             self.generator_type = GeneratorType.ASSIGNMENT
-            self.assignments_thread = False
+            self.assignment_thread_done = False
         else:
             self.generator_type = GeneratorType.NONE
         run_dir = task_run.get_run_dir()
