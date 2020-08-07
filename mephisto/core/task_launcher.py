@@ -192,6 +192,9 @@ class TaskLauncher:
         )
         self.units_thread.start()
 
+    def get_assignment_thread_flag(self) -> bool:
+        return self.assignment_thread_done
+
     def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""
         self.keep_launching_units = False
