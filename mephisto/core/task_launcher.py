@@ -55,6 +55,7 @@ class TaskLauncher:
         task_run: "TaskRun",
         assignment_data_iterator: Iterator[InitializationData],
         max_num_concurrent_units: int = 0,
+        requeue: bool = False,
     ):
         """Prepare the task launcher to get it ready to launch the assignments"""
         self.db = db
@@ -79,6 +80,19 @@ class TaskLauncher:
         logger.debug(f"type of assignment data: {type(self.assignment_data_iterable)}")
         self.units_thread = None
         self.assignments_thread = None
+        self.requeue = requeue
+        self.requeued_assignment_data: List = None
+        if self.requeue:
+            self.requeued_assignment_data = []
+
+    def requeue_assignment(self, assignment_data) -> None:
+        """Requeue a re-connecting live task' assignment"""
+        self.requeued_assignment_data.append(assignment_data)
+
+    def has_requeue_assignment_data(self) -> bool:
+        if self.requeued_assignment_data is None:
+            return False
+        return True
 
     def _create_single_assignment(self, assignment_data) -> None:
         """ Create a single assignment in the database using its read assignment_data """
@@ -116,7 +130,10 @@ class TaskLauncher:
         """ Try to generate more assignments from the assignments_data_iterator"""
         while not self.finished_generators:
             try:
-                data = next(self.assignment_data_iterable)
+                if self.requeued_assignment_data is not None and len(self.requeued_assignment_data) > 0:
+                    data = self.requeued_assignment_data.pop()
+                else:
+                    data = next(self.assignment_data_iterable)
                 self._create_single_assignment(data)
             except StopIteration:
                 self.finished_generators = True

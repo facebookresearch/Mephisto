@@ -268,7 +268,8 @@ class Operator:
                 )
             raise e
 
-        launcher = TaskLauncher(self.db, task_run, initialization_data_array)
+        requeue_tasks = task_args.get('requeue_incomplete_tasks')
+        launcher = TaskLauncher(self.db, task_run, initialization_data_array, requeue=requeue_tasks)
         launcher.create_assignments()
         launcher.launch_units(task_url)
 

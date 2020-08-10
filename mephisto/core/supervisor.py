@@ -8,6 +8,7 @@
 import threading
 from queue import PriorityQueue, Empty
 import time
+
 from mephisto.data_model.packet import (
     Packet,
     PACKET_TYPE_ALIVE,
@@ -41,7 +42,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.blueprint import TaskRunner
     from mephisto.data_model.crowd_provider import CrowdProvider
     from mephisto.data_model.architect import Architect
-
+    from mephisto.core.task_launcher import TaskLauncher
 from mephisto.core.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
@@ -73,6 +74,7 @@ class Job(RecordClass):
     architect: "Architect"
     task_runner: "TaskRunner"
     provider: "CrowdProvider"
+    task_launcher: "TaskLauncher"
     qualifications: List[Dict[str, Any]]
     registered_channel_ids: List[str]
 
@@ -331,7 +333,7 @@ class Supervisor:
         self,
         assignment: "Assignment",
         agent_infos: List["AgentInfo"],
-        task_runner: "TaskRunner",
+        job: "Job",
     ):
         """Launch a thread to supervise the completion of an assignment"""
         try:
@@ -341,7 +343,7 @@ class Supervisor:
                     a.agent, Agent
                 ), f"Can launch assignments for Agents, not OnboardingAgents, got {a.agent}"
                 tracked_agents.append(a.agent)
-            task_runner.launch_assignment(assignment, tracked_agents)
+            job.task_runner.launch_assignment(assignment, tracked_agents)
             for agent_info in agent_infos:
                 self._mark_agent_done(agent_info)
             # Wait for agents to be complete
@@ -356,9 +358,11 @@ class Supervisor:
                     agent.mark_done()
         except Exception as e:
             logger.exception(f"Cleaning up assignment: {e}", exc_info=True)
-            task_runner.cleanup_assignment(assignment)
+            job.task_runner.cleanup_assignment(assignment)
         finally:
-            task_run = task_runner.task_run
+            if job.task_launcher.has_requeue_assignment_data():
+                job.task_launcher.requeue_assignment(assignment.get_assignment_data())
+            task_run = job.task_runner.task_run
             for unit in assignment.get_units():
                 task_run.clear_reservation(unit)
 
@@ -452,7 +456,7 @@ class Supervisor:
 
                 assign_thread = threading.Thread(
                     target=self._launch_and_run_assignment,
-                    args=(assignment, agent_infos, channel_info.job.task_runner),
+                    args=(assignment, agent_infos, channel_info.job),
                     name=f"Assignment-thread-{assignment.db_id}",
                 )
 
