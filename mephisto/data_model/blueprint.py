@@ -170,7 +170,7 @@ class TaskRunner(ABC):
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
             # A returned Unit can be worked on again by someone else.
             if (
-                unit.get_status() == AssignmentState.LAUNCHED
+                unit.get_status() != AssignmentState.EXPIRED
                 and unit.get_assigned_agent().db_id == agent.db_id
             ):
                 unit.clear_assigned_agent()
