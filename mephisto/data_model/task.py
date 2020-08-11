@@ -199,7 +199,7 @@ class TaskRun:
         self.provider_type = row["provider_type"]
         self.task_type = row["task_type"]
         self.sandbox = row["sandbox"]
-        self.assignment_generators_done: bool = False
+        self.assignments_generator_done: bool = None
 
         # properties with deferred loading
         self.__is_completed = row["is_completed"]
@@ -366,7 +366,7 @@ class TaskRun:
     def update_completion_progress(self, task_launcher) -> None:
         """ Flag the task run that the assignments' generator has finished """
         if task_launcher.get_assignment_thread_flag():
-            self.assignment_generators_done = True
+            self.assignments_generator_done = True
 
     def get_is_completed(self) -> bool:
         """get the completion status of this task"""
@@ -386,7 +386,12 @@ class TaskRun:
             for status in AssignmentState.incomplete():
                 if statuses[status] > 0:
                     has_incomplete = True
-            if not has_incomplete and self.assignment_generators_done:
+            if (
+                not has_incomplete
+                and self.assignments_generator_done is None
+                or not has_incomplete
+                and self.assignments_generator_done
+            ):
                 self.db.update_task_run(self.db_id, is_completed=True)
                 self.__is_completed = True
 
