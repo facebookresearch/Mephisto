@@ -1154,24 +1154,45 @@ class LocalMephistoDB(MephistoDB):
         Grant a worker the given qualification. Update the qualification value if it 
         already exists
         """
-        with self.table_access_condition, self._get_connection() as conn:
-            c = conn.cursor()
-            try:
-                c.execute(
-                    """
-                    INSERT INTO granted_qualifications(
-                        qualification_id,
-                        worker_id,
-                        value
-                    ) VALUES (?1, ?2, ?3)
-                    ON CONFLICT DO UPDATE SET value = ?3;
-                    """,
-                    (int(qualification_id), int(worker_id), value),
-                )
-            except sqlite3.IntegrityError as e:
-                if is_unique_failure(e):
-                    raise EntryAlreadyExistsException()
-                raise MephistoDBException(e)
+        # Note that better syntax exists for python 3.8+, as described in PR #223
+        try:
+            # Update existing entry
+            qual_row = self.get_granted_qualification(qualification_id, worker_id)
+            with self.table_access_condition, self._get_connection() as conn:
+                if value != qual_row["value"]:
+                    c = conn.cursor()
+                    c.execute(
+                        """
+                        UPDATE granted_qualifications
+                        SET value = ?
+                        WHERE (qualification_id = ?)
+                        AND (worker_id = ?);
+                        """,
+                        (value, int(qualification_id), int(worker_id)),
+                    )
+                    conn.commit()
+                    return None
+        except EntryDoesNotExistException:
+            with self.table_access_condition, self._get_connection() as conn:
+                c = conn.cursor()	
+                try:	
+                    c.execute(	
+                        """	
+                        INSERT INTO granted_qualifications(	
+                            qualification_id,	
+                            worker_id,	
+                            value	
+                        ) VALUES (?, ?, ?);	
+                        """,	
+                        (int(qualification_id), int(worker_id), value),	
+                    )	
+                    qualification_id = str(c.lastrowid)	
+                    conn.commit()	
+                    return None	
+                except sqlite3.IntegrityError as e:	
+                    if is_unique_failure(e):	
+                        raise EntryAlreadyExistsException()	
+                    raise MephistoDBException(e)
 
     def check_granted_qualifications(
         self,
