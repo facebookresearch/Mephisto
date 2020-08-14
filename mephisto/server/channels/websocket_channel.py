@@ -100,7 +100,9 @@ class WebsocketChannel(Channel):
 
                 traceback.print_exc()
                 try:
-                    ws.close()
+                    # Close the socket to attempt to reconnect
+                    self.socket.close()
+                    self.socket.keep_running = False
                 except Exception:
                     # TODO(CLEAN) only catch socket closed connection
                     # Already closed
