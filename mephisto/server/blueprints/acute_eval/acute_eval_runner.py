@@ -461,17 +461,20 @@ class AcuteEvalRunner(TaskRunner):
         """
         # Frontend implicitly asks for the initialization data, so we just need
         # to wait for a response
-        agent_act = agent.act(timeout=self.assignment_duration_in_seconds)
+        agent_act = agent.act(timeout=60)
         if self.opts["block_on_onboarding_fail"]:
             # check whether workers failed onboarding
             self.check_and_update_worker_approval(agent)
-        logger.info("Acute eval done for ", agent)
+        logger.info(f"Acute eval done for {agent}")
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """
         An incomplete task needs to have the contents of that task requeued
         into the overall task queue.
         """
+        logger.info(f"Cleaning up unit {unit.db_id}")
+        if unit.db_id not in self.unit_agent_map:
+            return logger.warn(f"Unit {unit.db_id} already appears to have been cleaned up")
         worker_id, task_data = self.unit_agent_map[unit.db_id]
         del self.unit_agent_map[unit.db_id]
         self.requeue_task_data(worker_id, task_data)
