@@ -27,6 +27,7 @@ from mephisto.data_model.exceptions import (
     AgentDisconnectedError,
     AgentTimeoutError,
 )
+from mephisto.data_model.assignment_state import AssignmentState
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -168,7 +169,10 @@ class TaskRunner(ABC):
             self.run_unit(unit, agent)
         except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
             # A returned Unit can be worked on again by someone else.
-            if unit.get_assigned_agent().db_id == agent.db_id:
+            if (
+                unit.get_status() != AssignmentState.EXPIRED
+                and unit.get_assigned_agent().db_id == agent.db_id
+            ):
                 unit.clear_assigned_agent()
             self.cleanup_unit(unit)
         except Exception as e:
