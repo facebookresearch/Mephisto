@@ -16,7 +16,7 @@ import time
 
 from mephisto.core.logger_core import get_logger
 
-logger = get_logger(name=__name__, verbose=False, level="info")
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 
 class WebsocketChannel(Channel):

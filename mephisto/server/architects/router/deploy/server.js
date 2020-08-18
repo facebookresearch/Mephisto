@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const DEBUG = false;
+const DEBUG = true;
 
 // TODO add some testing to launch this server and communicate with it
 
