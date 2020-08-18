@@ -420,11 +420,13 @@ app.post('/initial_task_data', function(req, res) {
 
 app.post('/register_worker', function(req, res) {
   var provider_data = req.body.provider_data;
+  debug_log("Requesting a worker for ", provider_data)
   make_provider_request(PACKET_TYPE_NEW_WORKER, provider_data, res);
 });
 
 app.post('/request_agent', function(req, res) {
   var provider_data = req.body.provider_data;
+  debug_log("Requesting an agent for ", provider_data)
   make_provider_request(PACKET_TYPE_NEW_AGENT, provider_data, res);
 });
 

@@ -5,23 +5,22 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
+from typing import Optional
 
 loggers = {}
 
 
 def get_logger(
-    name: str, verbose: bool = True, log_file: str = None, level: str = "info"
+    name: str, 
+    verbose: bool = False, 
+    log_file: Optional[str] = None, 
+    level: Optional[str] = None,
 ) -> logging.Logger:
     """
-    Gets the logger corresponds to each module
-            Parameters:
-                    name (string): the module name (__name__).
-                    verbose (bool): INFO level activated if True.
-                    log_file (string): path for saving logs locally.
-                    level (string): logging level. Values options: [info, debug, warning, error, critical].
-
-            Returns:
-                    logger (logging.Logger): the corresponding logger to the given module name.
+    Gets the logger corresponds to each module. For a specific logger `name`:
+    - setting `verbose` will output DEBUG information and will override `level` settings.
+    - setting `level` will specify a specific logging level, defaults to info
+    - setting `log_file` will output the logs to the specified file, defaults to stdout
     """
 
     global loggers
@@ -30,16 +29,19 @@ def get_logger(
     else:
         logger = logging.getLogger(name)
 
-        level_dict = {
-            "info": logging.INFO,
-            "debug": logging.DEBUG,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
-            "critical": logging.CRITICAL,
-        }
-
-        logger.setLevel(logging.INFO if verbose else logging.DEBUG)
-        logger.setLevel(level_dict[level.lower()])
+        if verbose:
+            logger.setLevel(logging.DEBUG)
+        elif level is not None:
+            level_dict = {
+                "info": logging.INFO,
+                "debug": logging.DEBUG,
+                "warning": logging.WARNING,
+                "error": logging.ERROR,
+                "critical": logging.CRITICAL,
+            }
+            logger.setLevel(level_dict[level.lower()])
+        else:
+            logger.setLevel(logging.INFO)
         if log_file is None:
             handler = logging.StreamHandler()
         else:

@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Callable, Optional
-from mephisto.data_model.packet import Packet
+from mephisto.data_model.packet import Packet, PACKET_TYPE_NEW_AGENT, PACKET_TYPE_NEW_WORKER
 from mephisto.server.channels.channel import Channel, STATUS_CHECK_TIME
 
 import errno
@@ -16,7 +16,7 @@ import time
 
 from mephisto.core.logger_core import get_logger
 
-logger = get_logger(name=__name__, verbose=True, level="info")
+logger = get_logger(name=__name__, verbose=False, level="info")
 
 
 class WebsocketChannel(Channel):
@@ -122,6 +122,17 @@ class WebsocketChannel(Channel):
             try:
                 packet_dict = json.loads(args[1])
                 packet = Packet.from_dict(packet_dict)
+                if packet.type in [
+                    Packet.PACKET_TYPE_NEW_AGENT,
+                    Packet.PACKET_TYPE_NEW_WORKER,
+                ]:
+                    logger.debug(
+                        f"Incoming packet of type {packet.type} with data {packet.data}"
+                    )
+                else:
+                    logger.debug(
+                        f"Incoming packet of type {packet.type} from sender {packet.sender_id}"
+                    )
                 self.on_message(self.channel_id, packet)
             except Exception as e:
                 # TODO(CLEAN) properly handle only failed from_dict calls
