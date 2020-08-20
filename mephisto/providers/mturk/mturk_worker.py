@@ -51,6 +51,18 @@ class MTurkWorker(Worker):
         )
         self._worker_name = self.worker_name  # sandbox workers use a different name
 
+    @classmethod
+    def get_from_mturk_worker_id(
+        self, 
+        db: "MephistoDB", 
+        mturk_worker_id: str,
+    ) -> Optional["MTurkWorker"]:
+        """Get the MTurkWorker from the given worker_id"""
+        workers = db.find_workers(worker_name=mturk_worker_id, provider_type=PROVIDER_TYPE)
+        if len(workers) == 0:
+            return None
+        return workers[0]
+
     def get_mturk_worker_id(self):
         return self._worker_name
 
