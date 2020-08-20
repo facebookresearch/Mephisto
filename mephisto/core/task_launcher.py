@@ -192,7 +192,7 @@ class TaskLauncher:
         )
         self.units_thread.start()
 
-    def get_assignment_thread_flag(self) -> bool:
+    def get_assignments_are_all_created(self) -> bool:
         return self.assignment_thread_done
 
     def expire_units(self) -> None:

@@ -363,9 +363,12 @@ class TaskRun:
             for status in AssignmentState.valid()
         }
 
+    def update_assignment_generator_done(self, status) -> None:
+        self.assignments_generator_done = False
+
     def update_completion_progress(self, task_launcher) -> None:
         """ Flag the task run that the assignments' generator has finished """
-        if task_launcher.get_assignment_thread_flag():
+        if task_launcher.get_assignments_are_all_created():
             self.assignments_generator_done = True
 
     def get_is_completed(self) -> bool:
@@ -386,12 +389,7 @@ class TaskRun:
             for status in AssignmentState.incomplete():
                 if statuses[status] > 0:
                     has_incomplete = True
-            if (
-                not has_incomplete
-                and self.assignments_generator_done is None
-                or not has_incomplete
-                and self.assignments_generator_done
-            ):
+            if not has_incomplete and self.assignments_generator_done is not False:
                 self.db.update_task_run(self.db_id, is_completed=True)
                 self.__is_completed = True
 

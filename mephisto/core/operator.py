@@ -279,7 +279,8 @@ class Operator:
             architect=architect,
             job=job,
         )
-        task_run.assignments_generator_done = False
+        task_run.update_assignment_generator_done(False)
+
         return task_run.db_id
 
     def _track_and_kill_runs(self):
