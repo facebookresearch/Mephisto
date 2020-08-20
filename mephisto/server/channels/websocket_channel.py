@@ -123,8 +123,8 @@ class WebsocketChannel(Channel):
                 packet_dict = json.loads(args[1])
                 packet = Packet.from_dict(packet_dict)
                 if packet.type in [
-                    Packet.PACKET_TYPE_NEW_AGENT,
-                    Packet.PACKET_TYPE_NEW_WORKER,
+                    PACKET_TYPE_NEW_AGENT,
+                    PACKET_TYPE_NEW_WORKER,
                 ]:
                     logger.debug(
                         f"Incoming packet of type {packet.type} with data {packet.data}"
