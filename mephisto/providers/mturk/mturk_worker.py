@@ -62,6 +62,7 @@ class MTurkWorker(Worker):
             mturk_worker_id += "_sandbox"
         workers = db.find_workers(worker_name=mturk_worker_id, provider_type=cls.PROVIDER_TYPE)
         if len(workers) == 0:
+            # TODO warn?
             return None
         return workers[0]
 
