@@ -279,6 +279,8 @@ class Operator:
             architect=architect,
             job=job,
         )
+        task_run.update_completion_progress(status=False)
+
         return task_run.db_id
 
     def _track_and_kill_runs(self):
@@ -290,7 +292,10 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
-                if task_run.get_is_completed():
+                task_run.update_completion_progress(task_launcher=tracked_run.task_launcher)
+                if not task_run.get_is_completed():
+                    continue
+                else:
                     self.supervisor.shutdown_job(tracked_run.job)
                     tracked_run.architect.shutdown()
                     tracked_run.task_launcher.shutdown()

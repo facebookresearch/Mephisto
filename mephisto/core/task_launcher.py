@@ -68,9 +68,12 @@ class TaskLauncher:
         self.unlaunched_units: Dict[str, Unit] = {}
         self.keep_launching_units: bool = False
         self.finished_generators: bool = False
+        self.assignment_thread_done: bool = True
+
         self.unlaunched_units_access_condition = threading.Condition()
         if isinstance(self.assignment_data_iterable, types.GeneratorType):
             self.generator_type = GeneratorType.ASSIGNMENT
+            self.assignment_thread_done = False
         else:
             self.generator_type = GeneratorType.NONE
         run_dir = task_run.get_run_dir()
@@ -120,6 +123,7 @@ class TaskLauncher:
                 self._create_single_assignment(data)
             except StopIteration:
                 self.finished_generators = True
+                self.assignment_thread_done = True
             time.sleep(ASSIGNMENT_GENERATOR_WAIT_SECONDS)
 
     def create_assignments(self) -> None:
@@ -187,6 +191,9 @@ class TaskLauncher:
             target=self._launch_limited_units, args=(url,)
         )
         self.units_thread.start()
+
+    def get_assignments_are_all_created(self) -> bool:
+        return self.assignment_thread_done
 
     def expire_units(self) -> None:
         """Clean up all units on this TaskLauncher"""
