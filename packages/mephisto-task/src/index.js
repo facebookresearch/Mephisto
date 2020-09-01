@@ -68,6 +68,12 @@ const useMephistoTask = function () {
     [state.agentId]
   );
 
+   const handleFatalError = React.useCallback(
+   (error, error_info) => {
+   console.log('inside handleFatalError ...')
+   handleSubmit( { 'error': error, 'error_info': error_info })
+   })
+
   function handleIncomingTaskConfig(taskConfig) {
     if (taskConfig.block_mobile && isMobile()) {
       setState({ blockedReason: "no_mobile" });
@@ -108,6 +114,7 @@ const useMephistoTask = function () {
   }, []);
 
   return {
+    handleFatalError,
     ...state,
     isLoading: !state.loaded,
     blockedExplanation:

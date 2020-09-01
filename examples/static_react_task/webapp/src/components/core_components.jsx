@@ -62,7 +62,8 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
             <div className="control">
               <button
                 className="button is-success is-large"
-                onClick={() => onSubmit({ rating: "good" })}
+                onClick={() => {throw new Error("test Sara!");}}
+//                 onClick={() => onSubmit({ rating: "good" })}
               >
                 Mark as Good
               </button>

@@ -667,6 +667,7 @@ class Supervisor:
         # always be a valid agent in our list of agent_infos. At the moment this
         # is a valid assumption, but will not be on recovery from catastrophic failure.
         if packet.type == PACKET_TYPE_AGENT_ACTION:
+            logger.info(f"[SARA] sent packet is {packet}")
             self._on_act(packet, channel_info)
         elif packet.type == PACKET_TYPE_NEW_AGENT:
             self._register_agent(packet, channel_info)
