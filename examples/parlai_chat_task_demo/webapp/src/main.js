@@ -9,16 +9,74 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "bootstrap-chat/styles.css";
+import { FormGroup, FormControl, Button, Radio } from "react-bootstrap";
 
-import { ChatApp, ChatMessage, DefaultTaskDescription } from "bootstrap-chat";
+import { ChatApp, DefaultTaskDescription } from "bootstrap-chat";
 
-function RenderChatMessage({ message, mephistoContext, appContext, idx }) {
+function ChatMessage({
+  isSelf,
+  duration,
+  idx,
+  agentName,
+  message = "",
+  onRadioChange,
+}) {
+  const floatToSide = isSelf ? "right" : "left";
+  const alertStyle = isSelf ? "alert-info" : "alert-warning";
+
+  const handleChange = (e) => {
+    onRadioChange(e.currentTarget.value);
+  };
+
+  return (
+    <div className="row" style={{ marginLeft: "0", marginRight: "0" }}>
+      <div
+        className={"alert message " + alertStyle}
+        role="alert"
+        style={{ float: floatToSide }}
+      >
+        <span style={{ fontSize: "16px", whiteSpace: "pre-wrap" }}>
+          <b>{agentName}</b>: {message}
+        </span>
+        {isSelf ? null : (
+          <FormGroup>
+            <Radio
+              name={"radio" + idx}
+              value={1}
+              inline
+              onChange={handleChange}
+            >
+              1
+            </Radio>{" "}
+            <Radio
+              name={"radio" + idx}
+              value={2}
+              inline
+              onChange={handleChange}
+            >
+              2
+            </Radio>{" "}
+          </FormGroup>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RenderChatMessage({
+  message,
+  mephistoContext,
+  appContext,
+  idx,
+  onRadioChange,
+}) {
   const { agentId } = mephistoContext;
   const { currentAgentNames } = appContext.taskContext;
 
   return (
-    <div onClick={() => alert("You clicked on message with index " + idx)}>
+    <div>
       <ChatMessage
+        idx={idx}
         isSelf={message.id === agentId || message.id in currentAgentNames}
         agentName={
           message.id in currentAgentNames
@@ -28,15 +86,40 @@ function RenderChatMessage({ message, mephistoContext, appContext, idx }) {
         message={message.text}
         taskData={message.task_data}
         messageId={message.message_id}
+        onRadioChange={onRadioChange}
       />
     </div>
   );
 }
 
 function MainApp() {
+  const [messages, setMessages] = React.useState([]);
+  const [chatAnnotations, setChatAnnotation] = React.useReducer(
+    (state, action) => {
+      return { ...state, ...{ [action.index]: action.value } };
+    },
+    {}
+  );
+
+  const lastMessageAnnotation = chatAnnotations[messages.length - 1];
+
   return (
     <ChatApp
-      // renderTextResponse={({ onMessageSend, inputMode }) => null}
+      onMessagesChange={(messages) => {
+        setMessages(messages);
+      }}
+      renderTextResponse={({ onMessageSend, active }) => (
+        <CustomTextResponse
+          onMessageSend={onMessageSend}
+          active={active}
+          messages={messages}
+          key={lastMessageAnnotation}
+          isLastMessageAnnotated={
+            messages.length === 0 || lastMessageAnnotation !== undefined
+          }
+          lastMessageAnnotation={lastMessageAnnotation}
+        />
+      )}
       renderMessage={({ message, idx, mephistoContext, appContext }) => (
         <RenderChatMessage
           message={message}
@@ -44,6 +127,9 @@ function MainApp() {
           appContext={appContext}
           idx={idx}
           key={message.message_id + "-" + idx}
+          onRadioChange={(val) => {
+            setChatAnnotation({ index: idx, value: val });
+          }}
         />
       )}
       renderSidePane={({ mephistoContext: { taskConfig } }) => (
@@ -63,6 +149,81 @@ function MainApp() {
         </DefaultTaskDescription>
       )}
     />
+  );
+}
+
+function CustomTextResponse({
+  onMessageSend,
+  active,
+  isLastMessageAnnotated,
+  lastMessageAnnotation,
+}) {
+  const [textValue, setTextValue] = React.useState(
+    !lastMessageAnnotation ? "" : lastMessageAnnotation + " - "
+  );
+  const [sending, setSending] = React.useState(false);
+
+  const annotationNeeded = active && !isLastMessageAnnotated;
+  active = active && isLastMessageAnnotated;
+
+  const inputRef = React.useRef();
+
+  React.useEffect(() => {
+    if (active && inputRef.current && inputRef.current.focus) {
+      inputRef.current.focus();
+    }
+  }, [active]);
+
+  const tryMessageSend = React.useCallback(() => {
+    if (textValue !== "" && active && !sending) {
+      setSending(true);
+      onMessageSend({ text: textValue, task_data: {} }).then(() => {
+        setTextValue("");
+        setSending(false);
+      });
+    }
+  }, [textValue, active, sending, onMessageSend]);
+
+  const handleKeyPress = React.useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        tryMessageSend();
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+      }
+    },
+    [tryMessageSend]
+  );
+
+  return (
+    <div className="response-type-module">
+      <div className="response-bar">
+        <FormControl
+          type="text"
+          className="response-text-input"
+          inputRef={(ref) => {
+            inputRef.current = ref;
+          }}
+          value={textValue}
+          placeholder={
+            annotationNeeded
+              ? "Please annotate the last message before you can continue"
+              : "Enter your message here..."
+          }
+          onKeyPress={(e) => handleKeyPress(e)}
+          onChange={(e) => setTextValue(e.target.value)}
+          disabled={!active || sending}
+        />
+        <Button
+          className="btn btn-primary submit-response"
+          id="id_send_msg_button"
+          disabled={textValue === "" || !active || sending}
+          onClick={() => tryMessageSend()}
+        >
+          Send
+        </Button>
+      </div>
+    </div>
   );
 }
 

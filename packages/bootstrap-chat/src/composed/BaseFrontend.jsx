@@ -119,7 +119,11 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
         );
       } else {
         response_pane = renderTextResponse ? (
-          renderTextResponse({ onMessageSend, inputMode })
+          renderTextResponse({
+            onMessageSend,
+            inputMode,
+            active: inputMode === INPUT_MODE.READY_FOR_INPUT,
+          })
         ) : (
           <TextResponse
             onMessageSend={onMessageSend}
