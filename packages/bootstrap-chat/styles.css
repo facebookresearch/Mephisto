@@ -79,3 +79,34 @@
   float: left;
   display: table;
 }
+
+.response-type-module {
+  padding-left: 25px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-right: 25px;
+  float: left;
+  width: 100%;
+}
+
+.response-bar {
+  height: 50px;
+  width: 100%;
+  display: flex;
+  float: left;
+}
+
+.response-text-input {
+  height: 100%;
+  float: left;
+  font-size: 16px;
+}
+
+.submit-response {
+  width: 100px;
+  height: 100%;
+  font-size: 16px;
+  float: left;
+  margin-left: 10px;
+  padding: 0px;
+}

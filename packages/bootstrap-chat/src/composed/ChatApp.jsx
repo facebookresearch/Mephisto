@@ -27,7 +27,7 @@ const INPUT_MODE = {
   IDLE: "idle",
 };
 
-function ChatApp({ renderMessage, renderSidePane }) {
+function ChatApp({ renderMessage, renderSidePane, renderTextResponse }) {
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
     {}
@@ -169,6 +169,7 @@ function ChatApp({ renderMessage, renderSidePane }) {
             onMessageSend={handleMessageSend}
             renderMessage={renderMessage}
             renderSidePane={renderSidePane}
+            renderTextResponse={renderTextResponse}
           />
         </div>
       </AppContext.Provider>

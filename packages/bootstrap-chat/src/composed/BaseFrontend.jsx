@@ -26,6 +26,7 @@ function BaseFrontend({
   inputMode,
   renderSidePane,
   renderMessage,
+  renderTextResponse,
 }) {
   const mephistoContext = React.useContext(MephistoContext);
   const appContext = React.useContext(AppContext);
@@ -57,7 +58,11 @@ function BaseFrontend({
               ) : null}
             </ChatPane>
           </div>
-          <ResponsePane inputMode={inputMode} onMessageSend={onMessageSend} />
+          <ResponsePane
+            inputMode={inputMode}
+            onMessageSend={onMessageSend}
+            renderTextResponse={renderTextResponse}
+          />
         </div>
       </div>
     </ConnectionStatusBoundary>
@@ -85,7 +90,7 @@ function ChatStatusBar() {
   );
 }
 
-function ResponsePane({ onMessageSend, inputMode }) {
+function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
   const { taskContext, onTaskComplete } = React.useContext(AppContext);
   const { agentState = {} } = React.useContext(MephistoContext);
 
@@ -113,7 +118,9 @@ function ResponsePane({ onMessageSend, inputMode }) {
           />
         );
       } else {
-        response_pane = (
+        response_pane = renderTextResponse ? (
+          renderTextResponse({ onMessageSend, inputMode })
+        ) : (
           <TextResponse
             onMessageSend={onMessageSend}
             active={inputMode === INPUT_MODE.READY_FOR_INPUT}

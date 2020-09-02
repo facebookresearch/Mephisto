@@ -36,6 +36,7 @@ function RenderChatMessage({ message, mephistoContext, appContext, idx }) {
 function MainApp() {
   return (
     <ChatApp
+      // renderTextResponse={({ onMessageSend, inputMode }) => null}
       renderMessage={({ message, idx, mephistoContext, appContext }) => (
         <RenderChatMessage
           message={message}
