@@ -4,7 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs
+from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
 from mephisto.core.argparse_parser import str2bool
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
@@ -26,6 +27,35 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
 
 BLUEPRINT_TYPE = "mock"
+
+
+@dataclass
+class MockBlueprintArgs(BlueprintArgs):
+    num_assignments: int = field(
+        default=None,
+        metadata={
+            "help": "How many workers you want to do each assignment",
+            'required': True
+        },
+    )
+    use_onboarding: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether onboarding should be required",
+        },
+    )
+    timeout_time: int = field(
+        default=0,
+        metadata={
+            "help": "Whether acts in the run assignment should have a timeout",
+        },
+    )
+    is_concurrent: bool = field(
+        default=True,
+        metadata={
+            "help": "Whether to run this mock task as a concurrent task or not",
+        },
+    )
 
 
 @register_mephisto_abstraction()

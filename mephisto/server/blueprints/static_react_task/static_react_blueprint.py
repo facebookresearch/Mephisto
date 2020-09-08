@@ -5,8 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.assignment import InitializationData
+from dataclasses import dataclass, field
 from mephisto.server.blueprints.abstract.static_task.static_blueprint import (
-    StaticBlueprint,
+    StaticBlueprint, StaticBlueprintArgs
 )
 from mephisto.server.blueprints.static_react_task.static_react_task_builder import (
     StaticReactTaskBuilder,
@@ -26,6 +27,22 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
 
 BLUEPRINT_TYPE = "static_react_task"
+
+
+@dataclass
+class StaticReactBlueprintArgs(StaticBlueprintArgs):
+    """
+    StaticReactBlueprint: Tasks launched from static blueprints need 
+    a prebuilt javascript bundle containing the task. We suggest building 
+    with our provided useMephistoTask hook.
+    """
+    task_source: str = field(
+        default=None,
+        metadata={
+            'help': "Path to file containing javascript bundle for the task",
+            'required': True,
+        },
+    )
 
 
 @register_mephisto_abstraction()

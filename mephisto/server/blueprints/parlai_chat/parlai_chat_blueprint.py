@@ -4,7 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs
+from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.parlai_chat.parlai_chat_agent_state import (
     ParlAIChatAgentState,
@@ -44,6 +45,65 @@ MISSING_SOMETHING_TEXT = (
     "component (if this is in-task)."
     "</h1>"
 )
+
+
+@dataclass
+class ParlAIChatBlueprintArgs(BlueprintArgs):
+    world_file: str = field(
+        default=None,
+        metadata={
+            "help": "Path to file containing ParlAI world",
+            'required': True
+        },
+    )
+    preview_source: str = field(
+        default=None,
+        metadata={
+            "help": "Optional path to source HTML file to preview the task",
+        },
+    )
+    task_description_file: str = field(
+        default=None,
+        metadata={
+            "help": (
+                "Path to file for the extended description of the task. "
+                "Required if not providing a custom source bundle."
+            ),
+        },
+    )
+    custom_source_bundle: str = field(
+        default=None,
+        metadata={
+            "help": "Optional path to a fully custom frontend bundle",
+        },
+    )
+    custom_source_dir: str = field(
+        default=None,
+        metadata={
+            "help": "Optional path to a directory containing custom js code",
+        },
+    )
+    extra_source_dir: str = field(
+        default=None,
+        metadata={
+            "help": (
+                "Optional path to sources that the frontend may "
+                "refer to (such as images/video/css/scripts)"
+            ),
+        },
+    )
+    context_csv: str = field(
+        default=None,
+        metadata={
+            "help": "Optional path to csv containing task context",
+        },
+    )
+    num_conversations: int = field(
+        default=None,
+        metadata={
+            "help": "Optional count of conversations to have if no context provided",
+        },
+    )
 
 
 @register_mephisto_abstraction()

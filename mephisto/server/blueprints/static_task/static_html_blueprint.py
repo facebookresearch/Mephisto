@@ -28,6 +28,50 @@ if TYPE_CHECKING:
 
 BLUEPRINT_TYPE = "static_task"
 
+ group.add_argument(
+            "--task-source",
+            dest="task_source",
+            help="Path to source HTML file for the task being run",
+            required=True,
+        )
+        group.add_argument(
+            "--preview-source",
+            dest="preview_source",
+            help="Optional path to source HTML file to preview the task",
+        )
+        group.add_argument(
+            "--onboarding-source",
+            dest="onboarding_source",
+            help="Optional path to source HTML file to onboarding the task",
+        )
+@dataclass
+class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
+    """
+    Adds required options for StaticBlueprints.
+
+    task_source points to the file intending to be deployed for this task
+    data_csv has the data to be deployed for this task.
+    """
+    task_source: str = field(
+        default=None,
+        metadata={
+            'help': "Path to source HTML file for the task being run",
+            'required': True,
+        },
+    )
+    preview_source: str = field(
+        default=None,
+        metadata={
+            'help': "Optional path to source HTML file to preview the task",
+        },
+    )
+    onboarding_source: str = field(
+        default=None,
+        metadata={
+            'help': "Optional path to source HTML file to onboarding the task",
+        },
+    )
+
 
 @register_mephisto_abstraction()
 class StaticHTMLBlueprint(StaticBlueprint):
