@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractproperty
+from dataclasses import dataclass, field
 from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.assignment import Unit
 from mephisto.data_model.requester import Requester
@@ -17,6 +18,11 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class ProviderArgs:
+    """Base class for arguments to configure Crowd Providers"""
 
 
 class CrowdProvider(ABC):

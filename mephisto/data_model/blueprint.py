@@ -42,11 +42,19 @@ if TYPE_CHECKING:
 @dataclass
 class BlueprintArgs:
     onboarding_qualification: str = field(
-        default=None
+        default=None,
         metadata={
             'help': (
                 "Specify the name of a qualification used to block workers who fail onboarding, "
                 "None will skip onboarding."
+            ),
+        },
+    )
+    block_qualification: str = field(
+        default=None,
+        metadata={
+            'help': (
+                "Specify the name of a qualification used to soft block workers."
             ),
         },
     )

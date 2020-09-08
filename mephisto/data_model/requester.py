@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractstaticmethod
+from dataclasses import dataclass, field
 from mephisto.core.registry import get_crowd_provider_from_type
 
 from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
@@ -14,6 +15,15 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
 
+
+@dataclass
+class RequesterArgs:
+    """Base class for arguments to register a requester"""
+    name: str = field(
+        metadata={
+            'help': "Name to store this requester under.",
+        },
+    )
 
 class Requester(ABC):
     """

@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import Dict, List, Any, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
@@ -13,6 +14,11 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class ArchitectArgs:
+    """Base class for arguments to configure architects"""
 
 
 class Architect(ABC):

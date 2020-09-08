@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from mephisto.data_model.blueprint import AgentState
 from mephisto.core.registry import get_crowd_provider_from_type
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
@@ -21,6 +22,19 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.qualification import GrantedQualification
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class WorkerArgs:
+    """Base class for arguments to register a worker"""
+    name: str = field(
+        metadata={
+            'help': (
+                "Name to associate external worker id with an internal mephisto id. "
+                "Should be based on the external provider id."    
+            ),
+        },
+    )
 
 
 class Worker(ABC):

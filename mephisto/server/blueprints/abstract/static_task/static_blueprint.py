@@ -4,7 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs
+from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.abstract.static_task.static_agent_state import (
     StaticAgentState,
@@ -35,6 +36,50 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class StaticBlueprintArgs(BlueprintArgs):
+    units_per_assignment: int = field(
+        default=1,
+        metadata={
+            "help": "How many workers you want to do each assignment",
+        },
+    )
+    extra_source_dir: str = field(
+        default=None,
+        metadata={
+            "help": (
+                "Optional path to sources that the HTML may "
+                "refer to (such as images/video/css/scripts)"
+            ),
+        },
+    )
+    data_json: str = field(
+        default=None,
+        metadata={
+            "help": "Path to JSON file containing task data",
+        },
+    )
+    data_jsonl: str = field(
+        default=None,
+        metadata={
+            "help": "Path to JSON-L file containing task data",
+        },
+    )
+    data_csv: str = field(
+        default=None,
+        metadata={
+            "help": "Path to csv file containing task data",
+        },
+    )
+    extra_source_dir: str = field(
+        default=None,
+        metadata={
+            "Optional path to sources that the HTML may "
+            "refer to (such as images/video/css/scripts)"
+        },
+    )
 
 
 class StaticBlueprint(Blueprint, OnboardingRequired):

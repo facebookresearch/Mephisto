@@ -14,7 +14,8 @@ import json
 import time
 
 from mephisto.core.argparse_parser import str2bool
-from mephisto.data_model.architect import Architect
+from mephisto.data_model.architect import Architect, ArchitectArgs
+from dataclasses import dataclass, field
 from mephisto.data_model.packet import (
     PACKET_TYPE_ALIVE,
     PACKET_TYPE_NEW_WORKER,
@@ -40,6 +41,23 @@ MOCK_DEPLOY_URL = "MOCK_DEPLOY_URL"
 def get_rand_id():
     return str(uuid.uuid4())
 
+
+@dataclass
+class LocalArchitectArgs(ArchitectArgs):
+    """Additional arguments for configuring a mock architect"""
+    should_run_server: bool = field(
+        default=False,
+        metadata={
+            'help': "Addressible location of the server",
+        },
+    )
+    heroku_team: str = field(
+        default="3000",
+        metadata={
+            'help': "Port to launch the server on",
+        },
+    )
+    
 
 class SocketHandler(WebSocketHandler):
     def __init__(self, *args, **kwargs):

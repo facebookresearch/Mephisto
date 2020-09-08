@@ -8,6 +8,7 @@ from uuid import uuid4
 import time
 import random
 
+from dataclasses import dataclass, field
 from mephisto.data_model.requester import Requester
 from mephisto.providers.mturk.mturk_utils import (
     setup_aws_credentials,
@@ -27,6 +28,20 @@ if TYPE_CHECKING:
 
 
 MAX_QUALIFICATION_ATTEMPTS = 300
+
+
+@dataclass
+def MTurkRequesterArgs(RequesterArgs):
+    access_key_id: str = field(
+        metadata={
+            'help': "IAM Access Key ID",
+        },
+    )
+    secret_access_key: str = field(
+        metadata={
+            'help': "IAM Secret Access Key",
+        },
+    )
 
 
 class MTurkRequester(Requester):

@@ -13,7 +13,8 @@ import shlex
 import time
 import requests
 
-from mephisto.data_model.architect import Architect
+from mephisto.data_model.architect import Architect, ArchitectArgs
+from dataclasses import dataclass, field
 from mephisto.core.registry import register_mephisto_abstraction
 from typing import Any, Optional, Dict, List, TYPE_CHECKING, Callable
 
@@ -28,6 +29,23 @@ from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel
 from mephisto.core.utils import get_mephisto_tmp_dir
 
+
+@dataclass
+class LocalArchitectArgs(ArchitectArgs):
+    """Additional arguments for configuring a local architect"""
+    hostname: str = field(
+        default='localhost',
+        metadata={
+            'help': "Addressible location of the server",
+        },
+    )
+    heroku_team: str = field(
+        default="3000",
+        metadata={
+            'help': "Port to launch the server on",
+        },
+    )
+    
 
 @register_mephisto_abstraction()
 class LocalArchitect(Architect):

@@ -19,9 +19,10 @@ import sys
 import time
 import requests
 import re
+from dataclasses import dataclass, field
 from mephisto.core.utils import get_mephisto_tmp_dir
 from mephisto.core.argparse_parser import str2bool
-from mephisto.data_model.architect import Architect
+from mephisto.data_model.architect import Architect, ArchitectArgs
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel
 from mephisto.core.registry import register_mephisto_abstraction
@@ -49,6 +50,23 @@ HEROKU_WAIT_TIME = 3
 HEROKU_TMP_DIR = os.path.join(get_mephisto_tmp_dir(), "heroku")
 os.makedirs(HEROKU_TMP_DIR, exist_ok=True)
 
+
+@dataclass
+class HerokuArchitectArgs(ArchitectArgs):
+    """Additional arguments for configuring a heroku architect"""
+    use_hobby: bool = field(
+        default=False,
+        metadata={
+            'help': "Launch on the Heroku Hobby tier",
+        },
+    )
+    heroku_team: str = field(
+        default=None,
+        metadata={
+            'help': "Heroku team to use for this launch",
+        },
+    )
+    
 
 @register_mephisto_abstraction()
 class HerokuArchitect(Architect):

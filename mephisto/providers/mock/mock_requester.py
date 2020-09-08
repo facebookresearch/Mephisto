@@ -4,7 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.requester import Requester
+from dataclasses import dataclass, field
+from mephisto.data_model.requester import Requester, RequesterArgs
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.core.argparse_parser import str2bool
 
@@ -17,6 +18,16 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
 
 MOCK_BUDGET = 100000.0
+
+
+@dataclass
+def MockRequesterArgs(RequesterArgs):
+    force_fail: bool = field(
+        default=False,
+        metadata={
+            'help': "Trigger a failed registration",
+        },
+    )
 
 
 class MockRequester(Requester):

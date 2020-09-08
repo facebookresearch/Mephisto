@@ -26,34 +26,34 @@ CONFIG_FILE_PATH = "task_config.json"
 class TaskConfigArgs:
     """Object for grouping the contents to configure a class"""
     task_name: str = field(
-        default=None
+        default=None,
         metadata={
             'help': "Grouping to launch this task run under, none defaults to the blueprint type",
         },
     )
     task_title: str = field(
-        default=None
+        default=None,
         metadata={
             'help': "Display title for your task on the crowd provider.",
             'required': True,
         },
     )
     task_description: str = field(
-        default=None
+        default=None,
         metadata={
             'help': "Longer form description for what your task entails.",
             'required': True,
         },
     )
     task_reward: float = field(
-        default=None
+        default=None,
         metadata={
             'help': "Amount to pay per worker per unit, in dollars.",
             'required': True,
         },
     )
     task_tags: str = field(
-        default=None
+        default=None,
         metadata={
             'help': "Comma seperated tags for workers to use to find your task.",
             'required': True,

@@ -32,11 +32,3 @@ class MockTaskBuilder(TaskBuilder):
     def task_dir_is_valid(task_dir: str) -> bool:
         """Mocks are always valid, we don't have any special resources"""
         return True
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        MockTaskBuilders don't have any arguments (yet)
-        """
-        super(MockTaskBuilder, cls).add_args_to_group(group)
-        return
