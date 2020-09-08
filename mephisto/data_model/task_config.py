@@ -7,6 +7,7 @@
 
 import os
 import json
+from dataclasses import dataclass, field
 from shutil import copytree
 from typing import List, Any, TYPE_CHECKING, Dict
 import argparse
@@ -19,6 +20,67 @@ if TYPE_CHECKING:
 
 
 CONFIG_FILE_PATH = "task_config.json"
+
+
+@dataclass
+class TaskConfigArgs:
+    """Object for grouping the contents to configure a class"""
+    task_name: str = field(
+        default=None
+        metadata={
+            'help': "Grouping to launch this task run under, none defaults to the blueprint type",
+        },
+    )
+    task_title: str = field(
+        default=None
+        metadata={
+            'help': "Display title for your task on the crowd provider.",
+            'required': True,
+        },
+    )
+    task_description: str = field(
+        default=None
+        metadata={
+            'help': "Longer form description for what your task entails.",
+            'required': True,
+        },
+    )
+    task_reward: float = field(
+        default=None
+        metadata={
+            'help': "Amount to pay per worker per unit, in dollars.",
+            'required': True,
+        },
+    )
+    task_tags: str = field(
+        default=None
+        metadata={
+            'help': "Comma seperated tags for workers to use to find your task.",
+            'required': True,
+        },
+    )
+    assignment_duration_in_seconds: int = field(
+        default=30 * 60,
+        metadata={
+            'help': "Time that workers have to work on your task once accepted.",
+        },
+    )
+    allowed_concurrent: int = field(
+        default=0,
+        metadata={
+            'help': "Maximum units a worker is allowed to work on at once. (0 is infinite)",
+            'required': True,
+        },
+    )
+    maximum_units_per_worker: int = field(
+        default=0,
+        metadata={
+            'help': (
+                "Maximum tasks of this task name that a worker can work on across all "
+                "tasks that share this task_name. (0 is infinite)"
+            ),
+        },
+    )
 
 
 class TaskConfig:

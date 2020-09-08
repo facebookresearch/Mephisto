@@ -21,6 +21,7 @@ from typing import (
 )
 
 from recordclass import RecordClass
+from dataclasses import dataclass, field
 
 from mephisto.data_model.exceptions import (
     AgentReturnedError,
@@ -36,6 +37,19 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class BlueprintArgs:
+    onboarding_qualification: str = field(
+        default=None
+        metadata={
+            'help': (
+                "Specify the name of a qualification used to block workers who fail onboarding, "
+                "None will skip onboarding."
+            ),
+        },
+    )
 
 
 class TaskBuilder(ABC):
