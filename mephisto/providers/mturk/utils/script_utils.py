@@ -4,10 +4,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Dict
 
 from mephisto.providers.mturk.mturk_utils import give_worker_qualification
 from mephisto.data_model.requester import Requester
+from mephisto.data_model.unit import Unit
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
@@ -47,3 +48,21 @@ def direct_soft_block_mturk_workers(
             give_worker_qualification(mturk_client, worker_id, qualification_id, value=1)
         except Exception as e:
             print(f'Failed to give worker with ID: \"{worker_id}\" qualification with error: {e}. Skipping.')
+
+
+def get_mturk_ids_from_unit_id(db, unit_id: str) -> Dict[str, Optional[str]]:
+    """
+    Find the relevant mturk ids from the given mephisto unit id
+    """
+    mturk_unit = Unit(db, unit_id)
+    assignment_id = mturk_unit.get_mturk_assignment_id()
+    hit_id = mturk_unit.get_mturk_hit_id()
+    agent = mturk_unit.get_assigned_agent()
+    worker_id = None
+    if agent is not None:
+        worker_id = agent.get_worker().get_mturk_worker_id()
+    return {
+        'assignment_id': assignment_id,
+        'hit_id': hit_id,
+        'worker_id': worker_id,
+    }
