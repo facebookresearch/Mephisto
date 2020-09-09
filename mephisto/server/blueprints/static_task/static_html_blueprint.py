@@ -5,8 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.server.blueprints.abstract.static_task.static_blueprint import (
-    StaticBlueprint,
+    StaticBlueprint, StaticBlueprintArgs
 )
+from dataclasses import dataclass, field
 from mephisto.server.blueprints.static_task.static_html_task_builder import (
     StaticHTMLTaskBuilder,
 )
@@ -28,22 +29,7 @@ if TYPE_CHECKING:
 
 BLUEPRINT_TYPE = "static_task"
 
- group.add_argument(
-            "--task-source",
-            dest="task_source",
-            help="Path to source HTML file for the task being run",
-            required=True,
-        )
-        group.add_argument(
-            "--preview-source",
-            dest="preview_source",
-            help="Optional path to source HTML file to preview the task",
-        )
-        group.add_argument(
-            "--onboarding-source",
-            dest="onboarding_source",
-            help="Optional path to source HTML file to onboarding the task",
-        )
+
 @dataclass
 class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
     """

@@ -76,8 +76,10 @@ class StaticBlueprintArgs(BlueprintArgs):
     extra_source_dir: str = field(
         default=None,
         metadata={
-            "Optional path to sources that the HTML may "
-            "refer to (such as images/video/css/scripts)"
+            "help": (
+                "Optional path to sources that the HTML may "
+                "refer to (such as images/video/css/scripts)"
+            ),
         },
     )
 

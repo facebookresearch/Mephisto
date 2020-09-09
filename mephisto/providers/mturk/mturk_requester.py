@@ -9,7 +9,7 @@ import time
 import random
 
 from dataclasses import dataclass, field
-from mephisto.data_model.requester import Requester
+from mephisto.data_model.requester import Requester, RequesterArgs
 from mephisto.providers.mturk.mturk_utils import (
     setup_aws_credentials,
     get_requester_balance,
@@ -31,7 +31,7 @@ MAX_QUALIFICATION_ATTEMPTS = 300
 
 
 @dataclass
-def MTurkRequesterArgs(RequesterArgs):
+class MTurkRequesterArgs(RequesterArgs):
     access_key_id: str = field(
         metadata={
             'help': "IAM Access Key ID",
