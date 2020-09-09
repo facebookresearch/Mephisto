@@ -49,6 +49,8 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
   if (isOnboarding) {
     return <OnboardingComponent onSubmit={onSubmit} />;
   }
+  throw new Error('Test SimpleFrontend component error!');
+
   return (
     <div>
       <Directions>
@@ -62,8 +64,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
             <div className="control">
               <button
                 className="button is-success is-large"
-                onClick={() => {throw new Error("test Sara!");}}
-//                 onClick={() => onSubmit({ rating: "good" })}
+                onClick={() => onSubmit({ rating: "good" })}
               >
                 Mark as Good
               </button>
