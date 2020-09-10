@@ -18,7 +18,7 @@ import os
 import time
 import csv
 
-from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -39,7 +39,7 @@ class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
     task_source points to the file intending to be deployed for this task
     data_csv has the data to be deployed for this task.
     """
-    _blueprint_type = BLUEPRINT_TYPE
+    _blueprint_type: str = BLUEPRINT_TYPE
     task_source: str = field(
         default=MISSING,
         metadata={
@@ -47,13 +47,13 @@ class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
             'required': True,
         },
     )
-    preview_source: str = field(
+    preview_source: Optional[str] = field(
         default=MISSING,
         metadata={
             'help': "Optional path to source HTML file to preview the task",
         },
     )
-    onboarding_source: str = field(
+    onboarding_source: Optional[str] = field(
         default=MISSING,
         metadata={
             'help': "Optional path to source HTML file to onboarding the task",

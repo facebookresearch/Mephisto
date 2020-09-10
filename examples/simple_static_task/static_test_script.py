@@ -55,9 +55,9 @@ TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
 defaults = [
     {"mephisto.blueprint": BLUEPRINT_TYPE},
-    # {"mephisto.architect": MISSING},
-    # {"mephisto.requester": MISSING},
-    {"exp": "example"}
+    {"mephisto.architect": 'local'},
+    {"mephisto.provider": 'mock'},
+    {"exp": "example"},
 ]
 
 from mephisto.core.hydra_config import ScriptConfig, register_script_config
@@ -65,14 +65,13 @@ from mephisto.core.hydra_config import ScriptConfig, register_script_config
 @dataclass 
 class TestScriptConfig(ScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
-    install_dir: str = TASK_DIRECTORY
+    task_dir: str = TASK_DIRECTORY
 
 register_script_config(name='scriptconfig', module=TestScriptConfig)
 
 @hydra.main(config_name='scriptconfig')
 def my_app(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
-    print(cfg.mephisto.blueprint.data_csv)
 
 if __name__ == "__main__":
     my_app()

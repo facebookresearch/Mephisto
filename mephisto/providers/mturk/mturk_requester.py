@@ -9,6 +9,7 @@ import time
 import random
 
 from dataclasses import dataclass, field
+from omegaconf import MISSING
 from mephisto.data_model.requester import Requester, RequesterArgs
 from mephisto.providers.mturk.mturk_utils import (
     setup_aws_credentials,
@@ -33,12 +34,16 @@ MAX_QUALIFICATION_ATTEMPTS = 300
 @dataclass
 class MTurkRequesterArgs(RequesterArgs):
     access_key_id: str = field(
+        default=MISSING,
         metadata={
+            'required': True,
             'help': "IAM Access Key ID",
         },
     )
     secret_access_key: str = field(
+        default=MISSING,
         metadata={
+            'required': True,
             'help': "IAM Secret Access Key",
         },
     )

@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
 
 MOCK_DEPLOY_URL = "MOCK_DEPLOY_URL"
+ARCHITECT_TYPE = "mock"
 
 
 def get_rand_id():
@@ -45,6 +46,7 @@ def get_rand_id():
 @dataclass
 class LocalArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a mock architect"""
+    _architect_type: str = ARCHITECT_TYPE
     should_run_server: bool = field(
         default=False,
         metadata={
@@ -252,7 +254,8 @@ class MockArchitect(Architect):
     we can send special packets and assert connections have been made
     """
 
-    ARCHITECT_TYPE = "mock"
+    ArgsClass = LocalArchitectArgs
+    ARCHITECT_TYPE = ARCHITECT_TYPE
 
     def __init__(
         self,

@@ -29,17 +29,20 @@ from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel
 from mephisto.core.utils import get_mephisto_tmp_dir
 
+ARCHITECT_TYPE = "local"
+
 
 @dataclass
 class LocalArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a local architect"""
+    _architect_type: str = ARCHITECT_TYPE
     hostname: str = field(
         default='localhost',
         metadata={
             'help': "Addressible location of the server",
         },
     )
-    heroku_team: str = field(
+    port: str = field(
         default="3000",
         metadata={
             'help': "Port to launch the server on",
@@ -54,7 +57,8 @@ class LocalArchitect(Architect):
     onto that server.
     """
 
-    ARCHITECT_TYPE = "local"
+    ArgsClass = LocalArchitectArgs
+    ARCHITECT_TYPE = ARCHITECT_TYPE
 
     def __init__(
         self,

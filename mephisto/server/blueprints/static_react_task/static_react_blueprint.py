@@ -6,6 +6,7 @@
 
 from mephisto.data_model.assignment import InitializationData
 from dataclasses import dataclass, field
+from omegaconf import MISSING
 from mephisto.server.blueprints.abstract.static_task.static_blueprint import (
     StaticBlueprint, StaticBlueprintArgs
 )
@@ -36,8 +37,9 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
     a prebuilt javascript bundle containing the task. We suggest building 
     with our provided useMephistoTask hook.
     """
+    _blueprint_type: str = BLUEPRINT_TYPE
     task_source: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Path to file containing javascript bundle for the task",
             'required': True,
@@ -50,6 +52,7 @@ class StaticReactBlueprint(StaticBlueprint):
     """Blueprint for a task that runs off of a built react javascript bundle"""
 
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = StaticReactTaskBuilder
+    ArgsClass = StaticReactBlueprintArgs
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(self, task_run: "TaskRun", opts: Any):

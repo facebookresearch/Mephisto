@@ -7,7 +7,6 @@
 
 from abc import ABC, abstractmethod
 from mephisto.core.utils import get_dir_for_run
-from mephisto.core.registry import get_crowd_provider_from_type
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.data_model.task import TaskRun, Task
 from mephisto.data_model.agent import Agent
@@ -284,6 +283,7 @@ class Unit(ABC):
         if cls == Unit:
             # We are trying to construct a Unit, find what type to use and
             # create that instead
+            from mephisto.core.registry import get_crowd_provider_from_type
             if row is None:
                 row = db.get_unit(db_id)
             assert row is not None, f"Given db_id {db_id} did not exist in given db"
@@ -295,6 +295,7 @@ class Unit(ABC):
 
     def get_crowd_provider_class(self) -> Type["CrowdProvider"]:
         """Get the CrowdProvider class that manages this Unit"""
+        from mephisto.core.registry import get_crowd_provider_from_type
         return get_crowd_provider_from_type(self.provider_type)
 
     def get_assignment_data(self) -> Optional[Dict[str, Any]]:

@@ -9,7 +9,7 @@ import os
 import json
 from dataclasses import dataclass, field
 from shutil import copytree
-from typing import List, Any, TYPE_CHECKING, Dict
+from typing import List, Any, TYPE_CHECKING, Optional, Dict
 from omegaconf import MISSING
 import argparse
 import shlex
@@ -25,7 +25,7 @@ CONFIG_FILE_PATH = "task_config.json"
 @dataclass
 class TaskConfigArgs:
     """Object for grouping the contents to configure a class"""
-    task_name: str = field(
+    task_name: Optional[str] = field(
         default=MISSING,
         metadata={
             'help': "Grouping to launch this task run under, none defaults to the blueprint type",

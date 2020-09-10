@@ -22,6 +22,7 @@ MOCK_BUDGET = 100000.0
 
 @dataclass
 class MockRequesterArgs(RequesterArgs):
+    name: str = "MOCK_REQUESTER"
     force_fail: bool = field(
         default=False,
         metadata={

@@ -6,7 +6,8 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, TYPE_CHECKING, Callable
+from omegaconf import MISSING
+from typing import Dict, List, Any, ClassVar, Type, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from mephisto.server.channels.channel import Channel
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
 @dataclass
 class ArchitectArgs:
     """Base class for arguments to configure architects"""
+    _architect_type: str = MISSING
 
 
 class Architect(ABC):
@@ -27,6 +29,7 @@ class Architect(ABC):
     onto that server.
     """
 
+    ArgsClass: ClassVar[Type[ArchitectArgs]] = ArchitectArgs
     ARCHITECT_TYPE: str
 
     def __init__(

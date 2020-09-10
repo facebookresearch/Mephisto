@@ -20,6 +20,7 @@ import time
 import requests
 import re
 from dataclasses import dataclass, field
+from omegaconf import MISSING
 from mephisto.core.utils import get_mephisto_tmp_dir
 from mephisto.core.argparse_parser import str2bool
 from mephisto.data_model.architect import Architect, ArchitectArgs
@@ -39,6 +40,8 @@ from mephisto.core.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 
+ARCHITECT_TYPE = "heroku"
+
 USER_NAME = getpass.getuser()
 HEROKU_SERVER_BUILD_DIRECTORY = "heroku_server"
 HEROKU_CLIENT_URL = (
@@ -54,19 +57,20 @@ os.makedirs(HEROKU_TMP_DIR, exist_ok=True)
 @dataclass
 class HerokuArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a heroku architect"""
+    _architect_type: str = ARCHITECT_TYPE
     use_hobby: bool = field(
         default=False,
         metadata={
             'help': "Launch on the Heroku Hobby tier",
         },
     )
-    heroku_team: str = field(
-        default=None,
+    heroku_team: Optional[str] = field(
+        default=MISSING,
         metadata={
             'help': "Heroku team to use for this launch",
         },
     )
-    
+
 
 @register_mephisto_abstraction()
 class HerokuArchitect(Architect):
@@ -74,7 +78,8 @@ class HerokuArchitect(Architect):
     Sets up a server on heroku and deploys the task on that server
     """
 
-    ARCHITECT_TYPE = "heroku"
+    ArgsClass = HerokuArchitectArgs
+    ARCHITECT_TYPE = ARCHITECT_TYPE
 
     def __init__(
         self,

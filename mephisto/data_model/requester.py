@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod, abstractstaticmethod
 from dataclasses import dataclass, field
-from mephisto.core.registry import get_crowd_provider_from_type
+from omegaconf import MISSING
 
 from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
 
@@ -20,10 +20,12 @@ if TYPE_CHECKING:
 class RequesterArgs:
     """Base class for arguments to register a requester"""
     name: str = field(
+        default=MISSING,
         metadata={
-            'help': "Name to store this requester under.",
+            'help': "Name for the requester in the Mephisto DB.",
         },
     )
+
 
 class Requester(ABC):
     """
@@ -53,6 +55,8 @@ class Requester(ABC):
         as you will instead be returned the correct Requester class according to
         the crowdprovider associated with this Requester.
         """
+        from mephisto.core.registry import get_crowd_provider_from_type
+
         if cls == Requester:
             # We are trying to construct a Requester, find what type to use and
             # create that instead

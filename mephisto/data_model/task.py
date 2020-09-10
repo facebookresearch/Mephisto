@@ -18,7 +18,6 @@ from mephisto.core.utils import (
     ensure_user_confirm,
     get_dir_for_run,
 )
-from mephisto.core.registry import get_blueprint_from_type, get_crowd_provider_from_type
 
 from functools import reduce
 
@@ -291,6 +290,8 @@ class TaskRun:
 
     def get_blueprint(self, opts: Optional[Dict[str, Any]] = None) -> "Blueprint":
         """Return the runner associated with this task run"""
+        from mephisto.core.registry import get_blueprint_from_type
+
         if self.__blueprint is None:
             cache = False
             task_args = self.get_task_config().args
@@ -305,6 +306,8 @@ class TaskRun:
 
     def get_provider(self) -> "CrowdProvider":
         """Return the crowd provider used to launch this task"""
+        from mephisto.core.registry import get_crowd_provider_from_type
+
         if self.__crowd_provider is None:
             CrowdProviderClass = get_crowd_provider_from_type(self.provider_type)
             self.__crowd_provider = CrowdProviderClass(self.db)

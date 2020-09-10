@@ -6,9 +6,10 @@
 
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass, field
+from omegaconf import MISSING
 from mephisto.data_model.blueprint import AgentState
 from mephisto.data_model.assignment import Unit
-from mephisto.data_model.requester import Requester
+from mephisto.data_model.requester import Requester, RequesterArgs
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.agent import Agent
 
@@ -23,6 +24,8 @@ if TYPE_CHECKING:
 @dataclass
 class ProviderArgs:
     """Base class for arguments to configure Crowd Providers"""
+    _provider_type: str = MISSING
+    requester: RequesterArgs = RequesterArgs()
 
 
 class CrowdProvider(ABC):
@@ -45,6 +48,8 @@ class CrowdProvider(ABC):
     WorkerClass: ClassVar[Type[Worker]] = Worker
 
     AgentClass: ClassVar[Type[Agent]] = Agent
+
+    ArgsClass: ClassVar[Type[ProviderArgs]] = ProviderArgs
 
     SUPPORTED_TASK_TYPES: ClassVar[List[str]]
 
