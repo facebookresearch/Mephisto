@@ -57,7 +57,7 @@ defaults = [
     {"mephisto.blueprint": BLUEPRINT_TYPE},
     {"mephisto.architect": 'local'},
     {"mephisto.provider": 'mock'},
-    {"exp": "example"},
+    {"conf": "example"},
 ]
 
 from mephisto.core.hydra_config import ScriptConfig, register_script_config
