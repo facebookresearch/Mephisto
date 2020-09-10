@@ -5,8 +5,10 @@
 # LICENSE file in the root directory of this source tree.
 from mephisto.core.registry import fill_registries
 from mephisto.core.config_handler import init_config
+from mephisto.core.hydra_config import initialize_named_configs
 
 __version__ = "0.1.0"
 
 init_config()
 fill_registries()
+initialize_named_configs()

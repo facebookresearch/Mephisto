@@ -10,9 +10,9 @@ import json
 from dataclasses import dataclass, field
 from shutil import copytree
 from typing import List, Any, TYPE_CHECKING, Dict
+from omegaconf import MISSING
 import argparse
 import shlex
-from mephisto.core.registry import get_blueprint_from_type, get_crowd_provider_from_type
 
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
@@ -26,34 +26,34 @@ CONFIG_FILE_PATH = "task_config.json"
 class TaskConfigArgs:
     """Object for grouping the contents to configure a class"""
     task_name: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Grouping to launch this task run under, none defaults to the blueprint type",
         },
     )
     task_title: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Display title for your task on the crowd provider.",
             'required': True,
         },
     )
     task_description: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Longer form description for what your task entails.",
             'required': True,
         },
     )
     task_reward: float = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Amount to pay per worker per unit, in dollars.",
             'required': True,
         },
     )
     task_tags: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Comma seperated tags for workers to use to find your task.",
             'required': True,
@@ -100,6 +100,7 @@ class TaskConfig:
             with open(arg_path, "r") as config_file:
                 args = json.load(config_file)
         else:
+            from mephisto.core.registry import get_blueprint_from_type, get_crowd_provider_from_type
             # parse new arguments
             BlueprintClass = get_blueprint_from_type(task_run.task_type)
             CrowdProviderClass = get_crowd_provider_from_type(task_run.provider_type)

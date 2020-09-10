@@ -7,6 +7,14 @@ python-versions = "*"
 version = "0.7.12"
 
 [[package]]
+category = "main"
+description = "ANTLR 4.8 runtime for Python 3.7"
+name = "antlr4-python3-runtime"
+optional = false
+python-versions = "*"
+version = "4.8"
+
+[[package]]
 category = "dev"
 description = "An abstract syntax tree for Python with inference support."
 name = "astroid"
@@ -147,6 +155,15 @@ test = ["flake8 (3.7.8)", "hypothesis (3.55.3)"]
 
 [[package]]
 category = "main"
+description = "A backport of the dataclasses module for Python 3.6"
+marker = "python_version == \"3.6\""
+name = "dataclasses"
+optional = false
+python-versions = ">=3.6, <3.7"
+version = "0.7"
+
+[[package]]
+category = "main"
 description = "Formats docstrings to follow PEP 257."
 name = "docformatter"
 optional = true
@@ -264,6 +281,22 @@ six = "*"
 
 [[package]]
 category = "main"
+description = "A framework for elegantly configuring complex applications"
+name = "hydra-core"
+optional = false
+python-versions = "*"
+version = "1.0.0"
+
+[package.dependencies]
+antlr4-python3-runtime = "4.8"
+omegaconf = ">=2.0.1"
+
+[package.dependencies.importlib-resources]
+python = "<3.9"
+version = "*"
+
+[[package]]
+category = "main"
 description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
 optional = false
@@ -293,6 +326,23 @@ zipp = ">=0.5"
 [package.extras]
 docs = ["sphinx", "rst.linker"]
 testing = ["packaging", "importlib-resources"]
+
+[[package]]
+category = "main"
+description = "Read resources from Python packages"
+marker = "python_version < \"3.9\""
+name = "importlib-resources"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
+version = "3.0.0"
+
+[package.dependencies]
+[package.dependencies.zipp]
+python = "<3.8"
+version = ">=0.4"
+
+[package.extras]
+docs = ["sphinx", "rst.linker", "jaraco.packaging"]
 
 [[package]]
 category = "dev"
@@ -436,6 +486,22 @@ name = "numpy"
 optional = true
 python-versions = ">=3.5"
 version = "1.18.3"
+
+[[package]]
+category = "main"
+description = "A flexible configuration library"
+name = "omegaconf"
+optional = false
+python-versions = ">=3.6"
+version = "2.0.1"
+
+[package.dependencies]
+PyYAML = ">=5.1"
+typing-extensions = "*"
+
+[package.dependencies.dataclasses]
+python = ">=3.6,<3.7"
+version = "*"
 
 [[package]]
 category = "main"
@@ -662,7 +728,7 @@ version = "2019.3"
 category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
-optional = true
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "5.1"
 
@@ -1109,13 +1175,16 @@ testing = ["jaraco.itertools", "func-timeout"]
 parlai = ["parlai", "torch", "pyyaml"]
 
 [metadata]
-content-hash = "d1f539fdeb88cd1feb140dbe2b9479b9fa16ca7ba1e261337d796280ebe37296"
+content-hash = "771427a65448d8b0a6e1a00faf1118bb0603a4399ee48c44178dfef93cf17479"
 python-versions = "^3.6"
 
 [metadata.files]
 alabaster = [
     {file = "alabaster-0.7.12-py2.py3-none-any.whl", hash = "sha256:446438bdcca0e05bd45ea2de1668c1d9b032e1a9154c2c259092d77031ddd359"},
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
+]
+antlr4-python3-runtime = [
+    {file = "antlr4-python3-runtime-4.8.tar.gz", hash = "sha256:15793f5d0512a372b4e7d2284058ad32ce7dd27126b105fb0b2245130445db33"},
 ]
 astroid = [
     {file = "astroid-2.4.0-py3-none-any.whl", hash = "sha256:2fecea42b20abb1922ed65c7b5be27edfba97211b04b2b6abc6a43549a024ea6"},
@@ -1163,6 +1232,10 @@ colorama = [
 commonmark = [
     {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
     {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
+]
+dataclasses = [
+    {file = "dataclasses-0.7-py3-none-any.whl", hash = "sha256:3459118f7ede7c8bea0fe795bff7c6c2ce287d01dd226202f7c9ebc0610a7836"},
+    {file = "dataclasses-0.7.tar.gz", hash = "sha256:494a6dcae3b8bcf80848eea2ef64c0cc5cd307ffc263e17cdf42f3e5420808e6"},
 ]
 docformatter = [
     {file = "docformatter-1.3.tar.gz", hash = "sha256:c68c8db0952d7ec6423581915fde3f23d4be5eccc11eb28a3415b5cd0a1e4f73"},
@@ -1230,6 +1303,10 @@ h5py = [
     {file = "h5py-2.10.0-cp38-cp38-win_amd64.whl", hash = "sha256:769e141512b54dee14ec76ed354fcacfc7d97fea5a7646b709f7400cf1838630"},
     {file = "h5py-2.10.0.tar.gz", hash = "sha256:84412798925dc870ffd7107f045d7659e60f5d46d1c70c700375248bf6bf512d"},
 ]
+hydra-core = [
+    {file = "hydra-core-1.0.0.tar.gz", hash = "sha256:ea8dad523fced49b88f3472493a4ffee50bf4ffc51459a2372dc85184802bf71"},
+    {file = "hydra_core-1.0.0-py3-none-any.whl", hash = "sha256:a1c513768fc3271aca0759023d680b19df31bb44442b508d64c77d07438def29"},
+]
 idna = [
     {file = "idna-2.8-py2.py3-none-any.whl", hash = "sha256:ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"},
     {file = "idna-2.8.tar.gz", hash = "sha256:c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407"},
@@ -1241,6 +1318,10 @@ imagesize = [
 importlib-metadata = [
     {file = "importlib_metadata-1.6.0-py2.py3-none-any.whl", hash = "sha256:2a688cbaa90e0cc587f1df48bdc97a6eadccdcd9c35fb3f976a09e3b5016d90f"},
     {file = "importlib_metadata-1.6.0.tar.gz", hash = "sha256:34513a8a0c4962bc66d35b359558fd8a5e10cd472d37aec5f66858addef32c1e"},
+]
+importlib-resources = [
+    {file = "importlib_resources-3.0.0-py2.py3-none-any.whl", hash = "sha256:d028f66b66c0d5732dae86ba4276999855e162a749c92620a38c1d779ed138a7"},
+    {file = "importlib_resources-3.0.0.tar.gz", hash = "sha256:19f745a6eca188b490b1428c8d1d4a0d2368759f32370ea8fb89cad2ab1106c3"},
 ]
 isort = [
     {file = "isort-4.3.21-py2.py3-none-any.whl", hash = "sha256:6e811fcb295968434526407adb8796944f1988c5b65e8139058f2014cbe100fd"},
@@ -1378,6 +1459,10 @@ numpy = [
     {file = "numpy-1.18.3-cp38-cp38-win32.whl", hash = "sha256:99f0ba97e369f02a21bb95faa3a0de55991fd5f0ece2e30a9e2eaebeac238921"},
     {file = "numpy-1.18.3-cp38-cp38-win_amd64.whl", hash = "sha256:c60175d011a2e551a2f74c84e21e7c982489b96b6a5e4b030ecdeacf2914da68"},
     {file = "numpy-1.18.3.zip", hash = "sha256:e46e2384209c91996d5ec16744234d1c906ab79a701ce1a26155c9ec890b8dc8"},
+]
+omegaconf = [
+    {file = "omegaconf-2.0.1-py3-none-any.whl", hash = "sha256:c6a91e4aaf112301c36522af829156b25dc4e57fd1573b62746ae82c7e8bf4e5"},
+    {file = "omegaconf-2.0.1.tar.gz", hash = "sha256:b945422a8cece6da2b193ff5b64b30f7ebc6510819ac15b31d5d28173883d999"},
 ]
 packaging = [
     {file = "packaging-20.3-py2.py3-none-any.whl", hash = "sha256:82f77b9bee21c1bafbf35a84905d604d5d1223801d639cf3ed140bd651c08752"},

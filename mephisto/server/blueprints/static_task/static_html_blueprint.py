@@ -8,6 +8,7 @@ from mephisto.server.blueprints.abstract.static_task.static_blueprint import (
     StaticBlueprint, StaticBlueprintArgs
 )
 from dataclasses import dataclass, field
+from omegaconf import MISSING
 from mephisto.server.blueprints.static_task.static_html_task_builder import (
     StaticHTMLTaskBuilder,
 )
@@ -38,21 +39,22 @@ class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
     task_source points to the file intending to be deployed for this task
     data_csv has the data to be deployed for this task.
     """
+    _blueprint_type = BLUEPRINT_TYPE
     task_source: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Path to source HTML file for the task being run",
             'required': True,
         },
     )
     preview_source: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Optional path to source HTML file to preview the task",
         },
     )
     onboarding_source: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             'help': "Optional path to source HTML file to onboarding the task",
         },
@@ -63,7 +65,8 @@ class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
 class StaticHTMLBlueprint(StaticBlueprint):
     """Blueprint for a task that runs off of a built react javascript bundle"""
 
-    TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = StaticHTMLTaskBuilder
+    TaskBuilderClass = StaticHTMLTaskBuilder
+    ArgsClass = StaticHTMLBlueprintArgs
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(self, task_run: "TaskRun", opts: Any):

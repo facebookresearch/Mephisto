@@ -6,6 +6,7 @@
 
 from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs
 from dataclasses import dataclass, field
+from omegaconf import MISSING
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.abstract.static_task.static_agent_state import (
     StaticAgentState,
@@ -47,7 +48,7 @@ class StaticBlueprintArgs(BlueprintArgs):
         },
     )
     extra_source_dir: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": (
                 "Optional path to sources that the HTML may "
@@ -56,25 +57,25 @@ class StaticBlueprintArgs(BlueprintArgs):
         },
     )
     data_json: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Path to JSON file containing task data",
         },
     )
     data_jsonl: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Path to JSON-L file containing task data",
         },
     )
     data_csv: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Path to csv file containing task data",
         },
     )
     extra_source_dir: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": (
                 "Optional path to sources that the HTML may "
@@ -95,6 +96,7 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
     OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = StaticAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = EmptyStaticTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
+    ArgsClass: ClassVar[Type["BlueprintArgs"]] = StaticBlueprintArgs
     supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
 
     def __init__(self, task_run: "TaskRun", opts: Any):

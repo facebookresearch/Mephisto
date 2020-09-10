@@ -6,6 +6,7 @@
 
 from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs
 from dataclasses import dataclass, field
+from omegaconf import MISSING
 from mephisto.data_model.assignment import InitializationData
 from mephisto.core.argparse_parser import str2bool
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
@@ -16,7 +17,7 @@ from mephisto.core.registry import register_mephisto_abstraction
 import os
 import time
 
-from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from mephsito.data_model.agent import OnboardingAgent
@@ -31,8 +32,9 @@ BLUEPRINT_TYPE = "mock"
 
 @dataclass
 class MockBlueprintArgs(BlueprintArgs):
+    _blueprint_type: str = BLUEPRINT_TYPE
     num_assignments: int = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "How many workers you want to do each assignment",
             'required': True
@@ -66,6 +68,7 @@ class MockBlueprint(Blueprint, OnboardingRequired):
     OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = MockTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
+    ArgsClass: ClassVar[Type["BlueprintArgs"]] = MockBlueprintArgs
     supported_architects: ClassVar[List[str]] = ["mock"]
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 

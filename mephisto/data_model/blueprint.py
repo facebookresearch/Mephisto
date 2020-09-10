@@ -22,6 +22,7 @@ from typing import (
 
 from recordclass import RecordClass
 from dataclasses import dataclass, field
+from omegaconf import MISSING
 
 from mephisto.data_model.exceptions import (
     AgentReturnedError,
@@ -41,17 +42,18 @@ if TYPE_CHECKING:
 
 @dataclass
 class BlueprintArgs:
+    _blueprint_type: str = MISSING
     onboarding_qualification: str = field(
-        default=None,
+        default='',
         metadata={
             'help': (
                 "Specify the name of a qualification used to block workers who fail onboarding, "
-                "None will skip onboarding."
+                "Empty will skip onboarding."
             ),
         },
     )
     block_qualification: str = field(
-        default=None,
+        default='',
         metadata={
             'help': (
                 "Specify the name of a qualification used to soft block workers."
@@ -611,6 +613,7 @@ class Blueprint(ABC):
     OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = AgentState  # type: ignore
     TaskRunnerClass: ClassVar[Type["TaskRunner"]]
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]]
+    ArgsClass: ClassVar[Type["BlueprintArgs"]] = BlueprintArgs
     supported_architects: ClassVar[List[str]]
     BLUEPRINT_TYPE: str
 

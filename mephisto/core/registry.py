@@ -6,6 +6,7 @@
 
 from typing import Union, Type, Dict, Any, List, TYPE_CHECKING
 from mephisto.core.utils import get_root_dir, get_provider_dir
+from mephisto.core.hydra_config import register_abstraction_config
 import importlib
 import os
 
@@ -35,6 +36,9 @@ def register_mephisto_abstraction():
 
         if issubclass(base_class, Blueprint):
             BLUEPRINTS[base_class.BLUEPRINT_TYPE] = base_class
+            register_abstraction_config(
+                name=base_class.BLUEPRINT_TYPE, node=base_class.ArgsClass, abstraction_type='blueprint',
+            )
         elif issubclass(base_class, Architect):
             ARCHITECTS[base_class.ARCHITECT_TYPE] = base_class
         elif issubclass(base_class, CrowdProvider):
