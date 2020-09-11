@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import TaskRunner
+from mephisto.data_model.blueprint import TaskRunner, SharedTaskState
 from mephisto.data_model.assignment import InitializationData
 from mephisto.core.argparse_parser import str2bool
 
@@ -18,17 +18,18 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment, Unit
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
 
 
 class MockTaskRunner(TaskRunner):
     """Mock of a task runner, for use in testing"""
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        super().__init__(task_run, opts)
-        self.timeout = opts["timeout_time"]
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        super().__init__(task_run, args, shared_state)
+        self.timeout = args.blueprint.timeout_time
         self.tracked_tasks: Dict[str, Union["Assignment", "Unit"]] = {}
-        self.is_concurrent = opts.get("is_concurrent", True)
-        print(f"Blueprint is concurrent: {self.is_concurrent}, {opts}")
+        self.is_concurrent = args.blueprint.get("is_concurrent", True)
+        print(f"Blueprint is concurrent: {self.is_concurrent}, {args}")
 
     @staticmethod
     def get_mock_assignment_data() -> InitializationData:

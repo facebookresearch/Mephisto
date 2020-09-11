@@ -4,9 +4,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs, SharedTaskState
 from dataclasses import dataclass, field
-from omegaconf import MISSING
+from omegaconf import MISSING, DictConfig
 from mephisto.data_model.assignment import InitializationData
 from mephisto.core.argparse_parser import str2bool
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
@@ -72,9 +72,9 @@ class MockBlueprint(Blueprint, OnboardingRequired):
     supported_architects: ClassVar[List[str]] = ["mock"]
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
-    def __init__(self, task_run: "TaskRun", opts: Dict[str, Any]):
-        super().__init__(task_run, opts)
-        self.init_onboarding_config(task_run, opts)
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        super().__init__(task_run, args, shared_state)
+        self.init_onboarding_config(task_run, args, shared_state)
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:
@@ -107,10 +107,9 @@ class MockBlueprint(Blueprint, OnboardingRequired):
         """
         return [
             MockTaskRunner.get_mock_assignment_data()
-            for i in range(self.opts["num_assignments"])
+            for i in range(self.args.blueprints.num_assignments)
         ]
 
-    # TODO(OWN) this should probably be part of the TaskRunner, which is actually privy to the task
     def validate_onboarding(
         self, worker: "Worker", onboarding_agent: "OnboardingAgent"
     ) -> bool:

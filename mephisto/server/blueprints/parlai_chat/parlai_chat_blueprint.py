@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs, SharedTaskState
 from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.parlai_chat.parlai_chat_agent_state import (
@@ -17,6 +17,7 @@ from mephisto.server.blueprints.parlai_chat.parlai_chat_task_builder import (
     ParlAIChatTaskBuilder,
 )
 from mephisto.core.registry import register_mephisto_abstraction
+from omegaconf import DictConfig, MISSING
 
 import os
 import time
@@ -40,7 +41,7 @@ BLUEPRINT_TYPE = "parlai_chat"
 
 MISSING_SOMETHING_TEXT = (
     "<h1>"
-    "You didn't specify a --task-description-file and also didn't override the "
+    "You didn't specify a task_description_file and also didn't override the "
     "frontend `TaskPreviewView` (if this is a preview) or the `TaskDescription` "
     "component (if this is in-task)."
     "</h1>"
@@ -48,22 +49,30 @@ MISSING_SOMETHING_TEXT = (
 
 
 @dataclass
+class SharedParlAITaskState(SharedTaskState):
+    frontend_task_opts: Dict[str, Any] = field(default_factory=dict)
+    world_opt: Dict[str, Any] = field(default_factory=dict)
+    onboarding_world_opt: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class ParlAIChatBlueprintArgs(BlueprintArgs):
+    _blueprint_type: str = BLUEPRINT_TYPE
     world_file: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Path to file containing ParlAI world",
             'required': True
         },
     )
     preview_source: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Optional path to source HTML file to preview the task",
         },
     )
     task_description_file: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": (
                 "Path to file for the extended description of the task. "
@@ -72,19 +81,19 @@ class ParlAIChatBlueprintArgs(BlueprintArgs):
         },
     )
     custom_source_bundle: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Optional path to a fully custom frontend bundle",
         },
     )
     custom_source_dir: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Optional path to a directory containing custom js code",
         },
     )
     extra_source_dir: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": (
                 "Optional path to sources that the frontend may "
@@ -93,13 +102,13 @@ class ParlAIChatBlueprintArgs(BlueprintArgs):
         },
     )
     context_csv: str = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Optional path to csv containing task context",
         },
     )
     num_conversations: int = field(
-        default=None,
+        default=MISSING,
         metadata={
             "help": "Optional count of conversations to have if no context provided",
         },
@@ -114,6 +123,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = ParlAIChatAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = ParlAIChatTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = ParlAIChatTaskRunner
+    ArgsClass = ParlAIChatBlueprintArgs
     supported_architects: ClassVar[List[str]] = [
         "mock",
         "heroku",
@@ -121,13 +131,13 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     ]  # TODO update?
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        super().__init__(task_run, opts)
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
-        self.init_onboarding_config(task_run, opts)
+        self.init_onboarding_config(task_run, args, shared_state)
 
-        if opts.get("context_csv") is not None:
-            csv_file = os.path.expanduser(opts["context_csv"])
+        if args.blueprint.get("context_csv", None) is not None:
+            csv_file = os.path.expanduser(args.blueprint.context_csv)
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
                 csv_reader = csv.reader(csv_fp)
                 headers = next(csv_reader)
@@ -136,15 +146,15 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
                     for i, col in enumerate(row):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
-        elif opts.get("num_conversations") is not None:
-            self._initialization_data_dicts = [{}] * opts.get("num_conversations")
+        elif args.blueprint.get("num_conversations", None) is not None:
+            self._initialization_data_dicts = [{}] * args.blueprint.num_conversations
         else:
             # TODO(#95) handle JSON and python dicts directly
             raise NotImplementedError(
-                "Parsing static tasks directly from dicts or JSON is not supported yet"
+                "Parsing parlai tasks directly from dicts or JSON is not supported yet"
             )
 
-        world_file_path = os.path.expanduser(self.opts["world_file"])
+        world_file_path = os.path.expanduser(args.blueprint.world_file)
         world_module_path = world_file_path[:-3]
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
@@ -157,8 +167,8 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         ]
 
         self.full_task_description = MISSING_SOMETHING_TEXT
-        if opts.get("task_description_file") is not None:
-            full_path = os.path.expanduser(opts.get("task_description_file"))
+        if args.blueprint.get("task_description_file", None) is not None:
+            full_path = os.path.expanduser(args.blueprint.task_description_file)
             assert os.path.exists(
                 full_path
             ), f"Target task description path {full_path} doesn't exist"
@@ -166,10 +176,10 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
                 self.full_task_description = description_fp.read()
 
     @classmethod
-    def assert_task_args(cls, args: Any) -> None:
+    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         """Ensure that arguments are properly configured to launch this task"""
         # assert world file is valid
-        world_file_path = os.path.expanduser(args["world_file"])
+        world_file_path = os.path.expanduser(args.blueprint.world_file)
         world_module_path = world_file_path[:-3]
         assert os.path.exists(
             world_file_path
@@ -185,39 +195,39 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         ), "Provided world file has no `get_world_params` method"
 
         # assert some method for determining quantity of conversations
-        if args.get("context_csv") is not None:
+        if args.blueprint.get("context_csv", None) is not None:
             raise AssertionError(
                 "Specifying task quantity via context csv is not yet implemented"
             )
-        elif args.get("num_conversations") is not None:
+        elif args.blueprint.get("num_conversations", None) is not None:
             assert (
-                args.get("num_conversations") > 0
+                args.blueprint.num_conversations > 0
             ), "Must have at least one conversation"
         else:
             raise AssertionError(
                 "Must specify one of --context-csv or --num-conversations"
             )
 
-        if args.get("custom_source_bundle") is not None:
-            custom_source_file_path = os.path.expanduser(args["custom_source_bundle"])
+        if args.blueprint.get("custom_source_bundle", None) is not None:
+            custom_source_file_path = os.path.expanduser(args.blueprint.custom_source_bundle)
             assert os.path.exists(
                 custom_source_file_path
             ), f"Provided custom bundle doesn't exist at {custom_source_file_path}"
 
-        if args.get("custom_source_dir") is not None:
-            custom_source_dir_path = os.path.expanduser(args["custom_source_dir"])
+        if args.blueprint.get("custom_source_dir", None) is not None:
+            custom_source_dir_path = os.path.expanduser(args.blueprint.custom_source_dir)
             assert os.path.exists(
                 custom_source_dir_path
             ), f"Provided custom source dir doesn't exist at {custom_source_dir_path}"
 
-        if args.get("preview_source") is not None:
-            preview_source_file = os.path.expanduser(args["preview_source"])
+        if args.blueprint.get("preview_source", None) is not None:
+            preview_source_file = os.path.expanduser(args.blueprint.preview_source)
             assert os.path.exists(
                 preview_source_file
             ), f"Provided preview source doesn't exist at {preview_source_file}"
 
-        if args.get("extra_source_dir") is not None:
-            extra_source_dir = os.path.expanduser(args["extra_source_dir"])
+        if args.blueprint.get("extra_source_dir", None) is not None:
+            extra_source_dir = os.path.expanduser(args.blueprint.extra_source_dir)
             assert os.path.exists(
                 extra_source_dir
             ), f"Provided extra resource dir doesn't exist at {extra_source_dir}"
@@ -293,13 +303,14 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         Specifies what options within a task_config should be fowarded 
         to the client for use by the task's frontend
         """
+        # TODO move frontend args in
         frontend_task_config = {
             "task_description": self.full_task_description,
             "frame_height": 650,
-            "chat_title": self.opts["task_title"],
-            "has_preview": self.opts.get("preview_source") is not None,
+            "chat_title": self.args.task.task_title,
+            "has_preview": self.args.blueprint.get("preview_source", None) is not None,
             "block_mobile": True,
-            "frontend_task_opts": self.opts.get("task_opts", {}),
+            "frontend_task_opts": self.shared_state.frontend_task_opts,
         }
         frontend_task_config.update(super().get_frontend_args())
         return frontend_task_config

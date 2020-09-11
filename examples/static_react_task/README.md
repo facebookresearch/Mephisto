@@ -29,7 +29,7 @@ defaults = [
 ```
 These defaults are handed to Hydra in order to ensure that by default, we run a task locally with a mock provider (so we can demo). We also set `conf` to `example`, which means this script by default will also load in all of the configuration variables set in `conf/example.yaml`.
 
-If your task has other variables that you think will almost always be set to particular values (say you always expect `mephisto.blueprint.units_per_assignment` to be `1`) that differ from Mephisto's default for those values (if such a default exists), the `defaults` list is the correct place to put these such that you don't need to include them in every file. 
+If your task has other variables that you think will almost always be set to particular values (say you always expect `mephisto.blueprint.units_per_assignment` to be `1`) that differ from Mephisto's default for those values (if such a default exists), you can include them by default by adding a config file with your defaults to `conf` and adding the string path to it here in the list, like `conf/base`. See the ParlAI Chat demo for an example of this.
 #### Creating and using override files
 You can create override configuration files, such as `example.yaml` vs `onboarding_example.yaml` in the `conf` directory. Having these files makes it really easy to set multiple values at once. You can only select one such configuration file per run, using the `conf=example` argument.
 #### Overriding on the command line

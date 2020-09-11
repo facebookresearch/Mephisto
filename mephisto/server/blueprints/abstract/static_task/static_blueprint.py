@@ -43,6 +43,7 @@ if TYPE_CHECKING:
 class SharedStaticTaskState(SharedTaskState):
     static_task_data: List[Any] = field(default_factory=list)
 
+
 @dataclass
 class StaticBlueprintArgs(BlueprintArgs):
     units_per_assignment: int = field(
