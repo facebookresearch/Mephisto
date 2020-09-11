@@ -25,13 +25,13 @@ class StaticReactTaskBuilder(TaskBuilder):
         target_resource_dir = os.path.join(build_dir, "static")
 
         # If any additional task files are required via a source_dir, copy those as well
-        extra_dir_path = self.opts.get("extra_source_dir")
+        extra_dir_path = self.args.blueprint.get("extra_source_dir", None)
         if extra_dir_path is not None:
             extra_dir_path = os.path.expanduser(extra_dir_path)
             copy_tree(extra_dir_path, target_resource_dir)
 
         # Copy the built core and the given task file to the target path
-        use_bundle = os.path.expanduser(self.opts["task_source"])
+        use_bundle = os.path.expanduser(self.args.blueprint.task_source)
         target_path = os.path.join(target_resource_dir, "bundle.js")
         shutil.copy2(use_bundle, target_path)
 

@@ -55,20 +55,20 @@ class StaticReactBlueprint(StaticBlueprint):
     ArgsClass = StaticReactBlueprintArgs
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        super().__init__(task_run, opts)
-        self.js_bundle = os.path.expanduser(opts["task_source"])
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        super().__init__(task_run, args, shared_state)
+        self.js_bundle = os.path.expanduser(args.blueprint.task_source)
         if not os.path.exists(self.js_bundle):
             raise FileNotFoundError(
                 f"Specified bundle file {self.js_bundle} was not found from {os.getcwd()}"
             )
 
     @classmethod
-    def assert_task_args(cls, opts: Any) -> None:
+    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         """Ensure that static requirements are fulfilled, and source file exists"""
-        super().assert_task_args(opts)
+        super().assert_task_args(args, shared_state)
 
-        found_task_source = opts.get("task_source")
+        found_task_source = args.blueprint.task_source
         assert (
             found_task_source is not None
         ), "Must provide a path to a javascript bundle in `task_source`"
