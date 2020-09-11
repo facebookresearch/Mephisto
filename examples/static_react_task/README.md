@@ -3,27 +3,56 @@ This example script is to demonstrate how to launch a simple task using a fronte
 
 This specific example can be run with:
 ```console
-python examples/static_react_task/run_task.py
+python run_task.py
 ```
-and can additionally be launched with an onboarding step using:
+and can additionally be launched with an onboarding step by specifying an onboarding qualification:
 ```console
-python examples/static_react_task/run_task.py --use-onboarding true
+python run_task.py mephisto.blueprint.onboarding_qualification=test-react-static-qualification
+```
+or by specifying the config file that already has this set:
+```console
+python run_task.py conf=onboarding_example
 ```
 
 ## Implementation
 ### Configuration
-This task is configured using the `MephistoRunScriptParser`, and more details about using this utility can be found viewing other examples, or by checking the documentation (TODO). This task adds an additional argument for `--use-onboarding` to demonstrate how to have an onboarding step before the main static react task.
+This task is configured using [Hydra](https://hydra.cc/) - details about using hydra to configure tasks can be read here and in other examples. For more about being able to customize the configuration files, please refer to the [Hydra documentation](https://hydra.cc/docs/intro). Under our current setup, using Hydra means that you must be in the same directory as the python script for hydra to correctly pick up the config files.
+#### Setting reasonable defaults
+In this script, we set certain configuration variables by default in every run:
+```python
+defaults = [
+    {"mephisto.blueprint": BLUEPRINT_TYPE},
+    {"mephisto.architect": 'local'},
+    {"mephisto.provider": 'mock'},
+    {"conf": "example"},
+]
+```
+These defaults are handed to Hydra in order to ensure that by default, we run a task locally with a mock provider (so we can demo). We also set `conf` to `example`, which means this script by default will also load in all of the configuration variables set in `conf/example.yaml`.
+
+If your task has other variables that you think will almost always be set to particular values (say you always expect `mephisto.blueprint.units_per_assignment` to be `1`) that differ from Mephisto's default for those values (if such a default exists), the `defaults` list is the correct place to put these such that you don't need to include them in every file. 
+#### Creating and using override files
+You can create override configuration files, such as `example.yaml` vs `onboarding_example.yaml` in the `conf` directory. Having these files makes it really easy to set multiple values at once. You can only select one such configuration file per run, using the `conf=example` argument.
+#### Overriding on the command line
+You can also override configuration variables on the command line. Say you want to launch your server on port 4000 rather than 3000, you can use:
+```console
+python run_task.py mephisto.architect.port=4000
+```
+To be able to launch with a `HerokuArchitect` rather than the default `LocalArchitect`, you can use:
+```console
+python run_task.py mephisto.architect=heroku
+```
 ### Providing task data
 In this case, the provided app demonstrates being able to send task data forward to the fronted. See the `run_task.py` script. Here we have:
 ```python
-extra_args = {
-    "static_task_data": [
+shared_state = SharedStaticTaskState(
+    static_task_data=[
         {"text": "This text is good text!"},
         {"text": "This text is bad text!"},
-    ]
-}
+    ],
+    validate_onboarding=onboarding_always_valid,
+)
 ```
-This block of code is preparing two tasks, each with a `"text"` field set. When the task run is launched with `operator.parse_and_launch_run_wrapper(shlex.split(ARG_STRING), extra_args=extra_args)`, this creates two tasks for workers to work on, one for each entry in the array.
+This block of code is preparing two tasks, each with a `"text"` field set. When the task run is launched with `operator.validate_and_run_config_wrap(cfg.mephisto, shared_state)`, this creates two tasks for workers to work on, one for each entry in the `static_task_data` array.
 
 This data is later pulled via the `useMephistoTask` hook, and when a worker accepts a task, they will be given the contents of one of the entries as their `initialTaskData`. See the `webapp/src/app.jsx` file. We render
 ```js
@@ -41,7 +70,7 @@ This is the flow for providing data to a static react task.
 
 #### Adding taskConfig
 
-You can also pass an additional dict under the key `task_config` as a part of `extra_args` to populate the frontend's `taskConfig` with those values for every task in a run.
+You can also pass an additional dict under the key `task_config` as a part of `SharedStaticTaskState` to populate the frontend's `taskConfig` with those values for every task in a run.
 
 ### Getting data back
 From within the frontend, any call to the `handleSubmit` method will store the data in any object passed as an argument to the local filestorage:
@@ -58,7 +87,7 @@ From within the frontend, any call to the `handleSubmit` method will store the d
 This data can later be viewed using `MephistoDataBrowser` or other scripts.
 
 ### Onboarding
-An onboarding step can be added to tasks, which will be shown the first time a worker encounters a task with the same `--onboarding-qualification` set. For Static React Tasks, calling `handleSubmit` when `isOnboarding` is true will submit the onboarding. If the object passed has the flag `{"success": false}` in it, the worker will be prevented from working on the real task, or any future tasks with the same `--onboarding-qualification` set. This task has one such button in `webapp/src/components/core_components.jsx` that is only shown if `isOnboarding` is true, and always submits a successful onboarding.
+An onboarding step can be added to tasks, which will be shown the first time a worker encounters a task with the same `onboarding_qualification` set. For Static React Tasks, calling `handleSubmit` when `isOnboarding` is true will submit the onboarding. If the object passed has the flag `{"success": false}` in it, the worker will be prevented from working on the real task, or any future tasks with the same `onboarding_qualification` set. This task has one such button in `webapp/src/components/core_components.jsx` that is only shown if `isOnboarding` is true, and always submits a successful onboarding.
 
 ```js
 <button

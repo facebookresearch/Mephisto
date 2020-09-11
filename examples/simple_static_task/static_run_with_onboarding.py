@@ -5,13 +5,11 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-import time
-import shlex
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 from mephisto.utils.scripts import get_db_from_config
 from mephisto.server.blueprints.static_task.static_html_blueprint import BLUEPRINT_TYPE
-from mephisto.data_model.blueprint import SharedTaskState
+from mephisto.server.blueprints.abstract.static_task.static_blueprint import SharedStaticTaskState
 
 import hydra
 from omegaconf import DictConfig
@@ -42,13 +40,13 @@ register_script_config(name='scriptconfig', module=TestScriptConfig)
 @hydra.main(config_name='scriptconfig')
 def main(cfg: DictConfig) -> None:
     correct_config_answer = cfg.correct_answer
-    
+
     def onboarding_is_valid(onboarding_data):
         inputs = onboarding_data["inputs"]
         outputs = onboarding_data["outputs"]
         return outputs.get("answer") == correct_config_answer
 
-    shared_state = SharedTaskState(
+    shared_state = SharedStaticTaskState(
         onboarding_data={"correct_answer": correct_config_answer},
         validate_onboarding=onboarding_is_valid,
     )

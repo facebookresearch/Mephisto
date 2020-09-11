@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs, SharedTaskState
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.data_model.assignment import InitializationData
@@ -37,8 +37,11 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
-    from mephisto.data_model.blueprint import SharedTaskState
 
+
+@dataclass
+class SharedStaticTaskState(SharedTaskState):
+    static_task_data: List[Any] = field(default_factory=list)
 
 @dataclass
 class StaticBlueprintArgs(BlueprintArgs):
@@ -106,7 +109,7 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
 
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         blue_args = args.blueprint
-        if blue_args.get("data_csv") is not None:
+        if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
                 csv_reader = csv.reader(csv_fp)
@@ -116,13 +119,13 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
                     for i, col in enumerate(row):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
-        elif blue_args.get("data_json") is not None:
+        elif blue_args.get("data_json", None) is not None:
             json_file = os.path.expanduser(blue_args.data_json)
             with open(json_file, "r", encoding="utf-8-sig") as json_fp:
                 json_data = json.loads(json_fp)
             for jd in json_data:
                 self._initialization_data_dicts.append(jd)
-        elif blue_args.get("data_jsonl") is not None:
+        elif blue_args.get("data_jsonl", None) is not None:
             jsonl_file = os.path.expanduser(blue_args.data_jsonl)
             with open(jsonl_file, "r", encoding="utf-8-sig") as jsonl_fp:
                 line = jsonl_fp.readline()

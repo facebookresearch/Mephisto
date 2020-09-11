@@ -68,7 +68,7 @@ class SharedTaskState:
     Base class for specifying additional state that can't just
     be passed as Hydra args, like functions and objects
     """
-    onboarding_data: Any = None
+    onboarding_data: Any = field(default_factory=dict)
     task_config: Any = field(default_factory=dict)
     validate_onboarding: Any = field(default_factory=lambda: (lambda x: True))
     qualifications: List[Any] = field(default_factory=list)

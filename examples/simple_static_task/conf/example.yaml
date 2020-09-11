@@ -7,6 +7,7 @@ mephisto:
     extra_source_dir: ${task_dir}/server_files/extra_refs
     units_per_assignment: 2
   task:
+    task_name: html-static-task-example
     task_title: "Test static task"
     task_description: "This is a simple test of static tasks."
     task_reward: 0.3
