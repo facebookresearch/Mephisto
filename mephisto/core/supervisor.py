@@ -22,6 +22,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_REQUEST_ACTION,
     PACKET_TYPE_UPDATE_AGENT_STATUS,
+    PACKET_TYPE_ERROR_LOG,
 )
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
@@ -661,14 +662,22 @@ class Supervisor:
                 packet.receiver_id = agent_id
                 agent_info.agent.pending_observations.append(packet)
 
+    @staticmethod
+    def _log_frontend_error(packet):
+        error_msg = packet.data['final_data'].get("errorMsg")
+        error_stack = packet.data['final_data'].get("error")
+        logger.info(f"[FRONT_END_ERROR]: {error_msg}")
+        logger.info(f"[FRONT_END_ERROR_Trace]: {error_stack}")
+
     def _on_message(self, packet: Packet, channel_info: ChannelInfo):
         """Handle incoming messages from the channel"""
         # TODO(#102) this method currently assumes that the packet's sender_id will
         # always be a valid agent in our list of agent_infos. At the moment this
         # is a valid assumption, but will not be on recovery from catastrophic failure.
         if packet.type == PACKET_TYPE_AGENT_ACTION:
-            logger.info(f"[SARA] sent packet is {packet}")
             self._on_act(packet, channel_info)
+        elif packet.type == PACKET_TYPE_ERROR_LOG:
+            self._log_frontend_error(packet)
         elif packet.type == PACKET_TYPE_NEW_AGENT:
             self._register_agent(packet, channel_info)
         elif packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:

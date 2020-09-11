@@ -51,10 +51,7 @@ class ErrorBoundary extends React.Component {
 /* ================= Application Components ================= */
 
 function MainApp() {
-//     window.onerror = (msg, url, lineNo, columnNo, error) => {
-//     console.log(msg)
-//       alert("error from Window: " + msg)
-//     }
+
   const {
     blockedReason,
     blockedExplanation,
@@ -65,6 +62,24 @@ function MainApp() {
     handleFatalError,
     isOnboarding,
   } = useMephistoTask();
+
+
+// Adding event listener instead of using window.onerror prevents the error to be caught twice
+window.addEventListener('error', function (event) {
+  if (event.error.hasBeenCaught !== undefined){
+    return false
+  }
+  event.error.hasBeenCaught = true
+  if (confirm("Do you want to report the error?")) {
+          console.log("You pressed OK!");
+          handleFatalError({errorMsg: event.error.message, error: event.error.stack})
+        } else {
+          console.log("You pressed Cancel!");
+        }
+        return true;
+})
+// Test case for type 3 error
+// throw new Error("test error event_handler");
 
   if (blockedReason !== null) {
     return (

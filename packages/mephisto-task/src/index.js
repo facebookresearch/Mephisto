@@ -12,6 +12,7 @@ import {
   isMobile,
   getInitTaskData,
   postCompleteTask,
+  postErrorLog,
   postCompleteOnboarding,
   getBlockedExplanation,
 } from "./utils";
@@ -71,7 +72,8 @@ const useMephistoTask = function () {
    const handleFatalError = React.useCallback(
    (data) => {
        console.log('inside handleFatalError ...')
-       handleSubmit(data)
+       postErrorLog(state.agentId, data)
+//       handleSubmit(data)
    },
    [state.agentId]);
 

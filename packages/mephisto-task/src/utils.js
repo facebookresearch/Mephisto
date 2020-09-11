@@ -132,6 +132,16 @@ export function postCompleteTask(agent_id, complete_data) {
     });
 }
 
+export function postErrorLog(agent_id, complete_data) {
+  return postData("/log_error", {
+    USED_AGENT_ID: agent_id,
+    final_data: complete_data,
+  })
+    .then(function (data) {
+      console.log("Error log sent to server");
+    });
+}
+
 export function getBlockedExplanation(reason) {
   const explanations = {
     no_mobile:

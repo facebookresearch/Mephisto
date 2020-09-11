@@ -49,7 +49,9 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
   if (isOnboarding) {
     return <OnboardingComponent onSubmit={onSubmit} />;
   }
-  throw new Error('Test SimpleFrontend component error!');
+
+  // test case for Type 1 error
+//   throw new Error('Test SimpleFrontend component error!');
 
   return (
     <div>
@@ -64,7 +66,9 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
             <div className="control">
               <button
                 className="button is-success is-large"
-                onClick={() => onSubmit({ rating: "good" })}
+                // Test for type 2 errors
+                onClick={()=> {throw new Error("test error event_handler");}}
+//                 onClick={() => onSubmit({ rating: "good" })}
               >
                 Mark as Good
               </button>
