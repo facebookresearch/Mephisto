@@ -10,7 +10,7 @@ import shlex
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 from mephisto.server.blueprints.static_task.static_html_blueprint import BLUEPRINT_TYPE
-from mephisto.utils.scripts import MephistoRunScriptParser
+from mephisto.utils.scripts import MephistoRunScriptParser, get_db_from_config
 
 from omegaconf import DictConfig, OmegaConf, MISSING
 import hydra
@@ -70,8 +70,13 @@ class TestScriptConfig(ScriptConfig):
 register_script_config(name='scriptconfig', module=TestScriptConfig)
 
 @hydra.main(config_name='scriptconfig')
-def my_app(cfg: DictConfig) -> None:
+def main(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
+    db = get_db_from_config(cfg)
+    operator = Operator(db)
+
+    operator.validate_and_run_config_wrap(cfg.mephisto)
+    operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 if __name__ == "__main__":
-    my_app()
+    main()

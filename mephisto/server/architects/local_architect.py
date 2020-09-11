@@ -24,6 +24,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
+    from mephisto.data_model.blueprint import SharedTaskState
 
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel
@@ -63,7 +65,8 @@ class LocalArchitect(Architect):
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, str],
+        args: "DictConfig", 
+        shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,
     ):
@@ -77,8 +80,8 @@ class LocalArchitect(Architect):
         self.server_process: Optional[subprocess.Popen] = None
         self.server_dir: Optional[str] = None
         self.running_dir: Optional[str] = None
-        self.hostname: Optional[str] = opts.get("hostname")
-        self.port: Optional[str] = opts.get("port")
+        self.hostname: Optional[str] = args.architect.hostname
+        self.port: Optional[str] = args.architect.port
         self.cleanup_called = False
 
     def _get_socket_urls(self) -> List[str]:

@@ -7,6 +7,7 @@
 
 import unittest
 import shutil
+import json
 import os
 import tempfile
 import time
@@ -22,7 +23,7 @@ from typing import Dict, Optional, List, Any, Tuple, NamedTuple, Type, TYPE_CHEC
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.blueprint import OnboardingRequired
+from mephisto.data_model.blueprint import OnboardingRequired, SharedTaskState
 from mephisto.data_model.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.core.task_launcher import TaskLauncher
@@ -31,8 +32,10 @@ from mephisto.core.registry import (
     get_crowd_provider_from_type,
     get_architect_from_type,
 )
+from mephisto.core.utils import get_mock_requester
 
 from mephisto.core.logger_core import get_logger
+from omegaconf import DictConfig, OmegaConf
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 
@@ -98,90 +101,79 @@ class Operator:
         )
         return parser
 
-    @staticmethod
-    def _parse_args_from_classes(
-        BlueprintClass: Type["Blueprint"],
-        ArchitectClass: Type["Architect"],
-        CrowdProviderClass: Type["CrowdProvider"],
-        argument_list: List[str],
-    ) -> Tuple[Dict[str, Any], List[str]]:
-        """Parse the given arguments over the parsers for the given types"""
-        # Create the parser
-        parser = ArgumentParser()
-        blueprint_group = parser.add_argument_group("blueprint")
-        BlueprintClass.add_args_to_group(blueprint_group)
-        provider_group = parser.add_argument_group("crowd_provider")
-        CrowdProviderClass.add_args_to_group(provider_group)
-        architect_group = parser.add_argument_group("architect")
-        ArchitectClass.add_args_to_group(architect_group)
-        task_group = parser.add_argument_group("task_config")
-        TaskConfig.add_args_to_group(task_group)
-
-        # Return parsed args
-        try:
-            known, unknown = parser.parse_known_args(argument_list)
-        except SystemExit:
-            raise Exception("Argparse broke - must fix")
-        return vars(known), unknown
-
     def get_running_task_runs(self):
         """Return the currently running task runs and their handlers"""
         return self._task_runs_tracked.copy()
-
-    # TODO(#94) there should be a way to provide default arguments via a config file
 
     def parse_and_launch_run(
         self,
         arg_list: Optional[List[str]] = None,
         extra_args: Optional[Dict[str, Any]] = None,
+    ) -> Optional[str]:
+        """
+        Wrapper around parse and launch run that prints errors on failure, rather
+        than throwing. Generally for use in scripts.
+        """
+        raise Exception(
+            'Operator.parse_and_launch_run has been deprecated in favor '
+            'of using Hydra for argument configuration. See the docs TODO in order '
+            'to upgrade.'
+        )
+
+    def validate_and_run_config(
+        self,
+        run_config: DictConfig,
+        shared_state: Optional[SharedTaskState] = None,
     ) -> str:
         """
         Parse the given arguments and launch a job.
         """
-        if extra_args is None:
-            extra_args = {}
-        # Extract the abstractions being used
-        parser = self._get_baseline_argparser()
-        type_args, task_args_string = parser.parse_known_args(arg_list)
+        if shared_state is None:
+            shared_state = SharedTaskState()
 
-        requesters = self.db.find_requesters(requester_name=type_args.requester_name)
+        # First try to find the requester:
+        requester_name = run_config.provider.requester.name
+        requesters = self.db.find_requesters(requester_name=requester_name)
         if len(requesters) == 0:
-            raise EntryDoesNotExistException(
-                f"No requester found with name {type_args.requester_name}"
-            )
+            if run_config.provider.requester.name == "MOCK_REQUESTER":
+                requesters = [get_mock_requester(self.db)]
+            else:
+                raise EntryDoesNotExistException(
+                    f"No requester found with name {requester_name}"
+                )
         requester = requesters[0]
         requester_id = requester.db_id
         provider_type = requester.provider_type
-
-        # Parse the arguments for the abstractions to ensure
-        # everything required is set
-        BlueprintClass = get_blueprint_from_type(type_args.blueprint_type)
-        ArchitectClass = get_architect_from_type(type_args.architect_type)
-        CrowdProviderClass = get_crowd_provider_from_type(provider_type)
-        task_args, _unknown = self._parse_args_from_classes(
-            BlueprintClass, ArchitectClass, CrowdProviderClass, task_args_string
+        assert provider_type == run_config.provider._provider_type, (
+            f"Found requester for name {requester_name} is not "
+            f"of the specified type {run_config.provider._provider_type}, "
+            f"but is instead {provider_type}."
         )
 
-        task_args.update(extra_args)
+        # Next get the abstraction classes, and run validation
+        # before anything is actually created in the database
+        blueprint_type = run_config.blueprint._blueprint_type
+        architect_type = run_config.architect._architect_type
+        BlueprintClass = get_blueprint_from_type(blueprint_type)
+        ArchitectClass = get_architect_from_type(architect_type)
+        CrowdProviderClass = get_crowd_provider_from_type(provider_type)
 
-        # Load the classes to force argument validation before anything
-        # is actually created in the database
-        # TODO(#94) perhaps parse the arguments for these things one at a time?
-        BlueprintClass.assert_task_args(task_args)
-        ArchitectClass.assert_task_args(task_args)
-        CrowdProviderClass.assert_task_args(task_args)
+        BlueprintClass.assert_task_args(run_config, shared_state)
+        ArchitectClass.assert_task_args(run_config, shared_state)
+        CrowdProviderClass.assert_task_args(run_config, shared_state)
 
         # Find an existing task or create a new one
-        task_name = task_args.get("task_name")
+        task_name = run_config.task.get("task_name", None)
         if task_name is None:
-            task_name = type_args.blueprint_type
+            task_name = blueprint_type
             logger.warning(
-                f"Task is using the default blueprint name {task_name} as a name, as no task_name is provided"
+                f"Task is using the default blueprint name {task_name} as a name, "
+                "as no task_name is provided"
             )
         tasks = self.db.find_tasks(task_name=task_name)
         task_id = None
         if len(tasks) == 0:
-            task_id = self.db.new_task(task_name, type_args.blueprint_type)
+            task_id = self.db.new_task(task_name, blueprint_type)
         else:
             task_id = tasks[0].db_id
 
@@ -191,9 +183,9 @@ class Operator:
         new_run_id = self.db.new_task_run(
             task_id,
             requester_id,
-            " ".join([shlex.quote(x) for x in task_args_string]),
+            json.dumps(OmegaConf.to_container(run_config, resolve=True)),
             provider_type,
-            type_args.blueprint_type,
+            blueprint_type,
             requester.is_sandbox(),
         )
         task_run = TaskRun(self.db, new_run_id)
@@ -203,12 +195,12 @@ class Operator:
 
             build_dir = os.path.join(task_run.get_run_dir(), "build")
             os.makedirs(build_dir, exist_ok=True)
-            architect = ArchitectClass(self.db, task_args, task_run, build_dir)
+            architect = ArchitectClass(self.db, run_config, shared_state, task_run, build_dir)
 
             # Register the blueprint with args to the task run,
             # ensure cached
-            blueprint = BlueprintClass(task_run, task_args)
-            task_run.get_blueprint(opts=task_args)
+            blueprint = BlueprintClass(task_run, run_config, shared_state)
+            task_run.get_blueprint(args=run_config, shared_state=shared_state)
 
             # Setup and deploy the server
             built_dir = architect.prepare()
@@ -220,31 +212,31 @@ class Operator:
             architect.cleanup()
 
             # Create the backend runner
-            task_runner = BlueprintClass.TaskRunnerClass(task_run, task_args)
+            task_runner = BlueprintClass.TaskRunnerClass(task_run, run_config, shared_state)
 
             # Small hack for auto appending block qualification
-            existing_qualifications = task_args.get("qualifications", [])
-            if task_args.get("block_qualification") is not None:
+            existing_qualifications = shared_state.qualifications
+            if run_config.blueprint.get("block_qualification", None) is not None:
                 existing_qualifications.append(
                     make_qualification_dict(
-                        task_args["block_qualification"], QUAL_NOT_EXIST, None
+                        run_config.blueprint.block_qualification, QUAL_NOT_EXIST, None
                     )
                 )
-            if task_args.get("onboarding_qualification") is not None:
+            if run_config.blueprint.get("onboarding_qualification", None) is not None:
                 existing_qualifications.append(
                     make_qualification_dict(
                         OnboardingRequired.get_failed_qual(
-                            task_args["onboarding_qualification"]
+                            run_config.blueprint.onboarding_qualification,
                         ),
                         QUAL_NOT_EXIST,
                         None,
                     )
                 )
-            task_args["qualifications"] = existing_qualifications
+            shared_state.qualifications = existing_qualifications
 
             # Register the task with the provider
             provider = CrowdProviderClass(self.db)
-            provider.setup_resources_for_task_run(task_run, task_args, task_url)
+            provider.setup_resources_for_task_run(task_run, run_config, task_url)
 
             initialization_data_array = blueprint.get_initialization_data()
 
@@ -335,6 +327,24 @@ class Operator:
             self.supervisor.shutdown()
             self._run_tracker_thread.join()
 
+    def validate_and_run_config_wrap(
+        self,
+        run_config: DictConfig,
+        shared_state: Optional[SharedTaskState] = None,
+    ) -> Optional[str]:
+        """
+        Wrapper around validate_and_run_config that prints errors on 
+        failure, rather than throwing. Generally for use in scripts.
+        """
+        try:
+            return self.validate_and_run_config(
+                run_config=run_config, 
+                shared_state=shared_state,
+            )
+        except (KeyboardInterrupt, Exception) as e:
+            logger.error("Ran into error while launching run: ", exc_info=True)
+            return None
+
     def parse_and_launch_run_wrapper(
         self,
         arg_list: Optional[List[str]] = None,
@@ -344,11 +354,11 @@ class Operator:
         Wrapper around parse and launch run that prints errors on failure, rather
         than throwing. Generally for use in scripts.
         """
-        try:
-            return self.parse_and_launch_run(arg_list=arg_list, extra_args=extra_args)
-        except (KeyboardInterrupt, Exception) as e:
-            logger.error("Ran into error while launching run: ", exc_info=True)
-            return None
+        raise Exception(
+            'Operator.parse_and_launch_run_wrapper has been deprecated in favor '
+            'of using Hydra for argument configuration. See the docs TODO in order '
+            'to upgrade.'
+        )
 
     def print_run_details(self):
         """Print details about running tasks"""

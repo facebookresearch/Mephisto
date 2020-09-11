@@ -34,6 +34,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
+    from mephisto.data_model.blueprint import SharedTaskState
 
 MOCK_DEPLOY_URL = "MOCK_DEPLOY_URL"
 ARCHITECT_TYPE = "mock"
@@ -260,7 +262,8 @@ class MockArchitect(Architect):
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, Any],
+        args: "DictConfig", 
+        shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,
     ):
@@ -268,8 +271,8 @@ class MockArchitect(Architect):
         self.task_run = task_run
         self.build_dir = build_dir_root
         self.task_run_id = task_run.db_id
-        self.should_run_server = opts.get("should_run_server")
-        self.port = opts.get("port")
+        self.should_run_server = args.architect.should_run_server
+        self.port = args.architect.port
         self.server: Optional["MockServer"] = None
         # TODO(#97) track state in parent class?
         self.prepared = False

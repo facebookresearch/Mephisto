@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from omegaconf import MISSING
+from omegaconf import MISSING, DictConfig
 from typing import Dict, List, Any, ClassVar, Type, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from mephsito.data_model.packet import Packet
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.blueprint import SharedTaskState
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
@@ -35,7 +36,8 @@ class Architect(ABC):
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, Any],
+        args: DictConfig, 
+        shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,
     ):
@@ -50,7 +52,7 @@ class Architect(ABC):
         raise NotImplementedError()
 
     @classmethod
-    def assert_task_args(cls, args: Dict[str, Any]):
+    def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the provided arguments are valid. Should 
         fail if a task launched with these arguments would

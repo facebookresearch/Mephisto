@@ -6,8 +6,8 @@
 
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass, field
-from omegaconf import MISSING
-from mephisto.data_model.blueprint import AgentState
+from omegaconf import MISSING, DictConfig
+from mephisto.data_model.blueprint import AgentState, SharedTaskState
 from mephisto.data_model.assignment import Unit
 from mephisto.data_model.requester import Requester, RequesterArgs
 from mephisto.data_model.worker import Worker
@@ -75,7 +75,7 @@ class CrowdProvider(ABC):
             db.set_datastore_for_provider(self.PROVIDER_TYPE, self.datastore)
 
     @classmethod
-    def assert_task_args(cls, args: Any):
+    def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the provided arguments are valid. Should 
         fail if a task launched with these arguments would
@@ -117,7 +117,7 @@ class CrowdProvider(ABC):
 
     @abstractmethod
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str
+        self, task_run: "TaskRun", args: DictConfig, server_url: str
     ) -> None:
         """
         Setup any required resources for managing any additional resources

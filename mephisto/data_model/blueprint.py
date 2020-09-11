@@ -22,7 +22,7 @@ from typing import (
 
 from recordclass import RecordClass
 from dataclasses import dataclass, field
-from omegaconf import MISSING
+from omegaconf import MISSING, DictConfig
 
 from mephisto.data_model.exceptions import (
     AgentReturnedError,
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 class BlueprintArgs:
     _blueprint_type: str = MISSING
     onboarding_qualification: str = field(
-        default='',
+        default=MISSING,
         metadata={
             'help': (
                 "Specify the name of a qualification used to block workers who fail onboarding, "
@@ -53,7 +53,7 @@ class BlueprintArgs:
         },
     )
     block_qualification: str = field(
-        default='',
+        default=MISSING,
         metadata={
             'help': (
                 "Specify the name of a qualification used to soft block workers."
@@ -62,17 +62,28 @@ class BlueprintArgs:
     )
 
 
+@dataclass
+class SharedTaskState:
+    """
+    Base class for specifying additional state that can't just
+    be passed as Hydra args, like functions and objects
+    """
+    onboarding_data: Any = None
+    task_config: Any = field(default_factory=dict)
+    validate_onboarding: Any = field(default_factory=lambda: (lambda x: True))
+    qualifications: List[Any] = field(default_factory=list)
+
 class TaskBuilder(ABC):
     """
     Class to manage building a task of a specific type in a directory
     that will be used to deploy that task.
     """
 
-    def __init__(self, task_run: "TaskRun", opts: Dict[str, Any]):
-        self.opts = opts
+    def __init__(self, task_run: "TaskRun", args: "DictConfig"):
+        self.args = args
         self.task_run = task_run
 
-    def __new__(cls, task_run: "TaskRun", opts: Dict[str, Any]) -> "TaskBuilder":
+    def __new__(cls, task_run: "TaskRun", args: "DictConfig") -> "TaskBuilder":
         """Get the correct TaskBuilder for this task run"""
         from mephisto.core.registry import get_blueprint_from_type
 
@@ -123,8 +134,9 @@ class TaskRunner(ABC):
     passing agents through a task.
     """
 
-    def __init__(self, task_run: "TaskRun", opts: Dict[str, Any]):
-        self.opts = opts
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        self.args = args
+        self.shared_state = shared_state
         self.task_run = task_run
         self.running_assignments: Dict[str, "Assignment"] = {}
         self.running_units: Dict[str, "Unit"] = {}
@@ -133,11 +145,11 @@ class TaskRunner(ABC):
         # TODO(102) populate some kind of local state for tasks that are being run
         # by this runner from the database.
 
-        self.block_qualification = opts.get("block_qualification")
+        self.block_qualification = args.blueprint.get("block_qualification", None)
         if self.block_qualification is not None:
             find_or_create_qualification(task_run.db, self.block_qualification)
 
-    def __new__(cls, task_run: "TaskRun", opts: Dict[str, Any]) -> "TaskRunner":
+    def __new__(cls, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState") -> "TaskRunner":
         """Get the correct TaskRunner for this task run"""
         if cls == TaskRunner:
             from mephisto.core.registry import get_blueprint_from_type
@@ -527,11 +539,9 @@ class OnboardingRequired(object):
         """Returns the wrapper for a qualification to represent failing an onboarding"""
         return qual_name + "-failed"
 
-    def init_onboarding_config(self, task_run: "TaskRun", opts: Dict[str, Any]):
-        self.onboarding_qualification_name: Optional[str] = opts.get(
-            "onboarding_qualification"
-        )
-        self.onboarding_data = opts.get("onboarding_data", {})
+    def init_onboarding_config(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        self.onboarding_qualification_name: Optional[str] = args.blueprint.get("onboarding_qualification", None)
+        self.onboarding_data = shared_state.onboarding_data
         self.use_onboarding = self.onboarding_qualification_name is not None
         self.onboarding_qualification_id = None
         if self.onboarding_qualification_name is not None:
@@ -617,12 +627,13 @@ class Blueprint(ABC):
     supported_architects: ClassVar[List[str]]
     BLUEPRINT_TYPE: str
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        self.opts = opts
-        self.frontend_task_config = opts.get('task_config', {})
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        self.args = args
+        self.shared_state = shared_state
+        self.frontend_task_config = shared_state.task_config
 
     @classmethod
-    def assert_task_args(cls, args: Any):
+    def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the provided arguments are valid. Should 
         fail if a task launched with these arguments would

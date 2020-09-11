@@ -94,48 +94,19 @@ class TaskConfig:
     def __init__(self, task_run: "TaskRun"):
         self.db = task_run.db
 
-        # Try to find existing parsed args
-        arg_path = os.path.join(task_run.get_run_dir(), CONFIG_FILE_PATH)
-        if os.path.exists(arg_path):
-            with open(arg_path, "r") as config_file:
-                args = json.load(config_file)
-        else:
-            from mephisto.core.registry import get_blueprint_from_type, get_crowd_provider_from_type
-            # parse new arguments
-            BlueprintClass = get_blueprint_from_type(task_run.task_type)
-            CrowdProviderClass = get_crowd_provider_from_type(task_run.provider_type)
-            param_string = task_run.param_string
-
-            parser = argparse.ArgumentParser()
-            blueprint_group = parser.add_argument_group("blueprint")
-            BlueprintClass.add_args_to_group(blueprint_group)
-            provider_group = parser.add_argument_group("crowd_provider")
-            CrowdProviderClass.add_args_to_group(provider_group)
-            task_group = parser.add_argument_group("task_config")
-            TaskConfig.add_args_to_group(task_group)
-
-            try:
-                arg_namespace, _unknown = parser.parse_known_args(
-                    shlex.split(param_string)
-                )
-            except SystemExit:
-                raise Exception(f"Argparse broke on {param_string} - must fix")
-
-            args = vars(arg_namespace)
-            with open(arg_path, "w+") as config_file:
-                json.dump(args, config_file)
+        args = task_run.args
 
         # Parse out specific arguments for the task_config
-        self.args: Dict[str, Any] = args
-        self.task_title: str = args["task_title"]
-        self.task_description: str = args["task_description"]
-        self.task_reward: float = args["task_reward"]
-        self.task_tags: List[str] = [s.strip() for s in args["task_tags"].split(",")]
-        self.assignment_duration_in_seconds: int = args[
+        self.args: Dict[str, Any] = args.task
+        self.task_title: str = self.args["task_title"]
+        self.task_description: str = self.args["task_description"]
+        self.task_reward: float = self.args["task_reward"]
+        self.task_tags: List[str] = [s.strip() for s in self.args["task_tags"].split(",")]
+        self.assignment_duration_in_seconds: int = self.args[
             "assignment_duration_in_seconds"
         ]
-        self.allowed_concurrent: int = args["allowed_concurrent"]
-        self.maximum_units_per_worker: int = args["maximum_units_per_worker"]
+        self.allowed_concurrent: int = self.args["allowed_concurrent"]
+        self.maximum_units_per_worker: int = self.args["maximum_units_per_worker"]
 
     @classmethod
     def add_args_to_group(cls, group: "ArgumentGroup") -> None:

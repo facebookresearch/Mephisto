@@ -11,12 +11,28 @@ from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.argparse_parser import str2bool, str2floats, str2none
 from mephisto.core.utils import get_mock_requester, get_root_data_dir
 
+from omegaconf import DictConfig
+
 import argparse
 from typing import Tuple, Dict, Any, TYPE_CHECKING
 import os
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
+
+
+def get_db_from_config(cfg: DictConfig) -> "MephistoDB":
+    """
+    Get a MephistoDB from the given configuration. As of now
+    this defaults to a LocalMephistoDB
+    """
+    datapath = cfg.mephisto.get("datapath", None)
+
+    if datapath is None:
+        datapath = get_root_data_dir()
+
+    database_path = os.path.join(datapath, "database.db")
+    return LocalMephistoDB(database_path=database_path)
 
 
 class MephistoRunScriptParser(argparse.ArgumentParser):
