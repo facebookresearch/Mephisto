@@ -472,7 +472,7 @@ class Supervisor:
         channel_info = self.channels[channel_id]
         task_runner = channel_info.job.task_runner
         task_run = task_runner.task_run
-        blueprint = task_run.get_blueprint(opts=task_runner.opts)
+        blueprint = task_run.get_blueprint(args=task_runner.args)
         worker = onboarding_agent.get_worker()
 
         assert (
@@ -552,7 +552,7 @@ class Supervisor:
         # If there's onboarding, see if this worker has already been disqualified
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
-        blueprint = task_run.get_blueprint(opts=task_runner.opts)
+        blueprint = task_run.get_blueprint(args=task_runner.args)
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
                 self.message_queue.append(
