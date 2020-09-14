@@ -124,6 +124,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = ParlAIChatTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = ParlAIChatTaskRunner
     ArgsClass = ParlAIChatBlueprintArgs
+    SharedStateClass = SharedParlAITaskState
     supported_architects: ClassVar[List[str]] = [
         "mock",
         "heroku",

@@ -14,13 +14,13 @@ import threading
 import time
 from mephisto.data_model.blueprint import Blueprint, AgentState, TaskRunner, TaskBuilder
 from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.argparse_parser import get_default_arg_dict
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.providers.mock.mock_agent import MockAgent
 from mephisto.data_model.agent import Agent
-
+from mephisto.core.hydra_config import MephistoConfig
+from omegaconf import OmegaConf
 
 class BlueprintTests(unittest.TestCase):
     """
@@ -100,13 +100,17 @@ class BlueprintTests(unittest.TestCase):
 
     def _get_init_task_runner(self) -> TaskRunner:
         """Get an initialized task runner of TaskRunnerClass"""
-        args = get_default_arg_dict(self.TaskRunnerClass)
-        return self.TaskRunnerClass(self.task_run, args)
+        args = self.BlueprintClass.ArgsClass()
+        config = OmegaConf.structured(MephistoConfig(blueprint=args))
+        shared_state = self.BlueprintClass.SharedStateClass()
+        return self.TaskRunnerClass(self.task_run, config, shared_state)
 
     def _get_init_task_builder(self) -> TaskBuilder:
         """Get an initialized task runner of TaskBuilderClass"""
-        args = get_default_arg_dict(self.TaskBuilderClass)
-        return self.TaskBuilderClass(self.task_run, args)
+        args = self.BlueprintClass.ArgsClass()
+        config = OmegaConf.structured(MephistoConfig(blueprint=args))
+        shared_state = self.BlueprintClass.SharedStateClass()
+        return self.TaskBuilderClass(self.task_run, config)
 
     def test_options(self) -> None:
         """Test the default options, and try to break the initialization"""
@@ -155,11 +159,12 @@ class BlueprintTests(unittest.TestCase):
         Test that initialization from the abstract class produces the
         correct class.
         """
-        args = get_default_arg_dict(self.TaskRunnerClass)
-        runner = TaskRunner(self.task_run, args)  # type: ignore
+        args = self.BlueprintClass.ArgsClass()
+        config = OmegaConf.structured(MephistoConfig(blueprint=args))
+        shared_state = self.BlueprintClass.SharedStateClass()
+        runner = TaskRunner(self.task_run, config, shared_state)  # type: ignore
         self.assertTrue(isinstance(runner, self.TaskRunnerClass))
-        args = get_default_arg_dict(self.TaskBuilderClass)
-        builder = TaskBuilder(self.task_run, args)  # type: ignore
+        builder = TaskBuilder(self.task_run, config)  # type: ignore
         self.assertTrue(isinstance(builder, self.TaskBuilderClass))
 
     def test_can_init_subclasses(self) -> None:
