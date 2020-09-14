@@ -107,7 +107,7 @@ class MockBlueprint(Blueprint, OnboardingRequired):
         """
         return [
             MockTaskRunner.get_mock_assignment_data()
-            for i in range(self.args.blueprints.num_assignments)
+            for i in range(self.args.blueprint.num_assignments)
         ]
 
     def validate_onboarding(
