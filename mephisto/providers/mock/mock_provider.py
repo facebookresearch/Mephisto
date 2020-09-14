@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.agent import Agent
+    from omegaconf import DictConfig
 
 
 @dataclass
@@ -61,7 +62,7 @@ class MockProvider(CrowdProvider):
         return MockDatastore(datastore_root=storage_path)
 
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str
+        self, task_run: "TaskRun", args: "DictConfig", server_url: str,
     ) -> None:
         """Mocks don't do any initialization"""
         return None

@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.agent import Agent
+    from omegaconf import DictConfig
 
 
 @dataclass
@@ -80,7 +81,7 @@ class MTurkProvider(CrowdProvider):
         return self.datastore.get_client_for_requester(requester_name)
 
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str
+        self, task_run: "TaskRun", args: "DictConfig", server_url: str
     ) -> None:
         """
         Set up SNS queue to recieve agent events from MTurk, and produce the
