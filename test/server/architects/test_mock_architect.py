@@ -38,17 +38,6 @@ class MockArchitectTests(ArchitectTests):
 
     warned_about_setup = False
 
-    def get_architect(self) -> MockArchitect:
-        """
-        For testing, we need to be able to examine the architect to be sure that
-        the correct calls have been made
-        """
-        opts = get_default_arg_dict(MockArchitect)
-        self.curr_architect = MockArchitect(
-            self.db, opts, self.task_run, self.build_dir
-        )
-        return self.curr_architect
-
     def server_is_prepared(self, build_dir: str) -> bool:
         """Mock architect is prepared when we say it was"""
         return self.curr_architect.prepared

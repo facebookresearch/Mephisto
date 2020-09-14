@@ -14,12 +14,15 @@ import subprocess
 
 from typing import Type, ClassVar, Optional
 from mephisto.data_model.test.architect_tester import ArchitectTests
-from mephisto.server.architects.heroku_architect import HerokuArchitect
+from mephisto.server.architects.heroku_architect import HerokuArchitect, HerokuArchitectArgs
 
 from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.architect import Architect
 from mephisto.data_model.assignment_state import AssignmentState
 
+from omegaconf import OmegaConf
+from mephisto.core.hydra_config import MephistoConfig
+from mephisto.data_model.blueprint import SharedTaskState
 
 # TODO(#104) these tests should be marked as nightly's rather than on every run?
 # Maybe with some kind of LONG TEST flag? Investigate
@@ -36,11 +39,10 @@ class HerokuArchitectTests(ArchitectTests):
     curr_architect: Optional[HerokuArchitect] = None
 
     def get_architect(self) -> HerokuArchitect:
-        """We need to specify that the architect is launching on localhost for testing"""
-        opts = {"heroku_team": None, "use_hobby": False}
-        self.curr_architect = HerokuArchitect(
-            self.db, opts, self.task_run, self.build_dir
-        )
+        """We need to have the architect saved locally to be sure to shutdown"""
+        arch_args = HerokuArchitectArgs(heroku_team=None, use_hobby=False)
+        args = OmegaConf.structured(MephistoConfig(architect=arch_args))
+        self.curr_architect = self.ArchitectClass(self.db, args, SharedTaskState(), self.task_run, self.build_dir)
         return self.curr_architect
 
     def server_is_prepared(self, build_dir: str) -> bool:
