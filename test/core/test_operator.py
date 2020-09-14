@@ -230,7 +230,7 @@ class TestOperator(unittest.TestCase):
         architect_args = MockArchitectArgs(should_run_server=True)
         config = MephistoConfig(
             blueprint=MockBlueprintArgs(
-                num_assignments=1,
+                num_assignments=3,
                 is_concurrent=True,
             ),
             provider=provider_args,

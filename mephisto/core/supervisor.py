@@ -560,6 +560,10 @@ class Supervisor:
                     data={"request_id": packet.data["request_id"], "agent_id": None},
                 )
             )
+            logger.debug(
+                f"Found existing agent_registration_id {agent_registration_id}, "
+                f"had no valid units."
+            )
             return
 
         # If there's onboarding, see if this worker has already been disqualified
