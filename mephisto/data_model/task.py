@@ -197,7 +197,11 @@ class TaskRun:
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
-        self.args: "DictConfig" = OmegaConf.create(json.loads(self.param_string))
+        try:
+            self.args: "DictConfig" = OmegaConf.create(json.loads(self.param_string))
+        except Exception as e:
+            self.args = None
+            print(e)
         self.start_time = row["creation_date"]
         self.provider_type = row["provider_type"]
         self.task_type = row["task_type"]

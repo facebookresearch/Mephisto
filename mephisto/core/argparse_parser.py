@@ -16,7 +16,8 @@ and as such is only guaranteed stable for argparse 1.1
 """
 
 import argparse
-from typing import Optional, Dict, Any, List
+from omegaconf import OmegaConf, MISSING, DictConfig
+from typing import Optional, Dict, Any, List, Tuple
 
 
 def str2bool(v):
@@ -157,6 +158,16 @@ def parse_arg_dict(customizable_class: Any, args: Dict[str, Any]) -> Dict[str, A
     # Parse the namespace and return
     arg_namespace = dummy_parser.parse_args(final_args)
     return vars(arg_namespace)
+
+
+def get_default_omegaconf(customizable_class: Any) -> Tuple[DictConfig, Any]:
+    """
+    Extract the default omagaconf for the given class directly. Also
+    return the dataclass the omegaconf is pulled from
+    """
+    ArgsClass = customizable_class.ArgsClass
+    config = OmegaConf.structured(ArgsClass)
+    return config, ArgsClass
 
 
 def get_default_arg_dict(customizable_class: Any) -> Dict[str, Any]:

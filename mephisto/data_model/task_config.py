@@ -95,6 +95,8 @@ class TaskConfig:
         self.db = task_run.db
 
         args = task_run.args
+        if args is None:
+            return
 
         # Parse out specific arguments for the task_config
         self.args: Dict[str, Any] = args.task
