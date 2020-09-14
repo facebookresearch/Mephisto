@@ -93,7 +93,6 @@ class TaskConfig:
     # the options that come from different parts of the ecosystem
     def __init__(self, task_run: "TaskRun"):
         self.db = task_run.db
-
         args = task_run.args
         if args is None:
             return

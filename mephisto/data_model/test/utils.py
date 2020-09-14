@@ -21,6 +21,10 @@ from mephisto.data_model.task import Task, TaskRun
 from omegaconf import OmegaConf
 import json
 
+from mephisto.providers.mock.mock_provider import MockProviderArgs
+from mephisto.providers.mock.mock_requester import MockRequesterArgs
+from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.server.architects.mock_architect import MockArchitectArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 from mephisto.core.hydra_config import MephistoConfig
 
@@ -31,7 +35,16 @@ MOCK_TASK_ARGS = TaskConfigArgs(
     task_tags="1,2,3",
 )
 
-MOCK_CONFIG = MephistoConfig(task=MOCK_TASK_ARGS)
+MOCK_PROVIDER_ARGS = MockProviderArgs()
+MOCK_ARCHITECT_ARGS = MockArchitectArgs()
+MOCK_BLUEPRINT_ARGS = MockBlueprintArgs()
+
+MOCK_CONFIG = MephistoConfig(
+    provider=MOCK_PROVIDER_ARGS,
+    blueprint=MOCK_BLUEPRINT_ARGS,
+    architect=MOCK_ARCHITECT_ARGS,    
+    task=MOCK_TASK_ARGS,
+)
 
 
 def get_test_project(db: MephistoDB) -> Tuple[str, str]:
