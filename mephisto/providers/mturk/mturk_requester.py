@@ -9,7 +9,7 @@ import time
 import random
 
 from dataclasses import dataclass, field
-from omegaconf import MISSING
+from omegaconf import MISSING, DictConfig
 from mephisto.data_model.requester import Requester, RequesterArgs
 from mephisto.providers.mturk.mturk_utils import (
     setup_aws_credentials,
@@ -57,6 +57,7 @@ class MTurkRequester(Requester):
 
     # Ensure inherited methods use this level's provider type
     PROVIDER_TYPE = PROVIDER_TYPE
+    ArgsClass = MTurkRequesterArgs
 
     def __init__(
         self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
@@ -77,12 +78,13 @@ class MTurkRequester(Requester):
 
     # Required functions for a Requester implementation
 
-    def register(self, args: Optional[Dict[str, str]] = None) -> None:
+    def register(self, args: Optional[DictConfig] = None) -> None:
         """
         Register this requester with the crowd provider by providing any required credentials
         or such. If no args are provided, assume the registration is already made and try
         to assert it as such.
         """
+        args = {}
         for req_field in ["access_key_id", "secret_access_key"]:
             if args is not None and req_field not in args:
                 raise Exception(
