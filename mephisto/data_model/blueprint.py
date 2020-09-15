@@ -112,19 +112,6 @@ class TaskBuilder(ABC):
         """
         raise NotImplementedError()
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines builder options that are potentially usable for this task type,
-        and adds them to the given argparser group. The group's 'description'
-        attribute should be used to put any general help for these options.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        # group.description = 'For `TaskBuilder`, you can supply...'
-        # group.add_argument('--task-option', help='Lets you customize')
-        return
-
 
 class TaskRunner(ABC):
     """
@@ -342,19 +329,6 @@ class TaskRunner(ABC):
         """
         raise NotImplementedError()
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines runner options that are potentially usable for this task type,
-        and adds them to the given argparser group. The group's 'description'
-        attribute should be used to put any general help for these options.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        # group.description = 'For `TaskRunner`, you can supply...'
-        # group.add_argument('--task-option', help='Lets you customize something')
-        return
-
 
 # TODO(#101) what is the best method for creating new ones of these for different task types
 # in ways that are supported by different backends? Perhaps abstract additional
@@ -570,25 +544,6 @@ class OnboardingRequired(object):
             else:
                 self.onboarding_failed_id = found_qualifications[0].db_id
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines options that are relevant for tasks with onboarding steps. 
-
-        Blueprints that use OnboardingRequired should call this method as part
-        of add_args_to_group or supply these options themselves.
-        """
-        group.description = (
-            "For tasks with onboarding, you should specify a qualification "
-            "to grant to people who pass the onboarding "
-        )
-        group.add_argument(
-            "--onboarding-qualification",
-            help="Specify the name of a qualification used to ",
-            dest="onboarding_qualification",
-        )
-        return
-
     def get_onboarding_data(self, worker_id: str) -> Dict[str, Any]:
         """
         If the onboarding task on the frontend requires any specialized data, the blueprint
@@ -640,37 +595,6 @@ class Blueprint(ABC):
         fail if a task launched with these arguments would
         not work
         """
-        return
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines options that are potentially usable for this task type,
-        and adds them to the given argparser group. The group's 'description'
-        attribute should be used to put any general help for these options.
-
-        These options are used to configure the way that the blueprint
-        looks or otherwise runs tasks.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        runner_group = group.add_argument_group("task_runner_args")
-        builder_group = group.add_argument_group("task_builder_args")
-        cls.TaskRunnerClass.add_args_to_group(runner_group)
-        cls.TaskBuilderClass.add_args_to_group(builder_group)
-
-        group.add_argument(
-            "--block-qualification",
-            dest="block_qualification",
-            help=(
-                "Name of qualification to use in order to soft block workers "
-                "from working on this task (or any task using this block "
-                "qualification name)."
-            ),
-            required=False,
-        )
-        # group.description = 'For `Blueprint`, you can supply...'
-        # group.add_argument('--task-option', help='Lets you customize')
         return
 
     def get_frontend_args(self) -> Dict[str, Any]:

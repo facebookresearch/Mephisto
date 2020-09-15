@@ -168,58 +168,6 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
                 "Must provide one of a data csv, json, json-L, or a list of tasks"
             )
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Adds required options for StaticBlueprints.
-
-        task_source points to the file intending to be deployed for this task
-        data_csv has the data to be deployed for this task.
-        """
-        super(StaticBlueprint, cls).add_args_to_group(group)
-        OnboardingRequired.add_args_to_group(group)
-
-        group.description = """
-            StaticBlueprint: Static tasks need to be launched 
-            using some source frontend (set by the child), and 
-            the data to parse and render in the frontend templates.
-        """
-        group.add_argument(
-            "--extra-source-dir",
-            dest="extra_source_dir",
-            help=(
-                "Optional path to sources that the HTML may "
-                "refer to (such as images/video/css/scripts)"
-            ),
-            required=False,
-        )
-        group.add_argument(
-            "--data-json",
-            dest="data_json",
-            help="Path to JSON file containing task data",
-            required=False,
-        )
-        group.add_argument(
-            "--data-jsonl",
-            dest="data_jsonl",
-            help="Path to JSON-L file containing task data",
-            required=False,
-        )
-        group.add_argument(
-            "--data-csv",
-            dest="data_csv",
-            help="Path to csv file containing task data",
-            required=False,
-        )
-        group.add_argument(
-            "--units-per-assignment",
-            dest="units_per_assignment",
-            help="How many workers you want to do each assignment",
-            default=1,
-            type=int,
-        )
-        return
-
     def get_initialization_data(self) -> Iterable["InitializationData"]:
         """
         Return the InitializationData retrieved from the specified stream

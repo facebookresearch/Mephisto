@@ -58,6 +58,17 @@ class SharedParlAITaskState(SharedTaskState):
 @dataclass
 class ParlAIChatBlueprintArgs(BlueprintArgs):
     _blueprint_type: str = BLUEPRINT_TYPE
+    _group: str = field(
+        default="ParlAIChatBlueprint",
+        metadata={
+            'help': """
+                Tasks launched from static blueprints need a
+                source html file to display to workers, as well as a csv
+                containing values that will be inserted into templates in
+                the html.
+            """,
+        },
+    )
     world_file: str = field(
         default=MISSING,
         metadata={
@@ -232,72 +243,6 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
             assert os.path.exists(
                 extra_source_dir
             ), f"Provided extra resource dir doesn't exist at {extra_source_dir}"
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Adds required options for StaticBlueprints.
-
-        task_source points to the file intending to be deployed for this task
-        context_csv has the data to be deployed for this task.
-        """
-        super(ParlAIChatBlueprint, cls).add_args_to_group(group)
-        OnboardingRequired.add_args_to_group(group)
-        group.description = """
-            ParlAIChatBlueprint: Tasks launched from static blueprints need a
-            source html file to display to workers, as well as a csv
-            containing values that will be inserted into templates in
-            the html.
-        """
-        group.add_argument(
-            "--world-file",
-            dest="world_file",
-            help="Path to file containing ParlAI world",
-            required=True,
-        )
-        group.add_argument(
-            "--preview-source",
-            dest="preview_source",
-            help="Optional path to source HTML file to preview the task",
-        )
-        group.add_argument(
-            "--task-description-file",
-            dest="task_description_file",
-            help=(
-                "Path to file for the extended description of the task. "
-                "Required if not providing a custom source bundle."
-            ),
-        )
-        group.add_argument(
-            "--custom-source-bundle",
-            dest="custom_source_bundle",
-            help="Optional path to a fully custom frontend bundle",
-        )
-        group.add_argument(
-            "--custom-source-dir",
-            dest="custom_source_dir",
-            help="Optional path to a directory containing custom js code",
-        )
-        group.add_argument(
-            "--extra-source-dir",
-            dest="extra_source_dir",
-            help=(
-                "Optional path to sources that the frontend may "
-                "refer to (such as images/video/css/scripts)"
-            ),
-        )
-        group.add_argument(
-            "--context-csv",
-            dest="context_csv",
-            help="Optional path to csv containing task context",
-        )
-        group.add_argument(
-            "--num-conversations",
-            dest="num_conversations",
-            help="Optional count of conversations to have if no context provided",
-            type=int,
-        )
-        return
 
     def get_frontend_args(self) -> Dict[str, Any]:
         """

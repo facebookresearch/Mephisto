@@ -96,33 +96,6 @@ class MockTaskRunner(TaskRunner):
             agent.mark_done()
         del self.tracked_tasks[assignment.db_id]
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        MockTaskRunners don't have any arguments (yet)
-        """
-        super(MockTaskRunner, cls).add_args_to_group(group)
-
-        group.description = """
-            MockArchitect: Mock Task Runners can specify a timeout to
-            make the task actually take time to run.
-        """
-        group.add_argument(
-            "--timeout-time",
-            dest="timeout_time",
-            help="Whether acts in the run assignment should have a timeout",
-            default=0,
-            type=int,
-        )
-        group.add_argument(
-            "--is-concurrent",
-            dest="is_concurrent",
-            help="Whether to run this mock task as a concurrent task or not",
-            default=True,
-            type=str2bool,
-        )
-        return
-
     def cleanup_assignment(self, assignment: "Assignment"):
         """No cleanup required yet for ending mock runs"""
         pass

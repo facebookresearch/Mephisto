@@ -279,29 +279,6 @@ class MockArchitect(Architect):
         self.cleaned = False
         self.did_shutdown = False
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        MockArchitects can be configured to launch a mock server
-        """
-        super(MockArchitect, cls).add_args_to_group(group)
-
-        group.description = """
-            MockArchitect: Mock Architects can be configured to 
-            launch a mock server on a localhost port.
-        """
-        group.add_argument(
-            "--should-run-server",
-            dest="should_run_server",
-            help="Whether a mock server should be launched",
-            default=False,
-            type=str2bool,
-        )
-        group.add_argument(
-            "--port", dest="port", help="Port to launch the server on", default="3000"
-        )
-        return
-
     def _get_socket_urls(self) -> List[str]:
         """Return the path to the local server socket"""
         assert self.port is not None, "No ports for socket"

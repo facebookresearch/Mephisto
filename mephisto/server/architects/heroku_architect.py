@@ -155,33 +155,6 @@ class HerokuArchitect(Architect):
                     out_file.write(chunk)
 
     @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Adds HerokuArchitect arguments to the group
-        """
-        super(HerokuArchitect, cls).add_args_to_group(group)
-
-        group.description = """
-            HerokuArchitect: Heroku servers are deployed by default
-            from a single account on the free tier. These settings
-            allow additional configurations.
-        """
-        group.add_argument(
-            "--use-hobby",
-            dest="use_hobby",
-            help="Launch on the Heroku Hobby tier",
-            type=str2bool,
-            default=False,
-        )
-        group.add_argument(
-            "--heroku-team",
-            dest="heroku_team",
-            help="Heroku team to use for this launch",
-            default="",
-        )
-        return
-
-    @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the provided arguments are valid. Should 

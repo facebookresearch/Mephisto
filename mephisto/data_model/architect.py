@@ -43,7 +43,7 @@ class Architect(ABC):
     ):
         """
         Initialize this architect with whatever options are provided given
-        add_args_to_group. Parse whatever additional options may be required
+        ArgsClass. Parse whatever additional options may be required
         for the specific task_run.
 
         Also set up any required database/memory into the MephistoDB so that
@@ -82,19 +82,6 @@ class Architect(ABC):
         the desired save location.
         """
         raise NotImplementedError()
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines options that are potentially usable for this server location,
-        and adds them to the given argparser group. The group's 'description'
-        attribute should be used to put any general help for these options.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        # group.description = 'For `Architect`, you can supply...'
-        # group.add_argument('--server-option', help='Lets you customize')
-        return
 
     def prepare(self) -> str:
         """

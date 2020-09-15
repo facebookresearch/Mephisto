@@ -42,6 +42,17 @@ class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
     data_csv has the data to be deployed for this task.
     """
     _blueprint_type: str = BLUEPRINT_TYPE
+    _group: str = field(
+        default="StaticBlueprint",
+        metadata={
+            'help': """
+                Tasks launched from static blueprints need a
+                source html file to display to workers, as well as a csv
+                containing values that will be inserted into templates in
+                the html.
+            """,
+        },
+    )
     task_source: str = field(
         default=MISSING,
         metadata={
@@ -128,40 +139,6 @@ class StaticHTMLBlueprint(StaticBlueprint):
                 "Must use an onboarding validation function to use onboarding "
                 "with static tasks."
             )
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Adds required options for StaticBlueprints.
-
-        task_source points to the file intending to be deployed for this task
-        data_csv has the data to be deployed for this task.
-        """
-        super().add_args_to_group(group)
-
-        group.description = """
-            StaticBlueprint: Tasks launched from static blueprints need a
-            source html file to display to workers, as well as a csv
-            containing values that will be inserted into templates in
-            the html.
-        """
-        group.add_argument(
-            "--task-source",
-            dest="task_source",
-            help="Path to source HTML file for the task being run",
-            required=True,
-        )
-        group.add_argument(
-            "--preview-source",
-            dest="preview_source",
-            help="Optional path to source HTML file to preview the task",
-        )
-        group.add_argument(
-            "--onboarding-source",
-            dest="onboarding_source",
-            help="Optional path to source HTML file to onboarding the task",
-        )
-        return
 
     def validate_onboarding(
         self, worker: "Worker", onboarding_agent: "OnboardingAgent"

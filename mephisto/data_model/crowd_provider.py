@@ -107,14 +107,6 @@ class CrowdProvider(ABC):
         """
         raise NotImplementedError()
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines provider-specific arguments that are required to launch
-        or monitor a task
-        """
-        return
-
     @abstractmethod
     def setup_resources_for_task_run(
         self, task_run: "TaskRun", args: DictConfig, server_url: str

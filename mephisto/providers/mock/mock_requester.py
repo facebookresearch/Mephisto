@@ -60,26 +60,6 @@ class MockRequester(Requester):
         else:
             self.datastore.set_requester_registered(self.db_id, True)
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Add mock registration arguments to the argument group.
-        """
-        super(MockRequester, cls).add_args_to_group(group)
-
-        group.description = """
-            MockRequester: Arguments for mock requester add special
-            control and test functionality.
-        """
-        group.add_argument(
-            "--force-fail",
-            dest="force_fail",
-            type=str2bool,
-            default=False,
-            help="Trigger a failed registration",
-        )
-        return None
-
     def is_registered(self) -> bool:
         """Return the registration status"""
         return self.datastore.get_requester_registered(self.db_id)

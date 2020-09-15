@@ -33,6 +33,21 @@ MAX_QUALIFICATION_ATTEMPTS = 300
 
 @dataclass
 class MTurkRequesterArgs(RequesterArgs):
+    _group: str = field(
+        default="MTurkRequester",
+        metadata={
+            'help': """
+                AWS are required to create a new Requester.
+                Please create an IAM user with programmatic access and
+                AmazonMechanicalTurkFullAccess policy at
+                'https://console.aws.amazon.com/iam/ (On the "Set permissions"
+                page, choose "Attach existing policies directly" and then select
+                "AmazonMechanicalTurkFullAccess" policy). After creating
+                the IAM user, you should get an Access Key ID
+                and Secret Access Key.
+            """,
+        },
+    )
     access_key_id: str = field(
         default=MISSING,
         metadata={
@@ -84,7 +99,6 @@ class MTurkRequester(Requester):
         or such. If no args are provided, assume the registration is already made and try
         to assert it as such.
         """
-        args = {}
         for req_field in ["access_key_id", "secret_access_key"]:
             if args is not None and req_field not in args:
                 raise Exception(
@@ -95,33 +109,6 @@ class MTurkRequester(Requester):
     def is_registered(self) -> bool:
         """Return whether or not this requester has registered yet"""
         return check_aws_credentials(self._requester_name)
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Add mturk registration arguments to the argument group.
-        """
-        super(MTurkRequester, cls).add_args_to_group(group)
-
-        group.description = """
-            MTurkRequester: AWS are required to create a new Requester.
-            Please create an IAM user with programmatic access and
-            AmazonMechanicalTurkFullAccess policy at
-            'https://console.aws.amazon.com/iam/ (On the "Set permissions"
-            page, choose "Attach existing policies directly" and then select
-            "AmazonMechanicalTurkFullAccess" policy). After creating
-            the IAM user, you should get an Access Key ID
-            and Secret Access Key.
-        """
-        group.add_argument(
-            "--access-key-id", dest="access_key_id", help="IAM Access Key ID"
-        )
-        group.add_argument(
-            "--secret-access-key",
-            dest="secret_access_key",
-            help="IAM Secret Access Key",
-        )
-        return
 
     def get_available_budget(self) -> float:
         """Get the available budget from MTurk"""

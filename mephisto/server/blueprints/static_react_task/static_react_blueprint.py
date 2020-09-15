@@ -38,6 +38,16 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
     with our provided useMephistoTask hook.
     """
     _blueprint_type: str = BLUEPRINT_TYPE
+    _group: str = field(
+        default="StaticReactBlueprint",
+        metadata={
+            'help': """
+                Tasks launched from static blueprints need 
+                a prebuilt javascript bundle containing the task. We suggest building 
+                with our provided useMephistoTask hook.
+            """,
+        },
+    )
     task_source: str = field(
         default=MISSING,
         metadata={
@@ -76,26 +86,3 @@ class StaticReactBlueprint(StaticBlueprint):
         assert os.path.exists(
             found_task_path
         ), f"Provided task source {found_task_path} does not exist."
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Adds required options for StaticReactBlueprints.
-
-        task_source points to the file intending to be deployed for this task
-        data_csv has the data to be deployed for this task.
-        """
-        super().add_args_to_group(group)
-
-        group.description = """
-            StaticReactBlueprint: Tasks launched from static blueprints need 
-            a prebuilt javascript bundle containing the task. We suggest building 
-            with our provided useMephistoTask hook.
-        """
-        group.add_argument(
-            "--task-source",
-            dest="task_source",
-            help="Path to file containing javascript bundle for the task",
-            required=True,
-        )
-        return

@@ -123,23 +123,6 @@ class Requester(ABC):
         """Check to see if this requester has already been registered"""
         raise NotImplementedError()
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Add the arguments to register this requester to the crowd provider,
-        the group's 'description' attribute should be used for any high level
-        help on how to get the details.
-
-        The `name` argument is required.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        # group.description = 'For `Requester`, Retrieve the following at xyz'
-        # group.add_argument('--username', help='Login username for requester')
-        # group.add_argument('--secret-key', help='Secret key found...')
-        group.add_argument("--name", help="Identifier for MephistoDB")
-        return
-
     def get_available_budget(self) -> float:
         """
         Return the funds that this requester profile has available for usage with

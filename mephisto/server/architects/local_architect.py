@@ -134,32 +134,6 @@ class LocalArchitect(Architect):
         dest_path = os.path.join(save_dir, target_filename)
         shutil.copy2(source_file, dest_path)
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Adds LocalArchitect arguments to the group
-
-        Local architects can set hostname and port appropriately
-        """
-        super(LocalArchitect, cls).add_args_to_group(group)
-
-        group.description = """
-            LocalArchitect: Local servers can configure the deploy
-            location and port to run on.
-        """
-        group.add_argument(
-            "--hostname",
-            dest="hostname",
-            help="Location of the server",
-            default="localhost",
-        )
-        group.add_argument(
-            "--port", dest="port", help="Port to launch the server on", default="3000"
-        )
-        # TODO(OWN) be able to specify the public address location
-        # separately from the hostname
-        return
-
     def prepare(self) -> str:
         """Mark the preparation call"""
         self.server_dir = build_router(self.build_dir, self.task_run)

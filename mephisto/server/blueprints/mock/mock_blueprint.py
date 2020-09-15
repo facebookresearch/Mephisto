@@ -75,31 +75,6 @@ class MockBlueprint(Blueprint, OnboardingRequired):
         super().__init__(task_run, args, shared_state)
         self.init_onboarding_config(task_run, args, shared_state)
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        MockBlueprints specify a count of assignments, as there 
-        is no real data being sent
-        """
-        super().add_args_to_group(group)
-        OnboardingRequired.add_args_to_group(group)
-        group.description = "MockBlueprint arguments"
-        group.add_argument(
-            "--num-assignments",
-            dest="num_assignments",
-            help="Number of assignments to launch",
-            type=int,
-            required=True,
-        )
-        group.add_argument(
-            "--use-onboarding",
-            dest="use_onboarding",
-            help="Whether onboarding should be required",
-            type=str2bool,
-            default=False,
-        )
-        return
-
     def get_initialization_data(self) -> Iterable[InitializationData]:
         """
         Return the number of empty assignments specified in --num-assignments
