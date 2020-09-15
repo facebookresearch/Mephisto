@@ -68,8 +68,6 @@ Encapsulates messages being sent from the `Supervisor` to any Mephisto server.
 ### `TaskConfig`
 Keeps track of specific parameters that are necessary to launch a task on any crowd provider, like `title`, `description`, `tags`, `quantity`, `pay_amount`, etc. `TaskRuns` leverage the `TaskConfig` to know what they're doing.
 
-(TODO) this should be deprecated or merged into whatever kind of arg parsing we're going to be using.
-
 ## Constants
 Some Mephisto constants that are able to standardize values across multiple classes live in the data model
 
