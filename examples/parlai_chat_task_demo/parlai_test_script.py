@@ -53,7 +53,6 @@ register_script_config(name='scriptconfig', module=TestScriptConfig)
 def main(cfg: DictConfig) -> None:
     db = get_db_from_config(cfg)
     augment_config_from_db(db, cfg)
-    task_dir = cfg.num_turns
 
     world_opt = {
         "num_turns": cfg.num_turns, 
