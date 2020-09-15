@@ -34,7 +34,7 @@ Sample response:
       "provider_type": "mturk",
       "registered": true,
       "requester_id": "2",
-      "requester_name": "Noah1010"
+      "requester_name": "sally"
     }
   ]
 }
