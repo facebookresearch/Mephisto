@@ -10,7 +10,8 @@ import json
 from dataclasses import dataclass, field
 from shutil import copytree
 from typing import List, Any, TYPE_CHECKING, Optional, Dict
-from omegaconf import MISSING
+from omegaconf import MISSING, OmegaConf
+from mephisto.core.hydra_config import MephistoConfig
 import argparse
 import shlex
 
@@ -112,10 +113,11 @@ class TaskConfig:
     @classmethod
     def get_mock_params(cls) -> str:
         """Returns a param string with default / mock arguments to use for testing"""
-        return (
-            '--task-title "Mock Task Title" '
-            "--task-reward 0.3 "
-            "--task-tags mock,task,tags "
-            '--task-description "This is a test description" '
-            "--num-assignments 1 "
+        return OmegaConf.structured(
+            MephistoConfig(task=TaskConfigArgs(
+                task_title="Mock Task Title",
+                task_reward=0.3,
+                task_tags="mock,task,tags",
+                task_description="This is a test description",
+            ))
         )

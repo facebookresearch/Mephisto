@@ -36,6 +36,9 @@ from mephisto.data_model.database import (
     EntryDoesNotExistException,
 )
 
+from omegaconf import OmegaConf
+import json
+
 
 class BaseDatabaseTests(unittest.TestCase):
     """
@@ -318,7 +321,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # But not after we've created a task run
         requester_name, requester_id = get_test_requester(db)
-        init_params = TaskConfig.get_mock_params()
+        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
         task_run_id = db.new_task_run(
             task_id_2, requester_id, init_params, "mock", "mock"
         )
@@ -452,7 +455,7 @@ class BaseDatabaseTests(unittest.TestCase):
         requester_name, requester_id = get_test_requester(db)
 
         # Check creation and retrieval of a task_run
-        init_params = TaskConfig.get_mock_params()
+        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
         task_run_id = db.new_task_run(
             task_id, requester_id, init_params, "mock", "mock"
         )
@@ -506,7 +509,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         task_name, task_id = get_test_task(db)
         requester_name, requester_id = get_test_requester(db)
-        init_params = TaskConfig.get_mock_params()
+        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
 
         # Can't create task run with invalid ids
         with self.assertRaises(EntryDoesNotExistException):
