@@ -6,7 +6,7 @@
 
 from mephisto.data_model.crowd_provider import CrowdProvider, ProviderArgs
 from mephisto.providers.mock.mock_agent import MockAgent
-from mephisto.providers.mock.mock_requester import MockRequester, MockRequesterArgs
+from mephisto.providers.mock.mock_requester import MockRequester
 from mephisto.providers.mock.mock_unit import MockUnit
 from mephisto.providers.mock.mock_worker import MockWorker
 from mephisto.providers.mock.mock_datastore import MockDatastore
@@ -32,7 +32,6 @@ if TYPE_CHECKING:
 class MockProviderArgs(ProviderArgs):
     """Base class for arguments to configure Crowd Providers"""
     _provider_type: str = PROVIDER_TYPE
-    requester: RequesterArgs = MockRequesterArgs()
 
 @register_mephisto_abstraction()
 class MockProvider(CrowdProvider):

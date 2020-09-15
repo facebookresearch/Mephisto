@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.data_model.blueprint import AgentState, SharedTaskState
 from mephisto.data_model.assignment import Unit
-from mephisto.data_model.requester import Requester, RequesterArgs
+from mephisto.data_model.requester import Requester
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.agent import Agent
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 class ProviderArgs:
     """Base class for arguments to configure Crowd Providers"""
     _provider_type: str = MISSING
-    requester: RequesterArgs = RequesterArgs()
+    requester_name: str = MISSING
 
 
 class CrowdProvider(ABC):

@@ -11,7 +11,7 @@ from mephisto.utils.scripts import get_db_from_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from dataclasses import dataclass, field
 from typing import List, Any
 

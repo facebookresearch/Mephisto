@@ -11,7 +11,7 @@ from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
 from mephisto.data_model.crowd_provider import CrowdProvider, ProviderArgs
 from mephisto.data_model.requester import RequesterArgs
 from mephisto.providers.mturk.mturk_agent import MTurkAgent
-from mephisto.providers.mturk.mturk_requester import MTurkRequester, MTurkRequesterArgs
+from mephisto.providers.mturk.mturk_requester import MTurkRequester
 from mephisto.providers.mturk.mturk_unit import MTurkUnit
 from mephisto.providers.mturk.mturk_worker import MTurkWorker
 from mephisto.providers.mturk.mturk_utils import (
@@ -40,7 +40,6 @@ if TYPE_CHECKING:
 class MockProviderArgs(ProviderArgs):
     """Base class for arguments to configure Crowd Providers"""
     _provider_type: str = PROVIDER_TYPE
-    requester: RequesterArgs = MTurkRequesterArgs()
 
 
 @register_mephisto_abstraction()

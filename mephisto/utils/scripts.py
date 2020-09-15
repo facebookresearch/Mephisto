@@ -8,7 +8,6 @@ Utilities that are useful for Mephisto-related scripts.
 """
 
 from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.argparse_parser import str2bool, str2floats, str2none
 from mephisto.core.utils import get_mock_requester, get_root_data_dir
 
 from omegaconf import DictConfig
@@ -51,9 +50,6 @@ class MephistoRunScriptParser(argparse.ArgumentParser):
         super().__init__(
             description=description, allow_abbrev=False, conflict_handler="resolve"
         )
-        self.register("type", "nonestr", str2none)
-        self.register("type", "bool", str2bool)
-        self.register("type", "floats", str2floats)
         self.add_requester_args()
         self.add_architect_args()
         self.add_datapath_arg()

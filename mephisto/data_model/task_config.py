@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 from shutil import copytree
 from typing import List, Any, TYPE_CHECKING, Optional, Dict
 from omegaconf import MISSING, OmegaConf
-from mephisto.core.hydra_config import MephistoConfig
 import argparse
 import shlex
 
@@ -90,6 +89,8 @@ class TaskConfig:
     that is required to launch for all providers and task types
     """
 
+    ArgsClass = TaskConfigArgs
+
     # TODO(#94?) TaskConfigs should probably be immutable, and could ideally separate
     # the options that come from different parts of the ecosystem
     def __init__(self, task_run: "TaskRun"):
@@ -113,6 +114,7 @@ class TaskConfig:
     @classmethod
     def get_mock_params(cls) -> str:
         """Returns a param string with default / mock arguments to use for testing"""
+        from mephisto.core.hydra_config import MephistoConfig
         return OmegaConf.structured(
             MephistoConfig(task=TaskConfigArgs(
                 task_title="Mock Task Title",

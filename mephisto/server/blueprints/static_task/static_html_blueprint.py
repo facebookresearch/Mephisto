@@ -45,12 +45,12 @@ class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
     _group: str = field(
         default="StaticBlueprint",
         metadata={
-            'help': """
-                Tasks launched from static blueprints need a
-                source html file to display to workers, as well as a csv
-                containing values that will be inserted into templates in
-                the html.
-            """,
+            'help': (
+                'Tasks launched from static blueprints need a '
+                'source html file to display to workers, as well as a csv '
+                'containing values that will be inserted into templates in '
+                'the html. '
+            ),
         },
     )
     task_source: str = field(
