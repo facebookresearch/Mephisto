@@ -6,7 +6,6 @@
 
 from mephisto.data_model.blueprint import TaskRunner, SharedTaskState
 from mephisto.data_model.assignment import InitializationData
-from mephisto.core.argparse_parser import str2bool
 
 import os
 import time

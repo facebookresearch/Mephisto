@@ -22,7 +22,6 @@ import re
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.core.utils import get_mephisto_tmp_dir
-from mephisto.core.argparse_parser import str2bool
 from mephisto.data_model.architect import Architect, ArchitectArgs
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel

@@ -13,7 +13,6 @@ import uuid
 import json
 import time
 
-from mephisto.core.argparse_parser import str2bool
 from mephisto.data_model.architect import Architect, ArchitectArgs
 from dataclasses import dataclass, field
 from mephisto.data_model.packet import (

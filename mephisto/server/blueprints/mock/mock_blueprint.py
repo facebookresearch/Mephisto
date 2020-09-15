@@ -8,7 +8,6 @@ from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, Bluepri
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.data_model.assignment import InitializationData
-from mephisto.core.argparse_parser import str2bool
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder

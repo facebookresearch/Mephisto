@@ -20,8 +20,6 @@ from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
-from mephisto.core.argparse_parser import get_default_arg_dict
-
 
 class MockArchitectTests(ArchitectTests):
     """
