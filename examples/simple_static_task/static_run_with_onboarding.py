@@ -7,7 +7,7 @@
 import os
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
-from mephisto.utils.scripts import get_db_from_config
+from mephisto.utils.scripts import get_db_from_config, augment_config_from_db
 from mephisto.server.blueprints.static_task.static_html_blueprint import BLUEPRINT_TYPE
 from mephisto.server.blueprints.abstract.static_task.static_blueprint import SharedStaticTaskState
 
@@ -52,6 +52,7 @@ def main(cfg: DictConfig) -> None:
     )
 
     db = get_db_from_config(cfg)
+    cfg = augment_config_from_db(db, cfg)
     operator = Operator(db)
 
     operator.validate_and_run_config_wrap(cfg.mephisto, shared_state)

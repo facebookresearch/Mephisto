@@ -7,7 +7,7 @@
 
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import get_db_from_config
+from mephisto.utils.scripts import get_db_from_config, augment_config_from_db
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
@@ -51,6 +51,8 @@ register_script_config(name='scriptconfig', module=TestScriptConfig)
 
 @hydra.main(config_name='scriptconfig')
 def main(cfg: DictConfig) -> None:
+    db = get_db_from_config(cfg)
+    augment_config_from_db(db, cfg)
     task_dir = cfg.num_turns
 
     world_opt = {
@@ -71,7 +73,6 @@ def main(cfg: DictConfig) -> None:
         onboarding_world_opt=world_opt,
     )
 
-    db = get_db_from_config(cfg)
     operator = Operator(db)
 
     operator.validate_and_run_config_wrap(cfg.mephisto, shared_state)

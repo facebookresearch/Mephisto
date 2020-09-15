@@ -18,9 +18,9 @@ config = ConfigStoreWithProvider("mephisto")
 
 @dataclass
 class MephistoConfig:
-    blueprint: BlueprintArgs = MISSING
-    provider: ProviderArgs = MISSING
-    architect: ArchitectArgs = MISSING
+    blueprint: BlueprintArgs = BlueprintArgs()
+    provider: ProviderArgs = ProviderArgs()
+    architect: ArchitectArgs = ArchitectArgs()
     task: TaskConfigArgs = TaskConfigArgs()
 
 

@@ -12,6 +12,7 @@ examples/**/build/*
 **/*.log
 **/build/*
 **/_generated/*
+**/outputs/*
 
 # temporary files for inspiration from ParlAI-MTurk
 old_code/*
