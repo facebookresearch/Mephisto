@@ -16,7 +16,8 @@ import { ChatApp, DefaultTaskDescription, INPUT_MODE } from "bootstrap-chat";
 /*
 This example modifies the default parlai_chat example to demonstrate
 how one can override the default visual implementations for the
-chat message bubble and the response input bar.
+chat message bubble and the response input bar, while coordinating
+behavior between them with global state.
 
 In this example we add a radio button group to each received chat message.
 Additionally, we require the user to make a selection for the most
