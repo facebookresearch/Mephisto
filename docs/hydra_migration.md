@@ -242,8 +242,11 @@ Most of the new configuration happens in the `TestScriptConfig`. This will need 
 
 #### defaults
 It's important to note the step of creating the `defaults` entry for your `ScriptConfig`. This will provide Hydra with some default values for keys in the created `yaml` file. The `{"mephisto.blueprint": BLUEPRINT_TYPE},` entry ensures that Hydra loads up the blueprint argument configuration that corresponds with the blueprint you're running, for instance. 
+
 Setting `architect` to `local` and `provider` to `mock` will make the script default to that configuration when given no arguments, however you can provide different values either in configuration files or on the command line (with `mephisto.provider.requester_name=some_requester`, or `mephisto.architect=heroku` for instance).
+
 The entry with just `"conf/base"` tells hydra to load the entire contents of `conf/base.yaml` as default values. 
+
 Lastly, `{"conf": "example"},` gives hydra the command to load specifically the configuration in `conf/example.yaml`, however on the command line you can use `conf=<>` to make hydra use the defaults you've specified in a different configuration file instead. This last line is useful for a demo version for your script, but it's likely your important configuration options will exist in files you can access with `python script.py conf=<>` instead.
 
 ## Extra arguments
