@@ -7,7 +7,7 @@
 
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import load_db_and_validate_config
+from mephisto.utils.scripts import load_db_and_process_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
@@ -51,7 +51,7 @@ register_script_config(name='scriptconfig', module=TestScriptConfig)
 
 @hydra.main(config_name='scriptconfig')
 def main(cfg: DictConfig) -> None:
-    db, cfg = load_db_and_validate_config(cfg)
+    db, cfg = load_db_and_process_config(cfg)
 
     world_opt = {
         "num_turns": cfg.num_turns, 
@@ -73,7 +73,7 @@ def main(cfg: DictConfig) -> None:
 
     operator = Operator(db)
 
-    operator.validate_and_run_config_or_die(cfg.mephisto, shared_state)
+    operator.validate_and_run_config(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 if __name__ == "__main__":

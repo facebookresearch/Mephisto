@@ -52,7 +52,7 @@ shared_state = SharedStaticTaskState(
     validate_onboarding=onboarding_always_valid,
 )
 ```
-This block of code is preparing two tasks, each with a `"text"` field set. When the task run is launched with `operator.validate_and_run_config_or_die(cfg.mephisto, shared_state)`, this creates two tasks for workers to work on, one for each entry in the `static_task_data` array.
+This block of code is preparing two tasks, each with a `"text"` field set. When the task run is launched with `operator.validate_and_run_config(cfg.mephisto, shared_state)`, this creates two tasks for workers to work on, one for each entry in the `static_task_data` array.
 
 This data is later pulled via the `useMephistoTask` hook, and when a worker accepts a task, they will be given the contents of one of the entries as their `initialTaskData`. See the `webapp/src/app.jsx` file. We render
 ```js
