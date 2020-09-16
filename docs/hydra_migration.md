@@ -291,7 +291,7 @@ Now, the script arguments are generally validated by Hydra, so much of what `par
 ```python
 @hydra.main(config_name='scriptconfig')
 def main(cfg: DictConfig) -> None:
-    db, cfg = load_db_and_validate_config(cfg)
+    db, cfg = load_db_and_process_config(cfg)
     ...
     custom_bundle_path = cfg.mephisto.blueprint.get('custom_source_bundle', None)
     if custom_bundle_path is not None:
@@ -313,7 +313,7 @@ operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 ```python
 operator = Operator(db)
 
-operator.validate_and_run_config_or_die(cfg.mephisto, shared_state)
+operator.validate_and_run_config(cfg.mephisto, shared_state)
 operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 ```
 ## Imports
@@ -330,12 +330,12 @@ from mephisto.utils.scripts import MephistoRunScriptParser, str2bool # RunScript
 We remove unnecessary or deprecated imports.
 
 ### After
-We'll need to add a few things. First, `load_db_and_validate_config` covers the old capabilities of the `MephistoRunScriptParser`. 
+We'll need to add a few things. First, `load_db_and_process_config` covers the old capabilities of the `MephistoRunScriptParser`. 
 Mephisto now defines run scripts and configurations using Hydra and dataclasses, as such you'll need some imports from `dataclasses`, `hydra`, and `omegaconf` (which is the configuration library that powers hydra).
 ```python
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import load_db_and_validate_config
+from mephisto.utils.scripts import load_db_and_process_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
@@ -350,7 +350,7 @@ from typing import List, Any
 # parlai_test_script.py
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import load_db_and_validate_config
+from mephisto.utils.scripts import load_db_and_process_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
@@ -394,7 +394,7 @@ register_script_config(name='scriptconfig', module=TestScriptConfig)
 
 @hydra.main(config_name='scriptconfig')
 def main(cfg: DictConfig) -> None:
-    db, cfg = load_db_and_validate_config(cfg)
+    db, cfg = load_db_and_process_config(cfg)
 
     world_opt = {
         "num_turns": cfg.num_turns, 
@@ -416,7 +416,7 @@ def main(cfg: DictConfig) -> None:
 
     operator = Operator(db)
 
-    operator.validate_and_run_config_or_die(cfg.mephisto, shared_state)
+    operator.validate_and_run_config(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 if __name__ == "__main__":

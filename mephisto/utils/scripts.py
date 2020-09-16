@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
 
 
-def load_db_and_validate_config(cfg: DictConfig) -> Tuple["MephistoDB", DictConfig]:
+def load_db_and_process_config(cfg: DictConfig) -> Tuple["MephistoDB", DictConfig]:
     """
     Using a Hydra DictConfig built from a RunScriptConfig, 
     load the desired MephistoDB and 

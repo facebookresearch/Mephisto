@@ -121,7 +121,7 @@ class Operator:
             'in order to upgrade.'
         )
 
-    def validate_and_run_config(
+    def validate_and_run_config_or_die(
         self,
         run_config: DictConfig,
         shared_state: Optional[SharedTaskState] = None,
@@ -333,17 +333,17 @@ class Operator:
             self.supervisor.shutdown()
             self._run_tracker_thread.join()
 
-    def validate_and_run_config_or_die(
+    def validate_and_run_config(
         self,
         run_config: DictConfig,
         shared_state: Optional[SharedTaskState] = None,
     ) -> Optional[str]:
         """
-        Wrapper around validate_and_run_config that prints errors on 
+        Wrapper around validate_and_run_config_or_die that prints errors on 
         failure, rather than throwing. Generally for use in scripts.
         """
         try:
-            return self.validate_and_run_config(
+            return self.validate_and_run_config_or_die(
                 run_config=run_config, 
                 shared_state=shared_state,
             )
