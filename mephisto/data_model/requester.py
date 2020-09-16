@@ -5,14 +5,27 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.core.registry import get_crowd_provider_from_type
+from dataclasses import dataclass, field
+from omegaconf import MISSING, DictConfig
 
-from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
+from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any, Type, ClassVar
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class RequesterArgs:
+    """Base class for arguments to register a requester"""
+    name: str = field(
+        default=MISSING,
+        metadata={
+            'help': "Name for the requester in the Mephisto DB.",
+            'required': True,
+        },
+    )
 
 
 class Requester(ABC):
@@ -21,6 +34,8 @@ class Requester(ABC):
     initializations, but mostly should be extended by the specific requesters for crowd providers
     with whatever implementation details are required to get those to work.
     """
+
+    ArgsClass: ClassVar[Type["RequesterArgs"]] = RequesterArgs
 
     def __init__(
         self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
@@ -43,6 +58,8 @@ class Requester(ABC):
         as you will instead be returned the correct Requester class according to
         the crowdprovider associated with this Requester.
         """
+        from mephisto.core.registry import get_crowd_provider_from_type
+
         if cls == Requester:
             # We are trying to construct a Requester, find what type to use and
             # create that instead
@@ -92,7 +109,7 @@ class Requester(ABC):
 
     # Children classes should implement the following methods
 
-    def register(self, args: Optional[Dict[str, str]] = None) -> None:
+    def register(self, args: Optional[DictConfig] = None) -> None:
         """
         Register this requester with the crowd provider by providing any required credentials
         or such. If no args are provided, assume the registration is already made and try
@@ -105,23 +122,6 @@ class Requester(ABC):
     def is_registered(self) -> bool:
         """Check to see if this requester has already been registered"""
         raise NotImplementedError()
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Add the arguments to register this requester to the crowd provider,
-        the group's 'description' attribute should be used for any high level
-        help on how to get the details.
-
-        The `name` argument is required.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        # group.description = 'For `Requester`, Retrieve the following at xyz'
-        # group.add_argument('--username', help='Login username for requester')
-        # group.add_argument('--secret-key', help='Secret key found...')
-        group.add_argument("--name", help="Identifier for MephistoDB")
-        return
 
     def get_available_budget(self) -> float:
         """

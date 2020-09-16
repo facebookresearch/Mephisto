@@ -4,14 +4,16 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.crowd_provider import CrowdProvider
+from mephisto.data_model.crowd_provider import CrowdProvider, ProviderArgs
 from mephisto.providers.mock.mock_agent import MockAgent
 from mephisto.providers.mock.mock_requester import MockRequester
 from mephisto.providers.mock.mock_unit import MockUnit
 from mephisto.providers.mock.mock_worker import MockWorker
 from mephisto.providers.mock.mock_datastore import MockDatastore
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
+from mephisto.data_model.requester import RequesterArgs
 from mephisto.core.registry import register_mephisto_abstraction
+from dataclasses import dataclass, field
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, TYPE_CHECKING
 
@@ -23,7 +25,13 @@ if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.agent import Agent
+    from omegaconf import DictConfig
 
+
+@dataclass
+class MockProviderArgs(ProviderArgs):
+    """Base class for arguments to configure Crowd Providers"""
+    _provider_type: str = PROVIDER_TYPE
 
 @register_mephisto_abstraction()
 class MockProvider(CrowdProvider):
@@ -40,6 +48,8 @@ class MockProvider(CrowdProvider):
 
     AgentClass: ClassVar[Type["Agent"]] = MockAgent
 
+    ArgsClass = MockProviderArgs
+
     SUPPORTED_TASK_TYPES: ClassVar[List[str]] = ["mock"]
 
     PROVIDER_TYPE = PROVIDER_TYPE
@@ -51,7 +61,7 @@ class MockProvider(CrowdProvider):
         return MockDatastore(datastore_root=storage_path)
 
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str
+        self, task_run: "TaskRun", args: "DictConfig", server_url: str,
     ) -> None:
         """Mocks don't do any initialization"""
         return None

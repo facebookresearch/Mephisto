@@ -5,40 +5,42 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-import time
-import shlex
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 from mephisto.server.blueprints.static_task.static_html_blueprint import BLUEPRINT_TYPE
-from mephisto.utils.scripts import MephistoRunScriptParser
+from mephisto.utils.scripts import load_db_and_validate_config
 
-(
-    architect_type,
-    requester_name,
-    db,
-    _args,
-) = MephistoRunScriptParser().parse_launch_arguments()
+import hydra
+from omegaconf import DictConfig
+from dataclasses import dataclass, field
+from typing import List, Any
+
 
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
-task_title = "Test static task"
-task_description = "This is a simple test of static tasks."
+defaults = [
+    {"mephisto.blueprint": BLUEPRINT_TYPE},
+    {"mephisto.architect": 'local'},
+    {"mephisto.provider": 'mock'},
+    {"conf": "example"},
+]
 
-ARG_STRING = (
-    f"--blueprint-type {BLUEPRINT_TYPE} "
-    f"--architect-type {architect_type} "
-    f"--requester-name {requester_name} "
-    f'--task-title "\\"{task_title}\\"" '
-    f'--task-description "\\"{task_description}\\"" '
-    "--task-reward 0.3 "
-    "--task-tags static,task,testing "
-    f'--data-csv "{TASK_DIRECTORY}/data.csv" '
-    f'--task-source "{TASK_DIRECTORY}/server_files/demo_task.html" '
-    f'--preview-source "{TASK_DIRECTORY}/server_files/demo_preview.html" '
-    f'--extra-source-dir "{TASK_DIRECTORY}/server_files/extra_refs" '
-    f"--units-per-assignment 2 "
-)
+from mephisto.core.hydra_config import RunScriptConfig, register_script_config
 
-operator = Operator(db)
-operator.parse_and_launch_run_wrapper(shlex.split(ARG_STRING))
-operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
+@dataclass 
+class TestScriptConfig(RunScriptConfig):
+    defaults: List[Any] = field(default_factory=lambda: defaults)
+    task_dir: str = TASK_DIRECTORY
+
+register_script_config(name='scriptconfig', module=TestScriptConfig)
+
+@hydra.main(config_name='scriptconfig')
+def main(cfg: DictConfig) -> None:
+    db, cfg = load_db_and_validate_config(cfg)
+    operator = Operator(db)
+
+    operator.validate_and_run_config_or_die(cfg.mephisto)
+    operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
+
+if __name__ == "__main__":
+    main()

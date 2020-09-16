@@ -13,7 +13,8 @@ import shlex
 import time
 import requests
 
-from mephisto.data_model.architect import Architect
+from mephisto.data_model.architect import Architect, ArchitectArgs
+from dataclasses import dataclass, field
 from mephisto.core.registry import register_mephisto_abstraction
 from typing import Any, Optional, Dict, List, TYPE_CHECKING, Callable
 
@@ -23,11 +24,33 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
+    from mephisto.data_model.blueprint import SharedTaskState
 
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel
 from mephisto.core.utils import get_mephisto_tmp_dir
 
+ARCHITECT_TYPE = "local"
+
+
+@dataclass
+class LocalArchitectArgs(ArchitectArgs):
+    """Additional arguments for configuring a local architect"""
+    _architect_type: str = ARCHITECT_TYPE
+    hostname: str = field(
+        default='localhost',
+        metadata={
+            'help': "Addressible location of the server",
+        },
+    )
+    port: str = field(
+        default="3000",
+        metadata={
+            'help': "Port to launch the server on",
+        },
+    )
+    
 
 @register_mephisto_abstraction()
 class LocalArchitect(Architect):
@@ -36,12 +59,14 @@ class LocalArchitect(Architect):
     onto that server.
     """
 
-    ARCHITECT_TYPE = "local"
+    ArgsClass = LocalArchitectArgs
+    ARCHITECT_TYPE = ARCHITECT_TYPE
 
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, str],
+        args: "DictConfig", 
+        shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,
     ):
@@ -55,8 +80,8 @@ class LocalArchitect(Architect):
         self.server_process: Optional[subprocess.Popen] = None
         self.server_dir: Optional[str] = None
         self.running_dir: Optional[str] = None
-        self.hostname: Optional[str] = opts.get("hostname")
-        self.port: Optional[str] = opts.get("port")
+        self.hostname: Optional[str] = args.architect.hostname
+        self.port: Optional[str] = args.architect.port
         self.cleanup_called = False
 
     def _get_socket_urls(self) -> List[str]:
@@ -108,32 +133,6 @@ class LocalArchitect(Architect):
         source_file = os.path.join("/tmp/", target_filename)
         dest_path = os.path.join(save_dir, target_filename)
         shutil.copy2(source_file, dest_path)
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Adds LocalArchitect arguments to the group
-
-        Local architects can set hostname and port appropriately
-        """
-        super(LocalArchitect, cls).add_args_to_group(group)
-
-        group.description = """
-            LocalArchitect: Local servers can configure the deploy
-            location and port to run on.
-        """
-        group.add_argument(
-            "--hostname",
-            dest="hostname",
-            help="Location of the server",
-            default="localhost",
-        )
-        group.add_argument(
-            "--port", dest="port", help="Port to launch the server on", default="3000"
-        )
-        # TODO(OWN) be able to specify the public address location
-        # separately from the hostname
-        return
 
     def prepare(self) -> str:
         """Mark the preparation call"""

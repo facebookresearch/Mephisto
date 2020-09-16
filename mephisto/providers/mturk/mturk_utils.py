@@ -15,6 +15,7 @@ from botocore import client
 from botocore.exceptions import ClientError
 from botocore.exceptions import ProfileNotFound
 from botocore.config import Config
+from omegaconf import DictConfig
 
 from mephisto.core.logger_core import get_logger
 from mephisto.core.config_handler import get_config_arg
@@ -53,7 +54,7 @@ def check_aws_credentials(profile_name: str) -> bool:
 
 
 def setup_aws_credentials(
-    profile_name: str, register_args: Optional[Dict[str, str]] = None
+    profile_name: str, register_args: Optional[DictConfig] = None
 ) -> bool:
     try:
         # Check existing credentials
@@ -62,8 +63,8 @@ def setup_aws_credentials(
     except ProfileNotFound:
         # Setup new credentials
         if register_args is not None:
-            aws_access_key_id = register_args["access_key_id"]
-            aws_secret_access_key = register_args["secret_access_key"]
+            aws_access_key_id = register_args.access_key_id
+            aws_secret_access_key = register_args.secret_access_key
         else:
             print(
                 f"AWS credentials for {profile_name} not found. Please create "

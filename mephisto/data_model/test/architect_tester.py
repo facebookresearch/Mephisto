@@ -15,9 +15,13 @@ from mephisto.data_model.architect import Architect
 from mephisto.data_model.task import TaskRun
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.data_model.database import MephistoDB
+from mephisto.data_model.blueprint import SharedTaskState
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
 from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.argparse_parser import get_default_arg_dict
+from mephisto.core.hydra_config import MephistoConfig
+from omegaconf import OmegaConf
+
+EMPTY_STATE = SharedTaskState()
 
 
 class ArchitectTests(unittest.TestCase):
@@ -114,17 +118,19 @@ class ArchitectTests(unittest.TestCase):
         self.assertNotEqual(
             self.ArchitectClass, Architect, "Can not use base Architect"
         )
-        opts = get_default_arg_dict(self.ArchitectClass)
-        architect = self.ArchitectClass(self.db, opts, self.task_run, self.build_dir)
+        arch_args = self.ArchitectClass.ArgsClass()
+        args = OmegaConf.structured(MephistoConfig(architect=arch_args))
+        architect = self.ArchitectClass(self.db, args, EMPTY_STATE, self.task_run, self.build_dir)
 
     def get_architect(self) -> Architect:
         """
         Return an initialized architect to use in testing. Can be overridden if
         special parameters need to be set to run tests properly.
         """
-        opts = get_default_arg_dict(self.ArchitectClass)
-        architect = self.ArchitectClass(self.db, opts, self.task_run, self.build_dir)
-        return architect
+        arch_args = self.ArchitectClass.ArgsClass()
+        args = OmegaConf.structured(MephistoConfig(architect=arch_args))
+        self.curr_architect = self.ArchitectClass(self.db, args, EMPTY_STATE, self.task_run, self.build_dir)
+        return self.curr_architect
 
     def test_prepare_cleanup(self) -> None:
         """Test preparation and cleanup for server"""

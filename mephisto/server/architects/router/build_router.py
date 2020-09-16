@@ -84,7 +84,7 @@ def build_router(build_dir: str, task_run: "TaskRun") -> str:
 
     # Consolidate task files as defined by the task
     TaskBuilderClass = blueprint.TaskBuilderClass
-    task_builder = TaskBuilderClass(task_run, task_run.get_task_config().args)
+    task_builder = TaskBuilderClass(task_run, task_run.args)
 
     task_builder.build_in_dir(local_server_directory_path)
 

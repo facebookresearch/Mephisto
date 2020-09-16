@@ -4,9 +4,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.requester import Requester
+from dataclasses import dataclass, field
+from mephisto.data_model.requester import Requester, RequesterArgs
 from mephisto.providers.mock.provider_type import PROVIDER_TYPE
-from mephisto.core.argparse_parser import str2bool
 
 from typing import Optional, Dict, List, Mapping, Any, TYPE_CHECKING
 
@@ -15,8 +15,26 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.providers.mock.mock_datastore import MockDatastore
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
 
 MOCK_BUDGET = 100000.0
+
+
+@dataclass
+class MockRequesterArgs(RequesterArgs):
+    name: str = field(
+        default="MOCK_REQUESTER",
+        metadata={
+            'help': "Name for the requester in the Mephisto DB.",
+            'required': True,
+        },
+    )
+    force_fail: bool = field(
+        default=False,
+        metadata={
+            'help': "Trigger a failed registration",
+        },
+    )
 
 
 class MockRequester(Requester):
@@ -26,39 +44,21 @@ class MockRequester(Requester):
     with whatever implementation details are required to get those to work.
     """
 
+    ArgsClass = MockRequesterArgs
+
     def __init__(
         self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
     ):
         super().__init__(db, db_id, row=row)
         self.datastore: "MockDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
 
-    def register(self, args: Optional[Dict[str, str]] = None) -> None:
+    def register(self, args: Optional["DictConfig"] = None) -> None:
         """Mock requesters don't actually register credentials"""
         if args is not None:
             if args.get("force_fail") is True:
                 raise Exception("Forced failure test exception was set")
         else:
             self.datastore.set_requester_registered(self.db_id, True)
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Add mock registration arguments to the argument group.
-        """
-        super(MockRequester, cls).add_args_to_group(group)
-
-        group.description = """
-            MockRequester: Arguments for mock requester add special
-            control and test functionality.
-        """
-        group.add_argument(
-            "--force-fail",
-            dest="force_fail",
-            type=str2bool,
-            default=False,
-            help="Trigger a failed registration",
-        )
-        return None
 
     def is_registered(self) -> bool:
         """Return the registration status"""

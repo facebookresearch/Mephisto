@@ -7,6 +7,7 @@
 
 import os
 from shutil import copytree
+import json
 
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
@@ -18,19 +19,20 @@ from mephisto.core.utils import (
     ensure_user_confirm,
     get_dir_for_run,
 )
-from mephisto.core.registry import get_blueprint_from_type, get_crowd_provider_from_type
 
 from functools import reduce
+from omegaconf import OmegaConf
 
 from typing import List, Optional, Tuple, Dict, cast, Mapping, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.assignment import Assignment
-    from mephisto.data_model.blueprint import Blueprint
+    from mephisto.data_model.blueprint import Blueprint, SharedTaskState
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.crowd_provider import CrowdProvider
+    from omegaconf import DictConfig
 
 
 # TODO(#98) pull from utils, these are blueprints
@@ -195,6 +197,11 @@ class TaskRun:
         self.task_id = row["task_id"]
         self.requester_id = row["requester_id"]
         self.param_string = row["init_params"]
+        try:
+            self.args: "DictConfig" = OmegaConf.create(json.loads(self.param_string))
+        except Exception as e:
+            self.args = None
+            print(e)
         self.start_time = row["creation_date"]
         self.provider_type = row["provider_type"]
         self.task_type = row["task_type"]
@@ -290,22 +297,30 @@ class TaskRun:
             return None
         return unit
 
-    def get_blueprint(self, opts: Optional[Dict[str, Any]] = None) -> "Blueprint":
+    def get_blueprint(self, args: Optional["DictConfig"] = None, shared_state: Optional["SharedTaskState"] = None) -> "Blueprint":
         """Return the runner associated with this task run"""
+        from mephisto.core.registry import get_blueprint_from_type
+        from mephisto.data_model.blueprint import SharedTaskState
+
         if self.__blueprint is None:
             cache = False
-            task_args = self.get_task_config().args
-            if opts is not None:
-                task_args.update(opts)
+            if args is None:
+                args = self.args
+            else:
                 cache = True
+            if shared_state is None:
+                shared_state = SharedTaskState()
+
             BlueprintClass = get_blueprint_from_type(self.task_type)
             if not cache:
-                return BlueprintClass(self, task_args)
-            self.__blueprint = BlueprintClass(self, task_args)
+                return BlueprintClass(self, args, shared_state)
+            self.__blueprint = BlueprintClass(self, args, shared_state)
         return self.__blueprint
 
     def get_provider(self) -> "CrowdProvider":
         """Return the crowd provider used to launch this task"""
+        from mephisto.core.registry import get_crowd_provider_from_type
+
         if self.__crowd_provider is None:
             CrowdProviderClass = get_crowd_provider_from_type(self.provider_type)
             self.__crowd_provider = CrowdProviderClass(self.db)

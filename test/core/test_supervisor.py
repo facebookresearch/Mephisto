@@ -19,12 +19,23 @@ from mephisto.server.architects.mock_architect import MockArchitect
 from mephisto.providers.mock.mock_provider import MockProvider
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.task_launcher import TaskLauncher
-from mephisto.core.argparse_parser import get_default_arg_dict
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.task import TaskRun
 from mephisto.core.supervisor import Supervisor, Job
+from mephisto.data_model.blueprint import SharedTaskState
 
+
+from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
+from mephisto.core.hydra_config import MephistoConfig
+from mephisto.providers.mock.mock_provider import MockProviderArgs
+from mephisto.providers.mock.mock_requester import MockRequesterArgs
+from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.data_model.task_config import TaskConfigArgs
+from omegaconf import OmegaConf
+
+
+EMPTY_STATE = SharedTaskState()
 
 class TestSupervisor(unittest.TestCase):
     """
@@ -39,10 +50,13 @@ class TestSupervisor(unittest.TestCase):
         self.task_id = self.db.new_task("test_mock", MockBlueprint.BLUEPRINT_TYPE)
         self.task_run_id = get_test_task_run(self.db)
         self.task_run = TaskRun(self.db, self.task_run_id)
-        architect_args = get_default_arg_dict(MockArchitect)
-        architect_args["should_run_server"] = True
+
+        architect_config = OmegaConf.structured(MephistoConfig(
+            architect=MockArchitectArgs(should_run_server=True),
+        ))
+
         self.architect = MockArchitect(
-            self.db, architect_args, self.task_run, self.data_dir
+            self.db, architect_config, EMPTY_STATE, self.task_run, self.data_dir
         )
         self.architect.prepare()
         self.architect.deploy()
@@ -50,7 +64,7 @@ class TestSupervisor(unittest.TestCase):
         self.url = self.urls[0]
         self.provider = MockProvider(self.db)
         self.provider.setup_resources_for_task_run(
-            self.task_run, self.task_run.get_task_config().args, self.url
+            self.task_run, self.task_run.args, self.url
         )
         self.launcher = TaskLauncher(
             self.db, self.task_run, self.get_mock_assignment_data_array()
@@ -88,8 +102,10 @@ class TestSupervisor(unittest.TestCase):
         sup = Supervisor(self.db)
         self.sup = sup
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
+        args = MockBlueprint.ArgsClass()
+        config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(
-            self.task_run, get_default_arg_dict(TaskRunnerClass)
+            self.task_run, config, EMPTY_STATE
         )
         test_job = Job(
             architect=self.architect,
@@ -115,10 +131,13 @@ class TestSupervisor(unittest.TestCase):
         sup = Supervisor(self.db)
         self.sup = sup
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
-        task_runner_args = get_default_arg_dict(TaskRunnerClass)
-        task_runner_args["timeout_time"] = 5
-        task_runner_args["is_concurrent"] = False
-        task_runner = TaskRunnerClass(self.task_run, task_runner_args)
+        args = MockBlueprint.ArgsClass()
+        args.timeout_time = 5
+        args.is_concurrent = False
+        config = OmegaConf.structured(MephistoConfig(blueprint=args))
+        task_runner = TaskRunnerClass(
+            self.task_run, config, EMPTY_STATE
+        )
         sup.register_job(self.architect, task_runner, self.provider)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
@@ -233,9 +252,12 @@ class TestSupervisor(unittest.TestCase):
         sup = Supervisor(self.db)
         self.sup = sup
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
-        task_runner_args = get_default_arg_dict(TaskRunnerClass)
-        task_runner_args["timeout_time"] = 5
-        task_runner = TaskRunnerClass(self.task_run, task_runner_args)
+        args = MockBlueprint.ArgsClass()
+        args.timeout_time = 5
+        config = OmegaConf.structured(MephistoConfig(blueprint=args))
+        task_runner = TaskRunnerClass(
+            self.task_run, config, EMPTY_STATE
+        )
         sup.register_job(self.architect, task_runner, self.provider)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
@@ -353,18 +375,19 @@ class TestSupervisor(unittest.TestCase):
         self.sup = sup
         TEST_QUALIFICATION_NAME = "test_onboarding_qualification"
 
-        # Register onboarding arguments for blueprint
-        task_run_args = self.task_run.get_task_config().args
-        task_run_args["use_onboarding"] = True
-        task_run_args["onboarding_qualification"] = TEST_QUALIFICATION_NAME
+        task_run_args = self.task_run.args
+        task_run_args.blueprint.use_onboarding = True
+        task_run_args.blueprint.onboarding_qualification = TEST_QUALIFICATION_NAME
+        task_run_args.blueprint.timeout_time = 5
+        task_run_args.blueprint.is_concurrent = True
+        self.task_run.get_task_config()
 
         # Supervisor expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
-        task_runner_args = get_default_arg_dict(TaskRunnerClass)
-        task_runner_args["timeout_time"] = 5
-        task_runner = TaskRunnerClass(self.task_run, task_runner_args)
+        task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
+
         sup.register_job(self.architect, task_runner, self.provider)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
@@ -597,18 +620,18 @@ class TestSupervisor(unittest.TestCase):
         TEST_QUALIFICATION_NAME = "test_onboarding_qualification"
 
         # Register onboarding arguments for blueprint
-        task_run_args = self.task_run.get_task_config().args
-        task_run_args["use_onboarding"] = True
-        task_run_args["onboarding_qualification"] = TEST_QUALIFICATION_NAME
+        task_run_args = self.task_run.args
+        task_run_args.blueprint.use_onboarding = True
+        task_run_args.blueprint.onboarding_qualification = TEST_QUALIFICATION_NAME
+        task_run_args.blueprint.timeout_time = 5
+        task_run_args.blueprint.is_concurrent = False
+        self.task_run.get_task_config()
 
         # Supervisor expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
-        task_runner_args = get_default_arg_dict(TaskRunnerClass)
-        task_runner_args["timeout_time"] = 5
-        task_runner_args["is_concurrent"] = False
-        task_runner = TaskRunnerClass(self.task_run, task_runner_args)
+        task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
         sup.register_job(self.architect, task_runner, self.provider)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]

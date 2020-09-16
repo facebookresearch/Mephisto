@@ -8,7 +8,8 @@ import os
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
-from mephisto.data_model.crowd_provider import CrowdProvider
+from mephisto.data_model.crowd_provider import CrowdProvider, ProviderArgs
+from mephisto.data_model.requester import RequesterArgs
 from mephisto.providers.mturk.mturk_agent import MTurkAgent
 from mephisto.providers.mturk.mturk_requester import MTurkRequester
 from mephisto.providers.mturk.mturk_unit import MTurkUnit
@@ -21,6 +22,7 @@ from mephisto.providers.mturk.mturk_utils import (
     delete_qualification,
 )
 from mephisto.core.registry import register_mephisto_abstraction
+from dataclasses import dataclass, field
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, cast, TYPE_CHECKING
 
@@ -31,6 +33,13 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.agent import Agent
+    from omegaconf import DictConfig
+
+
+@dataclass
+class MockProviderArgs(ProviderArgs):
+    """Base class for arguments to configure Crowd Providers"""
+    _provider_type: str = PROVIDER_TYPE
 
 
 @register_mephisto_abstraction()
@@ -49,6 +58,8 @@ class MTurkProvider(CrowdProvider):
     WorkerClass: ClassVar[Type["Worker"]] = MTurkWorker
 
     AgentClass: ClassVar[Type["Agent"]] = MTurkAgent
+
+    ArgsClass = MockProviderArgs
 
     SUPPORTED_TASK_TYPES: ClassVar[List[str]] = [
         # TODO
@@ -69,7 +80,7 @@ class MTurkProvider(CrowdProvider):
         return self.datastore.get_client_for_requester(requester_name)
 
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str
+        self, task_run: "TaskRun", args: "DictConfig", server_url: str
     ) -> None:
         """
         Set up SNS queue to recieve agent events from MTurk, and produce the

@@ -145,7 +145,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
         if not os.path.exists(FRONTEND_BUILD_DIR):
             self.rebuild_core()
 
-        custom_source_dir = self.opts.get("custom_source_dir")
+        custom_source_dir = self.args.blueprint.get("custom_source_dir", None)
         build_bundle = None
         if custom_source_dir is not None:
             custom_source_dir = os.path.expanduser(custom_source_dir)
@@ -153,19 +153,19 @@ class ParlAIChatTaskBuilder(TaskBuilder):
 
         # Copy over the preview file as preview.html, use the default if none specified
         target_resource_dir = os.path.join(build_dir, "static")
-        preview_file = self.opts.get("preview_source")
+        preview_file = self.args.blueprint.get("preview_source", None)
         if preview_file is not None:
             use_preview_file = os.path.expanduser(preview_file)
             target_path = os.path.join(target_resource_dir, "preview.html")
             shutil.copy2(use_preview_file, target_path)
 
         # If any additional task files are required via a source_dir, copy those as well
-        extra_dir_path = self.opts.get("extra_source_dir")
+        extra_dir_path = self.args.blueprint.get("extra_source_dir", None)
         if extra_dir_path is not None:
             extra_dir_path = os.path.expanduser(extra_dir_path)
             copy_tree(extra_dir_path, target_resource_dir)
 
-        bundle_js_file = self.opts.get("custom_source_bundle")
+        bundle_js_file = self.args.blueprint.get("custom_source_bundle", None)
         if bundle_js_file is None:
             if build_bundle is not None:
                 bundle_js_file = build_bundle

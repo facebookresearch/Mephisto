@@ -5,7 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractproperty
-from mephisto.data_model.blueprint import AgentState
+from dataclasses import dataclass, field
+from omegaconf import MISSING, DictConfig
+from mephisto.data_model.blueprint import AgentState, SharedTaskState
 from mephisto.data_model.assignment import Unit
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.worker import Worker
@@ -17,6 +19,13 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
     from mephisto.data_model.task import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class ProviderArgs:
+    """Base class for arguments to configure Crowd Providers"""
+    _provider_type: str = MISSING
+    requester_name: str = MISSING
 
 
 class CrowdProvider(ABC):
@@ -39,6 +48,8 @@ class CrowdProvider(ABC):
     WorkerClass: ClassVar[Type[Worker]] = Worker
 
     AgentClass: ClassVar[Type[Agent]] = Agent
+
+    ArgsClass: ClassVar[Type[ProviderArgs]] = ProviderArgs
 
     SUPPORTED_TASK_TYPES: ClassVar[List[str]]
 
@@ -64,7 +75,7 @@ class CrowdProvider(ABC):
             db.set_datastore_for_provider(self.PROVIDER_TYPE, self.datastore)
 
     @classmethod
-    def assert_task_args(cls, args: Any):
+    def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the provided arguments are valid. Should 
         fail if a task launched with these arguments would
@@ -96,17 +107,9 @@ class CrowdProvider(ABC):
         """
         raise NotImplementedError()
 
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines provider-specific arguments that are required to launch
-        or monitor a task
-        """
-        return
-
     @abstractmethod
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", task_args: Dict[str, Any], server_url: str
+        self, task_run: "TaskRun", args: DictConfig, server_url: str
     ) -> None:
         """
         Setup any required resources for managing any additional resources

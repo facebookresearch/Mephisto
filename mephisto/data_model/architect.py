@@ -5,14 +5,23 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, TYPE_CHECKING, Callable
+from dataclasses import dataclass, field
+from omegaconf import MISSING, DictConfig
+from typing import Dict, List, Any, ClassVar, Type, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from mephisto.server.channels.channel import Channel
     from mephsito.data_model.packet import Packet
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.blueprint import SharedTaskState
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class ArchitectArgs:
+    """Base class for arguments to configure architects"""
+    _architect_type: str = MISSING
 
 
 class Architect(ABC):
@@ -21,18 +30,20 @@ class Architect(ABC):
     onto that server.
     """
 
+    ArgsClass: ClassVar[Type[ArchitectArgs]] = ArchitectArgs
     ARCHITECT_TYPE: str
 
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, Any],
+        args: DictConfig, 
+        shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,
     ):
         """
         Initialize this architect with whatever options are provided given
-        add_args_to_group. Parse whatever additional options may be required
+        ArgsClass. Parse whatever additional options may be required
         for the specific task_run.
 
         Also set up any required database/memory into the MephistoDB so that
@@ -41,7 +52,7 @@ class Architect(ABC):
         raise NotImplementedError()
 
     @classmethod
-    def assert_task_args(cls, args: Dict[str, Any]):
+    def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the provided arguments are valid. Should 
         fail if a task launched with these arguments would
@@ -71,19 +82,6 @@ class Architect(ABC):
         the desired save location.
         """
         raise NotImplementedError()
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Defines options that are potentially usable for this server location,
-        and adds them to the given argparser group. The group's 'description'
-        attribute should be used to put any general help for these options.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        # group.description = 'For `Architect`, you can supply...'
-        # group.add_argument('--server-option', help='Lets you customize')
-        return
 
     def prepare(self) -> str:
         """

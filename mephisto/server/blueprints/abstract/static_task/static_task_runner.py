@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit, InitializationData
     from mephisto.data_model.agent import Agent, OnboardingAgent
+    from mephisto.data_model.blueprint import SharedTaskState
+    from omegaconf import DictConfig
 
 
 SYSTEM_SENDER = "mephisto"  # TODO(CLEAN) pull from somewhere
@@ -29,8 +31,8 @@ class StaticTaskRunner(TaskRunner):
     as only one person can work on them at a time
     """
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        super().__init__(task_run, opts)
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        super().__init__(task_run, args, shared_state)
         self.is_concurrent = False
         self.assignment_duration_in_seconds = (
             task_run.get_task_config().assignment_duration_in_seconds

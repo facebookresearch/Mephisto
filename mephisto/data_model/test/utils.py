@@ -18,6 +18,33 @@ from mephisto.data_model.assignment import Unit, Assignment
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task, TaskRun
+from omegaconf import OmegaConf
+import json
+
+from mephisto.providers.mock.mock_provider import MockProviderArgs
+from mephisto.providers.mock.mock_requester import MockRequesterArgs
+from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.server.architects.mock_architect import MockArchitectArgs
+from mephisto.data_model.task_config import TaskConfigArgs
+from mephisto.core.hydra_config import MephistoConfig
+
+MOCK_TASK_ARGS = TaskConfigArgs(
+    task_title="title",
+    task_description="This is a description",
+    task_reward="0.3",
+    task_tags="1,2,3",
+)
+
+MOCK_PROVIDER_ARGS = MockProviderArgs()
+MOCK_ARCHITECT_ARGS = MockArchitectArgs()
+MOCK_BLUEPRINT_ARGS = MockBlueprintArgs()
+
+MOCK_CONFIG = MephistoConfig(
+    provider=MOCK_PROVIDER_ARGS,
+    blueprint=MOCK_BLUEPRINT_ARGS,
+    architect=MOCK_ARCHITECT_ARGS,    
+    task=MOCK_TASK_ARGS,
+)
 
 
 def get_test_project(db: MephistoDB) -> Tuple[str, str]:
@@ -55,8 +82,8 @@ def get_test_task_run(db: MephistoDB) -> str:
     """Helper to create a task run for tests"""
     task_name, task_id = get_test_task(db)
     requester_name, requester_id = get_test_requester(db)
-    init_params = TaskConfig.get_mock_params()
-    return db.new_task_run(task_id, requester_id, init_params, "mock", "mock")
+    init_params = OmegaConf.to_yaml(OmegaConf.structured(MOCK_CONFIG))
+    return db.new_task_run(task_id, requester_id, json.dumps(init_params), "mock", "mock")
 
 
 def get_test_assignment(db: MephistoDB) -> str:

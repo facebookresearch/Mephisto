@@ -119,10 +119,9 @@ class ParlAIChatTaskRunner(TaskRunner):
     Task runner for a parlai chat task
     """
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        super().__init__(task_run, opts)
-        world_file_path = os.path.expanduser(self.opts["world_file"])
-        world_file_path = os.path.expanduser(self.opts["world_file"])
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        super().__init__(task_run, args, shared_state)
+        world_file_path = os.path.expanduser(args.blueprint.world_file)
         world_module_path = world_file_path[:-3]
         sys.path.append(world_module_path)
         world_module_name = os.path.basename(world_file_path)[:-3]
@@ -156,7 +155,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         ParlAI Onboarding will initialize an onboarding 
         world, then run it to completion if possible
         """
-        opt: Dict[str, Any] = self.opts.get("onboarding_world_opt", {})
+        opt: Dict[str, Any] = self.shared_state.onboarding_world_opt
         parlai_agent = MephistoAgentWrapper(agent)
         world = self.parlai_world_module.make_onboarding_world(  # type: ignore
             opt, parlai_agent
@@ -197,7 +196,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         for agent in agents:
             assert agent is not None, "task was not fully assigned"
-        opt: Dict[str, Any] = self.opts.get("world_opt", {})
+        opt: Dict[str, Any] = self.shared_state.world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
         world_id = self.get_world_id('assignment', assignment.db_id)
@@ -237,7 +236,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         if possible
         """
         agents = [agent]
-        opt: Dict[str, Any] = self.opts.get("world_opt", {})
+        opt: Dict[str, Any] = self.shared_state.world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
         world_id = self.get_world_id('unit', unit.db_id)

@@ -18,7 +18,7 @@ class EmptyStaticTaskBuilder(TaskBuilder):
             "Classes that extend the abstract StaticBlueprint must define a custom "
             "TaskBuilder class that pulls the correct frontend together. Examples "
             "can be seen in the static_react_task and static_html_task folders. "
-            "Note that extra static content will be provided in `opts['extra_source_dir']` "
+            "Note that extra static content will be provided in `args.blueprint.extra_source_dir` "
         )
 
     @staticmethod

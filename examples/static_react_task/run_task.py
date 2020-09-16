@@ -5,70 +5,52 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-import time
-import shlex
-import sh
 import shutil
 import subprocess
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
+from mephisto.utils.scripts import load_db_and_validate_config
 from mephisto.server.blueprints.static_react_task.static_react_blueprint import (
     BLUEPRINT_TYPE,
 )
-from mephisto.utils.scripts import MephistoRunScriptParser, str2bool
+from mephisto.server.blueprints.abstract.static_task.static_blueprint import SharedStaticTaskState
 
-import random
-
-parser = MephistoRunScriptParser()
-parser.add_argument(
-    "-uo",
-    "--use-onboarding",
-    default=False,
-    help="Launch task with an onboarding world",
-    type=str2bool,
-)
-architect_type, requester_name, db, args = parser.parse_launch_arguments()
+import hydra
+from omegaconf import DictConfig
+from dataclasses import dataclass, field
+from typing import List, Any
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_SOURCE_DIR = os.path.join(TASK_DIRECTORY, "webapp")
-FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
-STATIC_FILES_DIR = os.path.join(FRONTEND_SOURCE_DIR, "src", "static")
-USE_ONBOARDING = args["use_onboarding"]
 
-task_title = "Rating a sentence as good or bad"
-task_description = "In this task, you'll be given a sentence. It is your job to rate it as either good or bad."
+defaults = [
+    {"mephisto.blueprint": BLUEPRINT_TYPE},
+    {"mephisto.architect": 'local'},
+    {"mephisto.provider": 'mock'},
+    {"conf": "example"},
+]
 
-ARG_STRING = (
-    "--blueprint-type static_react_task "
-    f"--architect-type {architect_type} "
-    f"--requester-name {requester_name} "
-    f'--task-title "\\"{task_title}\\"" '
-    f'--task-description "\\"{task_description}\\"" '
-    "--task-reward 0.05 "
-    "--task-tags test,simple,button "
-    f'--task-source "{TASK_DIRECTORY}/webapp/build/bundle.js" '
-    f"--units-per-assignment 1 "
-    f"--task-name react-static-task-example "
-    f'--extra-source-dir "{STATIC_FILES_DIR}" '
-)
+from mephisto.core.hydra_config import RunScriptConfig, register_script_config
 
-if USE_ONBOARDING:
-    ARG_STRING += f"--onboarding-qualification test-react-static-qualification "
+@dataclass 
+class TestScriptConfig(RunScriptConfig):
+    defaults: List[Any] = field(default_factory=lambda: defaults)
+    task_dir: str = TASK_DIRECTORY
 
-extra_args = {
-    "static_task_data": [
-        {"text": "This text is good text!"},
-        {"text": "This text is bad text!"},
-    ]
-}
+register_script_config(name='scriptconfig', module=TestScriptConfig)
 
-# build the task
-def build_task():
+
+# TODO it would be nice if this was automated in the way that it
+# is for ParlAI custom frontend tasks
+def build_task(task_dir):
     """Rebuild the frontend for this task"""
+
+    frontend_source_dir = os.path.join(task_dir, "webapp")
+    frontend_build_dir = os.path.join(frontend_source_dir, "build")
+
     return_dir = os.getcwd()
-    os.chdir(FRONTEND_SOURCE_DIR)
-    if os.path.exists(FRONTEND_BUILD_DIR):
-        shutil.rmtree(FRONTEND_BUILD_DIR)
+    os.chdir(frontend_source_dir)
+    if os.path.exists(frontend_build_dir):
+        shutil.rmtree(frontend_build_dir)
     packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
@@ -85,8 +67,28 @@ def build_task():
     os.chdir(return_dir)
 
 
-build_task()
+@hydra.main(config_name='scriptconfig')
+def main(cfg: DictConfig) -> None:
+    task_dir = cfg.task_dir
 
-operator = Operator(db)
-operator.parse_and_launch_run_wrapper(shlex.split(ARG_STRING), extra_args=extra_args)
-operator.wait_for_runs_then_shutdown()
+    def onboarding_always_valid(onboarding_data):
+        return True
+
+    shared_state = SharedStaticTaskState(
+        static_task_data=[
+            {"text": "This text is good text!"},
+            {"text": "This text is bad text!"},
+        ],
+        validate_onboarding=onboarding_always_valid,
+    )
+
+    build_task(task_dir)
+
+    db, cfg = load_db_and_validate_config(cfg)
+    operator = Operator(db)
+
+    operator.validate_and_run_config_or_die(cfg.mephisto, shared_state)
+    operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
+
+if __name__ == "__main__":
+    main()

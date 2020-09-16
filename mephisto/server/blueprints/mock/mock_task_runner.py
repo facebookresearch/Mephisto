@@ -4,9 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import TaskRunner
+from mephisto.data_model.blueprint import TaskRunner, SharedTaskState
 from mephisto.data_model.assignment import InitializationData
-from mephisto.core.argparse_parser import str2bool
 
 import os
 import time
@@ -18,17 +17,18 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment, Unit
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
 
 
 class MockTaskRunner(TaskRunner):
     """Mock of a task runner, for use in testing"""
 
-    def __init__(self, task_run: "TaskRun", opts: Any):
-        super().__init__(task_run, opts)
-        self.timeout = opts["timeout_time"]
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        super().__init__(task_run, args, shared_state)
+        self.timeout = args.blueprint.timeout_time
         self.tracked_tasks: Dict[str, Union["Assignment", "Unit"]] = {}
-        self.is_concurrent = opts.get("is_concurrent", True)
-        print(f"Blueprint is concurrent: {self.is_concurrent}, {opts}")
+        self.is_concurrent = args.blueprint.get("is_concurrent", True)
+        print(f"Blueprint is concurrent: {self.is_concurrent}, {args}")
 
     @staticmethod
     def get_mock_assignment_data() -> InitializationData:
@@ -95,33 +95,6 @@ class MockTaskRunner(TaskRunner):
             agent.did_submit.set()
             agent.mark_done()
         del self.tracked_tasks[assignment.db_id]
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        MockTaskRunners don't have any arguments (yet)
-        """
-        super(MockTaskRunner, cls).add_args_to_group(group)
-
-        group.description = """
-            MockArchitect: Mock Task Runners can specify a timeout to
-            make the task actually take time to run.
-        """
-        group.add_argument(
-            "--timeout-time",
-            dest="timeout_time",
-            help="Whether acts in the run assignment should have a timeout",
-            default=0,
-            type=int,
-        )
-        group.add_argument(
-            "--is-concurrent",
-            dest="is_concurrent",
-            help="Whether to run this mock task as a concurrent task or not",
-            default=True,
-            type=str2bool,
-        )
-        return
 
     def cleanup_assignment(self, assignment: "Assignment"):
         """No cleanup required yet for ending mock runs"""

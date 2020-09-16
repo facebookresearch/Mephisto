@@ -64,24 +64,26 @@ $ python examine_results.py
 
 ```bash
 $ mephisto register mturk \
-        --name:my_mturk_user \
-        --access-key-id:$ACCESS_KEY\
-        --secret-access-key:$SECRET_KEY
+        name=my_mturk_user \
+        access-key-id=$ACCESS_KEY\
+        secret-access-key=$SECRET_KEY
 AWS credentials successfully saved in ~/.aws/credentials file.
 
 Registered successfully.
 ```
 
+You can choose any name for `my_mturk_user`, as this will be the id that you later refer to when using that requester. For an `mturk_sandbox` user, you should use `my_mturk_user_sandbox` as the name.
+
 2. Next, let's run the task script again, but this time we'll override the requester and the architect.
 
 ```bash
 $ cd examples/simple_static_task
-$ python static_test_script.py -atype heroku -rname my_mturk_user
+$ python static_test_script.py mephisto.architect=heroku mephisto.provider.requester.name=my_mturk_user_sandbox
 
-# Note: my_mturk_user is what we used to name the requester
+# Note: my_mturk_user_sandbox is what we used to name the requester
 # when we registered the mturk account in the previous step.
 ```
-The flags `-atype` (or `--architect-type`) and `-rname` (or `--requester-name`) will tell the the script to use the mturk provider and the heroku architect (as opposed to the mock provider and local architect).
+The arguments `mephisto.provider.requester.name=my_mturk_user_sandbox` and `mephisto.architect=heroku` will tell the the script to use the mturk sandbox provider and the heroku architect (as opposed to the mock provider and local architect).
 
 **Note**: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
 

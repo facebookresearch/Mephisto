@@ -4,9 +4,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired
+from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs, SharedTaskState
+from dataclasses import dataclass, field
+from omegaconf import MISSING, DictConfig
 from mephisto.data_model.assignment import InitializationData
-from mephisto.core.argparse_parser import str2bool
 from mephisto.server.blueprints.mock.mock_agent_state import MockAgentState
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
@@ -15,7 +16,7 @@ from mephisto.core.registry import register_mephisto_abstraction
 import os
 import time
 
-from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from mephsito.data_model.agent import OnboardingAgent
@@ -28,6 +29,36 @@ if TYPE_CHECKING:
 BLUEPRINT_TYPE = "mock"
 
 
+@dataclass
+class MockBlueprintArgs(BlueprintArgs):
+    _blueprint_type: str = BLUEPRINT_TYPE
+    num_assignments: int = field(
+        default=MISSING,
+        metadata={
+            "help": "How many workers you want to do each assignment",
+            'required': True
+        },
+    )
+    use_onboarding: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether onboarding should be required",
+        },
+    )
+    timeout_time: int = field(
+        default=0,
+        metadata={
+            "help": "Whether acts in the run assignment should have a timeout",
+        },
+    )
+    is_concurrent: bool = field(
+        default=True,
+        metadata={
+            "help": "Whether to run this mock task as a concurrent task or not",
+        },
+    )
+
+
 @register_mephisto_abstraction()
 class MockBlueprint(Blueprint, OnboardingRequired):
     """Mock of a task type, for use in testing"""
@@ -36,37 +67,13 @@ class MockBlueprint(Blueprint, OnboardingRequired):
     OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = MockTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
+    ArgsClass: ClassVar[Type["BlueprintArgs"]] = MockBlueprintArgs
     supported_architects: ClassVar[List[str]] = ["mock"]
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
-    def __init__(self, task_run: "TaskRun", opts: Dict[str, Any]):
-        super().__init__(task_run, opts)
-        self.init_onboarding_config(task_run, opts)
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        MockBlueprints specify a count of assignments, as there 
-        is no real data being sent
-        """
-        super().add_args_to_group(group)
-        OnboardingRequired.add_args_to_group(group)
-        group.description = "MockBlueprint arguments"
-        group.add_argument(
-            "--num-assignments",
-            dest="num_assignments",
-            help="Number of assignments to launch",
-            type=int,
-            required=True,
-        )
-        group.add_argument(
-            "--use-onboarding",
-            dest="use_onboarding",
-            help="Whether onboarding should be required",
-            type=str2bool,
-            default=False,
-        )
-        return
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+        super().__init__(task_run, args, shared_state)
+        self.init_onboarding_config(task_run, args, shared_state)
 
     def get_initialization_data(self) -> Iterable[InitializationData]:
         """
@@ -74,10 +81,9 @@ class MockBlueprint(Blueprint, OnboardingRequired):
         """
         return [
             MockTaskRunner.get_mock_assignment_data()
-            for i in range(self.opts["num_assignments"])
+            for i in range(self.args.blueprint.num_assignments)
         ]
 
-    # TODO(OWN) this should probably be part of the TaskRunner, which is actually privy to the task
     def validate_onboarding(
         self, worker: "Worker", onboarding_agent: "OnboardingAgent"
     ) -> bool:

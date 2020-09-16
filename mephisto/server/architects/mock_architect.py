@@ -13,8 +13,8 @@ import uuid
 import json
 import time
 
-from mephisto.core.argparse_parser import str2bool
-from mephisto.data_model.architect import Architect
+from mephisto.data_model.architect import Architect, ArchitectArgs
+from dataclasses import dataclass, field
 from mephisto.data_model.packet import (
     PACKET_TYPE_ALIVE,
     PACKET_TYPE_NEW_WORKER,
@@ -33,13 +33,34 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
+    from mephisto.data_model.blueprint import SharedTaskState
 
 MOCK_DEPLOY_URL = "MOCK_DEPLOY_URL"
+ARCHITECT_TYPE = "mock"
 
 
 def get_rand_id():
     return str(uuid.uuid4())
 
+
+@dataclass
+class MockArchitectArgs(ArchitectArgs):
+    """Additional arguments for configuring a mock architect"""
+    _architect_type: str = ARCHITECT_TYPE
+    should_run_server: bool = field(
+        default=False,
+        metadata={
+            'help': "Addressible location of the server",
+        },
+    )
+    port: str = field(
+        default="3000",
+        metadata={
+            'help': "Port to launch the server on",
+        },
+    )
+    
 
 class SocketHandler(WebSocketHandler):
     def __init__(self, *args, **kwargs):
@@ -234,12 +255,14 @@ class MockArchitect(Architect):
     we can send special packets and assert connections have been made
     """
 
-    ARCHITECT_TYPE = "mock"
+    ArgsClass = MockArchitectArgs
+    ARCHITECT_TYPE = ARCHITECT_TYPE
 
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, Any],
+        args: "DictConfig", 
+        shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,
     ):
@@ -247,37 +270,14 @@ class MockArchitect(Architect):
         self.task_run = task_run
         self.build_dir = build_dir_root
         self.task_run_id = task_run.db_id
-        self.should_run_server = opts.get("should_run_server")
-        self.port = opts.get("port")
+        self.should_run_server = args.architect.should_run_server
+        self.port = args.architect.port
         self.server: Optional["MockServer"] = None
         # TODO(#97) track state in parent class?
         self.prepared = False
         self.deployed = False
         self.cleaned = False
         self.did_shutdown = False
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        MockArchitects can be configured to launch a mock server
-        """
-        super(MockArchitect, cls).add_args_to_group(group)
-
-        group.description = """
-            MockArchitect: Mock Architects can be configured to 
-            launch a mock server on a localhost port.
-        """
-        group.add_argument(
-            "--should-run-server",
-            dest="should_run_server",
-            help="Whether a mock server should be launched",
-            default=False,
-            type=str2bool,
-        )
-        group.add_argument(
-            "--port", dest="port", help="Port to launch the server on", default="3000"
-        )
-        return
 
     def _get_socket_urls(self) -> List[str]:
         """Return the path to the local server socket"""

@@ -17,9 +17,23 @@ from mephisto.data_model.test.utils import get_test_requester
 from mephisto.data_model.assignment_state import AssignmentState
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
-from mephisto.server.architects.mock_architect import MockArchitect
+from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
+from mephisto.core.hydra_config import MephistoConfig
+from mephisto.providers.mock.mock_provider import MockProviderArgs
+from mephisto.providers.mock.mock_requester import MockRequesterArgs
+from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.data_model.task_config import TaskConfigArgs
+from omegaconf import OmegaConf
 
 TIMEOUT_TIME = 10
+
+
+MOCK_TASK_ARGS = TaskConfigArgs(
+    task_title="title",
+    task_description="This is a description",
+    task_reward="0.3",
+    task_tags="1,2,3",
+)
 
 
 class TestOperator(unittest.TestCase):
@@ -70,19 +84,18 @@ class TestOperator(unittest.TestCase):
     def test_run_job_concurrent(self):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
-        ARG_STRING = (
-            "--blueprint-type mock "
-            "--architect-type mock "
-            f"--requester-name {self.requester_name} "
-            "--num-assignments 1 "
-            "--task-title title "
-            "--task-description description "
-            "--task-reward 0.3 "
-            "--task-tags 1,2,3 "
-            "--should-run-server true "
-            "--is-concurrent true "
+        config = MephistoConfig(
+            blueprint=MockBlueprintArgs(
+                num_assignments=1,
+                is_concurrent=True,
+            ),
+            provider=MockProviderArgs(
+                requester=MockRequesterArgs(name=self.requester_name),
+            ),
+            architect=MockArchitectArgs(should_run_server=True),
+            task=MOCK_TASK_ARGS,
         )
-        self.operator.parse_and_launch_run(shlex.split(ARG_STRING))
+        self.operator.validate_and_run_config(OmegaConf.structured(config))
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]
@@ -141,19 +154,18 @@ class TestOperator(unittest.TestCase):
     def test_run_job_not_concurrent(self):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
-        ARG_STRING = (
-            "--blueprint-type mock "
-            "--architect-type mock "
-            f"--requester-name {self.requester_name} "
-            "--num-assignments 1 "
-            "--task-title title "
-            "--task-description description "
-            "--task-reward 0.3 "
-            "--task-tags 1,2,3 "
-            "--should-run-server true "
-            "--is-concurrent false "
+        config = MephistoConfig(
+            blueprint=MockBlueprintArgs(
+                num_assignments=1,
+                is_concurrent=False,
+            ),
+            provider=MockProviderArgs(
+                requester=MockRequesterArgs(name=self.requester_name),
+            ),
+            architect=MockArchitectArgs(should_run_server=True),
+            task=MOCK_TASK_ARGS,
         )
-        self.operator.parse_and_launch_run(shlex.split(ARG_STRING))
+        self.operator.validate_and_run_config(OmegaConf.structured(config))
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]
@@ -212,22 +224,28 @@ class TestOperator(unittest.TestCase):
     def test_run_jobs_with_restrictions(self):
         """Ensure allowed_concurrent and maximum_units_per_worker work"""
         self.operator = Operator(self.db)
-        ARG_STRING = (
-            "--blueprint-type mock "
-            "--architect-type mock "
-            f"--requester-name {self.requester_name} "
-            "--num-assignments 3 "
-            "--task-title title "
-            "--task-description description "
-            "--task-reward 0.3 "
-            "--task-tags 1,2,3 "
-            "--should-run-server true "
-            "--is-concurrent true "
-            "--task-name max-unit-test "
-            "--allowed-concurrent 1 "
-            "--maximum-units-per-worker 2 "
+        provider_args = MockProviderArgs(
+            requester=MockRequesterArgs(name=self.requester_name),
         )
-        self.operator.parse_and_launch_run(shlex.split(ARG_STRING))
+        architect_args = MockArchitectArgs(should_run_server=True)
+        config = MephistoConfig(
+            blueprint=MockBlueprintArgs(
+                num_assignments=3,
+                is_concurrent=True,
+            ),
+            provider=provider_args,
+            architect=architect_args,
+            task=TaskConfigArgs(
+                task_title="title",
+                task_description="This is a description",
+                task_reward="0.3",
+                task_tags="1,2,3",
+                maximum_units_per_worker=2,
+                allowed_concurrent=1,
+                task_name='max-unit-test',
+            ),
+        )
+        self.operator.validate_and_run_config(OmegaConf.structured(config))
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]
@@ -343,22 +361,26 @@ class TestOperator(unittest.TestCase):
             self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
         # Create a new task
-        ARG_STRING = (
-            "--blueprint-type mock "
-            "--architect-type mock "
-            f"--requester-name {self.requester_name} "
-            "--num-assignments 1 "
-            "--task-title title "
-            "--task-description description "
-            "--task-reward 0.3 "
-            "--task-tags 1,2,3 "
-            "--should-run-server true "
-            "--is-concurrent true "
-            "--task-name max-unit-test "
-            "--allowed-concurrent 1 "
-            "--maximum-units-per-worker 2 "
+        config = MephistoConfig(
+            blueprint=MockBlueprintArgs(
+                num_assignments=1,
+                is_concurrent=True,
+            ),
+            provider=MockProviderArgs(
+                requester=MockRequesterArgs(name=self.requester_name),
+            ),
+            architect=MockArchitectArgs(should_run_server=True),
+            task=TaskConfigArgs(
+                task_title="title",
+                task_description="This is a description",
+                task_reward="0.3",
+                task_tags="1,2,3",
+                maximum_units_per_worker=2,
+                allowed_concurrent=1,
+                task_name='max-unit-test',
+            ),
         )
-        self.operator.parse_and_launch_run(shlex.split(ARG_STRING))
+        self.operator.validate_and_run_config(OmegaConf.structured(config))
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]

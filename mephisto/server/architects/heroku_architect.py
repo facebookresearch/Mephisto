@@ -19,9 +19,10 @@ import sys
 import time
 import requests
 import re
+from dataclasses import dataclass, field
+from omegaconf import MISSING, DictConfig
 from mephisto.core.utils import get_mephisto_tmp_dir
-from mephisto.core.argparse_parser import str2bool
-from mephisto.data_model.architect import Architect
+from mephisto.data_model.architect import Architect, ArchitectArgs
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel
 from mephisto.core.registry import register_mephisto_abstraction
@@ -32,11 +33,14 @@ if TYPE_CHECKING:
     from mephsito.data_model.packet import Packet
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.blueprint import SharedTaskState
     from argparse import _ArgumentGroup as ArgumentGroup
 
 from mephisto.core.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
+
+ARCHITECT_TYPE = "heroku"
 
 USER_NAME = getpass.getuser()
 HEROKU_SERVER_BUILD_DIRECTORY = "heroku_server"
@@ -50,18 +54,38 @@ HEROKU_TMP_DIR = os.path.join(get_mephisto_tmp_dir(), "heroku")
 os.makedirs(HEROKU_TMP_DIR, exist_ok=True)
 
 
+@dataclass
+class HerokuArchitectArgs(ArchitectArgs):
+    """Additional arguments for configuring a heroku architect"""
+    _architect_type: str = ARCHITECT_TYPE
+    use_hobby: bool = field(
+        default=False,
+        metadata={
+            'help': "Launch on the Heroku Hobby tier",
+        },
+    )
+    heroku_team: Optional[str] = field(
+        default=MISSING,
+        metadata={
+            'help': "Heroku team to use for this launch",
+        },
+    )
+
+
 @register_mephisto_abstraction()
 class HerokuArchitect(Architect):
     """
     Sets up a server on heroku and deploys the task on that server
     """
 
-    ARCHITECT_TYPE = "heroku"
+    ArgsClass = HerokuArchitectArgs
+    ARCHITECT_TYPE = ARCHITECT_TYPE
 
     def __init__(
         self,
         db: "MephistoDB",
-        opts: Dict[str, Any],
+        args: DictConfig, 
+        shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,
     ):
@@ -77,7 +101,7 @@ class HerokuArchitect(Architect):
         """
         # TODO(#102) put the expected info into the MephistoDB rather than storing here?
         # Servers will have a status which needs to be kept track of.
-        self.opts = opts
+        self.args = args
         self.task_run = task_run
         self.deploy_name = f"{task_run.get_task().task_name}_{task_run.db_id}"
         self.build_dir = build_dir_root
@@ -131,34 +155,7 @@ class HerokuArchitect(Architect):
                     out_file.write(chunk)
 
     @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Adds HerokuArchitect arguments to the group
-        """
-        super(HerokuArchitect, cls).add_args_to_group(group)
-
-        group.description = """
-            HerokuArchitect: Heroku servers are deployed by default
-            from a single account on the free tier. These settings
-            allow additional configurations.
-        """
-        group.add_argument(
-            "--use-hobby",
-            dest="use_hobby",
-            help="Launch on the Heroku Hobby tier",
-            type=str2bool,
-            default=False,
-        )
-        group.add_argument(
-            "--heroku-team",
-            dest="heroku_team",
-            help="Heroku team to use for this launch",
-            default="",
-        )
-        return
-
-    @classmethod
-    def assert_task_args(cls, args: Dict[str, Any]):
+    def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the provided arguments are valid. Should 
         fail if a task launched with these arguments would
@@ -335,16 +332,13 @@ class HerokuArchitect(Architect):
         return_dir = os.getcwd()
         os.chdir(heroku_server_directory_path)
         try:
-            if (
-                self.opts.get("heroku_team", "") != ""
-                and self.opts.get("heroku_team") is not None
-            ):
+            if self.args.architect.get("heroku_team", None) is not None:
                 subprocess.check_output(
                     shlex.split(
                         "{} create {} --team {}".format(
                             heroku_executable_path,
                             heroku_app_name,
-                            self.opts.get("heroku_team"),
+                            self.args.architect.heroku_team,
                         )
                     )
                 )
@@ -389,7 +383,7 @@ class HerokuArchitect(Architect):
             shlex.split("{} ps:scale web=1".format(heroku_executable_path))
         )
 
-        if self.opts.get("use_hobby") is True:
+        if self.args.architect.use_hobby is True:
             try:
                 subprocess.check_output(
                     shlex.split("{} dyno:type Hobby".format(heroku_executable_path))

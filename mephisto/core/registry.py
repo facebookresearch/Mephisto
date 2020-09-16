@@ -6,6 +6,7 @@
 
 from typing import Union, Type, Dict, Any, List, TYPE_CHECKING
 from mephisto.core.utils import get_root_dir, get_provider_dir
+from mephisto.core.hydra_config import register_abstraction_config
 import importlib
 import os
 
@@ -34,16 +35,23 @@ def register_mephisto_abstraction():
         from mephisto.data_model.architect import Architect
 
         if issubclass(base_class, Blueprint):
-            BLUEPRINTS[base_class.BLUEPRINT_TYPE] = base_class
+            name = base_class.BLUEPRINT_TYPE
+            BLUEPRINTS[name] = base_class
+            type_key = 'blueprint'
         elif issubclass(base_class, Architect):
-            ARCHITECTS[base_class.ARCHITECT_TYPE] = base_class
+            name = base_class.ARCHITECT_TYPE
+            ARCHITECTS[name] = base_class
+            type_key = 'architect'
         elif issubclass(base_class, CrowdProvider):
-            PROVIDERS[base_class.PROVIDER_TYPE] = base_class
+            name = base_class.PROVIDER_TYPE
+            PROVIDERS[name] = base_class
+            type_key = 'provider'
         else:
             raise AssertionError(
                 f"Provided class {base_class} not a child of one of the mephisto "
                 "abstractions, expected one of Blueprint, Architect, or CrowdProvider."
             )
+        register_abstraction_config(name=name, node=base_class.ArgsClass, abstraction_type=type_key)
         return base_class
 
     return register_cls

@@ -5,8 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from mephisto.data_model.blueprint import AgentState
-from mephisto.core.registry import get_crowd_provider_from_type
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 from mephisto.core.logger_core import get_logger
 
@@ -21,6 +21,19 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.qualification import GrantedQualification
     from argparse import _ArgumentGroup as ArgumentGroup
+
+
+@dataclass
+class WorkerArgs:
+    """Base class for arguments to register a worker"""
+    name: str = field(
+        metadata={
+            'help': (
+                "Name to associate external worker id with an internal mephisto id. "
+                "Should be based on the external provider id."    
+            ),
+        },
+    )
 
 
 class Worker(ABC):
@@ -50,6 +63,8 @@ class Worker(ABC):
         as you will instead be returned the correct Worker class according to
         the crowdprovider associated with this Worker.
         """
+        from mephisto.core.registry import get_crowd_provider_from_type
+
         if cls == Worker:
             # We are trying to construct a Worker, find what type to use and
             # create that instead
@@ -239,23 +254,6 @@ class Worker(ABC):
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Register this worker with the crowdprovider, if necessary"""
         pass
-
-    @classmethod
-    def add_args_to_group(cls, group: "ArgumentGroup") -> None:
-        """
-        Add the arguments to register this requester to the crowd provider,
-        the group's 'description' attribute should be used for any high level
-        help on how to get the details.
-
-        The `name` argument is required.
-
-        If the description field is left empty, the argument group is ignored
-        """
-        # group.description = 'For `Requester`, Retrieve the following at xyz'
-        # group.add_argument('--username', help='Login username for requester')
-        # group.add_argument('--secret-key', help='Secret key found...')
-        group.add_argument("--name", help="Identifier for MephistoDB")
-        return
 
     @staticmethod
     def new(db: "MephistoDB", worker_name: str) -> "Worker":

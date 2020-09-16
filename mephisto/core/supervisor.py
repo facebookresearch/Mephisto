@@ -390,11 +390,17 @@ class Supervisor:
         self, packet: Packet, channel_info: ChannelInfo, units: List["Unit"]
     ):
         """Handle creating an agent for the specific worker to register an agent"""
+        
         crowd_data = packet.data["provider_data"]
         task_run = channel_info.job.task_runner.task_run
         crowd_provider = channel_info.job.provider
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
+
+        logger.debug(
+            f"Worker {worker_id} is being assigned one of "
+            f"{len(units)} units."
+        )
 
         reserved_unit = None
         while len(units) > 0 and reserved_unit is None:
@@ -413,6 +419,7 @@ class Supervisor:
             agent = crowd_provider.AgentClass.new_from_provider_data(
                 self.db, worker, unit, crowd_data
             )
+            logger.debug(f"Created agent {agent}, {agent.db_id}.")
             self.message_queue.append(
                 Packet(
                     packet_type=PACKET_TYPE_PROVIDER_DETAILS,
@@ -472,7 +479,7 @@ class Supervisor:
         channel_info = self.channels[channel_id]
         task_runner = channel_info.job.task_runner
         task_run = task_runner.task_run
-        blueprint = task_run.get_blueprint(opts=task_runner.opts)
+        blueprint = task_run.get_blueprint(args=task_runner.args)
         worker = onboarding_agent.get_worker()
 
         assert (
@@ -514,6 +521,7 @@ class Supervisor:
         # First see if this is a reconnection
         crowd_data = packet.data["provider_data"]
         agent_registration_id = crowd_data["agent_registration_id"]
+        logger.debug(f"Incoming request to register agent {agent_registration_id}.")
         if agent_registration_id in self.agents_by_registration_id:
             agent = self.agents_by_registration_id[agent_registration_id].agent
             # Update the source channel, in case it has changed
@@ -528,6 +536,10 @@ class Supervisor:
                         "agent_id": agent.get_agent_id(),
                     },
                 )
+            )
+            logger.debug(
+                f"Found existing agent_registration_id {agent_registration_id}, "
+                f"reconnecting to agent {agent.get_agent_id()}."
             )
             return
 
@@ -548,11 +560,16 @@ class Supervisor:
                     data={"request_id": packet.data["request_id"], "agent_id": None},
                 )
             )
+            logger.debug(
+                f"Found existing agent_registration_id {agent_registration_id}, "
+                f"had no valid units."
+            )
+            return
 
         # If there's onboarding, see if this worker has already been disqualified
         worker_id = crowd_data["worker_id"]
         worker = Worker(self.db, worker_id)
-        blueprint = task_run.get_blueprint(opts=task_runner.opts)
+        blueprint = task_run.get_blueprint(args=task_runner.args)
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
                 self.message_queue.append(
@@ -565,6 +582,10 @@ class Supervisor:
                             "agent_id": None,
                         },
                     )
+                )
+                logger.debug(
+                    f"Worker {worker_id} is already disqualified by onboarding "
+                    f"qual {blueprint.onboarding_qualification_name}."
                 )
                 return
             elif not worker.is_qualified(blueprint.onboarding_qualification_name):
@@ -590,6 +611,11 @@ class Supervisor:
                             "onboard_data": onboard_data,
                         },
                     )
+                )
+
+                logger.debug(
+                    f"Worker {worker_id} is starting onboarding thread with "
+                    f"onboarding agent id {onboard_id}."
                 )
 
                 # Create an onboarding thread

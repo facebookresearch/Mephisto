@@ -20,8 +20,6 @@ from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 
-from mephisto.core.argparse_parser import get_default_arg_dict
-
 
 class MockArchitectTests(ArchitectTests):
     """
@@ -37,17 +35,6 @@ class MockArchitectTests(ArchitectTests):
     curr_architect: MockArchitect
 
     warned_about_setup = False
-
-    def get_architect(self) -> MockArchitect:
-        """
-        For testing, we need to be able to examine the architect to be sure that
-        the correct calls have been made
-        """
-        opts = get_default_arg_dict(MockArchitect)
-        self.curr_architect = MockArchitect(
-            self.db, opts, self.task_run, self.build_dir
-        )
-        return self.curr_architect
 
     def server_is_prepared(self, build_dir: str) -> bool:
         """Mock architect is prepared when we say it was"""
