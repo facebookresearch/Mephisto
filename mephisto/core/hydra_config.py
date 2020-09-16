@@ -25,7 +25,7 @@ class MephistoConfig:
 
 
 @dataclass
-class ScriptConfig:
+class RunScriptConfig:
     mephisto: MephistoConfig = MephistoConfig()
 
 

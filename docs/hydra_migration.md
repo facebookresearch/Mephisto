@@ -214,10 +214,10 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import ScriptConfig, register_script_config
+from mephisto.core.hydra_config import RunScriptConfig, register_script_config
 
 @dataclass 
-class TestScriptConfig(ScriptConfig):
+class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
     num_turns: int = field(
@@ -238,10 +238,10 @@ class TestScriptConfig(ScriptConfig):
 register_script_config(name='scriptconfig', module=TestScriptConfig)
 ```
 
-Most of the new configuration happens in the `TestScriptConfig`. This will need to inherit from `ScriptConfig` in order to get parsing of the standard `mephisto` components for free. Afterwards, we need to call `register_script_config` and name our configuration file such that Hydra knows what to parse from the command line when you execute your script.
+Most of the new configuration happens in the `TestScriptConfig`. This will need to inherit from `RunScriptConfig` in order to get parsing of the standard `mephisto` components for free. Afterwards, we need to call `register_script_config` and name our configuration file such that Hydra knows what to parse from the command line when you execute your script.
 
 #### defaults
-It's important to note the step of creating the `defaults` entry for your `ScriptConfig`. This will provide Hydra with some default values for keys in the created `yaml` file. The `{"mephisto.blueprint": BLUEPRINT_TYPE},` entry ensures that Hydra loads up the blueprint argument configuration that corresponds with the blueprint you're running, for instance. 
+It's important to note the step of creating the `defaults` entry for your `RunScriptConfig`. This will provide Hydra with some default values for keys in the created `yaml` file. The `{"mephisto.blueprint": BLUEPRINT_TYPE},` entry ensures that Hydra loads up the blueprint argument configuration that corresponds with the blueprint you're running, for instance. 
 
 Setting `architect` to `local` and `provider` to `mock` will make the script default to that configuration when given no arguments, however you can provide different values either in configuration files or on the command line (with `mephisto.provider.requester_name=some_requester`, or `mephisto.architect=heroku` for instance).
 
@@ -287,12 +287,11 @@ if DEMO_CUSTOM_BUNDLE:
     )
 ```
 ### After
-Now, the script arguments are generally validated by Hydra, so much of what `parse_launch_arguments` used to do is irrelevant, so long as you wrap your main with `@hydra.main` and pass in the config name you gave to your `ScriptConfig` with `register_script_config`. The remainder is captured with the new `augment_config_from_db` method. Manual validation can also be done where desired in the main script.
+Now, the script arguments are generally validated by Hydra, so much of what `parse_launch_arguments` used to do is irrelevant, so long as you wrap your main with `@hydra.main` and pass in the config name you gave to your `RunScriptConfig` with `register_script_config`. The remainder is captured with the new `augment_config_from_db` method. Manual validation can also be done where desired in the main script.
 ```python
 @hydra.main(config_name='scriptconfig')
 def main(cfg: DictConfig) -> None:
-    db = get_db_from_config(cfg)
-    augment_config_from_db(db, cfg)
+    db, cfg = load_db_and_validate_config(cfg)
     ...
     custom_bundle_path = cfg.mephisto.blueprint.get('custom_source_bundle', None)
     if custom_bundle_path is not None:
@@ -314,7 +313,7 @@ operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 ```python
 operator = Operator(db)
 
-operator.validate_and_run_config_wrap(cfg.mephisto, shared_state)
+operator.validate_and_run_config_or_die(cfg.mephisto, shared_state)
 operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 ```
 ## Imports
@@ -331,16 +330,16 @@ from mephisto.utils.scripts import MephistoRunScriptParser, str2bool # RunScript
 We remove unnecessary or deprecated imports.
 
 ### After
-We'll need to add a few things. First, `get_db_from_config` and `augment_config_from_db` cover the old capabilities of the `MephistoRunScriptParser`. 
+We'll need to add a few things. First, `load_db_and_validate_config` covers the old capabilities of the `MephistoRunScriptParser`. 
 Mephisto now defines run scripts and configurations using Hydra and dataclasses, as such you'll need some imports from `dataclasses`, `hydra`, and `omegaconf` (which is the configuration library that powers hydra).
 ```python
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import get_db_from_config, augment_config_from_db
+from mephisto.utils.scripts import load_db_and_validate_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any
 ```
@@ -351,11 +350,11 @@ from typing import List, Any
 # parlai_test_script.py
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import get_db_from_config, augment_config_from_db
+from mephisto.utils.scripts import load_db_and_validate_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any
 
@@ -369,10 +368,10 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import ScriptConfig, register_script_config
+from mephisto.core.hydra_config import RunScriptConfig, register_script_config
 
 @dataclass 
-class TestScriptConfig(ScriptConfig):
+class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
     num_turns: int = field(
@@ -395,8 +394,7 @@ register_script_config(name='scriptconfig', module=TestScriptConfig)
 
 @hydra.main(config_name='scriptconfig')
 def main(cfg: DictConfig) -> None:
-    db = get_db_from_config(cfg)
-    augment_config_from_db(db, cfg)
+    db, cfg = load_db_and_validate_config(cfg)
 
     world_opt = {
         "num_turns": cfg.num_turns, 
@@ -418,7 +416,7 @@ def main(cfg: DictConfig) -> None:
 
     operator = Operator(db)
 
-    operator.validate_and_run_config_wrap(cfg.mephisto, shared_state)
+    operator.validate_and_run_config_or_die(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 if __name__ == "__main__":

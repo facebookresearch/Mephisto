@@ -7,7 +7,7 @@
 import os
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
-from mephisto.utils.scripts import get_db_from_config, augment_config_from_db
+from mephisto.utils.scripts import load_db_and_validate_config
 from mephisto.server.blueprints.static_task.static_html_blueprint import BLUEPRINT_TYPE
 from mephisto.server.blueprints.abstract.static_task.static_blueprint import SharedStaticTaskState
 
@@ -26,10 +26,10 @@ defaults = [
     {"conf": "onboarding_example"},
 ]
 
-from mephisto.core.hydra_config import ScriptConfig, register_script_config
+from mephisto.core.hydra_config import RunScriptConfig, register_script_config
 
 @dataclass 
-class TestScriptConfig(ScriptConfig):
+class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
     correct_answer: str = CORRECT_ANSWER
@@ -51,11 +51,10 @@ def main(cfg: DictConfig) -> None:
         validate_onboarding=onboarding_is_valid,
     )
 
-    db = get_db_from_config(cfg)
-    cfg = augment_config_from_db(db, cfg)
+    db, cfg = load_db_and_validate_config(cfg)
     operator = Operator(db)
 
-    operator.validate_and_run_config_wrap(cfg.mephisto, shared_state)
+    operator.validate_and_run_config_or_die(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 if __name__ == "__main__":

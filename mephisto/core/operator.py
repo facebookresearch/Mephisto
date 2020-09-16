@@ -116,8 +116,9 @@ class Operator:
         """
         raise Exception(
             'Operator.parse_and_launch_run has been deprecated in favor '
-            'of using Hydra for argument configuration. See the docs TODO in order '
-            'to upgrade.'
+            'of using Hydra for argument configuration. See the docs at '
+            'https://github.com/facebookresearch/Mephisto/blob/master/docs/hydra_migration.md '
+            'in order to upgrade.'
         )
 
     def validate_and_run_config(
@@ -327,7 +328,7 @@ class Operator:
             self.supervisor.shutdown()
             self._run_tracker_thread.join()
 
-    def validate_and_run_config_wrap(
+    def validate_and_run_config_or_die(
         self,
         run_config: DictConfig,
         shared_state: Optional[SharedTaskState] = None,
@@ -356,8 +357,9 @@ class Operator:
         """
         raise Exception(
             'Operator.parse_and_launch_run_wrapper has been deprecated in favor '
-            'of using Hydra for argument configuration. See the docs TODO in order '
-            'to upgrade.'
+            'of using Hydra for argument configuration. See the docs at '
+            'https://github.com/facebookresearch/Mephisto/blob/master/docs/hydra_migration.md '
+            'in order to upgrade.'
         )
 
     def print_run_details(self):

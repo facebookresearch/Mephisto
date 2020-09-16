@@ -20,6 +20,18 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
 
 
+def load_db_and_validate_config(cfg: DictConfig) -> Tuple["MephistoDB", DictConfig]:
+    """
+    Using a Hydra DictConfig built from a RunScriptConfig, 
+    load the desired MephistoDB and 
+    validate the config against the database contents, then
+    return the database and validated config.
+    """
+    db = get_db_from_config(cfg)
+    valid_config = augment_config_from_db(cfg, db)
+    return db, valid_config
+
+
 def get_db_from_config(cfg: DictConfig) -> "MephistoDB":
     """
     Get a MephistoDB from the given configuration. As of now
@@ -34,10 +46,10 @@ def get_db_from_config(cfg: DictConfig) -> "MephistoDB":
     return LocalMephistoDB(database_path=database_path)
 
 
-def augment_config_from_db(db: "MephistoDB", script_cfg: DictConfig) -> DictConfig:
+def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConfig:
     """
     Check the database for validity of the incoming MephistoConfig, ensure
-    that the config has all the neceeary fields set.
+    that the config has all the necessary fields set.
     """
     cfg = script_cfg.mephisto
     requester_name = cfg.provider.get('requester_name', None)
