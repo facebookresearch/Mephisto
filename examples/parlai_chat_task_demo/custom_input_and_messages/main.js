@@ -13,9 +13,23 @@ import { FormGroup, FormControl, Button, Radio } from "react-bootstrap";
 
 import { ChatApp, DefaultTaskDescription, INPUT_MODE } from "bootstrap-chat";
 
+/*
+This example modifies the default parlai_chat example to demonstrate
+how one can override the default visual implementations for the
+chat message bubble and the response input bar.
+
+In this example we add a radio button group to each received chat message.
+Additionally, we require the user to make a selection for the most
+recently received chat message, before they can submit their own message
+by modifying the input bar code.
+
+This example is for illustrative purposes only and has not been tested
+with production usage.
+*/
+
+
 function ChatMessage({
   isSelf,
-  duration,
   idx,
   agentName,
   message = "",
@@ -108,11 +122,28 @@ function MainApp() {
       onMessagesChange={(messages) => {
         setMessages(messages);
       }}
-      renderResponse={({ onMessageSend, inputMode }) => (
+      /*
+        You can also use renderTextResponse below, which allows you
+        to modify the input bar while keeping additional default
+        functionality such as the ability to trigger custom forms
+        and a done state.
+        Or you can use renderResponse for more flexibility and implement
+        those states yourself, as shown below with the done state:
+      */
+      renderResponse={({ onMessageSend, inputMode, appContext }) => (
         inputMode === INPUT_MODE.DONE
         ? <div className="response-type-module">
             <div className="response-bar">
               <h3>Thanks for completing the task!</h3>
+              <button
+                id="done-button"
+                type="button"
+                className="btn btn-primary btn-lg"
+                onClick={() => appContext.onTaskComplete()}
+              >
+                <span className="glyphicon glyphicon-ok-circle" aria-hidden="true" /> Done
+                with this HIT
+              </button>
             </div>
           </div>
         : <CustomTextResponse

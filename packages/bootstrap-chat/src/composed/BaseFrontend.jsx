@@ -63,6 +63,8 @@ function BaseFrontend({
             renderResponse({
               onMessageSend,
               inputMode,
+              appContext,
+              mephistoContext
             })
           ) : (
             <ResponsePane
