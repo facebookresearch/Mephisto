@@ -31,6 +31,7 @@ function ChatApp({
   renderMessage,
   renderSidePane,
   renderTextResponse,
+  renderResponse,
   onMessagesChange,
 }) {
   const [taskContext, updateContext] = React.useReducer(
@@ -181,6 +182,7 @@ function ChatApp({
             renderMessage={renderMessage}
             renderSidePane={renderSidePane}
             renderTextResponse={renderTextResponse}
+            renderResponse={renderResponse}
           />
         </div>
       </AppContext.Provider>

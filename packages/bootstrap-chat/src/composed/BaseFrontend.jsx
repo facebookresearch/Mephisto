@@ -27,6 +27,7 @@ function BaseFrontend({
   renderSidePane,
   renderMessage,
   renderTextResponse,
+  renderResponse,
 }) {
   const mephistoContext = React.useContext(MephistoContext);
   const appContext = React.useContext(AppContext);
@@ -58,11 +59,18 @@ function BaseFrontend({
               ) : null}
             </ChatPane>
           </div>
-          <ResponsePane
-            inputMode={inputMode}
-            onMessageSend={onMessageSend}
-            renderTextResponse={renderTextResponse}
-          />
+          {renderResponse ? (
+            renderResponse({
+              onMessageSend,
+              inputMode,
+            })
+          ) : (
+            <ResponsePane
+              inputMode={inputMode}
+              onMessageSend={onMessageSend}
+              renderTextResponse={renderTextResponse}
+            />
+          )}
         </div>
       </div>
     </ConnectionStatusBoundary>
