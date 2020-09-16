@@ -20,7 +20,7 @@ import DoneResponse from "./DoneResponse.jsx";
 import ConnectionStatusBoundary from "./ConnectionStatusBoundary.jsx";
 import DefaultTaskDescription from "./DefaultTaskDescription.jsx";
 import ChatPane from "./ChatPane.jsx";
-import { ChatApp, AppContext } from "./composed";
+import { ChatApp, AppContext, INPUT_MODE } from "./composed";
 
 export {
   ConnectionIndicator,
@@ -39,4 +39,5 @@ export {
   ChatPane,
   ChatApp,
   AppContext,
+  INPUT_MODE
 };

@@ -27,7 +27,13 @@ const INPUT_MODE = {
   IDLE: "idle",
 };
 
-function ChatApp({ renderMessage, renderSidePane }) {
+function ChatApp({
+  renderMessage,
+  renderSidePane,
+  renderTextResponse,
+  renderResponse,
+  onMessagesChange,
+}) {
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
     {}
@@ -40,6 +46,12 @@ function ChatApp({ renderMessage, renderSidePane }) {
     },
     []
   );
+
+  React.useEffect(() => {
+    if (onMessagesChange) {
+      onMessagesChange(messages);
+    }
+  }, [messages]);
 
   const initialAppSettings = { volume: 1, isReview: false, isCoverPage: false };
   const [appSettings, setAppSettings] = React.useReducer(
@@ -169,6 +181,8 @@ function ChatApp({ renderMessage, renderSidePane }) {
             onMessageSend={handleMessageSend}
             renderMessage={renderMessage}
             renderSidePane={renderSidePane}
+            renderTextResponse={renderTextResponse}
+            renderResponse={renderResponse}
           />
         </div>
       </AppContext.Provider>

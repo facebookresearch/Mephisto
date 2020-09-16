@@ -8,111 +8,66 @@
 
 import React from "react";
 import { FormControl, Button } from "react-bootstrap";
-import $ from "jquery";
 
-class TextResponse extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { textval: "", sending: false };
-  }
+function TextResponse({ onMessageSend, active }) {
+  const [textValue, setTextValue] = React.useState("");
+  const [sending, setSending] = React.useState(false);
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    // Only change in the active status of this component should cause a
-    // focus event. Not having this would make the focus occur on every
-    // state update (including things like volume changes)
-    if (this.props.active && !prevProps.active) {
-      $("input#id_text_input").focus();
+  const inputRef = React.useRef();
+
+  React.useEffect(() => {
+    if (active && inputRef.current && inputRef.current.focus) {
+      inputRef.current.focus();
     }
-    // this.props.onInputResize();
-  }
+  }, [active]);
 
-  tryMessageSend() {
-    if (this.state.textval !== "" && this.props.active && !this.state.sending) {
-      this.setState({ sending: true });
-      this.props
-        .onMessageSend({ text: this.state.textval, task_data: {} })
-        .then(() => this.setState({ textval: "", sending: false }));
+  const tryMessageSend = React.useCallback(() => {
+    if (textValue !== "" && active && !sending) {
+      setSending(true);
+      onMessageSend({ text: textValue, task_data: {} }).then(() => {
+        setTextValue("");
+        setSending(false);
+      });
     }
-  }
+  }, [textValue, active, sending, onMessageSend]);
 
-  handleKeyPress(e) {
-    if (e.key === "Enter") {
-      this.tryMessageSend();
-      e.stopPropagation();
-      e.nativeEvent.stopImmediatePropagation();
-    }
-  }
+  const handleKeyPress = React.useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        tryMessageSend();
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+      }
+    },
+    [tryMessageSend]
+  );
 
-  render() {
-    // TODO maybe move to CSS?
-    let pane_style = {
-      paddingLeft: "25px",
-      paddingTop: "20px",
-      paddingBottom: "20px",
-      paddingRight: "25px",
-      float: "left",
-      width: "100%",
-    };
-    let input_style = {
-      height: "50px",
-      width: "100%",
-      display: "block",
-      float: "left",
-    };
-    let submit_style = {
-      width: "100px",
-      height: "100%",
-      fontSize: "16px",
-      float: "left",
-      marginLeft: "10px",
-      padding: "0px",
-    };
-
-    let text_input = (
-      <FormControl
-        type="text"
-        id="id_text_input"
-        style={{
-          width: "80%",
-          height: "100%",
-          float: "left",
-          fontSize: "16px",
-        }}
-        value={this.state.textval}
-        placeholder="Please enter here..."
-        onKeyPress={(e) => this.handleKeyPress(e)}
-        onChange={(e) => this.setState({ textval: e.target.value })}
-        disabled={!this.props.active || this.state.sending}
-      />
-    );
-
-    let submit_button = (
-      <Button
-        className="btn btn-primary"
-        style={submit_style}
-        id="id_send_msg_button"
-        disabled={
-          this.state.textval === "" || !this.props.active || this.state.sending
-        }
-        onClick={() => this.tryMessageSend()}
-      >
-        Send
-      </Button>
-    );
-
-    return (
-      <div
-        id="response-type-text-input"
-        className="response-type-module"
-        style={pane_style}
-      >
-        <div style={input_style}>
-          {text_input}
-          {submit_button}
-        </div>
+  return (
+    <div className="response-type-module">
+      <div className="response-bar">
+        <FormControl
+          type="text"
+          className="response-text-input"
+          inputRef={(ref) => {
+            inputRef.current = ref;
+          }}
+          value={textValue}
+          placeholder="Please enter here..."
+          onKeyPress={(e) => handleKeyPress(e)}
+          onChange={(e) => setTextValue(e.target.value)}
+          disabled={!active || sending}
+        />
+        <Button
+          className="btn btn-primary submit-response"
+          id="id_send_msg_button"
+          disabled={textValue === "" || !active || sending}
+          onClick={() => tryMessageSend()}
+        >
+          Send
+        </Button>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export default TextResponse;
