@@ -19,9 +19,9 @@ from typing import List, Any
 TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
 defaults = [
-    {"mephisto.blueprint": BLUEPRINT_TYPE},
-    {"mephisto.architect": 'local'},
-    {"mephisto.provider": 'mock'},
+    {"mephisto/blueprint": BLUEPRINT_TYPE},
+    {"mephisto/architect": 'local'},
+    {"mephisto/provider": 'mock'},
     {"conf": "example"},
 ]
 

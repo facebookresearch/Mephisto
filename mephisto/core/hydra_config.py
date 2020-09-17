@@ -30,7 +30,7 @@ class RunScriptConfig:
 
 
 def register_abstraction_config(name: str, node: Any, abstraction_type: str):
-    config.store(name=name, node=node, group=f"mephisto.{abstraction_type}", package="_group_")
+    config.store(name=name, node=node, group=f"mephisto/{abstraction_type}", package="_group_")
      
 
 def initialize_named_configs():

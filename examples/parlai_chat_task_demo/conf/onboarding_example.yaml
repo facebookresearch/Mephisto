@@ -5,9 +5,9 @@ mephisto:
   task:
     task_name: parlai-chat-example
     task_title: "Test ParlAI Chat Task"
-    task_description: 
-      "This is a simple chat between two people 
+    task_description: >
+      This is a simple chat between two people 
       used to demonstrate the functionalities around using Mephisto 
-      for ParlAI tasks."
+      for ParlAI tasks.
     task_reward: 0.3
     task_tags: "dynamic,chat,testing"

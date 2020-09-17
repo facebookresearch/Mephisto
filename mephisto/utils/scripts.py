@@ -104,11 +104,10 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
         )
     if provider_type in ["mturk_sandbox", "mturk"] and architect_type != 'heroku':
         input(
-            f"This task is going to launch live on {provider_type}, but your '
+            f"This task is going to launch live on {provider_type}, but your "
             f'provided architect is {architect_type}, are you sure you '
-            'want to do this? : "
+            'want to do this? : '
         )
 
     cfg.provider.requester_name = requester_name
-
-    return cfg
+    return script_cfg

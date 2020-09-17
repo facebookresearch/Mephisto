@@ -21,9 +21,9 @@ This task is configured using [Hydra](https://hydra.cc/) - details about using h
 In this script, we set certain configuration variables by default in every run:
 ```python
 defaults = [
-    {"mephisto.blueprint": BLUEPRINT_TYPE},
-    {"mephisto.architect": 'local'},
-    {"mephisto.provider": 'mock'},
+    {"mephisto/blueprint": BLUEPRINT_TYPE},
+    {"mephisto/architect": 'local'},
+    {"mephisto/provider": 'mock'},
     {"conf": "example"},
 ]
 ```
