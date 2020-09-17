@@ -29,7 +29,6 @@ from mephisto.data_model.blueprint import SharedTaskState
 from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
 from mephisto.core.hydra_config import MephistoConfig
 from mephisto.providers.mock.mock_provider import MockProviderArgs
-from mephisto.providers.mock.mock_requester import MockRequesterArgs
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf

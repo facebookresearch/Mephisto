@@ -20,7 +20,6 @@ from mephisto.core.operator import Operator
 from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
 from mephisto.core.hydra_config import MephistoConfig
 from mephisto.providers.mock.mock_provider import MockProviderArgs
-from mephisto.providers.mock.mock_requester import MockRequesterArgs
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
@@ -90,7 +89,7 @@ class TestOperator(unittest.TestCase):
                 is_concurrent=True,
             ),
             provider=MockProviderArgs(
-                requester=MockRequesterArgs(name=self.requester_name),
+                requester_name=self.requester_name,
             ),
             architect=MockArchitectArgs(should_run_server=True),
             task=MOCK_TASK_ARGS,
@@ -160,7 +159,7 @@ class TestOperator(unittest.TestCase):
                 is_concurrent=False,
             ),
             provider=MockProviderArgs(
-                requester=MockRequesterArgs(name=self.requester_name),
+                requester_name=self.requester_name,
             ),
             architect=MockArchitectArgs(should_run_server=True),
             task=MOCK_TASK_ARGS,
@@ -225,7 +224,7 @@ class TestOperator(unittest.TestCase):
         """Ensure allowed_concurrent and maximum_units_per_worker work"""
         self.operator = Operator(self.db)
         provider_args = MockProviderArgs(
-            requester=MockRequesterArgs(name=self.requester_name),
+            requester_name=self.requester_name,
         )
         architect_args = MockArchitectArgs(should_run_server=True)
         config = MephistoConfig(
@@ -367,7 +366,7 @@ class TestOperator(unittest.TestCase):
                 is_concurrent=True,
             ),
             provider=MockProviderArgs(
-                requester=MockRequesterArgs(name=self.requester_name),
+                requester_name=self.requester_name,
             ),
             architect=MockArchitectArgs(should_run_server=True),
             task=TaskConfigArgs(

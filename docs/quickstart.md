@@ -78,12 +78,12 @@ You can choose any name for `my_mturk_user`, as this will be the id that you lat
 
 ```bash
 $ cd examples/simple_static_task
-$ python static_test_script.py mephisto.architect=heroku mephisto.provider.requester.name=my_mturk_user_sandbox
+$ python static_test_script.py mephisto.architect=heroku mephisto.provider.requester_name=my_mturk_user_sandbox
 
 # Note: my_mturk_user_sandbox is what we used to name the requester
 # when we registered the mturk account in the previous step.
 ```
-The arguments `mephisto.provider.requester.name=my_mturk_user_sandbox` and `mephisto.architect=heroku` will tell the the script to use the mturk sandbox provider and the heroku architect (as opposed to the mock provider and local architect).
+The arguments `mephisto.provider.requester_name=my_mturk_user_sandbox` and `mephisto.architect=heroku` will tell the the script to use the mturk sandbox provider and the heroku architect (as opposed to the mock provider and local architect).
 
 **Note**: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
 

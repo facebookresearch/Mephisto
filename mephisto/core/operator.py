@@ -133,10 +133,10 @@ class Operator:
             shared_state = SharedTaskState()
 
         # First try to find the requester:
-        requester_name = run_config.provider.requester.name
+        requester_name = run_config.provider.requester_name
         requesters = self.db.find_requesters(requester_name=requester_name)
         if len(requesters) == 0:
-            if run_config.provider.requester.name == "MOCK_REQUESTER":
+            if run_config.provider.requester_name == "MOCK_REQUESTER":
                 requesters = [get_mock_requester(self.db)]
             else:
                 raise EntryDoesNotExistException(

@@ -207,9 +207,9 @@ Via variable interpolation in hydra, we can define `task_dir` in this configurat
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
-    {"mephisto.blueprint": BLUEPRINT_TYPE},
-    {"mephisto.architect": 'local'},
-    {"mephisto.provider": 'mock'},
+    {"mephisto/blueprint": BLUEPRINT_TYPE},
+    {"mephisto/architect": 'local'},
+    {"mephisto/provider": 'mock'},
     "conf/base",
     {"conf": "example"},
 ]
@@ -241,7 +241,7 @@ register_script_config(name='scriptconfig', module=TestScriptConfig)
 Most of the new configuration happens in the `TestScriptConfig`. This will need to inherit from `RunScriptConfig` in order to get parsing of the standard `mephisto` components for free. Afterwards, we need to call `register_script_config` and name our configuration file such that Hydra knows what to parse from the command line when you execute your script.
 
 #### defaults
-It's important to note the step of creating the `defaults` entry for your `RunScriptConfig`. This will provide Hydra with some default values for keys in the created `yaml` file. The `{"mephisto.blueprint": BLUEPRINT_TYPE},` entry ensures that Hydra loads up the blueprint argument configuration that corresponds with the blueprint you're running, for instance. 
+It's important to note the step of creating the `defaults` entry for your `RunScriptConfig`. This will provide Hydra with some default values for keys in the created `yaml` file. The `{"mephisto/blueprint": BLUEPRINT_TYPE},` entry ensures that Hydra loads up the blueprint argument configuration that corresponds with the blueprint you're running, for instance. 
 
 Setting `architect` to `local` and `provider` to `mock` will make the script default to that configuration when given no arguments, however you can provide different values either in configuration files or on the command line (with `mephisto.provider.requester_name=some_requester`, or `mephisto.architect=heroku` for instance).
 
@@ -361,9 +361,9 @@ from typing import List, Any
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
-    {"mephisto.blueprint": BLUEPRINT_TYPE},
-    {"mephisto.architect": 'local'},
-    {"mephisto.provider": 'mock'},
+    {"mephisto/blueprint": BLUEPRINT_TYPE},
+    {"mephisto/architect": 'local'},
+    {"mephisto/provider": 'mock'},
     "conf/base",
     {"conf": "example"},
 ]
