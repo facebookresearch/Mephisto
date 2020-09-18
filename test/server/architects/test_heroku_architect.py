@@ -62,6 +62,11 @@ class HerokuArchitectTests(ArchitectTests):
         return not self.curr_architect.server_is_running()
 
     @pytest.mark.req_creds
+    def test_prepare_cleanup(self) -> None:
+        """Test deploying the server, and shutting it down"""
+        super().test_prepare_cleanup()
+
+    @pytest.mark.req_creds
     def test_deploy_shutdown(self) -> None:
         """Test deploying the server, and shutting it down"""
         super().test_deploy_shutdown()

@@ -51,6 +51,14 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
         return 10000
 
     @pytest.mark.req_creds
+    def test_requester(self) -> None:
+        super().test_requester()
+
+    @pytest.mark.req_creds
+    def test_worker(self) -> None:
+        super().test_worker()
+
+    @pytest.mark.req_creds
     def test_grant_and_revoke_qualifications(self) -> None:
         """Ensure we can grant and revoke qualifications for a worker"""
         db = self.db

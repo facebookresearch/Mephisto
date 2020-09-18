@@ -9,6 +9,7 @@ import shutil
 import os
 import tempfile
 import time
+import pytest
 
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.providers.mturk.mturk_worker import MTurkWorker
@@ -35,6 +36,7 @@ class TestMTurkComponents(unittest.TestCase):
         self.db.shutdown()
         shutil.rmtree(self.data_dir)
 
+    @pytest.mark.req_creds
     def test_create_and_find_worker(self) -> None:
         """Ensure we can find a worker by MTurk id"""
         db = self.db
