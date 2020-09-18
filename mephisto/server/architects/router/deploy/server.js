@@ -187,6 +187,13 @@ function handle_get_agent_status(status_packet) {
   let agent_statuses = {};
   for (let agent_id in agent_id_to_agent) {
     agent_statuses[agent_id] = agent_id_to_agent[agent_id].status;
+    let ping_packet = {
+      packet_type: PACKET_TYPE_REQUEST_AGENT_STATUS,
+      sender_id: SYSTEM_SOCKET_ID,
+      receiver_id: agent_id,
+      data: null,
+    };
+    handle_forward(ping_packet);
   }
   let packet = {
     packet_type: PACKET_TYPE_RETURN_AGENT_STATUS,
