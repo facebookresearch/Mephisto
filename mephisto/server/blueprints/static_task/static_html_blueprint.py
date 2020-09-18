@@ -5,7 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.server.blueprints.abstract.static_task.static_blueprint import (
-    StaticBlueprint, StaticBlueprintArgs
+    StaticBlueprint,
+    StaticBlueprintArgs,
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
@@ -23,7 +24,10 @@ from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHE
 if TYPE_CHECKING:
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.blueprint import (
-        AgentState, TaskRunner, TaskBuilder, SharedTaskState
+        AgentState,
+        TaskRunner,
+        TaskBuilder,
+        SharedTaskState,
     )
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.agent import OnboardingAgent
@@ -41,36 +45,33 @@ class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
     task_source points to the file intending to be deployed for this task
     data_csv has the data to be deployed for this task.
     """
+
     _blueprint_type: str = BLUEPRINT_TYPE
     _group: str = field(
         default="StaticBlueprint",
         metadata={
-            'help': (
-                'Tasks launched from static blueprints need a '
-                'source html file to display to workers, as well as a csv '
-                'containing values that will be inserted into templates in '
-                'the html. '
-            ),
+            "help": (
+                "Tasks launched from static blueprints need a "
+                "source html file to display to workers, as well as a csv "
+                "containing values that will be inserted into templates in "
+                "the html. "
+            )
         },
     )
     task_source: str = field(
         default=MISSING,
         metadata={
-            'help': "Path to source HTML file for the task being run",
-            'required': True,
+            "help": "Path to source HTML file for the task being run",
+            "required": True,
         },
     )
     preview_source: Optional[str] = field(
         default=MISSING,
-        metadata={
-            'help': "Optional path to source HTML file to preview the task",
-        },
+        metadata={"help": "Optional path to source HTML file to preview the task"},
     )
     onboarding_source: Optional[str] = field(
         default=MISSING,
-        metadata={
-            'help': "Optional path to source HTML file to onboarding the task",
-        },
+        metadata={"help": "Optional path to source HTML file to onboarding the task"},
     )
 
 
@@ -82,7 +83,9 @@ class StaticHTMLBlueprint(StaticBlueprint):
     ArgsClass = StaticHTMLBlueprintArgs
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
-    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+    def __init__(
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         super().__init__(task_run, args, shared_state)
         self.html_file = os.path.expanduser(args.blueprint.task_source)
         if not os.path.exists(self.html_file):

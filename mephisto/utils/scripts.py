@@ -52,9 +52,9 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
     that the config has all the necessary fields set.
     """
     cfg = script_cfg.mephisto
-    requester_name = cfg.provider.get('requester_name', None)
-    provider_type = cfg.provider.get('_provider_type', None)
-    architect_type = cfg.architect.get('_architect_type', None)
+    requester_name = cfg.provider.get("requester_name", None)
+    provider_type = cfg.provider.get("_provider_type", None)
+    architect_type = cfg.architect.get("_architect_type", None)
 
     if requester_name is None:
         if provider_type is None:
@@ -102,11 +102,11 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
         input(
             f"This task is going to launch live on {provider_type}, press enter to continue: "
         )
-    if provider_type in ["mturk_sandbox", "mturk"] and architect_type != 'heroku':
+    if provider_type in ["mturk_sandbox", "mturk"] and architect_type != "heroku":
         input(
             f"This task is going to launch live on {provider_type}, but your "
-            f'provided architect is {architect_type}, are you sure you '
-            'want to do this? : '
+            f"provided architect is {architect_type}, are you sure you "
+            "want to do this? : "
         )
 
     cfg.provider.requester_name = requester_name

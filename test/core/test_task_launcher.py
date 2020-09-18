@@ -27,6 +27,7 @@ NUM_GENERATED_ASSIGNMENTS = 10
 WAIT_TIME_TILL_NEXT_ASSIGNMENT = 1
 WAIT_TIME_TILL_NEXT_UNIT = 0.01
 
+
 class LimitedDict(dict):
     def __init__(self, limit):
         self.limit = limit

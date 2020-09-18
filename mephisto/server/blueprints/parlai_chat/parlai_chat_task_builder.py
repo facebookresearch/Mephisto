@@ -26,6 +26,7 @@ FRONTEND_BUILD_DIR = os.path.join(FRONTEND_SOURCE_DIR, "build")
 BUILT_FILE = "done.built"
 CUSTOM_BUILD_DIRNAME = "_generated"
 
+
 class ParlAIChatTaskBuilder(TaskBuilder):
     """
     Builder for a parlai chat task, pulls the appropriate html,
@@ -65,14 +66,11 @@ class ParlAIChatTaskBuilder(TaskBuilder):
         Check dates to only go through this build process when files have changes
         """
         # TODO add custom component directories, and recursively check those
-        TARGET_BUILD_FILES = {
-            'main.js': 'src/main.js',
-            'package.json': 'package.json',
-        }
+        TARGET_BUILD_FILES = {"main.js": "src/main.js", "package.json": "package.json"}
 
         prebuild_path = os.path.join(custom_src_dir, CUSTOM_BUILD_DIRNAME)
-        build_path = os.path.join(prebuild_path, 'build', 'bundle.js')
-        
+        build_path = os.path.join(prebuild_path, "build", "bundle.js")
+
         # see if we need to rebuild
         if os.path.exists(build_path):
             created_date = os.path.getmtime(build_path)
@@ -88,16 +86,14 @@ class ParlAIChatTaskBuilder(TaskBuilder):
 
         # build anew
         REQUIRED_SOURCE_FILES = [
-            '.babelrc',
-            '.eslintrc',
-            'package.json',
-            'webpack.config.js',
+            ".babelrc",
+            ".eslintrc",
+            "package.json",
+            "webpack.config.js",
         ]
-        REQUIRED_SOURCE_DIRS = [
-            'src',
-        ]
-        if not os.path.exists(os.path.join(prebuild_path, 'build')):
-            os.makedirs(os.path.join(prebuild_path, 'build'), exist_ok=True)
+        REQUIRED_SOURCE_DIRS = ["src"]
+        if not os.path.exists(os.path.join(prebuild_path, "build")):
+            os.makedirs(os.path.join(prebuild_path, "build"), exist_ok=True)
 
         # Copy default files
         for src_dir in REQUIRED_SOURCE_DIRS:

@@ -37,20 +37,13 @@ ARCHITECT_TYPE = "local"
 @dataclass
 class LocalArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a local architect"""
+
     _architect_type: str = ARCHITECT_TYPE
     hostname: str = field(
-        default='localhost',
-        metadata={
-            'help': "Addressible location of the server",
-        },
+        default="localhost", metadata={"help": "Addressible location of the server"}
     )
-    port: str = field(
-        default="3000",
-        metadata={
-            'help': "Port to launch the server on",
-        },
-    )
-    
+    port: str = field(default="3000", metadata={"help": "Port to launch the server on"})
+
 
 @register_mephisto_abstraction()
 class LocalArchitect(Architect):
@@ -65,7 +58,7 @@ class LocalArchitect(Architect):
     def __init__(
         self,
         db: "MephistoDB",
-        args: "DictConfig", 
+        args: "DictConfig",
         shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,

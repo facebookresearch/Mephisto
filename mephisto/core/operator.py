@@ -115,16 +115,14 @@ class Operator:
         than throwing. Generally for use in scripts.
         """
         raise Exception(
-            'Operator.parse_and_launch_run has been deprecated in favor '
-            'of using Hydra for argument configuration. See the docs at '
-            'https://github.com/facebookresearch/Mephisto/blob/master/docs/hydra_migration.md '
-            'in order to upgrade.'
+            "Operator.parse_and_launch_run has been deprecated in favor "
+            "of using Hydra for argument configuration. See the docs at "
+            "https://github.com/facebookresearch/Mephisto/blob/master/docs/hydra_migration.md "
+            "in order to upgrade."
         )
 
     def validate_and_run_config_or_die(
-        self,
-        run_config: DictConfig,
-        shared_state: Optional[SharedTaskState] = None,
+        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
     ) -> str:
         """
         Parse the given arguments and launch a job.
@@ -196,7 +194,9 @@ class Operator:
 
             build_dir = os.path.join(task_run.get_run_dir(), "build")
             os.makedirs(build_dir, exist_ok=True)
-            architect = ArchitectClass(self.db, run_config, shared_state, task_run, build_dir)
+            architect = ArchitectClass(
+                self.db, run_config, shared_state, task_run, build_dir
+            )
 
             # Register the blueprint with args to the task run,
             # ensure cached
@@ -213,7 +213,9 @@ class Operator:
             architect.cleanup()
 
             # Create the backend runner
-            task_runner = BlueprintClass.TaskRunnerClass(task_run, run_config, shared_state)
+            task_runner = BlueprintClass.TaskRunnerClass(
+                task_run, run_config, shared_state
+            )
 
             # Small hack for auto appending block qualification
             existing_qualifications = shared_state.qualifications
@@ -227,7 +229,7 @@ class Operator:
                 existing_qualifications.append(
                     make_qualification_dict(
                         OnboardingRequired.get_failed_qual(
-                            run_config.blueprint.onboarding_qualification,
+                            run_config.blueprint.onboarding_qualification
                         ),
                         QUAL_NOT_EXIST,
                         None,
@@ -284,7 +286,9 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
-                task_run.update_completion_progress(task_launcher=tracked_run.task_launcher)
+                task_run.update_completion_progress(
+                    task_launcher=tracked_run.task_launcher
+                )
                 if not task_run.get_is_completed():
                     continue
                 else:
@@ -334,9 +338,7 @@ class Operator:
             self._run_tracker_thread.join()
 
     def validate_and_run_config(
-        self,
-        run_config: DictConfig,
-        shared_state: Optional[SharedTaskState] = None,
+        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
     ) -> Optional[str]:
         """
         Wrapper around validate_and_run_config_or_die that prints errors on 
@@ -344,8 +346,7 @@ class Operator:
         """
         try:
             return self.validate_and_run_config_or_die(
-                run_config=run_config, 
-                shared_state=shared_state,
+                run_config=run_config, shared_state=shared_state
             )
         except (KeyboardInterrupt, Exception) as e:
             logger.error("Ran into error while launching run: ", exc_info=True)
@@ -361,10 +362,10 @@ class Operator:
         than throwing. Generally for use in scripts.
         """
         raise Exception(
-            'Operator.parse_and_launch_run_wrapper has been deprecated in favor '
-            'of using Hydra for argument configuration. See the docs at '
-            'https://github.com/facebookresearch/Mephisto/blob/master/docs/hydra_migration.md '
-            'in order to upgrade.'
+            "Operator.parse_and_launch_run_wrapper has been deprecated in favor "
+            "of using Hydra for argument configuration. See the docs at "
+            "https://github.com/facebookresearch/Mephisto/blob/master/docs/hydra_migration.md "
+            "in order to upgrade."
         )
 
     def print_run_details(self):

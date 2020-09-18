@@ -4,7 +4,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs, SharedTaskState
+from mephisto.data_model.blueprint import (
+    Blueprint,
+    OnboardingRequired,
+    BlueprintArgs,
+    SharedTaskState,
+)
 from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
 from mephisto.server.blueprints.parlai_chat.parlai_chat_agent_state import (
@@ -61,26 +66,21 @@ class ParlAIChatBlueprintArgs(BlueprintArgs):
     _group: str = field(
         default="ParlAIChatBlueprint",
         metadata={
-            'help': """
+            "help": """
                 Tasks launched from static blueprints need a
                 source html file to display to workers, as well as a csv
                 containing values that will be inserted into templates in
                 the html.
-            """,
+            """
         },
     )
     world_file: str = field(
         default=MISSING,
-        metadata={
-            "help": "Path to file containing ParlAI world",
-            'required': True
-        },
+        metadata={"help": "Path to file containing ParlAI world", "required": True},
     )
     preview_source: str = field(
         default=MISSING,
-        metadata={
-            "help": "Optional path to source HTML file to preview the task",
-        },
+        metadata={"help": "Optional path to source HTML file to preview the task"},
     )
     task_description_file: str = field(
         default=MISSING,
@@ -88,20 +88,16 @@ class ParlAIChatBlueprintArgs(BlueprintArgs):
             "help": (
                 "Path to file for the extended description of the task. "
                 "Required if not providing a custom source bundle."
-            ),
+            )
         },
     )
     custom_source_bundle: str = field(
         default=MISSING,
-        metadata={
-            "help": "Optional path to a fully custom frontend bundle",
-        },
+        metadata={"help": "Optional path to a fully custom frontend bundle"},
     )
     custom_source_dir: str = field(
         default=MISSING,
-        metadata={
-            "help": "Optional path to a directory containing custom js code",
-        },
+        metadata={"help": "Optional path to a directory containing custom js code"},
     )
     extra_source_dir: str = field(
         default=MISSING,
@@ -109,19 +105,17 @@ class ParlAIChatBlueprintArgs(BlueprintArgs):
             "help": (
                 "Optional path to sources that the frontend may "
                 "refer to (such as images/video/css/scripts)"
-            ),
+            )
         },
     )
     context_csv: str = field(
         default=MISSING,
-        metadata={
-            "help": "Optional path to csv containing task context",
-        },
+        metadata={"help": "Optional path to csv containing task context"},
     )
     num_conversations: int = field(
         default=MISSING,
         metadata={
-            "help": "Optional count of conversations to have if no context provided",
+            "help": "Optional count of conversations to have if no context provided"
         },
     )
 
@@ -143,7 +137,9 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     ]  # TODO update?
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
-    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+    def __init__(
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
         self.init_onboarding_config(task_run, args, shared_state)
@@ -188,7 +184,9 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
                 self.full_task_description = description_fp.read()
 
     @classmethod
-    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
+    def assert_task_args(
+        cls, args: "DictConfig", shared_state: "SharedTaskState"
+    ) -> None:
         """Ensure that arguments are properly configured to launch this task"""
         # assert world file is valid
         world_file_path = os.path.expanduser(args.blueprint.world_file)
@@ -221,13 +219,17 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
             )
 
         if args.blueprint.get("custom_source_bundle", None) is not None:
-            custom_source_file_path = os.path.expanduser(args.blueprint.custom_source_bundle)
+            custom_source_file_path = os.path.expanduser(
+                args.blueprint.custom_source_bundle
+            )
             assert os.path.exists(
                 custom_source_file_path
             ), f"Provided custom bundle doesn't exist at {custom_source_file_path}"
 
         if args.blueprint.get("custom_source_dir", None) is not None:
-            custom_source_dir_path = os.path.expanduser(args.blueprint.custom_source_dir)
+            custom_source_dir_path = os.path.expanduser(
+                args.blueprint.custom_source_dir
+            )
             assert os.path.exists(
                 custom_source_dir_path
             ), f"Provided custom source dir doesn't exist at {custom_source_dir_path}"

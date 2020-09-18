@@ -119,7 +119,9 @@ class ParlAIChatTaskRunner(TaskRunner):
     Task runner for a parlai chat task
     """
 
-    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+    def __init__(
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         super().__init__(task_run, args, shared_state)
         world_file_path = os.path.expanduser(args.blueprint.world_file)
         world_module_path = world_file_path[:-3]
@@ -127,7 +129,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         world_module_name = os.path.basename(world_file_path)[:-3]
         self.parlai_world_module = import_module(world_module_name)
         world_params = self.parlai_world_module.get_world_params()
-        self.is_concurrent = world_params['agent_count'] > 1
+        self.is_concurrent = world_params["agent_count"] > 1
         self.id_to_worlds: Dict[str, Any] = {}
 
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
@@ -160,7 +162,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         world = self.parlai_world_module.make_onboarding_world(  # type: ignore
             opt, parlai_agent
         )
-        world_id = self.get_world_id('onboard', agent.get_agent_id())
+        world_id = self.get_world_id("onboard", agent.get_agent_id())
         self.id_to_worlds[world_id] = world
         while (
             not world.episode_done()
@@ -185,7 +187,7 @@ class ParlAIChatTaskRunner(TaskRunner):
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
         """Shutdown the world"""
         onboarding_id = agent.get_agent_id()
-        world_id = self.get_world_id('onboard', onboarding_id)
+        world_id = self.get_world_id("onboard", onboarding_id)
         self.id_to_worlds[world_id].shutdown()
         del self.id_to_worlds[world_id]
 
@@ -199,7 +201,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         opt: Dict[str, Any] = self.shared_state.world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
-        world_id = self.get_world_id('assignment', assignment.db_id)
+        world_id = self.get_world_id("assignment", assignment.db_id)
         self.id_to_worlds[world_id] = world
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
@@ -226,7 +228,7 @@ class ParlAIChatTaskRunner(TaskRunner):
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Handle cleanup for a specific assignment"""
-        world_id = self.get_world_id('assignment', assignment.db_id)
+        world_id = self.get_world_id("assignment", assignment.db_id)
         self.id_to_worlds[world_id].shutdown()
         del self.id_to_worlds[world_id]
 
@@ -239,7 +241,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         opt: Dict[str, Any] = self.shared_state.world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
-        world_id = self.get_world_id('unit', unit.db_id)
+        world_id = self.get_world_id("unit", unit.db_id)
         self.id_to_worlds[world_id] = world
         while not world.episode_done() and unit.db_id in self.running_units:
             world.parley()
@@ -265,6 +267,6 @@ class ParlAIChatTaskRunner(TaskRunner):
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """Handle cleanup for a specific unit"""
-        world_id = self.get_world_id('unit', unit.db_id)
+        world_id = self.get_world_id("unit", unit.db_id)
         self.id_to_worlds[world_id].shutdown()
         del self.id_to_worlds[world_id]

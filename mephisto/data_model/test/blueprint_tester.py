@@ -22,6 +22,7 @@ from mephisto.data_model.agent import Agent
 from mephisto.core.hydra_config import MephistoConfig
 from omegaconf import OmegaConf
 
+
 class BlueprintTests(unittest.TestCase):
     """
     This class contains the basic data model tests that should

@@ -57,18 +57,13 @@ os.makedirs(HEROKU_TMP_DIR, exist_ok=True)
 @dataclass
 class HerokuArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a heroku architect"""
+
     _architect_type: str = ARCHITECT_TYPE
     use_hobby: bool = field(
-        default=False,
-        metadata={
-            'help': "Launch on the Heroku Hobby tier",
-        },
+        default=False, metadata={"help": "Launch on the Heroku Hobby tier"}
     )
     heroku_team: Optional[str] = field(
-        default=MISSING,
-        metadata={
-            'help': "Heroku team to use for this launch",
-        },
+        default=MISSING, metadata={"help": "Heroku team to use for this launch"}
     )
 
 
@@ -84,7 +79,7 @@ class HerokuArchitect(Architect):
     def __init__(
         self,
         db: "MephistoDB",
-        args: DictConfig, 
+        args: DictConfig,
         shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,
@@ -296,7 +291,7 @@ class HerokuArchitect(Architect):
             heroku_app_name = heroku_app_name.replace("_", "-")
             while heroku_app_name[-1] == "-":
                 heroku_app_name = heroku_app_name[:-1]
-            self.__heroku_app_name = re.sub(r'[^a-zA-Z0-9-]','', heroku_app_name)
+            self.__heroku_app_name = re.sub(r"[^a-zA-Z0-9-]", "", heroku_app_name)
         return self.__heroku_app_name
 
     def __compile_server(self) -> str:

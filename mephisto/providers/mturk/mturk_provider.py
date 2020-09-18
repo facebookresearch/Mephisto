@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 @dataclass
 class MockProviderArgs(ProviderArgs):
     """Base class for arguments to configure Crowd Providers"""
+
     _provider_type: str = PROVIDER_TYPE
 
 

@@ -13,6 +13,7 @@ from mephisto.data_model.assignment import Unit
 if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
 
+
 def direct_soft_block_mturk_workers(
     db: "MephistoDB",
     worker_list: List[str],
@@ -43,11 +44,15 @@ def direct_soft_block_mturk_workers(
     mturk_client = requester._get_client(requester._requester_name)
     for idx, worker_id in enumerate(worker_list):
         if idx % 50 == 0:
-            print(f'Blocked {idx + 1} workers so far.')
+            print(f"Blocked {idx + 1} workers so far.")
         try:
-            give_worker_qualification(mturk_client, worker_id, qualification_id, value=1)
+            give_worker_qualification(
+                mturk_client, worker_id, qualification_id, value=1
+            )
         except Exception as e:
-            print(f'Failed to give worker with ID: \"{worker_id}\" qualification with error: {e}. Skipping.')
+            print(
+                f'Failed to give worker with ID: "{worker_id}" qualification with error: {e}. Skipping.'
+            )
 
 
 def get_mturk_ids_from_unit_id(db, unit_id: str) -> Dict[str, Optional[str]]:
@@ -61,8 +66,4 @@ def get_mturk_ids_from_unit_id(db, unit_id: str) -> Dict[str, Optional[str]]:
     worker_id = None
     if agent is not None:
         worker_id = agent.get_worker().get_mturk_worker_id()
-    return {
-        'assignment_id': assignment_id,
-        'hit_id': hit_id,
-        'worker_id': worker_id,
-    }
+    return {"assignment_id": assignment_id, "hit_id": hit_id, "worker_id": worker_id}

@@ -36,6 +36,7 @@ from omegaconf import OmegaConf
 
 EMPTY_STATE = SharedTaskState()
 
+
 class TestSupervisor(unittest.TestCase):
     """
     Unit testing for the Mephisto Supervisor, 
@@ -50,9 +51,9 @@ class TestSupervisor(unittest.TestCase):
         self.task_run_id = get_test_task_run(self.db)
         self.task_run = TaskRun(self.db, self.task_run_id)
 
-        architect_config = OmegaConf.structured(MephistoConfig(
-            architect=MockArchitectArgs(should_run_server=True),
-        ))
+        architect_config = OmegaConf.structured(
+            MephistoConfig(architect=MockArchitectArgs(should_run_server=True))
+        )
 
         self.architect = MockArchitect(
             self.db, architect_config, EMPTY_STATE, self.task_run, self.data_dir
@@ -103,9 +104,7 @@ class TestSupervisor(unittest.TestCase):
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         args = MockBlueprint.ArgsClass()
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
-        task_runner = TaskRunnerClass(
-            self.task_run, config, EMPTY_STATE
-        )
+        task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
         test_job = Job(
             architect=self.architect,
             task_runner=task_runner,
@@ -134,9 +133,7 @@ class TestSupervisor(unittest.TestCase):
         args.timeout_time = 5
         args.is_concurrent = False
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
-        task_runner = TaskRunnerClass(
-            self.task_run, config, EMPTY_STATE
-        )
+        task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
         sup.register_job(self.architect, task_runner, self.provider)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
@@ -254,9 +251,7 @@ class TestSupervisor(unittest.TestCase):
         args = MockBlueprint.ArgsClass()
         args.timeout_time = 5
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
-        task_runner = TaskRunnerClass(
-            self.task_run, config, EMPTY_STATE
-        )
+        task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
         sup.register_job(self.architect, task_runner, self.provider)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
