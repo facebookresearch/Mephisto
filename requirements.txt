@@ -104,8 +104,6 @@ pytest==5.3.2 \
 python-dateutil==2.8.1; python_version >= "2.7" \
     --hash=sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c \
     --hash=sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a
-recordclass==0.12.1 \
-    --hash=sha256:f69d26e44faa41a856dea6fd2b9f669ccbd2a9c6c70b051960f9300836a58dec
 requests==2.22.0 \
     --hash=sha256:9cf5292fcd0f598c671cfc1e0d7d1a7f13bb8085e9a590f48c010551dc6c4b31 \
     --hash=sha256:11e007a8a2aa0323f5a921e9e6a2d7e4e67d9877e85773fba9ba6419025cbeb4

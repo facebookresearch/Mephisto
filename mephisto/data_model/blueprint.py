@@ -20,7 +20,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from recordclass import RecordClass
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 
@@ -266,7 +265,7 @@ class TaskRunner(ABC):
         """
         Returns the list of Units that the given worker is eligible to work on.
 
-        Some tasks may want more direct control of what units a worker is 
+        Some tasks may want more direct control of what units a worker is
         allowed to work on, so this method should be overridden by children
         classes.
         """
@@ -465,7 +464,7 @@ class AgentState(ABC):
         Return the portion of the data that is relevant to a human
         who wants to parse or analyze the data
 
-        Utility function to handle stripping the data of any 
+        Utility function to handle stripping the data of any
         context that is only important for reproducing the task
         exactly. By default is just `get_data`
         """
@@ -601,7 +600,7 @@ class Blueprint(ABC):
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
-        Assert that the provided arguments are valid. Should 
+        Assert that the provided arguments are valid. Should
         fail if a task launched with these arguments would
         not work
         """
@@ -609,7 +608,7 @@ class Blueprint(ABC):
 
     def get_frontend_args(self) -> Dict[str, Any]:
         """
-        Specifies what options should be fowarded 
+        Specifies what options should be fowarded
         to the client for use by the task's frontend
         """
         return self.frontend_task_config
@@ -620,7 +619,7 @@ class Blueprint(ABC):
     ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
         """
         Get all of the data used to initialize tasks from this blueprint.
-        Can either be a simple iterable if all the assignments can 
+        Can either be a simple iterable if all the assignments can
         be processed at once, or an AsyncIterator if the number
         of tasks is unknown or changes based on something running
         concurrently with the job.
