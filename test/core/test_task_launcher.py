@@ -90,7 +90,7 @@ class TestTaskLauncher(unittest.TestCase):
         )
         self.assertEqual(
             len(launcher.units),
-            len(mock_data_array) * len(mock_data_array[0]["unit_data"]),
+            len(mock_data_array) * len(mock_data_array[0].unit_data),
             "Inequal number of units created than were expected",
         )
 

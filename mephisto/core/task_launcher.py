@@ -98,7 +98,7 @@ class TaskLauncher:
         assignment = Assignment(self.db, assignment_id)
         assignment.write_assignment_data(assignment_data)
         self.assignments.append(assignment)
-        unit_count = len(assignment_data["unit_data"])
+        unit_count = len(assignment_data.unit_data)
         for unit_idx in range(unit_count):
             unit_id = self.db.new_unit(
                 task_run.task_id,
@@ -139,8 +139,8 @@ class TaskLauncher:
             self.assignments_thread.start()
 
     def generate_units(self):
-        """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
-        i.e. in the LAUNCHED or ASSIGNED states """
+        """units generator which checks that only 'max_num_concurrent_units' running at the same time,
+        i.e. in the LAUNCHED or ASSIGNED states"""
         while self.keep_launching_units:
             units_id_to_remove = []
             for db_id, unit in self.launched_units.items():
