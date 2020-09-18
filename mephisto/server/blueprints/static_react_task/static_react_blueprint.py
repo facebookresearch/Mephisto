@@ -8,7 +8,8 @@ from mephisto.data_model.assignment import InitializationData
 from dataclasses import dataclass, field
 from omegaconf import MISSING
 from mephisto.server.blueprints.abstract.static_task.static_blueprint import (
-    StaticBlueprint, StaticBlueprintArgs
+    StaticBlueprint,
+    StaticBlueprintArgs,
 )
 from mephisto.server.blueprints.static_react_task.static_react_task_builder import (
     StaticReactTaskBuilder,
@@ -37,22 +38,23 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
     a prebuilt javascript bundle containing the task. We suggest building 
     with our provided useMephistoTask hook.
     """
+
     _blueprint_type: str = BLUEPRINT_TYPE
     _group: str = field(
         default="StaticReactBlueprint",
         metadata={
-            'help': """
+            "help": """
                 Tasks launched from static blueprints need 
                 a prebuilt javascript bundle containing the task. We suggest building 
                 with our provided useMephistoTask hook.
-            """,
+            """
         },
     )
     task_source: str = field(
         default=MISSING,
         metadata={
-            'help': "Path to file containing javascript bundle for the task",
-            'required': True,
+            "help": "Path to file containing javascript bundle for the task",
+            "required": True,
         },
     )
 
@@ -65,7 +67,9 @@ class StaticReactBlueprint(StaticBlueprint):
     ArgsClass = StaticReactBlueprintArgs
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
-    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+    def __init__(
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         super().__init__(task_run, args, shared_state)
         self.js_bundle = os.path.expanduser(args.blueprint.task_source)
         if not os.path.exists(self.js_bundle):
@@ -74,7 +78,9 @@ class StaticReactBlueprint(StaticBlueprint):
             )
 
     @classmethod
-    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
+    def assert_task_args(
+        cls, args: "DictConfig", shared_state: "SharedTaskState"
+    ) -> None:
         """Ensure that static requirements are fulfilled, and source file exists"""
         super().assert_task_args(args, shared_state)
 

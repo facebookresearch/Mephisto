@@ -26,13 +26,14 @@ if TYPE_CHECKING:
 @dataclass
 class WorkerArgs:
     """Base class for arguments to register a worker"""
+
     name: str = field(
         metadata={
-            'help': (
+            "help": (
                 "Name to associate external worker id with an internal mephisto id. "
-                "Should be based on the external provider id."    
-            ),
-        },
+                "Should be based on the external provider id."
+            )
+        }
     )
 
 

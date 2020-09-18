@@ -36,31 +36,23 @@ class MTurkRequesterArgs(RequesterArgs):
     _group: str = field(
         default="MTurkRequester",
         metadata={
-            'help': (
-                'AWS is required to create a new Requester. '
-                'Please create an IAM user with programmatic access and '
-                'AmazonMechanicalTurkFullAccess policy at '
+            "help": (
+                "AWS is required to create a new Requester. "
+                "Please create an IAM user with programmatic access and "
+                "AmazonMechanicalTurkFullAccess policy at "
                 'https://console.aws.amazon.com/iam/ (On the "Set permissions" '
                 'page, choose "Attach existing policies directly" and then select '
                 '"AmazonMechanicalTurkFullAccess" policy). After creating '
-                'the IAM user, you should get an Access Key ID '
-                'and Secret Access Key. '
-            ),
+                "the IAM user, you should get an Access Key ID "
+                "and Secret Access Key. "
+            )
         },
     )
     access_key_id: str = field(
-        default=MISSING,
-        metadata={
-            'required': True,
-            'help': "IAM Access Key ID",
-        },
+        default=MISSING, metadata={"required": True, "help": "IAM Access Key ID"}
     )
     secret_access_key: str = field(
-        default=MISSING,
-        metadata={
-            'required': True,
-            'help': "IAM Secret Access Key",
-        },
+        default=MISSING, metadata={"required": True, "help": "IAM Secret Access Key"}
     )
 
 

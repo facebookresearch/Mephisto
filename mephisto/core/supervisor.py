@@ -390,7 +390,7 @@ class Supervisor:
         self, packet: Packet, channel_info: ChannelInfo, units: List["Unit"]
     ):
         """Handle creating an agent for the specific worker to register an agent"""
-        
+
         crowd_data = packet.data["provider_data"]
         task_run = channel_info.job.task_runner.task_run
         crowd_provider = channel_info.job.provider
@@ -398,8 +398,7 @@ class Supervisor:
         worker = Worker(self.db, worker_id)
 
         logger.debug(
-            f"Worker {worker_id} is being assigned one of "
-            f"{len(units)} units."
+            f"Worker {worker_id} is being assigned one of " f"{len(units)} units."
         )
 
         reserved_unit = None

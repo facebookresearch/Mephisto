@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 @dataclass
 class ArchitectArgs:
     """Base class for arguments to configure architects"""
+
     _architect_type: str = MISSING
 
 
@@ -36,7 +37,7 @@ class Architect(ABC):
     def __init__(
         self,
         db: "MephistoDB",
-        args: DictConfig, 
+        args: DictConfig,
         shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,

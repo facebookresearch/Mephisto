@@ -23,7 +23,9 @@ if TYPE_CHECKING:
 class MockTaskRunner(TaskRunner):
     """Mock of a task runner, for use in testing"""
 
-    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+    def __init__(
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         super().__init__(task_run, args, shared_state)
         self.timeout = args.blueprint.timeout_time
         self.tracked_tasks: Dict[str, Union["Assignment", "Unit"]] = {}

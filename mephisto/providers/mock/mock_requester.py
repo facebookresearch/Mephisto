@@ -25,15 +25,12 @@ class MockRequesterArgs(RequesterArgs):
     name: str = field(
         default="MOCK_REQUESTER",
         metadata={
-            'help': "Name for the requester in the Mephisto DB.",
-            'required': True,
+            "help": "Name for the requester in the Mephisto DB.",
+            "required": True,
         },
     )
     force_fail: bool = field(
-        default=False,
-        metadata={
-            'help': "Trigger a failed registration",
-        },
+        default=False, metadata={"help": "Trigger a failed registration"}
     )
 
 

@@ -297,7 +297,11 @@ class TaskRun:
             return None
         return unit
 
-    def get_blueprint(self, args: Optional["DictConfig"] = None, shared_state: Optional["SharedTaskState"] = None) -> "Blueprint":
+    def get_blueprint(
+        self,
+        args: Optional["DictConfig"] = None,
+        shared_state: Optional["SharedTaskState"] = None,
+    ) -> "Blueprint":
         """Return the runner associated with this task run"""
         from mephisto.core.registry import get_blueprint_from_type
         from mephisto.data_model.blueprint import SharedTaskState

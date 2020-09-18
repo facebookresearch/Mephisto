@@ -284,6 +284,7 @@ class Unit(ABC):
             # We are trying to construct a Unit, find what type to use and
             # create that instead
             from mephisto.core.registry import get_crowd_provider_from_type
+
             if row is None:
                 row = db.get_unit(db_id)
             assert row is not None, f"Given db_id {db_id} did not exist in given db"
@@ -296,6 +297,7 @@ class Unit(ABC):
     def get_crowd_provider_class(self) -> Type["CrowdProvider"]:
         """Get the CrowdProvider class that manages this Unit"""
         from mephisto.core.registry import get_crowd_provider_from_type
+
         return get_crowd_provider_from_type(self.provider_type)
 
     def get_assignment_data(self) -> Optional[Dict[str, Any]]:

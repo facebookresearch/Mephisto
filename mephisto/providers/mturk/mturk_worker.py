@@ -53,14 +53,14 @@ class MTurkWorker(Worker):
 
     @classmethod
     def get_from_mturk_worker_id(
-        cls, 
-        db: "MephistoDB", 
-        mturk_worker_id: str,
+        cls, db: "MephistoDB", mturk_worker_id: str
     ) -> Optional["MTurkWorker"]:
         """Get the MTurkWorker from the given worker_id"""
         if cls.PROVIDER_TYPE != PROVIDER_TYPE:
             mturk_worker_id += "_sandbox"
-        workers = db.find_workers(worker_name=mturk_worker_id, provider_type=cls.PROVIDER_TYPE)
+        workers = db.find_workers(
+            worker_name=mturk_worker_id, provider_type=cls.PROVIDER_TYPE
+        )
         if len(workers) == 0:
             # TODO warn?
             return None

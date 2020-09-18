@@ -4,7 +4,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs, SharedTaskState
+from mephisto.data_model.blueprint import (
+    Blueprint,
+    OnboardingRequired,
+    BlueprintArgs,
+    SharedTaskState,
+)
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.data_model.assignment import InitializationData
@@ -47,10 +52,7 @@ class SharedStaticTaskState(SharedTaskState):
 @dataclass
 class StaticBlueprintArgs(BlueprintArgs):
     units_per_assignment: int = field(
-        default=1,
-        metadata={
-            "help": "How many workers you want to do each assignment",
-        },
+        default=1, metadata={"help": "How many workers you want to do each assignment"}
     )
     extra_source_dir: str = field(
         default=MISSING,
@@ -58,26 +60,17 @@ class StaticBlueprintArgs(BlueprintArgs):
             "help": (
                 "Optional path to sources that the HTML may "
                 "refer to (such as images/video/css/scripts)"
-            ),
+            )
         },
     )
     data_json: str = field(
-        default=MISSING,
-        metadata={
-            "help": "Path to JSON file containing task data",
-        },
+        default=MISSING, metadata={"help": "Path to JSON file containing task data"}
     )
     data_jsonl: str = field(
-        default=MISSING,
-        metadata={
-            "help": "Path to JSON-L file containing task data",
-        },
+        default=MISSING, metadata={"help": "Path to JSON-L file containing task data"}
     )
     data_csv: str = field(
-        default=MISSING,
-        metadata={
-            "help": "Path to csv file containing task data",
-        },
+        default=MISSING, metadata={"help": "Path to csv file containing task data"}
     )
     extra_source_dir: str = field(
         default=MISSING,
@@ -85,7 +78,7 @@ class StaticBlueprintArgs(BlueprintArgs):
             "help": (
                 "Optional path to sources that the HTML may "
                 "refer to (such as images/video/css/scripts)"
-            ),
+            )
         },
     )
 
@@ -104,7 +97,9 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = StaticBlueprintArgs
     supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
 
-    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+    def __init__(
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         super().__init__(task_run, args, shared_state)
         self.init_onboarding_config(task_run, args, shared_state)
 
@@ -188,4 +183,6 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
         has qualified.
         """
         data = onboarding_agent.state.get_data()
-        return self.shared_state.validate_onboarding(data) #data["outputs"].get("success", True)
+        return self.shared_state.validate_onboarding(
+            data
+        )  # data["outputs"].get("success", True)

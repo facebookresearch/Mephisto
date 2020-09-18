@@ -47,20 +47,13 @@ def get_rand_id():
 @dataclass
 class MockArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a mock architect"""
+
     _architect_type: str = ARCHITECT_TYPE
     should_run_server: bool = field(
-        default=False,
-        metadata={
-            'help': "Addressible location of the server",
-        },
+        default=False, metadata={"help": "Addressible location of the server"}
     )
-    port: str = field(
-        default="3000",
-        metadata={
-            'help': "Port to launch the server on",
-        },
-    )
-    
+    port: str = field(default="3000", metadata={"help": "Port to launch the server on"})
+
 
 class SocketHandler(WebSocketHandler):
     def __init__(self, *args, **kwargs):
@@ -261,7 +254,7 @@ class MockArchitect(Architect):
     def __init__(
         self,
         db: "MephistoDB",
-        args: "DictConfig", 
+        args: "DictConfig",
         shared_state: "SharedTaskState",
         task_run: "TaskRun",
         build_dir_root: str,

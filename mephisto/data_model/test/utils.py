@@ -41,7 +41,7 @@ MOCK_BLUEPRINT_ARGS = MockBlueprintArgs()
 MOCK_CONFIG = MephistoConfig(
     provider=MOCK_PROVIDER_ARGS,
     blueprint=MOCK_BLUEPRINT_ARGS,
-    architect=MOCK_ARCHITECT_ARGS,    
+    architect=MOCK_ARCHITECT_ARGS,
     task=MOCK_TASK_ARGS,
 )
 
@@ -82,7 +82,9 @@ def get_test_task_run(db: MephistoDB) -> str:
     task_name, task_id = get_test_task(db)
     requester_name, requester_id = get_test_requester(db)
     init_params = OmegaConf.to_yaml(OmegaConf.structured(MOCK_CONFIG))
-    return db.new_task_run(task_id, requester_id, json.dumps(init_params), "mock", "mock")
+    return db.new_task_run(
+        task_id, requester_id, json.dumps(init_params), "mock", "mock"
+    )
 
 
 def get_test_assignment(db: MephistoDB) -> str:

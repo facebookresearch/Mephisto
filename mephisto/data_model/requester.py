@@ -19,11 +19,12 @@ if TYPE_CHECKING:
 @dataclass
 class RequesterArgs:
     """Base class for arguments to register a requester"""
+
     name: str = field(
         default=MISSING,
         metadata={
-            'help': "Name for the requester in the Mephisto DB.",
-            'required': True,
+            "help": "Name for the requester in the Mephisto DB.",
+            "required": True,
         },
     )
 

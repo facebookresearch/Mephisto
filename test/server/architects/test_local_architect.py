@@ -13,7 +13,10 @@ import shlex
 
 from typing import Type, ClassVar, Optional
 from mephisto.data_model.test.architect_tester import ArchitectTests
-from mephisto.server.architects.local_architect import LocalArchitect, LocalArchitectArgs
+from mephisto.server.architects.local_architect import (
+    LocalArchitect,
+    LocalArchitectArgs,
+)
 
 from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.architect import Architect
@@ -25,6 +28,7 @@ from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 from omegaconf import OmegaConf
 from mephisto.core.hydra_config import MephistoConfig
 from mephisto.data_model.blueprint import SharedTaskState
+
 
 class LocalArchitectTests(ArchitectTests):
     """
@@ -42,7 +46,9 @@ class LocalArchitectTests(ArchitectTests):
         """We need to specify that the architect is launching on localhost for testing"""
         arch_args = LocalArchitectArgs(hostname="http://localhost", port="3000")
         args = OmegaConf.structured(MephistoConfig(architect=arch_args))
-        self.curr_architect = self.ArchitectClass(self.db, args, SharedTaskState(), self.task_run, self.build_dir)
+        self.curr_architect = self.ArchitectClass(
+            self.db, args, SharedTaskState(), self.task_run, self.build_dir
+        )
         return self.curr_architect
 
     def server_is_prepared(self, build_dir: str) -> bool:

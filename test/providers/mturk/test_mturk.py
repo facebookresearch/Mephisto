@@ -58,5 +58,6 @@ class TestMTurkComponents(unittest.TestCase):
         failed_worker = MTurkWorker.get_from_mturk_worker_id(db, "FAKE_ID")
         self.assertIsNone(failed_worker, f"Found worker {failed_worker} from a fake id")
 
+
 if __name__ == "__main__":
     unittest.main()

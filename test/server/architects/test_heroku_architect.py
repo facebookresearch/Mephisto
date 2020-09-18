@@ -14,7 +14,10 @@ import subprocess
 
 from typing import Type, ClassVar, Optional
 from mephisto.data_model.test.architect_tester import ArchitectTests
-from mephisto.server.architects.heroku_architect import HerokuArchitect, HerokuArchitectArgs
+from mephisto.server.architects.heroku_architect import (
+    HerokuArchitect,
+    HerokuArchitectArgs,
+)
 
 from mephisto.data_model.database import MephistoDB
 from mephisto.data_model.architect import Architect
@@ -42,7 +45,9 @@ class HerokuArchitectTests(ArchitectTests):
         """We need to have the architect saved locally to be sure to shutdown"""
         arch_args = HerokuArchitectArgs(heroku_team=None, use_hobby=False)
         args = OmegaConf.structured(MephistoConfig(architect=arch_args))
-        self.curr_architect = self.ArchitectClass(self.db, args, SharedTaskState(), self.task_run, self.build_dir)
+        self.curr_architect = self.ArchitectClass(
+            self.db, args, SharedTaskState(), self.task_run, self.build_dir
+        )
         return self.curr_architect
 
     def server_is_prepared(self, build_dir: str) -> bool:

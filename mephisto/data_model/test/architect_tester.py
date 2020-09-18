@@ -120,7 +120,9 @@ class ArchitectTests(unittest.TestCase):
         )
         arch_args = self.ArchitectClass.ArgsClass()
         args = OmegaConf.structured(MephistoConfig(architect=arch_args))
-        architect = self.ArchitectClass(self.db, args, EMPTY_STATE, self.task_run, self.build_dir)
+        architect = self.ArchitectClass(
+            self.db, args, EMPTY_STATE, self.task_run, self.build_dir
+        )
 
     def get_architect(self) -> Architect:
         """
@@ -129,7 +131,9 @@ class ArchitectTests(unittest.TestCase):
         """
         arch_args = self.ArchitectClass.ArgsClass()
         args = OmegaConf.structured(MephistoConfig(architect=arch_args))
-        self.curr_architect = self.ArchitectClass(self.db, args, EMPTY_STATE, self.task_run, self.build_dir)
+        self.curr_architect = self.ArchitectClass(
+            self.db, args, EMPTY_STATE, self.task_run, self.build_dir
+        )
         return self.curr_architect
 
     def test_prepare_cleanup(self) -> None:

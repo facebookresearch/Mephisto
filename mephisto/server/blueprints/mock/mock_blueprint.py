@@ -4,7 +4,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import Blueprint, OnboardingRequired, BlueprintArgs, SharedTaskState
+from mephisto.data_model.blueprint import (
+    Blueprint,
+    OnboardingRequired,
+    BlueprintArgs,
+    SharedTaskState,
+)
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.data_model.assignment import InitializationData
@@ -36,26 +41,19 @@ class MockBlueprintArgs(BlueprintArgs):
         default=MISSING,
         metadata={
             "help": "How many workers you want to do each assignment",
-            'required': True
+            "required": True,
         },
     )
     use_onboarding: bool = field(
-        default=False,
-        metadata={
-            "help": "Whether onboarding should be required",
-        },
+        default=False, metadata={"help": "Whether onboarding should be required"}
     )
     timeout_time: int = field(
         default=0,
-        metadata={
-            "help": "Whether acts in the run assignment should have a timeout",
-        },
+        metadata={"help": "Whether acts in the run assignment should have a timeout"},
     )
     is_concurrent: bool = field(
         default=True,
-        metadata={
-            "help": "Whether to run this mock task as a concurrent task or not",
-        },
+        metadata={"help": "Whether to run this mock task as a concurrent task or not"},
     )
 
 
@@ -71,7 +69,9 @@ class MockBlueprint(Blueprint, OnboardingRequired):
     supported_architects: ClassVar[List[str]] = ["mock"]
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
-    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
+    def __init__(
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         super().__init__(task_run, args, shared_state)
         self.init_onboarding_config(task_run, args, shared_state)
 

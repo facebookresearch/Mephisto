@@ -31,7 +31,9 @@ if TYPE_CHECKING:
 @dataclass
 class MockProviderArgs(ProviderArgs):
     """Base class for arguments to configure Crowd Providers"""
+
     _provider_type: str = PROVIDER_TYPE
+
 
 @register_mephisto_abstraction()
 class MockProvider(CrowdProvider):
@@ -61,7 +63,7 @@ class MockProvider(CrowdProvider):
         return MockDatastore(datastore_root=storage_path)
 
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", args: "DictConfig", server_url: str,
+        self, task_run: "TaskRun", args: "DictConfig", server_url: str
     ) -> None:
         """Mocks don't do any initialization"""
         return None

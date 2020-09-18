@@ -84,13 +84,8 @@ class TestOperator(unittest.TestCase):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
         config = MephistoConfig(
-            blueprint=MockBlueprintArgs(
-                num_assignments=1,
-                is_concurrent=True,
-            ),
-            provider=MockProviderArgs(
-                requester_name=self.requester_name,
-            ),
+            blueprint=MockBlueprintArgs(num_assignments=1, is_concurrent=True),
+            provider=MockProviderArgs(requester_name=self.requester_name),
             architect=MockArchitectArgs(should_run_server=True),
             task=MOCK_TASK_ARGS,
         )
@@ -154,13 +149,8 @@ class TestOperator(unittest.TestCase):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
         config = MephistoConfig(
-            blueprint=MockBlueprintArgs(
-                num_assignments=1,
-                is_concurrent=False,
-            ),
-            provider=MockProviderArgs(
-                requester_name=self.requester_name,
-            ),
+            blueprint=MockBlueprintArgs(num_assignments=1, is_concurrent=False),
+            provider=MockProviderArgs(requester_name=self.requester_name),
             architect=MockArchitectArgs(should_run_server=True),
             task=MOCK_TASK_ARGS,
         )
@@ -223,15 +213,10 @@ class TestOperator(unittest.TestCase):
     def test_run_jobs_with_restrictions(self):
         """Ensure allowed_concurrent and maximum_units_per_worker work"""
         self.operator = Operator(self.db)
-        provider_args = MockProviderArgs(
-            requester_name=self.requester_name,
-        )
+        provider_args = MockProviderArgs(requester_name=self.requester_name)
         architect_args = MockArchitectArgs(should_run_server=True)
         config = MephistoConfig(
-            blueprint=MockBlueprintArgs(
-                num_assignments=3,
-                is_concurrent=True,
-            ),
+            blueprint=MockBlueprintArgs(num_assignments=3, is_concurrent=True),
             provider=provider_args,
             architect=architect_args,
             task=TaskConfigArgs(
@@ -241,7 +226,7 @@ class TestOperator(unittest.TestCase):
                 task_tags="1,2,3",
                 maximum_units_per_worker=2,
                 allowed_concurrent=1,
-                task_name='max-unit-test',
+                task_name="max-unit-test",
             ),
         )
         self.operator.validate_and_run_config(OmegaConf.structured(config))
@@ -361,13 +346,8 @@ class TestOperator(unittest.TestCase):
 
         # Create a new task
         config = MephistoConfig(
-            blueprint=MockBlueprintArgs(
-                num_assignments=1,
-                is_concurrent=True,
-            ),
-            provider=MockProviderArgs(
-                requester_name=self.requester_name,
-            ),
+            blueprint=MockBlueprintArgs(num_assignments=1, is_concurrent=True),
+            provider=MockProviderArgs(requester_name=self.requester_name),
             architect=MockArchitectArgs(should_run_server=True),
             task=TaskConfigArgs(
                 task_title="title",
@@ -376,7 +356,7 @@ class TestOperator(unittest.TestCase):
                 task_tags="1,2,3",
                 maximum_units_per_worker=2,
                 allowed_concurrent=1,
-                task_name='max-unit-test',
+                task_name="max-unit-test",
             ),
         )
         self.operator.validate_and_run_config(OmegaConf.structured(config))

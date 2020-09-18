@@ -20,27 +20,31 @@ TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
 
 defaults = [
     {"mephisto/blueprint": BLUEPRINT_TYPE},
-    {"mephisto/architect": 'local'},
-    {"mephisto/provider": 'mock'},
+    {"mephisto/architect": "local"},
+    {"mephisto/provider": "mock"},
     {"conf": "example"},
 ]
 
 from mephisto.core.hydra_config import RunScriptConfig, register_script_config
 
-@dataclass 
+
+@dataclass
 class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
 
-register_script_config(name='scriptconfig', module=TestScriptConfig)
 
-@hydra.main(config_name='scriptconfig')
+register_script_config(name="scriptconfig", module=TestScriptConfig)
+
+
+@hydra.main(config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
     db, cfg = load_db_and_process_config(cfg)
     operator = Operator(db)
 
     operator.validate_and_run_config(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
+
 
 if __name__ == "__main__":
     main()
