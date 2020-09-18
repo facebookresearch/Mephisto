@@ -9,6 +9,7 @@ import shutil
 import os
 import tempfile
 import time
+import pytest
 
 from typing import Type
 from mephisto.data_model.test.utils import get_test_requester
@@ -49,6 +50,7 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
         """Return the account balance we expect for a requester on sandbox"""
         return 10000
 
+    @pytest.mark.req_creds
     def test_grant_and_revoke_qualifications(self) -> None:
         """Ensure we can grant and revoke qualifications for a worker"""
         db = self.db

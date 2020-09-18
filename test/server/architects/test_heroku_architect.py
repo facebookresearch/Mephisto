@@ -5,12 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-import shutil
 import os
-import tempfile
-import sh
-import shlex
-import subprocess
+import pytest
 
 from typing import Type, ClassVar, Optional
 from mephisto.data_model.test.architect_tester import ArchitectTests
@@ -64,6 +60,11 @@ class HerokuArchitectTests(ArchitectTests):
         """Ensure process is no longer running"""
         assert self.curr_architect is not None, "No architect to check"
         return not self.curr_architect.server_is_running()
+
+    @pytest.mark.req_creds
+    def test_deploy_shutdown(self) -> None:
+        """Test deploying the server, and shutting it down"""
+        super().test_deploy_shutdown()
 
     # TODO(#102) maybe a test where we need to re-instance an architect?
 
