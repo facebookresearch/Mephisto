@@ -273,11 +273,13 @@ class TaskRun:
 
         # Should load cached blueprint for SharedTaskState
         blueprint = self.get_blueprint()
-        valid_units = [
-            u for u in units if blueprint.shared_state.worker_can_do_unit(worker, u)
+        ret_units = [
+            u
+            for u in valid_units
+            if blueprint.shared_state.worker_can_do_unit(worker, u)
         ]
 
-        return valid_units
+        return ret_units
 
     def clear_reservation(self, unit: "Unit") -> None:
         """
