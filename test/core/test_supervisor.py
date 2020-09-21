@@ -39,7 +39,7 @@ EMPTY_STATE = SharedTaskState()
 
 class TestSupervisor(unittest.TestCase):
     """
-    Unit testing for the Mephisto Supervisor, 
+    Unit testing for the Mephisto Supervisor,
     uses WebsocketChannel and MockArchitect
     """
 
@@ -64,7 +64,7 @@ class TestSupervisor(unittest.TestCase):
         self.url = self.urls[0]
         self.provider = MockProvider(self.db)
         self.provider.setup_resources_for_task_run(
-            self.task_run, self.task_run.args, self.url
+            self.task_run, self.task_run.args, EMPTY_STATE, self.url
         )
         self.launcher = TaskLauncher(
             self.db, self.task_run, self.get_mock_assignment_data_array()
@@ -96,7 +96,7 @@ class TestSupervisor(unittest.TestCase):
 
     def test_channel_operations(self):
         """
-        Initialize a channel, and ensure the basic 
+        Initialize a channel, and ensure the basic
         startup and shutdown functions are working
         """
         sup = Supervisor(self.db)

@@ -12,7 +12,7 @@ $ pip install -e .
 
 # Verify that mephisto is installed correctly, and handle any required config:
 $ mephisto check
-Please enter the full path to a location to store Mephisto run data. By default this would be at '/private/home/jju/mephisto/data'. This dir should NOT be on a distributed file store. Press enter to use the default:  
+Please enter the full path to a location to store Mephisto run data. By default this would be at '/private/home/jju/mephisto/data'. This dir should NOT be on a distributed file store. Press enter to use the default:
 Mephisto seems to be set up correctly.
 ```
 
@@ -28,7 +28,7 @@ $ poetry install
 
 # Verify that mephisto is installed correctly:
 $ mephisto check
-Please enter the full path to a location to store Mephisto run data. By default this would be at '/private/home/jju/mephisto/data'. This dir should NOT be on a distributed file store. Press enter to use the default: 
+Please enter the full path to a location to store Mephisto run data. By default this would be at '/private/home/jju/mephisto/data'. This dir should NOT be on a distributed file store. Press enter to use the default:
 Mephisto seems to be set up correctly.
 
 ```
@@ -83,7 +83,8 @@ $ python static_test_script.py mephisto.architect=heroku mephisto.provider.reque
 # Note: my_mturk_user_sandbox is what we used to name the requester
 # when we registered the mturk account in the previous step.
 ```
-The arguments `mephisto.provider.requester_name=my_mturk_user_sandbox` and `mephisto.architect=heroku` will tell the the script to use the mturk sandbox provider and the heroku architect (as opposed to the mock provider and local architect).
+The arguments `mephisto.provider.requester_name=my_mturk_user_sandbox` and `mephisto/architect=heroku` will tell the the script to use the mturk sandbox provider and the heroku architect (as opposed to the mock provider and local architect). Notice that if we're setting a full abstraction (like the architect) we reference it with `mephisto/abstraction=val`, however when we're setting an argument, we use `mephisto.abstraction.argument=val`. This tells hydra whether we're providing an argument value or the name of a configuration to load.
+
 
 **Note**: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
 
