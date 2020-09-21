@@ -51,7 +51,7 @@ class TestOperator(unittest.TestCase):
         if self.operator is not None:
             self.operator.shutdown()
         self.db.shutdown()
-        shutil.rmtree(self.data_dir)
+        shutil.rmtree(self.data_dir, ignore_errors=True)
         self.assertTrue(
             len(threading.enumerate()) == 1,
             f"Expected only main thread at teardown, found {threading.enumerate()}",

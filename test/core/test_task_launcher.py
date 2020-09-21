@@ -54,7 +54,7 @@ class TestTaskLauncher(unittest.TestCase):
 
     def tearDown(self):
         self.db.shutdown()
-        shutil.rmtree(self.data_dir)
+        shutil.rmtree(self.data_dir, ignore_errors=True)
 
     @staticmethod
     def get_mock_assignment_data_array() -> List[InitializationData]:
