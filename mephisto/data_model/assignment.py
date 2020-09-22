@@ -21,13 +21,14 @@ if TYPE_CHECKING:
 
 import os
 import json
-from recordclass import RecordClass
+from dataclasses import dataclass
 
 
 ASSIGNMENT_DATA_FILE = "assign_data.json"
 
 
-class InitializationData(RecordClass):
+@dataclass
+class InitializationData:
     shared: Dict[str, Any]
     unit_data: List[Dict[str, Any]]
 
@@ -444,7 +445,7 @@ class Unit(ABC):
         a worker working on it at the moment, and any other possible states. Should
         return one of UNIT_STATUSES
 
-        Accurate status is crowd-provider dependent, and thus this method should be 
+        Accurate status is crowd-provider dependent, and thus this method should be
         defined in the child class to ensure that the local record matches
         the ground truth in the provider
         """

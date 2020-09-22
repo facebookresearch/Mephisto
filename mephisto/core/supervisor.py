@@ -30,7 +30,7 @@ from mephisto.data_model.blueprint import OnboardingRequired, AgentState
 from mephisto.core.registry import get_crowd_provider_from_type
 from mephisto.server.channels.channel import Channel, STATUS_CHECK_TIME
 
-from recordclass import RecordClass
+from dataclasses import dataclass
 
 from typing import Dict, Set, Optional, List, Any, Union, TYPE_CHECKING
 
@@ -69,7 +69,8 @@ SYSTEM_CHANNEL_ID = "mephisto"  # TODO pull from somewhere
 START_DEATH_TIME = 10
 
 # State storage
-class Job(RecordClass):
+@dataclass
+class Job:
     architect: "Architect"
     task_runner: "TaskRunner"
     provider: "CrowdProvider"
@@ -77,13 +78,15 @@ class Job(RecordClass):
     registered_channel_ids: List[str]
 
 
-class ChannelInfo(RecordClass):
+@dataclass
+class ChannelInfo:
     channel_id: str
     job: "Job"
     channel: Channel
 
 
-class AgentInfo(RecordClass):
+@dataclass
+class AgentInfo:
     agent: Union["Agent", "OnboardingAgent"]
     used_channel_id: str
     assignment_thread: Optional[threading.Thread] = None
@@ -730,10 +733,10 @@ class Supervisor:
 
     def _mark_agent_done(self, agent_info: AgentInfo) -> None:
         """
-        Handle marking an agent as done, and telling the frontend agent 
+        Handle marking an agent as done, and telling the frontend agent
         that they have successfully completed their task.
 
-        If the agent is in a final non-successful status, or already 
+        If the agent is in a final non-successful status, or already
         told of partner disconnect, skip
         """
         if agent_info.agent.db_status in AgentState.complete() + [
@@ -790,8 +793,8 @@ class Supervisor:
 
     def _request_action(self, agent_info: AgentInfo) -> None:
         """
-        Request an act from the agent targetted here. If the 
-        agent is found by the server, this request will be 
+        Request an act from the agent targetted here. If the
+        agent is found by the server, this request will be
         forwarded.
         """
         send_packet = Packet(

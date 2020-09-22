@@ -781,14 +781,6 @@ sphinx = ">=1.3.1"
 
 [[package]]
 category = "main"
-description = "Mutable variants of tuple (mutabletuple) and collections.namedtuple (recordclass), which support assignments and more memory saving variants (dataobject, litelist, ...)."
-name = "recordclass"
-optional = false
-python-versions = "*"
-version = "0.12.1"
-
-[[package]]
-category = "main"
 description = "Alternative regular expression module, to replace re."
 name = "regex"
 optional = true
@@ -1201,7 +1193,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 parlai = ["parlai", "torch", "pyyaml"]
 
 [metadata]
-content-hash = "dc7f8b0c30a831ea1a112ef249cfb055a944dbfa38d8f9c8446a35745a117106"
+content-hash = "0b4e880cb6cb3e8a53462d1dac3dcc95deae1b8c359d3fc092f1e53572374e86"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1667,9 +1659,6 @@ pyzmq = [
 recommonmark = [
     {file = "recommonmark-0.6.0-py2.py3-none-any.whl", hash = "sha256:2ec4207a574289355d5b6ae4ae4abb29043346ca12cdd5f07d374dc5987d2852"},
     {file = "recommonmark-0.6.0.tar.gz", hash = "sha256:29cd4faeb6c5268c633634f2d69aef9431e0f4d347f90659fd0aab20e541efeb"},
-]
-recordclass = [
-    {file = "recordclass-0.12.1.tar.gz", hash = "sha256:f69d26e44faa41a856dea6fd2b9f669ccbd2a9c6c70b051960f9300836a58dec"},
 ]
 regex = [
     {file = "regex-2019.08.19-cp27-none-win32.whl", hash = "sha256:1e9f9bc44ca195baf0040b1938e6801d2f3409661c15fe57f8164c678cfc663f"},

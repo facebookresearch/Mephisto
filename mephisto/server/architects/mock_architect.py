@@ -147,10 +147,23 @@ class MockServer(tornado.web.Application):
 
     def _send_message(self, message):
         """Send the given message back to the mephisto client"""
-        socket = self._get_sub()
-        message_json = json.dumps(message)
-        socket.write_message(message_json)
-        time.sleep(0.1)
+        failed_attempts = 0
+        last_exception = None
+        while failed_attempts < 5:
+            try:
+                socket = self._get_sub()
+                message_json = json.dumps(message)
+                socket.write_message(message_json)
+                last_exception = None
+                break
+            except Exception as e:
+                last_exception = e
+                time.sleep(0.2)
+                failed_attempts += 1
+            finally:
+                time.sleep(0.1)
+        if last_exception is not None:
+            raise last_exception
 
     def send_agent_act(self, agent_id, act_content):
         """

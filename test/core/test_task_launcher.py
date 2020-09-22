@@ -54,7 +54,7 @@ class TestTaskLauncher(unittest.TestCase):
 
     def tearDown(self):
         self.db.shutdown()
-        shutil.rmtree(self.data_dir)
+        shutil.rmtree(self.data_dir, ignore_errors=True)
 
     @staticmethod
     def get_mock_assignment_data_array() -> List[InitializationData]:
@@ -90,7 +90,7 @@ class TestTaskLauncher(unittest.TestCase):
         )
         self.assertEqual(
             len(launcher.units),
-            len(mock_data_array) * len(mock_data_array[0]["unit_data"]),
+            len(mock_data_array) * len(mock_data_array[0].unit_data),
             "Inequal number of units created than were expected",
         )
 

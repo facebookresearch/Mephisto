@@ -80,7 +80,7 @@ class TestSupervisor(unittest.TestCase):
         self.architect.cleanup()
         self.architect.shutdown()
         self.db.shutdown()
-        shutil.rmtree(self.data_dir)
+        shutil.rmtree(self.data_dir, ignore_errors=True)
 
     def get_mock_assignment_data_array(self) -> List[InitializationData]:
         mock_data = MockTaskRunner.get_mock_assignment_data()
