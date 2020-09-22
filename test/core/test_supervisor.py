@@ -64,7 +64,7 @@ class TestSupervisor(unittest.TestCase):
         self.url = self.urls[0]
         self.provider = MockProvider(self.db)
         self.provider.setup_resources_for_task_run(
-            self.task_run, self.task_run.args, self.url
+            self.task_run, self.task_run.args, EMPTY_STATE, self.url
         )
         self.launcher = TaskLauncher(
             self.db, self.task_run, self.get_mock_assignment_data_array()

@@ -78,7 +78,7 @@ class CrowdProvider(ABC):
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
-        Assert that the provided arguments are valid. Should 
+        Assert that the provided arguments are valid. Should
         fail if a task launched with these arguments would
         not work
         """
@@ -110,7 +110,11 @@ class CrowdProvider(ABC):
 
     @abstractmethod
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", args: DictConfig, server_url: str
+        self,
+        task_run: "TaskRun",
+        args: DictConfig,
+        shared_state: "SharedTaskState",
+        server_url: str,
     ) -> None:
         """
         Setup any required resources for managing any additional resources

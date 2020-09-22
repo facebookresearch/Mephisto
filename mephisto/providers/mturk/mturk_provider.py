@@ -29,6 +29,7 @@ from typing import ClassVar, Dict, Any, Optional, Type, List, cast, TYPE_CHECKIN
 from mephisto.data_model.requester import Requester
 
 if TYPE_CHECKING:
+    from mephisto.data_model.blueprint import SharedTaskState
     from mephisto.data_model.task import TaskRun
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.worker import Worker
@@ -37,8 +38,8 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class MockProviderArgs(ProviderArgs):
-    """Base class for arguments to configure Crowd Providers"""
+class MTurkProviderArgs(ProviderArgs):
+    """Provider args for an MTurk provider"""
 
     _provider_type: str = PROVIDER_TYPE
 
@@ -60,7 +61,7 @@ class MTurkProvider(CrowdProvider):
 
     AgentClass: ClassVar[Type["Agent"]] = MTurkAgent
 
-    ArgsClass = MockProviderArgs
+    ArgsClass = MTurkProviderArgs
 
     SUPPORTED_TASK_TYPES: ClassVar[List[str]] = [
         # TODO
@@ -81,7 +82,11 @@ class MTurkProvider(CrowdProvider):
         return self.datastore.get_client_for_requester(requester_name)
 
     def setup_resources_for_task_run(
-        self, task_run: "TaskRun", args: "DictConfig", server_url: str
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedTaskState",
+        server_url: str,
     ) -> None:
         """
         Set up SNS queue to recieve agent events from MTurk, and produce the
@@ -104,7 +109,7 @@ class MTurkProvider(CrowdProvider):
 
         # Find or create relevant qualifications
         qualifications = []
-        for qualification in task_args.get("qualifications", []):
+        for qualification in shared_state.qualifications:
             applicable_providers = qualification["applicable_providers"]
             if (
                 applicable_providers is None
@@ -120,7 +125,8 @@ class MTurkProvider(CrowdProvider):
                     "QualificationTypeId"
                 ] = requester._create_new_mturk_qualification(qualification_name)
 
-        qualifications += task_args.get("mturk_specific_qualifications", [])
+        if hasattr(shared_state, "mturk_specific_qualifications"):
+            qualifications += shared_state.mturk_specific_qualifications
 
         # Set up HIT type
         client = self._get_client(requester._requester_name)

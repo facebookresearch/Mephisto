@@ -58,12 +58,12 @@ class TrackedRun(NamedTuple):
 class Operator:
     """
     Acting as the controller behind the curtain, the Operator class
-    is responsible for managing the knobs, switches, and dials 
-    of the rest of the Mephisto architecture. 
+    is responsible for managing the knobs, switches, and dials
+    of the rest of the Mephisto architecture.
 
     Most convenience scripts for using Mephisto will use an Operator
-    to get the job done, though this class itself is also a 
-    good model to use to understand how the underlying 
+    to get the job done, though this class itself is also a
+    good model to use to understand how the underlying
     architecture works in order to build custom jobs or workflows.
     """
 
@@ -239,7 +239,9 @@ class Operator:
 
             # Register the task with the provider
             provider = CrowdProviderClass(self.db)
-            provider.setup_resources_for_task_run(task_run, run_config, task_url)
+            provider.setup_resources_for_task_run(
+                task_run, run_config, shared_state, task_url
+            )
 
             initialization_data_array = blueprint.get_initialization_data()
 
@@ -341,7 +343,7 @@ class Operator:
         self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
     ) -> Optional[str]:
         """
-        Wrapper around validate_and_run_config_or_die that prints errors on 
+        Wrapper around validate_and_run_config_or_die that prints errors on
         failure, rather than throwing. Generally for use in scripts.
         """
         try:
@@ -378,7 +380,7 @@ class Operator:
         self, skip_input=False, log_rate: Optional[int] = None
     ) -> None:
         """
-        Wait for task_runs to complete, and then shutdown.  
+        Wait for task_runs to complete, and then shutdown.
 
         Set log_rate to get print statements of currently running tasks
         at the specified interval

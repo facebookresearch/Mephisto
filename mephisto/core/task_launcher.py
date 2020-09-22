@@ -30,7 +30,7 @@ import threading
 from mephisto.core.logger_core import get_logger
 import types
 
-logger = get_logger(name=__name__, verbose=True, level="debug")
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 UNIT_GENERATOR_WAIT_SECONDS = 10
 ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
