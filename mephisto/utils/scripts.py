@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 def load_db_and_process_config(
-    cfg: DictConfig, should_print=False
+    cfg: DictConfig, print_config=False
 ) -> Tuple["MephistoDB", DictConfig]:
     """
     Using a Hydra DictConfig built from a RunScriptConfig,
@@ -33,7 +33,7 @@ def load_db_and_process_config(
     """
     db = get_db_from_config(cfg)
     valid_config = augment_config_from_db(cfg, db)
-    if should_print:
+    if print_config:
         print(OmegaConf.to_yaml(valid_config))
     return db, valid_config
 
