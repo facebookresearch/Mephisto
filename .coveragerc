@@ -1,0 +1,5 @@
+[run]
+omit =
+  **/parlai/*
+  **/parlai_fb/*
+  test/*
