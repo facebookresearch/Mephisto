@@ -78,7 +78,7 @@ You can choose any name for `my_mturk_user`, as this will be the id that you lat
 
 ```bash
 $ cd examples/simple_static_task
-$ python static_test_script.py mephisto.architect=heroku mephisto.provider.requester_name=my_mturk_user_sandbox
+$ python static_test_script.py mephisto/architect=heroku mephisto.provider.requester_name=my_mturk_user_sandbox
 
 # Note: my_mturk_user_sandbox is what we used to name the requester
 # when we registered the mturk account in the previous step.

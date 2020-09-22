@@ -1,7 +1,7 @@
 # Transitioning from ARG_STRING to Hydra
-As Mephisto has moved away from the `ARG_STRING` in [#246](https://github.com/facebookresearch/Mephisto/pull/246), all existing scripts that used to use the `ARG_STRING` will need to use Hydra moving forward. 
+As Mephisto has moved away from the `ARG_STRING` in [#246](https://github.com/facebookresearch/Mephisto/pull/246), all existing scripts that used to use the `ARG_STRING` will need to use Hydra moving forward.
 
-This document shows the transition steps from moving from the old format to the new format, using the `ParlAIChatBlueprint` as an example. 
+This document shows the transition steps from moving from the old format to the new format, using the `ParlAIChatBlueprint` as an example.
 
 # Original file
 ```python
@@ -140,9 +140,9 @@ mephisto:
   task:
     task_name: parlai-chat-example
     task_title: "Test ParlAI Chat Task"
-    task_description: 
-      "This is a simple chat between two people 
-      used to demonstrate the functionalities around using Mephisto 
+    task_description:
+      "This is a simple chat between two people
+      used to demonstrate the functionalities around using Mephisto
       for ParlAI tasks."
     task_reward: 0.3
     task_tags: "dynamic,chat,testing"
@@ -153,9 +153,9 @@ mephisto:
   task:
     task_name: parlai-chat-example
     task_title: "Test ParlAI Simply Built Chat Task"
-    task_description: 
-      "This is a simple chat between two people 
-      used to demonstrate the functionalities around using Mephisto 
+    task_description:
+      "This is a simple chat between two people
+      used to demonstrate the functionalities around using Mephisto
       for ParlAI tasks."
     task_reward: 0.3
     task_tags: "dynamic,chat,testing"
@@ -199,7 +199,7 @@ parser.add_argument(
 Many of these are set directly as part of the standard Mephisto config now, as arguments about using onboarding and such are exposed directly in the hydra config. Some of these are handled differently now though.
 
 ### After
-We replace configuring via argparse and `RunScriptParser` by using a `dataclass` containing the configuration you want to add to a script. In the below we add `num_turns` and `turn_timeout` as options. 
+We replace configuring via argparse and `RunScriptParser` by using a `dataclass` containing the configuration you want to add to a script. In the below we add `num_turns` and `turn_timeout` as options.
 
 Via variable interpolation in hydra, we can define `task_dir` in this configuration file, and refer to this in other arguments with `${task_dir}`.
 
@@ -216,7 +216,7 @@ defaults = [
 
 from mephisto.core.hydra_config import RunScriptConfig, register_script_config
 
-@dataclass 
+@dataclass
 class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
@@ -229,7 +229,7 @@ class TestScriptConfig(RunScriptConfig):
     turn_timeout: int = field(
         default=300,
         metadata={
-            'help': 
+            'help':
                 "Maximum response time before kicking "
                 "a worker out, default 300 seconds",
         },
@@ -241,17 +241,17 @@ register_script_config(name='scriptconfig', module=TestScriptConfig)
 Most of the new configuration happens in the `TestScriptConfig`. This will need to inherit from `RunScriptConfig` in order to get parsing of the standard `mephisto` components for free. Afterwards, we need to call `register_script_config` and name our configuration file such that Hydra knows what to parse from the command line when you execute your script.
 
 #### defaults
-It's important to note the step of creating the `defaults` entry for your `RunScriptConfig`. This will provide Hydra with some default values for keys in the created `yaml` file. The `{"mephisto/blueprint": BLUEPRINT_TYPE},` entry ensures that Hydra loads up the blueprint argument configuration that corresponds with the blueprint you're running, for instance. 
+It's important to note the step of creating the `defaults` entry for your `RunScriptConfig`. This will provide Hydra with some default values for keys in the created `yaml` file. The `{"mephisto/blueprint": BLUEPRINT_TYPE},` entry ensures that Hydra loads up the blueprint argument configuration that corresponds with the blueprint you're running, for instance.
 
-Setting `architect` to `local` and `provider` to `mock` will make the script default to that configuration when given no arguments, however you can provide different values either in configuration files or on the command line (with `mephisto.provider.requester_name=some_requester`, or `mephisto.architect=heroku` for instance).
+Setting `architect` to `local` and `provider` to `mock` will make the script default to that configuration when given no arguments, however you can provide different values either in configuration files or on the command line (with `mephisto.provider.requester_name=some_requester`, or `mephisto/architect=heroku` for instance). Configuring a full abstraction uses slash notation as in `mephisto/abstraction=value`, while configuring variables within an abstraction uses dot notation as in `mephisto/abstraction.variable=value`.
 
-The entry with just `"conf/base"` tells hydra to load the entire contents of `conf/base.yaml` as default values. 
+The entry with just `"conf/base"` tells hydra to load the entire contents of `conf/base.yaml` as default values.
 
 Lastly, `{"conf": "example"},` gives hydra the command to load specifically the configuration in `conf/example.yaml`, however on the command line you can use `conf=<>` to make hydra use the defaults you've specified in a different configuration file instead. This last line is useful for a demo version for your script, but it's likely your important configuration options will exist in files you can access with `python script.py conf=<>` instead.
 
 ## Extra arguments
 ### Before
-Extra arguments used to be provided via the `extra_args` parameter to the run script, however this used to be merged with the regular argument dict passed in. 
+Extra arguments used to be provided via the `extra_args` parameter to the run script, however this used to be merged with the regular argument dict passed in.
 ```python
 world_opt = {"num_turns": 3, "turn_timeout": args["turn_timeout"]}
 ...
@@ -261,7 +261,7 @@ extra_args = {"world_opt": world_opt, "onboarding_world_opt": world_opt}
 Mephisto now asks that tasks specify their shared state with `SharedTaskState`. The `ParlAIChatBlueprint` now specifies a `SharedParlAITaskState` that we pass instead.
 ```python
 world_opt = {
-    "num_turns": cfg.num_turns, 
+    "num_turns": cfg.num_turns,
     "turn_timeout": cfg.turn_timeout,
 }
 ...
@@ -330,7 +330,7 @@ from mephisto.utils.scripts import MephistoRunScriptParser, str2bool # RunScript
 We remove unnecessary or deprecated imports.
 
 ### After
-We'll need to add a few things. First, `load_db_and_process_config` covers the old capabilities of the `MephistoRunScriptParser`. 
+We'll need to add a few things. First, `load_db_and_process_config` covers the old capabilities of the `MephistoRunScriptParser`.
 Mephisto now defines run scripts and configurations using Hydra and dataclasses, as such you'll need some imports from `dataclasses`, `hydra`, and `omegaconf` (which is the configuration library that powers hydra).
 ```python
 import os
@@ -370,7 +370,7 @@ defaults = [
 
 from mephisto.core.hydra_config import RunScriptConfig, register_script_config
 
-@dataclass 
+@dataclass
 class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
@@ -383,7 +383,7 @@ class TestScriptConfig(RunScriptConfig):
     turn_timeout: int = field(
         default=300,
         metadata={
-            'help': 
+            'help':
                 "Maximum response time before kicking "
                 "a worker out, default 300 seconds",
         },
@@ -397,7 +397,7 @@ def main(cfg: DictConfig) -> None:
     db, cfg = load_db_and_process_config(cfg)
 
     world_opt = {
-        "num_turns": cfg.num_turns, 
+        "num_turns": cfg.num_turns,
         "turn_timeout": cfg.turn_timeout,
     }
 
@@ -443,9 +443,9 @@ mephisto:
   task:
     task_name: parlai-chat-example
     task_title: "Test ParlAI Chat Task"
-    task_description: 
-      "This is a simple chat between two people 
-      used to demonstrate the functionalities around using Mephisto 
+    task_description:
+      "This is a simple chat between two people
+      used to demonstrate the functionalities around using Mephisto
       for ParlAI tasks."
     task_reward: 0.3
     task_tags: "dynamic,chat,testing"
