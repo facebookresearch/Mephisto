@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 def load_db_and_process_config(
-    cfg: DictConfig, should_print=False
+    cfg: DictConfig, should_print=True
 ) -> Tuple["MephistoDB", DictConfig]:
     """
     Using a Hydra DictConfig built from a RunScriptConfig,
