@@ -10,7 +10,7 @@ Utilities that are useful for Mephisto-related scripts.
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.utils import get_mock_requester, get_root_data_dir
 
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 import argparse
 from typing import Tuple, Dict, Any, TYPE_CHECKING
@@ -20,15 +20,21 @@ if TYPE_CHECKING:
     from mephisto.data_model.database import MephistoDB
 
 
-def load_db_and_process_config(cfg: DictConfig) -> Tuple["MephistoDB", DictConfig]:
+def load_db_and_process_config(
+    cfg: DictConfig, should_print=True
+) -> Tuple["MephistoDB", DictConfig]:
     """
     Using a Hydra DictConfig built from a RunScriptConfig,
     load the desired MephistoDB and
     validate the config against the database contents, then
     return the database and validated config.
+
+    Takes in an option to print out the configuration before returning
     """
     db = get_db_from_config(cfg)
     valid_config = augment_config_from_db(cfg, db)
+    if should_print:
+        print(OmegaConf.to_yaml(valid_config))
     return db, valid_config
 
 
