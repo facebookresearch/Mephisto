@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 """
-Utilities that are useful for Mephisto-related scripts. 
+Utilities that are useful for Mephisto-related scripts.
 """
 
 from mephisto.core.local_database import LocalMephistoDB
@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 
 def load_db_and_process_config(cfg: DictConfig) -> Tuple["MephistoDB", DictConfig]:
     """
-    Using a Hydra DictConfig built from a RunScriptConfig, 
-    load the desired MephistoDB and 
+    Using a Hydra DictConfig built from a RunScriptConfig,
+    load the desired MephistoDB and
     validate the config against the database contents, then
     return the database and validated config.
     """
@@ -110,4 +110,5 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
         )
 
     cfg.provider.requester_name = requester_name
+    cfg.provider._provider_type = provider_type
     return script_cfg

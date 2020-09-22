@@ -30,7 +30,7 @@ import threading
 from mephisto.core.logger_core import get_logger
 import types
 
-logger = get_logger(name=__name__, verbose=True, level="debug")
+logger = get_logger(name=__name__, verbose=True, level="info")
 
 UNIT_GENERATOR_WAIT_SECONDS = 10
 ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
@@ -139,8 +139,8 @@ class TaskLauncher:
             self.assignments_thread.start()
 
     def generate_units(self):
-        """ units generator which checks that only 'max_num_concurrent_units' running at the same time,
-        i.e. in the LAUNCHED or ASSIGNED states """
+        """units generator which checks that only 'max_num_concurrent_units' running at the same time,
+        i.e. in the LAUNCHED or ASSIGNED states"""
         while self.keep_launching_units:
             units_id_to_remove = []
             for db_id, unit in self.launched_units.items():

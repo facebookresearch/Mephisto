@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.providers.mturk_sandbox.provider_type import PROVIDER_TYPE
-from mephisto.providers.mturk.mturk_provider import MTurkProvider
+from mephisto.providers.mturk.mturk_provider import MTurkProvider, MTurkProviderArgs
 from mephisto.providers.mturk_sandbox.sandbox_mturk_agent import SandboxMTurkAgent
 from mephisto.providers.mturk_sandbox.sandbox_mturk_requester import (
     SandboxMTurkRequester,
@@ -15,6 +15,7 @@ from mephisto.providers.mturk_sandbox.sandbox_mturk_worker import SandboxMTurkWo
 from mephisto.core.registry import register_mephisto_abstraction
 
 import os
+from dataclasses import dataclass
 
 from typing import Any, ClassVar, Type, List, TYPE_CHECKING
 
@@ -23,6 +24,13 @@ if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.agent import Agent
+
+
+@dataclass
+class SandboxMTurkProviderArgs(MTurkProviderArgs):
+    """Provider args for a sandbox MTurk provider"""
+
+    _provider_type: str = PROVIDER_TYPE
 
 
 @register_mephisto_abstraction()
@@ -42,6 +50,8 @@ class SandboxMTurkProvider(MTurkProvider):
     WorkerClass: ClassVar[Type["Worker"]] = SandboxMTurkWorker
 
     AgentClass: ClassVar[Type["Agent"]] = SandboxMTurkAgent
+
+    ArgsClass = SandboxMTurkProviderArgs
 
     SUPPORTED_TASK_TYPES: ClassVar[List[str]] = [
         # TODO
