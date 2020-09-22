@@ -56,7 +56,7 @@ def assert_task_is_valid(dir_name, task_type) -> None:
 class Task:
     """
     This class contains all of the required tidbits for launching a set of
-    assignments, primarily by leveraging a blueprint. It also takes the 
+    assignments, primarily by leveraging a blueprint. It also takes the
     project name if this task is to be associated with a specific project.
     """
 
@@ -270,7 +270,16 @@ class TaskRun:
             if not any(is_self_set):
                 units += unit_set
         valid_units = [u for u in units if u.get_status() == AssignmentState.LAUNCHED]
-        return valid_units
+
+        # Should load cached blueprint for SharedTaskState
+        blueprint = self.get_blueprint()
+        ret_units = [
+            u
+            for u in valid_units
+            if blueprint.shared_state.worker_can_do_unit(worker, u)
+        ]
+
+        return ret_units
 
     def clear_reservation(self, unit: "Unit") -> None:
         """

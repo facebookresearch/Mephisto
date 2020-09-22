@@ -17,6 +17,7 @@ from typing import (
     Union,
     Iterable,
     AsyncIterator,
+    Callable,
     TYPE_CHECKING,
 )
 
@@ -66,10 +67,15 @@ class SharedTaskState:
     be passed as Hydra args, like functions and objects
     """
 
-    onboarding_data: Any = field(default_factory=dict)
-    task_config: Any = field(default_factory=dict)
-    validate_onboarding: Any = field(default_factory=lambda: (lambda x: True))
+    onboarding_data: Dict[str, Any] = field(default_factory=dict)
+    task_config: Dict[str, Any] = field(default_factory=dict)
+    validate_onboarding: Callable[[Any], bool] = field(
+        default_factory=lambda: (lambda x: True)
+    )
     qualifications: List[Any] = field(default_factory=list)
+    worker_can_do_unit: Callable[["Worker", "Unit"], bool] = field(
+        default_factory=lambda: (lambda worker, unit: True)
+    )
 
 
 class TaskBuilder(ABC):
