@@ -3,8 +3,11 @@ repos:
     rev: v2.4.0
     hooks:
       - id: trailing-whitespace
-      - id: end-of-file-fixer
-        exclude: "^.*svg"
+        exclude: |
+          (?x)(
+            ^.*build/|
+            ^.*md
+          )
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/psf/black
