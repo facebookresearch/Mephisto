@@ -28,8 +28,7 @@ This example is for illustrative purposes only and has not been tested
 with production usage.
 */
 
-function ChatMessage({ isSelf, idx, agentName, message = "",
-onRadioChange }) {
+function ChatMessage({ isSelf, idx, agentName, message = "", onRadioChange }) {
   const floatToSide = isSelf ? "right" : "left";
   const alertStyle = isSelf ? "alert-info" : "alert-warning";
 
