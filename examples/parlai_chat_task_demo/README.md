@@ -81,7 +81,7 @@ Custom frontend bundles can be provided that override the view of how the ParlAI
 If you are able to provide your workers enough context just using a task description and perhaps a message in the chat thread with directions, you should be able to work on a task without a custom frontend. In order to get started on a task like this, you'll likely do the following:
 
 1. Copy the `demo_worlds.py`, `parlai_test_script.py`, and `task_description.html` files to a new directory for your task. This generally would go in the project directory you are launching tasks for, but you can use `mephisto/tasks` if you're just experimenting.  
-2. Update the any task-related variables in your `conf/my_new_config.yaml` file to make sense for your task.
+2. Update any task-related variables in your `conf/my_new_config.yaml` file to make sense for your task.
 3. Update your worlds file to specify the kind of conversation you are creating between agents.
 4. Run `parlai_test_script.py` to pilot your task over localhost. You can use different `worker_id` URL parameters in different windows to play the part of multiple workers at the same time.
 5. Repeat 3 & 4 until you're happy with your task.
