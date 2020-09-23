@@ -6,11 +6,19 @@ on:
     branches: [master]
 
 jobs:
-  pre-commit:
+  prettier:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - uses: pre-commit/action@v2.0.0
         with:
-          extra_args: --from-ref HEAD^^^ --to-ref HEAD
+          extra_args: prettier --all-files
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: pre-commit/action@v2.0.0
+        with:
+          extra_args: black --all-files
