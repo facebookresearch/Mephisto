@@ -40,24 +40,24 @@ function mapLaunchDataToExpectedPayload(data: any) {
           "blueprint_type",
           {
             option_string: "--blueprint-type",
-            value: value
-          }
+            value: value,
+          },
         ];
       } else if (key === "architect") {
         return [
           "architect_type",
           {
             option_string: "--architect-type",
-            value: value
-          }
+            value: value,
+          },
         ];
       } else if (key === "requester") {
         return [
           "requester_name",
           {
             option_string: "--requester-name",
-            value: value
-          }
+            value: value,
+          },
         ];
       } else {
         const [namespace, arg_name, opt_string] = key.split("|");
@@ -71,8 +71,8 @@ function mapLaunchDataToExpectedPayload(data: any) {
           arg_name,
           {
             option_string: opt_string,
-            value: value === null ? null : (value as any).toString()
-          }
+            value: value === null ? null : (value as any).toString(),
+          },
         ];
       }
     })
@@ -84,16 +84,16 @@ function mapLaunchDataToExpectedPayload(data: any) {
 }
 
 export const reviewActions = {
-  accept: function(id: string) {
+  accept: function (id: string) {
     return axios.post(`unit/${id}/accept`);
   },
-  rejectAndPay: function(id: number) {
+  rejectAndPay: function (id: number) {
     return axios.post(`unit/${id}/reject`);
   },
-  softBlock: function(id: number) {
+  softBlock: function (id: number) {
     return axios.post(`unit/${id}/softBlock`);
   },
-  hardBlock: function(id: number) {
+  hardBlock: function (id: number) {
     return axios.post(`unit/${id}/hardBlock`);
-  }
+  },
 };

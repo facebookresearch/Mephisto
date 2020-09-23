@@ -1,7 +1,7 @@
 #@package _global_
 mephisto:
   blueprint:
-    data_csv: ${task_dir}/data.csv 
+    data_csv: ${task_dir}/data.csv
     task_source: ${task_dir}/server_files/demo_task.html
     preview_source: ${task_dir}/server_files/demo_preview.html
     extra_source_dir: ${task_dir}/server_files/extra_refs

@@ -41,7 +41,7 @@ const Async: AsyncComponent = ({
   onError,
   onData,
   onEmptyData,
-  checkIfEmptyFn: checkIfEmptyFn
+  checkIfEmptyFn: checkIfEmptyFn,
 }) => {
   const [{ data, loading, error }, refetch = () => {}] = info;
 
@@ -69,7 +69,7 @@ export function mockRequest<T>(
   const request = {
     data: mockData,
     loading,
-    error: error && { response: { data: error } }
+    error: error && { response: { data: error } },
   } as ResponseValues<T>;
   return [request, () => {}] as [ResponseValues<T>, any];
 }

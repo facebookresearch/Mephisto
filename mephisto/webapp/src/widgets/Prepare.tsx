@@ -22,7 +22,7 @@ export default (function PrepareWidget() {
   const [requesterDrawerOpen, setRequesterDrawerOpen] = React.useState(false);
 
   const requesterAsync = useAxios<Requesters>({
-    url: "requesters"
+    url: "requesters",
   });
 
   return (
@@ -44,7 +44,7 @@ export default (function PrepareWidget() {
               onLoading={() => (
                 <div className="bp3-skeleton bp3-text">&nbsp; </div>
               )}
-              checkIfEmptyFn={data => data.requesters}
+              checkIfEmptyFn={(data) => data.requesters}
               onEmptyData={() => (
                 <span>
                   <Icon icon="warning-sign" color={Colors.ORANGE3} />
@@ -104,7 +104,7 @@ export default (function PrepareWidget() {
                           <h4
                             style={{ display: "inline", marginRight: 4 }}
                             className={cx("bp3-heading", {
-                              "bp3-text-muted": !r.registered
+                              "bp3-text-muted": !r.registered,
                             })}
                           >
                             {r.requester_name}

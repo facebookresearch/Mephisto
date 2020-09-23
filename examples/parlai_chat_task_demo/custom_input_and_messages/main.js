@@ -28,14 +28,7 @@ This example is for illustrative purposes only and has not been tested
 with production usage.
 */
 
-
-function ChatMessage({
-  isSelf,
-  idx,
-  agentName,
-  message = "",
-  onRadioChange,
-}) {
+function ChatMessage({ isSelf, idx, agentName, message = "", onRadioChange }) {
   const floatToSide = isSelf ? "right" : "left";
   const alertStyle = isSelf ? "alert-info" : "alert-warning";
 
@@ -131,9 +124,9 @@ function MainApp() {
         Or you can use renderResponse for more flexibility and implement
         those states yourself, as shown below with the done state:
       */
-      renderResponse={({ onMessageSend, inputMode, appContext }) => (
-        inputMode === INPUT_MODE.DONE
-        ? <div className="response-type-module">
+      renderResponse={({ onMessageSend, inputMode, appContext }) =>
+        inputMode === INPUT_MODE.DONE ? (
+          <div className="response-type-module">
             <div className="response-bar">
               <h3>Thanks for completing the task!</h3>
               <button
@@ -142,12 +135,16 @@ function MainApp() {
                 className="btn btn-primary btn-lg"
                 onClick={() => appContext.onTaskComplete()}
               >
-                <span className="glyphicon glyphicon-ok-circle" aria-hidden="true" /> Done
-                with this HIT
+                <span
+                  className="glyphicon glyphicon-ok-circle"
+                  aria-hidden="true"
+                />{" "}
+                Done with this HIT
               </button>
             </div>
           </div>
-        : <CustomTextResponse
+        ) : (
+          <CustomTextResponse
             onMessageSend={onMessageSend}
             active={inputMode === INPUT_MODE.READY_FOR_INPUT}
             messages={messages}
@@ -157,7 +154,8 @@ function MainApp() {
             }
             lastMessageAnnotation={lastMessageAnnotation}
           />
-      )}
+        )
+      }
       renderMessage={({ message, idx, mephistoContext, appContext }) => (
         <RenderChatMessage
           message={message}

@@ -33,7 +33,7 @@ const renderRequesterItem: ItemRenderer<IRequester> = (
 
 export default function RequesterSelectComponent<T>({
   data,
-  onUpdate
+  onUpdate,
 }: {
   data: IRequester[];
   onUpdate: Function;
@@ -66,7 +66,7 @@ function highlightText(text: string, query: string) {
   let lastIndex = 0;
   const words = query
     .split(/\s+/)
-    .filter(word => word.length > 0)
+    .filter((word) => word.length > 0)
     .map(escapeRegExpChars);
   if (words.length === 0) {
     return [text];

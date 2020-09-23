@@ -11,7 +11,7 @@ import cx from "classnames";
 
 export default function TaskRunSummary({
   run,
-  interactive
+  interactive,
 }: {
   run: TaskRun;
   interactive?: boolean;

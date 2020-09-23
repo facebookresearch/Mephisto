@@ -10,7 +10,7 @@ import { Checkbox, Card } from "@blueprintjs/core";
 function OptionsForm({
   prefix,
   onUpdate,
-  options
+  options,
 }: {
   prefix: string;
   onUpdate: any;
@@ -23,7 +23,7 @@ function OptionsForm({
       .forEach((field: any) => {
         const id = prefix + "|" + field.dest + "|" + field.option_string;
         onUpdate({
-          [id]: field.default
+          [id]: field.default,
         });
       });
   }, [options]);

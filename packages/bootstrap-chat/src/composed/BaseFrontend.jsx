@@ -64,7 +64,7 @@ function BaseFrontend({
               onMessageSend,
               inputMode,
               appContext,
-              mephistoContext
+              mephistoContext,
             })
           ) : (
             <ResponsePane

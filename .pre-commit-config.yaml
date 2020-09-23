@@ -16,3 +16,11 @@ repos:
     rev: "2.1.2"
     hooks:
       - id: prettier
+        files: "\\.(\
+          css\
+          |html\
+          |js|jsx\
+          |json\
+          |ts|tsx\
+          |yaml|yml\
+          )$"

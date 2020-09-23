@@ -17,7 +17,7 @@ import {
   Card,
   Button,
   Intent,
-  Toaster
+  Toaster,
 } from "@blueprintjs/core";
 import { createAsync, mockRequest } from "../lib/Async";
 import TaskRunSummary from "./TaskRunSummary";
@@ -59,7 +59,7 @@ export default (function LaunchWidget() {
             ))}
           </div>
         )}
-        checkIfEmptyFn={data => data.task_runs}
+        checkIfEmptyFn={(data) => data.task_runs}
         onEmptyData={() => (
           <div className="bp3-non-ideal-state">
             <div
@@ -94,10 +94,10 @@ function LaunchForm() {
   const [openForm, setOpenForm] = React.useState(false);
   const launchInfo = useAxios({ url: "launch/options" });
   const requesterInfo = useAxios({
-    url: "requesters"
+    url: "requesters",
   });
   const defaultTaskInfo = useAxios({
-    url: "task_runs/options"
+    url: "task_runs/options",
   });
 
   const [params, addToParams] = React.useReducer((state, params) => {
@@ -106,21 +106,21 @@ function LaunchForm() {
       nextState = {};
     } else if (params === "CLEAR_bp") {
       nextState = Object.keys(state)
-        .filter(key => !key.startsWith("bp|"))
+        .filter((key) => !key.startsWith("bp|"))
         .reduce((obj: any, key: string) => {
           obj[key] = state[key];
           return obj;
         }, {});
     } else if (params === "CLEAR_arch") {
       nextState = Object.keys(state)
-        .filter(key => !key.startsWith("arch|"))
+        .filter((key) => !key.startsWith("arch|"))
         .reduce((obj: any, key: string) => {
           obj[key] = state[key];
           return obj;
         }, {});
     } else if (params === "CLEAR_task") {
       nextState = Object.keys(state)
-        .filter(key => !key.startsWith("task|"))
+        .filter((key) => !key.startsWith("task|"))
         .reduce((obj: any, key: string) => {
           obj[key] = state[key];
           return obj;
@@ -260,7 +260,7 @@ function LaunchForm() {
                         message: "Launched!",
                         icon: "cloud-upload",
                         intent: Intent.SUCCESS,
-                        timeout: 3000
+                        timeout: 3000,
                       });
                     })
                     .catch(() => {
@@ -275,7 +275,7 @@ function LaunchForm() {
                         "Launching task... Please wait this may take a while.",
                       icon: "cloud-upload",
                       intent: Intent.NONE,
-                      timeout: 40000
+                      timeout: 40000,
                     },
                     "loading-msg"
                   );
@@ -285,7 +285,7 @@ function LaunchForm() {
                       "Error: Must select Blueprint + Architect + Requester and fill all task params",
                     icon: "cloud-upload",
                     intent: Intent.DANGER,
-                    timeout: 2000
+                    timeout: 2000,
                   });
                 }
               }}

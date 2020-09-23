@@ -16,7 +16,7 @@ const GridReviewAsync = createAsync();
 
 function GridReviewWithData({ id }) {
   const gridReviewAsync = useAxios({
-    url: "data/submitted_data?task_run_id=" + id
+    url: "data/submitted_data?task_run_id=" + id,
   });
 
   return (
@@ -30,7 +30,7 @@ function GridReviewWithData({ id }) {
       onError={() => null}
       onLoading={() => null}
       onEmptyData={() => <div>There are no units to review...</div>}
-      checkIfEmptyFn={data => data.units}
+      checkIfEmptyFn={(data) => data.units}
     />
   );
 }
@@ -43,15 +43,15 @@ function GridReview({ data, id }) {
         inputs: {
           character_description: "I'm a character loaded from Mephisto!",
           character_name: "Loaded Character 1",
-          html: "demo_task.html"
+          html: "demo_task.html",
         },
-        outputs: { rating: "good" }
+        outputs: { rating: "good" },
       },
       status: "expired",
       task_run_id: "136",
       unit_id: "231",
-      worker_id: "10"
-    }
+      worker_id: "10",
+    },
   ];
 
   const {
@@ -59,7 +59,7 @@ function GridReview({ data, id }) {
     getTableBodyProps,
     headerGroups,
     rows,
-    prepareRow
+    prepareRow,
   } = useTable({
     // data: sampleTestData,
     data: data.units,
@@ -76,7 +76,7 @@ function GridReview({ data, id }) {
               <ObjectInspector data={value} />
             </div>
           );
-        }
+        },
       },
       {
         Header: "Output",
@@ -87,14 +87,14 @@ function GridReview({ data, id }) {
               <ObjectInspector data={value} />
             </div>
           );
-        }
+        },
       },
       {
         Header: "Status",
         accessor: "status",
         Cell: ({ cell: { value } }) => (
           <span className="bp3-tag bp3-minimal">{value}</span>
-        )
+        ),
       },
       {
         Header: "Actions",
@@ -140,9 +140,9 @@ function GridReview({ data, id }) {
               </ButtonGroup>
             </div>
           );
-        }
-      }
-    ]
+        },
+      },
+    ],
   });
   return (
     <div>
@@ -155,9 +155,9 @@ function GridReview({ data, id }) {
         {...getTableProps()}
       >
         <thead>
-          {headerGroups.map(headerGroup => (
+          {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map(column => (
+              {headerGroup.headers.map((column) => (
                 <th {...column.getHeaderProps()}>{column.render("Header")}</th>
               ))}
             </tr>
@@ -168,7 +168,7 @@ function GridReview({ data, id }) {
             prepareRow(row);
             return (
               <tr {...row.getRowProps()}>
-                {row.cells.map(cell => {
+                {row.cells.map((cell) => {
                   return (
                     <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
                   );

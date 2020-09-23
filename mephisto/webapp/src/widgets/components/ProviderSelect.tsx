@@ -33,7 +33,7 @@ const renderProviderItem: ItemRenderer<IProvider> = (
 
 export default function ProviderSelectComponent<T>({
   data,
-  onUpdate
+  onUpdate,
 }: {
   data: IProvider[];
   onUpdate: Function;
@@ -66,7 +66,7 @@ function highlightText(text: string, query: string) {
   let lastIndex = 0;
   const words = query
     .split(/\s+/)
-    .filter(word => word.length > 0)
+    .filter((word) => word.length > 0)
     .map(escapeRegExpChars);
   if (words.length === 0) {
     return [text];

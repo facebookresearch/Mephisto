@@ -8,7 +8,7 @@ import { configure } from "axios-hooks";
 import Axios, { AxiosRequestConfig } from "axios";
 
 const axios = Axios.create({
-  baseURL: "http://localhost:5000/api/v1/"
+  baseURL: "http://localhost:5000/api/v1/",
 });
 
 declare module "axios" {
@@ -19,9 +19,9 @@ declare module "axios" {
 
 // type CustomAxiosRequestConfig = AxiosRequestConfig & { delayed?: boolean };
 
-axios.interceptors.request.use(config => {
+axios.interceptors.request.use((config) => {
   if (config.delayed) {
-    return new Promise(resolve =>
+    return new Promise((resolve) =>
       setTimeout(
         () => resolve(config),
         config.delayed === true
