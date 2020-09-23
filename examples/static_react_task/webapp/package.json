@@ -1,6 +1,6 @@
 {
   "name": "mephisto-task-compiler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "webpack.config.js",
   "scripts": {
@@ -23,6 +23,7 @@
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.2",
     "css-loader": "^1.0.0",
+    "file-loader": "^6.0.0",
     "style-loader": "^0.23.0",
     "url-loader": "^2.0.1",
     "webpack": "^4.19.1",
