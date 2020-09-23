@@ -302,7 +302,7 @@ wss.on('connection', function(socket) {
           update_wanted_acts(packet.sender_id, false);
           send_status_for_agent(packet.sender_id);
         }
-      } else if(packet['packet_type'] == PACKET_TYPE_ERROR_LOG) {
+      } else if (packet['packet_type'] == PACKET_TYPE_ERROR_LOG) {
          handle_forward(packet);
       } else if (packet['packet_type'] == PACKET_TYPE_ALIVE) {
         debug_log('Agent alive: ', packet);

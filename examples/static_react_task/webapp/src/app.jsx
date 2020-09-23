@@ -12,10 +12,8 @@ import { BaseFrontend, LoadingScreen } from "./components/core_components.jsx";
 import { useMephistoTask } from "mephisto-task";
 
 class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { error: null, errorInfo: null };
-  }
+
+  state = { error: null, errorInfo: null };
 
   componentDidCatch(error, errorInfo) {
     // Catch errors in any components below and re-render with error message
@@ -24,7 +22,7 @@ class ErrorBoundary extends React.Component {
       errorInfo: errorInfo
     })
     // alert Mephisto worker of a component error
-    alert("error from a component" + error)
+    alert("Error from the frontend occurred: " + error)
     // pass the error and errorInfo to the backend through /submit_task endpoint
     this.props.handleError({error:error.message, errorInfo:errorInfo})
   }
@@ -78,8 +76,6 @@ window.addEventListener('error', function (event) {
         }
         return true;
 })
-// Test case for type 3 error
-// throw new Error("test error event_handler");
 
   if (blockedReason !== null) {
     return (

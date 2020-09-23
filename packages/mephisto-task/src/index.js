@@ -73,7 +73,6 @@ const useMephistoTask = function () {
    (data) => {
        console.log('inside handleFatalError ...')
        postErrorLog(state.agentId, data)
-//       handleSubmit(data)
    },
    [state.agentId]);
 
