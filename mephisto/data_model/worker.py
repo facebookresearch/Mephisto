@@ -130,7 +130,7 @@ class Worker(ABC):
     def is_disqualified(self, qualification_name: str):
         """
         Find out if the given worker has been disqualified by the given qualification
-        
+
         Returns True if the qualification exists and has a falsey value
         Returns False if the qualification doesn't exist or has a truthy value
         """

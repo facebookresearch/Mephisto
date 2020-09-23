@@ -35,7 +35,7 @@ class WebsocketChannel(Channel):
         """
         Create a channel by the given name, and initialize any resources that
         will later be required during the `open` call.
-        
+
         Requires a socket_url to connect with.
         """
         super().__init__(
@@ -59,7 +59,7 @@ class WebsocketChannel(Channel):
 
     def close(self):
         """
-        Close this channel, and ensure that all threads and surrounding 
+        Close this channel, and ensure that all threads and surrounding
         resources are cleaned up
         """
         self._is_closed = True
@@ -117,8 +117,7 @@ class WebsocketChannel(Channel):
             pass
 
         def on_message(*args):
-            """Incoming message handler defers to the internal handler
-            """
+            """Incoming message handler defers to the internal handler"""
             try:
                 packet_dict = json.loads(args[1])
                 packet = Packet.from_dict(packet_dict)
@@ -154,7 +153,7 @@ class WebsocketChannel(Channel):
 
     def send(self, packet: "Packet") -> bool:
         """
-        Send the packet given to the intended recipient. 
+        Send the packet given to the intended recipient.
         Return True on success and False on failure.
         """
         if self.socket is None:

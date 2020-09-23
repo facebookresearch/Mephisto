@@ -133,7 +133,7 @@ class MTurkDatastore:
                     run_id
                 FROM
                     hits
-                INNER JOIN run_mappings 
+                INNER JOIN run_mappings
                     USING  (hit_id)
                 WHERE unit_id IS NULL
                 AND run_id = ?;
@@ -150,7 +150,7 @@ class MTurkDatastore:
         assignment_id: Optional[str] = None,
     ) -> None:
         """
-        Register a specific assignment and hit to the given unit, 
+        Register a specific assignment and hit to the given unit,
         or clear the assignment after a return
         """
         with self.table_access_condition, self._get_connection() as conn:

@@ -18,7 +18,7 @@ from typing import List, Optional, Any, Dict
 
 class DataBrowser:
     """
-    Class with convenience methods for getting completed data 
+    Class with convenience methods for getting completed data
     back from runs to parse and manage with other scripts
     """
 

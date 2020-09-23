@@ -57,7 +57,7 @@ class StaticTaskRunner(TaskRunner):
     def run_onboarding(self, agent: "OnboardingAgent"):
         """
         Static onboarding flows eaxactly like a regular task, waiting for
-        the submit to come through 
+        the submit to come through
         """
         agent_act = agent.act(timeout=self.assignment_duration_in_seconds)
 

@@ -79,11 +79,11 @@ class MTurkWorker(Worker):
         self, qualification_name: str, value: int = 1
     ) -> None:
         """
-        Grant a qualification by the given name to this worker. Check the local 
-        MTurk db to find the matching MTurk qualification to grant, and pass 
+        Grant a qualification by the given name to this worker. Check the local
+        MTurk db to find the matching MTurk qualification to grant, and pass
         that. If no qualification exists, try to create one.
 
-        In creating a new qualification, Mephisto resolves the ambiguity over which 
+        In creating a new qualification, Mephisto resolves the ambiguity over which
         requester to associate that qualification with by using the FIRST requester
         of the given account type (either `mturk` or `mturk_sandbox`)
         """
@@ -115,7 +115,7 @@ class MTurkWorker(Worker):
 
     def revoke_crowd_qualification(self, qualification_name: str) -> None:
         """
-        Revoke the qualification by the given name from this worker. Check the local 
+        Revoke the qualification by the given name from this worker. Check the local
         MTurk db to find the matching MTurk qualification to revoke, pass if
         no such qualification exists.
         """

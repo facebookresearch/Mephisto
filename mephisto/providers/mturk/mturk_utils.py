@@ -236,7 +236,7 @@ def find_or_create_qualification(
     must_be_owned: bool = True,
 ) -> Optional[str]:
     """Query amazon to find the existing qualification name, return the Id. If
-    it exists and must_be_owned is true but we don't own it, this returns none. 
+    it exists and must_be_owned is true but we don't own it, this returns none.
     If it doesn't exist, the qualification is created
     """
     qual_usable, qual_id = find_qualification(

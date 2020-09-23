@@ -34,8 +34,8 @@ BLUEPRINT_TYPE = "static_react_task"
 @dataclass
 class StaticReactBlueprintArgs(StaticBlueprintArgs):
     """
-    StaticReactBlueprint: Tasks launched from static blueprints need 
-    a prebuilt javascript bundle containing the task. We suggest building 
+    StaticReactBlueprint: Tasks launched from static blueprints need
+    a prebuilt javascript bundle containing the task. We suggest building
     with our provided useMephistoTask hook.
     """
 
@@ -44,8 +44,8 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
         default="StaticReactBlueprint",
         metadata={
             "help": """
-                Tasks launched from static blueprints need 
-                a prebuilt javascript bundle containing the task. We suggest building 
+                Tasks launched from static blueprints need
+                a prebuilt javascript bundle containing the task. We suggest building
                 with our provided useMephistoTask hook.
             """
         },

@@ -60,8 +60,8 @@ class MockAgent(Agent):
     def approve_work(self) -> None:
         """
         Approve the work done on this specific Unit
-        
-        Mock Units 
+
+        Mock Units
         """
         self.update_status(AgentState.STATUS_APPROVED)
 
