@@ -286,7 +286,7 @@ class Agent(ABC):
 
     def soft_reject_work(self) -> None:
         """
-        Pay a worker for attempted work, but mark it as below the 
+        Pay a worker for attempted work, but mark it as below the
         quality bar for this assignment
         """
         # TODO(OWN) extend this method to assign a soft block
@@ -324,11 +324,11 @@ class OnboardingAgent(ABC):
     Onboarding agents are a special extension of agents used
     in tasks that have a separate onboarding step. These agents
     are designed to work without being linked to an explicit
-    unit, and instead are tied to the task run and task name. 
-    
-    
-    Blueprints that require OnboardingAgents should implement an 
-    OnboardingAgentState (to process the special task), and their 
+    unit, and instead are tied to the task run and task name.
+
+
+    Blueprints that require OnboardingAgents should implement an
+    OnboardingAgentState (to process the special task), and their
     TaskRunners should have a run_onboarding and cleanup_onboarding
     method.
     """

@@ -23,7 +23,7 @@ PROVIDERS: Dict[str, Type["CrowdProvider"]] = {}
 
 def register_mephisto_abstraction():
     """
-    Decorator method for classes that extend a mephisto abstraction, used 
+    Decorator method for classes that extend a mephisto abstraction, used
     to pull Mephisto abstractions out of anywhere that defines them.
     """
 

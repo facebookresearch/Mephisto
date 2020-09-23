@@ -42,14 +42,14 @@ const renderBlueprintItem: ItemRenderer<IBlueprint> = (
 
 export default function BlueprintSelectComponent<T>({
   data,
-  onUpdate
+  onUpdate,
 }: {
   data: IBlueprint[];
   onUpdate: Function;
 }) {
   const [selected, setSelected] = React.useState<IBlueprint | null>(null);
   const paramsInfo = useAxios({
-    url: `blueprint/${selected?.name || "none"}/options`
+    url: `blueprint/${selected?.name || "none"}/options`,
   });
 
   return (
@@ -93,7 +93,7 @@ function highlightText(text: string, query: string) {
   let lastIndex = 0;
   const words = query
     .split(/\s+/)
-    .filter(word => word.length > 0)
+    .filter((word) => word.length > 0)
     .map(escapeRegExpChars);
   if (words.length === 0) {
     return [text];

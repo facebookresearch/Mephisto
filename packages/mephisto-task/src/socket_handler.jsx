@@ -301,7 +301,7 @@ function useMephistoSocket({
       });
 
       window.setTimeout(() => {
-        if ((socket.current.readyState !== 1) && (!state.socket_terminated)) {
+        if (socket.current.readyState !== 1 && !state.socket_terminated) {
           onConnectionStatusChange(CONNECTION_STATUS.FAILED);
         }
       }, 10000);

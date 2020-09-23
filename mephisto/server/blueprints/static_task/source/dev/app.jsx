@@ -42,8 +42,8 @@ function MainApp() {
     if (isOnboarding) {
       handleSubmit(objData);
     } else {
-      formData.append('USED_AGENT_ID', agentId);
-      formData.append('final_data', JSON.stringify(objData));
+      formData.append("USED_AGENT_ID", agentId);
+      formData.append("final_data", JSON.stringify(objData));
       postData("/submit_task", formData)
         .then((data) => {
           handleSubmitToProvider(objData);
@@ -69,7 +69,7 @@ function MainApp() {
   if (isOnboarding) {
     return (
       <SubmitFrame onSubmit={submitFromFrame}>
-        <ShowURL url={'onboarding.html'} data={initialTaskData} />
+        <ShowURL url={"onboarding.html"} data={initialTaskData} />
       </SubmitFrame>
     );
   }
@@ -83,7 +83,7 @@ function MainApp() {
   );
 }
 
-function SubmitFrame({ children, onSubmit}) {
+function SubmitFrame({ children, onSubmit }) {
   const [submitting, setSubmitting] = React.useState(false);
 
   function handleFormSubmit(event) {

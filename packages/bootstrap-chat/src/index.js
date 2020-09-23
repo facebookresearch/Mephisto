@@ -39,5 +39,5 @@ export {
   ChatPane,
   ChatApp,
   AppContext,
-  INPUT_MODE
+  INPUT_MODE,
 };

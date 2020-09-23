@@ -14,10 +14,10 @@ STATUS_CHECK_TIME = 4
 
 class Channel(ABC):
     """
-    Manages the API between the Supervisor and the server that is produced 
+    Manages the API between the Supervisor and the server that is produced
     by the architect.
 
-    Should be able to be configured by an architect, and used to communicate 
+    Should be able to be configured by an architect, and used to communicate
     with that server based on the queries that a Supervisor needs to run a job
     """
 
@@ -31,13 +31,13 @@ class Channel(ABC):
         """
         Create a channel by the given id, and initialize any resources that
         will later be required during the `open` call.
-        
+
         Children classes will likely need to accept additional parameters
 
         on_channel_open should be called when the channel is first alive.
             It takes the channel id as the only argument.
         on_catastrophic_disconnect should only be called if the channel
-            is entirely unable to connect to the server and any ongoing 
+            is entirely unable to connect to the server and any ongoing
             jobs should be killed.
             It takes the channel id as the only argument.
         on_message should be called whenever this channel receives a message
@@ -60,7 +60,7 @@ class Channel(ABC):
     @abstractmethod
     def close(self):
         """
-        Close this channel, and ensure that all threads and surrounding 
+        Close this channel, and ensure that all threads and surrounding
         resources are cleaned up
         """
 
@@ -81,6 +81,6 @@ class Channel(ABC):
     @abstractmethod
     def send(self, packet: "Packet") -> bool:
         """
-        Send the packet given to the intended recipient. 
+        Send the packet given to the intended recipient.
         Return True on success and False on failure.
         """

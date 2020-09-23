@@ -14,7 +14,7 @@ export const task_runs__running: RunningTasks = {
         "--test --task --run --test --task --run --test --task --run --test --task --run --test --task --run --test --task --run --test --task --run --test --task --run --test --task --run ",
       params: {
         "run params": "Coming soon!",
-        status: "Not yet implemented"
+        status: "Not yet implemented",
       },
       sandbox: false,
       start_time: "2019-12-09 22:53:30",
@@ -29,9 +29,9 @@ export const task_runs__running: RunningTasks = {
         expired: 0,
         launched: 0,
         mixed: 0,
-        rejected: 0
+        rejected: 0,
       },
-      task_type: "mock"
-    }
-  ]
+      task_type: "mock",
+    },
+  ],
 };

@@ -248,7 +248,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
 
     def get_frontend_args(self) -> Dict[str, Any]:
         """
-        Specifies what options within a task_config should be fowarded 
+        Specifies what options within a task_config should be fowarded
         to the client for use by the task's frontend
         """
         # TODO move frontend args in

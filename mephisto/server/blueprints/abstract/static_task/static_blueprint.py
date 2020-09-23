@@ -85,7 +85,7 @@ class StaticBlueprintArgs(BlueprintArgs):
 
 class StaticBlueprint(Blueprint, OnboardingRequired):
     """
-    Abstract blueprint for a task that runs without any extensive backend. 
+    Abstract blueprint for a task that runs without any extensive backend.
     These are generally one-off tasks sending data to the frontend and then
     awaiting a response.
     """

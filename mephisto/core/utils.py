@@ -184,7 +184,7 @@ def build_arg_list_from_dict(in_dict: Dict[str, Any]) -> List[str]:
 
 def find_or_create_qualification(db, qualification_name) -> None:
     """
-    Ensure the given qualification exists in the db, 
+    Ensure the given qualification exists in the db,
     creating it if it doesn't already
     """
     from mephisto.data_model.database import EntryAlreadyExistsException

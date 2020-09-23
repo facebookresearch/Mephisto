@@ -494,9 +494,9 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(
                     """
                     INSERT INTO task_runs(
-                        task_id, 
-                        requester_id, 
-                        init_params, 
+                        task_id,
+                        requester_id,
+                        init_params,
                         is_completed,
                         provider_type,
                         task_type,
@@ -591,7 +591,7 @@ class LocalMephistoDB(MephistoDB):
             c.execute(
                 """
                 INSERT INTO assignments(
-                    task_id, 
+                    task_id,
                     task_run_id,
                     requester_id,
                     task_type,
@@ -1075,7 +1075,7 @@ class LocalMephistoDB(MephistoDB):
 
     def make_qualification(self, qualification_name: str) -> str:
         """
-        Make a new qualification, throws an error if a qualification by the given name 
+        Make a new qualification, throws an error if a qualification by the given name
         already exists. Return the id for the qualification.
         """
         if qualification_name == "":
@@ -1117,7 +1117,7 @@ class LocalMephistoDB(MephistoDB):
 
     def get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
         """
-        Return qualification's fields by qualification_id, raise 
+        Return qualification's fields by qualification_id, raise
         EntryDoesNotExistException if no id exists in qualifications
 
         See Qualification for the expected fields for the returned mapping
@@ -1151,7 +1151,7 @@ class LocalMephistoDB(MephistoDB):
         self, qualification_id: str, worker_id: str, value: int = 1
     ) -> None:
         """
-        Grant a worker the given qualification. Update the qualification value if it 
+        Grant a worker the given qualification. Update the qualification value if it
         already exists
         """
         # Note that better syntax exists for python 3.8+, as described in PR #223
@@ -1177,12 +1177,12 @@ class LocalMephistoDB(MephistoDB):
                 c = conn.cursor()
                 try:
                     c.execute(
-                        """	
-                        INSERT INTO granted_qualifications(	
-                            qualification_id,	
-                            worker_id,	
-                            value	
-                        ) VALUES (?, ?, ?);	
+                        """
+                        INSERT INTO granted_qualifications(
+                            qualification_id,
+                            worker_id,
+                            value
+                        ) VALUES (?, ?, ?);
                         """,
                         (int(qualification_id), int(worker_id), value),
                     )
@@ -1228,7 +1228,7 @@ class LocalMephistoDB(MephistoDB):
         self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
     ) -> Mapping[str, Any]:
         """
-        Return the granted qualification in the database between the given 
+        Return the granted qualification in the database between the given
         worker and qualification id
 
         See GrantedQualification for the expected fields for the returned mapping
@@ -1258,7 +1258,7 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
-                """DELETE FROM granted_qualifications 
+                """DELETE FROM granted_qualifications
                 WHERE (qualification_id = ?1)
                 AND (worker_id = ?2);
                 """,
@@ -1299,7 +1299,7 @@ class LocalMephistoDB(MephistoDB):
 
     def get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
         """
-        Return onboarding agent's fields by onboarding_agent_id, raise 
+        Return onboarding agent's fields by onboarding_agent_id, raise
         EntryDoesNotExistException if no id exists in onboarding_agents
 
         Returns a SQLite Row object with the expected fields
@@ -1312,7 +1312,7 @@ class LocalMephistoDB(MephistoDB):
         self, onboarding_agent_id: str, status: Optional[str] = None
     ) -> None:
         """
-        Update the given onboarding agent with the given parameters if possible, 
+        Update the given onboarding agent with the given parameters if possible,
         raise appropriate exception otherwise.
         """
         if status not in AgentState.valid():

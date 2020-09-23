@@ -10,7 +10,7 @@ import {
   Icon,
   FormGroup,
   InputGroup,
-  Checkbox
+  Checkbox,
 } from "@blueprintjs/core";
 import useAxios from "axios-hooks";
 import { createAsync } from "../../lib/Async";
@@ -21,14 +21,14 @@ const ArchitectParamsAsync = createAsync<ArchitectParams>();
 
 export default function ArchitectSelect({
   data,
-  onUpdate
+  onUpdate,
 }: {
   data: any;
   onUpdate: Function;
 }) {
   const [selected, setSelected] = React.useState(null);
   const paramsInfo = useAxios({
-    url: `architect/${selected || "none"}/options`
+    url: `architect/${selected || "none"}/options`,
   });
 
   return (
@@ -39,7 +39,7 @@ export default function ArchitectSelect({
           interactive={arch !== selected}
           style={{
             marginBottom: 10,
-            backgroundColor: arch === selected ? undefined : undefined
+            backgroundColor: arch === selected ? undefined : undefined,
           }}
           onClick={() => {
             setSelected(arch);

@@ -9,7 +9,7 @@ import { FormGroup, InputGroup, Checkbox } from "@blueprintjs/core";
 function FormField({
   prefix,
   onUpdate,
-  field
+  field,
 }: {
   prefix: string;
   onUpdate: any;
@@ -18,7 +18,7 @@ function FormField({
   const id = prefix + "|" + field.dest + "|" + field.option_string;
   const dispatch = (value: any) => {
     onUpdate({
-      [id]: value
+      [id]: value,
     });
   };
 

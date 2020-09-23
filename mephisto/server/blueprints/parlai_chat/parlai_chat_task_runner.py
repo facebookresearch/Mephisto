@@ -52,7 +52,7 @@ if TYPE_CHECKING:
 
 class MephistoAgentWrapper(ParlAIAgent):
     """
-    Class that wraps a mephisto agent to be used as an 
+    Class that wraps a mephisto agent to be used as an
     agent in ParlAI worlds
     """
 
@@ -72,8 +72,8 @@ class MephistoAgentWrapper(ParlAIAgent):
     @agent_id.setter
     def agent_id(self, new_agent_id: str):
         """
-        We want to be able to display these labels to the 
-        frontend users, so when these are updated by a 
+        We want to be able to display these labels to the
+        frontend users, so when these are updated by a
         world we forward that to the frontend
         """
         packaged_act = Packet(
@@ -154,7 +154,7 @@ class ParlAIChatTaskRunner(TaskRunner):
 
     def run_onboarding(self, agent: "OnboardingAgent") -> None:
         """
-        ParlAI Onboarding will initialize an onboarding 
+        ParlAI Onboarding will initialize an onboarding
         world, then run it to completion if possible
         """
         opt: Dict[str, Any] = self.shared_state.onboarding_world_opt

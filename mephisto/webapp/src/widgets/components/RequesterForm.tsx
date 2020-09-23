@@ -20,7 +20,7 @@ const LaunchOptionsAsync = createAsync<LaunchOptions>();
 
 function RequesterForm({
   data,
-  onFinish
+  onFinish,
 }: {
   data: LaunchOptions;
   onFinish: Function;
@@ -32,7 +32,7 @@ function RequesterForm({
   );
 
   const requesterTypesAsync = useAxios<Provider>({
-    url: `/requester/${selectedProvider}/options`
+    url: `/requester/${selectedProvider}/options`,
   });
 
   return (
@@ -71,8 +71,8 @@ function RequesterForm({
                           param,
                           {
                             option_string: paramDetails.option_string,
-                            value: values[param]
-                          }
+                            value: values[param],
+                          },
                         ];
                       }
                     )
@@ -89,7 +89,7 @@ function RequesterForm({
                   handleChange,
                   handleBlur,
                   handleSubmit,
-                  isSubmitting
+                  isSubmitting,
                 }) => (
                   <div>
                     {Object.entries(details.args).map(
@@ -129,7 +129,7 @@ function RequesterForm({
 
 function RequesterFormWithData({ onFinish }: { onFinish: Function }) {
   const allRequestersAsync = useAxios<Provider>({
-    url: `/launch/options`
+    url: `/launch/options`,
   });
 
   return (

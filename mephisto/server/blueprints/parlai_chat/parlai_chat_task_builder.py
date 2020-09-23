@@ -60,7 +60,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
 
     def build_and_return_custom_bundle(self, custom_src_dir):
         """Locate all of the custom files used for a custom build, create
-        a prebuild directory containing all of them, then build the 
+        a prebuild directory containing all of them, then build the
         custom source.
 
         Check dates to only go through this build process when files have changes

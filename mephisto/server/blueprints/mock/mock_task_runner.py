@@ -52,7 +52,7 @@ class MockTaskRunner(TaskRunner):
 
     def run_onboarding(self, onboarding_agent: "OnboardingAgent"):
         """
-        Mock runners simply wait for an act to come in with whether 
+        Mock runners simply wait for an act to come in with whether
         or not onboarding is complete
         """
         packet = onboarding_agent.act(timeout=self.timeout)

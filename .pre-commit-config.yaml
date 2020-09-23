@@ -3,8 +3,11 @@ repos:
     rev: v2.4.0
     hooks:
       - id: trailing-whitespace
-      - id: end-of-file-fixer
-        exclude: "^.*svg"
+        exclude: |
+          (?x)(
+            ^.*build/|
+            ^.*md
+          )
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/psf/black
@@ -12,3 +15,15 @@ repos:
     hooks:
       - id: black
         language_version: python3.6
+  - repo: https://github.com/prettier/prettier
+    rev: "2.1.2"
+    hooks:
+      - id: prettier
+        files: "\\.(\
+          css\
+          |html\
+          |js|jsx\
+          |json\
+          |ts|tsx\
+          |yaml|yml\
+          )$"

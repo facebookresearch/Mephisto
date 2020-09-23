@@ -55,12 +55,12 @@ class Architect(ABC):
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
-        Assert that the provided arguments are valid. Should 
+        Assert that the provided arguments are valid. Should
         fail if a task launched with these arguments would
-        not work. 
+        not work.
 
         This should include throwing an exception if the architect
-        needs login details or something similar given the 
+        needs login details or something similar given the
         arguments passed in.
         """
         return
@@ -79,7 +79,7 @@ class Architect(ABC):
 
     def download_file(self, filename: str, save_dir: str) -> None:
         """
-        Save the file that is noted as stored on the server to 
+        Save the file that is noted as stored on the server to
         the desired save location.
         """
         raise NotImplementedError()

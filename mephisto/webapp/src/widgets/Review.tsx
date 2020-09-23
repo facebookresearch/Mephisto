@@ -16,7 +16,7 @@ const Async = createAsync<ReviewableTasks>();
 
 export default (function ReviewWidget() {
   const reviewAsync = useAxios({
-    url: "task_runs/reviewable"
+    url: "task_runs/reviewable",
   });
 
   return (
@@ -47,7 +47,7 @@ export default (function ReviewWidget() {
         )}
         onData={({ data }) => (
           <span>
-            {data.task_runs.map(run => (
+            {data.task_runs.map((run) => (
               <Link
                 key={run.task_run_id}
                 to={"/review/" + run.task_run_id}
@@ -62,7 +62,7 @@ export default (function ReviewWidget() {
             ))}
           </span>
         )}
-        checkIfEmptyFn={data => data.task_runs}
+        checkIfEmptyFn={(data) => data.task_runs}
         onEmptyData={() => (
           <div>
             <div className="bp3-non-ideal-state">
