@@ -1,8 +1,11 @@
 # Mephisto
 
-Mephisto makes crowdsourcing easier. 
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-We provide a platform for launching, monitoring, and reviewing your crowdsourcing tasks. Tasks made on Mephisto can easily be open sourced as part of other projects. 
+Mephisto makes crowdsourcing easier.
+
+We provide a platform for launching, monitoring, and reviewing your crowdsourcing tasks. Tasks made on Mephisto can easily be open sourced as part of other projects.
 
 As of now we're in an early alpha release, more details to come.
 
