@@ -65,8 +65,8 @@ $ python examine_results.py
 ```bash
 $ mephisto register mturk \
         name=my_mturk_user \
-        access-key-id=$ACCESS_KEY\
-        secret-access-key=$SECRET_KEY
+        access_key_id=$ACCESS_KEY\
+        secret_access_key=$SECRET_KEY
 AWS credentials successfully saved in ~/.aws/credentials file.
 
 Registered successfully.
