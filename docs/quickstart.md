@@ -65,6 +65,18 @@ $ python examine_results.py
 ```bash
 $ mephisto register mturk \
         name=my_mturk_user \
+        access_key_id=$ACCESS_KEY\
+        secret_access_key=$SECRET_KEY
+AWS credentials successfully saved in ~/.aws/credentials file.
+
+Registered successfully.
+```
+
+You can choose any name for `my_mturk_user`, as this will be the id that you later refer to when using that requester. For an `mturk_sandbox` requester, you should use `my_mturk_user_sandbox` as the name.
+
+```bash
+$ mephisto register mturk_sandbox \
+        name=my_mturk_user_sandbox \
         access-key-id=$ACCESS_KEY\
         secret-access-key=$SECRET_KEY
 AWS credentials successfully saved in ~/.aws/credentials file.
@@ -72,20 +84,25 @@ AWS credentials successfully saved in ~/.aws/credentials file.
 Registered successfully.
 ```
 
-You can choose any name for `my_mturk_user`, as this will be the id that you later refer to when using that requester. For an `mturk_sandbox` user, you should use `my_mturk_user_sandbox` as the name.
-
 2. Next, let's run the task script again, but this time we'll override the requester and the architect.
 
 ```bash
 $ cd examples/simple_static_task
 $ python static_test_script.py mephisto/architect=heroku mephisto.provider.requester_name=my_mturk_user_sandbox
+Locating heroku...
+INFO - Creating a task run under task name: html-static-task-example
+[mephisto.core.operator][INFO] - Creating a task run under task name: html-static-task-example
+Building server files...
+...
 
 # Note: my_mturk_user_sandbox is what we used to name the requester
 # when we registered the mturk account in the previous step.
+
+# The task name mentioned in the logs will be required to examine/review results of the task
 ```
 The arguments `mephisto.provider.requester_name=my_mturk_user_sandbox` and `mephisto/architect=heroku` will tell the the script to use the mturk sandbox provider and the heroku architect (as opposed to the mock provider and local architect). Notice that if we're setting a full abstraction (like the architect) we reference it with `mephisto/abstraction=val`, however when we're setting an argument, we use `mephisto.abstraction.argument=val`. This tells hydra whether we're providing an argument value or the name of a configuration to load.
 
 
 **Note**: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
 
-3. As above, you can examine/review the results of the task by running `python examine_results.py` in the example directory.
+3. You can examine/review the results of the task by running `python examine_results.py` in the example directory. Enter the task name When prompted for `Input task name:`
