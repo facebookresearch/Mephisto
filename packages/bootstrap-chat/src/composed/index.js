@@ -7,3 +7,4 @@
  */
 
 export * from "./ChatApp.jsx";
+export { default as BaseFrontend } from "./BaseFrontend.jsx";

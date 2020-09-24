@@ -20,7 +20,8 @@ import DoneResponse from "./DoneResponse.jsx";
 import ConnectionStatusBoundary from "./ConnectionStatusBoundary.jsx";
 import DefaultTaskDescription from "./DefaultTaskDescription.jsx";
 import ChatPane from "./ChatPane.jsx";
-import { ChatApp, AppContext, INPUT_MODE } from "./composed";
+import { ChatApp, AppContext, INPUT_MODE, BaseFrontend } from "./composed";
+import { MephistoContext } from "mephisto-task";
 
 export {
   ConnectionIndicator,
@@ -38,6 +39,8 @@ export {
   DefaultTaskDescription,
   ChatPane,
   ChatApp,
+  BaseFrontend,
   AppContext,
   INPUT_MODE,
+  MephistoContext,
 };

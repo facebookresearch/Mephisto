@@ -19,6 +19,7 @@ module.exports = {
   externals: {
     react: "react",
     "react-dom": "react-dom",
+    "mephisto-task": "mephisto-task",
   },
   node: {
     net: "empty",
