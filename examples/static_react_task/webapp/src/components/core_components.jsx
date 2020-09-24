@@ -66,9 +66,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
             <div className="control">
               <button
                 className="button is-success is-large"
-                // Test for type 2 errors
-                onClick={()=> {throw new Error("test error event_handler");}}
-//                 onClick={() => onSubmit({ rating: "good" })}
+                onClick={() => onSubmit({ rating: "good" })}
               >
                 Mark as Good
               </button>

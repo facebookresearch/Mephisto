@@ -15,6 +15,7 @@ import {
   postErrorLog,
   postCompleteOnboarding,
   getBlockedExplanation,
+  ErrorBoundary,
 } from "./utils";
 
 export * from "./MephistoContext";
@@ -71,10 +72,21 @@ const useMephistoTask = function () {
 
    const handleFatalError = React.useCallback(
    (data) => {
-       console.log('inside handleFatalError ...')
        postErrorLog(state.agentId, data)
    },
    [state.agentId]);
+
+    // Adding event listener instead of using window.onerror prevents the error to be caught twice
+    window.addEventListener('error', function (event) {
+      if (event.error.hasBeenCaught !== undefined){
+        return false
+      }
+      event.error.hasBeenCaught = true
+      if (confirm("Do you want to report the error?")) {
+              handleFatalError({errorMsg: event.error.message, error: event.error.stack})
+            }
+            return true;
+    })
 
   function handleIncomingTaskConfig(taskConfig) {
     if (taskConfig.block_mobile && isMobile()) {
@@ -125,4 +137,4 @@ const useMephistoTask = function () {
   };
 };
 
-export { useMephistoTask };
+export { useMephistoTask , ErrorBoundary};

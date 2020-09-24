@@ -487,9 +487,7 @@ app.post('/submit_task', upload.any(), function(req, res) {
 });
 
 app.post('/log_error', function(req, res) {
-  var provider_data = req.body;
-  let agent_id = provider_data.USED_AGENT_ID;
-  delete provider_data.USED_AGENT_ID;
+  const { USED_AGENT_ID: agent_id, ...provider_data } = req.body
   let log_packet = {
     packet_type: PACKET_TYPE_ERROR_LOG,
     sender_id: agent_id,

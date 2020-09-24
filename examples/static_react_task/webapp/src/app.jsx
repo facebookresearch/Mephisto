@@ -9,42 +9,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { BaseFrontend, LoadingScreen } from "./components/core_components.jsx";
-import { useMephistoTask } from "mephisto-task";
-
-class ErrorBoundary extends React.Component {
-
-  state = { error: null, errorInfo: null };
-
-  componentDidCatch(error, errorInfo) {
-    // Catch errors in any components below and re-render with error message
-      this.setState({
-      error: error,
-      errorInfo: errorInfo
-    })
-    // alert Mephisto worker of a component error
-    alert("Error from the frontend occurred: " + error)
-    // pass the error and errorInfo to the backend through /submit_task endpoint
-    this.props.handleError({error:error.message, errorInfo:errorInfo})
-  }
-
-  render() {
-    if (this.state.errorInfo) {
-      // Error path
-      return (
-        <div>
-          <h2>Something went wrong.</h2>
-          <details style={{ whiteSpace: 'pre-wrap' }}>
-            {this.state.error && this.state.error.toString()}
-            <br />
-            {this.state.errorInfo.componentStack}
-          </details>
-        </div>
-      );
-    }
-    // Normally, just render children
-    return this.props.children;
-  }
-}
+import { useMephistoTask, ErrorBoundary } from "mephisto-task";
 
 /* ================= Application Components ================= */
 
@@ -60,22 +25,6 @@ function MainApp() {
     handleFatalError,
     isOnboarding,
   } = useMephistoTask();
-
-
-// Adding event listener instead of using window.onerror prevents the error to be caught twice
-window.addEventListener('error', function (event) {
-  if (event.error.hasBeenCaught !== undefined){
-    return false
-  }
-  event.error.hasBeenCaught = true
-  if (confirm("Do you want to report the error?")) {
-          console.log("You pressed OK!");
-          handleFatalError({errorMsg: event.error.message, error: event.error.stack})
-        } else {
-          console.log("You pressed Cancel!");
-        }
-        return true;
-})
 
   if (blockedReason !== null) {
     return (

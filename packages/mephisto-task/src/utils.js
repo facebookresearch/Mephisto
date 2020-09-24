@@ -3,9 +3,10 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
+import React from "react";
 import Bowser from "bowser";
 const axios = require("axios");
+
 
 /*
   The following global methods are to be specified in wrap_crowd_source.js
@@ -158,5 +159,40 @@ export function getBlockedExplanation(reason) {
     return explanations[reason];
   } else {
     return `Sorry, you are not able to work on this task. (code: ${reason})`;
+  }
+}
+
+export class ErrorBoundary extends React.Component {
+
+  state = { error: null, errorInfo: null };
+
+  componentDidCatch(error, errorInfo) {
+    // Catch errors in any components below and re-render with error message
+      this.setState({
+      error: error,
+      errorInfo: errorInfo
+    })
+    // alert Mephisto worker of a component error
+    alert("Error from the frontend occurred: " + error)
+    // pass the error and errorInfo to the backend through /submit_task endpoint
+    this.props.handleError({error:error.message, errorInfo:errorInfo})
+  }
+
+  render() {
+    if (this.state.errorInfo) {
+      // Error path
+      return (
+        <div>
+          <h2>Something went wrong.</h2>
+          <details style={{ whiteSpace: 'pre-wrap' }}>
+            {this.state.error && this.state.error.toString()}
+            <br />
+            {this.state.errorInfo.componentStack}
+          </details>
+        </div>
+      );
+    }
+    // Normally, just render children
+    return this.props.children;
   }
 }
