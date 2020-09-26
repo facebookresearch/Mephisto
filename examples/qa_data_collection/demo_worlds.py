@@ -71,7 +71,6 @@ class QADataCollectionWorld(MTurkTaskWorld):
                 self.context + '\n\nPlease provide a question given this context.'
             )
             self.mturk_agent.observe(validate(ad))
-            self.mturk_agent.observe(validate({'id':'Test', 'text':'sample message', 'episode_done': False}))
             self.question = self.mturk_agent.act(timeout=self.opt["turn_timeout"])
             # Can log the turker's question here
 
