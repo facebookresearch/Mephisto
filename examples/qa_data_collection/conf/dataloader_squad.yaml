@@ -1,0 +1,6 @@
+dataloader:
+  module_name: parlai.tasks.squad.agents
+  class_name: DefaultTeacher
+  datatype: train
+  datapath: ${task_dir}/data
+  task: ${mephisto.task.task_name}

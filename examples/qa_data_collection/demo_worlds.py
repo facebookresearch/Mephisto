@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 from parlai.mturk.core.worlds import MTurkOnboardWorld, MTurkTaskWorld
 from parlai.core.worlds import validate
-from joblib import Parallel, delayed
+import importlib
 
 
 class QADataCollectionOnboardWorld(MTurkOnboardWorld):
@@ -40,8 +40,8 @@ class QADataCollectionWorld(MTurkTaskWorld):
 
     collector_agent_id = 'QA Collector'
 
-    def __init__(self, opt, task, mturk_agent):
-        self.task = task
+    def __init__(self, opt, dataloader=None, mturk_agent=None):
+        self.dataloader = dataloader
         self.mturk_agent = mturk_agent
         self.mturk_agent.agent_id = "QA Agent"
         self.episodeDone = False
@@ -62,16 +62,19 @@ class QADataCollectionWorld(MTurkTaskWorld):
             # and prompts the turker to ask a question regarding the context
 
             # Get context from SQuAD teacher agent
-            # qa = self.task.act()
-            qa = {"text":"This is a sample question\n"}
-            self.context = '\n'.join(qa['text'].split('\n')[:-1])
+            qa = self.dataloader.act()
+            if qa["id"] == 'wikipedia':
+                self.context = qa['text']
+            else:
+                self.context = '\n'.join(qa['text'].split('\n')[:-1])
 
             # Wrap the context with a prompt telling the turker what to do next
             ad['text'] = (
                 self.context + '\n\nPlease provide a question given this context.'
             )
             self.mturk_agent.observe(validate(ad))
-            self.question = self.mturk_agent.act(timeout=self.opt["turn_timeout"])
+            self.question = self.mturk_agent.act(
+                timeout=self.opt["turn_timeout"])
             # Can log the turker's question here
 
         if self.turn_index == 1:
@@ -85,7 +88,8 @@ class QADataCollectionWorld(MTurkTaskWorld):
             ad['episode_done'] = True  # end of episode
 
             self.mturk_agent.observe(validate(ad))
-            self.answer = self.mturk_agent.act(timeout=self.opt["turn_timeout"])
+            self.answer = self.mturk_agent.act(
+                timeout=self.opt["turn_timeout"])
 
             self.episodeDone = True
 
@@ -116,7 +120,11 @@ def validate_onboarding(data):
 
 
 def make_world(opt, agents):
-    return QADataCollectionWorld(opt, task=None, mturk_agent=agents[0])
+    my_module = importlib.import_module(opt["dataloader"]["module_name"])
+    task_class = getattr(my_module, opt["dataloader"]["class_name"])
+    task_opt = opt["dataloader"]
+    dataloader = task_class(task_opt)
+    return QADataCollectionWorld(opt, dataloader=dataloader, mturk_agent=agents[0])
 
 
 def get_world_params():

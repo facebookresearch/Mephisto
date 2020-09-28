@@ -1,0 +1,5 @@
+dataloader:
+  module_name: parlai.tasks.wikipedia.agents
+  class_name: SummaryTeacher
+  datapath: ${task_dir}/data
+  task: ${mephisto.task.task_name}
