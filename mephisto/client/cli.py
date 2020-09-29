@@ -24,6 +24,15 @@ def web():
     app.run(debug=False)
 
 
+@cli.command("review")
+@click.argument("build_dir", type=click.Path(exists=True))
+# @click.argument("index_path", type=click.Path(exists=True))
+def review(build_dir):
+    from mephisto.client.review_server import run
+
+    run(build_dir)
+
+
 @cli.command("check")
 def check():
     """Checks that mephisto is setup correctly"""
