@@ -25,12 +25,11 @@ def web():
 
 
 @cli.command("review")
-@click.argument("build_dir", type=click.Path(exists=True))
-# @click.argument("index_path", type=click.Path(exists=True))
-def review(build_dir):
+@click.argument("review_app_dir", type=click.Path(exists=True))
+def review(review_app_dir):
     from mephisto.client.review_server import run
 
-    run(build_dir)
+    run(review_app_dir)
 
 
 @cli.command("check")
