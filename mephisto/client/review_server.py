@@ -26,7 +26,7 @@ else:
     cli.show_server_banner = lambda *x: None
 
 
-def run(build_dir):
+def run(build_dir, port):
     global index_file, app
     global ready_for_next, current_data, finished, index_file
     global counter
@@ -100,4 +100,4 @@ def run(build_dir):
 
     thread = threading.Thread(target=consume_data)
     thread.start()
-    app.run(debug=False)
+    app.run(debug=False, port=port)

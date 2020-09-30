@@ -26,10 +26,12 @@ def web():
 
 @cli.command("review")
 @click.argument("review_app_dir", type=click.Path(exists=True))
-def review(review_app_dir):
+@click.option("-p", "--port", type=(int), default=5000)
+def review(review_app_dir, port):
+    """Transform data from stdin to stdout via a webapp. Good for review."""
     from mephisto.client.review_server import run
 
-    run(review_app_dir)
+    run(review_app_dir, port)
 
 
 @cli.command("check")
