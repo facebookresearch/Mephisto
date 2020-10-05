@@ -53,3 +53,16 @@ function handleSubmitToProvider(task_data) {
     alert("The task has been submitted! Data: " + JSON.stringify(task_data))
     return true;
 }
+
+// Adding event listener instead of using window.onerror prevents the error to be caught twice
+window.addEventListener('error', function (event) {
+  if (event.error.hasBeenCaught !== undefined){
+    return false
+  }
+  event.error.hasBeenCaught = true
+  if (confirm("Do you want to report the error?")) {
+      prompt('send the following error to the email address: '+
+      '[email address]', JSON.stringify(event.error.message))
+        }
+        return true;
+})
