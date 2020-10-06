@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-window.ReactLib = React;
-
 function useMephistoReview() {
   const [data, setData] = useState(null);
   const [counter, setCounter] = useState(0);
