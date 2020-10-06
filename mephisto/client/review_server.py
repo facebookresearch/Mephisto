@@ -14,7 +14,7 @@ import time
 import threading
 
 
-def run(build_dir, port, output, debug=False):
+def run(build_dir, port, output, csv_headers, debug=False):
     global index_file, app
     global ready_for_next, current_data, finished, index_file
     global counter
@@ -38,6 +38,9 @@ def run(build_dir, port, output, debug=False):
     def consume_data():
         global ready_for_next, current_data, finished, counter
         data_source = csv.reader(iter(sys.stdin.readline, ""))
+
+        if csv_headers:
+            next(data_source)
 
         finished = False
         counter = 0
@@ -63,7 +66,7 @@ def run(build_dir, port, output, debug=False):
         )
 
     @app.route("/submit_current_task", methods=["GET", "POST"])
-    def next():
+    def next_task():
         global current_data, ready_for_next, finished, counter
 
         result = (

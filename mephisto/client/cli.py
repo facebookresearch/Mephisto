@@ -30,8 +30,9 @@ def web():
 @click.option("-o", "--output", type=(str), default="")
 @click.option("--stdout", "output_method", flag_value="stdout")
 @click.option("--file", "output_method", flag_value="file", default=True)
+@click.option("--csv-headers/--no-csv-headers", default=False)
 @click.option("-d", "--debug", type=(bool), default=False)
-def review(review_app_dir, port, output, output_method, debug):
+def review(review_app_dir, port, output, output_method, csv_headers, debug):
     """Transform data from stdin to stdout via a webapp. Good for review."""
     from mephisto.client.review_server import run
 
@@ -40,7 +41,7 @@ def review(review_app_dir, port, output, output_method, debug):
             "You must specify an output file via --output=<filename>, unless the --stdout flag is set."
         )
 
-    run(review_app_dir, port, output, debug)
+    run(review_app_dir, port, output, csv_headers, debug)
 
 
 @cli.command("check")
