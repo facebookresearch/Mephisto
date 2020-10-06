@@ -14,22 +14,20 @@ import time
 import threading
 
 
-if False:  # sys.stdout.isatty():
-    pass
-else:
-    # disable all logging out to stdout
-    import logging
-
-    log = logging.getLogger("werkzeug")
-    log.setLevel(logging.ERROR)
-    cli = sys.modules["flask.cli"]
-    cli.show_server_banner = lambda *x: None
-
-
-def run(build_dir, port):
+def run(build_dir, port, output, debug=False):
     global index_file, app
     global ready_for_next, current_data, finished, index_file
     global counter
+
+    if not debug or output == "":
+        # disable noisy logging of flask
+        import logging
+
+        log = logging.getLogger("werkzeug")
+        log.disabled = True
+        cli = sys.modules["flask.cli"]
+        cli.show_server_banner = lambda *x: None
+
     app = Flask(
         __name__,
         root_path=os.getcwd(),
@@ -74,8 +72,12 @@ def run(build_dir, port):
             else request.ags.get("result")
         )
 
-        sys.stdout.write("{}\n".format(result))
-        sys.stdout.flush()
+        if output == "":
+            sys.stdout.write("{}\n".format(result))
+            sys.stdout.flush()
+        else:
+            with open(output, "a+") as f:
+                f.write("{}\n".format(result))
 
         ready_for_next.set()
         time.sleep(0)
@@ -100,4 +102,6 @@ def run(build_dir, port):
 
     thread = threading.Thread(target=consume_data)
     thread.start()
+    if sys.stdout.isatty():
+        print("Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)".format(port))
     app.run(debug=False, port=port)

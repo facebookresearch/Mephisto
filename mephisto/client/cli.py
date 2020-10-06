@@ -27,11 +27,20 @@ def web():
 @cli.command("review")
 @click.argument("review_app_dir", type=click.Path(exists=True))
 @click.option("-p", "--port", type=(int), default=5000)
-def review(review_app_dir, port):
+@click.option("-o", "--output", type=(str), default="")
+@click.option("--stdout", "output_method", flag_value="stdout")
+@click.option("--file", "output_method", flag_value="file", default=True)
+@click.option("-d", "--debug", type=(bool), default=False)
+def review(review_app_dir, port, output, output_method, debug):
     """Transform data from stdin to stdout via a webapp. Good for review."""
     from mephisto.client.review_server import run
 
-    run(review_app_dir, port)
+    if output == "" and output_method == "file":
+        raise click.UsageError(
+            "You must specify an output file via --output=<filename>, unless the --stdout flag is set."
+        )
+
+    run(review_app_dir, port, output, debug)
 
 
 @cli.command("check")
