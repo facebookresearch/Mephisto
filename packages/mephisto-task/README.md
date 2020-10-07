@@ -71,7 +71,9 @@ Example:
 ```
 ### `agentId`
 
-An `agentId `is another way of representing a worker working on a task. A single task might have multiple `agentId`s, for example in the case of conversational chat tasks. An agent could also be a model-in-the-loop instead of a worker. Usually you'll want to use `agentId` in your task code to represent workers. 
+An `agentId ` represents a worker working on a task. A single task could have multiple `agentId`s, for example in the case of conversational chat tasks. An agent could also be a model-in-the-loop instead of a worker.
+
+Usually you'll want to use `agentId` in your task code to represent workers as opposed to `mephistoWorkerId` and `providerWorkerId` which are reserved for more advanced usages. 
 
 ### `assignmentId`
 
