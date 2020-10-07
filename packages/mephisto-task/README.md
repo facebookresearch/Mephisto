@@ -1,5 +1,9 @@
 # mephisto-task
 
+This package provides two hooks to faciliate React-based task development for Mephisto tasks.
+
+Use `useMephistoTask` for simple, static tasks or `useMephistoLiveTask` for multi-turn, socket-based tasks.
+
 ## Installation
 
 ```bash
@@ -22,8 +26,6 @@ npm link mephisto-task
 ```
 
 ## Usage (`useMephistoTask`)
-
-In your component, you can call `useMephistoTask` for simple, static tasks or `useMephistoLiveTask` for multi-turn socket-based communications:
 
 ```jsx
 import { useMephistoTask } from "mephisto-task";
