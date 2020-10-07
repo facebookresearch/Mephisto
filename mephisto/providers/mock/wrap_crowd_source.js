@@ -15,6 +15,7 @@ for both to be able to register them with the backend database.
 Returning None for the assignment_id means that the task is being
 previewed by the given worker.
 \------------------------------------------*/
+auto_submit = false
 
 // MOCK IMPLEMENTATION
 function getWorkerName() {
@@ -56,13 +57,19 @@ function handleSubmitToProvider(task_data) {
 
 // Adding event listener instead of using window.onerror prevents the error to be caught twice
 window.addEventListener('error', function (event) {
-  if (event.error.hasBeenCaught !== undefined){
+
+    if (event.error.hasBeenCaught !== undefined){
     return false
   }
   event.error.hasBeenCaught = true
-  if (confirm("Do you want to report the error?")) {
-      prompt('send the following error to the email address: '+
-      '[email address]', JSON.stringify(event.error.message))
-        }
-        return true;
+  if (!auto_submit) {
+      if (confirm("Do you want to report the error?")) {
+          prompt('send the following error to the email address: '+
+          '[email address]', JSON.stringify(event.error.message))
+            }
+  }
+  else {
+    console.log("sending to email address: ####")
+  }
+  return true;
 })
