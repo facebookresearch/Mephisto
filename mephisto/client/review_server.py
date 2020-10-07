@@ -20,13 +20,13 @@ def run(build_dir, port, output, csv_headers, debug=False):
     global counter
 
     if not debug or output == "":
-        # disable noisy logging of flask
+        # disable noisy logging of flask, https://stackoverflow.com/a/18379764
         import logging
 
-        log = logging.getLogger("werkzeug")
-        log.disabled = True
-        cli = sys.modules["flask.cli"]
-        cli.show_server_banner = lambda *x: None
+        flask_log = logging.getLogger("werkzeug")
+        flask_log.disabled = True
+        flask_cli = sys.modules["flask.cli"]
+        flask_cli.show_server_banner = lambda *x: None
 
     app = Flask(
         __name__,
