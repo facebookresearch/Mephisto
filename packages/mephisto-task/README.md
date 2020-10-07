@@ -41,6 +41,7 @@ function MyApp() {
         isOnboarding,
         blockedReason,
 
+        // advanced usage:
         providerWorkerId,
         mephistoWorkerId,
 
@@ -53,7 +54,7 @@ function MyApp() {
 The `useMephisoTask` React hook exposes the following fields:
 
 ### `taskConfig`
-A config object passed from the backend.
+An arbitrary task-specific config object passed from the backend.
 
 Example:
 ```json
@@ -78,7 +79,7 @@ When a worker accepts a task, an `assignmentId` is created to represent the pair
 
 The initial data to populate your task with. The worker will use this data to perform their action.
 
-### `handleSubmit`
+### `handleSubmit(payload)`
 
 A callback provided for the webapp to finalize and submit the worker's resulting work back to Mephisto.
 
@@ -88,7 +89,7 @@ Essentially a convenient proxy for `assignmentId === null && providerWorkerId ==
 
 A boolean flag to be used to render a preview view for workers, e.g. on mTurk.
 
-See `previewHtml` as well, which uses this flag to provide a helper prop for generating static preview screens.
+See `previewHtml` as well, which uses this flag to provide a helper prop for describing static preview screens.
 
 ### `isLoading`
 
@@ -144,9 +145,10 @@ function MyApp() {
         destroy,
         sendMessage
 
-        connectionStatus,
         agentState,
         agentStatus,
+
+        connectionStatus,
     } = useMephistoLiveTask(
         onConnectionStatusChange: (connectionStatus) => {
             
@@ -157,11 +159,71 @@ function MyApp() {
         onMessageReceived: (message) => {
 
         },
-        config, // optional overrides
-        customConnectionHook, // optional - provide your own hook for managing the under-the-hood connection mechanism to communicate with the Mephisto server. The default (useMephistoSocket) uses websockets.
+        config, // optional overrides for connection constants
+        customConnectionHook, // (advanced usage) optional - provide your own hook for managing the under-the-hood connection mechanism to communicate with the Mephisto server. The default (useMephistoSocket) uses websockets.
     );
 }
 ```
+
+### `connect(agentId)`
+
+Starts a persistent socket connection between the current `agentId` and the Mephisto live server.
+
+### `destroy()`
+
+Closes the socket connection that was created with the Mephisto live server. This connection cannot be reopened. 
+
+### `sendMessage(payload)`
+
+Once a connection is established, sends a message over the socket connection to the Mephisto live server on behalf of the agent.
+
+### `agentState`
+
+This object may contain agent-specific information that the live server updates.
+
+For example, in the case of a server disconnect, the `agentState` will update with:
+
+```
+{
+    done_text: <message describing the disconnect>,
+    task_done: true
+}
+```
+
+### `agentStatus`
+
+Can be one of:
+
+`AGENT_STATUS.NONE` \
+`AGENT_STATUS.ONBOARDING` \
+`AGENT_STATUS.WAITING` \
+`AGENT_STATUS.IN_TASK` \
+`AGENT_STATUS.DONE`
+
+`AGENT_STATUS.RETURNED` \
+`AGENT_STATUS.TIMEOUT` \
+`AGENT_STATUS.EXPIRED` \
+`AGENT_STATUS.DISCONNECT` \
+`AGENT_STATUS.PARTNER_DISCONNECT` \
+`AGENT_STATUS.MEPHISTO_DISCONNECT`
+
+
+### `connectionStatus` (advanced usage)
+
+Can be one of:
+
+`CONNECTION_STATUS.INITIALIZING` \
+`CONNECTION_STATUS.CONNECTED`
+
+`CONNECTION_STATUS.RECONNECTING_ROUTER` \
+`CONNECTION_STATUS.RECONNECTING_SERVER` 
+
+`CONNECTION_STATUS.FAILED` \
+`CONNECTION_STATUS.WEBSOCKETS_FAILURE` \
+`CONNECTION_STATUS.DISCONNECTED` \
+`CONNECTION_STATUS.DISCONNECTED_ROUTER` \
+`CONNECTION_STATUS.DISCONNECTED_SERVER`
+
 
 ### Override options with the `config` object
 
