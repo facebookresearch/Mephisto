@@ -17,7 +17,9 @@ npm link
 cd <app folder>
 npm link bootstrap-chat
 
-# If you're getting an invalid hooks error (https://reactjs.org/warnings/invalid-hook-call-warning.html), you can also do the following to ensure that both the app and bootstrap-chat are using the same version of React:
+# If you're getting an invalid hooks error (https://reactjs.org/warnings/invalid-hook-call-warning.html),
+# you can also do the following to ensure that both the app
+# and bootstrap-chat are using the same version of React:
 # 
 # cd packages/bootstrap-chat
 # npm link ../<app folder>/node_modules/react
@@ -25,3 +27,7 @@ npm link bootstrap-chat
 ```
 
 ## Usage
+
+This package contains both individual components for building a chat-app, as well as precomposed components that can get you going quickly.
+
+We generally recommend starting with the precomposed components, unless you have an advanced use-case.
