@@ -24,6 +24,26 @@ def web():
     app.run(debug=False)
 
 
+@cli.command("review")
+@click.argument("review_app_dir", type=click.Path(exists=True))
+@click.option("-p", "--port", type=(int), default=5000)
+@click.option("-o", "--output", type=(str), default="")
+@click.option("--stdout", "output_method", flag_value="stdout")
+@click.option("--file", "output_method", flag_value="file", default=True)
+@click.option("--csv-headers/--no-csv-headers", default=False)
+@click.option("-d", "--debug", type=(bool), default=False)
+def review(review_app_dir, port, output, output_method, csv_headers, debug):
+    """Launch a local review UI server. Reads in rows froms stdin and outputs to either a file or stdout."""
+    from mephisto.client.review_server import run
+
+    if output == "" and output_method == "file":
+        raise click.UsageError(
+            "You must specify an output file via --output=<filename>, unless the --stdout flag is set."
+        )
+
+    run(review_app_dir, port, output, csv_headers, debug)
+
+
 @cli.command("check")
 def check():
     """Checks that mephisto is setup correctly"""
