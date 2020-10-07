@@ -24,4 +24,4 @@ npm link bootstrap-chat
 
 ```
 
-## Usage (`useMephistoTask`)
+## Usage
