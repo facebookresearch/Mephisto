@@ -7,7 +7,7 @@ Use `useMephistoTask` for simple, static tasks or `useMephistoLiveTask` for mult
 ## Installation
 
 ```bash
-npm install mephisto-task
+npm install --save mephisto-task
 ```
 
 Install from local folder (e.g. for local development):
