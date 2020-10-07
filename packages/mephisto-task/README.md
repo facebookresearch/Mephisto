@@ -6,7 +6,7 @@
 npm install mephisto-task
 ```
 
-Install from local folder:
+Install from local folder (e.g. for local development):
 
 ```bash
 cd packages/mephisto-task
@@ -14,6 +14,11 @@ npm link
 
 cd <app folder>
 npm link mephisto-task
+
+# If you're getting an invalid hooks error (https://reactjs.org/warnings/invalid-hook-call-warning.html), you can also do the following to ensure that both the app and mephisto-task are using the same version of React:
+# 
+# cd packages/mephisto-task
+# npm link ../<app folder>/node_modules/react
 ```
 
 ## Usage (`useMephistoTask`)
@@ -26,8 +31,6 @@ import { useMephistoTask } from "mephisto-task";
 function MyApp() {
     const {
         taskConfig,
-        providerWorkerId,
-        mephistoWorkerId,
         agentId,
         assignmentId,
 
@@ -37,6 +40,10 @@ function MyApp() {
         previewHtml,
         isOnboarding,
         blockedReason,
+
+        providerWorkerId,
+        mephistoWorkerId,
+
     } = useMephistoTask();
 }
 ```
@@ -59,33 +66,37 @@ Example:
     task_description: "Placeholder Task Description - Javascript failed to load"
 }
 ```
-
-### `providerWorkerId`
-### `mephistoWorkerId`
 ### `agentId`
+
+An `agentId `is another way of representing a worker working on a task. A single task might have multiple `agentId`s, for example in the case of conversational chat tasks. An agent could also be a model-in-the-loop instead of a worker. Usually you'll want to use `agentId` in your task code to represent workers. 
+
 ### `assignmentId`
+
+When a worker accepts a task, an `assignmentId` is created to represent the pairing between the worker and the task.
 
 ### `initialTaskData`
 
-The initial data to populate your task with. The crowdworker will use this data to perform their action.
+The initial data to populate your task with. The worker will use this data to perform their action.
 
 ### `handleSubmit`
 
-A callback provided for the webapp to call to finalize and submit the resulting crowdworker's work back to the Mephisto system.
+A callback provided for the webapp to finalize and submit the worker's resulting work back to Mephisto.
 
 ### `isPreview`
 
-Essentially a proxy for `providerWorkerId === null && assignmentId === null`.
+Essentially a convenient proxy for `assignmentId === null && providerWorkerId === null`.
 
 A boolean flag to be used to render a preview view for workers, e.g. on mTurk.
 
+See `previewHtml` as well, which uses this flag to provide a helper prop for generating static preview screens.
+
 ### `isLoading`
 
-A boolean flag to be used to render a loading state while a task is handshaking with the server backend and initializing. Once the initialTaskData is loaded, this will be set to `true`.
+A boolean flag to be used to render a loading state while a task is handshaking with the Mephisto server backend and initializing. Once the `initialTaskData` is loaded, this will be set to `true`.
 
 ### `previewHtml`
 
-A preview HTML snippet to show for the task in preview mode.
+A preview HTML snippet to show for the task in preview mode. You can use this to provide a static task preview screen or use `isPreview` for something more custom.
 
 ### `isOnboarding`
 
@@ -93,9 +104,9 @@ A flag to determine if the current task data is from a real task or an onboardin
 
 ### `blockedReason`
 
-A code that when not null means that the current user is blocked from the current task.
+A string-based code that when not null means that the current user is blocked from working on the current task.
 
-A sentence description for the `blockedReason` can be looked up as such:
+A sentence description for the `blockedReason` can be looked up with the helper function `getBlockedExplanation()` as such:
 
 ```jsx
 import { getBlockedExplanation } from "mephisto-task";
@@ -107,6 +118,14 @@ getBlockedExplanation(blockedReason)
 // returns -> "Sorry, this task cannot be completed on mobile devices. Please use a computer.
 
 ```
+
+### `providerWorkerId` (advanced usage)
+
+The ID created for the worker by the provider, e.g. mTurk.
+
+### `mephistoWorkerId` (advanced usage)
+
+The ID created for the worker by Mephisto.
 
 
 ---
