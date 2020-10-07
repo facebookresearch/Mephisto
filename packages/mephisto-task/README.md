@@ -1,6 +1,6 @@
 # mephisto-task
 
-This package provides two hooks to faciliate React-based task development for Mephisto tasks.
+This package provides two hooks to faciliate React-based front-end development for Mephisto tasks.
 
 Use `useMephistoTask` for simple, static tasks or `useMephistoLiveTask` for multi-turn, socket-based tasks.
 
@@ -61,12 +61,12 @@ An arbitrary task-specific config object passed from the backend.
 Example:
 ```json
 {
-    block_mobile: true
-    frame_height: 650
-    get_task_feedback: false
-    num_subtasks: 2
-    question: "Who would you prefer to talk to for a long conversation?"
-    task_description: "Placeholder Task Description - Javascript failed to load"
+    "block_mobile": true,
+    "frame_height": 650,
+    "get_task_feedback": false,
+    "num_subtasks": 2,
+    "question": "Who would you prefer to talk to for a long conversation?",
+    "task_description": "Pick the AI that you find more engaging."
 }
 ```
 ### `agentId`
