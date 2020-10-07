@@ -10,18 +10,18 @@ import React from "react";
 
 function DefaultTaskDescription({ chatTitle, taskDescriptionHtml, children }) {
   return (
-    <div>
+    <div style={{ height: '100%' }}>
       <h1>{chatTitle}</h1>
       <hr style={{ borderTop: "1px solid #555" }} />
       {children}
       {children ? <hr style={{ borderTop: "1px solid #555" }} /> : null}
-      <span
+      {/* <span
         id="task-description"
         style={{ fontSize: "16px" }}
         dangerouslySetInnerHTML={{
           __html: taskDescriptionHtml || "Task Description Loading",
         }}
-      />
+      /> */}
     </div>
   );
 }

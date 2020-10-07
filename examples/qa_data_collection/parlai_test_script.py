@@ -26,8 +26,8 @@ defaults = [
     {"mephisto/architect": "local"},
     {"mephisto/provider": "mock"},
     "conf/base",
-    {"conf": "example"},
-    {"conf": "dataloader_wikipedia"},
+    {"conf": "custom_prebuilt"},
+    {"conf": "dataloader_squad"},
 ]
 
 

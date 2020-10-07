@@ -9,8 +9,8 @@
 import React from "react";
 import { FormControl, Button } from "react-bootstrap";
 
-function TextResponse({ onMessageSend, active }) {
-  const [textValue, setTextValue] = React.useState("");
+function TextResponse({ onMessageSend, active, textValue, setTextValue }) {
+
   const [sending, setSending] = React.useState(false);
 
   const inputRef = React.useRef();

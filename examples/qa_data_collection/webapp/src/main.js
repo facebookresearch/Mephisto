@@ -10,14 +10,41 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "bootstrap-chat/styles.css";
 
-import { ChatApp, ChatMessage, DefaultTaskDescription } from "bootstrap-chat";
+import { ChatApp, ChatMessage, DefaultTaskDescription } from "../../../../packages/bootstrap-chat";
+
+function logSelection(event, setTextValue) {
+  const selection = event.target.value.substring(event.target.selectionStart, event.target.selectionEnd);
+  console.log(selection)
+  setTextValue(selection)
+  // debugger
+}
+
+function TestingFunction({ messages, setTextValue }) {
+  const mystyle = {
+    resize: "none",
+    backgroundColor: "#dff0d8",
+    width: "100%",
+    height: "100%",
+    border: "0px"
+  };
+  if (messages.length > 0) {
+    return (<textarea readOnly style={mystyle} onSelect={(e) => logSelection(e, setTextValue)} defaultValue={messages[0].passage} />)
+  }
+  return null
+}
+
+// function TestHighlight({ text }) {
+//   // console.log("Some text has been highlighted")
+//   return (<p> {text} </p>)
+// }
 
 function RenderChatMessage({ message, mephistoContext, appContext, idx }) {
   const { agentId } = mephistoContext;
   const { currentAgentNames } = appContext.taskContext;
 
   return (
-    <div onClick={() => alert("You clicked on message with index " + idx)}>
+    // <div onClick={() => alert("You clicked on message with index " + idx)}>
+    <div>
       <ChatMessage
         isSelf={message.id === agentId || message.id in currentAgentNames}
         agentName={
@@ -45,20 +72,13 @@ function MainApp() {
           key={message.message_id + "-" + idx}
         />
       )}
-      renderSidePane={({ mephistoContext: { taskConfig } }) => (
+      renderSidePane={({ mephistoContext: { taskConfig }, messages, textValue, setTextValue }) => (
         <DefaultTaskDescription
           chatTitle={taskConfig.chat_title}
           taskDescriptionHtml={taskConfig.task_description}
         >
-          <h2>This is a custom Task Description loaded from a custom bundle</h2>
-          <p>
-            It has the ability to do a number of things, like directly access
-            the contents of task data, view the number of messages so far, and
-            pretty much anything you make like. We're also able to control other
-            components as well, as in this example we've made it so that if you
-            click a message, it will alert with that message idx.
-          </p>
-          <p>The regular task description content will now appear below:</p>
+          <TestingFunction messages={messages} setTextValue={setTextValue} />
+          {/* <TestHighlight text={window.getSelection().toString()} /> */}
         </DefaultTaskDescription>
       )}
     />
@@ -66,3 +86,4 @@ function MainApp() {
 }
 
 ReactDOM.render(<MainApp />, document.getElementById("app"));
+

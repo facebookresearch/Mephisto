@@ -36,11 +36,13 @@ function BaseFrontend({
   const { appSettings } = appContext;
   const sidePaneSize = appSettings.isCoverPage ? "col-xs-12" : "col-xs-4";
 
+  const [textValue, setTextValue] = React.useState("");
+
   return (
     <ConnectionStatusBoundary status={connectionStatus}>
       <div className="row" style={{ height: taskConfig.frame_height }}>
         <div className={"side-pane " + sidePaneSize}>
-          {renderSidePane({ mephistoContext, appContext })}
+          {renderSidePane({ mephistoContext, appContext, messages, textValue, setTextValue })}
         </div>
         <div className="chat-container-pane">
           <div className="right-top-pane">
@@ -67,12 +69,14 @@ function BaseFrontend({
               mephistoContext,
             })
           ) : (
-            <ResponsePane
-              inputMode={inputMode}
-              onMessageSend={onMessageSend}
-              renderTextResponse={renderTextResponse}
-            />
-          )}
+              <ResponsePane
+                inputMode={inputMode}
+                onMessageSend={onMessageSend}
+                renderTextResponse={renderTextResponse}
+                textValue={textValue}
+                setTextValue={setTextValue}
+              />
+            )}
         </div>
       </div>
     </ConnectionStatusBoundary>
@@ -100,7 +104,7 @@ function ChatStatusBar() {
   );
 }
 
-function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
+function ResponsePane({ onMessageSend, inputMode, renderTextResponse, textValue, setTextValue }) {
   const { taskContext, onTaskComplete } = React.useContext(AppContext);
   const { agentState = {} } = React.useContext(MephistoContext);
 
@@ -135,11 +139,13 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
             active: inputMode === INPUT_MODE.READY_FOR_INPUT,
           })
         ) : (
-          <TextResponse
-            onMessageSend={onMessageSend}
-            active={inputMode === INPUT_MODE.READY_FOR_INPUT}
-          />
-        );
+            <TextResponse
+              textValue={textValue}
+              setTextValue={setTextValue}
+              onMessageSend={onMessageSend}
+              active={inputMode === INPUT_MODE.READY_FOR_INPUT}
+            />
+          );
       }
       break;
     case INPUT_MODE.IDLE:

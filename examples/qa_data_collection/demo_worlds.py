@@ -64,14 +64,16 @@ class QADataCollectionWorld(MTurkTaskWorld):
             # Get context from SQuAD teacher agent
             qa = self.dataloader.act()
             if qa["id"] == 'wikipedia':
-                self.context = qa['text']
+                ad["passage"] = qa['text']
             else:
-                self.context = '\n'.join(qa['text'].split('\n')[:-1])
+                ad["passage"] = '\n'.join(qa['text'].split('\n')[:-1])
 
+            # ad["passage"] = "This is a sample passage.\nIt contains information about a sample entity"
             # Wrap the context with a prompt telling the turker what to do next
-            ad['text'] = (
-                self.context + '\n\nPlease provide a question given this context.'
-            )
+            # ad['text'] = (
+            #     self.context + '\n\nPlease provide a question given this context.'
+            # )
+            ad['text'] = 'Please provide a question given this context.'
             self.mturk_agent.observe(validate(ad))
             self.question = self.mturk_agent.act(
                 timeout=self.opt["turn_timeout"])
