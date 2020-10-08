@@ -101,13 +101,14 @@ Note: If `renderResponse()` is also implemented, this render prop will be ignore
 
 This render prop is for cases where you'd like to minimally alter the response text box. For larger customizations, we recommend implementing `renderReponse()` instead.
 
-```js
-{
-    onMessageSend,
-    inputMode,
-    active, // helper boolean, essentially is true when inputMode is INPUT_MODE.READY_FOR_INPUT
-}
-```
+**Arguments:**
+
+**`onMessageSend`**: 
+
+**`inputMode`**: 
+
+**`active`**: A helper boolean, essentially is true when `inputMode` is `INPUT_MODE.READY_FOR_INPUT`
+
 
 ### `renderResponse({ onMessageSend, inputMode, mephistoContext, appContext })`
 A render prop that if implemented, overrides the way the entire response panel is rendered. You will be responsible for handling all aspects of the panel in this case.
