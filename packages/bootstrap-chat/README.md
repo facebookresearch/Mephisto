@@ -74,20 +74,22 @@ All render props will receive as part of their args both `mephistoContext` and `
 ### `renderMessage({ message, idx, mephistoContext, appContext })`
 A render prop that if implemented, overides the way a chat message is rendered.
 
+**Arguments:**
 
-```js
+**`message`**: An object with the following schema:
+
+TODO: where does this object come from in the backend? Find to verify the below
+
+```
 {
-    message: {
-        id,
-        text,
-        task_data
-    },
-    idx, // the 0-indexed position of this message with respect to all messages received
-
-    mephistoContext, // the current MephistoContext
-    appContext // the current AppContext
+    message_id,
+    text,
+    task_data
 }
 ```
+
+**`idx`**: The 0-based index of the current message in the list of all messages
+
 
 ### `renderSidePane({ mephistoContext, appContext })`
 A render prop that if implemented, overrides the way the side pane is rendered.
@@ -116,3 +118,24 @@ Note: If this render prop is implemented, `renderTextResponse()` will be ignored
 ### `onMessagesChange(messages)`
 
 A callback that will get called any time a new message is received. The callback will receive as an argument all messages received thus far.
+
+### The `mephistoContext` argument
+
+All render props will receive the `mephistoContext` argument.
+
+This object is basically the return value of calling the `useMephistoLiveTask` hooks. Further documentation on these properties can be found in the documentation for the `mephisto-task` package under the `useMephistoLiveTask` section.
+
+### The `appContext` argument
+
+All render props will receive the `appContext` argument. This context is generally used to handle app-specific information, as opposed to Mephisto-specific information.
+
+**Arguments:**
+
+**`taskContext`**: 
+
+**`appSettings`**: 
+
+**`setAppSettings`**: 
+
+**`onTaskComplete`**: 
+
