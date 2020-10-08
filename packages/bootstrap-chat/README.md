@@ -133,7 +133,7 @@ All render props will receive the `appContext` argument. This context is general
 
 **`taskContext`**: 
 
-**`appSettings`**: 
+**`appSettings`**: You can use this to have access to various app-wide settings. By default it is used for volume control.
 
 **`setAppSettings`**: 
 
