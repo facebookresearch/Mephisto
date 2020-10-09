@@ -84,7 +84,7 @@ These define the specific arguments for configuring a blueprint. Some base argum
 ### SharedTaskState
 Some tasks require additional state that cannot be considered static configuration, such as validation functions for accurate completion of a task, or a counter for the number of tasks completed in a run so far, or any other python state that multiple different assignments may be interested in accessing or altering. This class is for the edge cases that need something more than static configuration, and is created as a singleton shared between all tasks in a `TaskRun`.
 ### TaskBuilder
-All tasks need to have some kind of frontend interface for workers to interact with. The `TaskBuilder` defines hooks for points in a setup where this frontend is compiled and built (or located and confirmed alive), and implementations for a specific `Blueprint` should use this part of the lifecycle to set up these things.
+All tasks need to have some kind of frontend interface for workers to interact with. The `TaskBuilder` defines hooks for points in setup where this frontend is compiled and built (or located and confirmed alive), and implementations for a specific `Blueprint` should use this part of the lifecycle to set up these things.
 ### TaskRunner
 Likewise, all tasks need to have some kind of backend logic that dictates the kind of information we intend to receive. For simple 'static' tasks where we give the worker some info and they give us their work, this may be just a single exchange, however more complicated tasks can put any other kind of difficult flow control here.
 ### AgentState
