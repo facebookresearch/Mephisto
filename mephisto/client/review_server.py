@@ -14,7 +14,7 @@ import time
 import threading
 
 
-def run(build_dir, port, output, csv_headers, debug=False):
+def run(build_dir, port, output, csv_headers, json=False, debug=False):
     global index_file, app
     global ready_for_next, current_data, finished, index_file
     global counter
@@ -35,9 +35,19 @@ def run(build_dir, port, output, csv_headers, debug=False):
         static_folder=build_dir + "/static",
     )
 
+    def read_json(f):
+        import json
+
+        for jsonline in f:
+            yield json.loads(jsonline)
+
     def consume_data():
         global ready_for_next, current_data, finished, counter
-        data_source = csv.reader(iter(sys.stdin.readline, ""))
+
+        if json:
+            data_source = read_json(iter(sys.stdin.readline, ""))
+        else:
+            data_source = csv.reader(iter(sys.stdin.readline, ""))
 
         if csv_headers:
             next(data_source)
