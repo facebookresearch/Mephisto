@@ -35,7 +35,7 @@ def run(build_dir, port, output, csv_headers, json=False, debug=False):
         static_folder=build_dir + "/static",
     )
 
-    def read_json(f):
+    def json_reader(f):
         import json
 
         for jsonline in f:
@@ -45,7 +45,7 @@ def run(build_dir, port, output, csv_headers, json=False, debug=False):
         global ready_for_next, current_data, finished, counter
 
         if json:
-            data_source = read_json(iter(sys.stdin.readline, ""))
+            data_source = json_reader(iter(sys.stdin.readline, ""))
         else:
             data_source = csv.reader(iter(sys.stdin.readline, ""))
 
