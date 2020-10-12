@@ -385,6 +385,7 @@ class Operator:
         Set log_rate to get print statements of currently running tasks
         at the specified interval
         """
+        sleep_time = min(10, log_rate)
         try:
             try:
                 last_log = 0.0
@@ -393,7 +394,7 @@ class Operator:
                         if time.time() - last_log > log_rate:
                             last_log = time.time()
                             self.print_run_details()
-                    time.sleep(10)
+                    time.sleep(sleep_time)
 
             except Exception as e:
                 if skip_input:
