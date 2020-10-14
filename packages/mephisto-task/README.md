@@ -29,7 +29,7 @@ npm link mephisto-task
 
 ## Usage (`useMephistoTask`)
 
-To integrate Mephisto with a front-end project, the easiest way is to use the provided React hook:
+To integrate Mephisto with a front-end task interface, the easiest way is to use the provided React hook:
 
 ```jsx
 import { useMephistoTask } from "mephisto-task";
