@@ -94,7 +94,9 @@ More details about Assignments can be found in the [Mephisto architecture overvi
 
 This is the initial data that will be used to populate your task. The worker will use this data to perform their action.
 
-For static tasks, this can be specified via the `static_task_data` array argument for `SharedStaticTaskState`. 
+For the static task blueprint, this can be specified via the `static_task_data` array argument for `SharedStaticTaskState`.
+
+Generally speaking, the value is the `InitializationData` object that the `TaskRunner` returns in `get_data_for_assignment`, which comes from the set of `InitializationData` objects returned by the blueprint's `get_initialization_data` method.
 
 ### `handleSubmit(payload)`
 
