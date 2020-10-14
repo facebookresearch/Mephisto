@@ -29,6 +29,8 @@ npm link mephisto-task
 
 ## Usage (`useMephistoTask`)
 
+To integrate Mephisto with a front-end project, the easiest way is to use the provided React hook:
+
 ```jsx
 import { useMephistoTask } from "mephisto-task";
 
@@ -40,9 +42,10 @@ function MyApp() {
 
         initialTaskData,
         handleSubmit,
+        isLoading,
+        isOnboarding,
         isPreview,
         previewHtml,
-        isOnboarding,
         blockedReason,
 
         // advanced usage:
@@ -58,9 +61,9 @@ function MyApp() {
 The `useMephisoTask` React hook exposes the following fields:
 
 ### `taskConfig`
-An arbitrary task-specific config object passed from the backend.
+An arbitrary task-specific config object passed to the front-end from your back-end server. This `taskConfig` object can be specified from the `get_frontend_args` of the `Blueprint` Python class for your task.
 
-Example:
+Here is an example `taskConfig` that is specified in the [ParlAI Chat blueprint](`https://github.com/facebookresearch/Mephisto/blob/master/mephisto/server/blueprints/parlai_chat/parlai_chat_blueprint.py`):
 ```json
 {
     "block_mobile": true,
@@ -73,21 +76,37 @@ Example:
 ```
 ### `agentId`
 
-An `agentId ` represents a worker working on a task. A single task could have multiple `agentId`s, for example in the case of conversational chat tasks. An agent could also be a model-in-the-loop instead of a worker.
+An `agentId ` is the identifier that Mephisto uses to pair a worker with the specific task being worked on. Given this definition, a single worker will have a different `agentId` for each task that they work on.
 
-Usually you'll want to use `agentId` in your task code to represent workers as opposed to `mephistoWorkerId` and `providerWorkerId` which are reserved for more advanced usages. 
+A single task could have multiple `agentId`s, for example in the case of conversational chat tasks. 
+
+Usually you'll want to use `agentId` to represent workers in your task code as opposed to `mephistoWorkerId` and `providerWorkerId` which are reserved for more advanced usages.
+
+More details about Agents can be found in the [Mephisto architecture overview docs](https://github.com/facebookresearch/Mephisto/blob/master/docs/architecture_overview.md#agent).
 
 ### `assignmentId`
 
-When a worker accepts a task, an `assignmentId` is created to represent the pairing between the worker and the task.
+An `assignmentId` uniquely represents the portion of the task that a worker will be working on.
+
+More details about Assignments can be found in the [Mephisto architecture overview docs](https://github.com/facebookresearch/Mephisto/blob/master/docs/architecture_overview.md#assignment).
 
 ### `initialTaskData`
 
-The initial data to populate your task with. The worker will use this data to perform their action.
+This is the initial data that will be used to populate your task. The worker will use this data to perform their action.
+
+For static tasks, this can be specified via the `static_task_data` array argument for `SharedStaticTaskState`. 
 
 ### `handleSubmit(payload)`
 
 A callback provided for the webapp to finalize and submit the worker's resulting work back to Mephisto.
+
+### `isLoading`
+
+A boolean flag to be used to render a loading state while a task is handshaking with the Mephisto server backend and initializing. Once the `initialTaskData` is loaded, this will be set to `true`.
+
+### `isOnboarding`
+
+A flag to determine if the current task data is from a real task or an onboarding task. Allows rendering different views for onboarding. Submissions for onboarding tasks are still handled with `handleSubmit`.
 
 ### `isPreview`
 
@@ -97,17 +116,9 @@ A boolean flag to be used to render a preview view for workers, e.g. on mTurk.
 
 See `previewHtml` as well, which uses this flag to provide a helper prop for describing static preview screens.
 
-### `isLoading`
-
-A boolean flag to be used to render a loading state while a task is handshaking with the Mephisto server backend and initializing. Once the `initialTaskData` is loaded, this will be set to `true`.
-
 ### `previewHtml`
 
 A preview HTML snippet to show for the task in preview mode. You can use this to provide a static task preview screen or use `isPreview` for something more custom.
-
-### `isOnboarding`
-
-A flag to determine if the current task data is from a real task or an onboarding task. Allows rendering different views for onboarding. Submission is still handled with `handleSubmit`.
 
 ### `blockedReason`
 
@@ -139,6 +150,8 @@ The ID created for the worker by Mephisto.
 
 ## Usage (`useMephistoLiveTask`)
 
+For socket-based "live" tasks that require updates from a server (as opposed to static tasks), we provide a `useMephistoLiveTask` React hook.
+
 ```jsx
 import { useMephistoLiveTask } from "mephisto-task";
 
@@ -157,10 +170,10 @@ function MyApp() {
         connectionStatus,
     } = useMephistoLiveTask(
         onConnectionStatusChange: (connectionStatus) => {
-            
-        },
-        onStateUpdate: ({state, status}) => {
 
+        },
+        onStateUpdate: ({ state, status }) => {
+            // called when either agentState or agentStatus updates
         },
         onMessageReceived: (message) => {
 
@@ -181,7 +194,7 @@ Closes the socket connection that was created with the Mephisto live server. Thi
 
 ### `sendMessage(payload)`
 
-Once a connection is established, sends a message over the socket connection to the Mephisto live server on behalf of the agent.
+Once a connection is established, sends a message over the socket connection to the Mephisto live server on behalf of the current agent.
 
 ### `agentState`
 
@@ -231,7 +244,11 @@ Can be one of:
 `CONNECTION_STATUS.DISCONNECTED_SERVER`
 
 
-### Override options with the `config` object
+### Override options with the `config` argument
+
+In advanced cases, you may want to configure some of the socket behavior for live tasks. For these cases, `useMephistoLiveTask` accepts as an argument an optional `config` object that can be used to configure various socket polling constants.
+
+These constants and their defaults are as follows:
 
 ```js
 {
@@ -242,3 +259,5 @@ Can be one of:
     connectionDeadMephistoPing /* = 20000 */
 }
 ```
+
+For example, if you'd like to have the front-end poll the back-end less often (e.g. 1s as opposed to 100ms), you could configure this as such: `useMephistoLiveTask({ config: { sendThreadRefresh: 1000 } })`.
