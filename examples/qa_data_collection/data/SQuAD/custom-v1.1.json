@@ -1,0 +1,12 @@
+{
+    "data": [
+        {
+            "id": "doc1",
+            "context": "This is doc1. here, we will refer to <span style=\"color:red;\" id=\"doc2\"> doc 2</span>"
+        },
+        {
+            "id": "doc2",
+            "context": "This is doc2. here, we will refer to <span style=\"color:red;\" id=\"doc1\"> doc 1</span>"
+        }
+    ]
+}

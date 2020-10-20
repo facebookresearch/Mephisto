@@ -13,6 +13,7 @@ from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import (
     BLUEPRINT_TYPE,
     SharedParlAITaskState,
 )
+import importlib
 
 import hydra
 from omegaconf import DictConfig, MISSING
@@ -84,8 +85,13 @@ register_script_config(name="scriptconfig", module=TestScriptConfig)
 def main(cfg: DictConfig) -> None:
     db, cfg = load_db_and_process_config(cfg)
 
+    my_module = importlib.import_module(cfg.dataloader.module_name)
+    task_class = getattr(my_module, cfg.dataloader.class_name)
+    task_opt = cfg.dataloader
+    dataloader = task_class(task_opt)
+
     world_opt = {"num_turns": cfg.num_turns,
-                 "turn_timeout": cfg.turn_timeout, "dataloader": cfg.dataloader}
+                 "turn_timeout": cfg.turn_timeout, "dataloader": dataloader}
 
     custom_bundle_path = cfg.mephisto.blueprint.get(
         "custom_source_bundle", None)

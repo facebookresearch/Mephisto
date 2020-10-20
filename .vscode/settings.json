@@ -1,3 +1,4 @@
 {
-  "typescript.tsdk": "mephisto/mephisto/webapp/node_modules/typescript/lib"
+  "typescript.tsdk": "mephisto/mephisto/webapp/node_modules/typescript/lib",
+  "python.pythonPath": "/Users/vaibhav/anaconda3/bin/python"
 }

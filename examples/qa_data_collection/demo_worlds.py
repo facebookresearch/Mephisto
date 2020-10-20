@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 from parlai.mturk.core.worlds import MTurkOnboardWorld, MTurkTaskWorld
 from parlai.core.worlds import validate
-import importlib
 
 
 class QADataCollectionOnboardWorld(MTurkOnboardWorld):
@@ -51,49 +50,60 @@ class QADataCollectionWorld(MTurkTaskWorld):
         self.answer = None
         self.opt = opt
 
+        self.question_provided = False
+        self.answer_provided = False
+
     def parley(self):
+
+        def process_passage_change(response, ad):
+            if "text" in ad:
+                del ad["text"]
+            ad["passage"] = self.dataloader.get(
+                response['passage_id'])["context"]
+            self.mturk_agent.observe(validate(ad))
+            self.turn_index = self.turn_index - 1
+
         # Each turn starts from the QA Collector agent
         self.turn_index = (self.turn_index + 1) % 2
         ad = {'episode_done': False}
         ad['id'] = self.__class__.collector_agent_id
 
         if self.turn_index == 0:
-            # At the first turn, the QA Collector agent provides the context
-            # and prompts the turker to ask a question regarding the context
 
-            # Get context from SQuAD teacher agent
-            qa = self.dataloader.act()
-            if qa["id"] == 'wikipedia':
-                ad["passage"] = qa['text']
-            else:
-                ad["passage"] = '\n'.join(qa['text'].split('\n')[:-1])
+            if not self.question_provided:
+                qa = self.dataloader.act()
+                ad["passage"] = qa["context"]
 
-            # ad["passage"] = "This is a sample passage.\nIt contains information about a sample entity"
-            # Wrap the context with a prompt telling the turker what to do next
-            # ad['text'] = (
-            #     self.context + '\n\nPlease provide a question given this context.'
-            # )
-            ad['text'] = 'Please provide a question given this context.'
-            self.mturk_agent.observe(validate(ad))
-            self.question = self.mturk_agent.act(
+                ad['text'] = 'Please provide a question given this context.'
+                self.mturk_agent.observe(validate(ad))
+                self.question_provided = True
+
+            response = self.mturk_agent.act(
                 timeout=self.opt["turn_timeout"])
-            # Can log the turker's question here
+
+            if 'passage_id' in response:
+                process_passage_change(response, ad)
+
+            else:
+                self.question = response
 
         if self.turn_index == 1:
-            # At the second turn, the QA Collector collects the turker's
-            # question from the first turn, and then prompts the
-            # turker to provide the answer
 
-            # A prompt telling the turker what to do next
-            ad['text'] = 'Thanks. And what is the answer to your question?'
+            if not self.answer_provided:
+                ad['text'] = 'Thanks. And what is the answer to your question?'
 
-            ad['episode_done'] = True  # end of episode
+                ad['episode_done'] = True
 
-            self.mturk_agent.observe(validate(ad))
-            self.answer = self.mturk_agent.act(
+                self.mturk_agent.observe(validate(ad))
+                self.answer_provided = True
+
+            response = self.mturk_agent.act(
                 timeout=self.opt["turn_timeout"])
-
-            self.episodeDone = True
+            if 'passage_id' in response:
+                process_passage_change(response, ad)
+            else:
+                self.answer = response
+                self.episodeDone = True
 
     def prep_save_data(self, agent):
         """Process and return any additional data from this world you may want to store"""
@@ -122,11 +132,7 @@ def validate_onboarding(data):
 
 
 def make_world(opt, agents):
-    my_module = importlib.import_module(opt["dataloader"]["module_name"])
-    task_class = getattr(my_module, opt["dataloader"]["class_name"])
-    task_opt = opt["dataloader"]
-    dataloader = task_class(task_opt)
-    return QADataCollectionWorld(opt, dataloader=dataloader, mturk_agent=agents[0])
+    return QADataCollectionWorld(opt, dataloader=opt["dataloader"], mturk_agent=agents[0])
 
 
 def get_world_params():

@@ -145,6 +145,18 @@ function ChatApp({
     [agentId, agentState?.task_done, addMessage, setInputMode]
   );
 
+  const handlePassageIdSend = React.useCallback(
+    (passageId) => {
+      const demoMessage = {
+        passage_id: passageId,
+        id: agentId,
+        episode_done: agentState?.task_done || false,
+      };
+      return sendMessage(demoMessage)
+    },
+    []
+  );
+
   if (blockedReason !== null) {
     return <h1>{blockedExplanation}</h1>;
   }
@@ -179,6 +191,7 @@ function ChatApp({
             inputMode={inputMode}
             messages={messages}
             onMessageSend={handleMessageSend}
+            handlePassageIdSend={handlePassageIdSend}
             renderMessage={renderMessage}
             renderSidePane={renderSidePane}
             renderTextResponse={renderTextResponse}

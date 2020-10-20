@@ -19,7 +19,14 @@ function logSelection(event, setTextValue) {
   // debugger
 }
 
-function TestingFunction({ messages, setTextValue }) {
+function loadDifferentPassage(e, handlePassageIdSend) {
+  if (e.target.tagName == "SPAN") {
+    handlePassageIdSend(e.target.id)
+  }
+
+}
+
+function RenderPassage({ setTextValue, handlePassageIdSend, passage }) {
   const mystyle = {
     resize: "none",
     backgroundColor: "#dff0d8",
@@ -27,40 +34,39 @@ function TestingFunction({ messages, setTextValue }) {
     height: "100%",
     border: "0px"
   };
-  if (messages.length > 0) {
-    return (<textarea readOnly style={mystyle} onSelect={(e) => logSelection(e, setTextValue)} defaultValue={messages[0].passage} />)
-  }
-  return null
-}
 
-// function TestHighlight({ text }) {
-//   // console.log("Some text has been highlighted")
-//   return (<p> {text} </p>)
-// }
+  // return (<textarea readOnly style={mystyle} onSelect={(e) => logSelection(e, setTextValue)} defaultValue={passage} />)
+
+  return (<p onClick={(e) => loadDifferentPassage(e, handlePassageIdSend)} dangerouslySetInnerHTML={{ __html: passage }} />)
+}
 
 function RenderChatMessage({ message, mephistoContext, appContext, idx }) {
   const { agentId } = mephistoContext;
   const { currentAgentNames } = appContext.taskContext;
-
-  return (
-    // <div onClick={() => alert("You clicked on message with index " + idx)}>
-    <div>
-      <ChatMessage
-        isSelf={message.id === agentId || message.id in currentAgentNames}
-        agentName={
-          message.id in currentAgentNames
-            ? currentAgentNames[message.id]
-            : message.id
-        }
-        message={message.text}
-        taskData={message.task_data}
-        messageId={message.message_id}
-      />
-    </div>
-  );
+  if ('text' in message) {
+    return (
+      <div>
+        <ChatMessage
+          isSelf={message.id === agentId || message.id in currentAgentNames}
+          agentName={
+            message.id in currentAgentNames
+              ? currentAgentNames[message.id]
+              : message.id
+          }
+          message={message.text}
+          taskData={message.task_data}
+          messageId={message.message_id}
+        />
+      </div>
+    );
+  }
+  return null
 }
 
 function MainApp() {
+
+  const [passage, setPassage] = React.useState("");
+
   return (
     <ChatApp
       renderMessage={({ message, idx, mephistoContext, appContext }) => (
@@ -72,15 +78,19 @@ function MainApp() {
           key={message.message_id + "-" + idx}
         />
       )}
-      renderSidePane={({ mephistoContext: { taskConfig }, messages, textValue, setTextValue }) => (
+      renderSidePane={({ mephistoContext: { taskConfig }, textValue, setTextValue, handlePassageIdSend }) => (
         <DefaultTaskDescription
           chatTitle={taskConfig.chat_title}
           taskDescriptionHtml={taskConfig.task_description}
         >
-          <TestingFunction messages={messages} setTextValue={setTextValue} />
-          {/* <TestHighlight text={window.getSelection().toString()} /> */}
+          <RenderPassage setTextValue={setTextValue} handlePassageIdSend={handlePassageIdSend} passage={passage} />
         </DefaultTaskDescription>
       )}
+      onMessagesChange={(messages) => {
+        if (messages.length > 0 && 'passage' in messages[messages.length - 1]) {
+          setPassage(messages[messages.length - 1].passage)
+        }
+      }}
     />
   );
 }

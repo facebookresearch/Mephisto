@@ -23,6 +23,7 @@ import { AppContext, INPUT_MODE } from "./ChatApp.jsx";
 function BaseFrontend({
   messages,
   onMessageSend,
+  handlePassageIdSend,
   inputMode,
   renderSidePane,
   renderMessage,
@@ -42,7 +43,7 @@ function BaseFrontend({
     <ConnectionStatusBoundary status={connectionStatus}>
       <div className="row" style={{ height: taskConfig.frame_height }}>
         <div className={"side-pane " + sidePaneSize}>
-          {renderSidePane({ mephistoContext, appContext, messages, textValue, setTextValue })}
+          {renderSidePane({ mephistoContext, appContext, textValue, setTextValue, handlePassageIdSend })}
         </div>
         <div className="chat-container-pane">
           <div className="right-top-pane">

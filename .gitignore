@@ -18,3 +18,4 @@ examples/**/build/*
 
 # PyCharm
 .idea
+.vscode/settings.json
