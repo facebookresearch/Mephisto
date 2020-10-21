@@ -38,9 +38,3 @@ class StaticReactTaskBuilder(TaskBuilder):
         # Write a built file confirmation
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:
             built_file.write(self.BUILT_MESSAGE)
-
-    # TODO(#97) update test validation
-    @staticmethod
-    def task_dir_is_valid(task_dir: str) -> bool:
-        """Check to ensure that required files exist"""
-        return True
