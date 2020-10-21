@@ -37,7 +37,7 @@ function RenderPassage({ setTextValue, handlePassageIdSend, passage }) {
 
   // return (<textarea readOnly style={mystyle} onSelect={(e) => logSelection(e, setTextValue)} defaultValue={passage} />)
 
-  return (<p onClick={(e) => loadDifferentPassage(e, handlePassageIdSend)} dangerouslySetInnerHTML={{ __html: passage }} />)
+  return (<p className="passage-pane-segment" onClick={(e) => loadDifferentPassage(e, handlePassageIdSend)} dangerouslySetInnerHTML={{ __html: passage }} />)
 }
 
 function RenderChatMessage({ message, mephistoContext, appContext, idx }) {

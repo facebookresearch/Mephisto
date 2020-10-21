@@ -1,12 +1,24 @@
 {
     "data": [
         {
-            "id": "doc1",
-            "context": "This is doc1. here, we will refer to <span style=\"color:red;\" id=\"doc2\"> doc 2</span>"
+            "id": "Apple",
+            "context": "<span id=\"Apple\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Apple</span> Inc. is an American multinational technology company headquartered in Cupertino, California, that designs, develops and sells consumer electronics, computer software, and online services. It is considered one of the Big Tech technology companies, alongside <span id=\"Amazon\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Amazon</span>, <span id=\"Google\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Google</span>, <span id=\"Microsoft\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Microsoft</span>, and <span id=\"Facebook\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Facebook</span>."
         },
         {
-            "id": "doc2",
-            "context": "This is doc2. here, we will refer to <span style=\"color:red;\" id=\"doc1\"> doc 1</span>"
+            "id": "Amazon",
+            "context": "<span id=\"Amazon\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Amazon</span>.com, Inc. is an American multinational technology company based in Seattle, Washington, which focuses on e-commerce, cloud computing, digital streaming, and artificial intelligence. It is considered one of the Big Tech technology companies, alongside <span id=\"Apple\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Apple</span>, <span id=\"Google\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Google</span>, <span id=\"Microsoft\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Microsoft</span>, and <span id=\"Facebook\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Facebook</span>."
+        },
+        {
+            "id": "Microsoft",
+            "context": "<span id=\"Microsoft\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Microsoft</span> Corporation is an American multinational technology company with headquarters in Redmond, Washington. It develops, manufactures, licenses, supports, and sells computer software, consumer electronics, personal computers, and related services. Its best known software products are the Microsoft Windows line of operating systems, the Microsoft Office suite, and the Internet Explorer and Edge web browsers. It is considered one of the Big Tech technology companies, alongside <span id=\"Apple\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Apple</span>, <span id=\"Amazon\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Amazon</span>, <span id=\"Google\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Google</span>, and <span id=\"Facebook\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Facebook</span>."
+        },
+        {
+            "id": "Google",
+            "context": "<span id=\"Google\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Google</span>, LLC is an American multinational technology company that specializes in Internet-related services and products, which include online advertising technologies, a search engine, cloud computing, software, and hardware. It is considered one of the Big Tech technology companies, alongside <span id=\"Apple\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Apple</span>, <span id=\"Amazon\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Amazon</span>, <span id=\"Microsoft\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Microsoft</span>, and <span id=\"Facebook\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Facebook</span>."
+        },
+        {
+            "id": "Facebook",
+            "context": "<span id=\"Facebook\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Facebook</span> (stylized as facebook) is an American online social media and social networking service based in Menlo Park, California, and a flagship service of the namesake company Facebook, Inc. It was founded by Mark Zuckerberg, along with fellow Harvard College students and roommates Eduardo Saverin, Andrew McCollum, Dustin Moskovitz, and Chris Hughes. It is considered one of the Big Tech technology companies, alongside <span id=\"Apple\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Apple</span>, <span id=\"Amazon\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Amazon</span>, <span id=\"Google\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Google</span>, and <span id=\"Microsoft\" style=\"cursor:pointer;color:blue;text-decoration:underline\">Microsoft</span>."
         }
     ]
 }
