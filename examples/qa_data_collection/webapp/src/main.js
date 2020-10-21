@@ -19,9 +19,20 @@ function logSelection(event, setTextValue) {
   // debugger
 }
 
-function loadDifferentPassage(e, handlePassageIdSend) {
+function loadDifferentPassage(e, handlePassageIdSend, visitedPassages, setVisitedPassages, visitedPassagesString, setVisitedPassagesString) {
+  const spanstyle="cursor:pointer;color:blue;text-decoration:underline"
   if (e.target.tagName == "SPAN") {
-    handlePassageIdSend(e.target.id)
+    console.log(e.target.id)
+    console.log(visitedPassages)
+    handlePassageIdSend(e.target.id);
+
+
+    if (!visitedPassages.has(e.target.id)) {
+        setVisitedPassages(visitedPassages.add(e.target.id));
+        var strToConcat = `  <span id=${e.target.id} style=${spanstyle}>${e.target.id}</span>`
+        console.log(strToConcat)
+        setVisitedPassagesString(visitedPassagesString.concat(strToConcat))
+    }
   }
 
 }
@@ -35,9 +46,18 @@ function RenderPassage({ setTextValue, handlePassageIdSend, passage }) {
     border: "0px"
   };
 
+  const [visitedPassages, setVisitedPassages] = React.useState(new Set());
+  const [visitedPassagesString, setVisitedPassagesString] = React.useState("Visited Passages <br>");
+
+
   // return (<textarea readOnly style={mystyle} onSelect={(e) => logSelection(e, setTextValue)} defaultValue={passage} />)
 
-  return (<p className="passage-pane-segment" onClick={(e) => loadDifferentPassage(e, handlePassageIdSend)} dangerouslySetInnerHTML={{ __html: passage }} />)
+  return (<div>
+
+          <p className="passage-pane-segment" onClick={(e) => loadDifferentPassage(e, handlePassageIdSend, visitedPassages, setVisitedPassages, visitedPassagesString, setVisitedPassagesString )} dangerouslySetInnerHTML={{ __html: passage }} />
+          <p className="metadata" onClick={(e) => loadDifferentPassage(e, handlePassageIdSend, visitedPassages, setVisitedPassages, visitedPassagesString, setVisitedPassagesString )} dangerouslySetInnerHTML={{ __html: visitedPassagesString }}/>
+          </div>
+          )
 }
 
 function RenderChatMessage({ message, mephistoContext, appContext, idx }) {
