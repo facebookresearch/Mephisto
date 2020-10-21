@@ -190,18 +190,17 @@ class Operator:
         task_run = TaskRun(self.db, new_run_id)
 
         try:
-            # If anything fails after here, we have to cleanup the architect
+            # Register the blueprint with args to the task run,
+            # ensure cached
+            blueprint = BlueprintClass(task_run, run_config, shared_state)
+            task_run.get_blueprint(args=run_config, shared_state=shared_state)
 
+            # If anything fails after here, we have to cleanup the architect
             build_dir = os.path.join(task_run.get_run_dir(), "build")
             os.makedirs(build_dir, exist_ok=True)
             architect = ArchitectClass(
                 self.db, run_config, shared_state, task_run, build_dir
             )
-
-            # Register the blueprint with args to the task run,
-            # ensure cached
-            blueprint = BlueprintClass(task_run, run_config, shared_state)
-            task_run.get_blueprint(args=run_config, shared_state=shared_state)
 
             # Setup and deploy the server
             built_dir = architect.prepare()
