@@ -1,8 +1,6 @@
 # CrowdProviders
 The providers directory is home to the existing providers for Mephisto. This file describes high level what crowd providers do, important details on existing providers, and how to create a new `CrowdProvider` for an existing crowdsourcing service.
 
-(TODO) Qualifications need to be added to crowd providers
-
 ## Implementation Details
 `CrowdProvider`s in short exist to be an abstraction layer between Mephisto and wherever we're sourcing the crowdwork from. Using `CrowdProvider`s lets Mephisto launch the same tasks all over the place using the same code. The primary abstractions that need a little bit of wrapping are the `Worker`, `Agent`, `Unit`, and `Requester`. These requirements and high level abstraction reasoning are included below, while explicit implementation requirements are provided in the "How to make a new `CrowdProvider`" section.
 
