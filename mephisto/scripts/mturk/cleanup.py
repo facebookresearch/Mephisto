@@ -19,11 +19,11 @@ db = LocalMephistoDB()
 all_requesters = db.find_requesters(provider_type="mturk")
 all_requesters += db.find_requesters(provider_type="mturk_sandbox")
 
-print("You have the following requesters available for mturk and mturk sandbox:\n>> ")
+print("You have the following requesters available for mturk and mturk sandbox:")
 r_names = [r.requester_name for r in all_requesters]
 print(sorted(r_names))
 
-use_name = input("Enter the name of the requester to clear HITs from: ")
+use_name = input("Enter the name of the requester to clear HITs from:\n>> ")
 while use_name not in r_names:
     use_name = input(
         f"Sorry, {use_name} is not in the requester list. "
