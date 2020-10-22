@@ -149,7 +149,7 @@ By the default, the `appContext` object contains the following properties:
 
 **`taskContext`**: An object that reflects the current context of the app by merging in the `task_data` property of each subsequent chat message received. As expected, later messages will overwrite the context set by previous messages if a conflict in a property of `task_data` occurs.
 
-**`appSettings`**: You can use this to have access to various app-wide settings. For example, the default implementation uses it for volume control. `console.log(appContext.appSettings.volume)`
+**`appSettings`**: You can use this to have access to various app-wide settings. For example, the default implementation uses it for volume control - that is the sole property. `console.log(appContext.appSettings.volume)`
 
 **`setAppSettings`**: This method can be used to set app-wide settings which the rest of the app will then have access to through `appContext.appSettings`. For example, `setAppSettings({ volume: 1 }) `. `setAppSettings` will automatically merge in the passed in object with the existing `appSettings` object, so you do not have to do this merge yourself. That is, you can only pass the values you'd like to change as the argument, and the other previous values will be kept intact.
 
