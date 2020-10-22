@@ -1,11 +1,13 @@
 # bootstrap-chat
 
-A Bootstrap-based set of UI components for facilitating chat-based tasks for Mephisto.
+A set of UI components based on [Bootstrap v3](https://react-bootstrap-v3.netlify.app/components/alerts/) for facilitating chat-based tasks for Mephisto.
 
 ## Installation
 
 ```bash
 npm install --save bootstrap-chat mephisto-task
+
+# Note that `mephisto-task` is a peer-dependency of this library.
 ```
 
 Install from local folder (e.g. for local development):
@@ -46,7 +48,7 @@ ReactDOM.render(<ChatApp />, document.getElementById("root"));
 
 From here, you can easily opt into adding custom components and behaviors via render prop overrides.
 
-Let's consider a contrived example where we would like every message to appear suffixed with 5 exclamation marks.
+Let's consider a contrived example where we would like every incoming chat message to appear suffixed with 5 exclamation marks.
 
 ```jsx
 
@@ -61,14 +63,17 @@ function MyChatApp() {
 
 ```
 
-Here we replace the rendering of the chat message with the `renderMessage` prop. However, note that we also import the `<ChatMessage />` component and use that as part of the rendering. We don't have to do this portion, and could easily just create our own isolated implementation. However this example illustrates how we can opt out of default behavior, while still having available to us primitives and core components that can get us back some of that default functionality at our discretion.
+Here we replace the rendering of the chat message with the `renderMessage` prop. This is one of the provided optional render overrides, for the others see below.
+
+However, note that we also import the `<ChatMessage />` component and use that as part of the rendering process. We don't have to do this portion, and could easily just create our own isolated implementation, e.g. something like `<div>{message.text + "!!!!!"}</div>`. However this example illustrates how we can opt out of default behavior, while still having available to us primitives and core components that can get us back some of that default functionality at our discretion. In this case, we
+ll still have the look and feel of the original chat message component, however with a custom message property.
 
 
-## `<ChatApp />` documentation
+## The `<ChatApp />` component
 
-`ChatApp` exposes the following props: 
+The `ChatApp` component exposes the following props: 
 
-All render props will receive as part of their args both `mephistoContext` and `appContext`, which will be described below.
+*Note: All render-based props will receive as part of their args both `mephistoContext` and `appContext`, which will be described in a separate section below.*
 
 
 ### `renderMessage({ message, idx, mephistoContext, appContext })`
@@ -76,15 +81,14 @@ A render prop that if implemented, overides the way a chat message is rendered.
 
 **Arguments:**
 
-**`message`**: An object with the following schema:
-
-TODO: where does this object come from in the backend? Find to verify the below
+**`message`**: An object with the following schema, this comes from the ParlAI framework:
 
 ```
 {
-    message_id,
-    text,
-    task_data
+    'id', // the speaker id for the message
+    'message_id', // a unique id for the current message
+    'text', // the actual message text, the message should not be displayed if this value is undefined or an empty string
+    'task_data', // any additional data payload, also used to update the `taskContext`
 }
 ```
 
@@ -95,25 +99,34 @@ TODO: where does this object come from in the backend? Find to verify the below
 A render prop that if implemented, overrides the way the side pane is rendered.
 
 ### `renderTextResponse({ onMessageSend, inputMode, active, mephistoContext, appContext })`
-A render prop that if implemented, overrides the way the response text box is rendered. The default implementation of `ChatApp` is rendering a `<TextResponse />` component here.
+A render prop that if implemented, overrides the way the response text box is rendered. The default implementation of `ChatApp` is rendering the `<TextResponse />` component here.
 
 Note: If `renderResponse()` is also implemented, this render prop will be ignored.
 
-This render prop is for cases where you'd like to minimally alter the response text box. For larger customizations, we recommend implementing `renderReponse()` instead.
+This render prop is for cases where you'd like to minimally alter the response text box, while still keeping the default UI states for things like handling disconnects, inactivity, and the done state. For larger customizations and more control, we recommend implementing `renderReponse()` instead.
 
 **Arguments:**
 
-**`onMessageSend`**: 
+**`onMessageSend`**: A callback provided for you to invoke in your implementation. Invoking this callback will send the passed in message back to the server. Example usage: `onMessageSend({ text: textValue, task_data: {} })`
 
-**`inputMode`**: 
+**`inputMode`**: Represents an enumeration for the status of the chat task. It is set to one of the following:
+
+- `WAITING`: The current agent is ready but is waiting for a response from the server, e.g. waiting for an incoming chat message.
+- `INACTIVE`: Occurs when something goes wrong, usually if the agent experiences a disconnect, timeout, the task is returned, or has expired.
+- `DONE`: The task is complete.
+- `READY_FOR_INPUT`: The current agent is ready and is ready to send over data.
+- `IDLE`: (TODO: This doesn't seem to be set anywhere. Should we remove?)
 
 **`active`**: A helper boolean, essentially is true when `inputMode` is `INPUT_MODE.READY_FOR_INPUT`
 
 
 ### `renderResponse({ onMessageSend, inputMode, mephistoContext, appContext })`
-A render prop that if implemented, overrides the way the entire response panel is rendered. You will be responsible for handling all aspects of the panel in this case.
+A render prop that if implemented, overrides the way the entire response panel is rendered. You will be responsible for handling all aspects of the panel in this case, such as determining what to show when an agent disconnects, the task enters an inactive state, and when the task is completed.
 
 Note: If this render prop is implemented, `renderTextResponse()` will be ignored.
+
+**Arguments:**
+The arguments for this render prop are the same as for `renderTextResponse`, with the exception of the `active` helper prop. You can reference those above.
 
 
 ### `onMessagesChange(messages)`
@@ -124,19 +137,21 @@ A callback that will get called any time a new message is received. The callback
 
 All render props will receive the `mephistoContext` argument.
 
-This object is basically the return value of calling the `useMephistoLiveTask` hooks. Further documentation on these properties can be found in the documentation for the `mephisto-task` package under the `useMephistoLiveTask` section.
+This object is basically the return value of calling the `useMephistoLiveTask` hooks. Further documentation on these properties can be found in the [documentation for the `mephisto-task` package](https://github.com/facebookresearch/Mephisto/blob/master/packages/mephisto-task/README.md) under the `useMephistoLiveTask` section.
 
 ### The `appContext` argument
 
 All render props will receive the `appContext` argument. This context is generally used to handle app-specific information, as opposed to Mephisto-specific information.
 
+By the default, the `appContext` object contains the following properties:
+
 **Arguments:**
 
-**`taskContext`**: 
+**`taskContext`**: An object that reflects the current context of the app by merging in the `task_data` property of each subsequent chat message received. As expected, later messages will overwrite the context set by previous messages if a conflict in a property of `task_data` occurs.
 
-**`appSettings`**: You can use this to have access to various app-wide settings. By default it is used for volume control.
+**`appSettings`**: You can use this to have access to various app-wide settings. For example, the default implementation uses it for volume control. `console.log(appContext.appSettings.volume)`
 
-**`setAppSettings`**: 
+**`setAppSettings`**: This method can be used to set app-wide settings which the rest of the app will then have access to through `appContext.appSettings`. For example, `setAppSettings({ volume: 1 }) `. `setAppSettings` will automatically merge in the passed in object with the existing `appSettings` object, so you do not have to do this merge yourself. That is, you can only pass the values you'd like to change as the argument, and the other previous values will be kept intact.
 
-**`onTaskComplete`**: 
+**`onTaskComplete`**: A callback provided for you to invoke to finally submit the task.
 
