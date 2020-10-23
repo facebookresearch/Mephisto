@@ -532,45 +532,46 @@ description = "Unified platform for dialogue research."
 name = "parlai"
 optional = true
 python-versions = ">=3.6"
-version = "0.1.20200416"
+version = "0.1.20200716"
 
 [package.dependencies]
-GitPython = "3.0.3"
-Pillow = ">=6.2.0"
-Sphinx = "2.2.0"
-Unidecode = "1.1.1"
-boto3 = "1.9.246"
-botocore = "1.12.246"
-docformatter = "1.3.0"
-docutils = "0.14"
-emoji = "0.5.4"
-flake8 = "3.7.8"
-flake8-bugbear = "19.8.0"
-gitdb2 = "2.0.5"
-h5py = "2.10.0"
-joblib = ">=0.14.0"
-nltk = "3.4.5"
-numpy = ">=1.16.0"
-pexpect = "4.7.0"
-py-gfm = "0.1.4"
-py-rouge = "1.1"
-pytest = "5.3.2"
-pyyaml = "5.1"
-pyzmq = "18.1.0"
-recommonmark = "0.6.0"
-regex = "2019.8.19"
-requests = "2.22.0"
-requests-mock = "1.7.0"
-scikit-learn = ">=0.21.0"
-scipy = ">=1.3.0"
-sh = "1.12.14"
-sphinx-autodoc-typehints = "1.10.3"
-sphinx-rtd-theme = "0.4.3"
-tokenizers = "0.4.2"
-tqdm = "4.36.1"
-typing-extensions = "3.7.4.1"
-websocket-client = "0.56.0"
-websocket-server = "0.4"
+GitPython = "*"
+Pillow = "*"
+Sphinx = "*"
+Unidecode = "*"
+boto3 = "*"
+botocore = "*"
+docformatter = "*"
+docutils = "<0.16"
+emoji = "*"
+flake8 = "*"
+flake8-bugbear = "*"
+gitdb2 = "*"
+h5py = "*"
+joblib = "*"
+nltk = "*"
+numpy = "*"
+pexpect = "*"
+py-gfm = "*"
+py-rouge = "*"
+pytest = "*"
+pyyaml = "*"
+pyzmq = "*"
+recommonmark = "*"
+regex = "*"
+requests = "*"
+requests-mock = "*"
+scikit-learn = "*"
+scipy = "*"
+sh = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-rtd-theme = "*"
+tokenizers = "*"
+torch = "*"
+tqdm = "*"
+typing-extensions = "*"
+websocket-client = "*"
+websocket-server = "*"
 
 [[package]]
 category = "main"
@@ -755,8 +756,8 @@ category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "5.1"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "5.3.1"
 
 [[package]]
 category = "main"
@@ -1043,17 +1044,6 @@ widechars = ["wcwidth"]
 
 [[package]]
 category = "main"
-description = "Alias for typos of tqdm"
-name = "tdqm"
-optional = false
-python-versions = "*"
-version = "0.0.1"
-
-[package.dependencies]
-tqdm = "*"
-
-[[package]]
-category = "main"
 description = "Fast and Customizable Tokenizers"
 name = "tokenizers"
 optional = true
@@ -1090,7 +1080,7 @@ description = "Fast, Extensible Progress Meter"
 name = "tqdm"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*"
-version = "4.36.1"
+version = "4.50.2"
 
 [package.extras]
 dev = ["py-make (>=0.1.0)", "twine", "argopt", "pydoc-markdown"]
@@ -1204,7 +1194,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 parlai = ["parlai", "torch", "pyyaml"]
 
 [metadata]
-content-hash = "91b44c819cd78313ffad06f461e27638064c4327898fdf3434758859e9db5470"
+content-hash = "0ca035b0ecb5efaa0566a7d304f3d8c6b4b9ebdb9f1a7a711edb27d88b504a44"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1534,8 +1524,8 @@ packaging = [
     {file = "packaging-20.3.tar.gz", hash = "sha256:3c292b474fda1671ec57d46d739d072bfd495a4f51ad01a055121d81e952b7a3"},
 ]
 parlai = [
-    {file = "parlai-0.1.20200416-py3-none-any.whl", hash = "sha256:da53be4d1520db5def3f91f8756b70c24651e29950ba0b2df004356f364b2ce1"},
-    {file = "parlai-0.1.20200416.tar.gz", hash = "sha256:044365ce2a63389f98e0b592751636e1463974a3c2b6d578f9661431a6ad53ca"},
+    {file = "parlai-0.1.20200716-py3-none-any.whl", hash = "sha256:8980316d7ce50aa8d9b89b2a2f736d60979eb000b8dafbddb0f1c4d99fdb1e0f"},
+    {file = "parlai-0.1.20200716.tar.gz", hash = "sha256:bd4496ac960a3ed2509ed3f2ca8a4a0b4a272ef9554a89b0ee59cad97cd5b4a6"},
 ]
 pexpect = [
     {file = "pexpect-4.7.0-py2.py3-none-any.whl", hash = "sha256:2094eefdfcf37a1fdbfb9aa090862c1a4878e5c7e0e7e7088bdb511c558e5cd1"},
@@ -1623,17 +1613,17 @@ pytz = [
     {file = "pytz-2019.3.tar.gz", hash = "sha256:b02c06db6cf09c12dd25137e563b31700d3b80fcc4ad23abb7a315f2789819be"},
 ]
 pyyaml = [
-    {file = "PyYAML-5.1-cp27-cp27m-win32.whl", hash = "sha256:460a5a4248763f6f37ea225d19d5c205677d8d525f6a83357ca622ed541830c2"},
-    {file = "PyYAML-5.1-cp27-cp27m-win_amd64.whl", hash = "sha256:9372b04a02080752d9e6f990179a4ab840227c6e2ce15b95e1278456664cf2ba"},
-    {file = "PyYAML-5.1-cp34-cp34m-win32.whl", hash = "sha256:aee5bab92a176e7cd034e57f46e9df9a9862a71f8f37cad167c6fc74c65f5b4e"},
-    {file = "PyYAML-5.1-cp34-cp34m-win_amd64.whl", hash = "sha256:c51f642898c0bacd335fc119da60baae0824f2cde95b0330b56c0553439f0673"},
-    {file = "PyYAML-5.1-cp35-cp35m-win32.whl", hash = "sha256:a5dcbebee834eaddf3fa7366316b880ff4062e4bcc9787b78c7fbb4a26ff2dd1"},
-    {file = "PyYAML-5.1-cp35-cp35m-win_amd64.whl", hash = "sha256:7a5d3f26b89d688db27822343dfa25c599627bc92093e788956372285c6298ad"},
-    {file = "PyYAML-5.1-cp36-cp36m-win32.whl", hash = "sha256:1adecc22f88d38052fb787d959f003811ca858b799590a5eaa70e63dca50308c"},
-    {file = "PyYAML-5.1-cp36-cp36m-win_amd64.whl", hash = "sha256:5a22a9c84653debfbf198d02fe592c176ea548cccce47553f35f466e15cf2fd4"},
-    {file = "PyYAML-5.1-cp37-cp37m-win32.whl", hash = "sha256:e23d0cc5299223dcc37885dae624f382297717e459ea24053709675a976a3e19"},
-    {file = "PyYAML-5.1-cp37-cp37m-win_amd64.whl", hash = "sha256:c68ea4d3ba1705da1e0d85da6684ac657912679a649e8868bd850d2c299cce13"},
-    {file = "PyYAML-5.1.tar.gz", hash = "sha256:436bc774ecf7c103814098159fbb84c2715d25980175292c648f2da143909f95"},
+    {file = "PyYAML-5.3.1-cp27-cp27m-win32.whl", hash = "sha256:74809a57b329d6cc0fdccee6318f44b9b8649961fa73144a98735b0aaf029f1f"},
+    {file = "PyYAML-5.3.1-cp27-cp27m-win_amd64.whl", hash = "sha256:240097ff019d7c70a4922b6869d8a86407758333f02203e0fc6ff79c5dcede76"},
+    {file = "PyYAML-5.3.1-cp35-cp35m-win32.whl", hash = "sha256:4f4b913ca1a7319b33cfb1369e91e50354d6f07a135f3b901aca02aa95940bd2"},
+    {file = "PyYAML-5.3.1-cp35-cp35m-win_amd64.whl", hash = "sha256:cc8955cfbfc7a115fa81d85284ee61147059a753344bc51098f3ccd69b0d7e0c"},
+    {file = "PyYAML-5.3.1-cp36-cp36m-win32.whl", hash = "sha256:7739fc0fa8205b3ee8808aea45e968bc90082c10aef6ea95e855e10abf4a37b2"},
+    {file = "PyYAML-5.3.1-cp36-cp36m-win_amd64.whl", hash = "sha256:69f00dca373f240f842b2931fb2c7e14ddbacd1397d57157a9b005a6a9942648"},
+    {file = "PyYAML-5.3.1-cp37-cp37m-win32.whl", hash = "sha256:d13155f591e6fcc1ec3b30685d50bf0711574e2c0dfffd7644babf8b5102ca1a"},
+    {file = "PyYAML-5.3.1-cp37-cp37m-win_amd64.whl", hash = "sha256:73f099454b799e05e5ab51423c7bcf361c58d3206fa7b0d555426b1f4d9a3eaf"},
+    {file = "PyYAML-5.3.1-cp38-cp38-win32.whl", hash = "sha256:06a0d7ba600ce0b2d2fe2e78453a470b5a6e000a985dd4a4e54e436cc36b0e97"},
+    {file = "PyYAML-5.3.1-cp38-cp38-win_amd64.whl", hash = "sha256:95f71d2af0ff4227885f7a6605c37fd53d3a106fcab511b8860ecca9fcf400ee"},
+    {file = "PyYAML-5.3.1.tar.gz", hash = "sha256:b8eac752c5e14d3eca0e6dd9199cd627518cb5ec06add0de9d32baeee6fe645d"},
 ]
 pyzmq = [
     {file = "pyzmq-18.1.0-0_py38h16f9016-cp38-cp38-win_amd64.whl", hash = "sha256:a43341630f285d157c89bba21e33153fed477762e4f8fd9b02899a135fac1360"},
@@ -1802,10 +1792,6 @@ tabulate = [
     {file = "tabulate-0.8.7-py3-none-any.whl", hash = "sha256:ac64cb76d53b1231d364babcd72abbb16855adac7de6665122f97b593f1eb2ba"},
     {file = "tabulate-0.8.7.tar.gz", hash = "sha256:db2723a20d04bcda8522165c73eea7c300eda74e0ce852d9022e0159d7895007"},
 ]
-tdqm = [
-    {file = "tdqm-0.0.1-py2-none-any.whl", hash = "sha256:85680e5b7d78470cd80f87f348180f3fc924afe799f472e0f2e71bc82927e0c1"},
-    {file = "tdqm-0.0.1.tar.gz", hash = "sha256:f050004a76b1d22f70b78209b48781353c82440215b6ba7d22b1f499b05a0101"},
-]
 tokenizers = [
     {file = "tokenizers-0.4.2-cp35-cp35m-macosx_10_15_x86_64.whl", hash = "sha256:aa1071b1ce179da97c074e645fd28537aa5efddebb24b33882aaf68f3f8724a0"},
     {file = "tokenizers-0.4.2-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:41bed20539c1be2101ec1e656c121ee1c5458e396f10cd10e439d25978afc356"},
@@ -1851,8 +1837,8 @@ tornado = [
     {file = "tornado-6.0.4.tar.gz", hash = "sha256:0fe2d45ba43b00a41cd73f8be321a44936dc1aba233dee979f17a042b83eb6dc"},
 ]
 tqdm = [
-    {file = "tqdm-4.36.1-py2.py3-none-any.whl", hash = "sha256:dd3fcca8488bb1d416aa7469d2f277902f26260c45aa86b667b074cd44b3b115"},
-    {file = "tqdm-4.36.1.tar.gz", hash = "sha256:abc25d0ce2397d070ef07d8c7e706aede7920da163c64997585d42d3537ece3d"},
+    {file = "tqdm-4.50.2-py2.py3-none-any.whl", hash = "sha256:43ca183da3367578ebf2f1c2e3111d51ea161ed1dc4e6345b86e27c2a93beff7"},
+    {file = "tqdm-4.50.2.tar.gz", hash = "sha256:69dfa6714dee976e2425a9aab84b622675b7b1742873041e3db8a8e86132a4af"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.1-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:73d785a950fc82dd2a25897d525d003f6378d1cb23ab305578394694202a58c3"},
