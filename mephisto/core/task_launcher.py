@@ -18,6 +18,7 @@ from mephisto.data_model.assignment import (
 )
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING, Iterator
+from tqdm import tqdm
 import os
 import time
 import enum
@@ -199,7 +200,7 @@ class TaskLauncher:
         """Clean up all units on this TaskLauncher"""
         self.keep_launching_units = False
         self.finished_generators = True
-        for unit in self.units:
+        for unit in tqdm(self.units):
             try:
                 unit.expire()
             except Exception as e:

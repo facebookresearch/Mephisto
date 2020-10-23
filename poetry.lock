@@ -1043,6 +1043,17 @@ widechars = ["wcwidth"]
 
 [[package]]
 category = "main"
+description = "Alias for typos of tqdm"
+name = "tdqm"
+optional = false
+python-versions = "*"
+version = "0.0.1"
+
+[package.dependencies]
+tqdm = "*"
+
+[[package]]
+category = "main"
 description = "Fast and Customizable Tokenizers"
 name = "tokenizers"
 optional = true
@@ -1077,7 +1088,7 @@ version = "6.0.4"
 category = "main"
 description = "Fast, Extensible Progress Meter"
 name = "tqdm"
-optional = true
+optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*"
 version = "4.36.1"
 
@@ -1193,7 +1204,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 parlai = ["parlai", "torch", "pyyaml"]
 
 [metadata]
-content-hash = "0b4e880cb6cb3e8a53462d1dac3dcc95deae1b8c359d3fc092f1e53572374e86"
+content-hash = "91b44c819cd78313ffad06f461e27638064c4327898fdf3434758859e9db5470"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1790,6 +1801,10 @@ sphinxcontrib-serializinghtml = [
 tabulate = [
     {file = "tabulate-0.8.7-py3-none-any.whl", hash = "sha256:ac64cb76d53b1231d364babcd72abbb16855adac7de6665122f97b593f1eb2ba"},
     {file = "tabulate-0.8.7.tar.gz", hash = "sha256:db2723a20d04bcda8522165c73eea7c300eda74e0ce852d9022e0159d7895007"},
+]
+tdqm = [
+    {file = "tdqm-0.0.1-py2-none-any.whl", hash = "sha256:85680e5b7d78470cd80f87f348180f3fc924afe799f472e0f2e71bc82927e0c1"},
+    {file = "tdqm-0.0.1.tar.gz", hash = "sha256:f050004a76b1d22f70b78209b48781353c82440215b6ba7d22b1f499b05a0101"},
 ]
 tokenizers = [
     {file = "tokenizers-0.4.2-cp35-cp35m-macosx_10_15_x86_64.whl", hash = "sha256:aa1071b1ce179da97c074e645fd28537aa5efddebb24b33882aaf68f3f8724a0"},
