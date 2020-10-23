@@ -16,9 +16,10 @@ websocket-client = "^0.56.0"
 tornado = "^6.0"
 parlai = {version = "^0.1.2", optional = true }
 torch = {version = "^1.4.0", optional = true }
-pyyaml = {version = "^5.1", optional = true }
+pyyaml = {version = "^5.3", optional = true }
 tabulate = "^0.8.7"
 hydra-core = "^1.0.0"
+tqdm = "^4.50.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"

@@ -171,3 +171,6 @@ importlib-resources==3.0.0; python_version < "3.9" \
     --hash=sha256:d028f66b66c0d5732dae86ba4276999855e162a749c92620a38c1d779ed138a7
 antlr4-python3-runtime==4.8 \
     --hash=sha256:15793f5d0512a372b4e7d2284058ad32ce7dd27126b105fb0b2245130445db33
+tqdm==4.50.2 \
+    --hash=sha256:43ca183da3367578ebf2f1c2e3111d51ea161ed1dc4e6345b86e27c2a93beff7 \
+    --hash=sha256:69dfa6714dee976e2425a9aab84b622675b7b1742873041e3db8a8e86132a4af
