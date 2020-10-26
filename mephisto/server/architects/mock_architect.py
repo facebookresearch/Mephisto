@@ -90,7 +90,7 @@ class SocketHandler(WebSocketHandler):
         if message["packet_type"] == PACKET_TYPE_ALIVE:
             self.app.last_alive_packet = message
         elif message["packet_type"] == PACKET_TYPE_AGENT_ACTION:
-            self.app.actions_observed += 1
+            self.app.received_messages.append(message)
         elif message["packet_type"] != PACKET_TYPE_REQUEST_AGENT_STATUS:
             self.app.last_packet = message
 
@@ -116,7 +116,7 @@ class MockServer(tornado.web.Application):
         self.port = port
         self.running_instance = None
         self.last_alive_packet: Optional[Dict[str, Any]] = None
-        self.actions_observed = 0
+        self.received_messages = []
         self.last_packet: Optional[Dict[str, Any]] = None
         tornado_settings = {
             "autoescape": None,

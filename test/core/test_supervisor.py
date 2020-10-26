@@ -232,7 +232,7 @@ class TestSupervisor(unittest.TestCase):
         start_time = time.time()
         TIMEOUT_TIME = 1
         while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
+            if len(self.architect.server.received_messages) == 2:
                 break
             time.sleep(0.1)
         self.assertLess(
@@ -352,7 +352,7 @@ class TestSupervisor(unittest.TestCase):
         start_time = time.time()
         TIMEOUT_TIME = 1
         while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
+            if len(self.architect.server.received_messages) == 2:
                 break
             time.sleep(0.1)
         self.assertLess(
@@ -596,7 +596,7 @@ class TestSupervisor(unittest.TestCase):
         start_time = time.time()
         TIMEOUT_TIME = 1
         while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
+            if len(self.architect.server.received_messages) == 2:
                 break
             time.sleep(0.1)
         self.assertLess(
@@ -829,7 +829,7 @@ class TestSupervisor(unittest.TestCase):
         start_time = time.time()
         TIMEOUT_TIME = 1
         while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
+            if len(self.architect.server.received_messages) == 2:
                 break
             time.sleep(0.1)
         self.assertLess(
