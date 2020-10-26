@@ -91,6 +91,7 @@ class SocketHandler(WebSocketHandler):
             self.app.last_alive_packet = message
         elif message["packet_type"] == PACKET_TYPE_AGENT_ACTION:
             self.app.received_messages.append(message)
+            self.app.new_agent_message = True
         elif message["packet_type"] != PACKET_TYPE_REQUEST_AGENT_STATUS:
             self.app.last_packet = message
 
@@ -117,6 +118,7 @@ class MockServer(tornado.web.Application):
         self.running_instance = None
         self.last_alive_packet: Optional[Dict[str, Any]] = None
         self.received_messages = []
+        self.new_agent_message = False  # Has a new message for the agent been received
         self.last_packet: Optional[Dict[str, Any]] = None
         tornado_settings = {
             "autoescape": None,
@@ -178,6 +180,20 @@ class MockServer(tornado.web.Application):
                 "data": act_content,
             }
         )
+
+    def get_agent_message(self, timeout: float = 1.0) -> dict:
+        """
+        Return a message once received, or raise an exception on timeout.
+        """
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if self.new_agent_message:
+                self.new_agent_message = False
+                return self.received_messages[-1]
+            else:
+                time.sleep(0.1)
+        else:
+            raise TimeoutError("Message for agent not received!")
 
     def register_mock_agent(self, worker_id, agent_details):
         """
