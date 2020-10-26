@@ -4,7 +4,7 @@
 
 ### Folders
 
-- **src/**: contains the react frontend components that comprise the frontend, as well as the css and main javascript file that ties it all together. Of these, the `src/components/core_components.jsx` file is likely the most interesting, as it contains the frontend components that are rendered in a normal task. To replace them, you'll need to create a `custom.jsx` file following the formatting in the dummy version in the same folder. See an example of this in the `react_task_demo` task in the `parlai/mturk/tasks` folder.
+- **src/**: contains the react frontend components that comprise the frontend, as well as the css and main javascript file that ties it all together. Of these, the `src/components/core_components.jsx` file is likely the most interesting, as it contains the frontend components that are rendered in a normal task. To replace them, you'll need to create a `custom.jsx` file following the formatting in the dummy version in the same folder.
 
 
 ### Files

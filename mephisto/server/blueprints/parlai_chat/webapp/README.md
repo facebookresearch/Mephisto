@@ -4,7 +4,7 @@
 
 ### Folders
 
-- **dev/**: contains the react frontend components that comprise the frontend, as well as the css and main javascript file that ties it all together. Of these, the `dev/components/core_components.jsx` file is likely the most interesting, as it contains the frontend components that are rendered in a normal task. To replace them, you'll need to create a `custom.jsx` file following the formatting in the dummy version in the same folder. See an example of this in the `react_task_demo` task in the `parlai/mturk/tasks` folder.
+- **dev/**: contains the react frontend components that comprise the frontend, as well as the css and main javascript file that ties it all together. Of these, the `dev/components/core_components.jsx` file is likely the most interesting, as it contains the frontend components that are rendered in a normal task. To replace them, you'll need to create a `custom.jsx` file following the formatting in the dummy version in the same folder.
 - **server/**: contains the package that is actually served by the heroku server for the task. `server.js` is what ends up running on the heroku server, which is a simple one-page server with a router for socket messages. The `parlai/mturk/core/server_utils.py` file handles building the components from dev into a new copy of this folder when launching a new task.
 
 ### Files
