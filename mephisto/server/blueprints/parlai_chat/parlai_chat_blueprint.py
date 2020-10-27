@@ -28,6 +28,7 @@ import os
 import time
 import csv
 import sys
+import json
 
 from importlib import import_module
 
@@ -112,6 +113,10 @@ class ParlAIChatBlueprintArgs(BlueprintArgs):
         default=MISSING,
         metadata={"help": "Optional path to csv containing task context"},
     )
+    context_jsonl: str = field(
+        default=MISSING,
+        metadata={"help": "Optional path to jsonl file containing task context"},
+    )
     num_conversations: int = field(
         default=MISSING,
         metadata={
@@ -154,6 +159,14 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
                     for i, col in enumerate(row):
                         row_data[headers[i]] = col
                     self._initialization_data_dicts.append(row_data)
+        elif args.blueprint.get("context_jsonl", None) is not None:
+            jsonl_file = os.path.expanduser(args.blueprint.context_jsonl)
+            with open(jsonl_file, "r", encoding="utf-8-sig") as jsonl_fp:
+                line = jsonl_fp.readline()
+                while line:
+                    j = json.loads(line)
+                    self._initialization_data_dicts.append(j)
+                    line = jsonl_fp.readline()
         elif args.blueprint.get("num_conversations", None) is not None:
             self._initialization_data_dicts = [{}] * args.blueprint.num_conversations
         else:
@@ -182,6 +195,14 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
             ), f"Target task description path {full_path} doesn't exist"
             with open(full_path, "r") as description_fp:
                 self.full_task_description = description_fp.read()
+        self.full_preview_description = MISSING_SOMETHING_TEXT
+        if args.blueprint.get("preview_source", None) is not None:
+            preview_source_file = os.path.expanduser(args.blueprint.preview_source)
+            assert os.path.exists(
+                preview_source_file
+            ), f"Target preview source path {preview_source_file} doesn't exist"
+            with open(preview_source_file, "r") as description_fp:
+                self.full_preview_description = description_fp.read()
 
     @classmethod
     def assert_task_args(
@@ -206,16 +227,22 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
 
         # assert some method for determining quantity of conversations
         if args.blueprint.get("context_csv", None) is not None:
-            raise AssertionError(
-                "Specifying task quantity via context csv is not yet implemented"
-            )
+            csv_file = os.path.expanduser(args.blueprint.context_csv)
+            assert os.path.exists(
+                csv_file
+            ), f"Target context_csv path {csv_file} doesn't exist"
+        elif args.blueprint.get("context_jsonl", None) is not None:
+            jsonl_file = os.path.expanduser(args.blueprint.context_jsonl)
+            assert os.path.exists(
+                jsonl_file
+            ), f"Target context_jsonl path {jsonl_file} doesn't exist"
         elif args.blueprint.get("num_conversations", None) is not None:
             assert (
                 args.blueprint.num_conversations > 0
             ), "Must have at least one conversation"
         else:
             raise AssertionError(
-                "Must specify one of --context-csv or --num-conversations"
+                "Must specify one of --context-csv, --context-jsonl or --num-conversations"
             )
 
         if args.blueprint.get("custom_source_bundle", None) is not None:
@@ -254,6 +281,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         # TODO move frontend args in
         frontend_task_config = {
             "task_description": self.full_task_description,
+            'preview_html': self.full_preview_description,
             "frame_height": 650,
             "chat_title": self.args.task.task_title,
             "has_preview": self.args.blueprint.get("preview_source", None) is not None,
