@@ -1,0 +1,4 @@
+#@package _global_
+defaults:
+  - mephisto/architect: local
+  - mephisto/provider: mock
