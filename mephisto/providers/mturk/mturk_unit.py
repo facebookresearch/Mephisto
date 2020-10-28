@@ -7,8 +7,8 @@
 from datetime import datetime
 
 from mephisto.data_model.assignment import Unit
-from mephisto.data_model.assignment_state import AssignmentState
-from mephisto.data_model.blueprint import AgentState
+from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.providers.mturk.mturk_utils import (
     expire_hit,
     get_hit,
@@ -18,7 +18,7 @@ from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from typing import List, Optional, Tuple, Mapping, Dict, Any, Type, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.assignment import Assignment
     from mephisto.providers.mturk.mturk_requester import MTurkRequester
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore

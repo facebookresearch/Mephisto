@@ -15,13 +15,13 @@ from mephisto.server.architects.heroku_architect import (
     HerokuArchitectArgs,
 )
 
-from mephisto.data_model.database import MephistoDB
-from mephisto.data_model.architect import Architect
-from mephisto.data_model.assignment_state import AssignmentState
+from mephisto.abstractions.database import MephistoDB
+from mephisto.abstractions.architect import Architect
+from mephisto.data_model.constants.assignment_state import AssignmentState
 
 from omegaconf import OmegaConf
 from mephisto.core.hydra_config import MephistoConfig
-from mephisto.data_model.blueprint import SharedTaskState
+from mephisto.abstractions.blueprint import SharedTaskState
 
 # TODO(#104) these tests should be marked as nightly's rather than on every run?
 # Maybe with some kind of LONG TEST flag? Investigate

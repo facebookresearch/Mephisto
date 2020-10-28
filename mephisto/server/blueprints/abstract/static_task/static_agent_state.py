@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List, Dict, Optional, Any, TYPE_CHECKING
-from mephisto.data_model.blueprint import AgentState
+from mephisto.abstractions.blueprint import AgentState
 import os
 import json
 import time

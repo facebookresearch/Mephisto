@@ -8,7 +8,7 @@ import os
 import threading
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.data_model.blueprint import AgentState
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.exceptions import (
     AgentReturnedError,
@@ -20,9 +20,10 @@ from typing import List, Optional, Tuple, Mapping, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit, Assignment
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.packet import Packet
-    from mephisto.data_model.task import Task, TaskRun
+    from mephisto.data_model.task import Task
+    from mephisto.data_model.task_run import TaskRun
 
 
 class Agent(ABC):
@@ -134,7 +135,7 @@ class Agent(ABC):
             elif self._assignment is not None:
                 self._task_run = self._assignment.get_task_run()
             else:
-                from mephisto.data_model.task import TaskRun
+                from mephisto.data_model.task_run import TaskRun
 
                 self._task_run = TaskRun(self.db, self.task_run_id)
         return self._task_run
@@ -393,7 +394,7 @@ class OnboardingAgent(ABC):
     def get_task_run(self) -> "TaskRun":
         """Return the TaskRun this agent is working within"""
         if self._task_run is None:
-            from mephisto.data_model.task import TaskRun
+            from mephisto.data_model.task_run import TaskRun
 
             self._task_run = TaskRun(self.db, self.task_run_id)
         return self._task_run

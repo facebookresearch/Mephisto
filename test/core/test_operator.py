@@ -14,7 +14,7 @@ import time
 import threading
 
 from mephisto.data_model.test.utils import get_test_requester
-from mephisto.data_model.assignment_state import AssignmentState
+from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.operator import Operator
 from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs

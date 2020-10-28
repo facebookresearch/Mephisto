@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import TaskRunner, SharedTaskState
+from mephisto.abstractions.blueprint import TaskRunner, SharedTaskState
 from mephisto.data_model.assignment import InitializationData
 
 import os
@@ -13,7 +13,7 @@ import time
 from typing import ClassVar, List, Type, Any, Dict, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.assignment import Assignment, Unit
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from argparse import _ArgumentGroup as ArgumentGroup

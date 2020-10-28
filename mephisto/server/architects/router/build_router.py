@@ -15,7 +15,7 @@ import json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
 
 ROUTER_ROOT_DIR = os.path.dirname(router_module.__file__)
 SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "deploy")

@@ -22,8 +22,8 @@ import csv
 from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.blueprint import (
+    from mephisto.data_model.task_run import TaskRun
+    from mephisto.abstractions.blueprint import (
         AgentState,
         TaskRunner,
         TaskBuilder,

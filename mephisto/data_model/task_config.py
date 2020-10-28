@@ -15,7 +15,7 @@ import argparse
 import shlex
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
 
 

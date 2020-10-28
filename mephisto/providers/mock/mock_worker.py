@@ -9,8 +9,8 @@ from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from typing import List, Optional, Tuple, Dict, Mapping, Type, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
-    from mephisto.data_model.task import TaskRun
+    from mephisto.abstractions.database import MephistoDB
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.assignment import Unit, Agent
     from mephisto.data_model.requester import Requester
     from mephisto.providers.mock.mock_datastore import MockDatastore

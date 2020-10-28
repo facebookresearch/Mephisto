@@ -22,10 +22,10 @@ from mephisto.core.config_handler import (
 from typing import Optional, Dict, Any, List, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.crowd_provider import CrowdProvider
+    from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.data_model.task_runner import TaskRunner
-    from mephisto.data_model.architect import Architect
-    from mephisto.data_model.task import TaskRun
+    from mephisto.abstractions.architect import Architect
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.requester import Requester
 
 
@@ -187,7 +187,7 @@ def find_or_create_qualification(db, qualification_name) -> None:
     Ensure the given qualification exists in the db,
     creating it if it doesn't already
     """
-    from mephisto.data_model.database import EntryAlreadyExistsException
+    from mephisto.abstractions.database import EntryAlreadyExistsException
 
     try:
         db.make_qualification(qualification_name)

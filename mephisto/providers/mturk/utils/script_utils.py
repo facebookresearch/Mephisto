@@ -11,7 +11,7 @@ from mephisto.data_model.requester import Requester
 from mephisto.data_model.assignment import Unit
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
 
 
 def direct_soft_block_mturk_workers(

@@ -8,7 +8,7 @@ import os
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
-from mephisto.data_model.crowd_provider import CrowdProvider, ProviderArgs
+from mephisto.abstractions.crowd_provider import CrowdProvider, ProviderArgs
 from mephisto.data_model.requester import RequesterArgs
 from mephisto.providers.mturk.mturk_agent import MTurkAgent
 from mephisto.providers.mturk.mturk_requester import MTurkRequester
@@ -29,8 +29,8 @@ from typing import ClassVar, Dict, Any, Optional, Type, List, cast, TYPE_CHECKIN
 from mephisto.data_model.requester import Requester
 
 if TYPE_CHECKING:
-    from mephisto.data_model.blueprint import SharedTaskState
-    from mephisto.data_model.task import TaskRun
+    from mephisto.abstractions.blueprint import SharedTaskState
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.agent import Agent

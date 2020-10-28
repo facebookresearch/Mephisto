@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import (
+from mephisto.abstractions.blueprint import (
     Blueprint,
     OnboardingRequired,
     BlueprintArgs,
@@ -25,8 +25,8 @@ from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING, Opt
 
 if TYPE_CHECKING:
     from mephsito.data_model.agent import OnboardingAgent
-    from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
+    from mephisto.data_model.task_run import TaskRun
+    from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup

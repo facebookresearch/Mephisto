@@ -23,8 +23,8 @@ from typing import List, Optional, Tuple, Dict, Mapping, Any, cast, TYPE_CHECKIN
 
 if TYPE_CHECKING:
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
-    from mephisto.data_model.database import MephistoDB
-    from mephisto.data_model.task import TaskRun
+    from mephisto.abstractions.database import MephistoDB
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.assignment import Unit
     from mephisto.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.providers.mturk.mturk_requester import MTurkRequester

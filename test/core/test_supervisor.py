@@ -21,9 +21,9 @@ from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.task_launcher import TaskLauncher
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
-from mephisto.data_model.task import TaskRun
+from mephisto.data_model.task_run import TaskRun
 from mephisto.core.supervisor import Supervisor, Job
-from mephisto.data_model.blueprint import SharedTaskState
+from mephisto.abstractions.blueprint import SharedTaskState
 
 
 from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs

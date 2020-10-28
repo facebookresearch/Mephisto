@@ -13,9 +13,9 @@ from typing import Type, ClassVar
 from mephisto.data_model.test.architect_tester import ArchitectTests
 from mephisto.server.architects.mock_architect import MockArchitect, MOCK_DEPLOY_URL
 
-from mephisto.data_model.database import MephistoDB
-from mephisto.data_model.architect import Architect
-from mephisto.data_model.assignment_state import AssignmentState
+from mephisto.abstractions.database import MephistoDB
+from mephisto.abstractions.architect import Architect
+from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner

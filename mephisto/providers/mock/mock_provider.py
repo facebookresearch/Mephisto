@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.crowd_provider import CrowdProvider, ProviderArgs
+from mephisto.abstractions.crowd_provider import CrowdProvider, ProviderArgs
 from mephisto.providers.mock.mock_agent import MockAgent
 from mephisto.providers.mock.mock_requester import MockRequester
 from mephisto.providers.mock.mock_unit import MockUnit
@@ -20,12 +20,12 @@ from typing import ClassVar, Dict, Any, Optional, Type, List, TYPE_CHECKING
 import os
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.agent import Agent
-    from mephisto.data_model.blueprint import SharedTaskState
+    from mephisto.abstractions.blueprint import SharedTaskState
     from omegaconf import DictConfig
 
 

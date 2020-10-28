@@ -11,8 +11,8 @@ from omegaconf import MISSING, DictConfig
 from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any, Type, ClassVar
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
-    from mephisto.data_model.task import TaskRun
+    from mephisto.abstractions.database import MephistoDB
+    from mephisto.data_model.task_run import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
 
 

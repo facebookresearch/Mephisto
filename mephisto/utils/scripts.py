@@ -17,7 +17,7 @@ from typing import Tuple, Dict, Any, TYPE_CHECKING
 import os
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
 
 
 def load_db_and_process_config(

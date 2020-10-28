@@ -12,10 +12,15 @@ import os
 import shutil
 import threading
 import time
-from mephisto.data_model.blueprint import Blueprint, AgentState, TaskRunner, TaskBuilder
+from mephisto.abstractions.blueprint import (
+    Blueprint,
+    AgentState,
+    TaskRunner,
+    TaskBuilder,
+)
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.data_model.assignment import Assignment
-from mephisto.data_model.task import TaskRun
+from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.providers.mock.mock_agent import MockAgent
 from mephisto.data_model.agent import Agent

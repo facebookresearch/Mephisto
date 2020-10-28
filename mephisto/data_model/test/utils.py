@@ -6,7 +6,7 @@
 
 from typing import Optional, Tuple
 
-from mephisto.data_model.database import (
+from mephisto.abstractions.database import (
     MephistoDB,
     MephistoDBException,
     EntryAlreadyExistsException,
@@ -17,7 +17,8 @@ from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Unit, Assignment
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.task import Task
+from mephisto.data_model.task_run import TaskRun
 from omegaconf import OmegaConf
 import json
 

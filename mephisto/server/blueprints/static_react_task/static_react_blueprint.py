@@ -23,8 +23,8 @@ import csv
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.blueprint import AgentState, TaskRunner, TaskBuilder
+    from mephisto.data_model.task_run import TaskRun
+    from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
     from argparse import _ArgumentGroup as ArgumentGroup
 

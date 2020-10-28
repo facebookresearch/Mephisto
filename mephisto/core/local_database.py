@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.database import (
+from mephisto.abstractions.database import (
     MephistoDB,
     MephistoDBException,
     EntryAlreadyExistsException,
@@ -18,7 +18,8 @@ from mephisto.data_model.assignment import Assignment, Unit, AssignmentState
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.task import Task
+from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import Qualification, GrantedQualification
 

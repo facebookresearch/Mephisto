@@ -26,7 +26,7 @@ from mephisto.data_model.packet import (
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
-from mephisto.data_model.blueprint import OnboardingRequired, AgentState
+from mephisto.abstractions.blueprint import OnboardingRequired, AgentState
 from mephisto.core.registry import get_crowd_provider_from_type
 from mephisto.server.channels.channel import Channel, STATUS_CHECK_TIME
 
@@ -36,11 +36,11 @@ from typing import Dict, Set, Optional, List, Any, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment, Unit
-    from mephisto.data_model.database import MephistoDB
-    from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.blueprint import TaskRunner
-    from mephisto.data_model.crowd_provider import CrowdProvider
-    from mephisto.data_model.architect import Architect
+    from mephisto.abstractions.database import MephistoDB
+    from mephisto.data_model.task_run import TaskRun
+    from mephisto.abstractions.blueprint import TaskRunner
+    from mephisto.abstractions.crowd_provider import CrowdProvider
+    from mephisto.abstractions.architect import Architect
 
 from mephisto.core.logger_core import get_logger
 

@@ -12,7 +12,7 @@ from typing import Any, Mapping, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
 
 
 class SandboxMTurkWorker(MTurkWorker):

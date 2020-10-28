@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
-from mephisto.data_model.blueprint import AgentState
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.packet import (
     PACKET_TYPE_AGENT_ACTION,
     PACKET_TYPE_UPDATE_AGENT_STATUS,

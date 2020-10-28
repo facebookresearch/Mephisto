@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import TaskBuilder
+from mephisto.abstractions.blueprint import TaskBuilder
 
 from distutils.dir_util import copy_tree
 import os
@@ -16,7 +16,7 @@ import subprocess
 from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.assignment import Assignment
 
 STATIC_TASK_DIR = os.path.dirname(__file__)

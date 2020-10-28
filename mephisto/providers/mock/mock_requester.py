@@ -11,8 +11,8 @@ from mephisto.providers.mock.provider_type import PROVIDER_TYPE
 from typing import Optional, Dict, List, Mapping, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
-    from mephisto.data_model.task import TaskRun
+    from mephisto.abstractions.database import MephistoDB
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.providers.mock.mock_datastore import MockDatastore
     from argparse import _ArgumentGroup as ArgumentGroup
     from omegaconf import DictConfig

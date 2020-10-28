@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.blueprint import AgentState
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.providers.mturk.mturk_utils import (
     approve_work,
@@ -17,7 +17,7 @@ from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.assignment import Unit
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.packet import Packet
     from mephisto.providers.mturk.requester import MTurkRequester

@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.blueprint import TaskRunner
+from mephisto.abstractions.blueprint import TaskRunner
 from mephisto.data_model.agent import Agent, OnboardingAgent
 
 try:
@@ -45,8 +45,8 @@ from uuid import uuid4
 from typing import ClassVar, List, Type, Any, Dict, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.blueprint import AgentState
+    from mephisto.data_model.task_run import TaskRun
+    from mephisto.abstractions.blueprint import AgentState
     from mephsito.data_model.assignment import Assignment
 
 

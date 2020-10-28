@@ -6,9 +6,9 @@
 
 from flask import Blueprint, jsonify, request
 from flask import current_app as app
-from mephisto.data_model.database import EntryAlreadyExistsException
-from mephisto.data_model.assignment_state import AssignmentState
-from mephisto.data_model.task import TaskRun
+from mephisto.abstractions.database import EntryAlreadyExistsException
+from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.core.argparse_parser import get_extra_argument_dicts, parse_arg_dict
 from mephisto.core.registry import (

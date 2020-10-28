@@ -10,7 +10,7 @@ from mephisto.providers.mturk_sandbox.provider_type import PROVIDER_TYPE
 from typing import Any, Optional, Mapping, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.requester import Requester
     from mephisto.providers.mturk.mturk_datastore import MTurkDatastore
 

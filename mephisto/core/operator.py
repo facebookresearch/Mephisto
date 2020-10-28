@@ -21,10 +21,10 @@ from mephisto.core.supervisor import Supervisor, Job
 
 from typing import Dict, Optional, List, Any, Tuple, NamedTuple, Type, TYPE_CHECKING
 from mephisto.data_model.task_config import TaskConfig
-from mephisto.data_model.task import TaskRun
+from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.blueprint import OnboardingRequired, SharedTaskState
-from mephisto.data_model.database import MephistoDB, EntryDoesNotExistException
+from mephisto.abstractions.blueprint import OnboardingRequired, SharedTaskState
+from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.core.task_launcher import TaskLauncher
 from mephisto.core.registry import (
@@ -41,9 +41,9 @@ logger = get_logger(name=__name__, verbose=True, level="info")
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
-    from mephisto.data_model.blueprint import Blueprint, TaskRunner
-    from mephisto.data_model.crowd_provider import CrowdProvider
-    from mephisto.data_model.architect import Architect
+    from mephisto.abstractions.blueprint import Blueprint, TaskRunner
+    from mephisto.abstractions.crowd_provider import CrowdProvider
+    from mephisto.abstractions.architect import Architect
     from argparse import Namespace
 
 

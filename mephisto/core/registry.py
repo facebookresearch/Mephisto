@@ -11,9 +11,9 @@ import importlib
 import os
 
 if TYPE_CHECKING:
-    from mephisto.data_model.blueprint import Blueprint
-    from mephisto.data_model.crowd_provider import CrowdProvider
-    from mephisto.data_model.architect import Architect
+    from mephisto.abstractions.blueprint import Blueprint
+    from mephisto.abstractions.crowd_provider import CrowdProvider
+    from mephisto.abstractions.architect import Architect
 
 
 BLUEPRINTS: Dict[str, Type["Blueprint"]] = {}
@@ -30,9 +30,9 @@ def register_mephisto_abstraction():
     def register_cls(
         base_class: Union[Type["Blueprint"], Type["Architect"], Type["CrowdProvider"]]
     ):
-        from mephisto.data_model.blueprint import Blueprint
-        from mephisto.data_model.crowd_provider import CrowdProvider
-        from mephisto.data_model.architect import Architect
+        from mephisto.abstractions.blueprint import Blueprint
+        from mephisto.abstractions.crowd_provider import CrowdProvider
+        from mephisto.abstractions.architect import Architect
 
         if issubclass(base_class, Blueprint):
             name = base_class.BLUEPRINT_TYPE

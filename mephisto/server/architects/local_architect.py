@@ -13,7 +13,7 @@ import shlex
 import time
 import requests
 
-from mephisto.data_model.architect import Architect, ArchitectArgs
+from mephisto.abstractions.architect import Architect, ArchitectArgs
 from dataclasses import dataclass, field
 from mephisto.core.registry import register_mephisto_abstraction
 from typing import Any, Optional, Dict, List, TYPE_CHECKING, Callable
@@ -21,11 +21,11 @@ from typing import Any, Optional, Dict, List, TYPE_CHECKING, Callable
 if TYPE_CHECKING:
     from mephisto.server.channels.channel import Channel
     from mephsito.data_model.packet import Packet
-    from mephisto.data_model.task import TaskRun
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.task_run import TaskRun
+    from mephisto.abstractions.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
     from omegaconf import DictConfig
-    from mephisto.data_model.blueprint import SharedTaskState
+    from mephisto.abstractions.blueprint import SharedTaskState
 
 from mephisto.server.architects.router.build_router import build_router
 from mephisto.server.channels.websocket_channel import WebsocketChannel

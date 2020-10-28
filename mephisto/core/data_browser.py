@@ -4,14 +4,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.database import MephistoDB
+from mephisto.abstractions.database import MephistoDB
 from mephisto.data_model.assignment import Unit
-from mephisto.data_model.task import TaskRun
-from mephisto.data_model.blueprint import AgentState
+from mephisto.data_model.task_run import TaskRun
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import Agent
 
 from mephisto.core.local_database import LocalMephistoDB
-from mephisto.data_model.assignment_state import AssignmentState
+from mephisto.data_model.constants.assignment_state import AssignmentState
 
 from typing import List, Optional, Any, Dict
 

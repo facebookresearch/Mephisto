@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from mephisto.data_model.blueprint import AgentState
+from mephisto.abstractions.blueprint import AgentState
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 from mephisto.core.logger_core import get_logger
 
@@ -14,11 +14,11 @@ logger = get_logger(name=__name__, verbose=True, level="info")
 
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.requester import Requester
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.qualification import GrantedQualification
     from argparse import _ArgumentGroup as ArgumentGroup
 

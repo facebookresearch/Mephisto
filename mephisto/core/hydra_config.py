@@ -5,9 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 from hydra.core.config_store import ConfigStoreWithProvider
-from mephisto.data_model.blueprint import BlueprintArgs
-from mephisto.data_model.architect import ArchitectArgs
-from mephisto.data_model.crowd_provider import ProviderArgs
+from mephisto.abstractions.blueprint import BlueprintArgs
+from mephisto.abstractions.architect import ArchitectArgs
+from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 from dataclasses import dataclass, field
 from omegaconf import MISSING
