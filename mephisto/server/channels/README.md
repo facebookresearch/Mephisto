@@ -26,9 +26,9 @@ Once the task completes its run, or if it's interrupted or a serious error occur
 
 ## Retriability + Failure handling
 
-Ultimately if the `Channel` that Mephisto is communicating using dies, the Mephisto process needs to suspend the current run, shutdown, and clean up. As such, we leave it up to the `Channel` implementation to determine if the connection is still stable enough to be running. `is_alive`, the retriability of `send`, and `on_catastraphic_disconnect` covers the full freedom for a `Channel` to be able to signal to Mephisto that a task is no longer salvageable.
+Ultimately if the `Channel` that Mephisto is communicating using dies, the Mephisto process needs to suspend the current run, shutdown, and clean up. As such, we leave it up to the `Channel` implementation to determine if the connection is still stable enough to be running. `is_alive`, the retriability of `send`, and `on_catastrophic_disconnect` covers the full freedom for a `Channel` to be able to signal to Mephisto that a task is no longer salvageable.
 
-Another way to visualize the flow for this would be to try to `send` a message, and upon failure, launch a thread that tries to fix the issue, then return `False` for the `send` call. Mephisto will wait for `is_alive` to be true before retrying. If the `Channel` succeeds in re-establishing a connection, then the retries will eventually go through. If the `Channel` believes that something is *really* wrong, it should call `on_catastraphic_disconnect`.
+Another way to visualize the flow for this would be to try to `send` a message, and upon failure, launch a thread that tries to fix the issue, then return `False` for the `send` call. Mephisto will wait for `is_alive` to be true before retrying. If the `Channel` succeeds in re-establishing a connection, then the retries will eventually go through. If the `Channel` believes that something is *really* wrong, it should call `on_catastrophic_disconnect`.
 
 # WebsocketChannel
 
