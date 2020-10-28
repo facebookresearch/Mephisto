@@ -107,7 +107,7 @@ class Architect(ABC):
 
     def shutdown(self) -> None:
         """
-        Shut down the server launched by this Surveyor, as stored
+        Shut down the server launched by this Architect, as stored
         in the db.
         """
         raise NotImplementedError()

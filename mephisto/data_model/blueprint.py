@@ -108,15 +108,6 @@ class TaskBuilder(ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    @abstractmethod
-    def task_dir_is_valid(task_dir: str) -> bool:
-        """
-        Check the given task dir, and assert that the contents
-        would be runnable with this task runner.
-        """
-        raise NotImplementedError()
-
 
 class TaskRunner(ABC):
     """
