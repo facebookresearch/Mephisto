@@ -24,7 +24,6 @@ const INPUT_MODE = {
   INACTIVE: "inactive",
   DONE: "done",
   READY_FOR_INPUT: "ready_for_input",
-  IDLE: "idle",
 };
 
 function ChatApp({
