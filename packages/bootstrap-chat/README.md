@@ -115,7 +115,6 @@ This render prop is for cases where you'd like to minimally alter the response t
 - `INACTIVE`: Occurs when something goes wrong, usually if the agent experiences a disconnect, timeout, the task is returned, or has expired.
 - `DONE`: The task is complete.
 - `READY_FOR_INPUT`: The current agent is ready and is ready to send over data.
-- `IDLE`: (TODO: This doesn't seem to be set anywhere. Should we remove?)
 
 **`active`**: A helper boolean, essentially is true when `inputMode` is `INPUT_MODE.READY_FOR_INPUT`
 
