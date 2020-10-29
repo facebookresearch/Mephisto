@@ -15,7 +15,7 @@ from typing import List
 
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
-from mephisto.server.architects.mock_architect import MockArchitect
+from mephisto.abstractions.architects.mock_architect import MockArchitect
 from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.task_launcher import TaskLauncher
@@ -26,7 +26,10 @@ from mephisto.core.supervisor import Supervisor, Job
 from mephisto.abstractions.blueprint import SharedTaskState
 
 
-from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
+from mephisto.abstractions.architects.mock_architect import (
+    MockArchitect,
+    MockArchitectArgs,
+)
 from mephisto.core.hydra_config import MephistoConfig
 from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs

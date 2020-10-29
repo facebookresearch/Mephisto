@@ -11,7 +11,10 @@ import tempfile
 
 from typing import Type, ClassVar
 from mephisto.data_model.test.architect_tester import ArchitectTests
-from mephisto.server.architects.mock_architect import MockArchitect, MOCK_DEPLOY_URL
+from mephisto.abstractions.architects.mock_architect import (
+    MockArchitect,
+    MOCK_DEPLOY_URL,
+)
 
 from mephisto.abstractions.database import MephistoDB
 from mephisto.abstractions.architect import Architect

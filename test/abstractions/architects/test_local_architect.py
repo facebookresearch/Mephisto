@@ -13,7 +13,7 @@ import shlex
 
 from typing import Type, ClassVar, Optional
 from mephisto.data_model.test.architect_tester import ArchitectTests
-from mephisto.server.architects.local_architect import (
+from mephisto.abstractions.architects.local_architect import (
     LocalArchitect,
     LocalArchitectArgs,
 )

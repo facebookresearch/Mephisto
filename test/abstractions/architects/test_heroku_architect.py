@@ -10,7 +10,7 @@ import pytest
 
 from typing import Type, ClassVar, Optional
 from mephisto.data_model.test.architect_tester import ArchitectTests
-from mephisto.server.architects.heroku_architect import (
+from mephisto.abstractions.architects.heroku_architect import (
     HerokuArchitect,
     HerokuArchitectArgs,
 )

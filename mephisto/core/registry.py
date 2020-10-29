@@ -93,11 +93,15 @@ def fill_registries():
                 )
 
     # Import Mephisto Architects
-    architect_root = os.path.join(get_root_dir(), "mephisto", "server", "architects")
+    architect_root = os.path.join(
+        get_root_dir(), "mephisto", "abstractions", "architects"
+    )
     for filename in os.listdir(architect_root):
         if filename.endswith("architect.py"):
             architect_name = filename[: filename.find(".py")]
-            importlib.import_module(f"mephisto.server.architects.{architect_name}")
+            importlib.import_module(
+                f"mephisto.abstractions.architects.{architect_name}"
+            )
 
     # Import Mephisto Blueprints
     blueprint_root = os.path.join(get_root_dir(), "mephisto", "server", "blueprints")
