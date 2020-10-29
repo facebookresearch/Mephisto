@@ -27,8 +27,3 @@ class MockTaskBuilder(TaskBuilder):
         """Mock tasks don't really build anything (yet)"""
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:
             built_file.write(self.BUILT_MESSAGE)
-
-    @staticmethod
-    def task_dir_is_valid(task_dir: str) -> bool:
-        """Mocks are always valid, we don't have any special resources"""
-        return True

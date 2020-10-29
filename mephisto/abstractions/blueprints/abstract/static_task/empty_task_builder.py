@@ -20,8 +20,3 @@ class EmptyStaticTaskBuilder(TaskBuilder):
             "can be seen in the static_react_task and static_html_task folders. "
             "Note that extra static content will be provided in `args.blueprint.extra_source_dir` "
         )
-
-    @staticmethod
-    def task_dir_is_valid(task_dir: str) -> bool:
-        """TaskBuilders should check the task dir to ensure that it is built properly"""
-        return False

@@ -142,7 +142,6 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
         );
       }
       break;
-    case INPUT_MODE.IDLE:
     default:
       response_pane = null;
       break;

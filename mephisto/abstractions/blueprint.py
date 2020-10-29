@@ -34,7 +34,8 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.data_model.assignment import Assignment, InitializationData, Unit
+    from mephisto.data_model.assignment import Assignment, InitializationData
+    from mephisto.data_model.unit import Unit
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
@@ -105,15 +106,6 @@ class TaskBuilder(ABC):
     def build_in_dir(self, build_dir: str) -> None:
         """
         Build the server for the given task run into the provided directory
-        """
-        raise NotImplementedError()
-
-    @staticmethod
-    @abstractmethod
-    def task_dir_is_valid(task_dir: str) -> bool:
-        """
-        Check the given task dir, and assert that the contents
-        would be runnable with this task runner.
         """
         raise NotImplementedError()
 
