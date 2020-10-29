@@ -19,7 +19,7 @@ from mephisto.core.registry import register_mephisto_abstraction
 from typing import Any, Optional, Dict, List, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from mephisto.server.channels.channel import Channel
+    from mephisto.abstractions.channel import Channel
     from mephsito.data_model.packet import Packet
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.blueprint import SharedTaskState
 
 from mephisto.abstractions.architects.router.build_router import build_router
-from mephisto.server.channels.websocket_channel import WebsocketChannel
+from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
 from mephisto.core.utils import get_mephisto_tmp_dir
 
 ARCHITECT_TYPE = "local"
