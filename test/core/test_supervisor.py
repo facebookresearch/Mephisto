@@ -6,84 +6,15 @@
 
 
 import unittest
-import shutil
-import os
-import tempfile
 import time
-from abc import ABC
-from typing import ClassVar, List, Type
+from typing import ClassVar, Type
 
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
-from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
-from mephisto.providers.mock.mock_provider import MockProvider
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.task_launcher import TaskLauncher
-from mephisto.data_model.test.utils import get_test_task_run
-from mephisto.data_model.assignment import InitializationData
+from mephisto.data_model.test.utils import EMPTY_STATE, AbstractTestSupervisor
 from mephisto.data_model.blueprint import Blueprint
-from mephisto.data_model.task import TaskRun
 from mephisto.core.supervisor import Supervisor, Job
-from mephisto.data_model.blueprint import SharedTaskState
-from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
 from mephisto.core.hydra_config import MephistoConfig
 from omegaconf import OmegaConf
-
-
-EMPTY_STATE = SharedTaskState()
-
-
-class AbstractTestSupervisor(ABC):
-    """
-    Abstract test class utilizing the Mephisto Supervisor.
-
-    Subclasses will use the MockArchitect and the MockProvider, and they must specify a
-    BlueprintClass to test.
-    """
-
-    BlueprintClass: ClassVar[Type["Blueprint"]]
-
-    def setUp(self):
-        self.data_dir = tempfile.mkdtemp()
-        database_path = os.path.join(self.data_dir, "mephisto.db")
-        self.db = LocalMephistoDB(database_path)
-        self.task_id = self.db.new_task("test_mock", self.BlueprintClass.BLUEPRINT_TYPE)
-        self.task_run_id = get_test_task_run(self.db)
-        self.task_run = TaskRun(self.db, self.task_run_id)
-
-        architect_config = OmegaConf.structured(
-            MephistoConfig(architect=MockArchitectArgs(should_run_server=True))
-        )
-
-        self.architect = MockArchitect(
-            self.db, architect_config, EMPTY_STATE, self.task_run, self.data_dir
-        )
-        self.architect.prepare()
-        self.architect.deploy()
-        self.urls = self.architect._get_socket_urls()  # FIXME
-        self.url = self.urls[0]
-        self.provider = MockProvider(self.db)
-        self.provider.setup_resources_for_task_run(
-            self.task_run, self.task_run.args, EMPTY_STATE, self.url
-        )
-        self.launcher = TaskLauncher(
-            self.db, self.task_run, self.get_mock_assignment_data_array()
-        )
-        self.launcher.create_assignments()
-        self.launcher.launch_units(self.url)
-        self.sup = None
-
-    def tearDown(self):
-        if self.sup is not None:
-            self.sup.shutdown()
-        self.launcher.expire_units()
-        self.architect.cleanup()
-        self.architect.shutdown()
-        self.db.shutdown()
-        shutil.rmtree(self.data_dir, ignore_errors=True)
-
-    def get_mock_assignment_data_array(self) -> List[InitializationData]:
-        mock_data = MockTaskRunner.get_mock_assignment_data()
-        return [mock_data, mock_data]
 
 
 class TestSupervisor(AbstractTestSupervisor, unittest.TestCase):
