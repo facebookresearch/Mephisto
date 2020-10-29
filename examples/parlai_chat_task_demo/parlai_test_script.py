@@ -7,7 +7,7 @@
 
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import load_db_and_process_config
+from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import (
     BLUEPRINT_TYPE,
     SharedParlAITaskState,

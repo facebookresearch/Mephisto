@@ -12,7 +12,7 @@ import shlex
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE
-from mephisto.utils.scripts import MephistoRunScriptParser, str2bool
+from mephisto.tools.scripts import MephistoRunScriptParser, str2bool
 
 parser = MephistoRunScriptParser()
 parser.add_argument(
@@ -324,7 +324,7 @@ import shlex  # shlex is no longer required, as we're not using arg strings
 from mephisto.core.operator import Operator
 from mephisto.core.utils import get_root_dir
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE
-from mephisto.utils.scripts import MephistoRunScriptParser, str2bool # RunScriptParser has been deprecated.
+from mephisto.tools.scripts import MephistoRunScriptParser, str2bool # RunScriptParser has been deprecated.
 ```
 
 We remove unnecessary or deprecated imports.
@@ -335,7 +335,7 @@ Mephisto now defines run scripts and configurations using Hydra and dataclasses,
 ```python
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import load_db_and_process_config
+from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
@@ -350,7 +350,7 @@ from typing import List, Any
 # parlai_test_script.py
 import os
 from mephisto.core.operator import Operator
-from mephisto.utils.scripts import load_db_and_process_config
+from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
 import hydra
