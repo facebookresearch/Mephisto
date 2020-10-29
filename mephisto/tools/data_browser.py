@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.abstractions.database import MephistoDB
-from mephisto.data_model.assignment import Unit
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.task_run import TaskRun
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import Agent

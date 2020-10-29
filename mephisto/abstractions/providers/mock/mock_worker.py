@@ -11,7 +11,8 @@ from typing import List, Optional, Tuple, Dict, Mapping, Type, Any, TYPE_CHECKIN
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.data_model.assignment import Unit, Agent
+    from mephisto.data_model.unit import Unit
+    from mephisto.data_model.agent import Agent
     from mephisto.data_model.requester import Requester
     from mephisto.abstractions.providers.mock.mock_datastore import MockDatastore
 

@@ -16,7 +16,7 @@ logger = get_logger(name=__name__, verbose=True, level="info")
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.agent import Agent
-    from mephisto.data_model.assignment import Unit
+    from mephisto.data_model.unit import Unit
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.qualification import GrantedQualification

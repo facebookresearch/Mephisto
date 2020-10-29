@@ -6,7 +6,7 @@
 
 from datetime import datetime
 
-from mephisto.data_model.assignment import Unit
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.providers.mturk.mturk_utils import (

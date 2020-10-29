@@ -21,7 +21,8 @@ from mephisto.abstractions.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.assignment import Assignment, Unit
+from mephisto.data_model.unit import Unit
+from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
