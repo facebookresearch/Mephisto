@@ -21,9 +21,9 @@ from mephisto.abstractions.architects.local_architect import (
 from mephisto.abstractions.database import MephistoDB
 from mephisto.abstractions.architect import Architect
 from mephisto.data_model.constants.assignment_state import AssignmentState
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
-from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
-from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
+from mephisto.abstractions.blueprints.mock.mock_task_builder import MockTaskBuilder
+from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
 
 from omegaconf import OmegaConf
 from mephisto.core.hydra_config import MephistoConfig

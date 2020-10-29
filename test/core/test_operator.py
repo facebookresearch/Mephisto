@@ -23,7 +23,7 @@ from mephisto.abstractions.architects.mock_architect import (
 )
 from mephisto.core.hydra_config import MephistoConfig
 from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 

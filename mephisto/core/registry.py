@@ -104,7 +104,9 @@ def fill_registries():
             )
 
     # Import Mephisto Blueprints
-    blueprint_root = os.path.join(get_root_dir(), "mephisto", "server", "blueprints")
+    blueprint_root = os.path.join(
+        get_root_dir(), "mephisto", "abstractions", "blueprints"
+    )
     for dir_name in os.listdir(blueprint_root):
         blueprint_dir = os.path.join(blueprint_root, dir_name)
         if not os.path.isdir(blueprint_dir):
@@ -113,7 +115,7 @@ def fill_registries():
             if filename.endswith("blueprint.py"):
                 blueprint_name = filename[: filename.find(".py")]
                 importlib.import_module(
-                    f"mephisto.server.blueprints.{dir_name}.{blueprint_name}"
+                    f"mephisto.abstractions.blueprints.{dir_name}.{blueprint_name}"
                 )
 
 

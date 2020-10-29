@@ -12,9 +12,9 @@ import tempfile
 from typing import Type, ClassVar
 from mephisto.data_model.test.blueprint_tester import BlueprintTests
 from mephisto.data_model.constants.assignment_state import AssignmentState
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
-from mephisto.server.blueprints.mock.mock_task_builder import MockTaskBuilder
-from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
+from mephisto.abstractions.blueprints.mock.mock_task_builder import MockTaskBuilder
+from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
 
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.abstractions.blueprint import (
