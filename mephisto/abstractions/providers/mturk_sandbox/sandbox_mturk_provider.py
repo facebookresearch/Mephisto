@@ -21,7 +21,7 @@ from mephisto.abstractions.providers.mturk_sandbox.sandbox_mturk_unit import (
 from mephisto.abstractions.providers.mturk_sandbox.sandbox_mturk_worker import (
     SandboxMTurkWorker,
 )
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
 from dataclasses import dataclass

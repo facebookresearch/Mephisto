@@ -75,7 +75,7 @@ class Unit(ABC):
         if cls == Unit:
             # We are trying to construct a Unit, find what type to use and
             # create that instead
-            from mephisto.core.registry import get_crowd_provider_from_type
+            from mephisto.operations.registry import get_crowd_provider_from_type
 
             if row is None:
                 row = db.get_unit(db_id)
@@ -88,7 +88,7 @@ class Unit(ABC):
 
     def get_crowd_provider_class(self) -> Type["CrowdProvider"]:
         """Get the CrowdProvider class that manages this Unit"""
-        from mephisto.core.registry import get_crowd_provider_from_type
+        from mephisto.operations.registry import get_crowd_provider_from_type
 
         return get_crowd_provider_from_type(self.provider_type)
 

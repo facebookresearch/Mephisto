@@ -9,7 +9,7 @@ import os
 from shutil import copytree
 
 from mephisto.data_model.project import Project
-from mephisto.core.utils import (
+from mephisto.operations.utils import (
     get_dir_for_task,
     ensure_user_confirm,
 )

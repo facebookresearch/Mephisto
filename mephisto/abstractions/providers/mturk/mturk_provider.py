@@ -21,7 +21,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     delete_sns_topic,
     delete_qualification,
 )
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 from dataclasses import dataclass, field
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, cast, TYPE_CHECKING

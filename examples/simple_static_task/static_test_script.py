@@ -5,8 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from mephisto.core.operator import Operator
-from mephisto.core.utils import get_root_dir
+from mephisto.operations.operator import Operator
+from mephisto.operations.utils import get_root_dir
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
     BLUEPRINT_TYPE,
 )
@@ -27,7 +27,7 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import RunScriptConfig, register_script_config
+from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 
 @dataclass

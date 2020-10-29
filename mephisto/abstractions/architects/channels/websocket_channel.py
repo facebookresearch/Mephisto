@@ -14,7 +14,7 @@ import threading
 import json
 import time
 
-from mephisto.core.logger_core import get_logger
+from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 

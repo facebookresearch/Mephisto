@@ -11,7 +11,7 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.assignment import Assignment, Unit
 from mephisto.core.argparse_parser import get_extra_argument_dicts, parse_arg_dict
-from mephisto.core.registry import (
+from mephisto.operations.registry import (
     get_blueprint_from_type,
     get_crowd_provider_from_type,
     get_architect_from_type,

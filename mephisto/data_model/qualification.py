@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.core.registry import (
+from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
 )

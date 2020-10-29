@@ -9,8 +9,8 @@ import os
 import sqlite3
 
 from abc import ABC, abstractmethod
-from mephisto.core.utils import get_data_dir
-from mephisto.core.registry import (
+from mephisto.operations.utils import get_data_dir
+from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
 )

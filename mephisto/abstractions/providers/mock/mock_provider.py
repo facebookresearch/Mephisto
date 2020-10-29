@@ -12,7 +12,7 @@ from mephisto.abstractions.providers.mock.mock_worker import MockWorker
 from mephisto.abstractions.providers.mock.mock_datastore import MockDatastore
 from mephisto.abstractions.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.data_model.requester import RequesterArgs
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 from dataclasses import dataclass, field
 
 from typing import ClassVar, Dict, Any, Optional, Type, List, TYPE_CHECKING

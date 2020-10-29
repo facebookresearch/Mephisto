@@ -21,7 +21,7 @@ from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_task_runner import
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_task_builder import (
     ParlAIChatTaskBuilder,
 )
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 from omegaconf import DictConfig, MISSING
 
 import os

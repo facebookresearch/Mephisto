@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.abstractions.providers.mock.mock_datastore import MockDatastore
 
-from mephisto.core.logger_core import get_logger
+from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 

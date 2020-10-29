@@ -17,8 +17,8 @@ from botocore.exceptions import ProfileNotFound
 from botocore.config import Config
 from omegaconf import DictConfig
 
-from mephisto.core.logger_core import get_logger
-from mephisto.core.config_handler import get_config_arg
+from mephisto.operations.logger_core import get_logger
+from mephisto.operations.config_handler import get_config_arg
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 

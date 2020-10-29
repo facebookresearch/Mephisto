@@ -11,7 +11,7 @@ import json
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task_config import TaskConfig
-from mephisto.core.utils import get_dir_for_run
+from mephisto.operations.utils import get_dir_for_run
 
 from omegaconf import OmegaConf
 
@@ -160,7 +160,7 @@ class TaskRun:
         shared_state: Optional["SharedTaskState"] = None,
     ) -> "Blueprint":
         """Return the runner associated with this task run"""
-        from mephisto.core.registry import get_blueprint_from_type
+        from mephisto.operations.registry import get_blueprint_from_type
         from mephisto.abstractions.blueprint import SharedTaskState
 
         if self.__blueprint is None:
@@ -180,7 +180,7 @@ class TaskRun:
 
     def get_provider(self) -> "CrowdProvider":
         """Return the crowd provider used to launch this task"""
-        from mephisto.core.registry import get_crowd_provider_from_type
+        from mephisto.operations.registry import get_crowd_provider_from_type
 
         if self.__crowd_provider is None:
             CrowdProviderClass = get_crowd_provider_from_type(self.provider_type)

@@ -22,7 +22,7 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_task_runner im
 from mephisto.abstractions.blueprints.abstract.static_task.empty_task_builder import (
     EmptyStaticTaskBuilder,
 )
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
 import time

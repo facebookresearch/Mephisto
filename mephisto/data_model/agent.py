@@ -78,7 +78,7 @@ class Agent(ABC):
         as you will instead be returned the correct Agent class according to
         the crowdprovider associated with this Agent.
         """
-        from mephisto.core.registry import get_crowd_provider_from_type
+        from mephisto.operations.registry import get_crowd_provider_from_type
 
         if cls == Agent:
             # We are trying to construct a Agent, find what type to use and

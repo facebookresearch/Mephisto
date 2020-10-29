@@ -11,7 +11,7 @@ import tempfile
 import time
 import pytest
 
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.providers.mturk.mturk_worker import MTurkWorker
 from mephisto.data_model.worker import Worker
 

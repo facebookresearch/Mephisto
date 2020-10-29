@@ -17,12 +17,12 @@ from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.abstractions.architects.mock_architect import MockArchitect
 from mephisto.abstractions.providers.mock.mock_provider import MockProvider
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.task_launcher import TaskLauncher
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.task_run import TaskRun
-from mephisto.core.supervisor import Supervisor, Job
+from mephisto.operations.supervisor import Supervisor, Job
 from mephisto.abstractions.blueprint import SharedTaskState
 
 
@@ -30,7 +30,7 @@ from mephisto.abstractions.architects.mock_architect import (
     MockArchitect,
     MockArchitectArgs,
 )
-from mephisto.core.hydra_config import MephistoConfig
+from mephisto.operations.hydra_config import MephistoConfig
 from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.data_model.task_config import TaskConfigArgs

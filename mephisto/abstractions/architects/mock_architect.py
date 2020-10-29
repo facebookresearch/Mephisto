@@ -23,7 +23,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_REQUEST_AGENT_STATUS,
 )
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
 from typing import List, Dict, Any, Optional, TYPE_CHECKING, Callable
 

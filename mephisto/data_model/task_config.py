@@ -115,7 +115,7 @@ class TaskConfig:
     @classmethod
     def get_mock_params(cls) -> str:
         """Returns a param string with default / mock arguments to use for testing"""
-        from mephisto.core.hydra_config import MephistoConfig
+        from mephisto.operations.hydra_config import MephistoConfig
 
         return OmegaConf.structured(
             MephistoConfig(

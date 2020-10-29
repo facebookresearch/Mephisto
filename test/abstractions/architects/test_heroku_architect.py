@@ -20,7 +20,7 @@ from mephisto.abstractions.architect import Architect
 from mephisto.data_model.constants.assignment_state import AssignmentState
 
 from omegaconf import OmegaConf
-from mephisto.core.hydra_config import MephistoConfig
+from mephisto.operations.hydra_config import MephistoConfig
 from mephisto.abstractions.blueprint import SharedTaskState
 
 # TODO(#104) these tests should be marked as nightly's rather than on every run?

@@ -26,7 +26,7 @@ from mephisto.abstractions.blueprints.mock.mock_task_builder import MockTaskBuil
 from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
 
 from omegaconf import OmegaConf
-from mephisto.core.hydra_config import MephistoConfig
+from mephisto.operations.hydra_config import MephistoConfig
 from mephisto.abstractions.blueprint import SharedTaskState
 
 

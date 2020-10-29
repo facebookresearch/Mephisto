@@ -18,13 +18,13 @@ from mephisto.abstractions.blueprint import (
     TaskRunner,
     TaskBuilder,
 )
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.abstractions.providers.mock.mock_agent import MockAgent
 from mephisto.data_model.agent import Agent
-from mephisto.core.hydra_config import MephistoConfig
+from mephisto.operations.hydra_config import MephistoConfig
 from omegaconf import OmegaConf
 
 

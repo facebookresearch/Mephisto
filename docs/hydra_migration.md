@@ -9,8 +9,8 @@ This document shows the transition steps from moving from the old format to the 
 import os
 import time
 import shlex
-from mephisto.core.operator import Operator
-from mephisto.core.utils import get_root_dir
+from mephisto.operations.operator import Operator
+from mephisto.operations.utils import get_root_dir
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE
 from mephisto.tools.scripts import MephistoRunScriptParser, str2bool
 
@@ -214,7 +214,7 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import RunScriptConfig, register_script_config
+from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 @dataclass
 class TestScriptConfig(RunScriptConfig):
@@ -321,8 +321,8 @@ operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 ```python
 import os
 import shlex  # shlex is no longer required, as we're not using arg strings
-from mephisto.core.operator import Operator
-from mephisto.core.utils import get_root_dir
+from mephisto.operations.operator import Operator
+from mephisto.operations.utils import get_root_dir
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE
 from mephisto.tools.scripts import MephistoRunScriptParser, str2bool # RunScriptParser has been deprecated.
 ```
@@ -334,7 +334,7 @@ We'll need to add a few things. First, `load_db_and_process_config` covers the o
 Mephisto now defines run scripts and configurations using Hydra and dataclasses, as such you'll need some imports from `dataclasses`, `hydra`, and `omegaconf` (which is the configuration library that powers hydra).
 ```python
 import os
-from mephisto.core.operator import Operator
+from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
@@ -349,7 +349,7 @@ from typing import List, Any
 ```python
 # parlai_test_script.py
 import os
-from mephisto.core.operator import Operator
+from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE, SharedParlAITaskState
 
@@ -368,7 +368,7 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import RunScriptConfig, register_script_config
+from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 @dataclass
 class TestScriptConfig(RunScriptConfig):

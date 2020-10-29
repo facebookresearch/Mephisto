@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
 
-from mephisto.core.logger_core import get_logger
+from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 

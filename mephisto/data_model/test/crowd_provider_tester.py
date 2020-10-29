@@ -19,7 +19,7 @@ from mephisto.abstractions.database import (
     EntryAlreadyExistsException,
     EntryDoesNotExistException,
 )
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.crowd_provider import CrowdProvider
 
 

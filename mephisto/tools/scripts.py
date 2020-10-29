@@ -7,8 +7,8 @@
 Utilities that are useful for Mephisto-related scripts.
 """
 
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.utils import get_mock_requester, get_root_data_dir
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.operations.utils import get_mock_requester, get_root_data_dir
 
 from omegaconf import DictConfig, OmegaConf
 

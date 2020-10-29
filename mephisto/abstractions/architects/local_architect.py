@@ -15,7 +15,7 @@ import requests
 
 from mephisto.abstractions.architect import Architect, ArchitectArgs
 from dataclasses import dataclass, field
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 from typing import Any, Optional, Dict, List, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 from mephisto.abstractions.architects.router.build_router import build_router
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
-from mephisto.core.utils import get_mephisto_tmp_dir
+from mephisto.operations.utils import get_mephisto_tmp_dir
 
 ARCHITECT_TYPE = "local"
 

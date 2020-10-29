@@ -14,7 +14,7 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
 from mephisto.abstractions.blueprints.static_react_task.static_react_task_builder import (
     StaticReactTaskBuilder,
 )
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
 import time

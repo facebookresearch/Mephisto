@@ -4,8 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.data_browser import DataBrowser as MephistoDataBrowser
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.assignment import Unit
 

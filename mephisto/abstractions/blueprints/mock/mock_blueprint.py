@@ -16,7 +16,7 @@ from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.mock.mock_agent_state import MockAgentState
 from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.abstractions.blueprints.mock.mock_task_builder import MockTaskBuilder
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
 import time

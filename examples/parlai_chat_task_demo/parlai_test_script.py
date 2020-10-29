@@ -6,7 +6,7 @@
 
 
 import os
-from mephisto.core.operator import Operator
+from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
     BLUEPRINT_TYPE,
@@ -28,7 +28,7 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import RunScriptConfig, register_script_config
+from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 
 @dataclass

@@ -16,7 +16,7 @@ from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.abstractions.blueprints.mock.mock_task_builder import MockTaskBuilder
 from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
 
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.blueprint import (
     Blueprint,
     AgentState,

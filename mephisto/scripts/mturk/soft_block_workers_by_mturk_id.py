@@ -8,7 +8,7 @@ from mephisto.abstractions.providers.mturk.utils.script_utils import (
     direct_soft_block_mturk_workers,
 )
 
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 
 db = LocalMephistoDB()
 reqs = db.find_requesters(provider_type="mturk")

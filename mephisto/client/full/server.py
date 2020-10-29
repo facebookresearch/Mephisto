@@ -7,8 +7,8 @@
 from flask import Flask, send_file, jsonify
 from mephisto.client.config import Config
 from mephisto.client.api import api
-from mephisto.core.operator import Operator
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.operations.operator import Operator
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 
 import os
 import atexit

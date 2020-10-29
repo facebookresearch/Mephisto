@@ -59,7 +59,7 @@ class Requester(ABC):
         as you will instead be returned the correct Requester class according to
         the crowdprovider associated with this Requester.
         """
-        from mephisto.core.registry import get_crowd_provider_from_type
+        from mephisto.operations.registry import get_crowd_provider_from_type
 
         if cls == Requester:
             # We are trying to construct a Requester, find what type to use and

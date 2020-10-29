@@ -21,11 +21,11 @@ import requests
 import re
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
-from mephisto.core.utils import get_mephisto_tmp_dir
+from mephisto.operations.utils import get_mephisto_tmp_dir
 from mephisto.abstractions.architect import Architect, ArchitectArgs
 from mephisto.abstractions.architects.router.build_router import build_router
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
-from mephisto.core.registry import register_mephisto_abstraction
+from mephisto.operations.registry import register_mephisto_abstraction
 from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.blueprint import SharedTaskState
     from argparse import _ArgumentGroup as ArgumentGroup
 
-from mephisto.core.logger_core import get_logger
+from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 
