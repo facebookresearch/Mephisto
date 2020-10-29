@@ -10,44 +10,43 @@ import shutil
 import os
 import tempfile
 import time
-
-from typing import List
+from abc import ABC
+from typing import ClassVar, List, Type
 
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
-from mephisto.server.architects.mock_architect import MockArchitect
 from mephisto.providers.mock.mock_provider import MockProvider
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.task_launcher import TaskLauncher
 from mephisto.data_model.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
+from mephisto.data_model.blueprint import Blueprint
 from mephisto.data_model.task import TaskRun
 from mephisto.core.supervisor import Supervisor, Job
 from mephisto.data_model.blueprint import SharedTaskState
-
-
 from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
 from mephisto.core.hydra_config import MephistoConfig
-from mephisto.providers.mock.mock_provider import MockProviderArgs
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
-from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
 
 EMPTY_STATE = SharedTaskState()
 
 
-class TestSupervisor(unittest.TestCase):
+class AbstractTestSupervisor(ABC):
     """
-    Unit testing for the Mephisto Supervisor,
-    uses WebsocketChannel and MockArchitect
+    Abstract test class utilizing the Mephisto Supervisor.
+
+    Subclasses will use the MockArchitect and the MockProvider, and they must specify a
+    BlueprintClass to test.
     """
+
+    BlueprintClass: ClassVar[Type["Blueprint"]]
 
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
-        self.task_id = self.db.new_task("test_mock", MockBlueprint.BLUEPRINT_TYPE)
+        self.task_id = self.db.new_task("test_mock", self.BlueprintClass.BLUEPRINT_TYPE)
         self.task_run_id = get_test_task_run(self.db)
         self.task_run = TaskRun(self.db, self.task_run_id)
 
@@ -86,6 +85,15 @@ class TestSupervisor(unittest.TestCase):
         mock_data = MockTaskRunner.get_mock_assignment_data()
         return [mock_data, mock_data]
 
+
+class TestSupervisor(AbstractTestSupervisor, unittest.TestCase):
+    """
+    Unit testing for the Mephisto Supervisor,
+    uses WebsocketChannel, MockArchitect, and MockBlueprint.
+    """
+
+    BlueprintClass: ClassVar[Type["Blueprint"]] = MockBlueprint
+
     def test_initialize_supervisor(self):
         """Ensure that the supervisor object can even be created"""
         sup = Supervisor(self.db)
@@ -101,8 +109,8 @@ class TestSupervisor(unittest.TestCase):
         """
         sup = Supervisor(self.db)
         self.sup = sup
-        TaskRunnerClass = MockBlueprint.TaskRunnerClass
-        args = MockBlueprint.ArgsClass()
+        TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
+        args = self.BlueprintClass.ArgsClass()
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
         test_job = Job(
@@ -128,8 +136,8 @@ class TestSupervisor(unittest.TestCase):
         # Handle baseline setup
         sup = Supervisor(self.db)
         self.sup = sup
-        TaskRunnerClass = MockBlueprint.TaskRunnerClass
-        args = MockBlueprint.ArgsClass()
+        TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
+        args = self.BlueprintClass.ArgsClass()
         args.timeout_time = 5
         args.is_concurrent = False
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
@@ -247,8 +255,8 @@ class TestSupervisor(unittest.TestCase):
         # Handle baseline setup
         sup = Supervisor(self.db)
         self.sup = sup
-        TaskRunnerClass = MockBlueprint.TaskRunnerClass
-        args = MockBlueprint.ArgsClass()
+        TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
+        args = self.BlueprintClass.ArgsClass()
         args.timeout_time = 5
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
@@ -379,7 +387,7 @@ class TestSupervisor(unittest.TestCase):
         # Supervisor expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
 
-        TaskRunnerClass = MockBlueprint.TaskRunnerClass
+        TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
         task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
 
         sup.register_job(self.architect, task_runner, self.provider)
@@ -624,7 +632,7 @@ class TestSupervisor(unittest.TestCase):
         # Supervisor expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
 
-        TaskRunnerClass = MockBlueprint.TaskRunnerClass
+        TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
         task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
         sup.register_job(self.architect, task_runner, self.provider)
         self.assertEqual(len(sup.channels), 1)
