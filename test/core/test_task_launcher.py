@@ -18,7 +18,7 @@ from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task_run import TaskRun
 
-from mephisto.providers.mock.mock_provider import MockProvider
+from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 

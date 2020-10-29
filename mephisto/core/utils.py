@@ -67,7 +67,7 @@ def get_provider_dir() -> str:
     """
     Return the path to the mephisto providers diroctory
     """
-    return os.path.join(get_root_dir(), "mephisto/providers")
+    return os.path.join(get_root_dir(), "mephisto/abstractions/providers")
 
 
 def get_gallery_dir() -> str:

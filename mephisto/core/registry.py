@@ -89,7 +89,7 @@ def fill_registries():
             if filename.endswith("provider.py"):
                 provider_name = filename[: filename.find(".py")]
                 importlib.import_module(
-                    f"mephisto.providers.{dir_name}.{provider_name}"
+                    f"mephisto.abstractions.providers.{dir_name}.{provider_name}"
                 )
 
     # Import Mephisto Architects

@@ -22,7 +22,7 @@ from mephisto.data_model.task_run import TaskRun
 from omegaconf import OmegaConf
 import json
 
-from mephisto.providers.mock.mock_provider import MockProviderArgs
+from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.server.architects.mock_architect import MockArchitectArgs
 from mephisto.data_model.task_config import TaskConfigArgs

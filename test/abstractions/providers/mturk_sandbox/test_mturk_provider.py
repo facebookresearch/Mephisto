@@ -15,13 +15,17 @@ from typing import Type
 from mephisto.data_model.test.utils import get_test_requester
 from mephisto.data_model.test.crowd_provider_tester import CrowdProviderTests
 from mephisto.abstractions.crowd_provider import CrowdProvider
-from mephisto.providers.mturk_sandbox.sandbox_mturk_provider import SandboxMTurkProvider
-from mephisto.providers.mturk_sandbox.sandbox_mturk_requester import (
+from mephisto.abstractions.providers.mturk_sandbox.sandbox_mturk_provider import (
+    SandboxMTurkProvider,
+)
+from mephisto.abstractions.providers.mturk_sandbox.sandbox_mturk_requester import (
     SandboxMTurkRequester,
 )
-from mephisto.providers.mturk_sandbox.sandbox_mturk_worker import SandboxMTurkWorker
+from mephisto.abstractions.providers.mturk_sandbox.sandbox_mturk_worker import (
+    SandboxMTurkWorker,
+)
 
-from mephisto.providers.mturk.mturk_utils import (
+from mephisto.abstractions.providers.mturk.mturk_utils import (
     delete_qualification,
     find_qualification,
 )

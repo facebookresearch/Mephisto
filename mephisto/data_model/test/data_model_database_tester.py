@@ -17,7 +17,7 @@ from mephisto.data_model.test.utils import (
     get_test_unit,
     get_test_agent,
 )
-from mephisto.providers.mock.provider_type import PROVIDER_TYPE
+from mephisto.abstractions.providers.mock.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.abstractions.blueprint import AgentState

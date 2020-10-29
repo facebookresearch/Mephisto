@@ -16,7 +16,7 @@ from typing import List
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.server.architects.mock_architect import MockArchitect
-from mephisto.providers.mock.mock_provider import MockProvider
+from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.core.local_database import LocalMephistoDB
 from mephisto.core.task_launcher import TaskLauncher
 from mephisto.data_model.test.utils import get_test_task_run
@@ -28,7 +28,7 @@ from mephisto.abstractions.blueprint import SharedTaskState
 
 from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
 from mephisto.core.hydra_config import MephistoConfig
-from mephisto.providers.mock.mock_provider import MockProviderArgs
+from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
 from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
