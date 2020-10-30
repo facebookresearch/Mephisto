@@ -38,22 +38,34 @@ Mephisto seems to be set up correctly.
 ```bash
 $ cd examples/simple_static_task
 $ python static_test_script.py
+```
 
-# This should launch a local server with the task hosted.
-# You can then navigate to the task in your browser to complete the task.
+This should launch a local server with the task hosted.
+You can then navigate to the task in your browser to complete the task.
 
-# TIP:
-# By default, tasks are run using a "mock" requester, and a "local" architect.
-# The "local" architect is reponsible for running a server on your local machine
-# to host the task, and the "mock" requester is a dummy account since we won't
-# be using an external crowd-provider platform such as mTurk to launch the task on.
-#
-# In the next step, we'll show you how to override these defaults so that you can
-# host the task on Heroku and run it on mTurk instead.
+To view an instance of a task, look for a print log such as 
 
-# Once completed, a helper script is available for you to quickly
-# examine the results of the task:
+```
+[2020-10-30 10:55:26,719][mephisto.providers.mock.mock_unit][INFO] - Mock task launched: l
+ocalhost:3000 for preview, localhost:3000/?worker_id=x&assignment_id=20 for assignment 10
+```
 
+and navigate to the URL that includes parameters (ex. `localhost:3000/?worker_id=x&assignment_id=20`). For tasks that requires two workers, will need to have two broswer open at once connected to the same `assignment_id` but with different `worker_id` url parameters. 
+
+
+TIP:
+By default, tasks are run using a "mock" requester, and a "local" architect.
+The "local" architect is reponsible for running a server on your local machine
+to host the task, and the "mock" requester is a dummy account since we won't
+be using an external crowd-provider platform such as mTurk to launch the task on.
+
+In the next step, we'll show you how to override these defaults so that you can
+host the task on Heroku and run it on mTurk instead.
+
+Once completed, a helper script is available for you to quickly
+examine the results of the task:
+
+```
 $ python examine_results.py
 
 ```
