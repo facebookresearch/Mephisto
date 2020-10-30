@@ -22,6 +22,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_AGENT_ACTION,
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_REQUEST_AGENT_STATUS,
+    PACKET_TYPE_GET_INIT_DATA,
 )
 from mephisto.core.registry import register_mephisto_abstraction
 from mephisto.server.channels.websocket_channel import WebsocketChannel
@@ -176,6 +177,25 @@ class MockServer(tornado.web.Application):
                 "sender_id": agent_id,
                 "receiver_id": "Mephisto",
                 "data": act_content,
+            }
+        )
+
+    def request_init_data(self, agent_id):
+        """
+        Send a packet from the given agent with
+        the given content
+        """
+        self._send_message(
+            {
+                "packet_type": PACKET_TYPE_GET_INIT_DATA,
+                "sender_id": agent_id,
+                "receiver_id": "Mephisto",
+                "data": {
+                    "request_id": agent_id + str(time.time()),
+                    "provider_data": {
+                        "agent_id": agent_id,
+                    },
+                },
             }
         )
 
