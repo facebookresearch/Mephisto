@@ -26,6 +26,10 @@ import sys, traceback, os
 api = Blueprint("api", __name__)
 
 
+def get_extra_argument_dicts(*args):
+    raise NotImplementedError("This hasn't been updated following the hydra migration")
+
+
 @api.route("/requesters")
 def get_available_requesters():
     db = app.extensions["db"]
