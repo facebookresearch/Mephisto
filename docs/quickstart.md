@@ -50,7 +50,7 @@ To view an instance of a task, look for a print log such as
 ocalhost:3000 for preview, localhost:3000/?worker_id=x&assignment_id=20 for assignment 10
 ```
 
-and navigate to the URL that includes parameters (ex. `localhost:3000/?worker_id=x&assignment_id=20`). For tasks that requires two workers, will need to have two browser open at once connected with different `worker_id` url parameters. 
+and navigate to the URL that includes parameters (ex. `localhost:3000/?worker_id=x&assignment_id=20`). For tasks that requires two workers, will need to have two browser open at once connected with different `worker_id` and `assignment_id` url parameters. 
 
 
 **TIP:**
