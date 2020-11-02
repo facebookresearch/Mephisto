@@ -50,10 +50,10 @@ To view an instance of a task, look for a print log such as
 ocalhost:3000 for preview, localhost:3000/?worker_id=x&assignment_id=20 for assignment 10
 ```
 
-and navigate to the URL that includes parameters (ex. `localhost:3000/?worker_id=x&assignment_id=20`). For tasks that requires two workers, will need to have two broswer open at once connected to the same `assignment_id` but with different `worker_id` url parameters. 
+and navigate to the URL that includes parameters (ex. `localhost:3000/?worker_id=x&assignment_id=20`). For tasks that requires two workers, will need to have two browser open at once connected with different `worker_id` url parameters. 
 
 
-TIP:
+**TIP:**
 By default, tasks are run using a "mock" requester, and a "local" architect.
 The "local" architect is reponsible for running a server on your local machine
 to host the task, and the "mock" requester is a dummy account since we won't
