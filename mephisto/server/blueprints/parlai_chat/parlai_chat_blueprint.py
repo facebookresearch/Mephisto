@@ -190,11 +190,11 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         """Ensure that arguments are properly configured to launch this task"""
         # assert world file is valid
         world_file_path = os.path.expanduser(args.blueprint.world_file)
-        world_module_path = world_file_path[:-3]
+        world_module_dir = os.path.dirname(world_file_path)
         assert os.path.exists(
             world_file_path
         ), f"Provided world path {world_file_path} doesn't exist"
-        sys.path.append(world_module_path)
+        sys.path.append(world_module_dir)
         world_module_name = os.path.basename(world_file_path)[:-3]
         world_module = import_module(world_module_name)
         assert hasattr(
