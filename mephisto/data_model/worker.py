@@ -6,19 +6,19 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from mephisto.data_model.blueprint import AgentState
+from mephisto.abstractions.blueprint import AgentState
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
-from mephisto.core.logger_core import get_logger
+from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__, verbose=True, level="info")
 
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.assignment import Unit
     from mephisto.data_model.requester import Requester
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.qualification import GrantedQualification
     from argparse import _ArgumentGroup as ArgumentGroup
 
@@ -64,7 +64,7 @@ class Worker(ABC):
         as you will instead be returned the correct Worker class according to
         the crowdprovider associated with this Worker.
         """
-        from mephisto.core.registry import get_crowd_provider_from_type
+        from mephisto.operations.registry import get_crowd_provider_from_type
 
         if cls == Worker:
             # We are trying to construct a Worker, find what type to use and

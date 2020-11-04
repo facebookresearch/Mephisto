@@ -6,7 +6,7 @@
 
 from typing import Optional, Tuple
 
-from mephisto.data_model.database import (
+from mephisto.abstractions.database import (
     MephistoDB,
     MephistoDBException,
     EntryAlreadyExistsException,
@@ -17,15 +17,16 @@ from mephisto.data_model.agent import Agent
 from mephisto.data_model.assignment import Unit, Assignment
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.task import Task, TaskRun
+from mephisto.data_model.task import Task
+from mephisto.data_model.task_run import TaskRun
 from omegaconf import OmegaConf
 import json
 
-from mephisto.providers.mock.mock_provider import MockProviderArgs
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
-from mephisto.server.architects.mock_architect import MockArchitectArgs
+from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.abstractions.architects.mock_architect import MockArchitectArgs
 from mephisto.data_model.task_config import TaskConfigArgs
-from mephisto.core.hydra_config import MephistoConfig
+from mephisto.operations.hydra_config import MephistoConfig
 
 MOCK_TASK_ARGS = TaskConfigArgs(
     task_title="title",

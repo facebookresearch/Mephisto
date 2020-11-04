@@ -11,8 +11,8 @@ from omegaconf import MISSING, DictConfig
 from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any, Type, ClassVar
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
-    from mephisto.data_model.task import TaskRun
+    from mephisto.abstractions.database import MephistoDB
+    from mephisto.data_model.task_run import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
@@ -59,7 +59,7 @@ class Requester(ABC):
         as you will instead be returned the correct Requester class according to
         the crowdprovider associated with this Requester.
         """
-        from mephisto.core.registry import get_crowd_provider_from_type
+        from mephisto.operations.registry import get_crowd_provider_from_type
 
         if cls == Requester:
             # We are trying to construct a Requester, find what type to use and
