@@ -133,6 +133,8 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
             onMessageSend,
             inputMode,
             active: inputMode === INPUT_MODE.READY_FOR_INPUT,
+            appContext,
+            mephistoContext,
           })
         ) : (
           <TextResponse
