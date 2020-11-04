@@ -101,8 +101,10 @@ function ChatStatusBar() {
 }
 
 function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
-  const { taskContext, onTaskComplete } = React.useContext(AppContext);
-  const { agentState = {} } = React.useContext(MephistoContext);
+  const appContext = React.useContext(AppContext);
+  const mephistoContext = React.useContext(MephistoContext);
+  const { taskContext, onTaskComplete } = appContext;
+  const { agentState = {} } = mephistoContext;
 
   let response_pane = null;
   switch (inputMode) {
