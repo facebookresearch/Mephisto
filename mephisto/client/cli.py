@@ -48,8 +48,8 @@ def review(review_app_dir, port, output, output_method, csv_headers, json, debug
 @cli.command("check")
 def check():
     """Checks that mephisto is setup correctly"""
-    from mephisto.core.local_database import LocalMephistoDB
-    from mephisto.core.utils import get_mock_requester
+    from mephisto.abstractions.databases.local_database import LocalMephistoDB
+    from mephisto.operations.utils import get_mock_requester
 
     try:
         db = LocalMephistoDB()
@@ -64,7 +64,7 @@ def check():
 @cli.command("requesters")
 def list_requesters():
     """Lists all registered requesters"""
-    from mephisto.core.local_database import LocalMephistoDB
+    from mephisto.abstractions.databases.local_database import LocalMephistoDB
     from tabulate import tabulate
 
     db = LocalMephistoDB()
@@ -81,8 +81,8 @@ def register_provider(args):
         click.echo("Usage: mephisto register <provider_type> arg1=value arg2=value")
         return
 
-    from mephisto.core.local_database import LocalMephistoDB
-    from mephisto.core.registry import get_crowd_provider_from_type
+    from mephisto.abstractions.databases.local_database import LocalMephistoDB
+    from mephisto.operations.registry import get_crowd_provider_from_type
     from mephisto.core.argparse_parser import parse_arg_dict, get_extra_argument_dicts
 
     provider_type, requester_args = args[0], args[1:]
@@ -130,7 +130,7 @@ def get_help_arguments(args):
         )
         return
 
-    from mephisto.core.registry import (
+    from mephisto.operations.registry import (
         get_blueprint_from_type,
         get_crowd_provider_from_type,
         get_architect_from_type,

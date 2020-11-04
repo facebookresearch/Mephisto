@@ -13,14 +13,14 @@ import os
 import shutil
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.database import (
+from mephisto.abstractions.database import (
     MephistoDB,
     MephistoDBException,
     EntryAlreadyExistsException,
     EntryDoesNotExistException,
 )
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.data_model.crowd_provider import CrowdProvider
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.crowd_provider import CrowdProvider
 
 
 class CrowdProviderTests(unittest.TestCase):

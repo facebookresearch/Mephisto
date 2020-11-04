@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.core.registry import (
+from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
 )
@@ -13,8 +13,8 @@ from mephisto.core.registry import (
 from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
-    from mephisto.data_model.task import TaskRun
+    from mephisto.abstractions.database import MephistoDB
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 

@@ -9,7 +9,7 @@ from mephisto.data_model.constants import NO_PROJECT_NAME
 from typing import List, Mapping, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task import Task
 
 

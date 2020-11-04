@@ -10,7 +10,7 @@ import os
 import tempfile
 
 from mephisto.data_model.test.data_model_database_tester import BaseDatabaseTests
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 
 
 class TestLocalMephistoDB(BaseDatabaseTests):

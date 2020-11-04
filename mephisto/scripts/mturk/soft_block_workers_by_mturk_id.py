@@ -4,9 +4,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.providers.mturk.utils.script_utils import direct_soft_block_mturk_workers
+from mephisto.abstractions.providers.mturk.utils.script_utils import (
+    direct_soft_block_mturk_workers,
+)
 
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 
 db = LocalMephistoDB()
 reqs = db.find_requesters(provider_type="mturk")
