@@ -10,7 +10,7 @@
   "author": "",
   "dependencies": {
     "bootstrap": "^4.3.1",
-    "bootstrap-chat": "^1.0.1",
+    "bootstrap-chat": "^1.0.6",
     "mephisto-task": "^1.0.10",
     "rc-slider": "^8.6.3",
     "react": "16.13.1",
