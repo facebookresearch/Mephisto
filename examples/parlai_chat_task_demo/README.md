@@ -72,6 +72,14 @@ ParlAI chat tasks have a number of arguments set up, primarily via Hydra but als
 ### Task description content
 For simple tasks, you can provide an HTML task description (via the `task_description_file` argument above) containing a preview and description of what the worker is going to be doing in their task.
 
+### Simple custom frontend bundles
+Using the `mephisto.blueprint.custom_source_dir` option, it's possible to specify a just directory containing any frontend code you are using for a task, so long as you've built the app contained using the `bootstrap-chat` package. In this case, Mephisto will handle the process of generating the bundle whenever it detects changed files, meaning you can not have to think about things.
+
+The automated build process looks for three special paths:
+- `[custom_source_dir]/main.js` : this should contain your main application code, and is the only required file in the custom source directory. It should probably end with `ReactDOM.render(<MainApp />, document.getElementById("app"));`
+- `[custom_source_dir]/components/`: This is a special directory that can contain additional elements that your `main.js` file references (using relative paths)
+- `[custom_source_dir]/package.json`: If you want additional dependencies, you can specify them in a `package.json` file. We suggest copying the one present at `mephisto/abstractions/blueprints/parlai_chat/webapp/package.json`.
+
 ### Custom frontend bundles
 Custom frontend bundles can be provided that override the view of how the ParlAI chat looks, and the kinds of inputs you can pass. Much of the ParlAI-specific interfaceing logic is encapsulated in the `webapp/src/app.jsx` file. The actual view logic is in `webapp/src/components/core_components.jsx`. Here we define the `BaseFrontend` component, which is the root of the core task. 
 
