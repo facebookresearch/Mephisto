@@ -31,7 +31,7 @@ import sys
 
 from importlib import import_module
 
-from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
@@ -58,6 +58,7 @@ class SharedParlAITaskState(SharedTaskState):
     frontend_task_opts: Dict[str, Any] = field(default_factory=dict)
     world_opt: Dict[str, Any] = field(default_factory=dict)
     onboarding_world_opt: Dict[str, Any] = field(default_factory=dict)
+    world_module: Optional[Any] = None
 
 
 @dataclass
@@ -162,11 +163,14 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
                 "Parsing parlai tasks directly from dicts or JSON is not supported yet"
             )
 
-        world_file_path = os.path.expanduser(args.blueprint.world_file)
-        world_module_path = world_file_path[:-3]
-        sys.path.append(world_module_path)
-        world_module_name = os.path.basename(world_file_path)[:-3]
-        world_module = import_module(world_module_name)
+        if shared_state.world_module is None:
+            world_file_path = os.path.expanduser(args.blueprint.world_file)
+            world_module_path = world_file_path[:-3]
+            sys.path.append(world_module_path)
+            world_module_name = os.path.basename(world_file_path)[:-3]
+            world_module = import_module(world_module_name)
+        else:
+            world_module = shared_state.world_module
         self.world_module = world_module
         assert hasattr(world_module, "make_world")
         assert hasattr(world_module, "get_world_params")
@@ -188,15 +192,18 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         cls, args: "DictConfig", shared_state: "SharedTaskState"
     ) -> None:
         """Ensure that arguments are properly configured to launch this task"""
+        # Find world module
+        world_module = shared_state.world_module
+        if world_module is None:
+            world_file_path = os.path.expanduser(args.blueprint.world_file)
+            world_module_dir = os.path.dirname(world_file_path)
+            assert os.path.exists(
+                world_file_path
+            ), f"Provided world path {world_file_path} doesn't exist"
+            sys.path.append(world_module_dir)
+            world_module_name = os.path.basename(world_file_path)[:-3]
+            world_module = import_module(world_module_name)
         # assert world file is valid
-        world_file_path = os.path.expanduser(args.blueprint.world_file)
-        world_module_dir = os.path.dirname(world_file_path)
-        assert os.path.exists(
-            world_file_path
-        ), f"Provided world path {world_file_path} doesn't exist"
-        sys.path.append(world_module_dir)
-        world_module_name = os.path.basename(world_file_path)[:-3]
-        world_module = import_module(world_module_name)
         assert hasattr(
             world_module, "make_world"
         ), "Provided world file has no `make_world` method"

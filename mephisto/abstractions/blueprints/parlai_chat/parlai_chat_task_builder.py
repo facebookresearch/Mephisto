@@ -67,6 +67,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
         """
         # TODO add custom component directories, and recursively check those
         TARGET_BUILD_FILES = {"main.js": "src/main.js", "package.json": "package.json"}
+        TARGET_BUILD_FOLDERS = {"components": "src/components"}
 
         prebuild_path = os.path.join(custom_src_dir, CUSTOM_BUILD_DIRNAME)
         build_path = os.path.join(prebuild_path, "build", "bundle.js")
@@ -77,6 +78,22 @@ class ParlAIChatTaskBuilder(TaskBuilder):
             up_to_date = True
             for fn in TARGET_BUILD_FILES.keys():
                 possible_conflict = os.path.join(custom_src_dir, fn)
+                if os.path.exists(possible_conflict):
+                    if os.path.getmtime(possible_conflict) > created_date:
+                        up_to_date = False
+                        break
+            for fn in TARGET_BUILD_FOLDERS.keys():
+                if not up_to_date:
+                    break
+                possible_conflict_dir = os.path.join(custom_src_dir, fn)
+                for root, dirs, files in os.walk(possible_conflict_dir):
+                    if not up_to_date:
+                        break
+                    for fname in files:
+                        path = os.path.join(root, fname)
+                        if os.path.getmtime(path) > created_date:
+                            up_to_date = False
+                            break
                 if os.path.exists(possible_conflict):
                     if os.path.getmtime(possible_conflict) > created_date:
                         up_to_date = False
@@ -113,6 +130,13 @@ class ParlAIChatTaskBuilder(TaskBuilder):
             if os.path.exists(src_path):
                 dst_path = os.path.join(prebuild_path, TARGET_BUILD_FILES[src_file])
                 shutil.copy2(src_path, dst_path)
+        for src_dir in TARGET_BUILD_FOLDERS.keys():
+            src_path = os.path.join(custom_src_dir, src_dir)
+            dst_path = os.path.join(prebuild_path, TARGET_BUILD_FOLDERS[src_dir])
+            if os.path.exists(src_path):
+                if os.path.exists(dst_path):
+                    shutil.rmtree(dst_path)
+                shutil.copytree(src_path, dst_path)
 
         # navigate and build
         return_dir = os.getcwd()
