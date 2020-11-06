@@ -34,7 +34,11 @@ parlai = [ "parlai" , "torch" , "pyyaml" ]
 'mephisto' = 'mephisto.client.cli:cli'
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = [
+    "poetry>=0.12",
+    "setuptools!=50.0",
+    "wheel",
+]
 build-backend = "poetry.masonry.api"
 
 [mypy]
