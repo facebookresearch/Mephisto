@@ -22,6 +22,8 @@ import hydra
 from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any
+import time
+import random
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -93,21 +95,21 @@ def main(cfg: DictConfig) -> None:
     ]
 
     def get_task_data():
-        static_task_data.shuffle()
+        random.shuffle(static_task_data)
         for n in static_task_data:
             print("***** Ranking candidates to be annotated")
             print("***** Annotating with new model")
-            start_time = random.randInt(0, 30)
-            end_time = random.randInt(start_time + 5, start_time + 40)
+            start_time = random.randint(0, 30)
+            end_time = random.randint(start_time + 5, start_time + 40)
             n["model_annotations"] = [
                 {
-                    start_time: start_time,
-                    end_time: end_time,
-                    label: "TODO FILL ME",
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "label": "TODO FILL ME",
                 }
             ]
             yield InitializationData(shared=n, unit_data=[{}])
-            input("***** Waiting for data......")
+            input("***** Waiting for data......\n")
             print("***** Training new model.........")
             time.sleep(2)
         return False
