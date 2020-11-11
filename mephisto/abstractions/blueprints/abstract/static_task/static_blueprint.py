@@ -28,6 +28,7 @@ import os
 import time
 import csv
 import json
+import types
 
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
@@ -156,7 +157,8 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
             ), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif shared_state.static_task_data is not None:
             assert (
-                len(shared_state.static_task_data) > 0
+                isinstance(shared_state.static_task_data, types.GeneratorType)
+                or len(shared_state.static_task_data) > 0
             ), "Length of data dict provided was 0"
         else:
             raise AssertionError(
@@ -167,12 +169,15 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
         """
         Return the InitializationData retrieved from the specified stream
         """
-        return [
+        if isinstance(self._initialization_data_dicts, types.GeneratorType):
+            return self._initialization_data_dicts
+
+        return (
             InitializationData(
                 shared=d, unit_data=[{}] * self.args.blueprint.units_per_assignment
             )
             for d in self._initialization_data_dicts
-        ]
+        )
 
     def validate_onboarding(
         self, worker: "Worker", onboarding_agent: "OnboardingAgent"

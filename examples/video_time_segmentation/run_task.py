@@ -10,6 +10,7 @@ import subprocess
 from mephisto.operations.operator import Operator
 from mephisto.operations.utils import get_root_dir
 from mephisto.tools.scripts import load_db_and_process_config
+from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.static_react_task.static_react_blueprint import (
     BLUEPRINT_TYPE,
 )
@@ -91,8 +92,28 @@ def main(cfg: DictConfig) -> None:
         for v in compatible_video_files
     ]
 
+    def get_task_data():
+        static_task_data.shuffle()
+        for n in static_task_data:
+            print("***** Ranking candidates to be annotated")
+            print("***** Annotating with new model")
+            start_time = random.randInt(0, 30)
+            end_time = random.randInt(start_time + 5, start_time + 40)
+            n["model_annotations"] = [
+                {
+                    start_time: start_time,
+                    end_time: end_time,
+                    label: "TODO FILL ME",
+                }
+            ]
+            yield InitializationData(shared=n, unit_data=[{}])
+            input("***** Waiting for data......")
+            print("***** Training new model.........")
+            time.sleep(2)
+        return False
+
     shared_state = SharedStaticTaskState(
-        static_task_data=static_task_data,
+        static_task_data=get_task_data(),
     )
 
     build_task(task_dir)
