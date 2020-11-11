@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-function useMephistoReview() {
+function useMephistoReview({ useMock, mock }) {
+  if (mock !== undefined && (useMock === undefined || useMock === true)) {
+    return mock;
+  }
+
   const [data, setData] = useState(null);
   const [counter, setCounter] = useState(0);
   const [error, setError] = useState(null);
