@@ -1,0 +1,12 @@
+#@package _global_
+mephisto:
+  blueprint:
+    task_source: ${task_dir}/webapp/build/bundle.js
+    extra_source_dir: ${video_source_dir}
+    units_per_assignment: 1
+  task:
+    task_name: video-time-segmentation
+    task_title: "Separating a video into segments"
+    task_description: "In this task, you'll be given a video. You'll need to separate it into segments and label those."
+    task_reward: 0.25
+    task_tags: "video,time,segmentation"

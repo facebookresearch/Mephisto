@@ -1,0 +1,1 @@
+This is the default directory for videos used in the video segmentation demo. As of now you'll need to add your own here to run the demo.
