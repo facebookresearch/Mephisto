@@ -7,6 +7,7 @@
  */
 
 import React from "react";
+import VideoApp from "./VideoApp.jsx";
 
 function OnboardingComponent({ onSubmit }) {
   return (
@@ -53,9 +54,11 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
   console.table(taskData);
   return (
     <div>
-      <Directions>
-        Directions: The task data is listed in the console logs
-      </Directions>
+      <VideoApp
+        filePath={taskData.video}
+        annotationData={{ payload: taskData.model_annotations }}
+        onSubmit={(data) => onSubmit(data)}
+      />
     </div>
   );
 }
