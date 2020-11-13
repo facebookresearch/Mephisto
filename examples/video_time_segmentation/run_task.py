@@ -105,7 +105,7 @@ def main(cfg: DictConfig) -> None:
                 {
                     "start_time": start_time,
                     "end_time": end_time,
-                    "label": "TODO FILL ME",
+                    "label": "In a living room, two friends make coffee and sit on a couch.  #Summary",
                 }
             ]
             yield InitializationData(shared=n, unit_data=[{}])
