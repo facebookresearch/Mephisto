@@ -52,7 +52,7 @@ function VideoApp({ filePath, annotationData, onSubmit }) {
                     submit({});
                   }}
                 >
-                  Next Video >
+                  Complete Task
                 </button>
               </div>
               <ReactPlayer
@@ -70,22 +70,24 @@ function VideoApp({ filePath, annotationData, onSubmit }) {
                 }}
                 onDuration={setDuration}
               />
-              <label>
-                <input
-                  type="checkbox"
-                  checked={pauseOnScrub}
-                  onClick={() => setPauseOnScrub(!pauseOnScrub)}
-                />{" "}
-                Pause on scrub
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={isModifiable}
-                  onClick={() => setIsModifiable(!isModifiable)}
-                />{" "}
-                Is Modifiable?
-              </label>
+              <div className="video-settings">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={pauseOnScrub}
+                    onClick={() => setPauseOnScrub(!pauseOnScrub)}
+                  />{" "}
+                  Pause on scrub
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={isModifiable}
+                    onClick={() => setIsModifiable(!isModifiable)}
+                  />{" "}
+                  Is Modifiable?
+                </label>
+              </div>
               {isModifiable ? (
                 <EditableSegment
                   currentTimeSeconds={progress}
@@ -250,7 +252,7 @@ function EditableSegment({ currentTimeSeconds, duration, onCommit, onSeek }) {
       />
       <div>
         <textarea
-          style={{ width: "100%" }}
+          style={{ width: "100%", padding: 5 }}
           placeholder="Describe this time segment here..."
           value={label}
           onChange={(e) => {

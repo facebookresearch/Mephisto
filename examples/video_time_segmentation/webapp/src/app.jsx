@@ -40,11 +40,10 @@ function MainApp() {
     return (
       <section className="hero is-medium is-link">
         <div className="hero-body">
-          <div className="title is-3">
-            This is an incredibly simple React task working with Mephisto!
-          </div>
+          <div className="title is-3">Video Time Segmentation Task</div>
           <div className="subtitle is-4">
-            Inside you'll be asked to rate a given sentence as good or bad.
+            Inside you'll be asked to annotate different time segments of a
+            provided video.
           </div>
         </div>
       </section>

@@ -138,3 +138,20 @@ code {
   box-shadow: 5px 40px -10px rgba(0, 0, 0, 0.57);
   transition: all 0.4s ease 0s;
 }
+
+.video-settings label {
+  margin-right: 10px;
+}
+
+.seek-controls button {
+  padding: 5px 10px;
+  margin-right: 3px;
+  border-radius: 4px;
+  height: 38px;
+}
+
+.segment-wrapper button {
+  border: 1px solid rgb(170, 170, 170);
+  background-color: rgb(240, 240, 240);
+  cursor: pointer;
+}
