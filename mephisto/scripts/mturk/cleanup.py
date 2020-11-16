@@ -86,4 +86,6 @@ else:
         f"After disposing, {len(remaining_hits)} could not be disposed.\n"
         f"These may not have been reviewed yet, or are being actively worked on.\n"
         "They have been expired though, so please try to dispose later."
+        "The first 20 dispose errors are added below:"
     )
+    print([h["dispose_exception"] for h in remaining_hits[:20]])
