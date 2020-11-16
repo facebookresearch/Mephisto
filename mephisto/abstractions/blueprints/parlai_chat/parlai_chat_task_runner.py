@@ -62,6 +62,11 @@ class MephistoAgentWrapper(ParlAIAgent):
         self.__mephisto_agent_id = agent.get_agent_id()
 
     @property
+    def id(self):
+        """Alias for agent_id"""
+        return self.__agent_id
+
+    @property
     def agent_id(self):
         """
         Agent IDs in ParlAI are used to identify the speaker,
