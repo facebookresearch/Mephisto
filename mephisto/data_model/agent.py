@@ -6,6 +6,7 @@
 
 import os
 import threading
+from uuid import uuid4
 
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.abstractions.blueprint import AgentState
@@ -227,6 +228,8 @@ class Agent(ABC):
         Pass the observed information to the AgentState, then
         queue the information to be pushed to the user
         """
+        if packet.data.get("message_id") is None:
+            packet.data["message_id"] = str(uuid4())
         sending_packet = packet.copy()
         sending_packet.receiver_id = self.db_id
         self.state.update_data(sending_packet)

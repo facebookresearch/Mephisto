@@ -192,8 +192,9 @@ class Operator:
         try:
             # Register the blueprint with args to the task run,
             # ensure cached
-            blueprint = BlueprintClass(task_run, run_config, shared_state)
-            task_run.get_blueprint(args=run_config, shared_state=shared_state)
+            blueprint = task_run.get_blueprint(
+                args=run_config, shared_state=shared_state
+            )
 
             # If anything fails after here, we have to cleanup the architect
             build_dir = os.path.join(task_run.get_run_dir(), "build")

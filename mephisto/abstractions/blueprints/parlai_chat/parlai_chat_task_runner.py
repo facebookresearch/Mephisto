@@ -62,6 +62,11 @@ class MephistoAgentWrapper(ParlAIAgent):
         self.__mephisto_agent_id = agent.get_agent_id()
 
     @property
+    def id(self):
+        """Alias for agent_id"""
+        return self.__agent_id
+
+    @property
     def agent_id(self):
         """
         Agent IDs in ParlAI are used to identify the speaker,
@@ -188,8 +193,10 @@ class ParlAIChatTaskRunner(TaskRunner):
         """Shutdown the world"""
         onboarding_id = agent.get_agent_id()
         world_id = self.get_world_id("onboard", onboarding_id)
-        self.id_to_worlds[world_id].shutdown()
-        del self.id_to_worlds[world_id]
+        # Only shut down world if it was actually started
+        if world_id in self.id_to_worlds:
+            self.id_to_worlds[world_id].shutdown()
+            del self.id_to_worlds[world_id]
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]) -> None:
         """
