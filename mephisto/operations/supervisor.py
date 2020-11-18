@@ -35,7 +35,8 @@ from dataclasses import dataclass
 from typing import Dict, Set, Optional, List, Any, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.assignment import Assignment, Unit
+    from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import TaskRunner
