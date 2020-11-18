@@ -10,7 +10,7 @@ import os
 import tempfile
 
 from typing import Type, ClassVar
-from mephisto.data_model.test.blueprint_tester import BlueprintTests
+from mephisto.abstractions.test.blueprint_tester import BlueprintTests
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.abstractions.blueprints.mock.mock_task_builder import MockTaskBuilder
@@ -25,7 +25,7 @@ from mephisto.abstractions.blueprint import (
 )
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task_run import TaskRun
-from mephisto.data_model.test.utils import get_test_task_run
+from mephisto.abstractions.test.utils import get_test_task_run
 
 # TODO(#97) Update supervisor to be able to provide mock setups to test against a blueprint
 from mephisto.abstractions.providers.mock.mock_agent import MockAgent
