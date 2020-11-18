@@ -4,14 +4,24 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.operations.supervisor import *
-import warnings
 
-warnings.warn(
-    "Imports from `mephisto.core` are going away soon. "
-    "Please replace all of your imports from  mephisto.core.supervisor "
-    "to mephisto.operations.supervisor ",
-    PendingDeprecationWarning,
+import threading
+from queue import PriorityQueue, Empty
+import time
+from mephisto.data_model.packet import (
+    Packet,
+    PACKET_TYPE_ALIVE,
+    PACKET_TYPE_AGENT_ACTION,
+    PACKET_TYPE_NEW_AGENT,
+    PACKET_TYPE_NEW_WORKER,
+    PACKET_TYPE_REQUEST_AGENT_STATUS,
+    PACKET_TYPE_RETURN_AGENT_STATUS,
+    PACKET_TYPE_INIT_DATA,
+    PACKET_TYPE_GET_INIT_DATA,
+    PACKET_TYPE_PROVIDER_DETAILS,
+    PACKET_TYPE_SUBMIT_ONBOARDING,
+    PACKET_TYPE_REQUEST_ACTION,
+    PACKET_TYPE_UPDATE_AGENT_STATUS,
 )
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
@@ -25,8 +35,7 @@ from dataclasses import dataclass
 from typing import Dict, Set, Optional, List, Any, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.unit import Unit
-    from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.assignment import Assignment, Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import TaskRunner
