@@ -14,7 +14,8 @@ from typing import Mapping, Optional, Any, List, Dict
 from mephisto.operations.utils import get_data_dir
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
-from mephisto.data_model.assignment import Assignment, Unit, AssignmentState
+from mephisto.data_model.unit import Unit
+from mephisto.data_model.assignment import Assignment, AssignmentState
 from mephisto.data_model.constants import NO_PROJECT_NAME
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester

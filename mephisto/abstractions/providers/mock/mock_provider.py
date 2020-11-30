@@ -21,7 +21,7 @@ import os
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.data_model.assignment import Unit
+    from mephisto.data_model.unit import Unit
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.agent import Agent

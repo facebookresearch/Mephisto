@@ -7,7 +7,7 @@
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.assignment import Unit
+from mephisto.data_model.unit import Unit
 
 db = LocalMephistoDB()
 mephisto_data_browser = MephistoDataBrowser(db=db)

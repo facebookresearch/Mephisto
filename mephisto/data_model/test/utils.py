@@ -14,7 +14,8 @@ from mephisto.abstractions.database import (
 )
 
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.assignment import Unit, Assignment
+from mephisto.data_model.unit import Unit
+from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task

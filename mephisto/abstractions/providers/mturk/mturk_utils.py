@@ -8,7 +8,6 @@ import boto3
 import os
 import json
 import re
-from tqdm import tqdm
 from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 from datetime import datetime
 
@@ -688,9 +687,7 @@ def get_outstanding_hits(client: MTurkClient) -> Dict[str, List[Dict[str, Any]]]
 
 
 def expire_and_dispose_hits(
-    client: MTurkClient,
-    hits: List[Dict[str, Any]],
-    quiet: bool = False,
+    client: MTurkClient, hits: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
     """
     Loops over attempting to expire and dispose any hits in the hits list that can be disposed
@@ -698,13 +695,12 @@ def expire_and_dispose_hits(
     Returns any HITs that could not be disposed of
     """
     non_disposed_hits = []
-    for h in tqdm(hits, disable=quiet):
+    for h in hits:
         try:
             client.delete_hit(HITId=h["HITId"])
-        except Exception as e:
+        except:
             client.update_expiration_for_hit(
                 HITId=h["HITId"], ExpireAt=datetime(2015, 1, 1)
             )
-            h["dispose_exception"] = e
             non_disposed_hits.append(h)
     return non_disposed_hits
