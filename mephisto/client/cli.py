@@ -83,7 +83,7 @@ def register_provider(args):
 
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
     from mephisto.operations.registry import get_crowd_provider_from_type
-    from mephisto.core.argparse_parser import parse_arg_dict, get_extra_argument_dicts
+    from mephisto.operations.utils import parse_arg_dict, get_extra_argument_dicts
 
     provider_type, requester_args = args[0], args[1:]
     args_dict = dict(arg.split("=", 1) for arg in requester_args)
@@ -138,7 +138,7 @@ def get_help_arguments(args):
         get_valid_provider_types,
         get_valid_architect_types,
     )
-    from mephisto.core.argparse_parser import get_extra_argument_dicts
+    from mephisto.operations.utils import get_extra_argument_dicts
 
     VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
 
