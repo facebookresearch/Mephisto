@@ -18,7 +18,8 @@ from mephisto.operations.config_handler import (
     DATA_STORAGE_KEY,
     DEFAULT_CONFIG_FILE,
 )
-
+from omegaconf import OmegaConf, MISSING, DictConfig
+from dataclasses import fields, Field
 from typing import Optional, Dict, Any, List, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -193,3 +194,51 @@ def find_or_create_qualification(db, qualification_name) -> None:
         db.make_qualification(qualification_name)
     except EntryAlreadyExistsException:
         pass  # qualification already exists
+
+
+def get_dict_from_field(in_field: Field) -> Dict[str, Any]:
+    """
+    Extract all of the arguments from an argument group
+    and return a dict mapping from argument dest to argument dict
+    """
+    found_type = "str"
+    try:
+        found_type = in_field.type.__name__
+    except AttributeError:
+        found_type = "unknown"
+    return {
+        "dest": in_field.name,
+        "type": found_type,
+        "default": in_field.default,
+        "help": in_field.metadata.get("help"),
+        "choices": in_field.metadata.get("choices"),
+        "required": in_field.metadata.get("required", False),
+    }
+
+
+def get_extra_argument_dicts(customizable_class: Any) -> List[Dict[str, Any]]:
+    """
+    Produce the argument dicts for the given customizable class
+    (Blueprint, Architect, etc)
+    """
+    dict_fields = fields(customizable_class.ArgsClass)
+    usable_fields = []
+    group_field = None
+    for f in dict_fields:
+        if not f.name.startswith("_"):
+            usable_fields.append(f)
+        elif f.name == "_group":
+            group_field = f
+    parsed_fields = [get_dict_from_field(f) for f in usable_fields]
+    help_text = ""
+    if group_field is not None:
+        help_text = group_field.metadata.get("help", "")
+    return [{"desc": help_text, "args": {f["dest"]: f for f in parsed_fields}}]
+
+
+def parse_arg_dict(customizable_class: Any, args: Dict[str, Any]) -> DictConfig:
+    """
+    Get the ArgsClass for a class, then parse the given args using
+    it. Return the DictConfig of the finalized namespace.
+    """
+    return OmegaConf.structured(customizable_class.ArgsClass(**args))

@@ -490,7 +490,7 @@ class Supervisor:
         ), "Should only be registering from onboarding if onboarding is required and set"
         worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
         worker.grant_qualification(
-            blueprint.onboarding_qualification_name, int(worker_passed), skip_crowd=True
+            blueprint.onboarding_qualification_name, int(worker_passed)
         )
         if not worker_passed:
             worker.grant_qualification(
