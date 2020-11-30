@@ -18,6 +18,7 @@ from botocore.exceptions import ProfileNotFound
 from botocore.config import Config
 from omegaconf import DictConfig
 
+from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
 from mephisto.operations.logger_core import get_logger
 from mephisto.operations.config_handler import get_config_arg
 
@@ -334,6 +335,7 @@ def convert_mephisto_qualifications(
             converted["IntegerValue"] is None
             and converted["IntegerValues"] is None
             and converted["LocaleValues"] is None
+            and converted["Comparator"] not in [QUAL_EXISTS, QUAL_NOT_EXIST]
         ):
             value = qualification["value"]
             if isinstance(value, list):
