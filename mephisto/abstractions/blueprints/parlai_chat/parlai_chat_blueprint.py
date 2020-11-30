@@ -165,8 +165,8 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
 
         if shared_state.world_module is None:
             world_file_path = os.path.expanduser(args.blueprint.world_file)
-            world_module_path = world_file_path[:-3]
-            sys.path.append(world_module_path)
+            world_module_dir = os.path.dirname(world_file_path)
+            sys.path.append(world_module_dir)
             world_module_name = os.path.basename(world_file_path)[:-3]
             world_module = import_module(world_module_name)
         else:

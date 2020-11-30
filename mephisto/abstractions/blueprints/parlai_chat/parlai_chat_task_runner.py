@@ -129,8 +129,8 @@ class ParlAIChatTaskRunner(TaskRunner):
     ):
         super().__init__(task_run, args, shared_state)
         world_file_path = os.path.expanduser(args.blueprint.world_file)
-        world_module_path = world_file_path[:-3]
-        sys.path.append(world_module_path)
+        world_module_dir = os.path.dirname(world_file_path)
+        sys.path.append(world_module_dir)
         world_module_name = os.path.basename(world_file_path)[:-3]
         self.parlai_world_module = import_module(world_module_name)
         world_params = self.parlai_world_module.get_world_params()
