@@ -29,10 +29,8 @@ A specific interface for launching tasks on the MTurk sandbox
 
 (TODO) Can we bundle this into the `MTurkProvider` and make it so that providers have a TEST/SANDBOX mode bundled in? This would clarify how the testing utilities work, without needing to publish real tasks.
 
-### LocalProvider
+### LocalProvider (TODO)
 An interface that allows for launching tasks on your local machine, allowing for ip-address based workers to submit work.
-
-(TODO) IMPLEMENT THIS
 
 ### MockProvider
 An implementation of a provider that allows for robust testing by exposing all of the underlying state to a user.
@@ -71,7 +69,7 @@ The `<Crowd>Unit` implementation needs to be able to handle the following intera
 ### `<Crowd>Requester`
 The `<Crowd>Requester` mostly just needs to abstract the registration process, but the full list of functions are below:
 - `register`: Given arguments, register this requester
-- `get_register_args`: Return the arguments required to register one of these requesters. (TODO) can we turn this into an argparse group somehow? And then later extract from the argparse group to send to the frontend.
+- `get_register_args`: Return the arguments required to register one of these requesters. 
 - `is_registered`: Determine if the current credentials for a `Requester` are valid.
 - `get_available_budget` (Optional): return the available budget for this requester.
 

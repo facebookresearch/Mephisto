@@ -1,0 +1,2 @@
+# Data model constants
+This folder contains constants modules for constants that are used in multiple places in the data model. As they are not tied to just one place, they need a common import location.

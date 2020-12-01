@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.abstractions.database import MephistoDB
-from mephisto.data_model.assignment import Unit
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.task_run import TaskRun
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import Agent
@@ -28,6 +28,10 @@ class DataBrowser:
         self.db = db
 
     def _get_units_for_task_runs(self, task_runs: List[TaskRun]) -> List[Unit]:
+        """
+        Return a list of all Units in a terminal completed state from all
+        the provided TaskRuns.
+        """
         units = []
         for task_run in task_runs:
             assignments = task_run.get_assignments()
@@ -44,16 +48,31 @@ class DataBrowser:
         return units
 
     def get_units_for_task_name(self, task_name: str) -> List[Unit]:
+        """
+        Return a list of all Units in a terminal completed state from all
+        task runs with the given task_name
+        """
         tasks = self.db.find_tasks(task_name=task_name)
         assert len(tasks) >= 1, f"No task found under name {task_name}"
         task_runs = self.db.find_task_runs(task_id=tasks[0].db_id)
         return self._get_units_for_task_runs(task_runs)
 
     def get_units_for_run_id(self, run_id: str) -> List[Unit]:
+        """
+        Return a list of all Units in a terminal completed state from the
+        task run with the given run_id
+        """
         task_run = TaskRun(self.db, run_id)
         return self._get_units_for_task_runs([task_run])
 
     def get_data_from_unit(self, unit: Unit) -> Dict[str, Any]:
+        """
+        Return a dict containing all data associated with the given
+        unit, including its status, data, and start and end time.
+
+        Also includes the DB ids for the worker, the unit, and the
+        relevant assignment this unit was a part of.
+        """
         agent = unit.get_assigned_agent()
         assert (
             agent is not None

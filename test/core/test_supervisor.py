@@ -19,7 +19,7 @@ from mephisto.abstractions.architects.mock_architect import MockArchitect
 from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.task_launcher import TaskLauncher
-from mephisto.data_model.test.utils import get_test_task_run
+from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.task_run import TaskRun
 from mephisto.operations.supervisor import Supervisor, Job

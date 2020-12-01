@@ -15,7 +15,6 @@ from mephisto.operations.utils import (
 )
 
 from functools import reduce
-from mephisto.data_model.task_run import *
 
 from typing import List, Optional, Mapping, TYPE_CHECKING, Any
 

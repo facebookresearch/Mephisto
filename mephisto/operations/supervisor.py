@@ -35,7 +35,8 @@ from dataclasses import dataclass
 from typing import Dict, Set, Optional, List, Any, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.assignment import Assignment, Unit
+    from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import TaskRunner
@@ -489,7 +490,7 @@ class Supervisor:
         ), "Should only be registering from onboarding if onboarding is required and set"
         worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
         worker.grant_qualification(
-            blueprint.onboarding_qualification_name, int(worker_passed), skip_crowd=True
+            blueprint.onboarding_qualification_name, int(worker_passed)
         )
         if not worker_passed:
             worker.grant_qualification(

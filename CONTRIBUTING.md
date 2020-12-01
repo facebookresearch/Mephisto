@@ -15,7 +15,7 @@ We actively welcome your pull requests.
 6. If you haven't already, complete the Contributor License Agreement ("CLA").
 
 ### Task Contributions
-TODO TODO TODO
+Generally we encourage people to provide their own blueprints as part of the repo in which they release their code, though if someone creates a strong case for an abstract `Blueprint` that is generally applicable we'd be happy to review it.
 
 ## Contributor License Agreement ("CLA")
 In order to accept your pull request, we need you to submit a CLA. You only need
