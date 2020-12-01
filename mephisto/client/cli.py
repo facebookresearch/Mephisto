@@ -19,7 +19,7 @@ def cli():
 @cli.command("web")
 def web():
     """Launch a local webserver with the Mephisto UI"""
-    from mephisto.client.server import app
+    from mephisto.client.full.server import app
 
     app.run(debug=False)
 
