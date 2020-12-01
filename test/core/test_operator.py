@@ -13,7 +13,7 @@ import tempfile
 import time
 import threading
 
-from mephisto.data_model.test.utils import get_test_requester
+from mephisto.abstractions.test.utils import get_test_requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.operator import Operator

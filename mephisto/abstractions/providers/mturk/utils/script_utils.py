@@ -9,6 +9,7 @@ from typing import List, Optional, TYPE_CHECKING, Dict
 from mephisto.abstractions.providers.mturk.mturk_utils import give_worker_qualification
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.unit import Unit
+from tqdm import tqdm
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -42,9 +43,7 @@ def direct_soft_block_mturk_workers(
         )
 
     mturk_client = requester._get_client(requester._requester_name)
-    for idx, worker_id in enumerate(worker_list):
-        if idx % 50 == 0:
-            print(f"Blocked {idx + 1} workers so far.")
+    for worker_id in tqdm(worker_list):
         try:
             give_worker_qualification(
                 mturk_client, worker_id, qualification_id, value=1
