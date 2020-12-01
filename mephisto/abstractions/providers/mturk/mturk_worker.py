@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.data_model.assignment import Unit
+    from mephisto.data_model.unit import Unit
     from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
 

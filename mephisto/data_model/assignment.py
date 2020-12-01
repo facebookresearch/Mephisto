@@ -12,9 +12,6 @@ from mephisto.data_model.agent import Agent
 from mephisto.data_model.requester import Requester
 from typing import List, Optional, Mapping, Dict, Any, TYPE_CHECKING, IO
 
-# Temporary until import split is clear
-from mephisto.data_model.unit import *
-
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker

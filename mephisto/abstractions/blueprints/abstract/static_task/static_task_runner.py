@@ -14,7 +14,8 @@ from typing import ClassVar, List, Type, Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.data_model.assignment import Unit, InitializationData
+    from mephisto.data_model.assignment import InitializationData
+    from mephisto.data_model.unit import Unit
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.abstractions.blueprint import SharedTaskState
     from omegaconf import DictConfig

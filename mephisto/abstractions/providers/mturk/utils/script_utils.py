@@ -8,7 +8,7 @@ from typing import List, Optional, TYPE_CHECKING, Dict
 
 from mephisto.abstractions.providers.mturk.mturk_utils import give_worker_qualification
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.assignment import Unit
+from mephisto.data_model.unit import Unit
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB

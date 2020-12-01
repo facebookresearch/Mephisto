@@ -12,10 +12,10 @@
 
 from mephisto.data_model.assignment import (
     Assignment,
-    Unit,
     InitializationData,
     AssignmentState,
 )
+from mephisto.data_model.unit import Unit
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING, Iterator
 from tqdm import tqdm

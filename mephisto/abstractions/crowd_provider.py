@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.abstractions.blueprint import AgentState, SharedTaskState
-from mephisto.data_model.assignment import Unit
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.agent import Agent

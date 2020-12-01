@@ -11,7 +11,7 @@ from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.requester import MTurkRequester
-    from mephisto.data_model.assignment import Unit
+    from mephisto.data_model.unit import Unit
     from mephisto.data_model.agent import Agent
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker

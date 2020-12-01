@@ -16,7 +16,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
 from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.assignment import Unit
+    from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.packet import Packet

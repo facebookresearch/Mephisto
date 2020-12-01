@@ -20,7 +20,8 @@ from mephisto.data_model.exceptions import (
 from typing import List, Optional, Tuple, Mapping, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.assignment import Unit, Assignment
+    from mephisto.data_model.unit import Unit
+    from mephisto.data_model.assignment import Assignment
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task import Task
@@ -112,7 +113,7 @@ class Agent(ABC):
         Return the Unit that this agent is working on.
         """
         if self._unit is None:
-            from mephisto.data_model.assignment import Unit
+            from mephisto.data_model.unit import Unit
 
             self._unit = Unit(self.db, self.unit_id)
         return self._unit
