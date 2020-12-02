@@ -7,7 +7,16 @@ from mephisto.operations.registry import fill_registries
 from mephisto.operations.config_handler import init_config
 from mephisto.operations.hydra_config import initialize_named_configs
 
-__version__ = "0.1.0"
+import os
+
+
+here = os.path.abspath(os.path.dirname(__file__))
+
+try:
+    with open(os.path.join(here, "VERSION")) as version_file:
+        __version__ = version_file.read().strip()
+except Exception:
+    __version__ = "no_version_file"
 
 init_config()
 fill_registries()
