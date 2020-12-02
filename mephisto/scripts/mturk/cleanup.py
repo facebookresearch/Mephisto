@@ -8,11 +8,11 @@
 Utility script that finds, expires, and disposes HITs that may not
 have been taking down during a run that exited improperly.
 """
-from mephisto.providers.mturk.mturk_utils import (
+from mephisto.abstractions.providers.mturk.mturk_utils import (
     get_outstanding_hits,
     expire_and_dispose_hits,
 )
-from mephisto.core.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
 
 db = LocalMephistoDB()
 
