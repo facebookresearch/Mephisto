@@ -46,7 +46,7 @@ Task worlds implement the following methods:
 - `prep_save_data` (optional) - The `prep_save_data` method is used to add any additional values to the saved conversation data. This data will be accessible later in review.
 
 The world file also needs to implement the following methods:
-- `make_world` - This method should, given world options and a list of agents, return an initialized task world.
+- `make_world` - This method should, given world options and a list of agents, return an initialized task world. It may optionally accept an `initialization_data` keyword argument, which will be provided with the `Assignment`'s `InitializationData` if present.
 - `get_world_params` - This method is used to configure details about your ParlAI world for Mephisto to understand how to initialize your world. In this case the only required configuration parameter is `agent_count`, which specifies the number of human agents Mephisto will provide to your `make_world` function.
 - `make_onboarding_world` (optional) - The `make_onboarding_world` method is called to initialize a world on the very first time a specific worker works on your task. This will only ever be called with a single agent, and it should return the initialized onboarding world.
 - `validate_onboarding` (optional) - When an onboarding world completes, this method is called on the full data collected in the onboarding task. If it returns `True` the worker is allowed to move on to the full task. If this method returns `False`, then the worker is blocked from working on this task in the future.
