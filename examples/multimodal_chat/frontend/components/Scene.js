@@ -75,6 +75,9 @@ class Scene extends React.Component {
   }
 
   onKeyDown(event) {
+    if (this.props.disableControls) {
+      return;
+    }
     const { controls, camera } = this;
 
     switch (event.keyCode) {
@@ -188,7 +191,9 @@ class Scene extends React.Component {
   }
 
   handleClick() {
-    this.controls.lock();
+    if (!this.props.disableControls) {
+      this.controls.lock();
+    }
   }
 
   render() {
