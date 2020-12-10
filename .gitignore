@@ -14,7 +14,7 @@ examples/**/build/*
 **/_generated/*
 **/outputs/*
 .coverage
-
+examples/multimodal_chat/resources/*
 
 # PyCharm
 .idea

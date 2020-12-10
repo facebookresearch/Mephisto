@@ -1,0 +1,16 @@
+#@package _global_
+mephisto:
+  blueprint:
+    custom_source_dir: ${task_dir}/frontend
+    extra_source_dir: ${task_dir}/resources
+    task_description_file: ${task_dir}/task_description.html
+    num_conversations: 1
+  task:
+    task_name: parlai-multimodal-example
+    task_title: "Multimodal Chat Example"
+    task_description: >
+      This is a simple chat between two people
+      used to demonstrate the functionalities around using Mephisto
+      for ParlAI tasks.
+    task_reward: 0.3
+    task_tags: "dynamic,chat,testing"
