@@ -288,7 +288,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         # TODO move frontend args in
         frontend_task_config = {
             "task_description": self.full_task_description,
-            'preview_html': self.full_preview_description,
+            "preview_html": self.full_preview_description,
             "frame_height": 650,
             "chat_title": self.args.task.task_title,
             "has_preview": self.args.blueprint.get("preview_source", None) is not None,
