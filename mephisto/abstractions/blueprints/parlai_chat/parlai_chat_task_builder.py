@@ -65,8 +65,11 @@ class ParlAIChatTaskBuilder(TaskBuilder):
 
         Check dates to only go through this build process when files have changes
         """
-        # TODO add custom component directories, and recursively check those
-        TARGET_BUILD_FILES = {"main.js": "src/main.js", "package.json": "package.json"}
+        TARGET_BUILD_FILES = {
+            "main.js": "src/main.js",
+            "package.json": "package.json",
+            "style.css": "src/style.css",
+        }
         TARGET_BUILD_FOLDERS = {"components": "src/components"}
 
         prebuild_path = os.path.join(custom_src_dir, CUSTOM_BUILD_DIRNAME)
