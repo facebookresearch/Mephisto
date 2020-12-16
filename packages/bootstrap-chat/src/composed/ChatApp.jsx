@@ -18,6 +18,7 @@ import BaseFrontend from "./BaseFrontend.jsx";
 /* ================= Application Components ================= */
 
 const AppContext = React.createContext({});
+const emptyAppSettings = {};
 
 const INPUT_MODE = {
   WAITING: "waiting",
@@ -32,6 +33,7 @@ function ChatApp({
   renderTextResponse,
   renderResponse,
   onMessagesChange,
+  propAppSettings = emptyAppSettings,
 }) {
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
@@ -52,7 +54,12 @@ function ChatApp({
     }
   }, [messages]);
 
-  const initialAppSettings = { volume: 1, isReview: false, isCoverPage: false };
+  const initialAppSettings = {
+    volume: 1,
+    isReview: false,
+    isCoverPage: false,
+    ...propAppSettings,
+  };
   const [appSettings, setAppSettings] = React.useReducer(
     (prevSettings, newSettings) => Object.assign(prevSettings, newSettings),
     initialAppSettings
@@ -62,7 +69,9 @@ function ChatApp({
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
     audio.volume = appSettings.volume;
-    audio.play();
+    if (audio.volume != 0) {
+      audio.play();
+    }
   }
 
   function trackAgentName(agentName) {

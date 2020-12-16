@@ -128,11 +128,15 @@ class ParlAIChatTaskRunner(TaskRunner):
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
         super().__init__(task_run, args, shared_state)
-        world_file_path = os.path.expanduser(args.blueprint.world_file)
-        world_module_dir = os.path.dirname(world_file_path)
-        sys.path.append(world_module_dir)
-        world_module_name = os.path.basename(world_file_path)[:-3]
-        self.parlai_world_module = import_module(world_module_name)
+        if shared_state.world_module is None:
+            world_file_path = os.path.expanduser(args.blueprint.world_file)
+            world_module_dir = os.path.dirname(world_file_path)
+            sys.path.append(world_module_dir)
+            world_module_name = os.path.basename(world_file_path)[:-3]
+            world_module = import_module(world_module_name)
+        else:
+            world_module = shared_state.world_module
+        self.parlai_world_module = world_module
         world_params = self.parlai_world_module.get_world_params()
         self.is_concurrent = world_params["agent_count"] > 1
         self.id_to_worlds: Dict[str, Any] = {}
