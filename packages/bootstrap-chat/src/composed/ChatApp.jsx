@@ -33,7 +33,7 @@ function ChatApp({
   renderTextResponse,
   renderResponse,
   onMessagesChange,
-  propAppSettings = emptyAppSettings,
+  defaultAppSettings = emptyAppSettings,
 }) {
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
@@ -58,7 +58,7 @@ function ChatApp({
     volume: 1,
     isReview: false,
     isCoverPage: false,
-    ...propAppSettings,
+    ...defaultAppSettings,
   };
   const [appSettings, setAppSettings] = React.useReducer(
     (prevSettings, newSettings) => Object.assign(prevSettings, newSettings),
