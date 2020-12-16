@@ -254,7 +254,14 @@ class ParlAIChatTaskRunner(TaskRunner):
         agents = [agent]
         opt: Dict[str, Any] = self.shared_state.world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
-        world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
+        try:
+            world = self.parlai_world_module.make_world(
+                opt, parlai_agents, initialization_data=unit.get_assignment_data()
+            )  # type: ignore
+        except TypeError:
+            # make_world doesn't ask for initialization_data
+            world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
+
         world_id = self.get_world_id("unit", unit.db_id)
         self.id_to_worlds[world_id] = world
         while not world.episode_done() and unit.db_id in self.running_units:
