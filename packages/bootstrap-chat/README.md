@@ -131,6 +131,10 @@ The arguments for this render prop are the same as for `renderTextResponse`, wit
 
 A callback that will get called any time a new message is received. The callback will receive as an argument all messages received thus far.
 
+### `propAppSettings`
+
+This optional prop lets you provide some initial app settings for the `ChatApp`, setting some default values for `appContext.appSettings`.
+
 ### The `mephistoContext` argument
 
 All render props will receive the `mephistoContext` argument.
