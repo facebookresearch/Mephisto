@@ -74,6 +74,7 @@ class StaticTaskRunner(TaskRunner):
         # Frontend implicitly asks for the initialization data, so we just need
         # to wait for a response
         agent_act = agent.act(timeout=self.assignment_duration_in_seconds)
+        agent.did_submit.set()
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """There is currently no cleanup associated with killing an incomplete task"""
