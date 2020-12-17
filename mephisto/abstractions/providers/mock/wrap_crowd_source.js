@@ -53,9 +53,11 @@ function handleSubmitToProvider(task_data) {
   return true;
 }
 
-const AUTO_SUBMIT_ERRORS = false;
-const ADD_ERROR_HANDLING = true;
-const ERROR_REPORT_TO_EMAIL = null;
+/* === UI error handling code ======= */
+window._MEPHISTO_CONFIG_ = window._MEPHISTO_CONFIG_ || {};
+window._MEPHISTO_CONFIG_.AUTO_SUBMIT_ERRORS = false;
+window._MEPHISTO_CONFIG_.ADD_ERROR_HANDLING = false;
+window._MEPHISTO_CONFIG_.ERROR_REPORT_TO_EMAIL = null;
 
 let numErrorsCaught = 0;
 let numErrorsReported = 0;
@@ -67,7 +69,10 @@ window.addEventListener("error", function (event) {
   }
   event.error.hasBeenCaught = true;
   numErrorsCaught += 1;
-  if (ADD_ERROR_HANDLING && !userDisabledErrorPrompts) {
+  if (
+    window._MEPHISTO_CONFIG_.ADD_ERROR_HANDLING &&
+    !userDisabledErrorPrompts
+  ) {
     const fullErrorMessage = `${event.error.message}\n\n${event.error.stack}`;
     if (
       confirm(
@@ -76,9 +81,9 @@ window.addEventListener("error", function (event) {
       )
     ) {
       numErrorsReported += 1;
-      if (ERROR_REPORT_TO_EMAIL) {
+      if (window._MEPHISTO_CONFIG_.ERROR_REPORT_TO_EMAIL) {
         prompt(
-          `Please copy & paste the following in an email to: ${ERROR_REPORT_TO_EMAIL}`,
+          `Please copy & paste the following in an email to: ${window._MEPHISTO_CONFIG_.ERROR_REPORT_TO_EMAIL}`,
           fullErrorMessage
         );
       } else {
@@ -99,3 +104,4 @@ window.addEventListener("error", function (event) {
     // should we do auto-submission of errors?
   }
 });
+/* ================================== */
