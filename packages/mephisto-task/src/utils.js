@@ -170,7 +170,9 @@ export class ErrorBoundary extends React.Component {
       error: error,
       errorInfo: errorInfo,
     });
-    this.props.handleError({ error: error.message, errorInfo: errorInfo });
+    if (this.props.handleError) {
+      this.props.handleError({ error: error.message, errorInfo: errorInfo });
+    }
   }
 
   render() {
