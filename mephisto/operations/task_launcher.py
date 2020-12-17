@@ -182,6 +182,8 @@ class TaskLauncher:
         """ use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
         while not self.finished_generators:
             for unit in self.generate_units():
+                if unit is None:
+                    break
                 unit.launch(url)
             if self.generator_type == GeneratorType.NONE:
                 break
@@ -211,6 +213,8 @@ class TaskLauncher:
 
     def shutdown(self) -> None:
         """Clean up running threads for generating assignments and units"""
+        self.assignment_thread_done = True
+        self.keep_launching_units = False
         if self.assignments_thread is not None:
             self.assignments_thread.join()
         self.units_thread.join()
