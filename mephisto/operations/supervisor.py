@@ -22,6 +22,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_REQUEST_ACTION,
     PACKET_TYPE_UPDATE_AGENT_STATUS,
+    PACKET_TYPE_ERROR_LOG,
 )
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
@@ -662,6 +663,11 @@ class Supervisor:
                 packet.receiver_id = agent_id
                 agent_info.agent.pending_observations.append(packet)
 
+    @staticmethod
+    def _log_frontend_error(packet):
+        error = packet.data["final_data"]
+        logger.info(f"[FRONT_END_ERROR]: {error}")
+
     def _on_message(self, packet: Packet, channel_info: ChannelInfo):
         """Handle incoming messages from the channel"""
         # TODO(#102) this method currently assumes that the packet's sender_id will
@@ -680,6 +686,8 @@ class Supervisor:
         elif packet.type == PACKET_TYPE_RETURN_AGENT_STATUS:
             # Record this status response
             self._handle_updated_agent_status(packet.data)
+        elif packet.type == PACKET_TYPE_ERROR_LOG:
+            self._log_frontend_error(packet)
         else:
             # PACKET_TYPE_REQUEST_AGENT_STATUS, PACKET_TYPE_ALIVE,
             # PACKET_TYPE_INIT_DATA
