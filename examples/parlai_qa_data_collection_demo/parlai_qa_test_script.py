@@ -12,9 +12,9 @@ from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
     BLUEPRINT_TYPE,
     SharedParlAITaskState,
 )
-
+import mephisto.data_model.dataloader as DataLoader
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, MISSING
 from dataclasses import dataclass, field
 from typing import List, Any
 
@@ -26,10 +26,33 @@ defaults = [
     {"mephisto/provider": "mock"},
     "conf/base",
     {"conf": "example"},
+    {"conf": "dataloader_squad"}
 ]
 
 from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
+@dataclass
+class DataLoaderConfig:
+    class_name: str = field(
+        default="DefaultTeacher",
+        metadata={"help": ""}
+    )
+    datatype: str = field(
+        default="train",
+        metadata={"help": ""}
+    )
+    datapath: str = field(
+        default="${task_dir}/data",
+        metadata={"help": ""}
+    )
+    datafile: str = field(
+        default=MISSING,
+        metadata={"help": ""}
+    )
+    task: str = field(
+        default="${mephisto.task.task_name}",
+        metadata={"help": ""}
+    )
 
 @dataclass
 class TestScriptConfig(RunScriptConfig):
@@ -46,6 +69,7 @@ class TestScriptConfig(RunScriptConfig):
             "a worker out, default 300 seconds"
         },
     )
+    dataloader: DataLoaderConfig = DataLoaderConfig()
 
 
 register_script_config(name="scriptconfig", module=TestScriptConfig)
@@ -55,7 +79,11 @@ register_script_config(name="scriptconfig", module=TestScriptConfig)
 def main(cfg: DictConfig) -> None:
     db, cfg = load_db_and_process_config(cfg)
 
-    world_opt = {"num_turns": cfg.num_turns, "turn_timeout": cfg.turn_timeout}
+    task_class = getattr(DataLoader, cfg.dataloader["class_name"])
+    task_opt = cfg.dataloader
+    dataloader = task_class(task_opt)
+
+    world_opt = {"num_turns": cfg.num_turns, "turn_timeout": cfg.turn_timeout, "dataloader": dataloader}
 
     custom_bundle_path = cfg.mephisto.blueprint.get("custom_source_bundle", None)
     if custom_bundle_path is not None:

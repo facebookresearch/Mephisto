@@ -1,13 +1,11 @@
 #@package _global_
 mephisto:
   blueprint:
-    onboarding_qualification: test-parlai-chat-qualification
+    onboarding_qualification: test-parlai-qa-qualification
   task:
-    task_name: parlai-chat-example
-    task_title: "Test ParlAI Chat Task"
+    task_name: parlai-qa-example
+    task_title: "Test ParlAI QA Data Collection Task"
     task_description: >
-      This is a simple chat between two people
-      used to demonstrate the functionalities around using Mephisto
-      for ParlAI tasks.
+      This is a ParlAI data collection task.
     task_reward: 0.3
-    task_tags: "dynamic,chat,testing"
+    task_tags: "dynamic,question answering,testing"

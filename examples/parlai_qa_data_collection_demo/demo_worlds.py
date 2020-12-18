@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 from parlai.mturk.core.worlds import MTurkOnboardWorld, MTurkTaskWorld
 from parlai.core.worlds import validate
-from joblib import Parallel, delayed
+import mephisto.data_model.dataloader as DataLoader
 
 
 class QADataCollectionOnboardWorld(MTurkOnboardWorld):
@@ -38,6 +38,7 @@ class QADataCollectionWorld(MTurkTaskWorld):
     collector_agent_id = 'QA Collector'
 
     def __init__(self, opt, agent):
+        self.dataloader = opt["dataloader"]
         self.agent = agent
         self.agent.agent_id = "QA Agent"
         self.episodeDone = False
@@ -59,9 +60,8 @@ class QADataCollectionWorld(MTurkTaskWorld):
             # and prompts the turker to ask a question regarding the context
 
             # Get context from SQuAD teacher agent
-            # qa = self.task.act()
-            qa = {"text":"This is a sample question\n"}
-            self.context = '\n'.join(qa['text'].split('\n')[:-1])
+            passage = self.dataloader.act()
+            self.context = passage['text']
 
             # Wrap the context with a prompt telling the turker what to do next
             ad['text'] = (
@@ -85,45 +85,6 @@ class QADataCollectionWorld(MTurkTaskWorld):
             self.answer = self.agent.act(timeout=self.opt["turn_timeout"])
 
             self.episodeDone = True
-
-
-        # if self.current_turns >= self.max_turns:
-            self.episodeDone = True
-            for agent in self.agents:
-                agent.observe(
-                    {
-                        "id": "Coordinator",
-                        "text": "Please fill out the form to complete the chat:",
-                        "task_data": {
-                            "respond_with_form": [
-                                {
-                                    "type": "choices",
-                                    "question": "How much did you enjoy talking to this user?",
-                                    "choices": [
-                                        "Not at all",
-                                        "A little",
-                                        "Somewhat",
-                                        "A lot",
-                                    ],
-                                },
-                                {
-                                    "type": "choices",
-                                    "question": "Do you think this user is a bot or a human?",
-                                    "choices": [
-                                        "Definitely a bot",
-                                        "Probably a bot",
-                                        "Probably a human",
-                                        "Definitely a human",
-                                    ],
-                                },
-                                {"type": "text", "question": "Enter any comment here"},
-                            ]
-                        },
-                    }
-                )
-                agent.act()  # Request a response
-            for agent in self.agents:  # Ensure you get the response
-                form_result = agent.act(timeout=self.opt["turn_timeout"])
 
     def prep_save_data(self, agent):
         """Process and return any additional data from this world you may want to store"""
