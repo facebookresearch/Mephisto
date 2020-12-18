@@ -1436,10 +1436,10 @@ bn.js@^5.1.1:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.1.2.tgz#c9686902d3c9a27729f43ab10f9d79c2004da7b0"
   integrity sha512-40rZaf3bUNKTVYu9sIeeEGOg7g14Yvnj9kH7b50EiwX0Q7A6umbvfI5tvHaOERH0XigqKkfLkFQxzb4e6CIXnA==
 
-bootstrap-chat@^1.0.1:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/bootstrap-chat/-/bootstrap-chat-1.0.4.tgz#72a72fc916df78322f09e6fce2d68f165d239109"
-  integrity sha512-TCuc41O1sGMXQ5ETKtEV5TotL9ge8M8iav3TBQgHyODZ/g3sqsLG4qHJ8ArH9tqftO2TxgXc1qfAaLp/9wEX3g==
+bootstrap-chat@^1.0.6:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/bootstrap-chat/-/bootstrap-chat-1.0.7.tgz#fbd5014aebbba701782d6183240031e42bef2df8"
+  integrity sha512-6JfZVPUven2C3x13oHrfvYJxFSBtGQvtIzUFStWUQ5s6ZZqajURZCFVp7uvyZMNo6PwUd6anixatajMcrerg0A==
   dependencies:
     axios "^0.19.2"
     babel-eslint "10.x"
@@ -3038,9 +3038,9 @@ inherits@2.0.3:
   integrity sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=
 
 ini@^1.3.4, ini@^1.3.5:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.5.tgz#eee25f56db1c9ec6085e0c22778083f596abf927"
-  integrity sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
+  version "1.3.8"
+  resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.8.tgz#a29da425b48806f34767a4efce397269af28432c"
+  integrity sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==
 
 inquirer@^7.0.0:
   version "7.1.0"

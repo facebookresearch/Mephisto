@@ -61,11 +61,12 @@ ParlAI chat tasks have a number of arguments set up, primarily via Hydra but als
 - `mephisto.task.task_name` - This task name will be used to consolidate your data across runs. Generally we suggest using `descriptive-string-pilot-#` when piloting and `descriptive-task-string` for your main collection. More details on this are in the (TODO) Mephisto argument instructions.
 - `mephisto.blueprint.onboarding_qualification` (optional) - The qualification to grant to a worker when they have completed onboarding, such that they no longer need to do onboarding in future tasks where you specify the same qualification name. Specifying this qualification will make mephisto attempt to run onboarding for new workers, and ommitting it will skip onboarding for all workers.
 #### ParlAI-specific arguments
-- `mephisto.blueprint.world_file` - Path to the python file containing your worlds. Detailed requirements of this file in the "The worlds file" section.
+- `mephisto.blueprint.world_file` - Optional path to the python file containing your worlds. Detailed requirements of this file in the "The worlds file" section. If you already know what world module you intend to use for a specific run, it's generally a better practice to import that module directly in your run script, and then pass it as `SharedParlAITaskState.world_module`.
 - `mephisto.blueprint.task_description_file` - Path to an HTML file containing the task preview and basic instructions for your task. If you use a custom built frontend, you can omit this argument and directly edit the `TaskPreviewView` in `app.jsx` instead. 
 - `mephisto.blueprint.num_conversations` - Number of conversations to have. This currently leads to `num_conversations` * `agent_count` tasks being launched for workers to do. Incomplete tasks are _currently_ not relaunched.
 - `mephisto.blueprint.custom_source_dir` - Path to a folder containing, at the very least, a `main.js` for a custom ParlAI frontend view. Can also contain an updated `package.json` if that file imports anything outside of the defaults used in `server/blueprints/parlai_chat/webapp/package.json`. Providing this flag will make Mephisto build that frontend in a `_generated` directory, and refer to that build when launching your task. Mephisto will only rebuild when the source files in the provided `custom_source_dir` are updated.
 - `mephisto.blueprint.custom_source_bundle` - Path to a custom built source bundle to deploy to the frontend instead of the standard ParlAI view. For this task we specify a build in the `webapp` directory, but you'll need to run `npm install; npm run dev` in that directory the first time you use a bundle (and whenever you make changes to the `src` that you want to be picked up)
+- `SharedParlAITaskState.world_module` - The world file module that you want to provide for this run.
 - `SharedParlAITaskState.world_opt` - The world option will be passed to the `make_world` function as the first argument. Passing contents through `world_opt` is the preferred way to share important state between different calls to `make_world`, as this dict will be shared amongst all calls.
 - `SharedParlAITaskState.onboarding_world_opt` - The world option will be passed to the `make_onboarding_world` function as the first argument. 
 
@@ -77,6 +78,7 @@ Using the `mephisto.blueprint.custom_source_dir` option, it's possible to specif
 
 The automated build process looks for three special paths:
 - `[custom_source_dir]/main.js` : this should contain your main application code, and is the only required file in the custom source directory. It should probably end with `ReactDOM.render(<MainApp />, document.getElementById("app"));`
+- `[custom_source_dir]/style.css` : this can contain any style files that alter the way that your chat application looks. You can later reference this file by including `import "./style.css";` in your `main.js` file.
 - `[custom_source_dir]/components/`: This is a special directory that can contain additional elements that your `main.js` file references (using relative paths)
 - `[custom_source_dir]/package.json`: If you want additional dependencies, you can specify them in a `package.json` file. We suggest copying the one present at `mephisto/abstractions/blueprints/parlai_chat/webapp/package.json`.
 
