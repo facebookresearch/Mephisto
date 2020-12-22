@@ -82,3 +82,5 @@ A few frontend functions are required to be sure that the backend is able to int
 - `getWorkerRegistrationInfo()`: Return any special information that would be required to register a worker. Currently the `worker_name` field is required.
 - `getAgentRegistration(mephisto_worker_id)`: Return the data that is going to be passed to the `<Crowd>Agent`'s `new_from_provider` method. The `worker_id` field should be the provided `mephisto_worker_id` in almost all cases.
 - `handleSubmitToProvider()`: Tell the provider that the task is done from the frontend. Often amounts to hitting some kind of submit button after populating form data.
+
+This file may also contain additional logic for handling things like error handling in a crowd provider-specific manner.

@@ -32,17 +32,17 @@ function LoadingScreen() {
 
 function Directions({ children }) {
   return (
-    <section class="hero is-light">
-      <div class="hero-body">
-        <div class="container">
-          <p class="subtitle is-5">{children}</p>
+    <section className="hero is-light">
+      <div className="hero-body">
+        <div className="container">
+          <p className="subtitle is-5">{children}</p>
         </div>
       </div>
     </section>
   );
 }
 
-function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
+function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
   if (!taskData) {
     return <LoadingScreen />;
   }
@@ -54,7 +54,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit }) {
       <Directions>
         Directions: Please rate the below sentence as good or bad.
       </Directions>
-      <section class="section">
+      <section className="section">
         <div className="container">
           <p className="subtitle is-5"></p>
           <p className="title is-3 is-spaced">{taskData.text}</p>
