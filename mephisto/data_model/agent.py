@@ -176,6 +176,7 @@ class Agent(ABC):
                 f"Updating a final status, was {self.db_status} "
                 f"and want to set to {new_status}"
             )
+        old_status = self.db_status
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
         self.has_updated_status.set()
@@ -183,6 +184,10 @@ class Agent(ABC):
             # Disconnect statuses should free any pending acts
             self.has_action.set()
             self.did_submit.set()
+            if old_status == AgentState.STATUS_WAITING:
+                # Waiting agents' unit can be reassigned, as no work
+                # has been done yet.
+                self.get_unit().clear_assigned_agent()
 
     @staticmethod
     def _register_agent(
