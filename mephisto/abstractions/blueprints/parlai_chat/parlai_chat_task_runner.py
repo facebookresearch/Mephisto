@@ -168,9 +168,14 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         opt: Dict[str, Any] = self.shared_state.onboarding_world_opt
         parlai_agent = MephistoAgentWrapper(agent)
-        world = self.parlai_world_module.make_onboarding_world(  # type: ignore
-            opt, parlai_agent
-        )
+        try:
+            world = self.parlai_world_module.make_onboarding_world(  
+                opt, parlai_agent, initialization_data=self.get_init_data_for_agent(agent)
+            )  # type: ignore
+        except TypeError:
+            # make_world doesn't ask for initialization_data
+            world = self.parlai_world_module.make_onboarding_world(opt, parlai_agent)  # type: ignore
+
         world_id = self.get_world_id("onboard", agent.get_agent_id())
         self.id_to_worlds[world_id] = world
         while (
