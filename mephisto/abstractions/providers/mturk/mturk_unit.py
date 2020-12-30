@@ -73,16 +73,14 @@ class MTurkUnit(Unit):
         """
         Return the MTurk assignment id associated with this unit
         """
-        if self.mturk_assignment_id is None:
-            self._sync_hit_mapping()
+        self._sync_hit_mapping()
         return self.mturk_assignment_id
 
     def get_mturk_hit_id(self) -> Optional[str]:
         """
         Return the MTurk hit id associated with this unit
         """
-        if self.hit_id is None:
-            self._sync_hit_mapping()
+        self._sync_hit_mapping()
         return self.hit_id
 
     def get_requester(self) -> "MTurkRequester":
@@ -99,7 +97,7 @@ class MTurkUnit(Unit):
         super().clear_assigned_agent()
         mturk_hit_id = self.get_mturk_hit_id()
         if mturk_hit_id is not None:
-            self.datastore.register_assignment_to_hit(mturk_hit_id)
+            self.datastore.clear_hit_from_unit(self.db_id)
             self._sync_hit_mapping()
 
     # Required Unit functions
@@ -220,9 +218,7 @@ class MTurkUnit(Unit):
             unassigned_hit_ids = self.datastore.get_unassigned_hit_ids(self.task_run_id)
 
             if len(unassigned_hit_ids) == 0:
-                logger.warning(
-                    f"Number of unassigned hit IDs more than 1; Potential RACE CONDITION"
-                )
+                self.set_db_status(AssignmentState.EXPIRED)
                 return delay
             hit_id = unassigned_hit_ids[0]
             expire_hit(client, hit_id)
