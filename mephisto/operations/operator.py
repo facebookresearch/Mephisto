@@ -15,7 +15,6 @@ import threading
 import shlex
 import traceback
 import signal
-import logging
 
 from argparse import ArgumentParser
 
