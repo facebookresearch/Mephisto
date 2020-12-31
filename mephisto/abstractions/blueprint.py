@@ -18,6 +18,7 @@ from typing import (
     Iterable,
     AsyncIterator,
     Callable,
+    Tuple,
     TYPE_CHECKING,
 )
 
@@ -28,6 +29,7 @@ from mephisto.data_model.exceptions import (
     AgentReturnedError,
     AgentDisconnectedError,
     AgentTimeoutError,
+    AgentShutdownError,
 )
 from mephisto.data_model.constants.assignment_state import AssignmentState
 
@@ -124,8 +126,8 @@ class TaskRunner(ABC):
         self.args = args
         self.shared_state = shared_state
         self.task_run = task_run
-        self.running_assignments: Dict[str, "Assignment"] = {}
-        self.running_units: Dict[str, "Unit"] = {}
+        self.running_assignments: Dict[str, Tuple["Assignment", List["Agent"]]] = {}
+        self.running_units: Dict[str, Tuple["Unit", "Agent"]] = {}
         self.running_onboardings: Dict[str, "OnboardingAgent"] = {}
         self.is_concurrent = False
         # TODO(102) populate some kind of local state for tasks that are being run
@@ -166,7 +168,12 @@ class TaskRunner(ABC):
         try:
             self.run_onboarding(onboarding_agent)
             onboarding_agent.mark_done()
-        except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
+        except (
+            AgentReturnedError,
+            AgentTimeoutError,
+            AgentDisconnectedError,
+            AgentShutdownError,
+        ):
             self.cleanup_onboarding(onboarding_agent)
         except Exception as e:
             print(f"Unhandled exception in onboarding {onboarding_agent}: {repr(e)}")
@@ -188,10 +195,15 @@ class TaskRunner(ABC):
         print(f"Unit {unit.db_id} is launching with {agent}")
 
         # At this point we're sure we want to run the unit
-        self.running_units[unit.db_id] = unit
+        self.running_units[unit.db_id] = (unit, agent)
         try:
             self.run_unit(unit, agent)
-        except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError):
+        except (
+            AgentReturnedError,
+            AgentTimeoutError,
+            AgentDisconnectedError,
+            AgentShutdownError,
+        ):
             # A returned Unit can be worked on again by someone else.
             if (
                 unit.get_status() != AssignmentState.EXPIRED
@@ -221,10 +233,15 @@ class TaskRunner(ABC):
         print(f"Assignment {assignment.db_id} is launching with {agents}")
 
         # At this point we're sure we want to run the assignment
-        self.running_assignments[assignment.db_id] = assignment
+        self.running_assignments[assignment.db_id] = (assignment, agents)
         try:
             self.run_assignment(assignment, agents)
-        except (AgentReturnedError, AgentTimeoutError, AgentDisconnectedError) as e:
+        except (
+            AgentReturnedError,
+            AgentTimeoutError,
+            AgentDisconnectedError,
+            AgentShutdownError,
+        ) as e:
             # TODO(#99) if some operator flag is set for counting complete tasks, launch a
             # new assignment copied from the parameters of this one
             disconnected_agent_id = e.agent_id
@@ -268,6 +285,19 @@ class TaskRunner(ABC):
         classes.
         """
         return units
+
+    def shutdown(self):
+        """
+        Updates the status of all agents tracked by this runner to throw a ShutdownException,
+        ensuring that all the threads exit correctly and we can cleanup properly.
+        """
+        for _unit, agent in self.running_units.values():
+            agent.shutdown()
+        for _assignment, agents in self.running_assignments.values():
+            for agent in agents:
+                agent.shutdown()
+        for onboarding_agent in self.running_onboardings.values():
+            onboarding_agent.shutdown()
 
     # TaskRunners must implement either the unit or assignment versions of the
     # run and cleanup functions, depending on if the task is run at the assignment

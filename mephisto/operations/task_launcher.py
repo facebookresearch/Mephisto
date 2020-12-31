@@ -215,6 +215,7 @@ class TaskLauncher:
         """Clean up running threads for generating assignments and units"""
         self.assignment_thread_done = True
         self.keep_launching_units = False
+        self.finished_generators = True
         if self.assignments_thread is not None:
             self.assignments_thread.join()
         self.units_thread.join()

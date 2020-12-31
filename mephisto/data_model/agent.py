@@ -15,6 +15,7 @@ from mephisto.data_model.exceptions import (
     AgentReturnedError,
     AgentDisconnectedError,
     AgentTimeoutError,
+    AgentShutdownError,
 )
 
 from typing import List, Optional, Tuple, Mapping, Dict, Any, TYPE_CHECKING
@@ -59,6 +60,7 @@ class Agent(ABC):
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
         self.did_submit = threading.Event()
+        self.is_shutdown = False
 
         # Deferred loading of related entities
         self._worker: Optional["Worker"] = None
@@ -248,6 +250,8 @@ class Agent(ABC):
             self.has_action.wait(timeout)
 
         if len(self.pending_actions) == 0:
+            if self.is_shutdown:
+                raise AgentShutdownError(self.db_id)
             # various disconnect cases
             status = self.get_status()
             if status == AgentState.STATUS_DISCONNECT:
@@ -282,6 +286,14 @@ class Agent(ABC):
                 self.has_updated_status.set()
             self.db_status = row["status"]
         return self.db_status
+
+    def shutdown(self) -> None:
+        """
+        Force the given agent to end any polling threads and throw an AgentShutdownError
+        from any acts called on it, ensuring tasks using this agent can be cleaned up.
+        """
+        self.has_action.set()
+        self.is_shutdown = True
 
     # Children classes should implement the following methods
 
@@ -361,6 +373,7 @@ class OnboardingAgent(ABC):
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
         self.did_submit = threading.Event()
+        self.is_shutdown = False
 
         # Deferred loading of related entities
         self._worker: Optional["Worker"] = None
@@ -465,6 +478,8 @@ class OnboardingAgent(ABC):
 
         if len(self.pending_actions) == 0:
             # various disconnect cases
+            if self.is_shutdown:
+                raise AgentShutdownError(self.db_id)
             status = self.get_status()
             if status == AgentState.STATUS_DISCONNECT:
                 raise AgentDisconnectedError(self.db_id)
@@ -508,6 +523,14 @@ class OnboardingAgent(ABC):
             AgentState.STATUS_REJECTED,
         ]:
             self.update_status(AgentState.STATUS_WAITING)
+
+    def shutdown(self) -> None:
+        """
+        Force the given agent to end any polling threads and throw an AgentShutdownError
+        from any acts called on it, ensuring tasks using this agent can be cleaned up.
+        """
+        self.has_action.set()
+        self.is_shutdown = True
 
     @staticmethod
     def new(db: "MephistoDB", worker: Worker, task_run: "TaskRun") -> "OnboardingAgent":

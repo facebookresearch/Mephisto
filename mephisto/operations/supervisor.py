@@ -202,9 +202,15 @@ class Supervisor:
         """Close all of the channels, join threads"""
         channels_to_close = list(self.channels.keys())
         for channel_id in channels_to_close:
+            channel_info = self.channels[channel_id]
+            channel_info.job.task_runner.shutdown()
             self.close_channel(channel_id)
         if self.sending_thread is not None:
             self.sending_thread.join()
+        for agent_info in self.agents.values():
+            assign_thread = agent_info.assignment_thread
+            if assign_thread is not None:
+                assign_thread.join()
 
     def _send_alive(self, channel_info: ChannelInfo) -> bool:
         logger.info("Sending alive")
