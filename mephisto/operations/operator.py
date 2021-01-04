@@ -14,6 +14,7 @@ import time
 import threading
 import shlex
 import traceback
+import signal
 
 from argparse import ArgumentParser
 
@@ -300,13 +301,67 @@ class Operator:
                     del self._task_runs_tracked[task_run.db_id]
             time.sleep(2)
 
+    def force_shutdown(self, timeout=5):
+        """
+        Force a best-effort shutdown of everything, letting no individual
+        shutdown step suspend for more than the timeout before moving on.
+
+        Skips waiting for in-flight assignments to rush the shutdown.
+
+        ** Should only be used in sandbox or test environments. **
+        """
+        self.is_shutdown = True
+
+        def end_launchers_and_expire_units():
+            for tracked_run in self._task_runs_tracked.values():
+                tracked_run.task_launcher.shutdown()
+                tracked_run.task_launcher.expire_units()
+
+        def end_architects():
+            for tracked_run in self._task_runs_tracked.values():
+                tracked_run.architect.shutdown()
+
+        def shutdown_supervisor():
+            if self.supervisor is not None:
+                self.supervisor.shutdown()
+
+        tasks = {
+            "expire-units": end_launchers_and_expire_units,
+            "kill-architects": end_architects,
+            "fire-supervisor": shutdown_supervisor,
+        }
+
+        for tname, t in tasks.items():
+            shutdown_thread = threading.Thread(target=t, name=f"force-shutdown-{tname}")
+            shutdown_thread.start()
+            start_time = time.time()
+            while time.time() - start_time < timeout and shutdown_thread.is_alive():
+                time.sleep(0.5)
+            if not shutdown_thread.is_alive():
+                # Only join if the shutdown fully completed
+                shutdown_thread.join()
+
     def shutdown(self, skip_input=True):
         logger.info("operator shutting down")
         self.is_shutdown = True
-        for tracked_run in self._task_runs_tracked.values():
-            logger.info("expiring units")
-            tracked_run.task_launcher.shutdown()
+        for run_id, tracked_run in self._task_runs_tracked.items():
+            logger.info(f"Expiring units for task run {run_id}.")
+            try:
+                tracked_run.task_launcher.shutdown()
+            except (KeyboardInterrupt, SystemExit) as e:
+                logger.info(
+                    f"Skipping waiting for launcher threads to join on task run {run_id}."
+                )
+
+            def cant_cancel_expirations(self, sig, frame):
+                logging.warn(
+                    "Ignoring ^C during unit expirations. ^| if you NEED to exit and you will "
+                    "clean up units that hadn't been expired afterwards."
+                )
+
+            old_handler = signal.signal(signal.SIGINT, cant_cancel_expirations)
             tracked_run.task_launcher.expire_units()
+            signal.signal(signal.SIGINT, old_handler)
         try:
             remaining_runs = self._task_runs_tracked.values()
             while len(remaining_runs) > 0:
@@ -318,7 +373,8 @@ class Operator:
                         next_runs.append(tracked_run)
                 if len(next_runs) > 0:
                     logger.info(
-                        f"Waiting on {len(remaining_runs)} task runs, Ctrl-C ONCE to FORCE QUIT"
+                        f"Waiting on {len(remaining_runs)} task runs with assignments in-flight "
+                        f"Ctrl-C ONCE to kill running tasks and FORCE QUIT."
                     )
                     time.sleep(30)
                 remaining_runs = next_runs
@@ -334,6 +390,9 @@ class Operator:
                 "Skipping waiting for outstanding task completions, shutting down servers now!"
             )
             for tracked_run in remaining_runs:
+                logger.info(
+                    f"Shutting down Architect for task run {tracked_run.task_run.db_id}"
+                )
                 tracked_run.architect.shutdown()
         finally:
             self.supervisor.shutdown()
