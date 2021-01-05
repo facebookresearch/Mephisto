@@ -344,7 +344,8 @@ class Operator:
     def shutdown(self, skip_input=True):
         logger.info("operator shutting down")
         self.is_shutdown = True
-        for run_id, tracked_run in self._task_runs_tracked.items():
+        runs_to_check = list(self._task_runs_tracked.items())
+        for run_id, tracked_run in runs_to_check:
             logger.info(f"Expiring units for task run {run_id}.")
             try:
                 tracked_run.task_launcher.shutdown()
