@@ -6,6 +6,14 @@
 # * mephisto-task
 # * bootstrap-chat
 
+# Usage:
+# You can sync one package at a time like this:
+# ./sync_package_version.sh mephisto-task 1.0.13
+# ./sync_package_version.sh bootstrap-chat 1.0.7
+
+# You can also sync all packages together like this:
+# ./sync_package_version.sh mephisto-task 1.0.13 bootstrap-chat 1.0.7
+
 possible_dirs=`find ../mephisto/abstractions/blueprints ../examples -type d \( -name node_modules -o -name tmp -o -name runs -o -name _generated \) -prune -false -o -name 'package.json' -exec dirname {} \;`
 
 
@@ -20,7 +28,6 @@ sync_package_version() {
 
     echo -e "All $package_name in the files above are updated to version $new_version"
     echo
-
 }
 
 while [ -n "$1" ];
