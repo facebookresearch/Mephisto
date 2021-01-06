@@ -42,8 +42,8 @@ do
 
 	bootstrap-chat)
         sync_package_version $1 $2
-		shift
-		;;
+        shift
+        ;;
 
 	*) echo "Package $1 version sync is not supported yet" ;;
 
