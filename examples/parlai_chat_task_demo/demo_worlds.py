@@ -8,7 +8,7 @@ from parlai.core.worlds import validate
 from joblib import Parallel, delayed
 
 
-class MTurkMultiAgentDialogOnboardWorld(CrowdOnboardWorld):
+class MultiAgentDialogOnboardWorld(CrowdOnboardWorld):
     def __init__(self, opt, agent):
         super().__init__(opt, agent)
         self.opt = opt
@@ -28,7 +28,7 @@ class MTurkMultiAgentDialogOnboardWorld(CrowdOnboardWorld):
         self.episodeDone = True
 
 
-class MTurkMultiAgentDialogWorld(CrowdTaskWorld):
+class MultiAgentDialogWorld(CrowdTaskWorld):
     """
     Basic world where each agent gets a turn in a round-robin fashion, receiving as
     input the actions of all other agents since that agent last acted.
@@ -137,7 +137,7 @@ class MTurkMultiAgentDialogWorld(CrowdTaskWorld):
 
 
 def make_onboarding_world(opt, agent):
-    return MTurkMultiAgentDialogOnboardWorld(opt, agent)
+    return MultiAgentDialogOnboardWorld(opt, agent)
 
 
 def validate_onboarding(data):
@@ -147,7 +147,7 @@ def validate_onboarding(data):
 
 
 def make_world(opt, agents):
-    return MTurkMultiAgentDialogWorld(opt, agents)
+    return MultiAgentDialogWorld(opt, agents)
 
 
 def get_world_params():
