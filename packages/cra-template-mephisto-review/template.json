@@ -1,0 +1,15 @@
+{
+  "package": {
+    "dependencies": {
+      "mephisto-review-hook": "^1.0.3"
+    },
+    "scripts": {
+      "serve": "serve -s build",
+      "build-and-serve": "npm run build && npm run serve"
+    },
+    "eslintConfig": {
+      "extends": ["react-app", "plugin:jsx-a11y/recommended"],
+      "plugins": ["jsx-a11y"]
+    }
+  }
+}
