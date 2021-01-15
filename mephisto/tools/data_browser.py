@@ -47,6 +47,9 @@ class DataBrowser:
                         units.append(unit)
         return units
 
+    def get_task_name_list(self) -> List[str]:
+        return [task.task_name for task in self.db.find_tasks()]
+
     def get_units_for_task_name(self, task_name: str) -> List[Unit]:
         """
         Return a list of all Units in a terminal completed state from all
