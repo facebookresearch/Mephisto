@@ -24,6 +24,22 @@ def web():
     app.run(debug=False)
 
 
+def mephisto_db_task_validation(ctx, param, value):
+    try:
+        from mephisto.abstractions.databases.local_database import LocalMephistoDB
+        from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+
+        db = LocalMephistoDB()
+        mephisto_data_browser = MephistoDataBrowser(db=db)
+        units = mephisto_data_browser.get_units_for_task_name(value)
+
+        return value
+    except AssertionError:
+        raise click.BadParameter(
+            f'The task name "{value}" did not exist in MephistoDB.\nFlag usage: mephisto review --db [task_name]\n'
+        )
+
+
 @cli.command("review")
 @click.argument("review_app_dir", type=click.Path(exists=True))
 @click.option("-p", "--port", type=(int), default=5000)
@@ -32,8 +48,11 @@ def web():
 @click.option("--file", "output_method", flag_value="file", default=True)
 @click.option("--csv-headers/--no-csv-headers", default=False)
 @click.option("--json/--csv", default=False)
+@click.option("--db", "database", callback=mephisto_db_task_validation, type=(str))
 @click.option("-d", "--debug", type=(bool), default=False)
-def review(review_app_dir, port, output, output_method, csv_headers, json, debug):
+def review(
+    review_app_dir, port, output, output_method, csv_headers, json, database, debug
+):
     """Launch a local review UI server. Reads in rows froms stdin and outputs to either a file or stdout."""
     from mephisto.client.review.review_server import run
 
@@ -42,7 +61,7 @@ def review(review_app_dir, port, output, output_method, csv_headers, json, debug
             "You must specify an output file via --output=<filename>, unless the --stdout flag is set."
         )
 
-    run(review_app_dir, port, output, csv_headers, json, debug)
+    run(review_app_dir, port, output, csv_headers, json, database, debug)
 
 
 @cli.command("check")
