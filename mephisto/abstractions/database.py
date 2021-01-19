@@ -217,6 +217,7 @@ class MephistoDB(ABC):
     def find_task_runs(
         self,
         task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
         requester_id: Optional[str] = None,
         is_completed: Optional[bool] = None,
     ) -> List[TaskRun]:
@@ -266,6 +267,7 @@ class MephistoDB(ABC):
         task_run_id: Optional[str] = None,
         task_id: Optional[str] = None,
         requester_id: Optional[str] = None,
+        assignment_id: Optional[str] = None,
         task_type: Optional[str] = None,
         provider_type: Optional[str] = None,
         sandbox: Optional[bool] = None,
@@ -313,6 +315,7 @@ class MephistoDB(ABC):
         requester_id: Optional[str] = None,
         assignment_id: Optional[str] = None,
         unit_index: Optional[int] = None,
+        unit_id: Optional[str] = None,
         provider_type: Optional[str] = None,
         task_type: Optional[str] = None,
         agent_id: Optional[str] = None,
@@ -396,7 +399,10 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def find_workers(
-        self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
+        self,
+        worker_name: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        provider_type: Optional[str] = None,
     ) -> List[Worker]:
         """
         Try to find any worker that matches the above. When called with no arguments,
@@ -450,6 +456,7 @@ class MephistoDB(ABC):
         task_id: Optional[str] = None,
         task_run_id: Optional[str] = None,
         assignment_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
         task_type: Optional[str] = None,
         provider_type: Optional[str] = None,
     ) -> List[Agent]:

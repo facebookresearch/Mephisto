@@ -534,6 +534,7 @@ class LocalMephistoDB(MephistoDB):
     def find_task_runs(
         self,
         task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
         requester_id: Optional[str] = None,
         is_completed: Optional[bool] = None,
     ) -> List[TaskRun]:
@@ -548,10 +549,16 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from task_runs
                 WHERE (?1 IS NULL OR task_id = ?1)
-                AND (?2 IS NULL OR requester_id = ?2)
-                AND (?3 IS NULL OR is_completed = ?3)
+                AND (?2 IS NULL OR task_run_id = ?2)
+                AND (?3 IS NULL OR requester_id = ?3)
+                AND (?4 IS NULL OR is_completed = ?4)
                 """,
-                (nonesafe_int(task_id), nonesafe_int(requester_id), is_completed),
+                (
+                    nonesafe_int(task_id),
+                    nonesafe_int(task_run_id),
+                    nonesafe_int(requester_id),
+                    is_completed,
+                ),
             )
             rows = c.fetchall()
             return [TaskRun(self, str(r["task_run_id"]), row=r) for r in rows]
@@ -626,6 +633,7 @@ class LocalMephistoDB(MephistoDB):
         task_run_id: Optional[str] = None,
         task_id: Optional[str] = None,
         requester_id: Optional[str] = None,
+        assignment_id: Optional[str] = None,
         task_type: Optional[str] = None,
         provider_type: Optional[str] = None,
         sandbox: Optional[bool] = None,
@@ -643,14 +651,16 @@ class LocalMephistoDB(MephistoDB):
                     WHERE (?1 IS NULL OR task_run_id = ?1)
                     AND (?2 IS NULL OR task_id = ?2)
                     AND (?3 IS NULL OR requester_id = ?3)
-                    AND (?4 IS NULL OR task_type = ?4)
-                    AND (?5 IS NULL OR provider_type = ?5)
-                    AND (?6 IS NULL OR sandbox = ?6)
+                    AND (?4 IS NULL OR assignment_id = ?4)
+                    AND (?5 IS NULL OR task_type = ?5)
+                    AND (?6 IS NULL OR provider_type = ?6)
+                    AND (?7 IS NULL OR sandbox = ?7)
                 """,
                 (
                     nonesafe_int(task_run_id),
                     nonesafe_int(task_id),
                     nonesafe_int(requester_id),
+                    nonesafe_int(assignment_id),
                     task_type,
                     provider_type,
                     sandbox,
@@ -729,6 +739,7 @@ class LocalMephistoDB(MephistoDB):
         requester_id: Optional[str] = None,
         assignment_id: Optional[str] = None,
         unit_index: Optional[int] = None,
+        unit_id: Optional[str] = None,
         provider_type: Optional[str] = None,
         task_type: Optional[str] = None,
         agent_id: Optional[str] = None,
@@ -751,12 +762,13 @@ class LocalMephistoDB(MephistoDB):
                 AND (?3 IS NULL OR requester_id = ?3)
                 AND (?4 IS NULL OR assignment_id = ?4)
                 AND (?5 IS NULL OR unit_index = ?5)
-                AND (?6 IS NULL OR provider_type = ?6)
-                AND (?7 IS NULL OR task_type = ?7)
-                AND (?8 IS NULL OR agent_id = ?8)
-                AND (?9 IS NULL OR worker_id = ?9)
-                AND (?10 IS NULL OR sandbox = ?10)
-                AND (?11 IS NULL OR status = ?11)
+                AND (?6 IS NULL OR unit_id = ?6)
+                AND (?7 IS NULL OR provider_type = ?7)
+                AND (?8 IS NULL OR task_type = ?8)
+                AND (?9 IS NULL OR agent_id = ?9)
+                AND (?10 IS NULL OR worker_id = ?10)
+                AND (?11 IS NULL OR sandbox = ?11)
+                AND (?12 IS NULL OR status = ?12)
                 """,
                 (
                     nonesafe_int(task_id),
@@ -764,6 +776,7 @@ class LocalMephistoDB(MephistoDB):
                     nonesafe_int(requester_id),
                     nonesafe_int(assignment_id),
                     unit_index,
+                    nonesafe_int(unit_id),
                     provider_type,
                     task_type,
                     nonesafe_int(agent_id),
@@ -923,7 +936,10 @@ class LocalMephistoDB(MephistoDB):
         return self.__get_one_by_id("workers", "worker_id", worker_id)
 
     def find_workers(
-        self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
+        self,
+        worker_name: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        provider_type: Optional[str] = None,
     ) -> List[Worker]:
         """
         Try to find any worker that matches the above. When called with no arguments,
@@ -936,9 +952,10 @@ class LocalMephistoDB(MephistoDB):
                 """
                 SELECT * from workers
                 WHERE (?1 IS NULL OR worker_name = ?1)
-                AND (?2 IS NULL OR provider_type = ?2)
+                AND (?2 IS NULL OR worker_id = ?2)
+                AND (?3 IS NULL OR provider_type = ?3)
                 """,
-                (worker_name, provider_type),
+                (worker_name, nonesafe_int(worker_id), provider_type),
             )
             rows = c.fetchall()
             return [Worker(self, str(r["worker_id"]), row=r) for r in rows]
@@ -1039,6 +1056,7 @@ class LocalMephistoDB(MephistoDB):
         task_id: Optional[str] = None,
         task_run_id: Optional[str] = None,
         assignment_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
         task_type: Optional[str] = None,
         provider_type: Optional[str] = None,
     ) -> List[Agent]:
@@ -1058,8 +1076,9 @@ class LocalMephistoDB(MephistoDB):
                 AND (?4 IS NULL OR task_id = ?4)
                 AND (?5 IS NULL OR task_run_id = ?5)
                 AND (?6 IS NULL OR assignment_id = ?6)
-                AND (?7 IS NULL OR task_type = ?7)
-                AND (?8 IS NULL OR provider_type = ?8)
+                AND (?7 IS NULL OR agent_id = ?7)
+                AND (?8 IS NULL OR task_type = ?8)
+                AND (?9 IS NULL OR provider_type = ?9)
                 """,
                 (
                     status,
@@ -1068,6 +1087,7 @@ class LocalMephistoDB(MephistoDB):
                     nonesafe_int(task_id),
                     nonesafe_int(task_run_id),
                     nonesafe_int(assignment_id),
+                    nonesafe_int(agent_id),
                     task_type,
                     provider_type,
                 ),
