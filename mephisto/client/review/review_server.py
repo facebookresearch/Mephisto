@@ -85,6 +85,23 @@ def run(
             ready_for_next.wait()
         finished = True
 
+    def consume_all_data():
+
+        if json:
+            data_source = json_reader(iter(sys.stdin.readline, ""))
+        else:
+            data_source = csv.reader(iter(sys.stdin.readline, ""))
+
+        if csv_headers:
+            next(data_source)
+
+        data_point_list = []
+        index = 0
+        for row in data_source:
+            data_point_list[index] = row
+            index += 1
+        return data_point_list
+
     @app.route("/data_for_current_task")
     def data():
         global current_data, finished
@@ -97,6 +114,15 @@ def run(
 
         return jsonify(
             {"finished": finished, "data": current_data if not finished else None}
+        )
+
+    @app.route("/all_data_for_current_task")
+    def data():
+        data_point_list = consume_all_data()
+        return jsonify(
+            {"data_points": data_point_list, "length": data_point_list.length}
+            if data_point_list is not None
+            else {error: "No data points for current task"}
         )
 
     @app.route("/submit_current_task", methods=["GET", "POST"])
