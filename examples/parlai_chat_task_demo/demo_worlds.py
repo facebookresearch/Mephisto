@@ -3,21 +3,21 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-from parlai.mturk.core.worlds import MTurkOnboardWorld, MTurkTaskWorld
+from parlai.crowdsourcing.utils.worlds import CrowdOnboardWorld, CrowdTaskWorld
 from parlai.core.worlds import validate
 from joblib import Parallel, delayed
 
 
-class MTurkMultiAgentDialogOnboardWorld(MTurkOnboardWorld):
-    def __init__(self, opt, mturk_agent):
-        super().__init__(opt, mturk_agent)
+class MultiAgentDialogOnboardWorld(CrowdOnboardWorld):
+    def __init__(self, opt, agent):
+        super().__init__(opt, agent)
         self.opt = opt
 
     def parley(self):
-        self.mturk_agent.agent_id = "Onboarding Agent"
-        self.mturk_agent.observe({"id": "System", "text": "Welcome onboard!"})
-        x = self.mturk_agent.act(timeout=self.opt["turn_timeout"])
-        self.mturk_agent.observe(
+        self.agent.agent_id = "Onboarding Agent"
+        self.agent.observe({"id": "System", "text": "Welcome onboard!"})
+        x = self.agent.act(timeout=self.opt["turn_timeout"])
+        self.agent.observe(
             {
                 "id": "System",
                 "text": "Thank you for your input! Please wait while "
@@ -28,7 +28,7 @@ class MTurkMultiAgentDialogOnboardWorld(MTurkOnboardWorld):
         self.episodeDone = True
 
 
-class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
+class MultiAgentDialogWorld(CrowdTaskWorld):
     """
     Basic world where each agent gets a turn in a round-robin fashion, receiving as
     input the actions of all other agents since that agent last acted.
@@ -137,7 +137,7 @@ class MTurkMultiAgentDialogWorld(MTurkTaskWorld):
 
 
 def make_onboarding_world(opt, agent):
-    return MTurkMultiAgentDialogOnboardWorld(opt, agent)
+    return MultiAgentDialogOnboardWorld(opt, agent)
 
 
 def validate_onboarding(data):
@@ -147,7 +147,7 @@ def validate_onboarding(data):
 
 
 def make_world(opt, agents):
-    return MTurkMultiAgentDialogWorld(opt, agents)
+    return MultiAgentDialogWorld(opt, agents)
 
 
 def get_world_params():

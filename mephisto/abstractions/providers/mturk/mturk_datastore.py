@@ -163,6 +163,41 @@ class MTurkDatastore:
                 """,
                 (assignment_id, unit_id, hit_id),
             )
+            conn.commit()
+
+    def clear_hit_from_unit(self, unit_id: str) -> None:
+        """
+        Clear the hit mapping that maps the given unit,
+        if such a unit-hit map exists
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from hits
+                WHERE unit_id = ?
+                """,
+                (unit_id,),
+            )
+            results = c.fetchall()
+            if len(results) == 0:
+                return
+            if len(results) > 1:
+                print(
+                    "WARNING - UNIT HAD MORE THAN ONE HIT MAPPED TO IT!",
+                    unit_id,
+                    [dict(r) for r in results],
+                )
+            result_hit_id = results[0]["hit_id"]
+            c.execute(
+                """UPDATE hits
+                SET assignment_id = ?, unit_id = ?
+                WHERE hit_id = ?
+                """,
+                (None, None, result_hit_id),
+            )
+            conn.commit()
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""

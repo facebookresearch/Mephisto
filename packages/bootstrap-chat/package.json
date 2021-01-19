@@ -42,7 +42,7 @@
     "react-dom": "16.13.1"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "babel-eslint": "10.x",
     "bootstrap": "4.3.1",
     "bowser": "^2.9.0",

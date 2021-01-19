@@ -22,6 +22,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_REQUEST_ACTION,
     PACKET_TYPE_UPDATE_AGENT_STATUS,
+    PACKET_TYPE_ERROR_LOG,
 )
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
@@ -201,9 +202,15 @@ class Supervisor:
         """Close all of the channels, join threads"""
         channels_to_close = list(self.channels.keys())
         for channel_id in channels_to_close:
+            channel_info = self.channels[channel_id]
+            channel_info.job.task_runner.shutdown()
             self.close_channel(channel_id)
         if self.sending_thread is not None:
             self.sending_thread.join()
+        for agent_info in self.agents.values():
+            assign_thread = agent_info.assignment_thread
+            if assign_thread is not None:
+                assign_thread.join()
 
     def _send_alive(self, channel_info: ChannelInfo) -> bool:
         logger.info("Sending alive")
@@ -662,6 +669,11 @@ class Supervisor:
                 packet.receiver_id = agent_id
                 agent_info.agent.pending_observations.append(packet)
 
+    @staticmethod
+    def _log_frontend_error(packet):
+        error = packet.data["final_data"]
+        logger.info(f"[FRONT_END_ERROR]: {error}")
+
     def _on_message(self, packet: Packet, channel_info: ChannelInfo):
         """Handle incoming messages from the channel"""
         # TODO(#102) this method currently assumes that the packet's sender_id will
@@ -680,6 +692,8 @@ class Supervisor:
         elif packet.type == PACKET_TYPE_RETURN_AGENT_STATUS:
             # Record this status response
             self._handle_updated_agent_status(packet.data)
+        elif packet.type == PACKET_TYPE_ERROR_LOG:
+            self._log_frontend_error(packet)
         else:
             # PACKET_TYPE_REQUEST_AGENT_STATUS, PACKET_TYPE_ALIVE,
             # PACKET_TYPE_INIT_DATA

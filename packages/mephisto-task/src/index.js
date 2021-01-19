@@ -14,6 +14,8 @@ import {
   postCompleteTask,
   postCompleteOnboarding,
   getBlockedExplanation,
+  postErrorLog,
+  ErrorBoundary,
 } from "./utils";
 
 export * from "./MephistoContext";
@@ -68,6 +70,13 @@ const useMephistoTask = function () {
     [state.agentId]
   );
 
+  const handleFatalError = React.useCallback(
+    (data) => {
+      postErrorLog(state.agentId, data);
+    },
+    [state.agentId]
+  );
+
   function handleIncomingTaskConfig(taskConfig) {
     if (taskConfig.block_mobile && isMobile()) {
       setState({ blockedReason: "no_mobile" });
@@ -113,7 +122,8 @@ const useMephistoTask = function () {
     blockedExplanation:
       state.blockedReason && getBlockedExplanation(state.blockedReason),
     handleSubmit,
+    handleFatalError,
   };
 };
 
-export { useMephistoTask };
+export { useMephistoTask, ErrorBoundary };

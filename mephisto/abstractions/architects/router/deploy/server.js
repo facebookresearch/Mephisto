@@ -81,6 +81,7 @@ const PACKET_TYPE_ALIVE = "alive";
 const PACKET_TYPE_PROVIDER_DETAILS = "provider_details";
 const PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding";
 const PACKET_TYPE_HEARTBEAT = "heartbeat";
+const PACKET_TYPE_ERROR_LOG = "log_error";
 
 // State for agents tracked by the server
 class LocalAgentState {
@@ -298,6 +299,8 @@ wss.on("connection", function (socket) {
           update_wanted_acts(packet.sender_id, false);
           send_status_for_agent(packet.sender_id);
         }
+      } else if (packet["packet_type"] == PACKET_TYPE_ERROR_LOG) {
+        handle_forward(packet);
       } else if (packet["packet_type"] == PACKET_TYPE_ALIVE) {
         debug_log("Agent alive: ", packet);
         handle_alive(socket, packet);
@@ -478,6 +481,18 @@ app.post("/submit_task", upload.any(), function (req, res) {
     delete agent_id_to_socket[agent_id];
     delete socket_id_to_agent[socket_id];
   }
+});
+
+app.post("/log_error", function (req, res) {
+  const { USED_AGENT_ID: agent_id, ...provider_data } = req.body;
+  let log_packet = {
+    packet_type: PACKET_TYPE_ERROR_LOG,
+    sender_id: agent_id,
+    receiver_id: SYSTEM_SOCKET_ID,
+    data: provider_data,
+  };
+  _send_message(mephisto_socket, log_packet);
+  res.json({ status: "Error log sent!" });
 });
 
 // Quick status check for this server

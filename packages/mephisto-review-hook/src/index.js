@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-function useMephistoReview({ useMock, mock }) {
+function useMephistoReview({ useMock, mock } = {}) {
   if (mock !== undefined && (useMock === undefined || useMock === true)) {
     return mock;
   }

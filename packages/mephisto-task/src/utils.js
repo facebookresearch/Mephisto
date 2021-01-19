@@ -4,6 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import React from "react";
 import Bowser from "bowser";
 const axios = require("axios");
 
@@ -132,6 +133,15 @@ export function postCompleteTask(agent_id, complete_data) {
     });
 }
 
+export function postErrorLog(agent_id, complete_data) {
+  return postData("/log_error", {
+    USED_AGENT_ID: agent_id,
+    final_data: complete_data,
+  }).then(function (data) {
+    // console.log("Error log sent to server");
+  });
+}
+
 export function getBlockedExplanation(reason) {
   const explanations = {
     no_mobile:
@@ -148,5 +158,38 @@ export function getBlockedExplanation(reason) {
     return explanations[reason];
   } else {
     return `Sorry, you are not able to work on this task. (code: ${reason})`;
+  }
+}
+
+export class ErrorBoundary extends React.Component {
+  state = { error: null, errorInfo: null };
+
+  componentDidCatch(error, errorInfo) {
+    // Catch errors in any components below and re-render with error message
+    this.setState({
+      error: error,
+      errorInfo: errorInfo,
+    });
+    if (this.props.handleError) {
+      this.props.handleError({ error: error.message, errorInfo: errorInfo });
+    }
+  }
+
+  render() {
+    if (this.state.errorInfo) {
+      // Error path
+      return (
+        <div>
+          <h2>Oops! Something went wrong.</h2>
+          <details style={{ whiteSpace: "pre-wrap" }}>
+            {this.state.error && this.state.error.toString()}
+            <br />
+            {this.state.errorInfo.componentStack}
+          </details>
+        </div>
+      );
+    }
+    // Normally, just render children
+    return this.props.children;
   }
 }

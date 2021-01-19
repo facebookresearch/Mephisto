@@ -35,7 +35,7 @@ def web():
 @click.option("-d", "--debug", type=(bool), default=False)
 def review(review_app_dir, port, output, output_method, csv_headers, json, debug):
     """Launch a local review UI server. Reads in rows froms stdin and outputs to either a file or stdout."""
-    from mephisto.client.review_server import run
+    from mephisto.client.review.review_server import run
 
     if output == "" and output_method == "file":
         raise click.UsageError(

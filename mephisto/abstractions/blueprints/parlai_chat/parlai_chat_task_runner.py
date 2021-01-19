@@ -128,11 +128,15 @@ class ParlAIChatTaskRunner(TaskRunner):
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
         super().__init__(task_run, args, shared_state)
-        world_file_path = os.path.expanduser(args.blueprint.world_file)
-        world_module_dir = os.path.dirname(world_file_path)
-        sys.path.append(world_module_dir)
-        world_module_name = os.path.basename(world_file_path)[:-3]
-        self.parlai_world_module = import_module(world_module_name)
+        if shared_state.world_module is None:
+            world_file_path = os.path.expanduser(args.blueprint.world_file)
+            world_module_dir = os.path.dirname(world_file_path)
+            sys.path.append(world_module_dir)
+            world_module_name = os.path.basename(world_file_path)[:-3]
+            world_module = import_module(world_module_name)
+        else:
+            world_module = shared_state.world_module
+        self.parlai_world_module = world_module
         world_params = self.parlai_world_module.get_world_params()
         self.is_concurrent = world_params["agent_count"] > 1
         self.id_to_worlds: Dict[str, Any] = {}
@@ -164,9 +168,16 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         opt: Dict[str, Any] = self.shared_state.onboarding_world_opt
         parlai_agent = MephistoAgentWrapper(agent)
-        world = self.parlai_world_module.make_onboarding_world(  # type: ignore
-            opt, parlai_agent
-        )
+        try:
+            world = self.parlai_world_module.make_onboarding_world(
+                opt,
+                parlai_agent,
+                initialization_data=self.get_init_data_for_agent(agent),
+            )  # type: ignore
+        except TypeError:
+            # make_world doesn't ask for initialization_data
+            world = self.parlai_world_module.make_onboarding_world(opt, parlai_agent)  # type: ignore
+
         world_id = self.get_world_id("onboard", agent.get_agent_id())
         self.id_to_worlds[world_id] = world
         while (
@@ -254,7 +265,14 @@ class ParlAIChatTaskRunner(TaskRunner):
         agents = [agent]
         opt: Dict[str, Any] = self.shared_state.world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
-        world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
+        try:
+            world = self.parlai_world_module.make_world(
+                opt, parlai_agents, initialization_data=unit.get_assignment_data()
+            )  # type: ignore
+        except TypeError:
+            # make_world doesn't ask for initialization_data
+            world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
+
         world_id = self.get_world_id("unit", unit.db_id)
         self.id_to_worlds[world_id] = world
         while not world.episode_done() and unit.db_id in self.running_units:
