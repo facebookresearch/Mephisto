@@ -169,7 +169,7 @@ class HerokuArchitect(Architect):
             raise Exception(
                 "A free Heroku account is required for launching tasks via "
                 "the HerokuArchitect. Please register at "
-                "https://signup.heroku.com/ and run `{} login` at the terminal "
+                "https://signup.heroku.com/ and run `{} login -i` at the terminal "
                 "to login to Heroku before trying to use HerokuArchitect."
                 "".format(heroku_executable_path)
             )
@@ -258,7 +258,7 @@ class HerokuArchitect(Architect):
                     print(
                         "A free Heroku account is required for launching MTurk tasks. "
                         "Please register at https://signup.heroku.com/ and run `{} "
-                        "login` at the terminal to login to Heroku, and then run this "
+                        "login -i` at the terminal to login to Heroku, and then run this "
                         "program again.".format(heroku_executable_path)
                     )
                     raise Exception("Please login to heroku before trying again.")
