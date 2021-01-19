@@ -91,15 +91,13 @@ def run(
             data_source = json_reader(iter(sys.stdin.readline, ""))
         else:
             data_source = csv.reader(iter(sys.stdin.readline, ""))
-
-        if csv_headers:
-            next(data_source)
+            if csv_headers:
+                print("CSV Headers detected")
+                next(data_source)
 
         data_point_list = []
-        index = 0
         for row in data_source:
-            data_point_list[index] = row
-            index += 1
+            data_point_list.append(row)
         return data_point_list
 
     @app.route("/data_for_current_task")
@@ -117,11 +115,11 @@ def run(
         )
 
     @app.route("/all_data_for_current_task")
-    def data():
+    def all_data():
         data_point_list = consume_all_data()
         return jsonify(
-            {"data_points": data_point_list, "length": data_point_list.length}
-            if data_point_list is not None
+            {"data_points": data_point_list, "length": len(data_point_list)}
+            if data_point_list is not None and len(data_point_list) > 0
             else {error: "No data points for current task"}
         )
 
