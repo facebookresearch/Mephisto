@@ -35,8 +35,9 @@ def mephisto_db_task_validation(ctx, param, value):
 
         return value
     except AssertionError:
+        name_list = mephisto_data_browser.get_task_name_list()
         raise click.BadParameter(
-            f'The task name "{value}" did not exist in MephistoDB.\nFlag usage: mephisto review --db [task_name]\n'
+            f'The task name "{value}" did not exist in MephistoDB.\n\nPerhaps you meant one of these? {", ".join(name_list)}\n\nFlag usage: mephisto review --db [task_name]\n'
         )
 
 
