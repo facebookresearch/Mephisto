@@ -32,8 +32,7 @@ def web():
 @click.option("--file", "output_method", flag_value="file", default=True)
 @click.option("--csv-headers/--no-csv-headers", default=False)
 @click.option("--json/--csv", default=False)
-@click.option("--db/--no-db", "database", default=False)
-@click.option("--db-task-name", "database_task_name", type=(str), default="")
+@click.option("--db", "database_task_name", type=(str), default=None)
 @click.option("-d", "--debug", type=(bool), default=False)
 def review(
     review_app_dir,
@@ -42,7 +41,6 @@ def review(
     output_method,
     csv_headers,
     json,
-    database,
     database_task_name,
     debug,
 ):
@@ -53,7 +51,7 @@ def review(
         raise click.UsageError(
             "You must specify an output file via --output=<filename>, unless the --stdout flag is set."
         )
-    if database and database_task_name != "":
+    if database_task_name is not None:
         from mephisto.abstractions.databases.local_database import LocalMephistoDB
         from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
@@ -62,7 +60,7 @@ def review(
         name_list = mephisto_data_browser.get_task_name_list()
         if database_task_name not in name_list:
             raise click.BadParameter(
-                f'The task name "{database_task_name}" did not exist in MephistoDB.\n\nPerhaps you meant one of these? {", ".join(name_list)}\n\nFlag usage: mephisto review --db --db-task-name [task_name]\n'
+                f'The task name "{database_task_name}" did not exist in MephistoDB.\n\nPerhaps you meant one of these? {", ".join(name_list)}\n\nFlag usage: mephisto review --db [task_name]\n'
             )
 
     run(
@@ -71,7 +69,6 @@ def review(
         output,
         csv_headers,
         json,
-        database,
         database_task_name,
         debug,
     )

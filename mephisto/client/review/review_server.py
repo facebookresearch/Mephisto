@@ -20,7 +20,6 @@ def run(
     output,
     csv_headers,
     json=False,
-    database=False,
     database_task_name=None,
     debug=False,
 ):
@@ -61,33 +60,14 @@ def run(
             contents = data["data"]
             return f"{data}"
 
-        if database_task_name is None or database_task_name == "":
-            tasks_by_name = []
-            name_list = mephisto_data_browser.get_task_name_list()
-            for task_name in name_list:
-                task_group = []
-                units = mephisto_data_browser.get_units_for_task_name(task_name)
-                for unit in units:
-                    task_group.append(
-                        format_data_for_review(
-                            mephisto_data_browser.get_data_from_unit(unit)
-                        )
-                    )
-                tasks_by_name.append(task_group)
-            for task_group in tasks_by_name:
-                yield task_group
-
-        else:
-            units = mephisto_data_browser.get_units_for_task_name(database_task_name)
-            for unit in units:
-                yield format_data_for_review(
-                    mephisto_data_browser.get_data_from_unit(unit)
-                )
+        units = mephisto_data_browser.get_units_for_task_name(database_task_name)
+        for unit in units:
+            yield format_data_for_review(mephisto_data_browser.get_data_from_unit(unit))
 
     def consume_data():
         global ready_for_next, current_data, finished, counter
 
-        if database:
+        if database_task_name is not None:
             data_source = mephistoDBReader()
         elif json:
             data_source = json_reader(iter(sys.stdin.readline, ""))
