@@ -22,7 +22,7 @@ from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
 from mephisto.operations.logger_core import get_logger
 from mephisto.operations.config_handler import get_config_arg
 
-logger = get_logger(name=__name__, verbose=True, level="info")
+logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_config import TaskConfig

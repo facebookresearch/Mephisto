@@ -28,6 +28,10 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import Task
     from mephisto.data_model.task_run import TaskRun
 
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
+
 
 class Agent(ABC):
     """
@@ -173,16 +177,19 @@ class Agent(ABC):
         them of this update"""
         if self.db_status == new_status:
             return  # Noop, this is already the case
+        logger.debug(f"Updating {self} to {new_status}")
         if self.db_status in AgentState.complete():
-            print(
-                f"Updating a final status, was {self.db_status} "
-                f"and want to set to {new_status}"
-            )
+            logger.info(f"Updating {self} from final status to {new_status}")
+
         old_status = self.db_status
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
         self.has_updated_status.set()
-        if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
+        if new_status in [
+            AgentState.STATUS_RETURNED,
+            AgentState.STATUS_DISCONNECT,
+            AgentState.STATUS_TIMEOUT,
+        ]:
             # Disconnect statuses should free any pending acts
             self.has_action.set()
             self.did_submit.set()
@@ -208,6 +215,7 @@ class Agent(ABC):
             provider_type,
         )
         a = Agent(db, db_id)
+        logger.debug(f"Registered new agent {a} for {unit}.")
         a.update_status(AgentState.STATUS_ACCEPTED)
         return a
 
@@ -297,8 +305,12 @@ class Agent(ABC):
         Force the given agent to end any polling threads and throw an AgentShutdownError
         from any acts called on it, ensuring tasks using this agent can be cleaned up.
         """
+        logger.debug(f"{self} is shutting down")
         self.has_action.set()
         self.is_shutdown = True
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id}, {self.db_status})"
 
     # Children classes should implement the following methods
 
@@ -446,11 +458,11 @@ class OnboardingAgent(ABC):
         them of this update"""
         if self.db_status == new_status:
             return  # Noop, this is already the case
+
+        logger.debug(f"Updating {self} to {new_status}")
         if self.db_status in AgentState.complete():
-            print(
-                f"Updating a final status, was {self.db_status} "
-                f"and want to set to {new_status}"
-            )
+            logger.info(f"Updating {self} from final status to {new_status}")
+
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
         self.has_updated_status.set()
@@ -534,6 +546,7 @@ class OnboardingAgent(ABC):
         Force the given agent to end any polling threads and throw an AgentShutdownError
         from any acts called on it, ensuring tasks using this agent can be cleaned up.
         """
+        logger.debug(f"{self} is shutting down")
         self.has_action.set()
         self.is_shutdown = True
 
@@ -545,4 +558,9 @@ class OnboardingAgent(ABC):
         db_id = db.new_onboarding_agent(
             worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
-        return OnboardingAgent(db, db_id)
+        a = OnboardingAgent(db, db_id)
+        logger.debug(f"Registered new {a} for worker {worker}.")
+        return a
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id})"

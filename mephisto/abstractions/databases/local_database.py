@@ -30,7 +30,7 @@ import threading
 
 from mephisto.operations.logger_core import get_logger
 
-logger = get_logger(name=__name__, verbose=True, level="info")
+logger = get_logger(name=__name__)
 
 
 def nonesafe_int(in_string: Optional[str]) -> Optional[int]:

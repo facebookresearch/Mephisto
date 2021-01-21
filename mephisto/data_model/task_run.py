@@ -27,6 +27,10 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import Task
     from omegaconf import DictConfig
 
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
+
 
 class TaskRun:
     """
@@ -88,6 +92,9 @@ class TaskRun:
             currently_active = len(current_units)
             if config.allowed_concurrent != 0:
                 if currently_active >= config.allowed_concurrent:
+                    logger.debug(
+                        f"{worker} at maximum concurrent units {currently_active}"
+                    )
                     return []  # currently at the maximum number of concurrent units
             if config.maximum_units_per_worker != 0:
                 currently_completed = len(
@@ -101,6 +108,9 @@ class TaskRun:
                     currently_active + currently_completed
                     >= config.maximum_units_per_worker
                 ):
+                    logger.debug(
+                        f"{worker} at maximum units {currently_active}, {currently_completed}"
+                    )
                     return []  # Currently at the maximum number of units for this task
 
         task_units: List["Unit"] = self.get_units()
@@ -127,6 +137,7 @@ class TaskRun:
             if blueprint.shared_state.worker_can_do_unit(worker, u)
         ]
 
+        logger.debug(f"Found {ret_units[:3]} for {worker}.")
         return ret_units
 
     def clear_reservation(self, unit: "Unit") -> None:
@@ -137,6 +148,7 @@ class TaskRun:
         write_dir = os.path.join(self.get_run_dir(), "reservations")
         if os.path.exists(os.path.join(write_dir, file_name)):
             os.unlink(os.path.join(write_dir, file_name))
+            logger.debug(f"Cleared reservation {file_name} for {unit}")
 
     def reserve_unit(self, unit: "Unit") -> Optional["Unit"]:
         """
@@ -152,6 +164,7 @@ class TaskRun:
         except FileExistsError:
             print(os.path.join(write_dir, file_name), " existed")
             return None
+        logger.debug(f"Reserved {unit} with {file_name}")
         return unit
 
     def get_blueprint(
@@ -310,6 +323,9 @@ class TaskRun:
             "sandbox": self.get_requester().is_sandbox(),
         }
 
+    def __repr__(self) -> str:
+        return f"TaskRun({self.db_id})"
+
     @staticmethod
     def new(
         db: "MephistoDB", task: "Task", requester: Requester, param_string: str
@@ -324,4 +340,6 @@ class TaskRun:
             requester.provider_type,
             task.task_type,
         )
-        return TaskRun(db, db_id)
+        task_run = TaskRun(db, db_id)
+        logger.debug(f"Created new task run {task_run}")
+        return task_run

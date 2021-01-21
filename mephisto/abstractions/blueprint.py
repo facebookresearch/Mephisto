@@ -42,6 +42,10 @@ if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
+
 
 @dataclass
 class BlueprintArgs:
@@ -158,10 +162,10 @@ class TaskRunner(ABC):
         """
         onboarding_id = onboarding_agent.get_agent_id()
         if onboarding_id in self.running_onboardings:
-            print(f"Onboarding {onboarding_id} is already running")
+            logger.debug(f"Onboarding {onboarding_id} is already running")
             return
 
-        print(f"Onboarding {onboarding_id} is launching with {onboarding_agent}")
+        logger.debug(f"Onboarding {onboarding_id} is launching with {onboarding_agent}")
 
         # At this point we're sure we want to run Onboarding
         self.running_onboardings[onboarding_id] = onboarding_agent
@@ -189,10 +193,10 @@ class TaskRunner(ABC):
         Validate the unit is prepared to launch, then run it
         """
         if unit.db_id in self.running_units:
-            print(f"Unit {unit.db_id} is already running")
+            logger.debug(f"{unit} is already running")
             return
 
-        print(f"Unit {unit.db_id} is launching with {agent}")
+        logger.debug(f"{unit} is launching with {agent}")
 
         # At this point we're sure we want to run the unit
         self.running_units[unit.db_id] = (unit, agent)
@@ -212,7 +216,7 @@ class TaskRunner(ABC):
                 unit.clear_assigned_agent()
             self.cleanup_unit(unit)
         except Exception as e:
-            print(f"Unhandled exception in unit {unit}: {repr(e)}")
+            logger.exception(f"Unhandled exception in unit {unit}: {repr(e)}")
             import traceback
 
             traceback.print_exc()
@@ -227,10 +231,10 @@ class TaskRunner(ABC):
         Validate the assignment is prepared to launch, then run it
         """
         if assignment.db_id in self.running_assignments:
-            print(f"Assignment {assignment.db_id} is already running")
+            logger.debug(f"Assignment {assignment} is already running")
             return
 
-        print(f"Assignment {assignment.db_id} is launching with {agents}")
+        logger.debug(f"Assignment {assignment} is launching with {agents}")
 
         # At this point we're sure we want to run the assignment
         self.running_assignments[assignment.db_id] = (assignment, agents)
@@ -254,7 +258,9 @@ class TaskRunner(ABC):
                     agent.get_unit().expire()
             self.cleanup_assignment(assignment)
         except Exception as e:
-            print(f"Unhandled exception in assignment {assignment}: {repr(e)}")
+            logger.exception(
+                f"Unhandled exception in assignment {assignment}: {repr(e)}"
+            )
             import traceback
 
             traceback.print_exc()

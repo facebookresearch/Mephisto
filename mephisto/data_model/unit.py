@@ -22,6 +22,10 @@ if TYPE_CHECKING:
 
 import os
 
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
+
 
 class Unit(ABC):
     """
@@ -122,6 +126,9 @@ class Unit(ABC):
         assert (
             status in AssignmentState.valid_unit()
         ), f"{status} not valid Assignment Status, not in {AssignmentState.valid_unit()}"
+        if status == self.db_status:
+            return
+        logger.debug(f"Updating status for {self} to {status}")
         self.db_status = status
         self.db.update_unit(self.db_id, status=status)
 
@@ -174,6 +181,7 @@ class Unit(ABC):
 
     def clear_assigned_agent(self) -> None:
         """Clear the agent that is assigned to this unit"""
+        logger.debug(f"Clearing assigned agent {self.__agent} from {self}")
         self.db.clear_unit_agent_assignment(self.db_id)
         self.get_task_run().clear_reservation(self)
         self.agent_id = None
@@ -222,7 +230,9 @@ class Unit(ABC):
             provider_type,
             assignment.task_type,
         )
-        return Unit(db, db_id)
+        unit = Unit(db, db_id)
+        logger.debug(f"Registered new unit {unit} for {assignment}.")
+        return unit
 
     def get_pay_amount(self) -> float:
         """
@@ -230,6 +240,9 @@ class Unit(ABC):
         calculating additional fees as relevant
         """
         return self.pay_amount
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id}, {self.db_status})"
 
     # Children classes may need to override the following
 

@@ -22,6 +22,7 @@ class MephistoConfig:
     provider: ProviderArgs = ProviderArgs()
     architect: ArchitectArgs = ArchitectArgs()
     task: TaskConfigArgs = TaskConfigArgs()
+    log_level: str = "info"
 
 
 @dataclass

@@ -35,10 +35,10 @@ from mephisto.operations.registry import (
 )
 from mephisto.operations.utils import get_mock_requester
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.operations.logger_core import get_logger, set_mephisto_log_level
 from omegaconf import DictConfig, OmegaConf
 
-logger = get_logger(name=__name__, verbose=True, level="info")
+logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -128,6 +128,8 @@ class Operator:
         """
         Parse the given arguments and launch a job.
         """
+        set_mephisto_log_level(level=run_config.get("log_level", "info"))
+
         if shared_state is None:
             shared_state = SharedTaskState()
 

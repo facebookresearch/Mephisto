@@ -10,7 +10,7 @@ from mephisto.abstractions.blueprint import AgentState
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 from mephisto.operations.logger_core import get_logger
 
-logger = get_logger(name=__name__, verbose=True, level="info")
+logger = get_logger(name=__name__)
 
 
 if TYPE_CHECKING:
@@ -98,7 +98,9 @@ class Worker(ABC):
         Create an entry for this worker in the database
         """
         db_id = db.new_worker(worker_name, provider_type)
-        return Worker(db, db_id)
+        worker = Worker(db, db_id)
+        logger.debug(f"Registered new worker {worker}")
+        return worker
 
     @classmethod
     def new_from_provider_data(
@@ -162,6 +164,7 @@ class Worker(ABC):
         if granted_qualification is None:
             return False
 
+        logger.debug(f"Revoking qualification {qualification_name} from worker {self}.")
         self.db.revoke_qualification(granted_qualification.qualification_id, self.db_id)
         try:
             self.revoke_crowd_qualification(qualification_name)
@@ -188,6 +191,10 @@ class Worker(ABC):
             raise Exception(
                 f"No qualification by the name {qualification_name} found in the db"
             )
+
+        logger.debug(
+            f"Granting worker {self} qualification {qualification_name}: {value}"
+        )
         qualification = found_qualifications[0]
         self.db.grant_qualification(qualification.db_id, self.db_id, value=value)
         if not skip_crowd:
@@ -200,6 +207,9 @@ class Worker(ABC):
                     exc_info=True,
                 )
                 return False
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id})"
 
     # Children classes can implement the following methods
 
