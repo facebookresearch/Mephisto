@@ -58,9 +58,6 @@ class Unit(ABC):
         self.requester_id = row["requester_id"]
         self.worker_id = row["worker_id"]
 
-        # Flag for task runner to set on units used in assignments
-        self._is_concurrent: bool = False
-
         # Deferred loading of related entities
         self.__task: Optional["Task"] = None
         self.__task_run: Optional["TaskRun"] = None
