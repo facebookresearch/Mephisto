@@ -14,7 +14,15 @@ import time
 import threading
 
 
-def run(build_dir, port, output, csv_headers, json=False, debug=False):
+def run(
+    build_dir,
+    port,
+    output,
+    csv_headers,
+    json=False,
+    database_task_name=None,
+    debug=False,
+):
     global index_file, app
     global ready_for_next, current_data, finished, index_file
     global counter
@@ -41,16 +49,32 @@ def run(build_dir, port, output, csv_headers, json=False, debug=False):
         for jsonline in f:
             yield json.loads(jsonline)
 
+    def mephistoDBReader():
+        from mephisto.abstractions.databases.local_database import LocalMephistoDB
+        from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+
+        db = LocalMephistoDB()
+        mephisto_data_browser = MephistoDataBrowser(db=db)
+
+        def format_data_for_review(data):
+            contents = data["data"]
+            return f"{data}"
+
+        units = mephisto_data_browser.get_units_for_task_name(database_task_name)
+        for unit in units:
+            yield format_data_for_review(mephisto_data_browser.get_data_from_unit(unit))
+
     def consume_data():
         global ready_for_next, current_data, finished, counter
 
-        if json:
+        if database_task_name is not None:
+            data_source = mephistoDBReader()
+        elif json:
             data_source = json_reader(iter(sys.stdin.readline, ""))
         else:
             data_source = csv.reader(iter(sys.stdin.readline, ""))
-
-        if csv_headers:
-            next(data_source)
+            if csv_headers:
+                next(data_source)
 
         finished = False
         counter = 0
