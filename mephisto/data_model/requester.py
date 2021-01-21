@@ -15,6 +15,10 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
 
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
+
 
 @dataclass
 class RequesterArgs:
@@ -98,6 +102,9 @@ class Requester(ABC):
         """
         return False
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id})"
+
     @staticmethod
     def _register_requester(
         db: "MephistoDB", requester_id: str, provider_type: str
@@ -106,7 +113,9 @@ class Requester(ABC):
         Create an entry for this requester in the database
         """
         db_id = db.new_requester(requester_id, provider_type)
-        return Requester(db, db_id)
+        requester = Requester(db, db_id)
+        logger.debug(f"Registered new requester {requester}")
+        return requester
 
     # Children classes should implement the following methods
 

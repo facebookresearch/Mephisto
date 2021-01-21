@@ -20,6 +20,9 @@ import os
 import json
 from dataclasses import dataclass
 
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
 
 ASSIGNMENT_DATA_FILE = "assign_data.json"
 
@@ -197,6 +200,9 @@ class Assignment:
             sum_cost += unit.get_pay_amount()
         return sum_cost
 
+    def __repr__(self) -> str:
+        return f"Assignment({self.db_id})"
+
     # TODO(100) add helpers to manage retrieving results as well
 
     @staticmethod
@@ -226,4 +232,6 @@ class Assignment:
                 os.path.join(assign_dir, ASSIGNMENT_DATA_FILE), "w+"
             ) as json_file:
                 json.dump(assignment_data, json_file)
-        return Assignment(db, db_id)
+        assignment = Assignment(db, db_id)
+        logger.debug(f"{assignment} created for {task_run}")
+        return assignment

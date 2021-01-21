@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 
 from mephisto.operations.logger_core import get_logger
 
-logger = get_logger(name=__name__, verbose=True, level="info")
+logger = get_logger(name=__name__)
 
 # This class manages communications between the server
 # and workers, ensures that their status is properly tracked,
@@ -201,12 +201,15 @@ class Supervisor:
     def shutdown(self):
         """Close all of the channels, join threads"""
         channels_to_close = list(self.channels.keys())
+        logger.debug(f"Closing channels {channels_to_close}")
         for channel_id in channels_to_close:
             channel_info = self.channels[channel_id]
             channel_info.job.task_runner.shutdown()
             self.close_channel(channel_id)
+        logger.debug(f"Joining send thread")
         if self.sending_thread is not None:
             self.sending_thread.join()
+        logger.debug(f"Joining agents {self.agents}")
         for agent_info in self.agents.values():
             assign_thread = agent_info.assignment_thread
             if assign_thread is not None:
@@ -253,6 +256,8 @@ class Supervisor:
             return
         agent_info = self.agents[onboarding_id]
         agent = agent_info.agent
+
+        logger.debug(f"{agent} has submitted onboarding: {packet}")
         # Update the request id for the original packet (which has the required
         # registration data) to be the new submission packet (so that we answer
         # back properly under the new request)
@@ -318,8 +323,10 @@ class Supervisor:
             f", got {tracked_agent}"
         )
         try:
+            logger.debug(f"Launching onboarding for {tracked_agent}")
             task_runner.launch_onboarding(tracked_agent)
         except Exception as e:
+            logger.warning(f"Onboarding for {tracked_agent} failed with exception {e}")
             import traceback
 
             traceback.print_exc()
@@ -549,7 +556,7 @@ class Supervisor:
             )
             logger.debug(
                 f"Found existing agent_registration_id {agent_registration_id}, "
-                f"reconnecting to agent {agent.get_agent_id()}."
+                f"reconnecting to {agent}."
             )
             return
 
@@ -624,8 +631,8 @@ class Supervisor:
                 )
 
                 logger.debug(
-                    f"Worker {worker_id} is starting onboarding thread with "
-                    f"onboarding agent id {onboard_id}."
+                    f"{worker} is starting onboarding thread with "
+                    f"onboarding {onboard_agent}."
                 )
 
                 # Create an onboarding thread
