@@ -103,7 +103,7 @@ class Requester(ABC):
         return False
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.db_id}, {self.db_status})"
+        return f"{self.__class__.__name__}({self.db_id})"
 
     @staticmethod
     def _register_requester(

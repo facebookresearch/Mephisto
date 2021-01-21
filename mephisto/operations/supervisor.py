@@ -323,10 +323,10 @@ class Supervisor:
             f", got {tracked_agent}"
         )
         try:
-            logger.debug(f"Launching onboarding for {agent}")
+            logger.debug(f"Launching onboarding for {tracked_agent}")
             task_runner.launch_onboarding(tracked_agent)
         except Exception as e:
-            logger.warning(f"Onboarding for {agent} failed with exception {e}")
+            logger.warning(f"Onboarding for {tracked_agent} failed with exception {e}")
             import traceback
 
             traceback.print_exc()
