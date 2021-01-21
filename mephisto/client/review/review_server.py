@@ -21,11 +21,14 @@ def run(
     csv_headers,
     json=False,
     database_task_name=None,
+    all_data=False,
     debug=False,
 ):
     global index_file, app
     global ready_for_next, current_data, finished, index_file
     global counter
+
+    RESULTS_PER_PAGE = 2
 
     if not debug or output == "":
         # disable noisy logging of flask, https://stackoverflow.com/a/18379764
@@ -85,19 +88,25 @@ def run(
             ready_for_next.wait()
         finished = True
 
-    def consume_all_data():
-
-        if json:
+    def consume_all_data(page):
+        if database_task_name is not None:
+            data_source = mephistoDBReader()
+        elif json:
             data_source = json_reader(iter(sys.stdin.readline, ""))
         else:
             data_source = csv.reader(iter(sys.stdin.readline, ""))
             if csv_headers:
-                print("CSV Headers detected")
                 next(data_source)
-
         data_point_list = []
-        for row in data_source:
-            data_point_list.append(row)
+        if page is not None and isinstance(page, int) and page > 0:
+            first_index = (page - 1) * RESULTS_PER_PAGE
+            for x in range(first_index):
+                next(data_source)
+            for x in range(RESULTS_PER_PAGE):
+                data_point_list.append(next(data_source))
+        else:
+            for row in data_source:
+                data_point_list.append(row)
         return data_point_list
 
     @app.route("/data_for_current_task")
@@ -116,9 +125,10 @@ def run(
 
     @app.route("/all_data_for_current_task")
     def all_data():
-        data_point_list = consume_all_data()
+        page = request.args.get("page", default=None, type=int)
+        data_point_list = consume_all_data(page)
         return jsonify(
-            {"data_points": data_point_list, "length": len(data_point_list)}
+            {"data": data_point_list, "length": len(data_point_list)}
             if data_point_list is not None and len(data_point_list) > 0
             else {error: "No data points for current task"}
         )
@@ -161,8 +171,9 @@ def run(
         response.headers.add("Cache-Control", "no-store")
         return response
 
-    thread = threading.Thread(target=consume_data)
-    thread.start()
+    if not all_data:
+        thread = threading.Thread(target=consume_data)
+        thread.start()
     if sys.stdout.isatty():
         print("Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)".format(port))
     app.run(debug=False, port=port)
