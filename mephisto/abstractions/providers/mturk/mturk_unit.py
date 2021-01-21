@@ -100,6 +100,9 @@ class MTurkUnit(Unit):
             self.datastore.clear_hit_from_unit(self.db_id)
             self._sync_hit_mapping()
 
+        if self.db_status == AssignmentState.ASSIGNED:
+            self.set_db_status(AssignmentState.LAUNCHED)
+
     # Required Unit functions
 
     def get_status(self) -> str:
@@ -171,7 +174,8 @@ class MTurkUnit(Unit):
                     # mark the agent as having returned the HIT, to
                     # free any running tasks and have Blueprint decide on cleanup.
                     agent.update_status(AgentState.STATUS_RETURNED)
-            self.set_db_status(external_status)
+            else:
+                self.set_db_status(external_status)
 
         return self.db_status
 
