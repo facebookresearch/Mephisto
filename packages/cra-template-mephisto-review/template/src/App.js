@@ -8,7 +8,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        {error && <div>Error: {JSON.stringify(error)}</div>}
+        {error && <div className="error">Error: {JSON.stringify(error)}</div>}
         {isLoading ? (
           <h1>Loading...</h1>
         ) : isFinished ? (

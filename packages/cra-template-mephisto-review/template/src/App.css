@@ -21,6 +21,10 @@
   overflow: auto;
 }
 
+.error {
+  color: #e3242b;
+}
+
 .button-container {
   display: flex;
   flex-direction: row;
