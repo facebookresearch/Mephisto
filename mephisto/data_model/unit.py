@@ -181,7 +181,7 @@ class Unit(ABC):
 
     def clear_assigned_agent(self) -> None:
         """Clear the agent that is assigned to this unit"""
-        logger.debug(f"Clearing assigned agent {self.__agent} from {self}")
+        logger.debug(f"Clearing assigned agent {self.agent_id} from {self}")
         self.db.clear_unit_agent_assignment(self.db_id)
         self.get_task_run().clear_reservation(self)
         self.agent_id = None

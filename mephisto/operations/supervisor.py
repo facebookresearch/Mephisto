@@ -798,18 +798,11 @@ class Supervisor:
             db_status = agent.get_status()
             if agent.has_updated_status.is_set():
                 continue  # Incoming info may be stale if we have new info to send
-            if status == AgentState.STATUS_NONE:
-                # Stale or reconnect, send a status update
-                self._send_status_update(self.agents[agent_id])
-                continue
             if status != db_status:
-                if db_status in AgentState.complete():
-                    logger.info(
-                        f"Got updated status {status} when already final: {agent.db_status}"
-                    )
-                    continue
-                elif status == AgentState.STATUS_COMPLETED:
-                    continue  # COMPLETED can only be marked locally
+                if status != AgentState.STATUS_DISCONNECT:
+                    # Stale or reconnect, send a status update
+                    self._send_status_update(self.agents[agent_id])
+                    continue  # Only DISCONNECT can be marked remotely, rest are mismatch
                 agent.update_status(status)
         pass
 
