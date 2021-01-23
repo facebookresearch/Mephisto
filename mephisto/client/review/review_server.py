@@ -27,8 +27,9 @@ def run(
     global index_file, app
     global ready_for_next, current_data, finished, index_file
     global counter
+    global all_data_list
 
-    RESULTS_PER_PAGE = 2
+    RESULTS_PER_PAGE_DEFAULT = 10
 
     if not debug or output == "":
         # disable noisy logging of flask, https://stackoverflow.com/a/18379764
@@ -88,31 +89,67 @@ def run(
             ready_for_next.wait()
         finished = True
 
-    def consume_all_data(page):
-        if database_task_name is not None:
-            data_source = mephistoDBReader()
-        elif json:
-            data_source = json_reader(iter(sys.stdin.readline, ""))
-        else:
-            data_source = csv.reader(iter(sys.stdin.readline, ""))
-            if csv_headers:
-                next(data_source)
+    def consume_all_data(page, results_per_page):
+        limit = (
+            results_per_page
+            if (
+                results_per_page is not None
+                and isinstance(results_per_page, int)
+                and results_per_page > 0
+            )
+            else RESULTS_PER_PAGE_DEFAULT
+        )
+        paginated = (
+            True if page is not None and isinstance(page, int) and page > 0 else False
+        )
+
+        first_index = (page - 1) * limit if paginated else 0
         data_point_list = []
-        if page is not None and isinstance(page, int) and page > 0:
-            first_index = (page - 1) * RESULTS_PER_PAGE
-            for x in range(first_index):
-                next(data_source)
-            for x in range(RESULTS_PER_PAGE):
-                data_point_list.append(next(data_source))
+
+        if database_task_name is not None:
+            # if reading from MephistoDB
+            data_source = mephistoDBReader()
+
+            if paginated:
+                for x in range(first_index):
+                    data = next(data_source, None)
+                    if data is None:
+                        return []
+                for x in range(limit):
+                    data = next(data_source, None)
+                    if data is None:
+                        break
+                    data_point_list.append(data)
+            else:
+                for row in data_source:
+                    data_point_list.append(row)
         else:
-            for row in data_source:
-                data_point_list.append(row)
+            # If reading from a file all data points are referenced from memory
+            global all_data_list
+            if paginated:
+                list_len = len(all_data_list)
+                if first_index > list_len - 1:
+                    return []
+                limit = min(first_index + limit, list_len) - first_index
+                if limit < 0:
+                    return []
+                for x in range(first_index, first_index + limit):
+                    data_point_list.append(all_data_list[x])
+            else:
+                for row in all_data_list:
+                    data_point_list.append(row)
+
         return data_point_list
 
     @app.route("/data_for_current_task")
     def data():
         global current_data, finished
-
+        if all_data:
+            return jsonify(
+                {
+                    "error": "mephisto review is in all mode, please do not use the --all flag to review individual tasks"
+                }
+            )
         if finished:
             func = request.environ.get("werkzeug.server.shutdown")
             if func is None:
@@ -124,19 +161,27 @@ def run(
         )
 
     @app.route("/all_data_for_current_task")
-    def all_data():
+    def all_task_data():
+        if not all_data and database_task_name is None:
+            return jsonify(
+                {
+                    "error": "mephisto review is not in all mode, please use the --all flag"
+                }
+            )
         page = request.args.get("page", default=None, type=int)
-        data_point_list = consume_all_data(page)
-        return jsonify(
-            {"data": data_point_list, "length": len(data_point_list)}
-            if data_point_list is not None and len(data_point_list) > 0
-            else {error: "No data points for current task"}
-        )
+        results_per_page = request.args.get("results_per_page", default=None, type=int)
+        data_point_list = consume_all_data(page, results_per_page)
+        return jsonify({"data": data_point_list, "length": len(data_point_list)})
 
     @app.route("/submit_current_task", methods=["GET", "POST"])
     def next_task():
         global current_data, ready_for_next, finished, counter
-
+        if all_data:
+            return jsonify(
+                {
+                    "error": "mephisto review is in all mode, please do not use the --all flag to review individual tasks"
+                }
+            )
         result = (
             request.get_json(force=True)
             if request.method == "POST"
@@ -170,6 +215,20 @@ def run(
         )
         response.headers.add("Cache-Control", "no-store")
         return response
+
+    if all_data and database_task_name is None:
+        # if reading all data points from a file, all data is loaded into memory before the app starts
+        if json:
+            data_source = json_reader(iter(sys.stdin.readline, ""))
+        else:
+            data_source = csv.reader(iter(sys.stdin.readline, ""))
+            if csv_headers:
+                next(data_source)
+
+        all_data_list = []
+
+        for row in data_source:
+            all_data_list.append(row)
 
     if not all_data:
         thread = threading.Thread(target=consume_data)
