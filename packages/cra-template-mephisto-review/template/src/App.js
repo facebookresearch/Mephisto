@@ -7,20 +7,33 @@ function App() {
 
   return (
     <div className="App">
-      {error && <div>{JSON.stringify(error)}</div>}
-      {isLoading ? (
-        <h1>Loading...</h1>
-      ) : isFinished ? (
-        <h1>Done reviewing!</h1>
-      ) : (
-        <header className="App-header">
-          <pre>{JSON.stringify(data, 2)}</pre>
-          <button onClick={() => submit({ result: "approved" })}>
-            Approve
-          </button>
-          <button onClick={() => submit({ result: "rejected" })}>Reject</button>
-        </header>
-      )}
+      <header className="App-header">
+        {error && <div className="error">Error: {JSON.stringify(error)}</div>}
+        {isLoading ? (
+          <h1>Loading...</h1>
+        ) : isFinished ? (
+          <h1>Done reviewing! You can close this app now</h1>
+        ) : (
+          <>
+            <p>Please review the following data:</p>
+            <pre>{JSON.stringify(data, 2)}</pre>
+            <div className="button-container">
+              <button
+                className="btn btn-green"
+                onClick={() => submit({ result: "approved" })}
+              >
+                Approve
+              </button>
+              <button
+                className="btn btn-red"
+                onClick={() => submit({ result: "rejected" })}
+              >
+                Reject
+              </button>
+            </div>
+          </>
+        )}
+      </header>
     </div>
   );
 }
