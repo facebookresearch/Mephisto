@@ -799,10 +799,13 @@ class Supervisor:
             if agent.has_updated_status.is_set():
                 continue  # Incoming info may be stale if we have new info to send
             if status != db_status:
+                if status == AgentState.STATUS_COMPLETED:
+                    # Frontend agent completed but hasn't confirmed yet
+                    continue
                 if status != AgentState.STATUS_DISCONNECT:
                     # Stale or reconnect, send a status update
                     self._send_status_update(self.agents[agent_id])
-                    continue  # Only DISCONNECT can be marked remotely, rest are mismatch
+                    continue  # Only DISCONNECT can be marked remotely, rest are mismatch (except STATUS_COMPLETED)
                 agent.update_status(status)
         pass
 
