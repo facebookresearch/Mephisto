@@ -89,19 +89,14 @@ def run(
             ready_for_next.wait()
         finished = True
 
-    def consume_all_data(page, results_per_page):
-        limit = (
-            results_per_page
-            if (
-                results_per_page is not None
-                and isinstance(results_per_page, int)
-                and results_per_page > 0
-            )
-            else RESULTS_PER_PAGE_DEFAULT
-        )
-        paginated = (
-            True if page is not None and isinstance(page, int) and page > 0 else False
-        )
+    # returns all data or page of all data given a limit where pages are 1 indexed
+    def consume_all_data(page, limit=RESULTS_PER_PAGE_DEFAULT):
+        paginated = type(page) is int
+        if paginated:
+            assert page > 0, "Page number should be a positive 1 indexed integer."
+            assert (
+                type(limit) is int and limit > 0
+            ), "results_per_page should be a positive integer"
 
         first_index = (page - 1) * limit if paginated else 0
         data_point_list = []
@@ -160,7 +155,7 @@ def run(
             {"finished": finished, "data": current_data if not finished else None}
         )
 
-    @app.route("/all_data_for_current_task")
+    @app.route("/all_data")
     def all_task_data():
         if not all_data and database_task_name is None:
             return jsonify(
@@ -170,7 +165,11 @@ def run(
             )
         page = request.args.get("page", default=None, type=int)
         results_per_page = request.args.get("results_per_page", default=None, type=int)
-        data_point_list = consume_all_data(page, results_per_page)
+        try:
+            data_point_list = consume_all_data(page, results_per_page)
+        except AssertionError as ae:
+            print(f"Error: {ae.args[0]}")
+            return jsonify({"error": ae.args[0]})
         return jsonify({"data": data_point_list, "length": len(data_point_list)})
 
     @app.route("/submit_current_task", methods=["GET", "POST"])
