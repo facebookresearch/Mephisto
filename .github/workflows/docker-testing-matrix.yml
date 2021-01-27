@@ -40,5 +40,4 @@ jobs:
 
       - name: Run npm install for static_html_task
         run: |
-          cd /mephisto/mephisto/abstractions/blueprints/static_html_task/source
-          npm install
+          docker run mephisto bash -c 'cd /mephisto/mephisto/abstractions/blueprints/static_html_task/source && npm install'
