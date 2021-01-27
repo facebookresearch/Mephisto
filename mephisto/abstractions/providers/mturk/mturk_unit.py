@@ -107,8 +107,9 @@ class MTurkUnit(Unit):
 
     def get_status(self) -> str:
         """Get status for this unit directly from MTurk, fall back on local info"""
-        if self.db_status in [
-            AssignmentState.CREATED,
+        if self.db_status == AssignmentState.CREATED:
+            return super().get_status()
+        elif self.db_status in [
             AssignmentState.ACCEPTED,
             AssignmentState.EXPIRED,
             AssignmentState.SOFT_REJECTED,
@@ -164,11 +165,11 @@ class MTurkUnit(Unit):
             raise Exception(f"Unexpected HIT status {hit_data['HITStatus']}")
 
         if external_status != local_status:
-            if (
-                local_status == AssignmentState.ASSIGNED
-                and external_status == AssignmentState.LAUNCHED
-            ):
-                # Treat this as a return event, this hit is now doable by someone else
+            if local_status == AssignmentState.ASSIGNED and external_status in [
+                AssignmentState.LAUNCHED,
+                AssignmentState.EXPIRED,
+            ]:
+                # Treat this as a return event, this hit may be doable by someone else
                 agent = self.get_assigned_agent()
                 if agent is not None:
                     # mark the agent as having returned the HIT, to
@@ -212,6 +213,7 @@ class MTurkUnit(Unit):
             # amount of time we granted for working on this assignment
             if self.assignment_time_in_seconds is not None:
                 delay = self.assignment_time_in_seconds
+            logger.debug(f"Expiring a unit that is ASSIGNED after delay {delay}")
         mturk_hit_id = self.get_mturk_hit_id()
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
