@@ -13,4 +13,5 @@ SHELL ["/bin/bash", "-c"]
 RUN echo $'core: \n  main_data_directory: /mephisto/data' >> ~/.mephisto/config.yml
 
 RUN cd /mephisto && pip install -e .
+RUN mephisto check # Run mephisto check so a mock requester gets created
 CMD mephisto check
