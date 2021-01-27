@@ -175,6 +175,9 @@ class MTurkUnit(Unit):
                     # mark the agent as having returned the HIT, to
                     # free any running tasks and have Blueprint decide on cleanup.
                     agent.update_status(AgentState.STATUS_RETURNED)
+                if external_status == AssignmentState.EXPIRED:
+                    # If we're expired, then it won't be doable, and we should update
+                    self.set_db_status(external_status)
             else:
                 self.set_db_status(external_status)
 
