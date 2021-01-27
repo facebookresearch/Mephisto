@@ -37,3 +37,8 @@ jobs:
       - name: Check that Mephisto was installed correctly
         run: |
           docker run mephisto
+
+      - name: Run npm install for static_html_task
+        run: |
+          cd /mephisto/mephisto/abstractions/blueprints/static_html_task/source
+          npm install
