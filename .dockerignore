@@ -1,0 +1,6 @@
+**/node_modules
+**/.git
+**/.mypy_cache
+**/build/*
+data/*
+**/*.mp4
