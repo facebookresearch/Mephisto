@@ -4,6 +4,8 @@
 
 First, clone this repo to your local system.
 
+Mephisto requires Python 3 and npm v6 or above.
+
 ### Option A (via pip install)
 Run the following in the root directory:
 
