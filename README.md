@@ -17,7 +17,7 @@ As of now we're in an early alpha release, more details to come.
 
 ## Want to help?
 
-Check out our [guidelines for contributing](https://github.com/facebookresearch/Mephisto/blob/master/CONTRIBUTING.md) and then take a look at some of our tagged issues: [good-first-issue](https://github.com/facebookresearch/Mephisto/labels/good%20first%20issue), [community-help-wanted](https://github.com/facebookresearch/Mephisto/labels/community%20help%20wanted).
+Check out our [guidelines for contributing](https://github.com/facebookresearch/Mephisto/blob/master/CONTRIBUTING.md) and then take a look at some of our tagged issues: [good first issue](https://github.com/facebookresearch/Mephisto/labels/good%20first%20issue), [community help wanted](https://github.com/facebookresearch/Mephisto/labels/community%20help%20wanted).
 
 
 [quickstart]: https://github.com/facebookresearch/mephisto/blob/master/docs/quickstart.md
