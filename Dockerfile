@@ -1,7 +1,9 @@
 # Using the -slim version below for minimal size. You may want to
 # remove -slim, or switch to -alpine if encountering issues
+ARG BASE_TAG=python3.9-nodejs15-slim
+ARG BASE_IMAGE=nikolaik/python-nodejs:$BASE_TAG
 
-FROM nikolaik/python-nodejs:python3.9-nodejs15-slim
+FROM $BASE_IMAGE
 
 COPY . /mephisto
 RUN mkdir ~/.mephisto
