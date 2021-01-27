@@ -34,6 +34,9 @@ jobs:
       - name: Build docker image - python${{ matrix.python-version }}-nodejs${{ matrix.nodejs-version }}${{ matrix.image-suffix }}
         run: docker build -t mephisto --build-arg BASE_TAG=python${{ matrix.python-version }}-nodejs${{ matrix.nodejs-version }}${{ matrix.image-suffix }} .
 
+      - name: Print out version numbers
+        run: docker run mephisto bash -c 'python --version && node --version && npm --version'
+
       # Runs a set of commands using the runners shell
       - name: Check that Mephisto was installed correctly
         run: |
