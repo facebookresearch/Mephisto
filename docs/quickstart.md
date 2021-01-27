@@ -7,7 +7,7 @@ First, clone this repo to your local system.
 ### Option A (via pip install)
 Run the following in the root directory:
 
-```console
+```bash
 $ pip install -e .
 
 # Verify that mephisto is installed correctly, and handle any required config:
@@ -19,7 +19,7 @@ Mephisto seems to be set up correctly.
 ### Option B (via poetry)
 Alteratively, you can install [poetry](https://github.com/python-poetry/poetry) to help with easy install, dependency management, and automatic virtual environment isolation:
 
-```console
+```bash
 # install poetry
 $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 
@@ -34,7 +34,7 @@ Mephisto seems to be set up correctly.
 ```
 
 ### Option C (via Docker - new!)
-```console
+```bash
 # Build the docker image and tag with name 'mephisto'
 $ docker build -t mephisto . 
 
@@ -42,7 +42,7 @@ $ docker build -t mephisto .
 $ docker run mephisto
 Mephisto seems to be set up correctly.
 
-# You can pass in shell commands as well and bind ports, e.g. to run
+# You can also bind ports and pass in shell commands, e.g. to run
 # a task directly from the container
 $ docker run -p 3000:3000 mephisto bash -c 'cd mephisto/examples/simple_static_task && python static_test_script.py
 
@@ -51,7 +51,7 @@ By default, Mephisto run data will be stored at `/mephisto/data` within the cont
 
 ## Step 1. Run your first task (locally)
 
-```console
+```bash
 $ cd examples/simple_static_task
 $ python static_test_script.py
 ```
@@ -90,7 +90,7 @@ $ python examine_results.py
 
 1. You'll first need to setup a requester. You can do so with the mephisto cli command. (Note: if you haven't set up mephisto with poetry, you should replace the `mephisto` command with `python mephisto/client/cli.py` instead).
 
-```console
+```bash
 $ mephisto register mturk \
         name=my_mturk_user \
         access_key_id=$ACCESS_KEY\
@@ -102,7 +102,7 @@ Registered successfully.
 
 You can choose any name for `my_mturk_user`, as this will be the id that you later refer to when using that requester. For an `mturk_sandbox` requester, you should use `my_mturk_user_sandbox` as the name.
 
-```console
+```bash
 $ mephisto register mturk_sandbox \
         name=my_mturk_user_sandbox \
         access-key-id=$ACCESS_KEY\
@@ -114,7 +114,7 @@ Registered successfully.
 
 2. Next, let's run the task script again, but this time we'll override the requester and the architect.
 
-```console
+```bash
 $ cd examples/simple_static_task
 $ python static_test_script.py mephisto/architect=heroku mephisto.provider.requester_name=my_mturk_user_sandbox
 Locating heroku...
