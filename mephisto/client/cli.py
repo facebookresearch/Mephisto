@@ -24,6 +24,38 @@ def web():
     app.run(debug=False)
 
 
+@cli.command("config")
+@click.argument("identifier", type=(str), default=None, required=False)
+@click.argument("value", type=(str), default=None, required=False)
+def config(identifier, value):
+    from mephisto.operations.config_handler import (
+        get_config_arg,
+        add_config_arg,
+        get_raw_config,
+        DEFAULT_CONFIG_FILE,
+    )
+
+    if identifier is None and value is None:
+        # If no args, show full config:
+        click.echo(f"{DEFAULT_CONFIG_FILE}:\n")
+        click.echo(get_raw_config())
+        return
+
+    if "." not in identifier:
+        raise click.BadParameter(
+            f"Identifier must be of format: <section>.<key>\nYou passed in: {identifier}"
+        )
+    [section, key] = identifier.split(".")
+
+    if value is None:
+        # Read mode:
+        click.echo(get_config_arg(section, key))
+    else:
+        # Write mode:
+        add_config_arg(section, key, value)
+        click.echo(f"{identifier} succesfully updated to: {value}")
+
+
 @cli.command("review")
 @click.argument("review_app_dir", type=click.Path(exists=True))
 @click.option("-p", "--port", type=(int), default=5000)

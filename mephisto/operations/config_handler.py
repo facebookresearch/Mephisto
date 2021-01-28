@@ -18,10 +18,15 @@ OLD_DATA_CONFIG_LOC = os.path.join(
 )
 
 
+def get_raw_config() -> str:
+    """Returns the raw string config as written in the YAML config file"""
+    with open(DEFAULT_CONFIG_FILE, "r") as config_file:
+        return config_file.read().strip()
+
+
 def get_config() -> Dict[str, Any]:
     """Get the data out of the YAML config file"""
-    with open(DEFAULT_CONFIG_FILE, "r") as config_file:
-        return yaml.safe_load(config_file.read().strip())
+    return yaml.safe_load(get_raw_config())
 
 
 def write_config(config_data: Dict[str, Any]):
