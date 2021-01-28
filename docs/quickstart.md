@@ -58,7 +58,7 @@ ocalhost:3000 for preview, localhost:3000/?worker_id=x&assignment_id=20 for assi
 
 and navigate to the URL that includes parameters (ex. `localhost:3000/?worker_id=x&assignment_id=20`).
 
-For tasks that requires two workers, such as a turn-based dialogue task, you will need to have two browser open at once connected with different `worker_id` and `assignment_id` url parameters. 
+For tasks that requires two workers, such as a turn-based dialogue task, you will need to have two browser windows open at once, connected with different `worker_id` and `assignment_id` URL parameters. 
 
 
 > **TIP:**
@@ -69,14 +69,6 @@ For tasks that requires two workers, such as a turn-based dialogue task, you wil
 > 
 > In the next step, we'll show you how to override these defaults so that you can
 > host the task on Heroku and run it on mTurk instead.
-
-Once completed, a helper script is available for you to quickly
-examine the results of the task:
-
-```
-$ python examine_results.py
-
-```
 
 ## Step 2. Run the same task again (but now on mTurk!)
 
@@ -127,9 +119,19 @@ Building server files...
 
 # The task name mentioned in the logs will be required to examine/review results of the task in Step 3. In this case, we note that the name is html-static-task-example
 ```
-> TIP: The arguments `mephisto.provider.requester_name=my_mturk_user_sandbox` and `mephisto/architect=heroku` will tell the the run script to use the "mturk_sandbox" provider and the "heroku" architect (as opposed to the mock provider and local architect). Notice that if we're setting a full abstraction (like the architect) we reference it with `mephisto/abstraction=val`, however when we're setting an argument, we use `mephisto.abstraction.argument=val`. This tells hydra whether we're providing an argument value or the name of a configuration to load.
+> TIP: The arguments `mephisto.provider.requester_name=my_mturk_user_sandbox` and `mephisto/architect=heroku` will tell the run script to use the "mturk_sandbox" provider and the "heroku" architect (as opposed to the default "mock" provider and "local" architect).
+> 
+> Notice that if we're setting a full abstraction (like the architect abstraction) we reference it with `mephisto/abstraction=val`, however when we're setting an argument, we use `mephisto.abstraction.argument=val`. This tells [Hydra](https://hydra.cc/) (the configuration library that Mephisto uses) whether we're providing an argument value or the name of a configuration to load.
 
 
 ## Step 3. Review results
 
-You can examine/review the results of the task by running `python examine_results.py` in the example directory. Enter the task name that was output in the console logs when prompted for `Input task name:`. In the above example, it was `html-static-task-example`.
+```bash
+$ cd examples/simple_static_task
+$ python examine_results.py
+Input task name: 
+```
+
+ Enter the task name that was output in the console logs when prompted for `Input task name:`.
+ 
+ In the above example, you'll note that it was `html-static-task-example`.
