@@ -125,10 +125,7 @@ def run(
     def refresh_all_list_data():
         global all_data_list, datalist_update_time
         data_source = mephistoDBReader()
-        all_data_list = []
-
-        for row in data_source:
-            all_data_list.append(row)
+        all_data_list = list(data_source)
         datalist_update_time = datetime.now()
 
     @app.route("/data_for_current_task")
@@ -221,10 +218,7 @@ def run(
             if csv_headers:
                 next(data_source)
 
-        all_data_list = []
-
-        for row in data_source:
-            all_data_list.append(row)
+        all_data_list = list(data_source)
         datalist_update_time = datetime.now()
 
     if not all_data:
