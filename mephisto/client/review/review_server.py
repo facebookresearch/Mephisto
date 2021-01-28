@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from flask import Flask, Blueprint, send_file, jsonify, request
+from datetime import datetime
 import os
 import atexit
 import signal
@@ -27,7 +28,7 @@ def run(
     global index_file, app
     global ready_for_next, current_data, finished, index_file
     global counter
-    global all_data_list
+    global all_data_list, datalist_update_time
 
     RESULTS_PER_PAGE_DEFAULT = 10
 
@@ -89,8 +90,8 @@ def run(
             ready_for_next.wait()
         finished = True
 
-    # returns all data or page of all data given a limit where pages are 1 indexed
     def consume_all_data(page, limit=RESULTS_PER_PAGE_DEFAULT):
+        """ returns all data or page of all data given a limit where pages are 1 indexed """
         paginated = type(page) is int
         if paginated:
             assert page > 0, "Page number should be a positive 1 indexed integer."
@@ -102,39 +103,33 @@ def run(
         data_point_list = []
 
         if database_task_name is not None:
-            # if reading from MephistoDB
-            data_source = mephistoDBReader()
+            # If differnce in time since the last update to the data list is over 5 minutes, update list again
+            # This can only be done for usage with mephistoDB as standard input is exhausted when originally creating the list
+            global datalist_update_time
+            now = datetime.now()
+            if (now - datalist_update_time).total_seconds() / 60.0 > 5:
+                refresh_all_list_data()
 
-            if paginated:
-                for x in range(first_index):
-                    data = next(data_source, None)
-                    if data is None:
-                        return []
-                for x in range(limit):
-                    data = next(data_source, None)
-                    if data is None:
-                        break
-                    data_point_list.append(data)
-            else:
-                for row in data_source:
-                    data_point_list.append(row)
+        global all_data_list
+        if paginated:
+            list_len = len(all_data_list)
+            if first_index > list_len - 1:
+                return []
+            limit = min(first_index + limit, list_len) - first_index
+            if limit < 0:
+                return []
+            return all_data_list[first_index : first_index + limit]
         else:
-            # If reading from a file all data points are referenced from memory
-            global all_data_list
-            if paginated:
-                list_len = len(all_data_list)
-                if first_index > list_len - 1:
-                    return []
-                limit = min(first_index + limit, list_len) - first_index
-                if limit < 0:
-                    return []
-                for x in range(first_index, first_index + limit):
-                    data_point_list.append(all_data_list[x])
-            else:
-                for row in all_data_list:
-                    data_point_list.append(row)
+            return all_data_list
 
-        return data_point_list
+    def refresh_all_list_data():
+        global all_data_list, datalist_update_time
+        data_source = mephistoDBReader()
+        all_data_list = []
+
+        for row in data_source:
+            all_data_list.append(row)
+        datalist_update_time = datetime.now()
 
     @app.route("/data_for_current_task")
     def data():
@@ -215,9 +210,11 @@ def run(
         response.headers.add("Cache-Control", "no-store")
         return response
 
-    if all_data and database_task_name is None:
-        # if reading all data points from a file, all data is loaded into memory before the app starts
-        if json:
+    if all_data:
+        # if reading all data points, all data is loaded into memory before the app starts
+        if database_task_name is not None:
+            data_source = mephistoDBReader()
+        elif json:
             data_source = json_reader(iter(sys.stdin.readline, ""))
         else:
             data_source = csv.reader(iter(sys.stdin.readline, ""))
@@ -228,6 +225,7 @@ def run(
 
         for row in data_source:
             all_data_list.append(row)
+        datalist_update_time = datetime.now()
 
     if not all_data:
         thread = threading.Thread(target=consume_data)
