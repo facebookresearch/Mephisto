@@ -123,6 +123,10 @@ class CrowdProvider(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def print_banner_on_start(self) -> str:
+        return ""
+
+    @abstractmethod
     def cleanup_resources_from_task_run(
         self, task_run: "TaskRun", server_url: str
     ) -> None:

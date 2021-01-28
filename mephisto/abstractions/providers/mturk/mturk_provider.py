@@ -20,6 +20,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     setup_sns_topic,
     delete_sns_topic,
     delete_qualification,
+    get_requester_balance,
 )
 from mephisto.operations.registry import register_mephisto_abstraction
 from dataclasses import dataclass, field
@@ -132,6 +133,12 @@ class MTurkProvider(CrowdProvider):
         client = self._get_client(requester._requester_name)
         hit_type_id = create_hit_type(client, task_config, qualifications)
         self.datastore.register_run(task_run_id, arn_id, hit_type_id, config_dir)
+
+    def print_banner_on_start(self, task_run: "TaskRun") -> str:
+        requester = cast("MTurkRequester", task_run.get_requester())
+        client = self._get_client(requester._requester_name)
+        balance = get_requester_balance(client)
+        return f"============================\nBalance: {balance}\n============================\n"
 
     def cleanup_resources_from_task_run(
         self, task_run: "TaskRun", server_url: str
