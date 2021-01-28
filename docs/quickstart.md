@@ -1,4 +1,4 @@
-# 10-minute Quick Start
+# 10-minute Quickstart
 
 First, clone this repo to your local system.
 
