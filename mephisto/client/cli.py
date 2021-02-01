@@ -33,6 +33,7 @@ def web():
 @click.option("--csv-headers/--no-csv-headers", default=False)
 @click.option("--json/--csv", default=False)
 @click.option("--db", "database_task_name", type=(str), default=None)
+@click.option("--all/--one-by-one", "all_data", default=False)
 @click.option("-d", "--debug", type=(bool), default=False)
 def review(
     review_app_dir,
@@ -42,6 +43,7 @@ def review(
     csv_headers,
     json,
     database_task_name,
+    all_data,
     debug,
 ):
     """Launch a local review UI server. Reads in rows froms stdin and outputs to either a file or stdout."""
@@ -70,6 +72,7 @@ def review(
         csv_headers,
         json,
         database_task_name,
+        all_data,
         debug,
     )
 
