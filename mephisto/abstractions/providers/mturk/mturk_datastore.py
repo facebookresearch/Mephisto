@@ -258,7 +258,9 @@ class MTurkDatastore:
     ) -> None:
         """
         Create a mapping between mephisto qualification name and mturk
-        qualification details in the local datastore
+        qualification details in the local datastore.
+
+        Repeat entries with the same `qualification_name` will be idempotent
         """
         try:
             with self.table_access_condition, self._get_connection() as conn:
@@ -280,6 +282,7 @@ class MTurkDatastore:
                 return None
         except sqlite3.IntegrityError as e:
             if is_unique_failure(e):
+                # Ignore attempt to add another mapping for an existing key
                 qual = self.get_qualification_mapping(qualification_name)
                 logger.debug(
                     f"Multiple mturk mapping creations for qualification {qualification_name}. "
