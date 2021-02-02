@@ -14,8 +14,13 @@ from datetime import datetime
 
 from botocore.exceptions import ClientError
 from botocore.exceptions import ProfileNotFound
+from mephisto.abstractions.databases.local_database import is_unique_failure
 
 from typing import Dict, Any, Optional
+
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
 
 MTURK_REGION_NAME = "us-east-1"
 
@@ -255,23 +260,47 @@ class MTurkDatastore:
         Create a mapping between mephisto qualification name and mturk
         qualification details in the local datastore
         """
-        with self.table_access_condition, self._get_connection() as conn:
-            c = conn.cursor()
-            c.execute(
-                """INSERT INTO qualifications(
-                    qualification_name,
-                    requester_id,
-                    mturk_qualification_name,
-                    mturk_qualification_id
-                ) VALUES (?, ?, ?, ?);""",
-                (
-                    qualification_name,
-                    requester_id,
-                    mturk_qualification_name,
-                    mturk_qualification_id,
-                ),
-            )
-            return None
+        try:
+            with self.table_access_condition, self._get_connection() as conn:
+                c = conn.cursor()
+                c.execute(
+                    """INSERT INTO qualifications(
+                        qualification_name,
+                        requester_id,
+                        mturk_qualification_name,
+                        mturk_qualification_id
+                    ) VALUES (?, ?, ?, ?);""",
+                    (
+                        qualification_name,
+                        requester_id,
+                        mturk_qualification_name,
+                        mturk_qualification_id,
+                    ),
+                )
+                return None
+        except sqlite3.IntegrityError as e:
+            if is_unique_failure(e):
+                qual = self.get_qualification_mapping(qualification_name)
+                logger.debug(
+                    f"Multiple mturk mapping creations for qualification {qualification_name}. "
+                    f"Found existing one: {qual}. "
+                )
+                cur_requester_id = qual["requester_id"]
+                cur_mturk_qualification_name = qual["mturk_qualification_name"]
+                cur_mturk_qualification_id = qual["mturk_qualification_id"]
+                if cur_requester_id != requester_id:
+                    logger.warn(
+                        f"MTurk Qualification mapping create for {qualification_name} under requester "
+                        f"{requester_id}, already exists under {cur_requester_id}."
+                    )
+                if cur_mturk_qualification_name != mturk_qualification_name:
+                    logger.warn(
+                        f"MTurk Qualification mapping create for {qualification_name} with mturk name "
+                        f"{mturk_qualification_name}, already exists under {cur_mturk_qualification_name}."
+                    )
+                return None
+            else:
+                raise e
 
     def get_qualification_mapping(
         self, qualification_name: str
