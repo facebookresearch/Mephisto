@@ -29,7 +29,7 @@ The `TaskRunner` component of a blueprint is responsible for actually stepping `
 A blueprint is able to create a container that handles any shared data that is initialized during a task or modified between tasks, or for function hooks that are used across a run. The following hooks are already provided in the base:
 - `validate_onboarding`: A function that takes in an onboarding agent's `AgentState.get_data()` call, and should always return a boolean of if that state represents a successful onboarding completion.
 - `worker_can_do_unit`: A function that takes in a `Worker` and a `Unit`, and should return a boolean representing if the worker is eligible to work on that particular unit.
-- `validate_final_unit`: A function that takes in a `Unit` after a `TaskRunner` ends, and is able to do any automatic post-processing operations on that unit thata Mephisto user may want.
+- `on_unit_submitted`: A function that takes in a `Unit` after a `TaskRunner` ends, and is able to do any automatic post-processing operations on that unit that a Mephisto user may want.
 
 ## Implementations
 ### `StaticBlueprint`

@@ -77,7 +77,7 @@ class SharedTaskState:
     worker_can_do_unit: Callable[["Worker", "Unit"], bool] = field(
         default_factory=lambda: (lambda worker, unit: True)
     )
-    validate_final_unit: Callable[["Unit"], None] = field(
+    on_unit_submitted: Callable[["Unit"], None] = field(
         default_factory=lambda: (lambda unit: None)
     )
 
@@ -208,7 +208,7 @@ class TaskRunner(ABC):
 
             traceback.print_exc()
             self.cleanup_unit(unit)
-        self.shared_state.validate_final_unit(unit)
+        self.shared_state.on_unit_submitted(unit)
         del self.running_units[unit.db_id]
         return
 
@@ -247,7 +247,7 @@ class TaskRunner(ABC):
             traceback.print_exc()
             self.cleanup_assignment(assignment)
         for unit in assignment.get_units():
-            self.shared_state.validate_final_unit(unit)
+            self.shared_state.on_unit_submitted(unit)
         del self.running_assignments[assignment.db_id]
         return
 
