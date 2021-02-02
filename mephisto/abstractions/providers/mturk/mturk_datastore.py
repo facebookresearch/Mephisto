@@ -289,12 +289,12 @@ class MTurkDatastore:
                 cur_mturk_qualification_name = qual["mturk_qualification_name"]
                 cur_mturk_qualification_id = qual["mturk_qualification_id"]
                 if cur_requester_id != requester_id:
-                    logger.warn(
+                    logger.warning(
                         f"MTurk Qualification mapping create for {qualification_name} under requester "
                         f"{requester_id}, already exists under {cur_requester_id}."
                     )
                 if cur_mturk_qualification_name != mturk_qualification_name:
-                    logger.warn(
+                    logger.warning(
                         f"MTurk Qualification mapping create for {qualification_name} with mturk name "
                         f"{mturk_qualification_name}, already exists under {cur_mturk_qualification_name}."
                     )
