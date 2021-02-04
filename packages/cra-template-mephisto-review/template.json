@@ -1,7 +1,8 @@
 {
   "package": {
     "dependencies": {
-      "mephisto-review-hook": "^1.0.3"
+      "@blueprintjs/core": "^3.38.1",
+      "mephisto-review-hook": "^2.0.0"
     },
     "scripts": {
       "serve": "serve -s build",

@@ -1,54 +1,64 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useMephistoReview as useMephistoReviewLegacy } from "./legacy";
 
-function useMephistoReview({ useMock, mock } = {}) {
+function useMephistoReview({
+  useMock,
+  mock,
+  taskId,
+  page,
+  resultsPerPage,
+} = {}) {
   const [data, setData] = useState(null);
-  const [counter, setCounter] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const isMock =
     mock !== undefined && (useMock === undefined || useMock === true);
 
   useEffect(() => {
-    if (isMock) {
-      return;
-    }
-
-    fetch("/data_for_current_task")
-      .catch((err) => {
-        setError({ type: "DATA_RETRIEVAL", error: err });
-      })
+    if (isMock) return;
+    const DATA_URL = taskId
+      ? `/data/${taskId}`
+      : `/data?page=${page}&results_per_page=${resultsPerPage}`;
+    setIsLoading(true);
+    fetch(DATA_URL, { method: "GET" })
+      .catch((err) => setError({ type: "DATA_RETRIEVAL", error: err }))
       .then((res) => res.json())
       .then((data) => setData(data))
-      .catch((err) => {
-        setError({ type: "DATA_PARSE", error: err });
-      });
-  }, [counter]);
+      .catch((err) => setError({ type: "DATA_PARSE", error: err }))
+      .then(() => setIsLoading(false));
+  }, [taskId, page, resultsPerPage]);
 
-  const submitData = React.useCallback(
-    (data) => {
-      fetch("/submit_current_task", {
+  const submitData = useCallback(
+    async (data) => {
+      var response = null;
+      setIsLoading(true);
+      await fetch(`/data/${taskId}`, {
         method: "POST",
         body: JSON.stringify(data),
       })
-        .catch((err) => {
-          setError({ type: "RESPONSE_SUBMIT", error: err });
-        })
-        .then(() => setCounter(counter + 1));
+        .catch((err) => setError({ type: "RESPONSE_SUBMIT", error: err }))
+        .then((res) => res.json())
+        .then((data) => (response = data && (data.result || data.error)))
+        .catch((err) => setError({ type: "DATA_PARSE", error: err }))
+        .then(() => setIsLoading(false));
+      return response;
     },
-    [counter, setCounter]
+    [taskId]
   );
 
-  if (isMock) {
-    return mock;
-  }
+  if (isMock) return mock;
 
   return {
-    isLoading: !data,
+    isLoading: isLoading,
+    mode: data && data.mode,
+    taskId: data && data.task_id,
     data: data && data.data,
     isFinished: data && data.finished,
+    totalPages: (data && data.total_pages) || 1,
     submit: submitData,
     error: error,
   };
 }
 
-export { useMephistoReview };
+export { useMephistoReview, useMephistoReviewLegacy };

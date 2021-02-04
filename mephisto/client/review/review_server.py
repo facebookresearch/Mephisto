@@ -31,6 +31,11 @@ def run(
     global all_data_list, datalist_update_time
 
     RESULTS_PER_PAGE_DEFAULT = 10
+    TIMEOUT_IN_SECONDS = 300
+    USE_TIMEOUT = True
+    MODE = "ALL" if all_data else "OBO"
+    RESULT_SUCCESS = "SUCCESS"
+    RESULT_ERROR = "ERROR"
 
     if not debug or output == "":
         # disable noisy logging of flask, https://stackoverflow.com/a/18379764
@@ -92,6 +97,7 @@ def run(
 
     def consume_all_data(page, limit=RESULTS_PER_PAGE_DEFAULT):
         """ returns all data or page of all data given a limit where pages are 1 indexed """
+        global all_data_list, datalist_update_time
         paginated = type(page) is int
         if paginated:
             assert page > 0, "Page number should be a positive 1 indexed integer."
@@ -105,12 +111,13 @@ def run(
         if database_task_name is not None:
             # If differnce in time since the last update to the data list is over 5 minutes, update list again
             # This can only be done for usage with mephistoDB as standard input is exhausted when originally creating the list
-            global datalist_update_time
             now = datetime.now()
-            if (now - datalist_update_time).total_seconds() / 60.0 > 5:
+            if (
+                USE_TIMEOUT
+                and (now - datalist_update_time).total_seconds() > TIMEOUT_IN_SECONDS
+            ):
                 refresh_all_list_data()
 
-        global all_data_list
         if paginated:
             list_len = len(all_data_list)
             if first_index > list_len - 1:
@@ -123,9 +130,14 @@ def run(
             return all_data_list
 
     def refresh_all_list_data():
+        """Refreshes data list when the data source is mephistoDB, allowing for new entries in the db to be included in the review"""
         global all_data_list, datalist_update_time
         data_source = mephistoDBReader()
-        all_data_list = list(data_source)
+        all_data_list = []
+        count = 0
+        for row in data_source:
+            all_data_list.append({"data": row, "id": count})
+            count += 1
         datalist_update_time = datetime.now()
 
     @app.route("/data_for_current_task")
@@ -134,7 +146,7 @@ def run(
         if all_data:
             return jsonify(
                 {
-                    "error": "mephisto review is in all mode, please do not use the --all flag to review individual tasks"
+                    "error": 'mephisto review is in all mode, please get data by sending a GET request to "/data/:id"'
                 }
             )
         if finished:
@@ -147,22 +159,75 @@ def run(
             {"finished": finished, "data": current_data if not finished else None}
         )
 
-    @app.route("/all_data")
-    def all_task_data():
-        if not all_data and database_task_name is None:
+    @app.route("/data/<id>", methods=["GET", "POST"])
+    def task_data_by_id(id):
+        global finished, current_data, ready_for_next, counter, all_data_list
+        id = int(id) if type(id) is int or (type(id) is str and id.isdigit()) else None
+        if request.method == "GET":
+            if all_data:
+                list_len = len(all_data_list)
+                if id is None or id < 0 or id >= list_len:
+                    return jsonify(
+                        {"error": f"Data with ID: {id} does not exist", "mode": MODE}
+                    )
+                return jsonify({"data": all_data_list[id], "mode": MODE})
+            else:
+                if id is None or id != counter - 1:
+                    return jsonify(
+                        {
+                            "error": f"Please review the data point with ID: {counter - 1}",
+                            "mode": MODE,
+                        }
+                    )
+                if finished:
+                    func = request.environ.get("werkzeug.server.shutdown")
+                    if func is None:
+                        raise RuntimeError("Not running with the Werkzeug Server")
+                    func()
+                return jsonify(
+                    {
+                        "finished": finished,
+                        "data": current_data if not finished else None,
+                        "mode": MODE,
+                    }
+                )
+        else:
+            review = request.get_json(force=True)
+            if output == "":
+                sys.stdout.write("{}\n".format(review))
+                sys.stdout.flush()
+            else:
+                with open(output, "a+") as f:
+                    f.write("{}\n".format(review))
+            if not all_data:
+                ready_for_next.set()
+                time.sleep(0)
             return jsonify(
-                {
-                    "error": "mephisto review is not in all mode, please use the --all flag"
-                }
+                {"result": RESULT_SUCCESS, "finished": finished, "mode": MODE}
             )
+
+    @app.route("/data")
+    def all_task_data():
+        global counter, current_data, all_data_list
+        if not all_data:
+            return jsonify({"data": current_data, "task_id": counter - 1, "mode": MODE})
         page = request.args.get("page", default=None, type=int)
-        results_per_page = request.args.get("results_per_page", default=None, type=int)
+        results_per_page = request.args.get(
+            "results_per_page", default=RESULTS_PER_PAGE_DEFAULT, type=int
+        )
         try:
             data_point_list = consume_all_data(page, results_per_page)
+            total_pages = (
+                len(all_data_list) / results_per_page
+                if type(page) is int and page > 0
+                else 1
+            )
+            return jsonify(
+                {"data": data_point_list, "mode": MODE, "total_pages": total_pages}
+            )
         except AssertionError as ae:
             print(f"Error: {ae.args[0]}")
-            return jsonify({"error": ae.args[0]})
-        return jsonify({"data": data_point_list, "length": len(data_point_list)})
+            return jsonify({"error": ae.args[0], "mode": MODE})
 
     @app.route("/submit_current_task", methods=["GET", "POST"])
     def next_task():
@@ -170,13 +235,13 @@ def run(
         if all_data:
             return jsonify(
                 {
-                    "error": "mephisto review is in all mode, please do not use the --all flag to review individual tasks"
+                    "error": 'mephisto review is in all mode, please submit reviews by sending a POST request to "/data/:id"'
                 }
             )
         result = (
             request.get_json(force=True)
             if request.method == "POST"
-            else request.ags.get("result")
+            else request.args.get("result")
         )
 
         if output == "":
@@ -218,10 +283,14 @@ def run(
             if csv_headers:
                 next(data_source)
 
-        all_data_list = list(data_source)
+        all_data_list = []
+        count = 0
+        for row in data_source:
+            all_data_list.append({"data": row, "id": count})
+            count += 1
         datalist_update_time = datetime.now()
-
-    if not all_data:
+        finished = False
+    else:
         thread = threading.Thread(target=consume_data)
         thread.start()
     if sys.stdout.isatty():
