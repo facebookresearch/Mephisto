@@ -5,10 +5,10 @@ function useMephistoReview({ useMock, mock } = {}) {
   const [counter, setCounter] = useState(0);
   const [error, setError] = useState(null);
 
-  const isMock = mock !== undefined && (useMock === undefined || useMock === true)
+  const isMock =
+    mock !== undefined && (useMock === undefined || useMock === true);
 
   useEffect(() => {
-
     if (isMock) {
       return;
     }
