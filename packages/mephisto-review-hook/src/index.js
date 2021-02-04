@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 
 function useMephistoReview({ useMock, mock } = {}) {
-  if (mock !== undefined && (useMock === undefined || useMock === true)) {
-    return mock;
-  }
-
   const [data, setData] = useState(null);
   const [counter, setCounter] = useState(0);
   const [error, setError] = useState(null);
 
+  const isMock = mock !== undefined && (useMock === undefined || useMock === true)
+
   useEffect(() => {
+
+    if (isMock) {
+      return;
+    }
+
     fetch("/data_for_current_task")
       .catch((err) => {
         setError({ type: "DATA_RETRIEVAL", error: err });
@@ -34,6 +37,10 @@ function useMephistoReview({ useMock, mock } = {}) {
     },
     [counter, setCounter]
   );
+
+  if (isMock) {
+    return mock;
+  }
 
   return {
     isLoading: !data,
