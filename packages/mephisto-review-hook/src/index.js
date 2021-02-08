@@ -56,7 +56,6 @@ function useMephistoReview({
   return {
     isLoading: isLoading,
     mode: data && data.mode,
-    taskId: data && data.task_id,
     data: data && data.data,
     isFinished: data && data.finished,
     totalPages: (data && data.total_pages) || 1,

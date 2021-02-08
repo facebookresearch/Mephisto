@@ -15,11 +15,10 @@ function GridRenderer() {
     isLoading,
     error,
     mode,
-    taskId,
     totalPages,
   } = useMephistoReview({ page, resultsPerPage });
 
-  if (mode === "OBO") return <Redirect to={`/${taskId}`} />;
+  if (mode === "OBO") return <Redirect to={`/${data && data.id}`} />;
   return (
     <main className="grid-renderer">
       {error && <h5 className="error">Error: {JSON.stringify(error)}</h5>}

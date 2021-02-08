@@ -75,6 +75,7 @@ def run(
             yield format_data_for_review(mephisto_data_browser.get_data_from_unit(unit))
 
     def consume_data():
+        """ For use in "one-by-one" or default mode. Runs on a seperate thread to consume mephisto review data line by line and update global variables to temporarily store this data """
         global ready_for_next, current_data, finished, counter
 
         if database_task_name is not None:
@@ -96,7 +97,7 @@ def run(
         finished = True
 
     def consume_all_data(page, limit=RESULTS_PER_PAGE_DEFAULT):
-        """ returns all data or page of all data given a limit where pages are 1 indexed """
+        """ For use in "all" mode. Returns all data or a page of all data given a limit where pages are 1 indexed """
         global all_data_list, datalist_update_time
         paginated = type(page) is int
         if paginated:
@@ -130,7 +131,7 @@ def run(
             return all_data_list
 
     def refresh_all_list_data():
-        """Refreshes data list when the data source is mephistoDB, allowing for new entries in the db to be included in the review"""
+        """For use in "all" mode. Refreshes all data list when the data source is mephistoDB, allowing for new entries in the db to be included in the review"""
         global all_data_list, datalist_update_time
         data_source = mephistoDBReader()
         all_data_list = []
@@ -142,6 +143,12 @@ def run(
 
     @app.route("/data_for_current_task")
     def data():
+        """
+        *** DEPRECATED ***
+        For use in "one-by-one" or default mode.
+        Based on global variables set by the consume_data method returns the piece of data currently being reviewed.
+        If there is no more data being reviewed the app is shut down.
+        """
         global current_data, finished
         if all_data:
             return jsonify(
@@ -161,6 +168,14 @@ def run(
 
     @app.route("/data/<id>", methods=["GET", "POST"])
     def task_data_by_id(id):
+        """
+        This route takes a parameter of the id of an item being reviewed.
+        This id represents the index (beginning at 0) of the item in the list of items being reviewed.
+        If this route receives a GET request the data of the item at that position in the list of review items is returned.
+        If this route receives a POST request a review is written for the item at the given index based on the body of JSON in the request.
+        Accordingly for POST requests all review data must be in the JSON body of the request.
+        The JSON for the review is written directly into the output file specified for mephisto review.
+        """
         global finished, current_data, ready_for_next, counter, all_data_list
         id = int(id) if type(id) is int or (type(id) is str and id.isdigit()) else None
         if request.method == "GET":
@@ -179,6 +194,10 @@ def run(
                             "mode": MODE,
                         }
                     )
+                data = {
+                    "data": current_data if not finished else None,
+                    "id": counter - 1,
+                }
                 if finished:
                     func = request.environ.get("werkzeug.server.shutdown")
                     if func is None:
@@ -187,7 +206,7 @@ def run(
                 return jsonify(
                     {
                         "finished": finished,
-                        "data": current_data if not finished else None,
+                        "data": data,
                         "mode": MODE,
                     }
                 )
@@ -208,29 +227,43 @@ def run(
 
     @app.route("/data")
     def all_task_data():
-        global counter, current_data, all_data_list
-        if not all_data:
-            return jsonify({"data": current_data, "task_id": counter - 1, "mode": MODE})
-        page = request.args.get("page", default=None, type=int)
-        results_per_page = request.args.get(
-            "results_per_page", default=RESULTS_PER_PAGE_DEFAULT, type=int
-        )
-        try:
-            data_point_list = consume_all_data(page, results_per_page)
-            total_pages = (
-                len(all_data_list) / results_per_page
-                if type(page) is int and page > 0
-                else 1
+        """
+        This route returns the list of all data being reviewed if the app is in "all" mode.
+        Otherwise this route returns the id and data of the item currently being reviewed in "one-by-one" or standard mode.
+        The id in the response refers to the index (beginning at 0) of the item being reviewed in the list of all items being reviewed.
+        """
+        global counter, current_data, all_data_list, finished
+        if all_data:
+            page = request.args.get("page", default=None, type=int)
+            results_per_page = request.args.get(
+                "results_per_page", default=RESULTS_PER_PAGE_DEFAULT, type=int
             )
-            return jsonify(
-                {"data": data_point_list, "mode": MODE, "total_pages": total_pages}
-            )
-        except AssertionError as ae:
-            print(f"Error: {ae.args[0]}")
-            return jsonify({"error": ae.args[0], "mode": MODE})
+            try:
+                data_point_list = consume_all_data(page, results_per_page)
+                total_pages = (
+                    len(all_data_list) / results_per_page
+                    if type(page) is int and page > 0
+                    else 1
+                )
+                return jsonify(
+                    {"data": data_point_list, "mode": MODE, "total_pages": total_pages}
+                )
+            except AssertionError as ae:
+                print(f"Error: {ae.args[0]}")
+                return jsonify({"error": ae.args[0], "mode": MODE})
+        else:
+            data = {"data": current_data if not finished else None, "id": counter - 1}
+            return jsonify({"data": data, "mode": MODE, "finished": finished})
 
     @app.route("/submit_current_task", methods=["GET", "POST"])
     def next_task():
+        """
+        *** DEPRECATED ***
+        For use in "one-by-one" or default mode.
+        This route allows users to submit reviews for tasks.
+        All review data must be contained within the body of the request.
+        The review data is written directly to the output file specified in mephisto review.
+        """
         global current_data, ready_for_next, finished, counter
         if all_data:
             return jsonify(
