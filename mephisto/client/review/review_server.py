@@ -166,6 +166,39 @@ def run(
             {"finished": finished, "data": current_data if not finished else None}
         )
 
+    @app.route("/submit_current_task", methods=["GET", "POST"])
+    def next_task():
+        """
+        *** DEPRECATED ***
+        For use in "one-by-one" or default mode.
+        This route allows users to submit reviews for tasks.
+        All review data must be contained within the body of the request.
+        The review data is written directly to the output file specified in mephisto review.
+        """
+        global current_data, ready_for_next, finished, counter
+        if all_data:
+            return jsonify(
+                {
+                    "error": 'mephisto review is in all mode, please submit reviews by sending a POST request to "/data/:id"'
+                }
+            )
+        result = (
+            request.get_json(force=True)
+            if request.method == "POST"
+            else request.args.get("result")
+        )
+
+        if output == "":
+            sys.stdout.write("{}\n".format(result))
+            sys.stdout.flush()
+        else:
+            with open(output, "a+") as f:
+                f.write("{}\n".format(result))
+
+        ready_for_next.set()
+        time.sleep(0)
+        return jsonify({"finished": finished, "counter": counter})
+
     @app.route("/data/<id>", methods=["GET", "POST"])
     def task_data_by_id(id):
         """
@@ -254,39 +287,6 @@ def run(
         else:
             data = {"data": current_data if not finished else None, "id": counter - 1}
             return jsonify({"data": data, "mode": MODE, "finished": finished})
-
-    @app.route("/submit_current_task", methods=["GET", "POST"])
-    def next_task():
-        """
-        *** DEPRECATED ***
-        For use in "one-by-one" or default mode.
-        This route allows users to submit reviews for tasks.
-        All review data must be contained within the body of the request.
-        The review data is written directly to the output file specified in mephisto review.
-        """
-        global current_data, ready_for_next, finished, counter
-        if all_data:
-            return jsonify(
-                {
-                    "error": 'mephisto review is in all mode, please submit reviews by sending a POST request to "/data/:id"'
-                }
-            )
-        result = (
-            request.get_json(force=True)
-            if request.method == "POST"
-            else request.args.get("result")
-        )
-
-        if output == "":
-            sys.stdout.write("{}\n".format(result))
-            sys.stdout.flush()
-        else:
-            with open(output, "a+") as f:
-                f.write("{}\n".format(result))
-
-        ready_for_next.set()
-        time.sleep(0)
-        return jsonify({"finished": finished, "counter": counter})
 
     @app.route("/")
     def index():
