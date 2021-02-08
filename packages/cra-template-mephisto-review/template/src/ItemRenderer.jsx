@@ -51,7 +51,7 @@ function App() {
         <>
           <H2>Please review the following data:</H2>
           <Card className="item" elevation={Elevation.TWO}>
-            <pre>{JSON.stringify((data && data.data) || data, 2)}</pre>
+            <pre>{(data && data.data) || data}</pre>
           </Card>
           <div className="button-container">
             <Button

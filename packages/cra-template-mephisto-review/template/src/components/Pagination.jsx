@@ -76,7 +76,7 @@ function Pagination({ page = 1, totalPages = 1, setPage = () => {} }) {
   const rightArrow = page < totalPages;
 
   return (
-    <div className="pt-button-group pagination">
+    <div className="bp3-button-group pagination">
       <Button
         large={true}
         iconName="chevron-left"

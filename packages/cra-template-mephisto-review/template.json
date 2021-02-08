@@ -2,7 +2,7 @@
   "package": {
     "dependencies": {
       "@blueprintjs/core": "^3.38.1",
-      "mephisto-review-hook": "^1.1.0",
+      "mephisto-review-hook": "^2.0.0",
       "react-router-dom": "^5.2.0"
     },
     "scripts": {
