@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Redirect } from "react-router-dom";
 import { useMephistoReview } from "mephisto-review-hook";
-import { H3, H2, H1 } from "@blueprintjs/core";
+import { H5, H3, H2, H1 } from "@blueprintjs/core";
 import GridView from "./GridView";
 import Pagination from "./components/Pagination";
 import "./GridRenderer.css";
@@ -45,10 +45,13 @@ function GridRenderer() {
               />
             </>
           ) : (
-            <h5 className="grid-renderer-header error">
+            <H5 className="grid-renderer-header">
               Sorry, no data available. Please provide Mephisto Review with some
-              data
-            </h5>
+              data by running mephisto review with either standard input of a
+              CSV or JSON file or by using the "--db" flag along with the name
+              of a task in mephistoDB as an argument. The task must have valid
+              review data.
+            </H5>
           )}
         </>
       )}
