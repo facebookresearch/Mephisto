@@ -1,6 +1,6 @@
 import React from "react";
 import { useMephistoReview } from "mephisto-review-hook";
-import { useParams, useHistory } from "react-router-dom";
+import { useParams, useHistory, Link } from "react-router-dom";
 import { Button, H2, Card, Elevation } from "@blueprintjs/core";
 import AppToaster from "./components/AppToaster";
 import "./ItemRenderer.css";
@@ -32,15 +32,16 @@ function App() {
   return (
     <main className="Item-Renderer">
       {mode === "ALL" ? (
-        <Button
-          onClick={() => history.push("/")}
-          intent="primary"
-          large={true}
-          icon="caret-left"
-          className="home-button"
-        >
-          <b>BACK</b>
-        </Button>
+        <Link to="/" style={{ textDecoration: "none" }}>
+          <Button
+            intent="primary"
+            large={true}
+            icon="caret-left"
+            className="home-button"
+          >
+            <b>BACK</b>
+          </Button>
+        </Link>
       ) : null}
       {error && <h5 className="error">Error: {JSON.stringify(error)}</h5>}
       {isLoading ? (
@@ -51,7 +52,7 @@ function App() {
         <>
           <H2>Please review the following data:</H2>
           <Card className="item" elevation={Elevation.TWO}>
-            <pre>{(data && data.data) || data}</pre>
+            <pre>{data && data.data}</pre>
           </Card>
           <div className="button-container">
             <Button

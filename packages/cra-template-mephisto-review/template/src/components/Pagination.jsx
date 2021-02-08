@@ -6,11 +6,12 @@ import "./components.css";
  * Creates pagination buttons based on the total number of pages to be paginated as well as the active page.
  * The setPage parameter allows the component to change the page state in its parent component.
  */
-function Pagination({ page = 1, totalPages = 1, setPage = () => {} }) {
+
+function getPagination(page, totalPages) {
   //how many buttons are allowed to be displayed between the next and last page buttons
   const MAX_CELLS = 7;
   //middle entry of the buttons is the floor of half of the max
-  const CELL_MID_LEN = ~~(MAX_CELLS / 2);
+  const CELL_MID_LEN = Math.floor(MAX_CELLS / 2);
 
   /*stores the attributes of the buttons to be displayed
    * The term ellipsis in objects stored in this array refers to series of page numbers condensed into a single "..." button
@@ -74,6 +75,16 @@ function Pagination({ page = 1, totalPages = 1, setPage = () => {} }) {
   //if at last page disable going forward and if at first page disable going back
   const leftArrow = page > 1;
   const rightArrow = page < totalPages;
+
+  return {
+    pages,
+    leftArrow,
+    rightArrow,
+  };
+}
+
+function Pagination({ page = 1, totalPages = 1, setPage = () => {} }) {
+  const { pages, leftArrow, rightArrow } = getPagination(page, totalPages);
 
   return (
     <div className="bp3-button-group pagination">

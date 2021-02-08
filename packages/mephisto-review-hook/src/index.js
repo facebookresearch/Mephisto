@@ -16,7 +16,9 @@ function useMephistoReview({
     mock !== undefined && (useMock === undefined || useMock === true);
 
   useEffect(() => {
-    if (isMock) return;
+    if (isMock) {
+      return;
+    }
     const DATA_URL = taskId
       ? `/data/${taskId}`
       : `/data?page=${page}&results_per_page=${resultsPerPage}`;
@@ -47,7 +49,9 @@ function useMephistoReview({
     [taskId]
   );
 
-  if (isMock) return mock;
+  if (isMock) {
+    return mock;
+  }
 
   return {
     isLoading: isLoading,
