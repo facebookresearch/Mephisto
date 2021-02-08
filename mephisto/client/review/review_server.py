@@ -189,8 +189,7 @@ def run(
         )
 
         if output == "":
-            sys.stdout.write("{}\n".format(result))
-            sys.stdout.flush()
+            print("{}\n".format(result))
         else:
             with open(output, "a+") as f:
                 f.write("{}\n".format(result))
@@ -246,8 +245,7 @@ def run(
         else:
             review = request.get_json(force=True)
             if output == "":
-                sys.stdout.write("{}\n".format(review))
-                sys.stdout.flush()
+                print("{}\n".format(review))
             else:
                 with open(output, "a+") as f:
                     f.write("{}\n".format(review))
