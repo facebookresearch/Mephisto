@@ -1,0 +1,41 @@
+.Item-Renderer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: calc(10px + 2vmin);
+}
+.item {
+  margin: 24px 24px;
+}
+
+.item > pre {
+  white-space: pre-wrap;
+  font-size: 28px;
+  max-width: 100%;
+  max-height: 500px;
+  overflow: auto;
+}
+
+.home-button {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 18px 18px;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.btn {
+  margin: 0px 6px;
+  font-size: 48px;
+  cursor: pointer;
+}
