@@ -73,25 +73,28 @@ function getPagination(page, totalPages) {
   });
 
   //if at last page disable going forward and if at first page disable going back
-  const leftArrow = page > 1;
-  const rightArrow = page < totalPages;
+  const isLeftArrowEnabled = page > 1;
+  const isRightArrowEnabled = page < totalPages;
 
   return {
     pages,
-    leftArrow,
-    rightArrow,
+    isLeftArrowEnabled,
+    isRightArrowEnabled,
   };
 }
 
 function Pagination({ page = 1, totalPages = 1, setPage = () => {} }) {
-  const { pages, leftArrow, rightArrow } = getPagination(page, totalPages);
+  const { pages, isLeftArrowEnabled, isRightArrowEnabled } = getPagination(
+    page,
+    totalPages
+  );
 
   return (
     <div className="bp3-button-group pagination">
       <Button
         large={true}
         iconName="chevron-left"
-        disabled={!leftArrow}
+        disabled={!isLeftArrowEnabled}
         onClick={() => setPage(page - 1)}
       >
         <Icon icon="chevron-left" />
@@ -108,7 +111,7 @@ function Pagination({ page = 1, totalPages = 1, setPage = () => {} }) {
       ))}
       <Button
         large={true}
-        disabled={!rightArrow}
+        disabled={!isRightArrowEnabled}
         onClick={() => setPage(page + 1)}
       >
         <Icon icon="chevron-right" />

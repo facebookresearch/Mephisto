@@ -245,10 +245,10 @@ def run(
         else:
             review = request.get_json(force=True)
             if output == "":
-                print("{}".format(review))
+                print("ID: {}, REVIEW: {}".format(id, review))
             else:
                 with open(output, "a+") as f:
-                    f.write("{}\n".format(review))
+                    f.write("ID: {}, REVIEW: {}\n".format(id, review))
             if not all_data:
                 ready_for_next.set()
                 time.sleep(0)

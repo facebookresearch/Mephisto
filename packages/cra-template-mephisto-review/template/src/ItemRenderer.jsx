@@ -61,7 +61,7 @@ function App() {
               large={true}
               disabled={data == null}
               onClick={async () => {
-                var response = await submit({ result: "rejected", id });
+                var response = await submit({ result: "rejected" });
                 if (response == "SUCCESS") {
                   confirmReview();
                 } else if (response) {
@@ -77,7 +77,7 @@ function App() {
               large={true}
               disabled={data == null}
               onClick={async () => {
-                var response = await submit({ result: "approved", id });
+                var response = await submit({ result: "approved" });
                 if (response == "SUCCESS") {
                   confirmReview();
                 } else if (response) {
