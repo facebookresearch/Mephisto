@@ -44,6 +44,9 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
+BLUEPRINT_TYPE = "abstract_static"
+
+
 @dataclass
 class SharedStaticTaskState(SharedTaskState):
     static_task_data: List[Any] = field(default_factory=list)
@@ -51,6 +54,17 @@ class SharedStaticTaskState(SharedTaskState):
 
 @dataclass
 class StaticBlueprintArgs(BlueprintArgs):
+    _blueprint_type: str = BLUEPRINT_TYPE
+    _group: str = field(
+        default="StaticBlueprint",
+        metadata={
+            "help": (
+                "Abstract Static Blueprints should not be launched manually, but "
+                "include all tasks with units containing just one input and output "
+                "of arbitrary data, with no live component. "
+            )
+        },
+    )
     units_per_assignment: int = field(
         default=1, metadata={"help": "How many workers you want to do each assignment"}
     )
