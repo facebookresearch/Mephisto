@@ -36,7 +36,15 @@ function MainApp() {
     handleSubmit,
     isOnboarding,
     agentId,
+    providerWorkerId,
   } = useMephistoTask();
+
+  // We expose these as template variables, even if they aren't
+  // directly asked for
+  const MEPHISTO_KEY_MAP = {
+    mephisto_agent_id: agentId,
+    provider_worker_id: providerWorkerId,
+  };
 
   function submitFromFrame(formData, objData) {
     if (isOnboarding) {
@@ -69,7 +77,11 @@ function MainApp() {
   if (isOnboarding) {
     return (
       <SubmitFrame onSubmit={submitFromFrame}>
-        <ShowURL url={"onboarding.html"} data={initialTaskData} />
+        <ShowURL
+          url={"onboarding.html"}
+          data={initialTaskData}
+          mephisto_keys={MEPHISTO_KEY_MAP}
+        />
       </SubmitFrame>
     );
   }
@@ -78,7 +90,11 @@ function MainApp() {
   }
   return (
     <SubmitFrame onSubmit={submitFromFrame}>
-      <ShowURL url={initialTaskData["html"]} data={initialTaskData} />
+      <ShowURL
+        url={initialTaskData["html"]}
+        data={initialTaskData}
+        mephisto_keys={MEPHISTO_KEY_MAP}
+      />
     </SubmitFrame>
   );
 }
@@ -117,7 +133,7 @@ function SubmitFrame({ children, onSubmit }) {
   );
 }
 
-function ShowURL({ url, data = null }) {
+function ShowURL({ url, data = null, mephisto_keys = null }) {
   const [retrievedHtml, setRetrievedHtml] = React.useState(
     "<div>Loading..</div>"
   );
@@ -126,10 +142,16 @@ function ShowURL({ url, data = null }) {
     requestTaskHMTL(url).then((data) => setRetrievedHtml(data));
   }, []);
 
-  return <HtmlRenderer html={retrievedHtml} data={data} />;
+  return (
+    <HtmlRenderer
+      html={retrievedHtml}
+      data={data}
+      mephisto_keys={mephisto_keys}
+    />
+  );
 }
 
-function HtmlRenderer({ html, data }) {
+function HtmlRenderer({ html, data, mephisto_keys }) {
   const elRef = React.useRef();
 
   function handleUpdatingRemainingScripts(curr_counter, scripts_left) {
@@ -162,6 +184,14 @@ function HtmlRenderer({ html, data }) {
       for (let [key, value] of Object.entries(dataObj)) {
         let find_string = "${" + key + "}";
         // Could be better done with a regex for performant code
+        fin_html = fin_html.split(find_string).join(value);
+      }
+    }
+
+    if (mephisto_keys !== null) {
+      // Add mephisto specific templates
+      for (let [key, value] of Object.entries(mephisto_keys)) {
+        let find_string = "${" + key + "}";
         fin_html = fin_html.split(find_string).join(value);
       }
     }
