@@ -96,18 +96,32 @@ def run(
             ready_for_next.wait()
         finished = True
 
-    def consume_all_data(page, limit=RESULTS_PER_PAGE_DEFAULT):
-        """ For use in "all" mode. Returns all data or a page of all data given a limit where pages are 1 indexed """
+    def consume_all_data(page, results_per_page=RESULTS_PER_PAGE_DEFAULT, filters=None):
+        """
+        For use in "all" mode.
+        Returns a filtered list of all data or a page of all data.
+        Params:
+            page: 1 indexed page number integer
+            results_per_page: maximum number of results per page
+            filters: keywords or sentences to filter data for. must be a list
+        """
         global all_data_list, datalist_update_time
         paginated = type(page) is int
         if paginated:
             assert page > 0, "Page number should be a positive 1 indexed integer."
             assert (
-                type(limit) is int and limit > 0
+                type(results_per_page) is int and results_per_page > 0
             ), "results_per_page should be a positive integer"
 
-        first_index = (page - 1) * limit if paginated else 0
-        data_point_list = []
+        first_index = (page - 1) * results_per_page if paginated else 0
+
+        filtered_data_list = all_data_list
+        if type(filters) is list:
+            filtered_data_list = [
+                item
+                for item in all_data_list
+                if all(word.lower() in str(item["data"]).lower() for word in filters)
+            ]
 
         if database_task_name is not None:
             # If differnce in time since the last update to the data list is over 5 minutes, update list again
@@ -120,15 +134,17 @@ def run(
                 refresh_all_list_data()
 
         if paginated:
-            list_len = len(all_data_list)
+            list_len = len(filtered_data_list)
             if first_index > list_len - 1:
                 return []
-            limit = min(first_index + limit, list_len) - first_index
-            if limit < 0:
+            results_per_page = (
+                min(first_index + results_per_page, list_len) - first_index
+            )
+            if results_per_page < 0:
                 return []
-            return all_data_list[first_index : first_index + limit]
+            return filtered_data_list[first_index : first_index + results_per_page]
         else:
-            return all_data_list
+            return filtered_data_list
 
     def refresh_all_list_data():
         """For use in "all" mode. Refreshes all data list when the data source is mephistoDB, allowing for new entries in the db to be included in the review"""
@@ -269,8 +285,14 @@ def run(
             results_per_page = request.args.get(
                 "results_per_page", default=RESULTS_PER_PAGE_DEFAULT, type=int
             )
+            filters_str = request.args.get("filters", default=None, type=str)
+            filters = None
+            if type(filters_str) is str:
+                filters_str = filters_str.replace("%20", " ")
+                filters = filters_str.split(",")
+                filters = [filt.strip() for filt in filters]
             try:
-                data_point_list = consume_all_data(page, results_per_page)
+                data_point_list = consume_all_data(page, results_per_page, filters)
                 total_pages = (
                     len(all_data_list) / results_per_page
                     if type(page) is int and page > 0

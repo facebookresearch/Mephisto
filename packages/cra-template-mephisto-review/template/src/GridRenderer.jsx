@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Redirect } from "react-router-dom";
 import { useMephistoReview } from "mephisto-review-hook";
-import { H5, H3, H2, H1 } from "@blueprintjs/core";
+import { H4, H3, H2, H1, InputGroup } from "@blueprintjs/core";
+import { Tooltip2 } from "@blueprintjs/popover2";
 import GridView from "./GridView";
 import Pagination from "./components/Pagination";
 import "./GridRenderer.css";
@@ -9,6 +10,9 @@ import "./GridRenderer.css";
 function GridRenderer() {
   const resultsPerPage = 9;
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState("");
+  const [filterTimeout, setFilterTimeout] = useState(null);
+
   const {
     data,
     isFinished,
@@ -16,7 +20,19 @@ function GridRenderer() {
     error,
     mode,
     totalPages,
-  } = useMephistoReview({ page, resultsPerPage });
+  } = useMephistoReview({ page, resultsPerPage, filters });
+
+  const delaySetFilters = (filtersStr) => {
+    if (filterTimeout) {
+      clearTimeout(filterTimeout);
+    }
+
+    setFilterTimeout(
+      setTimeout(() => {
+        setFilters(filtersStr);
+      }, 2000)
+    );
+  };
 
   if (mode === "OBO") return <Redirect to={`/${data && data.id}`} />;
   return (
@@ -32,8 +48,24 @@ function GridRenderer() {
             <H2>
               <b>Welcome to Mephisto Review</b>
             </H2>
-            <H3>Please click on the following data cards to review them:</H3>
+            {data && data.length > 0 && (
+              <H3>Please click on the following data cards to review them:</H3>
+            )}
           </div>
+          <Tooltip2
+            className="search-box"
+            content="Separate multiple filters with commas"
+          >
+            <InputGroup
+              asyncControl={true}
+              leftIcon="search"
+              large={true}
+              round={true}
+              onChange={(event) => delaySetFilters(event.target.value)}
+              placeholder="Filter data..."
+              value={filters}
+            />
+          </Tooltip2>
           {data && data.length > 0 ? (
             <>
               <GridView data={data} />
@@ -44,13 +76,15 @@ function GridRenderer() {
               />
             </>
           ) : (
-            <H5 className="grid-renderer-header">
-              Sorry, no data available. Please provide Mephisto Review with some
-              data by running mephisto review with either standard input of a
-              CSV or JSON file or by using the "--db" flag along with the name
-              of a task in mephistoDB as an argument. The task must have valid
-              review data.
-            </H5>
+            <div className="grid-renderer-no-data">
+              <H4>
+                Sorry, no data available. Please provide Mephisto Review with
+                some data by running mephisto review with either standard input
+                of a CSV or JSON file or by using the "--db" flag along with the
+                name of a task in mephistoDB as an argument. The task must have
+                valid review data.
+              </H4>
+            </div>
           )}
         </>
       )}

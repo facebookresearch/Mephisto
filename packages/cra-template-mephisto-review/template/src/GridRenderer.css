@@ -12,13 +12,27 @@
   margin-top: 48px;
 }
 
+.grid-renderer-no-data {
+  max-width: 50%;
+  max-height: 300px;
+  margin: 12px 0;
+  overflow: auto;
+}
+
+.search-box {
+  margin: 12px 0;
+  width: 50%;
+}
+
 .grid-container {
   display: grid;
   grid-template-rows: auto;
   grid-template-columns: 100%;
   grid-row-gap: 18px;
   grid-column-gap: 6px;
-  padding: 32px 32px;
+  padding: 12px 32px;
+  margin: 12px 0px;
+  min-width: 75vw;
   max-width: 100vw;
 }
 
