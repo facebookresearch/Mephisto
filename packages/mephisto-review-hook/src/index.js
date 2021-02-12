@@ -24,7 +24,7 @@ function useMephistoReview({
       ? `/data/${taskId}`
       : `/data?${page ? "page=" + page : ""}${
           resultsPerPage ? "&results_per_page=" + resultsPerPage : ""
-        }${filters ? "&filters=" + filters.replace(" ", "%20") : ""}`;
+        }${filters ? "&filters=" + encodeURIComponent(filters) : ""}`;
     setIsLoading(true);
     fetch(DATA_URL, { method: "GET" })
       .catch((err) => setError({ type: "DATA_RETRIEVAL", error: err }))

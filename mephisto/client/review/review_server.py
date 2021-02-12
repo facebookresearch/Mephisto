@@ -13,6 +13,7 @@ import csv
 import sys
 import time
 import threading
+import urllib.parse
 
 
 def run(
@@ -293,7 +294,7 @@ def run(
             filters_str = request.args.get("filters", default=None, type=str)
             filters = None
             if type(filters_str) is str:
-                filters_str = filters_str.replace("%20", " ")
+                filters_str = urllib.parse.unquote(filters_str)
                 filters = filters_str.split(",")
                 filters = [filt.strip() for filt in filters]
             try:

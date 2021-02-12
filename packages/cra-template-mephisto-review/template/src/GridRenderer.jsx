@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Redirect } from "react-router-dom";
 import { useMephistoReview } from "mephisto-review-hook";
-import { H4, H3, H2, H1, InputGroup } from "@blueprintjs/core";
+import { H4, H3, H2, H1, InputGroup, Button } from "@blueprintjs/core";
 import { Tooltip2 } from "@blueprintjs/popover2";
 import GridView from "./GridView";
 import Pagination from "./components/Pagination";
@@ -11,6 +11,7 @@ function GridRenderer() {
   const resultsPerPage = 9;
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState("");
+  const [filtersBuffer, setFiltersBuffer] = useState("");
   const [filterTimeout, setFilterTimeout] = useState(null);
 
   const {
@@ -23,16 +24,29 @@ function GridRenderer() {
   } = useMephistoReview({ page, resultsPerPage, filters });
 
   const delaySetFilters = (filtersStr) => {
+    setFiltersBuffer(filtersStr);
     if (filterTimeout) {
       clearTimeout(filterTimeout);
     }
-
     setFilterTimeout(
       setTimeout(() => {
         setFilters(filtersStr);
-      }, 2000)
+      }, 3000)
     );
   };
+
+  const setFiltersImmediately = () => {
+    if (filterTimeout) {
+      clearTimeout(filterTimeout);
+    }
+    setFilters(filtersBuffer);
+  };
+
+  const searchButton = (
+    <Button round={true} onClick={setFiltersImmediately}>
+      Search
+    </Button>
+  );
 
   if (mode === "OBO") return <Redirect to={`/${data && data.id}`} />;
   return (
@@ -57,13 +71,16 @@ function GridRenderer() {
             content="Separate multiple filters with commas"
           >
             <InputGroup
-              asyncControl={true}
               leftIcon="search"
               large={true}
               round={true}
               onChange={(event) => delaySetFilters(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") setFiltersImmediately();
+              }}
               placeholder="Filter data..."
-              value={filters}
+              value={filtersBuffer}
+              rightElement={searchButton}
             />
           </Tooltip2>
           {data && data.length > 0 ? (
