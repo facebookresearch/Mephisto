@@ -12,13 +12,27 @@
   margin-top: 48px;
 }
 
+.grid-renderer-no-data {
+  max-width: 50%;
+  max-height: 300px;
+  margin: 12px 0;
+  overflow: auto;
+}
+
+.search-box {
+  margin: 12px 0;
+  width: 50%;
+}
+
 .grid-container {
   display: grid;
   grid-template-rows: auto;
   grid-template-columns: 100%;
   grid-row-gap: 18px;
   grid-column-gap: 6px;
-  padding: 32px 32px;
+  padding: 12px 12px;
+  margin: 12px 12px;
+  min-width: 75vw;
   max-width: 100vw;
 }
 
@@ -39,8 +53,8 @@
 }
 
 .grid-item-text {
-  max-height: 100px;
-  max-width: 100%;
+  height: 100px;
+  width: 100%;
   margin-bottom: 12px;
   overflow: auto;
 }

@@ -7,6 +7,7 @@ function useMephistoReview({
   taskId,
   page,
   resultsPerPage,
+  filters,
 } = {}) {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +22,9 @@ function useMephistoReview({
     }
     const DATA_URL = taskId
       ? `/data/${taskId}`
-      : `/data?page=${page}&results_per_page=${resultsPerPage}`;
+      : `/data?${page ? "page=" + page : ""}${
+          resultsPerPage ? "&results_per_page=" + resultsPerPage : ""
+        }${filters ? "&filters=" + encodeURIComponent(filters) : ""}`;
     setIsLoading(true);
     fetch(DATA_URL, { method: "GET" })
       .catch((err) => setError({ type: "DATA_RETRIEVAL", error: err }))
@@ -29,7 +32,7 @@ function useMephistoReview({
       .then((data) => setData(data))
       .catch((err) => setError({ type: "DATA_PARSE", error: err }))
       .then(() => setIsLoading(false));
-  }, [taskId, page, resultsPerPage]);
+  }, [taskId, page, resultsPerPage, filters]);
 
   const submitData = useCallback(
     async (data) => {

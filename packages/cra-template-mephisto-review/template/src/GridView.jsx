@@ -6,9 +6,12 @@ function GridView({ data }) {
   return data && data.length > 0 ? (
     <div className="grid-container">
       {data.map((item) => (
-        <Link to={`/${item.id}`} style={{ textDecoration: "none" }}>
+        <Link
+          to={`/${item.id}`}
+          style={{ textDecoration: "none" }}
+          key={item.id}
+        >
           <Card
-            key={item.id}
             interactive={true}
             elevation={Elevation.TWO}
             className="grid-item"

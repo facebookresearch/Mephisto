@@ -13,6 +13,8 @@ import csv
 import sys
 import time
 import threading
+import urllib.parse
+import collections
 
 
 def run(
@@ -36,6 +38,10 @@ def run(
     MODE = "ALL" if all_data else "OBO"
     RESULT_SUCCESS = "SUCCESS"
     RESULT_ERROR = "ERROR"
+
+    DataQueryResult = collections.namedtuple(
+        "DataQueryResult", ["data_list", "total_pages"]
+    )
 
     if not debug or output == "":
         # disable noisy logging of flask, https://stackoverflow.com/a/18379764
@@ -96,18 +102,28 @@ def run(
             ready_for_next.wait()
         finished = True
 
-    def consume_all_data(page, limit=RESULTS_PER_PAGE_DEFAULT):
-        """ For use in "all" mode. Returns all data or a page of all data given a limit where pages are 1 indexed """
+    def consume_all_data(page, results_per_page=RESULTS_PER_PAGE_DEFAULT, filters=None):
+        """
+        For use in "all" mode.
+        Returns:
+            A DataQueryResult type namedtuple consisting of a filtered list of all data or a page of all data
+            as well as the total pages of data available.
+            The list of data is stored in DataQueryResult.data_list.
+            The total number of pages is stored in DataQueryResult.total_pages.
+        Params:
+            page: 1 indexed page number integer
+            results_per_page: maximum number of results per page
+            filters: keywords or sentences to filter data for. must be a list
+        """
         global all_data_list, datalist_update_time
         paginated = type(page) is int
         if paginated:
             assert page > 0, "Page number should be a positive 1 indexed integer."
             assert (
-                type(limit) is int and limit > 0
+                type(results_per_page) is int and results_per_page > 0
             ), "results_per_page should be a positive integer"
 
-        first_index = (page - 1) * limit if paginated else 0
-        data_point_list = []
+        first_index = (page - 1) * results_per_page if paginated else 0
 
         if database_task_name is not None:
             # If differnce in time since the last update to the data list is over 5 minutes, update list again
@@ -119,16 +135,31 @@ def run(
             ):
                 refresh_all_list_data()
 
+        filtered_data_list = all_data_list
+        if type(filters) is list:
+            filtered_data_list = [
+                item
+                for item in all_data_list
+                if all(word.lower() in str(item["data"]).lower() for word in filters)
+            ]
+        list_len = len(filtered_data_list)
+        total_pages = list_len / results_per_page if paginated else 1
+
         if paginated:
-            list_len = len(all_data_list)
             if first_index > list_len - 1:
-                return []
-            limit = min(first_index + limit, list_len) - first_index
-            if limit < 0:
-                return []
-            return all_data_list[first_index : first_index + limit]
-        else:
-            return all_data_list
+                filtered_data_list = []
+            else:
+                results_per_page = (
+                    min(first_index + results_per_page, list_len) - first_index
+                )
+                if results_per_page < 0:
+                    filtered_data_list = []
+                else:
+                    filtered_data_list = filtered_data_list[
+                        first_index : first_index + results_per_page
+                    ]
+
+        return DataQueryResult(filtered_data_list, total_pages)
 
     def refresh_all_list_data():
         """For use in "all" mode. Refreshes all data list when the data source is mephistoDB, allowing for new entries in the db to be included in the review"""
@@ -262,6 +293,11 @@ def run(
         This route returns the list of all data being reviewed if the app is in "all" mode.
         Otherwise this route returns the id and data of the item currently being reviewed in "one-by-one" or standard mode.
         The id in the response refers to the index (beginning at 0) of the item being reviewed in the list of all items being reviewed.
+        Params:
+            page: 1 indexed page number for results
+            results_per_page: number of results to show per page, must be positive integer
+            filters: string representing keywords or senteces results must contain.
+                Filters must be comma separated and spaced must be denoted by '%20'
         """
         global counter, current_data, all_data_list, finished
         if all_data:
@@ -269,15 +305,20 @@ def run(
             results_per_page = request.args.get(
                 "results_per_page", default=RESULTS_PER_PAGE_DEFAULT, type=int
             )
+            filters_str = request.args.get("filters", default=None, type=str)
+            filters = None
+            if type(filters_str) is str:
+                filters_str = urllib.parse.unquote(filters_str)
+                filters = filters_str.split(",")
+                filters = [filt.strip() for filt in filters]
             try:
-                data_point_list = consume_all_data(page, results_per_page)
-                total_pages = (
-                    len(all_data_list) / results_per_page
-                    if type(page) is int and page > 0
-                    else 1
-                )
+                data = consume_all_data(page, results_per_page, filters)
                 return jsonify(
-                    {"data": data_point_list, "mode": MODE, "total_pages": total_pages}
+                    {
+                        "data": data.data_list,
+                        "mode": MODE,
+                        "total_pages": data.total_pages,
+                    }
                 )
             except AssertionError as ae:
                 print(f"Error: {ae.args[0]}")
