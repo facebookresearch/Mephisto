@@ -98,6 +98,14 @@ class FormResponse extends React.Component {
                     return { responses: new_res };
                   });
                 }}
+                onKeyPress={(e) => {
+                  console.log(e)
+                  if (e.key === "Enter") {
+                    tryMessageSend();
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation();
+                  }
+                }}
               >
                 {choices}
               </FormControl>
