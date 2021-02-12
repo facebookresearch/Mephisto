@@ -115,14 +115,6 @@ class FormResponse extends React.Component {
             {question}
           </Col>
           <Col sm={5}>
-            onKeyPress={(e) => {
-              console.log("Pressed");
-              if (e.key === "Enter") {
-                tryMessageSend();
-                e.stopPropagation();
-                e.nativeEvent.stopImmediatePropagation();
-              }
-            }}
             <FormControl
               type="text"
               style={{ fontSize: "16px" }}
@@ -134,6 +126,14 @@ class FormResponse extends React.Component {
                   new_res[index] = text;
                   return { responses: new_res };
                 });
+              }}
+              onKeyPress={(e) => {
+                console.log("Pressed");
+                if (e.key === "Enter") {
+                  tryMessageSend();
+                  e.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
+                }
               }}
             />
           </Col>
