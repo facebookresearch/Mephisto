@@ -99,7 +99,7 @@ class FormResponse extends React.Component {
                   });
                 }}
                 onKeyPress={(e) => {
-                  console.log(e)
+                  console.log(e);
                   if (e.key === "Enter") {
                     tryMessageSend();
                     e.stopPropagation();
