@@ -278,6 +278,11 @@ def run(
         This route returns the list of all data being reviewed if the app is in "all" mode.
         Otherwise this route returns the id and data of the item currently being reviewed in "one-by-one" or standard mode.
         The id in the response refers to the index (beginning at 0) of the item being reviewed in the list of all items being reviewed.
+        Params:
+            page: 1 indexed page number for results
+            results_per_page: number of results to show per page, must be positive integer
+            filters: string representing keywords or senteces results must contain.
+                Filters must be comma separated and spaced must be denoted by '%20'
         """
         global counter, current_data, all_data_list, finished
         if all_data:
