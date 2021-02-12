@@ -14,6 +14,7 @@ import sys
 import time
 import threading
 import urllib.parse
+import collections
 
 
 def run(
@@ -37,6 +38,10 @@ def run(
     MODE = "ALL" if all_data else "OBO"
     RESULT_SUCCESS = "SUCCESS"
     RESULT_ERROR = "ERROR"
+
+    DataQueryResult = collections.namedtuple(
+        "DataQueryResult", ["data_list", "total_pages"]
+    )
 
     if not debug or output == "":
         # disable noisy logging of flask, https://stackoverflow.com/a/18379764
@@ -100,7 +105,11 @@ def run(
     def consume_all_data(page, results_per_page=RESULTS_PER_PAGE_DEFAULT, filters=None):
         """
         For use in "all" mode.
-        Returns a filtered list of all data or a page of all data.
+        Returns:
+            A DataQueryResult type namedtuple consisting of a filtered list of all data or a page of all data
+            as well as the total pages of data available.
+            The list of data is stored in DataQueryResult.data_list.
+            The total number of pages is stored in DataQueryResult.total_pages.
         Params:
             page: 1 indexed page number integer
             results_per_page: maximum number of results per page
@@ -116,14 +125,6 @@ def run(
 
         first_index = (page - 1) * results_per_page if paginated else 0
 
-        filtered_data_list = all_data_list
-        if type(filters) is list:
-            filtered_data_list = [
-                item
-                for item in all_data_list
-                if all(word.lower() in str(item["data"]).lower() for word in filters)
-            ]
-
         if database_task_name is not None:
             # If differnce in time since the last update to the data list is over 5 minutes, update list again
             # This can only be done for usage with mephistoDB as standard input is exhausted when originally creating the list
@@ -134,18 +135,31 @@ def run(
             ):
                 refresh_all_list_data()
 
+        filtered_data_list = all_data_list
+        if type(filters) is list:
+            filtered_data_list = [
+                item
+                for item in all_data_list
+                if all(word.lower() in str(item["data"]).lower() for word in filters)
+            ]
+        list_len = len(filtered_data_list)
+        total_pages = list_len / results_per_page if paginated else 1
+
         if paginated:
-            list_len = len(filtered_data_list)
             if first_index > list_len - 1:
-                return []
-            results_per_page = (
-                min(first_index + results_per_page, list_len) - first_index
-            )
-            if results_per_page < 0:
-                return []
-            return filtered_data_list[first_index : first_index + results_per_page]
-        else:
-            return filtered_data_list
+                filtered_data_list = []
+            else:
+                results_per_page = (
+                    min(first_index + results_per_page, list_len) - first_index
+                )
+                if results_per_page < 0:
+                    filtered_data_list = []
+                else:
+                    filtered_data_list = filtered_data_list[
+                        first_index : first_index + results_per_page
+                    ]
+
+        return DataQueryResult(filtered_data_list, total_pages)
 
     def refresh_all_list_data():
         """For use in "all" mode. Refreshes all data list when the data source is mephistoDB, allowing for new entries in the db to be included in the review"""
@@ -298,14 +312,13 @@ def run(
                 filters = filters_str.split(",")
                 filters = [filt.strip() for filt in filters]
             try:
-                data_point_list = consume_all_data(page, results_per_page, filters)
-                total_pages = (
-                    len(all_data_list) / results_per_page
-                    if type(page) is int and page > 0
-                    else 1
-                )
+                data = consume_all_data(page, results_per_page, filters)
                 return jsonify(
-                    {"data": data_point_list, "mode": MODE, "total_pages": total_pages}
+                    {
+                        "data": data.data_list,
+                        "mode": MODE,
+                        "total_pages": data.total_pages,
+                    }
                 )
             except AssertionError as ae:
                 print(f"Error: {ae.args[0]}")

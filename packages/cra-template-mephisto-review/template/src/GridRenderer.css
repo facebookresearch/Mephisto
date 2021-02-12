@@ -30,8 +30,8 @@
   grid-template-columns: 100%;
   grid-row-gap: 18px;
   grid-column-gap: 6px;
-  padding: 12px 32px;
-  margin: 12px 0px;
+  padding: 12px 12px;
+  margin: 12px 12px;
   min-width: 75vw;
   max-width: 100vw;
 }
@@ -53,8 +53,8 @@
 }
 
 .grid-item-text {
-  max-height: 100px;
-  max-width: 100%;
+  height: 100px;
+  width: 100%;
   margin-bottom: 12px;
   overflow: auto;
 }
