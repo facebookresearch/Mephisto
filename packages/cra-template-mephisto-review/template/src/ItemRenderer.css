@@ -9,13 +9,13 @@
 }
 .item {
   margin: 24px 24px;
+  max-width: 75vw;
+  max-height: 75vh;
 }
 
 .item > pre {
   white-space: pre-wrap;
   font-size: 28px;
-  max-width: 100%;
-  max-height: 500px;
   overflow: auto;
 }
 

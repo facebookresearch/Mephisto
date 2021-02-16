@@ -17,7 +17,7 @@ function GridView({ data }) {
             className="grid-item"
           >
             <div className="grid-item-text">
-              <pre>{item.data}</pre>
+              <pre>{JSON.stringify(item.data)}</pre>
             </div>
             <H4>
               <b>ID: {item.id}</b>
