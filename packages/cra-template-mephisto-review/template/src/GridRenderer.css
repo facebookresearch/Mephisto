@@ -9,7 +9,7 @@
 }
 
 .grid-renderer-header {
-  margin-top: 48px;
+  margin-top: 12px;
 }
 
 .grid-renderer-no-data {
@@ -20,7 +20,7 @@
 }
 
 .search-box {
-  margin: 12px 0;
+  margin: 6px 0;
   width: 50%;
 }
 
@@ -30,8 +30,8 @@
   grid-template-columns: 100%;
   grid-row-gap: 18px;
   grid-column-gap: 6px;
-  padding: 12px 12px;
-  margin: 12px 12px;
+  padding: 12px 18px;
+  margin: 6px 0px;
   min-width: 75vw;
   max-width: 100vw;
 }
@@ -53,7 +53,7 @@
 }
 
 .grid-item-text {
-  height: 100px;
+  height: 12vh;
   width: 100%;
   margin-bottom: 12px;
   overflow: auto;

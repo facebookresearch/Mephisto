@@ -15,6 +15,7 @@ import time
 import threading
 import urllib.parse
 import collections
+import math
 
 
 def run(
@@ -72,13 +73,9 @@ def run(
         db = LocalMephistoDB()
         mephisto_data_browser = MephistoDataBrowser(db=db)
 
-        def format_data_for_review(data):
-            contents = data["data"]
-            return f"{data}"
-
         units = mephisto_data_browser.get_units_for_task_name(database_task_name)
         for unit in units:
-            yield format_data_for_review(mephisto_data_browser.get_data_from_unit(unit))
+            yield mephisto_data_browser.get_data_from_unit(unit)
 
     def consume_data():
         """ For use in "one-by-one" or default mode. Runs on a seperate thread to consume mephisto review data line by line and update global variables to temporarily store this data """
@@ -143,7 +140,7 @@ def run(
                 if all(word.lower() in str(item["data"]).lower() for word in filters)
             ]
         list_len = len(filtered_data_list)
-        total_pages = list_len / results_per_page if paginated else 1
+        total_pages = math.ceil(list_len / results_per_page) if paginated else 1
 
         if paginated:
             if first_index > list_len - 1:
