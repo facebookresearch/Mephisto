@@ -43,6 +43,9 @@ class LocalArchitectArgs(ArchitectArgs):
         default="localhost", metadata={"help": "Addressible location of the server"}
     )
     port: str = field(default="3000", metadata={"help": "Port to launch the server on"})
+    server_type: str = field(
+        default="npm", metadata={"Help": "Type of server to run, node or Flask"}
+    )
 
 
 @register_mephisto_abstraction()
@@ -76,6 +79,7 @@ class LocalArchitect(Architect):
         self.hostname: Optional[str] = args.architect.hostname
         self.port: Optional[str] = args.architect.port
         self.cleanup_called = False
+        self.server_type = args.architect.server_type
 
     def _get_socket_urls(self) -> List[str]:
         """Return the path to the local server socket"""
@@ -129,7 +133,7 @@ class LocalArchitect(Architect):
 
     def prepare(self) -> str:
         """Mark the preparation call"""
-        self.server_dir = build_router(self.build_dir, self.task_run)
+        self.server_dir = build_router(self.build_dir, self.task_run, self.server_type)
         return self.server_dir
 
     def deploy(self) -> str:
@@ -143,11 +147,18 @@ class LocalArchitect(Architect):
 
         return_dir = os.getcwd()
         os.chdir(self.running_dir)
-        self.server_process = subprocess.Popen(
-            ["node", "server.js"],
-            preexec_fn=os.setpgrp,
-            env=dict(os.environ, PORT=f"{self.port}"),
-        )
+        if self.server_type == "npm":
+            self.server_process = subprocess.Popen(
+                ["node", "server.js"],
+                preexec_fn=os.setpgrp,
+                env=dict(os.environ, PORT=f"{self.port}"),
+            )
+        elif self.server_type == "flask":
+            self.server_process = subprocess.Popen(
+                ["python", "app.py"],
+                preexec_fn=os.setpgrp,
+                env=dict(os.environ, PORT=f"{self.port}"),
+            )
         self.server_process_pid = self.server_process.pid
         os.chdir(return_dir)
 

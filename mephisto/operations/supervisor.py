@@ -68,6 +68,7 @@ STATUS_TO_TEXT_MAP = {
 }
 
 SYSTEM_CHANNEL_ID = "mephisto"  # TODO pull from somewhere
+SERVER_CHANNEL_ID = "mephisto_server"
 START_DEATH_TIME = 10
 
 # State storage
