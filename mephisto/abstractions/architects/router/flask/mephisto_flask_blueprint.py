@@ -79,6 +79,10 @@ def debug_log(*args):
         print(*args)
 
 
+def js_time(python_time):
+    return int(python_time * 1000)
+
+
 # Socket and agent details
 class LocalAgentState:
     def __init__(self, agent_id):
@@ -91,6 +95,9 @@ class LocalAgentState:
 
     def to_json(self):
         """Convert to a sendable update format"""
+
+    def __str__(self):
+        return f"Agent({self.agent_id}): {self.status}, {self.state}"
 
 
 class MephistoRouterState:
@@ -106,18 +113,22 @@ class MephistoRouterState:
 
 
 mephisto_router_app = None
+mephisto_router_state = None
 
 
 def register_router_application(router):
-    global mephisto_router_app
+    global mephisto_router_app, mephisto_router_state
     mephisto_router_app = router
+    if mephisto_router_state is None:
+        mephisto_router_state = MephistoRouterState()
+        print("Creating new router state")
+    return mephisto_router_state
 
 
 class MephistoRouter(WebSocketApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mephisto_state = MephistoRouterState()
-        register_router_application(self)
+        self.mephisto_state = register_router_application(self)
 
     def _send_message(self, socket, packet):
         if not socket:
@@ -154,6 +165,13 @@ class MephistoRouter(WebSocketApplication):
             agent.is_alive = True
             state.agent_id_to_client[agent_id] = client
             state.client_id_to_agent[client.mephisto_id] = agent
+            print(
+                agent,
+                client,
+                client.mephisto_id,
+                state.agent_id_to_client,
+                state.client_id_to_agent,
+            )
 
     def _handle_get_agent_status(self, agent_status_packet):
         state = self.mephisto_state
@@ -202,10 +220,12 @@ class MephistoRouter(WebSocketApplication):
         else:
             agent_id = packet["receiver_id"]
             client = self.mephisto_state.agent_id_to_client.get(agent_id)
+            print(self.mephisto_state.agent_id_to_client, agent_id, client)
             if client is None:
                 debug_log(f"No agent found to send {packet} to")
                 return
             socket = client.ws
+            print(f"Sending {packet} to {agent_id}")
         self._send_message(socket, packet)
 
     def _followup_possible_disconnect(self, agent):
@@ -248,8 +268,8 @@ class MephistoRouter(WebSocketApplication):
             debug_log("Agent action: ", packet)
             self._handle_forward(packet)
             if packet["receiver_id"] == SYSTEM_CHANNEL_ID:
-                self._update_wanted_acts(packet.sender_id, False)
-                self._send_status_for_agent(packet.sender_id)
+                self._update_wanted_acts(packet["sender_id"], False)
+                self._send_status_for_agent(packet["sender_id"])
         elif packet["packet_type"] == PACKET_TYPE_ERROR_LOG:
             self._handle_forward(packet)
         elif packet["packet_type"] == PACKET_TYPE_ALIVE:
@@ -277,7 +297,8 @@ class MephistoRouter(WebSocketApplication):
                 state.received_provider_responses[request_id] = packet
                 del state.pending_provider_requests[request_id]
         elif packet["packet_type"] == PACKET_TYPE_HEARTBEAT:
-            packet["data"] = {"last_mephisto_ping": state.last_mephisto_ping}
+            print("Got heartbeat", packet)
+            packet["data"] = {"last_mephisto_ping": js_time(state.last_mephisto_ping)}
             agent_id = packet["sender_id"]
             packet["sender_id"] = packet["receiver_id"]
             packet["receiver_id"] = agent_id
@@ -297,7 +318,7 @@ class MephistoRouter(WebSocketApplication):
 
     def on_close(self, reason):
         client = self.ws.handler.active_client
-        print("Some client disconnected!", client)
+        print("Some client disconnected!", client.mephisto_id)
         agent = self.mephisto_state.client_id_to_agent.get(client.mephisto_id)
         if agent is None:
             return  # Agent not being tracked
@@ -389,16 +410,19 @@ def submit_onboarding():
 
 @mephisto_router.route("/submit_task", methods=["POST"])
 def submit_task():
-    provider_data = request.form.to_dict()
-    files = request.files.to_dict()
+    provider_data = request.get_json()
     filenames = []
-    if len(files) > 0:
-        timestamp = int(time.time())
-        rand = str(uuid4())[:8]
-        for filename, filepoint in files.items():
-            full_name = f"{timestamp}-{rand}-{secure_filename(filename)}"
-            filepoint.save(os.path.join("/tmp/", full_name))
-            filenames.append({"filename": full_name})
+    if provider_data is None:
+        # Multipart form submit
+        provider_data = request.form.to_dict()
+        files = request.files.to_dict()
+        if len(files) > 0:
+            timestamp = int(time.time())
+            rand = str(uuid4())[:8]
+            for filename, filepoint in files.items():
+                full_name = f"{timestamp}-{rand}-{secure_filename(filename)}"
+                filepoint.save(os.path.join("/tmp/", full_name))
+                filenames.append({"filename": full_name})
 
     agent_id = provider_data["USED_AGENT_ID"]
     del provider_data["USED_AGENT_ID"]
@@ -453,7 +477,7 @@ def download_file(filename):
 @mephisto_router.route("/")
 def show_index():
     try:
-        return mephisto_router.send_static_file("index.html")
+        return send_from_directory("static", "index.html")
     except:
         abort(404)
 
@@ -464,3 +488,16 @@ def get_static(res):
         return send_from_directory("static", res)
     except:
         abort(404)
+
+
+@mephisto_router.after_request
+def add_header(r):
+    """
+    Add headers to prevent caching, as this server may be used in local
+    development or with the same address but different contents
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers["Cache-Control"] = "public, max-age=0"
+    return r

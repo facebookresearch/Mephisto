@@ -47,7 +47,7 @@ from typing import ClassVar, List, Type, Any, Dict, Union, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState
-    from mephsito.data_model.assignment import Assignment
+    from mephisto.data_model.assignment import Assignment
 
 
 class MephistoAgentWrapper(ParlAIAgent):
