@@ -27,6 +27,12 @@ from werkzeug.utils import secure_filename
 
 from threading import Event
 
+from typing import Dict, Tuple, List, Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from geventwebsocket.handler import Client
+    from geventwebsocket.websocket import WebSocket
+
 # Constants
 
 PACKET_TYPE_INIT_DATA = "initial_data_send"
@@ -58,7 +64,7 @@ STATUS_COMPLETED = "completed"
 
 PACKET_TYPE_HEARTBEAT = "heartbeat"
 
-DEBUG = True
+DEBUG = False
 
 
 # Main application setup
@@ -68,33 +74,37 @@ mephisto_router = Blueprint(
     static_folder="static",
 )
 
-# File management
-def validate_file(filename):
-    """Particularly lenient file validation"""
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 def debug_log(*args):
+    """
+    Log only if debugging is enabled
+
+    Explicitly does not use the regular Mephisto logging framework as we
+    may want to deploy this on a server that doesn't have Mephisto installed,
+    and we can keep package size low this way.
+    """
     if DEBUG:
         print(*args)
 
 
-def js_time(python_time):
+def js_time(python_time: float) -> int:
+    """Convert python time to js time, as the mephisto-task package expects"""
     return int(python_time * 1000)
 
 
 # Socket and agent details
 class LocalAgentState:
-    def __init__(self, agent_id):
+    """
+    Keeps track of a connected agent over their lifecycle interacting with the router
+    """
+
+    def __init__(self, agent_id: str):
         """Initialize an object to track the lifecycle of a connection"""
         self.status = STATUS_INIT
         self.agent_id = agent_id
-        self.state = {"wants_act": False, "done_text": None}
+        self.state: Dict[str, Any] = {"wants_act": False, "done_text": None}
         self.is_alive = False
         self.disconnect_time = 0
-
-    def to_json(self):
-        """Convert to a sendable update format"""
 
     def __str__(self):
         return f"Agent({self.agent_id}): {self.status}, {self.state}"
@@ -102,35 +112,47 @@ class LocalAgentState:
 
 class MephistoRouterState:
     def __init__(self):
-        self.agent_id_to_client = {}
-        self.client_id_to_agent = {}
-        self.main_thread_timeout = None
-        self.mephisto_socket = None
-        self.agent_id_to_agent = {}
-        self.pending_provider_requests = {}
-        self.received_provider_responses = {}
-        self.last_mephisto_ping = time.time()
+        self.agent_id_to_client: Dict[str, "Client"] = {}
+        self.client_id_to_agent: Dict[str, LocalAgentState] = {}
+        self.mephisto_socket: Optional["WebSocket"] = None
+        self.agent_id_to_agent: Dict[str, LocalAgentState] = {}
+        self.pending_provider_requests: Dict[str, bool] = {}
+        self.received_provider_responses: Dict[str, Dict[str, Any]] = {}
+        self.last_mephisto_ping: float = time.time()
 
 
-mephisto_router_app = None
-mephisto_router_state = None
+mephisto_router_app: Optional["MephistoRouter"] = None
+mephisto_router_state: Optional["MephistoRouterState"] = None
 
 
-def register_router_application(router):
+def register_router_application(router: "MephistoRouter") -> "MephistoRouterState":
+    """
+    Register a routing application with the global state,
+    such that HTTP requests can access it and so that
+    all websocket routers share the same state.
+
+    Returns the global router state
+    """
     global mephisto_router_app, mephisto_router_state
     mephisto_router_app = router
     if mephisto_router_state is None:
         mephisto_router_state = MephistoRouterState()
-        print("Creating new router state")
     return mephisto_router_state
 
 
 class MephistoRouter(WebSocketApplication):
+    """
+    Base implementation of a websocket server that handles
+    all of the socket based IO for mephisto-task
+    """
+
     def __init__(self, *args, **kwargs):
+        """Initialize with the gloabl state of MephistoRouters"""
         super().__init__(*args, **kwargs)
         self.mephisto_state = register_router_application(self)
 
-    def _send_message(self, socket, packet):
+    def _send_message(self, socket: "WebSocket", packet: Dict[str, Any]) -> None:
+        """Send the given message through the given socket"""
         if not socket:
             # We should be passing a socket, even if it's closed...
             debug_log("No socket to send packet to", packet)
@@ -142,7 +164,7 @@ class MephistoRouter(WebSocketApplication):
 
         socket.send(json.dumps(packet))
 
-    def _find_or_create_agent(self, agent_id):
+    def _find_or_create_agent(self, agent_id: str) -> "LocalAgentState":
         """Get or create an agent state for the given id"""
         state = self.mephisto_state
         agent = state.agent_id_to_agent.get(agent_id)
@@ -151,7 +173,7 @@ class MephistoRouter(WebSocketApplication):
             state.agent_id_to_agent[agent_id] = agent
         return agent
 
-    def _handle_alive(self, client, alive_packet):
+    def _handle_alive(self, client: "Client", alive_packet: Dict[str, Any]) -> None:
         """
         On alive, find out who the sender is, and register
         them as correctly here.
@@ -165,15 +187,15 @@ class MephistoRouter(WebSocketApplication):
             agent.is_alive = True
             state.agent_id_to_client[agent_id] = client
             state.client_id_to_agent[client.mephisto_id] = agent
-            print(
-                agent,
-                client,
-                client.mephisto_id,
-                state.agent_id_to_client,
-                state.client_id_to_agent,
-            )
 
-    def _handle_get_agent_status(self, agent_status_packet):
+    def _handle_get_agent_status(self, agent_status_packet: Dict[str, Any]) -> None:
+        """
+        On a get agent status request, forward the request to all tracked agents
+        then without waiting for the response, respond to the core mephisto server
+        with the current status of each.
+
+        May return semi-stale information, but is non-blocking
+        """
         state = self.mephisto_state
         state.last_mephisto_ping = time.time()
         agent_statuses = {}
@@ -197,11 +219,13 @@ class MephistoRouter(WebSocketApplication):
         }
         self._handle_forward(packet)
 
-    def _get_agent_state(self, agent_id):
+    def _get_agent_state(self, agent_id: str) -> Dict[str, Any]:
+        """Return the agent state for a given tracked agent"""
         agent = self._find_or_create_agent(agent_id)
         return agent.state
 
-    def _handle_update_local_status(self, status_packet):
+    def _handle_update_local_status(self, status_packet: Dict[str, Any]) -> None:
+        """Update the local agent status given a status packet"""
         agent_id = status_packet["receiver_id"]
         agent = self._find_or_create_agent(agent_id)
         if status_packet["data"].get("status") is not None:
@@ -209,33 +233,38 @@ class MephistoRouter(WebSocketApplication):
         if status_packet["data"].get("state") is not None:
             agent.state.update(status_packet["data"]["state"])
 
-    def _update_wanted_acts(self, agent_id, wants_act):
+    def _update_wanted_acts(self, agent_id: str, wants_act: bool) -> None:
+        """Update the wanted acts flag for a given agent"""
         agent = self._find_or_create_agent(agent_id)
         agent.state["wants_act"] = wants_act
 
-    def _handle_forward(self, packet):
+    def _handle_forward(self, packet: Dict[str, Any]) -> None:
+        """Handle forwarding the given packet to the included receiver_id"""
         if packet["receiver_id"] == SYSTEM_CHANNEL_ID:
             debug_log("Adding message to mephisto queue", packet)
             socket = self.mephisto_state.mephisto_socket
         else:
             agent_id = packet["receiver_id"]
             client = self.mephisto_state.agent_id_to_client.get(agent_id)
-            print(self.mephisto_state.agent_id_to_client, agent_id, client)
             if client is None:
                 debug_log(f"No agent found to send {packet} to")
                 return
             socket = client.ws
-            print(f"Sending {packet} to {agent_id}")
         self._send_message(socket, packet)
 
-    def _followup_possible_disconnect(self, agent):
+    def _followup_possible_disconnect(self, agent: LocalAgentState) -> None:
+        """Check to see if the given agent is disconnected"""
         if agent.disconnect_time == 0:
             return  # Agent never disconnected, isn't live
         if time.time() - agent.disconnect_time > FAILED_RECONNECT_TIME:
             agent.status = STATUS_DISCONNECTED
             debug_log("Agent disconnected", agent)
 
-    def _send_status_for_agent(self, agent_id):
+    def _send_status_for_agent(self, agent_id: str) -> None:
+        """
+        Send a packet that updates the client status for the given agent,
+        pushing them the most recent local status.
+        """
         agent = self._find_or_create_agent(agent_id)
         packet = {
             "packet_type": PACKET_TYPE_UPDATE_AGENT_STATUS,
@@ -248,12 +277,18 @@ class MephistoRouter(WebSocketApplication):
         }
         self._handle_forward(packet)
 
-    def on_open(self):
+    def on_open(self) -> None:
+        """
+        Initialize a new client connection, and give them a uuid to refer to
+        """
         current_client = self.ws.handler.active_client
-        print("Some client connected!", current_client, dir(current_client))
+        debug_log("Some client connected!", current_client)
         current_client.mephisto_id = str(uuid4())
 
-    def on_message(self, message):
+    def on_message(self, message: str) -> None:
+        """
+        Determine the type of message, and then handle via the correct handler
+        """
         if message is None:
             return
 
@@ -297,7 +332,6 @@ class MephistoRouter(WebSocketApplication):
                 state.received_provider_responses[request_id] = packet
                 del state.pending_provider_requests[request_id]
         elif packet["packet_type"] == PACKET_TYPE_HEARTBEAT:
-            print("Got heartbeat", packet)
             packet["data"] = {"last_mephisto_ping": js_time(state.last_mephisto_ping)}
             agent_id = packet["sender_id"]
             packet["sender_id"] = packet["receiver_id"]
@@ -316,17 +350,19 @@ class MephistoRouter(WebSocketApplication):
         else:
             debug_log("Unknown message", packet)
 
-    def on_close(self, reason):
+    def on_close(self, reason: Any) -> None:
+        """Mark a socket dead for a LocalAgentState, give time to reconnect"""
         client = self.ws.handler.active_client
-        print("Some client disconnected!", client.mephisto_id)
+        debug_log("Some client disconnected!", client.mephisto_id)
         agent = self.mephisto_state.client_id_to_agent.get(client.mephisto_id)
         if agent is None:
             return  # Agent not being tracked
         agent.is_alive = False
         agent.disconnect_time = time.time()
-        print("Connection closed!", reason)
 
-    def get_default_provider_request_packet(self, request_type, provider_data):
+    def get_default_provider_request_packet(
+        self, request_type: str, provider_data: Dict[str, Any]
+    ):
         """Create a packet used for simple provider requests"""
         request_id = str(uuid4())
         return {
@@ -339,7 +375,10 @@ class MephistoRouter(WebSocketApplication):
             },
         }
 
-    def make_provider_request(self, request_packet):
+    def make_provider_request(
+        self, request_packet: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Make a request to the core Mephisto server, and then await the response"""
         request_id = request_packet["data"]["request_id"]
 
         self.mephisto_state.pending_provider_requests[request_id] = True
@@ -354,7 +393,7 @@ class MephistoRouter(WebSocketApplication):
         return res
 
 
-def handle_provider_request(request_type, data):
+def handle_provider_request(request_type: str, data: Dict[str, Any]):
     """Wrapper for provider requests that handles extracting the result and timing out"""
     provider_data = data["provider_data"]
     packet = mephisto_router_app.get_default_provider_request_packet(
@@ -389,6 +428,10 @@ def request_agent():
 
 @mephisto_router.route("/submit_onboarding", methods=["POST"])
 def submit_onboarding():
+    """
+    Parse onboarding as if it were a request sent from the
+    active agent, rather than coming as a request from the router.
+    """
     data = request.get_json()
     provider_data = data["provider_data"]
     agent_id = provider_data["USED_AGENT_ID"]
@@ -410,6 +453,7 @@ def submit_onboarding():
 
 @mephisto_router.route("/submit_task", methods=["POST"])
 def submit_task():
+    """Parse task submission as if it were an act"""
     provider_data = request.get_json()
     filenames = []
     if provider_data is None:
