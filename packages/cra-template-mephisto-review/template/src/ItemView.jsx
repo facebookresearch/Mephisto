@@ -3,12 +3,12 @@ import { useMephistoReview } from "mephisto-review-hook";
 import { useParams, useHistory, Link } from "react-router-dom";
 import { Button, H2, Card, Elevation } from "@blueprintjs/core";
 import AppToaster from "./components/AppToaster";
-import "./ItemRenderer.css";
+import "./css/itemView.css";
 
-function App() {
+function ItemView({ itemRenderer: Renderer }) {
   const { id } = useParams();
   const {
-    data,
+    data: item,
     isFinished,
     isLoading,
     submit,
@@ -52,14 +52,18 @@ function App() {
         <>
           <H2>Please review the following data:</H2>
           <Card className="item" elevation={Elevation.TWO}>
-            <pre>{JSON.stringify(data && data.data)}</pre>
+            {Renderer ? (
+              <Renderer item={item} />
+            ) : (
+              <pre>{JSON.stringify(item && item.data)}</pre>
+            )}
           </Card>
           <div className="button-container">
             <Button
               className="btn"
               intent="danger"
               large={true}
-              disabled={data == null}
+              disabled={item == null}
               onClick={async () => {
                 var response = await submit({ result: "rejected" });
                 if (response == "SUCCESS") {
@@ -75,7 +79,7 @@ function App() {
               className="btn"
               intent="success"
               large={true}
-              disabled={data == null}
+              disabled={item == null}
               onClick={async () => {
                 var response = await submit({ result: "approved" });
                 if (response == "SUCCESS") {
@@ -94,4 +98,4 @@ function App() {
   );
 }
 
-export default App;
+export default ItemView;
