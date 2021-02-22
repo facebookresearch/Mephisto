@@ -10,7 +10,7 @@ import "./css/allDataView.css";
 import DefaultItemRenderer from "./components/DefaultItemRenderer";
 
 function AllDataView({
-  itemRenderer,
+  itemRenderer = DefaultItemRenderer,
   renderer: GridPlugin,
   pagination = true,
   resultsPerPage = 9,
@@ -92,15 +92,9 @@ function AllDataView({
           {data && data.length > 0 ? (
             <>
               {GridPlugin ? (
-                <GridPlugin
-                  data={data}
-                  itemRenderer={itemRenderer || DefaultItemRenderer}
-                />
+                <GridPlugin data={data} itemRenderer={itemRenderer} />
               ) : (
-                <GridView
-                  data={data}
-                  itemRenderer={itemRenderer || DefaultItemRenderer}
-                />
+                <GridView data={data} itemRenderer={itemRenderer} />
               )}
               {pagination ? (
                 <Pagination

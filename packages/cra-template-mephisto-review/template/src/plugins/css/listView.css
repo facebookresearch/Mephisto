@@ -11,6 +11,8 @@
 .list-item {
   text-align: left;
   padding: 0px 4px;
+  width: 100%;
+  overflow: auto;
 }
 
 .divider {
