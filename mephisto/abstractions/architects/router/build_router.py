@@ -44,10 +44,10 @@ def install_router_files() -> None:
     return_dir = os.getcwd()
     os.chdir(NODE_SERVER_SOURCE_ROOT)
 
-    packages_installed = subprocess.call(["npm", "install"])
+    packages_installed = subprocess.call(["node", "install"])
     if packages_installed != 0:
         raise Exception(
-            "please make sure npm is installed, otherwise view "
+            "please make sure node is installed, otherwise view "
             "the above error for more info."
         )
     os.chdir(return_dir)
@@ -64,13 +64,13 @@ def build_flask_router(build_dir: str, task_run: "TaskRun") -> str:
     return FLASK_SERVER_SOURCE_ROOT
 
 
-def build_router(build_dir: str, task_run: "TaskRun", version="npm") -> str:
+def build_router(build_dir: str, task_run: "TaskRun", version="node") -> str:
     """
     Copy expected files from the router source into the build dir,
     using existing files in the build dir as replacements for the
     defaults if available
     """
-    if version == "npm":
+    if version == "node":
         server_source_directory_path = build_node_router(build_dir, task_run)
     elif version == "flask":
         server_source_directory_path = build_flask_router(build_dir, task_run)
