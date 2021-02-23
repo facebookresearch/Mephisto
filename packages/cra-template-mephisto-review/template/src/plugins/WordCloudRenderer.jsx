@@ -16,13 +16,11 @@ function WordCloudRenderer({ item }) {
         <b>ID: {id}</b>
       </H4>
       <H4>Data keywords:</H4>
+      {/*example WordCloud with example excluded keys and words*/}
       <WordCloud
         data={data}
-        filterKeys={["file"]}
-        filterWords={[
-          "#",
-          "TIME_SEGMENTATION",
-          "RESULT",
+        excludedKeys={["URL"]}
+        excludedWords={[
           "true",
           "false",
           "the",

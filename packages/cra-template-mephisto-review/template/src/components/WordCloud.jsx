@@ -1,13 +1,13 @@
 import React from "react";
-import "./css/wordCloud.css";
+import "./css/WordCloud.css";
 
 /*
   For a given object or string, generates a paragraph filled with different sized and weighted spans of words based on the frequency of occurrence in the object or string
   More frequently occurring words will be sized larger with larger font weighting as well
   The object or string to be parsed must be passed in a property named 'data'
   Objects will be traversed recursively for all attributes in string form, all strings in the object or passed in through params will be parsed for space separated words.
-  Words can be filtered by passing a property named "filterWords" which must be an array of strings
-  Keys in a object can be filtered by passing a property named "filterKeys" which must be an array of strings
+  Words can be excluded by passing a property named "excludedWords" which must be an array of strings
+  Keys in a object can be excluded by passing a property named "excludedKeys" which must be an array of strings
   Maximum font size in EM units can be set by passing a maxFontEmSize property
   Minimum font size in EM units can be set by passing a minFontEmSize property
   Maximum font weight can be set by passing a maxFontWeight property
@@ -19,8 +19,8 @@ function WordCloud({
   maxFontEmSize = 1.25,
   minFontWeight = 200,
   maxFontWeight = 600,
-  filterWords = [],
-  filterKeys = [],
+  excludedWords = [],
+  excludedKeys = [],
 }) {
   if (!data || data === {}) return <p>No Data Available</p>;
 
@@ -28,11 +28,11 @@ function WordCloud({
   const getAllStringWordCounts = (str) => {
     //object to be indexed by string words mapped to integer word counts
     var vals = {};
-    //separate string into array of space separated words, filtered words are ignored
+    //separate string into array of space separated words, excluded words are ignored
     var words = str.split(" ").filter((word) => {
       if (!word || word == "" || word.length == 1) return false;
       if (!isNaN(parseFloat(str))) return false;
-      for (const char of filterWords) {
+      for (const char of excludedWords) {
         if (word.indexOf(char) > -1) return false;
       }
       return true;
@@ -56,9 +56,9 @@ function WordCloud({
   const getAllObjectValWordCounts = (dict) => {
     //object to be indexed by string words mapped to integer word counts
     let vals = {};
-    //get all keys for an object, ignoring filtered keys
+    //get all keys for an object, ignoring excluded keys
     const keys = Object.keys(dict).filter((key) => {
-      for (const filter of filterKeys) {
+      for (const filter of excludedKeys) {
         if (key === filter) return false;
       }
       return true;
@@ -101,12 +101,12 @@ function WordCloud({
   };
 
   //maps number from given range to a new range
-  const scaleNumber = (num, in_min, in_max, out_min, out_max, round) => {
+  const scaleNumber = (num, inMin, inMax, outMin, outMax, round) => {
     return round === true
       ? Math.ceil(
-          ((num - in_min) * (out_max - out_min)) / (in_max - in_min) + out_min
+          ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
         )
-      : ((num - in_min) * (out_max - out_min)) / (in_max - in_min) + out_min;
+      : ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
   };
 
   //reduces deviations between word counts given input of an object representing string words mapped to word count integers
@@ -196,17 +196,14 @@ function WordCloud({
     };
   }
 
-  //map css styles to spans with corresponding word
-  var spans = [];
-  for (let word of wordKeys) {
-    const style = wordCounts[word];
-    spans.push(<span style={style}>{" " + word + " "}</span>);
-  }
-
-  //populate paragraph with spans
+  //map css styles to spans with corresponding word and populate paragraph with spans
   return (
     <div className="cloud">
-      <p>{spans.map((Sp) => Sp)}</p>
+      <p>
+        {wordKeys.map((word) => (
+          <span style={wordCounts[word]}>{" " + word + " "}</span>
+        ))}
+      </p>
     </div>
   );
 }

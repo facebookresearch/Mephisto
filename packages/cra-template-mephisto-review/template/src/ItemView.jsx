@@ -2,10 +2,11 @@ import React from "react";
 import { useMephistoReview } from "mephisto-review-hook";
 import { useParams, useHistory, Link } from "react-router-dom";
 import { Button, H2, Card, Elevation } from "@blueprintjs/core";
+import DefaultItemRenderer from "./components/DefaultItemRenderer";
 import AppToaster from "./components/AppToaster";
-import "./css/itemView.css";
+import "./css/ItemView.css";
 
-function ItemView({ itemRenderer: Renderer }) {
+function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
   const { id } = useParams();
   const {
     data: item,
@@ -52,11 +53,7 @@ function ItemView({ itemRenderer: Renderer }) {
         <>
           <H2>Please review the following data:</H2>
           <Card className="item" elevation={Elevation.TWO}>
-            {Renderer ? (
-              <Renderer item={item} />
-            ) : (
-              <pre>{JSON.stringify(item && item.data)}</pre>
-            )}
+            <ItemRenderer item={item} />
           </Card>
           <div className="button-container">
             <Button

@@ -4,9 +4,9 @@ import { H4 } from "@blueprintjs/core";
 function DefaultItemRenderer({ item }) {
   return (
     <>
-      <pre>{JSON.stringify(item.data)}</pre>
+      <pre>{JSON.stringify(item && item.data)}</pre>
       <H4>
-        <b>ID: {item.id}</b>
+        <b>ID: {item && item.id}</b>
       </H4>
     </>
   );

@@ -1,10 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Card, Elevation, H4 } from "@blueprintjs/core";
+import { Card, Elevation } from "@blueprintjs/core";
 import DefaultItemRenderer from "./DefaultItemRenderer";
-import "./css/gridView.css";
+import "./css/GridView.css";
 
-function GridView({ data, itemRenderer: Renderer }) {
+function GridView({ data, itemRenderer: ItemRenderer = DefaultItemRenderer }) {
   return data && data.length > 0 ? (
     <div className="grid-container">
       {data.map((item) => {
@@ -20,11 +20,7 @@ function GridView({ data, itemRenderer: Renderer }) {
               className="grid-item"
             >
               <div className="grid-item-content">
-                {Renderer ? (
-                  <Renderer item={item} />
-                ) : (
-                  <DefaultItemRenderer item={item} />
-                )}
+                <ItemRenderer item={item} />
               </div>
             </Card>
           </Link>

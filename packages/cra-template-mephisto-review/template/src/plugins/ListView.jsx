@@ -1,13 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, Divider, H4 } from "@blueprintjs/core";
-import "./css/listView.css";
+import DefaultItemRenderer from "../components/DefaultItemRenderer";
+import "./css/ListView.css";
 
 /*
   EXAMPLE PLUGIN ALL DATA RENDERER
   Displays all mephisto review data as a list
 */
-function ListView({ data, itemRenderer: Renderer }) {
+function ListView({ data, itemRenderer: Renderer = DefaultItemRenderer }) {
   return data && data.length > 0 ? (
     <Card className="list-container">
       {data.map((item, index) => (
@@ -19,16 +20,7 @@ function ListView({ data, itemRenderer: Renderer }) {
             key={item.id}
           >
             <div className={index != 0 ? "list-item divider" : "list-item"}>
-              {Renderer ? (
-                <Renderer item={item} />
-              ) : (
-                <>
-                  <pre>{JSON.stringify(item.data)}</pre>
-                  <H4>
-                    <b>ID: {item.id}</b>
-                  </H4>
-                </>
-              )}
+              <Renderer item={item} />
             </div>
           </Link>
         </>

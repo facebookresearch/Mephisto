@@ -3,15 +3,14 @@ import { Redirect } from "react-router-dom";
 import { useMephistoReview } from "mephisto-review-hook";
 import { H4, H3, H2, H1, InputGroup, Button } from "@blueprintjs/core";
 import { Tooltip2 } from "@blueprintjs/popover2";
-
+import DefaultItemRenderer from "./components/DefaultItemRenderer";
 import GridView from "./components/GridView";
 import Pagination from "./components/Pagination";
-import "./css/allDataView.css";
-import DefaultItemRenderer from "./components/DefaultItemRenderer";
+import "./css/AllItemView.css";
 
-function AllDataView({
+function AllItemView({
   itemRenderer = DefaultItemRenderer,
-  renderer: GridPlugin,
+  itemListRenderer: ItemListRenderer = GridView,
   pagination = true,
   resultsPerPage = 9,
 }) {
@@ -91,11 +90,7 @@ function AllDataView({
           </Tooltip2>
           {data && data.length > 0 ? (
             <>
-              {GridPlugin ? (
-                <GridPlugin data={data} itemRenderer={itemRenderer} />
-              ) : (
-                <GridView data={data} itemRenderer={itemRenderer} />
-              )}
+              <ItemListRenderer data={data} itemRenderer={itemRenderer} />
               {pagination ? (
                 <Pagination
                   totalPages={totalPages}
@@ -121,4 +116,4 @@ function AllDataView({
   );
 }
 
-export default AllDataView;
+export default AllItemView;
