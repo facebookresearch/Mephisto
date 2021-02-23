@@ -44,7 +44,7 @@ def install_router_files() -> None:
     return_dir = os.getcwd()
     os.chdir(NODE_SERVER_SOURCE_ROOT)
 
-    packages_installed = subprocess.call(["node", "install"])
+    packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
             "please make sure node is installed, otherwise view "
