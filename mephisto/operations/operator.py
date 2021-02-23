@@ -185,7 +185,7 @@ class Operator:
         new_run_id = self.db.new_task_run(
             task_id,
             requester_id,
-            json.dumps(OmegaConf.to_container(run_config, resolve=True)),
+            json.dumps(OmegaConf.to_yaml(run_config)),
             provider_type,
             blueprint_type,
             requester.is_sandbox(),
