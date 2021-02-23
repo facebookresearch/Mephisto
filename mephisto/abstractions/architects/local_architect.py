@@ -44,7 +44,7 @@ class LocalArchitectArgs(ArchitectArgs):
     )
     port: str = field(default="3000", metadata={"help": "Port to launch the server on"})
     server_type: str = field(
-        default="npm", metadata={"Help": "Type of server to run, node or Flask"}
+        default="node", metadata={"Help": "Type of server to run, `node` or `flask`"}
     )
 
 
@@ -147,7 +147,7 @@ class LocalArchitect(Architect):
 
         return_dir = os.getcwd()
         os.chdir(self.running_dir)
-        if self.server_type == "npm":
+        if self.server_type == "node":
             self.server_process = subprocess.Popen(
                 ["node", "server.js"],
                 preexec_fn=os.setpgrp,

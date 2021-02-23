@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
 
 ROUTER_ROOT_DIR = os.path.dirname(router_module.__file__)
-NPM_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "deploy")
+NODE_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "deploy")
 FLASK_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "flask")
 CROWD_SOURCE_PATH = "static/wrap_crowd_source.js"
 TASK_CONFIG_PATH = "static/task_config.json"
@@ -42,7 +42,7 @@ def install_router_files() -> None:
     Create a new build including the node_modules
     """
     return_dir = os.getcwd()
-    os.chdir(NPM_SERVER_SOURCE_ROOT)
+    os.chdir(NODE_SERVER_SOURCE_ROOT)
 
     packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
@@ -53,10 +53,10 @@ def install_router_files() -> None:
     os.chdir(return_dir)
 
 
-def build_npm_router(build_dir: str, task_run: "TaskRun") -> str:
+def build_node_router(build_dir: str, task_run: "TaskRun") -> str:
     """Build requirements for the NPM router"""
     install_router_files()
-    return NPM_SERVER_SOURCE_ROOT
+    return NODE_SERVER_SOURCE_ROOT
 
 
 def build_flask_router(build_dir: str, task_run: "TaskRun") -> str:
@@ -71,7 +71,7 @@ def build_router(build_dir: str, task_run: "TaskRun", version="npm") -> str:
     defaults if available
     """
     if version == "npm":
-        server_source_directory_path = build_npm_router(build_dir, task_run)
+        server_source_directory_path = build_node_router(build_dir, task_run)
     elif version == "flask":
         server_source_directory_path = build_flask_router(build_dir, task_run)
 
