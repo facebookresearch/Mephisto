@@ -12,7 +12,7 @@ import shlex
 import subprocess
 import json
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
@@ -64,13 +64,21 @@ def build_flask_router(build_dir: str, task_run: "TaskRun") -> str:
     return FLASK_SERVER_SOURCE_ROOT
 
 
-def build_router(build_dir: str, task_run: "TaskRun", version="node") -> str:
+def build_router(
+    build_dir: str,
+    task_run: "TaskRun",
+    version: str = "node",
+    server_source_path: Optional[str] = None,
+) -> str:
     """
     Copy expected files from the router source into the build dir,
     using existing files in the build dir as replacements for the
     defaults if available
     """
-    if version == "node":
+    if server_source_path is not None:
+        # Giving a server source takes precedence over the build
+        server_source_directory_path = server_source_path
+    elif version == "node":
         server_source_directory_path = build_node_router(build_dir, task_run)
     elif version == "flask":
         server_source_directory_path = build_flask_router(build_dir, task_run)

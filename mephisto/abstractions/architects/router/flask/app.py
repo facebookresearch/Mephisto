@@ -8,22 +8,31 @@ from gevent import monkey
 
 monkey.patch_all()
 
-from mephisto.abstractions.architects.router.flask.mephisto_flask_blueprint import (
-    MephistoRouter,
-    mephisto_router,
-)
+try:
+    from mephisto.abstractions.architects.router.flask.mephisto_flask_blueprint import (
+        MephistoRouter,
+        mephisto_router,
+    )
+except:
+    from mephisto_flask_blueprint import (
+        MephistoRouter,
+        mephisto_router,
+    )
 from geventwebsocket import WebSocketServer, Resource
 from werkzeug.debug import DebuggedApplication
 
 
 from flask import Flask
+import os
+
+port = int(os.environ.get("PORT", 3000))
 
 flask_app = Flask(__name__)
 flask_app.register_blueprint(mephisto_router, url_prefix=r"/")
 
 if __name__ == "__main__":
     WebSocketServer(
-        ("", 3000),
+        ("", port),
         Resource([("^/.*", MephistoRouter), ("^/.*", DebuggedApplication(flask_app))]),
         debug=False,
     ).serve_forever()

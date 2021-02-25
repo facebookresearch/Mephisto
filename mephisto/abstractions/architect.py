@@ -23,6 +23,18 @@ class ArchitectArgs:
     """Base class for arguments to configure architects"""
 
     _architect_type: str = MISSING
+    server_type: str = field(
+        default="node", metadata={"Help": "Type of server to run, `node` or `flask`"}
+    )
+    server_source_path: str = field(
+        default=MISSING,
+        metadata={
+            "help": (
+                "Optional path to a prepared server directory containing everything "
+                "needed to run a server of the given type. Overrides server type. "
+            )
+        },
+    )
 
 
 class Architect(ABC):
