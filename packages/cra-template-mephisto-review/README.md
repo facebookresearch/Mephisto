@@ -40,7 +40,7 @@ Change directory to the location of your Mephisto installation
 
 *Make note of the paths to your data file and react app relative to the location of your Mephisto installation*
 
-    $ cat ~/path/to/your/data.csv | Mephisto review ~/path/to/your/my-review/build -o results.csv --all
+    $ cat ~/path/to/your/data.csv | mephisto review ~/path/to/your/my-review/build -o results.csv --all
 
 5. Open the react app hosted at the port specified by the ouput from the above command
 
