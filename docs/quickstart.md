@@ -42,7 +42,7 @@ Mephisto seems to be set up correctly.
 ## Step 1. Run your first task (locally)
 
 ```bash
-$ cd examples/simple_static_task
+$ cd mephisto/examples/simple_static_task
 $ python static_test_script.py
 ```
 
@@ -103,7 +103,7 @@ Registered successfully.
 2. Next, let's run the task script again, but this time we'll override the requester name and change the architect type to use [Heroku](https://www.heroku.com/). (You can find all of the architects currently supported [here](../mephisto/abstractions/architects).)
 
 ```bash
-$ cd examples/simple_static_task
+$ cd mephisto/examples/simple_static_task
 $ python static_test_script.py mephisto/architect=heroku mephisto.provider.requester_name=my_mturk_user_sandbox
 Locating heroku...
 INFO - Creating a task run under task name: html-static-task-example
@@ -127,7 +127,7 @@ Building server files...
 ## Step 3. Review results
 
 ```bash
-$ cd examples/simple_static_task
+$ cd mephisto/examples/simple_static_task
 $ python examine_results.py
 Input task name: 
 ```

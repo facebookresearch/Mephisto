@@ -51,7 +51,7 @@ DEMO_CUSTOM_BUNDLE = args["use_custom_task"]
 DEMO_BUILD_SIMPLE = args["build_custom_task"]
 USE_ONBOARDING = args["use_onboarding"]
 
-TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/parlai_chat_task_demo")
+TASK_DIRECTORY = os.path.join(get_root_dir(), "mephisto/examples/parlai_chat_task_demo")
 
 task_title = "Test ParlAI Chat Task"
 task_description = (

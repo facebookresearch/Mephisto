@@ -96,7 +96,7 @@ If you are able to provide your workers enough context just using a task descrip
 4. Run `parlai_test_script.py` to pilot your task over localhost. You can use different `worker_id` URL parameters in different windows to play the part of multiple workers at the same time.
 5. Repeat 3 & 4 until you're happy with your task.
 6. Launch a small batch on a crowd provider to see how real workers handle your task.
-7. Iterate more - use a review script (like the one present in `examples/simple_static_task/examine_results`) to make it easy to see what data you're getting.
+7. Iterate more - use a review script (like the one present in `mephisto/examples/simple_static_task/examine_results`) to make it easy to see what data you're getting.
 8. Collect some interesting conversational data.
 
 
@@ -111,7 +111,7 @@ If your task needs additional input beyond simple forms (tutorial TODO, see the 
 6. Run `parlai_test_script.py` to pilot your task over localhost. You can use different `worker_id` URL parameters in different windows to play the part of multiple workers at the same time.
 7. Repeat 3 - 6 until you're happy with your task.
 8. Launch a small batch on a crowd provider to see how real workers handle your task.
-9. Iterate more - use a review script (like the one present in `examples/simple_static_task/examine_results`) to make it easy to see what data you're getting.
+9. Iterate more - use a review script (like the one present in `mephisto/examples/simple_static_task/examine_results`) to make it easy to see what data you're getting.
 10. Collect some interesting conversational data.
 
 If you do require frontend customization, we recommend using [React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) to inspect the specific elements you want to change and debug your frontend as you work with it. Note that after rebuilding your frontend (by using `npm install; npm run dev`) you may need to do a force refresh (shift-cmd-R in chrome) to ensure you load the new version of your bundle.

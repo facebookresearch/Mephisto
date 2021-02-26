@@ -9,7 +9,7 @@ Mephisto seems to be set up correctly.
 
 # You can also bind ports and pass in shell commands, e.g. to run
 # a task directly from the container
-$ docker run -p 3000:3000 mephisto bash -c 'cd mephisto/examples/simple_static_task && python static_test_script.py
+$ docker run -p 3000:3000 mephisto bash -c 'cd mephisto/mephisto/examples/simple_static_task && python static_test_script.py
 
 ```
 By default, Mephisto run data will be stored at `/mephisto/data` within the container.

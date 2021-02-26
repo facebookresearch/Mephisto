@@ -5,7 +5,7 @@ The `StaticHTMLBlueprint` exists to create a simple transition stand-in to allow
 There are no plans to extend the `StaticHTMLBlueprint`, or provide other HTML support, as we believe this to be more an onboarding ramp rather than a fully fleshed out feature. The `React`-based codebase contains better features and cleaner, reusable modules, and as such our focus is on tasks in that area.
 
 ## Usage
-An example usage case is available [here](https://github.com/facebookresearch/Mephisto/blob/master/examples/simple_static_task/). General usage for this `Blueprint` type can be summed up as copying that directory structure, providing your own templated HTML in the `server_files`, and then providng the `data.csv` or other data to post those templates to workers. More in-depth descriptions can be seen there.
+An example usage case is available [here](https://github.com/facebookresearch/Mephisto/blob/master/mephisto/examples/simple_static_task/). General usage for this `Blueprint` type can be summed up as copying that directory structure, providing your own templated HTML in the `server_files`, and then providng the `data.csv` or other data to post those templates to workers. More in-depth descriptions can be seen there.
 
 ## Implementation Details
 At a high level, this is a deeper implementation of the abstract `StaticArchitect`, which contains all of the logic for deploying arbitrary tasks where the worker is given some content, and we ask for one response, as a complete `Unit`. This module adds the logic to ensure that the frontend where the worker is given content is able to render arbitrary HTML.

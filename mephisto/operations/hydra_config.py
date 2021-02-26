@@ -23,6 +23,7 @@ class MephistoConfig:
     architect: ArchitectArgs = ArchitectArgs()
     task: TaskConfigArgs = TaskConfigArgs()
     log_level: str = "info"
+    datapath: str = MISSING
 
 
 @dataclass

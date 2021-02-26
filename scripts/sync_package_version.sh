@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update the version of a given package in the related package.json file
-# under "./examples" and "../mephisto/abstractions/blueprints"
+# under "../mephisto/examples" and "../mephisto/abstractions/blueprints"
 # Currently we support the update of the following packages:
 # * mephisto-task
 # * bootstrap-chat
@@ -14,7 +14,7 @@
 # You can also sync all packages together like this:
 # ./sync_package_version.sh mephisto-task 1.0.13 bootstrap-chat 1.0.7
 
-possible_dirs=`find ../mephisto/abstractions/blueprints ../examples -type d \( -name node_modules -o -name tmp -o -name runs -o -name _generated \) -prune -false -o -name 'package.json' -exec dirname {} \;`
+possible_dirs=`find ../mephisto/abstractions/blueprints ../mephisto/examples -type d \( -name node_modules -o -name tmp -o -name runs -o -name _generated \) -prune -false -o -name 'package.json' -exec dirname {} \;`
 
 
 sync_package_version() {
