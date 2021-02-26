@@ -43,9 +43,6 @@ class LocalArchitectArgs(ArchitectArgs):
         default="localhost", metadata={"help": "Addressible location of the server"}
     )
     port: str = field(default="3000", metadata={"help": "Port to launch the server on"})
-    server_type: str = field(
-        default="node", metadata={"Help": "Type of server to run, `node` or `flask`"}
-    )
 
 
 @register_mephisto_abstraction()
@@ -80,6 +77,7 @@ class LocalArchitect(Architect):
         self.port: Optional[str] = args.architect.port
         self.cleanup_called = False
         self.server_type = args.architect.server_type
+        self.server_source_path = args.architect.get("server_source_path", None)
 
     def _get_socket_urls(self) -> List[str]:
         """Return the path to the local server socket"""
@@ -133,7 +131,12 @@ class LocalArchitect(Architect):
 
     def prepare(self) -> str:
         """Mark the preparation call"""
-        self.server_dir = build_router(self.build_dir, self.task_run, self.server_type)
+        self.server_dir = build_router(
+            self.build_dir,
+            self.task_run,
+            version=self.server_type,
+            server_source_path=self.server_source_path,
+        )
         return self.server_dir
 
     def deploy(self) -> str:

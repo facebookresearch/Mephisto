@@ -100,6 +100,8 @@ class HerokuArchitect(Architect):
         self.task_run = task_run
         self.deploy_name = f"{task_run.get_task().task_name}_{task_run.db_id}"
         self.build_dir = build_dir_root
+        self.server_type = args.architect.server_type
+        self.server_source_path = args.architect.get("server_source_path", None)
 
         # Cache-able parameters
         self.__heroku_app_name: Optional[str] = None
@@ -303,8 +305,11 @@ class HerokuArchitect(Architect):
         print("Building server files...")
         heroku_server_development_root = self.__get_build_directory()
         os.makedirs(heroku_server_development_root)
-        heroku_server_development_path = build_router(
-            heroku_server_development_root, self.task_run
+        heroku_server_development_path = self.server_dir = build_router(
+            heroku_server_development_root,
+            self.task_run,
+            version=self.server_type,
+            server_source_path=self.server_source_path,
         )
         return heroku_server_development_path
 
