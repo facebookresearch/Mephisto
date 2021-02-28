@@ -9,7 +9,7 @@
 }
 
 .grid-renderer-header {
-  margin-top: 12px;
+  margin-top: 24px;
 }
 
 .grid-renderer-no-data {
@@ -45,22 +45,4 @@
   .grid-container {
     grid-template-columns: 33% 33% 33%;
   }
-}
-
-.grid-item {
-  margin: 0px 5px;
-  text-align: left;
-}
-
-.grid-item-text {
-  height: 12vh;
-  width: 100%;
-  margin-bottom: 12px;
-  overflow: auto;
-}
-
-.grid-item-text > pre {
-  white-space: pre-wrap;
-  margin-top: -2px;
-  color: #555555;
 }

@@ -3,13 +3,18 @@ import { Redirect } from "react-router-dom";
 import { useMephistoReview } from "mephisto-review-hook";
 import { H4, H3, H2, H1, InputGroup, Button } from "@blueprintjs/core";
 import { Tooltip2 } from "@blueprintjs/popover2";
-import GridView from "./GridView";
+import DefaultItemRenderer from "./components/DefaultItemRenderer";
+import GridView from "./components/GridView";
 import Pagination from "./components/Pagination";
-import "./GridRenderer.css";
+import "./css/AllItemView.css";
 
-function GridRenderer() {
-  const resultsPerPage = 9;
-  const [page, setPage] = useState(1);
+function AllItemView({
+  itemRenderer = DefaultItemRenderer,
+  itemListRenderer: ItemListRenderer = GridView,
+  pagination = true,
+  resultsPerPage = 9,
+}) {
+  const [page, setPage] = useState(pagination ? 1 : null);
   const [filters, setFilters] = useState("");
   const [filtersBuffer, setFiltersBuffer] = useState("");
   const [filterTimeout, setFilterTimeout] = useState(null);
@@ -85,12 +90,14 @@ function GridRenderer() {
           </Tooltip2>
           {data && data.length > 0 ? (
             <>
-              <GridView data={data} />
-              <Pagination
-                totalPages={totalPages}
-                page={page}
-                setPage={setPage}
-              />
+              <ItemListRenderer data={data} itemRenderer={itemRenderer} />
+              {pagination ? (
+                <Pagination
+                  totalPages={totalPages}
+                  page={page}
+                  setPage={setPage}
+                />
+              ) : null}
             </>
           ) : (
             <div className="grid-renderer-no-data">
@@ -109,4 +116,4 @@ function GridRenderer() {
   );
 }
 
-export default GridRenderer;
+export default AllItemView;

@@ -1,0 +1,27 @@
+.list-container {
+  display: grid;
+  grid-template-rows: auto;
+  grid-template-columns: 100%;
+  grid-column-gap: 6px;
+  padding: 24px 24px;
+  margin: 6px 0px;
+  width: 75vw;
+}
+
+.list-item {
+  text-align: left;
+  padding: 0px 4px;
+  width: 100%;
+  overflow: auto;
+}
+
+.divider {
+  margin-top: 12px;
+}
+
+.list-item > pre {
+  white-space: pre-wrap;
+  margin-top: -2px;
+  margin-bottom: 12px;
+  color: #555555;
+}

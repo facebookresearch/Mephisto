@@ -11,12 +11,13 @@
   margin: 24px 24px;
   max-width: 75vw;
   max-height: 75vh;
+  overflow: auto;
 }
 
 .item > pre {
   white-space: pre-wrap;
   font-size: 28px;
-  overflow: auto;
+  margin: 0px 8px;
 }
 
 .home-button {
