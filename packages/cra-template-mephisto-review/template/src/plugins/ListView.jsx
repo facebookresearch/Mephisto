@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Card, Divider, H4 } from "@blueprintjs/core";
+import { Card, Divider } from "@blueprintjs/core";
 import DefaultItemRenderer from "../components/DefaultItemRenderer";
 import "./css/ListView.css";
 
