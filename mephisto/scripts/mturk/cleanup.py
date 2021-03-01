@@ -13,6 +13,9 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     expire_and_dispose_hits,
 )
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
+
+from typing import List, Dict, Any, Optional
 
 db = LocalMephistoDB()
 
@@ -32,13 +35,14 @@ while use_name not in r_names:
     )
 
 requester = db.find_requesters(requester_name=use_name)[0]
+assert isinstance(requester, MTurkRequester)
 client = requester._get_client(requester._requester_name)
 
 outstanding_hit_types = get_outstanding_hits(client)
 num_hit_types = len(outstanding_hit_types.keys())
 sum_hits = sum([len(outstanding_hit_types[x]) for x in outstanding_hit_types.keys()])
 
-all_hits = []
+all_hits: List[Dict[str, Any]] = []
 for hit_type in outstanding_hit_types.keys():
     all_hits += outstanding_hit_types[hit_type]
 
@@ -56,7 +60,7 @@ print(
 )
 
 run_type = input("Would you like to cleanup by (t)itle, or just clean up (a)ll?\n>> ")
-use_hits = None
+use_hits: Optional[List[Dict[str, Any]]] = None
 
 while use_hits is None:
     if run_type.lower().startswith("t"):
