@@ -80,6 +80,15 @@ class TaskConfigArgs:
             )
         },
     )
+    max_num_concurrent_units: int = field(
+        default=0,
+        metadata={
+            "help": (
+                "Maximum units that will be released simultaneously, setting a limit "
+                "on concurrent connections to Mephisto overall. (0 is infinite)"
+            )
+        },
+    )
 
 
 class TaskConfig:
@@ -90,8 +99,8 @@ class TaskConfig:
 
     ArgsClass = TaskConfigArgs
 
-    # TODO(#94?) TaskConfigs should probably be immutable, and could ideally separate
-    # the options that come from different parts of the ecosystem
+    # TODO(#94?) TaskConfigs should probably be removed in favor of relying on
+    # just hydra arguments
     def __init__(self, task_run: "TaskRun"):
         self.db = task_run.db
         args = task_run.args

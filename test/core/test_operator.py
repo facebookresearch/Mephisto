@@ -40,7 +40,7 @@ MOCK_TASK_ARGS = TaskConfigArgs(
 
 class TestOperator(unittest.TestCase):
     """
-    Unit testing for the Mephisto Supervisor
+    Unit testing for the Mephisto Operator
     """
 
     def setUp(self):

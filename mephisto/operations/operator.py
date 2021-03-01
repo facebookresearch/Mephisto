@@ -267,7 +267,12 @@ class Operator:
                 )
             raise e
 
-        launcher = TaskLauncher(self.db, task_run, initialization_data_array)
+        launcher = TaskLauncher(
+            self.db,
+            task_run,
+            initialization_data_array,
+            max_num_concurrent_units=run_config.task.max_num_concurrent_units,
+        )
         launcher.create_assignments()
         launcher.launch_units(task_url)
 
