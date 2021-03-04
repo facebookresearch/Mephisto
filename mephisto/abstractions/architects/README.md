@@ -32,6 +32,16 @@ The `LocalArchitect` implementation works by running a `node` server on the loca
 ## HerokuArchitect
 The `HerokuArchitect` implementation works by getting access to the `heroku` cli, preparing a directory of what to deploy on that server, and then pushing it along. It communicates over the `WebsocketChannel`. This also relies on the node server implementation available in the `router/deploy` folder.
 
+You can specify Heroku configuration variables in `hydra` using your config file:
+```
+#@package _global_
+mephisto:
+  architect:
+    heroku_config_args:
+      ONE_ARGUMENT: something
+      ANOTHER_ARGUMENT: something else
+```
+
 ## MockArchitect
 The `MockArchitect` is an `Architect` used primarily for testing. To test Mephisto lifecycle, you can choose `should_run_server=False`, which just leads to the lifecycle functions marking if they've been called. Setting `should_run_server=True` can be used to automatically test certain flows, as it launches a Tornado server for which every packet and action sent through it can be scripted.
 

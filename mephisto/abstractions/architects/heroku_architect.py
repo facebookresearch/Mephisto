@@ -65,6 +65,12 @@ class HerokuArchitectArgs(ArchitectArgs):
     heroku_team: Optional[str] = field(
         default=MISSING, metadata={"help": "Heroku team to use for this launch"}
     )
+    heroku_config_args: Dict[str, str] = field(
+        default_factory=dict,
+        metadata={
+            "help": "str:str dict containing all heroku config variables to set for the app"
+        },
+    )
 
 
 @register_mephisto_abstraction()
@@ -97,11 +103,13 @@ class HerokuArchitect(Architect):
         # TODO(#102) put the expected info into the MephistoDB rather than storing here?
         # Servers will have a status which needs to be kept track of.
         self.args = args
+        # print(dict(args.architect.heroku_config_args), type(dict(args.architect.heroku_config_args)))
         self.task_run = task_run
         self.deploy_name = f"{task_run.get_task().task_name}_{task_run.db_id}"
         self.build_dir = build_dir_root
         self.server_type = args.architect.server_type
         self.server_source_path = args.architect.get("server_source_path", None)
+        self.heroku_config_args = dict(args.architect.heroku_config_args)
 
         # Cache-able parameters
         self.__heroku_app_name: Optional[str] = None
@@ -372,6 +380,17 @@ class HerokuArchitect(Architect):
         except subprocess.CalledProcessError:  # Already enabled WebSockets
             pass
         os.chdir(return_dir)
+
+        # push config args, as desired
+        if len(self.heroku_config_args) > 0:
+            config_strs = [
+                f"{config_key}={config_val}"
+                for config_key, config_val in self.heroku_config_args.items()
+            ]
+            full_config_str = " ".join(config_strs)
+            subprocess.check_output(
+                shlex.split(f"{heroku_executable_path} config:set {full_config_str}")
+            )
 
         # commit and push to the heroku server
         sh.git(shlex.split(f"-C {heroku_server_directory_path} add -A"))
