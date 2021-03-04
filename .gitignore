@@ -15,6 +15,5 @@ examples/**/build/*
 **/outputs/*
 .coverage
 
-
 # PyCharm
 .idea
