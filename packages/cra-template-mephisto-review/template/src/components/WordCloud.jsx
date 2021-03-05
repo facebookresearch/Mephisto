@@ -198,7 +198,7 @@ function WordCloud({
 
   //map css styles to spans with corresponding word and populate paragraph with spans
   return (
-    <div className="cloud">
+    <div className="word-cloud">
       <p>
         {wordKeys.map((word) => (
           <span style={wordCounts[word]}>{" " + word + " "}</span>

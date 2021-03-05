@@ -1,21 +1,22 @@
 import React from "react";
-import { H4 } from "@blueprintjs/core";
+import { H6 } from "@blueprintjs/core";
 import WordCloud from "../components/WordCloud";
 
 /*
     EXAMPLE PLUGIN ITEM RENDERER
     Renders mephisto review data items as word clouds of the most common words in the object
+    For use inside an ItemListRenderer or AllItemView as an itemRenderer prop
 */
-function WordCloudRenderer({ item }) {
+function WordCloudItemRenderer({ item }) {
   if (!item) return <p>No Data Available</p>;
   const data = item.data;
   const id = item.id;
   return (
     <div>
-      <H4>
+      <H6>
         <b>ID: {id}</b>
-      </H4>
-      <H4>Data keywords:</H4>
+      </H6>
+      <H6>Data keywords:</H6>
       {/*example WordCloud with example excluded keys and words*/}
       <WordCloud
         data={data}
@@ -30,9 +31,13 @@ function WordCloudRenderer({ item }) {
           "of",
           "and",
         ]}
+        minFontEmSize={0.4}
+        maxFontEmSize={1.25}
+        minFontWeight={200}
+        maxFontWeight={600}
       />
     </div>
   );
 }
 
-export default WordCloudRenderer;
+export default WordCloudItemRenderer;

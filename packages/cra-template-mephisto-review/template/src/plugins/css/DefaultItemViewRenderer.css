@@ -1,0 +1,13 @@
+.default-item-view-renderer {
+  margin: auto 12px;
+}
+
+.default-item-view-renderer > pre {
+  text-align: left;
+  white-space: pre-wrap;
+  margin: 0px 8px 12px 8px;
+  max-width: 75vw;
+  max-height: 75vh;
+  overflow: auto;
+  color: #555555;
+}

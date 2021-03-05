@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, Divider } from "@blueprintjs/core";
-import DefaultItemRenderer from "../components/DefaultItemRenderer";
+import DefaultItemRenderer from "../plugins/DefaultItemRenderer";
 import "./css/ListView.css";
 
 /*
@@ -10,7 +10,7 @@ import "./css/ListView.css";
 */
 function ListView({ data, itemRenderer: Renderer = DefaultItemRenderer }) {
   return data && data.length > 0 ? (
-    <Card className="list-container">
+    <Card className="list-view-container">
       {data.map((item, index) => (
         <>
           {index != 0 ? <Divider /> : null}
@@ -19,7 +19,11 @@ function ListView({ data, itemRenderer: Renderer = DefaultItemRenderer }) {
             style={{ textDecoration: "none" }}
             key={item.id}
           >
-            <div className={index != 0 ? "list-item divider" : "list-item"}>
+            <div
+              className={
+                index != 0 ? "list-view-item divider" : "list-view-item"
+              }
+            >
               <Renderer item={item} />
             </div>
           </Link>

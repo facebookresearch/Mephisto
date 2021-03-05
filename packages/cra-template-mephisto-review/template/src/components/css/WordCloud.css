@@ -1,9 +1,9 @@
-.cloud {
+.word-cloud {
   text-align: center;
   justify-content: center;
 }
 
-.cloud p {
+.word-cloud p {
   text-align: center;
   vertical-align: middle;
   width: 100%;

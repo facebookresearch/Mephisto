@@ -4,8 +4,9 @@ import "./css/Index.css";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import AllItemView from "./AllItemView";
 import ItemView from "./ItemView";
-import GridView from "./components/GridView";
-import DefaultItemRenderer from "./components/DefaultItemRenderer";
+import DefaultItemListRenderer from "./plugins/DefaultItemListRenderer";
+import DefaultItemRenderer from "./plugins/DefaultItemRenderer";
+import DefaultItemViewRenderer from "./plugins/DefaultItemViewRenderer";
 import "normalize.css/normalize.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
@@ -21,7 +22,7 @@ ReactDOM.render(
           Add custom renderers for item data by adding an 'itemRenderer' property.
           For more information see the 'Customization' section of the README.md file.
           */}
-          <ItemView itemRenderer={DefaultItemRenderer} />
+          <ItemView itemRenderer={DefaultItemViewRenderer} />
         </Route>
         <Route path="/">
           {/*
@@ -33,7 +34,7 @@ ReactDOM.render(
           For more information see the 'Customization' section of the README.md file.
           */}
           <AllItemView
-            itemListRenderer={GridView}
+            itemListRenderer={DefaultItemListRenderer}
             itemRenderer={DefaultItemRenderer}
             pagination={true}
             resultsPerPage={9}

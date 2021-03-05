@@ -2,11 +2,14 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, Elevation } from "@blueprintjs/core";
 import DefaultItemRenderer from "./DefaultItemRenderer";
-import "./css/GridView.css";
+import "./css/DefaultItemListRenderer.css";
 
-function GridView({ data, itemRenderer: ItemRenderer = DefaultItemRenderer }) {
+function DefaultItemListRenderer({
+  data,
+  itemRenderer: ItemRenderer = DefaultItemRenderer,
+}) {
   return data && data.length > 0 ? (
-    <div className="grid-container">
+    <div className="default-item-list-renderer-container">
       {data.map((item) => {
         return (
           <Link
@@ -17,11 +20,9 @@ function GridView({ data, itemRenderer: ItemRenderer = DefaultItemRenderer }) {
             <Card
               interactive={true}
               elevation={Elevation.TWO}
-              className="grid-item"
+              className="default-item-list-renderer-card"
             >
-              <div className="grid-item-content">
-                <ItemRenderer item={item} />
-              </div>
+              <ItemRenderer item={item} />
             </Card>
           </Link>
         );
@@ -30,4 +31,4 @@ function GridView({ data, itemRenderer: ItemRenderer = DefaultItemRenderer }) {
   ) : null;
 }
 
-export default GridView;
+export default DefaultItemListRenderer;

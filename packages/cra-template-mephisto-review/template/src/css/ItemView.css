@@ -1,42 +1,28 @@
-.Item-Renderer {
-  min-height: 100vh;
+.item-view {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
-  font-size: calc(10px + 2vmin);
-}
-.item {
-  margin: 24px 24px;
-  max-width: 75vw;
-  max-height: 75vh;
+  font-size: calc(12px + 1vmin);
+  margin-top: 50px;
+  width: 100vw;
+  height: calc(100vh - 50px);
   overflow: auto;
 }
 
-.item > pre {
-  white-space: pre-wrap;
-  font-size: 28px;
-  margin: 0px 8px;
+.item-view-message {
+  margin: auto 0px;
 }
 
-.home-button {
-  position: absolute;
-  left: 0;
-  top: 0;
-  margin: 18px 18px;
+.item-view-error {
+  margin-top: 36px;
+  max-width: 50%;
 }
 
-.button-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  margin-top: 12px;
+.item-view-no-data {
+  max-width: 50%;
 }
 
 .btn {
   margin: 0px 6px;
-  font-size: 48px;
-  cursor: pointer;
 }
