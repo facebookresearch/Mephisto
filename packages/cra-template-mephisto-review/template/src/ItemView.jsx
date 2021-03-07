@@ -8,12 +8,17 @@ import {
   NavbarDivider,
   NavbarHeading,
   Alignment,
+  Position,
+  Toaster,
 } from "@blueprintjs/core";
-import DefaultItemViewRenderer from "./plugins/DefaultItemViewRenderer";
-import AppToaster from "./components/AppToaster";
-import "./css/ItemView.css";
+import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
 
-function ItemView({ itemRenderer: ItemRenderer = DefaultItemViewRenderer }) {
+const AppToaster = Toaster.create({
+  className: "recipe-toaster",
+  position: Position.TOP,
+});
+
+function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
   const { id } = useParams();
   const {
     data: item,

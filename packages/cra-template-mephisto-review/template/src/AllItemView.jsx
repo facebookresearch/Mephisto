@@ -11,10 +11,9 @@ import {
   Alignment,
 } from "@blueprintjs/core";
 import { Tooltip2 } from "@blueprintjs/popover2";
-import DefaultItemRenderer from "./plugins/DefaultItemRenderer";
-import DefaultItemListRenderer from "./plugins/DefaultItemListRenderer";
-import Pagination from "./components/Pagination";
-import "./css/AllItemView.css";
+import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
+import { DefaultItemListRenderer } from "./plugins/DefaultItemListRenderer";
+import { Pagination } from "./components/Pagination";
 
 function AllItemView({
   itemRenderer = DefaultItemRenderer,

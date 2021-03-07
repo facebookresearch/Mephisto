@@ -1,12 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./css/Index.css";
+import "./Index.css";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import AllItemView from "./AllItemView";
 import ItemView from "./ItemView";
-import DefaultItemListRenderer from "./plugins/DefaultItemListRenderer";
-import DefaultItemRenderer from "./plugins/DefaultItemRenderer";
-import DefaultItemViewRenderer from "./plugins/DefaultItemViewRenderer";
+import { DefaultItemListRenderer } from "./plugins/DefaultItemListRenderer";
+import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
 import "normalize.css/normalize.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
@@ -22,7 +21,7 @@ ReactDOM.render(
           Add custom renderers for item data by adding an 'itemRenderer' property.
           For more information see the 'Customization' section of the README.md file.
           */}
-          <ItemView itemRenderer={DefaultItemViewRenderer} />
+          <ItemView itemRenderer={DefaultItemRenderer} />
         </Route>
         <Route path="/">
           {/*

@@ -1,9 +1,0 @@
-.default-item-renderer > pre {
-  text-align: left;
-  white-space: pre-wrap;
-  margin: -2px 0px 12px 0px;
-  width: 100%;
-  height: 18vh;
-  overflow: auto;
-  color: #555555;
-}

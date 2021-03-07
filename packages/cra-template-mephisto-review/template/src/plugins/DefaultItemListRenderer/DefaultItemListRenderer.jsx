@@ -1,8 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Card, Elevation } from "@blueprintjs/core";
-import DefaultItemRenderer from "./DefaultItemRenderer";
-import "./css/DefaultItemListRenderer.css";
+import { DefaultItemRenderer } from "../DefaultItemRenderer";
+import "./DefaultItemListRenderer.css";
 
 function DefaultItemListRenderer({
   data,
@@ -17,13 +16,7 @@ function DefaultItemListRenderer({
             style={{ textDecoration: "none" }}
             key={item.id}
           >
-            <Card
-              interactive={true}
-              elevation={Elevation.TWO}
-              className="default-item-list-renderer-card"
-            >
-              <ItemRenderer item={item} />
-            </Card>
+            <ItemRenderer item={item} />
           </Link>
         );
       })}

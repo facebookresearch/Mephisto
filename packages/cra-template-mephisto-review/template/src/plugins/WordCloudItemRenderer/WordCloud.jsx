@@ -1,5 +1,5 @@
 import React from "react";
-import "./css/WordCloud.css";
+import "./WordCloud.css";
 
 /*
   For a given object or string, generates a paragraph filled with different sized and weighted spans of words based on the frequency of occurrence in the object or string
@@ -21,6 +21,7 @@ function WordCloud({
   maxFontWeight = 600,
   excludedWords = [],
   excludedKeys = [],
+  style,
 }) {
   if (!data || data === {}) return <p>No Data Available</p>;
 
@@ -198,7 +199,7 @@ function WordCloud({
 
   //map css styles to spans with corresponding word and populate paragraph with spans
   return (
-    <div className="word-cloud">
+    <div style={style} className="word-cloud">
       <p>
         {wordKeys.map((word) => (
           <span style={wordCounts[word]}>{" " + word + " "}</span>
