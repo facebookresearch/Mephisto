@@ -115,7 +115,9 @@ class HerokuArchitect(Architect):
         self.heroku_config_args = dict(args.architect.heroku_config_args)
 
         # Cache-able parameters
-        self.__heroku_app_name: Optional[str] = args.architect.get("heroku_app_name", None)
+        self.__heroku_app_name: Optional[str] = args.architect.get(
+            "heroku_app_name", None
+        )
         self.__heroku_executable_path: Optional[str] = None
         self.__heroku_user_identifier: Optional[str] = None
 
