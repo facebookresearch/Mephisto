@@ -389,7 +389,7 @@ class HerokuArchitect(Architect):
             ]
             full_config_str = " ".join(config_strs)
             subprocess.check_output(
-                shlex.split(f"{heroku_executable_path} config:set {full_config_str}")
+                shlex.split(f"{heroku_executable_path} config:set -a {heroku_app_name} {full_config_str}")
             )
 
         # commit and push to the heroku server
