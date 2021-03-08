@@ -65,6 +65,9 @@ class HerokuArchitectArgs(ArchitectArgs):
     heroku_team: Optional[str] = field(
         default=MISSING, metadata={"help": "Heroku team to use for this launch"}
     )
+    heroku_app_name: Optional[str] = field(
+        default=MISSING, metadata={"help": "Heroku app name to use for this launch"}
+    )
     heroku_config_args: Dict[str, str] = field(
         default_factory=dict,
         metadata={
@@ -112,7 +115,9 @@ class HerokuArchitect(Architect):
         self.heroku_config_args = dict(args.architect.heroku_config_args)
 
         # Cache-able parameters
-        self.__heroku_app_name: Optional[str] = None
+        self.__heroku_app_name: Optional[str] = args.architect.get(
+            "heroku_app_name", None
+        )
         self.__heroku_executable_path: Optional[str] = None
         self.__heroku_user_identifier: Optional[str] = None
 
@@ -389,7 +394,9 @@ class HerokuArchitect(Architect):
             ]
             full_config_str = " ".join(config_strs)
             subprocess.check_output(
-                shlex.split(f"{heroku_executable_path} config:set {full_config_str}")
+                shlex.split(
+                    f"{heroku_executable_path} config:set -a {heroku_app_name} {full_config_str}"
+                )
             )
 
         # commit and push to the heroku server
