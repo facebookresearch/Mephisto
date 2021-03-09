@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Icon, Intent } from "@blueprintjs/core";
-import "./css/Pagination.css";
+import "./Pagination.css";
 
 /*
  * Creates pagination buttons based on the total number of pages to be paginated as well as the active page.

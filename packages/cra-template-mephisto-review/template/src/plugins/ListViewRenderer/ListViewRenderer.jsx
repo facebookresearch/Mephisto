@@ -1,16 +1,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, Divider } from "@blueprintjs/core";
-import DefaultItemRenderer from "../components/DefaultItemRenderer";
-import "./css/ListView.css";
+import ListViewItemRenderer from "./ListViewItemRenderer";
+import "./ListView.css";
 
 /*
   EXAMPLE PLUGIN ALL DATA RENDERER
   Displays all mephisto review data as a list
 */
-function ListView({ data, itemRenderer: Renderer = DefaultItemRenderer }) {
+function ListViewRenderer({
+  data,
+  itemRenderer: Renderer = ListViewItemRenderer,
+}) {
   return data && data.length > 0 ? (
-    <Card className="list-container">
+    <Card className="list-view-renderer-container">
       {data.map((item, index) => (
         <>
           {index != 0 ? <Divider /> : null}
@@ -19,7 +22,13 @@ function ListView({ data, itemRenderer: Renderer = DefaultItemRenderer }) {
             style={{ textDecoration: "none" }}
             key={item.id}
           >
-            <div className={index != 0 ? "list-item divider" : "list-item"}>
+            <div
+              className={
+                index != 0
+                  ? "list-view-renderer-item divider"
+                  : "list-view-renderer-item"
+              }
+            >
               <Renderer item={item} />
             </div>
           </Link>
@@ -29,4 +38,4 @@ function ListView({ data, itemRenderer: Renderer = DefaultItemRenderer }) {
   ) : null;
 }
 
-export default ListView;
+export default ListViewRenderer;

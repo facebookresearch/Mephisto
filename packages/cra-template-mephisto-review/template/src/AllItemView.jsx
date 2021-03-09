@@ -1,16 +1,23 @@
 import React, { useState } from "react";
 import { Redirect } from "react-router-dom";
 import { useMephistoReview } from "mephisto-review-hook";
-import { H4, H3, H2, H1, InputGroup, Button } from "@blueprintjs/core";
+import {
+  InputGroup,
+  Button,
+  Navbar,
+  NavbarGroup,
+  NavbarDivider,
+  NavbarHeading,
+  Alignment,
+} from "@blueprintjs/core";
 import { Tooltip2 } from "@blueprintjs/popover2";
-import DefaultItemRenderer from "./components/DefaultItemRenderer";
-import GridView from "./components/GridView";
-import Pagination from "./components/Pagination";
-import "./css/AllItemView.css";
+import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
+import { DefaultItemListRenderer } from "./plugins/DefaultItemListRenderer";
+import { Pagination } from "./components/Pagination";
 
 function AllItemView({
   itemRenderer = DefaultItemRenderer,
-  itemListRenderer: ItemListRenderer = GridView,
+  itemListRenderer: ItemListRenderer = DefaultItemListRenderer,
   pagination = true,
   resultsPerPage = 9,
 }) {
@@ -55,64 +62,69 @@ function AllItemView({
 
   if (mode === "OBO") return <Redirect to={`/${data && data.id}`} />;
   return (
-    <main className="grid-renderer">
-      {error && <h5 className="error">Error: {JSON.stringify(error)}</h5>}
-      {isLoading ? (
-        <H1>Loading...</H1>
-      ) : isFinished ? (
-        <H1>Done reviewing! You can close this app now</H1>
-      ) : (
-        <>
-          <div className="grid-renderer-header">
-            <H2>
-              <b>Welcome to Mephisto Review</b>
-            </H2>
-            {data && data.length > 0 && (
-              <H3>Please click on the following data cards to review them:</H3>
-            )}
+    <>
+      <Navbar fixedToTop={true}>
+        <div style={{ margin: "0 auto", width: "75vw" }}>
+          <NavbarGroup>
+            <NavbarHeading>
+              <b>Mephisto Review</b>
+            </NavbarHeading>
+            <NavbarDivider />
+          </NavbarGroup>
+          <NavbarGroup align={Alignment.RIGHT}>
+            <Tooltip2 content="Separate multiple filters with commas">
+              <InputGroup
+                style={{ width: "60vw" }}
+                leftIcon="search"
+                round={true}
+                onChange={(event) => delaySetFilters(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") setFiltersImmediately();
+                }}
+                placeholder="Filter data..."
+                value={filtersBuffer}
+                rightElement={searchButton}
+              />
+            </Tooltip2>
+          </NavbarGroup>
+        </div>
+      </Navbar>
+      <main className="all-item-view">
+        {error && (
+          <h5 className="all-item-view-error error">
+            Error: {JSON.stringify(error)}
+          </h5>
+        )}
+        {isLoading ? (
+          <h1 className="all-item-view-message">Loading...</h1>
+        ) : isFinished ? (
+          <h1 className="all-item-view-message">
+            Done reviewing! You can close this app now
+          </h1>
+        ) : data && data.length > 0 ? (
+          <>
+            <ItemListRenderer data={data} itemRenderer={itemRenderer} />
+            {pagination && totalPages > 1 ? (
+              <Pagination
+                totalPages={totalPages}
+                page={page}
+                setPage={setPage}
+              />
+            ) : null}
+          </>
+        ) : (
+          <div className="all-item-view-message all-item-view-no-data">
+            <h3>
+              No data available. Please provide Mephisto Review with some data
+              by running mephisto review with either standard input of a CSV or
+              JSON file or by using the "--db" flag along with the name of a
+              task in mephistoDB as an argument. The task must have valid review
+              data.
+            </h3>
           </div>
-          <Tooltip2
-            className="search-box"
-            content="Separate multiple filters with commas"
-          >
-            <InputGroup
-              leftIcon="search"
-              large={true}
-              round={true}
-              onChange={(event) => delaySetFilters(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") setFiltersImmediately();
-              }}
-              placeholder="Filter data..."
-              value={filtersBuffer}
-              rightElement={searchButton}
-            />
-          </Tooltip2>
-          {data && data.length > 0 ? (
-            <>
-              <ItemListRenderer data={data} itemRenderer={itemRenderer} />
-              {pagination ? (
-                <Pagination
-                  totalPages={totalPages}
-                  page={page}
-                  setPage={setPage}
-                />
-              ) : null}
-            </>
-          ) : (
-            <div className="grid-renderer-no-data">
-              <H4>
-                Sorry, no data available. Please provide Mephisto Review with
-                some data by running mephisto review with either standard input
-                of a CSV or JSON file or by using the "--db" flag along with the
-                name of a task in mephistoDB as an argument. The task must have
-                valid review data.
-              </H4>
-            </div>
-          )}
-        </>
-      )}
-    </main>
+        )}
+      </main>
+    </>
   );
 }
 

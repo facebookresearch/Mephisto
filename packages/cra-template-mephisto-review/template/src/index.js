@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./css/Index.css";
+import "./Index.css";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import AllItemView from "./AllItemView";
 import ItemView from "./ItemView";
-import GridView from "./components/GridView";
-import DefaultItemRenderer from "./components/DefaultItemRenderer";
+import { DefaultItemListRenderer } from "./plugins/DefaultItemListRenderer";
+import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
 import "normalize.css/normalize.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
@@ -33,7 +33,7 @@ ReactDOM.render(
           For more information see the 'Customization' section of the README.md file.
           */}
           <AllItemView
-            itemListRenderer={GridView}
+            itemListRenderer={DefaultItemListRenderer}
             itemRenderer={DefaultItemRenderer}
             pagination={true}
             resultsPerPage={9}

@@ -1,15 +1,15 @@
 import React from "react";
-import { H4 } from "@blueprintjs/core";
+import { H6 } from "@blueprintjs/core";
 
-function DefaultItemRenderer({ item }) {
+function ListViewItemRenderer({ item }) {
   return (
     <>
       <pre>{JSON.stringify(item && item.data)}</pre>
-      <H4>
+      <H6>
         <b>ID: {item && item.id}</b>
-      </H4>
+      </H6>
     </>
   );
 }
 
-export default DefaultItemRenderer;
+export default ListViewItemRenderer;
