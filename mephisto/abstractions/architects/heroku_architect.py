@@ -491,5 +491,5 @@ class HerokuArchitect(Architect):
         Shut down the server launched by this Architect, as stored
         in the db.
         """
-        if self.created: # only delete the server if it's created by us
+        if self.created:  # only delete the server if it's created by us
             self.__delete_heroku_server()
