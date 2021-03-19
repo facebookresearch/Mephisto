@@ -17,15 +17,12 @@ export default function VideoPlayer({ id }) {
 
   const path = (...args) => ["layers", id, "data", ...args];
 
+  // TODO: encapsulate process queue logic into a Hook or such so other
+  // layer can also leverage it easily
   const requestQueue = get(path("requests"));
   React.useEffect(() => {
     if (!requestQueue || requestQueue.length === 0) return;
     requestQueue.forEach((request) => {
-      console.log(
-        "processing",
-        request,
-        requestQueue.filter((r) => r !== request)
-      );
       process(request);
     });
     set(path("requests"), []);
@@ -75,7 +72,7 @@ export default function VideoPlayer({ id }) {
               icon="circle-arrow-right"
               text="Jump to item crop"
               onClick={() => {
-                // TODO: simplify invocation process
+                // TODO: simplify the below code, make it easy to add things to process queues
                 if (!get(["layers", "Video", "data", "requests"])) {
                   set(["layers", "Video", "data", "requests"], []);
                 }
