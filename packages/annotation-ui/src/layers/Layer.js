@@ -10,6 +10,7 @@ function Layer({
   secondaryIcon = "",
   children,
   component,
+  noPointerEvents,
   alwaysOn = false,
 }) {
   const [expanded, setExpanded] = React.useState(true);
@@ -22,7 +23,7 @@ function Layer({
   const isRegistered = !!get(path);
   React.useEffect(() => {
     if (!isRegistered) {
-      set(path, { component, alwaysOn, id: layerId });
+      set(path, { component, alwaysOn, id: layerId, noPointerEvents });
     }
   }, [isRegistered]);
 

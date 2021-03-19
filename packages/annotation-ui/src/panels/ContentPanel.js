@@ -1,3 +1,4 @@
+import { AUTOMATIC_UPDATES } from "@blueprintjs/icons/lib/esm/generated/iconContents";
 import React, { useContext } from "react";
 import { Context } from "../model/Store";
 
@@ -14,9 +15,10 @@ function ContentPanel() {
 
   let SelectedViewComponent = Noop;
   const selectedViewName = state.selectedLayer || null;
+  let selectedLayer;
   if (selectedViewName) {
     const key = selectedViewName.join("|");
-    const selectedLayer = get(["layers", key]);
+    selectedLayer = get(["layers", key]);
     if (selectedLayer.component && !selectedLayer.alwaysOn) {
       SelectedViewComponent = () => (
         <selectedLayer.component id={selectedLayer.id} />
@@ -26,11 +28,23 @@ function ContentPanel() {
 
   return (
     <>
-      <div style={{ position: "absolute", zIndex: 12 }}>
-        <SelectedViewComponent />
-      </div>
+      {selectedLayer ? (
+        <div
+          style={{
+            position: "absolute",
+            zIndex: 12,
+            pointerEvents: selectedLayer.noPointerEvents ? "none" : "auto",
+          }}
+        >
+          <SelectedViewComponent />
+        </div>
+      ) : null}
       {alwaysOnLayers.map((layer) => (
-        <div key={layer.id} style={{ zIndex: 10 }}>
+        <div
+          key={layer.id}
+          style={{ zIndex: 10 }}
+          style={{ pointerEvents: layer.noPointerEvents ? "none" : "auto" }}
+        >
           <layer.component id={layer.id} />
         </div>
       ))}

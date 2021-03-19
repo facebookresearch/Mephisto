@@ -15,7 +15,12 @@ function Layers() {
             alwaysOn={true}
           />
           <Layer name="Query 1">
-            <Layer name="Item Crop" icon="widget" component={BBoxFrame} />
+            <Layer
+              name="Item Crop"
+              icon="widget"
+              component={BBoxFrame}
+              noPointerEvents={true}
+            />
             <Layer name="Response Track" icon="path-search" />
             <Layer name="Query Frame" icon="help" />
           </Layer>

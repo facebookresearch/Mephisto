@@ -5,7 +5,7 @@ import { Context } from "../model/Store";
 import { Menu, MenuItem, MenuDivider, Classes, Icon } from "@blueprintjs/core";
 
 export default function VideoPlayer({ id }) {
-  const { state, set, get } = useContext(Context);
+  const { state, set, get, invoke } = useContext(Context);
   const vidRef = React.useRef();
   const canvasRef = React.useRef();
 
@@ -70,12 +70,21 @@ export default function VideoPlayer({ id }) {
               icon={"layer"}
               title={state.selectedLayer.join(" / ")}
             />
-            {/* <MenuDivider />
-          <MenuItem icon="new-object" text="Add keyframe" />
-          <MenuItem icon="cross" text="Remove keyframe" />
-          <MenuItem icon="predictive-analysis" text="Request model assistance" /> */}
-            {/* <MenuDivider />
-          <MenuItem icon="cog" labelElement={<Icon icon="share" />} text="Settings..." /> */}
+            <MenuDivider />
+            <MenuItem
+              icon="circle-arrow-right"
+              text="Jump to item crop"
+              onClick={() => {
+                // TODO: simplify invocation process
+                if (!get(["layers", "Video", "data", "requests"])) {
+                  set(["layers", "Video", "data", "requests"], []);
+                }
+                invoke("layers.Video.data.requests", (prev) => [
+                  ...prev,
+                  { type: "seek", payload: 4.7 },
+                ]);
+              }}
+            />
           </Menu>
         </div>
       ) : null}

@@ -4,7 +4,7 @@ import lodash_get from "lodash.get";
 import lodash_unset from "lodash.unset";
 
 const initialState = {
-  srcVideo: "/assets/test.mp4",
+  srcVideo: "/cdn/test.mp4",
   debug: {
     actionsFired: [],
   },
