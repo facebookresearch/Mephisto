@@ -1,26 +1,28 @@
-import React, { useContext, useEffect, useCallback } from "react";
+import React, { useContext, useEffect, useCallback, useRef } from "react";
 import ReactPlayer from "react-player";
 import { Context } from "../model/Store";
 
-import { Menu, MenuItem, MenuDivider, Classes, Icon } from "@blueprintjs/core";
+import { Menu, MenuItem, MenuDivider, Classes } from "@blueprintjs/core";
 
 export default function VideoPlayer({ id }) {
   const { state, set, get, invoke } = useContext(Context);
-  const vidRef = React.useRef();
-  const canvasRef = React.useRef();
+  const vidRef = useRef();
 
-  const process = React.useCallback((req) => {
-    if (req.type === "seek") {
-      vidRef.current.seekTo(req.payload, "seconds");
-    }
-  });
+  const process = useCallback(
+    (req) => {
+      if (req.type === "seek") {
+        vidRef.current.seekTo(req.payload, "seconds");
+      }
+    },
+    [vidRef.current]
+  );
 
   const path = (...args) => ["layers", id, "data", ...args];
 
   // TODO: encapsulate process queue logic into a Hook or such so other
   // layer can also leverage it easily
   const requestQueue = get(path("requests"));
-  React.useEffect(() => {
+  useEffect(() => {
     if (!requestQueue || requestQueue.length === 0) return;
     requestQueue.forEach((request) => {
       process(request);
@@ -45,12 +47,6 @@ export default function VideoPlayer({ id }) {
         onDuration={(duration) => set(path("duration"), duration)}
         onSeek={() => {}}
       />
-      <canvas
-        ref={canvasRef}
-        width={480}
-        height={360}
-        style={{ position: "absolute", left: 0, top: 0, pointerEvents: "none" }}
-      ></canvas>
 
       {state.selectedLayer ? (
         <div

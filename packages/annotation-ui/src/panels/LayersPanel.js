@@ -1,5 +1,4 @@
-import React, { useContext } from "react";
-import { Context } from "../model/Store";
+import React from "react";
 import { Layers } from "../Task";
 import DebugPanel from "./DebugPanel";
 

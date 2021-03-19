@@ -1,4 +1,3 @@
-import { AUTOMATIC_UPDATES } from "@blueprintjs/icons/lib/esm/generated/iconContents";
 import React, { useContext } from "react";
 import { Context } from "../model/Store";
 
@@ -42,8 +41,10 @@ function ContentPanel() {
       {alwaysOnLayers.map((layer) => (
         <div
           key={layer.id}
-          style={{ zIndex: 10 }}
-          style={{ pointerEvents: layer.noPointerEvents ? "none" : "auto" }}
+          style={{
+            zIndex: 10,
+            pointerEvents: layer.noPointerEvents ? "none" : "auto",
+          }}
         >
           <layer.component id={layer.id} />
         </div>

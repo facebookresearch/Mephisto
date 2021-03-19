@@ -1,5 +1,5 @@
 import { Navbar, Alignment } from "@blueprintjs/core";
-import React, { useContext } from "react";
+import React from "react";
 import ContentPanel from "./panels/ContentPanel";
 import ContextPanel from "./panels/ContextPanel";
 import LayersPanel from "./panels/LayersPanel";
