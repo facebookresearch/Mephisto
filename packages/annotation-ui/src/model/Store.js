@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer } from "react";
 import lodash_set from "lodash.set";
 import lodash_get from "lodash.get";
-import lodash_invoke from "lodash.invoke";
+import lodash_unset from "lodash.unset";
 
 const initialState = {
   srcVideo: "/assets/test.mp4",
@@ -15,12 +15,6 @@ const Reducer = (state, action) => {
   let newState;
 
   switch (action.type) {
-    case "SET-PROGRESS":
-      newState = { ...state, progress: action.payload };
-      break;
-    case "SET-DURATION":
-      newState = { ...state, duration: action.payload };
-      break;
     case "LAYER-SELECT":
       newState = { ...state, selectedLayer: action.payload };
       break;
@@ -28,11 +22,17 @@ const Reducer = (state, action) => {
       newState = { ...state };
       lodash_set(newState, action.payload.key, action.payload.value);
       break;
+    case "UNSET":
+      // TODO: This method is untested!
+      newState = { ...state };
+      lodash_unset(newState, action.payload);
+      break;
     case "INVOKE":
       console.log("invoke", action.payload.path);
       newState = { ...state };
       const prevValue = lodash_get(newState, action.payload.path);
-      lodash_set(newState, action.payload.path, action.payload.fn(prevValue));
+      const nextValue = action.payload.fn(prevValue);
+      lodash_set(newState, action.payload.path, nextValue);
       break;
     default:
       newState = state;
@@ -54,9 +54,12 @@ const Store = ({ children }) => {
   const invoke = (path, fn) => {
     dispatch({ type: "INVOKE", payload: { path, fn } });
   };
+  const unset = (key) => {
+    dispatch({ type: "UNSET", payload: key });
+  };
 
   return (
-    <Context.Provider value={{ state, dispatch, set, get, invoke }}>
+    <Context.Provider value={{ state, dispatch, set, get, invoke, unset }}>
       {children}
     </Context.Provider>
   );
