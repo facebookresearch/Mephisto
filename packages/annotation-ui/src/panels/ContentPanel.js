@@ -1,8 +1,10 @@
 import React, { useContext } from "react";
 import { Context } from "../model/Store";
 
+import { Menu, MenuItem, MenuDivider, Classes } from "@blueprintjs/core";
+
 function ContentPanel() {
-  const { state, get } = useContext(Context);
+  const { state, get, set, invoke } = useContext(Context);
 
   const layers = get(["layers"]);
   if (!layers) return null;
@@ -25,6 +27,23 @@ function ContentPanel() {
     }
   }
 
+  function gatherActions() {
+    if (!state.selectedLayer) return { actions: [], path: [] };
+    return state.selectedLayer.reduce(
+      (acc, value) => {
+        const path = [...acc.path, value];
+        const component = get(["layers", path.join("|")]);
+        const actions = component.actions
+          ? [...acc.actions, component.actions]
+          : acc.actions;
+        return { actions, path };
+      },
+      { actions: [], path: [] }
+    );
+  }
+
+  const actions = gatherActions().actions;
+
   return (
     <>
       {selectedLayer ? (
@@ -42,6 +61,7 @@ function ContentPanel() {
         <div
           key={layer.id}
           style={{
+            position: "absolute",
             zIndex: 10,
             pointerEvents: layer.noPointerEvents ? "none" : "auto",
           }}
@@ -49,6 +69,31 @@ function ContentPanel() {
           <layer.component id={layer.id} />
         </div>
       ))}
+      {state.selectedLayer ? (
+        <div
+          style={{
+            marginRight: 10,
+            marginTop: 10,
+            position: "absolute",
+            right: 0,
+            top: 0,
+            zIndex: 100,
+          }}
+        >
+          <Menu className={Classes.ELEVATION_1}>
+            <MenuDivider
+              icon={"layer"}
+              title={state.selectedLayer.join(" / ")}
+            />
+            {actions.map((action, idx) => (
+              <React.Fragment key={idx}>
+                <MenuDivider />
+                {action}
+              </React.Fragment>
+            ))}
+          </Menu>
+        </div>
+      ) : null}
     </>
   );
 }

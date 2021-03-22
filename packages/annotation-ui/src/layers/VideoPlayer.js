@@ -2,8 +2,6 @@ import React, { useContext, useEffect, useCallback, useRef } from "react";
 import ReactPlayer from "react-player";
 import { Context } from "../model/Store";
 
-import { Menu, MenuItem, MenuDivider, Classes } from "@blueprintjs/core";
-
 export default function VideoPlayer({ id }) {
   const { state, set, get, invoke } = useContext(Context);
   const vidRef = useRef();
@@ -47,40 +45,6 @@ export default function VideoPlayer({ id }) {
         onDuration={(duration) => set(path("duration"), duration)}
         onSeek={() => {}}
       />
-
-      {state.selectedLayer ? (
-        <div
-          style={{
-            marginRight: 10,
-            marginTop: 10,
-            position: "absolute",
-            right: 0,
-            top: 0,
-          }}
-        >
-          <Menu className={Classes.ELEVATION_1}>
-            <MenuDivider
-              icon={"layer"}
-              title={state.selectedLayer.join(" / ")}
-            />
-            <MenuDivider />
-            <MenuItem
-              icon="circle-arrow-right"
-              text="Jump to item crop"
-              onClick={() => {
-                // TODO: simplify the below code, make it easy to add things to process queues
-                if (!get(["layers", "Video", "data", "requests"])) {
-                  set(["layers", "Video", "data", "requests"], []);
-                }
-                invoke("layers.Video.data.requests", (prev) => [
-                  ...prev,
-                  { type: "seek", payload: 4.7 },
-                ]);
-              }}
-            />
-          </Menu>
-        </div>
-      ) : null}
     </div>
   );
 }
