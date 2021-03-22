@@ -5,7 +5,7 @@ import { Context } from "../model/Store";
 const LayerContext = React.createContext({ stack: [] });
 
 function Layer({
-  name,
+  displayName,
   icon,
   secondaryIcon = "",
   children,
@@ -17,7 +17,7 @@ function Layer({
   const [expanded, setExpanded] = React.useState(true);
   const { state, dispatch, set, get } = useContext(Context);
   const layerContext = React.useContext(LayerContext);
-  const layerStack = [...layerContext.stack, name];
+  const layerStack = [...layerContext.stack, displayName];
 
   const layerId = layerStack.join("|");
   const path = ["layers", layerId];
@@ -70,7 +70,7 @@ function Layer({
               )}
             ></span>
           ) : null}
-          <span className="bp3-tree-node-label">{name}</span>
+          <span className="bp3-tree-node-label">{displayName}</span>
           <span
             className={cx(
               "bp3-tree-node-secondary-label bp3-icon-standard",

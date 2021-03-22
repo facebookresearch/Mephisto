@@ -18,7 +18,7 @@ export default function VideoPlayer({ id }) {
   const path = (...args) => ["layers", id, "data", ...args];
 
   // TODO: encapsulate process queue logic into a Hook or such so other
-  // layer can also leverage it easily
+  // layers can also leverage it easily
   const requestQueue = get(path("requests"));
   useEffect(() => {
     if (!requestQueue || requestQueue.length === 0) return;

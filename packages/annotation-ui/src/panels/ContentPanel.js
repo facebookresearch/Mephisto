@@ -20,7 +20,7 @@ function ContentPanel() {
   if (selectedViewName) {
     const key = selectedViewName.join("|");
     selectedLayer = get(["layers", key]);
-    if (selectedLayer.component && !selectedLayer.alwaysOn) {
+    if (selectedLayer?.component && !selectedLayer.alwaysOn) {
       SelectedViewComponent = () => (
         <selectedLayer.component id={selectedLayer.id} />
       );
@@ -33,6 +33,7 @@ function ContentPanel() {
       (acc, value) => {
         const path = [...acc.path, value];
         const component = get(["layers", path.join("|")]);
+        if (!component) return acc;
         const actions = component.actions
           ? [...acc.actions, component.actions]
           : acc.actions;

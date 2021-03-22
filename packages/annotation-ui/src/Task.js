@@ -5,18 +5,18 @@ import BBoxFrame from "./layers/VQA/BBoxFrame";
 import { MenuItem } from "@blueprintjs/core";
 import { useStore } from "./model/Store";
 
-function Layers() {
+function VQALayers() {
   const { sendRequest } = useStore();
   return (
     <>
       <Layer
-        name="Video"
+        displayName="Video"
         icon="video"
-        component={VideoPlayer}
+        component={(props) => <VideoPlayer {...props} />}
         alwaysOn={true}
       />
       <Layer
-        name="Query 1"
+        displayName="Query 1"
         actions={
           <MenuItem
             icon="circle-arrow-right"
@@ -28,27 +28,31 @@ function Layers() {
         }
       >
         <Layer
-          name="Item Crop"
+          displayName="Item Crop"
           icon="widget"
-          component={BBoxFrame}
+          component={(props) => <BBoxFrame {...props} />}
           noPointerEvents={true}
           alwaysOn={true}
         />
-        <Layer name="Response Track" icon="path-search" />
-        <Layer name="Query Frame" icon="help" />
+        <Layer displayName="Response Track" icon="path-search" />
+        <Layer displayName="Query Frame" icon="help" />
       </Layer>
-      <Layer name="Query 2">
-        <Layer name="Item Crop" icon="widget" />
-        <Layer name="Response Track" icon="path-search" />
-        <Layer name="Query Frame" icon="help" />
+      <Layer displayName="Query 2">
+        <Layer displayName="Item Crop" icon="widget" />
+        <Layer displayName="Response Track" icon="path-search" />
+        <Layer displayName="Query Frame" icon="help" />
       </Layer>
-      <Layer name="Query 3">
-        <Layer name="Item Crop" icon="widget" />
-        <Layer name="Response Track" icon="path-search" />
-        <Layer name="Query Frame" icon="help" />
+      <Layer displayName="Query 3">
+        <Layer displayName="Item Crop" icon="widget" />
+        <Layer displayName="Response Track" icon="path-search" />
+        <Layer displayName="Query Frame" icon="help" />
       </Layer>
     </>
   );
 }
 
-export { Layers };
+function NarrationLayers() {
+  return <Layer displayName="Joe" icon="person" />;
+}
+
+export { VQALayers as Layers };
