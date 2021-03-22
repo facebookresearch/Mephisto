@@ -6,13 +6,15 @@ import { MenuItem } from "@blueprintjs/core";
 import { useStore } from "./model/Store";
 
 function VQALayers() {
-  const { sendRequest } = useStore();
+  const { state, sendRequest } = useStore();
   return (
     <>
       <Layer
         displayName="Video"
         icon="video"
-        component={(props) => <VideoPlayer {...props} />}
+        component={({ id }) => (
+          <VideoPlayer fps={16} id={id} src={state.init.srcVideo} />
+        )}
         alwaysOn={true}
       />
       <Layer
@@ -32,14 +34,17 @@ function VQALayers() {
           icon="widget"
           component={(props) => (
             <BBoxFrame
-              {...props}
-              displayWhen={({ frame, store }) => {
+              label="Item Crop"
+              color="white"
+              getCoords={() => [200, 20, 100, 100]}
+              displayWhen={({ store }) => {
                 const currentFrame = store.get(
                   "layers.Video.data.playedSeconds"
                 );
+                const timePoint = 4;
                 return (
-                  currentFrame > frame.timePoint - 0.5 &&
-                  currentFrame < frame.timePoint + 0.5
+                  currentFrame > timePoint - 0.5 &&
+                  currentFrame < timePoint + 0.5
                 );
               }}
             />
@@ -47,7 +52,24 @@ function VQALayers() {
           noPointerEvents={true}
           alwaysOn={true}
         />
-        <Layer displayName="Response Track" icon="path-search" />
+        <Layer
+          displayName="Response Track"
+          icon="path-search"
+          component={() => (
+            <BBoxFrame
+              label="Response Track"
+              getCoords={({ store }) => {
+                const currentFrame = store.get(
+                  "layers.Video.data.playedSeconds"
+                );
+                return [200 + currentFrame * 30, 50, 100, 100];
+              }}
+              displayWhen={({ store }) => true}
+            />
+          )}
+          noPointerEvents={true}
+          alwaysOn={true}
+        />
         <Layer displayName="Query Frame" icon="help" />
       </Layer>
       <Layer displayName="Query 2">
