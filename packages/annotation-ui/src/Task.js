@@ -30,7 +30,20 @@ function VQALayers() {
         <Layer
           displayName="Item Crop"
           icon="widget"
-          component={(props) => <BBoxFrame {...props} />}
+          component={(props) => (
+            <BBoxFrame
+              {...props}
+              displayWhen={({ frame, store }) => {
+                const currentFrame = store.get(
+                  "layers.Video.data.playedSeconds"
+                );
+                return (
+                  currentFrame > frame.timePoint - 0.5 &&
+                  currentFrame < frame.timePoint + 0.5
+                );
+              }}
+            />
+          )}
           noPointerEvents={true}
           alwaysOn={true}
         />

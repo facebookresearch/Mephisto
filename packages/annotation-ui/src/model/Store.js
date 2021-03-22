@@ -53,9 +53,12 @@ const Store = ({ children }) => {
   const set = (key, value) => {
     dispatch({ type: "SET", payload: { key, value } });
   };
-  const get = (key) => {
-    return lodash_get(state, key);
-  };
+  const get = React.useCallback(
+    (key) => {
+      return lodash_get(state, key);
+    },
+    [state]
+  );
   const invoke = (path, fn) => {
     dispatch({ type: "INVOKE", payload: { path, fn } });
   };
