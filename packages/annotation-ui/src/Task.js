@@ -7,6 +7,12 @@ import { useStore } from "./model/Store";
 
 function VQALayers() {
   const { state, sendRequest } = useStore();
+
+  const sampleQueryPayload = {
+    itemCropTime: 4,
+    queryFrameTime: 8,
+  };
+
   return (
     <>
       <Layer
@@ -20,13 +26,28 @@ function VQALayers() {
       <Layer
         displayName="Query 1"
         actions={
-          <MenuItem
-            icon="circle-arrow-right"
-            text="Jump to item crop"
-            onClick={() => {
-              sendRequest("Video", { type: "seek", payload: 4 });
-            }}
-          />
+          <>
+            <MenuItem
+              icon="circle-arrow-right"
+              text="Jump to item crop"
+              onClick={() => {
+                sendRequest("Video", {
+                  type: "seek",
+                  payload: sampleQueryPayload.itemCropTime,
+                });
+              }}
+            />
+            <MenuItem
+              icon="circle-arrow-right"
+              text="Jump to query frame"
+              onClick={() => {
+                sendRequest("Video", {
+                  type: "seek",
+                  payload: sampleQueryPayload.queryFrameTime,
+                });
+              }}
+            />
+          </>
         }
       >
         <Layer
@@ -36,12 +57,14 @@ function VQALayers() {
             <BBoxFrame
               label="Item Crop"
               color="white"
+              frameHeight={state.init.vidHeight}
+              frameWidth={state.init.vidWidth}
               getCoords={() => [200, 20, 100, 100]}
               displayWhen={({ store }) => {
                 const currentFrame = store.get(
                   "layers.Video.data.playedSeconds"
                 );
-                const timePoint = 4;
+                const timePoint = sampleQueryPayload.itemCropTime;
                 return (
                   currentFrame > timePoint - 0.5 &&
                   currentFrame < timePoint + 0.5
@@ -57,6 +80,8 @@ function VQALayers() {
           icon="path-search"
           component={() => (
             <BBoxFrame
+              frameHeight={state.init.vidHeight}
+              frameWidth={state.init.vidWidth}
               label="Response Track"
               getCoords={({ store }) => {
                 const currentFrame = store.get(
@@ -64,13 +89,40 @@ function VQALayers() {
                 );
                 return [200 + currentFrame * 30, 50, 100, 100];
               }}
-              displayWhen={({ store }) => true}
             />
           )}
           noPointerEvents={true}
           alwaysOn={true}
         />
-        <Layer displayName="Query Frame" icon="help" />
+        <Layer
+          displayName="Query Frame"
+          icon="help"
+          component={() => (
+            <BBoxFrame
+              frameHeight={state.init.vidHeight}
+              frameWidth={state.init.vidWidth}
+              rectStyles={{ fill: "rgba(255,0,0,0.4)" }}
+              getCoords={() => [
+                0,
+                0,
+                state.init.vidWidth,
+                state.init.vidHeight,
+              ]}
+              displayWhen={({ store }) => {
+                const currentFrame = store.get(
+                  "layers.Video.data.playedSeconds"
+                );
+                const timePoint = sampleQueryPayload.queryFrameTime;
+                return (
+                  currentFrame > timePoint - 0.2 &&
+                  currentFrame < timePoint + 0.2
+                );
+              }}
+            />
+          )}
+          noPointerEvents={true}
+          alwaysOn={true}
+        />
       </Layer>
       <Layer displayName="Query 2">
         <Layer displayName="Item Crop" icon="widget" />

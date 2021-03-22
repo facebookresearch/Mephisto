@@ -3,26 +3,26 @@ import { useStore } from "../../model/Store";
 
 // a single frame bounding box for a VideoPlayer
 function BBoxFrame({
-  displayWhen = () => false,
+  displayWhen = () => true,
   getCoords,
+  frameWidth,
+  frameHeight,
+  rectStyles = {},
   label = "",
   color = "red",
 }) {
   const store = useStore();
   const { get } = store;
 
-  const video = {
-    height: get(["init", "vidHeight"]),
-    width: get(["init", "vidWidth"]),
-  };
-
   const LABEL_PADDING = 4;
 
-  if (!displayWhen({ store })) {
+  const coords = getCoords({ store });
+
+  if (!displayWhen({ store }) || !coords) {
     return null;
   }
 
-  const [x, y, width, height] = getCoords({ store });
+  const [x, y, width, height] = coords;
 
   const scale = 1;
   const rectX = scale * x;
@@ -31,8 +31,8 @@ function BBoxFrame({
   return (
     <div style={{ pointerEvents: "none" }}>
       <svg
-        width={video.width}
-        height={video.height}
+        width={frameWidth}
+        height={frameHeight}
         style={{
           // top: top - body.top,
           // left: left - body.left,
@@ -48,6 +48,7 @@ function BBoxFrame({
             fill: "rgba(255,255,255,0.0)",
             strokeWidth: 2,
             stroke: color,
+            ...rectStyles,
           }}
         />
         <text
