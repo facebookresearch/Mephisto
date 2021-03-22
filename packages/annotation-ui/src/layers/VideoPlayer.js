@@ -28,14 +28,14 @@ export default function VideoPlayer({ id }) {
     set(path("requests"), []);
   }, [requestQueue]);
 
-  if (!state.srcVideo) return null;
+  if (!state.init.srcVideo) return null;
 
   return (
     <div style={{ position: "relative" }}>
       <ReactPlayer
-        width={480}
-        height={360}
-        url={state.srcVideo}
+        width={state.init.vidWidth}
+        height={state.init.vidHeight}
+        url={state.init.srcVideo}
         ref={vidRef}
         controls={true}
         progressInterval={300}

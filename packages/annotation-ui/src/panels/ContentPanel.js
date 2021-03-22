@@ -78,6 +78,7 @@ function ContentPanel() {
             right: 0,
             top: 0,
             zIndex: 100,
+            minWidth: 200,
           }}
         >
           <Menu className={Classes.ELEVATION_1}>

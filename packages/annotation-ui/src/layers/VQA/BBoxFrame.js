@@ -5,10 +5,9 @@ import { useStore } from "../../model/Store";
 function BBoxFrame() {
   const { get } = useStore();
 
-  // TODO: Retrieve from video state:
   const video = {
-    height: 360,
-    width: 480,
+    height: get(["init", "vidHeight"]),
+    width: get(["init", "vidWidth"]),
   };
 
   const kLabelPadding = 4;
@@ -16,7 +15,7 @@ function BBoxFrame() {
   // TODO: Retrieve from task state:
   const frame = {
     x: 205.33,
-    y: 0,
+    y: 20,
     width: 173.33,
     height: 192,
     rotation: 0,
@@ -48,10 +47,6 @@ function BBoxFrame() {
         }}
       >
         {labelFrames.map((frame) => {
-          // const scale = video.width / frame.original_width
-
-          console.log(frame);
-
           const rectX = scale * frame.x;
           const rectY = scale * frame.y;
           const c = "red";

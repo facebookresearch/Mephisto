@@ -4,7 +4,12 @@ import lodash_get from "lodash.get";
 import lodash_unset from "lodash.unset";
 
 const initialState = {
-  srcVideo: "/cdn/test.mp4",
+  init: {
+    srcVideo: "/cdn/test.mp4",
+    vidHeight: 360,
+    vidWidth: 480,
+  },
+  selectedLayer: ["Query 1"],
   debug: {
     actionsFired: [],
   },
