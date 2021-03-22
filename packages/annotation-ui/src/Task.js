@@ -6,7 +6,7 @@ import { MenuItem } from "@blueprintjs/core";
 import { useStore } from "./model/Store";
 
 function Layers() {
-  const { get, set, invoke } = useStore();
+  const { sendRequest } = useStore();
   return (
     <>
       <Layer
@@ -22,14 +22,7 @@ function Layers() {
             icon="circle-arrow-right"
             text="Jump to item crop"
             onClick={() => {
-              // TODO: simplify the below code, make it easy to add things to process queues
-              if (!get(["layers", "Video", "data", "requests"])) {
-                set(["layers", "Video", "data", "requests"], []);
-              }
-              invoke("layers.Video.data.requests", (prev) => [
-                ...prev,
-                { type: "seek", payload: 4.7 },
-              ]);
+              sendRequest("Video", { type: "seek", payload: 4 });
             }}
           />
         }

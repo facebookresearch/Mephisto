@@ -3,7 +3,7 @@ import { Context } from "../model/Store";
 import { Slider } from "@blueprintjs/core";
 
 export default function ContextPanel() {
-  const { set, get, invoke } = useContext(Context);
+  const { get, sendRequest } = useContext(Context);
 
   const videoLayerData = get(["layers", "Video", "data"]);
   const videoLoaded = !!videoLayerData;
@@ -23,13 +23,7 @@ export default function ContextPanel() {
             return <span key={mmss}>{mmss.replace("00:", ":")}</span>;
           }}
           onRelease={(value) => {
-            if (!get(["layers", "Video", "data", "requests"])) {
-              set(["layers", "Video", "data", "requests"], []);
-            }
-            invoke("layers.Video.data.requests", (prev) => [
-              ...prev,
-              { type: "seek", payload: value },
-            ]);
+            sendRequest("Video", { type: "seek", payload: value });
           }}
           value={videoLayerData.playedSeconds}
           vertical={false}

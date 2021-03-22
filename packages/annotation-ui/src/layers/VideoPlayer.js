@@ -3,7 +3,7 @@ import ReactPlayer from "react-player";
 import { Context } from "../model/Store";
 
 export default function VideoPlayer({ id }) {
-  const { state, set, get, invoke } = useContext(Context);
+  const { state, set, get } = useContext(Context);
   const vidRef = useRef();
 
   const process = useCallback(

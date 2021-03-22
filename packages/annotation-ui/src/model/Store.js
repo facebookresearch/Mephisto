@@ -63,8 +63,17 @@ const Store = ({ children }) => {
     dispatch({ type: "UNSET", payload: key });
   };
 
+  const sendRequest = (layer, action) => {
+    if (!get(["layers", layer, "data", "requests"])) {
+      set(["layers", layer, "data", "requests"], []);
+    }
+    invoke(["layers", layer, "data", "requests"], (prev) => [...prev, action]);
+  };
+
   return (
-    <Context.Provider value={{ state, dispatch, set, get, invoke, unset }}>
+    <Context.Provider
+      value={{ state, dispatch, set, get, invoke, unset, sendRequest }}
+    >
       {children}
     </Context.Provider>
   );
