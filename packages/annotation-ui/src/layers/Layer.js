@@ -10,7 +10,7 @@ function Layer({
   secondaryIcon = "",
   children,
   component,
-  actions = null,
+  actions = () => {},
   noPointerEvents,
   alwaysOn = false,
 }) {

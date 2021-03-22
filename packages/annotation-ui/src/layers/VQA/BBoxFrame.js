@@ -10,7 +10,7 @@ function BBoxFrame() {
     width: get(["init", "vidWidth"]),
   };
 
-  const kLabelPadding = 4;
+  const LABEL_PADDING = 4;
 
   // TODO: Retrieve from task state:
   const frame = {
@@ -65,8 +65,8 @@ function BBoxFrame() {
                 }}
               />
               <text
-                x={rectX - kLabelPadding}
-                y={rectY - kLabelPadding}
+                x={rectX - LABEL_PADDING}
+                y={rectY - LABEL_PADDING}
                 style={{
                   fill: c,
                 }}
