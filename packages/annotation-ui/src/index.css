@@ -26,8 +26,11 @@ body,
 }
 
 .mosaic {
-  height: calc(100% - 50px) !important;
   position: relative;
+}
+
+.mosaic-w-navbar {
+  height: calc(100% - 50px) !important;
 }
 
 .pop {

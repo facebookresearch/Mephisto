@@ -3,6 +3,7 @@ import React from "react";
 import ContentPanel from "./panels/ContentPanel";
 import ContextPanel from "./panels/ContextPanel";
 import LayersPanel from "./panels/LayersPanel";
+import cx from "classnames";
 
 function Window({ title, children, buttons }) {
   return (
@@ -31,18 +32,26 @@ function Window({ title, children, buttons }) {
   );
 }
 
-function App() {
+function App({ showNavbar = false }) {
   return (
     <div className="full">
-      <Navbar className="bp3-dark">
-        <Navbar.Group align={Alignment.LEFT}>
-          <Navbar.Heading>Mephisto Studio</Navbar.Heading>
-          <Navbar.Divider />
-          {/* <Button className="bp3-minimal" icon="home" text="Home" />
+      {showNavbar ? (
+        <Navbar className="bp3-dark">
+          <Navbar.Group align={Alignment.LEFT}>
+            <Navbar.Heading>Mephisto Studio</Navbar.Heading>
+            <Navbar.Divider />
+            {/* <Button className="bp3-minimal" icon="home" text="Home" />
             <Button className="bp3-minimal" icon="document" text="Files" /> */}
-        </Navbar.Group>
-      </Navbar>
-      <div className="mosaic-blueprint-theme mosaic">
+          </Navbar.Group>
+        </Navbar>
+      ) : null}
+      <div
+        className={cx(
+          "mosaic-blueprint-theme",
+          "mosaic",
+          showNavbar ? "mosaic-w-navbar" : ""
+        )}
+      >
         <div className="mosaic-root">
           <div
             className="mosaic-tile"
