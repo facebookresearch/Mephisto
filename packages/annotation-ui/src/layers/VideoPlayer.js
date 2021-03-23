@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useCallback, useRef } from "react";
 import ReactPlayer from "react-player";
 import { Context } from "../model/Store";
 
-export default function VideoPlayer({ id, src, fps = 30 }) {
+export default function VideoPlayer({ id, src, fps = 30, width, height }) {
   const { state, set, get } = useContext(Context);
   const vidRef = useRef();
 
@@ -33,8 +33,8 @@ export default function VideoPlayer({ id, src, fps = 30 }) {
   return (
     <div style={{ position: "relative" }}>
       <ReactPlayer
-        width={state.init.vidWidth}
-        height={state.init.vidHeight}
+        width={width}
+        height={height}
         url={src}
         ref={vidRef}
         controls={true}

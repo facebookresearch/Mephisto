@@ -5,13 +5,29 @@ import BBoxFrame from "./layers/VQA/BBoxFrame";
 import { MenuItem } from "@blueprintjs/core";
 import { useStore } from "./model/Store";
 
-function VQALayers() {
-  const { state, sendRequest } = useStore();
+import vqaData from "./mock-data/vqa.json";
+import groupBy from "lodash.groupby";
+import mapValues from "lodash.mapvalues";
 
-  const sampleQueryPayload = {
-    itemCropTime: 4,
-    queryFrameTime: 8,
-  };
+import { frameToMs, msToFrame } from "./helpers";
+
+function VQALayers() {
+  function prepareData(data) {
+    let d = groupBy(data.payload, "label");
+    d = mapValues(d, (val) => groupBy(val, "tags[0]"));
+    return d;
+  }
+
+  const videoSrc =
+    "https://interncache-ash.fbcdn.net/v/t53.39266-7/10000000_441474370388831_2571013882988688057_n.mp4?_nc_map=test-rt&ccb=1-3&_nc_sid=5f5f54&efg=eyJ1cmxnZW4iOiJwaHBfdXJsZ2VuX2NsaWVudC9pbnRlcm4vc2l0ZS94L2ZiY2RuIn0%3D&_nc_ht=interncache-ash&_nc_rmd=260&oh=f275d96ea09f486be0166da312f84127&oe=607E239D";
+
+  const originalVideoWidth = 1920;
+  const originalVideoHeight = 1440;
+  const scale = 0.38;
+  const videoWidth = originalVideoWidth * scale;
+  const videoHeight = originalVideoHeight * scale;
+
+  const data = prepareData(vqaData);
 
   return (
     <>
@@ -19,127 +35,179 @@ function VQALayers() {
         displayName="Video"
         icon="video"
         component={({ id }) => (
-          <VideoPlayer fps={16} id={id} src={state.init.srcVideo} />
+          <VideoPlayer
+            fps={16}
+            id={id}
+            src={videoSrc}
+            width={videoWidth}
+            height={videoHeight}
+          />
         )}
         alwaysOn={true}
       />
-      <Layer
-        displayName="Query 1"
-        actions={
-          <>
-            <MenuItem
-              icon="circle-arrow-right"
-              text="Jump to item crop"
-              onClick={() => {
-                sendRequest("Video", {
-                  type: "seek",
-                  payload: sampleQueryPayload.itemCropTime,
-                });
-              }}
-            />
-            <MenuItem
-              icon="circle-arrow-right"
-              text="Jump to query frame"
-              onClick={() => {
-                sendRequest("Video", {
-                  type: "seek",
-                  payload: sampleQueryPayload.queryFrameTime,
-                });
-              }}
-            />
-          </>
-        }
-      >
-        <Layer
-          displayName="Item Crop"
-          icon="widget"
-          component={(props) => (
-            <BBoxFrame
-              label="Item Crop"
-              color="white"
-              frameHeight={state.init.vidHeight}
-              frameWidth={state.init.vidWidth}
-              getCoords={() => [200, 20, 100, 100]}
-              displayWhen={({ store }) => {
-                const currentFrame = store.get(
-                  "layers.Video.data.playedSeconds"
-                );
-                const timePoint = sampleQueryPayload.itemCropTime;
-                return (
-                  currentFrame > timePoint - 0.5 &&
-                  currentFrame < timePoint + 0.5
-                );
-              }}
-            />
-          )}
-          noPointerEvents={true}
-          alwaysOn={true}
-        />
-        <Layer
-          displayName="Response Track"
-          icon="path-search"
-          component={() => (
-            <BBoxFrame
-              frameHeight={state.init.vidHeight}
-              frameWidth={state.init.vidWidth}
-              label="Response Track"
-              getCoords={({ store }) => {
-                const currentFrame = store.get(
-                  "layers.Video.data.playedSeconds"
-                );
-                return [200 + currentFrame * 30, 50, 100, 100];
-              }}
-            />
-          )}
-          noPointerEvents={true}
-          alwaysOn={true}
-        />
-        <Layer
-          displayName="Query Frame"
-          icon="help"
-          component={() => (
-            <BBoxFrame
-              frameHeight={state.init.vidHeight}
-              frameWidth={state.init.vidWidth}
-              rectStyles={{ fill: "rgba(255,0,0,0.4)" }}
-              getCoords={() => [
-                0,
-                0,
-                state.init.vidWidth,
-                state.init.vidHeight,
-              ]}
-              displayWhen={({ store }) => {
-                const currentFrame = store.get(
-                  "layers.Video.data.playedSeconds"
-                );
-                const timePoint = sampleQueryPayload.queryFrameTime;
-                return (
-                  currentFrame > timePoint - 0.2 &&
-                  currentFrame < timePoint + 0.2
-                );
-              }}
-            />
-          )}
-          noPointerEvents={true}
-          alwaysOn={true}
-        />
-      </Layer>
-      <Layer displayName="Query 2">
-        <Layer displayName="Item Crop" icon="widget" />
-        <Layer displayName="Response Track" icon="path-search" />
-        <Layer displayName="Query Frame" icon="help" />
-      </Layer>
-      <Layer displayName="Query 3">
-        <Layer displayName="Item Crop" icon="widget" />
-        <Layer displayName="Response Track" icon="path-search" />
-        <Layer displayName="Query Frame" icon="help" />
-      </Layer>
+      <VQALayerGroup
+        queryNum={1}
+        videoHeight={videoHeight}
+        videoWidth={videoWidth}
+        scale={scale}
+        data={data}
+      />
+      <VQALayerGroup
+        queryNum={2}
+        videoHeight={videoHeight}
+        videoWidth={videoWidth}
+        scale={scale}
+        data={data}
+      />
+      <VQALayerGroup
+        queryNum={3}
+        videoHeight={videoHeight}
+        videoWidth={videoWidth}
+        scale={scale}
+        data={data}
+      />
     </>
   );
 }
 
-function NarrationLayers() {
-  return <Layer displayName="Joe" icon="person" />;
+function VQALayerGroup({ data, queryNum, videoHeight, videoWidth, scale }) {
+  const { sendRequest } = useStore();
+
+  const querySet = data["query_set_" + queryNum];
+  const itemCrop = querySet.visual_crop[0];
+  const queryFrame = querySet.query_frame[0];
+  const responseTrack = querySet.response_track;
+
+  const videoFps = 4;
+
+  const responseFrames = responseTrack.reduce((acc, val) => {
+    acc[val.frameNumber] = val;
+    return acc;
+  }, {});
+
+  return (
+    <Layer
+      displayName={"Query " + queryNum}
+      actions={
+        <>
+          <MenuItem
+            icon="circle-arrow-right"
+            text="Jump to item crop"
+            onClick={() => {
+              sendRequest("Video", {
+                type: "seek",
+                payload: frameToMs(itemCrop.frameNumber, videoFps) / 1000,
+              });
+            }}
+          />
+          <MenuItem
+            icon="circle-arrow-right"
+            text="Jump to query frame"
+            onClick={() => {
+              sendRequest("Video", {
+                type: "seek",
+                payload: frameToMs(queryFrame.frameNumber, videoFps) / 1000,
+              });
+            }}
+          />
+          <MenuItem
+            icon="circle-arrow-right"
+            text="Jump to response frame start"
+            onClick={() => {
+              const firstFrameNum = Math.min(...Object.keys(responseFrames));
+              sendRequest("Video", {
+                type: "seek",
+                payload: frameToMs(firstFrameNum, videoFps) / 1000,
+              });
+            }}
+          />
+        </>
+      }
+    >
+      <Layer
+        displayName="Item Crop"
+        icon="widget"
+        component={(props) => (
+          <BBoxFrame
+            label={`Item Crop #${queryNum}`}
+            color="white"
+            frameHeight={videoHeight}
+            frameWidth={videoWidth}
+            getCoords={() => [
+              itemCrop.x * scale,
+              itemCrop.y * scale,
+              itemCrop.width * scale,
+              itemCrop.height * scale,
+            ]}
+            displayWhen={({ store }) => {
+              const currentFrame = store.get("layers.Video.data.playedSeconds");
+              const timePoint =
+                frameToMs(itemCrop.frameNumber, videoFps) / 1000;
+              return (
+                currentFrame > timePoint - 0.5 && currentFrame < timePoint + 0.5
+              );
+            }}
+          />
+        )}
+        noPointerEvents={true}
+        alwaysOn={true}
+      />
+      <Layer
+        displayName="Response Track"
+        icon="path-search"
+        component={() => (
+          <BBoxFrame
+            frameHeight={videoHeight}
+            frameWidth={videoWidth}
+            label={`Response Track #${queryNum}`}
+            getCoords={({ store }) => {
+              const currentTime =
+                store.get("layers.Video.data.playedSeconds") || 0;
+              const currentFrame = msToFrame(currentTime * 1000, videoFps);
+              const inFrame = currentFrame in responseFrames;
+              if (!inFrame) return null;
+              const responseFrame = responseFrames[currentFrame];
+              return [
+                responseFrame.x * scale,
+                responseFrame.y * scale,
+                responseFrame.width * scale,
+                responseFrame.height * scale,
+              ];
+            }}
+          />
+        )}
+        noPointerEvents={true}
+        alwaysOn={true}
+      />
+      <Layer
+        displayName="Query Frame"
+        icon="help"
+        component={() => (
+          <BBoxFrame
+            frameHeight={videoHeight}
+            frameWidth={videoWidth}
+            rectStyles={{ fill: "rgba(255,0,0,0.4)" }}
+            getCoords={() => [
+              queryFrame.x * scale,
+              queryFrame.y * scale,
+              queryFrame.width * scale,
+              queryFrame.height * scale,
+            ]}
+            displayWhen={({ store }) => {
+              const currentFrame = store.get("layers.Video.data.playedSeconds");
+              const timePoint =
+                frameToMs(queryFrame.frameNumber, videoFps) / 1000;
+              return (
+                currentFrame > timePoint - 0.2 && currentFrame < timePoint + 0.2
+              );
+            }}
+          />
+        )}
+        noPointerEvents={true}
+        alwaysOn={true}
+      />
+    </Layer>
+  );
 }
 
 export { VQALayers as Layers };
