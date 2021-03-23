@@ -13,6 +13,7 @@ function Layer({
   actions = null,
   noPointerEvents,
   alwaysOn = false,
+  onWithGroup,
 }) {
   const [expanded, setExpanded] = React.useState(true);
   const { state, dispatch, set, get } = useContext(Context);
@@ -24,7 +25,14 @@ function Layer({
   const isRegistered = !!get(path);
   React.useEffect(() => {
     if (!isRegistered) {
-      set(path, { component, actions, alwaysOn, id: layerId, noPointerEvents });
+      set(path, {
+        component,
+        actions,
+        alwaysOn,
+        onWithGroup,
+        id: layerId,
+        noPointerEvents,
+      });
     }
   }, [isRegistered]);
 

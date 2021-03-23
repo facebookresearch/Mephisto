@@ -23,11 +23,18 @@ function VQALayers() {
 
   const originalVideoWidth = 1920;
   const originalVideoHeight = 1440;
-  const scale = 0.38;
+  const scale = 0.33;
   const videoWidth = originalVideoWidth * scale;
   const videoHeight = originalVideoHeight * scale;
+  const videoFps = 5;
 
+  const { set } = useStore();
   const data = prepareData(vqaData);
+
+  React.useEffect(() => {
+    set(["taskData"], data);
+    set("video.scale", scale);
+  }, [vqaData]);
 
   return (
     <>
@@ -36,7 +43,7 @@ function VQALayers() {
         icon="video"
         component={({ id }) => (
           <VideoPlayer
-            fps={16}
+            fps={5}
             id={id}
             src={videoSrc}
             width={videoWidth}
@@ -51,6 +58,7 @@ function VQALayers() {
         videoWidth={videoWidth}
         scale={scale}
         data={data}
+        videoFps={videoFps}
       />
       <VQALayerGroup
         queryNum={2}
@@ -58,6 +66,7 @@ function VQALayers() {
         videoWidth={videoWidth}
         scale={scale}
         data={data}
+        videoFps={videoFps}
       />
       <VQALayerGroup
         queryNum={3}
@@ -65,12 +74,20 @@ function VQALayers() {
         videoWidth={videoWidth}
         scale={scale}
         data={data}
+        videoFps={videoFps}
       />
     </>
   );
 }
 
-function VQALayerGroup({ data, queryNum, videoHeight, videoWidth, scale }) {
+function VQALayerGroup({
+  data,
+  queryNum,
+  videoHeight,
+  videoWidth,
+  videoFps,
+  scale,
+}) {
   const { sendRequest } = useStore();
 
   const querySet = data["query_set_" + queryNum];
@@ -78,12 +95,12 @@ function VQALayerGroup({ data, queryNum, videoHeight, videoWidth, scale }) {
   const queryFrame = querySet.query_frame[0];
   const responseTrack = querySet.response_track;
 
-  const videoFps = 4;
-
   const responseFrames = responseTrack.reduce((acc, val) => {
     acc[val.frameNumber] = val;
     return acc;
   }, {});
+
+  const firstResponseFrameNum = Math.min(...Object.keys(responseFrames));
 
   return (
     <Layer
@@ -98,6 +115,15 @@ function VQALayerGroup({ data, queryNum, videoHeight, videoWidth, scale }) {
                 type: "seek",
                 payload: frameToMs(itemCrop.frameNumber, videoFps) / 1000,
               });
+              setTimeout(
+                () =>
+                  sendRequest("Video", {
+                    type: "screenshot",
+                    payload: ({ store, data }) =>
+                      store.set("screenshot", { data: data, query: queryNum }),
+                  }),
+                600
+              );
             }}
           />
           <MenuItem
@@ -112,12 +138,11 @@ function VQALayerGroup({ data, queryNum, videoHeight, videoWidth, scale }) {
           />
           <MenuItem
             icon="circle-arrow-right"
-            text="Jump to response frame start"
+            text="Jump to response track start"
             onClick={() => {
-              const firstFrameNum = Math.min(...Object.keys(responseFrames));
               sendRequest("Video", {
                 type: "seek",
-                payload: frameToMs(firstFrameNum, videoFps) / 1000,
+                payload: frameToMs(firstResponseFrameNum, videoFps) / 1000,
               });
             }}
           />
@@ -144,13 +169,13 @@ function VQALayerGroup({ data, queryNum, videoHeight, videoWidth, scale }) {
               const timePoint =
                 frameToMs(itemCrop.frameNumber, videoFps) / 1000;
               return (
-                currentFrame > timePoint - 0.5 && currentFrame < timePoint + 0.5
+                currentFrame > timePoint - 0.2 && currentFrame < timePoint + 0.2
               );
             }}
           />
         )}
         noPointerEvents={true}
-        alwaysOn={true}
+        onWithGroup={true}
       />
       <Layer
         displayName="Response Track"
@@ -177,7 +202,7 @@ function VQALayerGroup({ data, queryNum, videoHeight, videoWidth, scale }) {
           />
         )}
         noPointerEvents={true}
-        alwaysOn={true}
+        onWithGroup={true}
       />
       <Layer
         displayName="Query Frame"
@@ -204,7 +229,7 @@ function VQALayerGroup({ data, queryNum, videoHeight, videoWidth, scale }) {
           />
         )}
         noPointerEvents={true}
-        alwaysOn={true}
+        onWithGroup={true}
       />
     </Layer>
   );

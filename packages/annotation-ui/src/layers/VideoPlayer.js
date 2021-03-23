@@ -1,15 +1,24 @@
 import React, { useContext, useEffect, useCallback, useRef } from "react";
 import ReactPlayer from "react-player";
-import { Context } from "../model/Store";
+import { useStore } from "../model/Store";
 
 export default function VideoPlayer({ id, src, fps = 30, width, height }) {
-  const { state, set, get } = useContext(Context);
+  const store = useStore();
+  const { state, set, get } = store;
   const vidRef = useRef();
+  const canvasRef = useRef();
 
   const process = useCallback(
     (req) => {
       if (req.type === "seek") {
         vidRef.current.seekTo(req.payload, "seconds");
+      } else if (req.type === "screenshot") {
+        console.log(vidRef.current.getInternalPlayer());
+        canvasRef.current
+          .getContext("2d")
+          .drawImage(vidRef.current.getInternalPlayer(), 0, 0, width, height);
+        const screenshotData = canvasRef.current.toDataURL("image/png");
+        req.payload({ store, data: screenshotData });
       }
     },
     [vidRef.current]
@@ -33,6 +42,13 @@ export default function VideoPlayer({ id, src, fps = 30, width, height }) {
   return (
     <div style={{ position: "relative" }}>
       <ReactPlayer
+        config={{
+          file: {
+            attributes: {
+              crossOrigin: "true",
+            },
+          },
+        }}
         width={width}
         height={height}
         url={src}
@@ -45,6 +61,12 @@ export default function VideoPlayer({ id, src, fps = 30, width, height }) {
         onDuration={(duration) => set(path("duration"), duration)}
         onSeek={() => {}}
       />
+      <canvas
+        style={{ visibility: "hidden" }}
+        height={height}
+        width={width}
+        ref={canvasRef}
+      ></canvas>
     </div>
   );
 }

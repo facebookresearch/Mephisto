@@ -1,16 +1,36 @@
 import React, { useContext } from "react";
 import { Context } from "../model/Store";
 
-import { Menu, MenuItem, MenuDivider, Classes } from "@blueprintjs/core";
+import { Menu, MenuDivider, Classes } from "@blueprintjs/core";
+
+function isFunction(functionToCheck) {
+  return (
+    functionToCheck && {}.toString.call(functionToCheck) === "[object Function]"
+  );
+}
 
 function ContentPanel() {
-  const { state, get, set, invoke } = useContext(Context);
+  const { state, get } = useContext(Context);
+
+  const isGroup = (layer, otherLayer) => {
+    if (!layer || !otherLayer) return false;
+    const parent = layer.slice(0, -1);
+    const otherParent = otherLayer.slice(0, -1);
+    if (otherLayer.join("|") === parent.join("|")) return true;
+    if (otherParent.join("|") === parent.join("|")) return true;
+    return false;
+  };
 
   const layers = get(["layers"]);
   if (!layers) return null;
-  const alwaysOnLayers = Object.values(layers).filter(
-    (layer) => layer.alwaysOn
-  );
+  const alwaysOnLayers = Object.values(layers).filter((layer) => {
+    return (
+      layer.alwaysOn === true ||
+      (isFunction(layer.alwaysOn) && layer.alwaysOn()) ||
+      (layer.onWithGroup === true &&
+        isGroup(layer.id.split("|"), state.selectedLayer))
+    );
+  });
 
   let Noop = () => null;
 
@@ -37,13 +57,16 @@ function ContentPanel() {
         const actions = component.actions
           ? [...acc.actions, component.actions]
           : acc.actions;
-        return { actions, path };
+        const actionPaths = component.actions
+          ? [...acc.actionPaths, path.join(" / ")]
+          : acc.actionPaths;
+        return { actions, path, actionPaths };
       },
-      { actions: [], path: [] }
+      { actions: [], path: [], actionPaths: [] }
     );
   }
 
-  const actions = gatherActions().actions;
+  const gatheredActions = gatherActions();
 
   return (
     <>
@@ -82,14 +105,19 @@ function ContentPanel() {
             minWidth: 200,
           }}
         >
-          <Menu className={Classes.ELEVATION_1}>
-            <MenuDivider
-              icon={"layer"}
-              title={state.selectedLayer.join(" / ")}
-            />
-            {actions.map((action, idx) => (
+          <Menu
+            className={Classes.ELEVATION_1 + " pop"}
+            key={gatheredActions.actionPaths.join("//")}
+          >
+            {gatheredActions.actions.length === 0 ? (
+              <MenuDivider
+                icon={"layer"}
+                title={state.selectedLayer.join(" / ")}
+              />
+            ) : null}
+            {gatheredActions.actions.map((action, idx) => (
               <React.Fragment key={idx}>
-                <MenuDivider />
+                <MenuDivider title={gatheredActions.actionPaths[idx]} />
                 {action}
               </React.Fragment>
             ))}

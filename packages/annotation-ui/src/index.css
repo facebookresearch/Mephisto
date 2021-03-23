@@ -29,3 +29,13 @@ body,
   height: calc(100% - 50px) !important;
   position: relative;
 }
+
+.pop {
+  animation: pop 0.2s linear 1;
+  will-change: transform;
+}
+@keyframes pop {
+  50% {
+    transform: scale(1.15);
+  }
+}

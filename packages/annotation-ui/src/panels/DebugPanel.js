@@ -7,7 +7,7 @@ function DebugPanel() {
   const { state } = useStore();
   const { debug, ...remainderState } = state;
 
-  const displayState = remainderState.layers?.Video?.data;
+  const displayState = remainderState.screenshot;
 
   return (
     <div style={{ height: 200 }} className="bp3-dark">
