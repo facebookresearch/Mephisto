@@ -43,7 +43,7 @@ function VQALayers() {
         icon="video"
         component={({ id }) => (
           <VideoPlayer
-            fps={5}
+            fps={15}
             id={id}
             src={videoSrc}
             width={videoWidth}

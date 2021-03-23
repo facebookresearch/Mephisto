@@ -18,7 +18,7 @@ export default function VideoPlayer({ id, src, fps = 30, width, height }) {
           .getContext("2d")
           .drawImage(vidRef.current.getInternalPlayer(), 0, 0, width, height);
         const screenshotData = canvasRef.current.toDataURL("image/png");
-        req.payload({ store, data: screenshotData });
+        req.payload.callback({ store, data: screenshotData });
       }
     },
     [vidRef.current]
