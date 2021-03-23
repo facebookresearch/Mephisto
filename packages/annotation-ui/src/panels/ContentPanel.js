@@ -26,9 +26,13 @@ function ContentPanel() {
   const alwaysOnLayers = Object.values(layers).filter((layer) => {
     return (
       layer.alwaysOn === true ||
-      (isFunction(layer.alwaysOn) && layer.alwaysOn()) ||
-      (layer.onWithGroup === true &&
-        isGroup(layer.id.split("|"), state.selectedLayer))
+      (isFunction(layer.alwaysOn) && layer.alwaysOn())
+    );
+  });
+  const groupedLayers = Object.values(layers).filter((layer) => {
+    return (
+      layer.onWithGroup === true &&
+      isGroup(layer.id.split("|"), state.selectedLayer)
     );
   });
 
@@ -40,10 +44,12 @@ function ContentPanel() {
   if (selectedViewName) {
     const key = selectedViewName.join("|");
     selectedLayer = get(["layers", key]);
-    if (selectedLayer?.component && !selectedLayer.alwaysOn) {
-      SelectedViewComponent = () => (
-        <selectedLayer.component id={selectedLayer.id} />
-      );
+    if (
+      selectedLayer?.component &&
+      !selectedLayer.alwaysOn &&
+      groupedLayers.indexOf(selectedLayer) < 0
+    ) {
+      SelectedViewComponent = selectedLayer.component;
     }
   }
 
@@ -72,17 +78,18 @@ function ContentPanel() {
     <>
       {selectedLayer ? (
         <div
+          key={selectedLayer.id}
           style={{
             position: "absolute",
             zIndex: 12,
             pointerEvents: selectedLayer.noPointerEvents ? "none" : "auto",
           }}
         >
-          <SelectedViewComponent />
+          <SelectedViewComponent id={selectedLayer.id} />
         </div>
       ) : null}
-      {alwaysOnLayers.map((layer) =>
-        layer.id === selectedLayer.id ? null : (
+      {[...alwaysOnLayers, ...groupedLayers].map((layer) =>
+        false ? null : (
           <div
             key={layer.id}
             style={{

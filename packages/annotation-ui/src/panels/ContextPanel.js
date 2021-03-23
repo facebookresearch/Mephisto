@@ -9,10 +9,14 @@ export default function ContextPanel() {
   const videoLayerData = get(["layers", "Video", "data"]);
   const videoLoaded = !!videoLayerData;
 
-  const selectedQuery = state.selectedLayer[0].replace("Query ", "");
+  const selectedQuery = parseInt(
+    state.selectedLayer[0].replace("Query ", ""),
+    10
+  );
   console.log(selectedQuery);
 
-  let crop, importantFrames;
+  let crop,
+    importantFrames = [];
   if (videoLoaded && selectedQuery) {
     const query = state.taskData["query_set_" + selectedQuery];
     crop = query.visual_crop[0];
@@ -88,12 +92,12 @@ export default function ContextPanel() {
             style={{
               backgroundImage: "url(" + state.screenshot.data + ")",
               backgroundPosition:
-                Math.round(-1 * crop.x * state.video.scale) +
+                Math.round(-1 * crop.x * state.videoData.scale) +
                 "px " +
-                Math.round(-1 * crop.y * state.video.scale) +
+                Math.round(-1 * crop.y * state.videoData.scale) +
                 "px",
-              height: crop.height * state.video.scale,
-              width: crop.width * state.video.scale,
+              height: crop.height * state.videoData.scale,
+              width: crop.width * state.videoData.scale,
             }}
           />
         ) : null} */}
