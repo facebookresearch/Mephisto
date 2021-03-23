@@ -81,18 +81,20 @@ function ContentPanel() {
           <SelectedViewComponent />
         </div>
       ) : null}
-      {alwaysOnLayers.map((layer) => (
-        <div
-          key={layer.id}
-          style={{
-            position: "absolute",
-            zIndex: 10,
-            pointerEvents: layer.noPointerEvents ? "none" : "auto",
-          }}
-        >
-          <layer.component id={layer.id} />
-        </div>
-      ))}
+      {alwaysOnLayers.map((layer) =>
+        layer.id === selectedLayer.id ? null : (
+          <div
+            key={layer.id}
+            style={{
+              position: "absolute",
+              zIndex: 10,
+              pointerEvents: layer.noPointerEvents ? "none" : "auto",
+            }}
+          >
+            <layer.component id={layer.id} />
+          </div>
+        )
+      )}
       {state.selectedLayer ? (
         <div
           style={{

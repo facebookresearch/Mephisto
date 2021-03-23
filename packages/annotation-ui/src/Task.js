@@ -91,7 +91,7 @@ function VQALayerGroup({
   const { sendRequest } = useStore();
 
   const querySet = data["query_set_" + queryNum];
-  const itemCrop = querySet.visual_crop[0];
+  const visualCrop = querySet.visual_crop[0];
   const queryFrame = querySet.query_frame[0];
   const responseTrack = querySet.response_track;
 
@@ -109,18 +109,26 @@ function VQALayerGroup({
         <>
           <MenuItem
             icon="circle-arrow-right"
-            text="Jump to item crop"
+            text="Jump to visual crop"
             onClick={() => {
               sendRequest("Video", {
                 type: "seek",
-                payload: frameToMs(itemCrop.frameNumber, videoFps) / 1000,
+                payload: frameToMs(visualCrop.frameNumber, videoFps) / 1000,
               });
               setTimeout(
                 () =>
                   sendRequest("Video", {
                     type: "screenshot",
-                    payload: ({ store, data }) =>
-                      store.set("screenshot", { data: data, query: queryNum }),
+                    payload: {
+                      // TODO: have "screenshot" cmd work with time property
+                      // so we can avoid having to do a seek as done above
+                      time: frameToMs(visualCrop.frameNumber, videoFps) / 1000,
+                      callback: ({ store, data }) =>
+                        store.set("screenshot", {
+                          data: data,
+                          query: queryNum,
+                        }),
+                    },
                   }),
                 600
               );
@@ -150,24 +158,24 @@ function VQALayerGroup({
       }
     >
       <Layer
-        displayName="Item Crop"
+        displayName="Visual Crop"
         icon="widget"
         component={(props) => (
           <BBoxFrame
-            label={`Item Crop #${queryNum}`}
+            label={`Visual Crop #${queryNum}`}
             color="white"
             frameHeight={videoHeight}
             frameWidth={videoWidth}
             getCoords={() => [
-              itemCrop.x * scale,
-              itemCrop.y * scale,
-              itemCrop.width * scale,
-              itemCrop.height * scale,
+              visualCrop.x * scale,
+              visualCrop.y * scale,
+              visualCrop.width * scale,
+              visualCrop.height * scale,
             ]}
             displayWhen={({ store }) => {
               const currentFrame = store.get("layers.Video.data.playedSeconds");
               const timePoint =
-                frameToMs(itemCrop.frameNumber, videoFps) / 1000;
+                frameToMs(visualCrop.frameNumber, videoFps) / 1000;
               return (
                 currentFrame > timePoint - 0.2 && currentFrame < timePoint + 0.2
               );
