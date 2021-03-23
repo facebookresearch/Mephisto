@@ -56,21 +56,24 @@ export default function ContextPanel() {
           ]}
           labelRenderer={(val) => {
             const label =
-              val === importantFrames[0]
-                ? "VC"
-                : val === importantFrames[1]
-                ? "QF"
-                : val === importantFrames[2]
-                ? "RT"
-                : null;
-            const mmss = new Date(val * 1000).toISOString().substr(14, 5);
-            return (
-              <span key={mmss}>
-                {mmss.replace("00:", ":")}
-                <br />
-                {label}
-              </span>
-            );
+              val === importantFrames[0] ? (
+                <span>
+                  ↑<br />V
+                </span>
+              ) : val === importantFrames[1] ? (
+                <span>
+                  ↑<br />Q
+                </span>
+              ) : val === importantFrames[2] ? (
+                <span>
+                  ↑<br />R
+                </span>
+              ) : null;
+            const mmss = new Date(val * 1000)
+              .toISOString()
+              .substr(14, 5)
+              .replace("00:", ":");
+            return label ? <span>{label}</span> : mmss;
           }}
           onChange={(value) => {
             sendRequest("Video", { type: "seek", payload: value });
@@ -78,7 +81,7 @@ export default function ContextPanel() {
           value={videoLayerData.playedSeconds}
           vertical={false}
         />
-        {state.screenshot?.data &&
+        {/* {state.screenshot?.data &&
         state.screenshot.query.toString() === selectedQuery ? (
           <div
             key={selectedQuery}
@@ -93,7 +96,7 @@ export default function ContextPanel() {
               width: crop.width * state.video.scale,
             }}
           />
-        ) : null}
+        ) : null} */}
       </div>
     </div>
   ) : null;

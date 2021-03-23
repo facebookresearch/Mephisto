@@ -19,7 +19,7 @@ function VQALayers() {
   }
 
   const videoSrc =
-    "https://interncache-ash.fbcdn.net/v/t53.39266-7/10000000_441474370388831_2571013882988688057_n.mp4?_nc_map=test-rt&ccb=1-3&_nc_sid=5f5f54&efg=eyJ1cmxnZW4iOiJwaHBfdXJsZ2VuX2NsaWVudC9pbnRlcm4vc2l0ZS94L2ZiY2RuIn0%3D&_nc_ht=interncache-ash&_nc_rmd=260&oh=f275d96ea09f486be0166da312f84127&oe=607E239D";
+    "https://interncache-ash.fbcdn.net/v/t53.39266-7/10000000_101490861881999_3097760480370384378_n.mp4?_nc_map=test-rt&ccb=1-3&_nc_sid=5f5f54&efg=eyJ1cmxnZW4iOiJwaHBfdXJsZ2VuX2NsaWVudC9pbnRlcm4vc2l0ZS94L2ZiY2RuIn0%3D&_nc_ht=interncache-ash&_nc_rmd=260&oh=83a2a653bb8d85f026a4eeab167b37f8&oe=607EE6EA";
 
   const originalVideoWidth = 1920;
   const originalVideoHeight = 1440;
