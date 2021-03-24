@@ -266,15 +266,8 @@ class Supervisor:
             "request_id"
         ]
         del packet.data["request_id"]
-        assert isinstance(
-            agent, OnboardingAgent
-        ), "Only onboarding agents should submit onboarding"
         agent.pending_actions.append(packet)
         agent.has_action.set()
-        self._register_agent_from_onboarding(agent_info)
-        logger.info(f"Onboarding agent {onboarding_id} registered out from onboarding")
-        del self.agents[onboarding_id]
-        del self.onboarding_packets[onboarding_id]
 
     def _register_worker(self, packet: Packet, channel_info: ChannelInfo):
         """Process a worker registration packet to register a worker"""
@@ -319,6 +312,7 @@ class Supervisor:
     ):
         """Launch a thread to supervise the completion of onboarding for a task"""
         tracked_agent = agent_info.agent
+        onboarding_id = tracked_agent.get_agent_id()
         assert isinstance(tracked_agent, OnboardingAgent), (
             "Can launch onboarding for OnboardingAgents, not Agents"
             f", got {tracked_agent}"
@@ -326,6 +320,7 @@ class Supervisor:
         try:
             logger.debug(f"Launching onboarding for {tracked_agent}")
             task_runner.launch_onboarding(tracked_agent)
+            self._register_agent_from_onboarding(tracked_agent)
         except Exception as e:
             logger.warning(f"Onboarding for {tracked_agent} failed with exception {e}")
             import traceback
@@ -338,13 +333,12 @@ class Supervisor:
                 AgentState.STATUS_APPROVED,
                 AgentState.STATUS_REJECTED,
             ]:
-                onboarding_id = tracked_agent.get_agent_id()
                 logger.info(
                     f"Onboarding agent {onboarding_id} disconnected or errored, "
                     f"final status {tracked_agent.get_status()}."
                 )
-                del self.agents[onboarding_id]
-                del self.onboarding_packets[onboarding_id]
+            del self.agents[onboarding_id]
+            del self.onboarding_packets[onboarding_id]
 
     def _launch_and_run_assignment(
         self,
@@ -487,11 +481,20 @@ class Supervisor:
 
                 assign_thread.start()
 
-    def _register_agent_from_onboarding(self, onboarding_agent_info: AgentInfo):
+    def _register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
         """
         Convert the onboarding agent to a full agent
         """
-        onboarding_agent = onboarding_agent_info.agent
+        onboarding_id = onboarding_agent.get_agent_id()
+        onboarding_agent_info = self.agents.get(onboarding_id)
+
+        if onboarding_agent_info is None:
+            logger.warning(
+                f"Could not find info for onboarding agent {onboarding_id}, "
+                "but they submitted onboarding"
+            )
+            return
+
         current_status = onboarding_agent.get_status()
         channel_id = onboarding_agent_info.used_channel_id
         channel_info = self.channels[channel_id]
@@ -512,8 +515,12 @@ class Supervisor:
                 blueprint.onboarding_failed_name, int(worker_passed)
             )
             onboarding_agent.update_status(AgentState.STATUS_REJECTED)
+            logger.info(f"Onboarding agent {onboarding_id} failed onboarding")
         else:
             onboarding_agent.update_status(AgentState.STATUS_APPROVED)
+            logger.info(
+                f"Onboarding agent {onboarding_id} registered out from onboarding"
+            )
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
