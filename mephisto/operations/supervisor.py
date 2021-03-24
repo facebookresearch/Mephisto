@@ -320,7 +320,14 @@ class Supervisor:
         try:
             logger.debug(f"Launching onboarding for {tracked_agent}")
             task_runner.launch_onboarding(tracked_agent)
-            self._register_agent_from_onboarding(tracked_agent)
+            if tracked_agent.get_status() == AgentState.STATUS_WAITING:
+                # The agent completed the onboarding task
+                self._register_agent_from_onboarding(tracked_agent)
+            else:
+                logger.info(
+                    f"Onboarding agent {onboarding_id} disconnected or errored, "
+                    f"final status {tracked_agent.get_status()}."
+                )
         except Exception as e:
             logger.warning(f"Onboarding for {tracked_agent} failed with exception {e}")
             import traceback
@@ -328,15 +335,6 @@ class Supervisor:
             traceback.print_exc()
             task_runner.cleanup_onboarding(tracked_agent)
         finally:
-            if tracked_agent.get_status() not in [
-                AgentState.STATUS_WAITING,
-                AgentState.STATUS_APPROVED,
-                AgentState.STATUS_REJECTED,
-            ]:
-                logger.info(
-                    f"Onboarding agent {onboarding_id} disconnected or errored, "
-                    f"final status {tracked_agent.get_status()}."
-                )
             del self.agents[onboarding_id]
             del self.onboarding_packets[onboarding_id]
 
