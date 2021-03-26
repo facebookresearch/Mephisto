@@ -15,6 +15,7 @@ function DefaultItemListRenderer({
             to={`/${item.id}`}
             style={{ textDecoration: "none" }}
             key={item.id}
+            id={`item-${item.id}`}
           >
             <ItemRenderer item={item} />
           </Link>

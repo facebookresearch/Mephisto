@@ -9,7 +9,7 @@
     "FAIR"
   ],
   "description": "Template to quickly start up and utilize a review UI for mephisto review.",
-  "license": "ISC",
+  "license": "MIT",
   "engines": {
     "node": ">=10"
   },

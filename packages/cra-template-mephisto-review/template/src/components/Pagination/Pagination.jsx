@@ -93,9 +93,9 @@ function Pagination({ page = 1, totalPages = 1, setPage = () => {} }) {
     <div className="bp3-button-group pagination">
       <Button
         large={true}
-        iconName="chevron-left"
         disabled={!isLeftArrowEnabled}
         onClick={() => setPage(page - 1)}
+        id="pagination-button-left"
       >
         <Icon icon="chevron-left" />
       </Button>
@@ -113,6 +113,7 @@ function Pagination({ page = 1, totalPages = 1, setPage = () => {} }) {
         large={true}
         disabled={!isRightArrowEnabled}
         onClick={() => setPage(page + 1)}
+        id="pagination-button-right"
       >
         <Icon icon="chevron-right" />
       </Button>

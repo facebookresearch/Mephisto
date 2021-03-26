@@ -55,7 +55,11 @@ function AllItemView({
   };
 
   const searchButton = (
-    <Button round={true} onClick={setFiltersImmediately}>
+    <Button
+      id="mephisto-search-button"
+      round={true}
+      onClick={setFiltersImmediately}
+    >
       Search
     </Button>
   );
@@ -74,6 +78,7 @@ function AllItemView({
           <NavbarGroup align={Alignment.RIGHT}>
             <Tooltip2 content="Separate multiple filters with commas">
               <InputGroup
+                id="mephisto-search"
                 style={{ width: "60vw" }}
                 leftIcon="search"
                 round={true}
@@ -89,7 +94,7 @@ function AllItemView({
           </NavbarGroup>
         </div>
       </Navbar>
-      <main className="all-item-view">
+      <main className="all-item-view" id="all-item-view-wrapper">
         {error && (
           <h5 className="all-item-view-error error">
             Error: {JSON.stringify(error)}
