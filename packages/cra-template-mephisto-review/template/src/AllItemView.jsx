@@ -35,6 +35,11 @@ function AllItemView({
     totalPages,
   } = useMephistoReview({ page, resultsPerPage, filters });
 
+  const setFiltersAndResetPage = (filtersStr) => {
+    if (page !== null && page !== 1) setPage(1);
+    setFilters(filtersStr);
+  };
+
   const delaySetFilters = (filtersStr) => {
     setFiltersBuffer(filtersStr);
     if (filterTimeout) {
@@ -42,7 +47,7 @@ function AllItemView({
     }
     setFilterTimeout(
       setTimeout(() => {
-        setFilters(filtersStr);
+        setFiltersAndResetPage(filtersStr);
       }, 3000)
     );
   };
@@ -51,7 +56,7 @@ function AllItemView({
     if (filterTimeout) {
       clearTimeout(filterTimeout);
     }
-    setFilters(filtersBuffer);
+    setFiltersAndResetPage(filtersBuffer);
   };
 
   const searchButton = (
