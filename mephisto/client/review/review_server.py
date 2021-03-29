@@ -324,8 +324,9 @@ def run(
             data = {"data": current_data if not finished else None, "id": counter - 1}
             return jsonify({"data": data, "mode": MODE, "finished": finished})
 
-    @app.route("/")
-    def index():
+    @app.route("/", defaults={"id": 0})
+    @app.route("/<id>")
+    def index(id):
         global index_file
         return send_file(build_dir + "/index.html")
 
