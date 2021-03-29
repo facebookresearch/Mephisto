@@ -36,7 +36,7 @@ function AllItemView({
   } = useMephistoReview({ page, resultsPerPage, filters });
 
   const setFiltersAndResetPage = (filtersStr) => {
-    if (page != null && page != 1) setPage(1);
+    if (page !== null && page !== 1) setPage(1);
     setFilters(filtersStr);
   };
 
