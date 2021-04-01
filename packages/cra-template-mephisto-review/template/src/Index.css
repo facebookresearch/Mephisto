@@ -17,6 +17,25 @@ code {
   color: #e3242b;
 }
 
+.navbar-wrapper {
+  width: 75vw;
+  margin: 0 auto;
+}
+
+.all-item-view-search-bar {
+  width: 60vw;
+}
+
+@media only screen and (max-width: 1200px) {
+  .navbar-header {
+    display: none !important;
+  }
+
+  .all-item-view-search-bar {
+    width: 75vw;
+  }
+}
+
 .all-item-view {
   display: flex;
   flex-direction: column;
