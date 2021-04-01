@@ -11,11 +11,9 @@ function BBoxFrame({
   label = "",
   color = "red",
 }) {
-  const store = useStore();
-  const { get } = store;
-
   const LABEL_PADDING = 4;
 
+  const store = useStore();
   const coords = getCoords({ store });
 
   if (!displayWhen({ store }) || !coords) {
