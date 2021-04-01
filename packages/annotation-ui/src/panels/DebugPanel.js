@@ -4,10 +4,13 @@ import { useStore } from "../model";
 import { Tabs, Tab } from "@blueprintjs/core";
 
 function DebugPanel() {
-  const { state } = useStore();
-  const { debug, ...remainderState } = state;
+  const { state: fullState } = useStore();
+  const { debug, ...state } = fullState;
 
-  const displayState = remainderState.screenshot;
+  let displayState = null;
+  try {
+    displayState = Object.keys(state.taskData);
+  } catch {}
 
   return (
     <div style={{ height: 200 }} className="bp3-dark">
@@ -33,7 +36,7 @@ function DebugPanel() {
             title="Actions fired"
             panel={
               <div style={{ overflowY: "auto" }}>
-                {(state.debug?.actionsFired || []).map((a, idx) => (
+                {(state.__debug?.actionsFired || []).map((a, idx) => (
                   <p key={idx}>{a.type}</p>
                 ))}
               </div>

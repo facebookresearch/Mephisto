@@ -9,11 +9,9 @@ export default function ContextPanel() {
   const videoLayerData = get(["layers", "Video", "data"]);
   const videoLoaded = !!videoLayerData;
 
-  const selectedQuery = parseInt(
-    state.selectedLayer[0].replace("Query ", ""),
-    10
-  );
-  console.log(selectedQuery);
+  const selectedQuery = state.selectedLayer
+    ? parseInt(state.selectedLayer[0].replace("Query ", ""), 10)
+    : null;
 
   let crop,
     importantFrames = [];

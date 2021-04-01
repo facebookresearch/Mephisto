@@ -4,14 +4,13 @@ import lodash_get from "lodash.get";
 import lodash_unset from "lodash.unset";
 
 const initialState = {
-  selectedLayer: ["Query 1"],
-  debug: {
+  __debug: {
     actionsFired: [],
   },
 };
 
 const Reducer = (state, action) => {
-  const logAction = (action) => [...state.debug.actionsFired, action];
+  const logAction = (action) => [...state.__debug.actionsFired, action];
   let newState;
 
   switch (action.type) {
@@ -39,7 +38,7 @@ const Reducer = (state, action) => {
       break;
   }
 
-  newState.debug.actionsFired = logAction(action);
+  newState.__debug.actionsFired = logAction(action);
   return newState;
 };
 const Store = ({ children }) => {
