@@ -69,8 +69,8 @@ function AllItemView({
   return (
     <>
       <Navbar fixedToTop={true}>
-        <div style={{ margin: "0 auto", width: "75vw" }}>
-          <NavbarGroup>
+        <div className="navbar-wrapper">
+          <NavbarGroup className="navbar-header">
             <NavbarHeading>
               <b>Mephisto Review</b>
             </NavbarHeading>
@@ -79,7 +79,7 @@ function AllItemView({
           <NavbarGroup align={Alignment.RIGHT}>
             <Tooltip2 content="Separate multiple filters with commas">
               <InputGroup
-                style={{ width: "60vw" }}
+                className="all-item-view-search-bar"
                 leftIcon="search"
                 round={true}
                 onChange={(event) => delaySetFilters(event.target.value)}
