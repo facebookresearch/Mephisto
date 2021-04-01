@@ -1,5 +1,5 @@
 import React from "react";
-import { useStore } from "../../model";
+import { useStore } from "../model";
 
 // a single frame bounding box for a VideoPlayer
 function BBoxFrame({

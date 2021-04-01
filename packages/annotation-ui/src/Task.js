@@ -4,7 +4,7 @@ import { useStore } from "./model";
 
 import Layer from "./layers/Layer";
 import VideoPlayer from "./layers/VideoPlayer";
-import BBoxFrame from "./layers/VQA/BBoxFrame";
+import BBoxFrame from "./layers/BBoxFrame";
 
 import { frameToMs, msToFrame, requestQueue } from "./helpers";
 
