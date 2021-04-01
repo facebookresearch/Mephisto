@@ -2,7 +2,7 @@ import React from "react";
 import vqaData from "./vqa.json";
 import groupBy from "lodash.groupby";
 import mapValues from "lodash.mapvalues";
-import { useStore } from "../model";
+import { useStore } from "global-context-store";
 
 function prepareData(data) {
   let d = groupBy(data.payload, "label");

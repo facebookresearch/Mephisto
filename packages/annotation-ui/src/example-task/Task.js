@@ -1,6 +1,6 @@
 import React from "react";
 import { MenuItem } from "@blueprintjs/core";
-import { useStore } from "../model";
+import { useStore } from "global-context-store";
 
 import Layer from "../layers/Layer";
 import VideoPlayer from "../layers/VideoPlayer";

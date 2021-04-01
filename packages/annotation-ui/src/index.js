@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import AppShell from "./AppShell";
 import DataLoader from "./example-task/DataLoader";
-import Store from "./model";
+import Store from "global-context-store";
 import { Layers } from "./example-task/Task";
 
 import "react-mosaic-component/react-mosaic-component.css";
