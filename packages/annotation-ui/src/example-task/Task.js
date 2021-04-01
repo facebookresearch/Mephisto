@@ -1,12 +1,12 @@
 import React from "react";
 import { MenuItem } from "@blueprintjs/core";
-import { useStore } from "./model";
+import { useStore } from "../model";
 
-import Layer from "./layers/Layer";
-import VideoPlayer from "./layers/VideoPlayer";
-import BBoxFrame from "./layers/BBoxFrame";
+import Layer from "../layers/Layer";
+import VideoPlayer from "../layers/VideoPlayer";
+import BBoxFrame from "../layers/BBoxFrame";
 
-import { frameToMs, msToFrame, requestQueue } from "./helpers";
+import { frameToMs, msToFrame, requestQueue } from "../helpers";
 
 function VQALayers() {
   const { set, get, push } = useStore();
