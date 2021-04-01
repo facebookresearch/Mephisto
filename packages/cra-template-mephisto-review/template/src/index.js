@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./Index.css";
+import "./index.css";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import AllItemView from "./AllItemView";
 import ItemView from "./ItemView";
