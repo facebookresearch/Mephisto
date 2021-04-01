@@ -2,7 +2,6 @@
   "package": {
     "dependencies": {
       "@blueprintjs/core": "^3.38.1",
-      "@blueprintjs/popover2": "^0.2.0",
       "mephisto-review-hook": "^2.0.1",
       "react-router-dom": "^5.2.0"
     },

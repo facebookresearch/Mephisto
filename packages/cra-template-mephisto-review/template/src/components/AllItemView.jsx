@@ -10,10 +10,10 @@ import {
   NavbarHeading,
   Alignment,
 } from "@blueprintjs/core";
-import { Tooltip2 } from "@blueprintjs/popover2";
-import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
-import { DefaultItemListRenderer } from "./plugins/DefaultItemListRenderer";
-import { Pagination } from "./components/Pagination";
+import { Tooltip } from "@blueprintjs/core";
+import { DefaultItemRenderer } from "../plugins/DefaultItemRenderer";
+import { DefaultItemListRenderer } from "../plugins/DefaultItemListRenderer";
+import { Pagination } from "./Pagination";
 
 function AllItemView({
   itemRenderer = DefaultItemRenderer,
@@ -77,7 +77,7 @@ function AllItemView({
             <NavbarDivider />
           </NavbarGroup>
           <NavbarGroup align={Alignment.RIGHT}>
-            <Tooltip2 content="Separate multiple filters with commas">
+            <Tooltip content="Separate multiple filters with commas">
               <InputGroup
                 style={{ width: "60vw" }}
                 leftIcon="search"
@@ -90,7 +90,7 @@ function AllItemView({
                 value={filtersBuffer}
                 rightElement={searchButton}
               />
-            </Tooltip2>
+            </Tooltip>
           </NavbarGroup>
         </div>
       </Navbar>
