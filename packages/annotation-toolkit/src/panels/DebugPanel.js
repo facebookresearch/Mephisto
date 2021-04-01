@@ -9,7 +9,7 @@ function DebugPanel() {
 
   let displayState = null;
   try {
-    displayState = Object.keys(state.taskData);
+    displayState = Object.keys(state);
   } catch {}
 
   return (
