@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import cx from "classnames";
-import { Context } from "global-context-store";
+import { useStore } from "global-context-store";
 
 const LayerContext = React.createContext({ stack: [] });
 
@@ -16,7 +16,7 @@ function Layer({
   onWithGroup,
 }) {
   const [expanded, setExpanded] = React.useState(true);
-  const { state, dispatch, set, get } = useContext(Context);
+  const { state, dispatch, set, get } = useStore();
   const layerContext = React.useContext(LayerContext);
   const layerStack = [...layerContext.stack, displayName];
 

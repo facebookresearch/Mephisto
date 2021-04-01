@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Context } from "global-context-store";
+import { useStore } from "global-context-store";
 
 import { Menu, MenuDivider, Classes } from "@blueprintjs/core";
 
@@ -10,7 +10,7 @@ function isFunction(functionToCheck) {
 }
 
 function ContentPanel() {
-  const { state, get } = useContext(Context);
+  const { state, get } = useStore();
 
   const isGroup = (layer, otherLayer) => {
     if (!layer || !otherLayer) return false;

@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
-import { Context } from "global-context-store";
+import { useStore } from "global-context-store";
 import { Slider } from "@blueprintjs/core";
 import { frameToMs, requestQueue } from "../helpers";
 
 export default function ContextPanel() {
-  const { state, get, push } = useContext(Context);
+  const { state, get, push } = useStore();
 
   const videoLayerData = get(["layers", "Video", "data"]);
   const videoLoaded = !!videoLayerData;

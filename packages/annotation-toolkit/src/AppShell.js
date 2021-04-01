@@ -32,7 +32,7 @@ function Window({ title, children, buttons }) {
   );
 }
 
-function AppShell({ showNavbar = false, layers }) {
+function AppShell({ showNavbar = false, layers, showDebugPane = false }) {
   return (
     <div className="full">
       {showNavbar ? (
@@ -58,7 +58,7 @@ function AppShell({ showNavbar = false, layers }) {
             style={{ inset: "0% calc(100% - 300px) 0% 0%" }}
           >
             <Window title="Layers">
-              <LayersPanel layers={layers} />
+              <LayersPanel layers={layers} showDebugPane={showDebugPane} />
             </Window>
           </div>
           <div className="mosaic-tile" style={{ inset: "0% 0% 200px 300px" }}>

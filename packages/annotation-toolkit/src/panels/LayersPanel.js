@@ -11,7 +11,7 @@ export default function LayersPanel(props) {
           </ul>
         </div>
       </div>
-      <DebugPanel />
+      {props.showDebugPane ? <DebugPanel /> : null}
     </div>
   );
 }
