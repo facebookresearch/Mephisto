@@ -48,7 +48,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
   return (
     <>
       <Navbar fixedToTop={true}>
-        <div style={{ margin: "0 auto", width: "75vw" }}>
+        <div className="navbar-wrapper">
           <NavbarGroup>
             {mode === "ALL" ? (
               <>
@@ -60,7 +60,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
                 <NavbarDivider />
               </>
             ) : null}
-            <NavbarHeading>
+            <NavbarHeading className="navbar-header">
               <b>Please review the following item:</b>
             </NavbarHeading>
           </NavbarGroup>
