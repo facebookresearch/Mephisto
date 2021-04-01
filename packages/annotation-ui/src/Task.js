@@ -6,42 +6,21 @@ import Layer from "./layers/Layer";
 import VideoPlayer from "./layers/VideoPlayer";
 import BBoxFrame from "./layers/VQA/BBoxFrame";
 
-import vqaData from "./mock-data/vqa.json";
-import groupBy from "lodash.groupby";
-import mapValues from "lodash.mapvalues";
-
 import { frameToMs, msToFrame, requestQueue } from "./helpers";
 
 function VQALayers() {
-  function prepareData(data) {
-    let d = groupBy(data.payload, "label");
-    d = mapValues(d, (val) => groupBy(val, "tags[0]"));
-    return d;
-  }
-
-  const SCALE = 0.33;
-  const video = {
-    src:
-      "https://interncache-ash.fbcdn.net/v/t53.39266-7/10000000_101490861881999_3097760480370384378_n.mp4?_nc_map=test-rt&ccb=1-3&_nc_sid=5f5f54&efg=eyJ1cmxnZW4iOiJwaHBfdXJsZ2VuX2NsaWVudC9pbnRlcm4vc2l0ZS94L2ZiY2RuIn0%3D&_nc_ht=interncache-ash&_nc_rmd=260&oh=83a2a653bb8d85f026a4eeab167b37f8&oe=607EE6EA",
-    originalWidth: 1920,
-    originalHeight: 1440,
-    fps: 5,
-  };
-  const videoData = {
-    ...video,
-    scale: SCALE,
-    width: video.originalWidth * SCALE,
-    height: video.originalHeight * SCALE,
-  };
-  const data = prepareData(vqaData);
-
-  const { set, push } = useStore();
+  const { set, get, push } = useStore();
 
   React.useEffect(() => {
-    set("taskData", data);
-    set("videoData", videoData);
     set("selectedLayer", ["Query 1"]);
   }, []);
+
+  const initData = get("initData");
+  const taskData = get("taskData");
+
+  if (!initData) {
+    return null;
+  }
 
   return (
     <>
@@ -52,9 +31,9 @@ function VQALayers() {
           <VideoPlayer
             fps={15}
             id={id}
-            src={videoData.src}
-            width={videoData.width}
-            height={videoData.height}
+            src={initData.src}
+            width={initData.width}
+            height={initData.height}
           />
         )}
         actions={
@@ -85,27 +64,27 @@ function VQALayers() {
       />
       <VQALayerGroup
         queryNum={1}
-        videoHeight={videoData.height}
-        videoWidth={videoData.width}
-        scale={videoData.scale}
-        data={data}
-        videoFps={videoData.fps}
+        videoHeight={initData.height}
+        videoWidth={initData.width}
+        scale={initData.scale}
+        data={taskData}
+        videoFps={initData.fps}
       />
       <VQALayerGroup
         queryNum={2}
-        videoHeight={videoData.height}
-        videoWidth={videoData.width}
-        scale={videoData.scale}
-        data={data}
-        videoFps={videoData.fps}
+        videoHeight={initData.height}
+        videoWidth={initData.width}
+        scale={initData.scale}
+        data={taskData}
+        videoFps={initData.fps}
       />
       <VQALayerGroup
         queryNum={3}
-        videoHeight={videoData.height}
-        videoWidth={videoData.width}
-        scale={videoData.scale}
-        data={data}
-        videoFps={videoData.fps}
+        videoHeight={initData.height}
+        videoWidth={initData.width}
+        scale={initData.scale}
+        data={taskData}
+        videoFps={initData.fps}
       />
     </>
   );
