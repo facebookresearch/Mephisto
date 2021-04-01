@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 import { Context } from "../model";
 import { Slider } from "@blueprintjs/core";
-import { frameToMs } from "../helpers";
+import { frameToMs, requestQueue } from "../helpers";
 
 export default function ContextPanel() {
-  const { state, get, sendRequest } = useContext(Context);
+  const { state, get, push } = useContext(Context);
 
   const videoLayerData = get(["layers", "Video", "data"]);
   const videoLoaded = !!videoLayerData;
@@ -80,7 +80,7 @@ export default function ContextPanel() {
             return label ? <span>{label}</span> : mmss;
           }}
           onChange={(value) => {
-            sendRequest("Video", { type: "seek", payload: value });
+            push(requestQueue("Video"), { type: "seek", payload: value });
           }}
           value={videoLayerData.playedSeconds}
           vertical={false}

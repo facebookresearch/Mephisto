@@ -10,7 +10,7 @@ import vqaData from "./mock-data/vqa.json";
 import groupBy from "lodash.groupby";
 import mapValues from "lodash.mapvalues";
 
-import { frameToMs, msToFrame } from "./helpers";
+import { frameToMs, msToFrame, requestQueue } from "./helpers";
 
 function VQALayers() {
   function prepareData(data) {
@@ -35,7 +35,7 @@ function VQALayers() {
   };
   const data = prepareData(vqaData);
 
-  const { set, sendRequest } = useStore();
+  const { set, push } = useStore();
 
   React.useEffect(() => {
     set("taskData", data);
@@ -63,7 +63,7 @@ function VQALayers() {
               icon="fast-backward"
               text="Rewind 5 seconds"
               onClick={() => {
-                sendRequest("Video", {
+                push(requestQueue("Video"), {
                   type: "rewind",
                   payload: 5,
                 });
@@ -73,7 +73,7 @@ function VQALayers() {
               icon="fast-forward"
               text="Forward 5 seconds"
               onClick={() => {
-                sendRequest("Video", {
+                push(requestQueue("Video"), {
                   type: "ff",
                   payload: 5,
                 });
@@ -119,7 +119,7 @@ function VQALayerGroup({
   videoFps,
   scale,
 }) {
-  const { sendRequest } = useStore();
+  const { push } = useStore();
 
   const querySet = data["query_set_" + queryNum];
   const visualCrop = querySet.visual_crop[0];
@@ -142,13 +142,13 @@ function VQALayerGroup({
             icon="circle-arrow-right"
             text="Jump to visual crop"
             onClick={() => {
-              sendRequest("Video", {
+              push(requestQueue("Video"), {
                 type: "seek",
                 payload: frameToMs(visualCrop.frameNumber, videoFps) / 1000,
               });
               setTimeout(
                 () =>
-                  sendRequest("Video", {
+                  push(requestQueue("Video"), {
                     type: "screenshot",
                     payload: {
                       // TODO: have "screenshot" cmd work with the time property below
@@ -169,7 +169,7 @@ function VQALayerGroup({
             icon="circle-arrow-right"
             text="Jump to query frame"
             onClick={() => {
-              sendRequest("Video", {
+              push(requestQueue("Video"), {
                 type: "seek",
                 payload: frameToMs(queryFrame.frameNumber, videoFps) / 1000,
               });
@@ -179,7 +179,7 @@ function VQALayerGroup({
             icon="circle-arrow-right"
             text="Jump to response track start"
             onClick={() => {
-              sendRequest("Video", {
+              push(requestQueue("Video"), {
                 type: "seek",
                 payload: frameToMs(firstResponseFrameNum, videoFps) / 1000,
               });

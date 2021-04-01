@@ -68,13 +68,9 @@ const Store = ({ children }) => {
     invoke(path, (prev) => [...prev, value]);
   };
 
-  const sendRequest = (layer, action) => {
-    push(["layers", layer, "data", "requests"], action);
-  };
-
   return (
     <Context.Provider
-      value={{ state, dispatch, set, get, invoke, unset, sendRequest }}
+      value={{ state, dispatch, set, get, invoke, unset, push }}
     >
       {children}
     </Context.Provider>
