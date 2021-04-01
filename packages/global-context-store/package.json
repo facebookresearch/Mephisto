@@ -7,7 +7,7 @@
     "dev": "webpack --mode development -q",
     "dev:watch": "webpack --mode development -q --watch",
     "build": "NODE_ENV=production webpack -p",
-    "prepublish": "NODE_ENV=production webpack -p"
+    "prepublishOnly": "NODE_ENV=production webpack -p"
   },
   "keywords": [],
   "author": "",
@@ -41,6 +41,9 @@
     "react-dom": "^16.13.1"
   },
   "dependencies": {
-    "babel-eslint": "10.x"
+    "babel-eslint": "10.x",
+    "lodash.get": "^4.4.2",
+    "lodash.set": "^4.3.2",
+    "lodash.unset": "^4.5.2"
   }
 }

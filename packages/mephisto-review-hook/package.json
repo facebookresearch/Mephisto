@@ -7,7 +7,7 @@
     "dev": "webpack --mode development -q",
     "dev:watch": "webpack --mode development -q --watch",
     "build": "NODE_ENV=production webpack -p",
-    "prepublish": "NODE_ENV=production webpack -p"
+    "prepublishOnly": "NODE_ENV=production webpack -p"
   },
   "keywords": [],
   "author": "",
