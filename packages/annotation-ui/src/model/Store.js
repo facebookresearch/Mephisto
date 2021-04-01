@@ -61,11 +61,15 @@ const Store = ({ children }) => {
     dispatch({ type: "UNSET", payload: key });
   };
 
-  const sendRequest = (layer, action) => {
-    if (!get(["layers", layer, "data", "requests"])) {
-      set(["layers", layer, "data", "requests"], []);
+  const push = (path, value) => {
+    if (!get(path)) {
+      set(path, []);
     }
-    invoke(["layers", layer, "data", "requests"], (prev) => [...prev, action]);
+    invoke(path, (prev) => [...prev, value]);
+  };
+
+  const sendRequest = (layer, action) => {
+    push(["layers", layer, "data", "requests"], action);
   };
 
   return (

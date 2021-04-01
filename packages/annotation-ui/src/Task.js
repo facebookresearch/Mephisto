@@ -35,7 +35,7 @@ function VQALayers() {
   };
   const data = prepareData(vqaData);
 
-  const { set } = useStore();
+  const { set, sendRequest } = useStore();
 
   React.useEffect(() => {
     set("taskData", data);
@@ -57,6 +57,30 @@ function VQALayers() {
             height={videoData.height}
           />
         )}
+        actions={
+          <>
+            <MenuItem
+              icon="fast-backward"
+              text="Rewind 5 seconds"
+              onClick={() => {
+                sendRequest("Video", {
+                  type: "rewind",
+                  payload: 5,
+                });
+              }}
+            />
+            <MenuItem
+              icon="fast-forward"
+              text="Forward 5 seconds"
+              onClick={() => {
+                sendRequest("Video", {
+                  type: "ff",
+                  payload: 5,
+                });
+              }}
+            />
+          </>
+        }
         alwaysOn={true}
       />
       <VQALayerGroup

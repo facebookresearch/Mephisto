@@ -118,6 +118,12 @@ function ContentPanel() {
             className={Classes.ELEVATION_1 + " pop"}
             key={gatheredActions.actionPaths.join("//")}
           >
+            {alwaysOnLayers.map((layer, idx) => (
+              <React.Fragment key={idx}>
+                <MenuDivider title={layer.id} />
+                {layer.actions}
+              </React.Fragment>
+            ))}
             {gatheredActions.actions.length === 0 ? (
               <MenuDivider
                 icon={"layer"}

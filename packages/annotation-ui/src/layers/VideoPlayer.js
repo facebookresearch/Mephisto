@@ -12,6 +12,19 @@ export default function VideoPlayer({ id, src, fps = 30, width, height }) {
     (req) => {
       if (req.type === "seek") {
         vidRef.current.seekTo(req.payload, "seconds");
+      } else if (req.type === "rewind") {
+        const currentTime = get(path("playedSeconds"));
+        vidRef.current.seekTo(
+          Math.max(currentTime - req.payload, 0),
+          "seconds"
+        );
+      } else if (req.type === "ff") {
+        const currentTime = get(path("playedSeconds"));
+        const duration = get(path("duration"));
+        vidRef.current.seekTo(
+          Math.min(currentTime + req.payload, duration),
+          "seconds"
+        );
       } else if (req.type === "screenshot") {
         console.log(vidRef.current.getInternalPlayer());
         canvasRef.current
