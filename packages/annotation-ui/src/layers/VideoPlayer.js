@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useCallback, useRef } from "react";
 import ReactPlayer from "react-player";
-import { useStore } from "../model/Store";
+import { useStore } from "../model";
 
 export default function VideoPlayer({ id, src, fps = 30, width, height }) {
   const store = useStore();
@@ -37,7 +37,7 @@ export default function VideoPlayer({ id, src, fps = 30, width, height }) {
     set(path("requests"), []);
   }, [requestQueue]);
 
-  if (!state.init.srcVideo) return null;
+  if (!src) return null;
 
   return (
     <div style={{ position: "relative" }}>

@@ -1,5 +1,5 @@
 import React from "react";
-import { useStore } from "../model/Store";
+import { useStore } from "../model";
 
 import { Tabs, Tab } from "@blueprintjs/core";
 

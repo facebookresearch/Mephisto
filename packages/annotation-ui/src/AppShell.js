@@ -32,7 +32,7 @@ function Window({ title, children, buttons }) {
   );
 }
 
-function App({ showNavbar = false }) {
+function AppShell({ showNavbar = false, layers }) {
   return (
     <div className="full">
       {showNavbar ? (
@@ -58,7 +58,7 @@ function App({ showNavbar = false }) {
             style={{ inset: "0% calc(100% - 300px) 0% 0%" }}
           >
             <Window title="Layers">
-              <LayersPanel />
+              <LayersPanel layers={layers} />
             </Window>
           </div>
           <div className="mosaic-tile" style={{ inset: "0% 0% 200px 300px" }}>
@@ -67,10 +67,8 @@ function App({ showNavbar = false }) {
               buttons={[
                 {
                   icon: "settings",
-                  title: "Exchange",
-                  action: () => {
-                    alert("hi");
-                  },
+                  title: "Settings",
+                  action: () => {},
                 },
               ]}
             >
@@ -91,4 +89,4 @@ function App({ showNavbar = false }) {
   );
 }
 
-export default App;
+export default AppShell;

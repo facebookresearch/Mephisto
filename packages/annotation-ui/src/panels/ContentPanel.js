@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Context } from "../model/Store";
+import { Context } from "../model";
 
 import { Menu, MenuDivider, Classes } from "@blueprintjs/core";
 

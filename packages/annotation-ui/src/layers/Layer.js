@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import cx from "classnames";
-import { Context } from "../model/Store";
+import { Context } from "../model";
 
 const LayerContext = React.createContext({ stack: [] });
 

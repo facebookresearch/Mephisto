@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Context } from "../model/Store";
+import { Context } from "../model";
 import { Slider } from "@blueprintjs/core";
 import { frameToMs } from "../helpers";
 

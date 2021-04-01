@@ -1,9 +1,10 @@
 import React from "react";
+import { MenuItem } from "@blueprintjs/core";
+import { useStore } from "./model";
+
 import Layer from "./layers/Layer";
 import VideoPlayer from "./layers/VideoPlayer";
 import BBoxFrame from "./layers/VQA/BBoxFrame";
-import { MenuItem } from "@blueprintjs/core";
-import { useStore } from "./model/Store";
 
 import vqaData from "./mock-data/vqa.json";
 import groupBy from "lodash.groupby";
@@ -39,7 +40,8 @@ function VQALayers() {
   React.useEffect(() => {
     set("taskData", data);
     set("videoData", videoData);
-  }, [vqaData]);
+    set("selectedLayer", ["Query 1"]);
+  }, []);
 
   return (
     <>
@@ -125,9 +127,9 @@ function VQALayerGroup({
                   sendRequest("Video", {
                     type: "screenshot",
                     payload: {
-                      // TODO: have "screenshot" cmd work with time property
+                      // TODO: have "screenshot" cmd work with the time property below
                       // so we can avoid having to do a seek as done above
-                      time: frameToMs(visualCrop.frameNumber, videoFps) / 1000,
+                      time: frameToMs(visualCrop.frameNumber, videoFps) / 1000, // doesn't do anything right now
                       callback: ({ store, data }) =>
                         store.set("screenshot", {
                           data: data,
