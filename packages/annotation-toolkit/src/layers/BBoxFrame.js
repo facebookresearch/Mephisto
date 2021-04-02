@@ -12,6 +12,7 @@ function BBoxFrame({
   color = "red",
 }) {
   const LABEL_PADDING = 4;
+  const STROKE_WIDTH = 2;
 
   const store = useStore();
   const coords = getCoords({ store });
@@ -40,11 +41,11 @@ function BBoxFrame({
         <rect
           x={rectX}
           y={rectY}
-          width={scale * width - 4}
-          height={scale * height - 4}
+          width={scale * width - STROKE_WIDTH * 2}
+          height={scale * height - STROKE_WIDTH * 2}
           style={{
             fill: "rgba(255,255,255,0.0)",
-            strokeWidth: 2,
+            strokeWidth: STROKE_WIDTH,
             stroke: color,
             ...rectStyles,
           }}
