@@ -59,7 +59,7 @@ body,
       #f5f8fa 78px,
       transparent 78px
     ),
-    linear-gradient(-90deg, rgba(92, 112, 128, 0.15) 1px, transparent 1px),
+    linear-gradient(-90deg, rgba(92, 112, 128, 0.1) 1px, transparent 1px),
     linear-gradient(
       -90deg,
       transparent 3px,
@@ -67,7 +67,7 @@ body,
       #f5f8fa 78px,
       transparent 78px
     ),
-    linear-gradient(rgba(92, 112, 128, 0.15) 1px, transparent 1px), #f5f8fa !important;
+    linear-gradient(rgba(92, 112, 128, 0.1) 1px, transparent 1px), #f5f8fa !important;
 
   background-size: 4px 4px, 4px 4px, 80px 80px, 80px 80px, 80px 80px, 80px 80px,
     80px 80px, 80px 80px !important;
