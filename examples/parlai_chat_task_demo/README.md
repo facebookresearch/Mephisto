@@ -83,7 +83,7 @@ The automated build process looks for three special paths:
 - `[custom_source_dir]/package.json`: If you want additional dependencies, you can specify them in a `package.json` file. We suggest copying the one present at `mephisto/abstractions/blueprints/parlai_chat/webapp/package.json`.
 
 ### Custom frontend bundles
-Custom frontend bundles can be provided that override the view of how the ParlAI chat looks, and the kinds of inputs you can pass. Most of the ParlAI-specific interfaceing logic is built into the `bootstrap-chat` package. The remaining custom view logic is in `webapp/src/components/app.jsx`. Here we define the `RenderChatMessage` component, which overrides the base behavior. 
+Custom frontend bundles can be provided that override the view of how the ParlAI chat looks, and the kinds of inputs you can pass. Most of the ParlAI-specific interfaceing logic is built into the `bootstrap-chat` package. The remaining custom view logic is in `webapp/src/main.js`. Here we define the `RenderChatMessage` component, which overrides the base behavior. 
 
 
 # How can I make my own task?
