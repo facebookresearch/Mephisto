@@ -15,7 +15,9 @@ export default function VideoPlayer({
   const vidRef = useRef();
   const canvasRef = useRef();
 
-  const [detectedSize, setDetectedSize] = React.useState([1, 1]);
+  const [detectedSize, setDetectedSize] = React.useState([10, 10]);
+  const [videoLoaded, setVideoLoaded] = React.useState(false);
+
   width = width || detectedSize[0] * scale;
   height = height || detectedSize[1] * scale;
 
@@ -49,12 +51,13 @@ export default function VideoPlayer({
 
   React.useEffect(() => {
     /* Determine video dimensions */
+    if (!videoLoaded) return;
     if (!vidRef.current.getInternalPlayer()) return;
     const videoWidth = vidRef.current.getInternalPlayer().videoWidth;
     const videoHeight = vidRef.current.getInternalPlayer().videoHeight;
     set(path("detectedSize"), [videoWidth, videoHeight]);
     setDetectedSize([videoWidth, videoHeight]);
-  }, [vidRef.current, set]);
+  }, [vidRef.current, set, videoLoaded]);
 
   const path = (...args) => ["layers", id, "data", ...args];
 
@@ -90,7 +93,10 @@ export default function VideoPlayer({
         onProgress={(progress) => {
           set(path("playedSeconds"), progress.playedSeconds);
         }}
-        onDuration={(duration) => set(path("duration"), duration)}
+        onDuration={(duration) => {
+          setVideoLoaded(true);
+          set(path("duration"), duration);
+        }}
         onSeek={() => {}}
       />
       <canvas

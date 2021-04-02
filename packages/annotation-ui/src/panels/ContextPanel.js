@@ -55,6 +55,7 @@ export default function ContextPanel() {
             ...importantFrames,
           ]}
           labelRenderer={(val) => {
+            if (!val) return null;
             const label =
               val === importantFrames[0] ? (
                 <span>
