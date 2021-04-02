@@ -4,7 +4,7 @@ import ContentPanel from "./panels/ContentPanel";
 import LayersPanel from "./panels/LayersPanel";
 import cx from "classnames";
 
-function Window({ title, children, buttons }) {
+function Window({ title, children, buttons, bodyClassNames = [] }) {
   return (
     <div className="mosaic-window">
       <div className="mosaic-window-toolbar">
@@ -26,7 +26,9 @@ function Window({ title, children, buttons }) {
           </div>
         ) : null}
       </div>
-      <div className="mosaic-window-body">{children}</div>
+      <div className={cx("mosaic-window-body", ...bodyClassNames)}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -68,6 +70,7 @@ function AppShell({
           <div className="mosaic-tile" style={{ inset: "0% 0% 200px 300px" }}>
             <Window
               title="Content"
+              bodyClassNames={["grid-background"]}
               buttons={[
                 {
                   icon: "settings",

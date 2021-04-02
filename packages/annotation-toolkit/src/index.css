@@ -42,3 +42,35 @@ body,
     transform: scale(1.15);
   }
 }
+
+.grid-background {
+  /* modified from: https://stackoverflow.com/a/25709375 */
+  background: linear-gradient(
+      -90deg,
+      rgba(92, 112, 128, 0.05) 1px,
+      transparent 1px
+    ),
+    linear-gradient(rgba(92, 112, 128, 0.05) 1px, transparent 1px),
+    linear-gradient(-90deg, rgba(92, 112, 128, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(92, 112, 128, 0.05) 1px, transparent 1px),
+    linear-gradient(
+      transparent 3px,
+      #f5f8fa 3px,
+      #f5f8fa 78px,
+      transparent 78px
+    ),
+    linear-gradient(-90deg, rgba(92, 112, 128, 0.15) 1px, transparent 1px),
+    linear-gradient(
+      -90deg,
+      transparent 3px,
+      #f5f8fa 3px,
+      #f5f8fa 78px,
+      transparent 78px
+    ),
+    linear-gradient(rgba(92, 112, 128, 0.15) 1px, transparent 1px), #f5f8fa !important;
+
+  background-size: 4px 4px, 4px 4px, 80px 80px, 80px 80px, 80px 80px, 80px 80px,
+    80px 80px, 80px 80px !important;
+  background-position-x: 5px !important;
+  background-position-y: 5px !important;
+}
