@@ -52,20 +52,12 @@ module.exports = {
         test: /\.(ttf|eot)$/,
         use: {
           loader: "ignore-loader",
-          options: {
-            name: "fonts/[hash].[ext]",
-          },
         },
       },
       {
         test: /\.(woff|woff2)$/,
         use: {
           loader: "ignore-loader",
-          options: {
-            name: "fonts/[hash].[ext]",
-            limit: 5000,
-            mimetype: "application/font-woff",
-          },
         },
       },
     ],
