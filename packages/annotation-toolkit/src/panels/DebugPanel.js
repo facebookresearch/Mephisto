@@ -5,7 +5,7 @@ import { Tabs, Tab } from "@blueprintjs/core";
 
 function DebugPanel() {
   const { state: fullState } = useStore();
-  const { debug, ...state } = fullState;
+  const { __debug, ...state } = fullState;
 
   let displayState = null;
   try {
