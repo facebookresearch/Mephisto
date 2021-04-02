@@ -14,9 +14,6 @@ const Reducer = (state, action) => {
   let newState;
 
   switch (action.type) {
-    case "LAYER-SELECT":
-      newState = { ...state, selectedLayer: action.payload };
-      break;
     case "SET":
       newState = { ...state };
       lodash_set(newState, action.payload.key, action.payload.value);
