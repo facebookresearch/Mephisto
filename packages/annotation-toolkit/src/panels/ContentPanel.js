@@ -10,7 +10,8 @@ function isFunction(functionToCheck) {
 }
 
 function ContentPanel() {
-  const { state, get } = useStore();
+  const store = useStore();
+  const { state, get } = store;
 
   const isGroup = (layer, otherLayer) => {
     if (!layer || !otherLayer) return false;
@@ -98,7 +99,7 @@ function ContentPanel() {
               pointerEvents: layer.noPointerEvents ? "none" : "auto",
             }}
           >
-            <layer.component id={layer.id} />
+            <layer.component id={layer.id} {...layer.getData({ store })} />
           </div>
         )
       )}

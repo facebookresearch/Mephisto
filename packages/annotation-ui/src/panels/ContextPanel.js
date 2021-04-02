@@ -36,8 +36,6 @@ export default function ContextPanel() {
     importantFrames = importantFrames
       .map((f) => frameToMs(f, 5))
       .map((d) => d / 1000);
-
-    console.log(importantFrames);
   }
 
   return videoLoaded ? (

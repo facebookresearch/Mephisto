@@ -27,7 +27,6 @@ const Reducer = (state, action) => {
       lodash_unset(newState, action.payload);
       break;
     case "INVOKE":
-      console.log("invoke", action.payload.path);
       newState = { ...state };
       const prevValue = lodash_get(newState, action.payload.path);
       const nextValue = action.payload.fn(prevValue);
@@ -44,28 +43,40 @@ const Reducer = (state, action) => {
 const Store = ({ children }) => {
   const [state, dispatch] = useReducer(Reducer, initialState);
 
-  const set = (key, value) => {
-    dispatch({ type: "SET", payload: { key, value } });
-  };
+  const set = React.useCallback(
+    (key, value) => {
+      dispatch({ type: "SET", payload: { key, value } });
+    },
+    [dispatch]
+  );
   const get = React.useCallback(
     (key) => {
       return lodash_get(state, key);
     },
     [state]
   );
-  const invoke = (path, fn) => {
-    dispatch({ type: "INVOKE", payload: { path, fn } });
-  };
-  const unset = (key) => {
-    dispatch({ type: "UNSET", payload: key });
-  };
+  const invoke = React.useCallback(
+    (path, fn) => {
+      dispatch({ type: "INVOKE", payload: { path, fn } });
+    },
+    [dispatch]
+  );
+  const unset = React.useCallback(
+    (key) => {
+      dispatch({ type: "UNSET", payload: key });
+    },
+    [dispatch]
+  );
 
-  const push = (path, value) => {
-    if (!get(path)) {
-      set(path, []);
-    }
-    invoke(path, (prev) => [...prev, value]);
-  };
+  const push = React.useCallback(
+    (path, value) => {
+      if (!get(path)) {
+        set(path, []);
+      }
+      invoke(path, (prev) => [...prev, value]);
+    },
+    [get, set, invoke]
+  );
 
   return (
     <Context.Provider

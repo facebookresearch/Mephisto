@@ -14,7 +14,7 @@ function BBoxFrame({
   const LABEL_PADDING = 4;
 
   const store = useStore();
-  const coords = getCoords({ store });
+  const coords = coords || getCoords({ store });
 
   if (!displayWhen({ store }) || !coords) {
     return null;
@@ -25,6 +25,8 @@ function BBoxFrame({
   const scale = 1;
   const rectX = scale * x;
   const rectY = scale * y;
+
+  console.log(scale * width - 4, "TEST");
 
   return (
     <div style={{ pointerEvents: "none" }}>
@@ -40,8 +42,8 @@ function BBoxFrame({
         <rect
           x={rectX}
           y={rectY}
-          width={scale * width}
-          height={scale * height}
+          width={scale * width - 4}
+          height={scale * height - 4}
           style={{
             fill: "rgba(255,255,255,0.0)",
             strokeWidth: 2,

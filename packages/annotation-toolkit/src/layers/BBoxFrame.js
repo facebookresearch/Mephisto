@@ -40,8 +40,8 @@ function BBoxFrame({
         <rect
           x={rectX}
           y={rectY}
-          width={scale * width}
-          height={scale * height}
+          width={scale * width - 4}
+          height={scale * height - 4}
           style={{
             fill: "rgba(255,255,255,0.0)",
             strokeWidth: 2,

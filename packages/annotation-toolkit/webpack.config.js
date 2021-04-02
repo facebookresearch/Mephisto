@@ -49,9 +49,9 @@ module.exports = {
         loader: "file-loader",
       },
       {
-        test: /\.(ttf|eot|svg)$/,
+        test: /\.(ttf|eot)$/,
         use: {
-          loader: "file-loader",
+          loader: "ignore-loader",
           options: {
             name: "fonts/[hash].[ext]",
           },
@@ -60,7 +60,7 @@ module.exports = {
       {
         test: /\.(woff|woff2)$/,
         use: {
-          loader: "url-loader",
+          loader: "ignore-loader",
           options: {
             name: "fonts/[hash].[ext]",
             limit: 5000,

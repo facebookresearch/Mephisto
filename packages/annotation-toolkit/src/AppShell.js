@@ -1,7 +1,6 @@
 import { Navbar, Alignment } from "@blueprintjs/core";
 import React from "react";
 import ContentPanel from "./panels/ContentPanel";
-import ContextPanel from "./panels/ContextPanel";
 import LayersPanel from "./panels/LayersPanel";
 import cx from "classnames";
 
@@ -32,7 +31,12 @@ function Window({ title, children, buttons }) {
   );
 }
 
-function AppShell({ showNavbar = false, layers, showDebugPane = false }) {
+function AppShell({
+  showNavbar = false,
+  layers,
+  showDebugPane = false,
+  contextPanel: ContextPanel = () => null,
+}) {
   return (
     <div className="full">
       {showNavbar ? (

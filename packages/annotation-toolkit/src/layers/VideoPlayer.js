@@ -2,11 +2,22 @@ import React, { useContext, useEffect, useCallback, useRef } from "react";
 import ReactPlayer from "react-player";
 import { useStore } from "global-context-store";
 
-export default function VideoPlayer({ id, src, fps = 30, width, height }) {
+export default function VideoPlayer({
+  id,
+  src,
+  fps = 30,
+  scale,
+  width,
+  height,
+}) {
   const store = useStore();
   const { set, get } = store;
   const vidRef = useRef();
   const canvasRef = useRef();
+
+  const [detectedSize, setDetectedSize] = React.useState([1, 1]);
+  width = width || detectedSize[0] * scale;
+  height = height || detectedSize[1] * scale;
 
   const process = useCallback(
     (req) => {
@@ -26,7 +37,6 @@ export default function VideoPlayer({ id, src, fps = 30, width, height }) {
           "seconds"
         );
       } else if (req.type === "screenshot") {
-        console.log(vidRef.current.getInternalPlayer());
         canvasRef.current
           .getContext("2d")
           .drawImage(vidRef.current.getInternalPlayer(), 0, 0, width, height);
@@ -36,6 +46,15 @@ export default function VideoPlayer({ id, src, fps = 30, width, height }) {
     },
     [vidRef.current]
   );
+
+  React.useEffect(() => {
+    /* Determine video dimensions */
+    if (!vidRef.current.getInternalPlayer()) return;
+    const videoWidth = vidRef.current.getInternalPlayer().videoWidth;
+    const videoHeight = vidRef.current.getInternalPlayer().videoHeight;
+    set(path("detectedSize"), [videoWidth, videoHeight]);
+    setDetectedSize([videoWidth, videoHeight]);
+  }, [vidRef.current, set]);
 
   const path = (...args) => ["layers", id, "data", ...args];
 

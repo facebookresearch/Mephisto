@@ -14,6 +14,7 @@ function Layer({
   noPointerEvents,
   alwaysOn = false,
   onWithGroup,
+  getData = () => ({}),
 }) {
   const [expanded, setExpanded] = React.useState(true);
   const { state, dispatch, set, get } = useStore();
@@ -32,6 +33,7 @@ function Layer({
         onWithGroup,
         id: layerId,
         noPointerEvents,
+        getData,
       });
     }
   }, [isRegistered]);

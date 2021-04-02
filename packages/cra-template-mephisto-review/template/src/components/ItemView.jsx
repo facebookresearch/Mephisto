@@ -11,7 +11,7 @@ import {
   Position,
   Toaster,
 } from "@blueprintjs/core";
-import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
+import { DefaultItemRenderer } from "../plugins/DefaultItemRenderer";
 
 const AppToaster = Toaster.create({
   className: "recipe-toaster",
