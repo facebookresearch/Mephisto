@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useCallback, useRef } from "react";
 import ReactPlayer from "react-player";
 import { useStore } from "global-context-store";
+import { Spinner } from "@blueprintjs/core";
 
 export default function VideoPlayer({
   id,
@@ -76,6 +77,18 @@ export default function VideoPlayer({
 
   return (
     <div style={{ position: "relative" }}>
+      {!videoLoaded ? (
+        <div
+          className="loading-placeholder"
+          style={{
+            width: 300,
+            height: 200,
+          }}
+        >
+          <Spinner />
+          <div style={{ marginTop: 20 }}>Loading video...</div>
+        </div>
+      ) : null}
       <ReactPlayer
         config={{
           file: {
@@ -83,6 +96,11 @@ export default function VideoPlayer({
               crossOrigin: "true",
             },
           },
+        }}
+        style={{
+          visibility: videoLoaded ? "visible" : "hidden",
+          opacity: videoLoaded ? 1 : 0,
+          transition: "0.4s opacity",
         }}
         width={width}
         height={height}
