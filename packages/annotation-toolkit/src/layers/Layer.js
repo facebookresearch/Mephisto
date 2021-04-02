@@ -15,9 +15,12 @@ function Layer({
   alwaysOn = false,
   onWithGroup,
   getData = () => ({}),
+  onSelect = () => {},
 }) {
+  const store = useStore();
+  const { state, dispatch, set, get } = store;
+
   const [expanded, setExpanded] = React.useState(true);
-  const { state, dispatch, set, get } = useStore();
   const layerContext = React.useContext(LayerContext);
   const layerStack = [...layerContext.stack, displayName];
 
@@ -34,6 +37,7 @@ function Layer({
         id: layerId,
         noPointerEvents,
         getData,
+        onSelect,
       });
     }
   }, [isRegistered]);
@@ -41,8 +45,13 @@ function Layer({
   const handleSelect = React.useCallback(
     function (name) {
       set("selectedLayer", name);
+
+      const layerId = layerStack.join("|");
+      const path = ["layers", layerId];
+      const layer = get(path);
+      layer.onSelect({ store });
     },
-    [dispatch]
+    [dispatch, state]
   );
 
   const isSelected = state.selectedLayer
