@@ -1,6 +1,6 @@
 {
   "name": "annotation-toolkit",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
@@ -47,6 +47,7 @@
     "@blueprintjs/icons": "^3.26.0",
     "global-context-store": "^1.0.1",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react-dom": "^16.13.1",
+    "react-player": "^2.9.0"
   }
 }

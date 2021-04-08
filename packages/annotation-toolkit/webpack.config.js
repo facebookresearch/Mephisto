@@ -22,7 +22,6 @@ module.exports = {
     "global-context-store": "global-context-store",
     "@blueprintjs/core": "@blueprintjs/core",
     "@blueprintjs/icons": "@blueprintjs/icons",
-    "react-player": "react-player",
   },
   node: {
     net: "empty",

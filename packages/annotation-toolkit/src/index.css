@@ -21,6 +21,14 @@ body,
   margin: 0;
 }
 
+/* for use with react-frame-component */
+.frame-root,
+.frame-content {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
 .mosaic-window-body {
   padding: 5px;
 }
