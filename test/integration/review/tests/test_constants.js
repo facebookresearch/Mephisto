@@ -14,6 +14,19 @@ import {
 const PYTHON_PATH = "../../../venv/bin/python3";
 
 export default {
+  //MANDATORY for all tests, represents information common to all test types
+  ALL: {
+    //time to wait for server to start successfully
+    SERVER_START_DELAY: 2000,
+    //time to wait for server to stop successfully
+    SERVER_STOP_DELAY: 1000,
+    //root URL of review app
+    BASE_URL: "http://127.0.0.1:5000/",
+    //result review app will record upon rejecting a review
+    REJECTED_REVIEW: "REVIEW: {'result': 'rejected'}",
+    //result review app will record upon approving a review
+    APPROVED_REVIEW: "REVIEW: {'result': 'approved'}",
+  },
   //match test type string identifier to key of test constant attribute
   [CSV_MULTI_PAGE_DATA]: {
     //MANDATORY for all tests, arguments for Nodejs spawn process to start mephisto review server
@@ -118,18 +131,5 @@ export default {
       EXPECTED_RESULT_COUNT: 5,
       RESULT_DATA_PAGE_COUNT: 1,
     },
-  },
-  //MANDATORY for all tests, represents information common to all test types
-  ALL: {
-    //time to wait for server to start successfully
-    SERVER_START_DELAY: 1000,
-    //time to wait for server to stop successfully
-    SERVER_STOP_DELAY: 500,
-    //root URL of review app
-    BASE_URL: "http://127.0.0.1:5000/",
-    //result review app will record upon rejecting a review
-    REJECTED_REVIEW: "REVIEW: {'result': 'rejected'}",
-    //result review app will record upon approving a review
-    APPROVED_REVIEW: "REVIEW: {'result': 'approved'}",
   },
 };
