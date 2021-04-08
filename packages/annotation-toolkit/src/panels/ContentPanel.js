@@ -86,7 +86,10 @@ function ContentPanel() {
             pointerEvents: selectedLayer.noPointerEvents ? "none" : "auto",
           }}
         >
-          <SelectedViewComponent id={selectedLayer.id} />
+          <SelectedViewComponent
+            id={selectedLayer.id}
+            {...selectedLayer.getData({ store })}
+          />
         </div>
       ) : null}
       {[...alwaysOnLayers, ...groupedLayers].map((layer) =>
