@@ -7,6 +7,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from mephisto.abstractions.blueprint import AgentState
+from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 from mephisto.operations.logger_core import get_logger
 
@@ -37,7 +38,7 @@ class WorkerArgs:
     )
 
 
-class Worker(ABC):
+class Worker(metaclass=MephistoDBBackedABCMeta):
     """
     This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
     """

@@ -11,6 +11,7 @@ import json
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task_config import TaskConfig
+from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
 from mephisto.operations.utils import get_dir_for_run
 
 from omegaconf import OmegaConf
@@ -32,7 +33,7 @@ from mephisto.operations.logger_core import get_logger
 logger = get_logger(name=__name__)
 
 
-class TaskRun:
+class TaskRun(metaclass=MephistoDBBackedMeta):
     """
     This class tracks an individual run of a specific task, and handles state management
     for the set of assignments within

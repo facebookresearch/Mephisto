@@ -4,7 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import abstractmethod, abstractstaticmethod
+from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 
@@ -33,7 +34,7 @@ class RequesterArgs:
     )
 
 
-class Requester(ABC):
+class Requester(metaclass=MephistoDBBackedABCMeta):
     """
     High level class representing a requester on some kind of crowd provider. Sets some default
     initializations, but mostly should be extended by the specific requesters for crowd providers

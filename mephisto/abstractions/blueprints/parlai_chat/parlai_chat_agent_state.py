@@ -13,6 +13,7 @@ from mephisto.data_model.packet import (
 import os
 import json
 import time
+import weakref
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -31,7 +32,7 @@ class ParlAIChatAgentState(AgentState):
 
         Initialize with an existing file if it exists.
         """
-        self.agent = agent
+        self.agent = weakref.proxy(agent)
         data_file = self._get_expected_data_file()
         if os.path.exists(data_file):
             self.load_data()

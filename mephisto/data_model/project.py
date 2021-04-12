@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.constants import NO_PROJECT_NAME
+from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
 
 from typing import List, Mapping, Any, Optional, TYPE_CHECKING
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import Task
 
 
-class Project:
+class Project(metaclass=MephistoDBBackedMeta):
     """
     High level project that many crowdsourcing tasks may be related to. Useful
     for budgeting and grouping tasks for a review perspective.

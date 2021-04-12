@@ -10,6 +10,7 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
+from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.requester import Requester
 from typing import Optional, Mapping, Dict, Any, Type, TYPE_CHECKING
@@ -27,7 +28,7 @@ from mephisto.operations.logger_core import get_logger
 logger = get_logger(name=__name__)
 
 
-class Unit(ABC):
+class Unit(metaclass=MephistoDBBackedABCMeta):
     """
     This class tracks the status of an individual worker's contribution to a
     higher level assignment. It is the smallest 'unit' of work to complete

@@ -8,6 +8,7 @@ from typing import List, Optional, Dict, Any, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
 import os
 import json
+import weakref
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -21,7 +22,7 @@ class MockAgentState(AgentState):
 
     def __init__(self, agent: "Agent"):
         """Mock agent states keep everything in local memory"""
-        self.agent = agent
+        self.agent = weakref.proxy(agent)
         self.state: Dict[str, Any] = {}
         self.init_state: Any = None
 

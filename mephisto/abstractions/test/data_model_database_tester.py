@@ -49,6 +49,8 @@ class BaseDatabaseTests(unittest.TestCase):
     of the MephistoDB class.
     """
 
+    is_base = True
+
     db: Optional[MephistoDB] = None
 
     @classmethod
@@ -69,6 +71,8 @@ class BaseDatabaseTests(unittest.TestCase):
         Generally this means initializing a database somewhere
         temporary and setting self.db
         """
+        if self.is_base:
+            raise unittest.SkipTest("Skip BaseDatabaseTests tests, it's a base class")
         raise NotImplementedError()
 
     def tearDown(self) -> None:

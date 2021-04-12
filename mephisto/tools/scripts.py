@@ -8,6 +8,7 @@ Utilities that are useful for Mephisto-related scripts.
 """
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.operations.utils import get_mock_requester, get_root_data_dir
 
 from omegaconf import DictConfig, OmegaConf
@@ -49,7 +50,15 @@ def get_db_from_config(cfg: DictConfig) -> "MephistoDB":
         datapath = get_root_data_dir()
 
     database_path = os.path.join(datapath, "database.db")
-    return LocalMephistoDB(database_path=database_path)
+
+    database_type = cfg.mephisto.database._database_type
+
+    if database_type == "local":
+        return LocalMephistoDB(database_path=database_path)
+    elif database_type == "singleton":
+        return MephistoSingletonDB(database_path=database_path)
+    else:
+        raise AssertionError(f"Provided database_type {database_type} is not valid")
 
 
 def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConfig:

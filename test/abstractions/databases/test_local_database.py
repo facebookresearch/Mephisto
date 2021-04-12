@@ -21,6 +21,8 @@ class TestLocalMephistoDB(BaseDatabaseTests):
     writes no additional tests.
     """
 
+    is_base = False
+
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")

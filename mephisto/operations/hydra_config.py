@@ -17,11 +17,17 @@ config = ConfigStoreWithProvider("mephisto")
 
 
 @dataclass
+class DatabaseArgs:
+    _database_type: str = "local"  # default DB is local
+
+
+@dataclass
 class MephistoConfig:
     blueprint: BlueprintArgs = BlueprintArgs()
     provider: ProviderArgs = ProviderArgs()
     architect: ArchitectArgs = ArchitectArgs()
     task: TaskConfigArgs = TaskConfigArgs()
+    database: DatabaseArgs = DatabaseArgs()
     log_level: str = "info"
 
 
