@@ -72,7 +72,10 @@ class MTurkUnit(Unit):
             self.hit_id = None
             self.mturk_assignment_id = None
             self.assignment_time_in_seconds = -1
-        self._last_sync_time = time.time()
+        # We update to a time slightly earlier than now, in order
+        # to reduce the risk of a race condition caching an old
+        # value the moment it's registered
+        self._last_sync_time = time.time() - 1
 
     def get_mturk_assignment_id(self) -> Optional[str]:
         """

@@ -130,6 +130,7 @@ class MTurkDatastore:
                 ) VALUES (?, ?);""",
                 (hit_id, run_id),
             )
+            self._last_hit_mapping_update_time = time.time()
 
     def get_unassigned_hit_ids(self, run_id: str):
         """
