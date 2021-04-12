@@ -1,6 +1,6 @@
 {
-  "name": "mephisto-review-hook",
-  "version": "2.0.2",
+  "name": "annotation-toolkit",
+  "version": "1.0.5",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
@@ -18,8 +18,11 @@
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/preset-env": "^7.9.5",
     "@babel/preset-react": "^7.9.4",
+    "@blueprintjs/core": "^3.42.0",
+    "@blueprintjs/icons": "^3.26.0",
     "@typescript-eslint/eslint-plugin": "2.x",
     "@typescript-eslint/parser": "2.x",
+    "babel-eslint": "10.x",
     "babel-loader": "^8.1.0",
     "css-loader": "^3.5.1",
     "eslint": "6.x",
@@ -29,19 +32,22 @@
     "eslint-plugin-jsx-a11y": "6.x",
     "eslint-plugin-react": "7.x",
     "eslint-plugin-react-hooks": "2.x",
+    "file-loader": "^6.2.0",
+    "global-context-store": "^1.0.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
+    "react-player": "^2.9.0",
     "style-loader": "^1.1.3",
     "url-loader": "^4.1.0",
-    "webpack": "^4.46.0",
+    "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
   },
   "peerDependencies": {
-    "react": "16.13.1",
-    "react-dom": "16.13.1"
-  },
-  "dependencies": {
-    "axios": "^0.21.1",
-    "babel-eslint": "10.x"
+    "@blueprintjs/core": "^3.42.0",
+    "@blueprintjs/icons": "^3.26.0",
+    "global-context-store": "^1.0.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-player": "^2.9.0"
   }
 }
