@@ -8,6 +8,7 @@ import boto3
 import sqlite3
 import os
 import threading
+import time
 
 from datetime import datetime
 
@@ -75,6 +76,7 @@ class MTurkDatastore:
         self.db_path = os.path.join(datastore_root, "mturk.db")
         self.init_tables()
         self.datastore_root = datastore_root
+        self._last_hit_mapping_update_time = time.time()
 
     def _get_connection(self) -> sqlite3.Connection:
         """Returns a singular database connection to be shared amongst all
@@ -102,6 +104,12 @@ class MTurkDatastore:
                 c.execute(CREATE_RUNS_TABLE)
                 c.execute(CREATE_RUN_MAP_TABLE)
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
+
+    def is_hit_mapping_in_sync(self, compare_time: float):
+        """
+        Determine if a cached value from the given compare time is still valid
+        """
+        return compare_time > self._last_hit_mapping_update_time
 
     def new_hit(self, hit_id: str, hit_link: str, duration: int, run_id: str) -> None:
         """Register a new HIT mapping in the table"""
@@ -168,6 +176,7 @@ class MTurkDatastore:
                 (assignment_id, unit_id, hit_id),
             )
             conn.commit()
+            self._last_hit_mapping_update_time = time.time()
 
     def clear_hit_from_unit(self, unit_id: str) -> None:
         """
@@ -202,6 +211,7 @@ class MTurkDatastore:
                 (None, None, result_hit_id),
             )
             conn.commit()
+            self._last_hit_mapping_update_time = time.time()
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""
