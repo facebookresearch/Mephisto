@@ -27,8 +27,6 @@ def base_db_backed_call(my_super, cls, a, kw):
     if loaded_val is None:
         loaded_val = my_super.__call__(*a, **kw)
         db.cache_result(cls, loaded_val)
-    else:
-        print("Loaded cached val", loaded_val)
     return loaded_val
 
 
