@@ -269,7 +269,6 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
-            conn.execute("PRAGMA synchronous = 1")
             with conn:
                 c = conn.cursor()
                 c.execute(CREATE_PROJECTS_TABLE)
