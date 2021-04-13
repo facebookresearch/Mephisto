@@ -53,7 +53,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
             {mode === "ALL" ? (
               <>
                 <Link to="/" style={{ textDecoration: "none" }}>
-                  <Button intent="primary" icon="caret-left">
+                  <Button intent="primary" icon="caret-left" id="home-button">
                     <b>Mephisto Review</b>
                   </Button>
                 </Link>
@@ -69,6 +69,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
               className="btn"
               intent="danger"
               disabled={buttonDisable}
+              id="reject-button"
               onClick={async () => {
                 var response = await submit({ result: "rejected" });
                 if (response == "SUCCESS") {
@@ -84,6 +85,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
               className="btn"
               intent="success"
               disabled={buttonDisable}
+              id="approve-button"
               onClick={async () => {
                 var response = await submit({ result: "approved" });
                 if (response == "SUCCESS") {

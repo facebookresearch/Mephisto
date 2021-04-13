@@ -218,6 +218,7 @@ def run(
 
         if output == "":
             print("{}".format(result))
+            sys.stdout.flush()
         else:
             with open(output, "a+") as f:
                 f.write("{}\n".format(result))
@@ -274,6 +275,7 @@ def run(
             review = request.get_json(force=True)
             if output == "":
                 print("ID: {}, REVIEW: {}".format(id, review))
+                sys.stdout.flush()
             else:
                 with open(output, "a+") as f:
                     f.write("ID: {}, REVIEW: {}\n".format(id, review))
@@ -319,6 +321,7 @@ def run(
                 )
             except AssertionError as ae:
                 print(f"Error: {ae.args[0]}")
+                sys.stdout.flush()
                 return jsonify({"error": ae.args[0], "mode": MODE})
         else:
             data = {"data": current_data if not finished else None, "id": counter - 1}
@@ -363,6 +366,6 @@ def run(
     else:
         thread = threading.Thread(target=consume_data)
         thread.start()
-    if sys.stdout.isatty():
-        print("Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)".format(port))
+    print("Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)".format(port))
+    sys.stdout.flush()
     app.run(debug=False, port=port)

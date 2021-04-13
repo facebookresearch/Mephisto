@@ -14,7 +14,11 @@ function DefaultItemRenderer({ item }) {
   const smallCard = cardWidth < SMALL_CARD_WIDTH_LIMIT;
 
   return (
-    <div ref={card} className="default-item-renderer">
+    <div
+      ref={card}
+      className="default-item-renderer"
+      id={`item-view-${item && item.id}`}
+    >
       <Card elevation={Elevation.TWO} interactive={smallCard}>
         <pre
           className={
