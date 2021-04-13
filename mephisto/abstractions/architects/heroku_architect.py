@@ -121,6 +121,8 @@ class HerokuArchitect(Architect):
         self.__heroku_executable_path: Optional[str] = None
         self.__heroku_user_identifier: Optional[str] = None
 
+        self.created = False
+
     def _get_socket_urls(self) -> List[str]:
         """Returns the path to the heroku app socket"""
         heroku_app_name = self.__get_app_name()
@@ -361,6 +363,7 @@ class HerokuArchitect(Architect):
                         "{} create {}".format(heroku_executable_path, heroku_app_name)
                     )
                 )
+                self.created = True
         except subprocess.CalledProcessError as e:  # User has too many apps?
             # TODO(#93) check response codes to determine what actually happened
             logger.exception(e, exc_info=True)
@@ -488,4 +491,5 @@ class HerokuArchitect(Architect):
         Shut down the server launched by this Architect, as stored
         in the db.
         """
-        self.__delete_heroku_server()
+        if self.created:  # only delete the server if it's created by us
+            self.__delete_heroku_server()

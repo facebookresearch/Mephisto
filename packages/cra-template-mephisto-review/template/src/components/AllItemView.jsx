@@ -10,10 +10,10 @@ import {
   NavbarHeading,
   Alignment,
 } from "@blueprintjs/core";
-import { Tooltip2 } from "@blueprintjs/popover2";
-import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
-import { DefaultItemListRenderer } from "./plugins/DefaultItemListRenderer";
-import { Pagination } from "./components/Pagination";
+import { Tooltip } from "@blueprintjs/core";
+import { DefaultItemRenderer } from "../plugins/DefaultItemRenderer";
+import { DefaultItemListRenderer } from "../plugins/DefaultItemListRenderer";
+import { Pagination } from "./Pagination";
 
 function AllItemView({
   itemRenderer = DefaultItemRenderer,
@@ -35,6 +35,11 @@ function AllItemView({
     totalPages,
   } = useMephistoReview({ page, resultsPerPage, filters });
 
+  const setFiltersAndResetPage = (filtersStr) => {
+    if (page !== null && page !== 1) setPage(1);
+    setFilters(filtersStr);
+  };
+
   const delaySetFilters = (filtersStr) => {
     setFiltersBuffer(filtersStr);
     if (filterTimeout) {
@@ -42,7 +47,7 @@ function AllItemView({
     }
     setFilterTimeout(
       setTimeout(() => {
-        setFilters(filtersStr);
+        setFiltersAndResetPage(filtersStr);
       }, 3000)
     );
   };
@@ -51,7 +56,7 @@ function AllItemView({
     if (filterTimeout) {
       clearTimeout(filterTimeout);
     }
-    setFilters(filtersBuffer);
+    setFiltersAndResetPage(filtersBuffer);
   };
 
   const searchButton = (
@@ -68,18 +73,18 @@ function AllItemView({
   return (
     <>
       <Navbar fixedToTop={true}>
-        <div style={{ margin: "0 auto", width: "75vw" }}>
-          <NavbarGroup>
+        <div className="navbar-wrapper">
+          <NavbarGroup className="navbar-header">
             <NavbarHeading>
               <b>Mephisto Review</b>
             </NavbarHeading>
             <NavbarDivider />
           </NavbarGroup>
           <NavbarGroup align={Alignment.RIGHT}>
-            <Tooltip2 content="Separate multiple filters with commas">
+            <Tooltip content="Separate multiple filters with commas">
               <InputGroup
                 id="mephisto-search"
-                style={{ width: "60vw" }}
+                className="all-item-view-search-bar"
                 leftIcon="search"
                 round={true}
                 onChange={(event) => delaySetFilters(event.target.value)}
@@ -90,7 +95,7 @@ function AllItemView({
                 value={filtersBuffer}
                 rightElement={searchButton}
               />
-            </Tooltip2>
+            </Tooltip>
           </NavbarGroup>
         </div>
       </Navbar>
