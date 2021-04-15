@@ -10,7 +10,10 @@ from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedMeta,
+    MephistoDataModelComponentMixin,
+)
 from typing import List, Optional, Mapping, Dict, Any, TYPE_CHECKING, IO
 
 if TYPE_CHECKING:
@@ -19,6 +22,7 @@ if TYPE_CHECKING:
 
 import os
 import json
+from mephisto.tools.misc import warn_once
 from dataclasses import dataclass
 
 from mephisto.operations.logger_core import get_logger
@@ -44,15 +48,26 @@ class InitializationData:
         )
 
 
-class Assignment(metaclass=MephistoDBBackedMeta):
+class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """
     This class tracks an individual run of a specific task, and handles state management
     for the set of units within via abstracted database helpers
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Assignment and data model access via Assignment(db, id) is "
+                "now deprecated in favor of calling Assignment.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_assignment(db_id)

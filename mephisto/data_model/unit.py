@@ -10,7 +10,10 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedABCMeta,
+    MephistoDataModelComponentMixin,
+)
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.requester import Requester
 from typing import Optional, Mapping, Dict, Any, Type, TYPE_CHECKING
@@ -22,13 +25,14 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 import os
+from mephisto.tools.misc import warn_once
 
 from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
 
-class Unit(metaclass=MephistoDBBackedABCMeta):
+class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class tracks the status of an individual worker's contribution to a
     higher level assignment. It is the smallest 'unit' of work to complete
@@ -39,8 +43,19 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Unit and data model access via ...Unit(db, id) is "
+                "now deprecated in favor of calling Unit.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_unit(db_id)

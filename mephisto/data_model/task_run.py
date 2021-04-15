@@ -7,11 +7,15 @@
 
 import os
 import json
+from mephisto.tools.misc import warn_once
 
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task_config import TaskConfig
-from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedMeta,
+    MephistoDataModelComponentMixin,
+)
 from mephisto.operations.utils import get_dir_for_run
 
 from omegaconf import OmegaConf
@@ -33,15 +37,26 @@ from mephisto.operations.logger_core import get_logger
 logger = get_logger(name=__name__)
 
 
-class TaskRun(metaclass=MephistoDBBackedMeta):
+class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """
     This class tracks an individual run of a specific task, and handles state management
     for the set of assignments within
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct TaskRun and data model access via TaskRun(db, id) is "
+                "now deprecated in favor of calling TaskRun.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_task_run(db_id)

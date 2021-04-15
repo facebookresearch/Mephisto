@@ -6,12 +6,16 @@
 
 import os
 import threading
+from mephisto.tools.misc import warn_once
 from uuid import uuid4
 
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedABCMeta,
+    MephistoDataModelComponentMixin,
+)
 from mephisto.data_model.exceptions import (
     AgentReturnedError,
     AgentDisconnectedError,
@@ -34,7 +38,7 @@ from mephisto.operations.logger_core import get_logger
 logger = get_logger(name=__name__)
 
 
-class Agent(metaclass=MephistoDBBackedABCMeta):
+class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class encompasses a worker as they are working on an individual assignment.
     It maintains details for the current task at hand such as start and end time,
@@ -42,8 +46,19 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Agent and data model access via ...Agent(db, id) is "
+                "now deprecated in favor of calling Agent.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_agent(db_id)
@@ -78,7 +93,11 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
         self.state = AgentState(self)  # type: ignore
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Agent":
         """
         The new method is overridden to be able to automatically generate
