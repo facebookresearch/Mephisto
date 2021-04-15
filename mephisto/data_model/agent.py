@@ -14,7 +14,6 @@ from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.db_backed_meta import (
     MephistoDBBackedABCMeta,
-    MephistoDBBackedMeta,
     MephistoDataModelComponentMixin,
 )
 from mephisto.data_model.exceptions import (
@@ -374,7 +373,9 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         raise NotImplementedError()
 
 
-class OnboardingAgent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
+class OnboardingAgent(
+    MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta
+):
     """
     Onboarding agents are a special extension of agents used
     in tasks that have a separate onboarding step. These agents

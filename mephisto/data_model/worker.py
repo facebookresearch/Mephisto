@@ -71,7 +71,11 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         # TODO(#101) Do we want any other attributes here?
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Worker":
         """
         The new method is overridden to be able to automatically generate

@@ -83,7 +83,11 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self.__worker: Optional["Worker"] = None
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Unit":
         """
         The new method is overridden to be able to automatically generate
