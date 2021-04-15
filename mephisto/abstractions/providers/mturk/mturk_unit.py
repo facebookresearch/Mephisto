@@ -75,7 +75,7 @@ class MTurkUnit(Unit):
         # We update to a time slightly earlier than now, in order
         # to reduce the risk of a race condition caching an old
         # value the moment it's registered
-        self._last_sync_time = time.time() - 1
+        self._last_sync_time = time.monotonic() - 1
 
     def get_mturk_assignment_id(self) -> Optional[str]:
         """

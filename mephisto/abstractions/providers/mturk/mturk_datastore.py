@@ -76,7 +76,7 @@ class MTurkDatastore:
         self.db_path = os.path.join(datastore_root, "mturk.db")
         self.init_tables()
         self.datastore_root = datastore_root
-        self._last_hit_mapping_update_time = time.time()
+        self._last_hit_mapping_update_time = time.monotonic()
 
     def _get_connection(self) -> sqlite3.Connection:
         """Returns a singular database connection to be shared amongst all
@@ -90,6 +90,13 @@ class MTurkDatastore:
             conn.row_factory = sqlite3.Row
             self.conn[curr_thread] = conn
         return self.conn[curr_thread]
+
+    def _mark_hit_mapping_update(self) -> None:
+        """
+        Update the last hit mapping time to mark a change to the hit
+        mappings table and allow dependents to invalidate caches
+        """
+        self._last_hit_mapping_update_time = time.monotonic()
 
     def init_tables(self) -> None:
         """
@@ -130,7 +137,7 @@ class MTurkDatastore:
                 ) VALUES (?, ?);""",
                 (hit_id, run_id),
             )
-            self._last_hit_mapping_update_time = time.time()
+            self._mark_hit_mapping_update()
 
     def get_unassigned_hit_ids(self, run_id: str):
         """
@@ -177,7 +184,7 @@ class MTurkDatastore:
                 (assignment_id, unit_id, hit_id),
             )
             conn.commit()
-            self._last_hit_mapping_update_time = time.time()
+            self._mark_hit_mapping_update()
 
     def clear_hit_from_unit(self, unit_id: str) -> None:
         """
@@ -212,7 +219,7 @@ class MTurkDatastore:
                 (None, None, result_hit_id),
             )
             conn.commit()
-            self._last_hit_mapping_update_time = time.time()
+            self._mark_hit_mapping_update()
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and MTurk ids"""
