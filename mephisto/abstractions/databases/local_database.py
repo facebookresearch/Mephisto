@@ -1073,7 +1073,10 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [Agent(self, str(r["agent_id"]), row=r) for r in rows]
+            return [
+                Agent(self, str(r["agent_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
     def make_qualification(self, qualification_name: str) -> str:
         """
@@ -1365,6 +1368,8 @@ class LocalMephistoDB(MephistoDB):
             )
             rows = c.fetchall()
             return [
-                OnboardingAgent(self, str(r["onboarding_agent_id"]), row=r)
+                OnboardingAgent(
+                    self, str(r["onboarding_agent_id"]), row=r, _used_new_call=True
+                )
                 for r in rows
             ]

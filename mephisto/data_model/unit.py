@@ -213,7 +213,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         if self.db_status in AssignmentState.final_unit():
             if self.agent_id is None:
                 return None
-            return Agent(self.db, self.agent_id)
+            return Agent.get(self.db, self.agent_id)
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
@@ -222,7 +222,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         assert row is not None, f"Unit {self.db_id} stopped existing in the db..."
         agent_id = row["agent_id"]
         if agent_id is not None:
-            return Agent(self.db, agent_id)
+            return Agent.get(self.db, agent_id)
         return None
 
     @staticmethod

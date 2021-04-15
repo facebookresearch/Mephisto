@@ -752,7 +752,7 @@ class BaseDatabaseTests(unittest.TestCase):
         units = db.find_units(status=AssignmentState.ASSIGNED)
         self.assertEqual(len(units), 1)
 
-        agent = Agent(db, agent_id)
+        agent = Agent.get(db, agent_id)
         self.assertEqual(agent.worker_id, worker_id)
 
         # Check finding for agents
@@ -779,7 +779,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Cant get non-existent entry
         with self.assertRaises(EntryDoesNotExistException):
-            agent = Agent(db, self.get_fake_id("Agent"))
+            agent = Agent.get(db, self.get_fake_id("Agent"))
 
         unit_id = get_test_unit(db)
         worker_name, worker_id = get_test_worker(db)

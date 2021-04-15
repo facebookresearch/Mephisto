@@ -94,7 +94,7 @@ class MockBlueprintTests(BlueprintTests):
             task_run.task_type,
             task_run.provider_type,
         )
-        Agent = MockAgent(self.db, agent_id)
+        Agent = MockAgent.get(self.db, agent_id)
         return assign
 
     def assignment_is_tracked(

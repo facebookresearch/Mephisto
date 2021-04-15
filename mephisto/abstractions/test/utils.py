@@ -175,7 +175,7 @@ def make_completed_unit(db: MephistoDB) -> str:
         task_run.task_type,
         task_run.provider_type,
     )
-    agent = Agent(db, agent_id)
+    agent = Agent.get(db, agent_id)
     agent.mark_done()
     unit = Unit(db, unit_id)
     unit.sync_status()

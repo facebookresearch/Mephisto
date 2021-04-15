@@ -235,7 +235,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             unit.task_type,
             provider_type,
         )
-        a = Agent(db, db_id)
+        a = Agent.get(db, db_id)
         logger.debug(f"Registered new agent {a} for {unit}.")
         a.update_status(AgentState.STATUS_ACCEPTED)
         return a
@@ -590,7 +590,7 @@ class OnboardingAgent(MephistoDataModelComponentMixin, metaclass=MephistoDBBacke
         db_id = db.new_onboarding_agent(
             worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
-        a = OnboardingAgent(db, db_id)
+        a = OnboardingAgent.get(db, db_id)
         logger.debug(f"Registered new {a} for worker {worker}.")
         return a
 
