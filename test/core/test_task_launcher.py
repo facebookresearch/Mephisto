@@ -50,7 +50,7 @@ class TestTaskLauncher(unittest.TestCase):
         database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
         self.task_run_id = get_test_task_run(self.db)
-        self.task_run = TaskRun(self.db, self.task_run_id)
+        self.task_run = TaskRun.get(self.db, self.task_run_id)
 
     def tearDown(self):
         self.db.shutdown()

@@ -58,7 +58,7 @@ def get_mturk_ids_from_unit_id(db, unit_id: str) -> Dict[str, Optional[str]]:
     """
     Find the relevant mturk ids from the given mephisto unit id
     """
-    mturk_unit = Unit(db, unit_id)
+    mturk_unit = Unit.get(db, unit_id)
     assignment_id = mturk_unit.get_mturk_assignment_id()
     hit_id = mturk_unit.get_mturk_hit_id()
     agent = mturk_unit.get_assigned_agent()

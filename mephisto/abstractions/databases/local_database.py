@@ -356,7 +356,10 @@ class LocalMephistoDB(MephistoDB):
                 (project_name,),
             )
             rows = c.fetchall()
-            return [Project(self, str(r["project_id"]), row=r) for r in rows]
+            return [
+                Project(self, str(r["project_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
     def new_task(
         self,
@@ -429,7 +432,9 @@ class LocalMephistoDB(MephistoDB):
                 (task_name, nonesafe_int(project_id), nonesafe_int(parent_task_id)),
             )
             rows = c.fetchall()
-            return [Task(self, str(r["task_id"]), row=r) for r in rows]
+            return [
+                Task(self, str(r["task_id"]), row=r, _used_new_call=True) for r in rows
+            ]
 
     def update_task(
         self,
@@ -554,7 +559,10 @@ class LocalMephistoDB(MephistoDB):
                 (nonesafe_int(task_id), nonesafe_int(requester_id), is_completed),
             )
             rows = c.fetchall()
-            return [TaskRun(self, str(r["task_run_id"]), row=r) for r in rows]
+            return [
+                TaskRun(self, str(r["task_run_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
     def update_task_run(self, task_run_id: str, is_completed: bool):
         """
@@ -657,7 +665,10 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [Assignment(self, str(r["assignment_id"]), row=r) for r in rows]
+            return [
+                Assignment(self, str(r["assignment_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
     def new_unit(
         self,
@@ -773,7 +784,9 @@ class LocalMephistoDB(MephistoDB):
                 ),
             )
             rows = c.fetchall()
-            return [Unit(self, str(r["unit_id"]), row=r) for r in rows]
+            return [
+                Unit(self, str(r["unit_id"]), row=r, _used_new_call=True) for r in rows
+            ]
 
     def clear_unit_agent_assignment(self, unit_id: str) -> None:
         """
@@ -885,7 +898,10 @@ class LocalMephistoDB(MephistoDB):
                 (requester_name, provider_type),
             )
             rows = c.fetchall()
-            return [Requester(self, str(r["requester_id"]), row=r) for r in rows]
+            return [
+                Requester(self, str(r["requester_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
     def new_worker(self, worker_name: str, provider_type: str) -> str:
         """
@@ -941,7 +957,10 @@ class LocalMephistoDB(MephistoDB):
                 (worker_name, provider_type),
             )
             rows = c.fetchall()
-            return [Worker(self, str(r["worker_id"]), row=r) for r in rows]
+            return [
+                Worker(self, str(r["worker_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
     def new_agent(
         self,
@@ -1117,7 +1136,10 @@ class LocalMephistoDB(MephistoDB):
             )
             rows = c.fetchall()
             return [
-                Qualification(self, str(r["qualification_id"]), row=r) for r in rows
+                Qualification(
+                    self, str(r["qualification_id"]), row=r, _used_new_call=True
+                )
+                for r in rows
             ]
 
     def get_qualification(self, qualification_id: str) -> Mapping[str, Any]:

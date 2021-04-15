@@ -52,7 +52,7 @@ class TestSupervisor(unittest.TestCase):
         self.db = LocalMephistoDB(database_path)
         self.task_id = self.db.new_task("test_mock", MockBlueprint.BLUEPRINT_TYPE)
         self.task_run_id = get_test_task_run(self.db)
-        self.task_run = TaskRun(self.db, self.task_run_id)
+        self.task_run = TaskRun.get(self.db, self.task_run_id)
 
         architect_config = OmegaConf.structured(
             MephistoConfig(architect=MockArchitectArgs(should_run_server=True))

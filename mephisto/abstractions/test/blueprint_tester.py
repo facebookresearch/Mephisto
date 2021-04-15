@@ -87,7 +87,7 @@ class BlueprintTests(unittest.TestCase):
         database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
         # TODO(#97) we need to actually pull the task type from the Blueprint
-        self.task_run = TaskRun(self.db, get_test_task_run(self.db))
+        self.task_run = TaskRun.get(self.db, get_test_task_run(self.db))
         # TODO(#97) create a mock agent with the given task type?
         self.TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
         self.AgentStateClass = self.BlueprintClass.AgentStateClass

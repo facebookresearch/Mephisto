@@ -132,7 +132,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         Return the worker that is using this agent for a task
         """
         if self._worker is None:
-            self._worker = Worker(self.db, self.worker_id)
+            self._worker = Worker.get(self.db, self.worker_id)
         return self._worker
 
     def get_unit(self) -> "Unit":
@@ -142,7 +142,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         if self._unit is None:
             from mephisto.data_model.unit import Unit
 
-            self._unit = Unit(self.db, self.unit_id)
+            self._unit = Unit.get(self.db, self.unit_id)
         return self._unit
 
     def get_assignment(self) -> "Assignment":
@@ -153,7 +153,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             else:
                 from mephisto.data_model.assignment import Assignment
 
-                self._assignment = Assignment(self.db, self.assignment_id)
+                self._assignment = Assignment.get(self.db, self.assignment_id)
         return self._assignment
 
     def get_task_run(self) -> "TaskRun":
@@ -166,7 +166,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             else:
                 from mephisto.data_model.task_run import TaskRun
 
-                self._task_run = TaskRun(self.db, self.task_run_id)
+                self._task_run = TaskRun.get(self.db, self.task_run_id)
         return self._task_run
 
     def get_task(self) -> "Task":
@@ -181,7 +181,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             else:
                 from mephisto.data_model.task import Task
 
-                self._task = Task(self.db, self.task_id)
+                self._task = Task.get(self.db, self.task_id)
         return self._task
 
     def get_data_dir(self) -> str:
@@ -454,7 +454,7 @@ class OnboardingAgent(MephistoDataModelComponentMixin, metaclass=MephistoDBBacke
         Return the worker that is using this agent for a task
         """
         if self._worker is None:
-            self._worker = Worker(self.db, self.worker_id)
+            self._worker = Worker.get(self.db, self.worker_id)
         return self._worker
 
     def get_task_run(self) -> "TaskRun":
@@ -462,7 +462,7 @@ class OnboardingAgent(MephistoDataModelComponentMixin, metaclass=MephistoDBBacke
         if self._task_run is None:
             from mephisto.data_model.task_run import TaskRun
 
-            self._task_run = TaskRun(self.db, self.task_run_id)
+            self._task_run = TaskRun.get(self.db, self.task_run_id)
         return self._task_run
 
     def get_task(self) -> "Task":
@@ -473,7 +473,7 @@ class OnboardingAgent(MephistoDataModelComponentMixin, metaclass=MephistoDBBacke
             else:
                 from mephisto.data_model.task import Task
 
-                self._task = Task(self.db, self.task_id)
+                self._task = Task.get(self.db, self.task_id)
         return self._task
 
     def get_data_dir(self) -> str:

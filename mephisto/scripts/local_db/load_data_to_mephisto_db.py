@@ -123,7 +123,7 @@ for annotation in test_annotations:
         task_run.provider_type,
         task_run.sandbox,
     )
-    assignment = Assignment(db, assignment_id)
+    assignment = Assignment.get(db, assignment_id)
     assignment.write_assignment_data(
         InitializationData(unit_data={}, shared=annotation["inputs"])
     )
@@ -140,7 +140,7 @@ for annotation in test_annotations:
         task_run.sandbox,
     )
 
-    unit = Unit(db, unit_id)
+    unit = Unit.get(db, unit_id)
     agent = MockAgent.new(db, worker, unit)
     agent.state.state["inputs"] = annotation["inputs"]
     agent.state.state["outputs"] = annotation["outputs"]

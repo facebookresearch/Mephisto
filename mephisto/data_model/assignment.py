@@ -157,7 +157,7 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
         Return the task run that this assignment is part of
         """
         if self.__task_run is None:
-            self.__task_run = TaskRun(self.db, self.task_run_id)
+            self.__task_run = TaskRun.get(self.db, self.task_run_id)
         return self.__task_run
 
     def get_task(self) -> Task:
@@ -168,7 +168,7 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
             if self.__task_run is not None:
                 self.__task = self.__task_run.get_task()
             else:
-                self.__task = Task(self.db, self.task_id)
+                self.__task = Task.get(self.db, self.task_id)
         return self.__task
 
     def get_requester(self) -> Requester:
@@ -248,6 +248,6 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
                 os.path.join(assign_dir, ASSIGNMENT_DATA_FILE), "w+"
             ) as json_file:
                 json.dump(assignment_data, json_file)
-        assignment = Assignment(db, db_id)
+        assignment = Assignment.get(db, db_id)
         logger.debug(f"{assignment} created for {task_run}")
         return assignment

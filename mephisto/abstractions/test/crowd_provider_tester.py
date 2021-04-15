@@ -149,7 +149,7 @@ class CrowdProviderTests(unittest.TestCase):
         requester = self.get_test_requester()
         WorkerClass = self.CrowdProviderClass.WorkerClass
         test_worker = WorkerClass.new(db, self.get_test_worker_name())
-        test_worker_2 = Worker(db, test_worker.db_id)
+        test_worker_2 = Worker.get(db, test_worker.db_id)
         self.assertEqual(
             test_worker.worker_name,
             test_worker_2.worker_name,
