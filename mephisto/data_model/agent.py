@@ -14,6 +14,7 @@ from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.db_backed_meta import (
     MephistoDBBackedABCMeta,
+    MephistoDBBackedMeta,
     MephistoDataModelComponentMixin,
 )
 from mephisto.data_model.exceptions import (
@@ -373,7 +374,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         raise NotImplementedError()
 
 
-class OnboardingAgent(ABC):
+class OnboardingAgent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """
     Onboarding agents are a special extension of agents used
     in tasks that have a separate onboarding step. These agents
@@ -390,8 +391,19 @@ class OnboardingAgent(ABC):
     DISPLAY_PREFIX = "onboarding_"
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct OnboardingAgent and data model access via OnboardingAgent(db, id) is "
+                "now deprecated in favor of calling OnboardingAgent.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_onboarding_agent(db_id)
