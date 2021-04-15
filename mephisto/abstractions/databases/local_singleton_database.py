@@ -58,6 +58,7 @@ class MephistoSingletonDB(LocalMephistoDB):
         TaskRun,
         Task,
         Project,
+        Requester,
     ]
 
     def __init__(self, database_path=None):
