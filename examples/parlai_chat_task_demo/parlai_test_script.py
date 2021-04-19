@@ -40,7 +40,7 @@ class TestScriptConfig(RunScriptConfig):
         metadata={"help": "Number of turns before a conversation is complete"},
     )
     turn_timeout: int = field(
-        default=3,
+        default=300,
         metadata={
             "help": "Maximum response time before kicking "
             "a worker out, default 300 seconds"
