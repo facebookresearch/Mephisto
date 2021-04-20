@@ -28,7 +28,10 @@ from mephisto.data_model.qualification import Qualification, GrantedQualificatio
 import sqlite3
 from sqlite3 import Connection, Cursor
 import threading
-from weakref import WeakValueDictionary
+
+# We should be using WeakValueDictionary rather than a full dict once
+# we're better able to trade-off between memory and space.
+# from weakref import WeakValueDictionary
 
 from mephisto.operations.logger_core import get_logger
 
@@ -64,7 +67,7 @@ class MephistoSingletonDB(LocalMephistoDB):
         super().__init__(database_path=database_path)
 
         # Create singleton dictionaries for entries
-        self._singleton_cache = {k: WeakValueDictionary() for k in self._cached_classes}
+        self._singleton_cache = {k: dict() for k in self._cached_classes}
 
     def shutdown(self) -> None:
         """Close all open connections"""
