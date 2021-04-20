@@ -60,7 +60,7 @@ class MTurkUnit(Unit):
 
     def _sync_hit_mapping(self) -> None:
         """Sync with the datastore to see if any mappings have updated"""
-        if self.datastore.is_hit_mapping_in_sync(self._last_sync_time):
+        if self.datastore.is_hit_mapping_in_sync(self.db_id, self._last_sync_time):
             return
         try:
             mapping = dict(self.datastore.get_hit_mapping(self.db_id))
@@ -76,6 +76,18 @@ class MTurkUnit(Unit):
         # to reduce the risk of a race condition caching an old
         # value the moment it's registered
         self._last_sync_time = time.monotonic() - 1
+
+    def register_from_provider_data(
+        self, hit_id: str, mturk_assignment_id: str
+    ) -> None:
+        """Update the datastore and local information from this registration"""
+        self.datastore.register_assignment_to_hit(
+            hit_id, self.db_id, mturk_assignment_id
+        )
+        self.hit_id = hit_id
+        self.mturk_assignment_id = mturk_assignment_id
+        # We made the change, so we can set the sync time.
+        self._last_sync_time = time.monotonic()
 
     def get_mturk_assignment_id(self) -> Optional[str]:
         """
