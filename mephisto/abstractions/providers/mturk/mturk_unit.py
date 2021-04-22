@@ -171,8 +171,13 @@ class MTurkUnit(Unit):
             ]:
                 # Treat this as a return event, this hit may be doable by someone else
                 agent = self.get_assigned_agent()
-                if agent is not None:
-                    # mark the agent as having returned the HIT, to
+                if agent is not None and agent.get_status() in [
+                    AgentState.STATUS_IN_TASK,
+                    AgentState.STATUS_ONBOARDING,
+                    AgentState.STATUS_WAITING,
+                    AgentState.STATUS_PARTNER_DISCONNECT,
+                ]:
+                    # mark the in-task agent as having returned the HIT, to
                     # free any running tasks and have Blueprint decide on cleanup.
                     agent.update_status(AgentState.STATUS_RETURNED)
                 if external_status == AssignmentState.EXPIRED:
