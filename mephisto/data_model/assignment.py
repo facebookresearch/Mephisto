@@ -10,6 +10,7 @@ from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.requester import Requester
+from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
 from typing import List, Optional, Mapping, Dict, Any, TYPE_CHECKING, IO
 
 if TYPE_CHECKING:
@@ -43,7 +44,7 @@ class InitializationData:
         )
 
 
-class Assignment:
+class Assignment(metaclass=MephistoDBBackedMeta):
     """
     This class tracks an individual run of a specific task, and handles state management
     for the set of units within via abstracted database helpers

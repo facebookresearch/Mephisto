@@ -10,6 +10,7 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
+from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.requester import Requester
 from typing import Optional, Mapping, Dict, Any, Type, TYPE_CHECKING
@@ -27,7 +28,7 @@ from mephisto.operations.logger_core import get_logger
 logger = get_logger(name=__name__)
 
 
-class Unit(ABC):
+class Unit(metaclass=MephistoDBBackedABCMeta):
     """
     This class tracks the status of an individual worker's contribution to a
     higher level assignment. It is the smallest 'unit' of work to complete
@@ -201,12 +202,10 @@ class Unit(ABC):
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
-        # TODO(#101) this may not be particularly efficient
-        row = self.db.get_unit(self.db_id)
-        assert row is not None, f"Unit {self.db_id} stopped existing in the db..."
-        agent_id = row["agent_id"]
-        if agent_id is not None:
-            return Agent(self.db, agent_id)
+        unit_copy = Unit(self.db, self.db_id)
+        self.agent_id = unit_copy.agent_id
+        if self.agent_id is not None:
+            return Agent(self.db, self.agent_id)
         return None
 
     @staticmethod

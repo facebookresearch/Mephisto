@@ -9,6 +9,7 @@ import os
 from shutil import copytree
 
 from mephisto.data_model.project import Project
+from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
 from mephisto.operations.utils import (
     get_dir_for_task,
     ensure_user_confirm,
@@ -44,7 +45,7 @@ def assert_task_is_valid(dir_name, task_type) -> None:
 # executable and becoming just storage for other information.
 
 
-class Task:
+class Task(metaclass=MephistoDBBackedMeta):
     """
     This class contains all of the required tidbits for launching a set of
     assignments, primarily by leveraging a blueprint. It also takes the

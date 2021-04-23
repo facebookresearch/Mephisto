@@ -9,6 +9,7 @@ from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
 )
+from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
 
 from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
 
@@ -162,7 +163,7 @@ def make_qualification_dict(
     return as_valid_qualification_dict(qual_dict)
 
 
-class Qualification:
+class Qualification(metaclass=MephistoDBBackedMeta):
     """Simple convenience wrapper for Qualifications in the data model"""
 
     def __init__(

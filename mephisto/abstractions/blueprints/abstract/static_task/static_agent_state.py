@@ -9,6 +9,7 @@ from mephisto.abstractions.blueprint import AgentState
 import os
 import json
 import time
+import weakref
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -38,7 +39,7 @@ class StaticAgentState(AgentState):
         Static agent states should store
         input dict -> output dict pairs to disc
         """
-        self.agent = agent
+        self.agent = weakref.proxy(agent)
         self.state: Dict[str, Optional[Dict[str, Any]]] = self._get_empty_state()
         self.load_data()
 

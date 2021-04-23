@@ -92,6 +92,22 @@ class MephistoDB(ABC):
             provider = ProviderClass(self)
             provider.cleanup_qualification(qualification_name)
 
+    def optimized_load(
+        self,
+        target_cls,
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+    ):
+        """
+        Load the given class in an optimized fashion, if this DB has a more
+        efficient way of storing and managing the data
+        """
+        return None
+
+    def cache_result(self, target_cls, value) -> None:
+        """Opportunity to store the result class from a load"""
+        return None
+
     @abstractmethod
     def shutdown(self) -> None:
         """Do whatever is required to shut this server off"""
