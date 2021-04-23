@@ -306,7 +306,7 @@ class Operator:
                     tracked_run.architect.shutdown()
                     tracked_run.task_launcher.shutdown()
                     del self._task_runs_tracked[task_run.db_id]
-            time.sleep(2)
+            time.sleep(10)
 
     def force_shutdown(self, timeout=5):
         """
