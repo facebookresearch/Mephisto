@@ -15,6 +15,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     create_hit_with_hit_type,
 )
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
+import time
 from typing import List, Optional, Tuple, Mapping, Dict, Any, Type, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -47,6 +48,7 @@ class MTurkUnit(Unit):
             self.PROVIDER_TYPE
         )
         self.hit_id: Optional[str] = None
+        self._last_sync_time = 0.0
         self._sync_hit_mapping()
         self.__requester: Optional["MTurkRequester"] = None
 
@@ -58,6 +60,8 @@ class MTurkUnit(Unit):
 
     def _sync_hit_mapping(self) -> None:
         """Sync with the datastore to see if any mappings have updated"""
+        if self.datastore.is_hit_mapping_in_sync(self.db_id, self._last_sync_time):
+            return
         try:
             mapping = dict(self.datastore.get_hit_mapping(self.db_id))
             self.hit_id = mapping["hit_id"]
@@ -68,6 +72,22 @@ class MTurkUnit(Unit):
             self.hit_id = None
             self.mturk_assignment_id = None
             self.assignment_time_in_seconds = -1
+        # We update to a time slightly earlier than now, in order
+        # to reduce the risk of a race condition caching an old
+        # value the moment it's registered
+        self._last_sync_time = time.monotonic() - 1
+
+    def register_from_provider_data(
+        self, hit_id: str, mturk_assignment_id: str
+    ) -> None:
+        """Update the datastore and local information from this registration"""
+        self.datastore.register_assignment_to_hit(
+            hit_id, self.db_id, mturk_assignment_id
+        )
+        self.hit_id = hit_id
+        self.mturk_assignment_id = mturk_assignment_id
+        # We made the change, so we can set the sync time.
+        self._last_sync_time = time.monotonic()
 
     def get_mturk_assignment_id(self) -> Optional[str]:
         """
