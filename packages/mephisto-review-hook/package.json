@@ -1,12 +1,13 @@
 {
   "name": "mephisto-review-hook",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
     "dev": "webpack --mode development -q",
     "dev:watch": "webpack --mode development -q --watch",
-    "build": "NODE_ENV=production webpack -p"
+    "build": "NODE_ENV=production webpack -p",
+    "prepublishOnly": "NODE_ENV=production webpack -p"
   },
   "keywords": [],
   "author": "",

@@ -8,6 +8,7 @@ function useMephistoReview({
   page,
   resultsPerPage,
   filters,
+  hostname = "",
 } = {}) {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,8 +22,8 @@ function useMephistoReview({
       return;
     }
     const DATA_URL = taskId
-      ? `/data/${taskId}`
-      : `/data?${page ? "page=" + page : ""}${
+      ? `${hostname}/data/${taskId}`
+      : `${hostname}/data?${page ? "page=" + page : ""}${
           resultsPerPage ? "&results_per_page=" + resultsPerPage : ""
         }${filters ? "&filters=" + encodeURIComponent(filters) : ""}`;
     setIsLoading(true);
@@ -38,7 +39,7 @@ function useMephistoReview({
     async (data) => {
       var response = null;
       setIsLoading(true);
-      await fetch(`/data/${taskId}`, {
+      await fetch(`${hostname}/data/${taskId}`, {
         method: "POST",
         body: JSON.stringify(data),
       })

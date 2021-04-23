@@ -13,6 +13,7 @@ import time
 
 from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -40,15 +41,18 @@ class LimitedDict(dict):
         super().__setitem__(key, value)
 
 
-class TestTaskLauncher(unittest.TestCase):
+class BaseTestTaskLauncher:
     """
     Unit testing for the Mephisto TaskLauncher
     """
 
+    DB_CLASS = None
+
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
-        self.db = LocalMephistoDB(database_path)
+        assert self.DB_CLASS is not None, "Did not specify db to use"
+        self.db = self.DB_CLASS(database_path)
         self.task_run_id = get_test_task_run(self.db)
         self.task_run = TaskRun(self.db, self.task_run_id)
 
@@ -156,6 +160,14 @@ class TestTaskLauncher(unittest.TestCase):
             end_time - start_time,
             (NUM_GENERATED_ASSIGNMENTS * WAIT_TIME_TILL_NEXT_ASSIGNMENT) / 2,
         )
+
+
+class TestTaskLauncherLocal(BaseTestTaskLauncher, unittest.TestCase):
+    DB_CLASS = LocalMephistoDB
+
+
+class TestTaskLauncherSingleton(BaseTestTaskLauncher, unittest.TestCase):
+    DB_CLASS = MephistoSingletonDB
 
 
 if __name__ == "__main__":

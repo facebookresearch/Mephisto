@@ -17,6 +17,25 @@ code {
   color: #e3242b;
 }
 
+.navbar-wrapper {
+  width: 75vw;
+  margin: 0 auto;
+}
+
+.all-item-view-search-bar {
+  width: 60vw;
+}
+
+@media only screen and (max-width: 1200px) {
+  .navbar-header {
+    display: none !important;
+  }
+
+  .all-item-view-search-bar {
+    width: 75vw;
+  }
+}
+
 .all-item-view {
   display: flex;
   flex-direction: column;
@@ -48,7 +67,7 @@ code {
   align-items: center;
   text-align: center;
   font-size: calc(10px + 1vmin);
-  margin-top: 50px;
+  padding-top: 50px;
   width: 100vw;
   height: calc(100vh - 50px);
   overflow: auto;

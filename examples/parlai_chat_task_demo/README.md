@@ -83,7 +83,7 @@ The automated build process looks for three special paths:
 - `[custom_source_dir]/package.json`: If you want additional dependencies, you can specify them in a `package.json` file. We suggest copying the one present at `mephisto/abstractions/blueprints/parlai_chat/webapp/package.json`.
 
 ### Custom frontend bundles
-Custom frontend bundles can be provided that override the view of how the ParlAI chat looks, and the kinds of inputs you can pass. Much of the ParlAI-specific interfaceing logic is encapsulated in the `webapp/src/app.jsx` file. The actual view logic is in `webapp/src/components/core_components.jsx`. Here we define the `BaseFrontend` component, which is the root of the core task. 
+Custom frontend bundles can be provided that override the view of how the ParlAI chat looks, and the kinds of inputs you can pass. Most of the ParlAI-specific interfaceing logic is built into the `bootstrap-chat` package. The remaining custom view logic is in `webapp/src/main.js`. Here we define the `RenderChatMessage` component, which overrides the base behavior. 
 
 
 # How can I make my own task?
@@ -101,17 +101,19 @@ If you are able to provide your workers enough context just using a task descrip
 
 
 ## Tasks with custom frontends
-If your task needs additional input beyond simple forms (tutorial TODO, see the `respond_with_form` field in the `demo_worlds.py` file in this example to attempt), you'll likely need to be writing your own frontend components. In order to get startedon this path, you'll likely do the following:
+If your task needs additional input beyond simple forms (tutorial TODO, see the `respond_with_form` field in the `demo_worlds.py` file in this example to attempt), you'll likely need to be writing your own frontend components. In order to get started on this path, you'll likely do the following:
 
 1. Copy this whole example directory into a new directory for your task. This generally would go in the project directory you are launching tasks for, but you can use `mephisto/tasks` if you're just experimenting.  
 2. Update the task-related variables in your `conf/my_new_config.yaml` file to make sense for your task.
 3. Update your worlds file to specify the kind of conversation you are creating between agents.
-4. Update `core_components.jsx` to alter parts of your frontend job to do what you want.
+4. Update `app.jsx` to alter parts of your frontend job to do what you want.
 5. Rebuild your frontend with `npm install; npm run dev`
 6. Run `parlai_test_script.py` to pilot your task over localhost. You can use different `worker_id` URL parameters in different windows to play the part of multiple workers at the same time.
 7. Repeat 3 - 6 until you're happy with your task.
 8. Launch a small batch on a crowd provider to see how real workers handle your task.
 9. Iterate more - use a review script (like the one present in `examples/simple_static_task/examine_results`) to make it easy to see what data you're getting.
 10. Collect some interesting conversational data.
+
+You may also find success using the options for the simple custom frontend functionality, described in the "Simple custom frontend bundles" section.
 
 If you do require frontend customization, we recommend using [React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) to inspect the specific elements you want to change and debug your frontend as you work with it. Note that after rebuilding your frontend (by using `npm install; npm run dev`) you may need to do a force refresh (shift-cmd-R in chrome) to ensure you load the new version of your bundle.
