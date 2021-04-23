@@ -101,6 +101,8 @@ function ChatApp({
       } else if (state.wants_act) {
         setInputMode(INPUT_MODE.READY_FOR_INPUT);
         playNotifSound();
+      } else if (!state.wants_act) {
+        setInputMode(INPUT_MODE.WAITING);
       }
     },
     onMessageReceived: (message) => {

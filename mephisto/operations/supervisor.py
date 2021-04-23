@@ -328,6 +328,7 @@ class Supervisor:
                     f"Onboarding agent {onboarding_id} disconnected or errored, "
                     f"final status {tracked_agent.get_status()}."
                 )
+                self._send_status_update(agent_info)
         except Exception as e:
             logger.warning(f"Onboarding for {tracked_agent} failed with exception {e}")
             import traceback
@@ -483,6 +484,7 @@ class Supervisor:
         """
         Convert the onboarding agent to a full agent
         """
+        logger.info(f"Registering onboarding agent {onboarding_agent}")
         onboarding_id = onboarding_agent.get_agent_id()
         onboarding_agent_info = self.agents.get(onboarding_id)
 
@@ -743,16 +745,22 @@ class Supervisor:
         Handle telling the frontend agent about a change in their
         active status. (Pushing a change in AgentState)
         """
+        status = agent_info.agent.db_status
+        if isinstance(agent_info.agent, OnboardingAgent):
+            if status in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
+                # We don't expose the updated status directly to the frontend here
+                # Can be simplified if we improve how bootstrap-chat handles
+                # the transition of onboarding states
+                status = AgentState.STATUS_WAITING
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.get_agent_id(),
             data={
-                "status": agent_info.agent.db_status,
+                "status": status,
                 "state": {
-                    "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
-                    "task_done": agent_info.agent.db_status
-                    == AgentState.STATUS_PARTNER_DISCONNECT,
+                    "done_text": STATUS_TO_TEXT_MAP.get(status),
+                    "task_done": status == AgentState.STATUS_PARTNER_DISCONNECT,
                 },
             },
         )
