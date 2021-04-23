@@ -89,8 +89,14 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
 
-        # Follow-up initialization
-        self.state = AgentState(self)  # type: ignore
+        # Follow-up initialization is deferred
+        self._state = None  # type: ignore
+
+    @property
+    def state(self) -> "AgentState":
+        if self._state is None:
+            self._state = AgentState(self)
+        return self._state
 
     def __new__(
         cls,

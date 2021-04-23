@@ -28,7 +28,9 @@ from mephisto.data_model.qualification import Qualification, GrantedQualificatio
 import sqlite3
 from sqlite3 import Connection, Cursor
 import threading
-from weakref import WeakValueDictionary
+# We should be using WeakValueDictionary rather than a full dict once
+# we're better able to trade-off between memory and space.
+# from weakref import WeakValueDictionary
 
 from mephisto.operations.logger_core import get_logger
 
@@ -65,7 +67,7 @@ class MephistoSingletonDB(LocalMephistoDB):
         super().__init__(database_path=database_path)
 
         # Create singleton dictionaries for entries
-        self._singleton_cache = {k: WeakValueDictionary() for k in self._cached_classes}
+        self._singleton_cache = {k: dict() for k in self._cached_classes}
 
     def shutdown(self) -> None:
         """Close all open connections"""
@@ -96,3 +98,33 @@ class MephistoSingletonDB(LocalMephistoDB):
                 self._singleton_cache[stored_class][value.db_id] = value
                 break
         return None
+
+    def new_agent(
+        self,
+        worker_id: str,
+        unit_id: str,
+        task_id: str,
+        task_run_id: str,
+        assignment_id: str,
+        task_type: str,
+        provider_type: str,
+    ) -> str:
+        """
+        Wrapper around the new_agent call that finds and updates the unit locally
+        too, as this isn't guaranteed otherwise but is an important part of the singleton
+        """
+        agent_id = super().new_agent(
+            worker_id,
+            unit_id,
+            task_id,
+            task_run_id,
+            assignment_id,
+            task_type,
+            provider_type,
+        )
+        agent = Agent(self, agent_id)
+        unit = agent.get_unit()
+        unit.agent_id = agent_id
+        unit.db_status = AssignmentState.ASSIGNED
+        unit.worker_id = agent.worker_id
+        return agent_id
