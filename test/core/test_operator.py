@@ -16,6 +16,7 @@ import threading
 from mephisto.abstractions.test.utils import get_test_requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.architects.mock_architect import (
     MockArchitect,
@@ -38,15 +39,18 @@ MOCK_TASK_ARGS = TaskConfigArgs(
 )
 
 
-class TestOperator(unittest.TestCase):
+class OperatorBaseTest(object):
     """
     Unit testing for the Mephisto Operator
     """
 
+    DB_CLASS = None
+
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
-        self.db = LocalMephistoDB(database_path)
+        assert self.DB_CLASS is not None, "Did not specify db to use"
+        self.db = self.DB_CLASS(database_path)
         self.requester_name, _req_id = get_test_requester(self.db)
         self.operator = None
 
@@ -410,3 +414,15 @@ class TestOperator(unittest.TestCase):
         assignments = task_run.get_assignments()
         for assignment in assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
+
+
+class TestOperatorLocal(OperatorBaseTest, unittest.TestCase):
+    DB_CLASS = LocalMephistoDB
+
+
+class TestOperatorSingleton(OperatorBaseTest, unittest.TestCase):
+    DB_CLASS = MephistoSingletonDB
+
+
+if __name__ == "__main__":
+    unittest.main()
