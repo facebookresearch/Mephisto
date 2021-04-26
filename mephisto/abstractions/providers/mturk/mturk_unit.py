@@ -109,6 +109,36 @@ class MTurkUnit(Unit):
             self.__requester = cast("MTurkRequester", super().get_requester())
         return self.__requester
 
+    def set_db_status(self, status: str) -> None:
+        """
+        Set the status reflected in the database for this Unit
+        """
+        super().set_db_status(status)
+        if status == AssignmentState.COMPLETED:
+            agent = self.get_assigned_agent()
+            if agent is not None:
+                agent_status = agent.get_status()
+                if agent_status == AgentState.STATUS_IN_TASK:
+                    # Oh no, MTurk has completed the unit, but we don't have
+                    # the data. We need to reconcile
+                    logger.warning(
+                        f"Unit {self} moved to completed, but the agent didn't... "
+                        f"Attempting to reconcile with MTurk directly"
+                    )
+                    try:
+                        agent.attempt_to_reconcile_submitted_data(
+                            self.get_mturk_hit_id()
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Was not able to reconcile due to an error, {e}. "
+                            f"You may need to reconcile this specific Agent manually "
+                            f"after the task is completed. See here for details: "
+                            f"https://github.com/facebookresearch/Mephisto/pull/442"
+                        )
+            else:
+                logger.warning(f"No agent found for completed unit {self}...")
+
     def clear_assigned_agent(self) -> None:
         """
         Additionally to clearing the agent, we also need to dissociate the
