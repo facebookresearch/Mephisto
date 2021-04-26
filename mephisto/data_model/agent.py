@@ -203,7 +203,9 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
             if old_status == AgentState.STATUS_WAITING:
                 # Waiting agents' unit can be reassigned, as no work
                 # has been done yet.
-                self.get_unit().clear_assigned_agent()
+                unit = self.get_unit()
+                logger.debug(f"Clearing {self} from {unit} for update to {new_status}")
+                unit.clear_assigned_agent()
 
     @staticmethod
     def _register_agent(

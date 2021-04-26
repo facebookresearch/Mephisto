@@ -150,7 +150,7 @@ class MTurkUnit(Unit):
                 elif agent_status == AgentState.STATUS_SOFT_REJECTED:
                     found_status = AssignmentState.SOFT_REJECTED
             else:
-                logger.warning("Agent is None")
+                logger.warning(f"Agent for unit {self} is None")
             if found_status != self.db_status:
                 self.set_db_status(found_status)
             return self.db_status
