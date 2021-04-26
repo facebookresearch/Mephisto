@@ -114,6 +114,17 @@ class MTurkUnit(Unit):
         Additionally to clearing the agent, we also need to dissociate the
         hit_id from this unit in the MTurkDatastore
         """
+        if self.db_status == AssignmentState.COMPLETED:
+            logger.warning(
+                f"Clearing an agent when COMPLETED, it's likely a submit happened "
+                f"but could not be received by the Mephisto backend. This "
+                f"assignment clear is thus being ignored, but this message "
+                f"is indicative of some data loss. "
+            )
+            # TODO how can we reconcile missing data here? Marking this agent as
+            # COMPLETED will pollute the data, but not marking it means that
+            # it will have to be the auto-approve deadline.
+            return
         super().clear_assigned_agent()
         mturk_hit_id = self.get_mturk_hit_id()
         if mturk_hit_id is not None:
