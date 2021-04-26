@@ -93,8 +93,8 @@ Here's an example of setting up an "mturk_sandbox" requester:
 ```bash
 $ mephisto register mturk_sandbox \
         name=my_mturk_user_sandbox \
-        access-key-id=$ACCESS_KEY\
-        secret-access-key=$SECRET_KEY
+        access_key_id=$ACCESS_KEY\
+        secret_access_key=$SECRET_KEY
 AWS credentials successfully saved in ~/.aws/credentials file.
 
 Registered successfully.
