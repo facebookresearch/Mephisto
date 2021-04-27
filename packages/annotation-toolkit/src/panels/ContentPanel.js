@@ -58,6 +58,7 @@ function ContentPanel({ instructionPane: InstructionPane }) {
         const path = [...acc.path, value];
         const component = get(["layers", path.join("|"), "config"]);
         if (!component) return acc;
+        // if (component.alwaysOn) return acc;
         const actions = component.actions
           ? [...acc.actions, component.actions]
           : acc.actions;
