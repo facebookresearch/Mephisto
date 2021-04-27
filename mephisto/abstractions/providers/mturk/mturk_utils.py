@@ -126,7 +126,7 @@ def calculate_mturk_bonus_fee(bonus_amount: float) -> float:
     MTurk Pricing: https://requester.mturk.com/pricing
     20% fee on the reward and bonus amount (if any) you pay Workers.
     """
-    return MTURK_TASK_FEE * bonus_amount
+    return MTURK_BONUS_FEE * bonus_amount
 
 
 def get_requester_balance(client: MTurkClient) -> float:
