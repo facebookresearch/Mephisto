@@ -90,6 +90,9 @@ class MTurkAgent(Agent):
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
+        if self.get_status() == AgentState.STATUS_APPROVED:
+            logging.warning(f"Cannot reject {self}, it is already approved")
+            return
         client = self._get_client()
         reject_work(client, self._get_mturk_assignment_id(), reason)
         self.update_status(AgentState.STATUS_REJECTED)
