@@ -81,6 +81,9 @@ class MTurkAgent(Agent):
 
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""
+        if self.get_status() == AgentState.STATUS_APPROVED:
+            logging.info(f"Approving already approved agent {self}, skipping")
+            return
         client = self._get_client()
         approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
         self.update_status(AgentState.STATUS_APPROVED)
