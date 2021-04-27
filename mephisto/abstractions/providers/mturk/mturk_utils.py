@@ -129,6 +129,20 @@ def calculate_mturk_bonus_fee(bonus_amount: float) -> float:
     return MTURK_TASK_FEE * bonus_amount
 
 
+def get_bonuses_for_assignment(client: MTurkClient, assignment_id: str) -> float:
+    """
+    Sum the bonus payments associated with this HIT
+    """
+    resp = client.list_bonus_payments(AssignmentId=assignment_id, MaxResults=100)
+    if resp["NumResults"] == 0:
+        return 0.0
+    if len(resp["BonusPayments"]) == 0:
+        return 0.0
+    bonus_array = resp["BonusPayments"]
+    bonus_amounts = [float(b["BonusAmount"]) for b in bonus_array]
+    return sum(bonus_amounts)
+
+
 def get_requester_balance(client: MTurkClient) -> float:
     """Get the balance for the requester associated with this client"""
     return float(client.get_account_balance()["AvailableBalance"])
