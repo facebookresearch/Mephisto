@@ -61,6 +61,7 @@ function ContentPanel() {
         const path = [...acc.path, value];
         const component = get(["layers", path.join("|")]);
         if (!component) return acc;
+        // if (component.alwaysOn) return acc;
         const actions = component.actions
           ? [...acc.actions, component.actions]
           : acc.actions;
@@ -128,7 +129,7 @@ function ContentPanel() {
                 {layer.actions}
               </React.Fragment>
             ))}
-            {gatheredActions.actions.length === 0 ? (
+            {gatheredActions.actions.length !== 0 ? (
               <MenuDivider
                 icon={"layer"}
                 title={state.selectedLayer.join(" / ")}
