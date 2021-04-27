@@ -201,6 +201,8 @@ class Supervisor:
 
     def shutdown(self):
         """Close all of the channels, join threads"""
+        # Prepopulate agents and channels to close, as
+        # these may change during iteration
         channels_to_close = list(self.channels.keys())
         logger.debug(f"Closing channels {channels_to_close}")
         for channel_id in channels_to_close:
@@ -211,7 +213,8 @@ class Supervisor:
         if self.sending_thread is not None:
             self.sending_thread.join()
         logger.debug(f"Joining agents {self.agents}")
-        for agent_info in self.agents.values():
+        agents_to_close = list(self.agents.values())
+        for agent_info in agents_to_close:
             assign_thread = agent_info.assignment_thread
             if assign_thread is not None:
                 assign_thread.join()
