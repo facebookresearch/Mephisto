@@ -1,13 +1,9 @@
 import React, { useContext } from "react";
 import { useStore } from "global-context-store";
+import { isFunction } from "../utils";
+import mapValues from "lodash.mapvalues";
 
 import { Menu, MenuDivider, Classes } from "@blueprintjs/core";
-
-function isFunction(functionToCheck) {
-  return (
-    functionToCheck && {}.toString.call(functionToCheck) === "[object Function]"
-  );
-}
 
 function ContentPanel() {
   const store = useStore();
@@ -22,8 +18,9 @@ function ContentPanel() {
     return false;
   };
 
-  const layers = get(["layers"]);
+  let layers = get(["layers"]);
   if (!layers) return null;
+  layers = mapValues(layers, (layer) => layer.config);
   const alwaysOnLayers = Object.values(layers).filter((layer) => {
     return (
       layer.alwaysOn === true ||
@@ -44,7 +41,7 @@ function ContentPanel() {
   let selectedLayer;
   if (selectedViewName) {
     const key = selectedViewName.join("|");
-    selectedLayer = get(["layers", key]);
+    selectedLayer = get(["layers", key, "config"]);
     if (
       selectedLayer?.component &&
       !selectedLayer.alwaysOn &&
@@ -59,7 +56,7 @@ function ContentPanel() {
     return state.selectedLayer.reduce(
       (acc, value) => {
         const path = [...acc.path, value];
-        const component = get(["layers", path.join("|")]);
+        const component = get(["layers", path.join("|"), "config"]);
         if (!component) return acc;
         const actions = component.actions
           ? [...acc.actions, component.actions]

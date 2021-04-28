@@ -95,3 +95,8 @@ body,
   border-radius: 2px;
   font-weight: bold;
 }
+
+.debug-panel .bp3-tabs,
+.debug-panel .bp3-tab-panel {
+  height: 100%;
+}
