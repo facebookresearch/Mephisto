@@ -13,6 +13,7 @@ function Layer({
   actions = null,
   noPointerEvents,
   alwaysOn = false,
+  hideName = false,
   onWithGroup,
   getData = () => ({}),
   onSelect = () => {},
@@ -59,6 +60,7 @@ function Layer({
     : false;
   const depth = layerStack.length - 1;
 
+  if (hideName) return null;
   return (
     <LayerContext.Provider value={{ stack: layerStack }}>
       <li

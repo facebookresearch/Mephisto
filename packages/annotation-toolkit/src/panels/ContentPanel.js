@@ -55,13 +55,12 @@ function ContentPanel() {
   }
 
   function gatherActions() {
-    if (!state.selectedLayer) return { actions: [], path: [] };
+    if (!state.selectedLayer) return { actions: [], path: [], actionPaths: [] };
     return state.selectedLayer.reduce(
       (acc, value) => {
         const path = [...acc.path, value];
         const component = get(["layers", path.join("|")]);
         if (!component) return acc;
-        // if (component.alwaysOn) return acc;
         const actions = component.actions
           ? [...acc.actions, component.actions]
           : acc.actions;
@@ -107,7 +106,7 @@ function ContentPanel() {
           </div>
         )
       )}
-      {state.selectedLayer ? (
+      {alwaysOnLayers.length > 0 || gatheredActions.length > 0 ? (
         <div
           style={{
             marginRight: 10,
@@ -123,21 +122,31 @@ function ContentPanel() {
             className={Classes.ELEVATION_1 + " pop"}
             key={gatheredActions.actionPaths.join("//")}
           >
-            {alwaysOnLayers.map((layer, idx) => (
-              <React.Fragment key={idx}>
-                <MenuDivider title={layer.id} />
-                {layer.actions}
-              </React.Fragment>
-            ))}
-            {gatheredActions.actions.length !== 0 ? (
+            {alwaysOnLayers
+              .filter((layer) => {
+                // don't show actions that will be shown by virtue of layer selection
+                // to avoid duplications
+                const layerPath = layer.id.replace("|", " / ");
+                return gatheredActions.actionPaths.indexOf(layerPath) < 0;
+              })
+              .map((layer, idx) =>
+                layer.actions ? (
+                  <React.Fragment key={idx}>
+                    <MenuDivider title={layer.id} />
+                    {layer.actions}
+                  </React.Fragment>
+                ) : null
+              )}
+            {/* If no gathered actions, just show the layer name: */}
+            {gatheredActions.actions.length === 0 && state.selectedLayer ? (
               <MenuDivider
                 icon={"layer"}
-                title={state.selectedLayer.join(" / ")}
+                title={state.selectedLayer.join(" / ") + " ⬩"}
               />
             ) : null}
             {gatheredActions.actions.map((action, idx) => (
               <React.Fragment key={idx}>
-                <MenuDivider title={gatheredActions.actionPaths[idx]} />
+                <MenuDivider title={gatheredActions.actionPaths[idx] + " ⬩"} />
                 {action}
               </React.Fragment>
             ))}
