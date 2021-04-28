@@ -116,6 +116,8 @@ export default function VideoPlayer({
           set(path("duration"), duration);
         }}
         onSeek={() => {}}
+        onPlay={() => set(path("playing"), true)}
+        onPause={() => set(path("playing"), false)}
       />
       <canvas
         style={{ visibility: "hidden" }}
