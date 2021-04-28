@@ -1,6 +1,6 @@
 {
   "name": "annotation-toolkit",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
@@ -34,6 +34,7 @@
     "eslint-plugin-react-hooks": "2.x",
     "file-loader": "^6.2.0",
     "global-context-store": "^1.0.1",
+    "mini-css-extract-plugin": "^1.4.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-player": "^2.9.0",
