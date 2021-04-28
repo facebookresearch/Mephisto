@@ -18,6 +18,7 @@ function Window({ title, children, buttons, bodyClassNames = [] }) {
               <button
                 key={idx + "-" + button.title}
                 title={button.title}
+                onClick={() => button.action && button.action()}
                 className={
                   "mosaic-default-control bp3-button bp3-minimal bp3-icon-" +
                   button.icon
@@ -95,6 +96,7 @@ function DefaultInstructionalLayer() {
 function AppShell({
   showNavbar = false,
   layers = () => <DefaultInstructionalLayer />,
+  layerButtons = [],
   showDebugPane = false,
   contextPanel: ContextPanel = () => null,
 }) {
@@ -122,7 +124,7 @@ function AppShell({
             className="mosaic-tile"
             style={{ inset: "0% calc(100% - 300px) 0% 0%" }}
           >
-            <Window title="Layers">
+            <Window title="Layers" buttons={layerButtons}>
               <LayersPanel layers={layers} showDebugPane={showDebugPane} />
             </Window>
           </div>

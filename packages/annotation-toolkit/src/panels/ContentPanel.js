@@ -121,6 +121,10 @@ function ContentPanel() {
           >
             {alwaysOnLayers
               .filter((layer) => {
+                if (layer.hideActionsIfUnselected) {
+                  return false;
+                }
+
                 // don't show actions that will be shown by virtue of layer selection
                 // to avoid duplications
                 const layerPath = layer.id.replace("|", " / ");

@@ -14,6 +14,7 @@ function Layer({
   noPointerEvents,
   alwaysOn = false,
   hideName = false,
+  hideActionsIfUnselected = false,
   onWithGroup,
   getData = () => ({}),
   onSelect = () => {},
@@ -37,6 +38,7 @@ function Layer({
         onWithGroup,
         id: layerId,
         noPointerEvents,
+        hideActionsIfUnselected,
         getData,
         onSelect,
       });
