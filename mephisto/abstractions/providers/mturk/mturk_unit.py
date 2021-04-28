@@ -84,10 +84,7 @@ class MTurkUnit(Unit):
         self.datastore.register_assignment_to_hit(
             hit_id, self.db_id, mturk_assignment_id
         )
-        self.hit_id = hit_id
-        self.mturk_assignment_id = mturk_assignment_id
-        # We made the change, so we can set the sync time.
-        self._last_sync_time = time.monotonic()
+        self._sync_hit_mapping()
 
     def get_mturk_assignment_id(self) -> Optional[str]:
         """
