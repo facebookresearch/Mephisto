@@ -16,7 +16,9 @@
 ---
 
 - **BREAKING** Rename the `requestQueuePath` helper to `requestsPathFor`.
-- **BREAKING** The global state schema for layers has been updated so that it contains two top level properties: `data` and `config`. `data` is the same as behavior. All remaining properties that were specified by the layer config are now moved under the `config` property. To update, all accessors that were not part of the data prop must be updated, e.g. `layer.Video.displayName` -> `layer.Video.config.displayName`
+- **BREAKING** The global state schema for layers has been updated so that it contains three top level properties: `data`, `config`, and `requests`. `requests` has been moved out of `data` into it's own top-level property. Otherwise, `data` is the same as before. All remaining properties that were specified by the layer config are now moved under the `config` property.
+    - To update, all accessors that were not part of the data prop must be updated, e.g. `layer.Video.displayName` -> `layer.Video.config.displayName`.
+    - Accessors of `requests` also need to be updated. If you were using `requestQueuePath` before, you should be fine, as long as you apply the other breaking change fix above and rename it to `requestsPathFor`.
 
 # v1.0.5
 - [See here for initial release notes](https://github.com/facebookresearch/Mephisto/pull/427)
