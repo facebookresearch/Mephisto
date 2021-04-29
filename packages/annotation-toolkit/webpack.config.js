@@ -6,6 +6,7 @@
 
 var path = require("path");
 var webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   entry: "./src/index.js",
@@ -27,6 +28,11 @@ module.exports = {
     net: "empty",
     dns: "empty",
   },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: "build/[name].css",
+    }),
+  ],
   module: {
     rules: [
       {
@@ -36,8 +42,8 @@ module.exports = {
         options: { presets: ["@babel/env"] },
       },
       {
-        test: /\.css$/,
-        loader: "style-loader!css-loader",
+        test: /\.*css$/,
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
