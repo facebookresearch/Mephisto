@@ -1,4 +1,4 @@
-### vNext
+### v1.1.0
 - Show helpful message when `<AppShell />` is missing a layers prop.
 - Fix bug where duplicate actions were showing for selected alwaysOn layers.
 - Add a '⬩' marker next to layers in the actions menu that are selected by virtue of selection, as opposed to the `alwaysOn` prop. Helpful for debugging and intuiting why certain actions are shown.
