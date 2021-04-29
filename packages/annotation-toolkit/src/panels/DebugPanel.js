@@ -89,7 +89,10 @@ function DebugPanel() {
                       className="bp3-tag bp3-minimal bp3-interactive"
                       key={idx}
                     >
-                      {a.type[0]} {a.payload.path.join(".")}
+                      {a.type[0]}{" "}
+                      {Array.isArray(a.payload.path)
+                        ? a.payload.path.join(".")
+                        : a.payload.path}
                     </span>
                   ) : (
                     <span
