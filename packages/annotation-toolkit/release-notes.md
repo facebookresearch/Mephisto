@@ -9,12 +9,13 @@
 - **NEW** Add a `hideName` boolean prop to `<Layer />` which can be used to prevent that layer from showing up in the Layers Panel. Useful for layers with a visual component, but no annotation-based interactivity. Default: `false`.
 - **NEW** New `layerButtons` prop for `<AppShell />` to allow end-users to create toolbar buttons. Format: `{title: string, icon: string.blueprint-icon, action: fn}`
 - **FIX** Fix a bug where actions specified for toolbar buttons were not being fired on click.
-- **ENHANCEMENT** Add `buildDataPath(layerId) -> fn(...layerPathArgs)` to helpers. Usage: `const dataPath = buildDataPath('VideoLayer'); dataPath('playedSeconds');`
+- **ENHANCEMENT** Add `dataPathBuilderFor(layerId) -> fn(...layerPathArgs)` to helpers. Usage: `const dataPath = dataPathBuilderFor('VideoLayer'); dataPath('playedSeconds');`
 - **NEW** Add a `hideActionsIfUnselected` prop to `<Layer />`. Useful for `alwaysOn` or `onWithGroup` layers that should hide their actions from the Actions Panel when unselected.
+- **ENHANCEMENT** `<VideoPlayer />` now updates it's data state with a `playing` boolean.
 
 ---
 
-- **BREAKING** Rename the `requestQueuePath` helper to `requestsPath`.
+- **BREAKING** Rename the `requestQueuePath` helper to `requestsPathFor`.
 - **BREAKING** The global state schema for layers has been updated so that it contains two top level properties: `data` and `config`. `data` is the same as behavior. All remaining properties that were specified by the layer config are now moved under the `config` property. To update, all accessors that were not part of the data prop must be updated, e.g. `layer.Video.displayName` -> `layer.Video.config.displayName`
 
 # v1.0.5

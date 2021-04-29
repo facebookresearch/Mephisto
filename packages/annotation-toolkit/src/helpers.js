@@ -2,11 +2,11 @@ export const frameToMs = (frame, fps) => (frame * 1000) / fps;
 
 export const msToFrame = (ms, fps) => Math.round((ms * fps) / 1000);
 
-export const requestsPath = (layerId) => {
-  return buildDataPath(layerId)("requests");
+export const requestsPathFor = (layerId) => {
+  return dataPathBuilderFor(layerId)("requests");
 };
 
-export const buildDataPath = (layerId) => (...args) => [
+export const dataPathBuilderFor = (layerId) => (...args) => [
   "layers",
   layerId,
   "data",

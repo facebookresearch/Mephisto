@@ -100,3 +100,9 @@ There are also several included components that can be used with the `component`
 - `scale`
 - `width`
 - `height`
+
+Updates it's data state with:
+- `duration`
+- `detectedSize`: `[width, height]`
+- `playedSeconds`
+- `playing`: `boolean`

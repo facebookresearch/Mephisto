@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useCallback, useRef } from "react";
 import ReactPlayer from "react-player";
 import { useStore } from "global-context-store";
 import { Spinner } from "@blueprintjs/core";
+import { dataPathBuilderFor, requestsPathFor } from "../helpers";
 
 export default function VideoPlayer({
   id,
@@ -60,17 +61,18 @@ export default function VideoPlayer({
     setDetectedSize([videoWidth, videoHeight]);
   }, [vidRef.current, set, videoLoaded]);
 
-  const path = (...args) => ["layers", id, "data", ...args];
+  const path = dataPathBuilderFor(id);
+  const requestsPath = requestsPathFor(id);
 
   // TODO: encapsulate process queue logic into a Hook or such so other
   // layers can also leverage it easily
-  const requestQueue = get(path("requests"));
+  const requestQueue = get(requestsPath);
   useEffect(() => {
     if (!requestQueue || requestQueue.length === 0) return;
     requestQueue.forEach((request) => {
       process(request);
     });
-    set(path("requests"), []);
+    set(requestsPath, []);
   }, [requestQueue]);
 
   if (!src) return null;
