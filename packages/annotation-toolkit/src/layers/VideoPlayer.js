@@ -11,6 +11,7 @@ export default function VideoPlayer({
   scale,
   width,
   height,
+  videoPlayerProps = {},
 }) {
   const store = useStore();
   const { set, get } = store;
@@ -77,6 +78,12 @@ export default function VideoPlayer({
 
   if (!src) return null;
 
+  const {
+    config: configProps = {},
+    style: styleProps = {},
+    ...restProps
+  } = videoPlayerProps;
+
   return (
     <div style={{ position: "relative" }}>
       {!videoLoaded ? (
@@ -93,6 +100,7 @@ export default function VideoPlayer({
       ) : null}
       <ReactPlayer
         config={{
+          ...configProps,
           file: {
             attributes: {
               crossOrigin: "true",
@@ -100,10 +108,12 @@ export default function VideoPlayer({
           },
         }}
         style={{
+          ...styleProps,
           visibility: videoLoaded ? "visible" : "hidden",
           opacity: videoLoaded ? 1 : 0,
           transition: "0.4s opacity",
         }}
+        {...restProps}
         width={width}
         height={height}
         url={src}

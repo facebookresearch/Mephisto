@@ -4,6 +4,7 @@ import ContentPanel from "./panels/ContentPanel";
 import LayersPanel from "./panels/LayersPanel";
 import Layer from "./layers/Layer";
 import cx from "classnames";
+import { Button } from "@blueprintjs/core";
 
 function Window({ title, children, buttons, bodyClassNames = [] }) {
   return (
@@ -15,7 +16,8 @@ function Window({ title, children, buttons, bodyClassNames = [] }) {
         {buttons ? (
           <div className="mosaic-window-controls bp3-button-group">
             {buttons.map((button, idx) => (
-              <button
+              <Button
+                intent={button.intent}
                 key={idx + "-" + button.title}
                 title={button.title}
                 onClick={() => button.action && button.action()}
@@ -23,7 +25,7 @@ function Window({ title, children, buttons, bodyClassNames = [] }) {
                   "mosaic-default-control bp3-button bp3-minimal bp3-icon-" +
                   button.icon
                 }
-              ></button>
+              ></Button>
             ))}
           </div>
         ) : null}
@@ -99,6 +101,7 @@ function AppShell({
   layerButtons = [],
   showDebugPane = false,
   contextPanel: ContextPanel = () => null,
+  instructionPane = null,
 }) {
   return (
     <div className="full">
@@ -140,7 +143,7 @@ function AppShell({
                 },
               ]}
             >
-              <ContentPanel />
+              <ContentPanel instructionPane={instructionPane} />
             </Window>
           </div>
           <div

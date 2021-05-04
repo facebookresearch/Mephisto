@@ -1,3 +1,8 @@
+# vNext
+- The `layerButtons` object now accepts an `intent` property which can be used to color-code buttons.
+- The `<VideoPlayer />` accepts a `videoPlayerProps` object that can be used to forward props to the underlying `react-video-player` object.
+- The Layers panel is now scrollable.
+
 # v1.1.0
 - **ENHANCEMENT** A helpful message is shown when `<AppShell />` is missing a `layers={...}` prop.
 - **NEW** Major update to the Debug Panel. Incorporates `react-json-inspector` for the "Inspect State" tab. A search bar also lets you search through the global state quickly.

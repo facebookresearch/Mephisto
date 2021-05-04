@@ -3,9 +3,9 @@ import { useStore } from "global-context-store";
 import { isFunction } from "../utils";
 import mapValues from "lodash.mapvalues";
 
-import { Menu, MenuDivider, Classes } from "@blueprintjs/core";
+import { Menu, MenuDivider, Classes, Card } from "@blueprintjs/core";
 
-function ContentPanel() {
+function ContentPanel({ instructionPane: InstructionPane }) {
   const store = useStore();
   const { state, get } = store;
 
@@ -115,6 +115,11 @@ function ContentPanel() {
             minWidth: 200,
           }}
         >
+          {InstructionPane ? (
+            <Card className="bp3-dark" style={{ marginBottom: 10 }}>
+              <InstructionPane />
+            </Card>
+          ) : null}
           <Menu
             className={Classes.ELEVATION_1 + " pop"}
             key={gatheredActions.actionPaths.join("//")}
