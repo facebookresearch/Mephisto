@@ -162,6 +162,8 @@ class MTurkUnit(Unit):
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
         hit = get_hit(client, mturk_hit_id)
+        if not hit:
+            return AssignmentState.SOFT_REJECTED
         hit_data = hit["HIT"]
 
         local_status = self.db_status

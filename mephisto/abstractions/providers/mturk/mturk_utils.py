@@ -551,7 +551,12 @@ def delete_sns_topic(session: boto3.Session, topic_arn: str) -> None:
 
 def get_hit(client: MTurkClient, hit_id: str) -> Dict[str, Any]:
     """Get hit from mturk by hit_id"""
-    return client.get_hit(HITId=hit_id)
+    hit = None
+    try:
+        hit = client.get_hit(HITId=hit_id)
+    except ClientError:
+        logger.warning(f"Unable to retrieve HIT {hit_id}. Skipping!")
+    return hit
 
 
 def get_assignment(client: MTurkClient, assignment_id: str) -> Dict[str, Any]:
