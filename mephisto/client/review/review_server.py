@@ -78,7 +78,7 @@ def run(
             yield mephisto_data_browser.get_data_from_unit(unit)
 
     def consume_data():
-        """ For use in "one-by-one" or default mode. Runs on a seperate thread to consume mephisto review data line by line and update global variables to temporarily store this data """
+        """For use in "one-by-one" or default mode. Runs on a seperate thread to consume mephisto review data line by line and update global variables to temporarily store this data"""
         global ready_for_next, current_data, finished, counter
 
         if database_task_name is not None:
