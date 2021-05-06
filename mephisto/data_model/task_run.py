@@ -258,7 +258,7 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
         }
 
     def update_completion_progress(self, task_launcher=None, status=None) -> None:
-        """ Flag the task run that the assignments' generator has finished """
+        """Flag the task run that the assignments' generator has finished """
         if task_launcher:
             if task_launcher.get_assignments_are_all_created():
                 self.assignments_generator_done = True

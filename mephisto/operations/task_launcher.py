@@ -128,7 +128,7 @@ class TaskLauncher:
             time.sleep(ASSIGNMENT_GENERATOR_WAIT_SECONDS)
 
     def create_assignments(self) -> None:
-        """Create an assignment and associated units for the generated assignment data """
+        """Create an assignment and associated units for the generated assignment data"""
         self.keep_launching_units = True
         if self.generator_type == GeneratorType.NONE:
             for data in self.assignment_data_iterable:
