@@ -551,7 +551,14 @@ def delete_sns_topic(session: boto3.Session, topic_arn: str) -> None:
 
 def get_hit(client: MTurkClient, hit_id: str) -> Dict[str, Any]:
     """Get hit from mturk by hit_id"""
-    return client.get_hit(HITId=hit_id)
+    hit = None
+    try:
+        hit = client.get_hit(HITId=hit_id)
+    except ClientError as er:
+        logger.warning(
+            f"Skipping HIT {hit_id}. Unable to retrieve due to ClientError: {er}."
+        )
+    return hit
 
 
 def get_assignment(client: MTurkClient, assignment_id: str) -> Dict[str, Any]:
@@ -688,9 +695,7 @@ def get_outstanding_hits(client: MTurkClient) -> Dict[str, List[Dict[str, Any]]]
 
 
 def expire_and_dispose_hits(
-    client: MTurkClient,
-    hits: List[Dict[str, Any]],
-    quiet: bool = False,
+    client: MTurkClient, hits: List[Dict[str, Any]], quiet: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Loops over attempting to expire and dispose any hits in the hits list that can be disposed

@@ -85,7 +85,7 @@ class TaskLauncher:
         self.assignments_thread = None
 
     def _create_single_assignment(self, assignment_data) -> None:
-        """ Create a single assignment in the database using its read assignment_data """
+        """Create a single assignment in the database using its read assignment_data"""
         task_run = self.task_run
         task_config = task_run.get_task_config()
         assignment_id = self.db.new_assignment(
@@ -117,7 +117,7 @@ class TaskLauncher:
                 self.unlaunched_units[unit_id] = Unit(self.db, unit_id)
 
     def _try_generating_assignments(self) -> None:
-        """ Try to generate more assignments from the assignments_data_iterator"""
+        """Try to generate more assignments from the assignments_data_iterator"""
         while not self.finished_generators:
             try:
                 data = next(self.assignment_data_iterable)
@@ -128,7 +128,7 @@ class TaskLauncher:
             time.sleep(ASSIGNMENT_GENERATOR_WAIT_SECONDS)
 
     def create_assignments(self) -> None:
-        """ Create an assignment and associated units for the generated assignment data """
+        """Create an assignment and associated units for the generated assignment data"""
         self.keep_launching_units = True
         if self.generator_type == GeneratorType.NONE:
             for data in self.assignment_data_iterable:
@@ -179,7 +179,7 @@ class TaskLauncher:
                 break
 
     def _launch_limited_units(self, url: str) -> None:
-        """ use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
+        """use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
         while not self.finished_generators:
             for unit in self.generate_units():
                 if unit is None:

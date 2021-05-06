@@ -107,7 +107,7 @@ class ParlAIChatAgentState(AgentState):
         }
 
     def save_data(self) -> None:
-        """Save all messages from this agent to """
+        """Save all messages from this agent to"""
         agent_file = self._get_expected_data_file()
         with open(agent_file, "w+") as state_json:
             json.dump(self.get_data(), state_json)

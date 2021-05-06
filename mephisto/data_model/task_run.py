@@ -129,6 +129,7 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
             if not any(is_self_set):
                 units += unit_set
         valid_units = [u for u in units if u.get_status() == AssignmentState.LAUNCHED]
+        logger.debug(f"Found {len(valid_units)} available units")
 
         # Should load cached blueprint for SharedTaskState
         blueprint = self.get_blueprint()
@@ -138,6 +139,7 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
             if blueprint.shared_state.worker_can_do_unit(worker, u)
         ]
 
+        logger.debug(f"This worker is qualified for {len(ret_units)} unit.")
         logger.debug(f"Found {ret_units[:3]} for {worker}.")
         return ret_units
 
@@ -256,7 +258,7 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
         }
 
     def update_completion_progress(self, task_launcher=None, status=None) -> None:
-        """ Flag the task run that the assignments' generator has finished """
+        """Flag the task run that the assignments' generator has finished"""
         if task_launcher:
             if task_launcher.get_assignments_are_all_created():
                 self.assignments_generator_done = True
