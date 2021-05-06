@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import cx from "classnames";
 import { useStore } from "global-context-store";
+import { Icon } from "@blueprintjs/core";
 
 const LayerContext = React.createContext({ stack: [] });
 
@@ -8,6 +9,7 @@ function Layer({
   displayName,
   icon,
   secondaryIcon = "",
+  secondaryLabel = "",
   children,
   component,
   actions = null,
@@ -85,21 +87,20 @@ function Layer({
               "bp3-icon-standard"
             )}
           ></span>
-          {icon ? (
-            <span
-              className={cx(
-                "bp3-tree-node-icon bp3-icon-standard",
-                "bp3-icon-" + icon
-              )}
-            ></span>
-          ) : null}
+          {icon ? <Icon className="bp3-tree-node-icon" icon={icon} /> : null}
           <span className="bp3-tree-node-label">{displayName}</span>
-          <span
-            className={cx(
-              "bp3-tree-node-secondary-label bp3-icon-standard",
-              "bp3-icon-" + secondaryIcon
-            )}
-          ></span>
+          {secondaryLabel ? (
+            <span
+              style={{ marginRight: 5, opacity: 0.8, fontSize: 12 }}
+              className={cx("bp3-tree-node-secondary-label")}
+            >
+              {secondaryLabel}
+            </span>
+          ) : null}
+          <Icon icon={secondaryIcon} />
+          {/* <span
+            className={"bp3-icon-standard bp3-icon-" + secondaryIcon}
+          ></span> */}
         </div>
         {children && expanded ? (
           <ul className="bp3-tree-node-list">{children}</ul>

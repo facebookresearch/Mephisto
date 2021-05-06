@@ -1,7 +1,13 @@
 # vNext
-- The `layerButtons` object now accepts an `intent` property which can be used to color-code buttons.
-- The `<VideoPlayer />` accepts a `videoPlayerProps` object that can be used to forward props to the underlying `react-video-player` object.
-- The Layers panel is now scrollable.
+- **ENHANCEMENT** The `layerButtons` object now accepts an `intent` property which can be used to color-code buttons.
+- **ENHANCEMENT** The `<VideoPlayer />` accepts a `videoPlayerProps` object that can be used to forward props to the underlying `react-video-player` object.
+- **ENHANCEMENT** The Layers Panel is now scrollable.
+- **NEW** `<AppShell />` accepts an `instructionsPane` renderProp to draw out an information panel on the top right hand corner of the screen above the actions pane.
+- **FIX** Big performance bump by avoiding unnecessary renders within the LayerPanel.
+- **FIX** Fix character encoding of active layer actions indicator.
+- **NEW** Add support for `secondaryLabel` which works similar to `secondaryIcon` for `<Layer />` components.
+- **NEW** A portal ref component is available via global state at `_unsafe.portalRef` for other BlueprintJS components such as dialogs and modals to use.
+- **NEW** `contextHeight` prop for the `<AppShell />` to control the height of the Context Panel. Default: `200px`.
 
 # v1.1.0
 - **ENHANCEMENT** A helpful message is shown when `<AppShell />` is missing a `layers={...}` prop.

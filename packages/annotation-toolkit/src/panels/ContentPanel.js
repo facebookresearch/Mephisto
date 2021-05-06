@@ -147,12 +147,22 @@ function ContentPanel({ instructionPane: InstructionPane }) {
             {gatheredActions.actions.length === 0 && state.selectedLayer ? (
               <MenuDivider
                 icon={"layer"}
-                title={state.selectedLayer.join(" / ") + " ⬩"}
+                title={
+                  state.selectedLayer.join(" / ") +
+                  " " +
+                  String.fromCharCode(11049)
+                }
               />
             ) : null}
             {gatheredActions.actions.map((action, idx) => (
               <React.Fragment key={idx}>
-                <MenuDivider title={gatheredActions.actionPaths[idx] + " ⬩"} />
+                <MenuDivider
+                  title={
+                    gatheredActions.actionPaths[idx] +
+                    " " +
+                    String.fromCharCode(11049)
+                  }
+                />
                 {action}
               </React.Fragment>
             ))}
