@@ -268,7 +268,7 @@ def find_or_create_qualification(
             QualificationTypeStatus="Active",
         )
     except ClientError as e:
-        msg = e.response.get("Error", {}).get("Message", {})
+        msg = e.response.get("Error", {}).get("Message")
         if msg is not None and msg.startswith(QUALIFICATION_TYPE_EXISTS_MESSAGE):
             # Created this qualification somewhere else - find instead
             found_qual, qual_id = _try_finding_qual_id()
