@@ -13,8 +13,7 @@ from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 from datetime import datetime
 
 from botocore import client
-from botocore.exceptions import ClientError
-from botocore.exceptions import ProfileNotFound
+from botocore.exceptions import ClientError, ProfileNotFound
 from botocore.config import Config
 from omegaconf import DictConfig
 
@@ -36,6 +35,10 @@ MTurkClient = Any
 MTURK_LOCALE_REQUIREMENT = "00000000000000000071"
 
 botoconfig = Config(retries=dict(max_attempts=10))
+
+QUALIFICATION_TYPE_EXISTS_MESSAGE = (
+    "You have already created a QualificationType with this name."
+)
 
 
 def client_is_sandbox(client: MTurkClient) -> bool:
@@ -241,22 +244,39 @@ def find_or_create_qualification(
     it exists and must_be_owned is true but we don't own it, this returns none.
     If it doesn't exist, the qualification is created
     """
-    qual_usable, qual_id = find_qualification(
-        client, qualification_name, must_be_owned=must_be_owned
-    )
 
-    if qual_usable is False:
-        return None
+    def _try_finding_qual_id():
+        qual_usable, qual_id = find_qualification(
+            client, qualification_name, must_be_owned=must_be_owned
+        )
+        if qual_id is None:
+            return False, None
+        elif qual_usable is False:
+            return True, None
+        else:
+            return True, qual_id
 
-    if qual_id is not None:
+    found_qual, qual_id = _try_finding_qual_id()
+    if found_qual:
         return qual_id
 
     # Create the qualification, as it doesn't exist yet
-    response = client.create_qualification_type(
-        Name=qualification_name,
-        Description=description,
-        QualificationTypeStatus="Active",
-    )
+    try:
+        response = client.create_qualification_type(
+            Name=qualification_name,
+            Description=description,
+            QualificationTypeStatus="Active",
+        )
+    except ClientError as e:
+        msg = e.response.get("Error", {}).get("Message", {})
+        if msg is not None and msg.startswith(QUALIFICATION_TYPE_EXISTS_MESSAGE):
+            # Created this qualification somewhere else - find instead
+            found_qual, qual_id = _try_finding_qual_id()
+            assert found_qual, "Qualification exists, but could not be found?"
+            return qual_id
+        else:
+            raise e
+
     return response["QualificationType"]["QualificationTypeId"]
 
 
