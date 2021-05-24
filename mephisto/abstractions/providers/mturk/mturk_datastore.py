@@ -185,7 +185,6 @@ class MTurkDatastore:
                 """,
                 (assignment_id, unit_id, hit_id),
             )
-            conn.commit()
             if unit_id is not None:
                 self._mark_hit_mapping_update(unit_id)
 
@@ -194,8 +193,7 @@ class MTurkDatastore:
         Clear the hit mapping that maps the given unit,
         if such a unit-hit map exists
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """
@@ -221,7 +219,6 @@ class MTurkDatastore:
                 """,
                 (None, None, result_hit_id),
             )
-            conn.commit()
             self._mark_hit_mapping_update(unit_id)
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
