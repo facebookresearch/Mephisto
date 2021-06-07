@@ -64,6 +64,9 @@ When a `<Layer />` is selected, it will render in the main Content panel. Layers
 
 A full list of the properties of a `<Layer />` are as follows:
 
+
+### `<Layer />`
+
 - `displayName`: `string` The name that shows up in the left hand Layers panel for the layer.
 - `icon`: `string` A `@blueprintjs/icons` name. Shows up on the left hand side. Highly recommended to specify one.
 - `secondaryIcon`: `string` A `@blueprintjs/icons` name. Shows up on the right hand side. Optional.
@@ -74,3 +77,32 @@ A full list of the properties of a `<Layer />` are as follows:
 - `onWithGroup` - `bool` Always show this layer if it, or one of it's sibling, or it's parent is selected.
 - `getData({ store })` - `function` If you would like the rendered component of this layer to receive dynamic props, e.g. as the state of the app updates, you can implement this function. It receives as args a `store` object that represents an instance of the `global-context-store`.
 - `onSelect({ store })` - `function` Code to execute when this layer is selected. It receives as args a `store` object that represents an instance of the `global-context-store`.
+- `hideName` - `bool` Whether or not to hide the name of the layer in the Layers panel. If the layer name is hidden, this also makes the layer unselectable, though if `alwaysOn = true` then the layer can still be functional. Default: `false`
+
+---
+
+There are also several included components that can be used with the `component` render prop of a `<Layer />`.
+
+### `<BBoxFrame />`
+
+- `label` - Default: `""`
+- `color` - Default: `"red"`
+- `getCoords({ store} )` 
+- `displayWhen({ store })` - Default: `() => true`
+- `frameHeight`
+- `frameWidth`
+- `rectStyles`
+
+### `<VideoPlayer />`
+
+- `src`
+- `fps`
+- `scale`
+- `width`
+- `height`
+
+Updates it's data state with:
+- `duration`
+- `detectedSize`: `[width, height]`
+- `playedSeconds`
+- `playing`: `boolean`

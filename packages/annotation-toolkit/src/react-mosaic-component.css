@@ -395,7 +395,7 @@
   .mosaic-preview
   .mosaic-window-controls
   .bp3-button:before {
-  color: #738694;
+  /* color: #738694; */
 }
 .mosaic.mosaic-blueprint-theme .mosaic-window .mosaic-window-body,
 .mosaic.mosaic-blueprint-theme .mosaic-preview .mosaic-window-body {
@@ -430,7 +430,7 @@
   .mosaic-preview
   .mosaic-window-additional-actions-bar
   .bp3-button:before {
-  color: #738694;
+  /* color: #738694; */
 }
 .mosaic.mosaic-blueprint-theme
   .mosaic-window.additional-controls-open

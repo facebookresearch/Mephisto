@@ -1,8 +1,10 @@
-import { Navbar, Alignment } from "@blueprintjs/core";
 import React from "react";
+import { Navbar, Alignment, Card, Elevation, H3 } from "@blueprintjs/core";
 import ContentPanel from "./panels/ContentPanel";
 import LayersPanel from "./panels/LayersPanel";
+import Layer from "./layers/Layer";
 import cx from "classnames";
+import { Button } from "@blueprintjs/core";
 
 function Window({ title, children, buttons, bodyClassNames = [] }) {
   return (
@@ -14,14 +16,16 @@ function Window({ title, children, buttons, bodyClassNames = [] }) {
         {buttons ? (
           <div className="mosaic-window-controls bp3-button-group">
             {buttons.map((button, idx) => (
-              <button
+              <Button
+                intent={button.intent}
                 key={idx + "-" + button.title}
                 title={button.title}
+                onClick={() => button.action && button.action()}
                 className={
                   "mosaic-default-control bp3-button bp3-minimal bp3-icon-" +
                   button.icon
                 }
-              ></button>
+              ></Button>
             ))}
           </div>
         ) : null}
@@ -33,11 +37,71 @@ function Window({ title, children, buttons, bodyClassNames = [] }) {
   );
 }
 
+function DefaultInstructionalLayer() {
+  const i = (n = 1) => `\n${new Array(n * 2).fill(" ").join("")}`;
+  return (
+    <Layer
+      displayName="No Layers Specified"
+      icon="warning-sign"
+      component={() => {
+        return (
+          <Card className="bp3-dark" elevation={Elevation.ONE}>
+            <H3>You have not specified any layers.</H3>
+            <p>
+              You likely left out the <code>layers</code> prop for{" "}
+              <code>{"<AppShell />"}</code>.
+            </p>
+            <p>
+              To get up and running with the <code>annotation-toolkit</code>, go
+              ahead and specify one or more layers:
+            </p>
+
+            <pre>
+              {`<AppShell layers={() => <>${i(
+                1
+              )}<Layer displayName='My First Layer' component={() => <div>First layer</div>} />` +
+                `${i(
+                  1
+                )}<Layer displayName='My Second Layer' component={() => <div>Second layer</div>} />${i(
+                  0
+                )}</>} />`}
+            </pre>
+
+            <p>
+              More documentation on the <code>{"<Layer />"}</code> component can
+              be found{" "}
+              <a
+                style={{ fontWeight: "bold" }}
+                target="_blank"
+                href="https://github.com/facebookresearch/Mephisto/tree/master/packages/annotation-toolkit"
+              >
+                here
+              </a>
+              .
+            </p>
+
+            <hr className="bp3-menu-divider" />
+
+            <p>
+              Note: If you intentionally wanted to specify no layers and want to
+              hide this prompt, write the following:
+            </p>
+
+            <pre>{"<AppShell layers={() => null} />"}</pre>
+          </Card>
+        );
+      }}
+    />
+  );
+}
+
 function AppShell({
   showNavbar = false,
-  layers,
+  layers = () => <DefaultInstructionalLayer />,
+  layerButtons = [],
   showDebugPane = false,
   contextPanel: ContextPanel = () => null,
+  instructionPane = null,
 }) {
   return (
     <div className="full">
@@ -63,7 +127,7 @@ function AppShell({
             className="mosaic-tile"
             style={{ inset: "0% calc(100% - 300px) 0% 0%" }}
           >
-            <Window title="Layers">
+            <Window title="Layers" buttons={layerButtons}>
               <LayersPanel layers={layers} showDebugPane={showDebugPane} />
             </Window>
           </div>
@@ -79,7 +143,7 @@ function AppShell({
                 },
               ]}
             >
-              <ContentPanel />
+              <ContentPanel instructionPane={instructionPane} />
             </Window>
           </div>
           <div

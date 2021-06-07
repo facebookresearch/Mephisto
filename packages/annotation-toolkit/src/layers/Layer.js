@@ -13,6 +13,8 @@ function Layer({
   actions = null,
   noPointerEvents,
   alwaysOn = false,
+  hideName = false,
+  hideActionsIfUnselected = false,
   onWithGroup,
   getData = () => ({}),
   onSelect = () => {},
@@ -25,7 +27,7 @@ function Layer({
   const layerStack = [...layerContext.stack, displayName];
 
   const layerId = layerStack.join("|");
-  const path = ["layers", layerId];
+  const path = ["layers", layerId, "config"];
   const isRegistered = !!get(path);
   React.useEffect(() => {
     if (!isRegistered) {
@@ -36,6 +38,7 @@ function Layer({
         onWithGroup,
         id: layerId,
         noPointerEvents,
+        hideActionsIfUnselected,
         getData,
         onSelect,
       });
@@ -47,7 +50,7 @@ function Layer({
       set("selectedLayer", name);
 
       const layerId = layerStack.join("|");
-      const path = ["layers", layerId];
+      const path = ["layers", layerId, "config"];
       const layer = get(path);
       layer.onSelect({ store });
     },
@@ -59,6 +62,7 @@ function Layer({
     : false;
   const depth = layerStack.length - 1;
 
+  if (hideName) return null;
   return (
     <LayerContext.Provider value={{ stack: layerStack }}>
       <li

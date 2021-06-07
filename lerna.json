@@ -1,5 +1,5 @@
 {
   "packages": ["packages/*"],
   "version": "independent",
-  "npmClientArgs": ["--legacy-peer-deps"]
+  "npmClientArgs": ["--legacy-peer-deps", "--no-package-lock"]
 }
