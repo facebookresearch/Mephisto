@@ -1,0 +1,91 @@
+.frame > div {
+  position: absolute;
+  border: 1px solid #eb5648;
+}
+
+.frame .square {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: white;
+  border: 1px solid #eb5648;
+  border-radius: 1px;
+}
+.frame .resizable-handler {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  z-index: 1;
+}
+.frame .resizable-handler.tl,
+.frame .resizable-handler.t,
+.frame .resizable-handler.tr {
+  top: -7px;
+}
+.frame .resizable-handler.tl,
+.frame .resizable-handler.l,
+.frame .resizable-handler.bl {
+  left: -7px;
+}
+.frame .resizable-handler.bl,
+.frame .resizable-handler.b,
+.frame .resizable-handler.br {
+  bottom: -7px;
+}
+.frame .resizable-handler.br,
+.frame .resizable-handler.r,
+.frame .resizable-handler.tr {
+  right: -7px;
+}
+.frame .resizable-handler.l,
+.frame .resizable-handler.r {
+  margin-top: -7px;
+}
+.frame .resizable-handler.t,
+.frame .resizable-handler.b {
+  margin-left: -7px;
+}
+
+.frame .rotate {
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.frame .t,
+.frame .tl,
+.frame .tr {
+  top: -3px;
+}
+.frame .b,
+.frame .bl,
+.frame .br {
+  bottom: -3px;
+}
+.frame .r,
+.frame .tr,
+.frame .br {
+  right: -3px;
+}
+.frame .tl,
+.frame .l,
+.frame .bl {
+  left: -3px;
+}
+.frame .l,
+.frame .r {
+  top: 50%;
+  margin-top: -3px;
+}
+.frame .t,
+.frame .b {
+  left: 50%;
+  margin-left: -3px;
+}

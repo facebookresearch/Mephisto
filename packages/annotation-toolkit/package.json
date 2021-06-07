@@ -52,5 +52,9 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-player": "^2.9.0"
+  },
+  "dependencies": {
+    "classnames": "^2.3.1",
+    "keyframes": "^2.3.0"
   }
 }

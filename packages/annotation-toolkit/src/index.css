@@ -100,3 +100,32 @@ body,
 .debug-panel .bp3-tab-panel {
   height: 100%;
 }
+
+/** vvvv Custom styles for MovableRect */
+div.frame div.rect {
+  border-width: 2px;
+  opacity: 1;
+  background-color: rgba(235, 86, 72, 0.3);
+  border-style: dashed;
+}
+
+div.keyframe div.rect {
+  /* border: 2px solid cyan; */
+  border-style: solid;
+}
+
+div.frame.selected div.rect {
+  /* opacity: 1; */
+  background-color: transparent;
+  border-color: cyan;
+}
+
+div.frame.selected div.square {
+  border: 2px solid cyan;
+}
+
+div.immovable div.square {
+  border: 2px solid transparent;
+  background: none;
+}
+/** ^^^^ Custom styles for MovableRect */
