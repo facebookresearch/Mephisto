@@ -83,10 +83,11 @@ function Layer({
             onClick={() => setExpanded(!expanded)}
             className={cx(
               expanded ? "bp3-tree-node-caret-open" : "",
-              children ? "bp3-tree-node-caret" : "bp3-tree-node-caret-none",
-              "bp3-icon-standard"
+              children ? "bp3-tree-node-caret" : "bp3-tree-node-caret-none"
             )}
-          ></span>
+          >
+            <Icon icon={children ? "caret-right" : "empty"} />
+          </span>
           {icon ? <Icon className="bp3-tree-node-icon" icon={icon} /> : null}
           <span className="bp3-tree-node-label">{displayName}</span>
           {secondaryLabel ? (

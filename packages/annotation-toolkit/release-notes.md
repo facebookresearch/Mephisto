@@ -1,4 +1,17 @@
 # vNext
+- **NEW** Support for generating `<VideoPlayer />` screenshots via the requests queue. Usage:
+  ```js
+  push(requestsPathFor("Video"), {
+    type: "screenshot",
+    payload: {
+      size: [x, y, cropWidth, cropHeight], // size is of original dimensions before videoScale is applied
+      callback: (info) => {
+        // info is the base64 encoded image data
+      },
+    }   
+  })
+  ```
+
 - **ENHANCEMENT** The `layerButtons` object now accepts an `intent` property which can be used to color-code buttons.
 - **ENHANCEMENT** The `<VideoPlayer />` accepts a `videoPlayerProps` object that can be used to forward props to the underlying `react-video-player` object.
 - **ENHANCEMENT** The Layers Panel is now scrollable.
