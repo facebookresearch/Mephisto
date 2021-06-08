@@ -3,6 +3,7 @@ import ReactPlayer from "react-player";
 import { useStore } from "global-context-store";
 import { Spinner } from "@blueprintjs/core";
 import { dataPathBuilderFor, requestsPathFor } from "../helpers";
+import { LayerContext } from "./Layer";
 
 export default function VideoPlayer({
   id,
@@ -17,6 +18,9 @@ export default function VideoPlayer({
   const { set, get } = store;
   const vidRef = useRef();
   const canvasRef = useRef();
+
+  const layerInfo = useContext(LayerContext);
+  id = id || layerInfo?.id || undefined;
 
   const [detectedSize, setDetectedSize] = React.useState([10, 10]);
   const [videoLoaded, setVideoLoaded] = React.useState(false);

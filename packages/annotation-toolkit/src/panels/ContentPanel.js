@@ -4,6 +4,7 @@ import { isFunction } from "../utils";
 import mapValues from "lodash.mapvalues";
 
 import { Menu, MenuDivider, Classes, Card } from "@blueprintjs/core";
+import { LayerContext } from "../layers/Layer";
 
 function ContentPanel({ instructionPane: InstructionPane }) {
   const store = useStore();
@@ -21,7 +22,13 @@ function ContentPanel({ instructionPane: InstructionPane }) {
   let layers = get(["layers"]);
   if (!layers) return null;
   layers = mapValues(layers, (layer) => layer.config);
-  const alwaysOnLayers = Object.values(layers).filter((layer) => {
+  const alwaysOnLayers = Object.entries(layers).filter(([layerName, layer]) => {
+    console.log(layerName, layer);
+    if (!layer) {
+      throw new Error(
+        `Could not find any Layer registered with id: "${layerName}"`
+      );
+    }
     return (
       layer.alwaysOn === true ||
       (isFunction(layer.alwaysOn) && layer.alwaysOn())
@@ -83,10 +90,12 @@ function ContentPanel({ instructionPane: InstructionPane }) {
             pointerEvents: selectedLayer.noPointerEvents ? "none" : "auto",
           }}
         >
-          <SelectedViewComponent
-            id={selectedLayer.id}
-            {...selectedLayer.getData({ store })}
-          />
+          <LayerContext.Provider value={{ id: selectedLayer.id }}>
+            <SelectedViewComponent
+              id={selectedLayer.id}
+              {...selectedLayer.getData({ store })}
+            />
+          </LayerContext.Provider>
         </div>
       ) : null}
       {[...alwaysOnLayers, ...groupedLayers].map((layer) =>
@@ -99,7 +108,9 @@ function ContentPanel({ instructionPane: InstructionPane }) {
               pointerEvents: layer.noPointerEvents ? "none" : "auto",
             }}
           >
-            <layer.component id={layer.id} {...layer.getData({ store })} />
+            <LayerContext.Provider value={{ id: layer.id }}>
+              <layer.component id={layer.id} {...layer.getData({ store })} />
+            </LayerContext.Provider>
           </div>
         )
       )}

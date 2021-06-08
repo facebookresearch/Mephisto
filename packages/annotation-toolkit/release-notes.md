@@ -1,4 +1,4 @@
-# vNext
+# v1.1.1
 - **NEW** Support for generating `<VideoPlayer />` screenshots via the requests queue. Usage:
   ```js
   push(requestsPathFor("Video"), {
@@ -11,7 +11,7 @@
     }   
   })
   ```
-
+- **FIX** The `<VideoPlayer />` no longer requires an `id` property. This requirement was introduced as an unintentional constraint in v1.1.0 and wasn't present in v1.0.x. It will automatically detect its `id` via context if none is provided. If one is provided, it will use that instead (however this id MUST correspond to an already defined `id` for another layer). In shell-mode, we now print a nice error message when an `id` if no layer is found matching this `id`. In standalone mode, this `id` can be any arbitrarily created `id`.
 - **ENHANCEMENT** The `layerButtons` object now accepts an `intent` property which can be used to color-code buttons.
 - **ENHANCEMENT** The `<VideoPlayer />` accepts a `videoPlayerProps` object that can be used to forward props to the underlying `react-video-player` object.
 - **ENHANCEMENT** The Layers Panel is now scrollable.

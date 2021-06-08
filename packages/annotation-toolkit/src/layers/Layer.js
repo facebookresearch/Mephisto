@@ -41,6 +41,7 @@ function Layer({
         id: layerId,
         noPointerEvents,
         hideActionsIfUnselected,
+        layerStack,
         getData,
         onSelect,
       });
@@ -112,3 +113,4 @@ function Layer({
 }
 
 export default Layer;
+export { LayerContext };
