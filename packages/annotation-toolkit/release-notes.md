@@ -7,6 +7,9 @@
     ```
 - **TODO** - Rename getTs to getFrame
 - **TODO** - Add finalizeData helper to allow exporting interpolated frame data
+- **TODO** - Add greater css specificity for css styles to avoid conflicts
+- **TODO** - refactor reused code
+- **TODO** - Confirm that no more props need to be extracted
 
 # v1.1.1
 - **NEW** Support for generating `<VideoPlayer />` screenshots via the requests queue. Usage:
