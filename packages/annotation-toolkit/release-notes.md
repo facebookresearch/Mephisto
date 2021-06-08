@@ -1,3 +1,13 @@
+# vNext
+- **NEW** Adds in the `<MovableRect />` component with built-in linear interpolation between keyframes. Usage:
+   ```js
+   <MovableRect defaultBox={[50, 200, 100, 100]} getFrame={() => {
+        return currentFrameNumber;
+    }} />
+    ```
+- **TODO** - Rename getTs to getFrame
+- **TODO** - Add finalizeData helper to allow exporting interpolated frame data
+
 # v1.1.1
 - **NEW** Support for generating `<VideoPlayer />` screenshots via the requests queue. Usage:
   ```js
