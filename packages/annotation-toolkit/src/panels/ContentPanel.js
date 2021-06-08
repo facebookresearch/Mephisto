@@ -23,7 +23,6 @@ function ContentPanel({ instructionPane: InstructionPane }) {
   if (!layers) return null;
   layers = mapValues(layers, (layer) => layer.config);
   const alwaysOnLayers = Object.entries(layers).filter(([layerName, layer]) => {
-    console.log(layerName, layer);
     if (!layer) {
       throw new Error(
         `Could not find any Layer registered with id: "${layerName}"`

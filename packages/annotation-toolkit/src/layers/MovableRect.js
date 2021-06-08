@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import keyframes from "keyframes";
 import cx from "classnames";
 import ResizableRect from "./RRRR";
 import { requestsPathFor, dataPathBuilderFor } from "../helpers";
 import { useStore } from "global-context-store";
+import { LayerContext } from "./Layer";
+
 import "./RRRR/react-rect.css";
 // import { FrameContextConsumer } from "react-frame-component";
 
@@ -20,6 +22,9 @@ export default function MovableRect({
   // TODO: Don't hardcode
   const FPS = 30;
   const VIDEO_SCALE = 0.5;
+
+  const layerInfo = useContext(LayerContext);
+  id = id || layerInfo?.id || undefined;
 
   const path = dataPathBuilderFor(id);
   const vidData = dataPathBuilderFor("Video");
