@@ -5,13 +5,18 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.agent import Agent
+from mephisto.data_model.packet import Packet
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.abstractions.providers.mturk.mturk_utils import (
     approve_work,
     reject_work,
     get_assignment,
+    get_assignments_for_hit,
 )
+
+import xmltodict
+import json
 
 from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
 
@@ -76,6 +81,34 @@ class MTurkAgent(Agent):
             provider_data["hit_id"], provider_data["assignment_id"]
         )
         return super().new_from_provider_data(db, worker, unit, provider_data)
+
+    def attempt_to_reconcile_submitted_data(self, mturk_hit_id: str):
+        """
+        Hacky attempt to load the data directly from MTurk to handle
+        data submitted that we missed somehow. Chance of failure is
+        certainly non-zero.
+        """
+        client = self._get_client()
+        assignment = get_assignments_for_hit(client, mturk_hit_id)[0]
+        xml_data = xmltodict.parse(assignment["Answer"])
+        paired_data = json.loads(json.dumps(xml_data["QuestionFormAnswers"]["Answer"]))
+        parsed_data = {
+            entry["QuestionIdentifier"]: entry["FreeText"] for entry in paired_data
+        }
+        parsed_data["MEPHISTO_MTURK_RECONCILED"] = True
+        packet = Packet(
+            packet_type=input_dict["packet_type"],
+            sender_id=input_dict["sender_id"],
+            receiver_id="mephisto",
+            data={
+                "task_data": parsed_data,
+                "MEPHISTO_is_submit": True,
+                "files": [],
+            },
+        )
+        agent.pending_actions.append(packet)
+        agent.has_action.set()
+        agent.did_submit.set()
 
     # Required functions for Agent Interface
 

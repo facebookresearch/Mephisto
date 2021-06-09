@@ -192,3 +192,6 @@ antlr4-python3-runtime==4.8 \
 tqdm==4.50.2 \
     --hash=sha256:43ca183da3367578ebf2f1c2e3111d51ea161ed1dc4e6345b86e27c2a93beff7 \
     --hash=sha256:69dfa6714dee976e2425a9aab84b622675b7b1742873041e3db8a8e86132a4af
+xmltodict==0.12.0 \
+    --hash=sha256:50d8c638ed7ecb88d90561beedbf720c9b4e851a9fa6c47ebd64e99d166d8a21 \
+    --hash=sha256:8bbcb45cc982f48b2ca8fe7e7827c5d792f217ecf1792626f808bf41c3b86051
