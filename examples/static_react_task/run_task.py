@@ -21,6 +21,7 @@ import hydra
 from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any
+import time
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -78,11 +79,17 @@ def main(cfg: DictConfig) -> None:
     def onboarding_always_valid(onboarding_data):
         return True
 
+    def task_data_generator():
+        for x in range(5):
+            time.sleep(5)
+            yield {"text": f"This text comes from task number {x}"}
+
     shared_state = SharedStaticTaskState(
-        static_task_data=[
-            {"text": "This text is good text!"},
-            {"text": "This text is bad text!"},
-        ],
+        # static_task_data=[
+        #     {"text": "This text is good text!"},
+        #     {"text": "This text is bad text!"},
+        # ],
+        static_task_data=task_data_generator(),
         validate_onboarding=onboarding_always_valid,
     )
 

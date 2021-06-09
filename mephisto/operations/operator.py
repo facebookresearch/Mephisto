@@ -249,7 +249,7 @@ class Operator:
                 task_run, run_config, shared_state, task_url
             )
 
-            initialization_data_array = blueprint.get_initialization_data()
+            initialization_data_iterable = blueprint.get_initialization_data()
 
             # Link the job together
             job = self.supervisor.register_job(
@@ -273,7 +273,7 @@ class Operator:
         launcher = TaskLauncher(
             self.db,
             task_run,
-            initialization_data_array,
+            initialization_data_iterable,
             max_num_concurrent_units=run_config.task.max_num_concurrent_units,
         )
         launcher.create_assignments()
