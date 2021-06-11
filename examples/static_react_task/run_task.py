@@ -79,17 +79,11 @@ def main(cfg: DictConfig) -> None:
     def onboarding_always_valid(onboarding_data):
         return True
 
-    def task_data_generator():
-        for x in range(5):
-            time.sleep(5)
-            yield {"text": f"This text comes from task number {x}"}
-
     shared_state = SharedStaticTaskState(
-        # static_task_data=[
-        #     {"text": "This text is good text!"},
-        #     {"text": "This text is bad text!"},
-        # ],
-        static_task_data=task_data_generator(),
+        static_task_data=[
+            {"text": "This text is good text!"},
+            {"text": "This text is bad text!"},
+        ],
         validate_onboarding=onboarding_always_valid,
     )
 

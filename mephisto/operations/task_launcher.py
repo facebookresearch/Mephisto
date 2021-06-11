@@ -123,6 +123,7 @@ class TaskLauncher:
                 data = next(self.assignment_data_iterable)
                 self._create_single_assignment(data)
             except StopIteration:
+                print("Generation finished")
                 self.finished_generators = True
                 self.assignment_thread_done = True
             time.sleep(ASSIGNMENT_GENERATOR_WAIT_SECONDS)
