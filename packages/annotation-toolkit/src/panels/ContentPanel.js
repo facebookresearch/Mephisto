@@ -22,17 +22,19 @@ function ContentPanel({ instructionPane: InstructionPane }) {
   let layers = get(["layers"]);
   if (!layers) return null;
   layers = mapValues(layers, (layer) => layer.config);
-  const alwaysOnLayers = Object.entries(layers).filter(([layerName, layer]) => {
-    if (!layer) {
-      throw new Error(
-        `Could not find any Layer registered with id: "${layerName}"`
+  const alwaysOnLayers = Object.entries(layers)
+    .filter(([layerName, layer]) => {
+      if (!layer) {
+        throw new Error(
+          `Could not find any Layer registered with id: "${layerName}"`
+        );
+      }
+      return (
+        layer.alwaysOn === true ||
+        (isFunction(layer.alwaysOn) && layer.alwaysOn())
       );
-    }
-    return (
-      layer.alwaysOn === true ||
-      (isFunction(layer.alwaysOn) && layer.alwaysOn())
-    );
-  });
+    })
+    .map(([_, layer]) => layer);
   const groupedLayers = Object.values(layers).filter((layer) => {
     return (
       layer.onWithGroup === true &&
