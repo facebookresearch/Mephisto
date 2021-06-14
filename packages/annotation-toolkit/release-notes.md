@@ -1,4 +1,4 @@
-# vNext
+# v1.1.2-beta
 - **NEW** Adds in the `<MovableRect />` component with built-in linear interpolation between keyframes. Usage:
    ```js
    <MovableRect defaultBox={[50, 200, 100, 100]} getFrame={() => {
