@@ -259,7 +259,9 @@ class MockServer(tornado.web.Application):
         """
         Start the primary loop for this application
         """
-        self.__server_thread = threading.Thread(target=self.__server_thread_fn)
+        self.__server_thread = threading.Thread(
+            target=self.__server_thread_fn, name="mock-server-thread"
+        )
         self.__server_thread.start()
 
     def shutdown_mock(self):

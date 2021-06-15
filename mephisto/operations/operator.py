@@ -299,7 +299,7 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
-                if not tracked_run.task_launcher.finished_generators:
+                if tracked_run.task_launcher.finished_generators is False:
                     # If the run can still generate assignments, it's
                     # definitely not done
                     continue
