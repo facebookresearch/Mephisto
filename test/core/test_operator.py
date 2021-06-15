@@ -12,6 +12,7 @@ import os
 import tempfile
 import time
 import threading
+from unittest.mock import patch
 
 from mephisto.abstractions.test.utils import get_test_requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -28,7 +29,7 @@ from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintAr
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
-TIMEOUT_TIME = 10
+TIMEOUT_TIME = 15
 
 
 MOCK_TASK_ARGS = TaskConfigArgs(
@@ -87,6 +88,7 @@ class OperatorBaseTest(object):
         """Quick test to ensure that the operator can be initialized"""
         self.operator = Operator(self.db)
 
+    @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_job_concurrent(self):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
@@ -152,6 +154,7 @@ class OperatorBaseTest(object):
         assignment = task_run.get_assignments()[0]
         self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
+    @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_job_not_concurrent(self):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
@@ -217,6 +220,7 @@ class OperatorBaseTest(object):
         assignment = task_run.get_assignments()[0]
         self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
+    @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_jobs_with_restrictions(self):
         """Ensure allowed_concurrent and maximum_units_per_worker work"""
         self.operator = Operator(self.db)

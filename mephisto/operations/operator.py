@@ -249,7 +249,7 @@ class Operator:
                 task_run, run_config, shared_state, task_url
             )
 
-            initialization_data_array = blueprint.get_initialization_data()
+            initialization_data_iterable = blueprint.get_initialization_data()
 
             # Link the job together
             job = self.supervisor.register_job(
@@ -273,7 +273,7 @@ class Operator:
         launcher = TaskLauncher(
             self.db,
             task_run,
-            initialization_data_array,
+            initialization_data_iterable,
             max_num_concurrent_units=run_config.task.max_num_concurrent_units,
         )
         launcher.create_assignments()
@@ -299,6 +299,10 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
+                if tracked_run.task_launcher.finished_generators is False:
+                    # If the run can still generate assignments, it's
+                    # definitely not done
+                    continue
                 task_run.update_completion_progress(
                     task_launcher=tracked_run.task_launcher
                 )

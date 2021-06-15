@@ -75,6 +75,8 @@ class TaskLauncher:
         if isinstance(self.assignment_data_iterable, types.GeneratorType):
             self.generator_type = GeneratorType.ASSIGNMENT
             self.assignment_thread_done = False
+        elif max_num_concurrent_units != 0:
+            self.generator_type = GeneratorType.UNIT
         else:
             self.generator_type = GeneratorType.NONE
         run_dir = task_run.get_run_dir()
@@ -123,19 +125,20 @@ class TaskLauncher:
                 data = next(self.assignment_data_iterable)
                 self._create_single_assignment(data)
             except StopIteration:
-                self.finished_generators = True
                 self.assignment_thread_done = True
             time.sleep(ASSIGNMENT_GENERATOR_WAIT_SECONDS)
 
     def create_assignments(self) -> None:
         """Create an assignment and associated units for the generated assignment data"""
         self.keep_launching_units = True
-        if self.generator_type == GeneratorType.NONE:
+        if self.generator_type != GeneratorType.ASSIGNMENT:
             for data in self.assignment_data_iterable:
                 self._create_single_assignment(data)
         else:
             self.assignments_thread = threading.Thread(
-                target=self._try_generating_assignments, args=()
+                target=self._try_generating_assignments,
+                args=(),
+                name="assignment-generator",
             )
             self.assignments_thread.start()
 
@@ -180,18 +183,23 @@ class TaskLauncher:
 
     def _launch_limited_units(self, url: str) -> None:
         """use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
-        while not self.finished_generators:
+        # Continue launching if we haven't pulled the plug, so long as there are currently
+        # units to launch, or more may come in the future.
+        while not self.finished_generators and (
+            len(self.unlaunched_units) > 0 or not self.assignment_thread_done
+        ):
             for unit in self.generate_units():
                 if unit is None:
                     break
                 unit.launch(url)
             if self.generator_type == GeneratorType.NONE:
                 break
+        self.finished_generators = True
 
     def launch_units(self, url: str) -> None:
         """launch any units registered by this TaskLauncher"""
         self.units_thread = threading.Thread(
-            target=self._launch_limited_units, args=(url,)
+            target=self._launch_limited_units, args=(url,), name="unit-generator"
         )
         self.units_thread.start()
 

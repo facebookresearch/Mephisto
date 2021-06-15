@@ -221,7 +221,9 @@ class BlueprintTests(unittest.TestCase):
             cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
         task_thread = threading.Thread(
-            target=task_runner.launch_assignment, args=(assignment, agents)
+            target=task_runner.launch_assignment,
+            args=(assignment, agents),
+            name="test-task-thread",
         )
         self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
         task_thread.start()

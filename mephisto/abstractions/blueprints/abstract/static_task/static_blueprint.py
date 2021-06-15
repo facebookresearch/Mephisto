@@ -28,6 +28,7 @@ import os
 import time
 import csv
 import json
+import types
 
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
@@ -49,7 +50,7 @@ BLUEPRINT_TYPE = "abstract_static"
 
 @dataclass
 class SharedStaticTaskState(SharedTaskState):
-    static_task_data: List[Any] = field(default_factory=list)
+    static_task_data: Iterable[Any] = field(default_factory=list)
 
 
 @dataclass
@@ -117,7 +118,8 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
         super().__init__(task_run, args, shared_state)
         self.init_onboarding_config(task_run, args, shared_state)
 
-        self._initialization_data_dicts: List[Dict[str, Any]] = []
+        # Originally just a list of dicts, but can also be a generator of dicts
+        self._initialization_data_dicts: Iterable[Dict[str, Any]] = []
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
@@ -169,9 +171,13 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
                 jsonl_file
             ), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif shared_state.static_task_data is not None:
-            assert (
-                len(shared_state.static_task_data) > 0
-            ), "Length of data dict provided was 0"
+            if isinstance(shared_state.static_task_data, types.GeneratorType):
+                # TODO can we check something about this?
+                pass
+            else:
+                assert (
+                    len(shared_state.static_task_data) > 0
+                ), "Length of data dict provided was 0"
         else:
             raise AssertionError(
                 "Must provide one of a data csv, json, json-L, or a list of tasks"
@@ -181,12 +187,23 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
         """
         Return the InitializationData retrieved from the specified stream
         """
-        return [
-            InitializationData(
-                shared=d, unit_data=[{}] * self.args.blueprint.units_per_assignment
-            )
-            for d in self._initialization_data_dicts
-        ]
+        if isinstance(self._initialization_data_dicts, types.GeneratorType):
+
+            def data_generator() -> Iterable["InitializationData"]:
+                for item in self._initialization_data_dicts:
+                    yield InitializationData(
+                        shared=item,
+                        unit_data=[{}] * self.args.blueprint.units_per_assignment,
+                    )
+
+            return data_generator()
+        else:
+            return [
+                InitializationData(
+                    shared=d, unit_data=[{}] * self.args.blueprint.units_per_assignment
+                )
+                for d in self._initialization_data_dicts
+            ]
 
     def validate_onboarding(
         self, worker: "Worker", onboarding_agent: "OnboardingAgent"
