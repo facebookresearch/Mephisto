@@ -107,9 +107,9 @@ python-dateutil==2.8.1; python_version >= "2.7" \
 requests==2.22.0 \
     --hash=sha256:9cf5292fcd0f598c671cfc1e0d7d1a7f13bb8085e9a590f48c010551dc6c4b31 \
     --hash=sha256:11e007a8a2aa0323f5a921e9e6a2d7e4e67d9877e85773fba9ba6419025cbeb4
-s3transfer==0.2.1 \
-    --hash=sha256:b780f2411b824cb541dbcd2c713d0cb61c7d1bcadae204cdddda2b35cef493ba \
-    --hash=sha256:6efc926738a3cd576c2a79725fed9afde92378aa5c6a957e3af010cb019fac9d
+s3transfer==0.4.2 \
+    --hash=sha256:9b3752887a2880690ce628bc263d6d13a3864083aeacff4890c1c9839a5eb0bc \
+    --hash=sha256:cb022f4b16551edebbb31a377d3f09600dbada7363d8c5db7976e7f47732e1b2
 sh==1.12.14 \
     --hash=sha256:ae3258c5249493cebe73cb4e18253a41ed69262484bad36fdb3efcb8ad8870bb \
     --hash=sha256:b52bf5833ed01c7b5c5fb73a7f71b3d98d48e9b9b8764236237bdc7ecae850fc
