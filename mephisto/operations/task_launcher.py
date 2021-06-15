@@ -131,7 +131,7 @@ class TaskLauncher:
     def create_assignments(self) -> None:
         """Create an assignment and associated units for the generated assignment data"""
         self.keep_launching_units = True
-        if self.generator_type == GeneratorType.NONE:
+        if self.generator_type != GeneratorType.ASSIGNMENT:
             for data in self.assignment_data_iterable:
                 self._create_single_assignment(data)
         else:
