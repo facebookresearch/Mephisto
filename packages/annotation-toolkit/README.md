@@ -10,6 +10,19 @@ This package helps users to build out review & annotation tooling for their rese
 npm install --save annotation-toolkit global-context-store @blueprintjs/core @blueprintjs/icons
 ```
 
+##### To add CSS:
+
+```jsx
+import "annotation-toolkit/build/main.css";
+import "@blueprintjs/core/lib/css/blueprint.css";
+```
+
+To add CSS for `@blueprintjs/icons` you could link to the CDN in your HTML as such:
+
+`<link href="https://unpkg.com/@blueprintjs/icons@^3.4.0/lib/css/blueprint-icons.css" rel="stylesheet" />`
+
+Additional instructions are provided on the [BlueprintJS website](https://blueprintjs.com/docs/#blueprint/getting-started).
+
 ### Usage
 
 Basic setup:
@@ -20,9 +33,11 @@ import { AppShell } from "annotation-toolkit";
 
 // ...
 return (
-  <Store>
-    <AppShell layers={/* ... */} />
-  </Store>
+  <div style={{height: "100vh")> // You'll want to enclose the AppShell in an element with a prescribed height
+    <Store>
+      <AppShell layers={/* ... */} />
+    </Store>
+  </div>
 )
 ```
 
