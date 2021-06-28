@@ -369,9 +369,14 @@ class HerokuArchitect(Architect):
             logger.exception(e, exc_info=True)
             sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
             raise Exception(
-                "You have hit your limit on concurrent apps with heroku, which are"
-                " required to run multiple concurrent tasks.\nPlease wait for some"
-                " of your existing tasks to complete. If you have no tasks "
+                "An exception has occurred when launching your heroku app. This "
+                "can commonly occur when you have hit your limit on concurrent "
+                "apps in heroku, especially if you are running multiple tasks "
+                "at once. It also may occur if the app-name generated for your "
+                "task is using illegal characters for heroku. Check the logs "
+                "above for confirmation.\n"
+                "If the issue is indeed the concurrent server cap, Please wait for"
+                " some of your existing tasks to complete. If you have no tasks "
                 "running, login to heroku and delete some of the running apps or "
                 "verify your account to allow more concurrent apps"
             )
