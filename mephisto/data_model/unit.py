@@ -258,6 +258,11 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
         from mephisto.abstractions.blueprint import AgentState
 
         db_status = self.db_status
+
+        # Expiration is a terminal state, and shouldn't be changed
+        if db_status == AssignmentState.EXPIRED:
+            return db_status
+
         computed_status = AssignmentState.LAUNCHED
 
         agent = self.get_assigned_agent()
