@@ -133,9 +133,6 @@ class Operator:
         """
         set_mephisto_log_level(level=run_config.get("log_level", "info"))
 
-        if shared_state is None:
-            shared_state = SharedTaskState()
-
         # First try to find the requester:
         requester_name = run_config.provider.requester_name
         requesters = self.db.find_requesters(requester_name=requester_name)
@@ -162,6 +159,9 @@ class Operator:
         BlueprintClass = get_blueprint_from_type(blueprint_type)
         ArchitectClass = get_architect_from_type(architect_type)
         CrowdProviderClass = get_crowd_provider_from_type(provider_type)
+
+        if shared_state is None:
+            shared_state = BlueprintClass.SharedStateClass()
 
         BlueprintClass.assert_task_args(run_config, shared_state)
         ArchitectClass.assert_task_args(run_config, shared_state)
