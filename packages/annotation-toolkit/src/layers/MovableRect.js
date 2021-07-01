@@ -14,6 +14,7 @@ export default function MovableRect({
   preload,
   document,
   getTs,
+  getLabel,
   defaultBox,
 }) {
   const { get, set, push, state } = useStore();
@@ -325,6 +326,20 @@ export default function MovableRect({
         { selected: isSelected }
       )}
     >
+      {!getLabel ? null : (
+        <div
+          style={{
+            position: "absolute",
+            left: left,
+            top: top,
+            backgroundColor: "white",
+            color: "black",
+            zIndex: 99,
+          }}
+        >
+          {getLabel(get)}
+        </div>
+      )}
       <ResizableRect
         document={document || window.document}
         left={left}

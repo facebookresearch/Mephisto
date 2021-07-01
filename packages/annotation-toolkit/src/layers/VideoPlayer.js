@@ -58,10 +58,10 @@ export default function VideoPlayer({
           .getContext("2d")
           .drawImage(
             vidRef.current.getInternalPlayer(),
-            x / scale,
-            y / scale,
-            cropWidth / scale,
-            cropHeight / scale,
+            x,
+            y,
+            cropWidth,
+            cropHeight,
             0,
             0,
             cropWidth,
@@ -125,13 +125,21 @@ export default function VideoPlayer({
         </div>
       ) : null}
       <ReactPlayer
+        onClick={() => {
+          if (get(path("playing")) === true) {
+            vidRef.current.getInternalPlayer().pause();
+          } else {
+            vidRef.current.getInternalPlayer().play();
+          }
+        }}
         config={{
-          ...configProps,
           file: {
             attributes: {
               crossOrigin: "true",
+              controlsList: "nofullscreen",
             },
           },
+          ...configProps,
         }}
         style={{
           ...styleProps,
