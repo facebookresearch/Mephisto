@@ -5,6 +5,8 @@
   "dependencies": {
     "@blueprintjs/core": "^3.46.0",
     "@blueprintjs/icons": "^3.27.0",
+    "@storybook/addons": "^6.3.2",
+    "@storybook/theming": "^6.3.2",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -21,7 +23,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "storybook": "start-storybook -p 6006 -s public",
+    "storybook": "start-storybook -p 6006 -s public --no-manager-cache",
     "build-storybook": "build-storybook -s public"
   },
   "eslintConfig": {

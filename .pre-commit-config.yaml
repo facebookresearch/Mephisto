@@ -10,7 +10,7 @@ repos:
           )
       - id: check-yaml
       - id: check-added-large-files
-        args: ["--maxkb=2000"]
+        args: ["--maxkb=10000"]
   - repo: https://github.com/psf/black
     rev: stable
     hooks:
