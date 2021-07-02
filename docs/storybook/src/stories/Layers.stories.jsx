@@ -5,7 +5,7 @@ import { useStore } from "global-context-store";
 import { Card, Elevation } from "@blueprintjs/core";
 
 export default {
-  title: "Example/AppShell/Layers",
+  title: "Example/Layers",
   component: AppShell,
   decorators: [
     (Story) => (
@@ -18,9 +18,6 @@ export default {
 
 export const NoLayers = () => {
   return <AppShell />;
-};
-export const WithDebugPanel = () => {
-  return <AppShell showDebugPane={true} />;
 };
 export const SingleLayer = () => (
   <AppShell
@@ -199,3 +196,9 @@ export const DeeplyNestedLayers = () => {
     />
   );
 };
+
+export const TODOAlwaysOn = () => null;
+export const TODOHideName = () => null;
+export const TODONoPointerEvents = () => null;
+export const TODOOnWithGroup = () => null;
+export const TODOOnSelect = () => null;
