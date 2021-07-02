@@ -5,7 +5,7 @@ import { useStore } from "global-context-store";
 import { Card, Elevation } from "@blueprintjs/core";
 
 export default {
-  title: "Example/Layers",
+  title: "Example/1. Layers",
   component: AppShell,
   decorators: [
     (Story) => (

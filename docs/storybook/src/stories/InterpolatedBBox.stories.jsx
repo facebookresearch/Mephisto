@@ -6,7 +6,7 @@ import { useStore } from "global-context-store";
 import { MenuItem } from "@blueprintjs/core";
 
 export default {
-  title: "Example/Panels",
+  title: "Example/4. Interpolated BBox",
   component: AppShell,
   decorators: [
     (Story) => (
@@ -17,10 +17,7 @@ export default {
   ],
 };
 
-export const DebugPanel = () => {
-  return <AppShell showDebugPane={true} />;
-};
-export const TODOActionsPanel = () => {
+export const BasicBox = () => {
   return (
     <AppShell
       layers={() => (
