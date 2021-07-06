@@ -367,3 +367,32 @@ export default function MovableRect({
     </div>
   );
 }
+
+export function getInterpolatedFrames(allKeyframes) {
+  let result = [];
+  const kf = keyframes();
+  allKeyframes.forEach(kf.add.bind(kf));
+
+  if (allKeyframes.length === 0 || kf.frames.length === 0) {
+    throw new Error(
+      "MovableRect.getAllFrames() received invalid input data. Ensure keyframes exist."
+    );
+  }
+
+  const firstKf = kf.frames[0].time;
+  const lastKf = kf.frames[kf.frames.length - 1].time;
+
+  if (firstKf > lastKf) {
+    throw new Error(
+      "MovableRect.getAllFrames() received invalid input data. First keyframe is after last keyframe."
+    );
+  }
+
+  // console.groupCollapsed(layerName)
+  for (let currentFrame = firstKf; currentFrame <= lastKf; currentFrame++) {
+    const frame = kf.value(currentFrame);
+    const rescaledValue = frame.map((x) => Math.round(x));
+    result.push({ frame: currentFrame, value: rescaledValue });
+  }
+  return result;
+}
