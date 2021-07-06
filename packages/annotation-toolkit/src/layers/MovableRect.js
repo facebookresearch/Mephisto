@@ -13,16 +13,18 @@ export default function MovableRect({
   id,
   preload,
   document,
-  getTs,
+  getFrame,
   getLabel,
   defaultBox,
+  fps = 30,
 }) {
   const { get, set, push, state } = useStore();
   const k = React.useMemo(() => keyframes(), []);
 
-  // TODO: Don't hardcode
-  const FPS = 30;
-  const VIDEO_SCALE = 0.5;
+  // TODO: Don't hardcode,
+  const FPS = fps; // kept for now for backwards compat with AVD,
+  // in the future, by adding `on{Next,Previous,First,Last}Keyframe` methods,
+  // we can make this component unaware of the VideoPlayer layer id and fps.
 
   const layerInfo = useContext(LayerContext);
   id = id || layerInfo?.id || undefined;
@@ -33,7 +35,7 @@ export default function MovableRect({
   const isSelected = state.selectedLayer && state.selectedLayer[0] === id;
 
   const movable = !get(vidData("playing"));
-  //   const getTs = (get) => {
+  //   const getFrame = (get) => {
   //     const movable = !get(vidData("playing"));
   //     const playedSeconds = get(vidData("playedSeconds"));
   //     const currentFrame = Math.round(playedSeconds * FPS);
@@ -41,7 +43,7 @@ export default function MovableRect({
   //     return ts;
   //   };
 
-  const ts = getTs(get);
+  const ts = getFrame(get);
 
   const vidLength = get(vidData("duration"));
 
@@ -59,10 +61,10 @@ export default function MovableRect({
   React.useEffect(() => {
     if (preload) {
       const length = preload.length;
-      preload.forEach(({ x, y, width, height, originalFrameNumber }, idx) => {
+      preload.forEach(({ x, y, width, height, frameNumber }, idx) => {
         const frame = {
-          time: originalFrameNumber,
-          value: [x, y, width, height].map((x) => x * VIDEO_SCALE),
+          time: frameNumber,
+          value: [x, y, width, height],
         };
         k.add(frame);
         if (idx === preload.length - 1) {
@@ -84,7 +86,7 @@ export default function MovableRect({
   const process = React.useCallback(
     (req) => {
       if (req.type === "prevKf") {
-        const ts = getTs(get);
+        const ts = getFrame(get);
         const prevTs = k.previous(ts);
         if (prevTs) {
           push(requestsPathFor("Video"), {
@@ -94,7 +96,7 @@ export default function MovableRect({
           });
         }
       } else if (req.type === "nextKf") {
-        const ts = getTs(get);
+        const ts = getFrame(get);
         const nextTs = k.next(ts);
         if (nextTs) {
           push(requestsPathFor("Video"), {
@@ -117,7 +119,7 @@ export default function MovableRect({
         });
       } else if (req.type === "addFrame" || req.type === "addFrameAt") {
         // 1. get interpolated values
-        const ts = req.payload || getTs(get);
+        const ts = req.payload || getFrame(get);
         const val = k.value(ts);
         const isKeyframe = k.getIndex(ts) >= 0;
         const [left, top, width, height] =
@@ -154,7 +156,7 @@ export default function MovableRect({
         // Summary: set a keyframe at current time with interpolated values, and delete all previous keyframes
 
         // 1. get interpolated values
-        const ts = getTs(get);
+        const ts = getFrame(get);
         const val = k.value(ts);
         const isKeyframe = k.getIndex(ts) >= 0;
         const [left, top, width, height] =
@@ -180,7 +182,7 @@ export default function MovableRect({
         // Summary: set a keyframe at current time with interpolated values, and delete all future keyframes
 
         // 1. get interpolated values
-        const ts = getTs(get);
+        const ts = getFrame(get);
         const val = k.value(ts);
         const isKeyframe = k.getIndex(ts) >= 0;
         const [left, top, width, height] =
@@ -213,7 +215,7 @@ export default function MovableRect({
 
   React.useEffect(() => {
     if (vidLength) {
-      const ts = getTs(get);
+      const ts = getFrame(get);
       if (preload) return;
       k.add({ time: ts, value: DEFAULT_BOX });
       // k.add({ time: vidLength, value: DEFAULT_BOX });
