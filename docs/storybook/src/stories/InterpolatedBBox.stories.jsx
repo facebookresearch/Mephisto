@@ -26,7 +26,60 @@ export default {
   ],
 };
 
-export const BasicBox = () => {
+export const Standalone = () => {
+  const [frame, setFrame] = React.useState(0);
+
+  return (
+    <div style={{ padding: "15px 20px" }}>
+      <h1>How interpolated bounding boxes work</h1>
+      <h3>Current frame: {frame}</h3>
+      <button
+        onClick={() => {
+          setFrame(frame + 1);
+        }}
+      >
+        Next Frame
+      </button>{" "}
+      <button
+        disabled={frame === 0}
+        onClick={() => {
+          setFrame(frame - 1);
+        }}
+      >
+        Prev Frame
+      </button>
+      <MovableRect
+        defaultBox={[50, 200, 100, 100]}
+        getTs={() => {
+          return frame;
+        }}
+      />
+      <ul style={{ marginTop: 200, fontSize: 20 }}>
+        <li>
+          <strong>Red box: unselected box</strong>
+        </li>
+        <li>
+          <strong>Light blue (cyan) box: selected box</strong>; selectable via
+          mouse click
+        </li>
+        <li>
+          <strong>Solid border: Keyframe</strong>; A keyframe is a frame that
+          has a fixed position. A keyframe is auto-set whenever you drag or
+          re-position any bounding box.
+        </li>
+        <li>
+          <strong>Dashed border: Frame</strong>; A frame is a frame without a
+          fixed position. Its position is based on its neighboring keyframes. A
+          frame is interpolated, meaning that it intelligently adjusts so that
+          there is smooth movement of the bounding box between its neighboring
+          keyframes.
+        </li>
+      </ul>
+    </div>
+  );
+};
+
+export const SynchedWithVideoPlayer = () => {
   const store = useStore();
   const storeRef = React.useRef(store);
   React.useEffect(() => {
