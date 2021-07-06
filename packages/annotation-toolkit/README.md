@@ -71,7 +71,7 @@ A full list of the properties of a `<Layer />` are as follows:
 - `icon`: `string` A `@blueprintjs/icons` name. Shows up on the left hand side. Highly recommended to specify one.
 - `secondaryIcon`: `string` A `@blueprintjs/icons` name. Shows up on the right hand side. Optional.
 - `component` - `render prop` The component to render in the content pane when this layer is selected.
-- `actions` - `React.Node` Specify what actions to have show up in the Actions pane using `@blueprintjs/core`'s `<MenuItem />` components.
+- `actions` - `() => React.Node` Specify what actions to have show up in the Actions pane using `@blueprintjs/core`'s `<MenuItem />` components.
 - `noPointerEvents` - `bool` Whether this layer should accept pointer events. You may want to use this when you have multiple layers that can be active at the same time to avoid them competing with each other for clicks. For example a Bounding Box layer on top of a VideoPlayer layer may want to set this on so that click events can passthrough to the underlying VideoPlayer component.
 - `alwaysOn` - `bool` Always show this layer, even if it's not selected.
 - `onWithGroup` - `bool` Always show this layer if it, or one of it's sibling, or it's parent is selected.
