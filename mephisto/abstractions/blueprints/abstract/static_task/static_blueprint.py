@@ -111,6 +111,7 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = StaticBlueprintArgs
     supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
+    SharedStateClass = SharedStaticTaskState
 
     def __init__(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
