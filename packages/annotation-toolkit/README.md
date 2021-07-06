@@ -106,3 +106,18 @@ Updates it's data state with:
 - `detectedSize`: `[width, height]`
 - `playedSeconds`
 - `playing`: `boolean`
+
+### `<MovableRect />`
+
+- `id` - The layer id where state will be kept track of under a `kf` data prop.
+- `defaultBox` - Where to place the box initially
+- `getFrame` - A getter, returns the current frameNumber to render the frame at
+- `preload` - Optional, expects an array of objects of form `{x, y, width, height, frameNumber}`.
+- `document` - Optional, if you want to use a different document, e.g. within an iframe context
+- `getLabel` - Optional, a getter, returns string text for a label to add to the bbox
+
+TODO: Add the following additional optional props, all a callback receiving the frame #:
+- `onNextKeyframe`
+- `onPreviousKeyframe`
+- `onFirstKeyframe`
+- `onLastKeyframe`
