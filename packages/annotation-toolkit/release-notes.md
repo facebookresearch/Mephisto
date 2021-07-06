@@ -5,15 +5,15 @@
         return currentFrameNumber;
     }} />
     ```
-- **BREAKING** - Layer actions now require a render prop instead of React node.
 - **ENHANCEMENT** - VideoPlayer playing can be toggled by clicking on the video.
 - **ENHANCEMENT** - Add a getLabel property to MovableRect that adds a label to the box.
 
-- **TODO** - Rename getTs to getFrame
 - **TODO** - Add finalizeData helper to allow exporting interpolated frame data
 - **TODO** - Add greater css specificity for css styles to avoid conflicts
 - **TODO** - refactor reused code
 - **TODO** - Confirm that no more props need to be extracted
+---
+- **BREAKING** - Layer actions now require a render prop instead of React node.
 
 # v1.1.1
 - **NEW** Support for generating `<VideoPlayer />` screenshots via the requests queue. Usage:
