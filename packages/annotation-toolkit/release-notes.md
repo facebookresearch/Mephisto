@@ -10,10 +10,8 @@
 
 - **NEW** - Add `getInterpolatedFrames(allKeyframes)` helper to convert keyframes into interpolated frames, frame-by-frame. Returns array of: `{frame, value: [x, y, width, height]}`
 
-- **TODO** - Add greater css specificity for css styles to avoid conflicts
-- **TODO** - Refactor reused code
-- **TODO** - Confirm that no more props need to be extracted
 ---
+
 - **BREAKING** - Layer actions now require a render prop instead of React node.
 
 # v1.1.1
