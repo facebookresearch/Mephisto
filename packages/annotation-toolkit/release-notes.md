@@ -7,7 +7,6 @@
     ```
 - **ENHANCEMENT** - VideoPlayer playing can be toggled by clicking on the video.
 - **ENHANCEMENT** - Add a getLabel property to MovableRect that adds a label to the box.
-
 - **NEW** - Add `getInterpolatedFrames(allKeyframes)` helper to convert keyframes into interpolated frames, frame-by-frame. Returns array of: `{frame, value: [x, y, width, height]}`
 
 ---
