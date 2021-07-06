@@ -20,18 +20,22 @@ export default {
 export const DebugPanel = () => {
   return <AppShell showDebugPane={true} />;
 };
-export const TODOActionsPanel = () => {
+export const ActionsPanel = () => {
   return (
     <AppShell
       layers={() => (
         <Layer
+          alwaysOn
           displayName="Layer"
           icon="layer"
+          component={() => null}
           actions={() => (
             <MenuItem
-              text="Forward 5 frames"
-              icon="step-forward"
-              onClick={() => {}}
+              text="Sample menu item"
+              icon="notifications"
+              onClick={() => {
+                alert("clicked!");
+              }}
             />
           )}
         />
@@ -39,3 +43,6 @@ export const TODOActionsPanel = () => {
     />
   );
 };
+
+// TODO: Add other actions panel stuff, such as HorizontalMenu, and behavior
+// with complex layer activation states such as onWithGroup and alwaysOn
