@@ -1,7 +1,12 @@
 import React from "react";
 import Wrapper from "./Wrapper";
 
-import { AppShell, Layer, VideoPlayer } from "annotation-toolkit";
+import {
+  AppShell,
+  Layer,
+  VideoPlayer,
+  requestsPathFor,
+} from "annotation-toolkit";
 import { useStore } from "global-context-store";
 import { MenuItem } from "@blueprintjs/core";
 
@@ -20,25 +25,44 @@ export default {
   ],
 };
 
-export const Simple = () => {
-  const { set } = useStore();
-  React.useEffect(() => {
-    set(["selectedLayer"], ["Video"]);
-  }, [set]);
+export const Simple = () => (
+  // TODO: Fix empty container showing when alwaysOn
+  <AppShell
+    layers={() => (
+      <Layer
+        alwaysOn
+        displayName="Video"
+        icon="video"
+        component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
+      />
+    )}
+  />
+);
+
+export const SimpleWithActions = () => {
+  // TODO: actions only seem to show up when alwaysOn, investigate why
+  const { push } = useStore();
+  const FPS = 30;
   return (
     <AppShell
       layers={() => (
         <Layer
+          alwaysOn
           displayName="Video"
           icon="video"
           component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
-          actions={
+          actions={() => (
             <MenuItem
               text="Forward 5 frames"
               icon="step-forward"
-              onClick={() => {}}
+              onClick={() => {
+                push(requestsPathFor("Video"), {
+                  type: "ff",
+                  payload: 5 / FPS,
+                });
+              }}
             />
-          }
+          )}
         />
       )}
     />
