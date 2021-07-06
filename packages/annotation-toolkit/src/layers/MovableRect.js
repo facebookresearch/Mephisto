@@ -22,7 +22,7 @@ export default function MovableRect({
   const k = React.useMemo(() => keyframes(), []);
 
   // TODO: Don't hardcode,
-  const FPS = fps; // kept for now for backwards compat with AVD,
+  const FPS = fps; // kept for now for backwards compat with AVD task,
   // in the future, by adding `on{Next,Previous,First,Last}Keyframe` methods,
   // we can make this component unaware of the VideoPlayer layer id and fps.
 
@@ -322,7 +322,7 @@ export default function MovableRect({
   return (
     <div
       className={cx(
-        "frame",
+        "movable-rect-frame",
         { keyframe: isKeyframe },
         { immovable: !movable },
         { selected: isSelected }
