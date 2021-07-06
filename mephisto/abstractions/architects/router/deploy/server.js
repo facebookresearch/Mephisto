@@ -56,13 +56,24 @@ const server = http.createServer(app);
 // ======= <Sockets and Agents> ========
 
 const FAILED_RECONNECT_TIME = 10000;
+const FAILED_PING_TIME = 15000;
 
 // TODO can we pull all these from somewhere, make sure they're testable
 // and show they're the same as the python ones?
-const STATUS_INIT = "none";
-const STATUS_CONNECTED = "connected";
-const STATUS_DISCONNECTED = "disconnect";
+const STATUS_NONE = "none";
+const STATUS_ACCEPTED = "accepted";
+const STATUS_ONBOARDING = "onboarding";
+const STATUS_WAITING = "waiting";
+const STATUS_IN_TASK = "in task";
 const STATUS_COMPLETED = "completed";
+const STATUS_DISCONNECT = "disconnect";
+const STATUS_TIMEOUT = "timeout";
+const STATUS_PARTNER_DISCONNECT = "partner disconnect";
+const STATUS_EXPIRED = "expired";
+const STATUS_RETURNED = "returned";
+const STATUS_APPROVED = "approved";
+const STATUS_SOFT_REJECTED = "soft_rejected";
+const STATUS_REJECTED = "rejected";
 
 const SYSTEM_SOCKET_ID = "mephisto"; // TODO pull from somewhere
 // TODO use registered socket id from on_alive
@@ -86,11 +97,12 @@ const PACKET_TYPE_ERROR_LOG = "log_error";
 // State for agents tracked by the server
 class LocalAgentState {
   constructor(agent_id) {
-    this.status = STATUS_INIT;
+    this.status = STATUS_NONE;
     this.agent_id = agent_id;
     this.unsent_messages = [];
     this.state = { wants_act: false, done_text: null };
     this.is_alive = false;
+    this.last_ping = 0;
   }
 
   get_sendable_messages() {
@@ -174,9 +186,27 @@ function handle_alive(socket, alive_packet) {
   } else {
     var agent_id = alive_packet.sender_id;
     var agent = find_or_create_agent(agent_id);
+    send_status_for_agent(agent_id);
     agent.is_alive = true;
     agent_id_to_socket[agent_id] = socket;
     socket_id_to_agent[socket.id] = agent;
+  }
+}
+
+function ensure_live_connection(agent) {
+  let curr_status = agent.status;
+  let last_ping = agent.last_ping;
+  if (last_ping == 0) {
+    return; // Not a live task, nothing to check
+  }
+  if (
+    ![STATUS_ONBOARDING, STATUS_WAITING, STATUS_IN_TASK].includes(curr_status)
+  ) {
+    return; // Not in a live state, nothing to ensure
+  }
+  if (Date.now() - last_ping > FAILED_PING_TIME) {
+    agent.status = STATUS_DISCONNECT;
+    send_status_for_agent(agent.agent_id);
   }
 }
 
@@ -185,7 +215,9 @@ function handle_get_agent_status(status_packet) {
   last_mephisto_ping = Date.now();
   let agent_statuses = {};
   for (let agent_id in agent_id_to_agent) {
-    agent_statuses[agent_id] = agent_id_to_agent[agent_id].status;
+    let agent = agent_id_to_agent[agent_id];
+    ensure_live_connection(agent);
+    agent_statuses[agent_id] = agent.status;
     let ping_packet = {
       packet_type: PACKET_TYPE_REQUEST_AGENT_STATUS,
       sender_id: SYSTEM_SOCKET_ID,
@@ -236,7 +268,7 @@ function handle_forward(packet) {
 
 function _followup_possible_disconnect(agent) {
   if (!agent.is_alive) {
-    agent.status = STATUS_DISCONNECTED;
+    agent.status = STATUS_DISCONNECT;
     debug_log("Agent disconnected", agent);
   }
 }
@@ -335,6 +367,7 @@ wss.on("connection", function (socket) {
         let agent = agent_id_to_agent[agent_id];
         if (agent !== undefined) {
           agent.is_alive = true;
+          agent.last_ping = Date.now();
           packet.data.status = agent.status;
           packet.data.state = agent.state;
           if (agent_id_to_socket[agent.agent_id] != socket) {
