@@ -50,7 +50,7 @@ export const Standalone = () => {
       </button>
       <MovableRect
         defaultBox={[50, 200, 100, 100]}
-        getTs={() => {
+        getFrame={() => {
           return frame;
         }}
       />
@@ -105,7 +105,7 @@ export const SynchedWithVideoPlayer = () => {
               <MovableRect
                 id={id}
                 defaultBox={[10, 10, 100, 100]}
-                getTs={() => {
+                getFrame={() => {
                   const ps =
                     storeRef.current.state?.layers?.Video.data?.playedSeconds;
                   return ps;
