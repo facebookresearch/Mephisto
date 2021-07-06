@@ -27,13 +27,13 @@ export const TODOActionsPanel = () => {
         <Layer
           displayName="Layer"
           icon="layer"
-          actions={
+          actions={() => (
             <MenuItem
               text="Forward 5 frames"
               icon="step-forward"
               onClick={() => {}}
             />
-          }
+          )}
         />
       )}
     />
