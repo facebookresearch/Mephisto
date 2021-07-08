@@ -1,0 +1,6 @@
+# @package _global_
+mephisto:
+  architect:
+    _architect_type: local
+  provider:
+    _provider_type: mock
