@@ -16,9 +16,9 @@ class MephistoSearchPathPlugin(SearchPathPlugin):
     def manipulate_search_path(self, search_path: ConfigSearchPath) -> None:
         # Appends the search path for this plugin to the end of the search path
         profile_path = os.path.join(get_root_dir(), "hydra_configs")
-        profile_path = os.path.join(DEFAULT_CONFIG_FOLDER, "hydra_configs")
+        profile_path_user = os.path.join(DEFAULT_CONFIG_FOLDER, "hydra_configs")
 
         search_path.append(provider="mephisto-profiles", path=f"file://{profile_path}")
         search_path.append(
-            provider="mephisto-profiles-user", path=f"file://{profile_path}"
+            provider="mephisto-profiles-user", path=f"file://{profile_path_user}"
         )
