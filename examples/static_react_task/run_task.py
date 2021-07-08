@@ -71,7 +71,7 @@ def build_task(task_dir):
     os.chdir(return_dir)
 
 
-@hydra.main(config_name="scriptconfig")
+@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
     task_dir = cfg.task_dir
 
