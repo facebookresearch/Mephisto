@@ -1,0 +1,8 @@
+# @package _global_
+defaults:
+  - override /mephisto/architect: local
+  - override /mephisto/provider: mock
+
+mephisto:
+  architect:
+    _architect_type: local

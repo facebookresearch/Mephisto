@@ -15,7 +15,7 @@ with open(os.path.join(here, "mephisto", "VERSION")) as version_file:
 setup(
     name="mephisto",
     version=version,
-    packages=find_packages(),
+    packages=find_packages(include=["mephisto.*", "hydra_plugins.*"]),
     entry_points={"console_scripts": "mephisto=mephisto.client.cli:cli"}
     # package_dir={'': 'mephisto'},
 )
