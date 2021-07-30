@@ -12,7 +12,7 @@ from mephisto.tools.data_browser import DataBrowser
 from mephisto.data_model.worker import Worker
 import traceback
 
-from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any
+from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any, List
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -43,7 +43,7 @@ def _get_and_format_data(
     return formatted
 
 
-def dump_results(
+def print_results(
     db: "MephistoDB",
     task_name: str,
     format_data_for_printing: Callable[[Dict[str, Any]], str],
@@ -56,7 +56,8 @@ def dump_results(
     units = data_browser.get_units_for_task_name(task_name)
     if limit is None:
         limit = len(units)
-    for unit in reversed(units)[:limit]:
+    units.reverse()
+    for unit in units[:limit]:
         print(_get_and_format_data(data_browser, format_data_for_printing, unit))
 
 
@@ -75,12 +76,12 @@ def prompt_for_options(
     if block_qualification is None:
         block_qualification = input(
             "If you'd like to soft-block workers, you'll need a block qualification. "
-            "Leave blank otherwise. \n Enter block qualification:"
+            "Leave blank otherwise.\nEnter block qualification: "
         )
     if approve_qualification is None:
         approve_qualification = input(
             "If you'd like to qualify high-quality workers, you'll need an approve "
-            "qualification. Leave blank otherwise. \n Enter approve qualification:"
+            "qualification. Leave blank otherwise.\nEnter approve qualification: "
         )
     if len(block_qualification.strip()) == 0:
         block_qualification = None
@@ -102,7 +103,7 @@ def get_worker_stats(units: List["Unit"]) -> Dict[str, Dict[str, List["Unit"]]]:
     to their units, grouped by their current status
     """
     previous_work_by_worker = {}
-    for unit in others:
+    for unit in units:
         w_id = unit.worker_id
         if w_id not in previous_work_by_worker:
             previous_work_by_worker[w_id] = {

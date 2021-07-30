@@ -57,7 +57,11 @@ class MockUnit(Unit):
 
     def expire(self) -> float:
         """Expiration is immediate on Mocks"""
-        self.db.update_unit(self.db_id, status=AssignmentState.EXPIRED)
+        if self.get_status() not in [
+            AssignmentState.EXPIRED,
+            AssignmentState.COMPLETED,
+        ]:
+            self.db.update_unit(self.db_id, status=AssignmentState.EXPIRED)
         self.datastore.set_unit_expired(self.db_id, True)
         return 0.0
 
