@@ -43,7 +43,7 @@ class TestScriptConfig(RunScriptConfig):
 register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 
-@hydra.main(config_name="scriptconfig")
+@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
     correct_config_answer = cfg.correct_answer
 
