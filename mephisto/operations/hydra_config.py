@@ -23,9 +23,9 @@ class DatabaseArgs:
 
 @dataclass
 class MephistoConfig:
-    blueprint: BlueprintArgs = BlueprintArgs()
-    provider: ProviderArgs = ProviderArgs()
-    architect: ArchitectArgs = ArchitectArgs()
+    blueprint: BlueprintArgs = MISSING
+    provider: ProviderArgs = MISSING
+    architect: ArchitectArgs = MISSING
     task: TaskConfigArgs = TaskConfigArgs()
     database: DatabaseArgs = DatabaseArgs()
     log_level: str = "info"
@@ -38,7 +38,9 @@ class RunScriptConfig:
 
 def register_abstraction_config(name: str, node: Any, abstraction_type: str):
     config.store(
-        name=name, node=node, group=f"mephisto/{abstraction_type}", package="_group_"
+        name=name,
+        node=node,
+        group=f"mephisto/{abstraction_type}",
     )
 
 
@@ -50,7 +52,6 @@ def initialize_named_configs():
         name="base_mephisto_config",
         node=MephistoConfig,
         group="mephisto",
-        package="_group_",
     )
 
 
