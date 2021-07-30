@@ -207,10 +207,11 @@ def run_examine_by_worker(
         reason = None
         for idx, unit in enumerate(w_units):
             print(
-                f"Reviewing for worker {worker_name}, ({idx+1}/{len(w_units)}), Previous {get_prev_stats(w_id)}"
+                f"Reviewing for worker {worker_name}, ({idx+1}/{len(w_units)}), "
+                f"Previous {format_worker_stats(w_id, previous_work_by_worker)}"
             )
             print(format_data_for_printing(data_browser.get_data_from_unit(unit)))
-            if apply_all_decision is None:
+            if apply_all_decision is not None:
                 decision = apply_all_decision
             else:
                 decision = input(
@@ -225,7 +226,7 @@ def run_examine_by_worker(
 
             if decision.lower() == "a":
                 agent.approve_work()
-                if decision == "A":
+                if decision == "A" and approve_qualification is not None:
                     should_special_qualify = input(
                         "Do you want to approve qualify this worker? (y)es/(n)o: "
                     )
@@ -233,7 +234,7 @@ def run_examine_by_worker(
                         worker.grant_qualification(approve_qualification, 1)
             elif decision.lower() == "p":
                 agent.soft_reject_work()
-                if apply_all_decision is None:
+                if apply_all_decision is None and block_qualification is not None:
                     should_soft_block = input(
                         "Do you want to soft block this worker? (y)es/(n)o: "
                     )
