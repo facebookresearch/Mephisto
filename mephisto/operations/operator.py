@@ -193,7 +193,7 @@ class Operator:
             blueprint_type,
             requester.is_sandbox(),
         )
-        task_run = TaskRun(self.db, new_run_id)
+        task_run = TaskRun.get(self.db, new_run_id)
 
         try:
             # Register the blueprint with args to the task run,

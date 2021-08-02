@@ -7,9 +7,13 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedABCMeta,
+    MephistoDataModelComponentMixin,
+)
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
 from mephisto.operations.logger_core import get_logger
+from mephisto.tools.misc import warn_once
 
 logger = get_logger(name=__name__)
 
@@ -38,14 +42,25 @@ class WorkerArgs:
     )
 
 
-class Worker(metaclass=MephistoDBBackedABCMeta):
+class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Worker and data model access via ...Worker(db, id) is "
+                "now deprecated in favor of calling Worker.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_worker(db_id)
@@ -56,7 +71,11 @@ class Worker(metaclass=MephistoDBBackedABCMeta):
         # TODO(#101) Do we want any other attributes here?
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Worker":
         """
         The new method is overridden to be able to automatically generate
@@ -99,7 +118,7 @@ class Worker(metaclass=MephistoDBBackedABCMeta):
         Create an entry for this worker in the database
         """
         db_id = db.new_worker(worker_name, provider_type)
-        worker = Worker(db, db_id)
+        worker = Worker.get(db, db_id)
         logger.debug(f"Registered new worker {worker}")
         return worker
 

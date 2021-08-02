@@ -410,7 +410,7 @@ class Supervisor:
         task_run = channel_info.job.task_runner.task_run
         crowd_provider = channel_info.job.provider
         worker_id = crowd_data["worker_id"]
-        worker = Worker(self.db, worker_id)
+        worker = Worker.get(self.db, worker_id)
 
         logger.debug(
             f"Worker {worker_id} is being assigned one of " f"{len(units)} units."
@@ -575,7 +575,7 @@ class Supervisor:
         task_runner = channel_info.job.task_runner
         task_run = task_runner.task_run
         worker_id = crowd_data["worker_id"]
-        worker = Worker(self.db, worker_id)
+        worker = Worker.get(self.db, worker_id)
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
@@ -596,7 +596,7 @@ class Supervisor:
 
         # If there's onboarding, see if this worker has already been disqualified
         worker_id = crowd_data["worker_id"]
-        worker = Worker(self.db, worker_id)
+        worker = Worker.get(self.db, worker_id)
         blueprint = task_run.get_blueprint(args=task_runner.args)
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
             if worker.is_disqualified(blueprint.onboarding_qualification_name):

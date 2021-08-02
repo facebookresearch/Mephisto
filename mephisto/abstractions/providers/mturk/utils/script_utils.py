@@ -35,7 +35,7 @@ def direct_soft_block_mturk_workers(
     )
     if mturk_qual_details is not None:
         # Overrule the requester, as this qualification already exists
-        requester = Requester(db, mturk_qual_details["requester_id"])
+        requester = Requester.get(db, mturk_qual_details["requester_id"])
         qualification_id = mturk_qual_details["mturk_qualification_id"]
     else:
         qualification_id = requester._create_new_mturk_qualification(
@@ -58,7 +58,7 @@ def get_mturk_ids_from_unit_id(db, unit_id: str) -> Dict[str, Optional[str]]:
     """
     Find the relevant mturk ids from the given mephisto unit id
     """
-    mturk_unit = Unit(db, unit_id)
+    mturk_unit = Unit.get(db, unit_id)
     assignment_id = mturk_unit.get_mturk_assignment_id()
     hit_id = mturk_unit.get_mturk_hit_id()
     agent = mturk_unit.get_assigned_agent()

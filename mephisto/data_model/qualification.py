@@ -5,11 +5,15 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractstaticmethod
+from mephisto.tools.misc import warn_once
 from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
 )
-from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedMeta,
+    MephistoDataModelComponentMixin,
+)
 
 from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
 
@@ -163,12 +167,23 @@ def make_qualification_dict(
     return as_valid_qualification_dict(qual_dict)
 
 
-class Qualification(metaclass=MephistoDBBackedMeta):
+class Qualification(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """Simple convenience wrapper for Qualifications in the data model"""
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Qualification and data model access via Qualification(db, id) is "
+                "now deprecated in favor of calling Qualification.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_qualification(db_id)

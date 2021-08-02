@@ -6,12 +6,16 @@
 
 import os
 import threading
+from mephisto.tools.misc import warn_once
 from uuid import uuid4
 
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedABCMeta,
+    MephistoDataModelComponentMixin,
+)
 from mephisto.data_model.exceptions import (
     AgentReturnedError,
     AgentDisconnectedError,
@@ -34,7 +38,7 @@ from mephisto.operations.logger_core import get_logger
 logger = get_logger(name=__name__)
 
 
-class Agent(metaclass=MephistoDBBackedABCMeta):
+class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class encompasses a worker as they are working on an individual assignment.
     It maintains details for the current task at hand such as start and end time,
@@ -42,8 +46,19 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Agent and data model access via ...Agent(db, id) is "
+                "now deprecated in favor of calling Agent.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_agent(db_id)
@@ -84,7 +99,11 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
         return self._state
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Agent":
         """
         The new method is overridden to be able to automatically generate
@@ -118,7 +137,7 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
         Return the worker that is using this agent for a task
         """
         if self._worker is None:
-            self._worker = Worker(self.db, self.worker_id)
+            self._worker = Worker.get(self.db, self.worker_id)
         return self._worker
 
     def get_unit(self) -> "Unit":
@@ -128,7 +147,7 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
         if self._unit is None:
             from mephisto.data_model.unit import Unit
 
-            self._unit = Unit(self.db, self.unit_id)
+            self._unit = Unit.get(self.db, self.unit_id)
         return self._unit
 
     def get_assignment(self) -> "Assignment":
@@ -139,7 +158,7 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
             else:
                 from mephisto.data_model.assignment import Assignment
 
-                self._assignment = Assignment(self.db, self.assignment_id)
+                self._assignment = Assignment.get(self.db, self.assignment_id)
         return self._assignment
 
     def get_task_run(self) -> "TaskRun":
@@ -152,7 +171,7 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
             else:
                 from mephisto.data_model.task_run import TaskRun
 
-                self._task_run = TaskRun(self.db, self.task_run_id)
+                self._task_run = TaskRun.get(self.db, self.task_run_id)
         return self._task_run
 
     def get_task(self) -> "Task":
@@ -167,7 +186,7 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
             else:
                 from mephisto.data_model.task import Task
 
-                self._task = Task(self.db, self.task_id)
+                self._task = Task.get(self.db, self.task_id)
         return self._task
 
     def get_data_dir(self) -> str:
@@ -223,7 +242,7 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
             unit.task_type,
             provider_type,
         )
-        a = Agent(db, db_id)
+        a = Agent.get(db, db_id)
         logger.debug(f"Registered new agent {a} for {unit}.")
         a.update_status(AgentState.STATUS_ACCEPTED)
         return a
@@ -362,7 +381,9 @@ class Agent(metaclass=MephistoDBBackedABCMeta):
         raise NotImplementedError()
 
 
-class OnboardingAgent(ABC):
+class OnboardingAgent(
+    MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta
+):
     """
     Onboarding agents are a special extension of agents used
     in tasks that have a separate onboarding step. These agents
@@ -379,8 +400,19 @@ class OnboardingAgent(ABC):
     DISPLAY_PREFIX = "onboarding_"
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct OnboardingAgent and data model access via OnboardingAgent(db, id) is "
+                "now deprecated in favor of calling OnboardingAgent.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in June 2021.",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_onboarding_agent(db_id)
@@ -431,7 +463,7 @@ class OnboardingAgent(ABC):
         Return the worker that is using this agent for a task
         """
         if self._worker is None:
-            self._worker = Worker(self.db, self.worker_id)
+            self._worker = Worker.get(self.db, self.worker_id)
         return self._worker
 
     def get_task_run(self) -> "TaskRun":
@@ -439,7 +471,7 @@ class OnboardingAgent(ABC):
         if self._task_run is None:
             from mephisto.data_model.task_run import TaskRun
 
-            self._task_run = TaskRun(self.db, self.task_run_id)
+            self._task_run = TaskRun.get(self.db, self.task_run_id)
         return self._task_run
 
     def get_task(self) -> "Task":
@@ -450,7 +482,7 @@ class OnboardingAgent(ABC):
             else:
                 from mephisto.data_model.task import Task
 
-                self._task = Task(self.db, self.task_id)
+                self._task = Task.get(self.db, self.task_id)
         return self._task
 
     def get_data_dir(self) -> str:
@@ -567,7 +599,7 @@ class OnboardingAgent(ABC):
         db_id = db.new_onboarding_agent(
             worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
-        a = OnboardingAgent(db, db_id)
+        a = OnboardingAgent.get(db, db_id)
         logger.debug(f"Registered new {a} for worker {worker}.")
         return a
 
