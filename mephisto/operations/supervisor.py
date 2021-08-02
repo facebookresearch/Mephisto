@@ -201,6 +201,8 @@ class Supervisor:
 
     def shutdown(self):
         """Close all of the channels, join threads"""
+        # Prepopulate agents and channels to close, as
+        # these may change during iteration
         channels_to_close = list(self.channels.keys())
         logger.debug(f"Closing channels {channels_to_close}")
         for channel_id in channels_to_close:
@@ -211,7 +213,8 @@ class Supervisor:
         if self.sending_thread is not None:
             self.sending_thread.join()
         logger.debug(f"Joining agents {self.agents}")
-        for agent_info in self.agents.values():
+        agents_to_close = list(self.agents.values())
+        for agent_info in agents_to_close:
             assign_thread = agent_info.assignment_thread
             if assign_thread is not None:
                 assign_thread.join()
@@ -328,6 +331,7 @@ class Supervisor:
                     f"Onboarding agent {onboarding_id} disconnected or errored, "
                     f"final status {tracked_agent.get_status()}."
                 )
+                self._send_status_update(agent_info)
         except Exception as e:
             logger.warning(f"Onboarding for {tracked_agent} failed with exception {e}")
             import traceback
@@ -483,6 +487,7 @@ class Supervisor:
         """
         Convert the onboarding agent to a full agent
         """
+        logger.info(f"Registering onboarding agent {onboarding_agent}")
         onboarding_id = onboarding_agent.get_agent_id()
         onboarding_agent_info = self.agents.get(onboarding_id)
 
@@ -743,16 +748,22 @@ class Supervisor:
         Handle telling the frontend agent about a change in their
         active status. (Pushing a change in AgentState)
         """
+        status = agent_info.agent.db_status
+        if isinstance(agent_info.agent, OnboardingAgent):
+            if status in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
+                # We don't expose the updated status directly to the frontend here
+                # Can be simplified if we improve how bootstrap-chat handles
+                # the transition of onboarding states
+                status = AgentState.STATUS_WAITING
         send_packet = Packet(
             packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
             sender_id=SYSTEM_CHANNEL_ID,
             receiver_id=agent_info.agent.get_agent_id(),
             data={
-                "status": agent_info.agent.db_status,
+                "status": status,
                 "state": {
-                    "done_text": STATUS_TO_TEXT_MAP.get(agent_info.agent.db_status),
-                    "task_done": agent_info.agent.db_status
-                    == AgentState.STATUS_PARTNER_DISCONNECT,
+                    "done_text": STATUS_TO_TEXT_MAP.get(status),
+                    "task_done": status == AgentState.STATUS_PARTNER_DISCONNECT,
                 },
             },
         )

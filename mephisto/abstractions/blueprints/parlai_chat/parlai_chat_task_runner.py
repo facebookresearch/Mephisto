@@ -6,6 +6,7 @@
 
 from mephisto.abstractions.blueprint import TaskRunner
 from mephisto.data_model.agent import Agent, OnboardingAgent
+import time
 
 try:
     from parlai.core.agents import Agent as ParlAIAgent
@@ -199,6 +200,13 @@ class ParlAIChatTaskRunner(TaskRunner):
                     },
                 )
             )
+        # Mark the agent as done, then wait for the incoming submit action
+        agent.mark_done()
+        while not agent.has_action.is_set():
+            done_act = agent.act()
+            if done_act is not None:
+                break
+            time.sleep(0.3)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
         """Shutdown the world"""

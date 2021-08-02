@@ -89,8 +89,14 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
 
-        # Follow-up initialization
-        self.state = AgentState(self)  # type: ignore
+        # Follow-up initialization is deferred
+        self._state = None  # type: ignore
+
+    @property
+    def state(self) -> "AgentState":
+        if self._state is None:
+            self._state = AgentState(self)
+        return self._state
 
     def __new__(
         cls,
@@ -216,7 +222,9 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             if old_status == AgentState.STATUS_WAITING:
                 # Waiting agents' unit can be reassigned, as no work
                 # has been done yet.
-                self.get_unit().clear_assigned_agent()
+                unit = self.get_unit()
+                logger.debug(f"Clearing {self} from {unit} for update to {new_status}")
+                unit.clear_assigned_agent()
 
     @staticmethod
     def _register_agent(

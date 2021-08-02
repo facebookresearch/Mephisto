@@ -78,7 +78,7 @@ def run(
             yield mephisto_data_browser.get_data_from_unit(unit)
 
     def consume_data():
-        """ For use in "one-by-one" or default mode. Runs on a seperate thread to consume mephisto review data line by line and update global variables to temporarily store this data """
+        """For use in "one-by-one" or default mode. Runs on a seperate thread to consume mephisto review data line by line and update global variables to temporarily store this data"""
         global ready_for_next, current_data, finished, counter
 
         if database_task_name is not None:
@@ -218,6 +218,7 @@ def run(
 
         if output == "":
             print("{}".format(result))
+            sys.stdout.flush()
         else:
             with open(output, "a+") as f:
                 f.write("{}\n".format(result))
@@ -274,6 +275,7 @@ def run(
             review = request.get_json(force=True)
             if output == "":
                 print("ID: {}, REVIEW: {}".format(id, review))
+                sys.stdout.flush()
             else:
                 with open(output, "a+") as f:
                     f.write("ID: {}, REVIEW: {}\n".format(id, review))
@@ -319,13 +321,15 @@ def run(
                 )
             except AssertionError as ae:
                 print(f"Error: {ae.args[0]}")
+                sys.stdout.flush()
                 return jsonify({"error": ae.args[0], "mode": MODE})
         else:
             data = {"data": current_data if not finished else None, "id": counter - 1}
             return jsonify({"data": data, "mode": MODE, "finished": finished})
 
-    @app.route("/")
-    def index():
+    @app.route("/", defaults={"id": None})
+    @app.route("/<id>")
+    def index(id):
         global index_file
         return send_file(build_dir + "/index.html")
 
@@ -360,8 +364,8 @@ def run(
         datalist_update_time = datetime.now()
         finished = False
     else:
-        thread = threading.Thread(target=consume_data)
+        thread = threading.Thread(target=consume_data, name="review-server-thread")
         thread.start()
-    if sys.stdout.isatty():
-        print("Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)".format(port))
+    print("Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)".format(port))
+    sys.stdout.flush()
     app.run(debug=False, port=port)

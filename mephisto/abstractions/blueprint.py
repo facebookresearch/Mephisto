@@ -16,7 +16,6 @@ from typing import (
     ClassVar,
     Union,
     Iterable,
-    AsyncIterator,
     Callable,
     Tuple,
     TYPE_CHECKING,
@@ -210,12 +209,13 @@ class TaskRunner(ABC):
             AgentTimeoutError,
             AgentDisconnectedError,
             AgentShutdownError,
-        ):
+        ) as e:
             # A returned Unit can be worked on again by someone else.
             if (
                 unit.get_status() != AssignmentState.EXPIRED
                 and unit.get_assigned_agent().db_id == agent.db_id
             ):
+                logger.debug(f"Clearing {agent} from {unit} due to {e}")
                 unit.clear_assigned_agent()
             self.cleanup_unit(unit)
         except Exception as e:
@@ -656,11 +656,11 @@ class Blueprint(ABC):
     @abstractmethod
     def get_initialization_data(
         self,
-    ) -> Union[Iterable["InitializationData"], AsyncIterator["InitializationData"]]:
+    ) -> Iterable["InitializationData"]:
         """
         Get all of the data used to initialize tasks from this blueprint.
         Can either be a simple iterable if all the assignments can
-        be processed at once, or an AsyncIterator if the number
+        be processed at once, or a Generator if the number
         of tasks is unknown or changes based on something running
         concurrently with the job.
         """

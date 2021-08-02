@@ -221,12 +221,10 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
-        # TODO(#101) this may not be particularly efficient
-        row = self.db.get_unit(self.db_id)
-        assert row is not None, f"Unit {self.db_id} stopped existing in the db..."
-        agent_id = row["agent_id"]
-        if agent_id is not None:
-            return Agent(self.db, agent_id)
+        unit_copy = Unit(self.db, self.db_id)
+        self.agent_id = unit_copy.agent_id
+        if self.agent_id is not None:
+            return Agent(self.db, self.agent_id)
         return None
 
     @staticmethod
@@ -279,6 +277,11 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         from mephisto.abstractions.blueprint import AgentState
 
         db_status = self.db_status
+
+        # Expiration is a terminal state, and shouldn't be changed
+        if db_status == AssignmentState.EXPIRED:
+            return db_status
+
         computed_status = AssignmentState.LAUNCHED
 
         agent = self.get_assigned_agent()

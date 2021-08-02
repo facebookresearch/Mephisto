@@ -18,6 +18,7 @@ from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunne
 from mephisto.abstractions.architects.mock_architect import MockArchitect
 from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
@@ -40,16 +41,19 @@ from omegaconf import OmegaConf
 EMPTY_STATE = SharedTaskState()
 
 
-class TestSupervisor(unittest.TestCase):
+class BaseTestSupervisor:
     """
     Unit testing for the Mephisto Supervisor,
     uses WebsocketChannel and MockArchitect
     """
 
+    DB_CLASS = None
+
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
-        self.db = LocalMephistoDB(database_path)
+        assert self.DB_CLASS is not None, "Did not specify db to use"
+        self.db = self.DB_CLASS(database_path)
         self.task_id = self.db.new_task("test_mock", MockBlueprint.BLUEPRINT_TYPE)
         self.task_run_id = get_test_task_run(self.db)
         self.task_run = TaskRun(self.db, self.task_run_id)
@@ -843,3 +847,15 @@ class TestSupervisor(unittest.TestCase):
         self.assertTrue(channel_info.channel.is_closed())
 
     # TODO(#97) handle testing for disconnecting in and out of tasks
+
+
+class TestSupervisorLocal(BaseTestSupervisor, unittest.TestCase):
+    DB_CLASS = LocalMephistoDB
+
+
+class TestSupervisorSingleton(BaseTestSupervisor, unittest.TestCase):
+    DB_CLASS = MephistoSingletonDB
+
+
+if __name__ == "__main__":
+    unittest.main()

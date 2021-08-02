@@ -48,6 +48,9 @@ if TYPE_CHECKING:
     from argparse import Namespace
 
 
+RUN_STATUS_POLL_TIME = 10
+
+
 class TrackedRun(NamedTuple):
     task_run: TaskRun
     architect: "Architect"
@@ -130,9 +133,6 @@ class Operator:
         """
         set_mephisto_log_level(level=run_config.get("log_level", "info"))
 
-        if shared_state is None:
-            shared_state = SharedTaskState()
-
         # First try to find the requester:
         requester_name = run_config.provider.requester_name
         requesters = self.db.find_requesters(requester_name=requester_name)
@@ -159,6 +159,9 @@ class Operator:
         BlueprintClass = get_blueprint_from_type(blueprint_type)
         ArchitectClass = get_architect_from_type(architect_type)
         CrowdProviderClass = get_crowd_provider_from_type(provider_type)
+
+        if shared_state is None:
+            shared_state = BlueprintClass.SharedStateClass()
 
         BlueprintClass.assert_task_args(run_config, shared_state)
         ArchitectClass.assert_task_args(run_config, shared_state)
@@ -246,7 +249,7 @@ class Operator:
                 task_run, run_config, shared_state, task_url
             )
 
-            initialization_data_array = blueprint.get_initialization_data()
+            initialization_data_iterable = blueprint.get_initialization_data()
 
             # Link the job together
             job = self.supervisor.register_job(
@@ -270,7 +273,7 @@ class Operator:
         launcher = TaskLauncher(
             self.db,
             task_run,
-            initialization_data_array,
+            initialization_data_iterable,
             max_num_concurrent_units=run_config.task.max_num_concurrent_units,
         )
         launcher.create_assignments()
@@ -296,6 +299,10 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
+                if tracked_run.task_launcher.finished_generators is False:
+                    # If the run can still generate assignments, it's
+                    # definitely not done
+                    continue
                 task_run.update_completion_progress(
                     task_launcher=tracked_run.task_launcher
                 )
@@ -306,7 +313,7 @@ class Operator:
                     tracked_run.architect.shutdown()
                     tracked_run.task_launcher.shutdown()
                     del self._task_runs_tracked[task_run.db_id]
-            time.sleep(2)
+            time.sleep(RUN_STATUS_POLL_TIME)
 
     def force_shutdown(self, timeout=5):
         """
@@ -460,7 +467,7 @@ class Operator:
                         if time.time() - last_log > log_rate:
                             last_log = time.time()
                             self.print_run_details()
-                    time.sleep(10)
+                    time.sleep(RUN_STATUS_POLL_TIME)
 
             except Exception as e:
                 if skip_input:

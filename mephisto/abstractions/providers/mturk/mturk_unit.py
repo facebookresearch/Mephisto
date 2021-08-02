@@ -15,6 +15,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     create_hit_with_hit_type,
 )
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
+import time
 from typing import List, Optional, Tuple, Mapping, Dict, Any, Type, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -51,6 +52,7 @@ class MTurkUnit(Unit):
             self.PROVIDER_TYPE
         )
         self.hit_id: Optional[str] = None
+        self._last_sync_time = 0.0
         self._sync_hit_mapping()
         self.__requester: Optional["MTurkRequester"] = None
 
@@ -62,6 +64,8 @@ class MTurkUnit(Unit):
 
     def _sync_hit_mapping(self) -> None:
         """Sync with the datastore to see if any mappings have updated"""
+        if self.datastore.is_hit_mapping_in_sync(self.db_id, self._last_sync_time):
+            return
         try:
             mapping = dict(self.datastore.get_hit_mapping(self.db_id))
             self.hit_id = mapping["hit_id"]
@@ -72,6 +76,19 @@ class MTurkUnit(Unit):
             self.hit_id = None
             self.mturk_assignment_id = None
             self.assignment_time_in_seconds = -1
+        # We update to a time slightly earlier than now, in order
+        # to reduce the risk of a race condition caching an old
+        # value the moment it's registered
+        self._last_sync_time = time.monotonic() - 1
+
+    def register_from_provider_data(
+        self, hit_id: str, mturk_assignment_id: str
+    ) -> None:
+        """Update the datastore and local information from this registration"""
+        self.datastore.register_assignment_to_hit(
+            hit_id, self.db_id, mturk_assignment_id
+        )
+        self._sync_hit_mapping()
 
     def get_mturk_assignment_id(self) -> Optional[str]:
         """
@@ -93,11 +110,52 @@ class MTurkUnit(Unit):
             self.__requester = cast("MTurkRequester", super().get_requester())
         return self.__requester
 
+    def set_db_status(self, status: str) -> None:
+        """
+        Set the status reflected in the database for this Unit
+        """
+        super().set_db_status(status)
+        if status == AssignmentState.COMPLETED:
+            agent = self.get_assigned_agent()
+            if agent is not None:
+                agent_status = agent.get_status()
+                if agent_status == AgentState.STATUS_IN_TASK:
+                    # Oh no, MTurk has completed the unit, but we don't have
+                    # the data. We need to reconcile
+                    logger.warning(
+                        f"Unit {self} moved to completed, but the agent didn't... "
+                        f"Attempting to reconcile with MTurk directly"
+                    )
+                    try:
+                        agent.attempt_to_reconcile_submitted_data(
+                            self.get_mturk_hit_id()
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Was not able to reconcile due to an error, {e}. "
+                            f"You may need to reconcile this specific Agent manually "
+                            f"after the task is completed. See here for details: "
+                            f"https://github.com/facebookresearch/Mephisto/pull/442"
+                        )
+            else:
+                logger.warning(f"No agent found for completed unit {self}...")
+
     def clear_assigned_agent(self) -> None:
         """
         Additionally to clearing the agent, we also need to dissociate the
         hit_id from this unit in the MTurkDatastore
         """
+        if self.db_status == AssignmentState.COMPLETED:
+            logger.warning(
+                f"Clearing an agent when COMPLETED, it's likely a submit happened "
+                f"but could not be received by the Mephisto backend. This "
+                f"assignment clear is thus being ignored, but this message "
+                f"is indicative of some data loss. "
+            )
+            # TODO how can we reconcile missing data here? Marking this agent as
+            # COMPLETED will pollute the data, but not marking it means that
+            # it will have to be the auto-approve deadline.
+            return
         super().clear_assigned_agent()
         mturk_hit_id = self.get_mturk_hit_id()
         if mturk_hit_id is not None:
@@ -134,7 +192,7 @@ class MTurkUnit(Unit):
                 elif agent_status == AgentState.STATUS_SOFT_REJECTED:
                     found_status = AssignmentState.SOFT_REJECTED
             else:
-                logger.warning("Agent is None")
+                logger.warning(f"Agent for unit {self} is None")
             if found_status != self.db_status:
                 self.set_db_status(found_status)
             return self.db_status
@@ -149,6 +207,8 @@ class MTurkUnit(Unit):
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
         hit = get_hit(client, mturk_hit_id)
+        if hit is None:
+            return AssignmentState.EXPIRED
         hit_data = hit["HIT"]
 
         local_status = self.db_status
@@ -175,8 +235,13 @@ class MTurkUnit(Unit):
             ]:
                 # Treat this as a return event, this hit may be doable by someone else
                 agent = self.get_assigned_agent()
-                if agent is not None:
-                    # mark the agent as having returned the HIT, to
+                if agent is not None and agent.get_status() in [
+                    AgentState.STATUS_IN_TASK,
+                    AgentState.STATUS_ONBOARDING,
+                    AgentState.STATUS_WAITING,
+                    AgentState.STATUS_PARTNER_DISCONNECT,
+                ]:
+                    # mark the in-task agent as having returned the HIT, to
                     # free any running tasks and have Blueprint decide on cleanup.
                     agent.update_status(AgentState.STATUS_RETURNED)
                 if external_status == AssignmentState.EXPIRED:
@@ -214,7 +279,10 @@ class MTurkUnit(Unit):
         otherwise just return the maximum assignment duration
         """
         delay = 0
-        if self.get_status() == AssignmentState.ASSIGNED:
+        status = self.get_status()
+        if status in [AssignmentState.EXPIRED, AssignmentState.COMPLETED]:
+            return delay
+        if status == AssignmentState.ASSIGNED:
             # The assignment is currently being worked on,
             # so we will set the wait time to be the
             # amount of time we granted for working on this assignment
