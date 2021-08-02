@@ -924,7 +924,7 @@ class BaseDatabaseTests(unittest.TestCase):
         )
         self.assertIsNotNone(onboarding_agent_id)
 
-        onboarding_agent = OnboardingAgent(db, onboarding_agent_id)
+        onboarding_agent = OnboardingAgent.get(db, onboarding_agent_id)
         self.assertIsInstance(onboarding_agent, OnboardingAgent)
 
         found_agents = db.find_onboarding_agents(worker_id=worker_id)

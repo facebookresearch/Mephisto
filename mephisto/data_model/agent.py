@@ -599,7 +599,7 @@ class OnboardingAgent(
         db_id = db.new_onboarding_agent(
             worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
-        a = OnboardingAgent(db, db_id)
+        a = OnboardingAgent.get(db, db_id)
         logger.debug(f"Registered new {a} for worker {worker}.")
         return a
 
