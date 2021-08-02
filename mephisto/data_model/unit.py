@@ -159,7 +159,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         if self.__assignment is None:
             from mephisto.data_model.assignment import Assignment
 
-            self.__assignment = Assignment(self.db, self.assignment_id)
+            self.__assignment = Assignment.get(self.db, self.assignment_id)
         return self.__assignment
 
     def get_task_run(self) -> TaskRun:
@@ -170,7 +170,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             if self.__assignment is not None:
                 self.__task_run = self.__assignment.get_task_run()
             else:
-                self.__task_run = TaskRun(self.db, self.task_run_id)
+                self.__task_run = TaskRun.get(self.db, self.task_run_id)
         return self.__task_run
 
     def get_task(self) -> Task:
@@ -183,7 +183,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             elif self.__task_run is not None:
                 self.__task = self.__task_run.get_task()
             else:
-                self.__task = Task(self.db, self.task_id)
+                self.__task = Task.get(self.db, self.task_id)
         return self.__task
 
     def get_requester(self) -> "Requester":
@@ -196,7 +196,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             elif self.__task_run is not None:
                 self.__requester = self.__task_run.get_requester()
             else:
-                self.__requester = Requester(self.db, self.requester_id)
+                self.__requester = Requester.get(self.db, self.requester_id)
         return self.__requester
 
     def clear_assigned_agent(self) -> None:
@@ -217,14 +217,14 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         if self.db_status in AssignmentState.final_unit():
             if self.agent_id is None:
                 return None
-            return Agent(self.db, self.agent_id)
+            return Agent.get(self.db, self.agent_id)
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
-        unit_copy = Unit(self.db, self.db_id)
+        unit_copy = Unit.get(self.db, self.db_id)
         self.agent_id = unit_copy.agent_id
         if self.agent_id is not None:
-            return Agent(self.db, self.agent_id)
+            return Agent.get(self.db, self.agent_id)
         return None
 
     @staticmethod
@@ -248,7 +248,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             provider_type,
             assignment.task_type,
         )
-        unit = Unit(db, db_id)
+        unit = Unit.get(db, db_id)
         logger.debug(f"Registered new unit {unit} for {assignment}.")
         return unit
 

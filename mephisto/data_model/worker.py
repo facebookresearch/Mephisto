@@ -118,7 +118,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         Create an entry for this worker in the database
         """
         db_id = db.new_worker(worker_name, provider_type)
-        worker = Worker(db, db_id)
+        worker = Worker.get(db, db_id)
         logger.debug(f"Registered new worker {worker}")
         return worker
 

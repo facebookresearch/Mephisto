@@ -74,4 +74,4 @@ class Project(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             project_name != NO_PROJECT_NAME
         ), f"{project_name} is a reserved name that cannot be used as a project name."
         db_id = db.new_project(project_name)
-        return Project(db, db_id)
+        return Project.get(db, db_id)

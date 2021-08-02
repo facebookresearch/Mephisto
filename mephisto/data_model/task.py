@@ -85,7 +85,7 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         Get the project for this task, if it exists
         """
         if self.project_id is not None:
-            return Project(self.db, self.project_id)
+            return Project.get(self.db, self.project_id)
         else:
             return None
 
@@ -181,7 +181,7 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         project_id = None if project is None else project.db_id
         parent_task_id = None if parent_task is None else parent_task.db_id
         db_id = db.new_task(task_name, task_type, project_id, parent_task_id)
-        return Task(db, db_id)
+        return Task.get(db, db_id)
 
         def __repr__(self):
             return f"Task-{self.task_name} [{self.task_type}]"

@@ -95,7 +95,7 @@ class MTurkWorker(Worker):
             qualification_name
         )
         if mturk_qual_details is not None:
-            requester = Requester(self.db, mturk_qual_details["requester_id"])
+            requester = Requester.get(self.db, mturk_qual_details["requester_id"])
             qualification_id = mturk_qual_details["mturk_qualification_id"]
         else:
             target_type = (
@@ -132,7 +132,7 @@ class MTurkWorker(Worker):
             )
             return None
 
-        requester = Requester(self.db, mturk_qual_details["requester_id"])
+        requester = Requester.get(self.db, mturk_qual_details["requester_id"])
         assert isinstance(
             requester, MTurkRequester
         ), "Must be an MTurk requester from MTurk quals"

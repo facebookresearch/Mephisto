@@ -223,7 +223,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         if self.__task is None:
             from mephisto.data_model.task import Task
 
-            self.__task = Task(self.db, self.task_id)
+            self.__task = Task.get(self.db, self.task_id)
         return self.__task
 
     def get_task_config(self) -> "TaskConfig":
@@ -236,7 +236,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         Return the requester that started this task.
         """
         if self.__requester is None:
-            self.__requester = Requester(self.db, self.requester_id)
+            self.__requester = Requester.get(self.db, self.requester_id)
         return self.__requester
 
     def get_has_assignments(self) -> bool:
@@ -358,6 +358,6 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             requester.provider_type,
             task.task_type,
         )
-        task_run = TaskRun(db, db_id)
+        task_run = TaskRun.get(db, db_id)
         logger.debug(f"Created new task run {task_run}")
         return task_run

@@ -118,7 +118,7 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertTrue(isinstance(project_id, str))
         project_row = db.get_project(project_id)
         self.assertEqual(project_row["project_name"], project_name)
-        project = Project(db, project_id)
+        project = Project.get(db, project_id)
         self.assertEqual(project.project_name, project_name)
 
         # Check finding for projects
@@ -145,7 +145,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Cant get non-existent entry
         with self.assertRaises(EntryDoesNotExistException):
-            project = Project(db, self.get_fake_id("Project"))
+            project = Project.get(db, self.get_fake_id("Project"))
 
         project_name = "test_project"
         project_id = db.new_project(project_name)
@@ -184,7 +184,7 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertEqual(task_row["task_type"], task_type)
         self.assertEqual(task_row["project_id"], project_id)
         self.assertIsNone(task_row["parent_task_id"])
-        task = Task(db, task_id_1)
+        task = Task.get(db, task_id_1)
         self.assertEqual(task.task_name, task_name_1)
 
         # Check creation of a task with a parent task, but no project
@@ -197,7 +197,7 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertEqual(task_row["task_type"], task_type)
         self.assertEqual(task_row["parent_task_id"], task_id_1)
         self.assertIsNone(task_row["project_id"])
-        task = Task(db, task_id_2)
+        task = Task.get(db, task_id_2)
         self.assertEqual(task.task_name, task_name_2)
 
         # Check finding for tasks
@@ -234,7 +234,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Cant get non-existent entry
         with self.assertRaises(EntryDoesNotExistException):
-            task = Task(db, self.get_fake_id("Task"))
+            task = Task.get(db, self.get_fake_id("Task"))
 
         task_name = "test_task"
         task_name_2 = "test_task_2"
@@ -348,7 +348,7 @@ class BaseDatabaseTests(unittest.TestCase):
         requester_row = db.get_requester(requester_id)
         self.assertEqual(requester_row["requester_name"], requester_name)
 
-        requester = Requester(db, requester_id)
+        requester = Requester.get(db, requester_id)
         self.assertEqual(requester.requester_name, requester_name)
 
         # Check finding for requesters
@@ -375,7 +375,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Cant get non-existent entry
         with self.assertRaises(EntryDoesNotExistException):
-            requester = Requester(db, self.get_fake_id("Requester"))
+            requester = Requester.get(db, self.get_fake_id("Requester"))
 
         requester_name = "test_requester"
         provider_type = PROVIDER_TYPE
@@ -407,7 +407,7 @@ class BaseDatabaseTests(unittest.TestCase):
         worker_row = db.get_worker(worker_id)
         self.assertEqual(worker_row["worker_name"], worker_name)
 
-        worker = Worker(db, worker_id)
+        worker = Worker.get(db, worker_id)
         self.assertEqual(worker.worker_name, worker_name)
 
         # Check finding for workers
@@ -434,7 +434,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Cant get non-existent entry
         with self.assertRaises(EntryDoesNotExistException):
-            worker = Worker(db, self.get_fake_id("Worker"))
+            worker = Worker.get(db, self.get_fake_id("Worker"))
 
         worker_name = "test_worker"
         provider_type = PROVIDER_TYPE
@@ -469,7 +469,7 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertTrue(isinstance(task_run_id, str))
         task_run_row = db.get_task_run(task_run_id)
         self.assertEqual(task_run_row["init_params"], init_params)
-        task_run = TaskRun(db, task_run_id)
+        task_run = TaskRun.get(db, task_run_id)
         self.assertEqual(task_run.task_id, task_id)
 
         # Check finding for task_runs
@@ -537,7 +537,7 @@ class BaseDatabaseTests(unittest.TestCase):
         db: MephistoDB = self.db
 
         task_run_id = get_test_task_run(db)
-        task_run = TaskRun(db, task_run_id)
+        task_run = TaskRun.get(db, task_run_id)
 
         # Check creation and retrieval of an assignment
         assignment_id = db.new_assignment(
@@ -552,7 +552,7 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertTrue(isinstance(assignment_id, str))
         assignment_row = db.get_assignment(assignment_id)
         self.assertEqual(assignment_row["task_run_id"], task_run_id)
-        assignment = Assignment(db, assignment_id)
+        assignment = Assignment.get(db, assignment_id)
         self.assertEqual(assignment.task_run_id, task_run_id)
 
         # Check finding for assignments
@@ -578,7 +578,7 @@ class BaseDatabaseTests(unittest.TestCase):
         db: MephistoDB = self.db
 
         task_run_id = get_test_task_run(db)
-        task_run = TaskRun(db, task_run_id)
+        task_run = TaskRun.get(db, task_run_id)
         # Can't create task run with invalid ids
         with self.assertRaises(EntryDoesNotExistException):
             assignment_id = db.new_assignment(
@@ -601,7 +601,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Check creation and retrieval of a unit
         assignment_id = get_test_assignment(db)
-        assignment = Assignment(db, assignment_id)
+        assignment = Assignment.get(db, assignment_id)
         unit_index = 0
         pay_amount = 15.0
         provider_type = PROVIDER_TYPE
@@ -623,7 +623,7 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertEqual(unit_row["pay_amount"], pay_amount)
         self.assertEqual(unit_row["status"], AssignmentState.CREATED)
 
-        unit = Unit(db, unit_id)
+        unit = Unit.get(db, unit_id)
         self.assertEqual(unit.assignment_id, assignment_id)
 
         # Check finding for units
@@ -652,10 +652,10 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Cant get non-existent entry
         with self.assertRaises(EntryDoesNotExistException):
-            unit = Unit(db, self.get_fake_id("Unit"))
+            unit = Unit.get(db, self.get_fake_id("Unit"))
 
         assignment_id = get_test_assignment(db)
-        assignment = Assignment(db, assignment_id)
+        assignment = Assignment.get(db, assignment_id)
         unit_index = 0
         pay_amount = 15.0
         provider_type = PROVIDER_TYPE
@@ -730,7 +730,7 @@ class BaseDatabaseTests(unittest.TestCase):
         # Check creation and retrieval of a agent
         worker_name, worker_id = get_test_worker(db)
         unit_id = get_test_unit(db)
-        unit = Unit(db, unit_id)
+        unit = Unit.get(db, unit_id)
 
         agent_id = db.new_agent(
             worker_id,
@@ -752,7 +752,7 @@ class BaseDatabaseTests(unittest.TestCase):
         units = db.find_units(status=AssignmentState.ASSIGNED)
         self.assertEqual(len(units), 1)
 
-        agent = Agent(db, agent_id)
+        agent = Agent.get(db, agent_id)
         self.assertEqual(agent.worker_id, worker_id)
 
         # Check finding for agents
@@ -779,11 +779,11 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Cant get non-existent entry
         with self.assertRaises(EntryDoesNotExistException):
-            agent = Agent(db, self.get_fake_id("Agent"))
+            agent = Agent.get(db, self.get_fake_id("Agent"))
 
         unit_id = get_test_unit(db)
         worker_name, worker_id = get_test_worker(db)
-        unit = Unit(db, unit_id)
+        unit = Unit.get(db, unit_id)
 
         # Can't use invalid worker id
         with self.assertRaises(EntryDoesNotExistException):
@@ -915,7 +915,7 @@ class BaseDatabaseTests(unittest.TestCase):
         db: MephistoDB = self.db
 
         task_run_id = get_test_task_run(db)
-        task_run = TaskRun(db, task_run_id)
+        task_run = TaskRun.get(db, task_run_id)
         task = task_run.get_task()
         worker_name, worker_id = get_test_worker(db)
 

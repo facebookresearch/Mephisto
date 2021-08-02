@@ -133,7 +133,7 @@ class Requester(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMe
         Create an entry for this requester in the database
         """
         db_id = db.new_requester(requester_id, provider_type)
-        requester = Requester(db, db_id)
+        requester = Requester.get(db, db_id)
         logger.debug(f"Registered new requester {requester}")
         return requester
 

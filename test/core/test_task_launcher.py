@@ -54,7 +54,7 @@ class BaseTestTaskLauncher:
         assert self.DB_CLASS is not None, "Did not specify db to use"
         self.db = self.DB_CLASS(database_path)
         self.task_run_id = get_test_task_run(self.db)
-        self.task_run = TaskRun(self.db, self.task_run_id)
+        self.task_run = TaskRun.get(self.db, self.task_run_id)
 
     def tearDown(self):
         self.db.shutdown()
