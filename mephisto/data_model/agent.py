@@ -57,7 +57,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 "Direct Agent and data model access via ...Agent(db, id) is "
                 "now deprecated in favor of calling Agent.get(db, id). "
                 "Please update callsites, as we'll remove this compatibility "
-                "in June 2021.",
+                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:
@@ -411,7 +411,7 @@ class OnboardingAgent(
                 "Direct OnboardingAgent and data model access via OnboardingAgent(db, id) is "
                 "now deprecated in favor of calling OnboardingAgent.get(db, id). "
                 "Please update callsites, as we'll remove this compatibility "
-                "in June 2021.",
+                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:

@@ -55,7 +55,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
                 "Direct TaskRun and data model access via TaskRun(db, id) is "
                 "now deprecated in favor of calling TaskRun.get(db, id). "
                 "Please update callsites, as we'll remove this compatibility "
-                "in June 2021.",
+                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:

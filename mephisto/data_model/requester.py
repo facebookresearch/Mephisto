@@ -59,7 +59,7 @@ class Requester(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMe
                 "Direct Requester and data model access via Requester(db, id) is "
                 "now deprecated in favor of calling Requester.get(db, id). "
                 "Please update callsites, as we'll remove this compatibility "
-                "in June 2021.",
+                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:
