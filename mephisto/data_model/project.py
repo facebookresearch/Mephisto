@@ -38,7 +38,7 @@ class Project(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
                 "Direct Project and data model access via Project(db, id) is "
                 "now deprecated in favor of calling Project.get(db, id). "
                 "Please update callsites, as we'll remove this compatibility "
-                "in June 2021.",
+                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:
