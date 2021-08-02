@@ -114,7 +114,7 @@ class TaskLauncher:
                 task_run.task_type,
                 task_run.sandbox,
             )
-            self.units.append(Unit(self.db, unit_id))
+            self.units.append(Unit.get(self.db, unit_id))
             with self.unlaunched_units_access_condition:
                 self.unlaunched_units[unit_id] = Unit.get(self.db, unit_id)
 
