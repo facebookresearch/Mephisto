@@ -60,7 +60,7 @@ def get_reviewable_task_runs():
     units = db.find_units(status=AssignmentState.COMPLETED)
     reviewable_count = len(units)
     task_run_ids = set([u.get_assignment().get_task_run().db_id for u in units])
-    task_runs = [TaskRun(db, db_id) for db_id in task_run_ids]
+    task_runs = [TaskRun.get(db, db_id) for db_id in task_run_ids]
     dict_tasks = [t.to_dict() for t in task_runs]
     # TODO(OWN) maybe include warning for auto approve date once that's tracked
     return jsonify({"task_runs": dict_tasks, "total_reviewable": reviewable_count})
@@ -175,12 +175,12 @@ def get_submitted_data():
         assignments = []
         assert len(task_names) == 0, "Searching via task names not yet supported"
 
-        task_runs = [TaskRun(db, task_run_id) for task_run_id in task_run_ids]
+        task_runs = [TaskRun.get(db, task_run_id) for task_run_id in task_run_ids]
         for task_run in task_runs:
             assignments += task_run.get_assignments()
 
         assignments += [
-            Assignment(db, assignment_id) for assignment_id in assignment_ids
+            Assignment.get(db, assignment_id) for assignment_id in assignment_ids
         ]
 
         if len(statuses) == 0:
@@ -195,7 +195,7 @@ def get_submitted_data():
         for assignment in assignments:
             units += assignment.get_units()
 
-        units += [Unit(db, unit_id) for unit_id in unit_ids]
+        units += [Unit.get(db, unit_id) for unit_id in unit_ids]
 
         all_unit_data = []
         for unit in units:

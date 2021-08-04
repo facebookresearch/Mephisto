@@ -65,7 +65,7 @@ class DataBrowser:
         Return a list of all Units in a terminal completed state from the
         task run with the given run_id
         """
-        task_run = TaskRun(self.db, run_id)
+        task_run = TaskRun.get(self.db, run_id)
         return self._get_units_for_task_runs([task_run])
 
     def get_data_from_unit(self, unit: Unit) -> Dict[str, Any]:

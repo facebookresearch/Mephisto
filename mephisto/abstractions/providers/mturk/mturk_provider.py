@@ -157,7 +157,7 @@ class MTurkProvider(CrowdProvider):
             return None
 
         requester_id = mapping["requester_id"]
-        requester = Requester(self.db, requester_id)
+        requester = Requester.get(self.db, requester_id)
         assert isinstance(requester, MTurkRequester), "Must be an mturk requester"
         client = requester._get_client(requester._requester_name)
         delete_qualification(client, mapping["mturk_qualification_id"])

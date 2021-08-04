@@ -364,7 +364,7 @@ def run(
         datalist_update_time = datetime.now()
         finished = False
     else:
-        thread = threading.Thread(target=consume_data)
+        thread = threading.Thread(target=consume_data, name="review-server-thread")
         thread.start()
     print("Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)".format(port))
     sys.stdout.flush()

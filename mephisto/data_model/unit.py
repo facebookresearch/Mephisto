@@ -10,7 +10,10 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedABCMeta,
+    MephistoDataModelComponentMixin,
+)
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.requester import Requester
 from typing import Optional, Mapping, Dict, Any, Type, TYPE_CHECKING
@@ -22,13 +25,14 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 import os
+from mephisto.tools.misc import warn_once
 
 from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
 
-class Unit(metaclass=MephistoDBBackedABCMeta):
+class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class tracks the status of an individual worker's contribution to a
     higher level assignment. It is the smallest 'unit' of work to complete
@@ -39,8 +43,19 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Unit and data model access via ...Unit(db, id) is "
+                "now deprecated in favor of calling Unit.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in the 1.0 release, targetting October 2021",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_unit(db_id)
@@ -68,7 +83,11 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
         self.__worker: Optional["Worker"] = None
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Unit":
         """
         The new method is overridden to be able to automatically generate
@@ -140,7 +159,7 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
         if self.__assignment is None:
             from mephisto.data_model.assignment import Assignment
 
-            self.__assignment = Assignment(self.db, self.assignment_id)
+            self.__assignment = Assignment.get(self.db, self.assignment_id)
         return self.__assignment
 
     def get_task_run(self) -> TaskRun:
@@ -151,7 +170,7 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
             if self.__assignment is not None:
                 self.__task_run = self.__assignment.get_task_run()
             else:
-                self.__task_run = TaskRun(self.db, self.task_run_id)
+                self.__task_run = TaskRun.get(self.db, self.task_run_id)
         return self.__task_run
 
     def get_task(self) -> Task:
@@ -164,7 +183,7 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
             elif self.__task_run is not None:
                 self.__task = self.__task_run.get_task()
             else:
-                self.__task = Task(self.db, self.task_id)
+                self.__task = Task.get(self.db, self.task_id)
         return self.__task
 
     def get_requester(self) -> "Requester":
@@ -177,7 +196,7 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
             elif self.__task_run is not None:
                 self.__requester = self.__task_run.get_requester()
             else:
-                self.__requester = Requester(self.db, self.requester_id)
+                self.__requester = Requester.get(self.db, self.requester_id)
         return self.__requester
 
     def clear_assigned_agent(self) -> None:
@@ -198,14 +217,14 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
         if self.db_status in AssignmentState.final_unit():
             if self.agent_id is None:
                 return None
-            return Agent(self.db, self.agent_id)
+            return Agent.get(self.db, self.agent_id)
 
         # Query the database to get the most up-to-date assignment, as this can
         # change after instantiation if the Unit status isn't final
-        unit_copy = Unit(self.db, self.db_id)
+        unit_copy = Unit.get(self.db, self.db_id)
         self.agent_id = unit_copy.agent_id
         if self.agent_id is not None:
-            return Agent(self.db, self.agent_id)
+            return Agent.get(self.db, self.agent_id)
         return None
 
     @staticmethod
@@ -229,7 +248,7 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
             provider_type,
             assignment.task_type,
         )
-        unit = Unit(db, db_id)
+        unit = Unit.get(db, db_id)
         logger.debug(f"Registered new unit {unit} for {assignment}.")
         return unit
 
@@ -258,6 +277,11 @@ class Unit(metaclass=MephistoDBBackedABCMeta):
         from mephisto.abstractions.blueprint import AgentState
 
         db_status = self.db_status
+
+        # Expiration is a terminal state, and shouldn't be changed
+        if db_status == AssignmentState.EXPIRED:
+            return db_status
+
         computed_status = AssignmentState.LAUNCHED
 
         agent = self.get_assigned_agent()

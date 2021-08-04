@@ -71,7 +71,7 @@ class MockBlueprintTests(BlueprintTests):
             task_run.task_type,
             task_run.provider_type,
         )
-        assign = Assignment(self.db, assignment_id)
+        assign = Assignment.get(self.db, assignment_id)
         unit_id = self.db.new_unit(
             task_run.task_id,
             task_run.db_id,

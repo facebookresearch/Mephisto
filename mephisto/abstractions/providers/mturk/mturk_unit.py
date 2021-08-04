@@ -41,9 +41,13 @@ class MTurkUnit(Unit):
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
-        super().__init__(db, db_id, row=row)
+        super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
@@ -106,11 +110,52 @@ class MTurkUnit(Unit):
             self.__requester = cast("MTurkRequester", super().get_requester())
         return self.__requester
 
+    def set_db_status(self, status: str) -> None:
+        """
+        Set the status reflected in the database for this Unit
+        """
+        super().set_db_status(status)
+        if status == AssignmentState.COMPLETED:
+            agent = self.get_assigned_agent()
+            if agent is not None:
+                agent_status = agent.get_status()
+                if agent_status == AgentState.STATUS_IN_TASK:
+                    # Oh no, MTurk has completed the unit, but we don't have
+                    # the data. We need to reconcile
+                    logger.warning(
+                        f"Unit {self} moved to completed, but the agent didn't... "
+                        f"Attempting to reconcile with MTurk directly"
+                    )
+                    try:
+                        agent.attempt_to_reconcile_submitted_data(
+                            self.get_mturk_hit_id()
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Was not able to reconcile due to an error, {e}. "
+                            f"You may need to reconcile this specific Agent manually "
+                            f"after the task is completed. See here for details: "
+                            f"https://github.com/facebookresearch/Mephisto/pull/442"
+                        )
+            else:
+                logger.warning(f"No agent found for completed unit {self}...")
+
     def clear_assigned_agent(self) -> None:
         """
         Additionally to clearing the agent, we also need to dissociate the
         hit_id from this unit in the MTurkDatastore
         """
+        if self.db_status == AssignmentState.COMPLETED:
+            logger.warning(
+                f"Clearing an agent when COMPLETED, it's likely a submit happened "
+                f"but could not be received by the Mephisto backend. This "
+                f"assignment clear is thus being ignored, but this message "
+                f"is indicative of some data loss. "
+            )
+            # TODO how can we reconcile missing data here? Marking this agent as
+            # COMPLETED will pollute the data, but not marking it means that
+            # it will have to be the auto-approve deadline.
+            return
         super().clear_assigned_agent()
         mturk_hit_id = self.get_mturk_hit_id()
         if mturk_hit_id is not None:
@@ -147,7 +192,7 @@ class MTurkUnit(Unit):
                 elif agent_status == AgentState.STATUS_SOFT_REJECTED:
                     found_status = AssignmentState.SOFT_REJECTED
             else:
-                logger.warning("Agent is None")
+                logger.warning(f"Agent for unit {self} is None")
             if found_status != self.db_status:
                 self.set_db_status(found_status)
             return self.db_status

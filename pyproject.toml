@@ -9,7 +9,7 @@ python = "^3.6"
 click = "^7.0"
 flask = "^1.1"
 click_default_group = "^1.2"
-boto3 = "^1.9"
+boto3 = "^1.17"
 requests = "^2.22"
 sh = "^1.12"
 websocket-client = "^0.56.0"
@@ -19,8 +19,9 @@ torch = {version = "^1.4.0", optional = true }
 pyyaml = {version = "^5.3", optional = true }
 gevent-websocket = "^0.10.1"
 tabulate = "^0.8.7"
-hydra-core = "^1.0.0"
+hydra-core = "^1.1.0"
 tqdm = "^4.50.2"
+xmltodict = "^0.12.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"

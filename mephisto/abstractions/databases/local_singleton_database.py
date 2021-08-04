@@ -61,6 +61,7 @@ class MephistoSingletonDB(LocalMephistoDB):
         TaskRun,
         Task,
         Project,
+        Requester,
     ]
 
     def __init__(self, database_path=None):
@@ -123,7 +124,7 @@ class MephistoSingletonDB(LocalMephistoDB):
             task_type,
             provider_type,
         )
-        agent = Agent(self, agent_id)
+        agent = Agent.get(self, agent_id)
         unit = agent.get_unit()
         unit.agent_id = agent_id
         unit.db_status = AssignmentState.ASSIGNED

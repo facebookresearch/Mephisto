@@ -87,7 +87,7 @@ class BlueprintTests(unittest.TestCase):
         database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
         # TODO(#97) we need to actually pull the task type from the Blueprint
-        self.task_run = TaskRun(self.db, get_test_task_run(self.db))
+        self.task_run = TaskRun.get(self.db, get_test_task_run(self.db))
         # TODO(#97) create a mock agent with the given task type?
         self.TaskRunnerClass = self.BlueprintClass.TaskRunnerClass
         self.AgentStateClass = self.BlueprintClass.AgentStateClass
@@ -221,7 +221,9 @@ class BlueprintTests(unittest.TestCase):
             cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
         task_thread = threading.Thread(
-            target=task_runner.launch_assignment, args=(assignment, agents)
+            target=task_runner.launch_assignment,
+            args=(assignment, agents),
+            name="test-task-thread",
         )
         self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
         task_thread.start()

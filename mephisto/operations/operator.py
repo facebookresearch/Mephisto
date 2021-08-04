@@ -133,9 +133,6 @@ class Operator:
         """
         set_mephisto_log_level(level=run_config.get("log_level", "info"))
 
-        if shared_state is None:
-            shared_state = SharedTaskState()
-
         # First try to find the requester:
         requester_name = run_config.provider.requester_name
         requesters = self.db.find_requesters(requester_name=requester_name)
@@ -162,6 +159,9 @@ class Operator:
         BlueprintClass = get_blueprint_from_type(blueprint_type)
         ArchitectClass = get_architect_from_type(architect_type)
         CrowdProviderClass = get_crowd_provider_from_type(provider_type)
+
+        if shared_state is None:
+            shared_state = BlueprintClass.SharedStateClass()
 
         BlueprintClass.assert_task_args(run_config, shared_state)
         ArchitectClass.assert_task_args(run_config, shared_state)
@@ -193,7 +193,7 @@ class Operator:
             blueprint_type,
             requester.is_sandbox(),
         )
-        task_run = TaskRun(self.db, new_run_id)
+        task_run = TaskRun.get(self.db, new_run_id)
 
         try:
             # Register the blueprint with args to the task run,
@@ -249,7 +249,7 @@ class Operator:
                 task_run, run_config, shared_state, task_url
             )
 
-            initialization_data_array = blueprint.get_initialization_data()
+            initialization_data_iterable = blueprint.get_initialization_data()
 
             # Link the job together
             job = self.supervisor.register_job(
@@ -273,7 +273,7 @@ class Operator:
         launcher = TaskLauncher(
             self.db,
             task_run,
-            initialization_data_array,
+            initialization_data_iterable,
             max_num_concurrent_units=run_config.task.max_num_concurrent_units,
         )
         launcher.create_assignments()
@@ -299,6 +299,10 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 task_run = tracked_run.task_run
+                if tracked_run.task_launcher.finished_generators is False:
+                    # If the run can still generate assignments, it's
+                    # definitely not done
+                    continue
                 task_run.update_completion_progress(
                     task_launcher=tracked_run.task_launcher
                 )

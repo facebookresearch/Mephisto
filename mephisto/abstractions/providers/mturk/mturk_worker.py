@@ -43,9 +43,13 @@ class MTurkWorker(Worker):
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
-        super().__init__(db, db_id, row=row)
+        super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
@@ -91,7 +95,7 @@ class MTurkWorker(Worker):
             qualification_name
         )
         if mturk_qual_details is not None:
-            requester = Requester(self.db, mturk_qual_details["requester_id"])
+            requester = Requester.get(self.db, mturk_qual_details["requester_id"])
             qualification_id = mturk_qual_details["mturk_qualification_id"]
         else:
             target_type = (
@@ -128,7 +132,7 @@ class MTurkWorker(Worker):
             )
             return None
 
-        requester = Requester(self.db, mturk_qual_details["requester_id"])
+        requester = Requester.get(self.db, mturk_qual_details["requester_id"])
         assert isinstance(
             requester, MTurkRequester
         ), "Must be an MTurk requester from MTurk quals"

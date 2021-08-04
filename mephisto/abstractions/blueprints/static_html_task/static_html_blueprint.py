@@ -18,6 +18,7 @@ from mephisto.operations.registry import register_mephisto_abstraction
 import os
 import time
 import csv
+import types
 
 from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHECKING
 
@@ -107,6 +108,8 @@ class StaticHTMLBlueprint(StaticBlueprint):
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """Ensure that the data can be properly loaded"""
         blue_args = args.blueprint
+        if isinstance(shared_state.static_task_data, types.GeneratorType):
+            raise AssertionError("You can't launch an HTML static task on a generator")
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
             assert os.path.exists(

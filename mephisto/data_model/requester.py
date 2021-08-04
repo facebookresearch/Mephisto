@@ -5,7 +5,11 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import abstractmethod, abstractstaticmethod
-from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.tools.misc import warn_once
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedABCMeta,
+    MephistoDataModelComponentMixin,
+)
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 
@@ -34,7 +38,7 @@ class RequesterArgs:
     )
 
 
-class Requester(metaclass=MephistoDBBackedABCMeta):
+class Requester(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     High level class representing a requester on some kind of crowd provider. Sets some default
     initializations, but mostly should be extended by the specific requesters for crowd providers
@@ -44,8 +48,19 @@ class Requester(metaclass=MephistoDBBackedABCMeta):
     ArgsClass: ClassVar[Type["RequesterArgs"]] = RequesterArgs
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Requester and data model access via Requester(db, id) is "
+                "now deprecated in favor of calling Requester.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in the 1.0 release, targetting October 2021",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_requester(db_id)
@@ -55,7 +70,11 @@ class Requester(metaclass=MephistoDBBackedABCMeta):
         self.requester_name: str = row["requester_name"]
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Requester":
         """
         The new method is overridden to be able to automatically generate
@@ -114,7 +133,7 @@ class Requester(metaclass=MephistoDBBackedABCMeta):
         Create an entry for this requester in the database
         """
         db_id = db.new_requester(requester_id, provider_type)
-        requester = Requester(db, db_id)
+        requester = Requester.get(db, db_id)
         logger.debug(f"Registered new requester {requester}")
         return requester
 

@@ -43,7 +43,7 @@ class TestMTurkComponents(unittest.TestCase):
         TEST_MTURK_WORKER_ID = "ABCDEFGHIJ"
 
         test_worker = MTurkWorker.new(db, TEST_MTURK_WORKER_ID)
-        test_worker_2 = Worker(db, test_worker.db_id)
+        test_worker_2 = Worker.get(db, test_worker.db_id)
         self.assertEqual(
             test_worker.worker_name,
             test_worker_2.worker_name,
