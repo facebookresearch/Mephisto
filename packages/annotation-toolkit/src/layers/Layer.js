@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import cx from "classnames";
 import { useStore } from "global-context-store";
+import { Icon } from "@blueprintjs/core";
 
 const LayerContext = React.createContext({ stack: [] });
 
@@ -8,6 +9,7 @@ function Layer({
   displayName,
   icon,
   secondaryIcon = "",
+  secondaryLabel = "",
   children,
   component,
   actions = null,
@@ -39,6 +41,7 @@ function Layer({
         id: layerId,
         noPointerEvents,
         hideActionsIfUnselected,
+        layerStack,
         getData,
         onSelect,
       });
@@ -81,25 +84,25 @@ function Layer({
             onClick={() => setExpanded(!expanded)}
             className={cx(
               expanded ? "bp3-tree-node-caret-open" : "",
-              children ? "bp3-tree-node-caret" : "bp3-tree-node-caret-none",
-              "bp3-icon-standard"
+              children ? "bp3-tree-node-caret" : "bp3-tree-node-caret-none"
             )}
-          ></span>
-          {icon ? (
-            <span
-              className={cx(
-                "bp3-tree-node-icon bp3-icon-standard",
-                "bp3-icon-" + icon
-              )}
-            ></span>
-          ) : null}
+          >
+            <Icon icon={children ? "caret-right" : "empty"} />
+          </span>
+          {icon ? <Icon className="bp3-tree-node-icon" icon={icon} /> : null}
           <span className="bp3-tree-node-label">{displayName}</span>
-          <span
-            className={cx(
-              "bp3-tree-node-secondary-label bp3-icon-standard",
-              "bp3-icon-" + secondaryIcon
-            )}
-          ></span>
+          {secondaryLabel ? (
+            <span
+              style={{ marginRight: 5, opacity: 0.8, fontSize: 12 }}
+              className={cx("bp3-tree-node-secondary-label")}
+            >
+              {secondaryLabel}
+            </span>
+          ) : null}
+          <Icon icon={secondaryIcon} />
+          {/* <span
+            className={"bp3-icon-standard bp3-icon-" + secondaryIcon}
+          ></span> */}
         </div>
         {children && expanded ? (
           <ul className="bp3-tree-node-list">{children}</ul>
@@ -110,3 +113,4 @@ function Layer({
 }
 
 export default Layer;
+export { LayerContext };

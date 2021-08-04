@@ -3,6 +3,7 @@ import ReactPlayer from "react-player";
 import { useStore } from "global-context-store";
 import { Spinner } from "@blueprintjs/core";
 import { dataPathBuilderFor, requestsPathFor } from "../helpers";
+import { LayerContext } from "./Layer";
 
 export default function VideoPlayer({
   id,
@@ -17,6 +18,9 @@ export default function VideoPlayer({
   const { set, get } = store;
   const vidRef = useRef();
   const canvasRef = useRef();
+
+  const layerInfo = useContext(LayerContext);
+  id = id || layerInfo?.id || undefined;
 
   const [detectedSize, setDetectedSize] = React.useState([10, 10]);
   const [videoLoaded, setVideoLoaded] = React.useState(false);
@@ -42,11 +46,33 @@ export default function VideoPlayer({
           "seconds"
         );
       } else if (req.type === "screenshot") {
+        const [x, y, cropWidth, cropHeight] = req?.payload?.size || [
+          0,
+          0,
+          width,
+          height,
+        ];
+        canvasRef.current.height = cropHeight;
+        canvasRef.current.width = cropWidth;
         canvasRef.current
           .getContext("2d")
-          .drawImage(vidRef.current.getInternalPlayer(), 0, 0, width, height);
+          .drawImage(
+            vidRef.current.getInternalPlayer(),
+            x / scale,
+            y / scale,
+            cropWidth / scale,
+            cropHeight / scale,
+            0,
+            0,
+            cropWidth,
+            cropHeight
+          );
         const screenshotData = canvasRef.current.toDataURL("image/png");
-        req.payload.callback({ store, data: screenshotData });
+        req.payload.callback({
+          store,
+          size: [x, y, cropWidth, cropHeight],
+          data: screenshotData,
+        });
       }
     },
     [vidRef.current]
