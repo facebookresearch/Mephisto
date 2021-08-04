@@ -2,6 +2,8 @@
 
 This package helps users to build out review & annotation tooling for their research tasks.
 
+[**View storybook here.**](https://annotation-toolkit-storybook.vercel.app/)
+
 ### Installation
 
 `annotation-toolkit` requires `global-context-store`, `@blueprintjs/core`, and `@blueprintjs/icons` as peer-dependencies.
