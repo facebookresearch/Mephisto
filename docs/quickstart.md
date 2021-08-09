@@ -30,7 +30,7 @@ Now that you have Mephisto installed, you should have access to the `mephisto` C
 Let's use this CLI tool to set up a data directory via the `mephisto config` command. The data directory is where the results of your crowdsourcing tasks will be stored.
 
 ```bash
-$ mephisto config core.mephisto_data_directory ~/mephisto/data
+$ mephisto config core.main_data_directory ~/mephisto/data
 ```
 
 Check that everything is set up correctly!
