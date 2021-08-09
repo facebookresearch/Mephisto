@@ -57,6 +57,18 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
             "required": True,
         },
     )
+    link_task_source: bool = field(
+        default=False,
+        metadata={
+            "help": """
+                Symlinks the the task_source file in your development folder to the
+                one used for the server. Useful for local development so you can run
+                a watch-based build for your task_source so that the UI code can
+                update without having to restart the server each time.
+            """,
+            "required": False,
+        },
+    )
 
 
 @register_mephisto_abstraction()

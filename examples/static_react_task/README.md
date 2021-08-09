@@ -101,6 +101,12 @@ An onboarding step can be added to tasks, which will be shown the first time a w
 ### Building the react app
 In `run_task.py` we have a step for building the frontend before running anything: `build_task()`. This method in theory only needs to be called on the first run, or when changes are made to the `webapp` directory.
 
+#### Local Development
+
+For local development, you may want to have changes made to your React code reflect locally without having to restart the server each time. To enable this, update the Hydra config's `mephisto.blueprint.link_task_source` value to `true` (default is `false`).
+
+After running `python run_task.py`, you can then run `npm run dev:watch` in the webapp folder to auto-regenerate the task_source file. Since it's now symlinked, simply refreshing the browser will show changes. You won't need to kill and restart the server anymore.
+
 ## Making your own static react task
 In order to get started on your own task, it is a good idea to copy this `static_react_task` directory into your workspace and use it as a starting point. Generally you'll do the following:
 

@@ -145,8 +145,7 @@ class LocalArchitect(Architect):
         self.running_dir = os.path.join(
             get_mephisto_tmp_dir(), f"local_server_{self.task_run_id}", "server"
         )
-
-        shutil.copytree(self.server_dir, self.running_dir)
+        shutil.copytree(self.server_dir, self.running_dir, symlinks=True)
 
         return_dir = os.getcwd()
         os.chdir(self.running_dir)
