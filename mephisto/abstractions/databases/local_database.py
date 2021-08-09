@@ -1391,7 +1391,7 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [
                 OnboardingAgent(
-                    self, str(r["onboarding_agent_id"], _used_new_call=True), row=r
+                    self, str(r["onboarding_agent_id"]), row=r, _used_new_call=True
                 )
                 for r in rows
             ]
