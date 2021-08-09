@@ -105,7 +105,7 @@ In `run_task.py` we have a step for building the frontend before running anythin
 
 For local development, you may want to have changes made to your React code reflect locally without having to restart the server each time. To enable this, update the Hydra config's `mephisto.blueprint.link_task_source` value to `true` (default is `false`).
 
-After running `python run_task.py`, you can then run `npm run dev:watch` in the webapp folder to auto-regenerate the task_source file. Since it's now symlinked, simply refreshing the browser will show changes. You won't need to kill and restart the server anymore.
+After running `python run_task.py`, you can then run `npm run dev:watch` in the webapp folder to auto-regenerate the task_source file. Since the task source file is now symlinked, simply refreshing the browser will reflect your changes. You won't need to kill and restart the server each time anymore.
 
 ## Making your own static react task
 In order to get started on your own task, it is a good idea to copy this `static_react_task` directory into your workspace and use it as a starting point. Generally you'll do the following:
