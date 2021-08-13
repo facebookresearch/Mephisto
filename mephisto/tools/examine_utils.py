@@ -10,6 +10,7 @@ seen in the examine results scripts in the examples directory.
 
 from mephisto.tools.data_browser import DataBrowser
 from mephisto.data_model.worker import Worker
+from mephisto.operations.utils import find_or_create_qualification
 import traceback
 
 from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any, List
@@ -160,6 +161,7 @@ def run_examine_by_worker(
         "You may enter the option in caps to apply it to the rest of the units for a given worker."
     )
     if block_qualification is not None:
+        created_block_qual = find_or_create_qualification(db, block_qualification)
         print(
             "When you pass or reject a task, the script gives you an option to disqualify the worker "
             "from future tasks by assigning a qualification. If provided, this worker will no "
@@ -167,6 +169,7 @@ def run_examine_by_worker(
             f"you provided above: {block_qualification}\n"
         )
     if approve_qualification is not None:
+        created_approve_qual = find_or_create_qualification(db, approve_qualification)
         print(
             "You may use this script to establish a qualified worker pool by granting the provided "
             f"approve qualification {approve_qualification} to workers you think understand the task "
@@ -185,6 +188,7 @@ def run_examine_by_worker(
 
     others = [u for u in units if u.get_status() != "completed"]
     units = [u for u in units if u.get_status() == "completed"]
+    reviews_left = len(units)
     previous_work_by_worker = get_worker_stats(others)
 
     # Determine allowed options
@@ -206,10 +210,13 @@ def run_examine_by_worker(
         apply_all_decision = None
         reason = None
         for idx, unit in enumerate(w_units):
+
             print(
                 f"Reviewing for worker {worker_name}, ({idx+1}/{len(w_units)}), "
-                f"Previous {format_worker_stats(w_id, previous_work_by_worker)}"
+                f"Previous {format_worker_stats(w_id, previous_work_by_worker)} "
+                f"(total remaining: {reviews_left})"
             )
+            reviews_left -= 1
             print(format_data_for_printing(data_browser.get_data_from_unit(unit)))
             if apply_all_decision is not None:
                 decision = apply_all_decision
