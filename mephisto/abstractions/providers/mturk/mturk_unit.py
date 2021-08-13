@@ -13,6 +13,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     expire_hit,
     get_hit,
     create_hit_with_hit_type,
+    get_assignments_for_hit,
 )
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
 import time
@@ -113,6 +114,14 @@ class MTurkUnit(Unit):
         super().set_db_status(status)
         if status == AssignmentState.COMPLETED:
             agent = self.get_assigned_agent()
+            try:
+                hit_id = self.get_mturk_hit_id()
+                requester = self.get_requester()
+                client = self._get_client(requester._requester_name)
+                assigns = get_assignments_for_hit(client, hit_id)
+                print(f"Unit {self} moving to completed, assigns: {assigns}")
+            except Exception as e:
+                print(f"Exception trying to get assignment for given hit {e}")
             if agent is not None:
                 agent_status = agent.get_status()
                 if agent_status == AgentState.STATUS_IN_TASK:
@@ -133,6 +142,10 @@ class MTurkUnit(Unit):
                             f"after the task is completed. See here for details: "
                             f"https://github.com/facebookresearch/Mephisto/pull/442"
                         )
+                elif agent_status == AgentState.STATUS_TIMEOUT:
+                    # Oh no, this is also bad. we shouldn't be completing for a timed out agent.
+                    logger.warning("Found a timeout that's trying to be pushed to completed with a timed out agent")
+                    pass
             else:
                 logger.warning(f"No agent found for completed unit {self}...")
 
@@ -197,7 +210,14 @@ class MTurkUnit(Unit):
 
         mturk_hit_id = self.get_mturk_hit_id()
         if mturk_hit_id is None:
-            # Can't determine anything if there is no HIT on this assignment
+            # If the hit_id is None and there's an agent still assigned,
+            # then that agent has timed out and we should expire
+            agent = self.get_assigned_agent()
+            if agent is not None:
+                if agent.get_status() != AgentState.STATUS_EXPIRED:
+                    agent.update_status(AgentState.STATUS_EXPIRED)
+                
+            # Can't determine anything else if there is no HIT on this unit
             return self.db_status
 
         requester = self.get_requester()
@@ -320,3 +340,6 @@ class MTurkUnit(Unit):
         return MTurkUnit._register_unit(
             db, assignment, index, pay_amount, PROVIDER_TYPE
         )
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id}, {self.get_mturk_hit_id()}, {self.db_status})"
