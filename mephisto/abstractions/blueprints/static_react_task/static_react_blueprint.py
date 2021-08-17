@@ -100,7 +100,15 @@ class StaticReactBlueprint(StaticBlueprint):
         assert (
             found_task_source is not None
         ), "Must provide a path to a javascript bundle in `task_source`"
+
         found_task_path = os.path.expanduser(found_task_source)
         assert os.path.exists(
             found_task_path
         ), f"Provided task source {found_task_path} does not exist."
+
+        link_task_source = args.blueprint.link_task_source
+        current_architect = args.architect._architect_type
+        allowed_architects = ["local"]
+        assert link_task_source == False or (
+            link_task_source == True and current_architect in allowed_architects
+        ), f"`link_task_source={link_task_source}` is not compatible with architect type: {args.architect._architect_type}. Please check your task configuration."
