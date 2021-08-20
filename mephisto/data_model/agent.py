@@ -6,26 +6,39 @@
 
 import os
 import threading
+from mephisto.tools.misc import warn_once
+from uuid import uuid4
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.data_model.blueprint import AgentState
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedABCMeta,
+    MephistoDataModelComponentMixin,
+)
 from mephisto.data_model.exceptions import (
     AgentReturnedError,
     AgentDisconnectedError,
     AgentTimeoutError,
+    AgentShutdownError,
 )
 
 from typing import List, Optional, Tuple, Mapping, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.assignment import Unit, Assignment
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.data_model.unit import Unit
+    from mephisto.data_model.assignment import Assignment
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.packet import Packet
-    from mephisto.data_model.task import Task, TaskRun
+    from mephisto.data_model.task import Task
+    from mephisto.data_model.task_run import TaskRun
+
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
 
 
-class Agent(ABC):
+class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class encompasses a worker as they are working on an individual assignment.
     It maintains details for the current task at hand such as start and end time,
@@ -33,8 +46,19 @@ class Agent(ABC):
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Agent and data model access via ...Agent(db, id) is "
+                "now deprecated in favor of calling Agent.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in the 1.0 release, targetting October 2021",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_agent(db_id)
@@ -56,6 +80,7 @@ class Agent(ABC):
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
         self.did_submit = threading.Event()
+        self.is_shutdown = False
 
         # Deferred loading of related entities
         self._worker: Optional["Worker"] = None
@@ -64,11 +89,21 @@ class Agent(ABC):
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
 
-        # Follow-up initialization
-        self.state = AgentState(self)  # type: ignore
+        # Follow-up initialization is deferred
+        self._state = None  # type: ignore
+
+    @property
+    def state(self) -> "AgentState":
+        if self._state is None:
+            self._state = AgentState(self)
+        return self._state
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Agent":
         """
         The new method is overridden to be able to automatically generate
@@ -77,7 +112,7 @@ class Agent(ABC):
         as you will instead be returned the correct Agent class according to
         the crowdprovider associated with this Agent.
         """
-        from mephisto.core.registry import get_crowd_provider_from_type
+        from mephisto.operations.registry import get_crowd_provider_from_type
 
         if cls == Agent:
             # We are trying to construct a Agent, find what type to use and
@@ -102,7 +137,7 @@ class Agent(ABC):
         Return the worker that is using this agent for a task
         """
         if self._worker is None:
-            self._worker = Worker(self.db, self.worker_id)
+            self._worker = Worker.get(self.db, self.worker_id)
         return self._worker
 
     def get_unit(self) -> "Unit":
@@ -110,9 +145,9 @@ class Agent(ABC):
         Return the Unit that this agent is working on.
         """
         if self._unit is None:
-            from mephisto.data_model.assignment import Unit
+            from mephisto.data_model.unit import Unit
 
-            self._unit = Unit(self.db, self.unit_id)
+            self._unit = Unit.get(self.db, self.unit_id)
         return self._unit
 
     def get_assignment(self) -> "Assignment":
@@ -123,7 +158,7 @@ class Agent(ABC):
             else:
                 from mephisto.data_model.assignment import Assignment
 
-                self._assignment = Assignment(self.db, self.assignment_id)
+                self._assignment = Assignment.get(self.db, self.assignment_id)
         return self._assignment
 
     def get_task_run(self) -> "TaskRun":
@@ -134,9 +169,9 @@ class Agent(ABC):
             elif self._assignment is not None:
                 self._task_run = self._assignment.get_task_run()
             else:
-                from mephisto.data_model.task import TaskRun
+                from mephisto.data_model.task_run import TaskRun
 
-                self._task_run = TaskRun(self.db, self.task_run_id)
+                self._task_run = TaskRun.get(self.db, self.task_run_id)
         return self._task_run
 
     def get_task(self) -> "Task":
@@ -151,7 +186,7 @@ class Agent(ABC):
             else:
                 from mephisto.data_model.task import Task
 
-                self._task = Task(self.db, self.task_id)
+                self._task = Task.get(self.db, self.task_id)
         return self._task
 
     def get_data_dir(self) -> str:
@@ -168,18 +203,28 @@ class Agent(ABC):
         them of this update"""
         if self.db_status == new_status:
             return  # Noop, this is already the case
+        logger.debug(f"Updating {self} to {new_status}")
         if self.db_status in AgentState.complete():
-            print(
-                f"Updating a final status, was {self.db_status} "
-                f"and want to set to {new_status}"
-            )
+            logger.info(f"Updating {self} from final status to {new_status}")
+
+        old_status = self.db_status
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
         self.has_updated_status.set()
-        if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
+        if new_status in [
+            AgentState.STATUS_RETURNED,
+            AgentState.STATUS_DISCONNECT,
+            AgentState.STATUS_TIMEOUT,
+        ]:
             # Disconnect statuses should free any pending acts
             self.has_action.set()
             self.did_submit.set()
+            if old_status == AgentState.STATUS_WAITING:
+                # Waiting agents' unit can be reassigned, as no work
+                # has been done yet.
+                unit = self.get_unit()
+                logger.debug(f"Clearing {self} from {unit} for update to {new_status}")
+                unit.clear_assigned_agent()
 
     @staticmethod
     def _register_agent(
@@ -197,7 +242,8 @@ class Agent(ABC):
             unit.task_type,
             provider_type,
         )
-        a = Agent(db, db_id)
+        a = Agent.get(db, db_id)
+        logger.debug(f"Registered new agent {a} for {unit}.")
         a.update_status(AgentState.STATUS_ACCEPTED)
         return a
 
@@ -225,6 +271,8 @@ class Agent(ABC):
         Pass the observed information to the AgentState, then
         queue the information to be pushed to the user
         """
+        if packet.data.get("message_id") is None:
+            packet.data["message_id"] = str(uuid4())
         sending_packet = packet.copy()
         sending_packet.receiver_id = self.db_id
         self.state.update_data(sending_packet)
@@ -243,6 +291,8 @@ class Agent(ABC):
             self.has_action.wait(timeout)
 
         if len(self.pending_actions) == 0:
+            if self.is_shutdown:
+                raise AgentShutdownError(self.db_id)
             # various disconnect cases
             status = self.get_status()
             if status == AgentState.STATUS_DISCONNECT:
@@ -277,6 +327,18 @@ class Agent(ABC):
                 self.has_updated_status.set()
             self.db_status = row["status"]
         return self.db_status
+
+    def shutdown(self) -> None:
+        """
+        Force the given agent to end any polling threads and throw an AgentShutdownError
+        from any acts called on it, ensuring tasks using this agent can be cleaned up.
+        """
+        logger.debug(f"{self} is shutting down")
+        self.has_action.set()
+        self.is_shutdown = True
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id}, {self.db_status})"
 
     # Children classes should implement the following methods
 
@@ -319,7 +381,9 @@ class Agent(ABC):
         raise NotImplementedError()
 
 
-class OnboardingAgent(ABC):
+class OnboardingAgent(
+    MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta
+):
     """
     Onboarding agents are a special extension of agents used
     in tasks that have a separate onboarding step. These agents
@@ -336,8 +400,19 @@ class OnboardingAgent(ABC):
     DISPLAY_PREFIX = "onboarding_"
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct OnboardingAgent and data model access via OnboardingAgent(db, id) is "
+                "now deprecated in favor of calling OnboardingAgent.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in the 1.0 release, targetting October 2021",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_onboarding_agent(db_id)
@@ -356,6 +431,7 @@ class OnboardingAgent(ABC):
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
         self.did_submit = threading.Event()
+        self.is_shutdown = False
 
         # Deferred loading of related entities
         self._worker: Optional["Worker"] = None
@@ -387,15 +463,15 @@ class OnboardingAgent(ABC):
         Return the worker that is using this agent for a task
         """
         if self._worker is None:
-            self._worker = Worker(self.db, self.worker_id)
+            self._worker = Worker.get(self.db, self.worker_id)
         return self._worker
 
     def get_task_run(self) -> "TaskRun":
         """Return the TaskRun this agent is working within"""
         if self._task_run is None:
-            from mephisto.data_model.task import TaskRun
+            from mephisto.data_model.task_run import TaskRun
 
-            self._task_run = TaskRun(self.db, self.task_run_id)
+            self._task_run = TaskRun.get(self.db, self.task_run_id)
         return self._task_run
 
     def get_task(self) -> "Task":
@@ -406,7 +482,7 @@ class OnboardingAgent(ABC):
             else:
                 from mephisto.data_model.task import Task
 
-                self._task = Task(self.db, self.task_id)
+                self._task = Task.get(self.db, self.task_id)
         return self._task
 
     def get_data_dir(self) -> str:
@@ -423,11 +499,11 @@ class OnboardingAgent(ABC):
         them of this update"""
         if self.db_status == new_status:
             return  # Noop, this is already the case
+
+        logger.debug(f"Updating {self} to {new_status}")
         if self.db_status in AgentState.complete():
-            print(
-                f"Updating a final status, was {self.db_status} "
-                f"and want to set to {new_status}"
-            )
+            logger.info(f"Updating {self} from final status to {new_status}")
+
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
         self.has_updated_status.set()
@@ -460,6 +536,8 @@ class OnboardingAgent(ABC):
 
         if len(self.pending_actions) == 0:
             # various disconnect cases
+            if self.is_shutdown:
+                raise AgentShutdownError(self.db_id)
             status = self.get_status()
             if status == AgentState.STATUS_DISCONNECT:
                 raise AgentDisconnectedError(self.db_id)
@@ -504,6 +582,15 @@ class OnboardingAgent(ABC):
         ]:
             self.update_status(AgentState.STATUS_WAITING)
 
+    def shutdown(self) -> None:
+        """
+        Force the given agent to end any polling threads and throw an AgentShutdownError
+        from any acts called on it, ensuring tasks using this agent can be cleaned up.
+        """
+        logger.debug(f"{self} is shutting down")
+        self.has_action.set()
+        self.is_shutdown = True
+
     @staticmethod
     def new(db: "MephistoDB", worker: Worker, task_run: "TaskRun") -> "OnboardingAgent":
         """
@@ -512,4 +599,9 @@ class OnboardingAgent(ABC):
         db_id = db.new_onboarding_agent(
             worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
-        return OnboardingAgent(db, db_id)
+        a = OnboardingAgent.get(db, db_id)
+        logger.debug(f"Registered new {a} for worker {worker}.")
+        return a
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.db_id})"

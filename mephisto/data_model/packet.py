@@ -18,6 +18,7 @@ PACKET_TYPE_GET_INIT_DATA = "init_data_request"
 PACKET_TYPE_ALIVE = "alive"
 PACKET_TYPE_PROVIDER_DETAILS = "provider_details"
 PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding"
+PACKET_TYPE_ERROR_LOG = "log_error"
 
 
 class Packet:

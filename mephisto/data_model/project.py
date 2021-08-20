@@ -5,15 +5,20 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.constants import NO_PROJECT_NAME
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedMeta,
+    MephistoDataModelComponentMixin,
+)
 
+from mephisto.tools.misc import warn_once
 from typing import List, Mapping, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.data_model.database import MephistoDB
+    from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task import Task
 
 
-class Project:
+class Project(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """
     High level project that many crowdsourcing tasks may be related to. Useful
     for budgeting and grouping tasks for a review perspective.
@@ -22,8 +27,19 @@ class Project:
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Project and data model access via Project(db, id) is "
+                "now deprecated in favor of calling Project.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in the 1.0 release, targetting October 2021",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = self.db.get_project(db_id)
@@ -58,4 +74,4 @@ class Project:
             project_name != NO_PROJECT_NAME
         ), f"{project_name} is a reserved name that cannot be used as a project name."
         db_id = db.new_project(project_name)
-        return Project(db, db_id)
+        return Project.get(db, db_id)

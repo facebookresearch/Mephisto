@@ -5,11 +5,17 @@
 # LICENSE file in the root directory of this source tree.
 
 from setuptools import setup, find_packages
+import os
+
+here = os.path.abspath(os.path.dirname(__file__))
+
+with open(os.path.join(here, "mephisto", "VERSION")) as version_file:
+    version = version_file.read().strip()
 
 setup(
     name="mephisto",
-    version="0.1",
-    packages=find_packages(),
+    version=version,
+    packages=find_packages(include=["mephisto.*", "hydra_plugins.*"]),
     entry_points={"console_scripts": "mephisto=mephisto.client.cli:cli"}
     # package_dir={'': 'mephisto'},
 )

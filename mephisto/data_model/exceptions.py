@@ -34,3 +34,10 @@ class AgentReturnedError(AbsentAgentError):
 
     def __init__(self, agent_id):
         super().__init__(f"Agent returned task", agent_id)
+
+
+class AgentShutdownError(AbsentAgentError):
+    """Exception for when a task is shutdown but agents are still in a task"""
+
+    def __init__(self, agent_id):
+        super().__init__(f"This agent has been forced to shut down", agent_id)

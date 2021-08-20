@@ -1,0 +1,20 @@
+{
+  "name": "mephisto-review",
+  "version": "2.1.2",
+  "keywords": [
+    "react",
+    "create-react-app",
+    "template",
+    "mephisto",
+    "FAIR"
+  ],
+  "description": "Template to quickly start up and utilize a review UI for mephisto review.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10"
+  },
+  "files": [
+    "template",
+    "template.json"
+  ]
+}

@@ -87,7 +87,7 @@ From within the frontend, any call to the `handleSubmit` method will store the d
 This data can later be viewed using `MephistoDataBrowser` or other scripts.
 
 ### Onboarding
-An onboarding step can be added to tasks, which will be shown the first time a worker encounters a task with the same `onboarding_qualification` set. For Static React Tasks, calling `handleSubmit` when `isOnboarding` is true will submit the onboarding. If the object passed has the flag `{"success": false}` in it, the worker will be prevented from working on the real task, or any future tasks with the same `onboarding_qualification` set. This task has one such button in `webapp/src/components/core_components.jsx` that is only shown if `isOnboarding` is true, and always submits a successful onboarding.
+An onboarding step can be added to tasks, which will be shown the first time a worker encounters a task with the same `onboarding_qualification` set. For Static React Tasks, calling `handleSubmit` when `isOnboarding` is true will submit the onboarding. The object passed will be sent to the Mephisto backend, wherein the contents will be passed to the `validate_onboarding` method of the `SharedTaskState`. If that method returns `False`, the worker will be prevented from working on the real task, or any future tasks with the same `onboarding_qualification` set. This task has one such button in `webapp/src/components/core_components.jsx` that is only shown if `isOnboarding` is true, and always submits a successful onboarding. See the [README on Blueprints](https://github.com/facebookresearch/Mephisto/blob/master/mephisto/abstractions/blueprints/README.md) for more info on the `SharedTaskState`.
 
 ```js
 <button
@@ -100,6 +100,12 @@ An onboarding step can be added to tasks, which will be shown the first time a w
 
 ### Building the react app
 In `run_task.py` we have a step for building the frontend before running anything: `build_task()`. This method in theory only needs to be called on the first run, or when changes are made to the `webapp` directory.
+
+#### Local Development
+
+For local development, you may want to have changes made to your React code reflect locally without having to restart the server each time. To enable this, update the Hydra config's `mephisto.blueprint.link_task_source` value to `true` (default is `false`).
+
+After running `python run_task.py`, you can then run `npm run dev:watch` in the webapp folder to auto-regenerate the task_source file. Since the task source file is now symlinked, simply refreshing the browser will reflect your changes. You won't need to kill and restart the server each time anymore.
 
 ## Making your own static react task
 In order to get started on your own task, it is a good idea to copy this `static_react_task` directory into your workspace and use it as a starting point. Generally you'll do the following:

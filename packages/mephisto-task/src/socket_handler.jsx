@@ -120,6 +120,7 @@ function useMephistoSocket({
     setting_socket: false, // Flag for socket setup being underway
     heartbeats_without_response: 0, // HBs to the router without a pong back
     last_mephisto_ping: Date.now(),
+    used_message_ids: [],
   };
 
   const [state, setState] = React.useReducer(
@@ -333,6 +334,15 @@ function useMephistoSocket({
 
   function parseSocketMessage(packet) {
     if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
+      let used_message_ids = state.used_message_ids;
+
+      if (used_message_ids.includes(packet.data.message_id)) {
+        // Skip this message
+        return;
+      } else {
+        let new_message_ids = [...used_message_ids, packet.data.message_id];
+        setState({ used_message_ids: new_message_ids });
+      }
       onMessageReceived(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATE) {
       onStateUpdate(packet.data); // packet.data looks like - {state: {}, status: "<>"}

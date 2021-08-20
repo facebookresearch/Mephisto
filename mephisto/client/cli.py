@@ -19,9 +19,41 @@ def cli():
 @cli.command("web")
 def web():
     """Launch a local webserver with the Mephisto UI"""
-    from mephisto.client.server import app
+    from mephisto.client.full.server import app
 
     app.run(debug=False)
+
+
+@cli.command("config")
+@click.argument("identifier", type=(str), default=None, required=False)
+@click.argument("value", type=(str), default=None, required=False)
+def config(identifier, value):
+    from mephisto.operations.config_handler import (
+        get_config_arg,
+        add_config_arg,
+        get_raw_config,
+        DEFAULT_CONFIG_FILE,
+    )
+
+    if identifier is None and value is None:
+        # If no args, show full config:
+        click.echo(f"{DEFAULT_CONFIG_FILE}:\n")
+        click.echo(get_raw_config())
+        return
+
+    if "." not in identifier:
+        raise click.BadParameter(
+            f"Identifier must be of format: <section>.<key>\nYou passed in: {identifier}"
+        )
+    [section, key] = identifier.split(".")
+
+    if value is None:
+        # Read mode:
+        click.echo(get_config_arg(section, key))
+    else:
+        # Write mode:
+        add_config_arg(section, key, value)
+        click.echo(f"{identifier} succesfully updated to: {value}")
 
 
 @cli.command("review")
@@ -32,24 +64,56 @@ def web():
 @click.option("--file", "output_method", flag_value="file", default=True)
 @click.option("--csv-headers/--no-csv-headers", default=False)
 @click.option("--json/--csv", default=False)
+@click.option("--db", "database_task_name", type=(str), default=None)
+@click.option("--all/--one-by-one", "all_data", default=False)
 @click.option("-d", "--debug", type=(bool), default=False)
-def review(review_app_dir, port, output, output_method, csv_headers, json, debug):
+def review(
+    review_app_dir,
+    port,
+    output,
+    output_method,
+    csv_headers,
+    json,
+    database_task_name,
+    all_data,
+    debug,
+):
     """Launch a local review UI server. Reads in rows froms stdin and outputs to either a file or stdout."""
-    from mephisto.client.review_server import run
+    from mephisto.client.review.review_server import run
 
     if output == "" and output_method == "file":
         raise click.UsageError(
             "You must specify an output file via --output=<filename>, unless the --stdout flag is set."
         )
+    if database_task_name is not None:
+        from mephisto.abstractions.databases.local_database import LocalMephistoDB
+        from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
-    run(review_app_dir, port, output, csv_headers, json, debug)
+        db = LocalMephistoDB()
+        mephisto_data_browser = MephistoDataBrowser(db=db)
+        name_list = mephisto_data_browser.get_task_name_list()
+        if database_task_name not in name_list:
+            raise click.BadParameter(
+                f'The task name "{database_task_name}" did not exist in MephistoDB.\n\nPerhaps you meant one of these? {", ".join(name_list)}\n\nFlag usage: mephisto review --db [task_name]\n'
+            )
+
+    run(
+        review_app_dir,
+        port,
+        output,
+        csv_headers,
+        json,
+        database_task_name,
+        all_data,
+        debug,
+    )
 
 
 @cli.command("check")
 def check():
     """Checks that mephisto is setup correctly"""
-    from mephisto.core.local_database import LocalMephistoDB
-    from mephisto.core.utils import get_mock_requester
+    from mephisto.abstractions.databases.local_database import LocalMephistoDB
+    from mephisto.operations.utils import get_mock_requester
 
     try:
         db = LocalMephistoDB()
@@ -64,7 +128,7 @@ def check():
 @cli.command("requesters")
 def list_requesters():
     """Lists all registered requesters"""
-    from mephisto.core.local_database import LocalMephistoDB
+    from mephisto.abstractions.databases.local_database import LocalMephistoDB
     from tabulate import tabulate
 
     db = LocalMephistoDB()
@@ -81,9 +145,9 @@ def register_provider(args):
         click.echo("Usage: mephisto register <provider_type> arg1=value arg2=value")
         return
 
-    from mephisto.core.local_database import LocalMephistoDB
-    from mephisto.core.registry import get_crowd_provider_from_type
-    from mephisto.core.argparse_parser import parse_arg_dict, get_extra_argument_dicts
+    from mephisto.abstractions.databases.local_database import LocalMephistoDB
+    from mephisto.operations.registry import get_crowd_provider_from_type
+    from mephisto.operations.utils import parse_arg_dict, get_extra_argument_dicts
 
     provider_type, requester_args = args[0], args[1:]
     args_dict = dict(arg.split("=", 1) for arg in requester_args)
@@ -130,7 +194,7 @@ def get_help_arguments(args):
         )
         return
 
-    from mephisto.core.registry import (
+    from mephisto.operations.registry import (
         get_blueprint_from_type,
         get_crowd_provider_from_type,
         get_architect_from_type,
@@ -138,7 +202,7 @@ def get_help_arguments(args):
         get_valid_provider_types,
         get_valid_architect_types,
     )
-    from mephisto.core.argparse_parser import get_extra_argument_dicts
+    from mephisto.operations.utils import get_extra_argument_dicts
 
     VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
 

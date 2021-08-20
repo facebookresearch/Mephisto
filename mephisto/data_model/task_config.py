@@ -15,7 +15,7 @@ import argparse
 import shlex
 
 if TYPE_CHECKING:
-    from mephisto.data_model.task import TaskRun
+    from mephisto.data_model.task_run import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
@@ -80,6 +80,15 @@ class TaskConfigArgs:
             )
         },
     )
+    max_num_concurrent_units: int = field(
+        default=0,
+        metadata={
+            "help": (
+                "Maximum units that will be released simultaneously, setting a limit "
+                "on concurrent connections to Mephisto overall. (0 is infinite)"
+            )
+        },
+    )
 
 
 class TaskConfig:
@@ -90,8 +99,8 @@ class TaskConfig:
 
     ArgsClass = TaskConfigArgs
 
-    # TODO(#94?) TaskConfigs should probably be immutable, and could ideally separate
-    # the options that come from different parts of the ecosystem
+    # TODO(#94?) TaskConfigs should probably be removed in favor of relying on
+    # just hydra arguments
     def __init__(self, task_run: "TaskRun"):
         self.db = task_run.db
         args = task_run.args
@@ -115,7 +124,7 @@ class TaskConfig:
     @classmethod
     def get_mock_params(cls) -> str:
         """Returns a param string with default / mock arguments to use for testing"""
-        from mephisto.core.hydra_config import MephistoConfig
+        from mephisto.operations.hydra_config import MephistoConfig
 
         return OmegaConf.structured(
             MephistoConfig(

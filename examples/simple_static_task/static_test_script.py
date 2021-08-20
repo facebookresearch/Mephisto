@@ -5,10 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from mephisto.core.operator import Operator
-from mephisto.core.utils import get_root_dir
-from mephisto.server.blueprints.static_task.static_html_blueprint import BLUEPRINT_TYPE
-from mephisto.utils.scripts import load_db_and_process_config
+from mephisto.operations.operator import Operator
+from mephisto.operations.utils import get_root_dir
+from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
+    BLUEPRINT_TYPE,
+)
+from mephisto.tools.scripts import load_db_and_process_config
 
 import hydra
 from omegaconf import DictConfig
@@ -25,7 +27,7 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import RunScriptConfig, register_script_config
+from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 
 @dataclass
@@ -37,7 +39,7 @@ class TestScriptConfig(RunScriptConfig):
 register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 
-@hydra.main(config_name="scriptconfig")
+@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
     db, cfg = load_db_and_process_config(cfg)
     operator = Operator(db)

@@ -6,9 +6,9 @@
 
 
 import os
-from mephisto.core.operator import Operator
-from mephisto.utils.scripts import load_db_and_process_config
-from mephisto.server.blueprints.parlai_chat.parlai_chat_blueprint import (
+from mephisto.operations.operator import Operator
+from mephisto.tools.scripts import load_db_and_process_config
+from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
     BLUEPRINT_TYPE,
     SharedParlAITaskState,
 )
@@ -28,7 +28,7 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import RunScriptConfig, register_script_config
+from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 
 @dataclass
@@ -51,7 +51,7 @@ class TestScriptConfig(RunScriptConfig):
 register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 
-@hydra.main(config_name="scriptconfig")
+@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
     db, cfg = load_db_and_process_config(cfg)
 

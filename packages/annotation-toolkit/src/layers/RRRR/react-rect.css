@@ -1,0 +1,91 @@
+.movable-rect-frame > div {
+  position: absolute;
+  border: 1px solid #eb5648;
+}
+
+.movable-rect-frame .square {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: white;
+  border: 1px solid #eb5648;
+  border-radius: 1px;
+}
+.movable-rect-frame .resizable-handler {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  z-index: 1;
+}
+.movable-rect-frame .resizable-handler.tl,
+.movable-rect-frame .resizable-handler.t,
+.movable-rect-frame .resizable-handler.tr {
+  top: -7px;
+}
+.movable-rect-frame .resizable-handler.tl,
+.movable-rect-frame .resizable-handler.l,
+.movable-rect-frame .resizable-handler.bl {
+  left: -7px;
+}
+.movable-rect-frame .resizable-handler.bl,
+.movable-rect-frame .resizable-handler.b,
+.movable-rect-frame .resizable-handler.br {
+  bottom: -7px;
+}
+.movable-rect-frame .resizable-handler.br,
+.movable-rect-frame .resizable-handler.r,
+.movable-rect-frame .resizable-handler.tr {
+  right: -7px;
+}
+.movable-rect-frame .resizable-handler.l,
+.movable-rect-frame .resizable-handler.r {
+  margin-top: -7px;
+}
+.movable-rect-frame .resizable-handler.t,
+.movable-rect-frame .resizable-handler.b {
+  margin-left: -7px;
+}
+
+.movable-rect-frame .rotate {
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.movable-rect-frame .t,
+.movable-rect-frame .tl,
+.movable-rect-frame .tr {
+  top: -3px;
+}
+.movable-rect-frame .b,
+.movable-rect-frame .bl,
+.movable-rect-frame .br {
+  bottom: -3px;
+}
+.movable-rect-frame .r,
+.movable-rect-frame .tr,
+.movable-rect-frame .br {
+  right: -3px;
+}
+.movable-rect-frame .tl,
+.movable-rect-frame .l,
+.movable-rect-frame .bl {
+  left: -3px;
+}
+.movable-rect-frame .l,
+.movable-rect-frame .r {
+  top: 50%;
+  margin-top: -3px;
+}
+.movable-rect-frame .t,
+.movable-rect-frame .b {
+  left: 50%;
+  margin-left: -3px;
+}

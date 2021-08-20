@@ -13,23 +13,27 @@ import time
 
 from typing import List
 
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprint
-from mephisto.server.blueprints.mock.mock_task_runner import MockTaskRunner
-from mephisto.server.architects.mock_architect import MockArchitect
-from mephisto.providers.mock.mock_provider import MockProvider
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.task_launcher import TaskLauncher
-from mephisto.data_model.test.utils import get_test_task_run
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
+from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
+from mephisto.abstractions.architects.mock_architect import MockArchitect
+from mephisto.abstractions.providers.mock.mock_provider import MockProvider
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
+from mephisto.operations.task_launcher import TaskLauncher
+from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
-from mephisto.data_model.task import TaskRun
-from mephisto.core.supervisor import Supervisor, Job
-from mephisto.data_model.blueprint import SharedTaskState
+from mephisto.data_model.task_run import TaskRun
+from mephisto.operations.supervisor import Supervisor, Job
+from mephisto.abstractions.blueprint import SharedTaskState
 
 
-from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
-from mephisto.core.hydra_config import MephistoConfig
-from mephisto.providers.mock.mock_provider import MockProviderArgs
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.abstractions.architects.mock_architect import (
+    MockArchitect,
+    MockArchitectArgs,
+)
+from mephisto.operations.hydra_config import MephistoConfig
+from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
@@ -37,19 +41,22 @@ from omegaconf import OmegaConf
 EMPTY_STATE = SharedTaskState()
 
 
-class TestSupervisor(unittest.TestCase):
+class BaseTestSupervisor:
     """
     Unit testing for the Mephisto Supervisor,
     uses WebsocketChannel and MockArchitect
     """
 
+    DB_CLASS = None
+
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
-        self.db = LocalMephistoDB(database_path)
+        assert self.DB_CLASS is not None, "Did not specify db to use"
+        self.db = self.DB_CLASS(database_path)
         self.task_id = self.db.new_task("test_mock", MockBlueprint.BLUEPRINT_TYPE)
         self.task_run_id = get_test_task_run(self.db)
-        self.task_run = TaskRun(self.db, self.task_run_id)
+        self.task_run = TaskRun.get(self.db, self.task_run_id)
 
         architect_config = OmegaConf.structured(
             MephistoConfig(architect=MockArchitectArgs(should_run_server=True))
@@ -840,3 +847,15 @@ class TestSupervisor(unittest.TestCase):
         self.assertTrue(channel_info.channel.is_closed())
 
     # TODO(#97) handle testing for disconnecting in and out of tasks
+
+
+class TestSupervisorLocal(BaseTestSupervisor, unittest.TestCase):
+    DB_CLASS = LocalMephistoDB
+
+
+class TestSupervisorSingleton(BaseTestSupervisor, unittest.TestCase):
+    DB_CLASS = MephistoSingletonDB
+
+
+if __name__ == "__main__":
+    unittest.main()

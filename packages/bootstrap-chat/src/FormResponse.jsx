@@ -127,6 +127,13 @@ class FormResponse extends React.Component {
                   return { responses: new_res };
                 });
               }}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
+                }
+              }}
             />
           </Col>
         </FormGroup>

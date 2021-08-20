@@ -12,19 +12,24 @@ import os
 import tempfile
 import time
 import threading
+from unittest.mock import patch
 
-from mephisto.data_model.test.utils import get_test_requester
-from mephisto.data_model.assignment_state import AssignmentState
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.operator import Operator
-from mephisto.server.architects.mock_architect import MockArchitect, MockArchitectArgs
-from mephisto.core.hydra_config import MephistoConfig
-from mephisto.providers.mock.mock_provider import MockProviderArgs
-from mephisto.server.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.abstractions.test.utils import get_test_requester
+from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
+from mephisto.operations.operator import Operator
+from mephisto.abstractions.architects.mock_architect import (
+    MockArchitect,
+    MockArchitectArgs,
+)
+from mephisto.operations.hydra_config import MephistoConfig
+from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
-TIMEOUT_TIME = 10
+TIMEOUT_TIME = 15
 
 
 MOCK_TASK_ARGS = TaskConfigArgs(
@@ -35,15 +40,18 @@ MOCK_TASK_ARGS = TaskConfigArgs(
 )
 
 
-class TestOperator(unittest.TestCase):
+class OperatorBaseTest(object):
     """
-    Unit testing for the Mephisto Supervisor
+    Unit testing for the Mephisto Operator
     """
+
+    DB_CLASS = None
 
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
         database_path = os.path.join(self.data_dir, "mephisto.db")
-        self.db = LocalMephistoDB(database_path)
+        assert self.DB_CLASS is not None, "Did not specify db to use"
+        self.db = self.DB_CLASS(database_path)
         self.requester_name, _req_id = get_test_requester(self.db)
         self.operator = None
 
@@ -80,6 +88,7 @@ class TestOperator(unittest.TestCase):
         """Quick test to ensure that the operator can be initialized"""
         self.operator = Operator(self.db)
 
+    @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_job_concurrent(self):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
@@ -145,6 +154,7 @@ class TestOperator(unittest.TestCase):
         assignment = task_run.get_assignments()[0]
         self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
+    @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_job_not_concurrent(self):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
@@ -210,6 +220,7 @@ class TestOperator(unittest.TestCase):
         assignment = task_run.get_assignments()[0]
         self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
+    @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_jobs_with_restrictions(self):
         """Ensure allowed_concurrent and maximum_units_per_worker work"""
         self.operator = Operator(self.db)
@@ -407,3 +418,15 @@ class TestOperator(unittest.TestCase):
         assignments = task_run.get_assignments()
         for assignment in assignments:
             self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
+
+
+class TestOperatorLocal(OperatorBaseTest, unittest.TestCase):
+    DB_CLASS = LocalMephistoDB
+
+
+class TestOperatorSingleton(OperatorBaseTest, unittest.TestCase):
+    DB_CLASS = MephistoSingletonDB
+
+
+if __name__ == "__main__":
+    unittest.main()

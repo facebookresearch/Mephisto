@@ -4,10 +4,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.core.local_database import LocalMephistoDB
-from mephisto.core.data_browser import DataBrowser as MephistoDataBrowser
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.assignment import Unit
+from mephisto.data_model.unit import Unit
 
 db = LocalMephistoDB()
 mephisto_data_browser = MephistoDataBrowser(db=db)
@@ -35,7 +35,7 @@ else:
 
 def format_for_printing_data(data):
     # Custom tasks can define methods for how to display their data in a relevant way
-    worker_name = Worker(db, data["worker_id"]).worker_name
+    worker_name = Worker.get(db, data["worker_id"]).worker_name
     contents = data["data"]
     duration = contents["times"]["task_end"] - contents["times"]["task_start"]
     metadata_string = (
@@ -50,7 +50,7 @@ def format_for_printing_data(data):
     output_string = f"   Rating: {outputs['rating']}\n"
     found_files = outputs.get("files")
     if found_files is not None:
-        file_dir = Unit(db, data["unit_id"]).get_assigned_agent().get_data_dir()
+        file_dir = Unit.get(db, data["unit_id"]).get_assigned_agent().get_data_dir()
         output_string += f"   Files: {found_files}\n"
         output_string += f"   File directory {file_dir}\n"
     else:

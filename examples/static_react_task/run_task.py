@@ -7,13 +7,13 @@
 import os
 import shutil
 import subprocess
-from mephisto.core.operator import Operator
-from mephisto.core.utils import get_root_dir
-from mephisto.utils.scripts import load_db_and_process_config
-from mephisto.server.blueprints.static_react_task.static_react_blueprint import (
+from mephisto.operations.operator import Operator
+from mephisto.operations.utils import get_root_dir
+from mephisto.tools.scripts import load_db_and_process_config
+from mephisto.abstractions.blueprints.static_react_task.static_react_blueprint import (
     BLUEPRINT_TYPE,
 )
-from mephisto.server.blueprints.abstract.static_task.static_blueprint import (
+from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
 
@@ -31,7 +31,7 @@ defaults = [
     {"conf": "example"},
 ]
 
-from mephisto.core.hydra_config import RunScriptConfig, register_script_config
+from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 
 @dataclass
@@ -71,7 +71,7 @@ def build_task(task_dir):
     os.chdir(return_dir)
 
 
-@hydra.main(config_name="scriptconfig")
+@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
     task_dir = cfg.task_dir
 

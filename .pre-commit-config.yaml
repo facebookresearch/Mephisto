@@ -10,12 +10,13 @@ repos:
           )
       - id: check-yaml
       - id: check-added-large-files
+        args: ["--maxkb=10000"]
   - repo: https://github.com/psf/black
     rev: stable
     hooks:
       - id: black
-        language_version: python3.6
-  - repo: https://github.com/pre-commit/mirrors-prettier
+        language_version: python3
+  - repo: https://github.com/prettier/pre-commit
     rev: "v2.1.2"
     hooks:
       - id: prettier

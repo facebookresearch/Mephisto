@@ -9,7 +9,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { BaseFrontend, LoadingScreen } from "./components/core_components.jsx";
-import { useMephistoTask } from "mephisto-task";
+import { useMephistoTask, ErrorBoundary } from "mephisto-task";
 
 /* ================= Application Components ================= */
 
@@ -21,6 +21,7 @@ function MainApp() {
     isLoading,
     initialTaskData,
     handleSubmit,
+    handleFatalError,
     isOnboarding,
   } = useMephistoTask();
 
@@ -53,11 +54,14 @@ function MainApp() {
 
   return (
     <div>
-      <BaseFrontend
-        taskData={initialTaskData}
-        onSubmit={handleSubmit}
-        isOnboarding={isOnboarding}
-      />
+      <ErrorBoundary handleError={handleFatalError}>
+        <BaseFrontend
+          taskData={initialTaskData}
+          onSubmit={handleSubmit}
+          isOnboarding={isOnboarding}
+          onError={handleFatalError}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

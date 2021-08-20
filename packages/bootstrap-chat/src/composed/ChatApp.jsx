@@ -18,13 +18,13 @@ import BaseFrontend from "./BaseFrontend.jsx";
 /* ================= Application Components ================= */
 
 const AppContext = React.createContext({});
+const emptyAppSettings = {};
 
 const INPUT_MODE = {
   WAITING: "waiting",
   INACTIVE: "inactive",
   DONE: "done",
   READY_FOR_INPUT: "ready_for_input",
-  IDLE: "idle",
 };
 
 function ChatApp({
@@ -33,6 +33,7 @@ function ChatApp({
   renderTextResponse,
   renderResponse,
   onMessagesChange,
+  defaultAppSettings = emptyAppSettings,
 }) {
   const [taskContext, updateContext] = React.useReducer(
     (oldContext, newContext) => Object.assign(oldContext, newContext),
@@ -53,7 +54,12 @@ function ChatApp({
     }
   }, [messages]);
 
-  const initialAppSettings = { volume: 1, isReview: false, isCoverPage: false };
+  const initialAppSettings = {
+    volume: 1,
+    isReview: false,
+    isCoverPage: false,
+    ...defaultAppSettings,
+  };
   const [appSettings, setAppSettings] = React.useReducer(
     (prevSettings, newSettings) => Object.assign(prevSettings, newSettings),
     initialAppSettings
@@ -63,7 +69,9 @@ function ChatApp({
   function playNotifSound() {
     let audio = new Audio("./notif.mp3");
     audio.volume = appSettings.volume;
-    audio.play();
+    if (audio.volume != 0) {
+      audio.play();
+    }
   }
 
   function trackAgentName(agentName) {
@@ -93,6 +101,8 @@ function ChatApp({
       } else if (state.wants_act) {
         setInputMode(INPUT_MODE.READY_FOR_INPUT);
         playNotifSound();
+      } else if (!state.wants_act) {
+        setInputMode(INPUT_MODE.WAITING);
       }
     },
     onMessageReceived: (message) => {
