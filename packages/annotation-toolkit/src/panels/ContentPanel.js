@@ -67,7 +67,7 @@ function ContentPanel({ instructionPane: InstructionPane }) {
         const component = get(["layers", path.join("|"), "config"]);
         if (!component) return acc;
         const actions = component.actions
-          ? [...acc.actions, component.actions]
+          ? [...acc.actions, component.actions()]
           : acc.actions;
         const actionPaths = component.actions
           ? [...acc.actionPaths, path.join(" / ")]
@@ -128,7 +128,7 @@ function ContentPanel({ instructionPane: InstructionPane }) {
           }}
         >
           {InstructionPane ? (
-            <Card className="bp3-dark" style={{ marginBottom: 10 }}>
+            <Card className="bp3-dark" style={{ marginBottom: 5, padding: 10 }}>
               <InstructionPane />
             </Card>
           ) : null}
@@ -151,7 +151,7 @@ function ContentPanel({ instructionPane: InstructionPane }) {
                 layer.actions ? (
                   <React.Fragment key={idx}>
                     <MenuDivider title={layer.id} />
-                    {layer.actions}
+                    {layer.actions()}
                   </React.Fragment>
                 ) : null
               )}

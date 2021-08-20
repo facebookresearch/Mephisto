@@ -1,3 +1,18 @@
+# v1.1.2-beta
+- **NEW** Adds in the `<MovableRect />` component with built-in linear interpolation between keyframes. Usage:
+   ```js
+   <MovableRect defaultBox={[50, 200, 100, 100]} getFrame={() => {
+        return currentFrameNumber;
+    }} />
+    ```
+- **ENHANCEMENT** - VideoPlayer playing can be toggled by clicking on the video.
+- **ENHANCEMENT** - Add a getLabel property to MovableRect that adds a label to the box.
+- **NEW** - Add `getInterpolatedFrames(allKeyframes)` helper to convert keyframes into interpolated frames, frame-by-frame. Returns array of: `{frame, value: [x, y, width, height]}`
+
+---
+
+- **BREAKING** - Layer actions now require a render prop instead of React node.
+
 # v1.1.1
 - **NEW** Support for generating `<VideoPlayer />` screenshots via the requests queue. Usage:
   ```js

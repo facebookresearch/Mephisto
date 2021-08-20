@@ -9,7 +9,7 @@ import { isFunction } from "../utils";
 
 function DebugPanel() {
   const { state: fullState } = useStore();
-  const { __debug, ...state } = fullState;
+  const { __debug, _unsafe, ...state } = fullState;
 
   let displayState = null;
   try {

@@ -1,6 +1,6 @@
 export const frameToMs = (frame, fps) => (frame * 1000) / fps;
 
-export const msToFrame = (ms, fps) => Math.round((ms * fps) / 1000);
+export const msToFrame = (ms, fps) => Math.floor((ms * fps) / 1000);
 
 // Given a layerId, returns the conventional nested state path for the
 // requests array for a layer. The requests array is used to
