@@ -275,7 +275,7 @@ def run_examine_or_review(
         "how many to view\n"
     )
 
-    if do_review.lower().startswith('r'):
+    if do_review.lower().startswith("r"):
         run_examine_by_worker(db, format_data_for_printing)
     else:
         start = 0
