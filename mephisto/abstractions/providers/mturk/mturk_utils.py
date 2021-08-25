@@ -64,6 +64,15 @@ def setup_aws_credentials(
     try:
         # Check existing credentials
         boto3.Session(profile_name=profile_name)
+        if register_args is not None:
+            # Eventually we could manually re-parse the file and see
+            # if the credentials line up or not, then fix ourselves
+            print(
+                f"WARNING credentials provided, but there's already a "
+                f"profile for {profile_name}. If these don't line up, you'll "
+                f"need to manually navigate to your ~/.aws/credentials file "
+                f"and remove the entry for this profile name, then run again."
+            )
         return True
     except ProfileNotFound:
         # Setup new credentials
