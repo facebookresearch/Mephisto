@@ -95,10 +95,11 @@ $ mephisto register mturk_sandbox \
         name=my_mturk_user_sandbox \
         access_key_id=$ACCESS_KEY\
         secret_access_key=$SECRET_KEY
-AWS credentials successfully saved in ~/.aws/credentials file.
 
 Registered successfully.
 ```
+
+Note that registering a sandbox user will not create a new entry in your `~/.aws/credentials` file, as sandbox and prod use the same access keys.
 
 2. Next, let's run the task script again, but this time we'll override the requester name and change the architect type to use [Heroku](https://www.heroku.com/). (You can find all of the architects currently supported [here](../mephisto/abstractions/architects).)
 
