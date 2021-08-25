@@ -48,17 +48,20 @@ def print_results(
     db: "MephistoDB",
     task_name: str,
     format_data_for_printing: Callable[[Dict[str, Any]], str],
-    limit: Optional[int] = None,
+    start: Optional[int] = None,
+    end: Optional[int] = None,
 ) -> None:
     """
-    Script to write out to stdout up to limit results from the task with the given task name
+    Script to write out to stdout from start to end results from the task with the given task name
     """
     data_browser = DataBrowser(db=db)
     units = data_browser.get_units_for_task_name(task_name)
-    if limit is None:
-        limit = len(units)
+    if end is None:
+        end = len(units)
+    if start is None:
+        start = 0
     units.reverse()
-    for unit in units[:limit]:
+    for unit in units[start:end]:
         print(_get_and_format_data(data_browser, format_data_for_printing, unit))
 
 
@@ -260,3 +263,29 @@ def run_examine_by_worker(
 
             if decision.lower() != decision:
                 apply_all_decision = decision.lower()
+
+
+def run_examine_or_review(
+    db: "MephistoDB",
+    format_data_for_printing: Callable[[Dict[str, Any]], str],
+) -> None:
+    do_review = input(
+        "Do you want to (r)eview, or (e)xamine data? Default "
+        "examine. Can put e <end> or e <start> <end> to choose "
+        "how many to view\n"
+    )
+
+    if do_review.lower().startswith('r'):
+        run_examine_by_worker(db, format_data_for_printing)
+    else:
+        start = 0
+        end = 15
+        opts = do_review.split(" ")
+        if len(opts) == 2:
+            end = int(opts[1])
+        elif len(opts) == 3:
+            start = int(opts[1])
+            end = int(opts[2])
+        task_name = input("Input task name: ")
+        print_results(db, task_name, format_data_for_printing, start=start, end=end)
+        
