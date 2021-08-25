@@ -114,14 +114,6 @@ class MTurkUnit(Unit):
         super().set_db_status(status)
         if status == AssignmentState.COMPLETED:
             agent = self.get_assigned_agent()
-            try:
-                hit_id = self.get_mturk_hit_id()
-                requester = self.get_requester()
-                client = self._get_client(requester._requester_name)
-                assigns = get_assignments_for_hit(client, hit_id)
-                print(f"Unit {self} moving to completed, assigns: {assigns}")
-            except Exception as e:
-                print(f"Exception trying to get assignment for given hit {e}")
             if agent is not None:
                 agent_status = agent.get_status()
                 if agent_status == AgentState.STATUS_IN_TASK:
