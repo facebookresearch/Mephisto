@@ -288,4 +288,3 @@ def run_examine_or_review(
             end = int(opts[2])
         task_name = input("Input task name: ")
         print_results(db, task_name, format_data_for_printing, start=start, end=end)
-        
