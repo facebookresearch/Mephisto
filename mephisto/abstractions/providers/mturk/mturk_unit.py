@@ -136,7 +136,9 @@ class MTurkUnit(Unit):
                         )
                 elif agent_status == AgentState.STATUS_TIMEOUT:
                     # Oh no, this is also bad. we shouldn't be completing for a timed out agent.
-                    logger.warning("Found a timeout that's trying to be pushed to completed with a timed out agent")
+                    logger.warning(
+                        "Found a timeout that's trying to be pushed to completed with a timed out agent"
+                    )
                     pass
             else:
                 logger.warning(f"No agent found for completed unit {self}...")
@@ -208,7 +210,7 @@ class MTurkUnit(Unit):
             if agent is not None:
                 if agent.get_status() != AgentState.STATUS_EXPIRED:
                     agent.update_status(AgentState.STATUS_EXPIRED)
-                
+
             # Can't determine anything else if there is no HIT on this unit
             return self.db_status
 

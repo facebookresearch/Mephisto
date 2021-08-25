@@ -176,7 +176,9 @@ class MTurkDatastore:
         Register a specific assignment and hit to the given unit,
         or clear the assignment after a return
         """
-        logger.debug(f"Attempting to assign HIT {hit_id}, Unit {unit_id}, Assignment {assignment_id}.")
+        logger.debug(
+            f"Attempting to assign HIT {hit_id}, Unit {unit_id}, Assignment {assignment_id}."
+        )
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
@@ -187,11 +189,13 @@ class MTurkDatastore:
                 (hit_id,),
             )
             results = c.fetchall()
-            if len(results) > 0 and results[0]['unit_id'] is not None:
-                old_unit_id = results[0]['unit_id']
+            if len(results) > 0 and results[0]["unit_id"] is not None:
+                old_unit_id = results[0]["unit_id"]
                 self._mark_hit_mapping_update(old_unit_id)
-                logger.debug(f"Cleared HIT mapping cache for previous unit, {old_unit_id}")
-           
+                logger.debug(
+                    f"Cleared HIT mapping cache for previous unit, {old_unit_id}"
+                )
+
             c.execute(
                 """UPDATE hits
                 SET assignment_id = ?, unit_id = ?
