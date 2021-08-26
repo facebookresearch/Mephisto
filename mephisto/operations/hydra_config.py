@@ -59,6 +59,7 @@ def initialize_named_configs():
 
 
 def register_script_config(name: str, module: Any):
+    check_for_hydra_compat()
     config.store(name=name, node=module)
 
 
@@ -69,6 +70,8 @@ def check_for_hydra_compat():
     import os
 
     callsite = inspect.stack(0)[-1].filename
+    for entry in inspect.stack(0):
+        print(entry.filename)
     call_dir = os.path.dirname(os.path.join(".", callsite))
     if "hydra_configs" not in os.listdir(call_dir):
         logger.warning(
@@ -81,6 +84,3 @@ def check_for_hydra_compat():
             "remediation details."
             "\u001b[0m"
         )
-
-
-check_for_hydra_compat()
