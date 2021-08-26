@@ -16,15 +16,15 @@ def format_for_printing_data(data):
     contents = data["data"]
     duration = contents["times"]["task_end"] - contents["times"]["task_start"]
     metadata_string = (
-        f"Worker: {worker_name}\nUnit: {data["unit_id"]}\n"
-        f"Duration: {int(duration)}\nStatus: {data["status"]}\n"
+        f"Worker: {worker_name}\nUnit: {data['unit_id']}\n"
+        f"Duration: {int(duration)}\nStatus: {data['status']}\n"
     )
 
     inputs = contents["inputs"]
-    inputs_string = f"Character: {inputs["character_name"]}\nDescription: {inputs["character_description"]}\n"
+    inputs_string = f"Character: {inputs['character_name']}\nDescription: {inputs['character_description']}\n"
 
     outputs = contents["outputs"]
-    output_string = f"   Rating: {outputs["rating"]}\n"
+    output_string = f"   Rating: {outputs['rating']}\n"
     found_files = outputs.get("files")
     if found_files is not None:
         file_dir = Unit(db, data["unit_id"]).get_assigned_agent().get_data_dir()
