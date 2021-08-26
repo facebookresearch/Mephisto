@@ -6,6 +6,9 @@
 from mephisto.operations.registry import fill_registries
 from mephisto.operations.config_handler import init_config
 from mephisto.operations.hydra_config import initialize_named_configs
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
 
 import os
 
@@ -21,3 +24,11 @@ except Exception:
 init_config()
 fill_registries()
 initialize_named_configs()
+logger.warning(
+    "\u001b[31;1m"
+    "Mephisto Version 0.4.0 has breaking changes for user scripts due "
+    "to the Hydra 1.1 upgrade. This may prevent scripts from launching. "
+    "See https://github.com/facebookresearch/Mephisto/issues/529 for "
+    "remediation details."
+    "\u001b[0m"
+)
