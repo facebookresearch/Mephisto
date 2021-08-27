@@ -13,6 +13,13 @@ It has three usable methods at the moment:
 - `get_units_for_task_name`: This will go through all task runs that share the given `task_name`, and collect their units in the same manner as `get_units_for_run_id`.
 - `get_data_from_unit`: When given a `Unit` that is in a terminal state, this method will return data about that `Unit`, including the Mephisto id of the worker, the status of the work, the data saved by this `Unit`, and the start and end times for when the worker produced the data.
 
+## `examine_utils.py`
+This file contains a number of helper functions that are useful for running reviews over Mephisto data. We provide a high-level script for doing a 'review-by-worker' style evaluation, as well as breakout helper functions that could be useful in alternate review flows.
+- `run_examine_by_worker`: This function takes a function `format_data_for_printing` that consumes the result of `MephistoDataBrowser.get_data_from_unit`, and should print out to terminal a reviewable format. It optionally takes in `task_name`, `block_qualification`, and `approve_qualification` arguments. If `task_name` is provided, the script will be run in review mode without querying the user for anything.
+- `print_results`: This function takes a task name and display function `format_data_for_printing`, and an optional int `limit`, and prints up to `limit` results to stdout.
+- `format_worker_stats`: Takes in a worker id and set of previous worker stats, and returns the previous stats in the format `(accepted_count | total_rejected_count (soft_rejected_count) / total count)`
+- `prompt_for_options`: Prompts the user for `task_name`, `block_qualification`, and `approve_qualification`. If provided as an argument, skips. Returns these values after confirming with the user, and if blank uses `None`.
+
 ## `scripts.py`
 This file contains a few helper methods for running scripts relying on the `MephistoDB`. They are as follows:
 - `get_db_from_config`: This method takes in a hydra-produced `DictConfig` containing a `MephistoConfig` (such as a `RunScriptConfig`), and returns an initialized `MephistoDB` compatible with the configuration. Right now this exclusively leverages the `LocalMephistoDB`.
