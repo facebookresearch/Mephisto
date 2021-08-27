@@ -5,9 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
-from typing import Optional
+from typing import Optional, Dict
 
-loggers = {}
+loggers: Dict[str, logging.Logger] = {}
 global_log_level = logging.INFO
 
 

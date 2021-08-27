@@ -9,9 +9,12 @@ from mephisto.abstractions.blueprint import BlueprintArgs
 from mephisto.abstractions.architect import ArchitectArgs
 from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.data_model.task_config import TaskConfigArgs
+from mephisto.operations.logger_core import get_logger
 from dataclasses import dataclass, field
 from omegaconf import MISSING
 from typing import List, Any
+
+logger = get_logger(name=__name__)
 
 config = ConfigStoreWithProvider("mephisto")
 
@@ -56,4 +59,28 @@ def initialize_named_configs():
 
 
 def register_script_config(name: str, module: Any):
+    check_for_hydra_compat()
     config.store(name=name, node=module)
+
+
+def check_for_hydra_compat():
+    # Required for determining 0.3.x to 0.4.0 conversion
+    # of scripts
+    import inspect
+    import os
+
+    callsite = inspect.stack(0)[-1].filename
+    for entry in inspect.stack(0):
+        print(entry.filename)
+    call_dir = os.path.dirname(os.path.join(".", callsite))
+    if "hydra_configs" not in os.listdir(call_dir):
+        logger.warning(
+            "\u001b[31;1m"
+            f"We noticed you don't have a hydra_configs directory in the folder "
+            f"{call_dir} where you are running this script from.\n"
+            "Mephisto Version 0.4.0 has breaking changes for user scripts due "
+            "to the Hydra 1.1 upgrade. This may prevent scripts from launching. "
+            "See https://github.com/facebookresearch/Mephisto/issues/529 for "
+            "remediation details."
+            "\u001b[0m"
+        )

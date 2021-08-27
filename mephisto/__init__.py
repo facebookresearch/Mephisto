@@ -9,7 +9,6 @@ from mephisto.operations.hydra_config import initialize_named_configs
 
 import os
 
-
 here = os.path.abspath(os.path.dirname(__file__))
 
 try:
