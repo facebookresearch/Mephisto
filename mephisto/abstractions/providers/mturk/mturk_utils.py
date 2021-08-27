@@ -71,7 +71,9 @@ def setup_aws_credentials(
                 f"WARNING credentials provided, but there's already a "
                 f"profile for {profile_name}. If these don't line up, you'll "
                 f"need to manually navigate to your ~/.aws/credentials file "
-                f"and remove the entry for this profile name, then run again."
+                f"and remove the entry for this profile name, then run again.\n"
+                f"As this profile is currently loading, we consider it "
+                f"successfully registered anyways."
             )
         return True
     except ProfileNotFound:
