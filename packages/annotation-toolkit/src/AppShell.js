@@ -5,6 +5,7 @@ import LayersPanel from "./panels/LayersPanel";
 import Layer from "./layers/Layer";
 import cx from "classnames";
 import { Button } from "@blueprintjs/core";
+import { useStore } from "global-context-store";
 
 function Window({ title, children, buttons, bodyClassNames = [] }) {
   return (
@@ -21,10 +22,9 @@ function Window({ title, children, buttons, bodyClassNames = [] }) {
                 key={idx + "-" + button.title}
                 title={button.title}
                 onClick={() => button.action && button.action()}
-                className={
-                  "mosaic-default-control bp3-button bp3-minimal bp3-icon-" +
-                  button.icon
-                }
+                icon={button.icon}
+                minimal={true}
+                className={"mosaic-default-control"}
               ></Button>
             ))}
           </div>
@@ -101,10 +101,22 @@ function AppShell({
   layerButtons = [],
   showDebugPane = false,
   contextPanel: ContextPanel = () => null,
+  contextHeight = "200px",
   instructionPane = null,
 }) {
+  const { set } = useStore();
+
+  const portalRef = React.useRef();
+  React.useEffect(() => {
+    set("_unsafe.portalRef", portalRef.current);
+  }, [portalRef.current]);
+
   return (
     <div className="full">
+      <div
+        style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }}
+        ref={portalRef}
+      ></div>
       {showNavbar ? (
         <Navbar className="bp3-dark">
           <Navbar.Group align={Alignment.LEFT}>
@@ -131,7 +143,10 @@ function AppShell({
               <LayersPanel layers={layers} showDebugPane={showDebugPane} />
             </Window>
           </div>
-          <div className="mosaic-tile" style={{ inset: "0% 0% 200px 300px" }}>
+          <div
+            className="mosaic-tile"
+            style={{ inset: `0% 0% ${contextHeight} 300px` }}
+          >
             <Window
               title="Content"
               bodyClassNames={["grid-background"]}
@@ -148,7 +163,7 @@ function AppShell({
           </div>
           <div
             className="mosaic-tile"
-            style={{ inset: "calc(100% - 200px) 0% 0% 300px" }}
+            style={{ inset: `calc(100% - ${contextHeight}) 0% 0% 300px` }}
           >
             <Window title="Context">
               <ContextPanel />

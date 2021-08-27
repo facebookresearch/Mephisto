@@ -92,7 +92,7 @@ def get_test_task_run(db: MephistoDB) -> str:
 def get_test_assignment(db: MephistoDB) -> str:
     """Helper to create an assignment for tests"""
     task_run_id = get_test_task_run(db)
-    task_run = TaskRun(db, task_run_id)
+    task_run = TaskRun.get(db, task_run_id)
     return db.new_assignment(
         task_run.task_id,
         task_run_id,
@@ -106,7 +106,7 @@ def get_test_unit(db: MephistoDB, unit_index=0) -> str:
     # Check creation and retrieval of a unit
     assignment_id = get_test_assignment(db)
     pay_amount = 15.0
-    assignment = Assignment(db, assignment_id)
+    assignment = Assignment.get(db, assignment_id)
     return db.new_unit(
         assignment.task_id,
         assignment.task_run_id,
@@ -126,7 +126,7 @@ def get_test_agent(db: MephistoDB, unit_id=None) -> str:
         unit_id = get_test_unit(db)
     provider_type = "mock"
     task_type = "mock"
-    unit = Unit(db, unit_id)
+    unit = Unit.get(db, unit_id)
     return db.new_agent(
         worker_id,
         unit.db_id,
@@ -175,8 +175,8 @@ def make_completed_unit(db: MephistoDB) -> str:
         task_run.task_type,
         task_run.provider_type,
     )
-    agent = Agent(db, agent_id)
+    agent = Agent.get(db, agent_id)
     agent.mark_done()
-    unit = Unit(db, unit_id)
+    unit = Unit.get(db, unit_id)
     unit.sync_status()
     return unit.db_id

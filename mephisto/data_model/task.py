@@ -6,10 +6,14 @@
 
 
 import os
+from mephisto.tools.misc import warn_once
 from shutil import copytree
 
 from mephisto.data_model.project import Project
-from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
+from mephisto.data_model.db_backed_meta import (
+    MephistoDBBackedMeta,
+    MephistoDataModelComponentMixin,
+)
 from mephisto.operations.utils import (
     get_dir_for_task,
     ensure_user_confirm,
@@ -45,7 +49,7 @@ def assert_task_is_valid(dir_name, task_type) -> None:
 # executable and becoming just storage for other information.
 
 
-class Task(metaclass=MephistoDBBackedMeta):
+class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """
     This class contains all of the required tidbits for launching a set of
     assignments, primarily by leveraging a blueprint. It also takes the
@@ -53,8 +57,19 @@ class Task(metaclass=MephistoDBBackedMeta):
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            warn_once(
+                "Direct Task and data model access via Task(db, id) is "
+                "now deprecated in favor of calling Task.get(db, id). "
+                "Please update callsites, as we'll remove this compatibility "
+                "in the 1.0 release, targetting October 2021",
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_task(db_id)
@@ -70,7 +85,7 @@ class Task(metaclass=MephistoDBBackedMeta):
         Get the project for this task, if it exists
         """
         if self.project_id is not None:
-            return Project(self.db, self.project_id)
+            return Project.get(self.db, self.project_id)
         else:
             return None
 
@@ -166,7 +181,7 @@ class Task(metaclass=MephistoDBBackedMeta):
         project_id = None if project is None else project.db_id
         parent_task_id = None if parent_task is None else parent_task.db_id
         db_id = db.new_task(task_name, task_type, project_id, parent_task_id)
-        return Task(db, db_id)
+        return Task.get(db, db_id)
 
         def __repr__(self):
             return f"Task-{self.task_name} [{self.task_type}]"

@@ -18,7 +18,7 @@ from typing import cast
 
 task_run_id = input("Please enter the task_run_id you'd like to check: ")
 db = LocalMephistoDB()
-task_run = TaskRun(db, task_run_id)
+task_run = TaskRun.get(db, task_run_id)
 requester = task_run.get_requester()
 if not isinstance(requester, MTurkRequester):
     print(

@@ -4,6 +4,7 @@ import { isFunction } from "../utils";
 import mapValues from "lodash.mapvalues";
 
 import { Menu, MenuDivider, Classes, Card } from "@blueprintjs/core";
+import { LayerContext } from "../layers/Layer";
 
 function ContentPanel({ instructionPane: InstructionPane }) {
   const store = useStore();
@@ -21,12 +22,19 @@ function ContentPanel({ instructionPane: InstructionPane }) {
   let layers = get(["layers"]);
   if (!layers) return null;
   layers = mapValues(layers, (layer) => layer.config);
-  const alwaysOnLayers = Object.values(layers).filter((layer) => {
-    return (
-      layer.alwaysOn === true ||
-      (isFunction(layer.alwaysOn) && layer.alwaysOn())
-    );
-  });
+  const alwaysOnLayers = Object.entries(layers)
+    .filter(([layerName, layer]) => {
+      if (!layer) {
+        throw new Error(
+          `Could not find any Layer registered with id: "${layerName}"`
+        );
+      }
+      return (
+        layer.alwaysOn === true ||
+        (isFunction(layer.alwaysOn) && layer.alwaysOn())
+      );
+    })
+    .map(([_, layer]) => layer);
   const groupedLayers = Object.values(layers).filter((layer) => {
     return (
       layer.onWithGroup === true &&
@@ -59,7 +67,7 @@ function ContentPanel({ instructionPane: InstructionPane }) {
         const component = get(["layers", path.join("|"), "config"]);
         if (!component) return acc;
         const actions = component.actions
-          ? [...acc.actions, component.actions]
+          ? [...acc.actions, component.actions()]
           : acc.actions;
         const actionPaths = component.actions
           ? [...acc.actionPaths, path.join(" / ")]
@@ -83,10 +91,12 @@ function ContentPanel({ instructionPane: InstructionPane }) {
             pointerEvents: selectedLayer.noPointerEvents ? "none" : "auto",
           }}
         >
-          <SelectedViewComponent
-            id={selectedLayer.id}
-            {...selectedLayer.getData({ store })}
-          />
+          <LayerContext.Provider value={{ id: selectedLayer.id }}>
+            <SelectedViewComponent
+              id={selectedLayer.id}
+              {...selectedLayer.getData({ store })}
+            />
+          </LayerContext.Provider>
         </div>
       ) : null}
       {[...alwaysOnLayers, ...groupedLayers].map((layer) =>
@@ -99,7 +109,9 @@ function ContentPanel({ instructionPane: InstructionPane }) {
               pointerEvents: layer.noPointerEvents ? "none" : "auto",
             }}
           >
-            <layer.component id={layer.id} {...layer.getData({ store })} />
+            <LayerContext.Provider value={{ id: layer.id }}>
+              <layer.component id={layer.id} {...layer.getData({ store })} />
+            </LayerContext.Provider>
           </div>
         )
       )}
@@ -116,7 +128,7 @@ function ContentPanel({ instructionPane: InstructionPane }) {
           }}
         >
           {InstructionPane ? (
-            <Card className="bp3-dark" style={{ marginBottom: 10 }}>
+            <Card className="bp3-dark" style={{ marginBottom: 5, padding: 10 }}>
               <InstructionPane />
             </Card>
           ) : null}
@@ -139,7 +151,7 @@ function ContentPanel({ instructionPane: InstructionPane }) {
                 layer.actions ? (
                   <React.Fragment key={idx}>
                     <MenuDivider title={layer.id} />
-                    {layer.actions}
+                    {layer.actions()}
                   </React.Fragment>
                 ) : null
               )}
@@ -147,12 +159,22 @@ function ContentPanel({ instructionPane: InstructionPane }) {
             {gatheredActions.actions.length === 0 && state.selectedLayer ? (
               <MenuDivider
                 icon={"layer"}
-                title={state.selectedLayer.join(" / ") + " ⬩"}
+                title={
+                  state.selectedLayer.join(" / ") +
+                  " " +
+                  String.fromCharCode(11049)
+                }
               />
             ) : null}
             {gatheredActions.actions.map((action, idx) => (
               <React.Fragment key={idx}>
-                <MenuDivider title={gatheredActions.actionPaths[idx] + " ⬩"} />
+                <MenuDivider
+                  title={
+                    gatheredActions.actionPaths[idx] +
+                    " " +
+                    String.fromCharCode(11049)
+                  }
+                />
                 {action}
               </React.Fragment>
             ))}

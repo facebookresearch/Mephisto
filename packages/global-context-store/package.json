@@ -1,6 +1,6 @@
 {
   "name": "global-context-store",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
@@ -37,8 +37,8 @@
     "webpack-cli": "^3.3.11"
   },
   "peerDependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react": "^16.13.1 || 17 || 18",
+    "react-dom": "^16.13.1 || 17 || 18"
   },
   "dependencies": {
     "babel-eslint": "10.x",

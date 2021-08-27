@@ -1,7 +1,41 @@
-# vNext
-- The `layerButtons` object now accepts an `intent` property which can be used to color-code buttons.
-- The `<VideoPlayer />` accepts a `videoPlayerProps` object that can be used to forward props to the underlying `react-video-player` object.
-- The Layers panel is now scrollable.
+# v1.1.2-beta
+- **NEW** Adds in the `<MovableRect />` component with built-in linear interpolation between keyframes. Usage:
+   ```js
+   <MovableRect defaultBox={[50, 200, 100, 100]} getFrame={() => {
+        return currentFrameNumber;
+    }} />
+    ```
+- **ENHANCEMENT** - VideoPlayer playing can be toggled by clicking on the video.
+- **ENHANCEMENT** - Add a getLabel property to MovableRect that adds a label to the box.
+- **NEW** - Add `getInterpolatedFrames(allKeyframes)` helper to convert keyframes into interpolated frames, frame-by-frame. Returns array of: `{frame, value: [x, y, width, height]}`
+
+---
+
+- **BREAKING** - Layer actions now require a render prop instead of React node.
+
+# v1.1.1
+- **NEW** Support for generating `<VideoPlayer />` screenshots via the requests queue. Usage:
+  ```js
+  push(requestsPathFor("Video"), {
+    type: "screenshot",
+    payload: {
+      size: [x, y, cropWidth, cropHeight], // size is of original dimensions before videoScale is applied
+      callback: (info) => {
+        // info is the base64 encoded image data
+      },
+    }   
+  })
+  ```
+- **FIX** The `<VideoPlayer />` no longer requires an `id` property. This requirement was introduced as an unintentional constraint in v1.1.0 and wasn't present in v1.0.x. It will automatically detect its `id` via context if none is provided. If one is provided, it will use that instead (however this `id` MUST correspond to an already defined `id` for another layer). In shell-mode, we now print a nice error message when an `id` if no layer is found matching this `id`. In standalone mode, this `id` can be any arbitrarily created `id`.
+- **ENHANCEMENT** The `layerButtons` object now accepts an `intent` property which can be used to color-code buttons.
+- **ENHANCEMENT** The `<VideoPlayer />` accepts a `videoPlayerProps` object that can be used to forward props to the underlying `react-video-player` object.
+- **ENHANCEMENT** The Layers Panel is now scrollable.
+- **NEW** `<AppShell />` accepts an `instructionsPane` renderProp to draw out an information panel on the top right hand corner of the screen above the actions pane.
+- **FIX** Big performance bump by avoiding unnecessary renders within the LayerPanel.
+- **FIX** Fix character encoding of active layer actions indicator.
+- **NEW** Add support for `secondaryLabel` which works similar to `secondaryIcon` for `<Layer />` components.
+- **NEW** A portal ref component is available via global state at `_unsafe.portalRef` for other BlueprintJS components such as dialogs and modals to use.
+- **NEW** `contextHeight` prop for the `<AppShell />` to control the height of the Context Panel. Default: `200px`.
 
 # v1.1.0
 - **ENHANCEMENT** A helpful message is shown when `<AppShell />` is missing a `layers={...}` prop.

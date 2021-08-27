@@ -87,15 +87,6 @@ class StaticBlueprintArgs(BlueprintArgs):
     data_csv: str = field(
         default=MISSING, metadata={"help": "Path to csv file containing task data"}
     )
-    extra_source_dir: str = field(
-        default=MISSING,
-        metadata={
-            "help": (
-                "Optional path to sources that the HTML may "
-                "refer to (such as images/video/css/scripts)"
-            )
-        },
-    )
 
 
 class StaticBlueprint(Blueprint, OnboardingRequired):

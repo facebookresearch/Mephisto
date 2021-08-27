@@ -98,7 +98,7 @@ class TaskLauncher:
             task_run.provider_type,
             task_run.sandbox,
         )
-        assignment = Assignment(self.db, assignment_id)
+        assignment = Assignment.get(self.db, assignment_id)
         assignment.write_assignment_data(assignment_data)
         self.assignments.append(assignment)
         unit_count = len(assignment_data.unit_data)
@@ -114,9 +114,9 @@ class TaskLauncher:
                 task_run.task_type,
                 task_run.sandbox,
             )
-            self.units.append(Unit(self.db, unit_id))
+            self.units.append(Unit.get(self.db, unit_id))
             with self.unlaunched_units_access_condition:
-                self.unlaunched_units[unit_id] = Unit(self.db, unit_id)
+                self.unlaunched_units[unit_id] = Unit.get(self.db, unit_id)
 
     def _try_generating_assignments(self) -> None:
         """Try to generate more assignments from the assignments_data_iterator"""

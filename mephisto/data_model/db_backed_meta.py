@@ -52,3 +52,23 @@ class MephistoDBBackedMeta(type):
 
     def __call__(cls, *a, **kw):
         return base_db_backed_call(super(), cls, a, kw)
+
+
+class MephistoDataModelComponentMixin:
+    """
+    Mixin that provides the `get` method for classes in the Mephisto data model
+    """
+
+    @classmethod
+    def get(
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
+    ):
+        loaded_val = db.optimized_load(cls, db_id, row)
+        if loaded_val is None:
+            loaded_val = cls.__call__(db, db_id, row=row, _used_new_call=True)
+            db.cache_result(cls, loaded_val)
+        return loaded_val
