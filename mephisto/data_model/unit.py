@@ -309,7 +309,10 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             elif agent_status in [
                 AgentState.STATUS_DISCONNECT,
                 AgentState.STATUS_RETURNED,
+                AgentState.STATUS_TIMEOUT,
             ]:
+                # Still assigned, as we expect the task launcher to explicitly
+                # update our status to expired or to remove the agent
                 computed_status = AssignmentState.ASSIGNED
             elif agent_status == AgentState.STATUS_APPROVED:
                 computed_status = AssignmentState.ACCEPTED

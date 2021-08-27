@@ -101,7 +101,7 @@ class MTurkWorker(Worker):
             target_type = (
                 "mturk_sandbox" if qualification_name.endswith("sandbox") else "mturk"
             )
-            requester = self.db.find_requesters(provider_type=target_type)[0]
+            requester = self.db.find_requesters(provider_type=target_type)[-1]
             assert isinstance(
                 requester, MTurkRequester
             ), "find_requesters must return mturk requester for given provider types"
