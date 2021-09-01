@@ -119,7 +119,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
                     worker_id=worker.db_id,
                 )
                 currently_completed = len(
-                    [u for u in units if u.db_status in completed_types]
+                    [u for u in related_units if u.db_status in completed_types]
                 )
                 if (
                     currently_active + currently_completed
