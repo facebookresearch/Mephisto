@@ -1,13 +1,3 @@
-# vNext
-
-- **NEW** `<VideoPlayer />` will now read and execute callback fns from the data prop `renderSteps`. These steps can be defined by client code. The expected format of `renderSteps` is an object as such:
-
-```
-{
-  'render-key-id': (ctx, now, metadata, canvasRef) => {...}
-}
-```
-
 # v1.1.2-beta
 - **NEW** Adds in the `<MovableRect />` component with built-in linear interpolation between keyframes. Usage:
    ```js
@@ -18,6 +8,13 @@
 - **ENHANCEMENT** - VideoPlayer playing can be toggled by clicking on the video.
 - **ENHANCEMENT** - Add a getLabel property to MovableRect that adds a label to the box.
 - **NEW** - Add `getInterpolatedFrames(allKeyframes)` helper to convert keyframes into interpolated frames, frame-by-frame. Returns array of: `{frame, value: [x, y, width, height]}`
+- **NEW** `<VideoPlayer />` will now read and execute callback fns from the data prop `renderSteps`. These steps can be defined by client code. The expected format of `renderSteps` is an object as such:
+
+```
+{
+  'render-key-id': (ctx, now, metadata, canvasRef) => {...}
+}
+```
 
 ---
 
