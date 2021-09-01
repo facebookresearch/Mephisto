@@ -274,6 +274,8 @@ class MTurkUnit(Unit):
         hit_type_id = self.datastore.get_run(run_id)["hit_type_id"]
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
+        # TODO this value should be able to come from the set options we send via
+        # frontend args for a task
         frame_height = 0
         hit_link, hit_id, response = create_hit_with_hit_type(
             client, frame_height, task_url, hit_type_id
