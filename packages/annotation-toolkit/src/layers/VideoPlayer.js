@@ -17,6 +17,7 @@ export default function VideoPlayer({
   const store = useStore();
   const { set, get } = store;
   const vidRef = useRef();
+  const screenshotCanvasRef = useRef();
   const canvasRef = useRef();
 
   const layerInfo = useContext(LayerContext);
@@ -52,9 +53,9 @@ export default function VideoPlayer({
           width,
           height,
         ];
-        canvasRef.current.height = cropHeight;
-        canvasRef.current.width = cropWidth;
-        canvasRef.current
+        screenshotCanvasRef.current.height = cropHeight;
+        screenshotCanvasRef.current.width = cropWidth;
+        screenshotCanvasRef.current
           .getContext("2d")
           .drawImage(
             vidRef.current.getInternalPlayer(),
@@ -67,7 +68,9 @@ export default function VideoPlayer({
             cropWidth,
             cropHeight
           );
-        const screenshotData = canvasRef.current.toDataURL("image/png");
+        const screenshotData = screenshotCanvasRef.current.toDataURL(
+          "image/png"
+        );
         req.payload.callback({
           store,
           size: [x, y, cropWidth, cropHeight],
@@ -90,6 +93,13 @@ export default function VideoPlayer({
 
   const path = dataPathBuilderFor(id);
   const requestsPath = requestsPathFor(id);
+
+  let steps = get(path("renderSteps")) || [];
+  useRVFC(
+    vidRef?.current?.getInternalPlayer(),
+    canvasRef.current,
+    Object.values(steps)
+  );
 
   // TODO: encapsulate process queue logic into a Hook or such so other
   // layers can also leverage it easily
@@ -169,8 +179,40 @@ export default function VideoPlayer({
         style={{ visibility: "hidden" }}
         height={height}
         width={width}
+        ref={screenshotCanvasRef}
+      ></canvas>
+      <canvas
+        style={{
+          pointerEvents: "none",
+          top: 0,
+          left: 0,
+          zIndex: 999,
+          position: "absolute",
+        }}
+        height={height}
+        width={width}
         ref={canvasRef}
       ></canvas>
     </div>
   );
+}
+
+function useRVFC(videoRef, canvasRef, steps) {
+  const callback = useCallback(
+    (now, metadata) => {
+      if (!canvasRef) return;
+      const ctx = canvasRef.getContext("2d");
+      ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
+      steps.forEach((step) => step(ctx, now, metadata, canvasRef));
+      if (videoRef) {
+        videoRef.requestVideoFrameCallback(callback);
+      }
+    },
+    [canvasRef, videoRef, steps]
+  );
+
+  useEffect(() => {
+    if (!videoRef) return;
+    videoRef.requestVideoFrameCallback(callback);
+  }, [videoRef, callback]);
 }
