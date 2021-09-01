@@ -131,7 +131,12 @@ class MTurkProvider(CrowdProvider):
         # Set up HIT type
         client = self._get_client(requester._requester_name)
         hit_type_id = create_hit_type(client, task_config, qualifications)
-        self.datastore.register_run(task_run_id, arn_id, hit_type_id, config_dir)
+        frame_height = (
+            task_run.get_blueprint().get_frontend_args().get("frame_height", 0)
+        )
+        self.datastore.register_run(
+            task_run_id, arn_id, hit_type_id, config_dir, frame_height
+        )
 
     def cleanup_resources_from_task_run(
         self, task_run: "TaskRun", server_url: str

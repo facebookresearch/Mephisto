@@ -47,8 +47,13 @@ CREATE_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS runs (
     arn_id TEXT,
     hit_type_id TEXT NOT NULL,
     hit_config_path TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    frame_height INTEGER NOT NULL DEFAULT 650
 );
+"""
+
+UPDATE_RUNS_TABLE_1 = """ALTER TABLE runs
+    ADD COLUMN frame_height INTEGER NOT NULL DEFAULT 650;
 """
 
 CREATE_QUALIFICATIONS_TABLE = """CREATE TABLE IF NOT EXISTS qualifications (
@@ -114,6 +119,12 @@ class MTurkDatastore:
                 c.execute(CREATE_RUNS_TABLE)
                 c.execute(CREATE_RUN_MAP_TABLE)
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
+            with conn:
+                try:
+                    c = conn.cursor()
+                    c.execute(UPDATE_RUNS_TABLE_1)
+                except Exception as _e:
+                    pass  # extra column already exists
 
     def is_hit_mapping_in_sync(self, unit_id: str, compare_time: float):
         """
@@ -255,7 +266,12 @@ class MTurkDatastore:
             return results[0]
 
     def register_run(
-        self, run_id: str, arn_id: str, hit_type_id: str, hit_config_path: str
+        self,
+        run_id: str,
+        arn_id: str,
+        hit_type_id: str,
+        hit_config_path: str,
+        frame_height: int = 0,
     ) -> None:
         """Register a new task run in the mturk table"""
         with self.table_access_condition, self._get_connection() as conn:
@@ -265,9 +281,10 @@ class MTurkDatastore:
                     run_id,
                     arn_id,
                     hit_type_id,
-                    hit_config_path
-                ) VALUES (?, ?, ?, ?);""",
-                (run_id, arn_id, hit_type_id, hit_config_path),
+                    hit_config_path,
+                    frame_height
+                ) VALUES (?, ?, ?, ?, ?);""",
+                (run_id, arn_id, hit_type_id, hit_config_path, frame_height),
             )
 
     def get_run(self, run_id: str) -> sqlite3.Row:
