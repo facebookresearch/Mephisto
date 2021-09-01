@@ -2,7 +2,7 @@
 
 This directory contains helper scripts used for the purpose of maintaining the Mephisto repo.
 
-If you're looking for python scripts for using Mephisto, you should check the [mephisto/scripts](`https://github.com/facebookresearch/Mephisto/blob/master/mephisto/scripts`) directory.
+If you're looking for python scripts for using Mephisto, you should check the [mephisto/scripts](`https://github.com/facebookresearch/Mephisto/blob/main/mephisto/scripts`) directory.
 
 ## UpdateJSDeps
 

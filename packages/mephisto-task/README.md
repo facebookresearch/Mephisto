@@ -63,7 +63,7 @@ The `useMephisoTask` React hook exposes the following fields:
 ### `taskConfig`
 An arbitrary task-specific config object passed to the front-end from your back-end server. This `taskConfig` object can be specified from the `get_frontend_args` of the `Blueprint` Python class for your task.
 
-Here is an example `taskConfig` that is specified in the [ParlAI Chat blueprint](`https://github.com/facebookresearch/Mephisto/blob/master/mephisto/server/blueprints/parlai_chat/parlai_chat_blueprint.py`):
+Here is an example `taskConfig` that is specified in the [ParlAI Chat blueprint](`https://github.com/facebookresearch/Mephisto/blob/main/mephisto/server/blueprints/parlai_chat/parlai_chat_blueprint.py`):
 ```json
 {
     "block_mobile": true,
@@ -82,13 +82,13 @@ A single task could have multiple `agentId`s, for example in the case of convers
 
 Usually you'll want to use `agentId` to represent workers in your task code as opposed to `mephistoWorkerId` and `providerWorkerId` which are reserved for more advanced usages.
 
-More details about Agents can be found in the [Mephisto architecture overview docs](https://github.com/facebookresearch/Mephisto/blob/master/docs/architecture_overview.md#agent).
+More details about Agents can be found in the [Mephisto architecture overview docs](https://github.com/facebookresearch/Mephisto/blob/main/docs/architecture_overview.md#agent).
 
 ### `assignmentId`
 
 An `assignmentId` uniquely represents the portion of the task that a worker will be working on.
 
-More details about Assignments can be found in the [Mephisto architecture overview docs](https://github.com/facebookresearch/Mephisto/blob/master/docs/architecture_overview.md#assignment).
+More details about Assignments can be found in the [Mephisto architecture overview docs](https://github.com/facebookresearch/Mephisto/blob/main/docs/architecture_overview.md#assignment).
 
 ### `initialTaskData`
 

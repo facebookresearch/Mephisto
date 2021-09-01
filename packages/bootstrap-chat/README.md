@@ -139,7 +139,7 @@ This optional prop lets you provide some initial app settings for the `ChatApp`,
 
 All render props will receive the `mephistoContext` argument.
 
-This object is basically the return value of calling the `useMephistoLiveTask` hooks. Further documentation on these properties can be found in the [documentation for the `mephisto-task` package](https://github.com/facebookresearch/Mephisto/blob/master/packages/mephisto-task/README.md) under the `useMephistoLiveTask` section.
+This object is basically the return value of calling the `useMephistoLiveTask` hooks. Further documentation on these properties can be found in the [documentation for the `mephisto-task` package](https://github.com/facebookresearch/Mephisto/blob/main/packages/mephisto-task/README.md) under the `useMephistoLiveTask` section.
 
 ### The `appContext` argument
 
