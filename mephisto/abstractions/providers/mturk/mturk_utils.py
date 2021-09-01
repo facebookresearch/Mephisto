@@ -467,7 +467,7 @@ def create_hit_with_hit_type(
         "<ExternalURL>{}</ExternalURL>"  # noqa: E131
         "<FrameHeight>{}</FrameHeight>"
         "</ExternalQuestion>"
-        "".format(amazon_ext_url, page_url, 0)
+        "".format(amazon_ext_url, page_url, frame_height)
     )
 
     is_sandbox = client_is_sandbox(client)
