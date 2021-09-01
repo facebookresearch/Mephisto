@@ -194,7 +194,7 @@ def create_hit_config(
         "is_sandbox": is_sandbox,
         "mturk_submit_url": mturk_submit_url,
         "unique_worker": unique_worker,
-        "frame_height": opt.get("frame_height", 650),
+        "frame_height": opt.get("frame_height", 0),
         "allow_reviews": opt.get("allow_reviews", False),
         "block_mobile": opt.get("block_mobile", True),
         # Populate the chat pane title from chat_title, defaulting to the
@@ -467,7 +467,7 @@ def create_hit_with_hit_type(
         "<ExternalURL>{}</ExternalURL>"  # noqa: E131
         "<FrameHeight>{}</FrameHeight>"
         "</ExternalQuestion>"
-        "".format(amazon_ext_url, page_url, 650)
+        "".format(amazon_ext_url, page_url, frame_height)
     )
 
     is_sandbox = client_is_sandbox(client)

@@ -271,10 +271,11 @@ class MTurkUnit(Unit):
         task_run = self.get_assignment().get_task_run()
         duration = task_run.get_task_config().assignment_duration_in_seconds
         run_id = task_run.db_id
-        hit_type_id = self.datastore.get_run(run_id)["hit_type_id"]
+        run_details = self.datastore.get_run(run_id)
+        hit_type_id = run_details["hit_type_id"]
         requester = self.get_requester()
         client = self._get_client(requester._requester_name)
-        frame_height = 650
+        frame_height = run_details["frame_height"]
         hit_link, hit_id, response = create_hit_with_hit_type(
             client, frame_height, task_url, hit_type_id
         )
