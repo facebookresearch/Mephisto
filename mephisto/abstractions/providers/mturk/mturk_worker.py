@@ -169,7 +169,7 @@ class MTurkWorker(Worker):
     ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         if unit is None and requester is None:
-            # TODO(WISH) soft block from all requesters? Maybe have the master
+            # TODO(WISH) soft block from all requesters? Maybe have the main
             # requester soft block?
             return (
                 False,

@@ -73,7 +73,7 @@ function DefaultInstructionalLayer() {
               <a
                 style={{ fontWeight: "bold" }}
                 target="_blank"
-                href="https://github.com/facebookresearch/Mephisto/tree/master/packages/annotation-toolkit"
+                href="https://github.com/facebookresearch/Mephisto/tree/main/packages/annotation-toolkit"
               >
                 here
               </a>

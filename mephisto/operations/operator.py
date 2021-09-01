@@ -121,7 +121,7 @@ class Operator:
         raise Exception(
             "Operator.parse_and_launch_run has been deprecated in favor "
             "of using Hydra for argument configuration. See the docs at "
-            "https://github.com/facebookresearch/Mephisto/blob/master/docs/hydra_migration.md "
+            "https://github.com/facebookresearch/Mephisto/blob/main/docs/hydra_migration.md "
             "in order to upgrade."
         )
 
@@ -440,7 +440,7 @@ class Operator:
         raise Exception(
             "Operator.parse_and_launch_run_wrapper has been deprecated in favor "
             "of using Hydra for argument configuration. See the docs at "
-            "https://github.com/facebookresearch/Mephisto/blob/master/docs/hydra_migration.md "
+            "https://github.com/facebookresearch/Mephisto/blob/main/docs/hydra_migration.md "
             "in order to upgrade."
         )
 
