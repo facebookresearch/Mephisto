@@ -79,6 +79,16 @@ class AssignmentState:
         ]
 
     @staticmethod
+    def completed() -> List[str]:
+        """Return all statuses that denote a unit having been completed"""
+        return [
+            AssignmentState.COMPLETED,
+            AssignmentState.ACCEPTED,
+            AssignmentState.REJECTED,
+            AssignmentState.SOFT_REJECTED,
+        ]
+
+    @staticmethod
     def final_agent() -> List[str]:
         """Return all statuses that are terminal changes to a Unit's agent"""
         return [
