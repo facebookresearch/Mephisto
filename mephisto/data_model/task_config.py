@@ -108,7 +108,7 @@ class TaskConfig:
             return
 
         # Parse out specific arguments for the task_config
-        self.args: Dict[str, Any] = args.task
+        self.args: Dict[str, Any] = OmegaConf.to_container(args.task) 
         self.task_title: str = self.args["task_title"]
         self.task_description: str = self.args["task_description"]
         self.task_reward: float = self.args["task_reward"]
