@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from typing import List, Any
 
 
-TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
+TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
     {"mephisto/blueprint": BLUEPRINT_TYPE},
