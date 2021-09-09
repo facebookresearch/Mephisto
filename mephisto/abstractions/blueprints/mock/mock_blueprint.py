@@ -24,7 +24,7 @@ import time
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from mephsito.data_model.agent import OnboardingAgent
+    from mephisto.data_model.agent import OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment

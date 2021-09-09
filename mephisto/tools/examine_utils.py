@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any, List
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
-    from mephsito.data_model.unit import Unit
+    from mephisto.data_model.unit import Unit
 
 
 def _get_and_format_data(
