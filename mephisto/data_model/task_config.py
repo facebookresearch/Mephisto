@@ -17,6 +17,7 @@ import shlex
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
 
 
 CONFIG_FILE_PATH = "task_config.json"
@@ -108,18 +109,20 @@ class TaskConfig:
             return
 
         # Parse out specific arguments for the task_config
-        self.args: Dict[str, Any] = args.task
-        self.task_title: str = self.args["task_title"]
-        self.task_description: str = self.args["task_description"]
-        self.task_reward: float = self.args["task_reward"]
+        self.args: "DictConfig" = args.task
+        self.task_title: str = self.args.get("task_title", None)
+        self.task_description: str = self.args.get("task_description", None)
+        self.task_reward: float = self.args.get("task_reward", None)
         self.task_tags: List[str] = [
-            s.strip() for s in self.args["task_tags"].split(",")
+            s.strip() for s in self.args.get("task_tags", "").split(",")
         ]
-        self.assignment_duration_in_seconds: int = self.args[
-            "assignment_duration_in_seconds"
-        ]
-        self.allowed_concurrent: int = self.args["allowed_concurrent"]
-        self.maximum_units_per_worker: int = self.args["maximum_units_per_worker"]
+        self.assignment_duration_in_seconds: int = self.args.get(
+            "assignment_duration_in_seconds", None
+        )
+        self.allowed_concurrent: int = self.args.get("allowed_concurrent", None)
+        self.maximum_units_per_worker: int = self.args.get(
+            "maximum_units_per_worker", None
+        )
 
     @classmethod
     def get_mock_params(cls) -> str:
