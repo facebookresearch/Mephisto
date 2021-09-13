@@ -82,6 +82,9 @@ class ParlAIChatAgentState(AgentState):
         """Return the formatted input, conversations, and final data"""
         init_data = self.init_data
         save_data = None
+        for m in self.messages:
+            m["data"]['timestamp'] = m['timestamp']
+
         messages = [
             m["data"]
             for m in self.messages
