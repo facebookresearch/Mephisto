@@ -285,17 +285,23 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         Specifies what options within a task_config should be fowarded
         to the client for use by the task's frontend
         """
-        # TODO move frontend args in
-        frontend_task_config = {
-            "task_description": self.full_task_description,
-            "preview_html": self.full_preview_description,
-            "frame_height": 0,
-            "chat_title": self.args.task.task_title,
-            "has_preview": self.args.blueprint.get("preview_source", None) is not None,
-            "block_mobile": True,
-            "frontend_task_opts": self.shared_state.frontend_task_opts,
-        }
-        frontend_task_config.update(super().get_frontend_args())
+        # Start with standard task configuration arguments
+        frontend_task_config = super().get_frontend_args()
+        # Add ParlAI standards
+        frontend_task_config.update(
+            {
+                "task_description": self.full_task_description,
+                "preview_html": self.full_preview_description,
+                "frame_height": 650,
+                "chat_title": self.args.task.task_title,
+                "has_preview": self.args.blueprint.get("preview_source", None)
+                is not None,
+                "block_mobile": True,
+                "frontend_task_opts": self.shared_state.frontend_task_opts,
+            }
+        )
+        # Use overrides provided downstream
+        frontend_task_config.update(self.frontend_task_config)
         return frontend_task_config
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:

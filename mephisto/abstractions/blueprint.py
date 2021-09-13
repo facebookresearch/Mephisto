@@ -651,7 +651,7 @@ class Blueprint(ABC):
         Specifies what options should be fowarded
         to the client for use by the task's frontend
         """
-        return self.frontend_task_config
+        return self.frontend_task_config.copy()
 
     @abstractmethod
     def get_initialization_data(

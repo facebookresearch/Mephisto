@@ -35,10 +35,12 @@ function BaseFrontend({
   const { connectionStatus, agentStatus, taskConfig } = mephistoContext;
   const { appSettings } = appContext;
   const sidePaneSize = appSettings.isCoverPage ? "col-xs-12" : "col-xs-4";
+  const heightStyle =
+    taskConfig.frame_height == 0 ? {} : { height: taskConfig.frame_height };
 
   return (
     <ConnectionStatusBoundary status={connectionStatus}>
-      <div className="row" style={{ height: taskConfig.frame_height }}>
+      <div className="row" style={heightStyle}>
         <div className={"side-pane " + sidePaneSize}>
           {renderSidePane({ mephistoContext, appContext })}
         </div>
