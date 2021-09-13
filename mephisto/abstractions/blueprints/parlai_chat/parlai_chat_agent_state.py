@@ -106,6 +106,18 @@ class ParlAIChatAgentState(AgentState):
             "save_data": save_data,
         }
 
+    def get_task_start(self) -> float:
+        """
+        Return the start time for this task, the timestamp of the very first message.
+        """
+        return self.messages[0]["timestamp"]
+
+    def get_task_end(self) -> float:
+        """
+        Return the end time for this task, the timestamp of the very final message.
+        """
+        return self.messages[-1]["timestamp"]
+
     def save_data(self) -> None:
         """Save all messages from this agent to"""
         agent_file = self._get_expected_data_file()
