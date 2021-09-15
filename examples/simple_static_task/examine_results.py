@@ -9,8 +9,11 @@ from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.examine_utils import run_examine_or_review, print_results
 from mephisto.data_model.worker import Worker
 
+db = None
+
 
 def format_for_printing_data(data):
+    global db
     # Custom tasks can define methods for how to display their data in a relevant way
     worker_name = Worker.get(db, data["worker_id"]).worker_name
     contents = data["data"]
@@ -36,8 +39,9 @@ def format_for_printing_data(data):
 
 
 def main():
+    global db
     db = LocalMephistoDB()
-    run_examine_or_review(db, format_data_for_printing)
+    run_examine_or_review(db, format_for_printing_data)
 
 
 if __name__ == "__main__":
