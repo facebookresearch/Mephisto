@@ -42,7 +42,7 @@ To be able to launch with a `HerokuArchitect` rather than the default `LocalArch
 python run_task.py mephisto/architect=heroku
 ```
 ### Providing task data
-In this case, the provided app demonstrates being able to send task data forward to the fronted. See the `run_task.py` script. Here we have:
+In this case, the provided app demonstrates being able to send task data forward to the frontend. See the `run_task.py` script. Here we have:
 ```python
 shared_state = SharedStaticTaskState(
     static_task_data=[
