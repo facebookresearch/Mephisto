@@ -31,6 +31,14 @@ A blueprint is able to create a container that handles any shared data that is i
 - `worker_can_do_unit`: A function that takes in a `Worker` and a `Unit`, and should return a boolean representing if the worker is eligible to work on that particular unit.
 - `on_unit_submitted`: A function that takes in a `Unit` after a `TaskRunner` ends, and is able to do any automatic post-processing operations on that unit that a Mephisto user may want.
 
+## `Blueprint` Mixins
+Blueprints sometimes share some component functionality that may be useful across a multitude of tasks. We capture these in mixins. Mephisto is able to recognize certain mixins in order to complete additional operations, however custom mixins may help cut down on boiler plate in common `run_task.py` scripts. As your tasks mature, we suggest utilizing blueprint mixins to share common workflows and design patterns you observe.
+### `OnboardingRequired`
+This mixin allows for blueprints that require people to complete an onboarding task _before_ they're even able to start on their first task. Usually this is useful for providing task context, and then quizzing workers to see if they understand what's provided. Tasks using this mixin will activate onboarding mode for new `Worker`s whenever the `mephisto.blueprint.onboarding_qualification` hydra argument is provided.
+### `ValidationRequired`
+This mixin allows for blueprints that require people to complete a _test_ version of the real task the first time a worker does the task. This allows you to validate workers on a run of the real task, either on your actual data (when providing `SharedTaskState.generate_validation_unit_data=False`) or on test data that you may more easily validate using (when providing a generator to `SharedTaskState.generate_validation_unit_data`). The tasks should be the same as your standard task, just able to be validated. If your generator runs out, Mephisto assumes that you've hit the limit of workers you're willing to validate for the task (because you do pay for the validation step).
+
+
 ## Implementations
 ### `StaticBlueprint`
 The `StaticBlueprint` class allows a replication of the interface that MTurk provides, being able to take a snippet of `HTML` and a `.csv` file and deploy tasks that fill templates of the `HTML` with values from the `.csv`.

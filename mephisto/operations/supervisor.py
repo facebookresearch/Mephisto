@@ -27,8 +27,13 @@ from mephisto.data_model.packet import (
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
-from mephisto.abstractions.blueprint import OnboardingRequired, AgentState
+from mephisto.abstractions.blueprint import (
+    OnboardingRequired,
+    ValidationRequired,
+    AgentState,
+)
 from mephisto.operations.registry import get_crowd_provider_from_type
+from mephisto.operations.task_launcher import TaskLauncher, VALIDATOR_UNIT_INDEX
 from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
 
 from dataclasses import dataclass
@@ -79,6 +84,7 @@ class Job:
     provider: "CrowdProvider"
     qualifications: List[Dict[str, Any]]
     registered_channel_ids: List[str]
+    task_launcher: Optional["TaskLauncher"]
 
 
 @dataclass
@@ -155,6 +161,7 @@ class Supervisor:
             provider=provider,
             qualifications=qualifications,
             registered_channel_ids=[],
+            task_launcher=None,
         )
         for channel in channels:
             channel_id = self.register_channel(channel, job)
@@ -399,6 +406,8 @@ class Supervisor:
             logger.exception(f"Cleaning up unit: {e}", exc_info=True)
             task_runner.cleanup_unit(unit)
         finally:
+            if unit.unit_index < 0:  # Special units should always expire
+                unit.expire()
             task_runner.task_run.clear_reservation(unit)
 
     def _assign_unit_to_agent(
@@ -452,7 +461,7 @@ class Supervisor:
             ] = agent_info
 
             # Launch individual tasks
-            if not channel_info.job.task_runner.is_concurrent:
+            if unit.unit_index < 0 or not channel_info.job.task_runner.is_concurrent:
                 unit_thread = threading.Thread(
                     target=self._launch_and_run_unit,
                     args=(unit, agent_info, channel_info.job.task_runner),
@@ -589,8 +598,7 @@ class Supervisor:
                 )
             )
             logger.debug(
-                f"Found existing agent_registration_id {agent_registration_id}, "
-                f"had no valid units."
+                f"agent_registration_id {agent_registration_id}, had no valid units."
             )
             return
 
@@ -657,6 +665,31 @@ class Supervisor:
                 agent_info.assignment_thread = onboard_thread
                 onboard_thread.start()
                 return
+        if isinstance(blueprint, ValidationRequired) and blueprint.use_validation_task:
+            if (
+                blueprint.worker_needs_validation(worker)
+                and blueprint.should_generate_unit()
+            ):
+                validation_data = blueprint.get_validation_unit_data()
+                if validation_data is not None:
+                    launcher = channel_info.job.task_launcher
+                    units = [launcher.launch_validator_unit(validation_data)]
+                else:
+                    self.message_queue.append(
+                        Packet(
+                            packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                            sender_id=SYSTEM_CHANNEL_ID,
+                            receiver_id=channel_info.channel_id,
+                            data={
+                                "request_id": packet.data["request_id"],
+                                "agent_id": None,
+                            },
+                        )
+                    )
+                    logger.debug(
+                        f"No validation units left for {agent_registration_id}."
+                    )
+                    return
 
         # Not onboarding, so just register directly
         self._assign_unit_to_agent(packet, channel_info, units)

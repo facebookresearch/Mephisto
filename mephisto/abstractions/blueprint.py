@@ -31,6 +31,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 from mephisto.data_model.constants.assignment_state import AssignmentState
+import types
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -610,6 +611,104 @@ class OnboardingRequired(object):
         has qualified.
         """
         return True
+
+
+class ValidationRequired(object):
+    """
+    Compositional class for blueprints that may have a first task to
+    qualify workers who have never attempted the task before
+    """
+
+    def init_validation_config(
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedTaskState",
+    ) -> None:
+        self.use_validation_task = args.blueprint.get("use_validation_task", False)
+        if not self.use_validation_task:
+            return
+
+        # Runs that are using a qualification task should be able to assign
+        # a specially generated unit to unqualified workers
+        self.passed_qualification_name = args.blueprint.passed_qualification_name
+        self.failed_qualification_name = args.blueprint.block_qualification
+        self.generate_validation_unit_data = shared_state.generate_validation_unit_data
+
+        find_or_create_qualification(task_run.db, self.passed_qualification_name)
+        find_or_create_qualification(task_run.db, self.failed_qualification_name)
+
+    @classmethod
+    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState"):
+        use_validation_task = args.blueprint.get("use_validation_task", False)
+        if not use_validation_task:
+            return
+        passed_qualification_name = args.blueprint.passed_qualification_name
+        failed_qualification_name = args.blueprint.block_qualification
+        assert args.task.allowed_concurrent == 1, (
+            "Can only run this task type with one allowed task at a time per worker, to ensure validation "
+            "before moving into more tasks."
+        )
+        assert (
+            passed_qualification_name is not None
+        ), "Must supply an passed_qualification_name in Hydra args to use a qualification task"
+        assert (
+            failed_qualification_name is not None
+        ), "Must supply an block_qualification in Hydra args to use a qualification task"
+        assert hasattr(shared_state, "generate_validation_unit_data"), (
+            "You must supply a generate_validation_unit_data function in your SharedTaskState to use "
+            "qualification tasks."
+        )
+        generate_validation_unit_data = shared_state.generate_validation_unit_data
+        if generate_validation_unit_data is not False:
+            assert isinstance(generate_validation_unit_data, types.GeneratorType), (
+                "Must provide a generator function to SharedTaskState.generate_validation_unit_data if "
+                "you want to generate validation tasks on the fly, or False if you can validate on any task "
+            )
+
+    def worker_needs_validation(self, worker: "Worker") -> bool:
+        """Workers that are able to access the task (not blocked) but are not passed need qualification"""
+        return worker.get_granted_qualification(self.passed_qualification_name) is None
+
+    def should_generate_unit(self) -> bool:
+        return self.generate_validation_unit_data is not False
+
+    def get_validation_unit_data(self) -> Optional[Dict[str, Any]]:
+        try:
+            return next(self.generate_validation_unit_data)
+        except StopIteration:
+            return None  # No validation units left...
+
+    @classmethod
+    def create_validation_function(
+        cls, args: "DictConfig", validate_unit: Callable[["Unit"], bool]
+    ):
+        """
+        Takes in a validator function to determine if validation units are
+        passable, and returns a `on_unit_submitted` function to be used
+        in the SharedTaskState
+        """
+        passed_qualification_name = args.blueprint.passed_qualification_name
+        failed_qualification_name = args.blueprint.block_qualification
+
+        def _wrapped_validate(unit):
+            if unit.unit_index >= 0:
+                return  # We only run validation on the validatable units
+
+            validation_result = validate_unit(unit)
+            agent = unit.get_assigned_agent()
+            if validation_result is True:
+                agent.get_worker().grant_qualification(passed_qualification_name)
+            elif validation_result is False:
+                agent.get_worker().grant_qualification(failed_qualification_name)
+
+        return _wrapped_validate
+
+    @classmethod
+    def get_relevant_qualifications(cls, args: "DictConfig"):
+        """Creates the relevant task qualifications for this task"""
+        passed_qualification_name = args.blueprint.passed_qualification_name
+        failed_qualification_name = args.blueprint.block_qualification
 
 
 class Blueprint(ABC):

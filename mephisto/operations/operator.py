@@ -278,6 +278,7 @@ class Operator:
         )
         launcher.create_assignments()
         launcher.launch_units(task_url)
+        job.task_launcher = launcher
 
         self._task_runs_tracked[task_run.db_id] = TrackedRun(
             task_run=task_run,
