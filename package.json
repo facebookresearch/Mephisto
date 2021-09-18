@@ -6,5 +6,9 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist='{react,react-dom}'"
-  }
+  },
+  "workspaces": [
+    "packages/annotated/*"
+  ],
+  "packageManager": "yarn@3.0.2"
 }
