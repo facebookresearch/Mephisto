@@ -250,7 +250,7 @@ class TaskRunner(ABC):
             AgentDisconnectedError,
             AgentShutdownError,
         ) as e:
-            # TODO(#99) if some operator flag is set for counting complete tasks, launch a
+            # TODO implement counting complete tasks, launching a
             # new assignment copied from the parameters of this one
             disconnected_agent_id = e.agent_id
             for agent in agents:
@@ -373,10 +373,9 @@ class TaskRunner(ABC):
         raise NotImplementedError()
 
 
-# TODO(#101) what is the best method for creating new ones of these for different task types
-# in ways that are supported by different backends? Perhaps abstract additional
-# methods into the required db interface? Move any file manipulations into a
-# extra_data_handler subcomponent of the MephistoDB class?
+# TODO(#567) File manipulations should ultimately be handled by the MephistoDB, rather than
+# direct reading and writing within. This allows for a better abstraction between
+# the kind of data collected and how it is stored.
 class AgentState(ABC):
     """
     Class for holding state information about work by an Agent on a Unit, currently

@@ -139,7 +139,7 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         exists and has the expected directories and files. If a project is
         specified, register the task underneath it
         """
-        # TODO(#101) consider offloading this state management to the MephistoDB
+        # TODO(#567) this state management should be offloaded to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
         assert (
