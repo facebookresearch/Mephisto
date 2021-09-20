@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useReducer } from "react";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import lodash_set from "lodash.set";
 import lodash_get from "lodash.get";
 import lodash_unset from "lodash.unset";
@@ -37,7 +43,7 @@ const Reducer = (state, action) => {
   newState.__debug.actionsFired = logAction(action);
   return newState;
 };
-const Store = ({ children }) => {
+const Store = ({ children }, ref) => {
   const [state, dispatch] = useReducer(Reducer, initialState);
 
   const set = React.useCallback(
@@ -75,6 +81,10 @@ const Store = ({ children }) => {
     [get, set, invoke]
   );
 
+  useImperativeHandle(ref, () => ({
+    getState: () => state,
+  }));
+
   return (
     <Context.Provider
       value={{ state, dispatch, set, get, invoke, unset, push }}
@@ -89,4 +99,4 @@ export function useStore() {
 }
 
 export const Context = createContext(initialState);
-export default Store;
+export default forwardRef(Store);
