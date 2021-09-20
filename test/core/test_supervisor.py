@@ -118,6 +118,7 @@ class BaseTestSupervisor:
             provider=self.provider,
             qualifications=[],
             registered_channel_ids=[],
+            task_launcher=self.launcher,
         )
 
         channels = self.architect.get_channels(
