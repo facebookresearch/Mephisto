@@ -1,5 +1,5 @@
 {
-  "source": "src/index.ts",
+  "source": "src/index.js",
   "main": "build/bundle.js",
   "license": "MIT",
   "homepage": "https://github.com/facebookresearch/Mephisto.git",
