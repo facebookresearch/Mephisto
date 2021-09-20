@@ -5,11 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 
-# TODO(#99) do we standardize some kinds of data loader formats? perhaps
-# one that loads from files, and then an arbitrary kind? Simple
-# interface could be like an iterator. This class will launch tasks
-# as if the loader is an iterator.
-
 from mephisto.data_model.assignment import (
     Assignment,
     InitializationData,

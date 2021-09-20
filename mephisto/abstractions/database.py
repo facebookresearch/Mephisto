@@ -25,7 +25,6 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import Qualification, GrantedQualification
 
-# TODO(#101) investigate rate limiting against the db by caching locally where appropriate across the data model?
 # TODO(#101) investigate cursors for DB queries as the project scales
 
 
