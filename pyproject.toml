@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mephisto"
-version = "0.1.0"
+version = "0.4.1"
 description = ""
 authors = ["Jack Urbanek <jju@fb.com>"]
 

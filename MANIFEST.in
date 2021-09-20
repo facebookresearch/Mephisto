@@ -1,0 +1,12 @@
+include README.md
+include mephisto/VERSION
+include mephisto/__init__.py
+recursive-include mephisto abstractions/**/*
+recursive-include mephisto client/**/*
+recursive-exclude mephisto **/__pycache__/**/*
+recursive-exclude mephisto **/.mypy_cache/*
+recursive-exclude mephisto **/node_modules/*
+recursive-exclude mephisto **/node_modules/**/*
+recursive-exclude mephisto **/build/*
+recursive-exclude mephisto **/build/**/*
+recursive-exclude mephisto **/_generated/*
