@@ -709,6 +709,9 @@ class ValidationRequired(object):
         """Creates the relevant task qualifications for this task"""
         passed_qualification_name = args.blueprint.passed_qualification_name
         failed_qualification_name = args.blueprint.block_qualification
+        # Block_qualification is currently covered in mephisto core, and we don't need
+        # to invoke any viewership constraints for passed workers.
+        return []
 
 
 class Blueprint(ABC):
