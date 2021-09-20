@@ -68,7 +68,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         self.db_id: str = row["worker_id"]
         self.provider_type = row["provider_type"]
         self.worker_name = row["worker_name"]
-        # TODO(#101) Do we want any other attributes here?
+        # TODO(#568) Do we want any other attributes here?
 
     def __new__(
         cls,
@@ -100,7 +100,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    # TODO(#101) make getters for helpful worker statistics
+    # TODO(#568) make getters for helpful worker statistics
 
     def get_agents(self, status: Optional[str] = None) -> List["Agent"]:
         """
