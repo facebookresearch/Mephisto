@@ -8,7 +8,12 @@
     "bootstrap": "lerna bootstrap --hoist='{react,react-dom}'"
   },
   "workspaces": [
-    "packages/annotated/*"
+    "packages/annotated/*",
+    "docs/sb"
   ],
-  "packageManager": "yarn@3.0.2"
+  "packageManager": "yarn@3.0.2",
+  "resolutions": {
+    "@pmmmwh/react-refresh-webpack-plugin": "patch:@pmmmwh/react-refresh-webpack-plugin@0.4.3#yarn-patches/react-refresh-webpack-plugin.patch",
+    "react-dev-utils": "patch:react-dev-utils@11.0.4#yarn-patches/react-dev-utils.patch"
+  }
 }

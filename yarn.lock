@@ -35,6 +35,12 @@ __metadata:
     classnames: ^2.3.1
     lodash.mapvalues: ^4.6.0
     react-json-inspector: ^7.1.1
+  peerDependencies:
+    "@blueprintjs/core": ^3.42.0
+    "@blueprintjs/icons": ^3.26.0
+    global-context-store: ^1.0.1
+    react: ^16.13.1 || 17 || 18
+    react-dom: ^16.13.1 || 17 || 18
   languageName: unknown
   linkType: soft
 
@@ -1895,7 +1901,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blueprintjs/core@npm:^3.46.0":
+"@blueprintjs/core@npm:^3.50.1":
   version: 3.50.1
   resolution: "@blueprintjs/core@npm:3.50.1"
   dependencies:
@@ -1921,7 +1927,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blueprintjs/icons@npm:^3.27.0, @blueprintjs/icons@npm:^3.30.1":
+"@blueprintjs/icons@npm:^3.30.1":
   version: 3.30.1
   resolution: "@blueprintjs/icons@npm:3.30.1"
   dependencies:
@@ -3542,7 +3548,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pmmmwh/react-refresh-webpack-plugin@npm:0.4.3, @pmmmwh/react-refresh-webpack-plugin@npm:^0.4.3":
+"@pmmmwh/react-refresh-webpack-plugin@0.4.3":
   version: 0.4.3
   resolution: "@pmmmwh/react-refresh-webpack-plugin@npm:0.4.3"
   dependencies:
@@ -3575,6 +3581,42 @@ __metadata:
     webpack-plugin-serve:
       optional: true
   checksum: 36a7b0c63f0aabde856a2b43f3f3bfa7919920afa67b4fbcf7d4980b286c7c11e34ada13654d81bf30c3d3e2c12a5b9eef6c15e21a200003b8030809d3ddd6c6
+  languageName: node
+  linkType: hard
+
+"@pmmmwh/react-refresh-webpack-plugin@patch:@pmmmwh/react-refresh-webpack-plugin@0.4.3#yarn-patches/react-refresh-webpack-plugin.patch::locator=root%40workspace%3A.":
+  version: 0.4.3
+  resolution: "@pmmmwh/react-refresh-webpack-plugin@patch:@pmmmwh/react-refresh-webpack-plugin@npm%3A0.4.3#yarn-patches/react-refresh-webpack-plugin.patch::version=0.4.3&hash=08e0cf&locator=root%40workspace%3A."
+  dependencies:
+    ansi-html: ^0.0.7
+    error-stack-parser: ^2.0.6
+    html-entities: ^1.2.1
+    native-url: ^0.2.6
+    schema-utils: ^2.6.5
+    source-map: ^0.7.3
+  peerDependencies:
+    "@types/webpack": 4.x
+    react-refresh: ">=0.8.3 <0.10.0"
+    sockjs-client: ^1.4.0
+    type-fest: ^0.13.1
+    webpack: ">=4.43.0 <6.0.0"
+    webpack-dev-server: 3.x
+    webpack-hot-middleware: 2.x
+    webpack-plugin-serve: 0.x || 1.x
+  peerDependenciesMeta:
+    "@types/webpack":
+      optional: true
+    sockjs-client:
+      optional: true
+    type-fest:
+      optional: true
+    webpack-dev-server:
+      optional: true
+    webpack-hot-middleware:
+      optional: true
+    webpack-plugin-serve:
+      optional: true
+  checksum: 69b4630e3f9a6746e2d16aa9d6d47a8a202d039a6e5b40a91cb5f5313f5133ef569e061c57818830e608f6ce1e1eedbef57beaf149aeffaa214c3424cdd1f9f5
   languageName: node
   linkType: hard
 
@@ -3658,7 +3700,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-actions@npm:6.3.8, @storybook/addon-actions@npm:^6.3.2, @storybook/addon-actions@npm:^6.3.8":
+"@storybook/addon-actions@npm:6.3.8, @storybook/addon-actions@npm:^6.3.8":
   version: 6.3.8
   resolution: "@storybook/addon-actions@npm:6.3.8"
   dependencies:
@@ -3833,7 +3875,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-essentials@npm:^6.3.2, @storybook/addon-essentials@npm:^6.3.8":
+"@storybook/addon-essentials@npm:^6.3.8":
   version: 6.3.8
   resolution: "@storybook/addon-essentials@npm:6.3.8"
   dependencies:
@@ -3877,7 +3919,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-links@npm:^6.3.2, @storybook/addon-links@npm:^6.3.8":
+"@storybook/addon-links@npm:^6.3.8":
   version: 6.3.8
   resolution: "@storybook/addon-links@npm:6.3.8"
   dependencies:
@@ -3975,7 +4017,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addons@npm:6.3.8, @storybook/addons@npm:^6.3.0, @storybook/addons@npm:^6.3.2":
+"@storybook/addons@npm:6.3.8, @storybook/addons@npm:^6.3.0":
   version: 6.3.8
   resolution: "@storybook/addons@npm:6.3.8"
   dependencies:
@@ -4468,7 +4510,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/node-logger@npm:6.3.8, @storybook/node-logger@npm:^6.3.2, @storybook/node-logger@npm:^6.3.8":
+"@storybook/node-logger@npm:6.3.8, @storybook/node-logger@npm:^6.3.8":
   version: 6.3.8
   resolution: "@storybook/node-logger@npm:6.3.8"
   dependencies:
@@ -4490,7 +4532,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/preset-create-react-app@npm:^3.1.7, @storybook/preset-create-react-app@npm:^3.2.0":
+"@storybook/preset-create-react-app@npm:^3.2.0":
   version: 3.2.0
   resolution: "@storybook/preset-create-react-app@npm:3.2.0"
   dependencies:
@@ -4528,7 +4570,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/react@npm:^6.3.2, @storybook/react@npm:^6.3.8":
+"@storybook/react@npm:^6.3.8":
   version: 6.3.8
   resolution: "@storybook/react@npm:6.3.8"
   dependencies:
@@ -4626,7 +4668,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/theming@npm:6.3.8, @storybook/theming@npm:^6.3.2":
+"@storybook/theming@npm:6.3.8":
   version: 6.3.8
   resolution: "@storybook/theming@npm:6.3.8"
   dependencies:
@@ -5248,13 +5290,13 @@ __metadata:
   linkType: hard
 
 "@types/react@npm:*":
-  version: 17.0.21
-  resolution: "@types/react@npm:17.0.21"
+  version: 17.0.22
+  resolution: "@types/react@npm:17.0.22"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: a590bd2e50e4ec0b1957388e198cf248bac3051e525e036901dea10f7d12203bf1c58350aa899e66494cbf8a60ee56402522273866c29748217f72552bb27d04
+  checksum: 691c7abda8f5b16d26f6b9940f75e6a9831f12d5ca070e62391454c26fd1a3d0dbe64e0199655773e0389e35e7c7984fa8a06c4561d3164562cd167f60c759e6
   languageName: node
   linkType: hard
 
@@ -5935,23 +5977,6 @@ __metadata:
   version: 1.0.2
   resolution: "alphanum-sort@npm:1.0.2"
   checksum: 5a32d0b3c0944e65d22ff3ae2f88d7a4f8d88a78a703033caeae33f2944915e053d283d02f630dc94823edc7757148ecdcf39fd687a5117bda5c10133a03a7d8
-  languageName: node
-  linkType: hard
-
-"annotation-toolkit@npm:^1.1.2-beta.3":
-  version: 1.1.2-beta.3
-  resolution: "annotation-toolkit@npm:1.1.2-beta.3"
-  dependencies:
-    classnames: ^2.3.1
-    keyframes: ^2.3.0
-  peerDependencies:
-    "@blueprintjs/core": ^3.42.0
-    "@blueprintjs/icons": ^3.26.0
-    global-context-store: ^1.0.1
-    react: ^16.13.1 || 17 || 18
-    react-dom: ^16.13.1 || 17 || 18
-    react-player: ^2.9.0
-  checksum: 8e4f77b7c76cc82028aa5231dc5560e14583a17e2d1b9b17d9e33136894f6436636328a5f7e57437f8bb0b15d284ab4b18aa37e2d400d53582cfc83b162ec09c
   languageName: node
   linkType: hard
 
@@ -8271,7 +8296,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js-compat@npm:^3.14.0, core-js-compat@npm:^3.16.0, core-js-compat@npm:^3.6.2, core-js-compat@npm:^3.8.1":
+"core-js-compat@npm:^3.14.0, core-js-compat@npm:^3.16.0, core-js-compat@npm:^3.6.2":
   version: 3.17.3
   resolution: "core-js-compat@npm:3.17.3"
   dependencies:
@@ -8281,10 +8306,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js-pure@npm:^3.16.0, core-js-pure@npm:^3.8.2":
+"core-js-compat@npm:^3.8.1":
+  version: 3.18.0
+  resolution: "core-js-compat@npm:3.18.0"
+  dependencies:
+    browserslist: ^4.17.0
+    semver: 7.0.0
+  checksum: 2bf11676215d912c099078564bbbd837ff6b4a18635661414f3d72b4b78bee883117d583645629999407f910be311624d0380aefec69b3b77ef91001bcb30b19
+  languageName: node
+  linkType: hard
+
+"core-js-pure@npm:^3.16.0":
   version: 3.17.3
   resolution: "core-js-pure@npm:3.17.3"
   checksum: cdb02c49d4adce4e884551a216300df55183e85cdbbc6b8630649b891df6fc03037a1ff22c61265500379c2031d8b5700aeda6c558b51c06f320fc8ae4cff162
+  languageName: node
+  linkType: hard
+
+"core-js-pure@npm:^3.8.2":
+  version: 3.18.0
+  resolution: "core-js-pure@npm:3.18.0"
+  checksum: 18d81964d3e0fe0f7acf06dbb2bfe2cf7bb03a02527eca3b1a69b0438fd79bd3a24692eaefd53aaab29be7f7c881dc173308313a6b93ab1f082cae05ff4c4a5f
   languageName: node
   linkType: hard
 
@@ -8295,7 +8337,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.0.4, core-js@npm:^3.6.5, core-js@npm:^3.8.2":
+"core-js@npm:^3.0.4, core-js@npm:^3.8.2":
+  version: 3.18.0
+  resolution: "core-js@npm:3.18.0"
+  checksum: 192c345eb0c8b9d582ebed798cf124e00cd8241303c3c801987563f8ebb8cb991e2ff91494c258752014c29d5515070d2c0a862687401c7d7e1e2f96f8980d42
+  languageName: node
+  linkType: hard
+
+"core-js@npm:^3.6.5":
   version: 3.17.3
   resolution: "core-js@npm:3.17.3"
   checksum: cdc61f068533469e15745e4644cc205916248b5b49d07840ed8e26a52e4aa557499e3d70e42a76dbc5e921f87d2db4365d9d3a5b8babbd351c3fd9e981d74fab
@@ -9945,13 +9994,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-react@npm:^1.1.7":
-  version: 1.1.7
-  resolution: "eslint-config-react@npm:1.1.7"
-  checksum: 15d3d7f78e720c225ac983fb6985825b561941f1c930116c96f8ab8600eb65db603f5ef200a10fabd51f8ef564c107e8eb0d3f69609bfdedfb50290227249a70
-  languageName: node
-  linkType: hard
-
 "eslint-import-resolver-node@npm:^0.3.6":
   version: 0.3.6
   resolution: "eslint-import-resolver-node@npm:0.3.6"
@@ -11382,13 +11424,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"gl-vec3@npm:^1.0.2":
-  version: 1.1.3
-  resolution: "gl-vec3@npm:1.1.3"
-  checksum: 987ef77eec955a2a5d4304aad7833bc2e49830e3e415e4422eb4ac3a45975a2a6a29a241d9e6e8de5682659cfffdb0b97ef7a3ef80c8b69ea11954166347734c
-  languageName: node
-  linkType: hard
-
 "glob-base@npm:^0.3.0":
   version: 0.3.0
   resolution: "glob-base@npm:0.3.0"
@@ -11459,7 +11494,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"global-context-store@npm:^1.0.2":
+"global-context-store@npm:^1.0.3":
   version: 1.0.3
   resolution: "global-context-store@npm:1.0.3"
   dependencies:
@@ -14100,17 +14135,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"keyframes@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "keyframes@npm:2.3.0"
-  dependencies:
-    gl-vec3: ^1.0.2
-    lerp-array: ^1.0.0
-    unlerp: ^1.0.0
-  checksum: e09703764fc20f287ae8c525cec8b91415298554deb1f16e5292c91b8eace0e97d6aef1e24de08c278fdf024c29c39e21b37c36d40b8e80681cf65635543325a
-  languageName: node
-  linkType: hard
-
 "killable@npm:^1.0.1":
   version: 1.0.1
   resolution: "killable@npm:1.0.1"
@@ -14240,22 +14264,6 @@ fsevents@^1.2.7:
   bin:
     lerna: cli.js
   checksum: b8a2791bcfd5eb49b0e9cd125ad31a77dd7993a7fff207e864bc03aef64719b31d16bf2f72149c9cbd0bacb0a2b47c2cc5a87da3382124c1d22a611098dcc979
-  languageName: node
-  linkType: hard
-
-"lerp-array@npm:^1.0.0":
-  version: 1.1.1
-  resolution: "lerp-array@npm:1.1.1"
-  dependencies:
-    lerp: ^1.0.0
-  checksum: 68dc66d1e88140a771699e8c30239638adcea93a6e78c8e4154f196a21b4c73f53e5092ac263c1a7cf91a26238db76b6f5f17fb1d68f50ffd6569d9458f80980
-  languageName: node
-  linkType: hard
-
-"lerp@npm:^1.0.0":
-  version: 1.0.3
-  resolution: "lerp@npm:1.0.3"
-  checksum: 352d072fd44378adedaa22b99e718e830489ac715f7c18c1da9033758b2c3d28ac54677e3e829eaf6dc7fd99dbccd97c514e5775ba5ad6f88d1673692d666c14
   languageName: node
   linkType: hard
 
@@ -14831,11 +14839,11 @@ fsevents@^1.2.7:
   linkType: hard
 
 "memfs@npm:^3.1.2":
-  version: 3.2.4
-  resolution: "memfs@npm:3.2.4"
+  version: 3.3.0
+  resolution: "memfs@npm:3.3.0"
   dependencies:
     fs-monkey: 1.0.3
-  checksum: 676c7463069f80ff92360f20f1b7071da5df43365edff4f013f1b19d8f11f537368a19e6e9ba4ba806b23147b52493033abb71cb83e3ca01386a713dc1bb0082
+  checksum: 9e9eb71cfc077fd5e14ad2f497f5a8791689b64f307cf379ed6737c5781652a7af0509395c0dfba43c4e413dbc7cd7010e9ca002168ec329e6df178414b96268
   languageName: node
   linkType: hard
 
@@ -18133,7 +18141,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-dev-utils@npm:^11.0.3":
+react-dev-utils@11.0.4:
   version: 11.0.4
   resolution: "react-dev-utils@npm:11.0.4"
   dependencies:
@@ -18162,6 +18170,38 @@ fsevents@^1.2.7:
     strip-ansi: 6.0.0
     text-table: 0.2.0
   checksum: b41c95010a4fb60d4ea6309423520e6268757b68df34de7e9e8dbc72549236a1f5a698ff99ad72a034ac51b042aa79ee53994330ce4df05bf867e63c5464bb3f
+  languageName: node
+  linkType: hard
+
+"react-dev-utils@patch:react-dev-utils@11.0.4#yarn-patches/react-dev-utils.patch::locator=root%40workspace%3A.":
+  version: 11.0.4
+  resolution: "react-dev-utils@patch:react-dev-utils@npm%3A11.0.4#yarn-patches/react-dev-utils.patch::version=11.0.4&hash=0f5813&locator=root%40workspace%3A."
+  dependencies:
+    "@babel/code-frame": 7.10.4
+    address: 1.1.2
+    browserslist: 4.14.2
+    chalk: 2.4.2
+    cross-spawn: 7.0.3
+    detect-port-alt: 1.1.6
+    escape-string-regexp: 2.0.0
+    filesize: 6.1.0
+    find-up: 4.1.0
+    fork-ts-checker-webpack-plugin: 4.1.6
+    global-modules: 2.0.0
+    globby: 11.0.1
+    gzip-size: 5.1.1
+    immer: 8.0.1
+    is-root: 2.1.0
+    loader-utils: 2.0.0
+    open: ^7.0.2
+    pkg-up: 3.1.0
+    prompts: 2.4.0
+    react-error-overlay: ^6.0.9
+    recursive-readdir: 2.2.2
+    shell-quote: 1.7.2
+    strip-ansi: 6.0.0
+    text-table: 0.2.0
+  checksum: adb8a9c3d8acac95715c908249039478ea41b21c6d67bb014b4e1e67475d8cbccec243ed7b07b9a5b8a3b746e3bde0a830ac11b570c764e32c8d6f32aaede2d5
   languageName: node
   linkType: hard
 
@@ -19482,6 +19522,35 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
+"sb@workspace:docs/sb":
+  version: 0.0.0-use.local
+  resolution: "sb@workspace:docs/sb"
+  dependencies:
+    "@annotated/shell": "workspace:packages/annotated/shell"
+    "@blueprintjs/core": ^3.50.1
+    "@mdx-js/react": ^1.6.22
+    "@storybook/addon-actions": ^6.3.8
+    "@storybook/addon-docs": ^6.3.8
+    "@storybook/addon-essentials": ^6.3.8
+    "@storybook/addon-links": ^6.3.8
+    "@storybook/node-logger": ^6.3.8
+    "@storybook/preset-create-react-app": ^3.2.0
+    "@storybook/react": ^6.3.8
+    "@testing-library/jest-dom": ^5.11.4
+    "@testing-library/react": ^11.1.0
+    "@testing-library/user-event": ^12.1.10
+    eslint-config-react-app: ^6.0.0
+    global-context-store: ^1.0.3
+    prop-types: ^15.7.2
+    react: ^17.0.2
+    react-dom: ^17.0.2
+    react-helmet: ^6.1.0
+    react-scripts: 4.0.3
+    web-vitals: ^1.0.1
+    webpack-hot-middleware: ^2.25.1
+  languageName: unknown
+  linkType: soft
+
 "scheduler@npm:^0.20.2":
   version: 0.20.2
   resolution: "scheduler@npm:0.20.2"
@@ -20284,57 +20353,6 @@ resolve@^2.0.0-next.3:
   checksum: 8896a144897ea0e04b5bbaa2ff8e1065009d04b5ee93206396971af0960d470a9de406b9df67016241a02b0fccd4a8de95276ff30165555aca503625aca0283b
   languageName: node
   linkType: hard
-
-"storybook2@workspace:docs/storybook2":
-  version: 0.0.0-use.local
-  resolution: "storybook2@workspace:docs/storybook2"
-  dependencies:
-    "@mdx-js/react": ^1.6.22
-    "@storybook/addon-actions": ^6.3.8
-    "@storybook/addon-docs": ^6.3.8
-    "@storybook/addon-essentials": ^6.3.8
-    "@storybook/addon-links": ^6.3.8
-    "@storybook/node-logger": ^6.3.8
-    "@storybook/preset-create-react-app": ^3.2.0
-    "@storybook/react": ^6.3.8
-    "@testing-library/jest-dom": ^5.11.4
-    "@testing-library/react": ^11.1.0
-    "@testing-library/user-event": ^12.1.10
-    eslint-config-react: ^1.1.7
-    react: ^17.0.2
-    react-dom: ^17.0.2
-    react-scripts: 4.0.3
-    web-vitals: ^1.0.1
-  languageName: unknown
-  linkType: soft
-
-"storybook@workspace:docs/storybook":
-  version: 0.0.0-use.local
-  resolution: "storybook@workspace:docs/storybook"
-  dependencies:
-    "@blueprintjs/core": ^3.46.0
-    "@blueprintjs/icons": ^3.27.0
-    "@storybook/addon-actions": ^6.3.2
-    "@storybook/addon-essentials": ^6.3.2
-    "@storybook/addon-links": ^6.3.2
-    "@storybook/addons": ^6.3.2
-    "@storybook/node-logger": ^6.3.2
-    "@storybook/preset-create-react-app": ^3.1.7
-    "@storybook/react": ^6.3.2
-    "@storybook/theming": ^6.3.2
-    "@testing-library/jest-dom": ^5.11.4
-    "@testing-library/react": ^11.1.0
-    "@testing-library/user-event": ^12.1.10
-    annotation-toolkit: ^1.1.2-beta.3
-    global-context-store: ^1.0.2
-    lodash.merge: ^4.6.2
-    react: ^17.0.2
-    react-dom: ^17.0.2
-    react-helmet: ^6.1.0
-    react-scripts: 4.0.3
-    web-vitals: ^1.0.1
-  languageName: unknown
-  linkType: soft
 
 "stream-browserify@npm:^2.0.1":
   version: 2.0.2
@@ -21632,13 +21650,6 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"unlerp@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "unlerp@npm:1.0.1"
-  checksum: 476d801f15ea2959623c79d302c20bfe0c7bc90b64f49211f043e4293aa7109cc91f09e48a502f6ff7e167987c469c9a9dde772423316a2ba3c68cdd4fa37928
-  languageName: node
-  linkType: hard
-
 "unpipe@npm:1.0.0, unpipe@npm:~1.0.0":
   version: 1.0.0
   resolution: "unpipe@npm:1.0.0"
@@ -22181,7 +22192,7 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"webpack-hot-middleware@npm:^2.25.0":
+"webpack-hot-middleware@npm:^2.25.0, webpack-hot-middleware@npm:^2.25.1":
   version: 2.25.1
   resolution: "webpack-hot-middleware@npm:2.25.1"
   dependencies:
