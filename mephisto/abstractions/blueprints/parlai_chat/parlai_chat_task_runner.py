@@ -205,7 +205,6 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not agent.has_action.is_set():
             done_act = agent.act()
             if done_act is not None:
-                print(done_act)
                 break
             time.sleep(0.3)
 
