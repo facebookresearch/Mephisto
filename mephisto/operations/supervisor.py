@@ -408,10 +408,8 @@ class Supervisor:
             logger.exception(f"Cleaning up unit: {e}", exc_info=True)
             task_runner.cleanup_unit(unit)
         finally:
-            print("Run completed")
             if unit.unit_index == SCREENING_UNIT_INDEX:
                 if agent.get_status() != AgentState.STATUS_COMPLETED:
-                    print("But was not completed!")
                     blueprint = task_runner.task_run.get_blueprint(
                         args=task_runner.args
                     )
