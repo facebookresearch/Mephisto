@@ -167,10 +167,19 @@ function _send_message(socket, packet) {
 function find_or_create_agent(agent_id) {
   var agent = agent_id_to_agent[agent_id];
   if (agent === undefined) {
+    debug_log("Am creating agent for " + agent_id);
     var agent = new LocalAgentState(agent_id);
     agent_id_to_agent[agent_id] = agent;
   }
   return agent;
+}
+
+function clear_agent(agent_id) {
+  debug_log("Clearing agent " + agent_id);
+  delete agent_id_to_agent[agent_id];
+  let socket = agent_id_to_socket[agent_id];
+  delete agent_id_to_socket[agent_id];
+  delete socket_id_to_agent[socket.id];
 }
 
 // Open connections send alives to identify who they are,
@@ -186,10 +195,11 @@ function handle_alive(socket, alive_packet) {
   } else {
     var agent_id = alive_packet.sender_id;
     var agent = find_or_create_agent(agent_id);
-    send_status_for_agent(agent_id);
+    debug_log("Am linking socket for " + agent_id);
     agent.is_alive = true;
     agent_id_to_socket[agent_id] = socket;
     socket_id_to_agent[socket.id] = agent;
+    send_status_for_agent(agent_id);
   }
 }
 
@@ -473,6 +483,7 @@ app.post("/submit_onboarding", function (req, res) {
   var request_id = uuidv4();
 
   let agent_id = provider_data.USED_AGENT_ID;
+  debug_log("Am submitting onboarding for " + agent_id);
   delete provider_data.USED_AGENT_ID;
 
   provider_data.request_id = request_id;
@@ -486,6 +497,7 @@ app.post("/submit_onboarding", function (req, res) {
 
   pending_provider_requests[request_id] = res;
   _send_message(mephisto_socket, submit_packet);
+  clear_agent(agent_id);
 });
 
 app.post("/submit_task", upload.any(), function (req, res) {

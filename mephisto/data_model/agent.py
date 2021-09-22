@@ -506,7 +506,8 @@ class OnboardingAgent(
 
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        self.has_updated_status.set()
+        if new_status not in AgentState.complete():
+            self.has_updated_status.set()
         if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
             # Disconnect statuses should free any pending acts
             self.has_action.set()
