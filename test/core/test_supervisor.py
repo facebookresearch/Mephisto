@@ -945,14 +945,11 @@ class BaseTestSupervisor:
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "No agent created for screening")
         time.sleep(0.1)
-        last_packet = self.architect.server.last_packet
-        self.assertIsNotNone(last_packet)
         self.assertEqual(
             agents[0].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
             "Agent not assigned screening unit",
         )
-        self.architect.server.last_packet = None
 
         # Register a second screening agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT2"
@@ -961,14 +958,11 @@ class BaseTestSupervisor:
         self.assertEqual(len(agents), 2, "No agent created for screening")
         last_packet = None
         time.sleep(0.1)
-        last_packet = self.architect.server.last_packet
-        self.assertIsNotNone(last_packet)
         self.assertEqual(
             agents[1].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
             "Agent not assigned screening unit",
         )
-        self.architect.server.last_packet = None
 
         # Fail to register a third screening agent
         mock_agent_details = "FAKE_ASSIGNMENT3"
@@ -976,12 +970,6 @@ class BaseTestSupervisor:
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Third agent created, when 2 was max")
         time.sleep(0.1)
-        last_packet = self.architect.server.last_packet
-        self.assertIsNotNone(last_packet)
-        self.assertIsNone(
-            last_packet["data"]["agent_id"], "worker assigned real agent id"
-        )
-        self.architect.server.last_packet = None
 
         # Disconnect first agent
         agents[0].update_status(AgentState.STATUS_DISCONNECT)
@@ -993,17 +981,11 @@ class BaseTestSupervisor:
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 3, "Third agent not created")
         time.sleep(0.1)
-        last_packet = self.architect.server.last_packet
-        self.assertIsNotNone(last_packet)
-        self.assertIsNotNone(
-            last_packet["data"]["agent_id"], "worker not assigned real agent id"
-        )
         self.assertEqual(
             agents[2].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
             "Agent not assigned screening unit",
         )
-        self.architect.server.last_packet = None
 
         # Submit screening from the agent
         validation_data = {"success": False}
@@ -1041,14 +1023,11 @@ class BaseTestSupervisor:
         self.assertEqual(len(agents), 4, "No agent created for task")
         last_packet = None
         time.sleep(0.1)
-        last_packet = self.architect.server.last_packet
-        self.assertIsNotNone(last_packet)
         self.assertNotEqual(
             agents[3].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
             "Agent assigned screening unit",
         )
-        self.architect.server.last_packet = None
 
         sup.shutdown()
         self.assertTrue(channel_info.channel.is_closed())
