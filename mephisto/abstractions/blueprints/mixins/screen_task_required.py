@@ -54,7 +54,7 @@ class ScreenTaskRequiredArgs:
         },
     )
     use_screening_task: bool = field(
-        default=MISSING,
+        default=False,
         metadata={"help": ("Whether or not to use a screening task in this run.")},
     )
 
@@ -62,11 +62,16 @@ class ScreenTaskRequiredArgs:
 ScreenUnitDataGenerator = Generator[Dict[str, Any], None, None]
 
 
+def blank_generator():
+    while True:
+        yield {}
+
+
 @dataclass
 class ScreenTaskSharedState:
     onboarding_data: Dict[str, Any] = field(default_factory=dict)
     generate_screening_unit_data: Tuple[bool, ScreenUnitDataGenerator] = field(
-        default_factory=lambda: (lambda x: {})
+        default_factory=lambda: blank_generator()
     )
 
 
@@ -149,10 +154,12 @@ class ScreenTaskRequired(BlueprintMixin):
 
     def get_screening_unit_data(self) -> Optional[Dict[str, Any]]:
         try:
-            if self.screening_units_launched > self.screening_unit_cap:
+            if self.screening_units_launched >= self.screening_unit_cap:
                 return None  # Exceeded the cap on these units
             else:
-                return next(self.generate_screening_unit_data)
+                data = next(self.generate_screening_unit_data)
+                self.screening_units_launched += 1
+                return data
         except StopIteration:
             return None  # No screening units left...
 

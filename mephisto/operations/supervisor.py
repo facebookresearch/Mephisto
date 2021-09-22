@@ -35,7 +35,7 @@ from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
 )
 from mephisto.operations.registry import get_crowd_provider_from_type
-from mephisto.operations.task_launcher import TaskLauncher
+from mephisto.operations.task_launcher import TaskLauncher, SCREENING_UNIT_INDEX
 from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
 
 from dataclasses import dataclass
@@ -390,8 +390,8 @@ class Supervisor:
         self, unit: "Unit", agent_info: "AgentInfo", task_runner: "TaskRunner"
     ):
         """Launch a thread to supervise the completion of an assignment"""
+        agent = agent_info.agent
         try:
-            agent = agent_info.agent
             assert isinstance(
                 agent, Agent
             ), f"Can launch units for Agents, not OnboardingAgents, got {agent}"
@@ -408,8 +408,15 @@ class Supervisor:
             logger.exception(f"Cleaning up unit: {e}", exc_info=True)
             task_runner.cleanup_unit(unit)
         finally:
-            if unit.unit_index < 0:  # Special units should always expire
-                unit.expire()
+            print("Run completed")
+            if unit.unit_index == SCREENING_UNIT_INDEX:
+                if agent.get_status() != AgentState.STATUS_COMPLETED:
+                    print("But was not completed!")
+                    blueprint = task_runner.task_run.get_blueprint(
+                        args=task_runner.args
+                    )
+                    blueprint.screening_units_launched -= 1
+                    unit.expire()
             task_runner.task_run.clear_reservation(unit)
 
     def _assign_unit_to_agent(
