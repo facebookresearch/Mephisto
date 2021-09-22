@@ -143,13 +143,3 @@ class StaticHTMLBlueprint(StaticBlueprint):
                 "Must use an onboarding validation function to use onboarding "
                 "with static tasks."
             )
-
-    def validate_onboarding(
-        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
-    ) -> bool:
-        """
-        Check the incoming onboarding data and evaluate if the worker
-        has passed the qualification or not. Return True if the worker
-        has qualified.
-        """
-        return self.shared_state.validate_onboarding(onboarding_agent.state.get_data())

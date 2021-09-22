@@ -6,9 +6,12 @@
 
 from mephisto.abstractions.blueprint import (
     Blueprint,
-    OnboardingRequired,
     BlueprintArgs,
     SharedTaskState,
+)
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
+    OnboardingRequired,
+    OnboardingSharedState,
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
@@ -49,7 +52,7 @@ BLUEPRINT_TYPE = "abstract_static"
 
 
 @dataclass
-class SharedStaticTaskState(SharedTaskState):
+class SharedStaticTaskState(SharedTaskState, OnboardingSharedState):
     static_task_data: Iterable[Any] = field(default_factory=list)
 
 
@@ -105,7 +108,10 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
     SharedStateClass = SharedStaticTaskState
 
     def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedStaticTaskState",
     ):
         super().__init__(task_run, args, shared_state)
         self.init_onboarding_config(task_run, args, shared_state)
@@ -144,7 +150,7 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
             pass
 
     @classmethod
-    def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
+    def assert_task_args(cls, args: DictConfig, shared_state: "SharedStaticTaskState"):
         """Ensure that the data can be properly loaded"""
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
@@ -196,16 +202,3 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
                 )
                 for d in self._initialization_data_dicts
             ]
-
-    def validate_onboarding(
-        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
-    ) -> bool:
-        """
-        Check the incoming onboarding data and evaluate if the worker
-        has passed the qualification or not. Return True if the worker
-        has qualified.
-        """
-        data = onboarding_agent.state.get_data()
-        return self.shared_state.validate_onboarding(
-            data
-        )  # data["outputs"].get("success", True)

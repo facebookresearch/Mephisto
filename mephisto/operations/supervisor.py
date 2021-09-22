@@ -27,13 +27,15 @@ from mephisto.data_model.packet import (
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
-from mephisto.abstractions.blueprint import (
+from mephisto.abstractions.blueprint import AgentState
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
-    ValidationRequired,
-    AgentState,
+)
+from mephisto.abstractions.blueprints.mixins.screen_task_required import (
+    ScreenTaskRequired,
 )
 from mephisto.operations.registry import get_crowd_provider_from_type
-from mephisto.operations.task_launcher import TaskLauncher, VALIDATOR_UNIT_INDEX
+from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
 
 from dataclasses import dataclass
@@ -665,15 +667,15 @@ class Supervisor:
                 agent_info.assignment_thread = onboard_thread
                 onboard_thread.start()
                 return
-        if isinstance(blueprint, ValidationRequired) and blueprint.use_validation_task:
+        if isinstance(blueprint, ScreenTaskRequired) and blueprint.use_screening_task:
             if (
-                blueprint.worker_needs_validation(worker)
+                blueprint.worker_needs_screening(worker)
                 and blueprint.should_generate_unit()
             ):
-                validation_data = blueprint.get_validation_unit_data()
-                if validation_data is not None:
+                screening_data = blueprint.get_screening_unit_data()
+                if screening_data is not None:
                     launcher = channel_info.job.task_launcher
-                    units = [launcher.launch_validator_unit(validation_data)]
+                    units = [launcher.launch_screening_unit(screening_data)]
                 else:
                     self.message_queue.append(
                         Packet(
@@ -687,7 +689,7 @@ class Supervisor:
                         )
                     )
                     logger.debug(
-                        f"No validation units left for {agent_registration_id}."
+                        f"No screening units left for {agent_registration_id}."
                     )
                     return
 

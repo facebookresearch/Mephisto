@@ -206,10 +206,10 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
                 args = self.args
             else:
                 cache = True
-            if shared_state is None:
-                shared_state = SharedTaskState()
 
             BlueprintClass = get_blueprint_from_type(self.task_type)
+            if shared_state is None:
+                shared_state = BlueprintClass.SharedStateClass()
             if not cache:
                 return BlueprintClass(self, args, shared_state)
             self.__blueprint = BlueprintClass(self, args, shared_state)

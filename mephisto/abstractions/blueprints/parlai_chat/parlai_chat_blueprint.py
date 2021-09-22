@@ -6,9 +6,12 @@
 
 from mephisto.abstractions.blueprint import (
     Blueprint,
-    OnboardingRequired,
     BlueprintArgs,
     SharedTaskState,
+)
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
+    OnboardingRequired,
+    OnboardingSharedState,
 )
 from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
@@ -55,7 +58,7 @@ MISSING_SOMETHING_TEXT = (
 
 
 @dataclass
-class SharedParlAITaskState(SharedTaskState):
+class SharedParlAITaskState(SharedTaskState, OnboardingSharedState):
     frontend_task_opts: Dict[str, Any] = field(default_factory=dict)
     world_opt: Dict[str, Any] = field(default_factory=dict)
     onboarding_world_opt: Dict[str, Any] = field(default_factory=dict)
@@ -144,7 +147,10 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedParlAITaskState",
     ):
         super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
@@ -210,7 +216,7 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
 
     @classmethod
     def assert_task_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
+        cls, args: "DictConfig", shared_state: "SharedParlAITaskState"
     ) -> None:
         """Ensure that arguments are properly configured to launch this task"""
         # Find world module

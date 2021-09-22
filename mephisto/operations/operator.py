@@ -24,7 +24,10 @@ from typing import Dict, Optional, List, Any, Tuple, NamedTuple, Type, TYPE_CHEC
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.requester import Requester
-from mephisto.abstractions.blueprint import OnboardingRequired, SharedTaskState
+from mephisto.abstractions.blueprint import SharedTaskState
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
+    OnboardingRequired,
+)
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.operations.task_launcher import TaskLauncher

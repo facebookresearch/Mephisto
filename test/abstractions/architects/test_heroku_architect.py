@@ -21,7 +21,7 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 
 from omegaconf import OmegaConf
 from mephisto.operations.hydra_config import MephistoConfig
-from mephisto.abstractions.blueprint import SharedTaskState
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockSharedState
 
 # TODO(#104) these tests should be marked as nightly's rather than on every run?
 # Maybe with some kind of LONG TEST flag? Investigate
@@ -42,7 +42,7 @@ class HerokuArchitectTests(ArchitectTests):
         arch_args = HerokuArchitectArgs(heroku_team=None, use_hobby=False)
         args = OmegaConf.structured(MephistoConfig(architect=arch_args))
         self.curr_architect = self.ArchitectClass(
-            self.db, args, SharedTaskState(), self.task_run, self.build_dir
+            self.db, args, MockSharedState(), self.task_run, self.build_dir
         )
         return self.curr_architect
 

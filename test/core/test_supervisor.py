@@ -24,7 +24,6 @@ from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.task_run import TaskRun
 from mephisto.operations.supervisor import Supervisor, Job
-from mephisto.abstractions.blueprint import SharedTaskState
 
 
 from mephisto.abstractions.architects.mock_architect import (
@@ -33,12 +32,15 @@ from mephisto.abstractions.architects.mock_architect import (
 )
 from mephisto.operations.hydra_config import MephistoConfig
 from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
-from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.abstractions.blueprints.mock.mock_blueprint import (
+    MockBlueprintArgs,
+    MockSharedState,
+)
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
 
-EMPTY_STATE = SharedTaskState()
+EMPTY_STATE = MockSharedState()
 
 
 class BaseTestSupervisor:

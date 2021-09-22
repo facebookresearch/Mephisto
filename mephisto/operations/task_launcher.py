@@ -35,7 +35,7 @@ logger = get_logger(name=__name__)
 
 UNIT_GENERATOR_WAIT_SECONDS = 10
 ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
-VALIDATOR_UNIT_INDEX = -1
+SCREENING_UNIT_INDEX = -1
 
 
 class GeneratorType(enum.Enum):
@@ -206,11 +206,11 @@ class TaskLauncher:
         )
         self.units_thread.start()
 
-    def launch_validator_unit(self, unit_data: Dict[str, Any]) -> "Unit":
-        """Launch a validator unit, which should never return to the pool"""
+    def launch_screening_unit(self, unit_data: Dict[str, Any]) -> "Unit":
+        """Launch a screening unit, which should never return to the pool"""
         assert (
             self.launch_url is not None
-        ), "Cannot launch a validator unit before launching others"
+        ), "Cannot launch a screening unit before launching others"
         task_run = self.task_run
         task_config = task_run.get_task_config()
         assignment_id = self.db.new_assignment(
@@ -230,7 +230,7 @@ class TaskLauncher:
             task_run.db_id,
             task_run.requester_id,
             assignment_id,
-            VALIDATOR_UNIT_INDEX,
+            SCREENING_UNIT_INDEX,
             task_config.task_reward,
             task_run.provider_type,
             task_run.task_type,
