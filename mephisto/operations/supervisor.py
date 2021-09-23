@@ -6,7 +6,6 @@
 
 
 import threading
-from queue import PriorityQueue, Empty
 import time
 from mephisto.data_model.packet import (
     Packet,
@@ -41,9 +40,8 @@ from mephisto.operations.task_launcher import (
     SCREENING_UNIT_INDEX,
     GOLD_UNIT_INDEX,
 )
+from mephisto.operations.datatypes import LiveTaskRun, ChannelInfo, AgentInfo
 from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
-
-from dataclasses import dataclass
 
 from typing import Dict, Set, Optional, List, Any, Union, TYPE_CHECKING
 
@@ -53,8 +51,6 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import TaskRunner
-    from mephisto.abstractions.crowd_provider import CrowdProvider
-    from mephisto.abstractions.architect import Architect
 
 from mephisto.operations.logger_core import get_logger
 
@@ -66,8 +62,9 @@ logger = get_logger(name=__name__)
 # groups of workers or worker/agent compatibility.
 
 # Mostly, the supervisor oversees the communications
-# between jobs and workers over the channels
+# between LiveTaskRuns and workers over the channels
 
+# IO Specific maps and constants
 STATUS_TO_TEXT_MAP = {
     AgentState.STATUS_EXPIRED: "This task is no longer available to be completed. "
     "Please return it and try a different task",
@@ -78,63 +75,38 @@ STATUS_TO_TEXT_MAP = {
     AgentState.STATUS_PARTNER_DISCONNECT: "One of your partners has disconnected while working on this task. We won't penalize "
     "you for them leaving, so please submit this task as is.",
 }
-
 SYSTEM_CHANNEL_ID = "mephisto"  # TODO pull from somewhere
 SERVER_CHANNEL_ID = "mephisto_server"
 START_DEATH_TIME = 10
-
-# State storage
-@dataclass
-class Job:
-    architect: "Architect"
-    task_runner: "TaskRunner"
-    provider: "CrowdProvider"
-    qualifications: List[Dict[str, Any]]
-    registered_channel_ids: List[str]
-    task_launcher: Optional["TaskLauncher"]
-
-
-@dataclass
-class ChannelInfo:
-    channel_id: str
-    job: "Job"
-    channel: Channel
-
-
-@dataclass
-class AgentInfo:
-    agent: Union["Agent", "OnboardingAgent"]
-    used_channel_id: str
-    assignment_thread: Optional[threading.Thread] = None
 
 
 class Supervisor:
     def __init__(self, db: "MephistoDB"):
         self.db = db
-        # Tracked state
+        # Tracked worker state
         self.agents: Dict[str, AgentInfo] = {}
         self.agents_by_registration_id: Dict[str, AgentInfo] = {}
-        self.channels: Dict[str, ChannelInfo] = {}
-        # Map from onboarding id to agent request packet
-        self.onboarding_packets: Dict[str, Packet] = {}
-
         # Agent status handling
         self.last_status_check = time.time()
 
+        # Tracked IO state
+        self.channels: Dict[str, ChannelInfo] = {}
+        # Map from onboarding id to agent request packet
+        self.onboarding_packets: Dict[str, Packet] = {}
         # Message handling
         self.message_queue: List[Packet] = []
         self.sending_thread: Optional[threading.Thread] = None
 
-    def _on_channel_open(self, channel_id: str):
+    def _on_channel_open(self, channel_id: str) -> None:
         """Handler for what to do when a socket opens, we send an alive"""
         channel_info = self.channels[channel_id]
         self._send_alive(channel_info)
 
-    def _on_catastrophic_disconnect(self, channel_id):
+    def _on_catastrophic_disconnect(self, channel_id: str) -> None:
         # TODO(#102) Catastrophic disconnect needs to trigger cleanup
         logger.error(f"Channel {channel_id} called on_catastrophic_disconnect")
 
-    def _on_channel_message(self, channel_id: str, packet: Packet):
+    def _on_channel_message(self, channel_id: str, packet: Packet) -> None:
         """Incoming message handler defers to the internal handler"""
         try:
             channel_info = self.channels[channel_id]
@@ -147,39 +119,27 @@ class Supervisor:
             )
             raise
 
-    def register_job(
-        self,
-        architect: "Architect",
-        task_runner: "TaskRunner",
-        provider: "CrowdProvider",
-        qualifications: Optional[List[Dict[str, Any]]] = None,
-    ):
-        if qualifications is None:
-            qualifications = []
-        task_run = task_runner.task_run
-        channels = architect.get_channels(
+    def register_run(self, live_run: "LiveTaskRun") -> "LiveTaskRun":
+        """Register the channels for a LiveTaskRun with this supervisor"""
+        task_run = live_run.task_run
+        channels = live_run.architect.get_channels(
             self._on_channel_open,
             self._on_catastrophic_disconnect,
             self._on_channel_message,
         )
-        job = Job(
-            architect=architect,
-            task_runner=task_runner,
-            provider=provider,
-            qualifications=qualifications,
-            registered_channel_ids=[],
-            task_launcher=None,
-        )
         for channel in channels:
-            channel_id = self.register_channel(channel, job)
-            job.registered_channel_ids.append(channel_id)
-        return job
+            channel_id = self.register_channel(channel, live_run)
+            live_run.channel_ids.append(channel_id)
 
-    def register_channel(self, channel: Channel, job: "Job") -> str:
-        """Register the channel to the specific job"""
+        return live_run
+
+    def register_channel(self, channel: Channel, live_run: "LiveTaskRun") -> str:
+        """Register the channel to the specific live run"""
         channel_id = channel.channel_id
 
-        channel_info = ChannelInfo(channel_id=channel_id, channel=channel, job=job)
+        channel_info = ChannelInfo(
+            channel_id=channel_id, channel=channel, live_run=live_run
+        )
         self.channels[channel_id] = channel_info
 
         channel.open()
@@ -202,30 +162,32 @@ class Supervisor:
             time.sleep(0.3)
         return channel_id
 
-    def close_channel(self, channel_id: str):
+    def close_channel(self, channel_id: str) -> None:
         """Close the given channel by id"""
         self.channels[channel_id].channel.close()
         del self.channels[channel_id]
 
-    def shutdown_job(self, job: Job):
-        """Close any channels related to a job"""
-        job_channels = job.registered_channel_ids
-        for channel_id in job_channels:
+    def shutdown_run_channels(self, live_run: LiveTaskRun) -> None:
+        """Close any channels related to a LiveTaskRun"""
+        run_channels = live_run.channel_ids
+        for channel_id in run_channels:
             self.close_channel(channel_id)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Close all of the channels, join threads"""
         # Prepopulate agents and channels to close, as
         # these may change during iteration
+        # Closing IO handling state
         channels_to_close = list(self.channels.keys())
         logger.debug(f"Closing channels {channels_to_close}")
         for channel_id in channels_to_close:
             channel_info = self.channels[channel_id]
-            channel_info.job.task_runner.shutdown()
+            channel_info.live_run.task_runner.shutdown()
             self.close_channel(channel_id)
         logger.debug(f"Joining send thread")
         if self.sending_thread is not None:
             self.sending_thread.join()
+        # Closing unit executions
         logger.debug(f"Joining agents {self.agents}")
         agents_to_close = list(self.agents.values())
         for agent_info in agents_to_close:
@@ -253,7 +215,7 @@ class Supervisor:
             data_files = packet.data.get("files")
             if data_files is not None:
                 save_dir = agent.get_data_dir()
-                architect = channel_info.job.architect
+                architect = channel_info.live_run.architect
                 for f_obj in data_files:
                     architect.download_file(f_obj["filename"], save_dir)
 
@@ -263,7 +225,7 @@ class Supervisor:
         agent.pending_actions.append(packet)
         agent.has_action.set()
 
-    def _on_submit_onboarding(self, packet: Packet, channel_info: ChannelInfo):
+    def _on_submit_onboarding(self, packet: Packet, channel_info: ChannelInfo) -> None:
         """Handle the submission of onboarding data"""
         onboarding_id = packet.sender_id
         if onboarding_id not in self.agents:
@@ -286,10 +248,10 @@ class Supervisor:
         agent.pending_actions.append(packet)
         agent.has_action.set()
 
-    def _register_worker(self, packet: Packet, channel_info: ChannelInfo):
+    def _register_worker(self, packet: Packet, channel_info: ChannelInfo) -> None:
         """Process a worker registration packet to register a worker"""
         crowd_data = packet.data["provider_data"]
-        crowd_provider = channel_info.job.provider
+        crowd_provider = channel_info.live_run.provider
         worker_name = crowd_data["worker_name"]
         workers = self.db.find_workers(worker_name=worker_name)
         if len(workers) == 0:
@@ -302,7 +264,7 @@ class Supervisor:
         else:
             worker = workers[0]
 
-        if not worker_is_qualified(worker, channel_info.job.qualifications):
+        if not worker_is_qualified(worker, channel_info.live_run.qualifications):
             self.message_queue.append(
                 Packet(
                     packet_type=PACKET_TYPE_PROVIDER_DETAILS,
@@ -326,7 +288,7 @@ class Supervisor:
 
     def _launch_and_run_onboarding(
         self, agent_info: "AgentInfo", task_runner: "TaskRunner"
-    ):
+    ) -> None:
         """Launch a thread to supervise the completion of onboarding for a task"""
         tracked_agent = agent_info.agent
         onboarding_id = tracked_agent.get_agent_id()
@@ -361,7 +323,7 @@ class Supervisor:
         assignment: "Assignment",
         agent_infos: List["AgentInfo"],
         task_runner: "TaskRunner",
-    ):
+    ) -> None:
         """Launch a thread to supervise the completion of an assignment"""
         try:
             tracked_agents: List["Agent"] = []
@@ -393,7 +355,7 @@ class Supervisor:
 
     def _launch_and_run_unit(
         self, unit: "Unit", agent_info: "AgentInfo", task_runner: "TaskRunner"
-    ):
+    ) -> None:
         """Launch a thread to supervise the completion of an assignment"""
         agent = agent_info.agent
         try:
@@ -430,8 +392,8 @@ class Supervisor:
         """Handle creating an agent for the specific worker to register an agent"""
 
         crowd_data = packet.data["provider_data"]
-        task_run = channel_info.job.task_runner.task_run
-        crowd_provider = channel_info.job.provider
+        task_run = channel_info.live_run.task_runner.task_run
+        crowd_provider = channel_info.live_run.provider
         worker_id = crowd_data["worker_id"]
         worker = Worker.get(self.db, worker_id)
 
@@ -475,10 +437,13 @@ class Supervisor:
             ] = agent_info
 
             # Launch individual tasks
-            if unit.unit_index < 0 or not channel_info.job.task_runner.is_concurrent:
+            if (
+                unit.unit_index < 0
+                or not channel_info.live_run.task_runner.is_concurrent
+            ):
                 unit_thread = threading.Thread(
                     target=self._launch_and_run_unit,
-                    args=(unit, agent_info, channel_info.job.task_runner),
+                    args=(unit, agent_info, channel_info.live_run.task_runner),
                     name=f"Unit-thread-{unit.db_id}",
                 )
                 agent_info.assignment_thread = unit_thread
@@ -496,7 +461,7 @@ class Supervisor:
 
                 assign_thread = threading.Thread(
                     target=self._launch_and_run_assignment,
-                    args=(assignment, agent_infos, channel_info.job.task_runner),
+                    args=(assignment, agent_infos, channel_info.live_run.task_runner),
                     name=f"Assignment-thread-{assignment.db_id}",
                 )
 
@@ -524,9 +489,8 @@ class Supervisor:
         current_status = onboarding_agent.get_status()
         channel_id = onboarding_agent_info.used_channel_id
         channel_info = self.channels[channel_id]
-        task_runner = channel_info.job.task_runner
-        task_run = task_runner.task_run
-        blueprint = task_run.get_blueprint(args=task_runner.args)
+        live_run = channel_info.live_run
+        blueprint = live_run.blueprint
         worker = onboarding_agent.get_worker()
 
         assert (
@@ -550,10 +514,8 @@ class Supervisor:
             )
 
         # get the list of tentatively valid units
-        units = task_run.get_valid_units_for_worker(worker)
-        usable_units = channel_info.job.task_runner.filter_units_for_worker(
-            units, worker
-        )
+        units = live_run.task_run.get_valid_units_for_worker(worker)
+        usable_units = live_run.task_runner.filter_units_for_worker(units, worker)
 
         if not worker_passed:
             # TODO(WISH) it may be worth investigating launching a dummy task for these
@@ -596,8 +558,8 @@ class Supervisor:
             return
 
         # Process a new agent
-        task_runner = channel_info.job.task_runner
-        task_run = task_runner.task_run
+        live_run = channel_info.live_run
+        task_run = live_run.task_run
         worker_id = crowd_data["worker_id"]
         worker = Worker.get(self.db, worker_id)
 
@@ -620,7 +582,7 @@ class Supervisor:
         # If there's onboarding, see if this worker has already been disqualified
         worker_id = crowd_data["worker_id"]
         worker = Worker.get(self.db, worker_id)
-        blueprint = task_run.get_blueprint(args=task_runner.args)
+        blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
                 self.message_queue.append(
@@ -672,7 +634,7 @@ class Supervisor:
                 # Create an onboarding thread
                 onboard_thread = threading.Thread(
                     target=self._launch_and_run_onboarding,
-                    args=(agent_info, channel_info.job.task_runner),
+                    args=(agent_info, live_run.task_runner),
                     name=f"Onboard-thread-{onboard_id}",
                 )
 
@@ -687,10 +649,10 @@ class Supervisor:
             ):
                 screening_data = blueprint.get_screening_unit_data()
                 if screening_data is not None:
-                    launcher = channel_info.job.task_launcher
+                    launcher = live_run.task_launcher
                     assert (
                         launcher is not None
-                    ), "Job must have launcher to use screening tasks"
+                    ), "LiveTaskRun must have launcher to use screening tasks"
                     units = [launcher.launch_screening_unit(screening_data)]
                 else:
                     self.message_queue.append(
@@ -712,7 +674,7 @@ class Supervisor:
             if blueprint.should_produce_gold_for_worker(worker):
                 gold_data = blueprint.get_gold_unit_data_for_worker(worker)
                 if gold_data is not None:
-                    launcher = channel_info.job.task_launcher
+                    launcher = channel_info.live_run.task_launcher
                     units = [launcher.launch_gold_unit(gold_data)]
                 else:
                     self.message_queue.append(
@@ -734,7 +696,7 @@ class Supervisor:
 
     def _get_init_data(self, packet, channel_info: ChannelInfo):
         """Get the initialization data for the assigned agent's task"""
-        task_runner = channel_info.job.task_runner
+        task_runner = channel_info.live_run.task_runner
         agent_id = packet.data["provider_data"]["agent_id"]
         agent_info = self.agents[agent_id]
         assert isinstance(
