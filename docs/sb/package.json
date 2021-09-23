@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@annotated/bbox": "workspace:packages/annotated/bbox",
     "@annotated/shell": "workspace:packages/annotated/shell",
     "@blueprintjs/core": "^3.50.1",
     "@testing-library/jest-dom": "^5.11.4",
