@@ -6,7 +6,8 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist='{react,react-dom}'",
-    "sb": "yarn workspace sb storybook"
+    "sb": "yarn workspace sb storybook",
+    "build-all": "yarn workspaces foreach -ptA run build"
   },
   "workspaces": [
     "packages/annotated/*",
