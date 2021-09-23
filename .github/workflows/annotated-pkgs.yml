@@ -37,4 +37,4 @@ jobs:
         run: yarn install
 
       - name: Test that storybook compiles
-        run: yarn workspace sb build
+        run: yarn workspace sb build-storybook
