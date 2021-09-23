@@ -29,7 +29,7 @@ The Operator is responsible for actually coordinating launching tasks. This is m
 
 One important extra argument is `SharedTaskState.qualifications`, which allows configuring a task with requirements for workers to be eligibible to work on the task. Functionality for this can be seen in `data_model.qualifications`, with examples in how `operator` handles the `block_qualification`.
 
-The lifecycle of an operator is to launch as many Jobs as desired using the `validate_and_run_config` function, and then to watch over their progress using the `wait_for_runs_then_shutdown` function. These methods cover the full requirements for launching and monitoring a job.
+The lifecycle of an operator is to launch as many LiveTaskRuns as desired using the `validate_and_run_config` function, and then to watch over their progress using the `wait_for_runs_then_shutdown` function. These methods cover the full requirements for launching and monitoring a job.
 
 If `wait_for_runs_then_shutdown` is not used, it's always important to call the `shutdown` methods whenever an operator has been created. While tasks are underway, a user can use `get_running_task_runs` to see the status of things that are currently running. Once there are no running task runs, the `Operator` can be told to shut down.
 
@@ -37,8 +37,8 @@ If `wait_for_runs_then_shutdown` is not used, it's always important to call the 
 ## `Supervisor`
 The supervisor is responsible for interfacing between human agents and the rest of the mephisto system. In short, it is the layer that abstracts humans and human work into `Worker`s and `Agent`s that take actions. To that end, it has to set up a socket to connect to the task server, poll status on any agents currently working on tasks, and process incoming agent actions over the socket to put them into the `Agent` so that a task can use the data. It also handles the initialization of an `Agent` from a `Worker`, which is the operation that occurs when a human connecting to the service is accepting a task.
 
-At a high level, the supervisor manages establishing the abstraction by keeping track of `Job`s (a triple of `Architect`, `Blueprint`, and `CrowdProvider`). The supervisor uses them for the following:
-- The `Architect` tells the `Supervisor` where the server(s) that agents are communicating with is(/are) running. In `register_job`, a socket is opened for each of these servers.
+At a high level, the supervisor manages establishing the abstraction by keeping track of `LiveTaskRuns`s (a triple of `Architect`, `Blueprint`, and `CrowdProvider`). The supervisor uses them for the following:
+- The `Architect` tells the `Supervisor` where the server(s) that agents are communicating with is(/are) running. In `register_run`, a socket is opened for each of these servers.
 - The `Blueprint` contains details about the relevant task run, and is used for properly registering a new `Agent` the correct `Unit`. For this, in `_register_agent` it gets all `Unit`s that a worker is eligible for, reserves one, and then handles creating a new `Agent` out of the given `Worker`-`Unit` pair.
 - The `CrowdProvider` is also used during the registration process. In the first part it ensures that upon a first connect by a new person, a corresponding `Worker` is created to keep records for that worker (`_register_worker`). Later it is used during `_register_agent` to ensure that the `Agent` class used is associated with the correct `CrowdProvider` and has its relevant abstractions.
 

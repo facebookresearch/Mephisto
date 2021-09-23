@@ -5,22 +5,27 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import unittest
-import shutil
 import json
 import os
-import tempfile
 import time
 import threading
-import shlex
 import traceback
 import signal
 
-from argparse import ArgumentParser
+from mephisto.operations.datatypes import LiveTaskRun
+from mephisto.operations.supervisor import Supervisor
 
-from mephisto.operations.supervisor import Supervisor, Job
-
-from typing import Dict, Optional, List, Any, Tuple, NamedTuple, Type, TYPE_CHECKING
+from typing import (
+    Dict,
+    Optional,
+    List,
+    Any,
+    Tuple,
+    ClassVar,
+    NamedTuple,
+    Type,
+    TYPE_CHECKING,
+)
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.requester import Requester
@@ -54,14 +59,6 @@ if TYPE_CHECKING:
 RUN_STATUS_POLL_TIME = 10
 
 
-class TrackedRun(NamedTuple):
-    task_run: TaskRun
-    architect: "Architect"
-    task_runner: "TaskRunner"
-    task_launcher: TaskLauncher
-    job: Job
-
-
 class Operator:
     """
     Acting as the controller behind the curtain, the Operator class
@@ -77,65 +74,22 @@ class Operator:
     def __init__(self, db: "MephistoDB"):
         self.db = db
         self.supervisor = Supervisor(db)
-        self._task_runs_tracked: Dict[str, TrackedRun] = {}
+        self._task_runs_tracked: Dict[str, LiveTaskRun] = {}
         self.is_shutdown = False
         self._run_tracker_thread = threading.Thread(
             target=self._track_and_kill_runs, name="Operator-tracking-thread"
         )
         self._run_tracker_thread.start()
 
-    @staticmethod
-    def _get_baseline_argparser() -> ArgumentParser:
-        """Return a parser for the baseline requirements to launch a job"""
-        parser = ArgumentParser()
-        parser.add_argument(
-            "--blueprint-type",
-            dest="blueprint_type",
-            help="Name of the blueprint to launch",
-            required=True,
-        )
-        parser.add_argument(
-            "--architect-type",
-            dest="architect_type",
-            help="Name of the architect to launch with",
-            required=True,
-        )
-        parser.add_argument(
-            "--requester-name",
-            dest="requester_name",
-            help="Identifier for the requester to launch as",
-            required=True,
-        )
-        return parser
-
     def get_running_task_runs(self):
         """Return the currently running task runs and their handlers"""
         return self._task_runs_tracked.copy()
 
-    def parse_and_launch_run(
-        self,
-        arg_list: Optional[List[str]] = None,
-        extra_args: Optional[Dict[str, Any]] = None,
-    ) -> Optional[str]:
+    def _get_requester_and_provider_from_config(self, run_config: DictConfig):
         """
-        Wrapper around parse and launch run that prints errors on failure, rather
-        than throwing. Generally for use in scripts.
+        Retrieve the desired provider from the config, raising an error
+        if there's a mismatch between the found provider and desired requester
         """
-        raise Exception(
-            "Operator.parse_and_launch_run has been deprecated in favor "
-            "of using Hydra for argument configuration. See the docs at "
-            "https://github.com/facebookresearch/Mephisto/blob/main/docs/hydra_migration.md "
-            "in order to upgrade."
-        )
-
-    def validate_and_run_config_or_die(
-        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
-    ) -> str:
-        """
-        Parse the given arguments and launch a job.
-        """
-        set_mephisto_log_level(level=run_config.get("log_level", "info"))
-
         # First try to find the requester:
         requester_name = run_config.provider.requester_name
         requesters = self.db.find_requesters(requester_name=requester_name)
@@ -153,6 +107,89 @@ class Operator:
             f"Found requester for name {requester_name} is not "
             f"of the specified type {run_config.provider._provider_type}, "
             f"but is instead {provider_type}."
+        )
+        return requester, provider_type
+
+    def _create_live_task_run(
+        self,
+        run_config: DictConfig,
+        shared_state: SharedTaskState,
+        task_run: TaskRun,
+        architect_class: ClassVar["Architect"],
+        blueprint_class: ClassVar["Blueprint"],
+        provider_class: ClassVar["CrowdProvider"],
+    ) -> LiveTaskRun:
+        """
+        Initialize all of the members of a live task run object
+        """
+        # Register the blueprint with args to the task run to ensure cached
+        blueprint = task_run.get_blueprint(args=run_config, shared_state=shared_state)
+
+        # prepare the architect
+        build_dir = os.path.join(task_run.get_run_dir(), "build")
+        os.makedirs(build_dir, exist_ok=True)
+        architect = architect_class(
+            self.db, run_config, shared_state, task_run, build_dir
+        )
+        # Create the backend runner
+        task_runner = blueprint_class.TaskRunnerClass(
+            task_run, run_config, shared_state
+        )
+
+        # Small hack for auto appending block qualification
+        # TODO we can use blueprint.mro() to discover BlueprintMixins and extract from there
+        existing_qualifications = shared_state.qualifications
+        if run_config.blueprint.get("block_qualification", None) is not None:
+            existing_qualifications.append(
+                make_qualification_dict(
+                    run_config.blueprint.block_qualification, QUAL_NOT_EXIST, None
+                )
+            )
+        if run_config.blueprint.get("onboarding_qualification", None) is not None:
+            existing_qualifications.append(
+                make_qualification_dict(
+                    OnboardingRequired.get_failed_qual(
+                        run_config.blueprint.onboarding_qualification
+                    ),
+                    QUAL_NOT_EXIST,
+                    None,
+                )
+            )
+        shared_state.qualifications = existing_qualifications
+
+        # Create provider
+        provider = provider_class(self.db)
+
+        # Create the launcher
+        initialization_data_iterable = blueprint.get_initialization_data()
+        launcher = TaskLauncher(
+            self.db,
+            task_run,
+            initialization_data_iterable,
+            max_num_concurrent_units=run_config.task.max_num_concurrent_units,
+        )
+
+        return LiveTaskRun(
+            task_run=task_run,
+            architect=architect,
+            blueprint=blueprint,
+            provider=provider,
+            qualifications=shared_state.qualifications,
+            task_runner=task_runner,
+            task_launcher=launcher,
+            channel_ids=[],
+        )
+
+    def validate_and_run_config_or_die(
+        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
+    ) -> str:
+        """
+        Parse the given arguments and launch a job.
+        """
+        set_mephisto_log_level(level=run_config.get("log_level", "info"))
+
+        requester, provider_type = self._get_requester_and_provider_from_config(
+            run_config
         )
 
         # Next get the abstraction classes, and run validation
@@ -190,7 +227,7 @@ class Operator:
         # Create a new task run
         new_run_id = self.db.new_task_run(
             task_id,
-            requester_id,
+            requester.db_id,
             json.dumps(OmegaConf.to_yaml(run_config, resolve=True)),
             provider_type,
             blueprint_type,
@@ -198,67 +235,32 @@ class Operator:
         )
         task_run = TaskRun.get(self.db, new_run_id)
 
+        live_run = self._create_live_task_run(
+            run_config,
+            shared_state,
+            task_run,
+            ArchitectClass,
+            BlueprintClass,
+            CrowdProviderClass,
+        )
+
         try:
-            # Register the blueprint with args to the task run,
-            # ensure cached
-            blueprint = task_run.get_blueprint(
-                args=run_config, shared_state=shared_state
-            )
-
             # If anything fails after here, we have to cleanup the architect
-            build_dir = os.path.join(task_run.get_run_dir(), "build")
-            os.makedirs(build_dir, exist_ok=True)
-            architect = ArchitectClass(
-                self.db, run_config, shared_state, task_run, build_dir
-            )
-
             # Setup and deploy the server
-            built_dir = architect.prepare()
-            task_url = architect.deploy()
+            built_dir = live_run.architect.prepare()
+            task_url = live_run.architect.deploy()
 
             # TODO(#102) maybe the cleanup (destruction of the server configuration?) should only
             # happen after everything has already been reviewed, this way it's possible to
             # retrieve the exact build directory to review a task for real
-            architect.cleanup()
-
-            # Create the backend runner
-            task_runner = BlueprintClass.TaskRunnerClass(
-                task_run, run_config, shared_state
-            )
-
-            # Small hack for auto appending block qualification
-            # TODO we can use blueprint.mro() to discover BlueprintMixins and extract from there
-            existing_qualifications = shared_state.qualifications
-            if run_config.blueprint.get("block_qualification", None) is not None:
-                existing_qualifications.append(
-                    make_qualification_dict(
-                        run_config.blueprint.block_qualification, QUAL_NOT_EXIST, None
-                    )
-                )
-            if run_config.blueprint.get("onboarding_qualification", None) is not None:
-                existing_qualifications.append(
-                    make_qualification_dict(
-                        OnboardingRequired.get_failed_qual(
-                            run_config.blueprint.onboarding_qualification
-                        ),
-                        QUAL_NOT_EXIST,
-                        None,
-                    )
-                )
-            shared_state.qualifications = existing_qualifications
+            live_run.architect.cleanup()
 
             # Register the task with the provider
-            provider = CrowdProviderClass(self.db)
-            provider.setup_resources_for_task_run(
+            live_run.provider.setup_resources_for_task_run(
                 task_run, run_config, shared_state, task_url
             )
 
-            initialization_data_iterable = blueprint.get_initialization_data()
-
-            # Link the job together
-            job = self.supervisor.register_job(
-                architect, task_runner, provider, existing_qualifications
-            )
+            self.supervisor.register_run(live_run)
             if self.supervisor.sending_thread is None:
                 self.supervisor.launch_sending_thread()
         except (KeyboardInterrupt, Exception) as e:
@@ -274,23 +276,11 @@ class Operator:
                 )
             raise e
 
-        launcher = TaskLauncher(
-            self.db,
-            task_run,
-            initialization_data_iterable,
-            max_num_concurrent_units=run_config.task.max_num_concurrent_units,
-        )
-        launcher.create_assignments()
-        launcher.launch_units(task_url)
-        job.task_launcher = launcher
+        live_run.task_launcher.create_assignments()
+        live_run.task_launcher.launch_units(task_url)
 
-        self._task_runs_tracked[task_run.db_id] = TrackedRun(
-            task_run=task_run,
-            task_launcher=launcher,
-            task_runner=task_runner,
-            architect=architect,
-            job=job,
-        )
+        # TODO update references to this
+        self._task_runs_tracked[task_run.db_id] = live_run
         task_run.update_completion_progress(status=False)
 
         return task_run.db_id
@@ -314,7 +304,7 @@ class Operator:
                 if not task_run.get_is_completed():
                     continue
                 else:
-                    self.supervisor.shutdown_job(tracked_run.job)
+                    self.supervisor.shutdown_run_channels(tracked_run)
                     tracked_run.architect.shutdown()
                     tracked_run.task_launcher.shutdown()
                     del self._task_runs_tracked[task_run.db_id]
@@ -432,22 +422,6 @@ class Operator:
         except (KeyboardInterrupt, Exception) as e:
             logger.error("Ran into error while launching run: ", exc_info=True)
             return None
-
-    def parse_and_launch_run_wrapper(
-        self,
-        arg_list: Optional[List[str]] = None,
-        extra_args: Optional[Dict[str, Any]] = None,
-    ) -> Optional[str]:
-        """
-        Wrapper around parse and launch run that prints errors on failure, rather
-        than throwing. Generally for use in scripts.
-        """
-        raise Exception(
-            "Operator.parse_and_launch_run_wrapper has been deprecated in favor "
-            "of using Hydra for argument configuration. See the docs at "
-            "https://github.com/facebookresearch/Mephisto/blob/main/docs/hydra_migration.md "
-            "in order to upgrade."
-        )
 
     def print_run_details(self):
         """Print details about running tasks"""
