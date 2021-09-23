@@ -1,10 +1,10 @@
 import React from "react";
 import Wrapper from "./Wrapper";
 
-import { AppShell, Layer, dataPathBuilderFor } from "@annotated/shell";
+import { AppShell, Layer } from "@annotated/shell";
 import { MovableRect } from "@annotated/bbox";
+import { VideoPlayer } from "@annotated/video-player";
 import { useStore } from "global-context-store";
-import { MenuItem } from "@blueprintjs/core";
 
 const VIDEO_URL =
   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
@@ -74,87 +74,91 @@ export const Standalone = () => {
   );
 };
 
-// export const SynchedWithVideoPlayer = () => {
-//   const store = useStore();
-//   const storeRef = React.useRef(store);
-//   React.useEffect(() => {
-//     storeRef.current = store;
-//   }, [store]);
+export const SynchedWithVideoPlayer = () => {
+  const store = useStore();
+  const storeRef = React.useRef(store);
+  React.useEffect(() => {
+    storeRef.current = store;
+  }, [store]);
 
-//   return (
-//     <AppShell
-//       showDebugPane={false}
-//       layers={() => (
-//         <>
-//           <Layer
-//             alwaysOn
-//             displayName="Video"
-//             icon="video"
-//             component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
-//           />
-//           <Layer
-//             alwaysOn
-//             displayName="BBox"
-//             icon="widget"
-//             component={({ id }) => (
-//               <MovableRect
-//                 id={id}
-//                 defaultBox={[10, 10, 100, 100]}
-//                 getFrame={() => {
-//                   const ps =
-//                     storeRef.current.state?.layers?.Video.data?.playedSeconds;
-//                   return ps;
-//                 }}
-//               />
-//             )}
-//           />
-//         </>
-//       )}
-//     />
-//   );
-// };
+  return (
+    <AppShell
+      showDebugPane={false}
+      layers={() => (
+        <>
+          <Layer
+            alwaysOn
+            displayName="Video"
+            icon="video"
+            component={({ id }) => (
+              <VideoPlayer id={id} src={VIDEO_URL} scale={0.5} />
+            )}
+          />
+          <Layer
+            alwaysOn
+            displayName="BBox"
+            icon="widget"
+            component={({ id }) => (
+              <MovableRect
+                id={id}
+                defaultBox={[10, 10, 100, 100]}
+                getFrame={() => {
+                  const ps =
+                    storeRef.current.state?.layers?.Video.data?.playedSeconds;
+                  return ps;
+                }}
+              />
+            )}
+          />
+        </>
+      )}
+    />
+  );
+};
 
-// export const WithFrameLabel = () => {
-//   const store = useStore();
-//   const storeRef = React.useRef(store);
-//   React.useEffect(() => {
-//     storeRef.current = store;
-//   }, [store]);
+export const WithFrameLabel = () => {
+  const store = useStore();
+  const storeRef = React.useRef(store);
+  React.useEffect(() => {
+    storeRef.current = store;
+  }, [store]);
 
-//   return (
-//     <AppShell
-//       showDebugPane={false}
-//       layers={() => (
-//         <>
-//           <Layer
-//             alwaysOn
-//             displayName="Video"
-//             icon="video"
-//             component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
-//           />
-//           <Layer
-//             alwaysOn
-//             displayName="BBox"
-//             icon="widget"
-//             component={({ id }) => (
-//               <MovableRect
-//                 id={id}
-//                 defaultBox={[10, 10, 100, 100]}
-//                 getFrame={() => {
-//                   const ps =
-//                     storeRef.current.state?.layers?.Video.data?.playedSeconds;
-//                   return ps;
-//                 }}
-//                 getLabel={() =>
-//                   storeRef.current.state?.layers?.Video.data?.playedSeconds?.toFixed(
-//                     2
-//                   )
-//                 }
-//               />
-//             )}
-//           />
-//         </>
-//       )}
-//     />
-//   );
-// };
+  return (
+    <AppShell
+      showDebugPane={false}
+      layers={() => (
+        <>
+          <Layer
+            alwaysOn
+            displayName="Video"
+            icon="video"
+            component={({ id }) => (
+              <VideoPlayer id={id} src={VIDEO_URL} scale={0.5} />
+            )}
+          />
+          <Layer
+            alwaysOn
+            displayName="BBox"
+            icon="widget"
+            component={({ id }) => (
+              <MovableRect
+                id={id}
+                defaultBox={[10, 10, 100, 100]}
+                getFrame={() => {
+                  const ps =
+                    storeRef.current.state?.layers?.Video.data?.playedSeconds;
+                  return ps;
+                }}
+                getLabel={() =>
+                  storeRef.current.state?.layers?.Video.data?.playedSeconds?.toFixed(
+                    2
+                  )
+                }
+              />
+            )}
+          />
+        </>
+      )}
+    />
+  );
+};

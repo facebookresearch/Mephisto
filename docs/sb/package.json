@@ -5,6 +5,7 @@
   "dependencies": {
     "@annotated/bbox": "workspace:packages/annotated/bbox",
     "@annotated/shell": "workspace:packages/annotated/shell",
+    "@annotated/video-player": "workspace:packages/annotated/video-player",
     "@blueprintjs/core": "^3.50.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
