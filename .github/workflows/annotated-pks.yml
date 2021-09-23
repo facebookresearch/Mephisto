@@ -6,9 +6,9 @@ name: Test Yarn Workspaces
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -26,16 +26,16 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: "14"
 
       # Runs a single command using the runners shell
       - name: Install yarn 3
-        run: npm i -g yarn@3.0.2
+        run: npm i -g yarn
 
       # Runs a set of commands using the runners shell
       - name: Install packages
         run: yarn install
-        
+
       - name: Test that storybook compiles
         run: yarn workspace sb build
           echo Add other actions to build,
