@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@annotated/bbox": "workspace:packages/annotated/bbox",
+    "@annotated/keypoint": "workspace:packages/annotated/keypoint",
     "@annotated/shell": "workspace:packages/annotated/shell",
     "@annotated/video-player": "workspace:packages/annotated/video-player",
     "@blueprintjs/core": "^3.50.1",

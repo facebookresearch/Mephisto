@@ -41,6 +41,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@annotated/keypoint@workspace:packages/annotated/keypoint":
+  version: 0.0.0-use.local
+  resolution: "@annotated/keypoint@workspace:packages/annotated/keypoint"
+  dependencies:
+    "@annotated/dev-scripts": "workspace:packages/annotated/dev-scripts"
+    lodash.merge: ^4.6.2
+  peerDependencies:
+    global-context-store: ^1.0.1
+    react: ^16.13.1 || 17 || 18
+    react-dom: ^16.13.1 || 17 || 18
+  languageName: unknown
+  linkType: soft
+
 "@annotated/shell@workspace:packages/annotated/shell":
   version: 0.0.0-use.local
   resolution: "@annotated/shell@workspace:packages/annotated/shell"
@@ -19617,6 +19630,7 @@ resolve@^2.0.0-next.3:
   resolution: "sb@workspace:docs/sb"
   dependencies:
     "@annotated/bbox": "workspace:packages/annotated/bbox"
+    "@annotated/keypoint": "workspace:packages/annotated/keypoint"
     "@annotated/shell": "workspace:packages/annotated/shell"
     "@annotated/video-player": "workspace:packages/annotated/video-player"
     "@blueprintjs/core": ^3.50.1
