@@ -38,5 +38,3 @@ jobs:
 
       - name: Test that storybook compiles
         run: yarn workspace sb build
-          echo Add other actions to build,
-          echo test, and deploy your project.
