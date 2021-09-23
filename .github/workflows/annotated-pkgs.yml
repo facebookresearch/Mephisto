@@ -28,13 +28,14 @@ jobs:
         with:
           node-version: "14"
 
-      # Runs a single command using the runners shell
       - name: Install yarn 3
         run: npm i -g yarn
 
-      # Runs a set of commands using the runners shell
-      - name: Install packages
+      - name: Install package dependencies
         run: yarn install
+
+      - name: Build packages
+        run: yarn workspaces foreach -ptA run build
 
       - name: Test that storybook compiles
         run: yarn workspace sb build-storybook
