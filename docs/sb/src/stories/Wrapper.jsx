@@ -1,6 +1,6 @@
 import React from "react";
 
-import "annotation-toolkit/build/main.css";
+import "@annotated/shell/build/main.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import { Helmet } from "react-helmet";
 import Store from "global-context-store";
