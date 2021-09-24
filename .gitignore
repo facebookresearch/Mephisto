@@ -17,3 +17,15 @@ examples/**/build/*
 
 # PyCharm
 .idea
+
+
+# https://next.yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+docs/storybook/storybook-static/*

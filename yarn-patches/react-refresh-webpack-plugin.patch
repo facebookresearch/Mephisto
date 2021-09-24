@@ -1,0 +1,13 @@
+diff --git a/sockets/WHMEventSource.js b/sockets/WHMEventSource.js
+index 1375cf203b2fac9dd26a81bedac40a4e931c4853..f0c2d40ad617dc804deedc82927df5fae72e3471 100644
+--- a/sockets/WHMEventSource.js
++++ b/sockets/WHMEventSource.js
+@@ -11,7 +11,7 @@ const singletonKey = '__webpack_hot_middleware_reporter__';
+  * @returns {void}
+  */
+ function initWHMEventSource(messageHandler) {
+-  const client = window[singletonKey] || require('webpack-hot-middleware/client');
++  const client = window[singletonKey]; /*|| require('webpack-hot-middleware/client');*/
+ 
+   client.useCustomOverlay({
+     showProblems: function showProblems(type, data) {

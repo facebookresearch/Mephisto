@@ -1,17 +1,18 @@
 {
-  "name": "storybook",
+  "name": "sb",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@blueprintjs/core": "^3.46.0",
-    "@blueprintjs/icons": "^3.27.0",
-    "@storybook/addons": "^6.3.2",
-    "@storybook/theming": "^6.3.2",
+    "@annotated/bbox": "workspace:packages/annotated/bbox",
+    "@annotated/keypoint": "workspace:packages/annotated/keypoint",
+    "@annotated/shell": "workspace:packages/annotated/shell",
+    "@annotated/video-player": "workspace:packages/annotated/video-player",
+    "@blueprintjs/core": "^3.50.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "annotation-toolkit": "^1.1.2-beta.3",
-    "global-context-store": "^1.0.2",
+    "eslint-config-react-app": "^6.0.0",
+    "global-context-store": "^1.0.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-helmet": "^6.1.0",
@@ -19,28 +20,8 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
     "storybook": "start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook -s public"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ],
-    "overrides": [
-      {
-        "files": [
-          "**/*.stories.*"
-        ],
-        "rules": {
-          "import/no-anonymous-default-export": "off"
-        }
-      }
-    ]
   },
   "browserslist": {
     "production": [
@@ -55,12 +36,27 @@
     ]
   },
   "devDependencies": {
-    "@storybook/addon-actions": "^6.3.2",
-    "@storybook/addon-essentials": "^6.3.2",
-    "@storybook/addon-links": "^6.3.2",
-    "@storybook/node-logger": "^6.3.2",
-    "@storybook/preset-create-react-app": "^3.1.7",
-    "@storybook/react": "^6.3.2",
-    "lodash.merge": "^4.6.2"
+    "@mdx-js/react": "^1.6.22",
+    "@storybook/addon-actions": "^6.3.8",
+    "@storybook/addon-docs": "^6.3.8",
+    "@storybook/addon-essentials": "^6.3.8",
+    "@storybook/addon-links": "^6.3.8",
+    "@storybook/node-logger": "^6.3.8",
+    "@storybook/preset-create-react-app": "^3.2.0",
+    "@storybook/react": "^6.3.8",
+    "prop-types": "^15.7.2",
+    "webpack-hot-middleware": "^2.25.1"
+  },
+  "eslintConfig": {
+    "overrides": [
+      {
+        "files": [
+          "**/*.stories.*"
+        ],
+        "rules": {
+          "import/no-anonymous-default-export": "off"
+        }
+      }
+    ]
   }
 }

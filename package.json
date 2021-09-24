@@ -5,6 +5,17 @@
     "lerna": "^4.0.0"
   },
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist='{react,react-dom}'"
+    "bootstrap": "lerna bootstrap --hoist='{react,react-dom}'",
+    "sb": "yarn workspace sb storybook",
+    "build-all": "yarn workspaces foreach -ptA run build"
+  },
+  "workspaces": [
+    "packages/annotated/*",
+    "docs/storybook"
+  ],
+  "packageManager": "yarn@3.0.2",
+  "resolutions": {
+    "@pmmmwh/react-refresh-webpack-plugin": "patch:@pmmmwh/react-refresh-webpack-plugin@0.4.3#yarn-patches/react-refresh-webpack-plugin.patch",
+    "react-dev-utils": "patch:react-dev-utils@11.0.4#yarn-patches/react-dev-utils.patch"
   }
 }
