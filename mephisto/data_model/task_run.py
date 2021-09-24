@@ -297,7 +297,6 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         of subassignments. If this task run has no subassignments yet, it
         is not complete
         """
-        # TODO(#99) revisit when/if it's possible to add tasks to a completed run
         if not self.__is_completed and self.get_has_assignments():
             statuses = self.get_assignment_statuses()
             has_incomplete = False

@@ -127,8 +127,6 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
             return AssignmentState.CREATED
 
         if AssignmentState.CREATED in statuses:
-            # TODO(#99) handle the case where new units are created after
-            # everything else is launched
             return AssignmentState.CREATED
 
         if any([s == AssignmentState.LAUNCHED for s in statuses]):

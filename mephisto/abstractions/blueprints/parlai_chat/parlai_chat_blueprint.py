@@ -177,7 +177,6 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         elif args.blueprint.get("num_conversations", None) is not None:
             self._initialization_data_dicts = [{}] * args.blueprint.num_conversations
         else:
-            # TODO(#95) handle JSON and python dicts directly
             raise NotImplementedError(
                 "Parsing parlai tasks directly from dicts or JSON is not supported yet"
             )
