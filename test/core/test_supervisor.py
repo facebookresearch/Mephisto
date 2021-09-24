@@ -1051,8 +1051,8 @@ class BaseTestSupervisor:
     # TODO(#97) handle testing for disconnecting in and out of tasks
 
 
-# class TestSupervisorLocal(BaseTestSupervisor, unittest.TestCase):
-#     DB_CLASS = LocalMephistoDB
+class TestSupervisorLocal(BaseTestSupervisor, unittest.TestCase):
+    DB_CLASS = LocalMephistoDB
 
 
 class TestSupervisorSingleton(BaseTestSupervisor, unittest.TestCase):
