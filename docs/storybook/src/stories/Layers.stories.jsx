@@ -1,6 +1,6 @@
 import React from "react";
 import Wrapper from "./Wrapper";
-import { AppShell, Layer } from "annotation-toolkit";
+import { AppShell, Layer } from "@annotated/shell";
 import { useStore } from "global-context-store";
 import { Card, Elevation } from "@blueprintjs/core";
 

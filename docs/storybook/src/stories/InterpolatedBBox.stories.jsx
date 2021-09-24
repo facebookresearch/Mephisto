@@ -1,15 +1,10 @@
 import React from "react";
 import Wrapper from "./Wrapper";
 
-import {
-  AppShell,
-  Layer,
-  VideoPlayer,
-  MovableRect,
-  dataPathBuilderFor,
-} from "annotation-toolkit";
+import { AppShell, Layer } from "@annotated/shell";
+import { MovableRect } from "@annotated/bbox";
+import { VideoPlayer } from "@annotated/video-player";
 import { useStore } from "global-context-store";
-import { MenuItem } from "@blueprintjs/core";
 
 const VIDEO_URL =
   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
@@ -95,7 +90,9 @@ export const SynchedWithVideoPlayer = () => {
             alwaysOn
             displayName="Video"
             icon="video"
-            component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
+            component={({ id }) => (
+              <VideoPlayer id={id} src={VIDEO_URL} scale={0.5} />
+            )}
           />
           <Layer
             alwaysOn
@@ -135,7 +132,9 @@ export const WithFrameLabel = () => {
             alwaysOn
             displayName="Video"
             icon="video"
-            component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
+            component={({ id }) => (
+              <VideoPlayer id={id} src={VIDEO_URL} scale={0.5} />
+            )}
           />
           <Layer
             alwaysOn

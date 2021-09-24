@@ -1,6 +1,7 @@
 import React from "react";
 import Wrapper from "./Wrapper";
-import { Pose } from "./Keypoints";
+import { Pose } from "@annotated/keypoint";
+import "@annotated/keypoint/build/main.css";
 
 export default {
   title: "Example/5. Keypoints [Prerelease]",

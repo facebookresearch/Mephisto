@@ -27,3 +27,5 @@ examples/**/build/*
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+
+docs/storybook/storybook-static/*

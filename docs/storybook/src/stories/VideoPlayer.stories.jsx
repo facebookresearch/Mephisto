@@ -1,12 +1,8 @@
 import React from "react";
 import Wrapper from "./Wrapper";
 
-import {
-  AppShell,
-  Layer,
-  VideoPlayer,
-  requestsPathFor,
-} from "annotation-toolkit";
+import { AppShell, Layer, requestsPathFor } from "@annotated/shell";
+import { VideoPlayer } from "@annotated/video-player";
 import { useStore } from "global-context-store";
 import { MenuItem } from "@blueprintjs/core";
 
@@ -35,7 +31,9 @@ export const InAppShell = () => (
         alwaysOn
         displayName="Video"
         icon="video"
-        component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
+        component={({ id }) => (
+          <VideoPlayer id={id} src={VIDEO_URL} scale={0.5} />
+        )}
       />
     )}
   />
@@ -52,7 +50,9 @@ export const WithActions = () => {
           alwaysOn
           displayName="Video"
           icon="video"
-          component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
+          component={({ id }) => (
+            <VideoPlayer id={id} src={VIDEO_URL} scale={0.5} />
+          )}
           actions={() => (
             <MenuItem
               text="Forward 5 frames"
@@ -92,7 +92,9 @@ export const WithScreenshots = () => {
           alwaysOn
           displayName="Video"
           icon="video"
-          component={() => <VideoPlayer src={VIDEO_URL} scale={0.5} />}
+          component={({ id }) => (
+            <VideoPlayer id={id} src={VIDEO_URL} scale={0.5} />
+          )}
           actions={() => (
             <MenuItem
               text="Capture Screenshot"
