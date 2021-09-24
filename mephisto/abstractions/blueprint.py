@@ -13,7 +13,6 @@ from typing import (
     Dict,
     Any,
     Type,
-    ClassVar,
     Union,
     Iterable,
     Callable,
@@ -31,6 +30,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 from mephisto.data_model.constants.assignment_state import AssignmentState
+import types
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -39,7 +39,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
-    from argparse import _ArgumentGroup as ArgumentGroup
 
 from mephisto.operations.logger_core import get_logger
 
@@ -49,15 +48,6 @@ logger = get_logger(name=__name__)
 @dataclass
 class BlueprintArgs:
     _blueprint_type: str = MISSING
-    onboarding_qualification: str = field(
-        default=MISSING,
-        metadata={
-            "help": (
-                "Specify the name of a qualification used to block workers who fail onboarding, "
-                "Empty will skip onboarding."
-            )
-        },
-    )
     block_qualification: str = field(
         default=MISSING,
         metadata={
@@ -73,11 +63,7 @@ class SharedTaskState:
     be passed as Hydra args, like functions and objects
     """
 
-    onboarding_data: Dict[str, Any] = field(default_factory=dict)
     task_config: Dict[str, Any] = field(default_factory=dict)
-    validate_onboarding: Callable[[Any], bool] = field(
-        default_factory=lambda: (lambda x: True)
-    )
     qualifications: List[Any] = field(default_factory=list)
     worker_can_do_unit: Callable[["Worker", "Unit"], bool] = field(
         default_factory=lambda: (lambda worker, unit: True)
@@ -545,70 +531,33 @@ class AgentState(ABC):
         return 0.0
 
 
-class OnboardingRequired(object):
+class BlueprintMixin(ABC):
     """
-    Compositional class for blueprints that may have an onboarding step
+    Base class for compositional mixins for blueprints
     """
 
-    @staticmethod
-    def get_failed_qual(qual_name: str) -> str:
-        """Returns the wrapper for a qualification to represent failing an onboarding"""
-        return qual_name + "-failed"
-
-    def init_onboarding_config(
+    @abstractmethod
+    def init_mixin_config(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
-    ):
-        self.onboarding_qualification_name: Optional[str] = args.blueprint.get(
-            "onboarding_qualification", None
-        )
-        self.onboarding_data = shared_state.onboarding_data
-        self.use_onboarding = self.onboarding_qualification_name is not None
-        self.onboarding_qualification_id = None
-        if self.onboarding_qualification_name is not None:
-            db = task_run.db
-            found_qualifications = db.find_qualifications(
-                self.onboarding_qualification_name
-            )
-            if len(found_qualifications) == 0:
-                self.onboarding_qualification_id = db.make_qualification(
-                    self.onboarding_qualification_name
-                )
-            else:
-                self.onboarding_qualification_id = found_qualifications[0].db_id
+    ) -> None:
+        """Method to initialize any required attributes to make this mixin function"""
+        raise NotImplementedError()
 
-            # We need to keep a separate qualification for failed onboarding
-            # to push to a crowd provider in order to prevent workers
-            # who have failed from being shown our task
-            self.onboarding_failed_name = self.get_failed_qual(
-                self.onboarding_qualification_name
-            )
-            found_qualifications = db.find_qualifications(self.onboarding_failed_name)
-            if len(found_qualifications) == 0:
-                self.onboarding_failed_id = db.make_qualification(
-                    self.onboarding_failed_name
-                )
-            else:
-                self.onboarding_failed_id = found_qualifications[0].db_id
+    @classmethod
+    @abstractmethod
+    def assert_task_args(
+        cls, args: "DictConfig", shared_state: "SharedTaskState"
+    ) -> None:
+        """Method to validate the incoming args and throw if something won't work"""
+        raise NotImplementedError()
 
-    def get_onboarding_data(self, worker_id: str) -> Dict[str, Any]:
-        """
-        If the onboarding task on the frontend requires any specialized data, the blueprint
-        should provide it for the user.
-
-        As onboarding qualifies a worker for all tasks from this blueprint, this should
-        generally be static data that can later be evaluated against.
-        """
-        return self.onboarding_data
-
-    def validate_onboarding(
-        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
-    ) -> bool:
-        """
-        Check the incoming onboarding data and evaluate if the worker
-        has passed the qualification or not. Return True if the worker
-        has qualified.
-        """
-        return True
+    @classmethod
+    @abstractmethod
+    def get_mixin_qualifications(
+        cls, args: "DictConfig", shared_state: "SharedTaskState"
+    ) -> List[Dict[str, Any]]:
+        """Method to provide any required qualifications to make this mixin function"""
+        raise NotImplementedError()
 
 
 class Blueprint(ABC):

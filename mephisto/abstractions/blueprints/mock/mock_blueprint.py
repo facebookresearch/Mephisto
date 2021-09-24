@@ -6,9 +6,18 @@
 
 from mephisto.abstractions.blueprint import (
     Blueprint,
-    OnboardingRequired,
     BlueprintArgs,
     SharedTaskState,
+)
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
+    OnboardingRequired,
+    OnboardingSharedState,
+    OnboardingRequiredArgs,
+)
+from mephisto.abstractions.blueprints.mixins.screen_task_required import (
+    ScreenTaskRequired,
+    ScreenTaskSharedState,
+    ScreenTaskRequiredArgs,
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
@@ -35,7 +44,7 @@ BLUEPRINT_TYPE = "mock"
 
 
 @dataclass
-class MockBlueprintArgs(BlueprintArgs):
+class MockBlueprintArgs(BlueprintArgs, OnboardingRequiredArgs, ScreenTaskRequiredArgs):
     _blueprint_type: str = BLUEPRINT_TYPE
     num_assignments: int = field(
         default=MISSING,
@@ -57,8 +66,15 @@ class MockBlueprintArgs(BlueprintArgs):
     )
 
 
+# Mock tasks right now inherit all mixins, this way we can test them.
+# In the future, we'll likely want to compose mock tasks for mixin testing
+@dataclass
+class MockSharedState(SharedTaskState, OnboardingSharedState, ScreenTaskSharedState):
+    pass
+
+
 @register_mephisto_abstraction()
-class MockBlueprint(Blueprint, OnboardingRequired):
+class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
     """Mock of a task type, for use in testing"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
@@ -67,13 +83,16 @@ class MockBlueprint(Blueprint, OnboardingRequired):
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = MockBlueprintArgs
     supported_architects: ClassVar[List[str]] = ["mock"]
+    SharedStateClass: ClassVar[Type["SharedTaskState"]] = MockSharedState
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "MockSharedState"
     ):
         super().__init__(task_run, args, shared_state)
+        # TODO these can be done with self.mro() and using the mixin variant
         self.init_onboarding_config(task_run, args, shared_state)
+        self.init_screening_config(task_run, args, shared_state)
 
     def get_initialization_data(self) -> Iterable[InitializationData]:
         """

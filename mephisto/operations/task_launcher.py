@@ -30,6 +30,7 @@ logger = get_logger(name=__name__)
 
 UNIT_GENERATOR_WAIT_SECONDS = 10
 ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
+SCREENING_UNIT_INDEX = -1
 
 
 class GeneratorType(enum.Enum):
@@ -65,6 +66,7 @@ class TaskLauncher:
         self.keep_launching_units: bool = False
         self.finished_generators: bool = False
         self.assignment_thread_done: bool = True
+        self.launch_url: Optional[str] = None
 
         self.unlaunched_units_access_condition = threading.Condition()
         if isinstance(self.assignment_data_iterable, types.GeneratorType):
@@ -193,10 +195,45 @@ class TaskLauncher:
 
     def launch_units(self, url: str) -> None:
         """launch any units registered by this TaskLauncher"""
+        self.launch_url = url
         self.units_thread = threading.Thread(
             target=self._launch_limited_units, args=(url,), name="unit-generator"
         )
         self.units_thread.start()
+
+    def launch_screening_unit(self, unit_data: Dict[str, Any]) -> "Unit":
+        """Launch a screening unit, which should never return to the pool"""
+        assert (
+            self.launch_url is not None
+        ), "Cannot launch a screening unit before launching others"
+        task_run = self.task_run
+        task_config = task_run.get_task_config()
+        assignment_id = self.db.new_assignment(
+            task_run.task_id,
+            task_run.db_id,
+            task_run.requester_id,
+            task_run.task_type,
+            task_run.provider_type,
+            task_run.sandbox,
+        )
+        data = InitializationData(unit_data, [{}])
+        assignment = Assignment.get(self.db, assignment_id)
+        assignment.write_assignment_data(data)
+        self.assignments.append(assignment)
+        unit_id = self.db.new_unit(
+            task_run.task_id,
+            task_run.db_id,
+            task_run.requester_id,
+            assignment_id,
+            SCREENING_UNIT_INDEX,
+            task_config.task_reward,
+            task_run.provider_type,
+            task_run.task_type,
+            task_run.sandbox,
+        )
+        screening_unit = Unit.get(self.db, unit_id)
+        screening_unit.launch(self.launch_url)
+        return screening_unit
 
     def get_assignments_are_all_created(self) -> bool:
         return self.assignment_thread_done

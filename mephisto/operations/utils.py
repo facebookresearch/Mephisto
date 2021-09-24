@@ -183,17 +183,16 @@ def build_arg_list_from_dict(in_dict: Dict[str, Any]) -> List[str]:
     return arg_list
 
 
-def find_or_create_qualification(db, qualification_name) -> None:
+def find_or_create_qualification(db, qualification_name) -> str:
     """
     Ensure the given qualification exists in the db,
-    creating it if it doesn't already
+    creating it if it doesn't already. Returns the id
     """
-    from mephisto.abstractions.database import EntryAlreadyExistsException
-
-    try:
-        db.make_qualification(qualification_name)
-    except EntryAlreadyExistsException:
-        pass  # qualification already exists
+    found_qualifications = db.find_qualifications(qualification_name)
+    if len(found_qualifications) == 0:
+        return db.make_qualification(qualification_name)
+    else:
+        return found_qualifications[0].db_id
 
 
 def get_dict_from_field(in_field: Field) -> Dict[str, Any]:

@@ -13,19 +13,22 @@ import time
 
 from typing import List
 
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
 from mephisto.abstractions.architects.mock_architect import MockArchitect
 from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
-from mephisto.operations.task_launcher import TaskLauncher
+from mephisto.operations.task_launcher import TaskLauncher, SCREENING_UNIT_INDEX
+from mephisto.abstractions.blueprints.mixins.screen_task_required import (
+    ScreenTaskRequired,
+)
 from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.task_run import TaskRun
 from mephisto.operations.supervisor import Supervisor, Job
-from mephisto.abstractions.blueprint import SharedTaskState
-
+from mephisto.operations.utils import find_or_create_qualification
 
 from mephisto.abstractions.architects.mock_architect import (
     MockArchitect,
@@ -33,12 +36,15 @@ from mephisto.abstractions.architects.mock_architect import (
 )
 from mephisto.operations.hydra_config import MephistoConfig
 from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
-from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
+from mephisto.abstractions.blueprints.mock.mock_blueprint import (
+    MockBlueprintArgs,
+    MockSharedState,
+)
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
 
-EMPTY_STATE = SharedTaskState()
+EMPTY_STATE = MockSharedState()
 
 
 class BaseTestSupervisor:
@@ -118,6 +124,7 @@ class BaseTestSupervisor:
             provider=self.provider,
             qualifications=[],
             registered_channel_ids=[],
+            task_launcher=self.launcher,
         )
 
         channels = self.architect.get_channels(
@@ -841,6 +848,185 @@ class BaseTestSupervisor:
             time.sleep(0.1)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        )
+
+        sup.shutdown()
+        self.assertTrue(channel_info.channel.is_closed())
+
+    def test_register_job_with_screening(self):
+        """Test registering and running a job with screening"""
+        if self.DB_CLASS != MephistoSingletonDB:
+            return  # TODO(#97) This test only works with singleton for now due to disconnect simulation
+
+        # Handle baseline setup
+        sup = Supervisor(self.db)
+        self.sup = sup
+        PASSED_QUALIFICATION_NAME = "test_screening_qualification"
+        FAILED_QUALIFICATION_NAME = "failed_screening_qualification"
+
+        # Register onboarding arguments for blueprint
+        task_run_args = self.task_run.args
+        task_run_args.blueprint.use_screening_task = True
+        task_run_args.blueprint.passed_qualification_name = PASSED_QUALIFICATION_NAME
+        task_run_args.blueprint.block_qualification = FAILED_QUALIFICATION_NAME
+        task_run_args.blueprint.max_screening_units = 2
+        task_run_args.blueprint.timeout_time = 5
+        task_run_args.blueprint.is_concurrent = False
+        self.task_run.get_task_config()
+
+        def screen_unit(unit):
+            if unit.get_assigned_agent() is None:
+                return None  # No real data to evaluate
+
+            agent = unit.get_assigned_agent()
+            output = agent.state.get_data()
+            if output is None:
+                return None  # no data to evaluate
+
+            return output["success"]
+
+        shared_state = MockSharedState()
+        shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
+            task_run_args,
+            screen_unit,
+        )
+
+        # Supervisor expects that blueprint setup has already occurred
+        blueprint = self.task_run.get_blueprint(task_run_args, shared_state)
+
+        TaskRunnerClass = MockBlueprint.TaskRunnerClass
+        task_runner = TaskRunnerClass(self.task_run, task_run_args, shared_state)
+        job = sup.register_job(self.architect, task_runner, self.provider)
+        job.task_launcher = self.launcher
+        self.assertEqual(len(sup.channels), 1)
+        channel_info = list(sup.channels.values())[0]
+        self.assertIsNotNone(channel_info)
+        self.assertTrue(channel_info.channel.is_alive())
+        channel_id = channel_info.channel_id
+        task_runner = channel_info.job.task_runner
+        self.assertIsNotNone(channel_id)
+        self.assertEqual(
+            len(self.architect.server.subs),
+            1,
+            "MockServer doesn't see registered channel",
+        )
+        self.assertIsNotNone(
+            self.architect.server.last_alive_packet,
+            "No alive packet received by server",
+        )
+        sup.launch_sending_thread()
+        self.assertIsNotNone(sup.sending_thread)
+
+        # Register workers
+        mock_worker_name = "MOCK_WORKER"
+        self.architect.server.register_mock_worker(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assertEqual(len(workers), 1, "Worker not successfully registered")
+        worker_1 = workers[0]
+        worker_id = workers[0].db_id
+
+        mock_worker_name = "MOCK_WORKER_2"
+        self.architect.server.register_mock_worker(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name)
+        worker_2 = workers[0]
+        worker_id_2 = worker_2.db_id
+
+        mock_worker_name = "MOCK_WORKER_3"
+        self.architect.server.register_mock_worker(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name)
+        worker_3 = workers[0]
+        worker_id_3 = worker_3.db_id
+
+        self.assertEqual(len(task_runner.running_units), 0)
+
+        # Register a screening agent successfully
+        mock_agent_details = "FAKE_ASSIGNMENT"
+        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 1, "No agent created for screening")
+        time.sleep(0.1)
+        self.assertEqual(
+            agents[0].get_unit().unit_index,
+            SCREENING_UNIT_INDEX,
+            "Agent not assigned screening unit",
+        )
+
+        # Register a second screening agent successfully
+        mock_agent_details = "FAKE_ASSIGNMENT2"
+        self.architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 2, "No agent created for screening")
+        last_packet = None
+        time.sleep(0.1)
+        self.assertEqual(
+            agents[1].get_unit().unit_index,
+            SCREENING_UNIT_INDEX,
+            "Agent not assigned screening unit",
+        )
+
+        # Fail to register a third screening agent
+        mock_agent_details = "FAKE_ASSIGNMENT3"
+        self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 2, "Third agent created, when 2 was max")
+        time.sleep(0.1)
+
+        # Disconnect first agent
+        agents[0].update_status(AgentState.STATUS_DISCONNECT)
+        time.sleep(0.5)
+
+        # Register third screening agent
+        mock_agent_details = "FAKE_ASSIGNMENT3"
+        self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 3, "Third agent not created")
+        time.sleep(0.1)
+        self.assertEqual(
+            agents[2].get_unit().unit_index,
+            SCREENING_UNIT_INDEX,
+            "Agent not assigned screening unit",
+        )
+
+        # Submit screening from the agent
+        screening_data = {"success": False}
+        self.architect.server.send_agent_act(agents[1].get_agent_id(), screening_data)
+        # Assert failed screening screening
+        start_time = time.time()
+        TIMEOUT_TIME = 5
+        while time.time() - start_time < TIMEOUT_TIME:
+            if worker_2.is_qualified(FAILED_QUALIFICATION_NAME):
+                break
+            time.sleep(0.1)
+        self.assertLess(
+            time.time() - start_time, TIMEOUT_TIME, "Did not qualify in time"
+        )
+
+        # Submit screening from the agent
+        screening_data = {"success": True}
+        self.architect.server.send_agent_act(agents[2].get_agent_id(), screening_data)
+        # Assert successful screening screening
+        start_time = time.time()
+        TIMEOUT_TIME = 5
+        while time.time() - start_time < TIMEOUT_TIME:
+            if worker_3.is_qualified(PASSED_QUALIFICATION_NAME):
+                break
+            time.sleep(0.1)
+        self.assertLess(
+            time.time() - start_time, TIMEOUT_TIME, "Did not qualify in time"
+        )
+
+        # Accept a real task, and complete it, from worker 3
+        # Register a task agent successfully
+        mock_agent_details = "FAKE_ASSIGNMENT4"
+        self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        agents = self.db.find_agents()
+        self.assertEqual(len(agents), 4, "No agent created for task")
+        last_packet = None
+        time.sleep(0.1)
+        self.assertNotEqual(
+            agents[3].get_unit().unit_index,
+            SCREENING_UNIT_INDEX,
+            "Agent assigned screening unit",
         )
 
         sup.shutdown()

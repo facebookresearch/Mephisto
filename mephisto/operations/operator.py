@@ -24,7 +24,10 @@ from typing import Dict, Optional, List, Any, Tuple, NamedTuple, Type, TYPE_CHEC
 from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.requester import Requester
-from mephisto.abstractions.blueprint import OnboardingRequired, SharedTaskState
+from mephisto.abstractions.blueprint import SharedTaskState
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
+    OnboardingRequired,
+)
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.operations.task_launcher import TaskLauncher
@@ -224,6 +227,7 @@ class Operator:
             )
 
             # Small hack for auto appending block qualification
+            # TODO we can use blueprint.mro() to discover BlueprintMixins and extract from there
             existing_qualifications = shared_state.qualifications
             if run_config.blueprint.get("block_qualification", None) is not None:
                 existing_qualifications.append(
@@ -278,6 +282,7 @@ class Operator:
         )
         launcher.create_assignments()
         launcher.launch_units(task_url)
+        job.task_launcher = launcher
 
         self._task_runs_tracked[task_run.db_id] = TrackedRun(
             task_run=task_run,

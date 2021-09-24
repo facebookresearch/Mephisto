@@ -15,7 +15,7 @@ The `onboarding_qualification` is shared between all task runs that use the same
 You can also set up tasks that are only available to workers that have passed an existing onboarding (potentially for tasks that don't have their own onboarding), or use the onboarding failure list as a block list for a future task. Both examples are shown below:
 
 ```python
-from mephisto.abstractions.blueprint import OnboardingRequired
+from mephisto.abstractions.blueprints.mixins.onboarding_required import OnboardingRequired
 from mephisto.data_model.qualification import QUAL_EQUAL, QUAL_NOT_EXIST, make_qualification_dict
 
 ONBOARDING_QUALIFICATION_NAME = "TEST_ONBOARDING_QUAL_NAME"
