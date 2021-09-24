@@ -236,9 +236,9 @@ class TaskLauncher:
             task_run.task_type,
             task_run.sandbox,
         )
-        validator_unit = Unit.get(self.db, unit_id)
-        validator_unit.launch(self.launch_url)
-        return validator_unit
+        screening_unit = Unit.get(self.db, unit_id)
+        screening_unit.launch(self.launch_url)
+        return screening_unit
 
     def get_assignments_are_all_created(self) -> bool:
         return self.assignment_thread_done
