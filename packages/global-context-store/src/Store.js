@@ -82,7 +82,11 @@ const Store = ({ children }, ref) => {
   );
 
   useImperativeHandle(ref, () => ({
-    getState: () => state,
+    getState: () => {
+      const { __debug, ...rest } = state;
+      return rest;
+    },
+    getFullState: () => state,
   }));
 
   return (
