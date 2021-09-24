@@ -999,8 +999,8 @@ class BaseTestSupervisor:
         )
 
         # Submit screening from the agent
-        validation_data = {"success": False}
-        self.architect.server.send_agent_act(agents[1].get_agent_id(), validation_data)
+        screening_data = {"success": False}
+        self.architect.server.send_agent_act(agents[1].get_agent_id(), screening_data)
         # Assert failed screening screening
         start_time = time.time()
         TIMEOUT_TIME = 5
@@ -1013,8 +1013,8 @@ class BaseTestSupervisor:
         )
 
         # Submit screening from the agent
-        validation_data = {"success": True}
-        self.architect.server.send_agent_act(agents[2].get_agent_id(), validation_data)
+        screening_data = {"success": True}
+        self.architect.server.send_agent_act(agents[2].get_agent_id(), screening_data)
         # Assert successful screening screening
         start_time = time.time()
         TIMEOUT_TIME = 5

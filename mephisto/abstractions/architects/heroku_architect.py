@@ -106,7 +106,6 @@ class HerokuArchitect(Architect):
         # TODO(#102) put the expected info into the MephistoDB rather than storing here?
         # Servers will have a status which needs to be kept track of.
         self.args = args
-        # print(dict(args.architect.heroku_config_args), type(dict(args.architect.heroku_config_args)))
         self.task_run = task_run
         self.deploy_name = f"{task_run.get_task().task_name}_{task_run.db_id}"
         self.build_dir = build_dir_root

@@ -70,7 +70,7 @@ def blank_generator():
 @dataclass
 class ScreenTaskSharedState:
     onboarding_data: Dict[str, Any] = field(default_factory=dict)
-    generate_screening_unit_data: Tuple[bool, ScreenUnitDataGenerator] = field(
+    screening_data_factory: Tuple[bool, ScreenUnitDataGenerator] = field(
         default_factory=lambda: blank_generator()
     )
 
@@ -103,9 +103,9 @@ class ScreenTaskRequired(BlueprintMixin):
         # a specially generated unit to unqualified workers
         self.passed_qualification_name = args.blueprint.passed_qualification_name
         self.failed_qualification_name = args.blueprint.block_qualification
-        self.generate_screening_unit_data: Tuple[
+        self.screening_data_factory: Tuple[
             bool, ScreenUnitDataGenerator
-        ] = shared_state.generate_screening_unit_data
+        ] = shared_state.screening_data_factory
         self.screening_units_launched = 0
         self.screening_unit_cap = args.blueprint.max_screening_units
 
@@ -120,8 +120,8 @@ class ScreenTaskRequired(BlueprintMixin):
         passed_qualification_name = args.blueprint.passed_qualification_name
         failed_qualification_name = args.blueprint.block_qualification
         assert args.task.allowed_concurrent == 1, (
-            "Can only run this task type with one allowed task at a time per worker, to ensure screening "
-            "before moving into more tasks."
+            "Can only run this task type with one allowed concurrent unit at a time per worker, to ensure "
+            "screening before moving into real units."
         )
         assert (
             passed_qualification_name is not None
@@ -129,20 +129,21 @@ class ScreenTaskRequired(BlueprintMixin):
         assert (
             failed_qualification_name is not None
         ), "Must supply an block_qualification in Hydra args to use a qualification task"
-        assert hasattr(shared_state, "generate_screening_unit_data"), (
-            "You must supply a generate_screening_unit_data function in your SharedTaskState to use "
-            "qualification tasks."
+        assert hasattr(shared_state, "screening_data_factory"), (
+            "You must supply a screening_data_factory generator in your SharedTaskState to use "
+            "screening units, or False if you can screen on any tasks."
         )
         max_screening_units = args.blueprint.max_screening_units
         assert max_screening_units is not None, (
             "You must supply a blueprint.max_screening_units argument to set the maximum number of "
-            "additional tasks you will pay out for the purpose of validating new workers. "
+            "additional units you will pay out for the purpose of screening new workers. Note that you "
+            "do pay for screening units, they are just like any other units."
         )
-        generate_screening_unit_data = shared_state.generate_screening_unit_data
-        if generate_screening_unit_data is not False:
-            assert isinstance(generate_screening_unit_data, types.GeneratorType), (
-                "Must provide a generator function to SharedTaskState.generate_screening_unit_data if "
-                "you want to generate screening tasks on the fly, or False if you can validate on any task "
+        screening_data_factory = shared_state.screening_data_factory
+        if screening_data_factory is not False:
+            assert isinstance(screening_data_factory, types.GeneratorType), (
+                "Must provide a generator function to SharedTaskState.screening_data_factory if "
+                "you want to generate screening tasks on the fly, or False if you can screen on any task "
             )
 
     def worker_needs_screening(self, worker: "Worker") -> bool:
@@ -150,14 +151,14 @@ class ScreenTaskRequired(BlueprintMixin):
         return worker.get_granted_qualification(self.passed_qualification_name) is None
 
     def should_generate_unit(self) -> bool:
-        return self.generate_screening_unit_data is not False
+        return self.screening_data_factory is not False
 
     def get_screening_unit_data(self) -> Optional[Dict[str, Any]]:
         try:
             if self.screening_units_launched >= self.screening_unit_cap:
                 return None  # Exceeded the cap on these units
             else:
-                data = next(self.generate_screening_unit_data)
+                data = next(self.screening_data_factory)
                 self.screening_units_launched += 1
                 return data
         except StopIteration:
