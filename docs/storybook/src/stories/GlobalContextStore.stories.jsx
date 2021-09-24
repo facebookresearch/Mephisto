@@ -3,17 +3,10 @@ import Store, { useStore } from "global-context-store";
 
 export default {
   title: "Tests/global-context-store",
-  decorators: [
-    (Story) => (
-      <div>
-        <Story />
-      </div>
-    ),
-  ],
 };
 
 function CounterApp() {
-  const { set, get, state } = useStore();
+  const { set, get } = useStore();
 
   React.useEffect(() => {
     set("counter", 0);
