@@ -420,8 +420,8 @@ class OperatorBaseTest(object):
             self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
 
-# class TestOperatorLocal(OperatorBaseTest, unittest.TestCase):
-#     DB_CLASS = LocalMephistoDB
+class TestOperatorLocal(OperatorBaseTest, unittest.TestCase):
+    DB_CLASS = LocalMephistoDB
 
 
 class TestOperatorSingleton(OperatorBaseTest, unittest.TestCase):
