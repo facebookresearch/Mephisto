@@ -30,6 +30,7 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.operations.supervisor import Supervisor
 from mephisto.operations.datatypes import LiveTaskRun
 from mephisto.operations.utils import find_or_create_qualification
+from mephisto.operations.client_io_handler import ClientIOHandler
 
 from mephisto.abstractions.architects.mock_architect import (
     MockArchitect,
@@ -85,6 +86,7 @@ class BaseTestSupervisor:
         )
         self.launcher.create_assignments()
         self.launcher.launch_units(self.url)
+        self.client_io = ClientIOHandler(self.db)
         self.sup = None
 
     def tearDown(self):
@@ -93,6 +95,7 @@ class BaseTestSupervisor:
         self.launcher.expire_units()
         self.architect.cleanup()
         self.architect.shutdown()
+        self.client_io.shutdown()
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
 
@@ -105,6 +108,7 @@ class BaseTestSupervisor:
             [],
             task_runner,
             self.launcher,
+            self.client_io,
             [],
         )
 
@@ -117,7 +121,6 @@ class BaseTestSupervisor:
         sup = Supervisor(self.db)
         self.assertIsNotNone(sup)
         self.assertDictEqual(sup.agents, {})
-        self.assertDictEqual(sup.channels, {})
         sup.shutdown()
 
     def test_channel_operations(self):
@@ -133,12 +136,14 @@ class BaseTestSupervisor:
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
 
         channels = self.architect.get_channels(
-            sup._on_channel_open, sup._on_catastrophic_disconnect, sup._on_message
+            self.client_io._on_channel_open,
+            self.client_io._on_catastrophic_disconnect,
+            self.client_io._on_message,
         )
         channel = channels[0]
         channel.open()
-        channel_id = channel.channel_id
-        self.assertIsNotNone(channel_id)
+        time.sleep(0.5)
+        self.assertTrue(channel.is_alive())
         channel.close()
         self.assertTrue(channel.is_closed())
 
@@ -156,13 +161,11 @@ class BaseTestSupervisor:
         blueprint = self.task_run.get_blueprint()
         live_run = self.get_mock_run(blueprint, task_runner)
         sup.register_run(live_run)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive)
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.live_run.task_runner
-        self.assertIsNotNone(channel_id)
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -172,8 +175,8 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
+        sup.launch_sending_thread_deprecated()
+        self.assertIsNotNone(sup.agent_status_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
@@ -261,7 +264,7 @@ class BaseTestSupervisor:
         )
 
         sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed)
+        self.assertTrue(channel.is_closed)
 
     def test_register_run(self):
         """Test registering and running a task run asynchronously"""
@@ -276,13 +279,11 @@ class BaseTestSupervisor:
         blueprint = self.task_run.get_blueprint(args=config)
         live_run = self.get_mock_run(blueprint, task_runner)
         sup.register_run(live_run)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive())
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.live_run.task_runner
-        self.assertIsNotNone(channel_id)
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -292,8 +293,8 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
+        sup.launch_sending_thread_deprecated()
+        self.assertIsNotNone(sup.agent_status_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
@@ -383,7 +384,7 @@ class BaseTestSupervisor:
         )
 
         sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed())
+        self.assertTrue(channel.is_closed())
 
     def test_register_concurrent_run_with_onboarding(self):
         """Test registering and running a run with onboarding"""
@@ -407,13 +408,11 @@ class BaseTestSupervisor:
 
         live_run = self.get_mock_run(blueprint, task_runner)
         sup.register_run(live_run)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive())
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.live_run.task_runner
-        self.assertIsNotNone(channel_id)
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -423,8 +422,8 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
+        sup.launch_sending_thread_deprecated()
+        self.assertIsNotNone(sup.agent_status_thread)
 
         self.assertEqual(len(task_runner.running_units), 0)
 
@@ -453,7 +452,10 @@ class BaseTestSupervisor:
         time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
+        if not last_packet["data"].get("status") == "onboarding":
+            self.assertIn(
+                "onboard_data", last_packet["data"], "Onboarding not triggered"
+            )
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
@@ -491,7 +493,7 @@ class BaseTestSupervisor:
         self.assertEqual(len(task_runner.running_assignments), 0)
 
         # Fail to register a blocked agent
-        mock_agent_details = "FAKE_ASSIGNMENT"
+        mock_agent_details = "FAKE_ASSIGNMENT_2"
         qualification_id = blueprint.onboarding_qualification_id
         self.db.grant_qualification(qualification_id, worker_1.db_id, 0)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
@@ -514,7 +516,7 @@ class BaseTestSupervisor:
         self.db.revoke_qualification(qualification_id, worker_id)
 
         # Register an onboarding agent successfully
-        mock_agent_details = "FAKE_ASSIGNMENT"
+        mock_agent_details = "FAKE_ASSIGNMENT_3"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         agents = self.db.find_agents()
         self.assertEqual(
@@ -527,7 +529,10 @@ class BaseTestSupervisor:
         time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
+        if not last_packet["data"].get("status") == "onboarding":
+            self.assertIn(
+                "onboard_data", last_packet["data"], "Onboarding not triggered"
+            )
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
@@ -560,7 +565,7 @@ class BaseTestSupervisor:
         worker_id = worker_2.db_id
 
         # Register an agent that is already qualified
-        mock_agent_details = "FAKE_ASSIGNMENT_2"
+        mock_agent_details = "FAKE_ASSIGNMENT_4"
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         time.sleep(0.1)
@@ -628,7 +633,7 @@ class BaseTestSupervisor:
         )
 
         sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed())
+        self.assertTrue(channel.is_closed())
 
     def test_register_run_with_onboarding(self):
         """Test registering and running a run with onboarding"""
@@ -652,13 +657,11 @@ class BaseTestSupervisor:
         task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
         live_run = self.get_mock_run(blueprint, task_runner)
         sup.register_run(live_run)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive())
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.live_run.task_runner
-        self.assertIsNotNone(channel_id)
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -668,8 +671,8 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
+        sup.launch_sending_thread_deprecated()
+        self.assertIsNotNone(sup.agent_status_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
@@ -722,7 +725,10 @@ class BaseTestSupervisor:
         time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
+        if not last_packet["data"].get("status") == "onboarding":
+            self.assertIn(
+                "onboard_data", last_packet["data"], "Onboarding not triggered"
+            )
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
@@ -793,7 +799,10 @@ class BaseTestSupervisor:
         time.sleep(0.1)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
+        if not last_packet["data"].get("status") == "onboarding":
+            self.assertIn(
+                "onboard_data", last_packet["data"], "Onboarding not triggered"
+            )
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
@@ -862,7 +871,7 @@ class BaseTestSupervisor:
         )
 
         sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed())
+        self.assertTrue(channel.is_closed())
 
     def test_register_run_with_screening(self):
         """Test registering and running a run with screening"""
@@ -909,13 +918,11 @@ class BaseTestSupervisor:
         task_runner = TaskRunnerClass(self.task_run, task_run_args, shared_state)
         live_run = self.get_mock_run(blueprint, task_runner)
         sup.register_run(live_run)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive())
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.live_run.task_runner
-        self.assertIsNotNone(channel_id)
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -925,8 +932,8 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
+        sup.launch_sending_thread_deprecated()
+        self.assertIsNotNone(sup.agent_status_thread)
 
         # Register workers
         mock_worker_name = "MOCK_WORKER"
@@ -1041,7 +1048,7 @@ class BaseTestSupervisor:
         )
 
         sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed())
+        self.assertTrue(channel.is_closed())
 
     # TODO(#97) handle testing for disconnecting in and out of tasks
 

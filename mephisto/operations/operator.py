@@ -36,6 +36,7 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.operations.task_launcher import TaskLauncher
+from mephisto.operations.client_io_handler import ClientIOHandler
 from mephisto.operations.registry import (
     get_blueprint_from_type,
     get_crowd_provider_from_type,
@@ -177,6 +178,7 @@ class Operator:
             qualifications=shared_state.qualifications,
             task_runner=task_runner,
             task_launcher=launcher,
+            client_io=ClientIOHandler(self.db),
             channel_ids=[],
         )
 
@@ -261,8 +263,6 @@ class Operator:
             )
 
             self.supervisor.register_run(live_run)
-            if self.supervisor.sending_thread is None:
-                self.supervisor.launch_sending_thread()
         except (KeyboardInterrupt, Exception) as e:
             logger.error(
                 "Encountered error while launching run, shutting down", exc_info=True
@@ -304,7 +304,7 @@ class Operator:
                 if not task_run.get_is_completed():
                     continue
                 else:
-                    self.supervisor.shutdown_run_channels(tracked_run)
+                    tracked_run.client_io.shutdown()
                     tracked_run.architect.shutdown()
                     tracked_run.task_launcher.shutdown()
                     del self._task_runs_tracked[task_run.db_id]
