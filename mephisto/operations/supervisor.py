@@ -7,22 +7,6 @@
 
 import threading
 import time
-from mephisto.data_model.packet import (
-    Packet,
-    PACKET_TYPE_ALIVE,
-    PACKET_TYPE_AGENT_ACTION,
-    PACKET_TYPE_NEW_AGENT,
-    PACKET_TYPE_NEW_WORKER,
-    PACKET_TYPE_REQUEST_AGENT_STATUS,
-    PACKET_TYPE_RETURN_AGENT_STATUS,
-    PACKET_TYPE_INIT_DATA,
-    PACKET_TYPE_GET_INIT_DATA,
-    PACKET_TYPE_PROVIDER_DETAILS,
-    PACKET_TYPE_SUBMIT_ONBOARDING,
-    PACKET_TYPE_REQUEST_ACTION,
-    PACKET_TYPE_UPDATE_AGENT_STATUS,
-    PACKET_TYPE_ERROR_LOG,
-)
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -64,129 +48,42 @@ logger = get_logger(name=__name__)
 # Mostly, the supervisor oversees the communications
 # between LiveTaskRuns and workers over the channels
 
-# IO Specific maps and constants
-STATUS_TO_TEXT_MAP = {
-    AgentState.STATUS_EXPIRED: "This task is no longer available to be completed. "
-    "Please return it and try a different task",
-    AgentState.STATUS_TIMEOUT: "You took to long to respond to this task, and have timed out. "
-    "The task is no longer available, please return it.",
-    AgentState.STATUS_DISCONNECT: "You have disconnected from our server during the duration of the task. "
-    "If you have done substantial work, please reach out to see if we can recover it. ",
-    AgentState.STATUS_PARTNER_DISCONNECT: "One of your partners has disconnected while working on this task. We won't penalize "
-    "you for them leaving, so please submit this task as is.",
-}
-SYSTEM_CHANNEL_ID = "mephisto"  # TODO pull from somewhere
-SERVER_CHANNEL_ID = "mephisto_server"
-START_DEATH_TIME = 10
-
 
 class Supervisor:
     def __init__(self, db: "MephistoDB"):
         self.db = db
         # Tracked worker state
         self.agents: Dict[str, AgentInfo] = {}
-        self.agents_by_registration_id: Dict[str, AgentInfo] = {}
         # Agent status handling
         self.last_status_check = time.time()
-
-        # Tracked IO state
-        self.channels: Dict[str, ChannelInfo] = {}
-        # Map from onboarding id to agent request packet
-        self.onboarding_packets: Dict[str, Packet] = {}
-        # Message handling
-        self.message_queue: List[Packet] = []
-        self.sending_thread: Optional[threading.Thread] = None
-
-    def _on_channel_open(self, channel_id: str) -> None:
-        """Handler for what to do when a socket opens, we send an alive"""
-        channel_info = self.channels[channel_id]
-        self._send_alive(channel_info)
-
-    def _on_catastrophic_disconnect(self, channel_id: str) -> None:
-        # TODO(#102) Catastrophic disconnect needs to trigger cleanup
-        logger.error(f"Channel {channel_id} called on_catastrophic_disconnect")
-
-    def _on_channel_message(self, channel_id: str, packet: Packet) -> None:
-        """Incoming message handler defers to the internal handler"""
-        try:
-            channel_info = self.channels[channel_id]
-            self._on_message(packet, channel_info)
-        except Exception as e:
-            # TODO(#93) better error handling about failed messages
-            logger.exception(
-                f"Channel {channel_id} encountered error on packet {packet}",
-                exc_info=True,
-            )
-            raise
+        self.live_runs: Dict[str, "LiveTaskRun"] = {}
+        # TODO this should be in the part tracking agent status
+        self.agent_status_thread: Optional[threading.Thread] = None
+        self.is_shutdown = False
 
     def register_run(self, live_run: "LiveTaskRun") -> "LiveTaskRun":
         """Register the channels for a LiveTaskRun with this supervisor"""
         task_run = live_run.task_run
-        channels = live_run.architect.get_channels(
-            self._on_channel_open,
-            self._on_catastrophic_disconnect,
-            self._on_channel_message,
-        )
-        for channel in channels:
-            channel_id = self.register_channel(channel, live_run)
-            live_run.channel_ids.append(channel_id)
-
+        self.live_runs[task_run.db_id] = live_run
+        live_run.client_io.launch_channels(live_run, self)
         return live_run
-
-    def register_channel(self, channel: Channel, live_run: "LiveTaskRun") -> str:
-        """Register the channel to the specific live run"""
-        channel_id = channel.channel_id
-
-        channel_info = ChannelInfo(
-            channel_id=channel_id, channel=channel, live_run=live_run
-        )
-        self.channels[channel_id] = channel_info
-
-        channel.open()
-        self._send_alive(channel_info)
-        start_time = time.time()
-        while not channel.is_alive():
-            if time.time() - start_time > START_DEATH_TIME:
-                # TODO(OWN) Ask channel why it might have failed to connect?
-                self.channels[channel_id].channel.close()
-                raise ConnectionRefusedError(  # noqa F821 we only support py3
-                    "Was not able to establish a connection with the server, "
-                    "please try to run again. If that fails,"
-                    "please ensure that your local device has the correct SSL "
-                    "certs installed."
-                )
-            try:
-                self._send_alive(channel_info)
-            except Exception:
-                pass
-            time.sleep(0.3)
-        return channel_id
-
-    def close_channel(self, channel_id: str) -> None:
-        """Close the given channel by id"""
-        self.channels[channel_id].channel.close()
-        del self.channels[channel_id]
-
-    def shutdown_run_channels(self, live_run: LiveTaskRun) -> None:
-        """Close any channels related to a LiveTaskRun"""
-        run_channels = live_run.channel_ids
-        for channel_id in run_channels:
-            self.close_channel(channel_id)
 
     def shutdown(self) -> None:
         """Close all of the channels, join threads"""
         # Prepopulate agents and channels to close, as
         # these may change during iteration
         # Closing IO handling state
-        channels_to_close = list(self.channels.keys())
-        logger.debug(f"Closing channels {channels_to_close}")
-        for channel_id in channels_to_close:
-            channel_info = self.channels[channel_id]
-            channel_info.live_run.task_runner.shutdown()
-            self.close_channel(channel_id)
+        self.is_shutdown = True
+        runs_to_close = list(self.live_runs.keys())
+        logger.debug(f"Ending runs {runs_to_close}")
+        # TODO runs are started in operator, and should be closed there
+        for run_id in runs_to_close:
+            self.live_runs[run_id].task_runner.shutdown()
+            self.live_runs[run_id].client_io.shutdown()
+
         logger.debug(f"Joining send thread")
-        if self.sending_thread is not None:
-            self.sending_thread.join()
+        if self.agent_status_thread is not None:
+            self.agent_status_thread.join()
         # Closing unit executions
         logger.debug(f"Joining agents {self.agents}")
         agents_to_close = list(self.agents.values())
@@ -195,63 +92,12 @@ class Supervisor:
             if assign_thread is not None:
                 assign_thread.join()
 
-    def _send_alive(self, channel_info: ChannelInfo) -> bool:
-        logger.info("Sending alive")
-        return channel_info.channel.send(
-            Packet(
-                packet_type=PACKET_TYPE_ALIVE,
-                sender_id=SYSTEM_CHANNEL_ID,
-                receiver_id=channel_info.channel_id,
-            )
-        )
-
-    def _on_act(self, packet: Packet, channel_info: ChannelInfo):
-        """Handle an action as sent from an agent"""
-        agent = self.agents[packet.sender_id].agent
-
-        # If the packet is_submit, and has files, we need to
-        # process downloading those files first
-        if packet.data.get("MEPHISTO_is_submit") is True:
-            data_files = packet.data.get("files")
-            if data_files is not None:
-                save_dir = agent.get_data_dir()
-                architect = channel_info.live_run.architect
-                for f_obj in data_files:
-                    architect.download_file(f_obj["filename"], save_dir)
-
-        # TODO(OWN) Packets stored as info from workers can also be
-        # saved somewhere locally just in case the world dies, and
-        # then cleaned up once the world completes successfully
-        agent.pending_actions.append(packet)
-        agent.has_action.set()
-
-    def _on_submit_onboarding(self, packet: Packet, channel_info: ChannelInfo) -> None:
-        """Handle the submission of onboarding data"""
-        onboarding_id = packet.sender_id
-        if onboarding_id not in self.agents:
-            logger.warning(
-                f"Onboarding agent {onboarding_id} already submitted or disconnected, "
-                f"but is calling _on_submit_onboarding again"
-            )
-            return
-        agent_info = self.agents[onboarding_id]
-        agent = agent_info.agent
-
-        logger.debug(f"{agent} has submitted onboarding: {packet}")
-        # Update the request id for the original packet (which has the required
-        # registration data) to be the new submission packet (so that we answer
-        # back properly under the new request)
-        self.onboarding_packets[onboarding_id].data["request_id"] = packet.data[
-            "request_id"
-        ]
-        del packet.data["request_id"]
-        agent.pending_actions.append(packet)
-        agent.has_action.set()
-
-    def _register_worker(self, packet: Packet, channel_info: ChannelInfo) -> None:
-        """Process a worker registration packet to register a worker"""
-        crowd_data = packet.data["provider_data"]
-        crowd_provider = channel_info.live_run.provider
+    def register_worker(
+        self, crowd_data: Dict[str, Any], request_id: str, temp_live_run
+    ) -> None:
+        """Process a worker registration to register a worker"""
+        # TODO remove temp_live_run when this is in the worker pool, which is registered to a run
+        crowd_provider = temp_live_run.provider
         worker_name = crowd_data["worker_name"]
         workers = self.db.find_workers(worker_name=worker_name)
         if len(workers) == 0:
@@ -264,26 +110,13 @@ class Supervisor:
         else:
             worker = workers[0]
 
-        if not worker_is_qualified(worker, channel_info.live_run.qualifications):
-            self.message_queue.append(
-                Packet(
-                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_CHANNEL_ID,
-                    receiver_id=channel_info.channel_id,
-                    data={"request_id": packet.data["request_id"], "worker_id": None},
-                )
+        if not worker_is_qualified(worker, temp_live_run.qualifications):
+            temp_live_run.client_io.send_provider_details(
+                request_id, {"worker_id": None}
             )
         else:
-            self.message_queue.append(
-                Packet(
-                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_CHANNEL_ID,
-                    receiver_id=channel_info.channel_id,
-                    data={
-                        "request_id": packet.data["request_id"],
-                        "worker_id": worker.db_id,
-                    },
-                )
+            temp_live_run.client_io.send_provider_details(
+                request_id, {"worker_id": worker.db_id}
             )
 
     def _launch_and_run_onboarding(
@@ -316,7 +149,10 @@ class Supervisor:
             task_runner.cleanup_onboarding(tracked_agent)
         finally:
             del self.agents[onboarding_id]
-            del self.onboarding_packets[onboarding_id]
+
+            # TODO clean this up when splitting out unit executor
+            live_run = self.agent_info_to_live_run(agent_info)
+            del live_run.client_io.onboarding_packets[onboarding_id]
 
     def _launch_and_run_assignment(
         self,
@@ -387,13 +223,13 @@ class Supervisor:
             task_runner.task_run.clear_reservation(unit)
 
     def _assign_unit_to_agent(
-        self, packet: Packet, channel_info: ChannelInfo, units: List["Unit"]
-    ):
+        self, crowd_data: Dict[str, Any], request_id: str, units: List["Unit"]
+    ) -> str:
         """Handle creating an agent for the specific worker to register an agent"""
-
-        crowd_data = packet.data["provider_data"]
-        task_run = channel_info.live_run.task_runner.task_run
-        crowd_provider = channel_info.live_run.provider
+        # TODO ew this needs a fix once this is in the worker_pool
+        live_run = self.live_runs[units[0].get_task_run().db_id]
+        task_run = live_run.task_run
+        crowd_provider = live_run.provider
         worker_id = crowd_data["worker_id"]
         worker = Worker.get(self.db, worker_id)
 
@@ -406,44 +242,28 @@ class Supervisor:
             unit = units.pop(0)
             reserved_unit = task_run.reserve_unit(unit)
         if reserved_unit is None:
-            self.message_queue.append(
-                Packet(
-                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_CHANNEL_ID,
-                    receiver_id=channel_info.channel_id,
-                    data={"request_id": packet.data["request_id"], "agent_id": None},
-                )
-            )
+            live_run.client_io.send_provider_details(request_id, {"agent_id": None})
         else:
             agent = crowd_provider.AgentClass.new_from_provider_data(
                 self.db, worker, unit, crowd_data
             )
-            logger.debug(f"Created agent {agent}, {agent.db_id}.")
-            self.message_queue.append(
-                Packet(
-                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_CHANNEL_ID,
-                    receiver_id=channel_info.channel_id,
-                    data={
-                        "request_id": packet.data["request_id"],
-                        "agent_id": agent.get_agent_id(),
-                    },
-                )
+            live_run.client_io.register_agent_from_request_id(
+                agent.get_agent_id(),
+                request_id,
+                crowd_data["agent_registration_id"],
             )
-            agent_info = AgentInfo(agent=agent, used_channel_id=channel_info.channel_id)
+            logger.debug(f"Created agent {agent}, {agent.db_id}.")
+            live_run.client_io.send_provider_details(
+                request_id, {"agent_id": agent.get_agent_id()}
+            )
+            agent_info = AgentInfo(agent=agent)
             self.agents[agent.get_agent_id()] = agent_info
-            self.agents_by_registration_id[
-                crowd_data["agent_registration_id"]
-            ] = agent_info
 
             # Launch individual tasks
-            if (
-                unit.unit_index < 0
-                or not channel_info.live_run.task_runner.is_concurrent
-            ):
+            if unit.unit_index < 0 or not live_run.task_runner.is_concurrent:
                 unit_thread = threading.Thread(
                     target=self._launch_and_run_unit,
-                    args=(unit, agent_info, channel_info.live_run.task_runner),
+                    args=(unit, agent_info, live_run.task_runner),
                     name=f"Unit-thread-{unit.db_id}",
                 )
                 agent_info.assignment_thread = unit_thread
@@ -454,14 +274,14 @@ class Supervisor:
                 agents = assignment.get_agents()
                 if None in agents:
                     agent.update_status(AgentState.STATUS_WAITING)
-                    return  # need to wait for all agents to be here to launch
+                    return agent.get_agent_id()
 
                 # Launch the backend for this assignment
                 agent_infos = [self.agents[a.db_id] for a in agents if a is not None]
 
                 assign_thread = threading.Thread(
                     target=self._launch_and_run_assignment,
-                    args=(assignment, agent_infos, channel_info.live_run.task_runner),
+                    args=(assignment, agent_infos, live_run.task_runner),
                     name=f"Assignment-thread-{assignment.db_id}",
                 )
 
@@ -470,6 +290,7 @@ class Supervisor:
                     agent_info.assignment_thread = assign_thread
 
                 assign_thread.start()
+                return agent.get_agent_id()
 
     def _register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
         """
@@ -486,10 +307,7 @@ class Supervisor:
             )
             return
 
-        current_status = onboarding_agent.get_status()
-        channel_id = onboarding_agent_info.used_channel_id
-        channel_info = self.channels[channel_id]
-        live_run = channel_info.live_run
+        live_run = self.agent_info_to_live_run(onboarding_agent_info)
         blueprint = live_run.blueprint
         worker = onboarding_agent.get_worker()
 
@@ -522,57 +340,37 @@ class Supervisor:
             # instances where a worker has failed onboarding, but the onboarding
             # task still allowed submission of the failed data (no front-end validation)
             # units = [self.dummy_launcher.launch_dummy()]
-            # self._assign_unit_to_agent(packet, channel_info, units)
+            # self._assign_unit_to_agent(..., units)
             usable_units = []
 
-        packet = self.onboarding_packets[onboarding_agent.get_agent_id()]
+        # TODO refactor with worker pool
+        crowd_data, request_id = live_run.client_io.onboarding_packets[
+            onboarding_agent.get_agent_id()
+        ]
         self._try_send_agent_messages(onboarding_agent_info)
+        # TODO is this status update necessary?
         self._send_status_update(onboarding_agent_info)
-        self._assign_unit_to_agent(packet, channel_info, usable_units)
+        if len(usable_units) == 0:
+            live_run.client_io.send_provider_details(request_id, {"agent_id": None})
+        else:
+            self._assign_unit_to_agent(crowd_data, request_id, usable_units)
 
-    def _register_agent(self, packet: Packet, channel_info: ChannelInfo):
-        """Process an agent registration packet to register an agent"""
-        # First see if this is a reconnection
-        crowd_data = packet.data["provider_data"]
-        agent_registration_id = crowd_data["agent_registration_id"]
-        logger.debug(f"Incoming request to register agent {agent_registration_id}.")
-        if agent_registration_id in self.agents_by_registration_id:
-            agent = self.agents_by_registration_id[agent_registration_id].agent
-            # Update the source channel, in case it has changed
-            self.agents[agent.get_agent_id()].used_channel_id = channel_info.channel_id
-            self.message_queue.append(
-                Packet(
-                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_CHANNEL_ID,
-                    receiver_id=channel_info.channel_id,
-                    data={
-                        "request_id": packet.data["request_id"],
-                        "agent_id": agent.get_agent_id(),
-                    },
-                )
-            )
-            logger.debug(
-                f"Found existing agent_registration_id {agent_registration_id}, "
-                f"reconnecting to {agent}."
-            )
-            return
-
+    def register_agent(
+        self, crowd_data: Dict[str, Any], request_id: str, temp_live_run
+    ):
+        """Process an agent registration packet to register an agent, returning the agent_id"""
         # Process a new agent
-        live_run = channel_info.live_run
+        live_run = temp_live_run
         task_run = live_run.task_run
+        agent_registration_id = crowd_data["agent_registration_id"]
         worker_id = crowd_data["worker_id"]
         worker = Worker.get(self.db, worker_id)
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
         if len(units) == 0:
-            self.message_queue.append(
-                Packet(
-                    packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                    sender_id=SYSTEM_CHANNEL_ID,
-                    receiver_id=channel_info.channel_id,
-                    data={"request_id": packet.data["request_id"], "agent_id": None},
-                )
+            temp_live_run.client_io.send_provider_details(
+                request_id, {"agent_id": None}
             )
             logger.debug(
                 f"agent_registration_id {agent_registration_id}, had no valid units."
@@ -580,21 +378,16 @@ class Supervisor:
             return
 
         # If there's onboarding, see if this worker has already been disqualified
-        worker_id = crowd_data["worker_id"]
         worker = Worker.get(self.db, worker_id)
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
+            print(
+                "Disqualified?",
+                worker.is_disqualified(blueprint.onboarding_qualification_name),
+            )
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
-                self.message_queue.append(
-                    Packet(
-                        packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                        sender_id=SYSTEM_CHANNEL_ID,
-                        receiver_id=channel_info.channel_id,
-                        data={
-                            "request_id": packet.data["request_id"],
-                            "agent_id": None,
-                        },
-                    )
+                temp_live_run.client_io.send_provider_details(
+                    request_id, {"agent_id": None}
                 )
                 logger.debug(
                     f"Worker {worker_id} is already disqualified by onboarding "
@@ -605,27 +398,29 @@ class Supervisor:
                 # Send a packet with onboarding information
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
-                onboard_agent.state.set_init_state(onboard_data)
-                agent_info = AgentInfo(
-                    agent=onboard_agent, used_channel_id=channel_info.channel_id
+                temp_live_run.client_io.register_agent_from_request_id(
+                    onboard_agent.get_agent_id(),
+                    request_id,
+                    crowd_data["agent_registration_id"],
                 )
+                onboard_agent.state.set_init_state(onboard_data)
+                agent_info = AgentInfo(agent=onboard_agent)
                 onboard_id = onboard_agent.get_agent_id()
                 # register onboarding agent
                 self.agents[onboard_id] = agent_info
-                self.onboarding_packets[onboard_id] = packet
-                self.message_queue.append(
-                    Packet(
-                        packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                        sender_id=SYSTEM_CHANNEL_ID,
-                        receiver_id=channel_info.channel_id,
-                        data={
-                            "request_id": packet.data["request_id"],
-                            "agent_id": onboard_id,
-                            "onboard_data": onboard_data,
-                        },
-                    )
-                )
 
+                # TODO move when worker_pool is done
+                temp_live_run.client_io.onboarding_packets[onboard_id] = (
+                    crowd_data,
+                    request_id,
+                )
+                temp_live_run.client_io.send_provider_details(
+                    request_id,
+                    {
+                        "agent_id": onboard_id,
+                        "onboard_data": onboard_data,
+                    },
+                )
                 logger.debug(
                     f"{worker} is starting onboarding thread with "
                     f"onboarding {onboard_agent}."
@@ -655,16 +450,8 @@ class Supervisor:
                     ), "LiveTaskRun must have launcher to use screening tasks"
                     units = [launcher.launch_screening_unit(screening_data)]
                 else:
-                    self.message_queue.append(
-                        Packet(
-                            packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                            sender_id=SYSTEM_CHANNEL_ID,
-                            receiver_id=channel_info.channel_id,
-                            data={
-                                "request_id": packet.data["request_id"],
-                                "agent_id": None,
-                            },
-                        )
+                    temp_live_run.client_io.send_provider_details(
+                        request_id, {"agent_id": None}
                     )
                     logger.debug(
                         f"No screening units left for {agent_registration_id}."
@@ -692,95 +479,19 @@ class Supervisor:
                     return
 
         # Not onboarding, so just register directly
-        self._assign_unit_to_agent(packet, channel_info, units)
+        self._assign_unit_to_agent(crowd_data, request_id, units)
 
-    def _get_init_data(self, packet, channel_info: ChannelInfo):
-        """Get the initialization data for the assigned agent's task"""
-        task_runner = channel_info.live_run.task_runner
-        agent_id = packet.data["provider_data"]["agent_id"]
-        agent_info = self.agents[agent_id]
-        assert isinstance(
-            agent_info.agent, Agent
-        ), f"Can only get init unit data for Agents, not OnboardingAgents, got {agent_info}"
-        unit_data = task_runner.get_init_data_for_agent(agent_info.agent)
-
-        agent_data_packet = Packet(
-            packet_type=PACKET_TYPE_INIT_DATA,
-            sender_id=SYSTEM_CHANNEL_ID,
-            receiver_id=channel_info.channel_id,
-            data={"request_id": packet.data["request_id"], "init_data": unit_data},
-        )
-
-        self.message_queue.append(agent_data_packet)
-
-        if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
-            # TODO bring these into constants somehow
-            for message in unit_data["raw_messages"]:
-                packet = Packet.from_dict(message)
-                packet.receiver_id = agent_id
-                agent_info.agent.pending_observations.append(packet)
-
-    @staticmethod
-    def _log_frontend_error(packet):
-        error = packet.data["final_data"]
-        logger.info(f"[FRONT_END_ERROR]: {error}")
-
-    def _on_message(self, packet: Packet, channel_info: ChannelInfo):
-        """Handle incoming messages from the channel"""
-        # TODO(#102) this method currently assumes that the packet's sender_id will
-        # always be a valid agent in our list of agent_infos. At the moment this
-        # is a valid assumption, but will not be on recovery from catastrophic failure.
-        if packet.type == PACKET_TYPE_AGENT_ACTION:
-            self._on_act(packet, channel_info)
-        elif packet.type == PACKET_TYPE_NEW_AGENT:
-            self._register_agent(packet, channel_info)
-        elif packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:
-            self._on_submit_onboarding(packet, channel_info)
-        elif packet.type == PACKET_TYPE_NEW_WORKER:
-            self._register_worker(packet, channel_info)
-        elif packet.type == PACKET_TYPE_GET_INIT_DATA:
-            self._get_init_data(packet, channel_info)
-        elif packet.type == PACKET_TYPE_RETURN_AGENT_STATUS:
-            # Record this status response
-            self._handle_updated_agent_status(packet.data)
-        elif packet.type == PACKET_TYPE_ERROR_LOG:
-            self._log_frontend_error(packet)
-        else:
-            # PACKET_TYPE_REQUEST_AGENT_STATUS, PACKET_TYPE_ALIVE,
-            # PACKET_TYPE_INIT_DATA
-            raise Exception(f"Unexpected packet type {packet.type}")
-
-    # TODO(#103) maybe batching these is better?
     def _try_send_agent_messages(self, agent_info: AgentInfo):
         """Handle sending any possible messages for a specific agent"""
-        channel_info = self.channels[agent_info.used_channel_id]
-        agent = agent_info.agent
-        while len(agent.pending_observations) > 0:
-            curr_obs = agent.pending_observations.pop(0)
-            did_send = channel_info.channel.send(curr_obs)
-            if not did_send:
-                logger.error(f"Failed to send packet {curr_obs} to {channel_info}")
-                agent.pending_observations.insert(0, curr_obs)
-                return  # something up with the channel, try later
-
-    def _send_message_queue(self) -> None:
-        """Send all of the messages in the system queue"""
-        while len(self.message_queue) > 0:
-            curr_obs = self.message_queue.pop(0)
-            channel = self.channels[curr_obs.receiver_id].channel
-            did_send = channel.send(curr_obs)
-            if not did_send:
-                logger.error(
-                    f"Failed to send packet {curr_obs} to server {curr_obs.receiver_id}"
-                )
-                self.message_queue.insert(0, curr_obs)
-                return  # something up with the channel, try later
+        live_run = self.agent_info_to_live_run(agent_info)
+        live_run.client_io.send_message_queue(agent_info.agent.pending_observations)
 
     def _send_status_update(self, agent_info: AgentInfo) -> None:
         """
         Handle telling the frontend agent about a change in their
         active status. (Pushing a change in AgentState)
         """
+        # TODO deprecate, have status updates trigger sends automatically
         status = agent_info.agent.db_status
         if isinstance(agent_info.agent, OnboardingAgent):
             if status in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
@@ -788,20 +499,9 @@ class Supervisor:
                 # Can be simplified if we improve how bootstrap-chat handles
                 # the transition of onboarding states
                 status = AgentState.STATUS_WAITING
-        send_packet = Packet(
-            packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
-            sender_id=SYSTEM_CHANNEL_ID,
-            receiver_id=agent_info.agent.get_agent_id(),
-            data={
-                "status": status,
-                "state": {
-                    "done_text": STATUS_TO_TEXT_MAP.get(status),
-                    "task_done": status == AgentState.STATUS_PARTNER_DISCONNECT,
-                },
-            },
-        )
-        channel_info = self.channels[agent_info.used_channel_id]
-        channel_info.channel.send(send_packet)
+
+        live_run = self.agent_info_to_live_run(agent_info)
+        live_run.client_io.send_status_update(agent_info.agent.get_agent_id(), status)
 
     def _mark_agent_done(self, agent_info: AgentInfo) -> None:
         """
@@ -814,21 +514,10 @@ class Supervisor:
         if agent_info.agent.db_status in AgentState.complete() + [
             AgentState.STATUS_PARTNER_DISCONNECT
         ]:
-            return
-        send_packet = Packet(
-            packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
-            sender_id=SYSTEM_CHANNEL_ID,
-            receiver_id=agent_info.agent.get_agent_id(),
-            data={
-                "status": "completed",
-                "state": {
-                    "done_text": "You have completed this task. Please submit.",
-                    "task_done": True,
-                },
-            },
-        )
-        channel_info = self.channels[agent_info.used_channel_id]
-        channel_info.channel.send(send_packet)
+            return  # Don't send done messages to agents that are already completed
+
+        live_run = self.agent_info_to_live_run(agent_info)
+        live_run.client_io.send_done_message(agent_info.agent.db_id)
 
     def _handle_updated_agent_status(self, status_map: Dict[str, str]):
         """
@@ -859,48 +548,17 @@ class Supervisor:
                 agent.update_status(status)
         pass
 
-    def _request_action(self, agent_info: AgentInfo) -> None:
-        """
-        Request an act from the agent targetted here. If the
-        agent is found by the server, this request will be
-        forwarded.
-        """
-        send_packet = Packet(
-            packet_type=PACKET_TYPE_REQUEST_ACTION,
-            sender_id=SYSTEM_CHANNEL_ID,
-            receiver_id=agent_info.agent.get_agent_id(),
-            data={},
-        )
-        channel_info = self.channels[agent_info.used_channel_id]
-        channel_info.channel.send(send_packet)
-
-    def _request_status_update(self) -> None:
-        """
-        Check last round of statuses, then request
-        an update from the server on all agent's current status
-        """
-        if time.time() - self.last_status_check < STATUS_CHECK_TIME:
-            return
-
-        self.last_status_check = time.time()
-
-        for channel_id, channel_info in self.channels.items():
-            send_packet = Packet(
-                packet_type=PACKET_TYPE_REQUEST_AGENT_STATUS,
-                sender_id=SYSTEM_CHANNEL_ID,
-                receiver_id=channel_id,
-                data={},
-            )
-            channel_info.channel.send(send_packet)
-
-    def _channel_handling_thread(self) -> None:
-        """Thread for handling outgoing messages through the channels"""
-        while len(self.channels) > 0:
+    def _agent_status_handling_thread(self) -> None:
+        """Thread for polling and pushing agent statuses"""
+        # TODO rather than polling repeatedly for these, can we use
+        # awaits and only trigger this loop when something is ready?
+        while not self.is_shutdown:
             current_agents = list(self.agents.values())
             for agent_info in current_agents:
+                live_run = self.agent_info_to_live_run(agent_info)
                 # Send requests for action
                 if agent_info.agent.wants_action.is_set():
-                    self._request_action(agent_info)
+                    live_run.client_io.request_action(agent_info.agent.get_agent_id())
                     agent_info.agent.wants_action.clear()
                 # Pass updated statuses
                 if agent_info.agent.has_updated_status.is_set():
@@ -908,16 +566,19 @@ class Supervisor:
                     agent_info.agent.has_updated_status.clear()
                 # clear the message queue for this agent
                 self._try_send_agent_messages(agent_info)
-            # Send all messages from the system
-            self._send_message_queue()
-            self._request_status_update()
-            # TODO(#103) is there a way we can trigger this when
-            # agents observe instead?
             time.sleep(0.1)
 
-    def launch_sending_thread(self) -> None:
+    def launch_sending_thread_deprecated(self) -> None:
         """Launch the sending thread for this supervisor"""
-        self.sending_thread = threading.Thread(
-            target=self._channel_handling_thread, name=f"channel-sending-thread"
+        # TODO move to agent handler
+        self.agent_status_thread = threading.Thread(
+            target=self._agent_status_handling_thread, name=f"agent-status-thread"
         )
-        self.sending_thread.start()
+        self.agent_status_thread.start()
+
+    def agent_info_to_live_run(self, agent_info: AgentInfo) -> LiveTaskRun:
+        """Temporary helper to extract the live run for an agent info"""
+        # This should be replaced by having the separate agents aware of the
+        # live run they belong to
+        task_run = agent_info.agent.get_task_run()
+        return self.live_runs[task_run.db_id]

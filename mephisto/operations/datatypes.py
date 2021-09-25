@@ -52,5 +52,4 @@ class ChannelInfo:
 @dataclass
 class AgentInfo:
     agent: Union["Agent", "OnboardingAgent"]
-    used_channel_id: str
     assignment_thread: Optional[threading.Thread] = None
