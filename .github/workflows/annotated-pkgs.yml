@@ -37,5 +37,8 @@ jobs:
       - name: Build packages
         run: yarn workspaces foreach -ptA run build
 
+      - name: Build packages with legacy setup
+        run: cd packages/global-context-store && npm install && npm run build
+
       - name: Test that storybook compiles
         run: yarn workspace sb build-storybook
