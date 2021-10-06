@@ -81,6 +81,9 @@ class ScreenTaskRequired(BlueprintMixin):
     qualify workers who have never attempted the task before
     """
 
+    ArgsMixin = ScreenTaskRequiredArgs
+    SharedStateMixin = ScreenTaskSharedState
+
     def init_mixin_config(
         self,
         task_run: "TaskRun",
@@ -113,7 +116,7 @@ class ScreenTaskRequired(BlueprintMixin):
         find_or_create_qualification(task_run.db, self.failed_qualification_name)
 
     @classmethod
-    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState"):
+    def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState"):
         use_screening_task = args.blueprint.get("use_screening_task", False)
         if not use_screening_task:
             return

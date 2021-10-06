@@ -534,7 +534,54 @@ class AgentState(ABC):
 class BlueprintMixin(ABC):
     """
     Base class for compositional mixins for blueprints
+
+    We expect mixins that subclass other mixins to handle subinitialization
+    work, such that only the highest class needs to be called.
     """
+
+    @property
+    @abstractmethod
+    def ArgsMixin(self) -> Any:  # Should be a dataclass, to extend BlueprintArgs
+        pass
+
+    @property
+    @abstractmethod
+    def SharedStateMixin(
+        self,
+    ) -> Any:  # Also should be a dataclass, to extend SharedTaskState
+        pass
+
+    @staticmethod
+    def extract_unique_mixins(blueprint_class: ClassVar[Type["Blueprint"]]):
+        """Return the unique mixin classes that are used in the given blueprint class"""
+        mixin_subclasses = [
+            clazz
+            for clazz in blueprint_class.mro()
+            if issubclass(clazz, BlueprintMixin)
+        ]
+        # Remove magic created with `mixin_args_and_state`
+        while blueprint_class.__name__ == "MixedInBlueprint":
+            blueprint_class = mixin_subclasses.pop(0)
+        removed_locals = [
+            clazz
+            for clazz in mixin_subclasses
+            if "MixedInBlueprint" not in clazz.__name__
+        ]
+        filtered_subclasses = set(
+            clazz
+            for clazz in removed_locals
+            if clazz != BlueprintMixin and clazz != blueprint_class
+        )
+        # we also want to make sure that we don't double-count extensions of mixins, so remove classes that other classes are subclasses of
+        def is_subclassed(clazz):
+            return True in [
+                issubclass(x, clazz) and x != clazz for x in filtered_subclasses
+            ]
+
+        unique_subclasses = [
+            clazz for clazz in filtered_subclasses if not is_subclassed(clazz)
+        ]
+        return unique_subclasses
 
     @abstractmethod
     def init_mixin_config(
@@ -545,7 +592,7 @@ class BlueprintMixin(ABC):
 
     @classmethod
     @abstractmethod
-    def assert_task_args(
+    def assert_mixin_args(
         cls, args: "DictConfig", shared_state: "SharedTaskState"
     ) -> None:
         """Method to validate the incoming args and throw if something won't work"""
@@ -558,6 +605,37 @@ class BlueprintMixin(ABC):
     ) -> List[Dict[str, Any]]:
         """Method to provide any required qualifications to make this mixin function"""
         raise NotImplementedError()
+
+    @classmethod
+    def mixin_args_and_state(mixin_cls: "BlueprintMixin", target_cls: "Blueprint"):
+        """
+        Magic utility decorator that can be used to inject mixin configurations
+        (BlueprintArgs and SharedTaskState) without the user needing to define new
+        classes for these. Should only be used by tasks that aren't already specifying
+        new versions of these, which should just inherit otherwise.
+
+        Usage:
+          @register_mephisto_abstraction()
+          @ABlueprintMixin.mixin_args_and_state
+          class MyBlueprint(ABlueprintMixin, Blueprint):
+              pass
+        """
+
+        @dataclass
+        class MixedInArgsClass(mixin_cls.ArgsMixin, target_cls.ArgsClass):
+            pass
+
+        @dataclass
+        class MixedInSharedStateClass(
+            mixin_cls.SharedStateMixin, target_cls.SharedStateClass
+        ):
+            pass
+
+        class MixedInBlueprint(target_cls):
+            ArgsClass = MixedInArgsClass
+            SharedStateClass = MixedInSharedStateClass
+
+        return MixedInBlueprint
 
 
 class Blueprint(ABC):
@@ -585,6 +663,20 @@ class Blueprint(ABC):
         self.shared_state = shared_state
         self.frontend_task_config = shared_state.task_config
 
+        # We automatically call all mixins `init_mixin_config` methods available.
+        mixin_subclasses = BlueprintMixin.extract_unique_mixins(self.__class__)
+        for clazz in mixin_subclasses:
+            clazz.init_mixin_config(self, task_run, args, shared_state)
+
+    @classmethod
+    def get_required_qualifications(
+        cls, args: DictConfig, shared_state: "SharedTaskState"
+    ):
+        quals = []
+        for clazz in BlueprintMixin.extract_unique_mixins(cls):
+            quals += clazz.get_mixin_qualifications(args, shared_state)
+        return quals
+
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
@@ -592,6 +684,10 @@ class Blueprint(ABC):
         fail if a task launched with these arguments would
         not work
         """
+        # We automatically call all mixins `assert_task_args` methods available.
+        mixin_subclasses = BlueprintMixin.extract_unique_mixins(cls)
+        for clazz in mixin_subclasses:
+            clazz.assert_mixin_args(args, shared_state)
         return
 
     def get_frontend_args(self) -> Dict[str, Any]:

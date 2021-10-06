@@ -107,6 +107,7 @@ class StaticHTMLBlueprint(StaticBlueprint):
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """Ensure that the data can be properly loaded"""
+        Blueprint.assert_task_args(args, shared_state)
         blue_args = args.blueprint
         if isinstance(shared_state.static_task_data, types.GeneratorType):
             raise AssertionError("You can't launch an HTML static task on a generator")

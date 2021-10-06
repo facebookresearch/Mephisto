@@ -52,12 +52,12 @@ BLUEPRINT_TYPE = "abstract_static"
 
 
 @dataclass
-class SharedStaticTaskState(SharedTaskState, OnboardingSharedState):
+class SharedStaticTaskState(OnboardingRequired.SharedStateMixin, SharedTaskState):
     static_task_data: Iterable[Any] = field(default_factory=list)
 
 
 @dataclass
-class StaticBlueprintArgs(BlueprintArgs):
+class StaticBlueprintArgs(OnboardingRequired.ArgsMixin, BlueprintArgs):
     _blueprint_type: str = BLUEPRINT_TYPE
     _group: str = field(
         default="StaticBlueprint",
@@ -92,7 +92,7 @@ class StaticBlueprintArgs(BlueprintArgs):
     )
 
 
-class StaticBlueprint(Blueprint, OnboardingRequired):
+class StaticBlueprint(OnboardingRequired, Blueprint):
     """
     Abstract blueprint for a task that runs without any extensive backend.
     These are generally one-off tasks sending data to the frontend and then
@@ -114,7 +114,6 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
         shared_state: "SharedStaticTaskState",
     ):
         super().__init__(task_run, args, shared_state)
-        self.init_onboarding_config(task_run, args, shared_state)
 
         # Originally just a list of dicts, but can also be a generator of dicts
         self._initialization_data_dicts: Iterable[Dict[str, Any]] = []
@@ -152,6 +151,8 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedStaticTaskState"):
         """Ensure that the data can be properly loaded"""
+        super().assert_task_args(args, shared_state)
+
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
