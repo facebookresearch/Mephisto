@@ -96,7 +96,7 @@ For this you'll want to use the interface that a `CrowdProvider` has set up to d
 Note, while you're able to grant these qualifications to a worker that isn't tracked by Mephisto, it will not be possible for Mephisto to help in bookkeeping qualifications granted to workers in this manner.
 
 # What if I want to use qualifications only set by a provider?
-For the special case of provider-specific qualifications, `SharedTaskState` has fields for `<provider>_specific_qualifications` wherein you can put qualifications in the expected format for that crowd provider. For instance, you can do the following for using an MTurk-specific qualification on a task:
+For the special case of provider-specific qualifications, `SharedTaskState` has fields for `<provider>_specific_qualifications` wherein you can put qualifications in the expected format for that crowd provider. For instance, you can do the following for using an [MTurk-specific qualification](https://docs.aws.amazon.com/AWSMechTurk/latest/AWSMturkAPI/ApiReference_QualificationRequirementDataStructureArticle.html#ApiReference_QualificationType-IDs) on a task:
 ```python
 shared_state = #... initialize a SharedTaskState for your run
 
