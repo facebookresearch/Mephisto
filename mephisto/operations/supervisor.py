@@ -35,7 +35,11 @@ from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
 )
 from mephisto.operations.registry import get_crowd_provider_from_type
-from mephisto.operations.task_launcher import TaskLauncher, SCREENING_UNIT_INDEX
+from mephisto.operations.task_launcher import (
+    TaskLauncher,
+    SCREENING_UNIT_INDEX,
+    GOLD_UNIT_INDEX,
+)
 from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
 
 from dataclasses import dataclass
@@ -408,7 +412,7 @@ class Supervisor:
             logger.exception(f"Cleaning up unit: {e}", exc_info=True)
             task_runner.cleanup_unit(unit)
         finally:
-            if unit.unit_index == SCREENING_UNIT_INDEX:
+            if unit.unit_index in [SCREENING_UNIT_INDEX, GOLD_UNIT_INDEX]:
                 if agent.get_status() != AgentState.STATUS_COMPLETED:
                     blueprint = task_runner.task_run.get_blueprint(
                         args=task_runner.args
@@ -696,6 +700,26 @@ class Supervisor:
                     logger.debug(
                         f"No screening units left for {agent_registration_id}."
                     )
+                    return
+        if isinstance(blueprint, UseGoldUnit) and blueprint.use_golds:
+            if blueprint.should_produce_gold_for_worker(worker):
+                gold_data = blueprint.get_gold_unit_data_for_worker(worker)
+                if gold_data is not None:
+                    launcher = channel_info.job.task_launcher
+                    units = [launcher.launch_gold_unit(gold_data)]
+                else:
+                    self.message_queue.append(
+                        Packet(
+                            packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                            sender_id=SYSTEM_CHANNEL_ID,
+                            receiver_id=channel_info.channel_id,
+                            data={
+                                "request_id": packet.data["request_id"],
+                                "agent_id": None,
+                            },
+                        )
+                    )
+                    logger.debug(f"No gold units left for {agent_registration_id}...")
                     return
 
         # Not onboarding, so just register directly

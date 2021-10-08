@@ -69,7 +69,6 @@ def blank_generator():
 
 @dataclass
 class ScreenTaskSharedState:
-    onboarding_data: Dict[str, Any] = field(default_factory=dict)
     screening_data_factory: Tuple[bool, ScreenUnitDataGenerator] = field(
         default_factory=lambda: blank_generator()
     )
