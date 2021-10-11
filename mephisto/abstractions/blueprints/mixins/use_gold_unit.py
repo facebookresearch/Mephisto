@@ -18,6 +18,7 @@ from typing import (
 
 import types
 import random
+import math
 from mephisto.abstractions.blueprint import BlueprintMixin, AgentState
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
@@ -104,6 +105,17 @@ def worker_needs_gold(
     Return a bool of whether or not a worker needs to be shown a gold unit in the current slot.
     Generally we show a lot of of golds to begin with, (up until min_golds), and then scale down.
     """
+    # After launching, if the correct golds are less than the min, we need more golds
+    if num_correct < min_golds:
+        return True
+    excess_golds = num_correct - (min_golds + num_incorrect)
+
+    # (Somewhat arbitrarily), we scale to ensure that workers complete golds for every
+    # This gives ~5% gold at 100 and ~1% gold at 1000
+    target_gold = math.ceil(math.pow(math.log10(units_completed)), 2.2)
+    if excess_golds < target_gold:
+        return True
+    return False
 
 
 def worker_qualifies(
@@ -112,6 +124,12 @@ def worker_qualifies(
     """
     Return a bool of whether or not a worker is qualified to continue working on these tasks.
     """
+    # We could potentially use a scaling function on the proportion of incorrect golds
+    # over the total number of units completed, to be a little more lax, but this methodology
+    # needs more investigation.
+
+    # Instead, we just have strikes system
+    return num_incorrect < max_incorrect_golds
 
 
 @dataclass
