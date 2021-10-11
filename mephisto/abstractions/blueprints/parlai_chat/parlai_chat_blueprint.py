@@ -58,7 +58,7 @@ MISSING_SOMETHING_TEXT = (
 
 
 @dataclass
-class SharedParlAITaskState(SharedTaskState, OnboardingSharedState):
+class SharedParlAITaskState(OnboardingRequired.SharedStateMixin, SharedTaskState):
     frontend_task_opts: Dict[str, Any] = field(default_factory=dict)
     world_opt: Dict[str, Any] = field(default_factory=dict)
     onboarding_world_opt: Dict[str, Any] = field(default_factory=dict)
@@ -66,7 +66,7 @@ class SharedParlAITaskState(SharedTaskState, OnboardingSharedState):
 
 
 @dataclass
-class ParlAIChatBlueprintArgs(BlueprintArgs):
+class ParlAIChatBlueprintArgs(OnboardingRequired.ArgsMixin, BlueprintArgs):
     _blueprint_type: str = BLUEPRINT_TYPE
     _group: str = field(
         default="ParlAIChatBlueprint",
@@ -130,7 +130,7 @@ class ParlAIChatBlueprintArgs(BlueprintArgs):
 
 
 @register_mephisto_abstraction()
-class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
+class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
     """Blueprint for a task that runs a parlai chat"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = ParlAIChatAgentState
@@ -154,7 +154,6 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     ):
         super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
-        self.init_onboarding_config(task_run, args, shared_state)
 
         if args.blueprint.get("context_csv", None) is not None:
             csv_file = os.path.expanduser(args.blueprint.context_csv)

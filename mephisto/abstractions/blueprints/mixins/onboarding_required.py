@@ -53,6 +53,9 @@ class OnboardingRequired(BlueprintMixin):
     Compositional class for blueprints that may have an onboarding step
     """
 
+    ArgsMixin = OnboardingRequiredArgs
+    SharedStateMixin = OnboardingSharedState
+
     def init_mixin_config(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ) -> None:
@@ -60,7 +63,7 @@ class OnboardingRequired(BlueprintMixin):
         self.init_onboarding_config(task_run, args, shared_state)
 
     @classmethod
-    def assert_task_args(
+    def assert_mixin_args(
         cls, args: "DictConfig", shared_state: "SharedTaskState"
     ) -> None:
         """Method to validate the incoming args and throw if something won't work"""

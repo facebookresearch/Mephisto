@@ -90,9 +90,6 @@ class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "MockSharedState"
     ):
         super().__init__(task_run, args, shared_state)
-        # TODO these can be done with self.mro() and using the mixin variant
-        self.init_onboarding_config(task_run, args, shared_state)
-        self.init_screening_config(task_run, args, shared_state)
 
     def get_initialization_data(self) -> Iterable[InitializationData]:
         """
