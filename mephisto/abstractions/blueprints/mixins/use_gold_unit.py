@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import (
+    List,
     Optional,
     Dict,
     Any,
@@ -196,37 +197,24 @@ class UseGoldUnit(BlueprintMixin):
 
     @classmethod
     def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState"):
-        use_screening_task = args.blueprint.get("use_screening_task", False)
-        if not use_screening_task:
+        use_golds = args.blueprint.get("use_golds", False)
+        if not use_golds:
             return
-        passed_qualification_name = args.blueprint.passed_qualification_name
-        failed_qualification_name = args.blueprint.block_qualification
         assert args.task.allowed_concurrent == 1, (
             "Can only run this task type with one allowed concurrent unit at a time per worker, to ensure "
-            "screening before moving into real units."
+            "golds are completed in order."
         )
+        gold_qualification_base = args.blueprint.gold_qualification_base
         assert (
-            passed_qualification_name is not None
-        ), "Must supply an passed_qualification_name in Hydra args to use a qualification task"
-        assert (
-            failed_qualification_name is not None
-        ), "Must supply an block_qualification in Hydra args to use a qualification task"
-        assert hasattr(shared_state, "screening_data_factory"), (
-            "You must supply a screening_data_factory generator in your SharedTaskState to use "
-            "screening units, or False if you can screen on any tasks."
+            gold_qualification_base is not None
+        ), "Must supply an gold_qualification_base in Hydra args to use gold units"
+
+        assert hasattr(shared_state, "get_gold_for_worker"), (
+            "You must supply a get_gold_for_worker generator in your SharedTaskState to use "
+            "gold units units."
         )
-        max_screening_units = args.blueprint.max_screening_units
-        assert max_screening_units is not None, (
-            "You must supply a blueprint.max_screening_units argument to set the maximum number of "
-            "additional units you will pay out for the purpose of screening new workers. Note that you "
-            "do pay for screening units, they are just like any other units."
-        )
-        screening_data_factory = shared_state.screening_data_factory
-        if screening_data_factory is not False:
-            assert isinstance(screening_data_factory, types.GeneratorType), (
-                "Must provide a generator function to SharedTaskState.screening_data_factory if "
-                "you want to generate screening tasks on the fly, or False if you can screen on any task "
-            )
+        # TODO it would be nice to test that `get_gold_for_worker` actually returns a task when
+        # given a worker
 
     def get_current_qual_or_default(
         self, worker: "Worker", qual_name: str, default_val: Any = 0

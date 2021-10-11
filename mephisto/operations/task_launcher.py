@@ -240,11 +240,11 @@ class TaskLauncher:
 
     def launch_screening_unit(self, unit_data: Dict[str, Any]) -> "Unit":
         """Launch a screening unit, which should never return to the pool"""
-        return self.launch_evaluation_unit(self, unit_data, SCREENING_UNIT_INDEX)
+        return self.launch_evaluation_unit(unit_data, SCREENING_UNIT_INDEX)
 
     def launch_gold_unit(self, unit_data: Dict[str, Any]) -> "Unit":
         """Launch a screening unit, which should never return to the pool"""
-        return self.launch_evaluation_unit(self, unit_data, GOLD_UNIT_INDEX)
+        return self.launch_evaluation_unit(unit_data, GOLD_UNIT_INDEX)
 
     def get_assignments_are_all_created(self) -> bool:
         return self.assignment_thread_done
