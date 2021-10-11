@@ -1,8 +1,7 @@
 import React from "react";
 import Wrapper from "./Wrapper";
 
-import { AppShell, Layer } from "annotation-toolkit";
-import { useStore } from "global-context-store";
+import { AppShell, Layer } from "@annotated/shell";
 import { MenuItem } from "@blueprintjs/core";
 
 export default {

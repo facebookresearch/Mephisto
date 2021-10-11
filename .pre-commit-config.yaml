@@ -6,7 +6,9 @@ repos:
         exclude: |
           (?x)(
             ^.*build/|
-            ^.*md
+            ^.*md|
+            .yarn/*|
+            yarn-patches
           )
       - id: check-yaml
       - id: check-added-large-files
