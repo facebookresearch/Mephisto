@@ -60,6 +60,7 @@ def config(identifier, value):
 @click.argument("review_app_dir", type=click.Path(exists=True))
 @click.option("-p", "--port", type=(int), default=5000)
 @click.option("-o", "--output", type=(str), default="")
+@click.option("-a", "--assets", "assets_dir", type=(str), default=None)
 @click.option("--stdout", "output_method", flag_value="stdout")
 @click.option("--file", "output_method", flag_value="file", default=True)
 @click.option("--csv-headers/--no-csv-headers", default=False)
@@ -77,6 +78,7 @@ def review(
     database_task_name,
     all_data,
     debug,
+    assets_dir,
 ):
     """Launch a local review UI server. Reads in rows froms stdin and outputs to either a file or stdout."""
     from mephisto.client.review.review_server import run
@@ -106,6 +108,7 @@ def review(
         database_task_name,
         all_data,
         debug,
+        assets_dir,
     )
 
 
