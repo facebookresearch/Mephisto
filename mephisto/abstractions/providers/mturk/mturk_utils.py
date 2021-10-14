@@ -449,6 +449,62 @@ def create_hit_type(
     return hit_type_id
 
 
+def create_compensation_hit_with_hit_type(
+    client: MTurkClient,
+    reason: str,
+    hit_type_id: str,
+    num_assignments: int = 1,
+) -> Tuple[str, str, Dict[str, Any]]:
+    """Creates a simple compensation HIT to direct workers to submit"""
+    amazon_ext_url = (
+        "http://mechanicalturk.amazonaws.com/"
+        "AWSMechanicalTurkDataSchemas/2017-11-06/QuestionForm.xsd"
+    )
+    question_data_structure = (
+        f'<QuestionForm xmlns="{amazon_ext_url}">'
+        "<Question>"
+        "<QuestionIdentifier>workerid</QuestionIdentifier>"
+        "<DisplayName>Confirm Worker ID</DisplayName>"
+        "<IsRequired>true</IsRequired>"
+        "<QuestionContent>"
+        f"<Text>This compensation task was launched for the following reason: {reason}... Enter Worker ID to submit</Text>"
+        "</QuestionContent>"
+        "<AnswerSpecification>"
+        "<FreeTextAnswer>"
+        "<Constraints>"
+        '<Length minLength="2" />'
+        '<AnswerFormatRegex regex="\S" errorText="The content cannot be blank."/>'
+        "</Constraints>"
+        "</FreeTextAnswer>"
+        "</AnswerSpecification>"
+        "</Question>"
+        "</QuestionForm>"
+    )
+
+    is_sandbox = client_is_sandbox(client)
+
+    # Create the HIT
+    response = client.create_hit_with_hit_type(
+        HITTypeId=hit_type_id,
+        MaxAssignments=num_assignments,
+        LifetimeInSeconds=60 * 60 * 24 * 31,
+        Question=question_data_structure,
+    )
+
+    # The response included several fields that will be helpful later
+    hit_type_id = response["HIT"]["HITTypeId"]
+    hit_id = response["HIT"]["HITId"]
+
+    # Construct the hit URL
+    url_target = "workersandbox"
+    if not is_sandbox:
+        url_target = "www"
+    hit_link = "https://{}.mturk.com/mturk/preview?groupId={}".format(
+        url_target, hit_type_id
+    )
+    return hit_link, hit_id, response
+
+
 def create_hit_with_hit_type(
     client: MTurkClient,
     frame_height: int,
@@ -462,7 +518,7 @@ def create_hit_with_hit_type(
         "http://mechanicalturk.amazonaws.com/"
         "AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"
     )
-    question_data_struture = (
+    question_data_structure = (
         '<ExternalQuestion xmlns="{}">'
         "<ExternalURL>{}</ExternalURL>"  # noqa: E131
         "<FrameHeight>{}</FrameHeight>"
@@ -477,7 +533,7 @@ def create_hit_with_hit_type(
         HITTypeId=hit_type_id,
         MaxAssignments=num_assignments,
         LifetimeInSeconds=60 * 60 * 24 * 31,
-        Question=question_data_struture,
+        Question=question_data_structure,
     )
 
     # The response included several fields that will be helpful later

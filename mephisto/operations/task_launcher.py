@@ -31,6 +31,7 @@ logger = get_logger(name=__name__)
 UNIT_GENERATOR_WAIT_SECONDS = 10
 ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
 SCREENING_UNIT_INDEX = -1
+COMPENSATION_UNIT_INDEX = -3
 
 
 class GeneratorType(enum.Enum):
