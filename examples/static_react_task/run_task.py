@@ -10,9 +10,6 @@ import subprocess
 from mephisto.operations.operator import Operator
 from mephisto.operations.utils import get_root_dir
 from mephisto.tools.scripts import load_db_and_process_config
-from mephisto.abstractions.blueprints.static_react_task.static_react_blueprint import (
-    BLUEPRINT_TYPE,
-)
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
@@ -24,12 +21,7 @@ from typing import List, Any
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
-defaults = [
-    {"mephisto/blueprint": BLUEPRINT_TYPE},
-    {"mephisto/architect": "local"},
-    {"mephisto/provider": "mock"},
-    {"conf": "example"},
-]
+defaults = ["_self_", {"conf": "example"}]
 
 from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
