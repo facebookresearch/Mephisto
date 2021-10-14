@@ -101,15 +101,17 @@ def main():
         if len(worker_id) == 0:
             break
         prev_amount = "" if amount is None else f" (leave blank for ${amount})"
-        amount = float(
-            input(
-                f"Enter the amount in dollars to pay out in this compensation task{prev_amount}:\n>> $"
-            )
+        next_amount = input(
+            f"Enter the amount in dollars to pay out in this compensation task{prev_amount}:\n>> $"
         )
+        amount = float(next_amount) if len(next_amount.strip()) != 0 else amount
+        assert amount is not None, "Amount can not be left blank"
         prev_reason = "" if reason is None else f" (leave blank for '{reason}'"
-        reason = input(
+        next_reason = input(
             f"Provide reason for launching this compensation task. This will be sent to the worker{prev_reason}:\n>> "
         )
+        reason = next_reason if len(next_reason.strip()) != 0 else reason
+        assert reason is not None, "Reason can not be left blank"
         compensation_hits.append(
             {
                 "worker_id": worker_id,
@@ -204,7 +206,7 @@ def main():
         print("Sending email to worker...")
         result = email_worker(
             client,
-            comp_dict["worker_id"],
+            worker_id,
             "Compensation HIT Launched",
             (
                 "Hello Worker,\n We've launched a compensation hit for a task that you've worked on "
@@ -218,7 +220,7 @@ def main():
         if not result[0]:
             print(
                 f"Email send failed, for reason {result[1]}\n"
-                "Please send {hit_link} to {worker_id} yourself if you can."
+                f"Please send {hit_link} to {worker_id} yourself if they reached out about this issue."
             )
 
         # Mark the agent as soft_rejected, such that we've "paid" it
