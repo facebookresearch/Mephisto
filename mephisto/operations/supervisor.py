@@ -417,10 +417,11 @@ class Supervisor:
         finally:
             if unit.unit_index in [SCREENING_UNIT_INDEX, GOLD_UNIT_INDEX]:
                 if agent.get_status() != AgentState.STATUS_COMPLETED:
-                    blueprint = task_runner.task_run.get_blueprint(
-                        args=task_runner.args
-                    )
-                    blueprint.screening_units_launched -= 1
+                    if unit.unit_index == SCREENING_UNIT_INDEX:
+                        blueprint = task_runner.task_run.get_blueprint(
+                            args=task_runner.args
+                        )
+                        blueprint.screening_units_launched -= 1
                     unit.expire()
             task_runner.task_run.clear_reservation(unit)
 

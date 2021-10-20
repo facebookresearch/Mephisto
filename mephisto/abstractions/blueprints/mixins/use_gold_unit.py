@@ -20,6 +20,7 @@ from typing import (
 import types
 import random
 import math
+import traceback
 from mephisto.abstractions.blueprint import BlueprintMixin, AgentState
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
@@ -79,19 +80,20 @@ def get_gold_factory(golds: List[Dict[str, Any]]) -> GoldFactory:
     Usage of golds only persists within a single TaskRun, so golds may repeat
     on future task runs.
     """
-    worker_golds_map: Dict[str, List[int]] = {}
+    worker_gold_maps: Dict[str, List[int]] = {}
     num_golds = len(golds)
+    assert num_golds != 0, "Must provide at least one gold to get_gold_factory"
 
     def get_gold_for_worker(worker: "Worker"):
         if (
             worker.db_id not in worker_gold_maps
-            or len(worker_golds_map[worker.db_id]) == 0
+            or len(worker_gold_maps[worker.db_id]) == 0
         ):
             # create a list of gold indices a worker hasn't done
-            worker_golds_map[worker.db_id] = [x for x in range(num_golds)]
+            worker_gold_maps[worker.db_id] = [x for x in range(num_golds)]
         # select a random gold index from what remains
-        rg = worker_golds_map[worker.db_id]
-        selected_idx = random.randInt(0, len(rg))
+        rg = worker_gold_maps[worker.db_id]
+        selected_idx = random.randint(0, len(rg) - 1)
         rg[selected_idx], rg[-1] = rg[-1], rg[selected_idx]
         gold_idx = rg.pop()
         return golds[gold_idx]
@@ -113,7 +115,7 @@ def worker_needs_gold(
 
     # (Somewhat arbitrarily), we scale to ensure that workers complete golds for every
     # This gives ~5% gold at 100 and ~1% gold at 1000
-    target_gold = math.ceil(math.pow(math.log10(units_completed)), 2.2)
+    target_gold = math.ceil(math.pow(math.log10(units_completed + 1), 2.2)) - 1
     if excess_golds < target_gold:
         return True
     return False
@@ -130,7 +132,7 @@ def worker_qualifies(
     # needs more investigation.
 
     # Instead, we just have strikes system
-    return num_incorrect < max_incorrect_golds
+    return num_incorrect <= max_incorrect_golds
 
 
 @dataclass
@@ -165,7 +167,7 @@ class UseGoldUnit(BlueprintMixin):
     ) -> None:
         return self.init_gold_config(task_run, args, shared_state)
 
-    def init_screening_config(
+    def init_gold_config(
         self,
         task_run: "TaskRun",
         args: "DictConfig",
@@ -216,8 +218,9 @@ class UseGoldUnit(BlueprintMixin):
         # TODO it would be nice to test that `get_gold_for_worker` actually returns a task when
         # given a worker
 
+    @staticmethod
     def get_current_qual_or_default(
-        self, worker: "Worker", qual_name: str, default_val: Any = 0
+        worker: "Worker", qual_name: str, default_val: Any = 0
     ) -> Any:
         """Return the qualification of this name for the worker, or the default value"""
         found_qual = worker.get_granted_qualification(qual_name)
@@ -225,16 +228,16 @@ class UseGoldUnit(BlueprintMixin):
 
     def get_completion_stats_for_worker(self, worker: "Worker") -> Tuple[int, int, int]:
         """Return the correct and incorrect gold counts, as well as the total count for a worker"""
-        completed_units = self.get_current_qual_or_default(
+        completed_units = UseGoldUnit.get_current_qual_or_default(
             worker, self.task_count_qual_name
         )
-        correct_golds = self.get_current_qual_or_default(
+        correct_golds = UseGoldUnit.get_current_qual_or_default(
             worker, self.golds_correct_qual_name
         )
-        incorrect_golds = self.get_current_qual_or_default(
+        incorrect_golds = UseGoldUnit.get_current_qual_or_default(
             worker, self.golds_failed_qual_name
         )
-        return completed_units, correct_units, incorrect_units
+        return completed_units, correct_golds, incorrect_golds
 
     def should_produce_gold_for_worker(self, worker: "Worker") -> bool:
         """Workers that can access the task should be evaluated to do a gold"""
@@ -243,6 +246,10 @@ class UseGoldUnit(BlueprintMixin):
             correct_units,
             incorrect_units,
         ) = self.get_completion_stats_for_worker(worker)
+        if not self.worker_qualifies(
+            completed_units, correct_units, incorrect_units, self.max_incorrect_golds
+        ):
+            return False
         return self.worker_needs_gold(
             completed_units, correct_units, incorrect_units, self.min_golds
         )
@@ -266,6 +273,7 @@ class UseGoldUnit(BlueprintMixin):
             return self.get_gold_for_worker(worker)
         except Exception as e:
             logger.warning(f"Could not generate gold for {worker} due to {e}")
+            traceback.print_exc()
             return None
 
     @classmethod
@@ -277,41 +285,50 @@ class UseGoldUnit(BlueprintMixin):
         passable, and returns a `on_unit_submitted` function to be used
         in the SharedTaskState
         """
-        passed_qualification_name = args.blueprint.passed_qualification_name
-        failed_qualification_name = args.blueprint.block_qualification
+        base_qual_name = args.blueprint.gold_qualification_base
+        golds_correct_qual_name = f"{base_qual_name}-correct-golds"
+        golds_failed_qual_name = f"{base_qual_name}-wrong-golds"
+        disqualified_qual_name = f"{base_qual_name}-disqualified"
+        task_count_qual_name = f"{base_qual_name}-completed-count"
 
         def _wrapped_validate(unit):
+            agent = unit.get_assigned_agent()
             if unit.unit_index != GOLD_UNIT_INDEX:
-                agent = unit.get_assigned_agent()
                 if (
                     agent is not None
                     and agent.get_status() == AgentState.STATUS_COMPLETED
                 ):
                     worker = agent.get_worker()
-                    completed_units = self.get_current_qual_or_default(
-                        worker, self.task_count_qual_name
+                    completed_units = UseGoldUnit.get_current_qual_or_default(
+                        worker, task_count_qual_name
                     )
                     worker.grant_qualification(
-                        self.task_count_qual_name,
+                        task_count_qual_name,
                         value=completed_units + 1,
                         skip_crowd=True,
                     )
                 return  # We only run validation on the validatable units
 
+            if agent is None:
+                return  # Can't validate incomplete unit
+
             validation_result = screen_unit(unit)
             agent = unit.get_assigned_agent()
             worker = agent.get_worker()
-            _, correct_units, incorrect_units = self.get_completion_stats_for_worker(
-                worker
-            )
 
             if validation_result is True:
+                correct_units = UseGoldUnit.get_current_qual_or_default(
+                    worker, golds_correct_qual_name
+                )
                 worker.grant_qualification(
-                    self.golds_correct_qual_name, correct_units + 1, skip_crowd=True
+                    golds_correct_qual_name, correct_units + 1, skip_crowd=True
                 )
             elif validation_result is False:
+                incorrect_units = UseGoldUnit.get_current_qual_or_default(
+                    worker, golds_failed_qual_name
+                )
                 worker.grant_qualification(
-                    self.golds_failed_qual_name, incorrect_units + 1, skip_crowd=True
+                    golds_failed_qual_name, incorrect_units + 1, skip_crowd=True
                 )
 
         return _wrapped_validate
