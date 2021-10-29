@@ -70,20 +70,20 @@ You can customize the way review items are displayed for both of the two routes 
 
 1. Customize the layout of all data:
 
-    - **Modify the properties of the ```<AllItemView/>``` tag under the ```/``` route on line 35.**
+    - **Modify the properties of the ```<CollectionView/>``` tag under the ```/``` route on line 35.**
 
     - If you do not wish to use pagination, set the ```pagination``` property to ```false``` (default is true, must be a boolean value)
 
     - Adjust the number of results that appear per page of review by setting the ```resultsPerPage``` property (must be an integer)
 
-    - Add custom renderers for rendering the layout of all items by passing a ```itemListRenderer``` property to AllItemView:
-        - The itemListRenderer property must be a react component.
-        - The itemListRenderer component will be passed down a property of ```data```, which represents an array of all review items.
-        - The itemListRenderer component will also be passed down a property of ```itemRenderer``` which can itemListRenderer the data of a single item.
-        - The itemRenderer can be placed in each of the individual item views of your itemListRenderer
-        - By default the item itemListRenderer will be a header displaying the item id as well as a pre element containing the stringified JSON data of the item
+    - Add custom renderers for rendering the layout of all items by passing a ```collectionRenderer``` property to AllItemView:
+        - The collectionRenderer property must be a react component.
+        - The collectionRenderer component will be passed down a property of ```data```, which represents an array of all review items.
+        - The collectionRenderer component will also be passed down a property of ```itemRenderer``` which can collectionRenderer the data of a single item.
+        - The itemRenderer can be placed in each of the individual item views of your collectionRenderer
+        - By default the item collectionRenderer will be a header displaying the item id as well as a pre element containing the stringified JSON data of the item
 
-    - Customize the layout of individual items in either the default itemListRenderer or your custom itemListRenderer by passing an ```itemRenderer``` property to AllItemView:
+    - Customize the layout of individual items in either the default collectionRenderer or your custom collectionRenderer by passing an ```itemRenderer``` property to AllItemView:
         - The itemRenderer must be a react component.
         - The itemRenderer will be passed down a property of ```item```
         - The item property will contain the propertys of ```data``` representing the JSON data of the review item as well as an ```id``` representing the 0 indexed position of the item in the review data
