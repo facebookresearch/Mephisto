@@ -89,3 +89,11 @@ class DataBrowser:
             "task_start": agent.state.get_task_start(),
             "task_end": agent.state.get_task_end(),
         }
+
+    def get_worker_with_qualification(self, qualification_name:str) -> List[str]:
+        """
+        Returns a list of 'worker_id's for workers who are qualified wrt `qualification_name`.
+        """
+        qualification_id = self.db.find_qualifications(qual_name=qualification_name)[0]
+        qualifieds = self.db.check_granted_qualifications(qualification_id=qualification_id, value=1)
+        return [qual.worker_id for qual in qualifieds]
