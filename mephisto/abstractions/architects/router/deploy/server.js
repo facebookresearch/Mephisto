@@ -4,7 +4,7 @@
  */
 "use strict";
 
-const DEBUG = false;
+const DEBUG = true;
 
 // TODO add some testing to launch this server and communicate with it
 
@@ -179,7 +179,9 @@ function clear_agent(agent_id) {
   delete agent_id_to_agent[agent_id];
   let socket = agent_id_to_socket[agent_id];
   delete agent_id_to_socket[agent_id];
-  delete socket_id_to_agent[socket.id];
+  if (socket !== undefined) {
+    delete socket_id_to_agent[socket.id];
+  }
 }
 
 // Open connections send alives to identify who they are,
