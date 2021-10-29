@@ -1,4 +1,4 @@
-.default-item-list-renderer-container {
+.default-collection-renderer-container {
   display: grid;
   grid-template-rows: auto;
   grid-template-columns: 50% 50%;
@@ -11,7 +11,7 @@
 }
 
 @media only screen and (min-width: 1400px) {
-  .default-item-list-renderer-container {
+  .default-collection-renderer-container {
     grid-template-columns: 33.33% 33.33% 33.33%;
   }
 }

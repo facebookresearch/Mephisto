@@ -37,4 +37,4 @@ function DefaultItemRenderer({ item }) {
   );
 }
 
-export default DefaultItemRenderer;
+export { DefaultItemRenderer };

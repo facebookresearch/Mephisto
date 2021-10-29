@@ -12,6 +12,7 @@ import {
   Toaster,
 } from "@blueprintjs/core";
 import { DefaultItemRenderer } from "../plugins/DefaultItemRenderer";
+import { getHostname } from "../utils";
 
 const AppToaster = Toaster.create({
   className: "recipe-toaster",
@@ -27,7 +28,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
     submit,
     error,
     mode,
-  } = useMephistoReview({ taskId: id });
+  } = useMephistoReview({ taskId: id, hostname: getHostname() });
 
   const history = useHistory();
 
@@ -35,7 +36,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
     if (mode === "OBO") {
       history.push("/");
     } else {
-      AppToaster.show({ message: "Review Sent!" });
+      AppToaster.show({ message: "Review response recorded." });
     }
   };
 
@@ -117,12 +118,29 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
         ) : (
           <div className="item-view-message item-view-no-data">
             <h3>
-              No data available. Please provide Mephisto Review with some data
-              by running mephisto review with either standard input of a CSV or
-              JSON file or by using the "--db" flag along with the name of a
-              task in mephistoDB as an argument. The task must have valid review
-              data.
+              Thanks for using the <code>$ mephisto review</code> interface.
+              Here are a few ways to get started:
             </h3>
+            <h3>
+              1. Review data from a .csv or{" "}
+              <a href="https://jsonlines.org/">.jsonl</a> file
+            </h3>
+            <pre>
+              $ cat sample-data<span className="highlight">.json</span> |
+              mephisto review review-app/build/{" "}
+              <span className="highlight">--json</span> --stdout
+            </pre>
+            <pre>
+              $ cat sample-data<span className="highlight">.csv</span> |
+              mephisto review review-app/build/{" "}
+              <span className="highlight">--csv</span> --stdout
+            </pre>
+            <h3>2. Review data from the Mephisto database</h3>
+            <pre>
+              $ mephisto review review-app/build/{" "}
+              <span className="highlight">--db mephisto_db_task_name</span>{" "}
+              --stdout
+            </pre>
           </div>
         )}
       </main>

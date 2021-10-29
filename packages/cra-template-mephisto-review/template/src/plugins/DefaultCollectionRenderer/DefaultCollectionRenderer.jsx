@@ -1,14 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { DefaultItemRenderer } from "../DefaultItemRenderer";
-import "./DefaultItemListRenderer.css";
+import "./DefaultCollectionRenderer.css";
 
-function DefaultItemListRenderer({
+function DefaultCollectionRenderer({
   data,
   itemRenderer: ItemRenderer = DefaultItemRenderer,
 }) {
   return data && data.length > 0 ? (
-    <div className="default-item-list-renderer-container">
+    <div className="default-collection-renderer-container">
       {data.map((item) => {
         return (
           <Link
@@ -25,4 +25,4 @@ function DefaultItemListRenderer({
   ) : null;
 }
 
-export default DefaultItemListRenderer;
+export { DefaultCollectionRenderer };

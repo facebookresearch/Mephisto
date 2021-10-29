@@ -89,3 +89,13 @@ code {
 .btn {
   margin: 0px 6px;
 }
+
+code {
+  background-color: #ddd;
+  padding: 3px 5px;
+  /* border-bottom: 1px solid #ccc; */
+}
+
+.highlight {
+  background-color: hsla(60, 83%, 68%, 0.3);
+}

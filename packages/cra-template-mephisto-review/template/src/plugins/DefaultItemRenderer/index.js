@@ -1,3 +1,3 @@
-import DefaultItemRenderer from "./DefaultItemRenderer";
+import { DefaultItemRenderer } from "./DefaultItemRenderer";
 
 export { DefaultItemRenderer };

@@ -12,12 +12,13 @@ import {
 } from "@blueprintjs/core";
 import { Tooltip } from "@blueprintjs/core";
 import { DefaultItemRenderer } from "../plugins/DefaultItemRenderer";
-import { DefaultItemListRenderer } from "../plugins/DefaultItemListRenderer";
-import { Pagination } from "./Pagination";
+import { DefaultCollectionRenderer } from "../plugins/DefaultCollectionRenderer";
+import { Pagination } from "./pagination";
+import { getHostname } from "../utils";
 
-function AllItemView({
+function CollectionView({
   itemRenderer = DefaultItemRenderer,
-  itemListRenderer: ItemListRenderer = DefaultItemListRenderer,
+  collectionRenderer: CollectionRenderer = DefaultCollectionRenderer,
   pagination = true,
   resultsPerPage = 9,
 }) {
@@ -33,7 +34,12 @@ function AllItemView({
     error,
     mode,
     totalPages,
-  } = useMephistoReview({ page, resultsPerPage, filters });
+  } = useMephistoReview({
+    page,
+    resultsPerPage,
+    filters,
+    hostname: getHostname(),
+  });
 
   const setFiltersAndResetPage = (filtersStr) => {
     if (page !== null && page !== 1) setPage(1);
@@ -113,7 +119,7 @@ function AllItemView({
           </h1>
         ) : data && data.length > 0 ? (
           <>
-            <ItemListRenderer data={data} itemRenderer={itemRenderer} />
+            <CollectionRenderer data={data} itemRenderer={itemRenderer} />
             {pagination && totalPages > 1 ? (
               <Pagination
                 totalPages={totalPages}
@@ -125,12 +131,29 @@ function AllItemView({
         ) : (
           <div className="all-item-view-message all-item-view-no-data">
             <h3>
-              No data available. Please provide Mephisto Review with some data
-              by running mephisto review with either standard input of a CSV or
-              JSON file or by using the "--db" flag along with the name of a
-              task in mephistoDB as an argument. The task must have valid review
-              data.
+              Thanks for using the <code>$ mephisto review</code> interface.
+              Here are a few ways to get started:
             </h3>
+            <h3>
+              1. Review data from a .csv or{" "}
+              <a href="https://jsonlines.org/">.jsonl</a> file
+            </h3>
+            <pre>
+              $ cat sample-data<span className="highlight">.json</span> |
+              mephisto review review-app/build/{" "}
+              <span className="highlight">--json</span> --all --stdout
+            </pre>
+            <pre>
+              $ cat sample-data<span className="highlight">.csv</span> |
+              mephisto review review-app/build/{" "}
+              <span className="highlight">--csv</span> --all --stdout
+            </pre>
+            <h3>2. Review data from the Mephisto database</h3>
+            <pre>
+              $ mephisto review review-app/build/{" "}
+              <span className="highlight">--db mephisto_db_task_name</span>{" "}
+              --all --stdout
+            </pre>
           </div>
         )}
       </main>
@@ -138,4 +161,4 @@ function AllItemView({
   );
 }
 
-export default AllItemView;
+export default CollectionView;
