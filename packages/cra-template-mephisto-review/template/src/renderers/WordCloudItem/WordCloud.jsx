@@ -39,9 +39,7 @@ function WordCloud({
       return true;
     });
     //remove punctuation from all words
-    words = words.map((word) =>
-      word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-    );
+    words = words.map((word) => word.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, ""));
     //count words
     for (let word of words) {
       if (word in vals) {
