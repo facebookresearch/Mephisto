@@ -11,7 +11,7 @@ import {
   Position,
   Toaster,
 } from "@blueprintjs/core";
-import { DefaultItemRenderer } from "../plugins/DefaultItemRenderer";
+import { JSONItem } from "../renderers/JSONItem";
 import { getHostname } from "../utils";
 
 const AppToaster = Toaster.create({
@@ -19,7 +19,7 @@ const AppToaster = Toaster.create({
   position: Position.TOP,
 });
 
-function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
+function ItemView({ itemRenderer: ItemRenderer = JSONItem }) {
   const { id } = useParams();
   const {
     data: item,
@@ -73,7 +73,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
               id="reject-button"
               onClick={async () => {
                 var response = await submit({ result: "rejected" });
-                if (response == "SUCCESS") {
+                if (response === "SUCCESS") {
                   confirmReview();
                 } else if (response) {
                   reviewError(response);
@@ -89,7 +89,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
               id="approve-button"
               onClick={async () => {
                 var response = await submit({ result: "approved" });
-                if (response == "SUCCESS") {
+                if (response === "SUCCESS") {
                   confirmReview();
                 } else if (response) {
                   reviewError(response);

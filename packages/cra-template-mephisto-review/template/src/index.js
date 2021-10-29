@@ -1,15 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./index.css";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import CollectionView from "./components/CollectionView";
 import ItemView from "./components/ItemView";
 import "normalize.css/normalize.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
+import "./index.css";
 
-import { DefaultCollectionRenderer } from "./plugins/DefaultCollectionRenderer";
-import { DefaultItemRenderer } from "./plugins/DefaultItemRenderer";
+import { GridCollection, JSONItem } from "./renderers";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -17,13 +16,13 @@ ReactDOM.render(
       <Switch>
         <Route path="/:id">
           {/* For more information see the 'Customization' section of the README.md file. */}
-          <ItemView itemRenderer={DefaultItemRenderer} />
+          <ItemView itemRenderer={JSONItem} />
         </Route>
         <Route path="/">
           {/* For more information see the 'Customization' section of the README.md file. */}
           <CollectionView
-            collectionRenderer={DefaultCollectionRenderer}
-            itemRenderer={DefaultItemRenderer}
+            collectionRenderer={GridCollection}
+            itemRenderer={JSONItem}
             pagination={true}
             resultsPerPage={9}
           />

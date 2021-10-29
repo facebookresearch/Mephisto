@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import { H6, Card, Elevation } from "@blueprintjs/core";
-import "./DefaultItemRenderer.css";
+import "./JSONItem.css";
 
-function DefaultItemRenderer({ item }) {
+function JSONItem({ item }) {
   const SMALL_CARD_WIDTH_LIMIT = 1000;
   const [cardWidth, setCardWidth] = useState(0);
   const card = useRef();
@@ -37,4 +37,4 @@ function DefaultItemRenderer({ item }) {
   );
 }
 
-export { DefaultItemRenderer };
+export { JSONItem };

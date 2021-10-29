@@ -1,4 +1,4 @@
-export default {
+const config = {
   /*
     The port that useMephistoReview() in the browser will connect to the
     server on.
@@ -12,3 +12,5 @@ export default {
     */
   //   port: 9000,
 };
+
+export default config;

@@ -1,12 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { DefaultItemRenderer } from "../DefaultItemRenderer";
-import "./DefaultCollectionRenderer.css";
+import { JSONItem } from "../JSONItem";
+import "./GridCollection.css";
 
-function DefaultCollectionRenderer({
-  data,
-  itemRenderer: ItemRenderer = DefaultItemRenderer,
-}) {
+function GridCollection({ data, itemRenderer: ItemRenderer = JSONItem }) {
   return data && data.length > 0 ? (
     <div className="default-collection-renderer-container">
       {data.map((item) => {
@@ -25,4 +22,4 @@ function DefaultCollectionRenderer({
   ) : null;
 }
 
-export { DefaultCollectionRenderer };
+export { GridCollection };

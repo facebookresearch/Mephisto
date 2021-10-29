@@ -11,14 +11,13 @@ import {
   Alignment,
 } from "@blueprintjs/core";
 import { Tooltip } from "@blueprintjs/core";
-import { DefaultItemRenderer } from "../plugins/DefaultItemRenderer";
-import { DefaultCollectionRenderer } from "../plugins/DefaultCollectionRenderer";
+import { GridCollection, JSONItem } from "../renderers";
 import { Pagination } from "./pagination";
 import { getHostname } from "../utils";
 
 function CollectionView({
-  itemRenderer = DefaultItemRenderer,
-  collectionRenderer: CollectionRenderer = DefaultCollectionRenderer,
+  itemRenderer = JSONItem,
+  collectionRenderer: CollectionRenderer = GridCollection,
   pagination = true,
   resultsPerPage = 9,
 }) {

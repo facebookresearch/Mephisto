@@ -1,7 +1,7 @@
 import React from "react";
 import { H6 } from "@blueprintjs/core";
 
-function ListViewItemRenderer({ item }) {
+function ListItem({ item }) {
   return (
     <>
       <pre>{JSON.stringify(item && item.data)}</pre>
@@ -12,4 +12,4 @@ function ListViewItemRenderer({ item }) {
   );
 }
 
-export default ListViewItemRenderer;
+export default ListItem;
