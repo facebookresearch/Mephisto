@@ -10,6 +10,7 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
+from mephisto.abstractions.blueprint import Blueprint
 from mephisto.abstractions.blueprints.static_html_task.static_html_task_builder import (
     StaticHTMLTaskBuilder,
 )
