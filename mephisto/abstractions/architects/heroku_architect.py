@@ -11,7 +11,7 @@ import hashlib
 import netrc
 import os
 import platform
-import sh
+import sh  # type: ignore
 import shlex
 import shutil
 import subprocess

@@ -32,7 +32,7 @@ from mephisto.operations.hydra_config import MephistoConfig
 MOCK_TASK_ARGS = TaskConfigArgs(
     task_title="title",
     task_description="This is a description",
-    task_reward="0.3",
+    task_reward=0.3,
     task_tags="1,2,3",
 )
 

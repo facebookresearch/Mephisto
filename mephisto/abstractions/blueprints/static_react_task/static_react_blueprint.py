@@ -24,9 +24,15 @@ from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
+    from mephisto.abstractions.blueprint import (
+        AgentState,
+        TaskRunner,
+        TaskBuilder,
+        SharedTaskState,
+    )
     from mephisto.data_model.assignment import Assignment
     from argparse import _ArgumentGroup as ArgumentGroup
+    from omegaconf import DictConfig
 
 BLUEPRINT_TYPE = "static_react_task"
 

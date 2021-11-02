@@ -25,11 +25,14 @@ from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHE
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.data_model.blueprint import (
+    from mephisto.abstractions.blueprint import (
         AgentState,
         TaskRunner,
         TaskBuilder,
         SharedTaskState,
+    )
+    from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
+        SharedStaticTaskState,
     )
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.agent import OnboardingAgent
@@ -84,7 +87,10 @@ class StaticHTMLBlueprint(StaticBlueprint):
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedStaticTaskState",
     ):
         super().__init__(task_run, args, shared_state)
         self.html_file = os.path.expanduser(args.blueprint.task_source)
@@ -110,6 +116,9 @@ class StaticHTMLBlueprint(StaticBlueprint):
         """Ensure that the data can be properly loaded"""
         Blueprint.assert_task_args(args, shared_state)
         blue_args = args.blueprint
+        assert isinstance(
+            shared_state, SharedStaticTaskState
+        ), "Cannot assert args on a non-static state"
         if isinstance(shared_state.static_task_data, types.GeneratorType):
             raise AssertionError("You can't launch an HTML static task on a generator")
         if blue_args.get("data_csv", None) is not None:
@@ -129,7 +138,7 @@ class StaticHTMLBlueprint(StaticBlueprint):
             ), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif shared_state.static_task_data is not None:
             assert (
-                len(shared_state.static_task_data) > 0
+                len([w for w in shared_state.static_task_data]) > 0
             ), "Length of data dict provided was 0"
         else:
             raise AssertionError(

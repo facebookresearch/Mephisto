@@ -197,12 +197,11 @@ class TaskRunner(ABC):
             AgentShutdownError,
         ) as e:
             # A returned Unit can be worked on again by someone else.
-            if (
-                unit.get_status() != AssignmentState.EXPIRED
-                and unit.get_assigned_agent().db_id == agent.db_id
-            ):
-                logger.debug(f"Clearing {agent} from {unit} due to {e}")
-                unit.clear_assigned_agent()
+            if unit.get_status() != AssignmentState.EXPIRED:
+                unit_agent = unit.get_assigned_agent()
+                if unit_agent is not None and unit_agent.db_id == agent.db_id:
+                    logger.debug(f"Clearing {agent} from {unit} due to {e}")
+                    unit.clear_assigned_agent()
             self.cleanup_unit(unit)
         except Exception as e:
             logger.exception(f"Unhandled exception in unit {unit}: {repr(e)}")

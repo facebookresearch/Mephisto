@@ -30,7 +30,10 @@ from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.data_model.task_config import TaskConfigArgs
 
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from omegaconf import DictConfig
 
 
 class BrokenMixin(BlueprintMixin):
@@ -66,8 +69,9 @@ class StateMixin1:
 
 class MockBlueprintMixin1(BlueprintMixin):
     MOCK_QUAL_NAME = "mock_mixin_one"
-    ArgsMixin = ArgsMixin1
-    SharedStateMixin = StateMixin1
+    ArgsMixin: Any = ArgsMixin1
+    SharedStateMixin: Any = StateMixin1
+    mixin_init_calls: int
 
     def init_mixin_config(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
@@ -102,8 +106,9 @@ class StateMixin2:
 
 class MockBlueprintMixin2(BlueprintMixin):
     MOCK_QUAL_NAME = "mock_mixin_two"
-    ArgsMixin = ArgsMixin2
-    SharedStateMixin = StateMixin2
+    ArgsMixin: Any = ArgsMixin2
+    SharedStateMixin: Any = StateMixin2
+    mixin_init_calls: int
 
     def init_mixin_config(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
@@ -140,6 +145,7 @@ class ComposedMixin(MockBlueprintMixin1, MockBlueprintMixin2):
     MOCK_QUAL_NAME = "mock_mixin_mixed"
     ArgsMixin = ComposedArgsMixin
     SharedStateMixin = ComposedStateMixin
+    mixin_init_calls: int
 
     @classmethod
     def assert_mixin_args(

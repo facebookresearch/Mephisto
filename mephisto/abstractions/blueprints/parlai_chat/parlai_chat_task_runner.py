@@ -36,7 +36,7 @@ from mephisto.data_model.packet import (
 from importlib import import_module
 
 import os
-import sh
+import sh  # type: ignore
 import shlex
 import shutil
 import subprocess
