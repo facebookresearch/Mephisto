@@ -538,29 +538,32 @@ class BlueprintMixin(ABC):
     work, such that only the highest class needs to be called.
     """
 
-    @property
-    @abstractmethod
-    def ArgsMixin(self) -> Any:  # Should be a dataclass, to extend BlueprintArgs
-        pass
+    # @property
+    # @abstractmethod
+    # def ArgsMixin(self) -> Type[object]:  # Should be a dataclass, to extend BlueprintArgs
+    #     pass
 
-    @property
-    @abstractmethod
-    def SharedStateMixin(
-        self,
-    ) -> Any:  # Also should be a dataclass, to extend SharedTaskState
-        pass
+    # @property
+    # @abstractmethod
+    # def SharedStateMixin(
+    #     self,
+    # ) -> Type[object]:  # Also should be a dataclass, to extend SharedTaskState
+    #     pass
+    ArgsMixin: ClassVar[Type[object]]
+    SharedStateMixin: ClassVar[Type[object]]
 
     @staticmethod
-    def extract_unique_mixins(blueprint_class: ClassVar[Type["Blueprint"]]):
+    def extract_unique_mixins(blueprint_class: Type["Blueprint"]):
         """Return the unique mixin classes that are used in the given blueprint class"""
         mixin_subclasses = [
             clazz
             for clazz in blueprint_class.mro()
             if issubclass(clazz, BlueprintMixin)
         ]
+        target_class: Union[Type["Blueprint"], Type["BlueprintMixin"]] = blueprint_class
         # Remove magic created with `mixin_args_and_state`
-        while blueprint_class.__name__ == "MixedInBlueprint":
-            blueprint_class = mixin_subclasses.pop(0)
+        while target_class.__name__ == "MixedInBlueprint":
+            target_class = mixin_subclasses.pop(0)
         removed_locals = [
             clazz
             for clazz in mixin_subclasses
@@ -569,7 +572,7 @@ class BlueprintMixin(ABC):
         filtered_subclasses = set(
             clazz
             for clazz in removed_locals
-            if clazz != BlueprintMixin and clazz != blueprint_class
+            if clazz != BlueprintMixin and clazz != target_class
         )
         # we also want to make sure that we don't double-count extensions of mixins, so remove classes that other classes are subclasses of
         def is_subclassed(clazz):
@@ -606,7 +609,9 @@ class BlueprintMixin(ABC):
         raise NotImplementedError()
 
     @classmethod
-    def mixin_args_and_state(mixin_cls: "BlueprintMixin", target_cls: "Blueprint"):
+    def mixin_args_and_state(
+        mixin_cls: Type["BlueprintMixin"], target_cls: Type["Blueprint"]
+    ):
         """
         Magic utility decorator that can be used to inject mixin configurations
         (BlueprintArgs and SharedTaskState) without the user needing to define new
@@ -619,18 +624,18 @@ class BlueprintMixin(ABC):
           class MyBlueprint(ABlueprintMixin, Blueprint):
               pass
         """
-
+        # Ignore typing on most of this, as mypy is not able to parse what's happening
         @dataclass
-        class MixedInArgsClass(mixin_cls.ArgsMixin, target_cls.ArgsClass):
+        class MixedInArgsClass(mixin_cls.ArgsMixin, target_cls.ArgsClass):  # type: ignore
             pass
 
         @dataclass
         class MixedInSharedStateClass(
-            mixin_cls.SharedStateMixin, target_cls.SharedStateClass
+            mixin_cls.SharedStateMixin, target_cls.SharedStateClass  # type: ignore
         ):
             pass
 
-        class MixedInBlueprint(target_cls):
+        class MixedInBlueprint(target_cls):  # type: ignore
             ArgsClass = MixedInArgsClass
             SharedStateClass = MixedInSharedStateClass
 

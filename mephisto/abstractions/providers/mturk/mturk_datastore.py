@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import boto3
+import boto3  # type: ignore
 import sqlite3
 import os
 import threading
@@ -14,8 +14,8 @@ from datetime import datetime
 from collections import defaultdict
 
 
-from botocore.exceptions import ClientError
-from botocore.exceptions import ProfileNotFound
+from botocore.exceptions import ClientError  # type: ignore
+from botocore.exceptions import ProfileNotFound  # type: ignore
 from mephisto.abstractions.databases.local_database import is_unique_failure
 
 from typing import Dict, Any, Optional
@@ -339,6 +339,9 @@ class MTurkDatastore:
                     f"Multiple mturk mapping creations for qualification {qualification_name}. "
                     f"Found existing one: {qual}. "
                 )
+                assert (
+                    qual is not None
+                ), "Cannot be none given is_unique_failure on insert"
                 cur_requester_id = qual["requester_id"]
                 cur_mturk_qualification_name = qual["mturk_qualification_name"]
                 cur_mturk_qualification_id = qual["mturk_qualification_id"]

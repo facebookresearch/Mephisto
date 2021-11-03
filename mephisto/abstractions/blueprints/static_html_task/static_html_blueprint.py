@@ -90,8 +90,11 @@ class StaticHTMLBlueprint(StaticBlueprint):
         self,
         task_run: "TaskRun",
         args: "DictConfig",
-        shared_state: "SharedStaticTaskState",
+        shared_state: "SharedTaskState",
     ):
+        assert isinstance(
+            shared_state, SharedStaticTaskState
+        ), "Cannot initialize with a non-static state"
         super().__init__(task_run, args, shared_state)
         self.html_file = os.path.expanduser(args.blueprint.task_source)
         if not os.path.exists(self.html_file):

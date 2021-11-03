@@ -10,6 +10,7 @@ from omegaconf import MISSING
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     StaticBlueprint,
     StaticBlueprintArgs,
+    SharedStaticTaskState,
 )
 from mephisto.abstractions.blueprints.static_react_task.static_react_task_builder import (
     StaticReactTaskBuilder,
@@ -88,6 +89,9 @@ class StaticReactBlueprint(StaticBlueprint):
     def __init__(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
+        assert isinstance(
+            shared_state, SharedStaticTaskState
+        ), "Cannot initialize with a non-static state"
         super().__init__(task_run, args, shared_state)
         self.js_bundle = os.path.expanduser(args.blueprint.task_source)
         if not os.path.exists(self.js_bundle):
@@ -100,6 +104,9 @@ class StaticReactBlueprint(StaticBlueprint):
         cls, args: "DictConfig", shared_state: "SharedTaskState"
     ) -> None:
         """Ensure that static requirements are fulfilled, and source file exists"""
+        assert isinstance(
+            shared_state, SharedStaticTaskState
+        ), "Cannot assert args on a non-static state"
         super().assert_task_args(args, shared_state)
 
         found_task_source = args.blueprint.task_source

@@ -7,9 +7,10 @@
 from typing import List, Optional, TYPE_CHECKING, Dict
 
 from mephisto.abstractions.providers.mturk.mturk_utils import give_worker_qualification
+from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.unit import Unit
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -30,6 +31,10 @@ def direct_soft_block_mturk_workers(
     reqs = db.find_requesters(requester_name=requester_name, provider_type="mturk")
     requester = reqs[-1]
 
+    assert isinstance(
+        requester, MTurkRequester
+    ), "Can only direct soft block mturk workers from mturk requester"
+
     mturk_qual_details = requester.datastore.get_qualification_mapping(
         soft_block_qual_name
     )
@@ -42,6 +47,9 @@ def direct_soft_block_mturk_workers(
             soft_block_qual_name
         )
 
+    assert isinstance(
+        requester, MTurkRequester
+    ), "Can only direct soft block mturk workers from mturk requester"
     mturk_client = requester._get_client(requester._requester_name)
     for worker_id in tqdm(worker_list):
         try:
