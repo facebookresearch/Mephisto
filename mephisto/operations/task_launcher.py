@@ -13,7 +13,7 @@ from mephisto.data_model.assignment import (
 from mephisto.data_model.unit import Unit
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING, Iterator
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 import os
 import time
 import enum
@@ -81,8 +81,8 @@ class TaskLauncher:
         os.makedirs(run_dir, exist_ok=True)
 
         logger.debug(f"type of assignment data: {type(self.assignment_data_iterable)}")
-        self.units_thread = None
-        self.assignments_thread = None
+        self.units_thread: Optional[threading.Thread] = None
+        self.assignments_thread: Optional[threading.Thread] = None
 
     def _create_single_assignment(self, assignment_data) -> None:
         """Create a single assignment in the database using its read assignment_data"""
@@ -259,4 +259,5 @@ class TaskLauncher:
         self.finished_generators = True
         if self.assignments_thread is not None:
             self.assignments_thread.join()
-        self.units_thread.join()
+        if self.units_thread is not None:
+            self.units_thread.join()

@@ -396,6 +396,7 @@ class MephistoRouter(WebSocketApplication):
 def handle_provider_request(request_type: str, data: Dict[str, Any]):
     """Wrapper for provider requests that handles extracting the result and timing out"""
     provider_data = data["provider_data"]
+    assert mephisto_router_app is not None, "Must initialize router before this call"
     packet = mephisto_router_app.get_default_provider_request_packet(
         request_type, provider_data
     )
