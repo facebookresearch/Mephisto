@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { JSONItem } from "../JSONItem";
 import "./GridCollection.css";
 
-function GridCollection({ data, itemRenderer: ItemRenderer = JSONItem }) {
-  return data && data.length > 0 ? (
+function GridCollection({ items, itemRenderer: ItemRenderer = JSONItem }) {
+  return items && items.length > 0 ? (
     <div className="default-collection-renderer-container">
-      {data.map((item) => {
+      {items.map((item) => {
         return (
           <Link
             to={`/${item.id}`}

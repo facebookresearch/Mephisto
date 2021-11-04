@@ -118,7 +118,7 @@ function CollectionView({
           </h1>
         ) : data && data.length > 0 ? (
           <>
-            <CollectionRenderer data={data} itemRenderer={itemRenderer} />
+            <CollectionRenderer items={data} itemRenderer={itemRenderer} />
             {pagination && totalPages > 1 ? (
               <Pagination
                 totalPages={totalPages}

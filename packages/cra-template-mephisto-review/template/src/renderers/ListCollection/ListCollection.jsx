@@ -8,10 +8,10 @@ import "./ListCollection.css";
   EXAMPLE PLUGIN ALL DATA RENDERER
   Displays all mephisto review data as a list
 */
-function ListCollection({ data, itemRenderer: Renderer = ListItem }) {
-  return data && data.length > 0 ? (
+function ListCollection({ items, itemRenderer: Renderer = ListItem }) {
+  return items && items.length > 0 ? (
     <Card className="list-view-renderer-container">
-      {data.map((item, index) => (
+      {items.map((item, index) => (
         <>
           {index !== 0 ? <Divider /> : null}
           <Link
