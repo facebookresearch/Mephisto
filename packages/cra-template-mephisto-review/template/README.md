@@ -1,17 +1,16 @@
 
 # Mephisto Review App
 
-A template for an app that can quickly create a review UI for utilization with the ```mephisto review``` command
+A customizable base template for creating data exploration interfaces with first-class support for the ```mephisto review``` command.
 
 ## Table of Contents
 1. [Usage](#Usage)
 2. [Notes](#Notes)
 3. [Customization](#Customization)
 
-
 ## Usage
 
-1. Create a sample ```data.csv```:
+1. Create a sample data file ```sample-data.csv```:
 
     ```
     This is good text, row1
@@ -27,20 +26,11 @@ A template for an app that can quickly create a review UI for utilization with t
 Change to the directory of your react app:
 
     cd my-review
-
-Build your app
-
     npm run build
 
 4. Run ```mephisto review``` in your Mephisto directory
 
-Change directory to the location of your Mephisto installation
-
-    cd ~/path/to/your/Mephisto/installation
-
-*Make note of the paths to your data file and react app relative to the location of your Mephisto installation*
-
-    $ cat ~/path/to/your/data.csv | mephisto review ~/path/to/your/my-review/build -o results.csv --all
+    $ cat ~/path/to/your/sample-data.csv | mephisto review ~/path/to/your/my-review/build --all -o results.csv
 
 5. Open the react app hosted at the port specified by the ouput from the above command
 
@@ -65,7 +55,7 @@ Open ```http://127.0.0.1:5000/``` or the given URL on an internet browser
 
 ## Customization
 
-To customize the App, make modifications to the ```index.js``` file
+To customize the review interface, make modifications to the ```index.js``` file
 You can customize the way review items are displayed for both of the two routes in the App:
 
 1. Customize the layout of all data:
