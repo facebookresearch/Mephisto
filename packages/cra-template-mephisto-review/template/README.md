@@ -78,7 +78,7 @@ You can customize the way review items are displayed for both of the two routes 
 
     - Add custom renderers for rendering the layout of all items by passing a ```collectionRenderer``` property to AllItemView:
         - The collectionRenderer property must be a react component.
-        - The collectionRenderer component will be passed down a property of ```data```, which represents an array of all review items.
+        - The collectionRenderer component will be passed down a property of ```items```, which represents an array of all review items.
         - The collectionRenderer component will also be passed down a property of ```itemRenderer``` which can collectionRenderer the data of a single item.
         - The itemRenderer can be placed in each of the individual item views of your collectionRenderer
         - By default the item collectionRenderer will be a header displaying the item id as well as a pre element containing the stringified JSON data of the item
@@ -86,7 +86,7 @@ You can customize the way review items are displayed for both of the two routes 
     - Customize the layout of individual items in either the default collectionRenderer or your custom collectionRenderer by passing an ```itemRenderer``` property to AllItemView:
         - The itemRenderer must be a react component.
         - The itemRenderer will be passed down a property of ```item```
-        - The item property will contain the propertys of ```data``` representing the JSON data of the review item as well as an ```id``` representing the 0 indexed position of the item in the review data
+        - The item property will contain the properties of ```items``` representing the JSON data of the review item as well as an ```id``` representing the 0 indexed position of the item in the review data
 
 2. Customize the layout of individual item views:
 
@@ -95,4 +95,4 @@ You can customize the way review items are displayed for both of the two routes 
     - Add custom renderers for items by passing an ```itemRenderer``` property to ItemView:
         - The itemRenderer property must be a react component.
         - The itemRenderer component will be passed down a property of ```item```
-        - The item property will contain the properties of ```data``` representing the JSON data of the review item as well as an ```id``` representing the 0 indexed position of the item in the review data
+        - The item property will contain the properties of ```items``` representing the JSON data of the review item as well as an ```id``` representing the 0 indexed position of the item in the review data
