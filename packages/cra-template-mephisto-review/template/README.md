@@ -10,35 +10,33 @@ A customizable base template for creating data exploration interfaces with first
 
 ## Usage
 
-1. Create a sample data file ```sample-data.csv```:
+1. Create a sample data file ```sample-data.csv``` (this template also ships with a sample data file for you):
 
     ```
     This is good text, row1
     This is bad text, row2
     ```
 
-2. Use create-react-app to quickly create a Review UI with this template
+2. Use `create-react-app` to generate a review app with this template as a base
 
     ```npx create-react-app my-review --template mephisto-review```
 
-3. Build your react app
-
-Change to the directory of your react app:
+3. Build your app
 
     cd my-review
     npm run build
 
-4. Run ```mephisto review``` in your Mephisto directory
+4. Run ```mephisto review``` (note that [Mephisto must be installed](https://github.com/facebookresearch/Mephisto/blob/main/docs/quickstart.md) to use this CLI command)
 
-    $ cat ~/path/to/your/sample-data.csv | mephisto review ~/path/to/your/my-review/build --all -o results.csv
+    $ cat sample-data.csv | mephisto review ~/path/to/your/my-review/build --all -o results.csv
 
-5. Open the react app hosted at the port specified by the ouput from the above command
+5. Open the review app in your browser
 
-If Mephisto review ran correctly you should see output similar to the following on your terminal:
+If the review CLI command ran correctly, you should see output similar to the following on your terminal:
 
     Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 
-Open ```http://127.0.0.1:5000/``` or the given URL on an internet browser
+Open ```http://127.0.0.1:5000/``` or the given URL in an internet browser
 
 6. Review your sample data with the UI prompts
 
