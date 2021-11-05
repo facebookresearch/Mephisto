@@ -19,16 +19,22 @@ A customizable base template for creating data exploration interfaces with first
 
 2. Use `create-react-app` to generate a review app with this template as a base
 
-    ```npx create-react-app my-review --template mephisto-review```
+    ```
+    npx create-react-app my-review --template mephisto-review
+    ```
 
 3. Build your app
 
+    ```
     cd my-review
     yarn build
+    ```
 
 4. Run ```mephisto review``` (note that [Mephisto must be installed](https://github.com/facebookresearch/Mephisto/blob/main/docs/quickstart.md) to use this CLI command)
 
+    ```
     $ cat sample-data.csv | mephisto review ~/path/to/your/my-review/build --all -o results.csv
+    ```
 
 5. Open the review app in your browser
 
