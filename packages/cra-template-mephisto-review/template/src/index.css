@@ -36,18 +36,6 @@ code {
   }
 }
 
-.all-item-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  font-size: calc(10px + 1vmin);
-  margin-top: 50px;
-  width: 100vw;
-  height: calc(100vh - 50px);
-  overflow: auto;
-}
-
 .all-item-view-message {
   margin: auto 0px;
 }
@@ -61,6 +49,7 @@ code {
   max-width: 50%;
 }
 
+.all-item-view,
 .item-view {
   padding-top: 50px;
   width: 100vw;
@@ -80,8 +69,14 @@ code {
 }
 
 .item-view-error {
-  margin-top: 36px;
-  max-width: 50%;
+  position: absolute;
+  bottom: 0px;
+  left: 0;
+  right: 0;
+  background: red;
+  color: white;
+  padding: 10px;
+  font-size: 14px;
 }
 
 .item-view-no-data {

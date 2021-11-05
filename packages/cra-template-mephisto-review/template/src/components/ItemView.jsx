@@ -13,6 +13,7 @@ import {
 } from "@blueprintjs/core";
 import { JSONItem } from "../renderers/JSONItem";
 import { getHostname } from "../utils";
+import ErrorPane from "./ErrorPane";
 
 const AppToaster = Toaster.create({
   className: "recipe-toaster",
@@ -113,20 +114,15 @@ function ItemView({
           )}
         </div>
       </Navbar>
-      <main className="item-view">
-        {error && (
-          <div className="item-dynamic">
-            <h5 className="error item-view-error">
-              Error: {JSON.stringify(error)}
-            </h5>
-          </div>
-        )}
+      <main className={`item-view mode-${mode}`}>
         {isLoading ? (
           <div className="item-dynamic">
+            <ErrorPane error={error} />
             <h1 className="item-view-message">Loading...</h1>
           </div>
         ) : isFinished ? (
           <div className="item-dynamic">
+            <ErrorPane error={error} />
             <h1 className="item-view-message">
               Done reviewing! You can close this app now
             </h1>
@@ -134,37 +130,44 @@ function ItemView({
         ) : item ? (
           wrapClass ? (
             <div className={wrapClass}>
+              <ErrorPane error={error} />
               <ItemRenderer item={item} />
             </div>
           ) : (
-            <ItemRenderer item={item} />
+            <>
+              <ErrorPane error={error} />
+              <ItemRenderer item={item} />
+            </>
           )
         ) : (
-          <div className="item-view-message item-view-no-data">
-            <h3>
-              Thanks for using the <code>$ mephisto review</code> interface.
-              Here are a few ways to get started:
-            </h3>
-            <h3>
-              1. Review data from a .csv or{" "}
-              <a href="https://jsonlines.org/">.jsonl</a> file
-            </h3>
-            <pre>
-              $ cat sample-data<span className="highlight">.json</span> |
-              mephisto review review-app/build/{" "}
-              <span className="highlight">--json</span> --stdout
-            </pre>
-            <pre>
-              $ cat sample-data<span className="highlight">.csv</span> |
-              mephisto review review-app/build/{" "}
-              <span className="highlight">--csv</span> --stdout
-            </pre>
-            <h3>2. Review data from the Mephisto database</h3>
-            <pre>
-              $ mephisto review review-app/build/{" "}
-              <span className="highlight">--db mephisto_db_task_name</span>{" "}
-              --stdout
-            </pre>
+          <div className="item-dynamic">
+            <div className="item-view-message item-view-no-data">
+              <ErrorPane error={error} />
+              <h3>
+                Thanks for using the <code>$ mephisto review</code> interface.
+                Here are a few ways to get started:
+              </h3>
+              <h3>
+                1. Review data from a .csv or{" "}
+                <a href="https://jsonlines.org/">.jsonl</a> file
+              </h3>
+              <pre>
+                $ cat sample-data<span className="highlight">.json</span> |
+                mephisto review review-app/build/{" "}
+                <span className="highlight">--json</span> --stdout
+              </pre>
+              <pre>
+                $ cat sample-data<span className="highlight">.csv</span> |
+                mephisto review review-app/build/{" "}
+                <span className="highlight">--csv</span> --stdout
+              </pre>
+              <h3>2. Review data from the Mephisto database</h3>
+              <pre>
+                $ mephisto review review-app/build/{" "}
+                <span className="highlight">--db mephisto_db_task_name</span>{" "}
+                --stdout
+              </pre>
+            </div>
           </div>
         )}
       </main>
