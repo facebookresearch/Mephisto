@@ -19,7 +19,11 @@ const AppToaster = Toaster.create({
   position: Position.TOP,
 });
 
-function ItemView({ itemRenderer: ItemRenderer = JSONItem }) {
+function ItemView({
+  itemRenderer: ItemRenderer = JSONItem,
+  wrapClass,
+  allowReview = true,
+}) {
   const { id } = useParams();
   const {
     data: item,
@@ -46,6 +50,8 @@ function ItemView({ itemRenderer: ItemRenderer = JSONItem }) {
 
   const buttonDisable = error || isFinished || isLoading || item == null;
 
+  const hideReviewWorkflow = !allowReview && mode === "ALL";
+
   return (
     <>
       <Navbar fixedToTop={true}>
@@ -62,59 +68,77 @@ function ItemView({ itemRenderer: ItemRenderer = JSONItem }) {
               </>
             ) : null}
             <NavbarHeading className="navbar-header">
-              <b>Please review the following item:</b>
+              {hideReviewWorkflow ? (
+                <b>Viewing task:</b>
+              ) : (
+                <b>Please review the following item:</b>
+              )}
             </NavbarHeading>
           </NavbarGroup>
-          <NavbarGroup align={Alignment.RIGHT}>
-            <Button
-              className="btn"
-              intent="danger"
-              disabled={buttonDisable}
-              id="reject-button"
-              onClick={async () => {
-                var response = await submit({ result: "rejected" });
-                if (response === "SUCCESS") {
-                  confirmReview();
-                } else if (response) {
-                  reviewError(response);
-                }
-              }}
-            >
-              <b>REJECT</b>
-            </Button>
-            <Button
-              className="btn"
-              intent="success"
-              disabled={buttonDisable}
-              id="approve-button"
-              onClick={async () => {
-                var response = await submit({ result: "approved" });
-                if (response === "SUCCESS") {
-                  confirmReview();
-                } else if (response) {
-                  reviewError(response);
-                }
-              }}
-            >
-              <b>APPROVE</b>
-            </Button>
-          </NavbarGroup>
+          {hideReviewWorkflow ? null : (
+            <NavbarGroup align={Alignment.RIGHT}>
+              <Button
+                className="btn"
+                intent="danger"
+                disabled={buttonDisable}
+                id="reject-button"
+                onClick={async () => {
+                  var response = await submit({ result: "rejected" });
+                  if (response === "SUCCESS") {
+                    confirmReview();
+                  } else if (response) {
+                    reviewError(response);
+                  }
+                }}
+              >
+                <b>REJECT</b>
+              </Button>
+              <Button
+                className="btn"
+                intent="success"
+                disabled={buttonDisable}
+                id="approve-button"
+                onClick={async () => {
+                  var response = await submit({ result: "approved" });
+                  if (response === "SUCCESS") {
+                    confirmReview();
+                  } else if (response) {
+                    reviewError(response);
+                  }
+                }}
+              >
+                <b>APPROVE</b>
+              </Button>
+            </NavbarGroup>
+          )}
         </div>
       </Navbar>
       <main className="item-view">
         {error && (
-          <h5 className="error item-view-error">
-            Error: {JSON.stringify(error)}
-          </h5>
+          <div className="item-dynamic">
+            <h5 className="error item-view-error">
+              Error: {JSON.stringify(error)}
+            </h5>
+          </div>
         )}
         {isLoading ? (
-          <h1 className="item-view-message">Loading...</h1>
+          <div className="item-dynamic">
+            <h1 className="item-view-message">Loading...</h1>
+          </div>
         ) : isFinished ? (
-          <h1 className="item-view-message">
-            Done reviewing! You can close this app now
-          </h1>
+          <div className="item-dynamic">
+            <h1 className="item-view-message">
+              Done reviewing! You can close this app now
+            </h1>
+          </div>
         ) : item ? (
-          <ItemRenderer item={item} />
+          wrapClass ? (
+            <div className={wrapClass}>
+              <ItemRenderer item={item} />
+            </div>
+          ) : (
+            <ItemRenderer item={item} />
+          )
         ) : (
           <div className="item-view-message item-view-no-data">
             <h3>

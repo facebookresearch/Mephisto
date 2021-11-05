@@ -16,7 +16,7 @@ ReactDOM.render(
       <Switch>
         <Route path="/:id">
           {/* For more information see the 'Customization' section of the README.md file. */}
-          <ItemView itemRenderer={JSONItem} />
+          <ItemView wrapClass="item-dynamic" itemRenderer={JSONItem} />
         </Route>
         <Route path="/">
           {/* For more information see the 'Customization' section of the README.md file. */}
