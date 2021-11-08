@@ -34,6 +34,7 @@ class ArchitectTests(unittest.TestCase):
     db: MephistoDB
     data_dir: str
     build_dir: str
+    curr_architect: Optional[Architect] = None
 
     warned_about_setup = False
 
@@ -92,7 +93,7 @@ class ArchitectTests(unittest.TestCase):
         self.db = LocalMephistoDB(database_path)
         self.build_dir = tempfile.mkdtemp()
         self.task_run = TaskRun.get(self.db, get_test_task_run(self.db))
-        builder = MockTaskBuilder(self.task_run, {})
+        builder = MockTaskBuilder(self.task_run, OmegaConf.create({}))
         builder.build_in_dir(self.build_dir)
 
     def tearDown(self) -> None:

@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from flask import Flask, send_file, jsonify
+from flask import Flask, send_file, jsonify  # type: ignore
 from mephisto.client.config import Config
 from mephisto.client.api import api
 from mephisto.operations.operator import Operator

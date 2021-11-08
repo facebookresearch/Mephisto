@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.worker import Worker
     from mephisto.data_model.unit import Unit
+    from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.crowd_provider import CrowdProvider
 
 

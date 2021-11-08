@@ -126,7 +126,8 @@ class MTurkProvider(CrowdProvider):
                 ] = requester._create_new_mturk_qualification(qualification_name)
 
         if hasattr(shared_state, "mturk_specific_qualifications"):
-            qualifications += shared_state.mturk_specific_qualifications
+            # TODO move specific qualifications into the fold for providers
+            qualifications += shared_state.mturk_specific_qualifications  # type: ignore
 
         # Set up HIT type
         client = self._get_client(requester._requester_name)

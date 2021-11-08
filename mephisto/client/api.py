@@ -4,8 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from flask import Blueprint, jsonify, request
-from flask import current_app as app
+from flask import Blueprint, jsonify, request  # type: ignore
+from flask import current_app as app  # type: ignore
 from mephisto.abstractions.database import EntryAlreadyExistsException
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task_run import TaskRun

@@ -31,7 +31,7 @@ class HerokuArchitectTests(ArchitectTests):
     works and nothing has broken it.
     """
 
-    ArchitectClass: Type[Architect] = HerokuArchitect
+    ArchitectClass: Type[HerokuArchitect] = HerokuArchitect
     db: MephistoDB
     data_dir: str
     build_dir: str

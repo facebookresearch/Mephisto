@@ -22,6 +22,7 @@ from typing import List, Optional, Tuple, Mapping, Dict, Any, Type, cast, TYPE_C
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.assignment import Assignment
+    from mephisto.abstractions.providers.mturk.mturk_agent import MTurkAgent
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
     from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
 
@@ -117,7 +118,7 @@ class MTurkUnit(Unit):
         """
         super().set_db_status(status)
         if status == AssignmentState.COMPLETED:
-            agent = self.get_assigned_agent()
+            agent = cast("MTurkAgent", self.get_assigned_agent())
             if agent is not None:
                 agent_status = agent.get_status()
                 if agent_status == AgentState.STATUS_IN_TASK:
@@ -128,9 +129,12 @@ class MTurkUnit(Unit):
                         f"Attempting to reconcile with MTurk directly"
                     )
                     try:
-                        agent.attempt_to_reconcile_submitted_data(
-                            self.get_mturk_hit_id()
-                        )
+                        hit_id = self.get_mturk_hit_id()
+                        assert (
+                            hit_id is not None
+                        ), f"This unit does not have an ID! {self}"
+
+                        agent.attempt_to_reconcile_submitted_data(hit_id)
                     except Exception as e:
                         logger.warning(
                             f"Was not able to reconcile due to an error, {e}. "

@@ -23,7 +23,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 
-from typing import List, Optional, Tuple, Mapping, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Mapping, Dict, Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -95,8 +95,8 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     @property
     def state(self) -> "AgentState":
         if self._state is None:
-            self._state = AgentState(self)
-        return self._state
+            self._state = AgentState(self)  # type: ignore
+        return cast("AgentState", self._state)
 
     def __new__(
         cls,
