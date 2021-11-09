@@ -102,6 +102,13 @@ def setup_aws_credentials(
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
+                aws_credentials_file.write("[{}]\n".format(profile_name))
+                aws_credentials_file.write(
+                    "aws_access_key_id={}\n".format(aws_access_key_id)
+                )
+                aws_credentials_file.write(
+                    "aws_secret_access_key={}\n".format(aws_secret_access_key)
+                )
         with open(expanded_aws_file_path, "a+") as aws_credentials_file:
             # Clean up file
             if aws_credentials_file_string:
@@ -404,7 +411,8 @@ def create_hit_type(
     hit_keywords = ",".join(task_config.task_tags)
     hit_reward = task_config.task_reward
     assignment_duration_in_seconds = task_config.assignment_duration_in_seconds
-    existing_qualifications = convert_mephisto_qualifications(client, qualifications)
+    existing_qualifications = convert_mephisto_qualifications(
+        client, qualifications)
 
     # If the user hasn't specified a location qualification, we assume to
     # restrict the HIT to some english-speaking countries.
@@ -566,7 +574,8 @@ def setup_sns_topic(
     filtered_task_name = pattern.sub("", task_name)
     response = client.create_topic(Name=filtered_task_name)
     arn = response["TopicArn"]
-    topic_sub_url = "{}/sns_posts?task_run_id={}".format(server_url, task_run_id)
+    topic_sub_url = "{}/sns_posts?task_run_id={}".format(
+        server_url, task_run_id)
     client.subscribe(TopicArn=arn, Protocol="https", Endpoint=topic_sub_url)
     response = client.get_topic_attributes(TopicArn=arn)
     policy_json = """{{
@@ -681,7 +690,8 @@ def approve_work(
 def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
     """reject work for a given assignment through the mturk client"""
     try:
-        client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
+        client.reject_assignment(
+            AssignmentId=assignment_id, RequesterFeedback=reason)
     except Exception as e:
         # TODO(#93) Break down this error to the many reasons why approve may fail,
         # only silently pass on approving an already approved assignment
@@ -768,7 +778,8 @@ def get_outstanding_hits(client: MTurkClient) -> Dict[str, List[Dict[str, Any]]]
     new_hits = client.list_hits(MaxResults=100)
     all_hits = new_hits["HITs"]
     while len(new_hits["HITs"]) > 0:
-        new_hits = client.list_hits(MaxResults=100, NextToken=new_hits["NextToken"])
+        new_hits = client.list_hits(
+            MaxResults=100, NextToken=new_hits["NextToken"])
         all_hits += new_hits["HITs"]
 
     hit_by_type: Dict[str, List[Dict[str, Any]]] = {}

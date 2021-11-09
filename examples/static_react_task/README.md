@@ -119,3 +119,6 @@ In order to get started on your own task, it is a good idea to copy this `static
 7. Launch a small batch on a crowd provider to see how real workers handle your task.
 8. Iterate more.
 9. Collect some good data.
+
+
+
