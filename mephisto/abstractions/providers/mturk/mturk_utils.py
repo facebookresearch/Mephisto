@@ -102,13 +102,6 @@ def setup_aws_credentials(
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
-                aws_credentials_file.write("[{}]\n".format(profile_name))
-                aws_credentials_file.write(
-                    "aws_access_key_id={}\n".format(aws_access_key_id)
-                )
-                aws_credentials_file.write(
-                    "aws_secret_access_key={}\n".format(aws_secret_access_key)
-                )
         with open(expanded_aws_file_path, "a+") as aws_credentials_file:
             # Clean up file
             if aws_credentials_file_string:
