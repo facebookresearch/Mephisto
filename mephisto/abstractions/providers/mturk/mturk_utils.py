@@ -67,15 +67,18 @@ def setup_aws_credentials(
         if register_args is not None:
             # Eventually we could manually re-parse the file and see
             # if the credentials line up or not, then fix ourselves
-            print(
-                f"WARNING credentials provided, but there's already a "
-                f"profile for {profile_name}. If these don't line up, you'll "
-                f"need to manually navigate to your ~/.aws/credentials file "
-                f"and remove the entry for this profile name, then run again.\n"
-                f"As this profile is currently loading, we consider it "
-                f"successfully registered anyways."
-            )
-        return True
+            if register_args.aws_access_key_id is not None:
+                return True
+
+            # print(
+            #     f"WARNING credentials provided, but there's already a "
+            #     f"profile for {profile_name}. If these don't line up, you'll "
+            #     f"need to manually navigate to your ~/.aws/credentials file "
+            #     f"and remove the entry for this profile name, then run again.\n"
+            #     f"As this profile is currently loading, we consider it "
+            #     f"successfully registered anyways."
+            # )
+
     except ProfileNotFound:
         # Setup new credentials
         if register_args is not None:
@@ -102,6 +105,18 @@ def setup_aws_credentials(
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
+                aws_credentials_file.write("[{}]\n".format(profile_name))
+                aws_credentials_file.write(
+                    "aws_access_key_id={}\n".format(aws_access_key_id)
+                )
+                aws_credentials_file.write(
+                    "aws_secret_access_key={}\n".format(aws_secret_access_key)
+                )
+
+                logger.warning(f"WARNING keys does not match with the ones already present"
+                               f"so we're updating the credentials, overwriting ones that already existed for the profile {profile_name}"
+                               f"successfully registered anyways.")
+
         with open(expanded_aws_file_path, "a+") as aws_credentials_file:
             # Clean up file
             if aws_credentials_file_string:
