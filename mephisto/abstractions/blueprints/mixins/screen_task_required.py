@@ -12,6 +12,7 @@ from typing import (
     Iterable,
     Callable,
     Tuple,
+    cast,
     Generator,
     TYPE_CHECKING,
 )
@@ -25,6 +26,7 @@ from mephisto.operations.utils import find_or_create_qualification
 
 
 if TYPE_CHECKING:
+    from mephisto.abstractions.blueprint import SharedTaskState
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.packet import Packet
@@ -80,6 +82,7 @@ class ScreenTaskRequired(BlueprintMixin):
     qualify workers who have never attempted the task before
     """
 
+    shared_state: "SharedTaskState"
     ArgsMixin = ScreenTaskRequiredArgs
     SharedStateMixin = ScreenTaskSharedState
 
@@ -87,8 +90,11 @@ class ScreenTaskRequired(BlueprintMixin):
         self,
         task_run: "TaskRun",
         args: "DictConfig",
-        shared_state: "ScreenTaskSharedState",
+        shared_state: "SharedTaskState",
     ) -> None:
+        assert isinstance(
+            shared_state, ScreenTaskSharedState
+        ), "Must use ScreenTaskSharedState with ScreenTaskRequired blueprint"
         return self.init_screening_config(task_run, args, shared_state)
 
     def init_screening_config(
@@ -117,6 +123,9 @@ class ScreenTaskRequired(BlueprintMixin):
     @classmethod
     def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState"):
         use_screening_task = args.blueprint.get("use_screening_task", False)
+        assert isinstance(
+            shared_state, ScreenTaskSharedState
+        ), "Must use ScreenTaskSharedState with ScreenTaskRequired blueprint"
         if not use_screening_task:
             return
         passed_qualification_name = args.blueprint.passed_qualification_name
@@ -160,7 +169,12 @@ class ScreenTaskRequired(BlueprintMixin):
             if self.screening_units_launched >= self.screening_unit_cap:
                 return None  # Exceeded the cap on these units
             else:
-                data = next(self.screening_data_factory)
+                data = next(
+                    cast(
+                        Generator[Dict[str, Any], None, None],
+                        self.screening_data_factory,
+                    )
+                )
                 self.screening_units_launched += 1
                 return data
         except StopIteration:
@@ -192,13 +206,15 @@ class ScreenTaskRequired(BlueprintMixin):
         return _wrapped_validate
 
     @classmethod
-    def get_mixin_qualifications(cls, args: "DictConfig"):
+    def get_mixin_qualifications(
+        cls, args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         """Creates the relevant task qualifications for this task"""
         passed_qualification_name = args.blueprint.passed_qualification_name
         failed_qualification_name = args.blueprint.block_qualification
         return [
             make_qualification_dict(
-                cls.get_failed_qual(failed_qualification_name),
+                failed_qualification_name,
                 QUAL_NOT_EXIST,
                 None,
             )

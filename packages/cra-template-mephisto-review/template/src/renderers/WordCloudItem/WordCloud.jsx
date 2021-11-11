@@ -31,7 +31,7 @@ function WordCloud({
     var vals = {};
     //separate string into array of space separated words, excluded words are ignored
     var words = str.split(" ").filter((word) => {
-      if (!word || word == "" || word.length == 1) return false;
+      if (!word || word === "" || word.length === 1) return false;
       if (!isNaN(parseFloat(str))) return false;
       for (const char of excludedWords) {
         if (word.indexOf(char) > -1) return false;
@@ -39,9 +39,7 @@ function WordCloud({
       return true;
     });
     //remove punctuation from all words
-    words = words.map((word) =>
-      word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-    );
+    words = words.map((word) => word.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, ""));
     //count words
     for (let word of words) {
       if (word in vals) {
@@ -116,7 +114,7 @@ function WordCloud({
     //get all words recorded
     var words = Object.keys(wordDict);
     //if empty, abort
-    if (!words || words.length == 0) return {};
+    if (!words || words.length === 0) return {};
     //find min and max of all words
     var values = Object.values(wordDict);
     var maxVal = Math.max.apply(Math, values);
@@ -125,7 +123,7 @@ function WordCloud({
     if (maxVal - minVal > 10) {
       //if difference between max and min word counts are over 10 remove all min counts
       for (const word of words) {
-        if (wordDict[word] == minVal) delete wordDict[word];
+        if (wordDict[word] === minVal) delete wordDict[word];
       }
 
       //recalculate words, values, min and max

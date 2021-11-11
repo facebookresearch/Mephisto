@@ -4,16 +4,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import boto3
 import sqlite3
 import os
 import threading
 
 from datetime import datetime
-
-
-from botocore.exceptions import ClientError
-from botocore.exceptions import ProfileNotFound
 
 from typing import Dict, Any, Optional
 

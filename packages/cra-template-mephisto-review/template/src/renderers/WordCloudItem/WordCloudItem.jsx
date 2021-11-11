@@ -9,7 +9,7 @@ import "./WordCloud.css";
     For use inside an ItemListRenderer or AllItemView as an itemRenderer prop
 */
 
-function WordCloudItemRenderer({ item }) {
+function WordCloudItem({ item }) {
   const SMALL_CARD_WIDTH_LIMIT = 1000;
   const data = item && item.data;
   const id = item && item.id;
@@ -70,4 +70,4 @@ function WordCloudItemRenderer({ item }) {
   );
 }
 
-export default WordCloudItemRenderer;
+export default WordCloudItem;

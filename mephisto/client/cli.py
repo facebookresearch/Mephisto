@@ -4,8 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import click
-from click_default_group import DefaultGroup
+import click  # type: ignore
+from click_default_group import DefaultGroup  # type: ignore
 
 from omegaconf import MISSING
 

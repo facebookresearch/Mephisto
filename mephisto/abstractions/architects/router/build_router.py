@@ -6,7 +6,7 @@
 
 import mephisto.abstractions.architects.router as router_module
 import os
-import sh
+import sh  # type: ignore
 import shutil
 import shlex
 import subprocess

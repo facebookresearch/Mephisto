@@ -421,6 +421,7 @@ class Supervisor:
                         blueprint = task_runner.task_run.get_blueprint(
                             args=task_runner.args
                         )
+                        assert isinstance(blueprint, ScreenTaskRequired)
                         blueprint.screening_units_launched -= 1
                     unit.expire()
             task_runner.task_run.clear_reservation(unit)
@@ -534,6 +535,7 @@ class Supervisor:
             isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
         ), "Should only be registering from onboarding if onboarding is required and set"
         worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
+        assert blueprint.onboarding_qualification_name is not None
         worker.grant_qualification(
             blueprint.onboarding_qualification_name, int(worker_passed)
         )
@@ -688,6 +690,9 @@ class Supervisor:
                 screening_data = blueprint.get_screening_unit_data()
                 if screening_data is not None:
                     launcher = channel_info.job.task_launcher
+                    assert (
+                        launcher is not None
+                    ), "Job must have launcher to use screening tasks"
                     units = [launcher.launch_screening_unit(screening_data)]
                 else:
                     self.message_queue.append(

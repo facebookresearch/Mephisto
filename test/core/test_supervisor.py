@@ -43,6 +43,10 @@ from mephisto.abstractions.blueprints.mock.mock_blueprint import (
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
+from typing import Type, ClassVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mephisto.abstractions.database import MephistoDB
 
 EMPTY_STATE = MockSharedState()
 
@@ -53,7 +57,7 @@ class BaseTestSupervisor:
     uses WebsocketChannel and MockArchitect
     """
 
-    DB_CLASS = None
+    DB_CLASS: ClassVar[Type["MephistoDB"]]
 
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()

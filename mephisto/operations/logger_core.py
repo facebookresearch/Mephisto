@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
+from logging.handlers import RotatingFileHandler
 from typing import Optional, Dict
 
 loggers: Dict[str, logging.Logger] = {}
@@ -57,8 +58,9 @@ def get_logger(
     """
 
     global loggers
-    if loggers.get(name):
-        return loggers.get(name)
+    found_logger = loggers.get(name)
+    if found_logger is not None:
+        return found_logger
     else:
         logger = logging.getLogger(name)
 
@@ -79,7 +81,7 @@ def get_logger(
         if log_file is None:
             handler = logging.StreamHandler()
         else:
-            handler = logging.RotatingFileHandler(log_file)
+            handler = RotatingFileHandler(log_file)
         # TODO revisit logging handlers after deciding whether or not to just use
         # Hydra default?
         # formatter = logging.Formatter(

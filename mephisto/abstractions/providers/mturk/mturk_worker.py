@@ -68,7 +68,7 @@ class MTurkWorker(Worker):
         if len(workers) == 0:
             # TODO warn?
             return None
-        return workers[0]
+        return cast("MTurkWorker", workers[0])
 
     def get_mturk_worker_id(self):
         return self._worker_name
@@ -152,7 +152,9 @@ class MTurkWorker(Worker):
             return False, "bonusing via compensation tasks not yet available"
 
         unit = cast("MTurkUnit", unit)
-        requester = unit.get_assignment().get_task_run().get_requester()
+        requester = cast(
+            "MTurkRequester", unit.get_assignment().get_task_run().get_requester()
+        )
         client = self._get_client(requester._requester_name)
         mturk_assignment_id = unit.get_mturk_assignment_id()
         assert mturk_assignment_id is not None, "Cannot bonus for a unit with no agent"

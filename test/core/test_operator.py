@@ -29,13 +29,18 @@ from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintAr
 from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
+from typing import Type, ClassVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mephisto.abstractions.database import MephistoDB
+
 TIMEOUT_TIME = 15
 
 
 MOCK_TASK_ARGS = TaskConfigArgs(
     task_title="title",
     task_description="This is a description",
-    task_reward="0.3",
+    task_reward=0.3,
     task_tags="1,2,3",
 )
 
@@ -45,7 +50,7 @@ class OperatorBaseTest(object):
     Unit testing for the Mephisto Operator
     """
 
-    DB_CLASS = None
+    DB_CLASS: ClassVar[Type["MephistoDB"]]
 
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
@@ -71,7 +76,7 @@ class OperatorBaseTest(object):
             if assignment.get_status() == AssignmentState.COMPLETED:
                 break
             time.sleep(0.1)
-        self.assertLess(
+        self.assertLess(  # type: ignore
             time.time() - start_time, timeout, "Assignment not completed in time"
         )
 
@@ -82,7 +87,7 @@ class OperatorBaseTest(object):
             if len(architect.server.subs) > 0:
                 break
             time.sleep(0.1)
-        self.assertLess(time.time() - start_time, 5, "Mock server not up in time")
+        self.assertLess(time.time() - start_time, 5, "Mock server not up in time")  # type: ignore
 
     def test_initialize_supervisor(self):
         """Quick test to ensure that the operator can be initialized"""

@@ -12,6 +12,7 @@ from mephisto.abstractions.blueprint import (
 from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
     OnboardingSharedState,
+    OnboardingRequiredArgs,
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
@@ -52,12 +53,12 @@ BLUEPRINT_TYPE = "abstract_static"
 
 
 @dataclass
-class SharedStaticTaskState(OnboardingRequired.SharedStateMixin, SharedTaskState):
+class SharedStaticTaskState(OnboardingSharedState, SharedTaskState):
     static_task_data: Iterable[Any] = field(default_factory=list)
 
 
 @dataclass
-class StaticBlueprintArgs(OnboardingRequired.ArgsMixin, BlueprintArgs):
+class StaticBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
     _blueprint_type: str = BLUEPRINT_TYPE
     _group: str = field(
         default="StaticBlueprint",
@@ -131,7 +132,7 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
         elif blue_args.get("data_json", None) is not None:
             json_file = os.path.expanduser(blue_args.data_json)
             with open(json_file, "r", encoding="utf-8-sig") as json_fp:
-                json_data = json.loads(json_fp)
+                json_data = json.load(json_fp)
             for jd in json_data:
                 self._initialization_data_dicts.append(jd)
         elif blue_args.get("data_jsonl", None) is not None:
@@ -149,10 +150,13 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
             pass
 
     @classmethod
-    def assert_task_args(cls, args: DictConfig, shared_state: "SharedStaticTaskState"):
+    def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """Ensure that the data can be properly loaded"""
         super().assert_task_args(args, shared_state)
 
+        assert isinstance(
+            shared_state, SharedStaticTaskState
+        ), "Must use SharedStaticTaskState for static blueprints"
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
@@ -175,7 +179,7 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
                 pass
             else:
                 assert (
-                    len(shared_state.static_task_data) > 0
+                    len([x for x in shared_state.static_task_data]) > 0
                 ), "Length of data dict provided was 0"
         else:
             raise AssertionError(

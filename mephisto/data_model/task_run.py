@@ -68,13 +68,13 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         try:
             self.args: "DictConfig" = OmegaConf.create(json.loads(self.param_string))
         except Exception as e:
-            self.args = None
+            self.args = OmegaConf.create({})
             print(e)
         self.start_time = row["creation_date"]
         self.provider_type = row["provider_type"]
         self.task_type = row["task_type"]
         self.sandbox = row["sandbox"]
-        self.assignments_generator_done: bool = None
+        self.assignments_generator_done: bool = False
 
         # properties with deferred loading
         self.__is_completed = row["is_completed"]

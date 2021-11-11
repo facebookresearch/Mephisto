@@ -106,7 +106,7 @@ def get_worker_stats(units: List["Unit"]) -> Dict[str, Dict[str, List["Unit"]]]:
     Traverse a list of units and create a mapping from worker id
     to their units, grouped by their current status
     """
-    previous_work_by_worker = {}
+    previous_work_by_worker: Dict[str, Dict[str, List["Unit"]]] = {}
     for unit in units:
         w_id = unit.worker_id
         if w_id not in previous_work_by_worker:
@@ -233,7 +233,9 @@ def run_examine_by_worker(
                 )
 
             agent = unit.get_assigned_agent()
-
+            assert (
+                agent is not None
+            ), f"Can't make decision on None agent... issue with {unit}"
             if decision.lower() == "a":
                 agent.approve_work()
                 if decision == "A" and approve_qualification is not None:
@@ -259,7 +261,7 @@ def run_examine_by_worker(
                     if should_block.lower() in ["y", "yes"]:
                         block_reason = input("Why permanently block this worker? ")
                         worker.block_worker(block_reason)
-                unit.get_assigned_agent().reject_work(reason)
+                agent.reject_work(reason)
 
             if decision.lower() != decision:
                 apply_all_decision = decision.lower()

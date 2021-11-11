@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
     from mephisto.abstractions.crowd_provider import CrowdProvider
-    from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.assignment import Assignment, InitializationData
 
 import os
 from mephisto.tools.misc import warn_once
@@ -116,7 +116,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
 
         return get_crowd_provider_from_type(self.provider_type)
 
-    def get_assignment_data(self) -> Optional[Dict[str, Any]]:
+    def get_assignment_data(self) -> "InitializationData":
         """Return the specific assignment data for this assignment"""
         return self.get_assignment().get_assignment_data()
 
