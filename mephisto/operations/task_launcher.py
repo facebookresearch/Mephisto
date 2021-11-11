@@ -31,6 +31,7 @@ logger = get_logger(name=__name__)
 UNIT_GENERATOR_WAIT_SECONDS = 10
 ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
 SCREENING_UNIT_INDEX = -1
+GOLD_UNIT_INDEX = -2
 COMPENSATION_UNIT_INDEX = -3
 
 
@@ -202,11 +203,13 @@ class TaskLauncher:
         )
         self.units_thread.start()
 
-    def launch_screening_unit(self, unit_data: Dict[str, Any]) -> "Unit":
-        """Launch a screening unit, which should never return to the pool"""
+    def launch_evaluation_unit(
+        self, unit_data: Dict[str, Any], unit_type_index: int
+    ) -> "Unit":
+        """Launch a specific evaluation unit, used for quality control"""
         assert (
             self.launch_url is not None
-        ), "Cannot launch a screening unit before launching others"
+        ), "Cannot launch an evaluation unit before launching others"
         task_run = self.task_run
         task_config = task_run.get_task_config()
         assignment_id = self.db.new_assignment(
@@ -226,15 +229,23 @@ class TaskLauncher:
             task_run.db_id,
             task_run.requester_id,
             assignment_id,
-            SCREENING_UNIT_INDEX,
+            unit_type_index,
             task_config.task_reward,
             task_run.provider_type,
             task_run.task_type,
             task_run.sandbox,
         )
-        screening_unit = Unit.get(self.db, unit_id)
-        screening_unit.launch(self.launch_url)
-        return screening_unit
+        evaluation_unit = Unit.get(self.db, unit_id)
+        evaluation_unit.launch(self.launch_url)
+        return evaluation_unit
+
+    def launch_screening_unit(self, unit_data: Dict[str, Any]) -> "Unit":
+        """Launch a screening unit, which should never return to the pool"""
+        return self.launch_evaluation_unit(unit_data, SCREENING_UNIT_INDEX)
+
+    def launch_gold_unit(self, unit_data: Dict[str, Any]) -> "Unit":
+        """Launch a screening unit, which should never return to the pool"""
+        return self.launch_evaluation_unit(unit_data, GOLD_UNIT_INDEX)
 
     def get_assignments_are_all_created(self) -> bool:
         return self.assignment_thread_done
