@@ -391,7 +391,7 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
 def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> str:
     """
     Create a security group with public access
-    for 80 and 443, but only access from ssh_ip for 22
+    for 80 and 443, but only access from ssh_ip (comma-separated) for 22
     """
     client = session.client("ec2")
 
@@ -407,6 +407,19 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
         ],
     )
     group_id = create_response["GroupId"]
+    ssh_perms = [
+        {
+            "FromPort": 22,
+            "ToPort": 22,
+            "IpProtocol": "tcp",
+            "IpRanges": [
+                {
+                    "CidrIp": one_ip,
+                    "Description": "SSH from allowed ip",
+                }
+            ],
+        } for one_ip in ssh_ip.split(',')
+    ]
 
     response = client.authorize_security_group_ingress(
         GroupId=group_id,
@@ -477,18 +490,7 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                     }
                 ],
             },
-            {
-                "FromPort": 22,
-                "ToPort": 22,
-                "IpProtocol": "tcp",
-                "IpRanges": [
-                    {
-                        "CidrIp": ssh_ip,
-                        "Description": "SSH from allowed ip",
-                    }
-                ],
-            },
-        ],
+        ] + ssh_perms,
     )
 
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
