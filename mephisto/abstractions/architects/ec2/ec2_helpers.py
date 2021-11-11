@@ -626,7 +626,7 @@ def create_target_group(
     """
     client = session.client("elbv2")
     create_target_response = client.create_target_group(
-        Name=group_name,
+        Name=group_name[:32],
         Protocol="HTTP",
         ProtocolVersion="HTTP1",
         Port=5000,
@@ -693,7 +693,7 @@ def register_instance_to_listener(
     """
     subdomain_root = domain.split(".")[0]
     target_group_arn = create_target_group(
-        session, vpc_id, instance_id, f"{subdomain_root}-target-group"
+        session, vpc_id, instance_id, f"{subdomain_root[:28]}-tg"
     )
     client = session.client("elbv2")
 
