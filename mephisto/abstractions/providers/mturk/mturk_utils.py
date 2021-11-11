@@ -70,12 +70,15 @@ def setup_aws_credentials(
             aws_credentials_file_path = "~/.aws/credentials"
             expanded_aws_file_path = os.path.expanduser(
                 aws_credentials_file_path)
+            aws_credentials_file_string = ""
             if os.path.exists(expanded_aws_file_path):
                 with open(expanded_aws_file_path, "r") as aws_credentials_file:
                     aws_credentials_file_string = aws_credentials_file.read()
+            # accessing the aws_credentials_file
             aws_access_key_id = aws_credentials_file_string.split("\n")[1]
             if register_args.access_key_id == aws_access_key_id:
                 with open(expanded_aws_file_path, "a+") as aws_credentials_file:
+                    # Clean up file
                     if aws_credentials_file_string:
                         if aws_credentials_file_string.endswith("\n\n"):
                             pass
@@ -83,6 +86,7 @@ def setup_aws_credentials(
                             aws_credentials_file.write("\n")
                         else:
                             aws_credentials_file.write("\n\n")
+                    # overWrite login details
                     aws_credentials_file.write("[{}]\n".format(profile_name))
                     aws_credentials_file.write(
                         "aws_access_key_id={}\n".format(
@@ -117,7 +121,7 @@ def setup_aws_credentials(
         if not os.path.exists(os.path.expanduser("~/.aws/")):
             os.makedirs(os.path.expanduser("~/.aws/"))
         aws_credentials_file_path = "~/.aws/credentials"
-        aws_credentials_file_string = None
+        aws_credentials_file_string = ""
         expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
