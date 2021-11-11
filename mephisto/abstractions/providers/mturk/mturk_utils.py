@@ -67,8 +67,34 @@ def setup_aws_credentials(
         if register_args is not None:
             # Eventually we could manually re-parse the file and see
             # if the credentials line up or not, then fix ourselves
-            if register_args.aws_access_key_id is not None:
-                return True
+            aws_credentials_file_path = "~/.aws/credentials"
+            expanded_aws_file_path = os.path.expanduser(
+                aws_credentials_file_path)
+            if os.path.exists(expanded_aws_file_path):
+                with open(expanded_aws_file_path, "r") as aws_credentials_file:
+                    aws_credentials_file_string = aws_credentials_file.read()
+            aws_access_key_id = aws_credentials_file_string.split("\n")[1]
+            if register_args.access_key_id == aws_access_key_id:
+                with open(expanded_aws_file_path, "a+") as aws_credentials_file:
+                    if aws_credentials_file_string:
+                        if aws_credentials_file_string.endswith("\n\n"):
+                            pass
+                        elif aws_credentials_file_string.endswith("\n"):
+                            aws_credentials_file.write("\n")
+                        else:
+                            aws_credentials_file.write("\n\n")
+                    aws_credentials_file.write("[{}]\n".format(profile_name))
+                    aws_credentials_file.write(
+                        "aws_access_key_id={}\n".format(
+                            register_args.access_key_id)
+                    )
+                    aws_credentials_file.write(
+                        "aws_secret_access_key={}\n".format(
+                            register_args.secret_access_key)
+                    )
+                logger.warning(f"The provided keys does not match for profile {profile_name}"
+                               f"As a result of which we're updating the credentials, overwriting ones that already existed for the profile ")
+        return True
 
     except ProfileNotFound:
         # Setup new credentials
@@ -96,18 +122,6 @@ def setup_aws_credentials(
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
-                aws_credentials_file.write("[{}]\n".format(profile_name))
-                aws_credentials_file.write(
-                    "aws_access_key_id={}\n".format(aws_access_key_id)
-                )
-                aws_credentials_file.write(
-                    "aws_secret_access_key={}\n".format(aws_secret_access_key)
-                )
-
-                logger.warning(f"WARNING keys does not match with the ones already present"
-                               f"so we're updating the credentials, overwriting ones that already existed for the profile {profile_name}"
-                               f"successfully registered anyways.")
-
         with open(expanded_aws_file_path, "a+") as aws_credentials_file:
             # Clean up file
             if aws_credentials_file_string:
