@@ -1,12 +1,15 @@
-sudo yum update -y
-sudo yum install -y httpd
+echo "Installing requirements"
+sudo yum update -y >> /home/ec2-user/setup_log.txt 2>&1
+sudo yum install -y httpd >> /home/ec2-user/setup_log.txt 2>&1
 
-sudo -H pip3 install flask gevent
+sudo -H pip3 install flask gevent >> /home/ec2-user/setup_log.txt 2>&1
 
-sudo cp /home/ec2-user/fallback_server/fallback.service /etc/systemd/system/fallback.service
-sudo chmod 744 /home/ec2-user/fallback_server/scripts/run_server.sh
-sudo chmod 664 /etc/systemd/system/fallback.service
+echo "Preparing service..."
+sudo cp /home/ec2-user/fallback_server/fallback.service /etc/systemd/system/fallback.service >> /home/ec2-user/setup_log.txt 2>&1
+sudo chmod 744 /home/ec2-user/fallback_server/scripts/run_server.sh >> /home/ec2-user/setup_log.txt 2>&1
+sudo chmod 664 /etc/systemd/system/fallback.service >> /home/ec2-user/setup_log.txt 2>&1
 
-sudo systemctl daemon-reload
-sudo systemctl enable fallback.service
-sudo systemctl start fallback.service
+echo "Launching service..."
+sudo systemctl daemon-reload >> /home/ec2-user/setup_log.txt 2>&1
+sudo systemctl enable fallback.service >> /home/ec2-user/setup_log.txt 2>&1
+sudo systemctl start fallback.service >> /home/ec2-user/setup_log.txt 2>&1

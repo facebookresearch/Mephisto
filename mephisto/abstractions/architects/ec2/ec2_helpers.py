@@ -832,7 +832,16 @@ def deploy_fallback_server(
 
     dest = f"{remote_server}:/home/ec2-user/"
     subprocess.check_call(
-        ["scp", "-i", keypair_file, "-r", f"{FALLBACK_SERVER_LOC}", dest]
+        [
+            "scp",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-i",
+            keypair_file,
+            "-r",
+            f"{FALLBACK_SERVER_LOC}",
+            dest,
+        ]
     )
     subprocess.check_call(
         [
