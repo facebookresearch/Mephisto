@@ -418,7 +418,8 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                     "Description": "SSH from allowed ip",
                 }
             ],
-        } for one_ip in ssh_ip.split(',')
+        }
+        for one_ip in ssh_ip.split(",")
     ]
 
     response = client.authorize_security_group_ingress(
@@ -490,7 +491,8 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                     }
                 ],
             },
-        ] + ssh_perms,
+        ]
+        + ssh_perms,
     )
 
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
