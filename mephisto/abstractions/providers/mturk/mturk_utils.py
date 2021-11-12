@@ -32,7 +32,7 @@ SANDBOX_ENDPOINT = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
 
 MTurkClient = Any
 
-MTURK_LOCALE_REQUIREMENT = "0000000000000000007"
+MTURK_LOCALE_REQUIREMENT = "00000000000000000071"
 
 botoconfig = Config(retries=dict(max_attempts=10))
 
