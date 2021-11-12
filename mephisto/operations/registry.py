@@ -102,6 +102,8 @@ def fill_registries():
             importlib.import_module(
                 f"mephisto.abstractions.architects.{architect_name}"
             )
+    # After imports are recursive, manage this more cleanly
+    importlib.import_module("mephisto.abstractions.architects.ec2.ec2_architect")
 
     # Import Mephisto Blueprints
     blueprint_root = os.path.join(

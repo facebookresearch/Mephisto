@@ -7,6 +7,7 @@
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     StaticBlueprint,
     StaticBlueprintArgs,
+    SharedStaticTaskState,
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
