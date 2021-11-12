@@ -157,6 +157,17 @@ def launch_ec2_fallback(
                 security_group_id,
                 vpc_details["vpc_id"],
             )
+
+            print("Registering to hosted zone")
+            ec2_helpers.register_zone_records(
+                session,
+                existing_details["hosted_zone_id"],
+                domain_name,
+                balancer_arn,
+                cert_details["Name"],
+                cert_details["Value"],
+            )
+
             existing_details["balancer_arn"] = balancer_arn
             update_details(saved_details_file, existing_details)
         else:
