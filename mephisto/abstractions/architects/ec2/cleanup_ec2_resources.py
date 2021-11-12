@@ -14,7 +14,7 @@ from typing import Dict, Any
 
 # TODO Hydrize
 def main():
-    iam_role_name = input("Please enter local profile name for IAM role")
+    iam_role_name = input("Please enter local profile name for IAM role\n>> ")
     ec2_helpers.cleanup_fallback_server(iam_role_name)
 
 

@@ -25,6 +25,7 @@ def update_details(
     """
     Overwrite the contents of the open file with the given data.
     """
+    open_file.seek(0)
     open_file.truncate(0)
     json.dump(new_data, open_file, sort_keys=True, indent=4)
 
@@ -62,12 +63,13 @@ def launch_ec2_fallback(
 
     session = boto3.Session(profile_name=iam_profile, region_name="us-east-2")
 
-    with open(server_details_file, "w+") as saved_details_file:
-        try:
+    try:
+        with open(server_details_file, "r") as saved_details_file:
             existing_details = json.load(saved_details_file)
-        except:
-            existing_details = {"domain": domain_name, "cidr": ssh_ip_block}
+    except:
+        existing_details = {"domain": domain_name, "cidr": ssh_ip_block}
 
+    with open(server_details_file, "w+") as saved_details_file:
         # Get a ssl certificate for the domain
         cert_details = existing_details.get("cert_details")
         if cert_details is None:
@@ -191,19 +193,21 @@ def launch_ec2_fallback(
         ec2_helpers.deploy_fallback_server(
             session, instance_id, key_pair_name, access_logs_key
         )
+        existing_details["access_logs_key"] = access_logs_key
+        update_details(saved_details_file, existing_details)
 
     return existing_details
 
 
 # TODO Hydrize
 def main():
-    iam_role_name = input("Please enter local profile name for IAM role")
+    iam_role_name = input("Please enter local profile name for IAM role\n>> ")
     ec2_helpers.setup_ec2_credentials(iam_role_name)
 
-    domain_name = input("Please provide the domain name you will be using")
-    ssh_ip_block = input("Provide the CIDR IP block for ssh access")
+    domain_name = input("Please provide the domain name you will be using\n>> ")
+    ssh_ip_block = input("Provide the CIDR IP block for ssh access\n>> ")
     access_logs_key = input(
-        "Please provide a key password to use for accessing server logs"
+        "Please provide a key password to use for accessing server logs\n>> "
     )
     launch_ec2_fallback(iam_role_name, domain_name, ssh_ip_block, access_logs_key)
 

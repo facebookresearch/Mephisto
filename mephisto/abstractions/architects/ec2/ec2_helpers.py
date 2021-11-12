@@ -34,7 +34,6 @@ DEFAULT_AMI_ID = "ami-0f19d220602031aed"
 AMI_DEFAULT_USER = "ec2-user"
 DEFAULT_INSTANCE_TYPE = "m2.micro"
 FALLBACK_INSTANCE_TYPE = "t2.nano"
-SSH_DEFAULT = "163.114.130.0/24"
 MY_DIR = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_KEY_PAIR_DIRECTORY = os.path.join(MY_DIR, "keypairs")
 DEFAULT_SERVER_DETAIL_LOCATION = os.path.join(MY_DIR, "servers")
@@ -508,6 +507,9 @@ def create_key_pair(
     creates a key pair by the given name, and writes it to file
     """
     target_keypair_filename = os.path.join(key_pair_dir, f"{key_name}.pem")
+    if os.path.exists(target_keypair_filename):
+        logger.warning(f"Keypair already exists! {target_keypair_filename}")
+        return target_keypair_filename
     client = session.client("ec2")
 
     response = client.create_key_pair(
@@ -518,7 +520,7 @@ def create_key_pair(
     )
     with open(target_keypair_filename, "w+") as keypair_file:
         keypair_file.write(response["KeyMaterial"])
-        subprocess.check_call(["chmod", target_keypair_filename, "400"])
+        subprocess.check_call(["chmod", "400", target_keypair_filename])
 
     return target_keypair_filename
 
@@ -1002,18 +1004,21 @@ def cleanup_fallback_server(
 
     listener_arn = details.get("listener_arn")
     if listener_arn is not None:
+        print(f"Deleting listener {listener_arn}...")
         elb_client.delete_listener(
             ListenerArn=listener_arn,
         )
 
     target_group_arn = details.get("target_group_arn")
     if target_group_arn is not None:
+        print(f"Deleting target group {target_group_arn}...")
         elb_client.delete_target_group(
             TargetGroupArn=target_group_arn,
         )
 
     balancer_arn = details.get("balancer_arn")
     if balancer_arn is not None:
+        print(f"Deleting balancer {balancer_arn}...")
         elb_client.delete_load_balancer(
             LoadBalancerArn=balancer_arn,
         )
@@ -1022,21 +1027,37 @@ def cleanup_fallback_server(
     ip_allocation_id = details.get("ip_allocation_id")
     ip_association_id = details.get("ip_association_id")
     if instance_id is not None:
+        print(f"Deleting instance {instance_id}...")
         delete_instance(session, instance_id, ip_allocation_id, ip_association_id)
-
-    security_group_id = details.get("security_group_id")
-    if security_group_id is not None:
-        ec2_client.delete_security_group(
-            GroupId=security_group_id,
-        )
 
     vpc_details = details.get("vpc_details")
     if vpc_details is not None:
+        print(f"Deleting vpc {vpc_details['vpc_id']} and related resources...")
         ec2_client.delete_subnet(SubnetId=vpc_details["subnet_1_id"])
         ec2_client.delete_subnet(SubnetId=vpc_details["subnet_2_id"])
         ec2_client.delete_route_table(RouteTableId=vpc_details["route_1_id"])
         ec2_client.delete_route_table(RouteTableId=vpc_details["route_2_id"])
+        table_response = ec2_client.describe_route_tables(
+            Filters=[
+                {
+                    "Name": "vpc-id",
+                    "Values": [vpc_details["vpc_id"]],
+                }
+            ]
+        )
+        tables = table_response["RouteTables"]
+        for table in tables:
+            ec2_client.delete_route_table(RouteTableId=table["RouteTableId"])
+
         ec2_client.delete_internet_gateway(InternetGatewayId=vpc_details["gateway_id"])
+
+        security_group_id = details.get("security_group_id")
+        if security_group_id is not None:
+            print("Deleting security group {security_group_id}...")
+            ec2_client.delete_security_group(
+                GroupId=security_group_id,
+            )
+
         ec2_client.delete_vpc(VpcId=vpc_details["vpc_id"])
 
     if delete_hosted_zone:
