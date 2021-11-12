@@ -46,14 +46,15 @@ def main_route(path):
     o = urlparse(request.base_url)
     host = o.hostname
     curr_time = time.time()
-    filename = f"{host}-{curr_time}-access.json"
-    access_log = {
-        "timestamp": curr_time,
-        "args": args,
-        "host": host,
-    }
-    with open(os.path.join(LOG_BASE, filename), "w+") as log_file:
-        json.dump(access_log, log_file)
+    if not host.startswith("10."):
+        filename = f"{host}-{curr_time}-access.json"
+        access_log = {
+            "timestamp": curr_time,
+            "args": args,
+            "host": host,
+        }
+        with open(os.path.join(LOG_BASE, filename), "w+") as log_file:
+            json.dump(access_log, log_file)
 
     return render_template("landing.html")
 
