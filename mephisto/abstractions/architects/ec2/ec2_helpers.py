@@ -533,7 +533,7 @@ def create_instance(
     instance_name: str,
     volume_size: int = 8,
     instance_type: str = DEFAULT_INSTANCE_TYPE,
-) -> Tuple[str, str, str]:
+) -> str:
     """
     Create an instance, return the instance id, allocation id, and association id
     """
@@ -805,7 +805,7 @@ def get_instance_address(
                 "Tags": [
                     {
                         "Key": "Name",
-                        "Value": f"{instance_name}-ip-address",
+                        "Value": f"{instance_id}-ip-address",
                     }
                 ],
             }

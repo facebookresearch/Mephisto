@@ -7,9 +7,9 @@
 import os
 import json
 import time
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template  # type: ignore
 from urllib.parse import urlparse
-from gevent.pywsgi import WSGIServer
+from gevent.pywsgi import WSGIServer  # type: ignore
 
 app = Flask(__name__)
 
