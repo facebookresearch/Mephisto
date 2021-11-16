@@ -40,6 +40,7 @@ DEFAULT_SERVER_DETAIL_LOCATION = os.path.join(MY_DIR, "servers")
 SCRIPTS_DIRECTORY = os.path.join(MY_DIR, "run_scripts")
 DEFAULT_FALLBACK_FILE = os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, "fallback.json")
 FALLBACK_SERVER_LOC = os.path.join(MY_DIR, "fallback_server")
+KNOWN_HOST_PATH = os.path.expanduser("~/.ssh/known_hosts")
 MAX_RETRIES = 10
 
 
@@ -821,6 +822,18 @@ def get_instance_address(
     )
     association_id = associate_response["AssociationId"]
 
+    # Remove this IP from known hosts in case it's there,
+    # as it's definitely not the old host anymore
+    subprocess.check_call(
+        [
+            "ssh-keygen",
+            "-f",
+            f"'{KNOWN_HOST_PATH}'",
+            "-R",
+            f'"{ip_address}"',
+        ]
+    )
+
     return ip_address, allocation_id, association_id
 
 
@@ -931,15 +944,6 @@ def deploy_to_routing_server(
     print("Uploading files to server, then attempting to run")
     try:
         remote_server = f"{AMI_DEFAULT_USER}@{server_host}"
-        subprocess.check_call(
-            [
-                "ssh-keygen",
-                "-f",
-                '"/private/home/jju/.ssh/known_hosts"',
-                "-R",
-                f'"{server_host}"',
-            ]
-        )
         dest = f"{remote_server}:/home/ec2-user/"
         try_server_push(
             [
