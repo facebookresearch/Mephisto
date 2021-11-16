@@ -104,8 +104,6 @@ class EC2Architect(Architect):
 
         self.server_dir: Optional[str] = None
         self.server_id: Optional[str] = None
-        self.allocation_id: Optional[str] = None
-        self.association_id: Optional[str] = None
         self.target_group_arn: Optional[str] = None
         self.router_rule_arn: Optional[str] = None
         self.created = False
@@ -231,11 +229,7 @@ class EC2Architect(Architect):
         print("EC2: Starting instance...")
 
         # Launch server
-        (
-            server_id,
-            self.allocation_id,
-            self.association_id,
-        ) = ec2_helpers.create_instance(
+        server_id = ec2_helpers.create_instance(
             self.session,
             self.fallback_details["key_pair_name"],
             self.fallback_details["security_group_id"],
@@ -264,8 +258,6 @@ class EC2Architect(Architect):
         server_details = {
             "balancer_rule_arn": self.router_rule_arn,
             "instance_id": self.server_id,
-            "ip_allocation_id": self.allocation_id,
-            "ip_association_id": self.association_id,
             "subdomain": self.subdomain,
             "target_group_arn": self.target_group_arn,
         }
@@ -301,8 +293,6 @@ class EC2Architect(Architect):
         ec2_helpers.delete_instance(
             self.session,
             server_id,
-            self.allocation_id,
-            self.association_id,
         )
         os.unlink(self.server_detail_path)
 

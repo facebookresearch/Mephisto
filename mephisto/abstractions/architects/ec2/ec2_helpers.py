@@ -40,6 +40,7 @@ DEFAULT_SERVER_DETAIL_LOCATION = os.path.join(MY_DIR, "servers")
 SCRIPTS_DIRECTORY = os.path.join(MY_DIR, "run_scripts")
 DEFAULT_FALLBACK_FILE = os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, "fallback.json")
 FALLBACK_SERVER_LOC = os.path.join(MY_DIR, "fallback_server")
+KNOWN_HOST_PATH = os.path.expanduser("~/.ssh/known_hosts")
 MAX_RETRIES = 10
 
 
@@ -533,7 +534,7 @@ def create_instance(
     instance_name: str,
     volume_size: int = 8,
     instance_type: str = DEFAULT_INSTANCE_TYPE,
-) -> Tuple[str, str, str]:
+) -> str:
     """
     Create an instance, return the instance id, allocation id, and association id
     """
@@ -589,36 +590,13 @@ def create_instance(
     )
     instance_id = instance_response["Instances"][0]["InstanceId"]
 
-    allocation_response = client.allocate_address(
-        Domain="vpc",
-        TagSpecifications=[
-            {
-                "ResourceType": "elastic-ip",
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": f"{instance_name}-ip-address",
-                    }
-                ],
-            }
-        ],
-    )
-    allocation_id = allocation_response["AllocationId"]
-
     logger.debug(f"Waiting for instance {instance_id} to come up before continuing")
     waiter = client.get_waiter("instance_running")
     waiter.wait(
         InstanceIds=[instance_id],
     )
 
-    associate_response = client.associate_address(
-        AllocationId=allocation_id,
-        InstanceId=instance_id,
-        AllowReassociation=False,
-    )
-    association_id = associate_response["AssociationId"]
-
-    return instance_id, allocation_id, association_id
+    return instance_id
 
 
 def create_target_group(
@@ -810,6 +788,93 @@ def configure_base_balancer(
     return listener_arn
 
 
+def get_instance_address(
+    session: boto3.Session,
+    instance_id: str,
+) -> Tuple[str, str, str]:
+    """
+    Create a temporary publicly accessible IP for the given instance.
+    Return the IP address, the allocation id, and the association id.
+    """
+    client = session.client("ec2")
+
+    allocation_response = client.allocate_address(
+        Domain="vpc",
+        TagSpecifications=[
+            {
+                "ResourceType": "elastic-ip",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": f"{instance_id}-ip-address",
+                    }
+                ],
+            }
+        ],
+    )
+    ip_address = allocation_response["PublicIp"]
+    allocation_id = allocation_response["AllocationId"]
+
+    associate_response = client.associate_address(
+        AllocationId=allocation_id,
+        InstanceId=instance_id,
+        AllowReassociation=False,
+    )
+    association_id = associate_response["AssociationId"]
+
+    # Remove this IP from known hosts in case it's there,
+    # as it's definitely not the old host anymore
+    subprocess.check_call(
+        [
+            "ssh-keygen",
+            "-f",
+            f"{KNOWN_HOST_PATH}",
+            "-R",
+            f'"{ip_address}"',
+        ]
+    )
+
+    return ip_address, allocation_id, association_id
+
+
+def detete_instance_address(
+    session: boto3.Session,
+    allocation_id: str,
+    association_id: str,
+) -> None:
+    """
+    Removes the public ip described by the given allocation and association ids
+    """
+    client = session.client("ec2")
+    client.disassociate_address(
+        AssociationId=association_id,
+    )
+
+    client.release_address(
+        AllocationId=allocation_id,
+    )
+
+
+def try_server_push(subprocess_args: List[str], retries=5, sleep_time=10.0):
+    """
+    Try to execute the server push provided in subprocess args
+    """
+    while retries > 0:
+        try:
+            subprocess.check_call(subprocess_args)
+            return
+        except subprocess.CalledProcessError:
+            retries -= 1
+            sleep_time *= 1.5
+            logger.info(
+                f"Timed out trying to push to server. Retries remaining: {retries}"
+            )
+            time.sleep(sleep_time)
+    raise Exception(
+        "Could not successfully push to the ec2 instance. See log for errors."
+    )
+
+
 def deploy_fallback_server(
     session: boto3.Session,
     instance_id: str,
@@ -821,40 +886,46 @@ def deploy_fallback_server(
     return True if successful
     """
     client = session.client("ec2")
-    server_response = client.describe_instances(InstanceIds=[instance_id])
-    server_host = server_response["Reservations"][0]["Instances"][0]["PublicIpAddress"]
-    keypair_file = os.path.join(DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
-    password_file_name = os.path.join(FALLBACK_SERVER_LOC, f"access_key.txt")
-    with open(password_file_name, "w+") as password_file:
-        password_file.write(log_access_pass)
-
-    remote_server = f"{AMI_DEFAULT_USER}@{server_host}"
-
-    dest = f"{remote_server}:/home/ec2-user/"
-    subprocess.check_call(
-        [
-            "scp",
-            "-o",
-            "StrictHostKeyChecking=no",
-            "-i",
-            keypair_file,
-            "-r",
-            f"{FALLBACK_SERVER_LOC}",
-            dest,
-        ]
+    server_host, allocation_id, association_id = get_instance_address(
+        session, instance_id
     )
-    subprocess.check_call(
-        [
-            "ssh",
-            "-i",
-            keypair_file,
-            remote_server,
-            "bash",
-            "/home/ec2-user/fallback_server/scripts/first_setup.sh",
-        ]
-    )
+    try:
+        keypair_file = os.path.join(DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
+        password_file_name = os.path.join(FALLBACK_SERVER_LOC, f"access_key.txt")
+        with open(password_file_name, "w+") as password_file:
+            password_file.write(log_access_pass)
 
-    os.unlink(password_file_name)
+        remote_server = f"{AMI_DEFAULT_USER}@{server_host}"
+
+        dest = f"{remote_server}:/home/ec2-user/"
+        try_server_push(
+            [
+                "scp",
+                "-o",
+                "StrictHostKeyChecking=no",
+                "-i",
+                keypair_file,
+                "-r",
+                f"{FALLBACK_SERVER_LOC}",
+                dest,
+            ]
+        )
+        os.unlink(password_file_name)
+        subprocess.check_call(
+            [
+                "ssh",
+                "-i",
+                keypair_file,
+                remote_server,
+                "bash",
+                "/home/ec2-user/fallback_server/scripts/first_setup.sh",
+            ]
+        )
+        detete_instance_address(session, allocation_id, association_id)
+    except Exception as e:
+        detete_instance_address(session, allocation_id, association_id)
+        raise e
+
     return True
 
 
@@ -865,49 +936,43 @@ def deploy_to_routing_server(
     push_directory: str,
 ) -> bool:
     client = session.client("ec2")
-    server_response = client.describe_instances(InstanceIds=[instance_id])
-    server_host = server_response["Reservations"][0]["Instances"][0]["PublicIpAddress"]
+    server_host, allocation_id, association_id = get_instance_address(
+        session, instance_id
+    )
     keypair_file = os.path.join(DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
 
-    remote_server = f"{AMI_DEFAULT_USER}@{server_host}"
-
     print("Uploading files to server, then attempting to run")
-    dest = f"{remote_server}:/home/ec2-user/"
-    retries = 5
-    sleep_time = 10.0
-    while retries > 0:
-        try:
-            subprocess.check_call(
-                [
-                    "scp",
-                    "-o",
-                    "StrictHostKeyChecking=no",
-                    "-i",
-                    keypair_file,
-                    "-r",
-                    f"{push_directory}",
-                    dest,
-                ]
-            )
-            break
-        except subprocess.CalledProcessError:
-            retries -= 1
-            sleep_time *= 1.5
-            logger.info(
-                f"Timed out trying to push to server. Retries remaining: {retries}"
-            )
-            time.sleep(sleep_time)
-    subprocess.check_call(
-        [
-            "ssh",
-            "-i",
-            keypair_file,
-            remote_server,
-            "bash",
-            "/home/ec2-user/routing_server/setup/init_server.sh",
-        ]
-    )
-    print("Server setup complete!")
+    try:
+        remote_server = f"{AMI_DEFAULT_USER}@{server_host}"
+        dest = f"{remote_server}:/home/ec2-user/"
+        try_server_push(
+            [
+                "scp",
+                "-o",
+                "StrictHostKeyChecking=no",
+                "-i",
+                keypair_file,
+                "-r",
+                f"{push_directory}",
+                dest,
+            ]
+        )
+
+        subprocess.check_call(
+            [
+                "ssh",
+                "-i",
+                keypair_file,
+                remote_server,
+                "bash",
+                "/home/ec2-user/routing_server/setup/init_server.sh",
+            ]
+        )
+        detete_instance_address(session, allocation_id, association_id)
+        print("Server setup complete!")
+    except Exception as e:
+        detete_instance_address(session, allocation_id, association_id)
+        raise e
 
     return True
 
@@ -933,21 +998,11 @@ def delete_rule(
 def delete_instance(
     session: boto3.Session,
     instance_id: str,
-    allocation_id: str,
-    association_id: str,
 ) -> None:
     """
     Remove the given instance and the associated elastic ip
     """
     client = session.client("ec2")
-    client.disassociate_address(
-        AssociationId=association_id,
-    )
-
-    client.release_address(
-        AllocationId=allocation_id,
-    )
-
     client.terminate_instances(InstanceIds=[instance_id])
 
 
@@ -970,8 +1025,6 @@ def remove_instance_and_cleanup(
     delete_instance(
         session,
         details["instance_id"],
-        details["ip_allocation_id"],
-        details["ip_association_id"],
     )
     os.unlink(server_detail_path)
     return None
@@ -1033,11 +1086,9 @@ def cleanup_fallback_server(
         )
 
     instance_id = details.get("instance_id")
-    ip_allocation_id = details.get("ip_allocation_id")
-    ip_association_id = details.get("ip_association_id")
     if instance_id is not None:
         print(f"Deleting instance {instance_id}...")
-        delete_instance(session, instance_id, ip_allocation_id, ip_association_id)
+        delete_instance(session, instance_id)
 
     vpc_details = details.get("vpc_details")
     if vpc_details is not None:
