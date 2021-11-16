@@ -828,7 +828,7 @@ def get_instance_address(
         [
             "ssh-keygen",
             "-f",
-            f"'{KNOWN_HOST_PATH}'",
+            f"{KNOWN_HOST_PATH}",
             "-R",
             f'"{ip_address}"',
         ]
