@@ -118,21 +118,16 @@ def launch_ec2_fallback(
             print(f"Generating keypair named {key_pair_name}")
             key_pair_filename = ec2_helpers.create_key_pair(session, key_pair_name)
             existing_details["key_pair_filename"] = key_pair_filename
+            existing_details["key_pair_name"] = key_pair_name
             update_details(saved_details_file, existing_details)
         else:
             print(f"Using existing keypair at {key_pair_filename}")
 
         # Create the instance running the fallback server
         instance_id = existing_details.get("instance_id")
-        ip_allocation_id = existing_details.get("ip_allocation_id")
-        ip_association_id = existing_details.get("ip_association_id")
         if instance_id is None:
             print("Creating a new instance for fallback server...")
-            (
-                instance_id,
-                ip_allocation_id,
-                ip_association_id,
-            ) = ec2_helpers.create_instance(
+            instance_id = ec2_helpers.create_instance(
                 session,
                 key_pair_name,
                 security_group_id,
@@ -141,8 +136,6 @@ def launch_ec2_fallback(
                 instance_type=instance_type,
             )
             existing_details["instance_id"] = instance_id
-            existing_details["ip_allocation_id"] = ip_allocation_id
-            existing_details["ip_association_id"] = ip_association_id
             update_details(saved_details_file, existing_details)
         else:
             print(f"Using existing instance {instance_id}")
