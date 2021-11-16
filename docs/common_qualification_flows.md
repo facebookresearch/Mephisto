@@ -3,7 +3,7 @@ Qualification control is a powerful component of Mephisto, allowing you to filte
 
 
 # Blocking qualifications
-When you set a `blocking_qualification` during a launch, calling `Worker.grant_qualification(<blocking_qualification>)` will prevent that worker from working on any tasks that you have set the same `blocking_qualification` for. You can use this to set up blocklists for specific tasks, or for groups of tasks.
+When you set a `block_qualification` during a launch, calling `Worker.grant_qualification(<block_qualification>)` will prevent that worker from working on any tasks that you have set the same `block_qualification` for. You can use this to set up blocklists for specific tasks, or for groups of tasks.
 
 # Onboarding qualifications
 Mephisto has an automatic setup for assigning workers qualifications for particular tasks that they've worked on, such that it's possible to specify a qualification that a worker can be granted on the first time they take out a particular task. This qualification is given the name `onboarding_qualification`, and is compatible with any blueprints that have onboarding tasks.
@@ -41,7 +41,7 @@ shared_state.qualifications = [
 ```
 
 # Allowlists and Blocklists
-Similarly to how the standard `blocking_qualification` works, it's possible to add additional qualifications to `Worker`s by granting workers qualifications and making their existence exclusive or inclusive. This is accomplished by adding the qualifications to your `SharedTaskState`:
+Similarly to how the standard `block_qualification` works, it's possible to add additional qualifications to `Worker`s by granting workers qualifications and making their existence exclusive or inclusive. This is accomplished by adding the qualifications to your `SharedTaskState`:
 ```python
 from mephisto.data_model.qualification import QUAL_NOT_EXIST, make_qualification_dict
 
