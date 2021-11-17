@@ -10,6 +10,7 @@ import time
 import os
 import subprocess
 import json
+import getpass
 from mephisto.abstractions.providers.mturk.mturk_utils import setup_aws_credentials
 from mephisto.abstractions.architects.router import build_router
 
@@ -42,6 +43,14 @@ DEFAULT_FALLBACK_FILE = os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, "fallback.j
 FALLBACK_SERVER_LOC = os.path.join(MY_DIR, "fallback_server")
 KNOWN_HOST_PATH = os.path.expanduser("~/.ssh/known_hosts")
 MAX_RETRIES = 10
+
+
+def get_owner_tag() -> Dict[str, str]:
+    """
+    Creates a tag with the user's username
+    as the owner for the given resource
+    """
+    return {"Key": "Owner", "Value": getpass.getuser()}
 
 
 def check_aws_credentials(profile_name: str) -> bool:
@@ -285,7 +294,10 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
         TagSpecifications=[
             {
                 "ResourceType": "vpc",
-                "Tags": [{"Key": "Name", "Value": "mephisto-core-vpc"}],
+                "Tags": [
+                    {"Key": "Name", "Value": "mephisto-core-vpc"},
+                    get_owner_tag(),
+                ],
             }
         ],
     )
@@ -296,7 +308,7 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
         TagSpecifications=[
             {
                 "ResourceType": "internet-gateway",
-                "Tags": [{"Key": "Name", "Value": "mephisto-gateway"}],
+                "Tags": [{"Key": "Name", "Value": "mephisto-gateway"}, get_owner_tag()],
             }
         ],
     )
@@ -311,7 +323,10 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
         TagSpecifications=[
             {
                 "ResourceType": "subnet",
-                "Tags": [{"Key": "Name", "Value": "mephisto-subnet-1"}],
+                "Tags": [
+                    {"Key": "Name", "Value": "mephisto-subnet-1"},
+                    get_owner_tag(),
+                ],
             }
         ],
         CidrBlock="10.0.0.0/24",
@@ -324,7 +339,10 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
         TagSpecifications=[
             {
                 "ResourceType": "subnet",
-                "Tags": [{"Key": "Name", "Value": "mephisto-subnet-2"}],
+                "Tags": [
+                    {"Key": "Name", "Value": "mephisto-subnet-2"},
+                    get_owner_tag(),
+                ],
             }
         ],
         CidrBlock="10.0.1.0/24",
@@ -338,7 +356,10 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
         TagSpecifications=[
             {
                 "ResourceType": "route-table",
-                "Tags": [{"Key": "Name", "Value": "mephisto-routes-1"}],
+                "Tags": [
+                    {"Key": "Name", "Value": "mephisto-routes-1"},
+                    get_owner_tag(),
+                ],
             }
         ],
         VpcId=vpc_id,
@@ -349,7 +370,10 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
         TagSpecifications=[
             {
                 "ResourceType": "route-table",
-                "Tags": [{"Key": "Name", "Value": "mephisto-routes-2"}],
+                "Tags": [
+                    {"Key": "Name", "Value": "mephisto-routes-2"},
+                    get_owner_tag(),
+                ],
             }
         ],
         VpcId=vpc_id,
@@ -402,7 +426,10 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
         TagSpecifications=[
             {
                 "ResourceType": "security-group",
-                "Tags": [{"Key": "Name", "Value": "mephisto-server-security-group"}],
+                "Tags": [
+                    {"Key": "Name", "Value": "mephisto-server-security-group"},
+                    get_owner_tag(),
+                ],
             }
         ],
     )
@@ -516,7 +543,10 @@ def create_key_pair(
     response = client.create_key_pair(
         KeyName=key_name,
         TagSpecifications=[
-            {"ResourceType": "key-pair", "Tags": [{"Key": "Name", "Value": key_name}]}
+            {
+                "ResourceType": "key-pair",
+                "Tags": [{"Key": "Name", "Value": key_name}, get_owner_tag()],
+            }
         ],
     )
     with open(target_keypair_filename, "w+") as keypair_file:
@@ -574,10 +604,8 @@ def create_instance(
             {
                 "ResourceType": "instance",
                 "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": instance_name,
-                    },
+                    {"Key": "Name", "Value": instance_name},
+                    get_owner_tag(),
                 ],
             },
         ],
@@ -684,7 +712,12 @@ def register_instance_to_listener(
     find_rule_response = client.describe_rules(
         ListenerArn=listener_arn,
     )
-    rule_count = len(find_rule_response["Rules"])
+
+    # Get the next available priority
+    priorities = set([r["Priority"] for r in find_rule_response["Rules"]])
+    priority = 1
+    while str(priority) in priorities:
+        priority += 1
 
     rule_response = client.create_rule(
         ListenerArn=listener_arn,
@@ -699,7 +732,7 @@ def register_instance_to_listener(
                 },
             },
         ],
-        Priority=rule_count + 1,
+        Priority=priority,
         Actions=[
             {
                 "Type": "forward",
@@ -807,7 +840,8 @@ def get_instance_address(
                     {
                         "Key": "Name",
                         "Value": f"{instance_id}-ip-address",
-                    }
+                    },
+                    get_owner_tag(),
                 ],
             }
         ],
@@ -900,6 +934,7 @@ def deploy_fallback_server(
         dest = f"{remote_server}:/home/ec2-user/"
         try_server_push(
             [
+                "SSH_AUTH_SOCK=",
                 "scp",
                 "-o",
                 "StrictHostKeyChecking=no",
@@ -913,6 +948,7 @@ def deploy_fallback_server(
         os.unlink(password_file_name)
         subprocess.check_call(
             [
+                "SSH_AUTH_SOCK=",
                 "ssh",
                 "-i",
                 keypair_file,
@@ -947,6 +983,7 @@ def deploy_to_routing_server(
         dest = f"{remote_server}:/home/ec2-user/"
         try_server_push(
             [
+                "SSH_AUTH_SOCK=",
                 "scp",
                 "-o",
                 "StrictHostKeyChecking=no",
@@ -960,6 +997,7 @@ def deploy_to_routing_server(
 
         subprocess.check_call(
             [
+                "SSH_AUTH_SOCK=",
                 "ssh",
                 "-i",
                 keypair_file,
