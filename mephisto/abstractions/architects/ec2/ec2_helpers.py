@@ -895,7 +895,9 @@ def try_server_push(subprocess_args: List[str], retries=5, sleep_time=10.0):
     """
     while retries > 0:
         try:
-            subprocess.check_call(subprocess_args)
+            subprocess.check_call(
+                subprocess_args, env=dict(os.environ, SSH_AUTH_SOCK="")
+            )
             return
         except subprocess.CalledProcessError:
             retries -= 1
@@ -934,7 +936,6 @@ def deploy_fallback_server(
         dest = f"{remote_server}:/home/ec2-user/"
         try_server_push(
             [
-                "SSH_AUTH_SOCK=",
                 "scp",
                 "-o",
                 "StrictHostKeyChecking=no",
@@ -948,14 +949,14 @@ def deploy_fallback_server(
         os.unlink(password_file_name)
         subprocess.check_call(
             [
-                "SSH_AUTH_SOCK=",
                 "ssh",
                 "-i",
                 keypair_file,
                 remote_server,
                 "bash",
                 "/home/ec2-user/fallback_server/scripts/first_setup.sh",
-            ]
+            ],
+            env=dict(os.environ, SSH_AUTH_SOCK=""),
         )
         detete_instance_address(session, allocation_id, association_id)
     except Exception as e:
@@ -983,7 +984,6 @@ def deploy_to_routing_server(
         dest = f"{remote_server}:/home/ec2-user/"
         try_server_push(
             [
-                "SSH_AUTH_SOCK=",
                 "scp",
                 "-o",
                 "StrictHostKeyChecking=no",
@@ -997,14 +997,14 @@ def deploy_to_routing_server(
 
         subprocess.check_call(
             [
-                "SSH_AUTH_SOCK=",
                 "ssh",
                 "-i",
                 keypair_file,
                 remote_server,
                 "bash",
                 "/home/ec2-user/routing_server/setup/init_server.sh",
-            ]
+            ],
+            env=dict(os.environ, SSH_AUTH_SOCK=""),
         )
         detete_instance_address(session, allocation_id, association_id)
         print("Server setup complete!")
