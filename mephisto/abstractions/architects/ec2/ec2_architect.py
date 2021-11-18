@@ -43,6 +43,15 @@ FINAL_SERVER_BUILD_DIRECTORY = "routing_server"
 DEPLOY_WAIT_TIME = 3
 
 
+def url_safe_string(in_string: str) -> str:
+    """
+    Produces a domain string that is safe for use
+    in ec2 resources
+    """
+    hyphenated = in_string.replace("_", "-")
+    return re.sub("[^0-9a-zA-Z\-]+", "", hyphenated)
+
+
 @dataclass
 class EC2ArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a heroku architect"""
@@ -85,7 +94,7 @@ class EC2Architect(Architect):
         with open(DEFAULT_FALLBACK_FILE, "r") as fallback_detail_file:
             self.fallback_details = json.load(fallback_detail_file)
 
-        self.subdomain = args.architect.subdomain
+        self.subdomain = url_safe_string(args.architect.subdomain)
         self.root_domain = self.fallback_details["domain"]
         self.router_name = f"{self.subdomain}-routing-server"
         self.full_domain = f"{self.subdomain}.{self.root_domain}"
