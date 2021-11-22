@@ -9,7 +9,7 @@ const config = {
   title: "Mephisto",
   tagline: "Mephisto makes crowdsourcing easier",
   url: "https://github.com/",
-  baseUrl: "/facebookresearch/Mephisto/",
+  baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon.ico",
@@ -51,7 +51,7 @@ const config = {
         items: [
           {
             type: "doc",
-            docId: "intro",
+            docId: "quickstart",
             position: "left",
             label: "Tutorial",
           },
@@ -71,7 +71,7 @@ const config = {
             items: [
               {
                 label: "Tutorial",
-                to: "/docs/intro",
+                to: "/docs/quickstart",
               },
             ],
           },
