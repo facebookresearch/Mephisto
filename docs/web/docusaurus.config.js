@@ -51,9 +51,21 @@ const config = {
         items: [
           {
             type: "doc",
-            docId: "quickstart",
+            docId: "guides/quickstart",
             position: "left",
-            label: "Tutorial",
+            label: "Guides",
+          },
+          {
+            type: "doc",
+            docId: "explanations/architecture_overview",
+            position: "left",
+            label: "Explanations",
+          },
+          {
+            type: "doc",
+            docId: "reference/overview",
+            position: "left",
+            label: "API Reference",
           },
           // { to: "/blog", label: "Blog", position: "left" },
           {
@@ -70,8 +82,16 @@ const config = {
             title: "Docs",
             items: [
               {
-                label: "Tutorial",
-                to: "/docs/quickstart",
+                label: "Guides",
+                to: "/docs/guides/quickstart",
+              },
+              {
+                label: "Explanations",
+                to: "/docs/explanations/architecture_overview",
+              },
+              {
+                label: "API Reference",
+                to: "/docs/reference/overview",
               },
             ],
           },

@@ -9,7 +9,7 @@ To setup your local codebase to auto-lint and avoid lint test failures for your 
 3. `pre-commit run --all-files` (optional - run ad-hoc against all files)
 
 
-# Front-end Development (new)
+## Package Development (new)
 *For commits after the `yarn-pkg-reorg` tag and for newer packages (`@annotated/*`)*
 
 This repo uses yarn workspaces to manage it's front-end dependencies.
@@ -77,7 +77,7 @@ $ yarn build-all
     More information on the flags for `foreach` can be found [here](https://yarnpkg.com/cli/workspaces/foreach).
 
 
-# Front-end Development (old)
+## Package Development (old)
 
 *For commits before the `yarn-pkg-reorg` tag or for non-workspace packages, e.g. `global-context-store`, `annotation-toolkit`, `bootstrap-chat`.*
 
