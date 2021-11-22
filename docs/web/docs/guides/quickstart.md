@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # 10-minute Quickstart
 
 First, clone this repo to your local system.
