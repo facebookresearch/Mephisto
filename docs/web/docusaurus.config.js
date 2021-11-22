@@ -63,9 +63,9 @@ const config = {
           },
           {
             type: "doc",
-            docId: "references/overview",
+            docId: "reference/overview",
             position: "left",
-            label: "Reference",
+            label: "API Reference",
           },
           // { to: "/blog", label: "Blog", position: "left" },
           {
@@ -82,8 +82,16 @@ const config = {
             title: "Docs",
             items: [
               {
-                label: "Tutorial",
-                to: "/docs/quickstart",
+                label: "Guides",
+                to: "/docs/guides/quickstart",
+              },
+              {
+                label: "Explanations",
+                to: "/docs/explanations/architecture_overview",
+              },
+              {
+                label: "API Reference",
+                to: "/docs/reference/overview",
               },
             ],
           },
