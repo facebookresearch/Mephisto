@@ -8040,7 +8040,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^8.0.4, acorn@npm:^8.4.1":
+"acorn@npm:^8.0.4, acorn@npm:^8.4.1, acorn@npm:latest":
   version: 8.6.0
   resolution: "acorn@npm:8.6.0"
   bin:
