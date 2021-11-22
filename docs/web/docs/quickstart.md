@@ -101,7 +101,7 @@ Registered successfully.
 
 Note that registering a sandbox user will not create a new entry in your `~/.aws/credentials` file if it's for the same account as your production user, as sandbox and prod use the same access keys.
 
-2. Next, let's run the task script again, but this time we'll override the requester name and change the architect type to use [Heroku](https://www.heroku.com/). (You can find all of the architects currently supported [here](../mephisto/abstractions/architects).)
+2. Next, let's run the task script again, but this time we'll override the requester name and change the architect type to use [Heroku](https://www.heroku.com/). (You can find all of the architects currently supported [here](https://github.com/facebookresearch/Mephisto/tree/main/mephisto/abstractions/architects).)
 
 ```bash
 $ cd examples/simple_static_task
