@@ -51,9 +51,21 @@ const config = {
         items: [
           {
             type: "doc",
-            docId: "quickstart",
+            docId: "guides/quickstart",
             position: "left",
-            label: "Tutorial",
+            label: "Guides",
+          },
+          {
+            type: "doc",
+            docId: "explanations/architecture_overview",
+            position: "left",
+            label: "Explanations",
+          },
+          {
+            type: "doc",
+            docId: "references/overview",
+            position: "left",
+            label: "Reference",
           },
           // { to: "/blog", label: "Blog", position: "left" },
           {
