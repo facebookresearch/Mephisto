@@ -4,32 +4,33 @@ import styles from "./HomepageFeatures.module.css";
 
 const FeatureList = [
   {
-    title: "Easy to Use",
+    title: "Platform-Agnostic",
     Svg: require("../../static/img/undraw_docusaurus_mountain.svg").default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Mephisto was designed from the ground up to work with different "crowd
+        providers". You can use Amazon Mechanical Turk, an internal platform for
+        your organization, or something else. Additionally, launch your tasks on
+        Heroku, EC2, etc.
       </>
     ),
   },
   {
-    title: "Focus on What Matters",
+    title: "Centralization",
     Svg: require("../../static/img/undraw_docusaurus_tree.svg").default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Share blocklists and track worker utilization across multiple projects.
       </>
     ),
   },
   {
-    title: "Powered by React",
+    title: "Extensible",
     Svg: require("../../static/img/undraw_docusaurus_react.svg").default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Mephisto defines tasks in "blueprints". Publish, share, and re-use them
+        to get up and running quickly!
       </>
     ),
   },
