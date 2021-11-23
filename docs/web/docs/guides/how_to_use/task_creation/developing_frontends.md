@@ -1,12 +1,12 @@
-# Front-end: FAQs
+# Developing and debugging frontends
 
-### How do I add UI error handling for my tasks?
+### Adding UI error handling to tasks
 
 Currently, we have beta functionality for error handling. We provide a few ways of getting a signal into how your tasks are faring:
 
 1. Proactively alerting crowd workers when an error occurs and encouraging them to contact you if this happens
 2. Auto-logging errors for React-based tasks
-2. Exposing error logging infrastructure for more advanced custom front-end use cases
+3. Exposing error logging infrastructure for more advanced custom front-end use cases
 
 To opt into #1 above, you need to define a global variable as such:
 ```js

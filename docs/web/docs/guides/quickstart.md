@@ -25,7 +25,7 @@ $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/main/get-poet
 $ poetry install
 ```
 
-*Are you a Docker user? We support that too! Check out [our Docker guide](docker.md).*
+*Are you a Docker user? We support that too! Check out [our Docker guide](how_to_use/efficiency_organization/docker).*
 
 ### Setup
 
