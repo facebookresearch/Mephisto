@@ -15,7 +15,7 @@ To setup your local codebase to auto-lint and avoid lint test failures for your 
 
 ## Local development mode
 
-In order to get python to use your local version of the package, navigate to your `Mephisto` folder and run:
+If you've installed Mephisto via `pip install mephisto` in the past, in order to get python to use your local version of the package, navigate to your `Mephisto` folder and run:
 ```bash
 pip install -e .
 ```

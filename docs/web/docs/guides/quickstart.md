@@ -6,7 +6,7 @@ sidebar_position: 1
 
 First, clone this repo to your local system.
 
-Mephisto requires >= Python 3.6 and >= npm v6.
+Mephisto requires >= Python 3.7 and >= npm v6.
 
 ### Installation
 
@@ -43,42 +43,9 @@ $ mephisto check
 Mephisto seems to be set up correctly.
 ```
 
-## Step 1. Run your first task (locally)
+### (Optional) Set up MTurk
 
-```bash
-$ cd examples/simple_static_task
-$ python static_test_script.py
-```
-
-This will launch a local HTTP server with the task hosted.
-You can then navigate to the task in your browser to complete the task.
-
-To view an instance of a task, look for a print log such as this:
-
-```
-[2020-10-30 10:55:26,719][mephisto.providers.mock.mock_unit][INFO] - Mock task launched: l
-ocalhost:3000 for preview, localhost:3000/?worker_id=x&assignment_id=20 for assignment 10
-```
-
-and navigate to the URL that includes parameters (ex. `localhost:3000/?worker_id=x&assignment_id=20`).
-
-For tasks that requires two workers, such as a turn-based dialogue task, you will need to have two browser windows open at once, connected with different `worker_id` and `assignment_id` URL parameters. 
-
-
-> **TIP:**
-> By default, tasks are run using a "local" architect, and a "mock" requester.
-> The "local" architect is reponsible for running a server on your local machine
-> to host the task, and the "mock" requester is a dummy account since we won't
-> be using an external crowd-provider platform such as mTurk to launch the task.
-> 
-> In the next step, we'll show you how to override these defaults so that you can
-> host the task on Heroku and run it on mTurk instead.
-
-## Step 2. Run the same task again (but now on mTurk!)
-
-> Note: The Mephisto process must remain running when in-use, so you must leave your machine running to be able to access a task.
-
-1. First, you'll first need to setup a new requester. Since we're now running on an external platform instead of locally, we'll need to setup an "mturk" requester to use instead of the dummy "mock" requester that we used previously to run locally. A new requester can be setup via the Mephisto CLI (make sure to replace `$ACCESS_KEY` and `$SECRET_KEY` below):
+If you want to be launching requests on MTurk, you'll want to create a requester. To do this you'll want to create an IAM role on AWS with the `MechanicalTurkFullAccess` permission, on an AWS account that is linked to the requester you want to use. You will be given an `access_key_id` and a `secret_access_key`. To register these with Mephisto, a new requester can be setup via the Mephisto CLI (make sure to replace `$ACCESS_KEY` and `$SECRET_KEY` below):
 
 ```bash
 $ mephisto register mturk \
@@ -107,38 +74,16 @@ Registered successfully.
 
 Note that registering a sandbox user will not create a new entry in your `~/.aws/credentials` file if it's for the same account as your production user, as sandbox and prod use the same access keys.
 
-2. Next, let's run the task script again, but this time we'll override the requester name and change the architect type to use [Heroku](https://www.heroku.com/). (You can find all of the architects currently supported [here](https://github.com/facebookresearch/Mephisto/tree/main/mephisto/abstractions/architects).)
+After this, you can use `mephisto.provider.requester_name=my_mturk_user` or `mephisto.provider.requester_name=my_mturk_user_sandbox` respectively to launch a task live or on sandbox.
 
+### (Optional) Set up Heroku
+
+If you want to launch a task publicly, you'll need to use an `Architect` with external access. At the moment, we support the `HerokuArchitect` and `EC2Architect`, though the former is simpler to use. The steps for setup can be found by running:
 ```bash
-$ cd examples/simple_static_task
-$ python static_test_script.py mephisto/architect=heroku mephisto.provider.requester_name=my_mturk_user_sandbox
-Locating heroku...
-INFO - Creating a task run under task name: html-static-task-example
-[mephisto.operations.operator][INFO] - Creating a task run under task name: html-static-task-example
-Building server files...
-...
-
-# Note: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
-
-
-# Note: my_mturk_user_sandbox is what we used to name the requester
-# when we registered the mturk account in the previous step.
-
-# The task name mentioned in the logs will be required to examine/review results of the task in Step 3. In this case, we note that the name is html-static-task-example
+$ python mephisto/scripts/heroku/initialize_heroku.py 
 ```
-> TIP: The arguments `mephisto.provider.requester_name=my_mturk_user_sandbox` and `mephisto/architect=heroku` will tell the run script to use the "mturk_sandbox" provider and the "heroku" architect (as opposed to the default "mock" provider and "local" architect).
-> 
-> Notice that if we're setting a full abstraction (like the architect abstraction) we reference it with `mephisto/abstraction=val`, however when we're setting an argument, we use `mephisto.abstraction.argument=val`. This tells [Hydra](https://hydra.cc/) (the configuration library that Mephisto uses) whether we're providing an argument value or the name of a configuration to load.
+If you get the message "Successfully identified a logged in heroku user.", then you're done. Otherwise, this script will give you a set of steps to log in to the heroku CLI.
 
+## Let's get launching!
 
-## Step 3. Review results
-
-```bash
-$ cd examples/simple_static_task
-$ python examine_results.py
-Input task name: 
-```
-
- Enter the task name that was output in the console logs when prompted for `Input task name:`.
- 
- In the above example, you'll note that it was `html-static-task-example`.
+Now that you have your environment set up, you're ready to get your first task running. [Continue here.](tutorials/first_task)

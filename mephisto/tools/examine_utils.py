@@ -208,7 +208,7 @@ def run_examine_by_worker(
 
     # Run the review
     for w_id, w_units in units_by_worker.items():
-        worker = Worker(db, w_id)
+        worker = Worker.get(db, w_id)
         worker_name = worker.worker_name
         apply_all_decision = None
         reason = None
