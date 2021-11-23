@@ -76,6 +76,8 @@ For tasks that requires two workers, such as a turn-based dialogue task, you wil
 
 ## Step 2. Run the same task again (but now on mTurk!)
 
+> Note: The Mephisto process must remain running when in-use, so you must leave your machine running to be able to access a task.
+
 1. First, you'll first need to setup a new requester. Since we're now running on an external platform instead of locally, we'll need to setup an "mturk" requester to use instead of the dummy "mock" requester that we used previously to run locally. A new requester can be setup via the Mephisto CLI (make sure to replace `$ACCESS_KEY` and `$SECRET_KEY` below):
 
 ```bash
