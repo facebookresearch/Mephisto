@@ -88,10 +88,68 @@ Mephisto uses [Hydra](https://hydra.cc/) for our task configuration. As such you
 
 ### 2.1 Discovering options with `mephisto wut`
 
+Mephisto configuration options can be inherited from a number of different locations, so it can be difficult to track down all available arguments on your own. We provide the `mephisto wut` cli tool to make this process simpler. For instance, knowing that we're launching a `static_task` with the `local` architect (as we saw [here](#11-run-the-task)), we can examine these for configuration options.
+
+**For the architect:**
+```bash
+$ mephisto wut architect=local
+
+dest                type    default    help                                    choices    required
+------------------  ------  ---------  --------------------------------------  ---------  ----------
+server_type         str     node       None                                    None       False
+server_source_path  str     ???        Optional path to a prepared server      None       False
+                                       directory containing everything needed
+                                       to run a server of the given type.
+                                       Overrides server type.
+hostname            str     localhost  Addressible location of the server      None       False
+port                str     3000       Port to launch the server on            None       False
+```
+
+**For the blueprint:**
+```bash
+$ mephisto wut blueprint=static_task
+Tasks launched from static blueprints need a source html file to display to workers, as well as a csv containing values that will be inserted into templates in the html. 
+dest                      type     default    help                                      choices    required
+------------------------  -------  ---------  ----------------------------------------  ---------  ----------
+block_qualification       str      ???        Specify the name of a qualification used  None       False
+                                              to soft block workers.
+onboarding_qualification  str      ???        Specify the name of a qualification used  None       False
+                                              to block workers who fail onboarding,
+                                              Empty will skip onboarding.
+units_per_assignment      int      1          How many workers you want to do each      None       False
+                                              assignment
+extra_source_dir          str      ???        Optional path to sources that the HTML    None       False
+                                              may refer to (such as
+                                              images/video/css/scripts)
+data_json                 str      ???        Path to JSON file containing task data    None       False
+data_jsonl                str      ???        Path to JSON-L file containing task data  None       False
+data_csv                  str      ???        Path to csv file containing task data     None       False
+task_source               str      ???        Path to source HTML file for the task     None       True
+                                              being run
+preview_source            unknown  ???        Optional path to source HTML file to      None       False
+                                              preview the task
+onboarding_source         unknown  ???        Optional path to source HTML file to      None       False
+                                              onboarding the task
+Additional SharedTaskState args from SharedStaticTaskState
+# ... snipped ...
+```
+
+For our given example task, the values we are using for these options are available in the `hydra_configs/conf/example.yaml` file. Let's try overriding some defaults.
 
 ### 2.2 Configuring options via the command line
 
+As a simple starting point, we can try launching the server on a different port. Right now the default is `3000`, but with the following command we can set that ourselves:
+```
+python static_test_script.py mephisto.architect.port=1234
+```
+
+This should launch the same task, but now available on the port `1234` rather than `3000`.
+
+Once we see the task is running, we can shut down with `Ctrl-C`.
+
 ### 2.3 Using yaml configurations
+
+TODO describe how to use `task_name`, and perhaps `data_csv`. Use these in a custom `conf` file.
 
 > **Tip**: You can reuse common configurations by [associating them with a profile](../how_to_use/efficiency_organization/reusing_configs). Usually these contain `Provider` and `Architect` arguments, as these usually aren't related to a specific task.
 
