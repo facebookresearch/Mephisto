@@ -61,15 +61,16 @@ def check_aws_credentials(profile_name: str) -> bool:
 def setup_aws_credentials(
     profile_name: str, register_args: Optional[DictConfig] = None
 ) -> bool:
+    if not os.path.exists(os.path.expanduser("~/.aws/")):
+        os.makedirs(os.path.expanduser("~/.aws/"))
+    aws_credentials_file_path = "~/.aws/credentials"
+    expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
     try:
         # Check existing credentials
         boto3.Session(profile_name=profile_name)
         if register_args is not None:
             # Eventually we could manually re-parse the file and see
             # if the credentials line up or not, then fix ourselves
-            aws_credentials_file_path = "~/.aws/credentials"
-            expanded_aws_file_path = os.path.expanduser(
-                aws_credentials_file_path)
             aws_credentials_file_string = ""
 
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
