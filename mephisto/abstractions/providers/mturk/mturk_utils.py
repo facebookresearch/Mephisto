@@ -72,7 +72,6 @@ def setup_aws_credentials(
             # Eventually we could manually re-parse the file and see
             # if the credentials line up or not, then fix ourselves
             aws_credentials_file_string = ""
-
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
             # accessing the aws_credentials_file
@@ -119,11 +118,7 @@ def setup_aws_credentials(
             )
             aws_access_key_id = input("Access Key ID: ")
             aws_secret_access_key = input("Secret Access Key: ")
-        if not os.path.exists(os.path.expanduser("~/.aws/")):
-            os.makedirs(os.path.expanduser("~/.aws/"))
-        aws_credentials_file_path = "~/.aws/credentials"
         aws_credentials_file_string = ""
-        expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
