@@ -13,13 +13,13 @@ module.exports = {
     path: __dirname,
     filename: "build/bundle.js",
   },
-  node: {
-    net: "empty",
-    dns: "empty",
-  },
   resolve: {
     alias: {
       react: path.resolve("./node_modules/react"),
+    },
+    fallback: {
+      net: false,
+      dns: false,
     },
   },
   module: {

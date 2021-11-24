@@ -314,3 +314,7 @@ Loaded Character 2,I'm another character loaded from Mephisto!
 From this, we know we're loading from `data.csv`, and that this file only has two listed items. Mephisto creates an `Assignment` for each of these lines, representing a group of work for which a worker can only contribute to once. We also specify two `units_per_assignment`, meaning that Mephisto creates two `Unit`s per `Assignment`, meaning in this static case that different workers can complete the same job, usually to get inter-annotator agreement. (In some cases Mephisto can use an `Assignment` to connect multiple workers each with one `Unit` on a collaborative live task). As we had two assignments, it makes sense that each worker `x` and your second worker could only complete two tasks each.
 
 On the second launch, we had a file with only one entry and set `units_per_assignment` to 1, which ensured that there was only a single `Unit` that needed to be completed before Mephisto shut down.
+
+### 3.5 HTML static tasks in general
+
+You can use HTML static tasks to render simple annotation with custom HTML code. They may act as a good starting point for working on the platform, however they aren't the easiest or most powerful way to use Mephisto.  More details can be found on how to customize these tasks [here](https://github.com/facebookresearch/Mephisto/tree/main/mephisto/abstractions/blueprints/static_html_task), though the rest of the tutorials will focus on React-based tasks. You can build your first in the [next tutorial](custom_react).

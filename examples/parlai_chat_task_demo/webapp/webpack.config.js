@@ -13,14 +13,14 @@ module.exports = {
     path: __dirname,
     filename: "build/bundle.js",
   },
-  node: {
-    net: "empty",
-    dns: "empty",
-  },
   resolve: {
     alias: {
       react: path.resolve("./node_modules/react"),
       "mephisto-task": path.resolve("./node_modules/mephisto-task"),
+    },
+    fallback: {
+      net: false,
+      dns: false,
     },
   },
   module: {
