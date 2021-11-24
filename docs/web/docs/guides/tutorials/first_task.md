@@ -25,7 +25,7 @@ defaults:
   - /mephisto/architect: local
   - /mephisto/provider: mock
 ```
-We'll dig into how this works shortly. 
+We'll dig into *how* this works [later](#33-default-abstraction-usage). 
 
 ### 1.2 Access the task
 
@@ -147,114 +147,170 @@ This should launch the same task, but now available on the port `1234` rather th
 
 Once we see the task is running, we can shut down with `Ctrl-C`.
 
+> **Tip:** Shutting down Mephisto via a single `Ctrl-C` interrupt *attempts* to cleanup everything, but sometimes takes time for cleanup steps. You can skip some steps with additional `Ctrl-C` presses, but then you'll need to clean up resources yourself.
+
 ### 2.3 Using yaml configurations
 
-TODO describe how to use `task_name`, and perhaps `data_csv`. Use these in a custom `conf` file.
+While it makes sense to update some parameters on the command line while iterating, generally it's easier to extend the `conf` files directly, then apply all of the options by overriding `conf`. Try copying the `hydra_configs/conf/example.yaml` file into `hydra_configs/conf/my_config.yaml`.
 
-> **Tip**: You can reuse common configurations by [associating them with a profile](../how_to_use/efficiency_organization/reusing_configs). Usually these contain `Provider` and `Architect` arguments, as these usually aren't related to a specific task.
+```yaml
+#hydra_configs/conf/my_config.yaml
 
-## Task Breakdown
+#@package _global_
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/data_tutorial.csv    # Lets use the tutorial data
+    task_source: ${task_dir}/server_files/demo_task.html
+    preview_source: ${task_dir}/server_files/demo_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 1   # And only one unit per assignment, as we're testing as one worker
+  task:
+    task_name: first-task-tutorial-run  # Let's change the task name
+    task_title: "Test static task"
+    task_description: "This is a simple test of static tasks."
+    task_reward: 0.3
+    task_tags: "static,task,testing"
+```
 
-Now that you've gotten a task running, this section discusses the components of the run script that cause the behavior you observed.
-
-### `Unit` creation explained
-When stepping through this task the first time, you ended up working on four `Unit`s as two different `Worker`s. 
-
-## Step 1. Run your first task (locally)
-
+Save this configuration file, and you're ready to launch again:
 ```bash
-$ cd examples/simple_static_task
-$ python static_test_script.py
+$ python static_test_script conf=my_config
+```
+You'll note that Mephisto launches the task under your new task name:
+```
+[...][...][INFO] - Creating a task run under task name: first-task-tutorial-run
 ```
 
-This will launch a local HTTP server with the task hosted.
-You can then navigate to the task in your browser to complete the task.
+> **A note on `task_name`s:**
+> The `task_name` parameter is particularly important for setting up workflows. Many of Mephisto's features are shared under a specific `task_name` namespace, including review flows and unit completion maximums per worker per namespace. Later [tutorials](workflows) and [how-to guides](../how_to_use/efficiency_organization/task_organization) go more in-depth on best practices.
 
-To view an instance of a task, look for a print log such as this:
+Navigating to a task (`localhost:3000/?worker_id=x&assignment_id=1`) should now show you a task loaded from a different data file. Completing this task will lead Mephisto to shut down cleanly.
 
-```
-[2020-10-30 10:55:26,719][mephisto.providers.mock.mock_unit][INFO] - Mock task launched: localhost:3000 for preview, localhost:3000/?worker_id=x&assignment_id=20 for assignment 10
-```
+You can now review this task with the review script again, this time providing the task name `first-task-tutorial-run`.
 
-and navigate to the URL that includes parameters (ex. `localhost:3000/?worker_id=x&assignment_id=20`).
-
-For tasks that requires two workers, such as a turn-based dialogue task, you will need to have two browser windows open at once, connected with different `worker_id` and `assignment_id` URL parameters. 
-
-
-> **TIP:**
-> By default, tasks are run using a "local" architect, and a "mock" requester.
-> The "local" architect is reponsible for running a server on your local machine
-> to host the task, and the "mock" requester is a dummy account since we won't
-> be using an external crowd-provider platform such as mTurk to launch the task.
-> 
-> In the next step, we'll show you how to override these defaults so that you can
-> host the task on Heroku and run it on mTurk instead.
-
-## Step 2. Run the same task again (but now on mTurk!)
+### 2.4 (optional) Launch live on MTurk sandbox
 
 > Note: The Mephisto process must remain running when in-use, so you must leave your machine running to be able to access a task.
 
-1. First, you'll first need to setup a new requester. Since we're now running on an external platform instead of locally, we'll need to setup an "mturk" requester to use instead of the dummy "mock" requester that we used previously to run locally. A new requester can be setup via the Mephisto CLI (make sure to replace `$ACCESS_KEY` and `$SECRET_KEY` below):
+You don't need to do this step *right now*, however it's important for understanding how to take one of these tasks live. Assuming you've completed the optional steps in [the quickstart](../quickstart#optional-set-up-mturk), you can make the following changes to your config file, replacing `my_mturk_user_sandbox` with the id you used in it's place when registering initially:
+```yaml
+#hydra_configs/conf/my_config.yaml
 
-```bash
-$ mephisto register mturk \
-        name=my_mturk_user \
-        access_key_id=$ACCESS_KEY\
-        secret_access_key=$SECRET_KEY
-AWS credentials successfully saved in ~/.aws/credentials file.
-
-Registered successfully.
+#@package _global_
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: heroku   # To launch live, we'll need an external server
+  - /mephisto/provider: mturk_sandbox  # And an external provider
+mephisto:
+  provider:
+    requester_name: my_mturk_user_sandbox # Or whatever ID you provided with `mephisto register mturk_sandbox`
+  blueprint:
+    data_csv: ${task_dir}/data_tutorial.csv
+    task_source: ${task_dir}/server_files/demo_task.html
+    preview_source: ${task_dir}/server_files/demo_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 1
+  task:
+    task_name: first-task-tutorial-run
+    task_title: "Test static task"
+    task_description: "This is a simple test of static tasks."
+    task_reward: 0.3
+    task_tags: "static,task,testing"
 ```
-
-You can choose any name here instead of `my_mturk_user` - this will be the id that you later refer to when using that requester.
-
-For an `mturk_sandbox` requester, you should suffix the requester name with *"_sandbox"*, e.g.: `my_mturk_user_sandbox`.
-
-Here's an example of setting up an "mturk_sandbox" requester:
-
+Save this configuration file, and you're ready to see your task live:
 ```bash
-$ mephisto register mturk_sandbox \
-        name=my_mturk_user_sandbox \
-        access_key_id=$ACCESS_KEY\
-        secret_access_key=$SECRET_KEY
-
-Registered successfully.
+$ python static_test_script conf=my_config
 ```
+Mephisto should print out a link to view your task on the mturk sandbox, like `https://workersandbox.mturk.com/mturk/preview?groupId=XXXXXXXXXXXXXXXX`. Navigate here and you're working on the same task, available on MTurk (on the sandbox at least)!
 
-Note that registering a sandbox user will not create a new entry in your `~/.aws/credentials` file if it's for the same account as your production user, as sandbox and prod use the same access keys.
+Complete this task, and you can review it in the same way as before.
 
-2. Next, let's run the task script again, but this time we'll override the requester name and change the architect type to use [Heroku](https://www.heroku.com/). (You can find all of the architects currently supported [here](https://github.com/facebookresearch/Mephisto/tree/main/mephisto/abstractions/architects).)
+> **Tip**: You can reuse common configurations by [associating them with a profile](../how_to_use/efficiency_organization/reusing_configs). Usually these contain `Provider` and `Architect` arguments, as these usually aren't related to a specific task.
 
-```bash
-$ cd examples/simple_static_task
-$ python static_test_script.py mephisto/architect=heroku mephisto.provider.requester_name=my_mturk_user_sandbox
-Locating heroku...
-INFO - Creating a task run under task name: html-static-task-example
-[mephisto.operations.operator][INFO] - Creating a task run under task name: html-static-task-example
-Building server files...
+## 3. Task breakdown
+
+Now that you've gotten a task running, this section gives a quick overview on some of the components in the configs and `static_test_script.py` that led to the observed behaviors. The goal is to ensure you can write your own run files by the end of the tutorial sections.
+
+### 3.1 Config registration
+Mephisto wires up to configuration using standard Hydra syntax, but with both `yaml` files (for ease of writing) _and_ structured configs (for ease of documentation). Here's the config we've set up for this example, re-ordered for understanding:
+```python
+# static_test_script.py
+from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
+    BLUEPRINT_TYPE,
+)
 ...
 
-# Note: If this is your first time running with the heroku architect, you may be asked to do some one-time setup work.
+defaults = ["_self_", {"conf": "example"}]
 
+from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
+TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+@dataclass
+class TestScriptConfig(RunScriptConfig):
+    defaults: List[Any] = field(default_factory=lambda: defaults)
+    task_dir: str = TASK_DIRECTORY
 
-# Note: my_mturk_user_sandbox is what we used to name the requester
-# when we registered the mturk account in the previous step.
-
-# The task name mentioned in the logs will be required to examine/review results of the task in Step 3. In this case, we note that the name is html-static-task-example
+register_script_config(name="scriptconfig", module=TestScriptConfig)
+@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
 ```
-> TIP: The arguments `mephisto.provider.requester_name=my_mturk_user_sandbox` and `mephisto/architect=heroku` will tell the run script to use the "mturk_sandbox" provider and the "heroku" architect (as opposed to the default "mock" provider and "local" architect).
-> 
-> Notice that if we're setting a full abstraction (like the architect abstraction) we reference it with `mephisto/abstraction=val`, however when we're setting an argument, we use `mephisto.abstraction.argument=val`. This tells [Hydra](https://hydra.cc/) (the configuration library that Mephisto uses) whether we're providing an argument value or the name of a configuration to load.
+In this snippet, we do a few things:
+1. We import the `BLUEPRINT_TYPE` to force an import of the blueprint we intend to use with this run script. This isn't *required* for Mephisto default blueprints, but is important for custom `Blueprint`s to ensure they are loaded into the Mephisto registry.
+2. We set up the default `conf` file to be `example`, which ensures that Hydra looks into `conf/example.yaml` on any run where this isn't overridden.
+3. We create a `RunScriptConfig`, which is a set of options that we are allowed to set for a task. Here, we only provide a `task_dir`, which you can override on the command line with `python static_test_script.py task_dir=some/other/path`. Mostly, we use this for ensuring that the `data_csv` and other path-related variables are portable.
+4. We register this config with hydra, and then have the `main` function point to this configuration. Note the `hydra_configs` value for `config_path`, which now fully explains the `hydra_configs/conf/example.yaml` path. 
 
+With all the above, we're able to just make edits to `example.yaml` or make other configs in the `conf/` directory and route to them directly.
 
-## Step 3. Review results
+### 3.2 Invoking Mephisto
+Mephisto itself is actually invoked just a little later:
+```python
+def main(cfg: DictConfig) -> None:
+    db, cfg = load_db_and_process_config(cfg)
+    operator = Operator(db)
 
-```bash
-$ cd examples/simple_static_task
-$ python examine_results.py
-Input task name: 
+    operator.validate_and_run_config(cfg.mephisto)
+    operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
+```
+Here we use the `load_db_and_process_config` helper to extract specific arguments out of your configuration (and surface warnings about incompatibilities), as well as load the correct `MephistoDB` for the task. We then initialize an `Operator` (the main entry point for running a Mephisto `TaskRun`), and run the given config, then wait for it to run. To ensure we're not frozen, the operator takes in a `log_rate` in seconds to print status messages while the run is underway.
+
+### 3.3 Default abstraction usage
+Again we can look back at the `example.yaml` file to see this setup:
+```yaml
+# hydra_configs/conf/example.yaml
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+```
+These ensure that, when not provided other arguments, we launch this task locally using a `LocalArchitect` and `MockProvider`. With these defaults, this and other example tasks are run using a "local" architect, and a "mock" requester without arguments. The "local" architect is reponsible for running a server on your local machine to host the task, and the "mock" requester lets *you* simulate a worker without using an external crowd-provider platform such as mTurk to launch the task.
+
+### 3.4 `Unit` creation explained
+When stepping through this task the first time, you ended up working on four `Unit`s as two different `Worker`s. It's useful to understand how this happens. Taking a look at the config and data:
+```yaml
+# hydra_configs/conf/example.yaml
+
+#@package _global_
+defaults:
+...
+mephisto:
+  ...
+  blueprint:
+    data_csv: ${task_dir}/data.csv
+    ...
+    units_per_assignment: 2
+  task:
+    ...
+```
+```
+# data.csv
+character_name,character_description
+Loaded Character 1,I'm a character loaded from Mephisto!
+Loaded Character 2,I'm another character loaded from Mephisto!
 ```
 
- Enter the task name that was output in the console logs when prompted for `Input task name:`.
- 
- In the above example, you'll note that it was `html-static-task-example`.
+From this, we know we're loading from `data.csv`, and that this file only has two listed items. Mephisto creates an `Assignment` for each of these lines, representing a group of work for which a worker can only contribute to once. We also specify two `units_per_assignment`, meaning that Mephisto creates two `Unit`s per `Assignment`, meaning in this static case that different workers can complete the same job, usually to get inter-annotator agreement. (In some cases Mephisto can use an `Assignment` to connect multiple workers each with one `Unit` on a collaborative live task). As we had two assignments, it makes sense that each worker `x` and your second worker could only complete two tasks each.
+
+On the second launch, we had a file with only one entry and set `units_per_assignment` to 1, which ensured that there was only a single `Unit` that needed to be completed before Mephisto shut down.
