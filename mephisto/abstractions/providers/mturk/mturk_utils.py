@@ -75,8 +75,18 @@ def setup_aws_credentials(
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
             # accessing the aws_credentials_file
-            aws_access_key_id = aws_credentials_file_string.split("\n")[1]
-            if register_args.access_key_id != aws_access_key_id:
+            aws_credentials = aws_credentials_file_string.split("\n")
+            # iterating to get the profile
+            profileFound = False
+            for credentialIndex in range(0, len(aws_credentials)):
+                if profileFound:
+                    aws_access_key_id = aws_credentials[credentialIndex]
+                    aws_secret_access_key = aws_credentials[credentialIndex+1]
+                    break
+                if str(aws_credentials[credentialIndex]).startswith("[{}]".format(profile_name)):
+                    profileFound = True
+
+            if register_args.access_key_id != aws_access_key_id or register_args.secret_access_key != aws_secret_access_key:
                 with open(expanded_aws_file_path, "a+") as aws_credentials_file:
                     # Clean up file
                     if aws_credentials_file_string:
