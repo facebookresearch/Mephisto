@@ -77,22 +77,20 @@ def setup_aws_credentials(
             # accessing the aws_credentials_file
             aws_credentials = aws_credentials_file_string.split("\n")
             # iterating to get the profile
-            profileFound = False
+
             for credentialIndex in range(0, len(aws_credentials)):
-                if profileFound:
-                    aws_credentials[credentialIndex] = "aws_access_key_id={}\n".format(
-                        register_args.access_key_id)
+                if str(aws_credentials[credentialIndex]).startswith("[{}]".format(profile_name)):
                     aws_credentials[credentialIndex+1] = "aws_access_key_id={}\n".format(
                         register_args.access_key_id)
+                    aws_credentials[credentialIndex+2] = "aws_access_key_id={}\n".format(
+                        register_args.access_key_id)
                     break
-                if str(aws_credentials[credentialIndex]).startswith("[{}]".format(profile_name)):
-                    profileFound = True
 
-                with open(expanded_aws_file_path, "w") as aws_credentials_file:
-                    # overWrite login details
-                    aws_credentials_file.write("\n".join(aws_credentials))
-                logger.warning(f"The provided keys does not match for profile {profile_name}"
-                               f"As a result of which we're updating the credentials, overwriting ones that already existed for the profile ")
+            with open(expanded_aws_file_path, "w") as aws_credentials_file:
+                # overWrite login details
+                aws_credentials_file.write("\n".join(aws_credentials))
+                logger.warning(f"We found an existing entry for {profile_name}. As new credentials have been provided, "
+                               f"we're updating the credentials, overwriting ones that already existed for the profile ")
         return True
 
     except ProfileNotFound:
