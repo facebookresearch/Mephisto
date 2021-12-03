@@ -80,8 +80,10 @@ def setup_aws_credentials(
             profileFound = False
             for credentialIndex in range(0, len(aws_credentials)):
                 if profileFound:
-                    aws_access_key_id = aws_credentials[credentialIndex]
-                    aws_secret_access_key = aws_credentials[credentialIndex+1]
+                    aws_access_key_id = aws_credentials[credentialIndex].split(
+                        "=")[1]
+                    aws_secret_access_key = aws_credentials[credentialIndex+1].split("=")[
+                        1]
                     break
                 if str(aws_credentials[credentialIndex]).startswith("[{}]".format(profile_name)):
                     profileFound = True
