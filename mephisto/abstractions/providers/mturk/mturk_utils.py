@@ -90,14 +90,6 @@ def setup_aws_credentials(
 
             if register_args.access_key_id != aws_access_key_id or register_args.secret_access_key != aws_secret_access_key:
                 with open(expanded_aws_file_path, "a+") as aws_credentials_file:
-                    # Clean up file
-                    if aws_credentials_file_string:
-                        if aws_credentials_file_string.endswith("\n\n"):
-                            pass
-                        elif aws_credentials_file_string.endswith("\n"):
-                            aws_credentials_file.write("\n")
-                        else:
-                            aws_credentials_file.write("\n\n")
                     # overWrite login details
                     aws_credentials_file.write("[{}]\n".format(profile_name))
                     aws_credentials_file.write(
