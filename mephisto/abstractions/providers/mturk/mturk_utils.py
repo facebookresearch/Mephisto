@@ -61,21 +61,44 @@ def check_aws_credentials(profile_name: str) -> bool:
 def setup_aws_credentials(
     profile_name: str, register_args: Optional[DictConfig] = None
 ) -> bool:
+    if not os.path.exists(os.path.expanduser("~/.aws/")):
+        os.makedirs(os.path.expanduser("~/.aws/"))
+    aws_credentials_file_path = "~/.aws/credentials"
+    expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
     try:
         # Check existing credentials
         boto3.Session(profile_name=profile_name)
         if register_args is not None:
             # Eventually we could manually re-parse the file and see
             # if the credentials line up or not, then fix ourselves
-            print(
-                f"WARNING credentials provided, but there's already a "
-                f"profile for {profile_name}. If these don't line up, you'll "
-                f"need to manually navigate to your ~/.aws/credentials file "
-                f"and remove the entry for this profile name, then run again.\n"
-                f"As this profile is currently loading, we consider it "
-                f"successfully registered anyways."
-            )
+            aws_credentials_file_string = ""
+            with open(expanded_aws_file_path, "r") as aws_credentials_file:
+                aws_credentials_file_string = aws_credentials_file.read()
+            # accessing the aws_credentials_file
+            aws_credentials = aws_credentials_file_string.split("\n")
+            # iterating to get the profile
+
+            for credentialIndex in range(0, len(aws_credentials)):
+                if str(aws_credentials[credentialIndex]).startswith(
+                    "[{}]".format(profile_name)
+                ):
+                    aws_credentials[
+                        credentialIndex + 1
+                    ] = "aws_access_key_id={}\n".format(register_args.access_key_id)
+                    aws_credentials[
+                        credentialIndex + 2
+                    ] = "aws_access_key_id={}\n".format(register_args.access_key_id)
+                    break
+
+            with open(expanded_aws_file_path, "w") as aws_credentials_file:
+                # overWrite login details
+                aws_credentials_file.write("\n".join(aws_credentials))
+                logger.warning(
+                    f"We found an existing entry for {profile_name}. As new credentials have been provided, "
+                    f"we're updating the credentials, overwriting ones that already existed for the profile "
+                )
         return True
+
     except ProfileNotFound:
         # Setup new credentials
         if register_args is not None:
@@ -94,11 +117,7 @@ def setup_aws_credentials(
             )
             aws_access_key_id = input("Access Key ID: ")
             aws_secret_access_key = input("Secret Access Key: ")
-        if not os.path.exists(os.path.expanduser("~/.aws/")):
-            os.makedirs(os.path.expanduser("~/.aws/"))
-        aws_credentials_file_path = "~/.aws/credentials"
-        aws_credentials_file_string = None
-        expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
+        aws_credentials_file_string = ""
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
@@ -450,10 +469,7 @@ def create_hit_type(
 
 
 def create_compensation_hit_with_hit_type(
-    client: MTurkClient,
-    reason: str,
-    hit_type_id: str,
-    num_assignments: int = 1,
+    client: MTurkClient, reason: str, hit_type_id: str, num_assignments: int = 1,
 ) -> Tuple[str, str, Dict[str, Any]]:
     """Creates a simple compensation HIT to direct workers to submit"""
     amazon_ext_url = (

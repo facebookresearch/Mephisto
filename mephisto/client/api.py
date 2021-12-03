@@ -21,7 +21,9 @@ from mephisto.operations.registry import (
     get_valid_architect_types,
 )
 from mephisto.data_model.task_config import TaskConfig
-import sys, traceback, os
+import sys
+import traceback
+import os
 
 api = Blueprint("api", __name__)
 
@@ -59,7 +61,8 @@ def get_reviewable_task_runs():
     db = app.extensions["db"]
     units = db.find_units(status=AssignmentState.COMPLETED)
     reviewable_count = len(units)
-    task_run_ids = set([u.get_assignment().get_task_run().db_id for u in units])
+    task_run_ids = set(
+        [u.get_assignment().get_task_run().db_id for u in units])
     task_runs = [TaskRun.get(db, db_id) for db_id in task_run_ids]
     dict_tasks = [t.to_dict() for t in task_runs]
     # TODO(OWN) maybe include warning for auto approve date once that's tracked
@@ -141,7 +144,6 @@ def requester_register(requester_type):
         return jsonify(
             {"success": False, "msg": f"error in parsing arguments: {str(e)}"}
         )
-
     if "name" not in parsed_options:
         return jsonify(
             {"success": False, "msg": "No name was specified for the requester."}
@@ -175,7 +177,8 @@ def get_submitted_data():
         assignments = []
         assert len(task_names) == 0, "Searching via task names not yet supported"
 
-        task_runs = [TaskRun.get(db, task_run_id) for task_run_id in task_run_ids]
+        task_runs = [TaskRun.get(db, task_run_id)
+                     for task_run_id in task_run_ids]
         for task_run in task_runs:
             assignments += task_run.get_assignments()
 
@@ -190,7 +193,8 @@ def get_submitted_data():
                 AssignmentState.REJECTED,
             ]
 
-        filtered_assignments = [a for a in assignments if a.get_status() in statuses]
+        filtered_assignments = [
+            a for a in assignments if a.get_status() in statuses]
 
         for assignment in assignments:
             units += assignment.get_units()
