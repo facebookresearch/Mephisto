@@ -80,26 +80,17 @@ def setup_aws_credentials(
             profileFound = False
             for credentialIndex in range(0, len(aws_credentials)):
                 if profileFound:
-                    aws_access_key_id = aws_credentials[credentialIndex].split(
-                        "=")[1]
-                    aws_secret_access_key = aws_credentials[credentialIndex+1].split("=")[
-                        1]
+                    aws_credentials[credentialIndex] = "aws_access_key_id={}\n".format(
+                        register_args.access_key_id)
+                    aws_credentials[credentialIndex+1] = "aws_access_key_id={}\n".format(
+                        register_args.access_key_id)
                     break
                 if str(aws_credentials[credentialIndex]).startswith("[{}]".format(profile_name)):
                     profileFound = True
 
-            if register_args.access_key_id != aws_access_key_id or register_args.secret_access_key != aws_secret_access_key:
-                with open(expanded_aws_file_path, "a+") as aws_credentials_file:
+                with open(expanded_aws_file_path, "w") as aws_credentials_file:
                     # overWrite login details
-                    aws_credentials_file.write("[{}]\n".format(profile_name))
-                    aws_credentials_file.write(
-                        "aws_access_key_id={}\n".format(
-                            register_args.access_key_id)
-                    )
-                    aws_credentials_file.write(
-                        "aws_secret_access_key={}\n".format(
-                            register_args.secret_access_key)
-                    )
+                    aws_credentials_file.write("\n".join(aws_credentials))
                 logger.warning(f"The provided keys does not match for profile {profile_name}"
                                f"As a result of which we're updating the credentials, overwriting ones that already existed for the profile ")
         return True
