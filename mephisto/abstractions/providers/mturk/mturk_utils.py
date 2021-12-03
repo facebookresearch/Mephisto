@@ -79,18 +79,24 @@ def setup_aws_credentials(
             # iterating to get the profile
 
             for credentialIndex in range(0, len(aws_credentials)):
-                if str(aws_credentials[credentialIndex]).startswith("[{}]".format(profile_name)):
-                    aws_credentials[credentialIndex+1] = "aws_access_key_id={}\n".format(
-                        register_args.access_key_id)
-                    aws_credentials[credentialIndex+2] = "aws_access_key_id={}\n".format(
-                        register_args.access_key_id)
+                if str(aws_credentials[credentialIndex]).startswith(
+                    "[{}]".format(profile_name)
+                ):
+                    aws_credentials[
+                        credentialIndex + 1
+                    ] = "aws_access_key_id={}\n".format(register_args.access_key_id)
+                    aws_credentials[
+                        credentialIndex + 2
+                    ] = "aws_access_key_id={}\n".format(register_args.access_key_id)
                     break
 
             with open(expanded_aws_file_path, "w") as aws_credentials_file:
                 # overWrite login details
                 aws_credentials_file.write("\n".join(aws_credentials))
-                logger.warning(f"We found an existing entry for {profile_name}. As new credentials have been provided, "
-                               f"we're updating the credentials, overwriting ones that already existed for the profile ")
+                logger.warning(
+                    f"We found an existing entry for {profile_name}. As new credentials have been provided, "
+                    f"we're updating the credentials, overwriting ones that already existed for the profile "
+                )
         return True
 
     except ProfileNotFound:
@@ -417,8 +423,7 @@ def create_hit_type(
     hit_keywords = ",".join(task_config.task_tags)
     hit_reward = task_config.task_reward
     assignment_duration_in_seconds = task_config.assignment_duration_in_seconds
-    existing_qualifications = convert_mephisto_qualifications(
-        client, qualifications)
+    existing_qualifications = convert_mephisto_qualifications(client, qualifications)
 
     # If the user hasn't specified a location qualification, we assume to
     # restrict the HIT to some english-speaking countries.
@@ -464,10 +469,7 @@ def create_hit_type(
 
 
 def create_compensation_hit_with_hit_type(
-    client: MTurkClient,
-    reason: str,
-    hit_type_id: str,
-    num_assignments: int = 1,
+    client: MTurkClient, reason: str, hit_type_id: str, num_assignments: int = 1,
 ) -> Tuple[str, str, Dict[str, Any]]:
     """Creates a simple compensation HIT to direct workers to submit"""
     amazon_ext_url = (
@@ -580,8 +582,7 @@ def setup_sns_topic(
     filtered_task_name = pattern.sub("", task_name)
     response = client.create_topic(Name=filtered_task_name)
     arn = response["TopicArn"]
-    topic_sub_url = "{}/sns_posts?task_run_id={}".format(
-        server_url, task_run_id)
+    topic_sub_url = "{}/sns_posts?task_run_id={}".format(server_url, task_run_id)
     client.subscribe(TopicArn=arn, Protocol="https", Endpoint=topic_sub_url)
     response = client.get_topic_attributes(TopicArn=arn)
     policy_json = """{{
@@ -696,8 +697,7 @@ def approve_work(
 def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
     """reject work for a given assignment through the mturk client"""
     try:
-        client.reject_assignment(
-            AssignmentId=assignment_id, RequesterFeedback=reason)
+        client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
     except Exception as e:
         # TODO(#93) Break down this error to the many reasons why approve may fail,
         # only silently pass on approving an already approved assignment
@@ -784,8 +784,7 @@ def get_outstanding_hits(client: MTurkClient) -> Dict[str, List[Dict[str, Any]]]
     new_hits = client.list_hits(MaxResults=100)
     all_hits = new_hits["HITs"]
     while len(new_hits["HITs"]) > 0:
-        new_hits = client.list_hits(
-            MaxResults=100, NextToken=new_hits["NextToken"])
+        new_hits = client.list_hits(MaxResults=100, NextToken=new_hits["NextToken"])
         all_hits += new_hits["HITs"]
 
     hit_by_type: Dict[str, List[Dict[str, Any]]] = {}
