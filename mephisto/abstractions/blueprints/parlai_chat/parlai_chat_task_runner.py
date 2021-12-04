@@ -4,26 +4,15 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.abstractions.blueprint import TaskRunner
+from mephisto.abstractions.blueprint import TaskRunner, SharedTaskState
 from mephisto.data_model.agent import Agent, OnboardingAgent
 import time
 
 try:
-    from parlai.core.agents import Agent as ParlAIAgent
-    from parlai.core.message import Message
-except:
-
-    class ParlAIAgent:
-        def __init__(self, *args, **kwargs):
-            raise NotImplementedError(
-                "You need to install ParlAI to use this blueprint"
-            )
-
-    class Message:
-        def __init__(self, *args, **kwargs):
-            raise NotImplementedError(
-                "You need to install ParlAI to use this blueprint"
-            )
+    from parlai.core.agents import Agent as ParlAIAgent  # type: ignore
+    from parlai.core.message import Message  # type: ignore
+except ImportError:
+    from mephisto.abstractions.blueprints.parlai_chat.parlai_not_installed import ParlAIAgent, Message  # type: ignore
 
     pass  # ParlAI is not installed. TODO remove when we move this blueprint to ParlAI
 
@@ -36,19 +25,24 @@ from mephisto.data_model.packet import (
 from importlib import import_module
 
 import os
-import sh
+import sh  # type: ignore
 import shlex
 import shutil
 import subprocess
 import sys
 from uuid import uuid4
 
-from typing import ClassVar, List, Type, Any, Dict, Union, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Union, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
+        SharedParlAITaskState,
+    )
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.unit import Unit
+    from omegaconf import DictConfig
 
 
 class MephistoAgentWrapper(ParlAIAgent):
@@ -129,6 +123,13 @@ class ParlAIChatTaskRunner(TaskRunner):
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
         super().__init__(task_run, args, shared_state)
+        from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
+            SharedParlAITaskState,
+        )
+
+        assert isinstance(
+            shared_state, SharedParlAITaskState
+        ), "Must use SharedParlAITaskState for parlai blueprints"
         if shared_state.world_module is None:
             world_file_path = os.path.expanduser(args.blueprint.world_file)
             world_module_dir = os.path.dirname(world_file_path)
@@ -138,7 +139,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         else:
             world_module = shared_state.world_module
         self.parlai_world_module = world_module
-        world_params = self.parlai_world_module.get_world_params()
+        world_params = world_module.get_world_params()  # type: ignore
         self.is_concurrent = world_params["agent_count"] > 1
         self.id_to_worlds: Dict[str, Any] = {}
 
@@ -167,14 +168,22 @@ class ParlAIChatTaskRunner(TaskRunner):
         ParlAI Onboarding will initialize an onboarding
         world, then run it to completion if possible
         """
-        opt: Dict[str, Any] = self.shared_state.onboarding_world_opt
+        shared_state = self.shared_state
+        from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
+            SharedParlAITaskState,
+        )
+
+        assert isinstance(
+            shared_state, SharedParlAITaskState
+        ), "Must use SharedParlAITaskState for parlai blueprints"
+        opt: Dict[str, Any] = shared_state.onboarding_world_opt
         parlai_agent = MephistoAgentWrapper(agent)
         try:
-            world = self.parlai_world_module.make_onboarding_world(
+            world = self.parlai_world_module.make_onboarding_world(  # type: ignore
                 opt,
                 parlai_agent,
-                initialization_data=self.get_init_data_for_agent(agent),
-            )  # type: ignore
+                initialization_data=shared_state.onboarding_data,
+            )
         except TypeError:
             # make_world doesn't ask for initialization_data
             world = self.parlai_world_module.make_onboarding_world(opt, parlai_agent)  # type: ignore
@@ -224,12 +233,12 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         for agent in agents:
             assert agent is not None, "task was not fully assigned"
-        opt: Dict[str, Any] = self.shared_state.world_opt
+        opt: Dict[str, Any] = cast("SharedParlAITaskState", self.shared_state).world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         try:
-            world = self.parlai_world_module.make_world(
+            world = self.parlai_world_module.make_world(  # type: ignore
                 opt, parlai_agents, initialization_data=assignment.get_assignment_data()
-            )  # type: ignore
+            )
         except TypeError:
             # make_world doesn't ask for initialization_data
             world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
@@ -270,12 +279,12 @@ class ParlAIChatTaskRunner(TaskRunner):
         if possible
         """
         agents = [agent]
-        opt: Dict[str, Any] = self.shared_state.world_opt
+        opt: Dict[str, Any] = cast("SharedParlAITaskState", self.shared_state).world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         try:
-            world = self.parlai_world_module.make_world(
+            world = self.parlai_world_module.make_world(  # type: ignore
                 opt, parlai_agents, initialization_data=unit.get_assignment_data()
-            )  # type: ignore
+            )
         except TypeError:
             # make_world doesn't ask for initialization_data
             world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore

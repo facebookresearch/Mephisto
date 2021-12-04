@@ -14,20 +14,24 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     get_assignment,
     get_assignments_for_hit,
 )
+from mephisto.data_model.packet import Packet, PACKET_TYPE_AGENT_ACTION
 
-import xmltodict
+import xmltodict  # type: ignore
 import json
 
-from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Mapping, Any, cast, TYPE_CHECKING
+
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.packet import Packet
-    from mephisto.abstractions.providers.mturk.requester import MTurkRequester
-    from mephisto.abstractions.providers.mturk.unit import MTurkUnit
-    from mephisto.abstractions.providers.mturk.datastore import MTurkDatastore
+    from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
+    from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
+    from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
 
 
 class MTurkAgent(Agent):
@@ -51,7 +55,7 @@ class MTurkAgent(Agent):
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
-        unit: "MTurkUnit" = self.get_unit()
+        unit: "MTurkUnit" = cast("MTurkUnit", self.get_unit())
         self.mturk_assignment_id = unit.get_mturk_assignment_id()
         # TODO(#97) any additional init as is necessary once
         # a mock DB exists
@@ -66,7 +70,7 @@ class MTurkAgent(Agent):
         Get an mturk client for usage with mturk_utils for this agent
         """
         unit = self.get_unit()
-        requester: "MTurkRequester" = unit.get_requester()
+        requester: "MTurkRequester" = cast("MTurkRequester", unit.get_requester())
         return self.datastore.get_client_for_requester(requester._requester_name)
 
     @classmethod
@@ -81,6 +85,11 @@ class MTurkAgent(Agent):
         Wrapper around the new method that allows registering additional
         bookkeeping information from a crowd provider for this agent
         """
+        from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
+
+        assert isinstance(
+            unit, MTurkUnit
+        ), "Can only register mturk agents to mturk units"
         unit.register_from_provider_data(
             provider_data["hit_id"], provider_data["assignment_id"]
         )
@@ -101,8 +110,8 @@ class MTurkAgent(Agent):
         }
         parsed_data["MEPHISTO_MTURK_RECONCILED"] = True
         packet = Packet(
-            packet_type=input_dict["packet_type"],
-            sender_id=input_dict["sender_id"],
+            packet_type=PACKET_TYPE_AGENT_ACTION,
+            sender_id=self.db_id,
             receiver_id="mephisto",
             data={
                 "task_data": parsed_data,
@@ -110,16 +119,16 @@ class MTurkAgent(Agent):
                 "files": [],
             },
         )
-        agent.pending_actions.append(packet)
-        agent.has_action.set()
-        agent.did_submit.set()
+        self.pending_actions.append(packet)
+        self.has_action.set()
+        self.did_submit.set()
 
     # Required functions for Agent Interface
 
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""
         if self.get_status() == AgentState.STATUS_APPROVED:
-            logging.info(f"Approving already approved agent {self}, skipping")
+            logger.info(f"Approving already approved agent {self}, skipping")
             return
         client = self._get_client()
         approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
@@ -128,7 +137,7 @@ class MTurkAgent(Agent):
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
         if self.get_status() == AgentState.STATUS_APPROVED:
-            logging.warning(f"Cannot reject {self}, it is already approved")
+            logger.warning(f"Cannot reject {self}, it is already approved")
             return
         client = self._get_client()
         reject_work(client, self._get_mturk_assignment_id(), reason)

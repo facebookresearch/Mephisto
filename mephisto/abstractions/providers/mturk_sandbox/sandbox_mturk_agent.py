@@ -7,10 +7,12 @@
 from mephisto.abstractions.providers.mturk_sandbox.provider_type import PROVIDER_TYPE
 from mephisto.abstractions.providers.mturk.mturk_agent import MTurkAgent
 
-from typing import Any, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.providers.mturk.requester import MTurkRequester
+    from mephisto.abstractions.providers.mturk_sandbox.sandbox_mturk_requester import (
+        SandboxMTurkRequester,
+    )
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.agent import Agent
     from mephisto.abstractions.database import MephistoDB
@@ -30,7 +32,9 @@ class SandboxMTurkAgent(MTurkAgent):
         Get an mturk client for usage with mturk_utils for this agent
         """
         unit = self.get_unit()
-        requester: "MTurkRequester" = unit.get_requester()
+        requester: "SandboxMTurkRequester" = cast(
+            "SandboxMTurkRequester", unit.get_requester()
+        )
         return self.datastore.get_sandbox_client_for_requester(
             requester._requester_name
         )

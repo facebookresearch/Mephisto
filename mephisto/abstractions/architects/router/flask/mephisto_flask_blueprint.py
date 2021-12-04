@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from flask import (
+from flask import (  # type: ignore
     Flask,
     Blueprint,
     render_template,
@@ -13,7 +13,7 @@ from flask import (
     send_from_directory,
     jsonify,
 )
-from geventwebsocket import (
+from geventwebsocket import (  # type: ignore
     WebSocketServer,
     WebSocketApplication,
     Resource,
@@ -23,15 +23,15 @@ from uuid import uuid4
 import time
 import json
 import os
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename  # type: ignore
 
 from threading import Event
 
 from typing import Dict, Tuple, List, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from geventwebsocket.handler import Client
-    from geventwebsocket.websocket import WebSocket
+    from geventwebsocket.handler import Client  # type: ignore
+    from geventwebsocket.websocket import WebSocket  # type: ignore
 
 # Constants
 
@@ -396,6 +396,7 @@ class MephistoRouter(WebSocketApplication):
 def handle_provider_request(request_type: str, data: Dict[str, Any]):
     """Wrapper for provider requests that handles extracting the result and timing out"""
     provider_data = data["provider_data"]
+    assert mephisto_router_app is not None, "Must initialize router before this call"
     packet = mephisto_router_app.get_default_provider_request_packet(
         request_type, provider_data
     )

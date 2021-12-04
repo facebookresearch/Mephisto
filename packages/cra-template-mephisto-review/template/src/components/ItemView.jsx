@@ -11,14 +11,20 @@ import {
   Position,
   Toaster,
 } from "@blueprintjs/core";
-import { DefaultItemRenderer } from "../plugins/DefaultItemRenderer";
+import { JSONItem } from "../renderers/JSONItem";
+import { getHostname } from "../utils";
+import ErrorPane from "./ErrorPane";
 
 const AppToaster = Toaster.create({
   className: "recipe-toaster",
   position: Position.TOP,
 });
 
-function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
+function ItemView({
+  itemRenderer: ItemRenderer = JSONItem,
+  wrapClass,
+  allowReview = true,
+}) {
   const { id } = useParams();
   const {
     data: item,
@@ -27,7 +33,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
     submit,
     error,
     mode,
-  } = useMephistoReview({ taskId: id });
+  } = useMephistoReview({ taskId: id, hostname: getHostname() });
 
   const history = useHistory();
 
@@ -35,7 +41,7 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
     if (mode === "OBO") {
       history.push("/");
     } else {
-      AppToaster.show({ message: "Review Sent!" });
+      AppToaster.show({ message: "Review response recorded." });
     }
   };
 
@@ -44,6 +50,8 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
   };
 
   const buttonDisable = error || isFinished || isLoading || item == null;
+
+  const hideReviewWorkflow = !allowReview && mode === "ALL";
 
   return (
     <>
@@ -61,68 +69,105 @@ function ItemView({ itemRenderer: ItemRenderer = DefaultItemRenderer }) {
               </>
             ) : null}
             <NavbarHeading className="navbar-header">
-              <b>Please review the following item:</b>
+              {hideReviewWorkflow ? (
+                <b>Viewing task:</b>
+              ) : (
+                <b>Please review the following item:</b>
+              )}
             </NavbarHeading>
           </NavbarGroup>
-          <NavbarGroup align={Alignment.RIGHT}>
-            <Button
-              className="btn"
-              intent="danger"
-              disabled={buttonDisable}
-              id="reject-button"
-              onClick={async () => {
-                var response = await submit({ result: "rejected" });
-                if (response == "SUCCESS") {
-                  confirmReview();
-                } else if (response) {
-                  reviewError(response);
-                }
-              }}
-            >
-              <b>REJECT</b>
-            </Button>
-            <Button
-              className="btn"
-              intent="success"
-              disabled={buttonDisable}
-              id="approve-button"
-              onClick={async () => {
-                var response = await submit({ result: "approved" });
-                if (response == "SUCCESS") {
-                  confirmReview();
-                } else if (response) {
-                  reviewError(response);
-                }
-              }}
-            >
-              <b>APPROVE</b>
-            </Button>
-          </NavbarGroup>
+          {hideReviewWorkflow ? null : (
+            <NavbarGroup align={Alignment.RIGHT}>
+              <Button
+                className="btn"
+                intent="danger"
+                disabled={buttonDisable}
+                id="reject-button"
+                onClick={async () => {
+                  var response = await submit({ result: "rejected" });
+                  if (response === "SUCCESS") {
+                    confirmReview();
+                  } else if (response) {
+                    reviewError(response);
+                  }
+                }}
+              >
+                <b>REJECT</b>
+              </Button>
+              <Button
+                className="btn"
+                intent="success"
+                disabled={buttonDisable}
+                id="approve-button"
+                onClick={async () => {
+                  var response = await submit({ result: "approved" });
+                  if (response === "SUCCESS") {
+                    confirmReview();
+                  } else if (response) {
+                    reviewError(response);
+                  }
+                }}
+              >
+                <b>APPROVE</b>
+              </Button>
+            </NavbarGroup>
+          )}
         </div>
       </Navbar>
-      <main className="item-view">
-        {error && (
-          <h5 className="error item-view-error">
-            Error: {JSON.stringify(error)}
-          </h5>
-        )}
+      <main className={`item-view mode-${mode}`}>
         {isLoading ? (
-          <h1 className="item-view-message">Loading...</h1>
+          <div className="item-dynamic">
+            <ErrorPane error={error} />
+            <h1 className="item-view-message">Loading...</h1>
+          </div>
         ) : isFinished ? (
-          <h1 className="item-view-message">
-            Done reviewing! You can close this app now
-          </h1>
+          <div className="item-dynamic">
+            <ErrorPane error={error} />
+            <h1 className="item-view-message">
+              Done reviewing! You can close this app now
+            </h1>
+          </div>
         ) : item ? (
-          <ItemRenderer item={item} />
+          wrapClass ? (
+            <div className={wrapClass}>
+              <ErrorPane error={error} />
+              <ItemRenderer item={item} />
+            </div>
+          ) : (
+            <>
+              <ErrorPane error={error} />
+              <ItemRenderer item={item} />
+            </>
+          )
         ) : (
-          <div className="item-view-message item-view-no-data">
-            <h3>
-              No data available. Please provide Mephisto Review with some data
-              by running mephisto review with either standard input of a CSV or
-              JSON file or by using the "--db" flag along with the name of a
-              task in mephistoDB as an argument. The task must have valid review
-              data.
-            </h3>
+          <div className="item-dynamic">
+            <div className="item-view-message item-view-no-data">
+              <ErrorPane error={error} />
+              <h3>
+                Thanks for using the <code>$ mephisto review</code> interface.
+                Here are a few ways to get started:
+              </h3>
+              <h3>
+                1. Review data from a .csv or{" "}
+                <a href="https://jsonlines.org/">.jsonl</a> file
+              </h3>
+              <pre>
+                $ cat sample-data<span className="highlight">.json</span> |
+                mephisto review review-app/build/{" "}
+                <span className="highlight">--json</span> --stdout
+              </pre>
+              <pre>
+                $ cat sample-data<span className="highlight">.csv</span> |
+                mephisto review review-app/build/{" "}
+                <span className="highlight">--csv</span> --stdout
+              </pre>
+              <h3>2. Review data from the Mephisto database</h3>
+              <pre>
+                $ mephisto review review-app/build/{" "}
+                <span className="highlight">--db mephisto_db_task_name</span>{" "}
+                --stdout
+              </pre>
+            </div>
           </div>
         )}
       </main>

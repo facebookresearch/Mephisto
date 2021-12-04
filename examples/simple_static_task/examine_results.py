@@ -8,6 +8,7 @@
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.examine_utils import run_examine_or_review, print_results
 from mephisto.data_model.worker import Worker
+from mephisto.data_model.unit import Unit
 
 db = None
 

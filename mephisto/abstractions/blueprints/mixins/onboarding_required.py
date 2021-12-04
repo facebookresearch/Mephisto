@@ -53,6 +53,7 @@ class OnboardingRequired(BlueprintMixin):
     Compositional class for blueprints that may have an onboarding step
     """
 
+    shared_state: "SharedTaskState"
     ArgsMixin = OnboardingRequiredArgs
     SharedStateMixin = OnboardingSharedState
 
@@ -100,6 +101,9 @@ class OnboardingRequired(BlueprintMixin):
     def init_onboarding_config(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
+        assert isinstance(
+            shared_state, OnboardingSharedState
+        ), f"Cannot init onboarding config with {shared_state}, need OnboardingSharedState"
         self.onboarding_qualification_name: Optional[str] = args.blueprint.get(
             "onboarding_qualification", None
         )
@@ -108,14 +112,16 @@ class OnboardingRequired(BlueprintMixin):
         self.onboarding_qualification_id = None
         if not self.use_onboarding:
             return
+        onboarding_qualification_name = self.onboarding_qualification_name
+        assert onboarding_qualification_name is not None
 
         db = task_run.db
         self.onboarding_qualification_id = find_or_create_qualification(
             db,
-            self.onboarding_qualification_name,
+            onboarding_qualification_name,
         )
         self.onboarding_failed_name = self.get_failed_qual(
-            self.onboarding_qualification_name
+            onboarding_qualification_name
         )
         self.onboarding_failed_id = find_or_create_qualification(
             db, self.onboarding_failed_name
@@ -143,5 +149,9 @@ class OnboardingRequired(BlueprintMixin):
         and all onboarding tasks should allow run_task to specify additional
         or entirely override what's provided in a blueprint.
         """
+        shared_state = self.shared_state
+        assert isinstance(
+            shared_state, OnboardingSharedState
+        ), f"Cannot init onboarding config with {shared_state}, need OnboardingSharedState"
         data = onboarding_agent.state.get_data()
-        return self.shared_state.validate_onboarding(data)
+        return shared_state.validate_onboarding(data)

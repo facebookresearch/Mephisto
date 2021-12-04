@@ -4,17 +4,17 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import boto3
+import boto3  # type: ignore
 import os
 import json
 import re
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 from datetime import datetime
 
-from botocore import client
-from botocore.exceptions import ClientError, ProfileNotFound
-from botocore.config import Config
+from botocore import client  # type: ignore
+from botocore.exceptions import ClientError, ProfileNotFound  # type: ignore
+from botocore.config import Config  # type: ignore
 from omegaconf import DictConfig
 
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
@@ -656,12 +656,12 @@ def get_hit(client: MTurkClient, hit_id: str) -> Dict[str, Any]:
     """Get hit from mturk by hit_id"""
     hit = None
     try:
-        hit = client.get_hit(HITId=hit_id)
+        return client.get_hit(HITId=hit_id)
     except ClientError as er:
         logger.warning(
             f"Skipping HIT {hit_id}. Unable to retrieve due to ClientError: {er}."
         )
-    return hit
+    return {}
 
 
 def get_assignment(client: MTurkClient, assignment_id: str) -> Dict[str, Any]:
