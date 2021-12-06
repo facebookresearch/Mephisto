@@ -21,9 +21,11 @@ module.exports = {
     "react-dom": "react-dom",
     "mephisto-task": "mephisto-task",
   },
-  node: {
-    net: "empty",
-    dns: "empty",
+  resolve: {
+    fallback: {
+      net: false,
+      dns: false,
+    },
   },
   module: {
     rules: [

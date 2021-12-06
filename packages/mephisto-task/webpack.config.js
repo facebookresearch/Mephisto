@@ -20,9 +20,11 @@ module.exports = {
     react: "react",
     "react-dom": "react-dom",
   },
-  node: {
-    net: "empty",
-    dns: "empty",
+  resolve: {
+    fallback: {
+      net: false,
+      dns: false,
+    },
   },
   module: {
     rules: [

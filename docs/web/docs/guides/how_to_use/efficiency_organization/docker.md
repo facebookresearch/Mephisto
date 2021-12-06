@@ -1,4 +1,7 @@
 # Using Docker
+
+Some users prefer to keep Mephisto entirely contained. Docker is one option for being able to do this.
+
 ```bash
 # Build the docker image and tag with name 'mephisto'
 $ docker build -t mephisto . 

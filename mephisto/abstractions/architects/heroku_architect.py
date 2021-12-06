@@ -247,6 +247,36 @@ class HerokuArchitect(Architect):
         heroku_directory_path = os.path.join(HEROKU_TMP_DIR, heroku_directory_name)
         return os.path.join(heroku_directory_path, "bin", "heroku")
 
+    @staticmethod
+    def get_user_identifier() -> Tuple[str, str]:
+        """
+        Get heroku credentials for the current logged-in user
+        """
+        heroku_executable_path = HerokuArchitect.get_heroku_client_path()
+
+        # get heroku credentials
+        heroku_user_identifier = None
+        while not heroku_user_identifier:
+            try:
+                output = subprocess.check_output(
+                    shlex.split(heroku_executable_path + " auth:whoami")
+                )
+                output = subprocess.check_output(
+                    shlex.split(heroku_executable_path + " auth:token")
+                )
+                heroku_user_identifier = netrc.netrc(
+                    os.path.join(os.path.expanduser("~"), ".netrc")
+                ).hosts["api.heroku.com"][0]
+            except subprocess.CalledProcessError:
+                print(
+                    "A free Heroku account is required for launching Public tasks. "
+                    "Please register at https://signup.heroku.com/ and run `{} "
+                    "login -i` at the terminal to login to Heroku, and then run this "
+                    "program again.".format(heroku_executable_path)
+                )
+                raise Exception("Please login to heroku before trying again.")
+        return heroku_executable_path, heroku_user_identifier
+
     def __get_heroku_client(self) -> Tuple[str, str]:
         """
         Get an authorized heroku client path and authorization token
@@ -255,29 +285,10 @@ class HerokuArchitect(Architect):
             self.__heroku_executable_path is None
             or self.__heroku_user_identifier is None
         ):
-            heroku_executable_path = HerokuArchitect.get_heroku_client_path()
-
-            # get heroku credentials
-            heroku_user_identifier = None
-            while not heroku_user_identifier:
-                try:
-                    output = subprocess.check_output(
-                        shlex.split(heroku_executable_path + " auth:whoami")
-                    )
-                    output = subprocess.check_output(
-                        shlex.split(heroku_executable_path + " auth:token")
-                    )
-                    heroku_user_identifier = netrc.netrc(
-                        os.path.join(os.path.expanduser("~"), ".netrc")
-                    ).hosts["api.heroku.com"][0]
-                except subprocess.CalledProcessError:
-                    print(
-                        "A free Heroku account is required for launching MTurk tasks. "
-                        "Please register at https://signup.heroku.com/ and run `{} "
-                        "login -i` at the terminal to login to Heroku, and then run this "
-                        "program again.".format(heroku_executable_path)
-                    )
-                    raise Exception("Please login to heroku before trying again.")
+            (
+                heroku_executable_path,
+                heroku_user_identifier,
+            ) = HerokuArchitect.get_user_identifier()
             self.__heroku_executable_path = heroku_executable_path
             self.__heroku_user_identifier = heroku_user_identifier
         return self.__heroku_executable_path, self.__heroku_user_identifier

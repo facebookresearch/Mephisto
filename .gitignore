@@ -8,12 +8,18 @@ tmp/*
 **/node_modules/*
 mephisto/server/**/package-lock.json
 mephisto/server/blueprints/**/build/*
-examples/**/build/*
+
 **/*.log
 **/build/*
 **/_generated/*
 **/outputs/*
 .coverage
+
+# Examples
+examples/simple_static_task/hydra_configs/conf/*
+!examples/simple_static_task/hydra_configs/conf/example.yaml
+!examples/simple_static_task/hydra_configs/conf/onboarding_example.yaml
+examples/**/build/*
 
 # PyCharm
 .idea
