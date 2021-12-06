@@ -18,7 +18,7 @@ mephisto/server/blueprints/**/build/*
 # Examples
 examples/simple_static_task/hydra_configs/conf/*
 !examples/simple_static_task/hydra_configs/conf/example.yaml
-!examples/simple_static_task/hydra_configs/conf/onboardiing_example.yaml
+!examples/simple_static_task/hydra_configs/conf/onboarding_example.yaml
 examples/**/build/*
 
 # PyCharm
