@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 import boto3  # type: ignore
 import botocore.exceptions  # type: ignore
 import time
@@ -22,8 +23,6 @@ from mephisto.operations.logger_core import get_logger
 logger = get_logger(name=__name__)
 
 
-from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
-
 if TYPE_CHECKING:
     from omegaconf import DictConfig  # type: ignore
 
@@ -39,7 +38,8 @@ MY_DIR = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_KEY_PAIR_DIRECTORY = os.path.join(MY_DIR, "keypairs")
 DEFAULT_SERVER_DETAIL_LOCATION = os.path.join(MY_DIR, "servers")
 SCRIPTS_DIRECTORY = os.path.join(MY_DIR, "run_scripts")
-DEFAULT_FALLBACK_FILE = os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, "fallback.json")
+DEFAULT_FALLBACK_FILE = os.path.join(
+    DEFAULT_SERVER_DETAIL_LOCATION, "fallback.json")
 FALLBACK_SERVER_LOC = os.path.join(MY_DIR, "fallback_server")
 KNOWN_HOST_PATH = os.path.expanduser("~/.ssh/known_hosts")
 MAX_RETRIES = 10
@@ -86,7 +86,8 @@ def get_domain_if_available(session: boto3.Session, domain_name: str) -> bool:
         avail_result = avail["Availability"]
         time.sleep(0.3)
 
-    if avail_result not in ["AVAILABLE"]:  # May extend to handle other available cases
+    # May extend to handle other available cases
+    if avail_result not in ["AVAILABLE"]:
         print(
             f"Domain was not listed as available, instead "
             f"{avail_result}, visit route53 for more detail"
@@ -203,7 +204,8 @@ def get_certificate(session: boto3.Session, domain_name: str) -> Dict[str, str]:
         except KeyError:
             # Resource record not created yet, try again
             attempts += 1
-            logger.info(f"Attempt {attempts} had no certification details, retrying")
+            logger.info(
+                f"Attempt {attempts} had no certification details, retrying")
             time.sleep(sleep_time)
             sleep_time *= 2
     raise Exception("Exceeded MAX_RETRIES waiting for certificate records")
@@ -618,7 +620,8 @@ def create_instance(
     )
     instance_id = instance_response["Instances"][0]["InstanceId"]
 
-    logger.debug(f"Waiting for instance {instance_id} to come up before continuing")
+    logger.debug(
+        f"Waiting for instance {instance_id} to come up before continuing")
     waiter = client.get_waiter("instance_running")
     waiter.wait(
         InstanceIds=[instance_id],
@@ -926,8 +929,10 @@ def deploy_fallback_server(
         session, instance_id
     )
     try:
-        keypair_file = os.path.join(DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
-        password_file_name = os.path.join(FALLBACK_SERVER_LOC, f"access_key.txt")
+        keypair_file = os.path.join(
+            DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
+        password_file_name = os.path.join(
+            FALLBACK_SERVER_LOC, f"access_key.txt")
         with open(password_file_name, "w+") as password_file:
             password_file.write(log_access_pass)
 
@@ -1059,7 +1064,8 @@ def remove_instance_and_cleanup(
     with open(server_detail_path, "r") as detail_file:
         details = json.load(detail_file)
 
-    delete_rule(session, details["balancer_rule_arn"], details["target_group_arn"])
+    delete_rule(session, details["balancer_rule_arn"],
+                details["target_group_arn"])
     delete_instance(
         session,
         details["instance_id"],
@@ -1147,7 +1153,8 @@ def cleanup_fallback_server(
         for table in tables:
             ec2_client.delete_route_table(RouteTableId=table["RouteTableId"])
 
-        ec2_client.delete_internet_gateway(InternetGatewayId=vpc_details["gateway_id"])
+        ec2_client.delete_internet_gateway(
+            InternetGatewayId=vpc_details["gateway_id"])
 
         security_group_id = details.get("security_group_id")
         if security_group_id is not None:
