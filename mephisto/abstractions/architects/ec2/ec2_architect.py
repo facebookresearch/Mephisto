@@ -65,7 +65,8 @@ class EC2ArchitectArgs(ArchitectArgs):
         metadata={"help": "Subdomain name for routing"},
     )
     profile_name: str = field(
-        default=MISSING, metadata={"help": "Profile name for deploying an ec2 instance"}
+        default=MISSING, metadata={
+            "help": "Profile name for deploying an ec2 instance"}
     )
 
 
@@ -98,7 +99,8 @@ class EC2Architect(Architect):
         self.root_domain = self.fallback_details["domain"]
         self.router_name = f"{self.subdomain}-routing-server"
         self.full_domain = f"{self.subdomain}.{self.root_domain}"
-        self.server_source_path = args.architect.get("server_source_path", None)
+        self.server_source_path = args.architect.get(
+            "server_source_path", None)
         self.instance_type = args.architect.instance_type
         self.profile_name = args.architect.profile_name
         self.server_type: str = args.architect.server_type
@@ -156,16 +158,14 @@ class EC2Architect(Architect):
                 if chunk:
                     out_file.write(chunk)
 
-    def check_domain_exists(self, subdomain_name: str):
+    def check_domain_not_exists(self, subdomain_name: str):
         """
-          Checks if the domain name exists in Route53
+         Checks to see if we have an active local record for the given subdomain
         """
-        with open(self.server_detail_path, "r") as server_detail_file:
-            server_detail_file_files = server_detail_file.read().split("/n")
-            for file in server_detail_file_files:
-                if file.startswith(f"{subdomain_name}.json"):
-                    return True
-        return False
+        if os.path.exists(self.server_detail_path):
+            return False
+
+        return True
 
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
@@ -181,9 +181,9 @@ class EC2Architect(Architect):
         #   in ec2 resources
         subdomain = url_safe_string(args.architect.subdomain)
 
-        assert cls.check_domain_exists(
+        assert cls.check_domain_not_exists(
             subdomain_name=subdomain
-        ), "Given subdomain doesn't exist"
+        ), "Given subdomain does exist"
 
         assert "." not in subdomain, "Not allowed to use . in subdomains"
         # TODO assert only contains a-zA-Z\-
@@ -207,7 +207,8 @@ class EC2Architect(Architect):
         for key in REQUIRED_KEYS:
             assert key in fallback_details, f"Fallback file missing required key {key}"
 
-        session = boto3.Session(profile_name=profile_name, region_name="us-east-2")
+        session = boto3.Session(
+            profile_name=profile_name, region_name="us-east-2")
         assert ec2_helpers.rule_is_new(
             session, subdomain, fallback_details["listener_arn"]
         )
