@@ -65,8 +65,7 @@ class EC2ArchitectArgs(ArchitectArgs):
         metadata={"help": "Subdomain name for routing"},
     )
     profile_name: str = field(
-        default=MISSING, metadata={
-            "help": "Profile name for deploying an ec2 instance"}
+        default=MISSING, metadata={"help": "Profile name for deploying an ec2 instance"}
     )
 
 
@@ -99,8 +98,7 @@ class EC2Architect(Architect):
         self.root_domain = self.fallback_details["domain"]
         self.router_name = f"{self.subdomain}-routing-server"
         self.full_domain = f"{self.subdomain}.{self.root_domain}"
-        self.server_source_path = args.architect.get(
-            "server_source_path", None)
+        self.server_source_path = args.architect.get("server_source_path", None)
         self.instance_type = args.architect.instance_type
         self.profile_name = args.architect.profile_name
         self.server_type: str = args.architect.server_type
@@ -207,8 +205,7 @@ class EC2Architect(Architect):
         for key in REQUIRED_KEYS:
             assert key in fallback_details, f"Fallback file missing required key {key}"
 
-        session = boto3.Session(
-            profile_name=profile_name, region_name="us-east-2")
+        session = boto3.Session(profile_name=profile_name, region_name="us-east-2")
         assert ec2_helpers.rule_is_new(
             session, subdomain, fallback_details["listener_arn"]
         )
