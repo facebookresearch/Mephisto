@@ -68,11 +68,7 @@ DEBUG = False
 
 
 # Main application setup
-mephisto_router = Blueprint(
-    "mephisto",
-    __name__,
-    static_folder="static",
-)
+mephisto_router = Blueprint("mephisto", __name__, static_folder="static",)
 
 
 def debug_log(*args):
@@ -270,10 +266,7 @@ class MephistoRouter(WebSocketApplication):
             "packet_type": PACKET_TYPE_UPDATE_AGENT_STATUS,
             "sender_id": SERVER_CHANNEL_ID,
             "receiver_id": agent_id,
-            "data": {
-                "status": agent.status,
-                "state": agent.state,
-            },
+            "data": {"status": agent.status, "state": agent.state,},
         }
         self._handle_forward(packet)
 
@@ -369,10 +362,7 @@ class MephistoRouter(WebSocketApplication):
             "packet_type": request_type,
             "sender_id": SERVER_CHANNEL_ID,
             "receiver_id": SYSTEM_CHANNEL_ID,
-            "data": {
-                "provider_data": provider_data,
-                "request_id": request_id,
-            },
+            "data": {"provider_data": provider_data, "request_id": request_id,},
         }
 
     def make_provider_request(

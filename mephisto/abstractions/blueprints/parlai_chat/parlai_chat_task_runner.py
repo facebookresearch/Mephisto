@@ -180,9 +180,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         parlai_agent = MephistoAgentWrapper(agent)
         try:
             world = self.parlai_world_module.make_onboarding_world(  # type: ignore
-                opt,
-                parlai_agent,
-                initialization_data=shared_state.onboarding_data,
+                opt, parlai_agent, initialization_data=shared_state.onboarding_data,
             )
         except TypeError:
             # make_world doesn't ask for initialization_data

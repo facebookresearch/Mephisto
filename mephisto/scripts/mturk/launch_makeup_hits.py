@@ -40,9 +40,7 @@ def build_task_config(compensation_dict, requester):
         task_tags="compensation,issue,repay",
     )
 
-    provider_args = MTurkProviderArgs(
-        requester_name=requester.requester_name,
-    )
+    provider_args = MTurkProviderArgs(requester_name=requester.requester_name,)
 
     blueprint_args = MockBlueprintArgs()
     architect_args = MockArchitectArgs()
@@ -113,11 +111,7 @@ def main():
         reason = next_reason if len(next_reason.strip()) != 0 else reason
         assert reason is not None, "Reason can not be left blank"
         compensation_hits.append(
-            {
-                "worker_id": worker_id,
-                "amount": amount,
-                "reason": reason,
-            }
+            {"worker_id": worker_id, "amount": amount, "reason": reason,}
         )
     if len(compensation_hits) == 0:
         print("No compensation details provided, exiting")

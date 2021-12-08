@@ -891,8 +891,7 @@ class BaseTestSupervisor:
 
         shared_state = MockSharedState()
         shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
-            task_run_args,
-            screen_unit,
+            task_run_args, screen_unit,
         )
 
         # Supervisor expects that blueprint setup has already occurred

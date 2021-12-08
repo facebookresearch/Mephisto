@@ -19,8 +19,7 @@ DEFAULT_KEY_PAIR_NAME = "mephisto-server-key"
 
 
 def update_details(
-    open_file,
-    new_data: Dict[str, Any],
+    open_file, new_data: Dict[str, Any],
 ):
     """
     Overwrite the contents of the open file with the given data.
@@ -183,10 +182,7 @@ def launch_ec2_fallback(
         if listener_arn is None:
             print("Creating listener for load balancer...")
             listener_arn = ec2_helpers.configure_base_balancer(
-                session,
-                balancer_arn,
-                cert_details["arn"],
-                target_group_arn,
+                session, balancer_arn, cert_details["arn"], target_group_arn,
             )
             existing_details["listener_arn"] = listener_arn
             update_details(saved_details_file, existing_details)

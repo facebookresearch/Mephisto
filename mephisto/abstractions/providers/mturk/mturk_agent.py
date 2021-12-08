@@ -113,11 +113,7 @@ class MTurkAgent(Agent):
             packet_type=PACKET_TYPE_AGENT_ACTION,
             sender_id=self.db_id,
             receiver_id="mephisto",
-            data={
-                "task_data": parsed_data,
-                "MEPHISTO_is_submit": True,
-                "files": [],
-            },
+            data={"task_data": parsed_data, "MEPHISTO_is_submit": True, "files": [],},
         )
         self.pending_actions.append(packet)
         self.has_action.set()
