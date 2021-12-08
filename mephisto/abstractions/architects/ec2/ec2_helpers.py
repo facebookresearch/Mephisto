@@ -38,8 +38,7 @@ MY_DIR = os.path.abspath(os.path.dirname(__file__))
 DEFAULT_KEY_PAIR_DIRECTORY = os.path.join(MY_DIR, "keypairs")
 DEFAULT_SERVER_DETAIL_LOCATION = os.path.join(MY_DIR, "servers")
 SCRIPTS_DIRECTORY = os.path.join(MY_DIR, "run_scripts")
-DEFAULT_FALLBACK_FILE = os.path.join(
-    DEFAULT_SERVER_DETAIL_LOCATION, "fallback.json")
+DEFAULT_FALLBACK_FILE = os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, "fallback.json")
 FALLBACK_SERVER_LOC = os.path.join(MY_DIR, "fallback_server")
 KNOWN_HOST_PATH = os.path.expanduser("~/.ssh/known_hosts")
 MAX_RETRIES = 10
@@ -132,7 +131,7 @@ def create_hosted_zone(session: boto3.Session, domain_name: str) -> str:
         res = client.create_hosted_zone(
             Name=domain_name,
             CallerReference=str(time.time()),
-            HostedZoneConfig={"Comment": "Mephisto hosted zone", },
+            HostedZoneConfig={"Comment": "Mephisto hosted zone",},
         )
         nameservers = res["DelegationSet"]["NameServers"]
         BOLD_WHITE_ON_BLUE = "\x1b[1;37;44m"
@@ -179,7 +178,7 @@ def get_certificate(session: boto3.Session, domain_name: str) -> Dict[str, str]:
             DomainName=cert_domain_name,
             ValidationMethod="DNS",
             IdempotencyToken=f"{domain_name.split('.')[0]}request",
-            Options={"CertificateTransparencyLoggingPreference": "ENABLED", },
+            Options={"CertificateTransparencyLoggingPreference": "ENABLED",},
         )
         certificate_arn = response["CertificateArn"]
     else:
@@ -189,8 +188,7 @@ def get_certificate(session: boto3.Session, domain_name: str) -> Dict[str, str]:
     details = None
     while attempts < MAX_RETRIES:
         try:
-            details = client.describe_certificate(
-                CertificateArn=certificate_arn,)
+            details = client.describe_certificate(CertificateArn=certificate_arn,)
             return_data = details["Certificate"]["DomainValidationOptions"][0][
                 "ResourceRecord"
             ]
@@ -199,8 +197,7 @@ def get_certificate(session: boto3.Session, domain_name: str) -> Dict[str, str]:
         except KeyError:
             # Resource record not created yet, try again
             attempts += 1
-            logger.info(
-                f"Attempt {attempts} had no certification details, retrying")
+            logger.info(f"Attempt {attempts} had no certification details, retrying")
             time.sleep(sleep_time)
             sleep_time *= 2
     raise Exception("Exceeded MAX_RETRIES waiting for certificate records")
@@ -265,7 +262,7 @@ def register_zone_records(
                         "Name": acm_valid_name,
                         "Type": "CNAME",
                         "TTL": 300,
-                        "ResourceRecords": [{"Value": acm_valid_target}, ],
+                        "ResourceRecords": [{"Value": acm_valid_target},],
                     },
                 },
             ],
@@ -431,7 +428,7 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
             "FromPort": 22,
             "ToPort": 22,
             "IpProtocol": "tcp",
-            "IpRanges": [{"CidrIp": one_ip, "Description": "SSH from allowed ip", }],
+            "IpRanges": [{"CidrIp": one_ip, "Description": "SSH from allowed ip",}],
         }
         for one_ip in ssh_ip.split(",")
     ]
@@ -455,7 +452,7 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 80,
                 "IpProtocol": "tcp",
                 "Ipv6Ranges": [
-                    {"CidrIpv6": "::/0", "Description": "Public insecure http access", }
+                    {"CidrIpv6": "::/0", "Description": "Public insecure http access",}
                 ],
             },
             {
@@ -463,7 +460,7 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 5000,
                 "IpProtocol": "tcp",
                 "IpRanges": [
-                    {"CidrIp": "0.0.0.0/0", "Description": "Internal router access", }
+                    {"CidrIp": "0.0.0.0/0", "Description": "Internal router access",}
                 ],
             },
             {
@@ -471,7 +468,7 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 5000,
                 "IpProtocol": "tcp",
                 "Ipv6Ranges": [
-                    {"CidrIpv6": "::/0", "Description": "Internal router access", }
+                    {"CidrIpv6": "::/0", "Description": "Internal router access",}
                 ],
             },
             {
@@ -479,7 +476,7 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 443,
                 "IpProtocol": "tcp",
                 "IpRanges": [
-                    {"CidrIp": "0.0.0.0/0", "Description": "Public secure http access", }
+                    {"CidrIp": "0.0.0.0/0", "Description": "Public secure http access",}
                 ],
             },
             {
@@ -487,7 +484,7 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 443,
                 "IpProtocol": "tcp",
                 "Ipv6Ranges": [
-                    {"CidrIpv6": "::/0", "Description": "Public secure http access", }
+                    {"CidrIpv6": "::/0", "Description": "Public secure http access",}
                 ],
             },
         ]
@@ -558,8 +555,8 @@ def create_instance(
         KeyName=key_pair_name,
         MaxCount=1,
         MinCount=1,
-        Monitoring={"Enabled": False, },  # standard monitoring is enough
-        Placement={"Tenancy": "default", },
+        Monitoring={"Enabled": False,},  # standard monitoring is enough
+        Placement={"Tenancy": "default",},
         SecurityGroupIds=[security_group_id],
         SubnetId=subnet_id,
         DisableApiTermination=False,  # we need to allow shutdown from botocore
@@ -571,18 +568,16 @@ def create_instance(
         TagSpecifications=[
             {
                 "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": instance_name}, get_owner_tag(), ],
+                "Tags": [{"Key": "Name", "Value": instance_name}, get_owner_tag(),],
             },
         ],
         HibernationOptions={"Configured": False},
-        MetadataOptions={"HttpTokens": "optional",
-                         "HttpEndpoint": "enabled", },
+        MetadataOptions={"HttpTokens": "optional", "HttpEndpoint": "enabled",},
         EnclaveOptions={"Enabled": False},
     )
     instance_id = instance_response["Instances"][0]["InstanceId"]
 
-    logger.debug(
-        f"Waiting for instance {instance_id} to come up before continuing")
+    logger.debug(f"Waiting for instance {instance_id} to come up before continuing")
     waiter = client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id],)
 
@@ -605,14 +600,14 @@ def create_target_group(
         ProtocolVersion="HTTP1",
         Port=5000,
         VpcId=vpc_id,
-        Matcher={"HttpCode": "200-299", },
+        Matcher={"HttpCode": "200-299",},
         TargetType="instance",
-        Tags=[{"Key": "string", "Value": "string"}, ],
+        Tags=[{"Key": "string", "Value": "string"},],
     )
     target_group_arn = create_target_response["TargetGroups"][0]["TargetGroupArn"]
 
     client.register_targets(
-        TargetGroupArn=target_group_arn, Targets=[{"Id": instance_id, }],
+        TargetGroupArn=target_group_arn, Targets=[{"Id": instance_id,}],
     )
 
     return target_group_arn
@@ -669,11 +664,11 @@ def register_instance_to_listener(
         Conditions=[
             {
                 "Field": "host-header",
-                "HostHeaderConfig": {"Values": [domain, f"*.{domain}", ], },
+                "HostHeaderConfig": {"Values": [domain, f"*.{domain}",],},
             },
         ],
         Priority=priority,
-        Actions=[{"Type": "forward", "TargetGroupArn": target_group_arn, }, ],
+        Actions=[{"Type": "forward", "TargetGroupArn": target_group_arn,},],
     )
     rule_arn = rule_response["Rules"][0]["RuleArn"]
 
@@ -737,9 +732,8 @@ def configure_base_balancer(
         Protocol="HTTPS",
         Port=443,
         SslPolicy="ELBSecurityPolicy-2016-08",
-        Certificates=[{"CertificateArn": certificate_arn, }],
-        DefaultActions=[
-            {"Type": "forward", "TargetGroupArn": target_group_arn, }],
+        Certificates=[{"CertificateArn": certificate_arn,}],
+        DefaultActions=[{"Type": "forward", "TargetGroupArn": target_group_arn,}],
     )
     listener_arn = forward_response["Listeners"][0]["ListenerArn"]
     return listener_arn
@@ -760,7 +754,7 @@ def get_instance_address(
             {
                 "ResourceType": "elastic-ip",
                 "Tags": [
-                    {"Key": "Name", "Value": f"{instance_id}-ip-address", },
+                    {"Key": "Name", "Value": f"{instance_id}-ip-address",},
                     get_owner_tag(),
                 ],
             }
@@ -777,7 +771,7 @@ def get_instance_address(
     # Remove this IP from known hosts in case it's there,
     # as it's definitely not the old host anymore
     subprocess.check_call(
-        ["ssh-keygen", "-f", f"{KNOWN_HOST_PATH}", "-R", f'"{ip_address}"', ]
+        ["ssh-keygen", "-f", f"{KNOWN_HOST_PATH}", "-R", f'"{ip_address}"',]
     )
 
     return ip_address, allocation_id, association_id
@@ -829,10 +823,8 @@ def deploy_fallback_server(
         session, instance_id
     )
     try:
-        keypair_file = os.path.join(
-            DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
-        password_file_name = os.path.join(
-            FALLBACK_SERVER_LOC, f"access_key.txt")
+        keypair_file = os.path.join(DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
+        password_file_name = os.path.join(FALLBACK_SERVER_LOC, f"access_key.txt")
         with open(password_file_name, "w+") as password_file:
             password_file.write(log_access_pass)
 
@@ -947,8 +939,7 @@ def remove_instance_and_cleanup(session: boto3.Session, server_name: str,) -> No
     with open(server_detail_path, "r") as detail_file:
         details = json.load(detail_file)
 
-    delete_rule(session, details["balancer_rule_arn"],
-                details["target_group_arn"])
+    delete_rule(session, details["balancer_rule_arn"], details["target_group_arn"])
     delete_instance(
         session, details["instance_id"],
     )
@@ -1013,14 +1004,13 @@ def cleanup_fallback_server(
         ec2_client.delete_route_table(RouteTableId=vpc_details["route_1_id"])
         ec2_client.delete_route_table(RouteTableId=vpc_details["route_2_id"])
         table_response = ec2_client.describe_route_tables(
-            Filters=[{"Name": "vpc-id", "Values": [vpc_details["vpc_id"]], }]
+            Filters=[{"Name": "vpc-id", "Values": [vpc_details["vpc_id"]],}]
         )
         tables = table_response["RouteTables"]
         for table in tables:
             ec2_client.delete_route_table(RouteTableId=table["RouteTableId"])
 
-        ec2_client.delete_internet_gateway(
-            InternetGatewayId=vpc_details["gateway_id"])
+        ec2_client.delete_internet_gateway(InternetGatewayId=vpc_details["gateway_id"])
 
         security_group_id = details.get("security_group_id")
         if security_group_id is not None:
