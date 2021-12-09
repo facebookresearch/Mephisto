@@ -268,7 +268,8 @@ def run_examine_by_worker(
 
 
 def run_examine_or_review(
-    db: "MephistoDB", format_data_for_printing: Callable[[Dict[str, Any]], str],
+    db: "MephistoDB",
+    format_data_for_printing: Callable[[Dict[str, Any]], str],
 ) -> None:
     do_review = input(
         "Do you want to (r)eview, or (e)xamine data? Default "
