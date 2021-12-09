@@ -88,7 +88,10 @@ class StaticHTMLBlueprint(StaticBlueprint):
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState",
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedTaskState",
     ):
         assert isinstance(
             shared_state, SharedStaticTaskState

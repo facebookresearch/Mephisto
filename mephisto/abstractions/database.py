@@ -92,7 +92,10 @@ class MephistoDB(ABC):
             provider.cleanup_qualification(qualification_name)
 
     def optimized_load(
-        self, target_cls, db_id: str, row: Optional[Mapping[str, Any]] = None,
+        self,
+        target_cls,
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
     ):
         """
         Load the given class in an optimized fashion, if this DB has a more

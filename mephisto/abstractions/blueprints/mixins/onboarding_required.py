@@ -117,7 +117,8 @@ class OnboardingRequired(BlueprintMixin):
 
         db = task_run.db
         self.onboarding_qualification_id = find_or_create_qualification(
-            db, onboarding_qualification_name,
+            db,
+            onboarding_qualification_name,
         )
         self.onboarding_failed_name = self.get_failed_qual(
             onboarding_qualification_name

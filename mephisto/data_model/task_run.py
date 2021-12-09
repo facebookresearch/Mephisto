@@ -115,7 +115,8 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             if config.maximum_units_per_worker != 0:
                 completed_types = AssignmentState.completed()
                 related_units = self.db.find_units(
-                    task_id=self.task_id, worker_id=worker.db_id,
+                    task_id=self.task_id,
+                    worker_id=worker.db_id,
                 )
                 currently_completed = len(
                     [u for u in related_units if u.db_status in completed_types]

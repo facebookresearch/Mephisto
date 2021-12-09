@@ -338,4 +338,10 @@ class UseGoldUnit(BlueprintMixin):
         """Creates the relevant task qualifications for this task"""
         base_qual_name = args.blueprint.gold_qualification_base
         golds_failed_qual_name = f"{base_qual_name}-wrong-golds"
-        return [make_qualification_dict(golds_failed_qual_name, QUAL_NOT_EXIST, None,)]
+        return [
+            make_qualification_dict(
+                golds_failed_qual_name,
+                QUAL_NOT_EXIST,
+                None,
+            )
+        ]

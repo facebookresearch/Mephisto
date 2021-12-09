@@ -702,7 +702,9 @@ class Blueprint(ABC):
         return self.frontend_task_config.copy()
 
     @abstractmethod
-    def get_initialization_data(self,) -> Iterable["InitializationData"]:
+    def get_initialization_data(
+        self,
+    ) -> Iterable["InitializationData"]:
         """
         Get all of the data used to initialize tasks from this blueprint.
         Can either be a simple iterable if all the assignments can

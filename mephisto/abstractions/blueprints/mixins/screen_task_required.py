@@ -87,7 +87,10 @@ class ScreenTaskRequired(BlueprintMixin):
     SharedStateMixin = ScreenTaskSharedState
 
     def init_mixin_config(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState",
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedTaskState",
     ) -> None:
         assert isinstance(
             shared_state, ScreenTaskSharedState
@@ -210,5 +213,9 @@ class ScreenTaskRequired(BlueprintMixin):
         passed_qualification_name = args.blueprint.passed_qualification_name
         failed_qualification_name = args.blueprint.block_qualification
         return [
-            make_qualification_dict(failed_qualification_name, QUAL_NOT_EXIST, None,)
+            make_qualification_dict(
+                failed_qualification_name,
+                QUAL_NOT_EXIST,
+                None,
+            )
         ]

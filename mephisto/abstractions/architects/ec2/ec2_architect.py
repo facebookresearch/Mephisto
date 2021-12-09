@@ -65,8 +65,7 @@ class EC2ArchitectArgs(ArchitectArgs):
         metadata={"help": "Subdomain name for routing"},
     )
     profile_name: str = field(
-        default=MISSING, metadata={
-            "help": "Profile name for deploying an ec2 instance"}
+        default=MISSING, metadata={"help": "Profile name for deploying an ec2 instance"}
     )
 
 
@@ -99,8 +98,7 @@ class EC2Architect(Architect):
         self.root_domain = self.fallback_details["domain"]
         self.router_name = f"{self.subdomain}-routing-server"
         self.full_domain = f"{self.subdomain}.{self.root_domain}"
-        self.server_source_path = args.architect.get(
-            "server_source_path", None)
+        self.server_source_path = args.architect.get("server_source_path", None)
         self.instance_type = args.architect.instance_type
         self.profile_name = args.architect.profile_name
         self.server_type: str = args.architect.server_type
@@ -160,7 +158,7 @@ class EC2Architect(Architect):
 
     def check_domain_not_exists(self, subdomain_name: str):
         """
-         Checks to see if we have an active local record for the given subdomain
+        Checks to see if we have an active local record for the given subdomain
         """
         if os.path.exists(self.server_detail_path):
             return False
@@ -207,8 +205,7 @@ class EC2Architect(Architect):
         for key in REQUIRED_KEYS:
             assert key in fallback_details, f"Fallback file missing required key {key}"
 
-        session = boto3.Session(
-            profile_name=profile_name, region_name="us-east-2")
+        session = boto3.Session(profile_name=profile_name, region_name="us-east-2")
         assert ec2_helpers.rule_is_new(
             session, subdomain, fallback_details["listener_arn"]
         )
@@ -217,7 +214,10 @@ class EC2Architect(Architect):
         """
         Return the string where the server should be built in.
         """
-        return os.path.join(self.build_dir, FINAL_SERVER_BUILD_DIRECTORY,)
+        return os.path.join(
+            self.build_dir,
+            FINAL_SERVER_BUILD_DIRECTORY,
+        )
 
     def __compile_server(self) -> str:
         """
@@ -292,7 +292,10 @@ class EC2Architect(Architect):
         print("EC2: Deploying server...")
         # Push server files and execute launch
         ec2_helpers.deploy_to_routing_server(
-            self.session, server_id, self.fallback_details["key_pair_name"], server_dir,
+            self.session,
+            server_id,
+            self.fallback_details["key_pair_name"],
+            server_dir,
         )
 
         return f"https://{self.full_domain}"
@@ -306,11 +309,14 @@ class EC2Architect(Architect):
         print(f"Ec2: Deleting server: {self.server_id}")
         if self.router_rule_arn is not None:
             ec2_helpers.delete_rule(
-                self.session, self.router_rule_arn, self.target_group_arn,
+                self.session,
+                self.router_rule_arn,
+                self.target_group_arn,
             )
 
         ec2_helpers.delete_instance(
-            self.session, server_id,
+            self.session,
+            server_id,
         )
         os.unlink(self.server_detail_path)
 

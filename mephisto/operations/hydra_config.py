@@ -41,7 +41,9 @@ class RunScriptConfig:
 
 def register_abstraction_config(name: str, node: Any, abstraction_type: str):
     config.store(
-        name=name, node=node, group=f"mephisto/{abstraction_type}",
+        name=name,
+        node=node,
+        group=f"mephisto/{abstraction_type}",
     )
 
 
@@ -50,7 +52,9 @@ def initialize_named_configs():
     Functionality to register the core mephisto configuration structure. Must be done in __init__
     """
     config.store(
-        name="base_mephisto_config", node=MephistoConfig, group="mephisto",
+        name="base_mephisto_config",
+        node=MephistoConfig,
+        group="mephisto",
     )
 
 

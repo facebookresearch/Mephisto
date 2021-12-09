@@ -274,7 +274,13 @@ def run(
                     if func is None:
                         raise RuntimeError("Not running with the Werkzeug Server")
                     func()
-                return jsonify({"finished": finished, "data": data, "mode": MODE,})
+                return jsonify(
+                    {
+                        "finished": finished,
+                        "data": data,
+                        "mode": MODE,
+                    }
+                )
         else:
             review = request.get_json(force=True)
             if output == "":

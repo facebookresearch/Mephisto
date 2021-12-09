@@ -131,7 +131,9 @@ def create_hosted_zone(session: boto3.Session, domain_name: str) -> str:
         res = client.create_hosted_zone(
             Name=domain_name,
             CallerReference=str(time.time()),
-            HostedZoneConfig={"Comment": "Mephisto hosted zone",},
+            HostedZoneConfig={
+                "Comment": "Mephisto hosted zone",
+            },
         )
         nameservers = res["DelegationSet"]["NameServers"]
         BOLD_WHITE_ON_BLUE = "\x1b[1;37;44m"
@@ -178,7 +180,9 @@ def get_certificate(session: boto3.Session, domain_name: str) -> Dict[str, str]:
             DomainName=cert_domain_name,
             ValidationMethod="DNS",
             IdempotencyToken=f"{domain_name.split('.')[0]}request",
-            Options={"CertificateTransparencyLoggingPreference": "ENABLED",},
+            Options={
+                "CertificateTransparencyLoggingPreference": "ENABLED",
+            },
         )
         certificate_arn = response["CertificateArn"]
     else:
@@ -188,7 +192,9 @@ def get_certificate(session: boto3.Session, domain_name: str) -> Dict[str, str]:
     details = None
     while attempts < MAX_RETRIES:
         try:
-            details = client.describe_certificate(CertificateArn=certificate_arn,)
+            details = client.describe_certificate(
+                CertificateArn=certificate_arn,
+            )
             return_data = details["Certificate"]["DomainValidationOptions"][0][
                 "ResourceRecord"
             ]
@@ -262,7 +268,9 @@ def register_zone_records(
                         "Name": acm_valid_name,
                         "Type": "CNAME",
                         "TTL": 300,
-                        "ResourceRecords": [{"Value": acm_valid_target},],
+                        "ResourceRecords": [
+                            {"Value": acm_valid_target},
+                        ],
                     },
                 },
             ],
@@ -306,7 +314,8 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
     )
     gateway_id = gateway_response["InternetGateway"]["InternetGatewayId"]
     client.attach_internet_gateway(
-        InternetGatewayId=gateway_id, VpcId=vpc_id,
+        InternetGatewayId=gateway_id,
+        VpcId=vpc_id,
     )
 
     # Create subnets
@@ -385,10 +394,12 @@ def create_mephisto_vpc(session: boto3.Session) -> Dict[str, str]:
 
     # Associate routing tables
     client.associate_route_table(
-        RouteTableId=route_table_1_id, SubnetId=subnet_1_id,
+        RouteTableId=route_table_1_id,
+        SubnetId=subnet_1_id,
     )
     client.associate_route_table(
-        RouteTableId=route_table_2_id, SubnetId=subnet_2_id,
+        RouteTableId=route_table_2_id,
+        SubnetId=subnet_2_id,
     )
 
     return {
@@ -428,7 +439,12 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
             "FromPort": 22,
             "ToPort": 22,
             "IpProtocol": "tcp",
-            "IpRanges": [{"CidrIp": one_ip, "Description": "SSH from allowed ip",}],
+            "IpRanges": [
+                {
+                    "CidrIp": one_ip,
+                    "Description": "SSH from allowed ip",
+                }
+            ],
         }
         for one_ip in ssh_ip.split(",")
     ]
@@ -452,7 +468,10 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 80,
                 "IpProtocol": "tcp",
                 "Ipv6Ranges": [
-                    {"CidrIpv6": "::/0", "Description": "Public insecure http access",}
+                    {
+                        "CidrIpv6": "::/0",
+                        "Description": "Public insecure http access",
+                    }
                 ],
             },
             {
@@ -460,7 +479,10 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 5000,
                 "IpProtocol": "tcp",
                 "IpRanges": [
-                    {"CidrIp": "0.0.0.0/0", "Description": "Internal router access",}
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "Internal router access",
+                    }
                 ],
             },
             {
@@ -468,7 +490,10 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 5000,
                 "IpProtocol": "tcp",
                 "Ipv6Ranges": [
-                    {"CidrIpv6": "::/0", "Description": "Internal router access",}
+                    {
+                        "CidrIpv6": "::/0",
+                        "Description": "Internal router access",
+                    }
                 ],
             },
             {
@@ -476,7 +501,10 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 443,
                 "IpProtocol": "tcp",
                 "IpRanges": [
-                    {"CidrIp": "0.0.0.0/0", "Description": "Public secure http access",}
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "Public secure http access",
+                    }
                 ],
             },
             {
@@ -484,7 +512,10 @@ def create_security_group(session: boto3.Session, vpc_id: str, ssh_ip: str) -> s
                 "ToPort": 443,
                 "IpProtocol": "tcp",
                 "Ipv6Ranges": [
-                    {"CidrIpv6": "::/0", "Description": "Public secure http access",}
+                    {
+                        "CidrIpv6": "::/0",
+                        "Description": "Public secure http access",
+                    }
                 ],
             },
         ]
@@ -555,8 +586,12 @@ def create_instance(
         KeyName=key_pair_name,
         MaxCount=1,
         MinCount=1,
-        Monitoring={"Enabled": False,},  # standard monitoring is enough
-        Placement={"Tenancy": "default",},
+        Monitoring={
+            "Enabled": False,
+        },  # standard monitoring is enough
+        Placement={
+            "Tenancy": "default",
+        },
         SecurityGroupIds=[security_group_id],
         SubnetId=subnet_id,
         DisableApiTermination=False,  # we need to allow shutdown from botocore
@@ -568,18 +603,26 @@ def create_instance(
         TagSpecifications=[
             {
                 "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": instance_name}, get_owner_tag(),],
+                "Tags": [
+                    {"Key": "Name", "Value": instance_name},
+                    get_owner_tag(),
+                ],
             },
         ],
         HibernationOptions={"Configured": False},
-        MetadataOptions={"HttpTokens": "optional", "HttpEndpoint": "enabled",},
+        MetadataOptions={
+            "HttpTokens": "optional",
+            "HttpEndpoint": "enabled",
+        },
         EnclaveOptions={"Enabled": False},
     )
     instance_id = instance_response["Instances"][0]["InstanceId"]
 
     logger.debug(f"Waiting for instance {instance_id} to come up before continuing")
     waiter = client.get_waiter("instance_running")
-    waiter.wait(InstanceIds=[instance_id],)
+    waiter.wait(
+        InstanceIds=[instance_id],
+    )
 
     return instance_id
 
@@ -600,25 +643,40 @@ def create_target_group(
         ProtocolVersion="HTTP1",
         Port=5000,
         VpcId=vpc_id,
-        Matcher={"HttpCode": "200-299",},
+        Matcher={
+            "HttpCode": "200-299",
+        },
         TargetType="instance",
-        Tags=[{"Key": "string", "Value": "string"},],
+        Tags=[
+            {"Key": "string", "Value": "string"},
+        ],
     )
     target_group_arn = create_target_response["TargetGroups"][0]["TargetGroupArn"]
 
     client.register_targets(
-        TargetGroupArn=target_group_arn, Targets=[{"Id": instance_id,}],
+        TargetGroupArn=target_group_arn,
+        Targets=[
+            {
+                "Id": instance_id,
+            }
+        ],
     )
 
     return target_group_arn
 
 
-def rule_is_new(session: boto3.Session, subdomain: str, listener_arn: str,) -> bool:
+def rule_is_new(
+    session: boto3.Session,
+    subdomain: str,
+    listener_arn: str,
+) -> bool:
     """
     Check to see if a rule already exists with the given subdomain
     """
     client = session.client("elbv2")
-    find_rule_response = client.describe_rules(ListenerArn=listener_arn,)
+    find_rule_response = client.describe_rules(
+        ListenerArn=listener_arn,
+    )
     rules = find_rule_response["Rules"]
     for rule in rules:
         if len(rule["Conditions"]) == 0:
@@ -651,7 +709,9 @@ def register_instance_to_listener(
     )
     client = session.client("elbv2")
 
-    find_rule_response = client.describe_rules(ListenerArn=listener_arn,)
+    find_rule_response = client.describe_rules(
+        ListenerArn=listener_arn,
+    )
 
     # Get the next available priority
     priorities = set([r["Priority"] for r in find_rule_response["Rules"]])
@@ -664,11 +724,21 @@ def register_instance_to_listener(
         Conditions=[
             {
                 "Field": "host-header",
-                "HostHeaderConfig": {"Values": [domain, f"*.{domain}",],},
+                "HostHeaderConfig": {
+                    "Values": [
+                        domain,
+                        f"*.{domain}",
+                    ],
+                },
             },
         ],
         Priority=priority,
-        Actions=[{"Type": "forward", "TargetGroupArn": target_group_arn,},],
+        Actions=[
+            {
+                "Type": "forward",
+                "TargetGroupArn": target_group_arn,
+            },
+        ],
     )
     rule_arn = rule_response["Rules"][0]["RuleArn"]
 
@@ -676,7 +746,10 @@ def register_instance_to_listener(
 
 
 def create_load_balancer(
-    session: boto3.Session, subnet_ids: List[str], security_group_id: str, vpc_id: str,
+    session: boto3.Session,
+    subnet_ids: List[str],
+    security_group_id: str,
+    vpc_id: str,
 ) -> str:
     """
     Creates a load balancer and returns the balancer's arn
@@ -732,15 +805,25 @@ def configure_base_balancer(
         Protocol="HTTPS",
         Port=443,
         SslPolicy="ELBSecurityPolicy-2016-08",
-        Certificates=[{"CertificateArn": certificate_arn,}],
-        DefaultActions=[{"Type": "forward", "TargetGroupArn": target_group_arn,}],
+        Certificates=[
+            {
+                "CertificateArn": certificate_arn,
+            }
+        ],
+        DefaultActions=[
+            {
+                "Type": "forward",
+                "TargetGroupArn": target_group_arn,
+            }
+        ],
     )
     listener_arn = forward_response["Listeners"][0]["ListenerArn"]
     return listener_arn
 
 
 def get_instance_address(
-    session: boto3.Session, instance_id: str,
+    session: boto3.Session,
+    instance_id: str,
 ) -> Tuple[str, str, str]:
     """
     Create a temporary publicly accessible IP for the given instance.
@@ -754,7 +837,10 @@ def get_instance_address(
             {
                 "ResourceType": "elastic-ip",
                 "Tags": [
-                    {"Key": "Name", "Value": f"{instance_id}-ip-address",},
+                    {
+                        "Key": "Name",
+                        "Value": f"{instance_id}-ip-address",
+                    },
                     get_owner_tag(),
                 ],
             }
@@ -764,29 +850,43 @@ def get_instance_address(
     allocation_id = allocation_response["AllocationId"]
 
     associate_response = client.associate_address(
-        AllocationId=allocation_id, InstanceId=instance_id, AllowReassociation=False,
+        AllocationId=allocation_id,
+        InstanceId=instance_id,
+        AllowReassociation=False,
     )
     association_id = associate_response["AssociationId"]
 
     # Remove this IP from known hosts in case it's there,
     # as it's definitely not the old host anymore
     subprocess.check_call(
-        ["ssh-keygen", "-f", f"{KNOWN_HOST_PATH}", "-R", f'"{ip_address}"',]
+        [
+            "ssh-keygen",
+            "-f",
+            f"{KNOWN_HOST_PATH}",
+            "-R",
+            f'"{ip_address}"',
+        ]
     )
 
     return ip_address, allocation_id, association_id
 
 
 def detete_instance_address(
-    session: boto3.Session, allocation_id: str, association_id: str,
+    session: boto3.Session,
+    allocation_id: str,
+    association_id: str,
 ) -> None:
     """
     Removes the public ip described by the given allocation and association ids
     """
     client = session.client("ec2")
-    client.disassociate_address(AssociationId=association_id,)
+    client.disassociate_address(
+        AssociationId=association_id,
+    )
 
-    client.release_address(AllocationId=allocation_id,)
+    client.release_address(
+        AllocationId=allocation_id,
+    )
 
 
 def try_server_push(subprocess_args: List[str], retries=5, sleep_time=10.0):
@@ -812,7 +912,10 @@ def try_server_push(subprocess_args: List[str], retries=5, sleep_time=10.0):
 
 
 def deploy_fallback_server(
-    session: boto3.Session, instance_id: str, key_pair: str, log_access_pass: str,
+    session: boto3.Session,
+    instance_id: str,
+    key_pair: str,
+    log_access_pass: str,
 ) -> bool:
     """
     Deploy the fallback server to the given instance,
@@ -864,7 +967,10 @@ def deploy_fallback_server(
 
 
 def deploy_to_routing_server(
-    session: boto3.Session, instance_id: str, key_pair: str, push_directory: str,
+    session: boto3.Session,
+    instance_id: str,
+    key_pair: str,
+    push_directory: str,
 ) -> bool:
     client = session.client("ec2")
     server_host, allocation_id, association_id = get_instance_address(
@@ -909,17 +1015,28 @@ def deploy_to_routing_server(
     return True
 
 
-def delete_rule(session: boto3.Session, rule_arn: str, target_group_arn: str,) -> None:
+def delete_rule(
+    session: boto3.Session,
+    rule_arn: str,
+    target_group_arn: str,
+) -> None:
     """
     Remove the given rule and the target group for this rule
     """
     client = session.client("elbv2")
-    client.delete_rule(RuleArn=rule_arn,)
+    client.delete_rule(
+        RuleArn=rule_arn,
+    )
 
-    client.delete_target_group(TargetGroupArn=target_group_arn,)
+    client.delete_target_group(
+        TargetGroupArn=target_group_arn,
+    )
 
 
-def delete_instance(session: boto3.Session, instance_id: str,) -> None:
+def delete_instance(
+    session: boto3.Session,
+    instance_id: str,
+) -> None:
     """
     Remove the given instance and the associated elastic ip
     """
@@ -927,7 +1044,10 @@ def delete_instance(session: boto3.Session, instance_id: str,) -> None:
     client.terminate_instances(InstanceIds=[instance_id])
 
 
-def remove_instance_and_cleanup(session: boto3.Session, server_name: str,) -> None:
+def remove_instance_and_cleanup(
+    session: boto3.Session,
+    server_name: str,
+) -> None:
     """
     Cleanup for a launched server, removing the redirect rule
     clearing the target group, and then shutting down the instance.
@@ -941,15 +1061,21 @@ def remove_instance_and_cleanup(session: boto3.Session, server_name: str,) -> No
 
     delete_rule(session, details["balancer_rule_arn"], details["target_group_arn"])
     delete_instance(
-        session, details["instance_id"],
+        session,
+        details["instance_id"],
     )
     os.unlink(server_detail_path)
     return None
 
 
-def delete_listener(session: boto3.Session, listener_arn: str,) -> None:
+def delete_listener(
+    session: boto3.Session,
+    listener_arn: str,
+) -> None:
     client = session.client("elbv2")
-    client.delete_listener(ListenerArn=listener_arn,)
+    client.delete_listener(
+        ListenerArn=listener_arn,
+    )
 
 
 def cleanup_fallback_server(
@@ -979,17 +1105,23 @@ def cleanup_fallback_server(
     listener_arn = details.get("listener_arn")
     if listener_arn is not None:
         print(f"Deleting listener {listener_arn}...")
-        elb_client.delete_listener(ListenerArn=listener_arn,)
+        elb_client.delete_listener(
+            ListenerArn=listener_arn,
+        )
 
     target_group_arn = details.get("target_group_arn")
     if target_group_arn is not None:
         print(f"Deleting target group {target_group_arn}...")
-        elb_client.delete_target_group(TargetGroupArn=target_group_arn,)
+        elb_client.delete_target_group(
+            TargetGroupArn=target_group_arn,
+        )
 
     balancer_arn = details.get("balancer_arn")
     if balancer_arn is not None:
         print(f"Deleting balancer {balancer_arn}...")
-        elb_client.delete_load_balancer(LoadBalancerArn=balancer_arn,)
+        elb_client.delete_load_balancer(
+            LoadBalancerArn=balancer_arn,
+        )
 
     instance_id = details.get("instance_id")
     if instance_id is not None:
@@ -1004,7 +1136,12 @@ def cleanup_fallback_server(
         ec2_client.delete_route_table(RouteTableId=vpc_details["route_1_id"])
         ec2_client.delete_route_table(RouteTableId=vpc_details["route_2_id"])
         table_response = ec2_client.describe_route_tables(
-            Filters=[{"Name": "vpc-id", "Values": [vpc_details["vpc_id"]],}]
+            Filters=[
+                {
+                    "Name": "vpc-id",
+                    "Values": [vpc_details["vpc_id"]],
+                }
+            ]
         )
         tables = table_response["RouteTables"]
         for table in tables:
@@ -1015,7 +1152,9 @@ def cleanup_fallback_server(
         security_group_id = details.get("security_group_id")
         if security_group_id is not None:
             print("Deleting security group {security_group_id}...")
-            ec2_client.delete_security_group(GroupId=security_group_id,)
+            ec2_client.delete_security_group(
+                GroupId=security_group_id,
+            )
 
         ec2_client.delete_vpc(VpcId=vpc_details["vpc_id"])
 

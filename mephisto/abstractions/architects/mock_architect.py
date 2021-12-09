@@ -192,7 +192,9 @@ class MockServer(tornado.web.Application):
                 "receiver_id": "Mephisto",
                 "data": {
                     "request_id": agent_id + str(time.time()),
-                    "provider_data": {"agent_id": agent_id,},
+                    "provider_data": {
+                        "agent_id": agent_id,
+                    },
                 },
             }
         )
