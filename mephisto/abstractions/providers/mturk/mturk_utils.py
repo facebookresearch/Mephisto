@@ -469,7 +469,10 @@ def create_hit_type(
 
 
 def create_compensation_hit_with_hit_type(
-    client: MTurkClient, reason: str, hit_type_id: str, num_assignments: int = 1,
+    client: MTurkClient,
+    reason: str,
+    hit_type_id: str,
+    num_assignments: int = 1,
 ) -> Tuple[str, str, Dict[str, Any]]:
     """Creates a simple compensation HIT to direct workers to submit"""
     amazon_ext_url = (

@@ -156,6 +156,15 @@ class EC2Architect(Architect):
                 if chunk:
                     out_file.write(chunk)
 
+    def check_domain_not_exists(self, subdomain_name: str):
+        """
+        Checks to see if we have an active local record for the given subdomain
+        """
+        if os.path.exists(self.server_detail_path):
+            return False
+
+        return True
+
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
@@ -166,8 +175,14 @@ class EC2Architect(Architect):
         assert ec2_helpers.check_aws_credentials(
             profile_name
         ), "Given profile doesn't have registered credentials"
+        #   Producing a domain string that is safe for use
+        #   in ec2 resources
+        subdomain = url_safe_string(args.architect.subdomain)
 
-        subdomain = args.architect.subdomain
+        assert cls.check_domain_not_exists(
+            subdomain_name=subdomain
+        ), "Given subdomain does exist"
+
         assert "." not in subdomain, "Not allowed to use . in subdomains"
         # TODO assert only contains a-zA-Z\-
 

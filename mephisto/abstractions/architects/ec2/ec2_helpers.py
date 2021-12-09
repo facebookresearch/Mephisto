@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 import boto3  # type: ignore
 import botocore.exceptions  # type: ignore
 import time
@@ -21,8 +22,6 @@ from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
-
-from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from omegaconf import DictConfig  # type: ignore
@@ -86,7 +85,8 @@ def get_domain_if_available(session: boto3.Session, domain_name: str) -> bool:
         avail_result = avail["Availability"]
         time.sleep(0.3)
 
-    if avail_result not in ["AVAILABLE"]:  # May extend to handle other available cases
+    # May extend to handle other available cases
+    if avail_result not in ["AVAILABLE"]:
         print(
             f"Domain was not listed as available, instead "
             f"{avail_result}, visit route53 for more detail"
@@ -587,8 +587,8 @@ def create_instance(
         MaxCount=1,
         MinCount=1,
         Monitoring={
-            "Enabled": False,  # standard monitoring is enough
-        },
+            "Enabled": False,
+        },  # standard monitoring is enough
         Placement={
             "Tenancy": "default",
         },

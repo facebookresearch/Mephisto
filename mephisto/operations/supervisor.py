@@ -34,9 +34,7 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
 )
-from mephisto.abstractions.blueprints.mixins.use_gold_unit import (
-    UseGoldUnit,
-)
+from mephisto.abstractions.blueprints.mixins.use_gold_unit import UseGoldUnit
 from mephisto.operations.registry import get_crowd_provider_from_type
 from mephisto.operations.task_launcher import (
     TaskLauncher,
