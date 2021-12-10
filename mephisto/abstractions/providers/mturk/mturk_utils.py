@@ -416,6 +416,7 @@ def create_hit_type(
     task_config: "TaskConfig",
     qualifications: List[Dict[str, Any]],
     auto_approve_delay: Optional[int] = 7 * 24 * 3600,  # default 1 week
+    skip_locale_qual=False,
 ) -> str:
     """Create a HIT type to be used to generate HITs of the requested params"""
     hit_title = task_config.task_title
@@ -428,7 +429,7 @@ def create_hit_type(
     # If the user hasn't specified a location qualification, we assume to
     # restrict the HIT to some english-speaking countries.
     locale_requirements: List[Any] = []
-    has_locale_qual = False
+    has_locale_qual = skip_locale_qual
     if existing_qualifications is not None:
         for q in existing_qualifications:
             if q["QualificationTypeId"] == MTURK_LOCALE_REQUIREMENT:
