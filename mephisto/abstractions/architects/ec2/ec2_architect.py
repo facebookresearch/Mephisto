@@ -103,9 +103,7 @@ class EC2Architect(Architect):
         self.profile_name = args.architect.profile_name
         self.server_type: str = args.architect.server_type
         self.build_dir = build_dir_root
-        self.server_detail_path = os.path.join(
-            DEFAULT_SERVER_DETAIL_LOCATION, f"{self.subdomain}.json"
-        )
+        self.server_detail_path = self._get_detail_path(self.subdomain)
 
         self.session = boto3.Session(
             profile_name=self.profile_name, region_name="us-east-2"
@@ -116,6 +114,11 @@ class EC2Architect(Architect):
         self.target_group_arn: Optional[str] = None
         self.router_rule_arn: Optional[str] = None
         self.created = False
+
+    @classmethod
+    def _get_detail_path(cls, subdomain):
+        """Return the location where a detail file will be stored for the given domain"""
+        return os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, f"{subdomain}.json")
 
     def _get_socket_urls(self) -> List[str]:
         """Returns the path to the heroku app socket"""
@@ -156,14 +159,12 @@ class EC2Architect(Architect):
                 if chunk:
                     out_file.write(chunk)
 
-    def check_domain_not_exists(self, subdomain_name: str):
+    @classmethod
+    def check_domain_unused_locally(self, subdomain: str):
         """
         Checks to see if we have an active local record for the given subdomain
         """
-        if os.path.exists(self.server_detail_path):
-            return False
-
-        return True
+        return not os.path.exists(self._get_detail_path(subdomain))
 
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
@@ -179,12 +180,9 @@ class EC2Architect(Architect):
         #   in ec2 resources
         subdomain = url_safe_string(args.architect.subdomain)
 
-        assert cls.check_domain_not_exists(
-            subdomain_name=subdomain
+        assert cls.check_domain_unused_locally(
+            subdomain=subdomain
         ), "Given subdomain does exist"
-
-        assert "." not in subdomain, "Not allowed to use . in subdomains"
-        # TODO assert only contains a-zA-Z\-
 
         # VALID_INSTANCES = []
         # assert args.architect.instance_type in VALID_INSTANCES
