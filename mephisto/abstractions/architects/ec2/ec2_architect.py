@@ -206,7 +206,7 @@ class EC2Architect(Architect):
         session = boto3.Session(profile_name=profile_name, region_name="us-east-2")
         assert ec2_helpers.rule_is_new(
             session, subdomain, fallback_details["listener_arn"]
-        )
+        ), "Rule was not new, existing subdomain found registered to the listener. Check on AWS."
 
     def __get_build_directory(self) -> str:
         """
