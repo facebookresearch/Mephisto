@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Using the Mephisto Review CLI
 
-Once you've [installed Mephisto](../guides/quickstart), you have access to the `mephisto` command line utility.
+Once you've [installed Mephisto](../quickstart), you have access to the `mephisto` command line utility.
 
 This utility can be used to invoke a review workflow via `$ mephisto review ...`.
 
