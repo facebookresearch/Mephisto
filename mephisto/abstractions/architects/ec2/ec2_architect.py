@@ -103,9 +103,7 @@ class EC2Architect(Architect):
         self.profile_name = args.architect.profile_name
         self.server_type: str = args.architect.server_type
         self.build_dir = build_dir_root
-        self.server_detail_path = os.path.join(
-            DEFAULT_SERVER_DETAIL_LOCATION, f"{self.subdomain}.json"
-        )
+        self.server_detail_path = self._get_detail_path(self.subdomain)
 
         self.session = boto3.Session(
             profile_name=self.profile_name, region_name="us-east-2"
@@ -116,6 +114,11 @@ class EC2Architect(Architect):
         self.target_group_arn: Optional[str] = None
         self.router_rule_arn: Optional[str] = None
         self.created = False
+
+    @classmethod
+    def _get_detail_path(cls, subdomain):
+        """Return the location where a detail file will be stored for the given domain"""
+        return os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, f"{subdomain}.json")
 
     def _get_socket_urls(self) -> List[str]:
         """Returns the path to the heroku app socket"""
@@ -157,6 +160,13 @@ class EC2Architect(Architect):
                     out_file.write(chunk)
 
     @classmethod
+    def check_domain_unused_locally(self, subdomain: str):
+        """
+        Checks to see if we have an active local record for the given subdomain
+        """
+        return not os.path.exists(self._get_detail_path(subdomain))
+
+    @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the given profile is already ready, that a fallback exists
@@ -166,10 +176,13 @@ class EC2Architect(Architect):
         assert ec2_helpers.check_aws_credentials(
             profile_name
         ), "Given profile doesn't have registered credentials"
+        #   Producing a domain string that is safe for use
+        #   in ec2 resources
+        subdomain = url_safe_string(args.architect.subdomain)
 
-        subdomain = args.architect.subdomain
-        assert "." not in subdomain, "Not allowed to use . in subdomains"
-        # TODO assert only contains a-zA-Z\-
+        assert cls.check_domain_unused_locally(
+            subdomain=subdomain
+        ), "Given subdomain does exist"
 
         # VALID_INSTANCES = []
         # assert args.architect.instance_type in VALID_INSTANCES
@@ -193,7 +206,7 @@ class EC2Architect(Architect):
         session = boto3.Session(profile_name=profile_name, region_name="us-east-2")
         assert ec2_helpers.rule_is_new(
             session, subdomain, fallback_details["listener_arn"]
-        )
+        ), "Rule was not new, existing subdomain found registered to the listener. Check on AWS."
 
     def __get_build_directory(self) -> str:
         """

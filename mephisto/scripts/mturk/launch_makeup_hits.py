@@ -191,7 +191,11 @@ def main():
         # Set up HIT type
         task_config = TaskConfig(task_run)
         hit_type_id = create_hit_type(
-            client, task_config, [qualification], auto_approve_delay=30
+            client,
+            task_config,
+            [qualification],
+            auto_approve_delay=30,
+            skip_locale_qual=True,
         )
 
         # Create the task on MTurk, email the worker

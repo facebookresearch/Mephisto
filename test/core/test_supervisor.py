@@ -860,7 +860,8 @@ class BaseTestSupervisor:
     def test_register_job_with_screening(self):
         """Test registering and running a job with screening"""
         if self.DB_CLASS != MephistoSingletonDB:
-            return  # TODO(#97) This test only works with singleton for now due to disconnect simulation
+            # TODO(#97) This test only works with singleton for now due to disconnect simulation
+            return
 
         # Handle baseline setup
         sup = Supervisor(self.db)

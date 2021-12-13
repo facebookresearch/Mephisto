@@ -21,7 +21,9 @@ from mephisto.operations.registry import (
     get_valid_architect_types,
 )
 from mephisto.data_model.task_config import TaskConfig
-import sys, traceback, os
+import sys
+import traceback
+import os
 
 api = Blueprint("api", __name__)
 
@@ -141,7 +143,6 @@ def requester_register(requester_type):
         return jsonify(
             {"success": False, "msg": f"error in parsing arguments: {str(e)}"}
         )
-
     if "name" not in parsed_options:
         return jsonify(
             {"success": False, "msg": "No name was specified for the requester."}
