@@ -43,12 +43,6 @@ function Directions({ children }) {
 }
 
 function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
-  if (!taskData) {
-    return <LoadingScreen />;
-  }
-  if (isOnboarding) {
-    return <OnboardingComponent onSubmit={onSubmit} />;
-  }
   return (
     <div>
       <Directions>
@@ -82,4 +76,4 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
   );
 }
 
-export { LoadingScreen, SimpleFrontend as BaseFrontend };
+export { LoadingScreen, SimpleFrontend as BaseFrontend, OnboardingComponent };
