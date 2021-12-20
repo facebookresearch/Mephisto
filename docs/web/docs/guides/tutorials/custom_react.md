@@ -232,15 +232,6 @@ onClick={() => onSubmit({ rating: "good", editedText: editedText })}
 onClick={() => onSubmit({ rating: "bad", editedText: editedText })}
 ```
 
-Of course, don't forget to update the instructions!
-```jsx
-<Directions>
-    Directions: Please rate the below sentence as good or bad.
-    If you see a grammar mistake, please correct it in the box provided.
-    <TellTextIsEdited taskData={taskData} />
-</Directions>
-```
-
 Let's launch one last time.
 ```
 python run_task.py mephisto.task.task_name=custom-react-tutorial-iterating
