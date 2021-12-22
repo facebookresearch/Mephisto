@@ -221,11 +221,11 @@ class Supervisor:
                         blueprint.screening_units_launched -= 1
                     unit.expire()
             task_runner.task_run.clear_reservation(unit)
+        return None
 
     def _assign_unit_to_agent(
         self, crowd_data: Dict[str, Any], request_id: str, units: List["Unit"]
-    ) -> str:
-        """Handle creating an agent for the specific worker to register an agent"""
+    ):
         # TODO ew this needs a fix once this is in the worker_pool
         live_run = self.live_runs[units[0].get_task_run().db_id]
         task_run = live_run.task_run
@@ -274,7 +274,6 @@ class Supervisor:
                 agents = assignment.get_agents()
                 if None in agents:
                     agent.update_status(AgentState.STATUS_WAITING)
-                    return agent.get_agent_id()
 
                 # Launch the backend for this assignment
                 agent_infos = [self.agents[a.db_id] for a in agents if a is not None]
@@ -290,7 +289,6 @@ class Supervisor:
                     agent_info.assignment_thread = assign_thread
 
                 assign_thread.start()
-                return agent.get_agent_id()
 
     def _register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
         """
@@ -369,9 +367,7 @@ class Supervisor:
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
         if len(units) == 0:
-            temp_live_run.client_io.send_provider_details(
-                request_id, {"agent_id": None}
-            )
+            live_run.client_io.send_provider_details(request_id, {"agent_id": None})
             logger.debug(
                 f"agent_registration_id {agent_registration_id}, had no valid units."
             )
@@ -386,9 +382,7 @@ class Supervisor:
                 worker.is_disqualified(blueprint.onboarding_qualification_name),
             )
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
-                temp_live_run.client_io.send_provider_details(
-                    request_id, {"agent_id": None}
-                )
+                live_run.client_io.send_provider_details(request_id, {"agent_id": None})
                 logger.debug(
                     f"Worker {worker_id} is already disqualified by onboarding "
                     f"qual {blueprint.onboarding_qualification_name}."
@@ -398,7 +392,7 @@ class Supervisor:
                 # Send a packet with onboarding information
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
-                temp_live_run.client_io.register_agent_from_request_id(
+                live_run.client_io.register_agent_from_request_id(
                     onboard_agent.get_agent_id(),
                     request_id,
                     crowd_data["agent_registration_id"],
@@ -410,11 +404,11 @@ class Supervisor:
                 self.agents[onboard_id] = agent_info
 
                 # TODO move when worker_pool is done
-                temp_live_run.client_io.onboarding_packets[onboard_id] = (
+                live_run.client_io.onboarding_packets[onboard_id] = (
                     crowd_data,
                     request_id,
                 )
-                temp_live_run.client_io.send_provider_details(
+                live_run.client_io.send_provider_details(
                     request_id,
                     {
                         "agent_id": onboard_id,
@@ -450,7 +444,7 @@ class Supervisor:
                     ), "LiveTaskRun must have launcher to use screening tasks"
                     units = [launcher.launch_screening_unit(screening_data)]
                 else:
-                    temp_live_run.client_io.send_provider_details(
+                    live_run.client_io.send_provider_details(
                         request_id, {"agent_id": None}
                     )
                     logger.debug(
@@ -461,19 +455,11 @@ class Supervisor:
             if blueprint.should_produce_gold_for_worker(worker):
                 gold_data = blueprint.get_gold_unit_data_for_worker(worker)
                 if gold_data is not None:
-                    launcher = channel_info.live_run.task_launcher
+                    launcher = live_run.task_launcher
                     units = [launcher.launch_gold_unit(gold_data)]
                 else:
-                    self.message_queue.append(
-                        Packet(
-                            packet_type=PACKET_TYPE_PROVIDER_DETAILS,
-                            sender_id=SYSTEM_CHANNEL_ID,
-                            receiver_id=channel_info.channel_id,
-                            data={
-                                "request_id": packet.data["request_id"],
-                                "agent_id": None,
-                            },
-                        )
+                    live_run.client_io.send_provider_details(
+                        request_id, {"agent_id": None}
                     )
                     logger.debug(f"No gold units left for {agent_registration_id}...")
                     return
