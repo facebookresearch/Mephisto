@@ -86,13 +86,14 @@ class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
     SharedStateClass: ClassVar[Type["SharedTaskState"]] = MockSharedState
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
+    # making Mypy happy, these aren't used in a blueprint, only mixins
+    ArgsMixin: ClassVar[Any]
+    SharedStateMixin: ClassVar[Any]
+
     def __init__(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "MockSharedState"
     ):
         super().__init__(task_run, args, shared_state)
-        # TODO these can be done with self.mro() and using the mixin variant
-        self.init_onboarding_config(task_run, args, shared_state)
-        self.init_screening_config(task_run, args, shared_state)
 
     def get_initialization_data(self) -> Iterable[InitializationData]:
         """

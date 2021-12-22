@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from flask import Flask, Blueprint, send_file, jsonify, request
+from flask import Flask, Blueprint, send_file, jsonify, request  # type: ignore
 from datetime import datetime
 import os
 import atexit
@@ -27,6 +27,7 @@ def run(
     database_task_name=None,
     all_data=False,
     debug=False,
+    assets_dir=None,
 ):
     global index_file, app
     global ready_for_next, current_data, finished, index_file
@@ -59,6 +60,15 @@ def run(
         static_url_path="/static",
         static_folder=build_dir + "/static",
     )
+
+    if assets_dir:
+        assets_blueprint = Blueprint(
+            "additional_assets",
+            __name__,
+            static_url_path="/assets",
+            static_folder=assets_dir,
+        )
+        app.register_blueprint(assets_blueprint)
 
     def json_reader(f):
         import json

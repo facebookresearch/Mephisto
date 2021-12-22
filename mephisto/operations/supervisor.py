@@ -34,8 +34,13 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
 )
+from mephisto.abstractions.blueprints.mixins.use_gold_unit import UseGoldUnit
 from mephisto.operations.registry import get_crowd_provider_from_type
-from mephisto.operations.task_launcher import TaskLauncher, SCREENING_UNIT_INDEX
+from mephisto.operations.task_launcher import (
+    TaskLauncher,
+    SCREENING_UNIT_INDEX,
+    GOLD_UNIT_INDEX,
+)
 from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
 
 from dataclasses import dataclass
@@ -408,12 +413,14 @@ class Supervisor:
             logger.exception(f"Cleaning up unit: {e}", exc_info=True)
             task_runner.cleanup_unit(unit)
         finally:
-            if unit.unit_index == SCREENING_UNIT_INDEX:
+            if unit.unit_index in [SCREENING_UNIT_INDEX, GOLD_UNIT_INDEX]:
                 if agent.get_status() != AgentState.STATUS_COMPLETED:
-                    blueprint = task_runner.task_run.get_blueprint(
-                        args=task_runner.args
-                    )
-                    blueprint.screening_units_launched -= 1
+                    if unit.unit_index == SCREENING_UNIT_INDEX:
+                        blueprint = task_runner.task_run.get_blueprint(
+                            args=task_runner.args
+                        )
+                        assert isinstance(blueprint, ScreenTaskRequired)
+                        blueprint.screening_units_launched -= 1
                     unit.expire()
             task_runner.task_run.clear_reservation(unit)
 
@@ -526,6 +533,7 @@ class Supervisor:
             isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
         ), "Should only be registering from onboarding if onboarding is required and set"
         worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
+        assert blueprint.onboarding_qualification_name is not None
         worker.grant_qualification(
             blueprint.onboarding_qualification_name, int(worker_passed)
         )
@@ -680,6 +688,9 @@ class Supervisor:
                 screening_data = blueprint.get_screening_unit_data()
                 if screening_data is not None:
                     launcher = channel_info.job.task_launcher
+                    assert (
+                        launcher is not None
+                    ), "Job must have launcher to use screening tasks"
                     units = [launcher.launch_screening_unit(screening_data)]
                 else:
                     self.message_queue.append(
@@ -696,6 +707,26 @@ class Supervisor:
                     logger.debug(
                         f"No screening units left for {agent_registration_id}."
                     )
+                    return
+        if isinstance(blueprint, UseGoldUnit) and blueprint.use_golds:
+            if blueprint.should_produce_gold_for_worker(worker):
+                gold_data = blueprint.get_gold_unit_data_for_worker(worker)
+                if gold_data is not None:
+                    launcher = channel_info.job.task_launcher
+                    units = [launcher.launch_gold_unit(gold_data)]
+                else:
+                    self.message_queue.append(
+                        Packet(
+                            packet_type=PACKET_TYPE_PROVIDER_DETAILS,
+                            sender_id=SYSTEM_CHANNEL_ID,
+                            receiver_id=channel_info.channel_id,
+                            data={
+                                "request_id": packet.data["request_id"],
+                                "agent_id": None,
+                            },
+                        )
+                    )
+                    logger.debug(f"No gold units left for {agent_registration_id}...")
                     return
 
         # Not onboarding, so just register directly

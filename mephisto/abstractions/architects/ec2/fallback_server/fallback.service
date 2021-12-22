@@ -1,0 +1,12 @@
+[Unit]
+After=network.service
+Description=Fallback server application
+
+[Service]
+Type=simple
+User=ec2-user
+Restart=always
+ExecStart=/home/ec2-user/fallback_server/scripts/run_server.sh
+
+[Install]
+WantedBy=multi-user.target

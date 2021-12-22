@@ -117,7 +117,10 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
         input(
             f"This task is going to launch live on {provider_type}, press enter to continue: "
         )
-    if provider_type in ["mturk_sandbox", "mturk"] and architect_type != "heroku":
+    if provider_type in ["mturk_sandbox", "mturk"] and architect_type not in [
+        "heroku",
+        "ec2",
+    ]:
         input(
             f"This task is going to launch live on {provider_type}, but your "
             f"provided architect is {architect_type}, are you sure you "

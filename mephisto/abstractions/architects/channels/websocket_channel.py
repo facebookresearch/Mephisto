@@ -9,7 +9,7 @@ from mephisto.data_model.packet import Packet
 from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
 
 import errno
-import websocket
+import websocket  # type: ignore
 import threading
 import json
 import time

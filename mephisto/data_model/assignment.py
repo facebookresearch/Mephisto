@@ -19,6 +19,7 @@ from typing import List, Optional, Mapping, Dict, Any, TYPE_CHECKING, IO
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
+    from mephisto.data_model.unit import Unit
 
 import os
 import json

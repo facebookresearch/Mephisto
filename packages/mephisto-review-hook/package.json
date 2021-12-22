@@ -1,6 +1,6 @@
 {
   "name": "mephisto-review-hook",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
@@ -37,8 +37,8 @@
     "webpack-cli": "^3.3.11"
   },
   "peerDependencies": {
-    "react": "16.13.1",
-    "react-dom": "16.13.1"
+    "react": ">=16.13.1",
+    "react-dom": ">=16.13.1"
   },
   "dependencies": {
     "axios": "^0.21.1",

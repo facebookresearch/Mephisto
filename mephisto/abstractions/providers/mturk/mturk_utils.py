@@ -4,17 +4,17 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import boto3
+import boto3  # type: ignore
 import os
 import json
 import re
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
 from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 from datetime import datetime
 
-from botocore import client
-from botocore.exceptions import ClientError, ProfileNotFound
-from botocore.config import Config
+from botocore import client  # type: ignore
+from botocore.exceptions import ClientError, ProfileNotFound  # type: ignore
+from botocore.config import Config  # type: ignore
 from omegaconf import DictConfig
 
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
@@ -61,21 +61,44 @@ def check_aws_credentials(profile_name: str) -> bool:
 def setup_aws_credentials(
     profile_name: str, register_args: Optional[DictConfig] = None
 ) -> bool:
+    if not os.path.exists(os.path.expanduser("~/.aws/")):
+        os.makedirs(os.path.expanduser("~/.aws/"))
+    aws_credentials_file_path = "~/.aws/credentials"
+    expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
     try:
         # Check existing credentials
         boto3.Session(profile_name=profile_name)
         if register_args is not None:
             # Eventually we could manually re-parse the file and see
             # if the credentials line up or not, then fix ourselves
-            print(
-                f"WARNING credentials provided, but there's already a "
-                f"profile for {profile_name}. If these don't line up, you'll "
-                f"need to manually navigate to your ~/.aws/credentials file "
-                f"and remove the entry for this profile name, then run again.\n"
-                f"As this profile is currently loading, we consider it "
-                f"successfully registered anyways."
-            )
+            aws_credentials_file_string = ""
+            with open(expanded_aws_file_path, "r") as aws_credentials_file:
+                aws_credentials_file_string = aws_credentials_file.read()
+            # accessing the aws_credentials_file
+            aws_credentials = aws_credentials_file_string.split("\n")
+            # iterating to get the profile
+
+            for credentialIndex in range(0, len(aws_credentials)):
+                if str(aws_credentials[credentialIndex]).startswith(
+                    "[{}]".format(profile_name)
+                ):
+                    aws_credentials[
+                        credentialIndex + 1
+                    ] = "aws_access_key_id={}\n".format(register_args.access_key_id)
+                    aws_credentials[
+                        credentialIndex + 2
+                    ] = "aws_access_key_id={}\n".format(register_args.access_key_id)
+                    break
+
+            with open(expanded_aws_file_path, "w") as aws_credentials_file:
+                # overWrite login details
+                aws_credentials_file.write("\n".join(aws_credentials))
+                logger.warning(
+                    f"We found an existing entry for {profile_name}. As new credentials have been provided, "
+                    f"we're updating the credentials, overwriting ones that already existed for the profile "
+                )
         return True
+
     except ProfileNotFound:
         # Setup new credentials
         if register_args is not None:
@@ -94,11 +117,7 @@ def setup_aws_credentials(
             )
             aws_access_key_id = input("Access Key ID: ")
             aws_secret_access_key = input("Secret Access Key: ")
-        if not os.path.exists(os.path.expanduser("~/.aws/")):
-            os.makedirs(os.path.expanduser("~/.aws/"))
-        aws_credentials_file_path = "~/.aws/credentials"
-        aws_credentials_file_string = None
-        expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
+        aws_credentials_file_string = ""
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
@@ -397,6 +416,7 @@ def create_hit_type(
     task_config: "TaskConfig",
     qualifications: List[Dict[str, Any]],
     auto_approve_delay: Optional[int] = 7 * 24 * 3600,  # default 1 week
+    skip_locale_qual=False,
 ) -> str:
     """Create a HIT type to be used to generate HITs of the requested params"""
     hit_title = task_config.task_title
@@ -409,7 +429,7 @@ def create_hit_type(
     # If the user hasn't specified a location qualification, we assume to
     # restrict the HIT to some english-speaking countries.
     locale_requirements: List[Any] = []
-    has_locale_qual = False
+    has_locale_qual = skip_locale_qual
     if existing_qualifications is not None:
         for q in existing_qualifications:
             if q["QualificationTypeId"] == MTURK_LOCALE_REQUIREMENT:
@@ -449,6 +469,62 @@ def create_hit_type(
     return hit_type_id
 
 
+def create_compensation_hit_with_hit_type(
+    client: MTurkClient,
+    reason: str,
+    hit_type_id: str,
+    num_assignments: int = 1,
+) -> Tuple[str, str, Dict[str, Any]]:
+    """Creates a simple compensation HIT to direct workers to submit"""
+    amazon_ext_url = (
+        "http://mechanicalturk.amazonaws.com/"
+        "AWSMechanicalTurkDataSchemas/2017-11-06/QuestionForm.xsd"
+    )
+    question_data_structure = (
+        f'<QuestionForm xmlns="{amazon_ext_url}">'
+        "<Question>"
+        "<QuestionIdentifier>workerid</QuestionIdentifier>"
+        "<DisplayName>Confirm Worker ID</DisplayName>"
+        "<IsRequired>true</IsRequired>"
+        "<QuestionContent>"
+        f"<Text>This compensation task was launched for the following reason: {reason}... Enter Worker ID to submit</Text>"
+        "</QuestionContent>"
+        "<AnswerSpecification>"
+        "<FreeTextAnswer>"
+        "<Constraints>"
+        '<Length minLength="2" />'
+        '<AnswerFormatRegex regex="\S" errorText="The content cannot be blank."/>'
+        "</Constraints>"
+        "</FreeTextAnswer>"
+        "</AnswerSpecification>"
+        "</Question>"
+        "</QuestionForm>"
+    )
+
+    is_sandbox = client_is_sandbox(client)
+
+    # Create the HIT
+    response = client.create_hit_with_hit_type(
+        HITTypeId=hit_type_id,
+        MaxAssignments=num_assignments,
+        LifetimeInSeconds=60 * 60 * 24 * 31,
+        Question=question_data_structure,
+    )
+
+    # The response included several fields that will be helpful later
+    hit_type_id = response["HIT"]["HITTypeId"]
+    hit_id = response["HIT"]["HITId"]
+
+    # Construct the hit URL
+    url_target = "workersandbox"
+    if not is_sandbox:
+        url_target = "www"
+    hit_link = "https://{}.mturk.com/mturk/preview?groupId={}".format(
+        url_target, hit_type_id
+    )
+    return hit_link, hit_id, response
+
+
 def create_hit_with_hit_type(
     client: MTurkClient,
     frame_height: int,
@@ -462,7 +538,7 @@ def create_hit_with_hit_type(
         "http://mechanicalturk.amazonaws.com/"
         "AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"
     )
-    question_data_struture = (
+    question_data_structure = (
         '<ExternalQuestion xmlns="{}">'
         "<ExternalURL>{}</ExternalURL>"  # noqa: E131
         "<FrameHeight>{}</FrameHeight>"
@@ -477,7 +553,7 @@ def create_hit_with_hit_type(
         HITTypeId=hit_type_id,
         MaxAssignments=num_assignments,
         LifetimeInSeconds=60 * 60 * 24 * 31,
-        Question=question_data_struture,
+        Question=question_data_structure,
     )
 
     # The response included several fields that will be helpful later
@@ -584,12 +660,12 @@ def get_hit(client: MTurkClient, hit_id: str) -> Dict[str, Any]:
     """Get hit from mturk by hit_id"""
     hit = None
     try:
-        hit = client.get_hit(HITId=hit_id)
+        return client.get_hit(HITId=hit_id)
     except ClientError as er:
         logger.warning(
             f"Skipping HIT {hit_id}. Unable to retrieve due to ClientError: {er}."
         )
-    return hit
+    return {}
 
 
 def get_assignment(client: MTurkClient, assignment_id: str) -> Dict[str, Any]:

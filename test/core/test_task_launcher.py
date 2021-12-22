@@ -23,6 +23,11 @@ from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
 
+from typing import Type, ClassVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mephisto.abstractions.database import MephistoDB
+
 MAX_WAIT_TIME_UNIT_LAUNCH = 15
 NUM_GENERATED_ASSIGNMENTS = 10
 WAIT_TIME_TILL_NEXT_ASSIGNMENT = 1
@@ -46,7 +51,7 @@ class BaseTestTaskLauncher:
     Unit testing for the Mephisto TaskLauncher
     """
 
-    DB_CLASS = None
+    DB_CLASS: ClassVar[Type["MephistoDB"]]
 
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()

@@ -23,7 +23,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 
-from typing import List, Optional, Tuple, Mapping, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Tuple, Mapping, Dict, Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -95,8 +95,8 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     @property
     def state(self) -> "AgentState":
         if self._state is None:
-            self._state = AgentState(self)
-        return self._state
+            self._state = AgentState(self)  # type: ignore
+        return cast("AgentState", self._state)
 
     def __new__(
         cls,
@@ -506,7 +506,8 @@ class OnboardingAgent(
 
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        self.has_updated_status.set()
+        if new_status not in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
+            self.has_updated_status.set()
         if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
             # Disconnect statuses should free any pending acts
             self.has_action.set()
@@ -568,6 +569,10 @@ class OnboardingAgent(
                 ]:
                     # Disconnect statuses should free any pending acts
                     self.has_action.set()
+            if row["status"] not in [
+                AgentState.STATUS_APPROVED,
+                AgentState.STATUS_REJECTED,
+            ]:
                 self.has_updated_status.set()
             self.db_status = row["status"]
         return self.db_status

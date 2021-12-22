@@ -3,9 +3,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-from parlai.crowdsourcing.utils.worlds import CrowdOnboardWorld, CrowdTaskWorld
-from parlai.core.worlds import validate
-from joblib import Parallel, delayed
+from parlai.crowdsourcing.utils.worlds import CrowdOnboardWorld, CrowdTaskWorld  # type: ignore
+from parlai.core.worlds import validate  # type: ignore
+from joblib import Parallel, delayed  # type: ignore
 
 
 class MultiAgentDialogOnboardWorld(CrowdOnboardWorld):

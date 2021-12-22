@@ -7,7 +7,7 @@
 import os
 import signal
 import subprocess
-import sh
+import sh  # type: ignore
 import shutil
 import shlex
 import time
@@ -161,7 +161,9 @@ class LocalArchitect(Architect):
                 preexec_fn=os.setpgrp,
                 env=dict(os.environ, PORT=f"{self.port}"),
             )
-        self.server_process_pid = self.server_process.pid
+        my_process = self.server_process
+        assert my_process is not None, "Cannot start without a process..."
+        self.server_process_pid = my_process.pid
         os.chdir(return_dir)
 
         time.sleep(1)

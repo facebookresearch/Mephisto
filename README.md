@@ -19,8 +19,10 @@ As of now we're in an early alpha release, more details to come.
 
 Check out our [guidelines for contributing](https://github.com/facebookresearch/Mephisto/blob/main/CONTRIBUTING.md) and then take a look at some of our tagged issues: [good first issue](https://github.com/facebookresearch/Mephisto/labels/good%20first%20issue), [help wanted](https://github.com/facebookresearch/Mephisto/labels/help%20wanted).
 
+For library authors, you may also find the [development documentation][development] helpful.
 
 [quickstart]: https://github.com/facebookresearch/mephisto/blob/main/docs/quickstart.md
+[development]: https://github.com/facebookresearch/mephisto/blob/main/docs/development.md
 
 
 ## License

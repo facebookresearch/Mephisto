@@ -4,8 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from flask import Blueprint, jsonify, request
-from flask import current_app as app
+from flask import Blueprint, jsonify, request  # type: ignore
+from flask import current_app as app  # type: ignore
 from mephisto.abstractions.database import EntryAlreadyExistsException
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task_run import TaskRun
@@ -21,7 +21,9 @@ from mephisto.operations.registry import (
     get_valid_architect_types,
 )
 from mephisto.data_model.task_config import TaskConfig
-import sys, traceback, os
+import sys
+import traceback
+import os
 
 api = Blueprint("api", __name__)
 
@@ -141,7 +143,6 @@ def requester_register(requester_type):
         return jsonify(
             {"success": False, "msg": f"error in parsing arguments: {str(e)}"}
         )
-
     if "name" not in parsed_options:
         return jsonify(
             {"success": False, "msg": "No name was specified for the requester."}

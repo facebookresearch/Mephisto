@@ -9,6 +9,7 @@ from mephisto.data_model.unit import Unit
 from mephisto.data_model.task_run import TaskRun
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import Agent
+from mephisto.data_model.worker import Worker
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -89,3 +90,15 @@ class DataBrowser:
             "task_start": agent.state.get_task_start(),
             "task_end": agent.state.get_task_end(),
         }
+
+    def get_workers_with_qualification(self, qualification_name: str) -> List[Worker]:
+        """
+        Returns a list of 'Worker's for workers who are qualified wrt `qualification_name`.
+        """
+        qual_list = self.db.find_qualifications(qualification_name=qualification_name)
+        assert len(qual_list) >= 1, f"No qualification found named {qualification_name}"
+        qualification_id = qual_list[0].db_id
+        qualifieds = self.db.check_granted_qualifications(
+            qualification_id=qualification_id, value=1
+        )
+        return [Worker.get(self.db, qual.worker_id) for qual in qualifieds]

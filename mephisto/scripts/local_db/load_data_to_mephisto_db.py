@@ -17,6 +17,9 @@ from mephisto.abstractions.blueprints.static_react_task.static_react_blueprint i
     BLUEPRINT_TYPE,
 )
 from mephisto.abstractions.blueprint import AgentState
+from mephisto.abstractions.blueprints.abstract.static_task.static_agent_state import (
+    StaticAgentState,
+)
 from mephisto.abstractions.providers.mock.mock_requester import MockRequester
 from mephisto.abstractions.providers.mock.mock_worker import MockWorker
 from mephisto.abstractions.providers.mock.mock_agent import MockAgent
@@ -25,6 +28,9 @@ from mephisto.data_model.assignment import Assignment, InitializationData
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.agent import Agent
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+from mephisto.data_model.task_run import TaskRun
+
+from typing import List, Dict, Any, cast
 
 import json
 
@@ -91,7 +97,7 @@ while use_name not in task_names:
     else:
         task_id = db.new_task(use_name, BLUEPRINT_TYPE)
         task_names.append(use_name)
-        task_run = db.new_task_run(
+        task_run_id = db.new_task_run(
             task_id,
             requester.db_id,
             json.dumps({}),
@@ -99,6 +105,7 @@ while use_name not in task_names:
             BLUEPRINT_TYPE,
             requester.is_sandbox(),
         )
+        task_run = TaskRun.get(db, task_run_id)
 
 tasks = db.find_tasks(task_name=use_name)
 valid_tasks = [t for t in tasks if t.task_type == BLUEPRINT_TYPE]
@@ -106,7 +113,7 @@ task_run = db.find_task_runs(task_id=valid_tasks[0].db_id)[0]
 
 print(f"Found task run: {task_run}")
 
-test_annotations = [
+test_annotations: List[Dict[str, Any]] = [
     {
         "inputs": {"something": True, "something else": False},
         "outputs": {"some": "annotations"},
@@ -125,7 +132,7 @@ for annotation in test_annotations:
     )
     assignment = Assignment.get(db, assignment_id)
     assignment.write_assignment_data(
-        InitializationData(unit_data={}, shared=annotation["inputs"])
+        InitializationData(unit_data=[{}], shared=annotation["inputs"])
     )
 
     unit_id = db.new_unit(
@@ -142,8 +149,9 @@ for annotation in test_annotations:
 
     unit = Unit.get(db, unit_id)
     agent = MockAgent.new(db, worker, unit)
-    agent.state.state["inputs"] = annotation["inputs"]
-    agent.state.state["outputs"] = annotation["outputs"]
+    agent_state = cast("StaticAgentState", agent.state)
+    agent_state.state["inputs"] = annotation["inputs"]
+    agent_state.state["outputs"] = annotation["outputs"]
     agent.state.save_data()
     agent.mark_done()
     agent.update_status(AgentState.STATUS_COMPLETED)

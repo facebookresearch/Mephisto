@@ -9,7 +9,7 @@ from mephisto.abstractions.blueprint import TaskBuilder
 from distutils.dir_util import copy_tree
 import os
 import time
-import sh
+import sh  # type: ignore
 import shutil
 import subprocess
 
