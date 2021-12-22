@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.channel import Channel
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.operations.client_io_handler import ClientIOHandler
+    from mephisto.operations.worker_pool import WorkerPool
 
 
 @dataclass
@@ -37,9 +38,7 @@ class LiveTaskRun:
     task_launcher: "TaskLauncher"
 
     client_io: "ClientIOHandler"
-
-    # Temporary until IO handler is written
-    channel_ids: List[str]
+    worker_pool: "WorkerPool"
 
 
 @dataclass

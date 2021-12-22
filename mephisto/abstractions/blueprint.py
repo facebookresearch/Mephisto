@@ -30,6 +30,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 from mephisto.data_model.constants.assignment_state import AssignmentState
+import threading
 import types
 
 if TYPE_CHECKING:
@@ -112,6 +113,9 @@ class TaskRunner(ABC):
     passing agents through a task.
     """
 
+    # TODO the Execute -> LaunchAndRun -> Launch -> Run flow for execution is
+    # clunkier than it needs to be and can be consolidated
+
     def __init__(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
@@ -144,6 +148,57 @@ class TaskRunner(ABC):
             # We are constructing another instance directly
             return super().__new__(cls)
 
+    def execute_onboarding(
+        self, onboarding_agent: "OnboardingAgent", cleanup_after: Callable[[], None]
+    ) -> threading.Thread:
+        """Execute onboarding in a background thread, return the thread"""
+        # TODO remove the thread return, track the threads here instead, and add cleanup to shutdown
+        onboard_thread = threading.Thread(
+            target=self._launch_and_run_onboarding,
+            args=(onboarding_agent, cleanup_after),
+            name=f"Onboard-thread-{onboarding_agent.get_agent_id()}",
+        )
+
+        onboarding_agent.update_status(AgentState.STATUS_ONBOARDING)
+        onboard_thread.start()
+        return onboard_thread
+
+    def _launch_and_run_onboarding(
+        self,
+        onboarding_agent: "OnboardingAgent",
+        cleanup_after: Callable[[], None],
+    ) -> None:
+        """Launch a thread to supervise the completion of onboarding for a task"""
+        live_run = onboarding_agent.get_live_run()
+        onboarding_id = onboarding_agent.get_agent_id()
+        assert isinstance(onboarding_agent, OnboardingAgent), (
+            "Can launch onboarding for OnboardingAgents, not Agents"
+            f", got {onboarding_agent}"
+        )
+        try:
+            logger.debug(f"Launching onboarding for {onboarding_agent}")
+            self.launch_onboarding(onboarding_agent)
+            if onboarding_agent.get_status() == AgentState.STATUS_WAITING:
+                # The agent completed the onboarding task
+                live_run.worker_pool.register_agent_from_onboarding(onboarding_agent)
+            else:
+                logger.info(
+                    f"Onboarding agent {onboarding_id} disconnected or errored, "
+                    f"final status {onboarding_agent.get_status()}."
+                )
+                # TODO is disconnect already being sent?
+                # live_run.worker_pool.send_status_update_deprecated(agent_info)
+        except Exception as e:
+            logger.warning(
+                f"Onboarding for {onboarding_agent} failed with exception {e}"
+            )
+            import traceback
+
+            traceback.print_exc()
+            self.cleanup_onboarding(onboarding_agent)
+        finally:
+            cleanup_after()
+
     def launch_onboarding(self, onboarding_agent: "OnboardingAgent") -> None:
         """
         Validate that onboarding is ready, then launch. Catch disconnect conditions
@@ -175,6 +230,52 @@ class TaskRunner(ABC):
             self.cleanup_onboarding(onboarding_agent)
         del self.running_onboardings[onboarding_id]
         return
+
+    def execute_unit(
+        self,
+        unit: "Unit",
+        agent: "Agent",
+        do_mark_done: Callable[[], None],
+        cleanup_after: Callable[[], None],
+    ) -> threading.Thread:
+        """Execute unit in a background thread, return the thread"""
+        # TODO remove the thread return, track the threads here instead, and add cleanup to shutdown
+        unit_thread = threading.Thread(
+            target=self._launch_and_run_unit,
+            args=(unit, agent, do_mark_done, cleanup_after),
+            name=f"Unit-thread-{unit.db_id}",
+        )
+        unit_thread.start()
+        return unit_thread
+
+    def _launch_and_run_unit(
+        self,
+        unit: "Unit",
+        agent: "Agent",
+        do_mark_done: Callable[[], None],
+        cleanup_after: Callable[[], None],
+    ) -> None:
+        """Launch a thread to supervise the completion of an assignment"""
+        try:
+            assert isinstance(
+                agent, Agent
+            ), f"Can launch units for Agents, not OnboardingAgents, got {agent}"
+            self.launch_unit(unit, agent)
+            if agent.get_status() not in AgentState.complete():
+                do_mark_done()
+                if not agent.did_submit.is_set():
+                    # Wait for a submit to occur
+                    # TODO(#94) make submit timeout configurable
+                    agent.has_action.wait(timeout=300)
+                    agent.act()
+                agent.mark_done()
+        except Exception as e:
+            logger.exception(f"Cleaning up unit: {e}", exc_info=True)
+            self.cleanup_unit(unit)
+        finally:
+            cleanup_after()
+            self.task_run.clear_reservation(unit)
+        return None
 
     def launch_unit(self, unit: "Unit", agent: "Agent") -> None:
         """
@@ -212,6 +313,51 @@ class TaskRunner(ABC):
         self.shared_state.on_unit_submitted(unit)
         del self.running_units[unit.db_id]
         return
+
+    def execute_assignment(
+        self,
+        assignment: "Assignment",
+        agents: List["Agent"],
+        do_mark_done: Callable[[], None],
+    ) -> threading.Thread:
+        """Execute assignment in a background thread, return the thread"""
+        # TODO remove the thread return, track the threads here instead, and add cleanup to shutdown
+        assign_thread = threading.Thread(
+            target=self._launch_and_run_assignment,
+            args=(assignment, agents, do_mark_done),
+            name=f"Assignment-thread-{assignment.db_id}",
+        )
+        for agent in agents:
+            agent.update_status(AgentState.STATUS_IN_TASK)
+        assign_thread.start()
+        return assign_thread
+
+    def _launch_and_run_assignment(
+        self,
+        assignment: "Assignment",
+        agents: List["Agent"],
+        do_mark_done: Callable[[], None],
+    ) -> None:
+        """Launch a thread to supervise the completion of an assignment"""
+        try:
+            self.launch_assignment(assignment, agents)
+            do_mark_done()
+            # Wait for agents to be complete
+            for agent in agents:
+                if agent.get_status() not in AgentState.complete():
+                    if not agent.did_submit.is_set():
+                        # Wait for a submit to occur
+                        # TODO(#94) make submit timeout configurable
+                        agent.has_action.wait(timeout=300)
+                        agent.act()
+                    agent.mark_done()
+        except Exception as e:
+            logger.exception(f"Cleaning up assignment: {e}", exc_info=True)
+            self.cleanup_assignment(assignment)
+        finally:
+            task_run = self.task_run
+            for unit in assignment.get_units():
+                task_run.clear_reservation(unit)
 
     def launch_assignment(
         self, assignment: "Assignment", agents: List["Agent"]

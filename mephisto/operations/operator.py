@@ -37,6 +37,7 @@ from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistExceptio
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.operations.client_io_handler import ClientIOHandler
+from mephisto.operations.worker_pool import WorkerPool
 from mephisto.operations.registry import (
     get_blueprint_from_type,
     get_crowd_provider_from_type,
@@ -179,7 +180,7 @@ class Operator:
             task_runner=task_runner,
             task_launcher=launcher,
             client_io=ClientIOHandler(self.db),
-            channel_ids=[],
+            worker_pool=WorkerPool(self.db),
         )
 
     def validate_and_run_config_or_die(
