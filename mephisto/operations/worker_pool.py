@@ -136,8 +136,8 @@ class WorkerPool:
                     if unit.unit_index in [SCREENING_UNIT_INDEX, GOLD_UNIT_INDEX]:
                         if agent.get_status() != AgentState.STATUS_COMPLETED:
                             if unit.unit_index == SCREENING_UNIT_INDEX:
-                                blueprint = task_runner.task_run.get_blueprint(
-                                    args=task_runner.args
+                                blueprint = live_run.task_run.get_blueprint(
+                                    args=live_run.task_runner.args
                                 )
                                 assert isinstance(blueprint, ScreenTaskRequired)
                                 blueprint.screening_units_launched -= 1
@@ -164,13 +164,16 @@ class WorkerPool:
                 agent_infos = [
                     self.agents[a.db_id] for a in non_null_agents if a is not None
                 ]
+                registered_agents = [
+                    a.agent for a in agent_infos if isinstance(a.agent, Agent)
+                ]
 
                 def mark_agents_done():
                     for agent_info in agent_infos:
                         self._mark_agent_done(agent_info)
 
                 assign_thread = live_run.task_runner.execute_assignment(
-                    assignment, non_null_agents, mark_agents_done
+                    assignment, registered_agents, mark_agents_done
                 )
 
                 for agent_info in agent_infos:
@@ -264,10 +267,6 @@ class WorkerPool:
         worker = Worker.get(self.db, worker_id)
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
-            print(
-                "Disqualified?",
-                worker.is_disqualified(blueprint.onboarding_qualification_name),
-            )
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
                 live_run.client_io.send_provider_details(request_id, {"agent_id": None})
                 logger.debug(
@@ -285,6 +284,7 @@ class WorkerPool:
                     crowd_data["agent_registration_id"],
                 )
                 onboard_agent.state.set_init_state(onboard_data)
+                onboard_agent.set_live_run(live_run)
                 agent_info = AgentInfo(agent=onboard_agent)
                 onboard_id = onboard_agent.get_agent_id()
                 # register onboarding agent
@@ -308,8 +308,8 @@ class WorkerPool:
                 )
 
                 def cleanup_onboarding():
-                    del self.agents[onboarding_id]
-                    del live_run.client_io.onboarding_packets[onboarding_id]
+                    del self.agents[onboard_id]
+                    del live_run.client_io.onboarding_packets[onboard_id]
 
                 # Create an onboarding thread
                 onboard_thread = live_run.task_runner.execute_onboarding(
@@ -445,8 +445,8 @@ class WorkerPool:
             time.sleep(0.1)
 
     def launch_sending_thread_deprecated(self) -> None:
-        """Launch the sending thread for this supervisor"""
-        # TODO move to agent handler
+        """Launch the status sending thread for this pool"""
+        # TODO deprecate when status is push based
         self.agent_status_thread = threading.Thread(
             target=self._agent_status_handling_thread, name=f"agent-status-thread"
         )

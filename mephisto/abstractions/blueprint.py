@@ -171,10 +171,6 @@ class TaskRunner(ABC):
         """Launch a thread to supervise the completion of onboarding for a task"""
         live_run = onboarding_agent.get_live_run()
         onboarding_id = onboarding_agent.get_agent_id()
-        assert isinstance(onboarding_agent, OnboardingAgent), (
-            "Can launch onboarding for OnboardingAgents, not Agents"
-            f", got {onboarding_agent}"
-        )
         try:
             logger.debug(f"Launching onboarding for {onboarding_agent}")
             self.launch_onboarding(onboarding_agent)
@@ -257,9 +253,6 @@ class TaskRunner(ABC):
     ) -> None:
         """Launch a thread to supervise the completion of an assignment"""
         try:
-            assert isinstance(
-                agent, Agent
-            ), f"Can launch units for Agents, not OnboardingAgents, got {agent}"
             self.launch_unit(unit, agent)
             if agent.get_status() not in AgentState.complete():
                 do_mark_done()

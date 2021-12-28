@@ -13,6 +13,7 @@ import tempfile
 import time
 import threading
 from unittest.mock import patch
+from tqdm import TMonitor
 
 from mephisto.abstractions.test.utils import get_test_requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -65,9 +66,11 @@ class OperatorBaseTest(object):
             self.operator.shutdown()
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
+        threads = threading.enumerate()
+        target_threads = [t for t in threads if not isinstance(t, TMonitor)]
         self.assertTrue(
-            len(threading.enumerate()) == 1,
-            f"Expected only main thread at teardown, found {threading.enumerate()}",
+            len(target_threads) == 1,
+            f"Expected only main thread at teardown, found {target_threads}",
         )
 
     def wait_for_complete_assignment(self, assignment, timeout: int):

@@ -13,7 +13,6 @@ import traceback
 import signal
 
 from mephisto.operations.datatypes import LiveTaskRun
-from mephisto.operations.supervisor import Supervisor
 
 from typing import (
     Dict,
@@ -21,7 +20,6 @@ from typing import (
     List,
     Any,
     Tuple,
-    ClassVar,
     NamedTuple,
     Type,
     TYPE_CHECKING,
@@ -75,7 +73,6 @@ class Operator:
 
     def __init__(self, db: "MephistoDB"):
         self.db = db
-        self.supervisor = Supervisor(db)
         self._task_runs_tracked: Dict[str, LiveTaskRun] = {}
         self.is_shutdown = False
         self._run_tracker_thread = threading.Thread(
@@ -117,9 +114,9 @@ class Operator:
         run_config: DictConfig,
         shared_state: SharedTaskState,
         task_run: TaskRun,
-        architect_class: ClassVar["Architect"],
-        blueprint_class: ClassVar["Blueprint"],
-        provider_class: ClassVar["CrowdProvider"],
+        architect_class: Type["Architect"],
+        blueprint_class: Type["Blueprint"],
+        provider_class: Type["CrowdProvider"],
     ) -> LiveTaskRun:
         """
         Initialize all of the members of a live task run object
@@ -171,7 +168,9 @@ class Operator:
             max_num_concurrent_units=run_config.task.max_num_concurrent_units,
         )
 
-        return LiveTaskRun(
+        worker_pool = WorkerPool(self.db)
+        client_io = ClientIOHandler(self.db)
+        live_run = LiveTaskRun(
             task_run=task_run,
             architect=architect,
             blueprint=blueprint,
@@ -179,9 +178,13 @@ class Operator:
             qualifications=shared_state.qualifications,
             task_runner=task_runner,
             task_launcher=launcher,
-            client_io=ClientIOHandler(self.db),
-            worker_pool=WorkerPool(self.db),
+            client_io=client_io,
+            worker_pool=worker_pool,
         )
+        worker_pool.register_run(live_run)
+        client_io.register_run(live_run)
+
+        return live_run
 
     def validate_and_run_config_or_die(
         self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
@@ -263,13 +266,14 @@ class Operator:
                 task_run, run_config, shared_state, task_url
             )
 
-            self.supervisor.register_run(live_run)
+            live_run.client_io.launch_channels()
+            live_run.worker_pool.launch_sending_thread_deprecated()
         except (KeyboardInterrupt, Exception) as e:
             logger.error(
                 "Encountered error while launching run, shutting down", exc_info=True
             )
             try:
-                architect.shutdown()
+                live_run.architect.shutdown()
             except (KeyboardInterrupt, Exception) as architect_exception:
                 logger.exception(
                     f"Could not shut down architect: {architect_exception}",
@@ -306,6 +310,7 @@ class Operator:
                     continue
                 else:
                     tracked_run.client_io.shutdown()
+                    tracked_run.worker_pool.shutdown()
                     tracked_run.architect.shutdown()
                     tracked_run.task_launcher.shutdown()
                     del self._task_runs_tracked[task_run.db_id]
@@ -331,14 +336,15 @@ class Operator:
             for tracked_run in self._task_runs_tracked.values():
                 tracked_run.architect.shutdown()
 
-        def shutdown_supervisor():
-            if self.supervisor is not None:
-                self.supervisor.shutdown()
+        def cleanup_runs():
+            runs_to_close = list(self._task_runs_tracked.keys())
+            for run_id in runs_to_close:
+                self._task_runs_tracked[run_id].shutdown()
 
         tasks = {
             "expire-units": end_launchers_and_expire_units,
-            "kill-architects": end_architects,
-            "fire-supervisor": shutdown_supervisor,
+            "end-architects": end_architects,
+            "cleanup-runs": cleanup_runs,
         }
 
         for tname, t in tasks.items():
@@ -406,7 +412,9 @@ class Operator:
                 )
                 tracked_run.architect.shutdown()
         finally:
-            self.supervisor.shutdown()
+            runs_to_close = list(self._task_runs_tracked.keys())
+            for run_id in runs_to_close:
+                self._task_runs_tracked[run_id].shutdown()
             self._run_tracker_thread.join()
 
     def validate_and_run_config(

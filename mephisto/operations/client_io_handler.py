@@ -33,7 +33,6 @@ from typing import Dict, Set, Tuple, Optional, List, Any, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
-    from mephisto.operations.supervisor import Supervisor
 
 from mephisto.operations.logger_core import get_logger
 
@@ -85,7 +84,13 @@ class ClientIOHandler:
 
         # Deferred initializiation
         self._live_run: Optional["LiveTaskRun"] = None
-        self._REPLACE_SUPERVISOR: Optional["Supervisor"] = None
+
+    def register_run(self, live_run: "LiveTaskRun") -> None:
+        """Register a live run for this io handler"""
+        assert (
+            self._live_run is None
+        ), "Cannot associate more than one live run to an io handler at a time"
+        self._live_run = live_run
 
     def _on_channel_open(self, channel_id: str) -> None:
         """Handler for what to do when a socket opens, we send an alive"""
@@ -133,16 +138,10 @@ class ClientIOHandler:
             time.sleep(0.3)
         return channel_id
 
-    def launch_channels(
-        self, live_run: "LiveTaskRun", supervisor: "Supervisor"
-    ) -> None:
+    def launch_channels(self) -> None:
         """Launch and register all of the channels for this live run to this IO handler"""
-        assert (
-            self._live_run is None
-        ), "Cannot launch channels for a live run more than once!"
-        self._live_run = live_run
-        # TODO we'll eventually get the agent handler from the live run
-        self._REPLACE_SUPERVISOR = supervisor
+        live_run = self._live_run
+        assert live_run is not None, "Cannot launch channels without a live run!"
 
         channels = live_run.architect.get_channels(
             self._on_channel_open,

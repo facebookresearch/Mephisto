@@ -40,6 +40,11 @@ class LiveTaskRun:
     client_io: "ClientIOHandler"
     worker_pool: "WorkerPool"
 
+    def shutdown(self):
+        self.task_runner.shutdown()
+        self.worker_pool.shutdown()
+        self.client_io.shutdown()
+
 
 @dataclass
 class ChannelInfo:
