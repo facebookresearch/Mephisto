@@ -28,7 +28,7 @@ from mephisto.data_model.packet import (
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.operations.datatypes import LiveTaskRun, AgentInfo
-from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
+from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
 from typing import Dict, Tuple, Optional, List, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:

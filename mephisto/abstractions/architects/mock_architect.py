@@ -29,7 +29,7 @@ from mephisto.abstractions.architects.channels.websocket_channel import Websocke
 from typing import List, Dict, Any, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.channel import Channel
+    from mephisto.abstractions._subcomponents.channel import Channel
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB

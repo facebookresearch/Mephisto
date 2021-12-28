@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.abstractions.architect import Architect
     from mephisto.operations.task_launcher import TaskLauncher
-    from mephisto.abstractions.channel import Channel
+    from mephisto.abstractions._subcomponents.channel import Channel
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.operations.client_io_handler import ClientIOHandler
     from mephisto.operations.worker_pool import WorkerPool
