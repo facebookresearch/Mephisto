@@ -47,13 +47,6 @@ class LiveTaskRun:
 
 
 @dataclass
-class ChannelInfo:
-    channel_id: str
-    live_run: "LiveTaskRun"
-    channel: "Channel"
-
-
-@dataclass
 class AgentInfo:
     agent: Union["Agent", "OnboardingAgent"]
     assignment_thread: Optional[threading.Thread] = None

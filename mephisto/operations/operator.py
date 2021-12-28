@@ -17,16 +17,10 @@ from mephisto.operations.datatypes import LiveTaskRun
 from typing import (
     Dict,
     Optional,
-    List,
-    Any,
-    Tuple,
-    NamedTuple,
     Type,
     TYPE_CHECKING,
 )
-from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.task_run import TaskRun
-from mephisto.data_model.requester import Requester
 from mephisto.abstractions.blueprint import SharedTaskState
 from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
@@ -49,11 +43,9 @@ from omegaconf import DictConfig, OmegaConf
 logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
-    from mephisto.data_model.agent import Agent
     from mephisto.abstractions.blueprint import Blueprint, TaskRunner
     from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.abstractions.architect import Architect
-    from argparse import Namespace
 
 
 RUN_STATUS_POLL_TIME = 10

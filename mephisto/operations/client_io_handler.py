@@ -27,9 +27,9 @@ from mephisto.data_model.packet import (
 )
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import Agent, OnboardingAgent
-from mephisto.operations.datatypes import LiveTaskRun, ChannelInfo, AgentInfo
+from mephisto.operations.datatypes import LiveTaskRun, AgentInfo
 from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
-from typing import Dict, Set, Tuple, Optional, List, Any, Union, TYPE_CHECKING
+from typing import Dict, Tuple, Optional, List, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -92,6 +92,12 @@ class ClientIOHandler:
         ), "Cannot associate more than one live run to an io handler at a time"
         self._live_run = live_run
 
+    def get_live_run(self) -> "LiveTaskRun":
+        """Get the associated live run for this handler, asserting it's set"""
+        live_run = self._live_run
+        assert live_run is not None, "Live run must be registered to use this"
+        return live_run
+
     def _on_channel_open(self, channel_id: str) -> None:
         """Handler for what to do when a socket opens, we send an alive"""
         self._send_alive(channel_id)
@@ -140,8 +146,7 @@ class ClientIOHandler:
 
     def launch_channels(self) -> None:
         """Launch and register all of the channels for this live run to this IO handler"""
-        live_run = self._live_run
-        assert live_run is not None, "Cannot launch channels without a live run!"
+        live_run = self.get_live_run()
 
         channels = live_run.architect.get_channels(
             self._on_channel_open,
@@ -179,8 +184,7 @@ class ClientIOHandler:
 
     def _on_act(self, packet: Packet, _channel_id: str):
         """Handle an action as sent from an agent, enqueuing to the agent"""
-        live_run = self._live_run
-        assert live_run is not None, "Must have initialized a live run first"
+        live_run = self.get_live_run()
         agent = self._get_agent_for_id(packet.sender_id)
 
         # If the packet is_submit, and has files, we need to
@@ -198,8 +202,7 @@ class ClientIOHandler:
 
     def _register_agent(self, packet: Packet, channel_id: str) -> None:
         """process the packet, then delegate to the worker pool appropriate registration"""
-        live_run = self._live_run
-        assert live_run is not None, "Must have initialized a live run first"
+        live_run = self.get_live_run()
         request_id = packet.data["request_id"]
         self.request_id_to_channel_id[request_id] = channel_id
         crowd_data = packet.data["provider_data"]
@@ -215,12 +218,11 @@ class ClientIOHandler:
             )
             return
 
-        live_run.worker_pool.register_agent(crowd_data, request_id, self._live_run)
+        live_run.worker_pool.register_agent(crowd_data, request_id, live_run)
 
     def _register_worker(self, packet: Packet, channel_id: str) -> None:
         """Read and forward a worker registration packet"""
-        live_run = self._live_run
-        assert live_run is not None, "Must have initialized a live run first"
+        live_run = self.get_live_run()
         request_id = packet.data["request_id"]
         self.request_id_to_channel_id[request_id] = channel_id
         crowd_data = packet.data["provider_data"]
@@ -242,8 +244,7 @@ class ClientIOHandler:
 
     def _get_init_data(self, packet, channel_id: str):
         """Get the initialization data for the assigned agent's task"""
-        live_run = self._live_run
-        assert live_run is not None, "Must have initialized a live run first"
+        live_run = self.get_live_run()
         task_runner = live_run.task_runner
         agent_id = packet.data["provider_data"]["agent_id"]
         agent = self._get_agent_for_id(agent_id)
@@ -270,8 +271,7 @@ class ClientIOHandler:
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
-        live_run = self._live_run
-        assert live_run is not None, "Must have initialized a live run first"
+        live_run = self.get_live_run()
         onboarding_id = packet.sender_id
         if onboarding_id not in live_run.worker_pool.agents:
             logger.warning(
@@ -296,8 +296,7 @@ class ClientIOHandler:
 
     def _on_message(self, packet: Packet, channel_id: str):
         """Handle incoming messages from the channel"""
-        live_run = self._live_run
-        assert live_run is not None, "Must have initialized a live run first"
+        live_run = self.get_live_run()
         # TODO(#102) this method currently assumes that the packet's sender_id will
         # always be a valid agent in our list of agent_infos. At the moment this
         # is a valid assumption, but will not be on recovery from catastrophic failure.
@@ -438,8 +437,7 @@ class ClientIOHandler:
 
     def _get_agent_for_id(self, agent_id: str):
         """Temporary method to get an agent, while API is figured out"""
-        live_run = self._live_run
-        assert live_run is not None, "Must have initialized a live run first"
+        live_run = self.get_live_run()
         return live_run.worker_pool.agents[agent_id].agent
 
     def _get_channel_for_agent(self, agent_id: str) -> Channel:
