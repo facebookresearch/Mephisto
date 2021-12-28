@@ -27,9 +27,9 @@ from mephisto.data_model.packet import (
 )
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import Agent, OnboardingAgent
-from mephisto.operations.datatypes import LiveTaskRun, AgentInfo
+from mephisto.operations.datatypes import LiveTaskRun
 from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
-from typing import Dict, Tuple, Optional, List, Any, TYPE_CHECKING
+from typing import Dict, Tuple, Union, Optional, List, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -273,7 +273,7 @@ class ClientIOHandler:
         """Handle the submission of onboarding data"""
         live_run = self.get_live_run()
         onboarding_id = packet.sender_id
-        if onboarding_id not in live_run.worker_pool.agents:
+        if onboarding_id not in live_run.worker_pool.onboarding_agents:
             logger.warning(
                 f"Onboarding agent {onboarding_id} already submitted or disconnected, "
                 f"but is calling _on_submit_onboarding again"
@@ -435,10 +435,14 @@ class ClientIOHandler:
             self.sending_thread.join()
         self._live_run = None
 
-    def _get_agent_for_id(self, agent_id: str):
+    def _get_agent_for_id(self, agent_id: str) -> Union["Agent", "OnboardingAgent"]:
         """Temporary method to get an agent, while API is figured out"""
         live_run = self.get_live_run()
-        return live_run.worker_pool.agents[agent_id].agent
+        if agent_id in live_run.worker_pool.agents:
+            return live_run.worker_pool.agents[agent_id]
+        elif agent_id in live_run.worker_pool.onboarding_agents:
+            return live_run.worker_pool.onboarding_agents[agent_id]
+        raise AssertionError(f"Agent {agent_id} not found in pool")
 
     def _get_channel_for_agent(self, agent_id: str) -> Channel:
         """Return the sending channel for a given agent"""

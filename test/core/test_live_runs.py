@@ -221,7 +221,7 @@ class BaseTestLiveRuns:
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
 
         self.assertEqual(len(task_runner.running_units), 2, "Tasks were not launched")
-        agents = [a.agent for a in live_run.worker_pool.agents.values()]
+        agents = [a for a in live_run.worker_pool.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
@@ -342,7 +342,7 @@ class BaseTestLiveRuns:
         self.assertEqual(
             len(task_runner.running_assignments), 1, "Task was not launched"
         )
-        agents = [a.agent for a in self.worker_pool.agents.values()]
+        agents = [a for a in self.worker_pool.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
@@ -594,7 +594,7 @@ class BaseTestLiveRuns:
         self.assertFalse(worker_1.is_disqualified(TEST_QUALIFICATION_NAME))
         self.assertTrue(worker_2.is_qualified(TEST_QUALIFICATION_NAME))
         self.assertFalse(worker_2.is_disqualified(TEST_QUALIFICATION_NAME))
-        agents = [a.agent for a in self.worker_pool.agents.values()]
+        agents = [a for a in self.worker_pool.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
@@ -835,7 +835,7 @@ class BaseTestLiveRuns:
             len(task_runner.running_units), 2, "Task not launched after onboarding"
         )
 
-        agents = [a.agent for a in self.worker_pool.agents.values()]
+        agents = [a for a in self.worker_pool.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id

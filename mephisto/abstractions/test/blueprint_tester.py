@@ -194,7 +194,7 @@ class BlueprintTests(unittest.TestCase):
             cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
 
-        task_runner.launch_assignment(assignment, agents)
+        task_runner._launch_and_run_assignment(assignment, agents, lambda: None)
         self.assertTrue(self.assignment_completed_successfully(assignment))
 
     def test_can_exit_gracefully(self) -> None:
@@ -206,29 +206,11 @@ class BlueprintTests(unittest.TestCase):
         assert isinstance(fail_agent, MockAgent), "Agent must be mock agent for testing"
         fail_agent.mark_disconnected()
         try:
-            task_runner.launch_assignment(assignment, [fail_agent])
+            task_runner._launch_and_run_assignment(
+                assignment, [fail_agent], lambda: None
+            )
         except Exception as e:
             task_runner.cleanup_assignment(assignment)
 
         self.assertFalse(self.assignment_completed_successfully(assignment))
         self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
-
-    def test_run_tracked(self) -> None:
-        """Run a task in a thread, ensure we see it is being tracked"""
-        task_runner = self._get_init_task_runner()
-        assignment = self.get_test_assignment()
-        agents: List["Agent"] = [
-            cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
-        ]
-        task_thread = threading.Thread(
-            target=task_runner.launch_assignment,
-            args=(assignment, agents),
-            name="test-task-thread",
-        )
-        self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
-        task_thread.start()
-        time.sleep(0.1)  # Sleep to give the task_runner time to register
-        self.assertTrue(self.assignment_is_tracked(task_runner, assignment))
-        task_thread.join()
-        self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
-        self.assertTrue(self.assignment_completed_successfully(assignment))

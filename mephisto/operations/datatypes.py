@@ -44,9 +44,3 @@ class LiveTaskRun:
         self.task_runner.shutdown()
         self.worker_pool.shutdown()
         self.client_io.shutdown()
-
-
-@dataclass
-class AgentInfo:
-    agent: Union["Agent", "OnboardingAgent"]
-    assignment_thread: Optional[threading.Thread] = None
