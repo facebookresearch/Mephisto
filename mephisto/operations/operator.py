@@ -72,9 +72,9 @@ class Operator:
         )
         self._run_tracker_thread.start()
 
-    def get_running_task_runs(self):
+    def get_running_task_runs(self) -> Dict[str, LiveTaskRun]:
         """Return the currently running task runs and their handlers"""
-        return {k: lr.task_run for k, lr in self._task_runs_tracked.items()}
+        return self._task_runs_tracked.copy()
 
     def _get_requester_and_provider_from_config(self, run_config: DictConfig):
         """
