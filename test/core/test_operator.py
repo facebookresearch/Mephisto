@@ -67,7 +67,9 @@ class OperatorBaseTest(object):
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
         threads = threading.enumerate()
-        target_threads = [t for t in threads if not isinstance(t, TMonitor)]
+        target_threads = [
+            t for t in threads if not isinstance(t, TMonitor) and not t.daemon
+        ]
         self.assertTrue(
             len(target_threads) == 1,
             f"Expected only main thread at teardown, found {target_threads}",
@@ -149,10 +151,7 @@ class OperatorBaseTest(object):
 
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(self.operator.get_running_task_runs()) == 0:
-                break
-            time.sleep(0.1)
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
         )
@@ -215,10 +214,7 @@ class OperatorBaseTest(object):
 
         # Give up to 5 seconds for both tasks to complete
         start_time = time.time()
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(self.operator.get_running_task_runs()) == 0:
-                break
-            time.sleep(0.1)
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
         )
@@ -349,13 +345,13 @@ class OperatorBaseTest(object):
 
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(self.operator.get_running_task_runs()) == 0:
-                break
-            time.sleep(0.1)
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
         )
+
+        self.operator.shutdown()
+        self.operator = Operator(self.db)
 
         # Ensure all assignments are completed
         task_run = tracked_run.task_run
@@ -415,10 +411,7 @@ class OperatorBaseTest(object):
 
         # Ensure the task run completed and that all assignments are done
         start_time = time.time()
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(self.operator.get_running_task_runs()) == 0:
-                break
-            time.sleep(0.1)
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
         )

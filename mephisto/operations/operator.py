@@ -428,6 +428,8 @@ class Operator:
             runs_to_close = list(self._task_runs_tracked.keys())
             for run_id in runs_to_close:
                 self._task_runs_tracked[run_id].shutdown()
+            if self._event_loop.is_running():
+                self._event_loop.stop()
             self._event_loop.run_until_complete(self.shutdown_async())
 
     def validate_and_run_config(
@@ -457,13 +459,30 @@ class Operator:
         running anymore
         """
         last_log = 0.0
-        while len(self.get_running_task_runs()) > 0:
+        while len(self.get_running_task_runs()) > 0 and not self.is_shutdown:
             if log_rate is not None:
                 if time.time() - last_log > log_rate:
                     last_log = time.time()
                     self.print_run_details()
             await asyncio.sleep(RUN_STATUS_POLL_TIME)
         self._event_loop.stop()
+
+    def _wait_for_runs_in_testing(self, timeout_time) -> None:
+        """
+        Function to kick off the operator event loop
+        specifically in testing, run until timeout time is exceeded
+        """
+        asyncio.set_event_loop(self._event_loop)
+        self._stop_task = self._event_loop.create_task(
+            self._stop_loop_when_no_running_tasks(log_rate=timeout_time),
+            name="Operator-loop-stop-task",
+        )
+
+        def trigger_shutdown():
+            self.is_shutdown = True
+
+        self._event_loop.call_later(timeout_time, trigger_shutdown)
+        self._event_loop.run_forever()
 
     def wait_for_runs_then_shutdown(
         self, skip_input=False, log_rate: Optional[int] = None
