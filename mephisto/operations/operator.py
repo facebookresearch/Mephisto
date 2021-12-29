@@ -74,7 +74,7 @@ class Operator:
 
     def get_running_task_runs(self):
         """Return the currently running task runs and their handlers"""
-        return self._task_runs_tracked.copy()
+        return {k: lr.task_run for k, lr in self._task_runs_tracked.items()}
 
     def _get_requester_and_provider_from_config(self, run_config: DictConfig):
         """
@@ -276,7 +276,6 @@ class Operator:
         live_run.task_launcher.create_assignments()
         live_run.task_launcher.launch_units(task_url)
 
-        # TODO update references to this
         self._task_runs_tracked[task_run.db_id] = live_run
         task_run.update_completion_progress(status=False)
 

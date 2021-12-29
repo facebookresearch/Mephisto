@@ -6,6 +6,7 @@
 
 import threading
 import time
+from dataclasses import dataclass
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -35,6 +36,12 @@ from mephisto.operations.logger_core import get_logger
 logger = get_logger(name=__name__)
 
 
+@dataclass
+class OnboardingInfo:
+    crowd_data: Dict[str, Any]
+    request_id: str
+
+
 class WorkerPool:
     """
     The WorkerPool is responsible for tracing the status and state of workers
@@ -48,6 +55,7 @@ class WorkerPool:
         # Tracked agents
         self.agents: Dict[str, "Agent"] = {}
         self.onboarding_agents: Dict[str, "OnboardingAgent"] = {}
+        self.onboarding_infos: Dict[str, OnboardingInfo] = {}
         # Agent status handling
         self.last_status_check = time.time()
         self.agent_status_thread: Optional[threading.Thread] = None
@@ -130,24 +138,11 @@ class WorkerPool:
 
             # Launch individual tasks
             if unit.unit_index < 0 or not live_run.task_runner.is_concurrent:
-                # TODO could this be moved to the task runner?
-                def cleanup_after():
-                    if unit.unit_index in [SCREENING_UNIT_INDEX, GOLD_UNIT_INDEX]:
-                        if agent.get_status() != AgentState.STATUS_COMPLETED:
-                            if unit.unit_index == SCREENING_UNIT_INDEX:
-                                blueprint = live_run.task_run.get_blueprint(
-                                    args=live_run.task_runner.args
-                                )
-                                assert isinstance(blueprint, ScreenTaskRequired)
-                                blueprint.screening_units_launched -= 1
-                            unit.expire()
-
                 # Run the unit
                 live_run.task_runner.execute_unit(
                     unit,
                     agent,
                     lambda: self._mark_agent_done(agent),
-                    cleanup_after,
                 )
             else:
                 # See if the concurrent unit is ready to launch
@@ -222,10 +217,10 @@ class WorkerPool:
             # self._assign_unit_to_agent(..., units)
             usable_units = []
 
-        # TODO refactor with worker pool
-        crowd_data, request_id = live_run.client_io.onboarding_packets[
-            onboarding_agent.get_agent_id()
-        ]
+        onboarding_info = self.onboarding_infos[onboarding_agent.get_agent_id()]
+        crowd_data = onboarding_info.crowd_data
+        request_id = onboarding_info.request_id
+
         self._try_send_agent_messages(onboarding_agent_info)
         # TODO is this status update necessary?
         self.send_status_update_deprecated(onboarding_agent_info)
@@ -277,14 +272,14 @@ class WorkerPool:
                 onboard_agent.state.set_init_state(onboard_data)
                 onboard_agent.set_live_run(live_run)
                 onboard_id = onboard_agent.get_agent_id()
+
                 # register onboarding agent
                 self.onboarding_agents[onboard_id] = onboard_agent
-
-                # TODO move when worker_pool is done
-                live_run.client_io.onboarding_packets[onboard_id] = (
-                    crowd_data,
-                    request_id,
+                self.onboarding_infos[onboard_id] = OnboardingInfo(
+                    crowd_data=crowd_data,
+                    request_id=request_id,
                 )
+
                 live_run.client_io.send_provider_details(
                     request_id,
                     {
@@ -299,7 +294,7 @@ class WorkerPool:
 
                 def cleanup_onboarding():
                     del self.onboarding_agents[onboard_id]
-                    del live_run.client_io.onboarding_packets[onboard_id]
+                    del self.onboarding_infos[onboard_id]
 
                 # Run the onboarding
                 live_run.task_runner.execute_onboarding(

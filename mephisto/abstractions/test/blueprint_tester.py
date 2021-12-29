@@ -194,6 +194,9 @@ class BlueprintTests(unittest.TestCase):
             cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
 
+        task_runner.running_assignments[
+            assignment.db_id
+        ] = None  # To ensure cleanup works
         task_runner._launch_and_run_assignment(assignment, agents, lambda: None)
         self.assertTrue(self.assignment_completed_successfully(assignment))
 

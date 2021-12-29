@@ -287,8 +287,7 @@ class ClientIOHandler:
         # Update the request id for the original packet (which has the required
         # registration data) to be the new submission packet (so that we answer
         # back properly under the new request)
-        onboarding_tuple = self.onboarding_packets[onboarding_id]
-        self.onboarding_packets[onboarding_id] = (onboarding_tuple[0], request_id)
+        live_run.worker_pool.onboarding_infos[onboarding_id].request_id = request_id
 
         del packet.data["request_id"]
         agent.pending_actions.append(packet)
