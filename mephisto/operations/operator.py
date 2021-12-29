@@ -11,6 +11,7 @@ import time
 import threading
 import traceback
 import signal
+import asyncio
 
 from mephisto.operations.datatypes import LiveTaskRun
 
@@ -67,10 +68,23 @@ class Operator:
         self.db = db
         self._task_runs_tracked: Dict[str, LiveTaskRun] = {}
         self.is_shutdown = False
-        self._run_tracker_thread = threading.Thread(
-            target=self._track_and_kill_runs, name="Operator-tracking-thread"
+
+        # Try to get an event loop. Only should be one
+        # operator per thread
+        has_loop = None
+        try:
+            has_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            pass  # We want there to be no running loop
+        assert has_loop is None, "Can only run one operator loop per thread."
+
+        # Create the event loop for this operator.
+        self._event_loop = asyncio.new_event_loop()
+        self._run_tracker_task = self._event_loop.create_task(
+            self._track_and_kill_runs(),
+            name="Operator-tracking-task",
         )
-        self._run_tracker_thread.start()
+        self._stop_task: Optional[asyncio.Task] = None
 
     def get_running_task_runs(self) -> Dict[str, LiveTaskRun]:
         """Return the currently running task runs and their handlers"""
@@ -281,14 +295,16 @@ class Operator:
 
         return task_run.db_id
 
-    def _track_and_kill_runs(self):
+    async def _track_and_kill_runs(self):
         """
         Background thread that shuts down servers when a task
         is fully done.
         """
+        # TODO only trigger these on a status change?
         while not self.is_shutdown:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
+                await asyncio.sleep(0.01)  # Low pri, allow to be interrupted
                 task_run = tracked_run.task_run
                 if tracked_run.task_launcher.finished_generators is False:
                     # If the run can still generate assignments, it's
@@ -302,10 +318,10 @@ class Operator:
                 else:
                     tracked_run.client_io.shutdown()
                     tracked_run.worker_pool.shutdown()
-                    tracked_run.architect.shutdown()
                     tracked_run.task_launcher.shutdown()
+                    tracked_run.architect.shutdown()
                     del self._task_runs_tracked[task_run.db_id]
-            time.sleep(RUN_STATUS_POLL_TIME)
+            await asyncio.sleep(RUN_STATUS_POLL_TIME)
 
     def force_shutdown(self, timeout=5):
         """
@@ -347,6 +363,12 @@ class Operator:
             if not shutdown_thread.is_alive():
                 # Only join if the shutdown fully completed
                 shutdown_thread.join()
+
+    async def shutdown_async(self):
+        """Shut down the asyncio parts of the Operator"""
+        if self._stop_task is not None:
+            await self._stop_task
+        await self._run_tracker_task
 
     def shutdown(self, skip_input=True):
         logger.info("operator shutting down")
@@ -406,7 +428,7 @@ class Operator:
             runs_to_close = list(self._task_runs_tracked.keys())
             for run_id in runs_to_close:
                 self._task_runs_tracked[run_id].shutdown()
-            self._run_tracker_thread.join()
+            self._event_loop.run_until_complete(self.shutdown_async())
 
     def validate_and_run_config(
         self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
@@ -429,6 +451,20 @@ class Operator:
         for task in self.get_running_task_runs():
             logger.info(f"Operator running task ID = {task}")
 
+    async def _stop_loop_when_no_running_tasks(self, log_rate: Optional[int] = None):
+        """
+        Stop this operator's event loop when no tasks are
+        running anymore
+        """
+        last_log = 0.0
+        while len(self.get_running_task_runs()) > 0:
+            if log_rate is not None:
+                if time.time() - last_log > log_rate:
+                    last_log = time.time()
+                    self.print_run_details()
+            await asyncio.sleep(RUN_STATUS_POLL_TIME)
+        self._event_loop.stop()
+
     def wait_for_runs_then_shutdown(
         self, skip_input=False, log_rate: Optional[int] = None
     ) -> None:
@@ -438,28 +474,13 @@ class Operator:
         Set log_rate to get print statements of currently running tasks
         at the specified interval
         """
+        asyncio.set_event_loop(self._event_loop)
+        self._stop_task = self._event_loop.create_task(
+            self._stop_loop_when_no_running_tasks(log_rate=log_rate),
+            name="Operator-loop-stop-task",
+        )
         try:
-            try:
-                last_log = 0.0
-                while len(self.get_running_task_runs()) > 0:
-                    if log_rate is not None:
-                        if time.time() - last_log > log_rate:
-                            last_log = time.time()
-                            self.print_run_details()
-                    time.sleep(RUN_STATUS_POLL_TIME)
-
-            except Exception as e:
-                if skip_input:
-                    raise e
-
-                traceback.print_exc()
-                should_quit = input(
-                    "The above exception happened while running a task, do "
-                    "you want to shut down? (y)/n: "
-                )
-                if should_quit not in ["n", "N", "no", "No"]:
-                    raise e
-
+            self._event_loop.run_forever()
         except Exception as e:
             import traceback
 
