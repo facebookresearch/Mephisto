@@ -10,6 +10,8 @@ to facilitate executing task runs.
 """
 
 from dataclasses import dataclass
+import asyncio
+from functools import partial
 from typing import Dict, Set, Optional, List, Any, Union, TYPE_CHECKING
 import threading
 
@@ -23,6 +25,30 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.operations.client_io_handler import ClientIOHandler
     from mephisto.operations.worker_pool import WorkerPool
+
+
+class LoopWrapper:
+    def __init__(self, event_loop: asyncio.AbstractEventLoop):
+        self.loop = event_loop
+        self.tid = threading.current_thread()
+
+    def set_active_thread(self):
+        self.tid = threading.current_thread()
+
+    def execute_coro(self, coro) -> None:
+        """Execute this coroutine in the loop, regardless of callsite"""
+
+        def _async_execute(func):
+            """Wrapper to execute this function"""
+            func()
+
+        f = partial(asyncio.ensure_future, coro, loop=self.loop)
+        if threading.current_thread() == self.tid:
+            # We're in the loop's thread, just execute!
+            f()
+        else:
+            # Schedule calling the function from the loop's thread
+            self.loop.call_soon_threadsafe(_async_execute, f)
 
 
 @dataclass
@@ -39,6 +65,8 @@ class LiveTaskRun:
 
     client_io: "ClientIOHandler"
     worker_pool: "WorkerPool"
+
+    loop_wrap: LoopWrapper
 
     def shutdown(self):
         self.task_runner.shutdown()

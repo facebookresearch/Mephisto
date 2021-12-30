@@ -6,6 +6,7 @@
 
 import threading
 import time
+from functools import partial
 from dataclasses import dataclass
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
@@ -78,27 +79,53 @@ class WorkerPool:
         assert live_run is not None, "Live run must be registered to use this"
         return live_run
 
-    def register_worker(self, crowd_data: Dict[str, Any], request_id: str) -> None:
+    async def register_worker(
+        self, crowd_data: Dict[str, Any], request_id: str
+    ) -> None:
         """Process a worker registration to register a worker"""
         live_run = self.get_live_run()
+        loop = live_run.loop_wrap.loop
         crowd_provider = live_run.provider
+        is_sandbox = crowd_provider.is_sandbox()
         worker_name = crowd_data["worker_name"]
-        workers = self.db.find_workers(worker_name=worker_name)
+        if crowd_provider.is_sandbox():
+            # TODO there are better ways to get rid of this designation
+            worker_name += "_sandbox"
+        workers = await loop.run_in_executor(
+            None, partial(self.db.find_workers, worker_name=worker_name)
+        )
         if len(workers) == 0:
-            # TODO(WISH) get rid of sandbox designation
-            workers = self.db.find_workers(worker_name=worker_name + "_sandbox")
-        if len(workers) == 0:
-            worker = crowd_provider.WorkerClass.new_from_provider_data(
-                self.db, crowd_data
+            worker = await loop.run_in_executor(
+                None,
+                partial(
+                    crowd_provider.WorkerClass.new_from_provider_data,
+                    self.db,
+                    crowd_data,
+                ),
             )
         else:
             worker = workers[0]
 
-        if not worker_is_qualified(worker, live_run.qualifications):
-            live_run.client_io.send_provider_details(request_id, {"worker_id": None})
+        is_qualified = await loop.run_in_executor(
+            None, partial(worker_is_qualified, worker, live_run.qualifications)
+        )
+        if not is_qualified:
+            await loop.run_in_executor(
+                None,
+                partial(
+                    live_run.client_io.send_provider_details,
+                    request_id,
+                    {"worker_id": None},
+                ),
+            )
         else:
-            live_run.client_io.send_provider_details(
-                request_id, {"worker_id": worker.db_id}
+            await loop.run_in_executor(
+                None,
+                partial(
+                    live_run.client_io.send_provider_details,
+                    request_id,
+                    {"worker_id": worker.db_id},
+                ),
             )
 
     def _assign_unit_to_agent(
@@ -155,7 +182,9 @@ class WorkerPool:
                 non_null_agents = [a for a in agents if a is not None]
                 # Launch the backend for this assignment
                 registered_agents = [
-                    self.agents[a.db_id] for a in non_null_agents if a is not None
+                    self.agents[a.get_agent_id()]
+                    for a in non_null_agents
+                    if a is not None
                 ]
 
                 def mark_agents_done():
@@ -166,7 +195,7 @@ class WorkerPool:
                     assignment, registered_agents, mark_agents_done
                 )
 
-    def register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
+    async def register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
         """
         Convert the onboarding agent to a full agent
         """
@@ -182,13 +211,19 @@ class WorkerPool:
             return
 
         live_run = self.get_live_run()
+        loop = live_run.loop_wrap.loop
         blueprint = live_run.blueprint
         worker = onboarding_agent.get_worker()
 
         assert (
             isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
         ), "Should only be registering from onboarding if onboarding is required and set"
-        worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
+
+        # Onboarding validation is run in thread, as we don't know execution time
+        worker_passed = await loop.run_in_executor(
+            None, partial(blueprint.validate_onboarding, worker, onboarding_agent)
+        )
+
         assert blueprint.onboarding_qualification_name is not None
         worker.grant_qualification(
             blueprint.onboarding_qualification_name, int(worker_passed)
@@ -206,8 +241,12 @@ class WorkerPool:
             )
 
         # get the list of tentatively valid units
-        units = live_run.task_run.get_valid_units_for_worker(worker)
-        usable_units = live_run.task_runner.filter_units_for_worker(units, worker)
+        units = await loop.run_in_executor(
+            None, partial(live_run.task_run.get_valid_units_for_worker, worker)
+        )
+        usable_units = await loop.run_in_executor(
+            None, partial(live_run.task_runner.filter_units_for_worker, units, worker)
+        )
 
         if not worker_passed:
             # TODO(WISH) it may be worth investigating launching a dummy task for these
@@ -221,40 +260,62 @@ class WorkerPool:
         crowd_data = onboarding_info.crowd_data
         request_id = onboarding_info.request_id
 
+        # TODO async
         self._try_send_agent_messages(onboarding_agent_info)
         # TODO is this status update necessary?
+        # TODO async?
         self.send_status_update_deprecated(onboarding_agent_info)
         if len(usable_units) == 0:
-            live_run.client_io.send_provider_details(request_id, {"agent_id": None})
+            await loop.run_in_executor(
+                None,
+                partial(
+                    live_run.client_io.send_provider_details,
+                    request_id,
+                    {"agent_id": None},
+                ),
+            )
         else:
+            # TODO async
             self._assign_unit_to_agent(crowd_data, request_id, usable_units)
 
-    def register_agent(
-        self, crowd_data: Dict[str, Any], request_id: str, temp_live_run
-    ):
+    async def register_agent(self, crowd_data: Dict[str, Any], request_id: str):
         """Process an agent registration packet to register an agent, returning the agent_id"""
         # Process a new agent
-        live_run = temp_live_run
+        live_run = self.get_live_run()
+        loop = live_run.loop_wrap.loop
         task_run = live_run.task_run
         agent_registration_id = crowd_data["agent_registration_id"]
         worker_id = crowd_data["worker_id"]
-        worker = Worker.get(self.db, worker_id)
+        worker = await Worker.async_get(self.db, worker_id)
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
         if len(units) == 0:
-            live_run.client_io.send_provider_details(request_id, {"agent_id": None})
+            await loop.run_in_executor(
+                None,
+                partial(
+                    live_run.client_io.send_provider_details,
+                    request_id,
+                    {"agent_id": None},
+                ),
+            )
             logger.debug(
                 f"agent_registration_id {agent_registration_id}, had no valid units."
             )
             return
 
         # If there's onboarding, see if this worker has already been disqualified
-        worker = Worker.get(self.db, worker_id)
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
-                live_run.client_io.send_provider_details(request_id, {"agent_id": None})
+                await loop.run_in_executor(
+                    None,
+                    partial(
+                        live_run.client_io.send_provider_details,
+                        request_id,
+                        {"agent_id": None},
+                    ),
+                )
                 logger.debug(
                     f"Worker {worker_id} is already disqualified by onboarding "
                     f"qual {blueprint.onboarding_qualification_name}."
@@ -264,10 +325,14 @@ class WorkerPool:
                 # Send a packet with onboarding information
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
-                live_run.client_io.register_agent_from_request_id(
-                    onboard_agent.get_agent_id(),
-                    request_id,
-                    crowd_data["agent_registration_id"],
+                await loop.run_in_executor(
+                    None,
+                    partial(
+                        live_run.client_io.register_agent_from_request_id,
+                        onboard_agent.get_agent_id(),
+                        request_id,
+                        crowd_data["agent_registration_id"],
+                    ),
                 )
                 onboard_agent.state.set_init_state(onboard_data)
                 onboard_agent.set_live_run(live_run)
@@ -280,12 +345,16 @@ class WorkerPool:
                     request_id=request_id,
                 )
 
-                live_run.client_io.send_provider_details(
-                    request_id,
-                    {
-                        "agent_id": onboard_id,
-                        "onboard_data": onboard_data,
-                    },
+                await loop.run_in_executor(
+                    None,
+                    partial(
+                        live_run.client_io.send_provider_details,
+                        request_id,
+                        {
+                            "agent_id": onboard_id,
+                            "onboard_data": onboard_data,
+                        },
+                    ),
                 )
                 logger.debug(
                     f"{worker} is starting onboarding thread with "
@@ -306,16 +375,30 @@ class WorkerPool:
                 blueprint.worker_needs_screening(worker)
                 and blueprint.should_generate_unit()
             ):
-                screening_data = blueprint.get_screening_unit_data()
+                screening_data = await loop.run_in_executor(
+                    None, blueprint.get_screening_unit_data
+                )
                 if screening_data is not None:
                     launcher = live_run.task_launcher
                     assert (
                         launcher is not None
                     ), "LiveTaskRun must have launcher to use screening tasks"
-                    units = [launcher.launch_screening_unit(screening_data)]
+                    screen_unit = await loop.run_in_executor(
+                        None,
+                        partial(
+                            launcher.launch_screening_unit,
+                            screening_data,
+                        ),
+                    )
+                    units = [screen_unit]
                 else:
-                    live_run.client_io.send_provider_details(
-                        request_id, {"agent_id": None}
+                    await loop.run_in_executor(
+                        None,
+                        partial(
+                            live_run.client_io.send_provider_details,
+                            request_id,
+                            {"agent_id": None},
+                        ),
                     )
                     logger.debug(
                         f"No screening units left for {agent_registration_id}."
@@ -323,18 +406,33 @@ class WorkerPool:
                     return
         if isinstance(blueprint, UseGoldUnit) and blueprint.use_golds:
             if blueprint.should_produce_gold_for_worker(worker):
-                gold_data = blueprint.get_gold_unit_data_for_worker(worker)
+                gold_data = await loop.run_in_executor(
+                    None, partial(blueprint.get_gold_unit_data_for_worker, worker)
+                )
                 if gold_data is not None:
                     launcher = live_run.task_launcher
-                    units = [launcher.launch_gold_unit(gold_data)]
+                    gold_unit = await loop.run_in_executor(
+                        None,
+                        partial(
+                            launcher.launch_gold_unit,
+                            gold_data,
+                        ),
+                    )
+                    units = [gold_unit]
                 else:
-                    live_run.client_io.send_provider_details(
-                        request_id, {"agent_id": None}
+                    await loop.run_in_executor(
+                        None,
+                        partial(
+                            live_run.client_io.send_provider_details,
+                            request_id,
+                            {"agent_id": None},
+                        ),
                     )
                     logger.debug(f"No gold units left for {agent_registration_id}...")
                     return
 
         # Not onboarding, so just register directly
+        # TODO async
         self._assign_unit_to_agent(crowd_data, request_id, units)
 
     def _try_send_agent_messages(self, agent: Union["Agent", "OnboardingAgent"]):

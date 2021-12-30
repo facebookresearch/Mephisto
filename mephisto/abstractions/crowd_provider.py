@@ -76,6 +76,11 @@ class CrowdProvider(ABC):
             db.set_datastore_for_provider(self.PROVIDER_TYPE, self.datastore)
 
     @classmethod
+    def is_sandbox(cls) -> bool:
+        """Determine if the given crowd provider is a sandbox provider"""
+        return cls.RequesterClass.is_sandbox()
+
+    @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """
         Assert that the provided arguments are valid. Should

@@ -218,7 +218,9 @@ class ClientIOHandler:
             )
             return
 
-        live_run.worker_pool.register_agent(crowd_data, request_id, live_run)
+        live_run.loop_wrap.execute_coro(
+            live_run.worker_pool.register_agent(crowd_data, request_id)
+        )
 
     def _register_worker(self, packet: Packet, channel_id: str) -> None:
         """Read and forward a worker registration packet"""
@@ -226,7 +228,9 @@ class ClientIOHandler:
         request_id = packet.data["request_id"]
         self.request_id_to_channel_id[request_id] = channel_id
         crowd_data = packet.data["provider_data"]
-        live_run.worker_pool.register_worker(crowd_data, request_id)
+        live_run.loop_wrap.execute_coro(
+            live_run.worker_pool.register_worker(crowd_data, request_id)
+        )
 
     def send_provider_details(self, request_id: str, additional_data: Dict[str, Any]):
         base_data = {"request_id": request_id}

@@ -154,7 +154,9 @@ class TaskRunner(ABC):
         # Onboarding now complete
         if onboarding_agent.get_status() == AgentState.STATUS_WAITING:
             # The agent completed the onboarding task
-            live_run.worker_pool.register_agent_from_onboarding(onboarding_agent)
+            live_run.loop_wrap.execute_coro(
+                live_run.worker_pool.register_agent_from_onboarding(onboarding_agent)
+            )
         else:
             logger.info(
                 f"Onboarding agent {onboarding_id} disconnected or errored, "

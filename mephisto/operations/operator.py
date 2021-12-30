@@ -13,12 +13,13 @@ import traceback
 import signal
 import asyncio
 
-from mephisto.operations.datatypes import LiveTaskRun
+from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
 
 from typing import (
     Dict,
     Optional,
     Type,
+    Callable,
     TYPE_CHECKING,
 )
 from mephisto.data_model.task_run import TaskRun
@@ -80,6 +81,7 @@ class Operator:
 
         # Create the event loop for this operator.
         self._event_loop = asyncio.new_event_loop()
+        self._loop_wrapper = LoopWrapper(self._event_loop)
         self._run_tracker_task = self._event_loop.create_task(
             self._track_and_kill_runs(),
             name="Operator-tracking-task",
@@ -186,6 +188,7 @@ class Operator:
             task_launcher=launcher,
             client_io=client_io,
             worker_pool=worker_pool,
+            loop_wrap=self._loop_wrapper,
         )
         worker_pool.register_run(live_run)
         client_io.register_run(live_run)
@@ -363,6 +366,9 @@ class Operator:
             if not shutdown_thread.is_alive():
                 # Only join if the shutdown fully completed
                 shutdown_thread.join()
+        if self._event_loop.is_running():
+            self._event_loop.stop()
+        self._event_loop.run_until_complete(self.shutdown_async())
 
     async def shutdown_async(self):
         """Shut down the asyncio parts of the Operator"""
@@ -439,6 +445,9 @@ class Operator:
         Wrapper around validate_and_run_config_or_die that prints errors on
         failure, rather than throwing. Generally for use in scripts.
         """
+        assert (
+            not self.is_shutdown
+        ), "Cannot run a config on a shutdown operator. Create a new one."
         try:
             return self.validate_and_run_config_or_die(
                 run_config=run_config, shared_state=shared_state
@@ -467,10 +476,31 @@ class Operator:
             await asyncio.sleep(RUN_STATUS_POLL_TIME)
         self._event_loop.stop()
 
+    def _run_loop_until(self, condition_met: Callable[[], bool], timeout) -> bool:
+        """
+        Function to run the event loop until a specific condition is met, or
+        a timeout elapses
+        """
+        asyncio.set_event_loop(self._event_loop)
+
+        async def wait_for_condition_or_timeout():
+            condition_was_met = False
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                if condition_met():
+                    condition_was_met = True
+                    break
+                await asyncio.sleep(0.2)
+            return condition_was_met
+
+        return self._event_loop.run_until_complete(wait_for_condition_or_timeout())
+
     def _wait_for_runs_in_testing(self, timeout_time) -> None:
         """
-        Function to kick off the operator event loop
+        Function to kick off the operator main event loop
         specifically in testing, run until timeout time is exceeded
+
+        generally replaces wait_for_runs_then_shutdown in testing
         """
         asyncio.set_event_loop(self._event_loop)
         self._stop_task = self._event_loop.create_task(

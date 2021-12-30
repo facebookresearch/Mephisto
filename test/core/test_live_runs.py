@@ -10,6 +10,7 @@ import shutil
 import os
 import tempfile
 import time
+import asyncio
 
 from typing import List
 
@@ -24,7 +25,7 @@ from mephisto.abstractions.blueprints.mixins.screen_task_required import (
 from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.task_run import TaskRun
-from mephisto.operations.datatypes import LiveTaskRun
+from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
 from mephisto.operations.client_io_handler import ClientIOHandler
 from mephisto.operations.worker_pool import WorkerPool
 
@@ -116,6 +117,7 @@ class BaseTestLiveRuns:
             self.launcher,
             self.client_io,
             self.worker_pool,
+            LoopWrapper(asyncio.new_event_loop()),
         )
         self.client_io.register_run(live_run)
         self.worker_pool.register_run(live_run)
