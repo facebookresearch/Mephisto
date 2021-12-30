@@ -84,7 +84,6 @@ class Operator:
         self._loop_wrapper = LoopWrapper(self._event_loop)
         self._run_tracker_task = self._event_loop.create_task(
             self._track_and_kill_runs(),
-            name="Operator-tracking-task",
         )
         self._stop_task: Optional[asyncio.Task] = None
 
@@ -505,7 +504,6 @@ class Operator:
         asyncio.set_event_loop(self._event_loop)
         self._stop_task = self._event_loop.create_task(
             self._stop_loop_when_no_running_tasks(log_rate=timeout_time),
-            name="Operator-loop-stop-task",
         )
 
         def trigger_shutdown():
@@ -526,7 +524,6 @@ class Operator:
         asyncio.set_event_loop(self._event_loop)
         self._stop_task = self._event_loop.create_task(
             self._stop_loop_when_no_running_tasks(log_rate=log_rate),
-            name="Operator-loop-stop-task",
         )
         try:
             self._event_loop.run_forever()
