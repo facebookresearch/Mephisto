@@ -41,6 +41,11 @@ from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
+# TODO rather than always running in threads, there may be cases
+# where we're better off running in different _processes_. The
+# IO for underlying agents could then take place in the relevant
+# process's update_data call rather than delaying the ClientIOHandler.
+
 
 @dataclass
 class RunningUnit:

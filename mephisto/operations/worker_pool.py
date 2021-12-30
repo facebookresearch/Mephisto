@@ -79,6 +79,16 @@ class WorkerPool:
         assert live_run is not None, "Live run must be registered to use this"
         return live_run
 
+    def get_agent_for_id(
+        self, agent_id: str
+    ) -> Optional[Union["Agent", "OnboardingAgent"]]:
+        """Temporary method to get an agent, while API is figured out"""
+        if agent_id in self.agents:
+            return self.agents[agent_id]
+        elif agent_id in self.onboarding_agents:
+            return self.onboarding_agents[agent_id]
+        return None
+
     async def register_worker(
         self, crowd_data: Dict[str, Any], request_id: str
     ) -> None:
@@ -110,22 +120,10 @@ class WorkerPool:
             None, partial(worker_is_qualified, worker, live_run.qualifications)
         )
         if not is_qualified:
-            await loop.run_in_executor(
-                None,
-                partial(
-                    live_run.client_io.send_provider_details,
-                    request_id,
-                    {"worker_id": None},
-                ),
-            )
+            live_run.client_io.enqueue_provider_details(request_id, {"worker_id": None})
         else:
-            await loop.run_in_executor(
-                None,
-                partial(
-                    live_run.client_io.send_provider_details,
-                    request_id,
-                    {"worker_id": worker.db_id},
-                ),
+            live_run.client_io.enqueue_provider_details(
+                request_id, {"worker_id": worker.db_id}
             )
 
     async def _assign_unit_to_agent(
@@ -145,14 +143,7 @@ class WorkerPool:
             unit = units.pop(0)
             reserved_unit = task_run.reserve_unit(unit)
         if reserved_unit is None:
-            await loop.run_in_executor(
-                None,
-                partial(
-                    live_run.client_io.send_provider_details,
-                    request_id,
-                    {"agent_id": None},
-                ),
-            )
+            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
         else:
             agent = await loop.run_in_executor(
                 None,
@@ -165,23 +156,14 @@ class WorkerPool:
                 ),
             )
             agent.set_live_run(live_run)
-            await loop.run_in_executor(
-                None,
-                partial(
-                    live_run.client_io.register_agent_from_request_id,
-                    agent.get_agent_id(),
-                    request_id,
-                    crowd_data["agent_registration_id"],
-                ),
+            live_run.client_io.associate_agent_with_registration(
+                agent.get_agent_id(),
+                request_id,
+                crowd_data["agent_registration_id"],
             )
             logger.debug(f"Created agent {agent}, {agent.db_id}.")
-            await loop.run_in_executor(
-                None,
-                partial(
-                    live_run.client_io.send_provider_details,
-                    request_id,
-                    {"agent_id": agent.get_agent_id()},
-                ),
+            live_run.client_io.enqueue_provider_details(
+                request_id, {"agent_id": agent.get_agent_id()}
             )
             self.agents[agent.get_agent_id()] = agent
 
@@ -285,14 +267,7 @@ class WorkerPool:
         await self._try_send_agent_messages(onboarding_agent_info)
         await self.push_status_update(onboarding_agent_info)
         if len(usable_units) == 0:
-            await loop.run_in_executor(
-                None,
-                partial(
-                    live_run.client_io.send_provider_details,
-                    request_id,
-                    {"agent_id": None},
-                ),
-            )
+            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
         else:
             await self._assign_unit_to_agent(crowd_data, request_id, usable_units)
 
@@ -310,14 +285,7 @@ class WorkerPool:
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
         if len(units) == 0:
-            await loop.run_in_executor(
-                None,
-                partial(
-                    live_run.client_io.send_provider_details,
-                    request_id,
-                    {"agent_id": None},
-                ),
-            )
+            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
             logger.debug(
                 f"agent_registration_id {agent_registration_id}, had no valid units."
             )
@@ -327,13 +295,8 @@ class WorkerPool:
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
-                await loop.run_in_executor(
-                    None,
-                    partial(
-                        live_run.client_io.send_provider_details,
-                        request_id,
-                        {"agent_id": None},
-                    ),
+                live_run.client_io.enqueue_provider_details(
+                    request_id, {"agent_id": None}
                 )
                 logger.debug(
                     f"Worker {worker_id} is already disqualified by onboarding "
@@ -344,14 +307,10 @@ class WorkerPool:
                 # Send a packet with onboarding information
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
-                await loop.run_in_executor(
-                    None,
-                    partial(
-                        live_run.client_io.register_agent_from_request_id,
-                        onboard_agent.get_agent_id(),
-                        request_id,
-                        crowd_data["agent_registration_id"],
-                    ),
+                live_run.client_io.associate_agent_with_registration(
+                    onboard_agent.get_agent_id(),
+                    request_id,
+                    crowd_data["agent_registration_id"],
                 )
                 onboard_agent.state.set_init_state(onboard_data)
                 onboard_agent.set_live_run(live_run)
@@ -364,16 +323,12 @@ class WorkerPool:
                     request_id=request_id,
                 )
 
-                await loop.run_in_executor(
-                    None,
-                    partial(
-                        live_run.client_io.send_provider_details,
-                        request_id,
-                        {
-                            "agent_id": onboard_id,
-                            "onboard_data": onboard_data,
-                        },
-                    ),
+                live_run.client_io.enqueue_provider_details(
+                    request_id,
+                    {
+                        "agent_id": onboard_id,
+                        "onboard_data": onboard_data,
+                    },
                 )
                 logger.info(
                     f"{worker} is starting onboarding thread with "
@@ -411,13 +366,8 @@ class WorkerPool:
                     )
                     units = [screen_unit]
                 else:
-                    await loop.run_in_executor(
-                        None,
-                        partial(
-                            live_run.client_io.send_provider_details,
-                            request_id,
-                            {"agent_id": None},
-                        ),
+                    live_run.client_io.enqueue_provider_details(
+                        request_id, {"agent_id": None}
                     )
                     logger.debug(
                         f"No screening units left for {agent_registration_id}."
@@ -439,13 +389,8 @@ class WorkerPool:
                     )
                     units = [gold_unit]
                 else:
-                    await loop.run_in_executor(
-                        None,
-                        partial(
-                            live_run.client_io.send_provider_details,
-                            request_id,
-                            {"agent_id": None},
-                        ),
+                    live_run.client_io.enqueue_provider_details(
+                        request_id, {"agent_id": None}
                     )
                     logger.debug(f"No gold units left for {agent_registration_id}...")
                     return
@@ -517,16 +462,10 @@ class WorkerPool:
             if status not in AgentState.valid():
                 logger.warning(f"Invalid status for agent {agent_id}: {status}")
                 continue
-            if agent_id not in self.agents and agent_id not in self.onboarding_agents:
+            agent = self.get_agent_for_id(agent_id)
+            if agent is None:
                 # no longer tracking agent
                 continue
-            maybe_agent = self.agents.get(agent_id)
-            if maybe_agent is None:
-                agent: Union["Agent", "OnboardingAgent"] = self.onboarding_agents[
-                    agent_id
-                ]
-            else:
-                agent = maybe_agent
             db_status = agent.get_status()
             if agent.has_updated_status.is_set():
                 continue  # Incoming info may be stale if we have new info to send

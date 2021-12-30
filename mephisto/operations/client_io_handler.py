@@ -8,6 +8,8 @@
 import threading
 import weakref
 import time
+import asyncio
+from queue import Queue
 
 from mephisto.data_model.packet import (
     Packet,
@@ -55,6 +57,12 @@ SERVER_CHANNEL_ID = "mephisto_server"
 START_DEATH_TIME = 10
 
 
+# TODO once the underlying Channel API is updated to asyncio + asyncio websockets
+# all underlying .send_<thing> methods should be pulling the asyncio loop of the
+# server thread and running coroutine tasks there. They can then be listed as
+# enqueue_<thing> methods instead.
+
+
 class ClientIOHandler:
     """
     This class is responsible for managing all of the incoming and outgoing messages
@@ -74,8 +82,7 @@ class ClientIOHandler:
         # Agent status handling
         self.last_status_check = time.time()
         # Message handling
-        # TODO can replace with a real Queue
-        self.message_queue: List[Packet] = []
+        self.message_queue: "Queue[Packet]" = Queue()
         self.agent_id_to_channel_id: Dict[str, str] = {}
         # Map from a request id to the channel that issued it
         self.request_id_to_channel_id: Dict[str, str] = {}
@@ -118,8 +125,9 @@ class ClientIOHandler:
             )
             raise
 
-    def _register_channel(self, channel: Channel, live_run: "LiveTaskRun") -> str:
-        """Register the channel to the specific live run"""
+    def _register_channel(self, channel: Channel) -> str:
+        """Register this channel"""
+        # TODO potentially blocking!
         channel_id = channel.channel_id
 
         self.channels[channel_id] = channel
@@ -154,12 +162,12 @@ class ClientIOHandler:
             self._on_channel_message,
         )
         for channel in channels:
-            self._register_channel(channel, live_run)
+            self._register_channel(channel)
         self.launch_sending_thread()
 
-    def register_agent_from_request_id(
+    def associate_agent_with_registration(
         self, agent_id: str, request_id: str, registration_id: str
-    ):
+    ) -> None:
         """
         Given an agent id and request id, registers the agent id to the channel
         that the request was made from
@@ -169,6 +177,7 @@ class ClientIOHandler:
         self.agents_by_registration_id[registration_id] = agent_id
 
     def _send_alive(self, channel_id: str) -> bool:
+        # TODO update with async send
         logger.info("Sending alive")
         return self.channels[channel_id].send(
             Packet(
@@ -179,13 +188,15 @@ class ClientIOHandler:
         )
 
     def _log_frontend_error(self, packet: Packet):
+        """Log to the local logger an error that occurred on the frontend"""
         error = packet.data["final_data"]
-        logger.info(f"[FRONT_END_ERROR]: {error}")
+        logger.warning(f"[FRONT_END_ERROR]: {error}")
 
     def _on_act(self, packet: Packet, _channel_id: str):
         """Handle an action as sent from an agent, enqueuing to the agent"""
         live_run = self.get_live_run()
-        agent = self._get_agent_for_id(packet.sender_id)
+        agent = live_run.worker_pool.get_agent_for_id(packet.sender_id)
+        assert agent is not None, "Could not find given agent!"
 
         # If the packet is_submit, and has files, we need to
         # process downloading those files first
@@ -195,9 +206,10 @@ class ClientIOHandler:
                 save_dir = agent.get_data_dir()
                 architect = live_run.architect
                 for f_obj in data_files:
+                    # TODO this is incredibly blocking!
                     architect.download_file(f_obj["filename"], save_dir)
 
-        agent.pending_actions.append(packet)
+        agent.pending_actions.put(packet)
         agent.has_action.set()
 
     def _register_agent(self, packet: Packet, channel_id: str) -> None:
@@ -211,7 +223,7 @@ class ClientIOHandler:
         if agent_registration_id in self.agents_by_registration_id:
             agent_id = self.agents_by_registration_id[agent_registration_id]
             self.agent_id_to_channel_id[agent_id] = channel_id
-            self.send_provider_details(request_id, {"agent_id": agent_id})
+            self.enqueue_provider_details(request_id, {"agent_id": agent_id})
             logger.debug(
                 f"Found existing agent_registration_id {agent_registration_id}, "
                 f"reconnecting to {agent_id}."
@@ -232,11 +244,16 @@ class ClientIOHandler:
             live_run.worker_pool.register_worker(crowd_data, request_id)
         )
 
-    def send_provider_details(self, request_id: str, additional_data: Dict[str, Any]):
+    def enqueue_provider_details(
+        self, request_id: str, additional_data: Dict[str, Any]
+    ):
+        """
+        Synchronous method to enqueue a message sending the given provider details
+        """
         base_data = {"request_id": request_id}
         for key, val in additional_data.items():
             base_data[key] = val
-        self.message_queue.append(
+        self.message_queue.put(
             Packet(
                 packet_type=PACKET_TYPE_PROVIDER_DETAILS,
                 sender_id=SYSTEM_CHANNEL_ID,
@@ -251,10 +268,11 @@ class ClientIOHandler:
         live_run = self.get_live_run()
         task_runner = live_run.task_runner
         agent_id = packet.data["provider_data"]["agent_id"]
-        agent = self._get_agent_for_id(agent_id)
+        agent = live_run.worker_pool.get_agent_for_id(agent_id)
         assert isinstance(
             agent, Agent
         ), f"Can only get init unit data for Agents, not OnboardingAgents, got {agent}"
+        # TODO this is IO bound
         unit_data = task_runner.get_init_data_for_agent(agent)
 
         agent_data_packet = Packet(
@@ -264,14 +282,14 @@ class ClientIOHandler:
             data={"request_id": packet.data["request_id"], "init_data": unit_data},
         )
 
-        self.message_queue.append(agent_data_packet)
+        self.message_queue.put(agent_data_packet)
 
         if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
             # TODO clarify how raw messages are sent
             for message in unit_data["raw_messages"]:
                 packet = Packet.from_dict(message)
                 packet.receiver_id = agent_id
-                agent.pending_observations.append(packet)
+                agent.pending_observations.put(packet)
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
@@ -283,7 +301,8 @@ class ClientIOHandler:
                 f"but is calling _on_submit_onboarding again"
             )
             return
-        agent = self._get_agent_for_id(onboarding_id)
+        agent = live_run.worker_pool.get_agent_for_id(onboarding_id)
+        assert agent is not None, f"Could not find given agent by id {onboarding_id}"
         request_id = packet.data["request_id"]
         self.request_id_to_channel_id[request_id] = channel_id
 
@@ -294,7 +313,7 @@ class ClientIOHandler:
         live_run.worker_pool.onboarding_infos[onboarding_id].request_id = request_id
 
         del packet.data["request_id"]
-        agent.pending_actions.append(packet)
+        agent.pending_actions.put(packet)
         agent.has_action.set()
 
     def _on_message(self, packet: Packet, channel_id: str):
@@ -335,6 +354,7 @@ class ClientIOHandler:
             receiver_id=agent_id,
             data={},
         )
+        # TODO update when channels are async
         self._get_channel_for_agent(agent_id).send(send_packet)
 
     def _request_status_update(self) -> None:
@@ -401,11 +421,11 @@ class ClientIOHandler:
         """Send all of the messages in the system queue"""
         self.send_message_queue(self.message_queue)
 
-    def send_message_queue(self, message_queue: List[Packet]) -> None:
+    def send_message_queue(self, message_queue: "Queue[Packet]") -> None:
         """Sends messages from the given list until it is empty"""
         # TODO can we batch all of these?
-        while len(message_queue) > 0:
-            curr_obs = message_queue.pop(0)
+        while not message_queue.empty() > 0:
+            curr_obs = message_queue.get()
             try:
                 channel = self._get_channel_for_agent(curr_obs.receiver_id)
             except Exception:
@@ -415,7 +435,7 @@ class ClientIOHandler:
                 logger.error(
                     f"Failed to send packet {curr_obs} to server {curr_obs.receiver_id}"
                 )
-                message_queue.insert(0, curr_obs)
+                message_queue.queue.insert(0, curr_obs)
                 return  # something up with the channel, try later
 
     def launch_sending_thread(self) -> None:
@@ -427,7 +447,8 @@ class ClientIOHandler:
 
     def shutdown(self) -> None:
         """Close any channels related to a LiveTaskRun, clean up any resources"""
-        self.message_queue = []
+        while not self.message_queue.empty():
+            self.message_queue.get()
         run_channels = list(self.channels.keys())
         logger.debug(f"Closing channels {run_channels}")
         for channel_id in run_channels:
@@ -437,15 +458,6 @@ class ClientIOHandler:
         if self.sending_thread is not None:
             self.sending_thread.join()
         self._live_run = None
-
-    def _get_agent_for_id(self, agent_id: str) -> Union["Agent", "OnboardingAgent"]:
-        """Temporary method to get an agent, while API is figured out"""
-        live_run = self.get_live_run()
-        if agent_id in live_run.worker_pool.agents:
-            return live_run.worker_pool.agents[agent_id]
-        elif agent_id in live_run.worker_pool.onboarding_agents:
-            return live_run.worker_pool.onboarding_agents[agent_id]
-        raise AssertionError(f"Agent {agent_id} not found in pool")
 
     def _get_channel_for_agent(self, agent_id: str) -> Channel:
         """Return the sending channel for a given agent"""
