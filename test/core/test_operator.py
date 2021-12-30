@@ -193,7 +193,6 @@ class OperatorBaseTest(object):
         self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
     @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
-    # @unittest.skip("demonstrating skipping")
     def test_run_job_not_concurrent(self):
         """Ensure that the supervisor object can even be created"""
         self.operator = Operator(self.db)
@@ -257,7 +256,6 @@ class OperatorBaseTest(object):
         self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
     @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
-    # @unittest.skip("demonstrating skipping")
     def test_run_jobs_with_restrictions(self):
         """Ensure allowed_concurrent and maximum_units_per_worker work"""
         self.operator = Operator(self.db)

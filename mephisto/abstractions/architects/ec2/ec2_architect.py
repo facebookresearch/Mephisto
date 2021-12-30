@@ -49,7 +49,7 @@ def url_safe_string(in_string: str) -> str:
     in ec2 resources
     """
     hyphenated = in_string.replace("_", "-")
-    return re.sub("[^0-9a-zA-Z\-]+", "", hyphenated)
+    return re.sub("[^0-9a-zA-Z-]+", "", hyphenated)
 
 
 @dataclass

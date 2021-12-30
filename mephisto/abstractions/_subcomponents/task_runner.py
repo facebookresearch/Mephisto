@@ -5,12 +5,14 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+import asyncio
 from mephisto.operations.utils import find_or_create_qualification
 from typing import (
     List,
     Dict,
     Callable,
     Tuple,
+    Awaitable,
     TYPE_CHECKING,
 )
 
@@ -127,7 +129,7 @@ class TaskRunner(ABC):
     def _launch_and_run_onboarding(
         self,
         onboarding_agent: "OnboardingAgent",
-        cleanup_after: Callable[[], None],
+        cleanup_after: Callable[[], Awaitable[None]],
     ) -> None:
         """Supervise the completion of an onboarding"""
         live_run = onboarding_agent.get_live_run()
@@ -154,18 +156,21 @@ class TaskRunner(ABC):
         # Onboarding now complete
         if onboarding_agent.get_status() == AgentState.STATUS_WAITING:
             # The agent completed the onboarding task
-            live_run.loop_wrap.execute_coro(
-                live_run.worker_pool.register_agent_from_onboarding(onboarding_agent)
-            )
+            async def register_then_cleanup():
+                await live_run.worker_pool.register_agent_from_onboarding(
+                    onboarding_agent
+                )
+                await cleanup_after
+
+            live_run.loop_wrap.execute_coro(register_then_cleanup())
         else:
             logger.info(
                 f"Onboarding agent {onboarding_id} disconnected or errored, "
                 f"final status {onboarding_agent.get_status()}."
             )
             # TODO is disconnect already being sent?
-            # live_run.worker_pool.send_status_update_deprecated(agent_info)
-
-        cleanup_after()
+            # live_run.worker_pool.push_status_update(agent_info)
+            live_run.loop_wrap.execute_coro(cleanup_after())
 
     def execute_unit(
         self,
