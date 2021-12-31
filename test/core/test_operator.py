@@ -66,13 +66,21 @@ class OperatorBaseTest(object):
             self.operator.force_shutdown(timeout=10)
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
+        SHUTDOWN_TIMEOUT = 10
         threads = threading.enumerate()
         target_threads = [
             t for t in threads if not isinstance(t, TMonitor) and not t.daemon
         ]
+        start_time = time.time()
+        while len(target_threads) > 1 and time.time() - start_time < SHUTDOWN_TIMEOUT:
+            threads = threading.enumerate()
+            target_threads = [
+                t for t in threads if not isinstance(t, TMonitor) and not t.daemon
+            ]
+            time.sleep(0.3)
         self.assertTrue(
-            len(target_threads) == 1,
-            f"Expected only main thread at teardown, found {target_threads}",
+            time.time() - start_time < SHUTDOWN_TIMEOUT,
+            f"Expected only main thread at teardown after {SHUTDOWN_TIMEOUT} seconds, found {target_threads}",
         )
 
     def wait_for_complete_assignment(self, assignment, timeout: int):
