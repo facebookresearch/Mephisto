@@ -205,7 +205,8 @@ def get_help_arguments(args):
         get_valid_provider_types,
         get_valid_architect_types,
     )
-    from mephisto.operations.utils import get_extra_argument_dicts
+    from mephisto.operations.utils import get_extra_argument_dicts, get_task_state_dicts
+    from textwrap import wrap
 
     VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
 
@@ -281,12 +282,29 @@ def get_help_arguments(args):
 
     from tabulate import tabulate
 
+    def wrap_fields(in_dict):
+        return {
+            out_key: {
+                in_key: "\n".join(wrap(str(in_val), width=40))
+                for in_key, in_val in out_val.items()
+            }
+            for out_key, out_val in in_dict.items()
+        }
+
     arg_dict = get_extra_argument_dicts(target_class)[0]
     click.echo(arg_dict["desc"])
     checking_args = arg_dict["args"]
     if len(args) > 1:
         checking_args = {k: v for k, v in checking_args.items() if k in args[1:]}
-    click.echo(tabulate(checking_args.values(), headers="keys"))
+    click.echo(tabulate(wrap_fields(checking_args).values(), headers="keys"))
+    if abstraction == "blueprint":
+        click.echo(
+            f"Additional SharedTaskState args from {target_class.SharedStateClass.__name__}, which may be configured in your run script"
+        )
+        state_args = get_task_state_dicts(target_class)[0]["args"]
+        if len(args) > 1:
+            state_args = {k: v for k, v in state_args.items() if k in args[1:]}
+        click.echo(tabulate(wrap_fields(state_args).values(), headers="keys"))
 
 
 if __name__ == "__main__":

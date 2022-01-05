@@ -73,10 +73,9 @@ class ParlAIChatBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
         default="ParlAIChatBlueprint",
         metadata={
             "help": """
-                Tasks launched from static blueprints need a
-                source html file to display to workers, as well as a csv
-                containing values that will be inserted into templates in
-                the html.
+                Tasks launched from ParlAI blueprints require the number of
+                conversations (either an int or task data for each convo), as
+                well as a world to initialize for connecting workers.
             """
         },
     )

@@ -42,9 +42,26 @@ class OnboardingRequiredArgs:
 
 @dataclass
 class OnboardingSharedState:
-    onboarding_data: Dict[str, Any] = field(default_factory=dict)
+    onboarding_data: Dict[str, Any] = field(
+        default_factory=dict,
+        metadata={
+            "help": (
+                "Task data to send for the initialTaskData available in the frontend during onboarding."
+            ),
+            "type": "Dict[str, Any]",
+            "default": "{}",
+        },
+    )
     validate_onboarding: Callable[[Any], bool] = field(
-        default_factory=lambda: (lambda x: True)
+        default_factory=lambda: (lambda x: True),
+        metadata={
+            "help": (
+                "Function that takes in the result task data (from AgentState.get_data()) "
+                "and returns whether or not the onboarding was successful."
+            ),
+            "type": "Callable[[Any], bool]",
+            "default": "Returns true always",
+        },
     )
 
 

@@ -7,11 +7,16 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist='{react,react-dom}'",
     "sb": "yarn workspace sb storybook",
+    "docs": "yarn docs:start",
+    "docs:start": "yarn workspace web docusaurus start",
+    "docs:build": "yarn workspace web build",
+    "docs:serve": "yarn workspace web serve",
     "build-all": "yarn workspaces foreach -ptA run build"
   },
   "workspaces": [
     "packages/annotated/*",
-    "docs/storybook"
+    "docs/storybook",
+    "docs/web"
   ],
   "packageManager": "yarn@3.0.2",
   "resolutions": {

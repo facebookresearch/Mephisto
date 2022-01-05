@@ -42,3 +42,6 @@ jobs:
 
       - name: Test that storybook compiles
         run: yarn workspace sb build-storybook
+
+      - name: Test that docusarus compiles
+        run: yarn docs:build

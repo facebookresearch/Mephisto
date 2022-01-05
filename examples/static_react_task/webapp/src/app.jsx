@@ -8,7 +8,11 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { BaseFrontend, LoadingScreen } from "./components/core_components.jsx";
+import {
+  BaseFrontend,
+  OnboardingComponent,
+  LoadingScreen,
+} from "./components/core_components.jsx";
 import { useMephistoTask, ErrorBoundary } from "mephisto-task";
 
 /* ================= Application Components ================= */
@@ -34,9 +38,6 @@ function MainApp() {
       </section>
     );
   }
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
   if (isPreview) {
     return (
       <section className="hero is-medium is-link">
@@ -50,6 +51,12 @@ function MainApp() {
         </div>
       </section>
     );
+  }
+  if (isLoading || !initialTaskData) {
+    return <LoadingScreen />;
+  }
+  if (isOnboarding) {
+    return <OnboardingComponent onSubmit={handleSubmit} />;
   }
 
   return (
