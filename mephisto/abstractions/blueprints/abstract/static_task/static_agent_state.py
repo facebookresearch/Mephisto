@@ -119,10 +119,10 @@ class StaticAgentState(AgentState):
         """
         Extract out and return the start time recorded for this task.
         """
-        return self.state['times']['task_start']
+        return self.state["times"]["task_start"]
 
     def get_task_end(self) -> Optional[float]:
         """
         Extract out and return the end time recorded for this task.
         """
-        return self.state['times']['task_end']
+        return self.state["times"]["task_end"]
