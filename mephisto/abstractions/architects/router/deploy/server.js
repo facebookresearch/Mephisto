@@ -382,7 +382,10 @@ wss.on("connection", function (socket) {
           agent.last_ping = Date.now();
           packet.data.status = agent.status;
           packet.data.state = agent.state;
-          if (agent_id_to_socket[agent.agent_id] != socket && agent_id_to_socket[agent.agent_id] != undefined) {
+          if (
+            agent_id_to_socket[agent.agent_id] != socket &&
+            agent_id_to_socket[agent.agent_id] != undefined
+          ) {
             // Not communicating to the correct socket, update
             debug_log("Updating socket for ", agent);
             agent_id_to_socket[agent.agent_id] = socket;
