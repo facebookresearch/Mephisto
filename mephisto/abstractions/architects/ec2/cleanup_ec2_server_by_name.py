@@ -36,6 +36,7 @@ def main():
         os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, f"{server_name}.json")
         != DEFAULT_FALLBACK_FILE
     ), "This is going to completely delete the fallback server for your EC2 architect."
+    assert server_name in all_server_names, f"{server_name} does not exist"
 
     iam_role_name = input("Please enter local profile name for IAM role\n>> ")
 
