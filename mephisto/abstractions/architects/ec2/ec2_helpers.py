@@ -638,7 +638,7 @@ def create_target_group(
     Create a target group for the given instance
     """
     client = session.client("elbv2")
-    group_name_hash = hashlib.md5(group_name.encode('utf-8')).hexdigest()
+    group_name_hash = hashlib.md5(group_name.encode("utf-8")).hexdigest()
     anti_collision_group_name = f"{group_name_hash[:8]}-{group_name}"
     final_group_name = f"{anti_collision_group_name[:28]}-tg"
     create_target_response = client.create_target_group(
@@ -708,9 +708,7 @@ def register_instance_to_listener(
     and returns the target group id and rule arn
     """
     subdomain_root = domain.split(".")[0]
-    target_group_arn = create_target_group(
-        session, vpc_id, instance_id, subdomain_root
-    )
+    target_group_arn = create_target_group(session, vpc_id, instance_id, subdomain_root)
     client = session.client("elbv2")
 
     find_rule_response = client.describe_rules(
@@ -1109,6 +1107,16 @@ def cleanup_fallback_server(
     listener_arn = details.get("listener_arn")
     if listener_arn is not None:
         print(f"Deleting listener {listener_arn}...")
+        find_rule_response = elb_client.describe_rules(
+            ListenerArn=listener_arn,
+        )
+        rules = find_rule_response["Rules"]
+        if len(rules) > 1:
+            confirm = input(
+                "There are still existing rules on the router, which would imply that active jobs are running right now. Are you SURE you want to DELETE ALL?[yes/no]"
+            )
+            if confirm != "yes":
+                return
         elb_client.delete_listener(
             ListenerArn=listener_arn,
         )
