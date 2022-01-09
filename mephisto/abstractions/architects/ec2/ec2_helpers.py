@@ -1109,6 +1109,16 @@ def cleanup_fallback_server(
     listener_arn = details.get("listener_arn")
     if listener_arn is not None:
         print(f"Deleting listener {listener_arn}...")
+        find_rule_response = elb_client.describe_rules(
+            ListenerArn=listener_arn,
+        )
+        rules = find_rule_response["Rules"]
+        if len(rules) > 1:
+            confirm = input(
+                "There are still existing rules on the router, which would imply that active jobs are running right now. Are you SURE you want to DELETE ALL?[yes/no]"
+            )
+            if confirm != "yes":
+                return
         elb_client.delete_listener(
             ListenerArn=listener_arn,
         )
