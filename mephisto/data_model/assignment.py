@@ -229,7 +229,7 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
         the results for this assignment. Can take assignment_data to save and
         load for this particular assignment.
         """
-        # TODO(OWN) consider offloading this state management to the MephistoDB
+        # TODO(#567) consider offloading this state management to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
         db_id = db.new_assignment(
