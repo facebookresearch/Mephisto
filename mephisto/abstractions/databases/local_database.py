@@ -234,8 +234,6 @@ class LocalMephistoDB(MephistoDB):
         """Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
-        # TODO(101) is there a problem with having just one db connection?
-        # Will this cause bugs with failed commits?
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
             try:
@@ -1306,9 +1304,8 @@ class LocalMephistoDB(MephistoDB):
                 for r in rows
             ]
 
-    # TODO(101) these should not be optional
     def get_granted_qualification(
-        self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
+        self, qualification_id: str, worker_id: str
     ) -> Mapping[str, Any]:
         """
         Return the granted qualification in the database between the given
