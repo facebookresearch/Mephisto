@@ -69,7 +69,7 @@ function handleSubmitToProvider(task_data) {
   }
   form.method = "POST";
   form.action = urlParams.get("turkSubmitTo") + "/mturk/externalSubmit";
-  form.submit();
+  HTMLFormElement.prototype.submit.call(form);
 }
 
 /* === UI error handling code ======= */
