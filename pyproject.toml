@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mephisto"
-version = "0.4.1"
+version = "0.4.2"
 description = ""
 authors = ["Jack Urbanek <jju@fb.com>"]
 
@@ -16,7 +16,7 @@ websocket-client = "^0.56.0"
 tornado = "^6.0"
 parlai = {version = "^0.1.2", optional = true }
 torch = {version = "^1.4.0", optional = true }
-pyyaml = {version = "^5.3", optional = true }
+pyyaml = {version = "^5.4", optional = true }
 gevent-websocket = "^0.10.1"
 tabulate = "^0.8.7"
 hydra-core = "^1.1.0"

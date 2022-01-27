@@ -13,13 +13,13 @@ module.exports = {
     path: __dirname,
     filename: "build/bundle.js",
   },
-  node: {
-    net: "empty",
-    dns: "empty",
-  },
   resolve: {
     alias: {
       react: path.resolve("./node_modules/react"),
+    },
+    fallback: {
+      net: false,
+      dns: false,
     },
   },
   module: {
@@ -32,11 +32,12 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loader: "style-loader!css-loader",
+        use: ["style-loader", "css-loader"],
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: "url-loader?limit=100000",
+        loader: "url-loader",
+        options: { limit: 100000 },
       },
       {
         test: /\.jpg$/,

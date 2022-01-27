@@ -25,6 +25,7 @@ from typing import Optional, Dict, Any, List, Type, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.abstractions.architect import Architect
+    from mephisto.abstractions.blueprint import Blueprint
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.requester import Requester
 
@@ -199,15 +200,14 @@ def get_dict_from_field(in_field: Field) -> Dict[str, Any]:
     Extract all of the arguments from an argument group
     and return a dict mapping from argument dest to argument dict
     """
-    found_type = "str"
     try:
         found_type = in_field.type.__name__
     except AttributeError:
-        found_type = "unknown"
+        found_type = in_field.metadata.get("type", "unknown")
     return {
         "dest": in_field.name,
         "type": found_type,
-        "default": in_field.default,
+        "default": in_field.metadata.get("default", in_field.default),
         "help": in_field.metadata.get("help"),
         "choices": in_field.metadata.get("choices"),
         "required": in_field.metadata.get("required", False),
@@ -232,6 +232,19 @@ def get_extra_argument_dicts(customizable_class: Any) -> List[Dict[str, Any]]:
     if group_field is not None:
         help_text = group_field.metadata.get("help", "")
     return [{"desc": help_text, "args": {f["dest"]: f for f in parsed_fields}}]
+
+
+def get_task_state_dicts(customizable_class: Type["Blueprint"]) -> List[Dict[str, Any]]:
+    """
+    Return the SharedTaskState configurable class for the given blueprint
+    """
+    dict_fields = fields(customizable_class.SharedStateClass)
+    usable_fields = []
+    for f in dict_fields:
+        if not f.name.startswith("_"):
+            usable_fields.append(f)
+    parsed_fields = [get_dict_from_field(f) for f in usable_fields]
+    return [{"desc": "", "args": {f["dest"]: f for f in parsed_fields}}]
 
 
 def parse_arg_dict(customizable_class: Any, args: Dict[str, Any]) -> DictConfig:

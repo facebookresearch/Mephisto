@@ -72,7 +72,16 @@ def blank_generator():
 @dataclass
 class ScreenTaskSharedState:
     screening_data_factory: Tuple[bool, ScreenUnitDataGenerator] = field(
-        default_factory=lambda: blank_generator()
+        default_factory=lambda: blank_generator(),
+        metadata={
+            "help": (
+                "Either a generator that will create task data dicts to "
+                "be used as the `shared` field in InitializationData, or "
+                "the bool False to use real data in screening tasks."
+            ),
+            "Type": "Tuple[bool, ScreenUnitDataGenerator]",
+            "default": "Generator that creates empty data forever",
+        },
     )
 
 
