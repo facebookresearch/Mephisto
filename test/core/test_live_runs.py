@@ -243,7 +243,6 @@ class BaseTestLiveRuns:
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
-        time.sleep(0.5)
         self.await_channel_requests(live_run)
         workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
