@@ -4,15 +4,20 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Callable, Optional
+from typing import Callable, Optional, TYPE_CHECKING
 from mephisto.data_model.packet import Packet
+from mephisto.operations.datatypes import LoopWrapper
 from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
 
 import errno
-import websocket  # type: ignore
+import websockets
 import threading
 import json
 import time
+import asyncio
+
+if TYPE_CHECKING:
+    from websockets.client import WebSocketClientProtocol
 
 from mephisto.operations.logger_core import get_logger
 
@@ -45,10 +50,11 @@ class WebsocketChannel(Channel):
             on_message=on_message,
         )
         self.socket_url = socket_url
-        self.socket: Optional[websocket.WebSocketApp] = None
+        self.socket: Optional["WebSocketClientProtocol"] = None
         self.thread: Optional[threading.Thread] = None
         self._is_alive = False
         self._is_closed = False
+        self._socket_task: Optional[asyncio.Task] = None
 
     def is_closed(self):
         """
@@ -63,11 +69,10 @@ class WebsocketChannel(Channel):
         resources are cleaned up
         """
         self._is_closed = True
-        try:
-            self.socket.close()
-        except Exception:
-            # socket already closed
-            pass
+
+        target_loop = self.loop_wrap.loop
+        target_loop.call_soon_threadsafe(target_loop.stop)
+
         self._is_alive = False
         if self.thread is not None:
             self.thread.join()
@@ -79,12 +84,12 @@ class WebsocketChannel(Channel):
     def open(self):
         """Set up a socket handling thread."""
 
-        def on_socket_open(*args):
+        def on_socket_open():
             self._is_alive = True
             self.on_channel_open(self.channel_id)
-            logger.info(f"channel open {args}")
+            logger.info(f"channel open")
 
-        def on_error(ws, error):
+        async def on_error(error):
             if hasattr(error, "errno"):
                 if error.errno == errno.ECONNREFUSED:
                     # TODO(CLEAN) replace with channel exception
@@ -93,33 +98,22 @@ class WebsocketChannel(Channel):
                     )
             else:
                 logger.error(f"Socket logged error: {error}")
-                if isinstance(error, websocket._exceptions.WebSocketException):
-                    return
 
                 import traceback
 
                 traceback.print_exc()
                 try:
                     # Close the socket to attempt to reconnect
-                    self.socket.close()
-                    self.socket.keep_running = False
+                    await self.socket.close()
                 except Exception:
                     # TODO(CLEAN) only catch socket closed connection
                     # Already closed
                     pass
 
-        def on_disconnect(*args):
-            """Disconnect event is a no-op for us, as the server reconnects
-            automatically on a retry.
-            """
-            # TODO(OWN) we need to set a timeout for reconnecting to the server,
-            # if it fails it's time to call on_catastrophic_disconnect
-            pass
-
-        def on_message(*args):
+        def on_message(msg_json):
             """Incoming message handler defers to the internal handler"""
             try:
-                packet_dict = json.loads(args[1])
+                packet_dict = json.loads(msg_json)
                 packet = Packet.from_dict(packet_dict)
                 self.on_message(self.channel_id, packet)
             except Exception as e:
@@ -127,29 +121,73 @@ class WebsocketChannel(Channel):
                 logger.exception(repr(e), exc_info=True)
                 raise
 
-        def run_socket(*args):
+        async def run_socket():
+            loop = asyncio.get_running_loop()
+
+            # Outer loop allows reconnects
             while not self._is_closed:
                 try:
-                    socket = websocket.WebSocketApp(
-                        self.socket_url,
-                        on_message=on_message,
-                        on_error=on_error,
-                        on_close=on_disconnect,
-                    )
-                    self.socket = socket
-                    socket.on_open = on_socket_open
-                    socket.run_forever(ping_interval=8 * STATUS_CHECK_TIME)
+                    async with websockets.connect(
+                        self.socket_url, open_timeout=30
+                    ) as websocket:
+                        # Inner loop recieves messages until closed
+                        self.socket = websocket
+                        on_socket_open()
+                        try:
+                            while not self._is_closed:
+                                message = await websocket.recv()
+                                on_message(message)
+                        except websockets.exceptions.ConnectionClosedOK:
+                            pass
+                        except websockets.exceptions.ConnectionClosedError as e:
+                            await on_error(e)
+                        except Exception as e:
+                            logger.exception(
+                                f"Socket error {repr(e)}, attempting restart",
+                                exc_info=True,
+                            )
+                        await asyncio.sleep(0.2)
+                except asyncio.TimeoutError:
+                    # Issue with opening this channel, should shut down to prevent inaccessible tasks
+                    self.on_catastrophic_disconnect(self.channel_id)
+                    return
                 except Exception as e:
-                    logger.exception(
-                        f"Socket error {repr(e)}, attempting restart", exc_info=True
-                    )
-                time.sleep(0.2)
+                    logger.exception(f"Unhandled exception in socket {e}, {repr(e)}")
+                    raise e
+
+        def async_socket_wrap():
+            event_loop = asyncio.new_event_loop()
+            self.loop_wrap = LoopWrapper(event_loop)
+            asyncio.set_event_loop(event_loop)
+            self._socket_task = event_loop.create_task(
+                run_socket(),
+            )
+            event_loop.run_forever()
+
+            async def close_websocket():
+                if self.socket is not None:
+                    await self.socket.close()
+                if self._socket_task is not None:
+                    await self._socket_task
+
+            event_loop.run_until_complete(close_websocket())
 
         # Start listening thread
         self.thread = threading.Thread(
-            target=run_socket, name=f"socket-thread-{self.socket_url}"
+            target=async_socket_wrap, name=f"socket-thread-{self.socket_url}"
         )
         self.thread.start()
+
+    async def _async_send(self, send_str):
+        """
+        Underlying send wrapper that calls on the current websocket to send
+        """
+        try:
+            await self.socket.send(send_str)
+        except websockets.exceptions.ConnectionClosedOK:
+            pass
+        except websockets.exceptions.ConnectionClosedError as e:
+            raise (e)
 
     def send(self, packet: "Packet") -> bool:
         """
@@ -158,18 +196,9 @@ class WebsocketChannel(Channel):
         """
         if self.socket is None:
             return False
-        try:
-            data = packet.to_sendable_dict()
-            self.socket.send(json.dumps(data))
-        except websocket.WebSocketConnectionClosedException:
-            # The channel died mid-send, wait for it to come back up
+        if self.socket.closed:
             return False
-        except BrokenPipeError:
-            # The channel died mid-send, wait for it to come back up
-            return False
-        except Exception as e:
-            logger.exception(
-                f"Unexpected socket error occured: {repr(e)}", exc_info=True
-            )
-            return False
+
+        data = packet.to_sendable_dict()
+        self.loop_wrap.execute_coro(self._async_send(json.dumps(data)))
         return True

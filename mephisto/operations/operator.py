@@ -307,22 +307,23 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 await asyncio.sleep(0.01)  # Low pri, allow to be interrupted
-                task_run = tracked_run.task_run
-                if tracked_run.task_launcher.finished_generators is False:
-                    # If the run can still generate assignments, it's
-                    # definitely not done
-                    continue
-                task_run.update_completion_progress(
-                    task_launcher=tracked_run.task_launcher
-                )
-                if not task_run.get_is_completed():
-                    continue
-                else:
-                    tracked_run.client_io.shutdown()
-                    tracked_run.worker_pool.shutdown()
-                    tracked_run.task_launcher.shutdown()
-                    tracked_run.architect.shutdown()
-                    del self._task_runs_tracked[task_run.db_id]
+                if not tracked_run.force_shutdown:
+                    task_run = tracked_run.task_run
+                    if tracked_run.task_launcher.finished_generators is False:
+                        # If the run can still generate assignments, it's
+                        # definitely not done
+                        continue
+                    task_run.update_completion_progress(
+                        task_launcher=tracked_run.task_launcher
+                    )
+                    if not task_run.get_is_completed():
+                        continue
+
+                tracked_run.client_io.shutdown()
+                tracked_run.worker_pool.shutdown()
+                tracked_run.task_launcher.shutdown()
+                tracked_run.architect.shutdown()
+                del self._task_runs_tracked[task_run.db_id]
             await asyncio.sleep(RUN_STATUS_POLL_TIME)
 
     def force_shutdown(self, timeout=5):

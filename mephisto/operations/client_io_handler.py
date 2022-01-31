@@ -57,12 +57,6 @@ SERVER_CHANNEL_ID = "mephisto_server"
 START_DEATH_TIME = 10
 
 
-# TODO once the underlying Channel API is updated to asyncio + asyncio websockets
-# all underlying .send_<thing> methods should be pulling the asyncio loop of the
-# server thread and running coroutine tasks there. They can then be listed as
-# enqueue_<thing> methods instead.
-
-
 class ClientIOHandler:
     """
     This class is responsible for managing all of the incoming and outgoing messages
@@ -86,7 +80,9 @@ class ClientIOHandler:
         self.agent_id_to_channel_id: Dict[str, str] = {}
         # Map from a request id to the channel that issued it
         self.request_id_to_channel_id: Dict[str, str] = {}
-        # TODO this should be in an asyncio coroutine
+        # TODO(#575) this should be in an asyncio coroutine - can instead
+        # queue up a message queue send on every enqueue, and
+        # then have periodic status checks
         self.sending_thread: Optional[threading.Thread] = None
 
         # Deferred initializiation
@@ -110,10 +106,15 @@ class ClientIOHandler:
         self._send_alive(channel_id)
 
     def _on_catastrophic_disconnect(self, channel_id: str) -> None:
-        # TODO(#102) Catastrophic disconnect needs to trigger cleanup
+        """On a catastrophic (unable to reconnect) disconnect event, cleanup this task"""
         logger.error(f"Channel {channel_id} called on_catastrophic_disconnect")
 
-    def _on_channel_message(self, channel_id: str, packet: Packet) -> None:
+        live_run = self.get_live_run()
+        live_run.force_shutdown = True
+
+    async def __on_channel_message_internal(
+        self, channel_id: str, packet: Packet
+    ) -> None:
         """Incoming message handler defers to the internal handler"""
         try:
             self._on_message(packet, channel_id)
@@ -125,9 +126,14 @@ class ClientIOHandler:
             )
             raise
 
+    def _on_channel_message(self, channel_id: str, packet: Packet) -> None:
+        """Channel handler wrapper that passes handling to the local loop"""
+        self.get_live_run().loop_wrap.execute_coro(
+            self.__on_channel_message_internal(channel_id, packet)
+        )
+
     def _register_channel(self, channel: Channel) -> str:
         """Register this channel"""
-        # TODO potentially blocking!
         channel_id = channel.channel_id
 
         self.channels[channel_id] = channel
@@ -142,8 +148,9 @@ class ClientIOHandler:
                 raise ConnectionRefusedError(  # noqa F821 we only support py3
                     "Was not able to establish a connection with the server, "
                     "please try to run again. If that fails,"
-                    "please ensure that your local device has the correct SSL "
-                    "certs installed."
+                    "please launch with mephisto.log_level=debug and watch for "
+                    "clear errors. If this doesn't help, feel free to open an issue "
+                    "with your debug logs on the Mephisto github."
                 )
             try:
                 self._send_alive(channel_id)
@@ -177,7 +184,6 @@ class ClientIOHandler:
         self.agents_by_registration_id[registration_id] = agent_id
 
     def _send_alive(self, channel_id: str) -> bool:
-        # TODO update with async send
         logger.info("Sending alive")
         return self.channels[channel_id].send(
             Packet(
@@ -206,7 +212,7 @@ class ClientIOHandler:
                 save_dir = agent.get_data_dir()
                 architect = live_run.architect
                 for f_obj in data_files:
-                    # TODO this is incredibly blocking!
+                    # TODO(#575) this is incredibly blocking!
                     architect.download_file(f_obj["filename"], save_dir)
 
         agent.pending_actions.put(packet)
@@ -272,7 +278,7 @@ class ClientIOHandler:
         assert isinstance(
             agent, Agent
         ), f"Can only get init unit data for Agents, not OnboardingAgents, got {agent}"
-        # TODO this is IO bound
+        # TODO(#575) this is IO bound
         unit_data = task_runner.get_init_data_for_agent(agent)
 
         agent_data_packet = Packet(
@@ -354,7 +360,6 @@ class ClientIOHandler:
             receiver_id=agent_id,
             data={},
         )
-        # TODO update when channels are async
         self._get_channel_for_agent(agent_id).send(send_packet)
 
     def _request_status_update(self) -> None:

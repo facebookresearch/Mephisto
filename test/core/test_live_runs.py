@@ -174,6 +174,12 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(agent)
 
     def await_channel_requests(self, live_run, timeout=2) -> None:
+        tasks = asyncio.all_tasks(live_run.loop_wrap.loop)
+        self._run_loop_until(
+            live_run,
+            lambda: len(asyncio.all_tasks(live_run.loop_wrap.loop)) < 1,
+            timeout,
+        )
         self.assertTrue(
             self._run_loop_until(
                 live_run,
@@ -199,8 +205,7 @@ class BaseTestLiveRuns:
             self.client_io._on_message,
         )
         channel = channels[0]
-        channel.open()
-        time.sleep(0.5)
+        self.client_io._register_channel(channel)
         self.assertTrue(channel.is_alive())
         channel.close()
         self.assertTrue(channel.is_closed())
@@ -238,6 +243,7 @@ class BaseTestLiveRuns:
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
+        time.sleep(0.5)
         self.await_channel_requests(live_run)
         workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")

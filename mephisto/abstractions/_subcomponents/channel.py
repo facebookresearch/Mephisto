@@ -5,9 +5,11 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+import asyncio
 
-from typing import Callable
+from typing import Callable, Optional
 from mephisto.data_model.packet import Packet
+from mephisto.operations.datatypes import LoopWrapper
 
 STATUS_CHECK_TIME = 4
 
@@ -49,6 +51,7 @@ class Channel(ABC):
         self.on_channel_open = on_channel_open
         self.on_catastrophic_disconnect = on_catastrophic_disconnect
         self.on_message = on_message
+        self.loop_wrap: Optional[LoopWrapper] = None
 
     @abstractmethod
     def is_closed(self):
