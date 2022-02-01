@@ -213,7 +213,7 @@ class ClientIOHandler:
                 save_dir = agent.get_data_dir()
                 architect = live_run.architect
                 for f_obj in data_files:
-                    # TODO(#575) this is incredibly blocking!
+                    # TODO(#649) this is incredibly blocking!
                     architect.download_file(f_obj["filename"], save_dir)
 
         agent.pending_actions.put(packet)
@@ -280,7 +280,7 @@ class ClientIOHandler:
         assert isinstance(
             agent, Agent
         ), f"Can only get init unit data for Agents, not OnboardingAgents, got {agent}"
-        # TODO(#575) this is IO bound
+        # TODO(#649) this is IO bound
         unit_data = task_runner.get_init_data_for_agent(agent)
 
         agent_data_packet = Packet(
