@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import threading
 import weakref
 import time
 import asyncio
@@ -74,16 +73,14 @@ class ClientIOHandler:
         # Dict from registration id to agent id
         self.agents_by_registration_id: Dict[str, str] = {}
         # Agent status handling
-        self.last_status_check = time.time()
+        self._status_task: Optional[asyncio.Future] = None
         # Message handling
         self.message_queue: "Queue[Packet]" = Queue()
         self.agent_id_to_channel_id: Dict[str, str] = {}
         # Map from a request id to the channel that issued it
         self.request_id_to_channel_id: Dict[str, str] = {}
-        # TODO(#575) this should be in an asyncio coroutine - can instead
-        # queue up a message queue send on every enqueue, and
-        # then have periodic status checks
-        self.sending_thread: Optional[threading.Thread] = None
+
+        self.is_shutdown = False
 
         # Deferred initializiation
         self._live_run: Optional["LiveTaskRun"] = None
@@ -170,7 +167,7 @@ class ClientIOHandler:
         )
         for channel in channels:
             self._register_channel(channel)
-        self.launch_sending_thread()
+        self._status_task = asyncio.ensure_future(self._ping_statuses_while_alive())
 
     def associate_agent_with_registration(
         self, agent_id: str, request_id: str, registration_id: str
@@ -185,7 +182,7 @@ class ClientIOHandler:
 
     def _send_alive(self, channel_id: str) -> bool:
         logger.info("Sending alive")
-        return self.channels[channel_id].send(
+        return self.channels[channel_id].enqueue_send(
             Packet(
                 packet_type=PACKET_TYPE_ALIVE,
                 sender_id=SYSTEM_CHANNEL_ID,
@@ -267,6 +264,7 @@ class ClientIOHandler:
                 data=base_data,
             )
         )
+        self.process_outgoing_queue(self.message_queue)
         del self.request_id_to_channel_id[request_id]
 
     def _get_init_data(self, packet, channel_id: str):
@@ -289,6 +287,7 @@ class ClientIOHandler:
         )
 
         self.message_queue.put(agent_data_packet)
+        self.process_outgoing_queue(self.message_queue)
 
         if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
             # TODO clarify how raw messages are sent
@@ -360,17 +359,13 @@ class ClientIOHandler:
             receiver_id=agent_id,
             data={},
         )
-        self._get_channel_for_agent(agent_id).send(send_packet)
+        self._get_channel_for_agent(agent_id).enqueue_send(send_packet)
 
     def _request_status_update(self) -> None:
         """
         Check last round of statuses, then request
         an update from the server on all agent's current status
         """
-        if time.time() - self.last_status_check < STATUS_CHECK_TIME:
-            return
-
-        self.last_status_check = time.time()
         for channel_id, channel in self.channels.items():
             send_packet = Packet(
                 packet_type=PACKET_TYPE_REQUEST_AGENT_STATUS,
@@ -378,17 +373,12 @@ class ClientIOHandler:
                 receiver_id=channel_id,
                 data={},
             )
-            channel.send(send_packet)
+            channel.enqueue_send(send_packet)
 
-    def _channel_handling_thread(self) -> None:
-        """Thread for handling outgoing messages through the channels"""
-        while len(self.channels) > 0:
-            # Send all messages from the system
-            self._send_handler_message_queue()
+    async def _ping_statuses_while_alive(self) -> None:
+        while not self.is_shutdown and len(self.channels) > 0:
             self._request_status_update()
-            # TODO(#103) is there a way we can trigger this when
-            # agents observe instead?
-            time.sleep(0.3)
+            await asyncio.sleep(STATUS_CHECK_TIME)
 
     def send_status_update(self, agent_id: str, status: str):
         status_packet = Packet(
@@ -404,7 +394,7 @@ class ClientIOHandler:
                 },
             },
         )
-        self._get_channel_for_agent(agent_id).send(status_packet)
+        self._get_channel_for_agent(agent_id).enqueue_send(status_packet)
 
     def send_done_message(self, agent_id: str):
         """Compose and send a done message to the given agent. This allows submission"""
@@ -420,35 +410,17 @@ class ClientIOHandler:
                 },
             },
         )
-        self._get_channel_for_agent(agent_id).send(done_packet)
+        self._get_channel_for_agent(agent_id).enqueue_send(done_packet)
 
-    def _send_handler_message_queue(self) -> None:
-        """Send all of the messages in the system queue"""
-        self.send_message_queue(self.message_queue)
-
-    def send_message_queue(self, message_queue: "Queue[Packet]") -> None:
+    def process_outgoing_queue(self, message_queue: "Queue[Packet]") -> None:
         """Sends messages from the given list until it is empty"""
-        # TODO can we batch all of these?
         while not message_queue.empty() > 0:
             curr_obs = message_queue.get()
             try:
                 channel = self._get_channel_for_agent(curr_obs.receiver_id)
             except Exception:
                 channel = self.channels[curr_obs.receiver_id]
-            did_send = channel.send(curr_obs)
-            if not did_send:
-                logger.error(
-                    f"Failed to send packet {curr_obs} to server {curr_obs.receiver_id}"
-                )
-                message_queue.queue.insert(0, curr_obs)
-                return  # something up with the channel, try later
-
-    def launch_sending_thread(self) -> None:
-        """Launch the sending thread for this IO handler"""
-        self.sending_thread = threading.Thread(
-            target=self._channel_handling_thread, name=f"channel-sending-thread"
-        )
-        self.sending_thread.start()
+            channel.enqueue_send(curr_obs)
 
     def shutdown(self) -> None:
         """Close any channels related to a LiveTaskRun, clean up any resources"""
@@ -459,9 +431,14 @@ class ClientIOHandler:
         for channel_id in run_channels:
             self.channels[channel_id].close()
             del self.channels[channel_id]
-        logger.debug(f"Joining send thread")
-        if self.sending_thread is not None:
-            self.sending_thread.join()
+        self.is_shutdown = True
+
+        logger.debug(f"Cancelling status ping task")
+        try:
+            if self._status_task is not None and not self._status_task.cancelled():
+                self._status_task.cancel()
+        except asyncio.CancelledError:
+            pass
         self._live_run = None
 
     def _get_channel_for_agent(self, agent_id: str) -> Channel:

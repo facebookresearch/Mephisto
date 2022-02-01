@@ -39,7 +39,7 @@ from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
-
+# TODO(CLEAN) can probably refactor out some kind of AgentBase
 class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class encompasses a worker as they are working on an individual assignment.
@@ -75,9 +75,6 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self.pending_actions: "Queue[Packet]" = Queue()
         self.has_action = threading.Event()
         self.has_action.clear()
-        self.wants_action = threading.Event()
-        self.wants_action.clear()
-        self.has_updated_status = threading.Event()
         self.assignment_id = row["assignment_id"]
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
@@ -227,7 +224,11 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         old_status = self.db_status
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        self.has_updated_status.set()
+        if self._associated_live_run is not None:
+            live_run = self.get_live_run()
+            live_run.loop_wrap.execute_coro(
+                live_run.worker_pool.push_status_update(self)
+            )
         if new_status in [
             AgentState.STATUS_RETURNED,
             AgentState.STATUS_DISCONNECT,
@@ -294,6 +295,9 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         sending_packet.receiver_id = self.db_id
         self.state.update_data(sending_packet)
         self.pending_observations.put(sending_packet)
+        if self._associated_live_run is not None:
+            live_run = self.get_live_run()
+            live_run.client_io.process_outgoing_queue(self.pending_observations)
 
     def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
         """
@@ -302,7 +306,9 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         to be returned.
         """
         if self.pending_actions.empty():
-            self.wants_action.set()
+            if self._associated_live_run is not None:
+                live_run = self.get_live_run()
+                live_run.client_io.request_action(self.get_agent_id())
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
@@ -343,7 +349,11 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 ]:
                     # Disconnect statuses should free any pending acts
                     self.has_action.set()
-                self.has_updated_status.set()
+                if self._associated_live_run is not None:
+                    live_run = self.get_live_run()
+                    live_run.loop_wrap.execute_coro(
+                        live_run.worker_pool.push_status_update(self)
+                    )
             self.db_status = row["status"]
         return self.db_status
 
@@ -444,9 +454,6 @@ class OnboardingAgent(
         self.pending_actions: "Queue[Packet]" = Queue()
         self.has_action = threading.Event()
         self.has_action.clear()
-        self.wants_action = threading.Event()
-        self.wants_action.clear()
-        self.has_updated_status = threading.Event()
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
         self.did_submit = threading.Event()
@@ -540,8 +547,15 @@ class OnboardingAgent(
 
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        if new_status not in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
-            self.has_updated_status.set()
+        if self._associated_live_run is not None:
+            if new_status not in [
+                AgentState.STATUS_APPROVED,
+                AgentState.STATUS_REJECTED,
+            ]:
+                live_run = self.get_live_run()
+                live_run.loop_wrap.execute_coro(
+                    live_run.worker_pool.push_status_update(self)
+                )
         if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
             # Disconnect statuses should free any pending acts
             self.has_action.set()
@@ -564,7 +578,9 @@ class OnboardingAgent(
         to be returned.
         """
         if self.pending_actions.empty():
-            self.wants_action.set()
+            if self._associated_live_run is not None:
+                live_run = self.get_live_run()
+                live_run.client_io.request_action(self.get_agent_id())
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
@@ -605,11 +621,15 @@ class OnboardingAgent(
                 ]:
                     # Disconnect statuses should free any pending acts
                     self.has_action.set()
-            if row["status"] not in [
-                AgentState.STATUS_APPROVED,
-                AgentState.STATUS_REJECTED,
-            ]:
-                self.has_updated_status.set()
+                if row["status"] not in [
+                    AgentState.STATUS_APPROVED,
+                    AgentState.STATUS_REJECTED,
+                ]:
+                    if self._associated_live_run is not None:
+                        live_run = self.get_live_run()
+                        live_run.loop_wrap.execute_coro(
+                            live_run.worker_pool.push_status_update(self)
+                        )
             self.db_status = row["status"]
         return self.db_status
 
@@ -617,7 +637,7 @@ class OnboardingAgent(
         """Mark this agent as done by setting the status to a terminal onboarding state"""
         # TODO the logic for when onboarding gets marked as waiting or approved/rejected
         # should likely be cleaned up to remove these conditionals.
-        if self.get_status not in [
+        if self.get_status() not in [
             AgentState.STATUS_APPROVED,
             AgentState.STATUS_REJECTED,
         ]:
