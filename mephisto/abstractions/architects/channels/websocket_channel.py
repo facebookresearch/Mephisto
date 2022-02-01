@@ -140,7 +140,12 @@ class WebsocketChannel(Channel):
                         except websockets.exceptions.ConnectionClosedOK:
                             pass
                         except websockets.exceptions.ConnectionClosedError as e:
-                            await on_error(e)
+                            if isinstance(
+                                e.__cause__, asyncio.exceptions.CancelledError
+                            ):
+                                pass
+                            else:
+                                await on_error(e)
                         except Exception as e:
                             logger.exception(
                                 f"Socket error {repr(e)}, attempting restart",
@@ -187,7 +192,8 @@ class WebsocketChannel(Channel):
         except websockets.exceptions.ConnectionClosedOK:
             pass
         except websockets.exceptions.ConnectionClosedError as e:
-            raise (e)
+            if not isinstance(e.__cause__, asyncio.exceptions.CancelledError):
+                logger.exception(f"Caught error in _async_send {e}")
 
     def send(self, packet: "Packet") -> bool:
         """

@@ -128,7 +128,11 @@ class BaseTestLiveRuns:
         return [mock_data, mock_data]
 
     def _run_loop_until(
-        self, live_run: LiveTaskRun, condition_met: Callable[[], bool], timeout
+        self,
+        live_run: LiveTaskRun,
+        condition_met: Callable[[], bool],
+        timeout,
+        failure_message=None,
     ) -> bool:
         """
         Function to run the event loop until a specific condition is met, or
@@ -173,13 +177,19 @@ class BaseTestLiveRuns:
         agent = agents[agent_num - 1]
         self.assertIsNotNone(agent)
 
-    def await_channel_requests(self, live_run, timeout=2) -> None:
+    def _await_current_tasks(self, live_run, timeout=5) -> None:
         tasks = asyncio.all_tasks(live_run.loop_wrap.loop)
-        self._run_loop_until(
-            live_run,
-            lambda: len(asyncio.all_tasks(live_run.loop_wrap.loop)) < 1,
-            timeout,
+        print(
+            "Await current tasks success",
+            self._run_loop_until(
+                live_run,
+                lambda: len(asyncio.all_tasks(live_run.loop_wrap.loop)) < 2,
+                timeout,
+            ),
         )
+
+    def await_channel_requests(self, live_run, timeout=2) -> None:
+        self._await_current_tasks(live_run, timeout)
         self.assertTrue(
             self._run_loop_until(
                 live_run,
@@ -301,37 +311,33 @@ class BaseTestLiveRuns:
         self.await_channel_requests(live_run)
 
         # Give up to 1 seconds for the actual operations to occur
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data["acts"]) > 0:
-                break
-            time.sleep(0.1)
-
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(agent_1_data["acts"]) > 0,
+                1,
+            ),
+            "Did not process messages in time",
         )
 
         # Give up to 1 seconds for the task to complete afterwards
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(task_runner.running_units) == 0:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(task_runner.running_units) == 0,
+                1,
+            ),
+            "Did not complete task in time",
         )
 
         # Give up to 1 seconds for all messages to propogate
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: self.architect.server.actions_observed == 2,
+                1,
+            ),
+            "Not all actions observed in time",
         )
 
         live_run.shutdown()
@@ -429,37 +435,33 @@ class BaseTestLiveRuns:
         self.await_channel_requests(live_run)
 
         # Give up to 1 seconds for the actual operation to occur
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data["acts"]) > 0:
-                break
-            time.sleep(0.1)
-
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(agent_1_data["acts"]) > 0,
+                1,
+            ),
+            "Did not process messages in time",
         )
 
         # Give up to 1 seconds for the task to complete afterwards
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(task_runner.running_assignments) == 0:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(task_runner.running_assignments) == 0,
+                1,
+            ),
+            "Did not complete task in time",
         )
 
         # Give up to 1 seconds for all messages to propogate
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: self.architect.server.actions_observed == 2,
+                1,
+            ),
+            "Not all actions observed in time",
         )
 
         live_run.shutdown()
@@ -530,7 +532,7 @@ class BaseTestLiveRuns:
         self.assertEqual(
             len(onboard_agents), 1, "Onboarding agent should have been created"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
@@ -589,7 +591,7 @@ class BaseTestLiveRuns:
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet, failed onboarding"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -615,7 +617,7 @@ class BaseTestLiveRuns:
         self.assertEqual(
             len(onboard_agents), 2, "Onboarding agent should have been created"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
@@ -663,7 +665,7 @@ class BaseTestLiveRuns:
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         self.await_channel_requests(live_run)
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -695,37 +697,33 @@ class BaseTestLiveRuns:
         self.await_channel_requests(live_run)
 
         # Give up to 1 seconds for the actual operation to occur
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data["acts"]) > 0:
-                break
-            time.sleep(0.1)
-
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(agent_1_data["acts"]) > 0,
+                1,
+            ),
+            "Did not process messages in time",
         )
 
         # Give up to 1 seconds for the task to complete afterwards
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(task_runner.running_assignments) == 0:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(task_runner.running_assignments) == 0,
+                1,
+            ),
+            "Did not complete task in time",
         )
 
         # Give up to 1 seconds for all messages to propogate
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: self.architect.server.actions_observed == 2,
+                1,
+            ),
+            "Not all actions observed in time",
         )
 
         live_run.shutdown()
@@ -795,7 +793,7 @@ class BaseTestLiveRuns:
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet, failed onboarding"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -821,7 +819,7 @@ class BaseTestLiveRuns:
         self.assertEqual(
             len(onboard_agents), 1, "Onboarding agent should have been created"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
@@ -867,7 +865,7 @@ class BaseTestLiveRuns:
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         self.await_channel_requests(live_run)
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -903,7 +901,7 @@ class BaseTestLiveRuns:
         self.assertEqual(
             len(onboard_agents), 2, "Onboarding agent should have been created"
         )
-        time.sleep(0.1)
+        self._await_current_tasks(live_run, 2)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         if not last_packet["data"].get("status") == "onboarding":
@@ -949,37 +947,33 @@ class BaseTestLiveRuns:
         self.await_channel_requests(live_run)
 
         # Give up to 1 seconds for the actual operation to occur
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data["acts"]) > 0:
-                break
-            time.sleep(0.1)
-
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(agent_1_data["acts"]) > 0,
+                1,
+            ),
+            "Did not process messages in time",
         )
 
         # Give up to 1 seconds for the task to complete afterwards
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(task_runner.running_units) == 0:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(task_runner.running_units) == 0,
+                1,
+            ),
+            "Did not complete task in time",
         )
 
         # Give up to 1 seconds for all messages to propogate
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: self.architect.server.actions_observed == 2,
+                1,
+            ),
+            "Not all actions observed in time",
         )
 
         live_run.shutdown()
@@ -1078,7 +1072,7 @@ class BaseTestLiveRuns:
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "No agent created for screening")
-        time.sleep(0.1)
+
         self.assertEqual(
             agents[0].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
@@ -1092,7 +1086,7 @@ class BaseTestLiveRuns:
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "No agent created for screening")
         last_packet = None
-        time.sleep(0.1)
+
         self.assertEqual(
             agents[1].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
@@ -1105,11 +1099,9 @@ class BaseTestLiveRuns:
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Third agent created, when 2 was max")
-        time.sleep(0.1)
 
         # Disconnect first agent
         agents[0].update_status(AgentState.STATUS_DISCONNECT)
-        time.sleep(0.5)
 
         # Register third screening agent
         mock_agent_details = "FAKE_ASSIGNMENT3"
@@ -1117,7 +1109,7 @@ class BaseTestLiveRuns:
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 3, "Third agent not created")
-        time.sleep(0.1)
+
         self.assertEqual(
             agents[2].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
@@ -1129,14 +1121,13 @@ class BaseTestLiveRuns:
         self.architect.server.send_agent_act(agents[1].get_agent_id(), screening_data)
         self.await_channel_requests(live_run)
         # Assert failed screening screening
-        start_time = time.time()
-        TIMEOUT_TIME = 5
-        while time.time() - start_time < TIMEOUT_TIME:
-            if worker_2.is_qualified(FAILED_QUALIFICATION_NAME):
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not qualify in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: worker_2.is_qualified(FAILED_QUALIFICATION_NAME),
+                5,
+            ),
+            "Did not disqualify in time",
         )
 
         # Submit screening from the agent
@@ -1144,14 +1135,13 @@ class BaseTestLiveRuns:
         self.architect.server.send_agent_act(agents[2].get_agent_id(), screening_data)
         self.await_channel_requests(live_run)
         # Assert successful screening screening
-        start_time = time.time()
-        TIMEOUT_TIME = 5
-        while time.time() - start_time < TIMEOUT_TIME:
-            if worker_3.is_qualified(PASSED_QUALIFICATION_NAME):
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not qualify in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: worker_3.is_qualified(PASSED_QUALIFICATION_NAME),
+                5,
+            ),
+            "Did not qualify in time",
         )
 
         # Accept a real task, and complete it, from worker 3
@@ -1162,7 +1152,7 @@ class BaseTestLiveRuns:
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 4, "No agent created for task")
         last_packet = None
-        time.sleep(0.1)
+
         self.assertNotEqual(
             agents[3].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
