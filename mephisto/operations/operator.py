@@ -371,6 +371,7 @@ class Operator:
 
     async def shutdown_async(self):
         """Shut down the asyncio parts of the Operator"""
+
         if self._stop_task is not None:
             await self._stop_task
         await self._run_tracker_task

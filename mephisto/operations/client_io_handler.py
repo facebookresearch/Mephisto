@@ -73,7 +73,7 @@ class ClientIOHandler:
         # Dict from registration id to agent id
         self.agents_by_registration_id: Dict[str, str] = {}
         # Agent status handling
-        self._status_task: Optional[asyncio.Future] = None
+        self._status_task: Optional[asyncio.Task] = None
         # Message handling
         self.message_queue: "Queue[Packet]" = Queue()
         self.agent_id_to_channel_id: Dict[str, str] = {}
@@ -167,7 +167,11 @@ class ClientIOHandler:
         )
         for channel in channels:
             self._register_channel(channel)
-        self._status_task = asyncio.ensure_future(self._ping_statuses_while_alive())
+
+        async def launch_status_task():
+            self._status_task = asyncio.create_task(self._ping_statuses_while_alive())
+
+        live_run.loop_wrap.execute_coro(launch_status_task())
 
     def associate_agent_with_registration(
         self, agent_id: str, request_id: str, registration_id: str
@@ -437,6 +441,11 @@ class ClientIOHandler:
         try:
             if self._status_task is not None and not self._status_task.cancelled():
                 self._status_task.cancel()
+
+                async def await_status_task():
+                    await self._status_task
+
+                self.get_live_run().loop_wrap.execute_coro(await_status_task())
         except asyncio.CancelledError:
             pass
         self._live_run = None
