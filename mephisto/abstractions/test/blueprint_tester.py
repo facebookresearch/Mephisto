@@ -176,11 +176,6 @@ class BlueprintTests(unittest.TestCase):
             TaskBuilder,
             "Can not use base TaskBuilder in a Blueprint implementation",
         )
-        self.assertIn(
-            "mock",
-            self.BlueprintClass.supported_architects,
-            "Must support at least the mock architecture for testing",
-        )
         # TODO(#94?) implement getting the defaults of TaskRunnerClass.get_extra_options() when
         # options are improved
 

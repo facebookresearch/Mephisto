@@ -82,7 +82,6 @@ class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = MockTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = MockBlueprintArgs
-    supported_architects: ClassVar[List[str]] = ["mock"]
     SharedStateClass: ClassVar[Type["SharedTaskState"]] = MockSharedState
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 

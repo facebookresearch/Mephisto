@@ -105,7 +105,6 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = EmptyStaticTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = StaticBlueprintArgs
-    supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
     SharedStateClass = SharedStaticTaskState
 
     def __init__(
