@@ -259,7 +259,7 @@ class MockServer(tornado.web.Application):
                 "packet_type": PACKET_TYPE_RETURN_AGENT_STATUS,
                 "sender_id": "MockServer",
                 "receiver_id": "Mephisto",
-                "data": {{agent_id: AgentState.STATUS_DISCONNECT}},
+                "data": {agent_id: AgentState.STATUS_DISCONNECT},
             }
         )
 
