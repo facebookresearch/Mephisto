@@ -50,7 +50,7 @@ PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding"
 PACKET_TYPE_ERROR_LOG = "log_error"
 
 
-SYSTEM_CHANNEL_ID = "mephisto"  # TODO pull from somewhere
+SYSTEM_CHANNEL_ID = "mephisto"
 SERVER_CHANNEL_ID = "mephisto_server"
 
 FAILED_RECONNECT_TIME = 10  # seconds
