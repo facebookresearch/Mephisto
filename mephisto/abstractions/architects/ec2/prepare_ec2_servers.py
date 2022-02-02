@@ -203,7 +203,7 @@ def launch_ec2_fallback(
     return existing_details
 
 
-# TODO Hydrize
+# TODO(CLEAN) Hydrize
 def main():
     iam_role_name = input("Please enter local profile name for IAM role\n>> ")
     ec2_helpers.setup_ec2_credentials(iam_role_name)

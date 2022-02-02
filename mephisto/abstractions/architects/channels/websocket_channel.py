@@ -193,7 +193,7 @@ class WebsocketChannel(Channel):
         """
         if self.outgoing_queue.empty():
             return
-        # TODO(OWN) pop all messages and batch, rather than just one
+        # TODO(#651) pop all messages and batch, rather than just one
         packet = self.outgoing_queue.get()
         send_str = json.dumps(packet.to_sendable_dict())
         try:
