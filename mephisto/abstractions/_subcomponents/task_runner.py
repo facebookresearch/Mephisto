@@ -85,8 +85,6 @@ class TaskRunner(ABC):
         self.running_units: Dict[str, RunningUnit] = {}
         self.running_onboardings: Dict[str, RunningOnboarding] = {}
         self.is_concurrent = False
-        # TODO(102) populate some kind of local state for tasks that are being run
-        # by this runner from the database.
 
         self.block_qualification = args.blueprint.get("block_qualification", None)
         if self.block_qualification is not None:

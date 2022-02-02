@@ -301,7 +301,7 @@ class Operator:
         Background task that shuts down servers when a task
         is fully done.
         """
-        # TODO only trigger these on a status change?
+        # TODO(#649) only trigger these on a status change?
         while not self.is_shutdown:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:

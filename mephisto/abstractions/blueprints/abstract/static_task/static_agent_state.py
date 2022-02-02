@@ -106,7 +106,7 @@ class StaticAgentState(AgentState):
         else:
             outputs = packet.data["task_data"]
         times_dict = self.state["times"]
-        # TODO(#013) this typing may be better handled another way
+        # TODO(#103) this typing may be better handled another way
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
         if packet.data.get("files") != None:
