@@ -123,6 +123,30 @@ class BlueprintTests(unittest.TestCase):
         # TODO(#94?) implement with options implementations
         pass
 
+    def test_ensure_valid_statuses(self):
+        """Test that all the statuses are represented"""
+        a_state = self.BlueprintClass.AgentStateClass
+        found_valid = a_state.valid()
+        found_complete = a_state.complete()
+        found_keys = [k for k in dir(a_state) if k.startswith("STATUS_")]
+        found_vals = [getattr(a_state, k) for k in found_keys]
+        for v in found_vals:
+            self.assertIn(
+                v, found_valid, f"Expected to find {v} in valid list {found_valid}"
+            )
+        for v in found_complete:
+            self.assertIn(
+                v,
+                found_vals,
+                f"Expected to find {v} in {a_state} attributes, not in {found_vals}",
+            )
+        for v in found_valid:
+            self.assertIn(
+                v,
+                found_vals,
+                f"Expected to find {v} in {a_state} attributes, not in {found_vals}",
+            )
+
     def test_has_required_class_members(self) -> None:
         """Ensures that the BluePrint is well-formatted"""
         self.assertTrue(
