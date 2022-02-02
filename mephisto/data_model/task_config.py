@@ -90,6 +90,15 @@ class TaskConfigArgs:
             )
         },
     )
+    submission_timout: int = field(
+        default=600,
+        metadata={
+            "help": (
+                "Time that mephisto will wait after marking a task done before abandoning "
+                "waiting for the worker to actually press submit."
+            )
+        },
+    )
 
 
 class TaskConfig:
@@ -123,6 +132,7 @@ class TaskConfig:
         self.maximum_units_per_worker: int = self.args.get(
             "maximum_units_per_worker", None
         )
+        self.submission_timeout: int = self.args.get("submission_timeout", 300)
 
     @classmethod
     def get_mock_params(cls) -> str:

@@ -250,8 +250,7 @@ class TaskRunner(ABC):
             do_mark_done()
             if not agent.did_submit.is_set():
                 # Wait for a submit to occur
-                # TODO(#94) make submit timeout configurable
-                agent.has_action.wait(timeout=300)
+                agent.has_action.wait(timeout=self.args.task.submission_timout)
                 agent.act()
             agent.mark_done()
         self._cleanup_special_units(unit, agent)
@@ -326,8 +325,7 @@ class TaskRunner(ABC):
             if agent.get_status() not in AgentState.complete():
                 if not agent.did_submit.is_set():
                     # Wait for a submit to occur
-                    # TODO(#94) make submit timeout configurable
-                    agent.has_action.wait(timeout=300)
+                    agent.has_action.wait(timeout=self.args.task.submission_timout)
                     agent.act()
                 agent.mark_done()
 
