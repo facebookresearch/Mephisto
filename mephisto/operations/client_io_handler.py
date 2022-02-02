@@ -444,11 +444,11 @@ class ClientIOHandler:
 
                 async def await_status_task():
                     await self._status_task
+                    self._live_run = None
 
                 self.get_live_run().loop_wrap.execute_coro(await_status_task())
         except asyncio.CancelledError:
             pass
-        self._live_run = None
 
     def _get_channel_for_agent(self, agent_id: str) -> Channel:
         """Return the sending channel for a given agent"""
