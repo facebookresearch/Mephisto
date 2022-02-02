@@ -63,10 +63,6 @@ class MTurkProvider(CrowdProvider):
 
     ArgsClass = MTurkProviderArgs
 
-    SUPPORTED_TASK_TYPES: ClassVar[List[str]] = [
-        # TODO
-    ]
-
     def initialize_provider_datastore(self, storage_path: str) -> Any:
         """
         MTurk itself is the source of truth for most data required to run
