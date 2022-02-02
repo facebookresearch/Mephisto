@@ -404,6 +404,7 @@ class Operator:
                 next_runs = []
                 for tracked_run in remaining_runs:
                     if tracked_run.task_run.get_is_completed():
+                        tracked_run.shutdown()
                         tracked_run.architect.shutdown()
                     else:
                         next_runs.append(tracked_run)
@@ -429,6 +430,7 @@ class Operator:
                 logger.info(
                     f"Shutting down Architect for task run {tracked_run.task_run.db_id}"
                 )
+                tracked_run.shutdown()
                 tracked_run.architect.shutdown()
         finally:
             runs_to_close = list(self._task_runs_tracked.keys())
