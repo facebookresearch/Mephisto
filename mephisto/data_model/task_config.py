@@ -109,8 +109,6 @@ class TaskConfig:
 
     ArgsClass = TaskConfigArgs
 
-    # TODO(#94?) TaskConfigs should probably be removed in favor of relying on
-    # just hydra arguments
     def __init__(self, task_run: "TaskRun"):
         self.db = task_run.db
         args = task_run.args
