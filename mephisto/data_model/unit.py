@@ -125,7 +125,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         Ensure that the queried status from this unit and the db status
         are up to date
         """
-        # TODO(102) this will need to be run periodically/on crashes
+        # TODO(#102) this will need to be run periodically/on crashes
         # to sync any lost state
         self.set_db_status(self.get_status())
 
@@ -213,7 +213,6 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         """
         # In these statuses, we know the agent isn't changing anymore, and thus will
         # not need to be re-queried
-        # TODO(#97) add test to ensure this behavior/assumption holds always
         if self.db_status in AssignmentState.final_unit():
             if self.agent_id is None:
                 return None
