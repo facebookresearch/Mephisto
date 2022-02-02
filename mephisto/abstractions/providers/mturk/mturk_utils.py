@@ -371,7 +371,7 @@ def convert_mephisto_qualifications(
                 False,
             )
             if qual_id is None:
-                # TODO log more loudly that this qualification is being skipped?
+                # TODO(#93) log more loudly that this qualification is being skipped?
                 print(
                     f"Qualification name {qualification_name} can not be found or created on MTurk"
                 )
