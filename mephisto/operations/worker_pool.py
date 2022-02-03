@@ -97,7 +97,7 @@ class WorkerPool:
         is_sandbox = crowd_provider.is_sandbox()
         worker_name = crowd_data["worker_name"]
         if crowd_provider.is_sandbox():
-            # TODO there are better ways to get rid of this designation
+            # TODO(WISH) there are better ways to get rid of this designation
             worker_name += "_sandbox"
         workers = await loop.run_in_executor(
             None, partial(self.db.find_workers, worker_name=worker_name)
