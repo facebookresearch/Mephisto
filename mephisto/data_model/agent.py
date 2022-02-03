@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task import Task
     from mephisto.data_model.task_run import TaskRun
+    from mephisto.operations.datatypes import LiveTaskRun
 
 from mephisto.operations.logger_core import get_logger
 
@@ -89,6 +90,9 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
 
+        # Related entity set by a live run
+        self._associated_live_run: Optional["LiveTaskRun"] = None
+
         # Follow-up initialization is deferred
         self._state = None  # type: ignore
 
@@ -127,6 +131,18 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    def set_live_run(self, live_run: "LiveTaskRun") -> None:
+        """Set an associated live run for this agent"""
+        self._associated_live_run = live_run
+
+    def get_live_run(self) -> "LiveTaskRun":
+        """Return the associated live run for this agent. Throw if not set"""
+        if self._associated_live_run is None:
+            raise AssertionError(
+                "Should not be getting the live run, not set for given agent"
+            )
+        return self._associated_live_run
 
     def get_agent_id(self) -> str:
         """Return this agent's id"""
@@ -438,12 +454,27 @@ class OnboardingAgent(
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
 
+        # Related entity set by a live run
+        self._associated_live_run: Optional["LiveTaskRun"] = None
+
         # Follow-up initialization
         self.state = AgentState(self)  # type: ignore
 
     def get_agent_id(self) -> str:
         """Return an id to use for onboarding agent requests"""
         return f"{self.DISPLAY_PREFIX}{self.db_id}"
+
+    def set_live_run(self, live_run: "LiveTaskRun") -> None:
+        """Set an associated live run for this agent"""
+        self._associated_live_run = live_run
+
+    def get_live_run(self) -> "LiveTaskRun":
+        """Return the associated live run for this agent. Throw if not set"""
+        if self._associated_live_run is None:
+            raise AssertionError(
+                "Should not be getting the live run, not set for given agent"
+            )
+        return self._associated_live_run
 
     @classmethod
     def is_onboarding_id(cls, agent_id: str) -> bool:

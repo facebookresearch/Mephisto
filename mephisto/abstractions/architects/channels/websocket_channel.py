@@ -6,7 +6,7 @@
 
 from typing import Callable, Optional
 from mephisto.data_model.packet import Packet
-from mephisto.abstractions.channel import Channel, STATUS_CHECK_TIME
+from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
 
 import errno
 import websocket  # type: ignore
