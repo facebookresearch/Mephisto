@@ -81,7 +81,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
             requester_name = req.requester_name
         else:
             reqs = db.find_requesters(provider_type=provider_type)
-            # TODO (#93) proper logging
+            # TODO(#93) proper logging
             if len(reqs) == 0:
                 print(
                     f"No requesters found for provider type {provider_type}, please "
