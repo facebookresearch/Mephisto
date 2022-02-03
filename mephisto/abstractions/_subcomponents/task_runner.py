@@ -165,7 +165,7 @@ class TaskRunner(ABC):
                 await live_run.worker_pool.register_agent_from_onboarding(
                     onboarding_agent
                 )
-                await cleanup_after
+                await cleanup_after()
 
             live_run.loop_wrap.execute_coro(register_then_cleanup())
         else:

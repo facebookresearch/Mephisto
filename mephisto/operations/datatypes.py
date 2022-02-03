@@ -68,6 +68,10 @@ class LiveTaskRun:
 
     loop_wrap: LoopWrapper
 
+    # Toggle used to tell operator to force shutdown
+    # of this task run in error conditions
+    force_shutdown: bool = False
+
     def shutdown(self):
         self.task_runner.shutdown()
         self.worker_pool.shutdown()
