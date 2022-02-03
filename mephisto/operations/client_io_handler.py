@@ -51,7 +51,7 @@ STATUS_TO_TEXT_MAP = {
     "you for them leaving, so please submit this task as is.",
 }
 
-SYSTEM_CHANNEL_ID = "mephisto"  # TODO pull from somewhere
+SYSTEM_CHANNEL_ID = "mephisto"
 SERVER_CHANNEL_ID = "mephisto_server"
 START_DEATH_TIME = 10
 
@@ -294,7 +294,7 @@ class ClientIOHandler:
         self.process_outgoing_queue(self.message_queue)
 
         if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
-            # TODO clarify how raw messages are sent
+            # TODO(#651) clarify how raw messages are sent
             for message in unit_data["raw_messages"]:
                 packet = Packet.from_dict(message)
                 packet.receiver_id = agent_id

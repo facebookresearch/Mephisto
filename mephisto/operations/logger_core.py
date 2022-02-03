@@ -82,7 +82,7 @@ def get_logger(
             handler = logging.StreamHandler()
         else:
             handler = RotatingFileHandler(log_file)
-        # TODO revisit logging handlers after deciding whether or not to just use
+        # TODO(#93) revisit logging handlers after deciding whether or not to just use
         # Hydra default?
         # formatter = logging.Formatter(
         #     "[%(asctime)s] p%(process)s {%(filename)s:%(lineno)d} %(levelname)5s - %(message)s",

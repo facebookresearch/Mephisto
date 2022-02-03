@@ -143,7 +143,7 @@ class Operator:
         )
 
         # Small hack for auto appending block qualification
-        # TODO we can use blueprint.mro() to discover BlueprintMixins and extract from there
+        # TODO(OWN) we can use blueprint.mro() to discover BlueprintMixins and extract from there
         existing_qualifications = shared_state.qualifications
         if run_config.blueprint.get("block_qualification", None) is not None:
             existing_qualifications.append(
