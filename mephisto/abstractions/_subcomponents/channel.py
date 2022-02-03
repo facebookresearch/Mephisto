@@ -5,13 +5,17 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+from queue import Queue
 import asyncio
 
-from typing import Callable, Optional
+from typing import Callable, Optional, TYPE_CHECKING
 from mephisto.data_model.packet import Packet
 from mephisto.operations.datatypes import LoopWrapper
 
 STATUS_CHECK_TIME = 4
+
+if TYPE_CHECKING:
+    from mephisto.data_model.packet import Packet
 
 
 class Channel(ABC):
@@ -52,6 +56,7 @@ class Channel(ABC):
         self.on_catastrophic_disconnect = on_catastrophic_disconnect
         self.on_message = on_message
         self.loop_wrap: Optional[LoopWrapper] = None
+        self.outgoing_queue: "Queue[Packet]" = Queue()
 
     @abstractmethod
     def is_closed(self):
@@ -82,8 +87,8 @@ class Channel(ABC):
         """
 
     @abstractmethod
-    def send(self, packet: "Packet") -> bool:
+    def enqueue_send(self, packet: "Packet") -> bool:
         """
-        Send the packet given to the intended recipient.
+        Enqueue and send the packet given to the intended recipient.
         Return True on success and False on failure.
         """

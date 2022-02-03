@@ -183,10 +183,15 @@ class WebsocketChannel(Channel):
         )
         self.thread.start()
 
-    async def _async_send(self, send_str):
+    async def _async_send_all(self):
         """
         Underlying send wrapper that calls on the current websocket to send
         """
+        if self.outgoing_queue.empty():
+            return
+        # TODO(OWN) pop all messages and batch, rather than just one
+        packet = self.outgoing_queue.get()
+        send_str = json.dumps(packet.to_sendable_dict())
         try:
             await self.socket.send(send_str)
         except websockets.exceptions.ConnectionClosedOK:
@@ -195,7 +200,7 @@ class WebsocketChannel(Channel):
             if not isinstance(e.__cause__, asyncio.exceptions.CancelledError):
                 logger.exception(f"Caught error in _async_send {e}")
 
-    def send(self, packet: "Packet") -> bool:
+    def enqueue_send(self, packet: "Packet") -> bool:
         """
         Send the packet given to the intended recipient.
         Return True on success and False on failure.
@@ -205,6 +210,6 @@ class WebsocketChannel(Channel):
         if self.socket.closed:
             return False
 
-        data = packet.to_sendable_dict()
-        self.loop_wrap.execute_coro(self._async_send(json.dumps(data)))
+        self.outgoing_queue.put(packet)
+        self.loop_wrap.execute_coro(self._async_send_all())
         return True

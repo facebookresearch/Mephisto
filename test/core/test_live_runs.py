@@ -145,6 +145,7 @@ class BaseTestLiveRuns:
             condition_was_met = False
             start_time = time.time()
             while time.time() - start_time < timeout:
+                await asyncio.sleep(0.01)
                 if condition_met():
                     condition_was_met = True
                     break
@@ -178,14 +179,10 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(agent)
 
     def _await_current_tasks(self, live_run, timeout=5) -> None:
-        tasks = asyncio.all_tasks(live_run.loop_wrap.loop)
-        print(
-            "Await current tasks success",
-            self._run_loop_until(
-                live_run,
-                lambda: len(asyncio.all_tasks(live_run.loop_wrap.loop)) < 2,
-                timeout,
-            ),
+        self._run_loop_until(
+            live_run,
+            lambda: len(asyncio.all_tasks(live_run.loop_wrap.loop)) < 3,
+            timeout,
         )
 
     def await_channel_requests(self, live_run, timeout=2) -> None:
@@ -233,7 +230,6 @@ class BaseTestLiveRuns:
         live_run = self.get_mock_run(blueprint, task_runner)
         self.live_run = live_run
         live_run.client_io.launch_channels()
-        live_run.worker_pool.launch_sending_thread_deprecated()
         self.assertEqual(len(live_run.client_io.channels), 1)
         channel = list(live_run.client_io.channels.values())[0]
         self.assertIsNotNone(channel)
@@ -248,7 +244,6 @@ class BaseTestLiveRuns:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        self.assertIsNotNone(live_run.worker_pool.agent_status_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
@@ -355,7 +350,6 @@ class BaseTestLiveRuns:
         live_run = self.get_mock_run(blueprint, task_runner)
         self.live_run = live_run
         live_run.client_io.launch_channels()
-        live_run.worker_pool.launch_sending_thread_deprecated()
         self.assertEqual(len(live_run.client_io.channels), 1)
         channel = list(live_run.client_io.channels.values())[0]
         self.assertIsNotNone(channel)
@@ -370,7 +364,6 @@ class BaseTestLiveRuns:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        self.assertIsNotNone(self.worker_pool.agent_status_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
@@ -488,7 +481,6 @@ class BaseTestLiveRuns:
         live_run = self.get_mock_run(blueprint, task_runner)
         self.live_run = live_run
         live_run.client_io.launch_channels()
-        live_run.worker_pool.launch_sending_thread_deprecated()
         self.assertEqual(len(live_run.client_io.channels), 1)
         channel = list(live_run.client_io.channels.values())[0]
         self.assertIsNotNone(channel)
@@ -503,7 +495,6 @@ class BaseTestLiveRuns:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        self.assertIsNotNone(self.worker_pool.agent_status_thread)
 
         self.assertEqual(len(task_runner.running_units), 0)
 
@@ -750,7 +741,6 @@ class BaseTestLiveRuns:
         live_run = self.get_mock_run(blueprint, task_runner)
         self.live_run = live_run
         live_run.client_io.launch_channels()
-        live_run.worker_pool.launch_sending_thread_deprecated()
         self.assertEqual(len(live_run.client_io.channels), 1)
         channel = list(live_run.client_io.channels.values())[0]
         self.assertIsNotNone(channel)
@@ -765,7 +755,6 @@ class BaseTestLiveRuns:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        self.assertIsNotNone(self.worker_pool.agent_status_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
@@ -1024,7 +1013,6 @@ class BaseTestLiveRuns:
         live_run = self.get_mock_run(blueprint, task_runner)
         self.live_run = live_run
         live_run.client_io.launch_channels()
-        live_run.worker_pool.launch_sending_thread_deprecated()
         self.assertEqual(len(live_run.client_io.channels), 1)
         channel = list(live_run.client_io.channels.values())[0]
         self.assertIsNotNone(channel)
@@ -1039,7 +1027,6 @@ class BaseTestLiveRuns:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        self.assertIsNotNone(self.worker_pool.agent_status_thread)
 
         # Register workers
         mock_worker_name = "MOCK_WORKER"

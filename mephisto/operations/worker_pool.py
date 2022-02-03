@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import threading
 import time
 from functools import partial
 from dataclasses import dataclass
@@ -59,7 +58,6 @@ class WorkerPool:
         self.onboarding_infos: Dict[str, OnboardingInfo] = {}
         # Agent status handling
         self.last_status_check = time.time()
-        self.agent_status_thread: Optional[threading.Thread] = None
 
         self.is_shutdown = False
 
@@ -264,8 +262,7 @@ class WorkerPool:
         crowd_data = onboarding_info.crowd_data
         request_id = onboarding_info.request_id
 
-        await self._try_send_agent_messages(onboarding_agent_info)
-        await self.push_status_update(onboarding_agent_info)
+        # Assign to a unit
         if len(usable_units) == 0:
             live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
         else:
@@ -398,17 +395,6 @@ class WorkerPool:
         # Not onboarding, so just register directly
         await self._assign_unit_to_agent(crowd_data, request_id, units)
 
-    async def _try_send_agent_messages(self, agent: Union["Agent", "OnboardingAgent"]):
-        """Handle sending any possible messages for a specific agent"""
-        live_run = self.get_live_run()
-        await live_run.loop_wrap.loop.run_in_executor(
-            None,
-            partial(
-                live_run.client_io.send_message_queue,
-                agent.pending_observations,
-            ),
-        )
-
     async def push_status_update(
         self, agent: Union["Agent", "OnboardingAgent"]
     ) -> None:
@@ -425,14 +411,7 @@ class WorkerPool:
                 status = AgentState.STATUS_WAITING
 
         live_run = self.get_live_run()
-        await live_run.loop_wrap.loop.run_in_executor(
-            None,
-            partial(
-                live_run.client_io.send_status_update,
-                agent.get_agent_id(),
-                status,
-            ),
-        )
+        live_run.client_io.send_status_update(agent.get_agent_id(), status)
 
     def _mark_agent_done(self, agent: Union["Agent", "OnboardingAgent"]) -> None:
         """
@@ -467,8 +446,6 @@ class WorkerPool:
                 # no longer tracking agent
                 continue
             db_status = agent.get_status()
-            if agent.has_updated_status.is_set():
-                continue  # Incoming info may be stale if we have new info to send
             if status != db_status:
                 if status == AgentState.STATUS_COMPLETED:
                     # Frontend agent completed but hasn't confirmed yet
@@ -482,40 +459,6 @@ class WorkerPool:
                 agent.update_status(status)
         pass
 
-    def _agent_status_handling_thread(self) -> None:
-        """Thread for polling and pushing agent statuses"""
-        # TODO rather than polling repeatedly for these, can we use
-        # awaits and only trigger this loop when something is ready?
-        live_run = self.get_live_run()
-        while not self.is_shutdown:
-            agents: List[Union["Agent", "OnboardingAgent"]] = list(self.agents.values())
-            onboarding_agents: List[Union["Agent", "OnboardingAgent"]] = list(
-                self.onboarding_agents.values()
-            )
-            for agent in agents + onboarding_agents:
-                # Send requests for action
-                if agent.wants_action.is_set():
-                    live_run.client_io.request_action(agent.get_agent_id())
-                    agent.wants_action.clear()
-                # Pass updated statuses
-                if agent.has_updated_status.is_set():
-                    live_run.loop_wrap.execute_coro(self.push_status_update(agent))
-                    agent.has_updated_status.clear()
-                # clear the message queue for this agent
-                live_run.loop_wrap.execute_coro(self._try_send_agent_messages(agent))
-            time.sleep(0.1)
-
-    def launch_sending_thread_deprecated(self) -> None:
-        """Launch the status sending thread for this pool"""
-        # TODO deprecate when status is push based
-        self.agent_status_thread = threading.Thread(
-            target=self._agent_status_handling_thread, name=f"agent-status-thread"
-        )
-        self.agent_status_thread.start()
-
     def shutdown(self) -> None:
-        """Shut down and join the status thread"""
+        """Mark shut down. Handle resource cleanup if necessary"""
         self.is_shutdown = True
-        logger.debug(f"Joining send thread")
-        if self.agent_status_thread is not None:
-            self.agent_status_thread.join()

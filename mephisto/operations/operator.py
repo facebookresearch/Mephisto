@@ -275,7 +275,6 @@ class Operator:
             )
 
             live_run.client_io.launch_channels()
-            live_run.worker_pool.launch_sending_thread_deprecated()
         except (KeyboardInterrupt, Exception) as e:
             logger.error(
                 "Encountered error while launching run, shutting down", exc_info=True
@@ -299,7 +298,7 @@ class Operator:
 
     async def _track_and_kill_runs(self):
         """
-        Background thread that shuts down servers when a task
+        Background task that shuts down servers when a task
         is fully done.
         """
         # TODO only trigger these on a status change?
@@ -372,6 +371,7 @@ class Operator:
 
     async def shutdown_async(self):
         """Shut down the asyncio parts of the Operator"""
+
         if self._stop_task is not None:
             await self._stop_task
         await self._run_tracker_task

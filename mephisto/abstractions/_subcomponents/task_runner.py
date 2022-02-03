@@ -173,8 +173,6 @@ class TaskRunner(ABC):
                 f"Onboarding agent {onboarding_id} disconnected or errored, "
                 f"final status {onboarding_agent.get_status()}."
             )
-            # TODO is disconnect already being sent?
-            # live_run.worker_pool.push_status_update(agent_info)
             live_run.loop_wrap.execute_coro(cleanup_after())
 
     def execute_unit(
