@@ -10,7 +10,7 @@ from mephisto.abstractions.database import (
     EntryAlreadyExistsException,
     EntryDoesNotExistException,
 )
-from typing import Mapping, Optional, Any, List, Dict
+from typing import Mapping, Optional, Any, List, Dict, Tuple, Union
 from mephisto.operations.utils import get_data_dir
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
@@ -217,11 +217,6 @@ class StringIDRow(sqlite3.Row):
             return val
 
 
-# TODO(101) find_x queries are pretty slow right now, as we query the same table once to get
-# all of the rows, but only select the ids, then we later construct them individually,
-# making a second set of requests.
-# It would be better to expose an init param for DB Objects that takes in the full row
-# and inits with that if provided, and queries the database if not.
 class LocalMephistoDB(MephistoDB):
     """
     Local database for core Mephisto data storage, the LocalMephistoDatabase handles
@@ -239,8 +234,6 @@ class LocalMephistoDB(MephistoDB):
         """Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
-        # TODO(101) is there a problem with having just one db connection?
-        # Will this cause bugs with failed commits?
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
             try:
@@ -307,6 +300,35 @@ class LocalMephistoDB(MephistoDB):
                 )
             return results[0]
 
+    def __create_query_and_tuple(
+        self,
+        arg_list: List[str],
+        arg_vals: List[Optional[Union[str, int, bool]]],
+    ) -> Tuple[str, tuple]:
+        """
+        Given a list of the possible filtering args and valid values,
+        construct the WHERE part of a query with these and
+        a tuple containing the elements
+        """
+        fin_args = []
+        fin_vals = []
+        for arg, val in zip(arg_list, arg_vals):
+            if val is None:
+                continue
+            fin_args.append(arg)
+            fin_vals.append(val)
+        if len(fin_args) == 0:
+            return "", ()
+
+        query_lines = [
+            f"WHERE {arg_name} = ?{idx+1}\n"
+            if idx == 0
+            else f"AND {arg_name} = ?{idx+1}\n"
+            for idx, arg_name in enumerate(fin_args)
+        ]
+
+        return "".join(query_lines), tuple(fin_vals)
+
     def new_project(self, project_name: str) -> str:
         """
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
@@ -348,12 +370,15 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["project_name"], [project_name]
+            )
             c.execute(
                 """
                 SELECT * from projects
-                WHERE (?1 IS NULL OR project_name = ?1)
-                """,
-                (project_name,),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -422,14 +447,16 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["task_name", "project_id", "parent_task_id"],
+                [task_name, nonesafe_int(project_id), nonesafe_int(parent_task_id)],
+            )
             c.execute(
                 """
                 SELECT * from tasks
-                WHERE (?1 IS NULL OR task_name = ?1)
-                AND (?2 IS NULL OR project_id = ?2)
-                AND (?3 IS NULL OR parent_task_id = ?3)
-                """,
-                (task_name, nonesafe_int(project_id), nonesafe_int(parent_task_id)),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -549,14 +576,16 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["task_id", "requester_id", "is_completed"],
+                [nonesafe_int(task_id), nonesafe_int(requester_id), is_completed],
+            )
             c.execute(
                 """
                 SELECT * from task_runs
-                WHERE (?1 IS NULL OR task_id = ?1)
-                AND (?2 IS NULL OR requester_id = ?2)
-                AND (?3 IS NULL OR is_completed = ?3)
-                """,
-                (nonesafe_int(task_id), nonesafe_int(requester_id), is_completed),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -645,24 +674,30 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                    SELECT * from assignments
-                    WHERE (?1 IS NULL OR task_run_id = ?1)
-                    AND (?2 IS NULL OR task_id = ?2)
-                    AND (?3 IS NULL OR requester_id = ?3)
-                    AND (?4 IS NULL OR task_type = ?4)
-                    AND (?5 IS NULL OR provider_type = ?5)
-                    AND (?6 IS NULL OR sandbox = ?6)
-                """,
-                (
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                [
+                    "task_run_id",
+                    "task_id",
+                    "requester_id",
+                    "task_type",
+                    "provider_type",
+                    "sandbox",
+                ],
+                [
                     nonesafe_int(task_run_id),
                     nonesafe_int(task_id),
                     nonesafe_int(requester_id),
                     task_type,
                     provider_type,
                     sandbox,
-                ),
+                ],
+            )
+            c.execute(
+                """
+                SELECT * from assignments
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -754,22 +789,21 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                SELECT * from units
-                WHERE (?1 IS NULL OR task_id = ?1)
-                AND (?2 IS NULL OR task_run_id = ?2)
-                AND (?3 IS NULL OR requester_id = ?3)
-                AND (?4 IS NULL OR assignment_id = ?4)
-                AND (?5 IS NULL OR unit_index = ?5)
-                AND (?6 IS NULL OR provider_type = ?6)
-                AND (?7 IS NULL OR task_type = ?7)
-                AND (?8 IS NULL OR agent_id = ?8)
-                AND (?9 IS NULL OR worker_id = ?9)
-                AND (?10 IS NULL OR sandbox = ?10)
-                AND (?11 IS NULL OR status = ?11)
-                """,
-                (
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                [
+                    "task_id",
+                    "task_run_id",
+                    "requester_id",
+                    "assignment_id",
+                    "unit_index",
+                    "provider_type",
+                    "task_type",
+                    "agent_id",
+                    "worker_id",
+                    "sandbox",
+                    "status",
+                ],
+                [
                     nonesafe_int(task_id),
                     nonesafe_int(task_run_id),
                     nonesafe_int(requester_id),
@@ -781,7 +815,14 @@ class LocalMephistoDB(MephistoDB):
                     nonesafe_int(worker_id),
                     sandbox,
                     status,
-                ),
+                ],
+            )
+            c.execute(
+                """
+                SELECT * from units
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -889,13 +930,15 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["requester_name", "provider_type"], [requester_name, provider_type]
+            )
             c.execute(
                 """
                 SELECT * from requesters
-                WHERE (?1 IS NULL OR requester_name = ?1)
-                AND (?2 IS NULL OR provider_type = ?2)
-                """,
-                (requester_name, provider_type),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -948,13 +991,15 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["worker_name", "provider_type"], [worker_name, provider_type]
+            )
             c.execute(
                 """
                 SELECT * from workers
-                WHERE (?1 IS NULL OR worker_name = ?1)
-                AND (?2 IS NULL OR provider_type = ?2)
-                """,
-                (worker_name, provider_type),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -1068,19 +1113,18 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                SELECT * from agents
-                WHERE (?1 IS NULL OR status = ?1)
-                AND (?2 IS NULL OR unit_id = ?2)
-                AND (?3 IS NULL OR worker_id = ?3)
-                AND (?4 IS NULL OR task_id = ?4)
-                AND (?5 IS NULL OR task_run_id = ?5)
-                AND (?6 IS NULL OR assignment_id = ?6)
-                AND (?7 IS NULL OR task_type = ?7)
-                AND (?8 IS NULL OR provider_type = ?8)
-                """,
-                (
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                [
+                    "status",
+                    "unit_id",
+                    "worker_id",
+                    "task_id",
+                    "task_run_id",
+                    "assignment_id",
+                    "task_type",
+                    "provider_type",
+                ],
+                [
                     status,
                     nonesafe_int(unit_id),
                     nonesafe_int(worker_id),
@@ -1089,7 +1133,14 @@ class LocalMephistoDB(MephistoDB):
                     nonesafe_int(assignment_id),
                     task_type,
                     provider_type,
-                ),
+                ],
+            )
+            c.execute(
+                """
+                SELECT * from agents
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -1127,12 +1178,15 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["qualification_name"], [qualification_name]
+            )
             c.execute(
                 """
                 SELECT * from qualifications
-                WHERE (?1 IS NULL OR qualification_name = ?1)
-                """,
-                (qualification_name,),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
@@ -1250,9 +1304,8 @@ class LocalMephistoDB(MephistoDB):
                 for r in rows
             ]
 
-    # TODO(101) these should not be optional
     def get_granted_qualification(
-        self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
+        self, qualification_id: str, worker_id: str
     ) -> Mapping[str, Any]:
         """
         Return the granted qualification in the database between the given
@@ -1371,22 +1424,28 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                SELECT * from onboarding_agents
-                WHERE (?1 IS NULL OR status = ?1)
-                AND (?2 IS NULL OR worker_id = ?2)
-                AND (?3 IS NULL OR task_id = ?3)
-                AND (?4 IS NULL OR task_run_id = ?4)
-                AND (?5 IS NULL OR task_type = ?5)
-                """,
-                (
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                [
+                    "status",
+                    "worker_id",
+                    "task_id",
+                    "task_run_id",
+                    "task_type",
+                ],
+                [
                     status,
                     nonesafe_int(worker_id),
                     nonesafe_int(task_id),
                     nonesafe_int(task_run_id),
                     task_type,
-                ),
+                ],
+            )
+            c.execute(
+                """
+                SELECT * from onboarding_agents
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
