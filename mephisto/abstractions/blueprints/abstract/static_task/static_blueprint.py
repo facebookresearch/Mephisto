@@ -54,7 +54,18 @@ BLUEPRINT_TYPE = "abstract_static"
 
 @dataclass
 class SharedStaticTaskState(OnboardingSharedState, SharedTaskState):
-    static_task_data: Iterable[Any] = field(default_factory=list)
+    static_task_data: Iterable[Any] = field(
+        default_factory=list,
+        metadata={
+            "help": (
+                "List or generator that returns dicts of task data. Generators can be "
+                "used for tasks with lengths that aren't known at the start of a "
+                "run, or are otherwise determined during the run. "
+            ),
+            "type": "Iterable[Dict[str, Any]]",
+            "default": "[]",
+        },
+    )
 
 
 @dataclass

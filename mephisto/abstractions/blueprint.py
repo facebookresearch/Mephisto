@@ -54,13 +54,43 @@ class SharedTaskState:
     be passed as Hydra args, like functions and objects
     """
 
-    task_config: Dict[str, Any] = field(default_factory=dict)
-    qualifications: List[Any] = field(default_factory=list)
+    task_config: Dict[str, Any] = field(
+        default_factory=dict,
+        metadata={
+            "help": (
+                "Values to be included in the frontend MephistoTask.task_config object"
+            ),
+            "type": "Dict[str, Any]",
+            "default": "{}",
+        },
+    )
+    qualifications: List[Any] = field(
+        default_factory=list,
+        metadata={
+            "help": (
+                "List of qualification dicts of the form returned by "
+                "mephisto.data_model.qualification.make_qualification_dict "
+                "to be used with this task run."
+            ),
+            "type": "List[Dict]",
+            "default": "[]",
+        },
+    )
     worker_can_do_unit: Callable[["Worker", "Unit"], bool] = field(
-        default_factory=lambda: (lambda worker, unit: True)
+        default_factory=lambda: (lambda worker, unit: True),
+        metadata={
+            "help": ("Function to evaluate if a worker is eligible for a given unit"),
+            "type": "Callable[[Worker, Unit], bool]",
+            "default": "Returns True always",
+        },
     )
     on_unit_submitted: Callable[["Unit"], None] = field(
-        default_factory=lambda: (lambda unit: None)
+        default_factory=lambda: (lambda unit: None),
+        metadata={
+            "help": ("Function to evaluate on every unit completed or disconnected"),
+            "type": "Callable[[Unit], None]",
+            "default": "No-op function",
+        },
     )
 
 
