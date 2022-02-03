@@ -53,8 +53,6 @@ class MockProvider(CrowdProvider):
 
     ArgsClass = MockProviderArgs
 
-    SUPPORTED_TASK_TYPES: ClassVar[List[str]] = ["mock"]
-
     PROVIDER_TYPE = PROVIDER_TYPE
 
     curr_db_location: ClassVar[str]

@@ -143,7 +143,7 @@ class Operator:
         )
 
         # Small hack for auto appending block qualification
-        # TODO we can use blueprint.mro() to discover BlueprintMixins and extract from there
+        # TODO(OWN) we can use blueprint.mro() to discover BlueprintMixins and extract from there
         existing_qualifications = shared_state.qualifications
         if run_config.blueprint.get("block_qualification", None) is not None:
             existing_qualifications.append(
@@ -301,7 +301,7 @@ class Operator:
         Background task that shuts down servers when a task
         is fully done.
         """
-        # TODO only trigger these on a status change?
+        # TODO(#649) only trigger these on a status change?
         while not self.is_shutdown:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
@@ -404,6 +404,7 @@ class Operator:
                 next_runs = []
                 for tracked_run in remaining_runs:
                     if tracked_run.task_run.get_is_completed():
+                        tracked_run.shutdown()
                         tracked_run.architect.shutdown()
                     else:
                         next_runs.append(tracked_run)
@@ -429,6 +430,7 @@ class Operator:
                 logger.info(
                     f"Shutting down Architect for task run {tracked_run.task_run.db_id}"
                 )
+                tracked_run.shutdown()
                 tracked_run.architect.shutdown()
         finally:
             runs_to_close = list(self._task_runs_tracked.keys())

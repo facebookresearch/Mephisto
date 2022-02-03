@@ -191,7 +191,6 @@ class Blueprint(ABC):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]]
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = BlueprintArgs
     SharedStateClass: ClassVar[Type["SharedTaskState"]] = SharedTaskState
-    supported_architects: ClassVar[List[str]]
     BLUEPRINT_TYPE: str
 
     def __init__(

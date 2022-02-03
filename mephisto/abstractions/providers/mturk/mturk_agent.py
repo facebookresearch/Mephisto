@@ -57,8 +57,6 @@ class MTurkAgent(Agent):
         )
         unit: "MTurkUnit" = cast("MTurkUnit", self.get_unit())
         self.mturk_assignment_id = unit.get_mturk_assignment_id()
-        # TODO(#97) any additional init as is necessary once
-        # a mock DB exists
 
     def _get_mturk_assignment_id(self):
         if self.mturk_assignment_id is None:
@@ -119,9 +117,7 @@ class MTurkAgent(Agent):
                 "files": [],
             },
         )
-        self.pending_actions.append(packet)
-        self.has_action.set()
-        self.did_submit.set()
+        self.pending_actions.put(packet)
 
     # Required functions for Agent Interface
 

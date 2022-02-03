@@ -90,6 +90,15 @@ class TaskConfigArgs:
             )
         },
     )
+    submission_timout: int = field(
+        default=600,
+        metadata={
+            "help": (
+                "Time that mephisto will wait after marking a task done before abandoning "
+                "waiting for the worker to actually press submit."
+            )
+        },
+    )
 
 
 class TaskConfig:
@@ -100,8 +109,6 @@ class TaskConfig:
 
     ArgsClass = TaskConfigArgs
 
-    # TODO(#94?) TaskConfigs should probably be removed in favor of relying on
-    # just hydra arguments
     def __init__(self, task_run: "TaskRun"):
         self.db = task_run.db
         args = task_run.args
@@ -123,6 +130,7 @@ class TaskConfig:
         self.maximum_units_per_worker: int = self.args.get(
             "maximum_units_per_worker", None
         )
+        self.submission_timeout: int = self.args.get("submission_timeout", 300)
 
     @classmethod
     def get_mock_params(cls) -> str:

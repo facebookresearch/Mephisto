@@ -266,7 +266,6 @@ class MTurkDatastore:
     def register_run(
         self,
         run_id: str,
-        arn_id: str,
         hit_type_id: str,
         hit_config_path: str,
         frame_height: int = 0,
@@ -282,7 +281,7 @@ class MTurkDatastore:
                     hit_config_path,
                     frame_height
                 ) VALUES (?, ?, ?, ?, ?);""",
-                (run_id, arn_id, hit_type_id, hit_config_path, frame_height),
+                (run_id, "unused", hit_type_id, hit_config_path, frame_height),
             )
 
     def get_run(self, run_id: str) -> sqlite3.Row:

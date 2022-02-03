@@ -217,7 +217,7 @@ class StringIDRow(sqlite3.Row):
             return val
 
 
-# TODO(101) find_x queries are pretty slow right now, as we query the same table once to get
+# TODO(#101) find_x queries are pretty slow right now, as we query the same table once to get
 # all of the rows, but only select the ids, then we later construct them individually,
 # making a second set of requests.
 # It would be better to expose an init param for DB Objects that takes in the full row
@@ -239,7 +239,7 @@ class LocalMephistoDB(MephistoDB):
         """Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
-        # TODO(101) is there a problem with having just one db connection?
+        # TODO(#101) is there a problem with having just one db connection?
         # Will this cause bugs with failed commits?
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
@@ -1250,7 +1250,7 @@ class LocalMephistoDB(MephistoDB):
                 for r in rows
             ]
 
-    # TODO(101) these should not be optional
+    # TODO(#101) these should not be optional
     def get_granted_qualification(
         self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
     ) -> Mapping[str, Any]:

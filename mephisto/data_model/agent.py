@@ -635,7 +635,7 @@ class OnboardingAgent(
 
     def mark_done(self) -> None:
         """Mark this agent as done by setting the status to a terminal onboarding state"""
-        # TODO the logic for when onboarding gets marked as waiting or approved/rejected
+        # TODO(#651) the logic for when onboarding gets marked as waiting or approved/rejected
         # should likely be cleaned up to remove these conditionals.
         if self.get_status() not in [
             AgentState.STATUS_APPROVED,

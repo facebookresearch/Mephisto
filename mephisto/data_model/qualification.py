@@ -17,11 +17,17 @@ from mephisto.data_model.db_backed_meta import (
 
 from typing import List, Optional, Mapping, Dict, TYPE_CHECKING, Any
 
+
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
+
+from mephisto.operations.logger_core import get_logger
+
+logger = get_logger(name=__name__)
+
 
 QUAL_GREATER = "GreaterThan"
 QUAL_GREATER_EQUAL = "GreaterThanOrEqualTo"
@@ -65,7 +71,9 @@ def worker_is_qualified(worker: "Worker", qualifications: List[Dict[str, Any]]):
         qual_name = qualification["qualification_name"]
         qual_objs = db.find_qualifications(qual_name)
         if len(qual_objs) == 0:
-            # TODO warn users of missing qualification object
+            logger.warning(
+                f"Expected to create qualification for {qual_name}, but none found... skipping."
+            )
             continue
         qual_obj = qual_objs[0]
         granted_quals = db.check_granted_qualifications(

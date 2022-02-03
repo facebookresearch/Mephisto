@@ -22,7 +22,6 @@ class AssignmentState:
     @staticmethod
     def valid() -> List[str]:
         """Return all valid assignment statuses"""
-        # TODO(#97) write test to ensure all states are covered here
         return [
             AssignmentState.CREATED,
             AssignmentState.LAUNCHED,

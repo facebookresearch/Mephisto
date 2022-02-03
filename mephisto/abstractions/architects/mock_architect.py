@@ -15,6 +15,7 @@ import time
 
 from mephisto.abstractions.architect import Architect, ArchitectArgs
 from dataclasses import dataclass, field
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.packet import (
     PACKET_TYPE_ALIVE,
     PACKET_TYPE_NEW_WORKER,
@@ -22,6 +23,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_AGENT_ACTION,
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_REQUEST_AGENT_STATUS,
+    PACKET_TYPE_RETURN_AGENT_STATUS,
     PACKET_TYPE_GET_INIT_DATA,
 )
 from mephisto.operations.registry import register_mephisto_abstraction
@@ -252,8 +254,14 @@ class MockServer(tornado.web.Application):
         """
         Mark a mock agent as disconnected.
         """
-        # TODO(#97) implement when handling disconnections
-        pass
+        self._send_message(
+            {
+                "packet_type": PACKET_TYPE_RETURN_AGENT_STATUS,
+                "sender_id": "MockServer",
+                "receiver_id": "Mephisto",
+                "data": {agent_id: AgentState.STATUS_DISCONNECT},
+            }
+        )
 
     def launch_mock(self):
         """
@@ -301,7 +309,7 @@ class MockArchitect(Architect):
         self.should_run_server = args.architect.should_run_server
         self.port = args.architect.port
         self.server: Optional["MockServer"] = None
-        # TODO(#97) track state in parent class?
+        # TODO(#651) track state in parent class?
         self.prepared = False
         self.deployed = False
         self.cleaned = False

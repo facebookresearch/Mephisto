@@ -21,9 +21,6 @@ if TYPE_CHECKING:
     from omegaconf import DictConfig
 
 
-SYSTEM_SENDER = "mephisto"  # TODO(CLEAN) pull from somewhere
-
-
 class StaticTaskRunner(TaskRunner):
     """
     Task runner for a static task

@@ -52,8 +52,6 @@ class CrowdProvider(ABC):
 
     ArgsClass: ClassVar[Type[ProviderArgs]] = ProviderArgs
 
-    SUPPORTED_TASK_TYPES: ClassVar[List[str]]
-
     def __init__(self, db: "MephistoDB"):
         """
         Crowd provider classes should keep as much of their state

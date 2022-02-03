@@ -14,6 +14,7 @@ from mephisto.operations.utils import get_mock_requester, get_root_data_dir
 from omegaconf import DictConfig, OmegaConf
 
 import argparse
+import subprocess
 from typing import Tuple, Dict, Any, TYPE_CHECKING
 import os
 
@@ -80,7 +81,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
             requester_name = req.requester_name
         else:
             reqs = db.find_requesters(provider_type=provider_type)
-            # TODO (#93) proper logging
+            # TODO(#93) proper logging
             if len(reqs) == 0:
                 print(
                     f"No requesters found for provider type {provider_type}, please "
@@ -130,3 +131,61 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
     cfg.provider.requester_name = requester_name
     cfg.provider._provider_type = provider_type
     return script_cfg
+
+
+def build_and_return_custom_bundle(custom_src_dir):
+    """Locate all of the custom files used for a custom build, create
+    a prebuild directory containing all of them, then build the
+    custom source.
+
+    Check dates to only go through this build process when files have changes
+    """
+    IGNORE_FOLDERS = {"node_modules", "build"}
+
+    prebuild_path = os.path.join(custom_src_dir, "webapp")
+
+    IGNORE_FOLDERS = {os.path.join(prebuild_path, f) for f in IGNORE_FOLDERS}
+    build_path = os.path.join(prebuild_path, "build", "bundle.js")
+
+    # see if we need to rebuild
+    if os.path.exists(build_path):
+        created_date = os.path.getmtime(build_path)
+        up_to_date = True
+
+        for root, dirs, files in os.walk(prebuild_path):
+            for igf in IGNORE_FOLDERS:
+                should_ignore = False
+                if igf in root:
+                    should_ignore = True
+            if should_ignore:
+                continue
+            if not up_to_date:
+                break
+            for fname in files:
+                path = os.path.join(root, fname)
+                if os.path.getmtime(path) > created_date:
+                    up_to_date = False
+                    break
+        if up_to_date:
+            return build_path
+
+    # navigate and build
+    return_dir = os.getcwd()
+    os.chdir(prebuild_path)
+    packages_installed = subprocess.call(["npm", "install"])
+    if packages_installed != 0:
+        raise Exception(
+            "please make sure npm is installed, otherwise view "
+            "the above error for more info."
+        )
+
+    webpack_complete = subprocess.call(["npm", "run", "dev"])
+    if webpack_complete != 0:
+        raise Exception(
+            "Webpack appears to have failed to build your "
+            "frontend. See the above error for more information."
+        )
+
+    # cleanup and return
+    os.chdir(return_dir)
+    return build_path

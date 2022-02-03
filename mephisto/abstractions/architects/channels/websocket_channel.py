@@ -90,6 +90,8 @@ class WebsocketChannel(Channel):
             logger.info(f"channel open")
 
         async def on_error(error):
+            if self._is_closed:
+                return  # Don't do anything if we're already closed
             if hasattr(error, "errno"):
                 if error.errno == errno.ECONNREFUSED:
                     # TODO(CLEAN) replace with channel exception
@@ -158,6 +160,8 @@ class WebsocketChannel(Channel):
                     return
                 except Exception as e:
                     logger.exception(f"Unhandled exception in socket {e}, {repr(e)}")
+                    if self._is_closed:
+                        return  # Don't do anything if we're already closed
                     raise e
 
         def async_socket_wrap():
@@ -189,7 +193,7 @@ class WebsocketChannel(Channel):
         """
         if self.outgoing_queue.empty():
             return
-        # TODO(OWN) pop all messages and batch, rather than just one
+        # TODO(#651) pop all messages and batch, rather than just one
         packet = self.outgoing_queue.get()
         send_str = json.dumps(packet.to_sendable_dict())
         try:

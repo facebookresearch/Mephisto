@@ -89,7 +89,6 @@ class AgentState(ABC):
     @staticmethod
     def valid() -> List[str]:
         """Return all valid Agent statuses"""
-        # TODO(#97) write a test that ensures all AgentState statuses are here
         return [
             AgentState.STATUS_NONE,
             AgentState.STATUS_ACCEPTED,

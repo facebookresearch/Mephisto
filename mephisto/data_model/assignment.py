@@ -218,8 +218,6 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
     def __repr__(self) -> str:
         return f"Assignment({self.db_id})"
 
-    # TODO(100) add helpers to manage retrieving results as well
-
     @staticmethod
     def new(
         db: "MephistoDB", task_run: TaskRun, assignment_data: Optional[Dict[str, Any]]
@@ -229,7 +227,7 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
         the results for this assignment. Can take assignment_data to save and
         load for this particular assignment.
         """
-        # TODO(101) consider offloading this state management to the MephistoDB
+        # TODO(#567) consider offloading this state management to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
         db_id = db.new_assignment(

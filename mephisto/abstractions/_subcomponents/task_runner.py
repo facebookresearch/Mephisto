@@ -41,7 +41,7 @@ from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
-# TODO rather than always running in threads, there may be cases
+# TODO(#649) rather than always running in threads, there may be cases
 # where we're better off running in different _processes_. The
 # IO for underlying agents could then take place in the relevant
 # process's update_data call rather than delaying the ClientIOHandler.
@@ -85,8 +85,6 @@ class TaskRunner(ABC):
         self.running_units: Dict[str, RunningUnit] = {}
         self.running_onboardings: Dict[str, RunningOnboarding] = {}
         self.is_concurrent = False
-        # TODO(102) populate some kind of local state for tasks that are being run
-        # by this runner from the database.
 
         self.block_qualification = args.blueprint.get("block_qualification", None)
         if self.block_qualification is not None:
@@ -252,8 +250,7 @@ class TaskRunner(ABC):
             do_mark_done()
             if not agent.did_submit.is_set():
                 # Wait for a submit to occur
-                # TODO(#94) make submit timeout configurable
-                agent.has_action.wait(timeout=300)
+                agent.has_action.wait(timeout=self.args.task.submission_timout)
                 agent.act()
             agent.mark_done()
         self._cleanup_special_units(unit, agent)
@@ -328,8 +325,7 @@ class TaskRunner(ABC):
             if agent.get_status() not in AgentState.complete():
                 if not agent.did_submit.is_set():
                     # Wait for a submit to occur
-                    # TODO(#94) make submit timeout configurable
-                    agent.has_action.wait(timeout=300)
+                    agent.has_action.wait(timeout=self.args.task.submission_timout)
                     agent.act()
                 agent.mark_done()
 

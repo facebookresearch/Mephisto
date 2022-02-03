@@ -9,7 +9,10 @@ import shutil
 import subprocess
 from mephisto.operations.operator import Operator
 from mephisto.operations.utils import get_root_dir
-from mephisto.tools.scripts import load_db_and_process_config
+from mephisto.tools.scripts import (
+    load_db_and_process_config,
+    build_and_return_custom_bundle,
+)
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
@@ -35,34 +38,6 @@ class TestScriptConfig(RunScriptConfig):
 register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 
-# TODO it would be nice if this was automated in the way that it
-# is for ParlAI custom frontend tasks
-def build_task(task_dir):
-    """Rebuild the frontend for this task"""
-
-    frontend_source_dir = os.path.join(task_dir, "webapp")
-    frontend_build_dir = os.path.join(frontend_source_dir, "build")
-
-    return_dir = os.getcwd()
-    os.chdir(frontend_source_dir)
-    if os.path.exists(frontend_build_dir):
-        shutil.rmtree(frontend_build_dir)
-    packages_installed = subprocess.call(["npm", "install"])
-    if packages_installed != 0:
-        raise Exception(
-            "please make sure npm is installed, otherwise view "
-            "the above error for more info."
-        )
-
-    webpack_complete = subprocess.call(["npm", "run", "dev"])
-    if webpack_complete != 0:
-        raise Exception(
-            "Webpack appears to have failed to build your "
-            "frontend. See the above error for more information."
-        )
-    os.chdir(return_dir)
-
-
 @hydra.main(config_path="hydra_configs", config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
     task_dir = cfg.task_dir
@@ -78,7 +53,7 @@ def main(cfg: DictConfig) -> None:
         validate_onboarding=onboarding_always_valid,
     )
 
-    build_task(task_dir)
+    build_and_return_custom_bundle(task_dir)
 
     db, cfg = load_db_and_process_config(cfg)
     operator = Operator(db)

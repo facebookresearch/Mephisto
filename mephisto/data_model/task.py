@@ -45,11 +45,6 @@ def assert_task_is_valid(dir_name, task_type) -> None:
     pass
 
 
-# TODO(#102) find a way to repair the database if a user moves folders and files
-# around in an unexpected way, primarily resulting in tasks no longer being
-# executable and becoming just storage for other information.
-
-
 class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """
     This class contains all of the required tidbits for launching a set of
@@ -107,16 +102,6 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         """
         return self.db.find_assignments(task_id=self.db_id)
 
-    def get_task_source(self) -> str:
-        """
-        Return the path to the task content, such that the server architect
-        can deploy the relevant frontend
-        """
-        # TODO(#101) do we need a task source anymore?
-        task_dir = get_dir_for_task(self.task_name)
-        assert task_dir is not None, f"Task dir for {self} no longer exists!"
-        return task_dir
-
     def get_total_spend(self) -> float:
         """
         Return the total amount of funding spent for this task.
@@ -131,9 +116,6 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         db: "MephistoDB",
         task_name: str,
         task_type: str,
-        project: Optional[Project] = None,
-        parent_task: Optional["Task"] = None,
-        skip_input: bool = False,
     ) -> "Task":
         """
         Create a new task by the given name, ensure that the folder for this task
@@ -152,36 +134,9 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
 
         new_task_dir = get_dir_for_task(task_name, not_exists_ok=True)
         assert new_task_dir is not None, "Should always be able to make a new task dir"
-        if parent_task is None:
-            # Assume we already have an existing task dir for the given task,
-            # complain if it doesn't exist or isn't configured properly
-            assert os.path.exists(
-                new_task_dir
-            ), f"No such task path {new_task_dir} exists yet, and as such the task cannot be officially created without using a parent task."
-            assert_task_is_valid(new_task_dir, task_type)
-        else:
-            # The user intends to create a task by copying something from
-            # the gallery or local task directory and then modifying it.
-            # Ensure the parent task exists before starting
-            parent_task_dir = parent_task.get_task_source()
-            assert (
-                parent_task_dir is not None
-            ), f"No such task {parent_task} exists in your local task directory or the gallery, but was specified as a parent task. Perhaps this directory was deleted?"
+        assert_task_is_valid(new_task_dir, task_type)
 
-            # If the new directory already exists, complain, as we are going to delete it.
-            if os.path.exists(new_task_dir):
-                ensure_user_confirm(
-                    f"The task directory {new_task_dir} already exists, and the contents "
-                    f"within will be deleted and replaced with the starter code for {parent_task}.",
-                    skip_input=skip_input,
-                )
-                os.rmdir(new_task_dir)
-            os.mkdir(new_task_dir)
-            copytree(parent_task_dir, new_task_dir)
-
-        project_id = None if project is None else project.db_id
-        parent_task_id = None if parent_task is None else parent_task.db_id
-        db_id = db.new_task(task_name, task_type, project_id, parent_task_id)
+        db_id = db.new_task(task_name, task_type)
         return Task.get(db, db_id)
 
         def __repr__(self):
