@@ -27,7 +27,8 @@ from mephisto.abstractions.blueprints.mixins.screen_task_required import (
 from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.task_run import TaskRun
-from mephisto.operations.supervisor import Supervisor, Job
+from mephisto.operations.supervisor import Supervisor
+from mephisto.operations.datatypes import LiveTaskRun
 from mephisto.operations.utils import find_or_create_qualification
 
 from mephisto.abstractions.architects.mock_architect import (
@@ -99,6 +100,18 @@ class BaseTestSupervisor:
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
 
+    def get_mock_run(self, blueprint, task_runner) -> LiveTaskRun:
+        return LiveTaskRun(
+            self.task_run,
+            self.architect,
+            blueprint,
+            self.provider,
+            [],
+            task_runner,
+            self.launcher,
+            [],
+        )
+
     def get_mock_assignment_data_array(self) -> List[InitializationData]:
         mock_data = MockTaskRunner.get_mock_assignment_data()
         return [mock_data, mock_data]
@@ -122,14 +135,6 @@ class BaseTestSupervisor:
         args = MockBlueprint.ArgsClass()
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
-        test_job = Job(
-            architect=self.architect,
-            task_runner=task_runner,
-            provider=self.provider,
-            qualifications=[],
-            registered_channel_ids=[],
-            task_launcher=self.launcher,
-        )
 
         channels = self.architect.get_channels(
             sup._on_channel_open, sup._on_catastrophic_disconnect, sup._on_message
@@ -141,8 +146,8 @@ class BaseTestSupervisor:
         channel.close()
         self.assertTrue(channel.is_closed())
 
-    def test_register_concurrent_job(self):
-        """Test registering and running a job that requires multiple workers"""
+    def test_register_concurrent_run(self):
+        """Test registering and running a run that requires multiple workers"""
         # Handle baseline setup
         sup = Supervisor(self.db)
         self.sup = sup
@@ -152,13 +157,15 @@ class BaseTestSupervisor:
         args.is_concurrent = False
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
-        sup.register_job(self.architect, task_runner, self.provider)
+        blueprint = self.task_run.get_blueprint()
+        live_run = self.get_mock_run(blueprint, task_runner)
+        sup.register_run(live_run)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
         self.assertIsNotNone(channel_info)
         self.assertTrue(channel_info.channel.is_alive)
         channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
+        task_runner = channel_info.live_run.task_runner
         self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
@@ -260,8 +267,8 @@ class BaseTestSupervisor:
         sup.shutdown()
         self.assertTrue(channel_info.channel.is_closed)
 
-    def test_register_job(self):
-        """Test registering and running a job run asynchronously"""
+    def test_register_run(self):
+        """Test registering and running a task run asynchronously"""
         # Handle baseline setup
         sup = Supervisor(self.db)
         self.sup = sup
@@ -270,13 +277,15 @@ class BaseTestSupervisor:
         args.timeout_time = 5
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
-        sup.register_job(self.architect, task_runner, self.provider)
+        blueprint = self.task_run.get_blueprint(args=config)
+        live_run = self.get_mock_run(blueprint, task_runner)
+        sup.register_run(live_run)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
         self.assertIsNotNone(channel_info)
         self.assertTrue(channel_info.channel.is_alive())
         channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
+        task_runner = channel_info.live_run.task_runner
         self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
@@ -380,8 +389,8 @@ class BaseTestSupervisor:
         sup.shutdown()
         self.assertTrue(channel_info.channel.is_closed())
 
-    def test_register_concurrent_job_with_onboarding(self):
-        """Test registering and running a job with onboarding"""
+    def test_register_concurrent_run_with_onboarding(self):
+        """Test registering and running a run with onboarding"""
         # Handle baseline setup
         sup = Supervisor(self.db)
         self.sup = sup
@@ -400,13 +409,14 @@ class BaseTestSupervisor:
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
 
-        sup.register_job(self.architect, task_runner, self.provider)
+        live_run = self.get_mock_run(blueprint, task_runner)
+        sup.register_run(live_run)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
         self.assertIsNotNone(channel_info)
         self.assertTrue(channel_info.channel.is_alive())
         channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
+        task_runner = channel_info.live_run.task_runner
         self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
@@ -624,8 +634,8 @@ class BaseTestSupervisor:
         sup.shutdown()
         self.assertTrue(channel_info.channel.is_closed())
 
-    def test_register_job_with_onboarding(self):
-        """Test registering and running a job with onboarding"""
+    def test_register_run_with_onboarding(self):
+        """Test registering and running a run with onboarding"""
         # Handle baseline setup
         sup = Supervisor(self.db)
         self.sup = sup
@@ -644,13 +654,14 @@ class BaseTestSupervisor:
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
-        sup.register_job(self.architect, task_runner, self.provider)
+        live_run = self.get_mock_run(blueprint, task_runner)
+        sup.register_run(live_run)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
         self.assertIsNotNone(channel_info)
         self.assertTrue(channel_info.channel.is_alive())
         channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
+        task_runner = channel_info.live_run.task_runner
         self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
@@ -857,8 +868,8 @@ class BaseTestSupervisor:
         sup.shutdown()
         self.assertTrue(channel_info.channel.is_closed())
 
-    def test_register_job_with_screening(self):
-        """Test registering and running a job with screening"""
+    def test_register_run_with_screening(self):
+        """Test registering and running a run with screening"""
         if self.DB_CLASS != MephistoSingletonDB:
             # TODO(#97) This test only works with singleton for now due to disconnect simulation
             return
@@ -901,14 +912,14 @@ class BaseTestSupervisor:
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         task_runner = TaskRunnerClass(self.task_run, task_run_args, shared_state)
-        job = sup.register_job(self.architect, task_runner, self.provider)
-        job.task_launcher = self.launcher
+        live_run = self.get_mock_run(blueprint, task_runner)
+        sup.register_run(live_run)
         self.assertEqual(len(sup.channels), 1)
         channel_info = list(sup.channels.values())[0]
         self.assertIsNotNone(channel_info)
         self.assertTrue(channel_info.channel.is_alive())
         channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
+        task_runner = channel_info.live_run.task_runner
         self.assertIsNotNone(channel_id)
         self.assertEqual(
             len(self.architect.server.subs),
