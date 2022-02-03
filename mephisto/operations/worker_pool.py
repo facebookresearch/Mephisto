@@ -6,6 +6,7 @@
 
 import threading
 import time
+from functools import partial
 from dataclasses import dataclass
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
@@ -78,60 +79,90 @@ class WorkerPool:
         assert live_run is not None, "Live run must be registered to use this"
         return live_run
 
-    def register_worker(self, crowd_data: Dict[str, Any], request_id: str) -> None:
+    def get_agent_for_id(
+        self, agent_id: str
+    ) -> Optional[Union["Agent", "OnboardingAgent"]]:
+        """Temporary method to get an agent, while API is figured out"""
+        if agent_id in self.agents:
+            return self.agents[agent_id]
+        elif agent_id in self.onboarding_agents:
+            return self.onboarding_agents[agent_id]
+        return None
+
+    async def register_worker(
+        self, crowd_data: Dict[str, Any], request_id: str
+    ) -> None:
         """Process a worker registration to register a worker"""
         live_run = self.get_live_run()
+        loop = live_run.loop_wrap.loop
         crowd_provider = live_run.provider
+        is_sandbox = crowd_provider.is_sandbox()
         worker_name = crowd_data["worker_name"]
-        workers = self.db.find_workers(worker_name=worker_name)
+        if crowd_provider.is_sandbox():
+            # TODO there are better ways to get rid of this designation
+            worker_name += "_sandbox"
+        workers = await loop.run_in_executor(
+            None, partial(self.db.find_workers, worker_name=worker_name)
+        )
         if len(workers) == 0:
-            # TODO(WISH) get rid of sandbox designation
-            workers = self.db.find_workers(worker_name=worker_name + "_sandbox")
-        if len(workers) == 0:
-            worker = crowd_provider.WorkerClass.new_from_provider_data(
-                self.db, crowd_data
+            worker = await loop.run_in_executor(
+                None,
+                partial(
+                    crowd_provider.WorkerClass.new_from_provider_data,
+                    self.db,
+                    crowd_data,
+                ),
             )
         else:
             worker = workers[0]
 
-        if not worker_is_qualified(worker, live_run.qualifications):
-            live_run.client_io.send_provider_details(request_id, {"worker_id": None})
+        is_qualified = await loop.run_in_executor(
+            None, partial(worker_is_qualified, worker, live_run.qualifications)
+        )
+        if not is_qualified:
+            live_run.client_io.enqueue_provider_details(request_id, {"worker_id": None})
         else:
-            live_run.client_io.send_provider_details(
+            live_run.client_io.enqueue_provider_details(
                 request_id, {"worker_id": worker.db_id}
             )
 
-    def _assign_unit_to_agent(
+    async def _assign_unit_to_agent(
         self, crowd_data: Dict[str, Any], request_id: str, units: List["Unit"]
     ):
         live_run = self.get_live_run()
         task_run = live_run.task_run
+        loop = live_run.loop_wrap.loop
         crowd_provider = live_run.provider
         worker_id = crowd_data["worker_id"]
-        worker = Worker.get(self.db, worker_id)
+        worker = await Worker.async_get(self.db, worker_id)
 
-        logger.debug(
-            f"Worker {worker_id} is being assigned one of " f"{len(units)} units."
-        )
+        logger.debug(f"Worker {worker_id} is being assigned one of {len(units)} units.")
 
         reserved_unit = None
         while len(units) > 0 and reserved_unit is None:
             unit = units.pop(0)
             reserved_unit = task_run.reserve_unit(unit)
         if reserved_unit is None:
-            live_run.client_io.send_provider_details(request_id, {"agent_id": None})
+            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
         else:
-            agent = crowd_provider.AgentClass.new_from_provider_data(
-                self.db, worker, unit, crowd_data
+            agent = await loop.run_in_executor(
+                None,
+                partial(
+                    crowd_provider.AgentClass.new_from_provider_data,
+                    self.db,
+                    worker,
+                    unit,
+                    crowd_data,
+                ),
             )
             agent.set_live_run(live_run)
-            live_run.client_io.register_agent_from_request_id(
+            live_run.client_io.associate_agent_with_registration(
                 agent.get_agent_id(),
                 request_id,
                 crowd_data["agent_registration_id"],
             )
             logger.debug(f"Created agent {agent}, {agent.db_id}.")
-            live_run.client_io.send_provider_details(
+            live_run.client_io.enqueue_provider_details(
                 request_id, {"agent_id": agent.get_agent_id()}
             )
             self.agents[agent.get_agent_id()] = agent
@@ -146,8 +177,8 @@ class WorkerPool:
                 )
             else:
                 # See if the concurrent unit is ready to launch
-                assignment = unit.get_assignment()
-                agents = assignment.get_agents()
+                assignment = await loop.run_in_executor(None, unit.get_assignment)
+                agents = await loop.run_in_executor(None, assignment.get_agents)
                 if None in agents:
                     agent.update_status(AgentState.STATUS_WAITING)
                     return  # need to wait for all agents to be here to launch
@@ -155,7 +186,9 @@ class WorkerPool:
                 non_null_agents = [a for a in agents if a is not None]
                 # Launch the backend for this assignment
                 registered_agents = [
-                    self.agents[a.db_id] for a in non_null_agents if a is not None
+                    self.agents[a.get_agent_id()]
+                    for a in non_null_agents
+                    if a is not None
                 ]
 
                 def mark_agents_done():
@@ -166,11 +199,11 @@ class WorkerPool:
                     assignment, registered_agents, mark_agents_done
                 )
 
-    def register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
+    async def register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
         """
         Convert the onboarding agent to a full agent
         """
-        logger.info(f"Registering onboarding agent {onboarding_agent}")
+        logger.debug(f"Registering onboarding agent {onboarding_agent}")
         onboarding_id = onboarding_agent.get_agent_id()
         onboarding_agent_info = self.onboarding_agents.get(onboarding_id)
 
@@ -182,13 +215,19 @@ class WorkerPool:
             return
 
         live_run = self.get_live_run()
+        loop = live_run.loop_wrap.loop
         blueprint = live_run.blueprint
         worker = onboarding_agent.get_worker()
 
         assert (
             isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
         ), "Should only be registering from onboarding if onboarding is required and set"
-        worker_passed = blueprint.validate_onboarding(worker, onboarding_agent)
+
+        # Onboarding validation is run in thread, as we don't know execution time
+        worker_passed = await loop.run_in_executor(
+            None, partial(blueprint.validate_onboarding, worker, onboarding_agent)
+        )
+
         assert blueprint.onboarding_qualification_name is not None
         worker.grant_qualification(
             blueprint.onboarding_qualification_name, int(worker_passed)
@@ -206,8 +245,12 @@ class WorkerPool:
             )
 
         # get the list of tentatively valid units
-        units = live_run.task_run.get_valid_units_for_worker(worker)
-        usable_units = live_run.task_runner.filter_units_for_worker(units, worker)
+        units = await loop.run_in_executor(
+            None, partial(live_run.task_run.get_valid_units_for_worker, worker)
+        )
+        usable_units = await loop.run_in_executor(
+            None, partial(live_run.task_runner.filter_units_for_worker, units, worker)
+        )
 
         if not worker_passed:
             # TODO(WISH) it may be worth investigating launching a dummy task for these
@@ -221,40 +264,40 @@ class WorkerPool:
         crowd_data = onboarding_info.crowd_data
         request_id = onboarding_info.request_id
 
-        self._try_send_agent_messages(onboarding_agent_info)
-        # TODO is this status update necessary?
-        self.send_status_update_deprecated(onboarding_agent_info)
+        await self._try_send_agent_messages(onboarding_agent_info)
+        await self.push_status_update(onboarding_agent_info)
         if len(usable_units) == 0:
-            live_run.client_io.send_provider_details(request_id, {"agent_id": None})
+            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
         else:
-            self._assign_unit_to_agent(crowd_data, request_id, usable_units)
+            await self._assign_unit_to_agent(crowd_data, request_id, usable_units)
 
-    def register_agent(
-        self, crowd_data: Dict[str, Any], request_id: str, temp_live_run
-    ):
+    async def register_agent(self, crowd_data: Dict[str, Any], request_id: str):
         """Process an agent registration packet to register an agent, returning the agent_id"""
         # Process a new agent
-        live_run = temp_live_run
+        logger.debug(f"Registering agent {crowd_data}, {request_id}")
+        live_run = self.get_live_run()
+        loop = live_run.loop_wrap.loop
         task_run = live_run.task_run
         agent_registration_id = crowd_data["agent_registration_id"]
         worker_id = crowd_data["worker_id"]
-        worker = Worker.get(self.db, worker_id)
+        worker = await Worker.async_get(self.db, worker_id)
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
         if len(units) == 0:
-            live_run.client_io.send_provider_details(request_id, {"agent_id": None})
+            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
             logger.debug(
                 f"agent_registration_id {agent_registration_id}, had no valid units."
             )
             return
 
         # If there's onboarding, see if this worker has already been disqualified
-        worker = Worker.get(self.db, worker_id)
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
             if worker.is_disqualified(blueprint.onboarding_qualification_name):
-                live_run.client_io.send_provider_details(request_id, {"agent_id": None})
+                live_run.client_io.enqueue_provider_details(
+                    request_id, {"agent_id": None}
+                )
                 logger.debug(
                     f"Worker {worker_id} is already disqualified by onboarding "
                     f"qual {blueprint.onboarding_qualification_name}."
@@ -264,7 +307,7 @@ class WorkerPool:
                 # Send a packet with onboarding information
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
-                live_run.client_io.register_agent_from_request_id(
+                live_run.client_io.associate_agent_with_registration(
                     onboard_agent.get_agent_id(),
                     request_id,
                     crowd_data["agent_registration_id"],
@@ -280,19 +323,19 @@ class WorkerPool:
                     request_id=request_id,
                 )
 
-                live_run.client_io.send_provider_details(
+                live_run.client_io.enqueue_provider_details(
                     request_id,
                     {
                         "agent_id": onboard_id,
                         "onboard_data": onboard_data,
                     },
                 )
-                logger.debug(
+                logger.info(
                     f"{worker} is starting onboarding thread with "
                     f"onboarding {onboard_agent}."
                 )
 
-                def cleanup_onboarding():
+                async def cleanup_onboarding():
                     del self.onboarding_agents[onboard_id]
                     del self.onboarding_infos[onboard_id]
 
@@ -306,15 +349,24 @@ class WorkerPool:
                 blueprint.worker_needs_screening(worker)
                 and blueprint.should_generate_unit()
             ):
-                screening_data = blueprint.get_screening_unit_data()
+                screening_data = await loop.run_in_executor(
+                    None, blueprint.get_screening_unit_data
+                )
                 if screening_data is not None:
                     launcher = live_run.task_launcher
                     assert (
                         launcher is not None
                     ), "LiveTaskRun must have launcher to use screening tasks"
-                    units = [launcher.launch_screening_unit(screening_data)]
+                    screen_unit = await loop.run_in_executor(
+                        None,
+                        partial(
+                            launcher.launch_screening_unit,
+                            screening_data,
+                        ),
+                    )
+                    units = [screen_unit]
                 else:
-                    live_run.client_io.send_provider_details(
+                    live_run.client_io.enqueue_provider_details(
                         request_id, {"agent_id": None}
                     )
                     logger.debug(
@@ -323,33 +375,47 @@ class WorkerPool:
                     return
         if isinstance(blueprint, UseGoldUnit) and blueprint.use_golds:
             if blueprint.should_produce_gold_for_worker(worker):
-                gold_data = blueprint.get_gold_unit_data_for_worker(worker)
+                gold_data = await loop.run_in_executor(
+                    None, partial(blueprint.get_gold_unit_data_for_worker, worker)
+                )
                 if gold_data is not None:
                     launcher = live_run.task_launcher
-                    units = [launcher.launch_gold_unit(gold_data)]
+                    gold_unit = await loop.run_in_executor(
+                        None,
+                        partial(
+                            launcher.launch_gold_unit,
+                            gold_data,
+                        ),
+                    )
+                    units = [gold_unit]
                 else:
-                    live_run.client_io.send_provider_details(
+                    live_run.client_io.enqueue_provider_details(
                         request_id, {"agent_id": None}
                     )
                     logger.debug(f"No gold units left for {agent_registration_id}...")
                     return
 
         # Not onboarding, so just register directly
-        self._assign_unit_to_agent(crowd_data, request_id, units)
+        await self._assign_unit_to_agent(crowd_data, request_id, units)
 
-    def _try_send_agent_messages(self, agent: Union["Agent", "OnboardingAgent"]):
+    async def _try_send_agent_messages(self, agent: Union["Agent", "OnboardingAgent"]):
         """Handle sending any possible messages for a specific agent"""
         live_run = self.get_live_run()
-        live_run.client_io.send_message_queue(agent.pending_observations)
+        await live_run.loop_wrap.loop.run_in_executor(
+            None,
+            partial(
+                live_run.client_io.send_message_queue,
+                agent.pending_observations,
+            ),
+        )
 
-    def send_status_update_deprecated(
+    async def push_status_update(
         self, agent: Union["Agent", "OnboardingAgent"]
     ) -> None:
         """
-        Handle telling the frontend agent about a change in their
-        active status. (Pushing a change in AgentState)
+        Force a status update for a specific agent, pushing the db status to
+        the frontend client
         """
-        # TODO deprecate, have status updates trigger sends automatically
         status = agent.db_status
         if isinstance(agent, OnboardingAgent):
             if status in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
@@ -359,7 +425,14 @@ class WorkerPool:
                 status = AgentState.STATUS_WAITING
 
         live_run = self.get_live_run()
-        live_run.client_io.send_status_update(agent.get_agent_id(), status)
+        await live_run.loop_wrap.loop.run_in_executor(
+            None,
+            partial(
+                live_run.client_io.send_status_update,
+                agent.get_agent_id(),
+                status,
+            ),
+        )
 
     def _mark_agent_done(self, agent: Union["Agent", "OnboardingAgent"]) -> None:
         """
@@ -384,20 +457,15 @@ class WorkerPool:
 
         Takes as input a mapping from agent_id to server-side status
         """
+        live_run = self.get_live_run()
         for agent_id, status in status_map.items():
             if status not in AgentState.valid():
                 logger.warning(f"Invalid status for agent {agent_id}: {status}")
                 continue
-            if agent_id not in self.agents and agent_id not in self.onboarding_agents:
+            agent = self.get_agent_for_id(agent_id)
+            if agent is None:
                 # no longer tracking agent
                 continue
-            maybe_agent = self.agents.get(agent_id)
-            if maybe_agent is None:
-                agent: Union["Agent", "OnboardingAgent"] = self.onboarding_agents[
-                    agent_id
-                ]
-            else:
-                agent = maybe_agent
             db_status = agent.get_status()
             if agent.has_updated_status.is_set():
                 continue  # Incoming info may be stale if we have new info to send
@@ -407,7 +475,9 @@ class WorkerPool:
                     continue
                 if status != AgentState.STATUS_DISCONNECT:
                     # Stale or reconnect, send a status update
-                    self.send_status_update_deprecated(self.agents[agent_id])
+                    live_run.loop_wrap.execute_coro(
+                        self.push_status_update(self.agents[agent_id])
+                    )
                     continue  # Only DISCONNECT can be marked remotely, rest are mismatch (except STATUS_COMPLETED)
                 agent.update_status(status)
         pass
@@ -429,10 +499,10 @@ class WorkerPool:
                     agent.wants_action.clear()
                 # Pass updated statuses
                 if agent.has_updated_status.is_set():
-                    self.send_status_update_deprecated(agent)
+                    live_run.loop_wrap.execute_coro(self.push_status_update(agent))
                     agent.has_updated_status.clear()
                 # clear the message queue for this agent
-                self._try_send_agent_messages(agent)
+                live_run.loop_wrap.execute_coro(self._try_send_agent_messages(agent))
             time.sleep(0.1)
 
     def launch_sending_thread_deprecated(self) -> None:

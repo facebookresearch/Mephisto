@@ -6,6 +6,7 @@
 
 import os
 import threading
+from queue import Queue
 from mephisto.tools.misc import warn_once
 from uuid import uuid4
 
@@ -70,8 +71,8 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self.unit_id = row["unit_id"]
         self.task_type = row["task_type"]
         self.provider_type = row["provider_type"]
-        self.pending_observations: List["Packet"] = []
-        self.pending_actions: List["Packet"] = []
+        self.pending_observations: "Queue[Packet]" = Queue()
+        self.pending_actions: "Queue[Packet]" = Queue()
         self.has_action = threading.Event()
         self.has_action.clear()
         self.wants_action = threading.Event()
@@ -292,7 +293,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         sending_packet = packet.copy()
         sending_packet.receiver_id = self.db_id
         self.state.update_data(sending_packet)
-        self.pending_observations.append(sending_packet)
+        self.pending_observations.put(sending_packet)
 
     def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
         """
@@ -300,13 +301,13 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         (timeout is None) should return None if no actions are ready
         to be returned.
         """
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             self.wants_action.set()
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             if self.is_shutdown:
                 raise AgentShutdownError(self.db_id)
             # various disconnect cases
@@ -317,14 +318,16 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        assert len(self.pending_actions) > 0, "has_action released without an action!"
+        assert (
+            not self.pending_actions.empty()
+        ), "has_action released without an action!"
 
-        act = self.pending_actions.pop(0)
+        act = self.pending_actions.get()
 
         if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
             self.did_submit.set()
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             self.has_action.clear()
         self.state.update_data(act)
         return act
@@ -437,8 +440,8 @@ class OnboardingAgent(
         self.db_status = row["status"]
         self.worker_id = row["worker_id"]
         self.task_type = row["task_type"]
-        self.pending_observations: List["Packet"] = []
-        self.pending_actions: List["Packet"] = []
+        self.pending_observations: "Queue[Packet]" = Queue()
+        self.pending_actions: "Queue[Packet]" = Queue()
         self.has_action = threading.Event()
         self.has_action.clear()
         self.wants_action = threading.Event()
@@ -552,7 +555,7 @@ class OnboardingAgent(
         sending_packet = packet.copy()
         sending_packet.receiver_id = self.get_agent_id()
         self.state.update_data(sending_packet)
-        self.pending_observations.append(sending_packet)
+        self.pending_observations.put(sending_packet)
 
     def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
         """
@@ -560,13 +563,13 @@ class OnboardingAgent(
         (timeout is None) should return None if no actions are ready
         to be returned.
         """
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             self.wants_action.set()
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             # various disconnect cases
             if self.is_shutdown:
                 raise AgentShutdownError(self.db_id)
@@ -577,14 +580,16 @@ class OnboardingAgent(
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        assert len(self.pending_actions) > 0, "has_action released without an action!"
+        assert (
+            not self.pending_actions.empty()
+        ), "has_action released without an action!"
 
-        act = self.pending_actions.pop(0)
+        act = self.pending_actions.get()
 
         if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
             self.did_submit.set()
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             self.has_action.clear()
         self.state.update_data(act)
         return act

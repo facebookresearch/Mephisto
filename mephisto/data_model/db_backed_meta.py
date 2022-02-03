@@ -4,6 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import asyncio
+from functools import partial
 from typing import List, Optional, Tuple, Mapping, Dict, Any, TYPE_CHECKING
 
 from abc import ABCMeta
@@ -72,3 +74,25 @@ class MephistoDataModelComponentMixin:
             loaded_val = cls.__call__(db, db_id, row=row, _used_new_call=True)
             db.cache_result(cls, loaded_val)
         return loaded_val
+
+    @classmethod
+    async def async_get(
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+    ):
+        """
+        Async wrapper for retrieving from the db. In the future, if a db implements
+        a different get method, will call that instead.
+        """
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None,
+            partial(
+                cls.get,
+                db,
+                db_id,
+                row=row,
+            ),
+        )

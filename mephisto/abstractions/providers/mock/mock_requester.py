@@ -69,6 +69,7 @@ class MockRequester(Requester):
         """MockRequesters have $100000 to spend"""
         return MOCK_BUDGET
 
+    @classmethod
     def is_sandbox(self) -> bool:
         """MockRequesters are for testing only, and are thus treated as sandbox"""
         return True

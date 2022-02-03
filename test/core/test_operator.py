@@ -63,14 +63,24 @@ class OperatorBaseTest(object):
 
     def tearDown(self):
         if self.operator is not None:
-            self.operator.shutdown()
+            self.operator.force_shutdown(timeout=10)
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
+        SHUTDOWN_TIMEOUT = 10
         threads = threading.enumerate()
-        target_threads = [t for t in threads if not isinstance(t, TMonitor)]
+        target_threads = [
+            t for t in threads if not isinstance(t, TMonitor) and not t.daemon
+        ]
+        start_time = time.time()
+        while len(target_threads) > 1 and time.time() - start_time < SHUTDOWN_TIMEOUT:
+            threads = threading.enumerate()
+            target_threads = [
+                t for t in threads if not isinstance(t, TMonitor) and not t.daemon
+            ]
+            time.sleep(0.3)
         self.assertTrue(
-            len(target_threads) == 1,
-            f"Expected only main thread at teardown, found {target_threads}",
+            time.time() - start_time < SHUTDOWN_TIMEOUT,
+            f"Expected only main thread at teardown after {SHUTDOWN_TIMEOUT} seconds, found {target_threads}",
         )
 
     def wait_for_complete_assignment(self, assignment, timeout: int):
@@ -95,6 +105,37 @@ class OperatorBaseTest(object):
     def test_initialize_supervisor(self):
         """Quick test to ensure that the operator can be initialized"""
         self.operator = Operator(self.db)
+
+    def assert_sandbox_worker_created(self, worker_name, timeout=2) -> None:
+        self.assertTrue(
+            self.operator._run_loop_until(
+                lambda: len(self.db.find_workers(worker_name=worker_name + "_sandbox"))
+                > 0,
+                timeout,
+            ),
+            f"Worker {worker_name} not created in time!",
+        )
+
+    def assert_agent_created(self, agent_num, timeout=2) -> None:
+        self.assertTrue(
+            self.operator._run_loop_until(
+                lambda: len(self.db.find_agents()) == agent_num,
+                timeout,
+            ),
+            f"Agent {agent_num} not created in time!",
+        )
+        agents = self.db.find_agents()
+        agent = agents[agent_num - 1]
+        self.assertIsNotNone(agent)
+
+    def await_channel_requests(self, tracked_run, timeout=2) -> None:
+        self.assertTrue(
+            self.operator._run_loop_until(
+                lambda: len(tracked_run.client_io.request_id_to_channel_id) == 0,
+                timeout,
+            ),
+            f"Channeled requests not processed in time!",
+        )
 
     @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_job_concurrent(self):
@@ -124,7 +165,8 @@ class OperatorBaseTest(object):
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id = workers[0].db_id
 
         self.assertEqual(len(tracked_run.task_runner.running_assignments), 0)
@@ -132,27 +174,23 @@ class OperatorBaseTest(object):
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
         architect.server.register_mock_agent(worker_id, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 1, "Agent was not created properly")
-        agent = agents[0]
-        self.assertIsNotNone(agent)
+        self.assert_agent_created(1)
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
         architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.assert_agent_created(2)
 
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(self.operator.get_running_task_runs()) == 0:
-                break
-            time.sleep(0.1)
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
         )
@@ -190,7 +228,8 @@ class OperatorBaseTest(object):
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id = workers[0].db_id
 
         self.assertEqual(len(tracked_run.task_runner.running_assignments), 0)
@@ -198,27 +237,23 @@ class OperatorBaseTest(object):
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
         architect.server.register_mock_agent(worker_id, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 1, "Agent was not created properly")
-        agent = agents[0]
-        self.assertIsNotNone(agent)
+        self.assert_agent_created(1)
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
         architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.assert_agent_created(2)
 
         # Give up to 5 seconds for both tasks to complete
         start_time = time.time()
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(self.operator.get_running_task_runs()) == 0:
-                break
-            time.sleep(0.1)
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
         )
@@ -268,7 +303,8 @@ class OperatorBaseTest(object):
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id_1 = workers[0].db_id
 
         self.assertEqual(len(tracked_run.task_runner.running_assignments), 0)
@@ -276,86 +312,88 @@ class OperatorBaseTest(object):
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
         architect.server.register_mock_agent(worker_id_1, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 1, "Agent was not created properly")
-        agent = agents[0]
-        self.assertIsNotNone(agent)
+        self.assert_agent_created(1)
 
         # Try to register a second agent, which should fail due to concurrency
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Second agent was created")
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
         architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id_2 = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         architect.server.register_mock_agent(worker_id_2, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 2, "Second agent was not created")
+        self.assert_agent_created(2)
 
         # wait for task to pass
+        agents = self.db.find_agents()
         self.wait_for_complete_assignment(agents[1].get_unit().get_assignment(), 3)
 
         # Pass a second task as well
         mock_agent_details = "FAKE_ASSIGNMENT_3"
         architect.server.register_mock_agent(worker_id_1, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 3, "Agent was not created properly")
+        self.assert_agent_created(3)
         mock_agent_details = "FAKE_ASSIGNMENT_4"
         architect.server.register_mock_agent(worker_id_2, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 4, "Fourth agent was not created")
+        self.assert_agent_created(4)
 
         # wait for task to pass
+        agents = self.db.find_agents()
         self.wait_for_complete_assignment(agents[3].get_unit().get_assignment(), 3)
 
         # Both workers should have saturated their tasks, and not be granted agents
         mock_agent_details = "FAKE_ASSIGNMENT_5"
         architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 4, "Additional agent was created")
         architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 4, "Additional agent was created")
 
         # new workers should be able to work on these just fine though
         mock_worker_name = "MOCK_WORKER_3"
         architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id_3 = workers[0].db_id
         mock_worker_name = "MOCK_WORKER_4"
         architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id_4 = workers[0].db_id
 
         # Register agents from new workers
         mock_agent_details = "FAKE_ASSIGNMENT_5"
         architect.server.register_mock_agent(worker_id_3, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 5, "Additional agent was not created")
+        self.assert_agent_created(5)
         mock_agent_details = "FAKE_ASSIGNMENT_6"
         architect.server.register_mock_agent(worker_id_4, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 6, "Additional agent was not created")
+        self.assert_agent_created(6)
 
         # wait for task to pass
+        agents = self.db.find_agents()
         self.wait_for_complete_assignment(agents[5].get_unit().get_assignment(), 3)
 
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(self.operator.get_running_task_runs()) == 0:
-                break
-            time.sleep(0.1)
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
         )
+
+        self.operator.shutdown()
+        # Create a new operator, shutdown is a one-time thing
+        self.operator = Operator(self.db)
 
         # Ensure all assignments are completed
         task_run = tracked_run.task_run
@@ -388,6 +426,7 @@ class OperatorBaseTest(object):
         # Workers one and two still shouldn't be able to make agents
         mock_agent_details = "FAKE_ASSIGNMENT_7"
         architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents),
@@ -396,6 +435,7 @@ class OperatorBaseTest(object):
         )
         mock_agent_details = "FAKE_ASSIGNMENT_7"
         architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents),
@@ -406,19 +446,14 @@ class OperatorBaseTest(object):
         # Three and four should though
         mock_agent_details = "FAKE_ASSIGNMENT_7"
         architect.server.register_mock_agent(worker_id_3, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 7, "Additional agent was not created")
+        self.assert_agent_created(7)
         mock_agent_details = "FAKE_ASSIGNMENT_8"
         architect.server.register_mock_agent(worker_id_4, mock_agent_details)
-        agents = self.db.find_agents()
-        self.assertEqual(len(agents), 8, "Additional agent was not created")
+        self.assert_agent_created(8)
 
         # Ensure the task run completed and that all assignments are done
         start_time = time.time()
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(self.operator.get_running_task_runs()) == 0:
-                break
-            time.sleep(0.1)
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
         self.assertLess(
             time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
         )
