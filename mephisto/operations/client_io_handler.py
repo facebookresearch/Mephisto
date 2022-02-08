@@ -389,11 +389,6 @@ class ClientIOHandler:
             subject_id=agent_id,
             data={
                 "status": status,
-                "state": {
-                    # Any non-final status receives None and False for this
-                    "done_text": STATUS_TO_TEXT_MAP.get(status),
-                    "task_done": status == AgentState.STATUS_PARTNER_DISCONNECT,
-                },
             },
         )
         self._get_channel_for_agent(agent_id).enqueue_send(status_packet)

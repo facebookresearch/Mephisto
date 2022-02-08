@@ -312,7 +312,9 @@ class WorkerPool:
         if len(usable_units) == 0:
             live_run.client_io.enqueue_agent_details(request_id, {"agent_id": None})
         else:
-            await self._assign_unit_to_agent(crowd_data, request_id, usable_units)
+            await self._assign_unit_to_agent(
+                crowd_data, worker, request_id, usable_units
+            )
 
     async def reconnect_agent(self, agent_id: str, request_id: str):
         """When an agent reconnects, find and send the relevant data"""
@@ -331,7 +333,7 @@ class WorkerPool:
                 isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
             )
             onboard_data = blueprint.get_onboarding_data(worker.db_id)
-            live_run.client_io.enqueue_provider_details(
+            live_run.client_io.enqueue_agent_details(
                 request_id,
                 AgentDetails(
                     worker_id=worker.db_id,
@@ -386,7 +388,11 @@ class WorkerPool:
         # If there's onboarding, see if this worker has already been disqualified
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
-            if worker.is_disqualified(blueprint.onboarding_qualification_name):
+            qual_name = blueprint.onboarding_qualification_name
+            assert (
+                qual_name is not None
+            ), "Cannot be using onboarding and have a null qual"
+            if worker.is_disqualified(qual_name):
                 live_run.client_io.enqueue_agent_details(
                     request_id,
                     AgentDetails(
@@ -396,10 +402,10 @@ class WorkerPool:
                 )
                 logger.debug(
                     f"Worker {worker.db_id} is already disqualified by onboarding "
-                    f"qual {blueprint.onboarding_qualification_name}."
+                    f"qual {qual_name}."
                 )
                 return
-            elif not worker.is_qualified(blueprint.onboarding_qualification_name):
+            elif not worker.is_qualified(qual_name):
                 # Send a packet with onboarding information
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
@@ -490,7 +496,7 @@ class WorkerPool:
                     )
                     units = [gold_unit]
                 else:
-                    llive_run.client_io.enqueue_agent_details(
+                    live_run.client_io.enqueue_agent_details(
                         request_id,
                         AgentDetails(
                             worker_id=worker.db_id,
