@@ -68,8 +68,6 @@ The Mephisto backend channels expect to communicate with the router in a certain
 
 The core carrier for information in the Mephisto Architect API is the `Packet` class. Downstream, they act as the way to tie an `Agent` class in python to an actual human worker. 
 
-** At the moment, the `Agent` class is actually quite coupled to the `Packet` class, as the `Packet` itself is what gets transmitted to an `Agent` in order for it to update its local data. This should be updated. The meta-status requirements like `wants_act` are also suspect, as this could be task-specific code. 
-
 The `Channel` is the primary way of trasmitting packets, with the `WebsocketChannel` being the main implementation Mephisto currently uses with its `Architect`s. The `ClientIOHandler` is responsible for using and interpreting packets, so it defines the key types to be handled.
 
 ### Packet Types
