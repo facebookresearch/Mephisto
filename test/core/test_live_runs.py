@@ -247,30 +247,21 @@ class BaseTestLiveRuns:
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        self.assertEqual(len(workers), 1, "Worker not successfully registered")
-        worker = workers[0]
-
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        self.assertEqual(len(workers), 1, "Worker potentially re-registered")
-        worker_id = workers[0].db_id
-
-        self.assertEqual(len(task_runner.running_assignments), 0)
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
+        self.assertEqual(len(workers), 1, "Worker not successfully registered")
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent was not created properly")
 
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
+        self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         self.assertEqual(len(agents), 1, "Agent may have been duplicated")
         agent = agents[0]
         self.assertIsNotNone(agent)
@@ -284,14 +275,10 @@ class BaseTestLiveRuns:
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
 
         self.assertEqual(len(task_runner.running_units), 2, "Tasks were not launched")
@@ -367,28 +354,17 @@ class BaseTestLiveRuns:
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        self.assertEqual(len(workers), 1, "Worker not successfully registered")
-        worker = workers[0]
-
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        self.assertEqual(len(workers), 1, "Worker potentially re-registered")
-        worker_id = workers[0].db_id
-
-        self.assertEqual(len(task_runner.running_assignments), 0)
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
+        self.assertEqual(len(workers), 1, "Worker not successfully registered")
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent was not created properly")
 
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent may have been duplicated")
@@ -404,14 +380,10 @@ class BaseTestLiveRuns:
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
 
         self.assertEqual(
@@ -500,20 +472,13 @@ class BaseTestLiveRuns:
 
         # Fail to register an agent who fails onboarding
         mock_worker_name = "BAD_WORKER"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
+
+        mock_agent_details = "FAKE_ASSIGNMENT"
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker_0 = workers[0]
-
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         worker_id = workers[0].db_id
-
-        mock_agent_details = "FAKE_ASSIGNMENT"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
@@ -558,25 +523,17 @@ class BaseTestLiveRuns:
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
+        # TODO(#655) Create a worker on the DB side for use here
+        assert False
         workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker_1 = workers[0]
-
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        self.assertEqual(len(workers), 1, "Worker potentially re-registered")
-        worker_id = workers[0].db_id
-
-        self.assertEqual(len(task_runner.running_assignments), 0)
 
         # Fail to register a blocked agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         qualification_id = blueprint.onboarding_qualification_id
         self.db.grant_qualification(qualification_id, worker_1.db_id, 0)
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
@@ -598,7 +555,7 @@ class BaseTestLiveRuns:
 
         # Register an onboarding agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT_3"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
@@ -627,7 +584,7 @@ class BaseTestLiveRuns:
         self.assertEqual(len(agents), 1, "Agent not created after onboarding")
 
         # Re-register as if refreshing
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent may have been duplicated")
@@ -644,17 +601,15 @@ class BaseTestLiveRuns:
         )
 
         # Register another worker
+        # TODO(#655) create a worker on the DB to use here
         mock_worker_name = "MOCK_WORKER_2"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_2 = workers[0]
+        assert False
         worker_id = worker_2.db_id
 
         # Register an agent that is already qualified
         mock_agent_details = "FAKE_ASSIGNMENT_4"
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
 
         last_packet = self.architect.server.last_packet
@@ -758,14 +713,7 @@ class BaseTestLiveRuns:
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        self.assertEqual(len(workers), 1, "Worker not successfully registered")
-        worker_1 = workers[0]
-
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
+        # TODO(#655) create a new worker for this
         workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         worker_id = workers[0].db_id
@@ -776,7 +724,7 @@ class BaseTestLiveRuns:
         mock_agent_details = "FAKE_ASSIGNMENT"
         qualification_id = blueprint.onboarding_qualification_id
         self.db.grant_qualification(qualification_id, worker_1.db_id, 0)
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
@@ -798,7 +746,7 @@ class BaseTestLiveRuns:
 
         # Register an agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
@@ -827,7 +775,7 @@ class BaseTestLiveRuns:
         self.assertEqual(len(agents), 0, "Failed agent created after onboarding")
 
         # Re-register as if refreshing
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 0, "Failed agent created after onboarding")
@@ -843,8 +791,7 @@ class BaseTestLiveRuns:
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
+        # TODO($655) create this worker on the backend
         workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_2 = workers[0]
         worker_id = worker_2.db_id
@@ -852,7 +799,7 @@ class BaseTestLiveRuns:
         # Register an agent that is already qualified
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
 
         last_packet = self.architect.server.last_packet
@@ -874,14 +821,11 @@ class BaseTestLiveRuns:
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_3"
-        self.architect.server.register_mock_worker(mock_worker_name)
+        mock_agent_details = "FAKE_ASSIGNMENT_3"
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_3 = workers[0]
-        worker_id = worker_3.db_id
-        mock_agent_details = "FAKE_ASSIGNMENT_3"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
-        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents), 1, "Agent should not be created yet - need onboarding"
@@ -909,7 +853,7 @@ class BaseTestLiveRuns:
         self.assertEqual(len(agents), 2, "Agent not created after onboarding")
 
         # Re-register as if refreshing
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Duplicate agent created after onboarding")
@@ -1029,34 +973,20 @@ class BaseTestLiveRuns:
         )
 
         # Register workers
-        mock_worker_name = "MOCK_WORKER"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        self.assertEqual(len(workers), 1, "Worker not successfully registered")
-        worker_1 = workers[0]
-        worker_id = workers[0].db_id
-
-        mock_worker_name = "MOCK_WORKER_2"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_2 = workers[0]
-        worker_id_2 = worker_2.db_id
-
-        mock_worker_name = "MOCK_WORKER_3"
-        self.architect.server.register_mock_worker(mock_worker_name)
-        self.await_channel_requests(live_run)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_3 = workers[0]
-        worker_id_3 = worker_3.db_id
-
-        self.assertEqual(len(task_runner.running_units), 0)
+        mock_worker_name_1 = "MOCK_WORKER"
+        mock_worker_name_2 = "MOCK_WORKER_2"
+        mock_worker_name_3 = "MOCK_WORKER_3"
 
         # Register a screening agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT"
-        self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.architect.server.register_mock_agent(
+            mock_worker_name_1, mock_agent_details
+        )
         self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name_1 + "_sandbox")
+        self.assertEqual(len(workers), 1, "Worker not successfully registered")
+        worker_1 = workers[0]
+        worker_id = workers[0].db_id
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "No agent created for screening")
 
@@ -1068,8 +998,13 @@ class BaseTestLiveRuns:
 
         # Register a second screening agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT2"
-        self.architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        self.architect.server.register_mock_agent(
+            mock_worker_name_2, mock_agent_details
+        )
         self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name_2 + "_sandbox")
+        worker_2 = workers[0]
+        worker_id_2 = worker_2.db_id
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "No agent created for screening")
         last_packet = None
@@ -1082,8 +1017,13 @@ class BaseTestLiveRuns:
 
         # Fail to register a third screening agent
         mock_agent_details = "FAKE_ASSIGNMENT3"
-        self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        self.architect.server.register_mock_agent(
+            mock_worker_name_3, mock_agent_details
+        )
         self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name_3 + "_sandbox")
+        worker_3 = workers[0]
+        worker_id_3 = worker_3.db_id
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Third agent created, when 2 was max")
 
@@ -1092,7 +1032,9 @@ class BaseTestLiveRuns:
 
         # Register third screening agent
         mock_agent_details = "FAKE_ASSIGNMENT3"
-        self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        self.architect.server.register_mock_agent(
+            mock_worker_name_3, mock_agent_details
+        )
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 3, "Third agent not created")
@@ -1134,7 +1076,9 @@ class BaseTestLiveRuns:
         # Accept a real task, and complete it, from worker 3
         # Register a task agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT4"
-        self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        self.architect.server.register_mock_agent(
+            mock_worker_name_3, mock_agent_details
+        )
         self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 4, "No agent created for task")

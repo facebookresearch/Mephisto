@@ -164,28 +164,20 @@ class OperatorBaseTest(object):
         self.assertIsInstance(architect, MockArchitect, "Must use mock in testing")
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
-        architect.server.register_mock_worker(mock_worker_name)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id = workers[0].db_id
-
-        self.assertEqual(len(tracked_run.task_runner.running_assignments), 0)
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
-        architect.server.register_mock_agent(worker_id, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
+        self.assert_sandbox_worker_created(mock_worker_name)
         self.assert_agent_created(1)
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
-        architect.server.register_mock_worker(mock_worker_name)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
-        architect.server.register_mock_agent(worker_id, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
+        self.assert_sandbox_worker_created(mock_worker_name)
         self.assert_agent_created(2)
 
         # Give up to 5 seconds for whole mock task to complete
@@ -227,28 +219,22 @@ class OperatorBaseTest(object):
         self.assertIsInstance(architect, MockArchitect, "Must use mock in testing")
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
-        architect.server.register_mock_worker(mock_worker_name)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id = workers[0].db_id
 
         self.assertEqual(len(tracked_run.task_runner.running_assignments), 0)
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
-        architect.server.register_mock_agent(worker_id, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
+        self.assert_sandbox_worker_created(mock_worker_name)
         self.assert_agent_created(1)
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
-        architect.server.register_mock_worker(mock_worker_name)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
-        architect.server.register_mock_agent(worker_id, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
+        self.assert_sandbox_worker_created(mock_worker_name)
         self.assert_agent_created(2)
 
         # Give up to 5 seconds for both tasks to complete
@@ -301,36 +287,34 @@ class OperatorBaseTest(object):
         architect = tracked_run.architect
         self.assertIsInstance(architect, MockArchitect, "Must use mock in testing")
         # Register a worker
-        mock_worker_name = "MOCK_WORKER"
-        architect.server.register_mock_worker(mock_worker_name)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id_1 = workers[0].db_id
+        mock_worker_name_1 = "MOCK_WORKER"
 
         self.assertEqual(len(tracked_run.task_runner.running_assignments), 0)
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
-        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_1, mock_agent_details)
+        self.assert_sandbox_worker_created(mock_worker_name_1)
+        workers = self.db.find_workers(worker_name=mock_worker_name_1 + "_sandbox")
+        worker_id_1 = workers[0].db_id
         self.assert_agent_created(1)
 
         # Try to register a second agent, which should fail due to concurrency
         mock_agent_details = "FAKE_ASSIGNMENT_2"
-        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_1, mock_agent_details)
         self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Second agent was created")
 
         # Register another worker
-        mock_worker_name = "MOCK_WORKER_2"
-        architect.server.register_mock_worker(mock_worker_name)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id_2 = workers[0].db_id
+        mock_worker_name_2 = "MOCK_WORKER_2"
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
-        architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_2, mock_agent_details)
+        self.assert_sandbox_worker_created(mock_worker_name_2)
+        workers = self.db.find_workers(worker_name=mock_worker_name_2 + "_sandbox")
+        worker_id_2 = workers[0].db_id
         self.assert_agent_created(2)
 
         # wait for task to pass
@@ -339,10 +323,10 @@ class OperatorBaseTest(object):
 
         # Pass a second task as well
         mock_agent_details = "FAKE_ASSIGNMENT_3"
-        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_1, mock_agent_details)
         self.assert_agent_created(3)
         mock_agent_details = "FAKE_ASSIGNMENT_4"
-        architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_2, mock_agent_details)
         self.assert_agent_created(4)
 
         # wait for task to pass
@@ -351,33 +335,31 @@ class OperatorBaseTest(object):
 
         # Both workers should have saturated their tasks, and not be granted agents
         mock_agent_details = "FAKE_ASSIGNMENT_5"
-        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_1, mock_agent_details)
         self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 4, "Additional agent was created")
-        architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_2, mock_agent_details)
         self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 4, "Additional agent was created")
 
         # new workers should be able to work on these just fine though
-        mock_worker_name = "MOCK_WORKER_3"
-        architect.server.register_mock_worker(mock_worker_name)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id_3 = workers[0].db_id
-        mock_worker_name = "MOCK_WORKER_4"
-        architect.server.register_mock_worker(mock_worker_name)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id_4 = workers[0].db_id
+        mock_worker_name_3 = "MOCK_WORKER_3"
+        mock_worker_name_4 = "MOCK_WORKER_4"
 
         # Register agents from new workers
         mock_agent_details = "FAKE_ASSIGNMENT_5"
-        architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_3, mock_agent_details)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
+        worker_id_3 = workers[0].db_id
         self.assert_agent_created(5)
         mock_agent_details = "FAKE_ASSIGNMENT_6"
-        architect.server.register_mock_agent(worker_id_4, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_4, mock_agent_details)
+        self.assert_sandbox_worker_created(mock_worker_name)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
+        worker_id_4 = workers[0].db_id
         self.assert_agent_created(6)
 
         # wait for task to pass
@@ -425,7 +407,7 @@ class OperatorBaseTest(object):
 
         # Workers one and two still shouldn't be able to make agents
         mock_agent_details = "FAKE_ASSIGNMENT_7"
-        architect.server.register_mock_agent(worker_id_1, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_1, mock_agent_details)
         self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(
@@ -434,7 +416,7 @@ class OperatorBaseTest(object):
             "Additional agent was created for worker exceeding max units",
         )
         mock_agent_details = "FAKE_ASSIGNMENT_7"
-        architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_2, mock_agent_details)
         self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
         self.assertEqual(
@@ -445,10 +427,10 @@ class OperatorBaseTest(object):
 
         # Three and four should though
         mock_agent_details = "FAKE_ASSIGNMENT_7"
-        architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_3, mock_agent_details)
         self.assert_agent_created(7)
         mock_agent_details = "FAKE_ASSIGNMENT_8"
-        architect.server.register_mock_agent(worker_id_4, mock_agent_details)
+        architect.server.register_mock_agent(mock_worker_name_4, mock_agent_details)
         self.assert_agent_created(8)
 
         # Ensure the task run completed and that all assignments are done
