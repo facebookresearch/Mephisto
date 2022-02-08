@@ -140,7 +140,6 @@ class TaskRunner(ABC):
         logger.debug(f"Launching onboarding for {onboarding_agent}")
         try:
             self.run_onboarding(onboarding_agent)
-            onboarding_agent.mark_done()
         except (
             AgentReturnedError,
             AgentTimeoutError,
@@ -177,7 +176,6 @@ class TaskRunner(ABC):
         self,
         unit: "Unit",
         agent: "Agent",
-        do_mark_done: Callable[[], None],
     ) -> None:
         """Execute unit in a background thread"""
         if unit.db_id in self.running_units:
@@ -185,7 +183,7 @@ class TaskRunner(ABC):
             return
         unit_thread = threading.Thread(
             target=self._launch_and_run_unit,
-            args=(unit, agent, do_mark_done),
+            args=(unit, agent),
             name=f"Unit-thread-{unit.db_id}",
         )
         self.running_units[unit.db_id] = RunningUnit(
@@ -221,7 +219,6 @@ class TaskRunner(ABC):
         self,
         unit: "Unit",
         agent: "Agent",
-        do_mark_done: Callable[[], None],
     ) -> None:
         """Supervise the completion of a unit thread"""
         try:
@@ -247,11 +244,9 @@ class TaskRunner(ABC):
 
         # Unit run now complete
         if agent.get_status() not in AgentState.complete():
-            do_mark_done()
             if not agent.did_submit.is_set():
                 # Wait for a submit to occur
-                agent.has_action.wait(timeout=self.args.task.submission_timout)
-                agent.act()
+                agent.did_submit.wait(timeout=self.args.task.submission_timout)
             agent.mark_done()
         self._cleanup_special_units(unit, agent)
         self.task_run.clear_reservation(unit)
@@ -260,7 +255,6 @@ class TaskRunner(ABC):
         self,
         assignment: "Assignment",
         agents: List["Agent"],
-        do_mark_done: Callable[[], None],
     ) -> None:
         """Execute assignment in a background thread"""
         if assignment.db_id in self.running_assignments:
@@ -268,7 +262,7 @@ class TaskRunner(ABC):
             return
         assign_thread = threading.Thread(
             target=self._launch_and_run_assignment,
-            args=(assignment, agents, do_mark_done),
+            args=(assignment, agents),
             name=f"Assignment-thread-{assignment.db_id}",
         )
         for agent in agents:
@@ -286,7 +280,6 @@ class TaskRunner(ABC):
         self,
         assignment: "Assignment",
         agents: List["Agent"],
-        do_mark_done: Callable[[], None],
     ) -> None:
         """Supervise the completion of an assignment thread"""
         try:
@@ -318,15 +311,12 @@ class TaskRunner(ABC):
             self.shared_state.on_unit_submitted(unit)
         del self.running_assignments[assignment.db_id]
 
-        # Assignment run now complete
-        do_mark_done()
         # Wait for agents to be complete
         for agent in agents:
             if agent.get_status() not in AgentState.complete():
                 if not agent.did_submit.is_set():
                     # Wait for a submit to occur
-                    agent.has_action.wait(timeout=self.args.task.submission_timout)
-                    agent.act()
+                    agent.did_submit.wait(timeout=self.args.task.submission_timout)
                 agent.mark_done()
 
         # Clear reservations

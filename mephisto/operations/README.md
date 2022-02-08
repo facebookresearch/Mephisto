@@ -1,6 +1,8 @@
 # Mephisto Operations
 The contents of the operations folder comprise controllers for launching and monitoring tasks, as well as other classes that either operate on the data model or support the mid level of Mephisto's design. Each has a high level responsibility, detailed below. Within these classes there's something of a heirarchy depending on the amount of underlying infrastructure that a class is built upon. 
 
+**NOTE** This README is somewhat out of date, and needs updating for the Mephisto 1.0 release
+
 ### High-level controller components
 This level of components is reserved for modules that operate on the highest level of the Mephisto heirarchy. These should be either directly usable, or easy to bundle into scripts for the client/api.
 
