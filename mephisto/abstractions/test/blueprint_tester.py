@@ -18,6 +18,7 @@ from mephisto.abstractions.blueprint import (
     TaskRunner,
     TaskBuilder,
 )
+from mephisto.abstractions._subcomponents.task_runner import RunningAssignment
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task_run import TaskRun
@@ -213,10 +214,10 @@ class BlueprintTests(unittest.TestCase):
             cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
 
-        task_runner.running_assignments[
-            assignment.db_id
-        ] = None  # To ensure cleanup works
-        task_runner._launch_and_run_assignment(assignment, agents, lambda: None)
+        task_runner.running_assignments[assignment.db_id] = RunningAssignment(
+            None, None, None
+        )  # type: ignore
+        task_runner._launch_and_run_assignment(assignment, agents)
         self.assertTrue(self.assignment_completed_successfully(assignment))
 
     def test_can_exit_gracefully(self) -> None:
@@ -228,9 +229,7 @@ class BlueprintTests(unittest.TestCase):
         assert isinstance(fail_agent, MockAgent), "Agent must be mock agent for testing"
         fail_agent.mark_disconnected()
         try:
-            task_runner._launch_and_run_assignment(
-                assignment, [fail_agent], lambda: None
-            )
+            task_runner._launch_and_run_assignment(assignment, [fail_agent])
         except Exception as e:
             task_runner.cleanup_assignment(assignment)
 

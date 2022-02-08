@@ -88,28 +88,29 @@ class StaticAgentState(AgentState):
             json.dump(self.state, data_file)
         logger.info(f"SAVED_DATA_TO_DISC at {out_filename}")
 
-    def update_data(self, packet: "Packet") -> None:
+    def update_data(self, live_data: Dict[str, Any]) -> None:
         """
         Process the incoming data packet, and handle
         updating the state
         """
-        assert (
-            packet.data.get("MEPHISTO_is_submit") is True
-            or packet.data.get("onboarding_data") is not None
-        ), "Static tasks should only have final act"
+        raise Exception(
+            "Static tasks should only have final act, but updated live data"
+        )
 
+    def update_submit(self, submission_data: Dict[str, Any]) -> None:
+        """Move the submitted output to the local dict"""
         outputs: Dict[str, Any]
 
-        if packet.data.get("onboarding_data") is not None:
-            outputs = packet.data["onboarding_data"]
+        if submission_data.get("onboarding_data") is not None:
+            outputs = submission_data["onboarding_data"]
         else:
-            outputs = packet.data["task_data"]
+            outputs = submission_data["task_data"]
         times_dict = self.state["times"]
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
-        if packet.data.get("files") != None:
-            logger.info(f"Got files: {str(packet.data['files'])[:500]}")
-            outputs["files"] = [f["filename"] for f in packet.data["files"]]
+        if submission_data.get("files") != None:
+            logger.info(f"Got files: {str(submission_data['files'])[:500]}")
+            outputs["files"] = [f["filename"] for f in submission_data["files"]]
         self.state["outputs"] = outputs
         self.save_data()
 
@@ -117,10 +118,14 @@ class StaticAgentState(AgentState):
         """
         Extract out and return the start time recorded for this task.
         """
-        return self.state["times"]["task_start"]
+        stored_times = self.state["times"]
+        assert stored_times is not None
+        return stored_times["task_start"]
 
     def get_task_end(self) -> Optional[float]:
         """
         Extract out and return the end time recorded for this task.
         """
-        return self.state["times"]["task_end"]
+        stored_times = self.state["times"]
+        assert stored_times is not None
+        return stored_times["task_end"]

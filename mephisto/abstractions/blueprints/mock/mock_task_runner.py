@@ -58,7 +58,6 @@ class MockTaskRunner(TaskRunner):
         """
         packet = onboarding_agent.act(timeout=self.timeout)
         onboarding_agent.did_submit.set()
-        onboarding_agent.mark_done()
 
     def run_unit(self, unit: "Unit", agent: "Agent"):
         """

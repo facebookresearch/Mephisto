@@ -217,7 +217,6 @@ class WorkerPool:
                 live_run.task_runner.execute_unit(
                     unit,
                     agent,
-                    lambda: self._mark_agent_done(agent),
                 )
             else:
                 # See if the concurrent unit is ready to launch
@@ -235,13 +234,7 @@ class WorkerPool:
                     if a is not None
                 ]
 
-                def mark_agents_done():
-                    for agent in registered_agents:
-                        self._mark_agent_done(agent)
-
-                live_run.task_runner.execute_assignment(
-                    assignment, registered_agents, mark_agents_done
-                )
+                live_run.task_runner.execute_assignment(assignment, registered_agents)
 
     async def register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
         """
@@ -526,22 +519,6 @@ class WorkerPool:
 
         live_run = self.get_live_run()
         live_run.client_io.send_status_update(agent.get_agent_id(), status)
-
-    def _mark_agent_done(self, agent: Union["Agent", "OnboardingAgent"]) -> None:
-        """
-        Handle marking an agent as done, and telling the frontend agent
-        that they have successfully completed their task.
-
-        If the agent is in a final non-successful status, or already
-        told of partner disconnect, skip
-        """
-        if agent.db_status in AgentState.complete() + [
-            AgentState.STATUS_PARTNER_DISCONNECT
-        ]:
-            return  # Don't send done messages to agents that are already completed
-
-        live_run = self.get_live_run()
-        live_run.client_io.send_done_message(agent.db_id)
 
     def handle_updated_agent_status(self, status_map: Dict[str, str]):
         """

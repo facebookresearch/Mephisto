@@ -41,12 +41,12 @@ class MockAgent(Agent):
                 "acts": [],
             }
 
-    def observe(self, packet: "Packet") -> None:
+    def observe(self, live_data: Dict[str, Any]) -> None:
         """Put observations into this mock agent's observation list"""
-        self.datastore.agent_data[self.db_id]["observed"].append(packet)
-        super().observe(packet)
+        self.datastore.agent_data[self.db_id]["observed"].append(live_data)
+        super().observe(live_data)
 
-    def act(self, timeout=None) -> Optional["Packet"]:
+    def get_live_data(self, timeout=None) -> Optional[Dict[str, Any]]:
         """
         Either take an act from this mock agent's act queue (for use
         by tests and other mock purposes) or request a regular act

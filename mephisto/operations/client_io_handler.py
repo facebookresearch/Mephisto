@@ -201,8 +201,8 @@ class ClientIOHandler:
         agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
         assert agent is not None, "Could not find given agent!"
 
-        agent.pending_actions.put(packet)
-        agent.has_action.set()
+        agent.pending_actions.put(packet.data)
+        agent.has_live_data.set()
 
     def _on_submit_unit(self, packet: Packet, _channel_id: str):
         """Handle an action as sent from an agent, enqueuing to the agent"""
@@ -223,9 +223,7 @@ class ClientIOHandler:
         else:
             raise Exception(f"Got submit call on a non-submit packet: {packet}")
 
-        # TODO(#655) push to an agent _submit_ call rather than being a regular message
-        agent.pending_actions.put(packet)
-        agent.has_action.set()
+        agent.handle_submit(packet.data)
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
@@ -241,6 +239,7 @@ class ClientIOHandler:
         assert agent is not None, f"Could not find given agent by id {onboarding_id}"
         request_id = packet.data["request_id"]
         self.request_id_to_channel_id[request_id] = channel_id
+        agent.update_status(AgentState.STATUS_WAITING)
 
         logger.debug(f"{agent} has submitted onboarding: {packet}")
         # Update the request id for the original packet (which has the required
@@ -249,10 +248,7 @@ class ClientIOHandler:
         live_run.worker_pool.onboarding_infos[onboarding_id].request_id = request_id
 
         del packet.data["request_id"]
-        # TODO(#655) Update this to _submit_ the given packet, rather than putting it into
-        # pending actions
-        agent.pending_actions.put(packet)
-        agent.has_action.set()
+        agent.handle_submit(packet.data)
 
     def _register_agent(self, packet: Packet, channel_id: str) -> None:
         """Read and forward a worker registration packet"""
@@ -319,13 +315,13 @@ class ClientIOHandler:
         # self.message_queue.put(agent_data_packet)
         self.process_outgoing_queue(self.message_queue)
 
-        # TODO(#655) Move raw message (live message) processing into mephisto-task
-        if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
-            # TODO(#651) clarify how raw messages are sent
-            for message in unit_data["raw_messages"]:
-                packet = Packet.from_dict(message)
-                packet.receiver_id = agent_id
-                agent.pending_observations.put(packet)
+        # # TODO(#655) Move raw message (live message) processing into mephisto-task
+        # if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
+        #     # TODO(#651) clarify how raw messages are sent
+        #     for message in unit_data["raw_messages"]:
+        #         packet = Packet.from_dict(message)
+        #         packet.receiver_id = agent_id
+        #         agent.pending_observations.put(packet)
 
     def _on_message(self, packet: Packet, channel_id: str):
         """Handle incoming messages from the channel"""
@@ -368,6 +364,10 @@ class ClientIOHandler:
         while not self.is_shutdown and len(self.channels) > 0:
             self._request_status_update()
             await asyncio.sleep(STATUS_CHECK_TIME)
+
+    def request_live_data(self, agent_id: str):
+        """Send a live data packet requesting a live data response"""
+        self.send_live_data(agent_id, {"live_data_requested": True})
 
     def send_live_data(self, agent_id: str, data: Dict[str, Any]):
         """Send a live data packet to the given agent id"""
