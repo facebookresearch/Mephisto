@@ -19,7 +19,7 @@ This document aims to describe how we got from these requirements and goals to t
 ### `Worker`/`Agent` registration
 Mephisto allows for multiple stages of filtering for a worker, which leads the registration process to be staged. The complete order is listed below:
 0. `CrowdProvider`-set qualifications may prevent a worker from even seeing a task.
-1. `Qualification`s may be set that a `CrowdProvider` is not aware of. Workers not meeting these qualifications should be filtered.
+1. `Qualification`s may be set locally that a `CrowdProvider` is not aware of. Workers not meeting these Mephisto qualifications (as set by `SharedState.qualifications`) should be filtered out.
 2. Configuration requirements may be set, like `maximum_units_per_worker` or `allowed_concurrent` which could prevent a worker from completing more than a maximum number of units on a task or work on too many tasks at once respectively.
 3. Of all available `Unit`s on `Assignment`s the worker hasn't yet worked on, workers may be further filtered by the user-provided `worker_can_do_unit` function.
 
@@ -74,28 +74,29 @@ The `Channel` is the primary way of trasmitting packets, with the `WebsocketChan
 There are a number of different packet types used by Mephisto:
 - `PACKET_TYPE_ALIVE`: Used to mark the success of a new socket connection.
 - `PACKET_TYPE_SUBMIT`: Used to handle submission of any subcomponent of a `Unit`, currently either onboarding or full task. 
-- `PACKET_TYPE_OUTGOING_LIVE_DATA`: Used to send any new live data to an agent.
-- `PACKET_TYPE_INCOMING_LIVE_DATA`: Used for the frontend to send any type of data to the backend, usually to be processed by a user-defined callback. 
-- `PACKET_TYPE_REGISTER_WORKER`: Used to request a new `Agent` and `Unit` data for a specific worker on a task.
+- `PACKET_TYPE_CLIENT_BOUND_LIVE_DATA`: Used to send any new live data to an agent.
+- `PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA`: Used for the frontend to send any type of data to the backend, usually to be processed by a user-defined callback. 
+- `PACKET_TYPE_REGISTER_AGENT`: Used to request a new `Agent` and `Unit` data for a specific worker on a task.
 - `PACKET_TYPE_AGENT_DETAILS`: Used to respond with the details of a worker registration request.
+- `PACKET_TYPE_UPDATE_STATUS`: Used by Mephisto to push a status update to the router and frontend worker.
 - `PACKET_TYPE_REQUEST_STATUSES`: Used by Mephisto to poll for the current statuses for a worker.
-- `PACKET_TYPE_RETURN_STATUES`: Used by the router to return updates for all of the currently registered agents.
+- `PACKET_TYPE_RETURN_STATUSES`: Used by the router to return updates for all of the currently registered agents.
 - `PACKET_TYPE_ERROR`: Used by the router and frontend to communicate to the python backend that an error has occurred.
 
 ### Architect Responsibilities
 
 While this is the "Architect API" most of the responsibilities for the architect are merely pointing the `ClientIOHandler` to the correct `Channel`s for sending packets for a given client. Ultimately it is the `ClientIOHandler` that dictates the responsibilities that the transmitted messages carry:
 - The `ClientIOHandler` must send a `PACKET_TYPE_ALIVE` whenever it opens a new channel (in this case, to a router).
-- For `Unit` Registration, in response to a `PACKET_TYPE_REGISTER_WORKER`, the handler must return a `PACKET_TYPE_AGENT_DETAILS` with the details of an agent and it's initialization data, or the failure status for why an agent couldn't be created.
-- During a `Unit` the handler must process `PACKET_TYPE_INCOMING_LIVE_DATA` and direct the content to the correct handlers, and should send a `PACKET_TYPE_OUTGOING_LIVE_DATA` for any `Agent.send_data()` call on a live connected `Agent`. The handler must also process `PACKET_TYPE_SUBMIT` packets for the key transitions of a `Unit` in progress, and should respond with `PACKET_TYPE_AGENT_DETAILS` for a submit on an `OnboardingAgent`.
-- Over any run, the handler should poll with `PACKET_TYPE_REQUEST_STATUS` and update local `Agent` statuses on disconnects from `PACKET_TYPE_RETURN_STATUS`. This also acts as a heartbeat from the Python core to the router. The handler should also take `PACKET_TYPE_ERROR` and log the contents if this ever occurs.
+- For `Unit` Registration, in response to a `PACKET_TYPE_REGISTER_AGENT`, the handler must return a `PACKET_TYPE_AGENT_DETAILS` with the details of an agent and it's initialization data, or the failure status for why an agent couldn't be created.
+- During a `Unit` the handler must process `PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA` and direct the content to the correct handlers, and should send a `PACKET_TYPE_CLIENT_BOUND_LIVE_DATA` for any `Agent.send_data()` call on a live connected `Agent`. The handler must also process `PACKET_TYPE_SUBMIT` packets for the key transitions of a `Unit` in progress, and should respond with `PACKET_TYPE_AGENT_DETAILS` for a submit on an `OnboardingAgent`.
+- Over any run, the handler should poll with `PACKET_TYPE_REQUEST_STATUS` and update local `Agent` statuses on disconnects from `PACKET_TYPE_RETURN_STATUSES`. This also acts as a heartbeat from the Python core to the router. The handler should also take `PACKET_TYPE_ERROR` and log the contents if this ever occurs.
 
 
 ### Router Responsibilities
 
 The primary responsiblity of the router is to take incoming packets from client connections and direct them to the core Mephisto `ClientIOHandler` and to do the reverse as well. All packets will have a core `agent_id` field denoting either the sender or receiver of the packet, depending on the packet type. The only exception is the `PACKET_TYPE_ALIVE`, which is directed to the router and allows for any registration of an incoming connection.
 
-Secondarily, the router is responsible for converting RESTful `POST` requests from `mephisto-task` into socket messages, and relaying the response as a standard `POST` response. This behavior is _only_ for the `PACKET_TYPE_REGISTER_WORKER`, and `PACKET_TYPE_SUBMIT` packets, and both of them will be serviced by `PACKET_TYPE_AGENT_DETAILS` responses. For these it should be listening to `POST` requests at `/register_worker`, `submit_onboarding`, and `/submit_task`. `POST` requests to `/log_error` should result in forwarding a `PACKET_TYPE_ERROR`.
+Secondarily, the router is responsible for converting RESTful `POST` requests from `mephisto-task` into socket messages, and relaying the response as a standard `POST` response. This behavior is _only_ for the `PACKET_TYPE_REGISTER_AGENT`, and `PACKET_TYPE_SUBMIT` packets, and both of them will be serviced by `PACKET_TYPE_AGENT_DETAILS` responses. For these it should be listening to `POST` requests at `/register_worker`, `/submit_onboarding`, and `/submit_task`. `POST` requests to `/log_error` should result in forwarding a `PACKET_TYPE_ERROR`.
 
 Third, the router is responsible for maintaining track of agent status, and acting as a cache for this information after disconnects. This allows for a worker to return to a task and have updated information about what has transpired, even when the main Mephisto server has cleaned up the related `TaskRunner` and live `Agent`.
 
@@ -103,6 +104,6 @@ Fourth, the router is responsible for serving the static `task_config.json` file
 
 ### `mephisto-task` responsibilities.
 
-The `useMephistoTask` hook is responsible for allowing a worker to connect to a task and submit the relevant data. For this, it only needs to make `POST` requests related to the `PACKET_TYPE_SUBMIT` and `PACKET_TYPE_REGISTER_WORKER` events. The former should be triggered on `handleSubmit`, while the latter should trigger immediately on load.
+The `useMephistoTask` hook is responsible for allowing a worker to connect to a task and submit the relevant data. For this, it only needs to make `POST` requests related to the `PACKET_TYPE_SUBMIT` and `PACKET_TYPE_REGISTER_AGENT` events. The former should be triggered on `handleSubmit`, while the latter should trigger immediately on load.
 
 The `useMephistoLiveTask` hook is responsible for the rest of the packets. Data packets should be sent via `sendData` and handled with the `onLiveDataReceived` callback. Providing a callback to `sendData` will call that with any response data that sets the `source_request_id` to the initial send's `message_id`. Local connection state is managed by the `socket_handler.jsx` class, and surfaced through the hook variables for UIs to use. 
