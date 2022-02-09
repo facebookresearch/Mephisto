@@ -69,7 +69,7 @@ def prompt_for_options(
     task_name: Optional[str] = None,
     block_qualification: Optional[str] = None,
     approve_qualification: Optional[str] = None,
-) -> Tuple[str, Optional[str], Optional[str]]:
+) -> Tuple[str, Optional[str], Optional[str], bool]:
     """
     Utility to request common user options for examine scripts.
     Leave `block_qualification` or `approve_qualification` as empty strings
@@ -87,6 +87,9 @@ def prompt_for_options(
             "If you'd like to qualify high-quality workers, you'll need an approve "
             "qualification. Leave blank otherwise.\nEnter approve qualification: "
         )
+    review_rejected = input("Would you like to review rejected workers? (y/n)")
+    review_rejected = review_rejected.lower() == "y"
+
     if len(block_qualification.strip()) == 0:
         block_qualification = None
     if len(approve_qualification.strip()) == 0:
@@ -98,7 +101,7 @@ def prompt_for_options(
         f"Approve qualification: {approve_qualification}\n"
         "Press enter to continue... "
     )
-    return task_name, block_qualification, approve_qualification
+    return task_name, block_qualification, approve_qualification, review_rejected
 
 
 def get_worker_stats(units: List["Unit"]) -> Dict[str, Dict[str, List["Unit"]]]:
@@ -141,6 +144,7 @@ def run_examine_by_worker(
     task_name: Optional[str] = None,
     block_qualification: Optional[str] = None,
     approve_qualification: Optional[str] = None,
+        review_rejections: Optional[bool] = False
 ):
     """
     Basic script for reviewing work, grouped by worker for convenience. First gets
@@ -150,7 +154,7 @@ def run_examine_by_worker(
 
     # Get initial arguments
     if task_name is None:
-        task_name, block_qualification, approve_qualification = prompt_for_options(
+        task_name, block_qualification, approve_qualification, review_rejections = prompt_for_options(
             task_name, block_qualification, approve_qualification
         )
 
@@ -190,7 +194,7 @@ def run_examine_by_worker(
     units = data_browser.get_units_for_task_name(task_name)
 
     others = [u for u in units if u.get_status() != "completed"]
-    units = [u for u in units if u.get_status() == "completed"]
+    units = [u for u in units if u.get_status() == "completed" or (review_rejections and u.get_status() == "rejected")]
     reviews_left = len(units)
     previous_work_by_worker = get_worker_stats(others)
 
@@ -244,6 +248,11 @@ def run_examine_by_worker(
                     )
                     if should_special_qualify.lower() in ["y", "yes"]:
                         worker.grant_qualification(approve_qualification, 1)
+                if worker.is_qualified(block_qualification):
+                    should_unblock = input("Would you like to unblock this worker? (y)es/(n)o: ")
+                    if should_unblock.lower() in ["y", "yes"]:
+                        worker.revoke_qualification(block_qualification)
+
             elif decision.lower() == "p":
                 agent.soft_reject_work()
                 if apply_all_decision is None and block_qualification is not None:

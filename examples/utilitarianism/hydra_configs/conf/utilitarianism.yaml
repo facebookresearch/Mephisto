@@ -1,0 +1,19 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/data.csv
+    task_source: ${task_dir}/server_files/demo_task.html
+    preview_source: ${task_dir}/server_files/demo_preview.html
+    onboarding_qualification: ${task_dir}/server_files/demo_onboarding.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 2
+  task:
+    task_name: utilitarianism
+    task_title: "Utilitarianism task"
+    task_description: "Rewrite of utilitarianism from amti"
+    task_reward: 0.3
+    task_tags: "static,task,testing"
