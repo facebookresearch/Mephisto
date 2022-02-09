@@ -55,7 +55,7 @@ class MockAgent(Agent):
         if len(self.datastore.agent_data[self.db_id]["pending_acts"]) > 0:
             act = self.datastore.agent_data[self.db_id]["pending_acts"].pop(0)
         else:
-            act = super().act(timeout=timeout)
+            act = super().get_live_data(timeout=timeout)
 
         if act is not None:
             self.datastore.agent_data[self.db_id]["acts"].append(act)
@@ -75,16 +75,9 @@ class MockAgent(Agent):
         """
         self.update_status(AgentState.STATUS_REJECTED)
 
-    def mark_done(self) -> None:
-        """
-        Take any required step with the crowd_provider to ensure that
-        the worker can submit their work and be marked as complete via
-        a call to get_status
-        """
-        if self.get_status() not in AgentState.complete():
-            self.db.update_agent(
-                agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
-            )
+    def mark_done(self):
+        """No need to tell mock crowd provider about doneness"""
+        pass
 
     def mark_disconnected(self) -> None:
         """Mark this mock agent as having disconnected"""

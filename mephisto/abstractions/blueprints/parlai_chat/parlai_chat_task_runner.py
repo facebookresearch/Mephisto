@@ -187,10 +187,8 @@ class ParlAIChatTaskRunner(TaskRunner):
         )
 
         # Mark the agent as done, then wait for the incoming submit action
+        # TODO(#655) just wait on this condition!
         while not agent.did_submit.is_set():
-            done_act = agent.act()
-            if done_act is not None:
-                break
             time.sleep(0.3)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:

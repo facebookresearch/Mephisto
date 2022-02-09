@@ -6,7 +6,7 @@
 
 import time
 from functools import partial
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -316,9 +316,16 @@ class WorkerPool:
         task_runner = live_run.task_runner
         agent = self.get_agent_for_id(agent_id)
         if agent is None:
-            raise Exception(
-                f"Expected reconnecting agent {agent_id} but none found locally"
+            logger.info(
+                f"Looking for reconnecting agent {agent_id} but none found locally"
             )
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    failure_reason=WorkerFailureReasons.TASK_MISSING,
+                ).to_dict(),
+            )
+            return
         worker = agent.get_worker()
         if isinstance(agent, OnboardingAgent):
             blueprint = live_run.blueprint

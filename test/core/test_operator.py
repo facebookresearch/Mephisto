@@ -116,7 +116,7 @@ class OperatorBaseTest(object):
             f"Worker {worker_name} not created in time!",
         )
 
-    def assert_agent_created(self, agent_num, timeout=2) -> None:
+    def assert_agent_created(self, agent_num, timeout=2) -> str:
         self.assertTrue(
             self.operator._run_loop_until(
                 lambda: len(self.db.find_agents()) == agent_num,
@@ -127,6 +127,7 @@ class OperatorBaseTest(object):
         agents = self.db.find_agents()
         agent = agents[agent_num - 1]
         self.assertIsNotNone(agent)
+        return agent.db_id
 
     def await_channel_requests(self, tracked_run, timeout=2) -> None:
         self.assertTrue(
@@ -169,7 +170,7 @@ class OperatorBaseTest(object):
         mock_agent_details = "FAKE_ASSIGNMENT"
         architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.assert_sandbox_worker_created(mock_worker_name)
-        self.assert_agent_created(1)
+        agent_id_1 = self.assert_agent_created(1)
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
@@ -178,7 +179,12 @@ class OperatorBaseTest(object):
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.assert_sandbox_worker_created(mock_worker_name)
-        self.assert_agent_created(2)
+        agent_id_2 = self.assert_agent_created(2)
+
+        architect.server.send_agent_act(agent_id_1, {"text": "message1"})
+        architect.server.send_agent_act(agent_id_2, {"text": "message2"})
+        architect.server.submit_mock_unit(agent_id_1, {"completed": True})
+        architect.server.submit_mock_unit(agent_id_2, {"completed": True})
 
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
@@ -226,7 +232,7 @@ class OperatorBaseTest(object):
         mock_agent_details = "FAKE_ASSIGNMENT"
         architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.assert_sandbox_worker_created(mock_worker_name)
-        self.assert_agent_created(1)
+        agent_id_1 = self.assert_agent_created(1)
 
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
@@ -235,7 +241,12 @@ class OperatorBaseTest(object):
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         architect.server.register_mock_agent(mock_worker_name, mock_agent_details)
         self.assert_sandbox_worker_created(mock_worker_name)
-        self.assert_agent_created(2)
+        agent_id_2 = self.assert_agent_created(2)
+
+        architect.server.send_agent_act(agent_id_1, {"text": "message1"})
+        architect.server.send_agent_act(agent_id_2, {"text": "message2"})
+        architect.server.submit_mock_unit(agent_id_1, {"completed": True})
+        architect.server.submit_mock_unit(agent_id_2, {"completed": True})
 
         # Give up to 5 seconds for both tasks to complete
         start_time = time.time()
@@ -297,10 +308,10 @@ class OperatorBaseTest(object):
         self.assert_sandbox_worker_created(mock_worker_name_1)
         workers = self.db.find_workers(worker_name=mock_worker_name_1 + "_sandbox")
         worker_id_1 = workers[0].db_id
-        self.assert_agent_created(1)
+        agent_id_1 = self.assert_agent_created(1)
 
         # Try to register a second agent, which should fail due to concurrency
-        mock_agent_details = "FAKE_ASSIGNMENT_2"
+        mock_agent_details = "FAKE_ASSIGNMENT_2_FAILS"
         architect.server.register_mock_agent(mock_worker_name_1, mock_agent_details)
         self.await_channel_requests(tracked_run)
         agents = self.db.find_agents()
@@ -315,7 +326,13 @@ class OperatorBaseTest(object):
         self.assert_sandbox_worker_created(mock_worker_name_2)
         workers = self.db.find_workers(worker_name=mock_worker_name_2 + "_sandbox")
         worker_id_2 = workers[0].db_id
-        self.assert_agent_created(2)
+        agent_id_2 = self.assert_agent_created(2)
+
+        architect.server.send_agent_act(agent_id_1, {"text": "message1"})
+        architect.server.send_agent_act(agent_id_2, {"text": "message2"})
+        architect.server.submit_mock_unit(agent_id_1, {"completed": True})
+        architect.server.submit_mock_unit(agent_id_2, {"completed": True})
+        self.await_channel_requests(tracked_run)
 
         # wait for task to pass
         agents = self.db.find_agents()
@@ -324,10 +341,16 @@ class OperatorBaseTest(object):
         # Pass a second task as well
         mock_agent_details = "FAKE_ASSIGNMENT_3"
         architect.server.register_mock_agent(mock_worker_name_1, mock_agent_details)
-        self.assert_agent_created(3)
+        agent_id_3 = self.assert_agent_created(3)
         mock_agent_details = "FAKE_ASSIGNMENT_4"
         architect.server.register_mock_agent(mock_worker_name_2, mock_agent_details)
-        self.assert_agent_created(4)
+        agent_id_4 = self.assert_agent_created(4)
+
+        architect.server.send_agent_act(agent_id_3, {"text": "message3"})
+        architect.server.send_agent_act(agent_id_4, {"text": "message4"})
+        architect.server.submit_mock_unit(agent_id_3, {"completed": True})
+        architect.server.submit_mock_unit(agent_id_4, {"completed": True})
+        self.await_channel_requests(tracked_run)
 
         # wait for task to pass
         agents = self.db.find_agents()
@@ -351,16 +374,18 @@ class OperatorBaseTest(object):
         # Register agents from new workers
         mock_agent_details = "FAKE_ASSIGNMENT_5"
         architect.server.register_mock_agent(mock_worker_name_3, mock_agent_details)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id_3 = workers[0].db_id
-        self.assert_agent_created(5)
+        self.assert_sandbox_worker_created(mock_worker_name_3)
+        agent_id_5 = self.assert_agent_created(5)
         mock_agent_details = "FAKE_ASSIGNMENT_6"
         architect.server.register_mock_agent(mock_worker_name_4, mock_agent_details)
-        self.assert_sandbox_worker_created(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
-        worker_id_4 = workers[0].db_id
-        self.assert_agent_created(6)
+        self.assert_sandbox_worker_created(mock_worker_name_4)
+        agent_id_6 = self.assert_agent_created(6)
+
+        architect.server.send_agent_act(agent_id_5, {"text": "message5"})
+        architect.server.send_agent_act(agent_id_6, {"text": "message6"})
+        architect.server.submit_mock_unit(agent_id_5, {"completed": True})
+        architect.server.submit_mock_unit(agent_id_6, {"completed": True})
+        self.await_channel_requests(tracked_run)
 
         # wait for task to pass
         agents = self.db.find_agents()
@@ -428,10 +453,16 @@ class OperatorBaseTest(object):
         # Three and four should though
         mock_agent_details = "FAKE_ASSIGNMENT_7"
         architect.server.register_mock_agent(mock_worker_name_3, mock_agent_details)
-        self.assert_agent_created(7)
+        agent_id_7 = self.assert_agent_created(7)
         mock_agent_details = "FAKE_ASSIGNMENT_8"
         architect.server.register_mock_agent(mock_worker_name_4, mock_agent_details)
-        self.assert_agent_created(8)
+        agent_id_8 = self.assert_agent_created(8)
+
+        architect.server.send_agent_act(agent_id_7, {"text": "message7"})
+        architect.server.send_agent_act(agent_id_8, {"text": "message8"})
+        architect.server.submit_mock_unit(agent_id_7, {"completed": True})
+        architect.server.submit_mock_unit(agent_id_8, {"completed": True})
+        self.await_channel_requests(tracked_run)
 
         # Ensure the task run completed and that all assignments are done
         start_time = time.time()

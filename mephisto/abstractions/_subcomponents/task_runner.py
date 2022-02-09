@@ -238,16 +238,20 @@ class TaskRunner(ABC):
             self.cleanup_unit(unit)
         except Exception as e:
             logger.exception(f"Unhandled exception in unit {unit}", exc_info=True)
+            # Exceptions mark as submitted to ensure task closure
             self.cleanup_unit(unit)
-        self.shared_state.on_unit_submitted(unit)
-        del self.running_units[unit.db_id]
 
         # Unit run now complete
         if agent.get_status() not in AgentState.complete():
             if not agent.did_submit.is_set():
                 # Wait for a submit to occur
                 agent.did_submit.wait(timeout=self.args.task.submission_timout)
+            agent.update_status(AgentState.STATUS_COMPLETED)
             agent.mark_done()
+
+        self.shared_state.on_unit_submitted(unit)
+        del self.running_units[unit.db_id]
+
         self._cleanup_special_units(unit, agent)
         self.task_run.clear_reservation(unit)
 
@@ -307,9 +311,6 @@ class TaskRunner(ABC):
                 exc_info=True,
             )
             self.cleanup_assignment(assignment)
-        for unit in assignment.get_units():
-            self.shared_state.on_unit_submitted(unit)
-        del self.running_assignments[assignment.db_id]
 
         # Wait for agents to be complete
         for agent in agents:
@@ -317,7 +318,12 @@ class TaskRunner(ABC):
                 if not agent.did_submit.is_set():
                     # Wait for a submit to occur
                     agent.did_submit.wait(timeout=self.args.task.submission_timout)
+                agent.update_status(AgentState.STATUS_COMPLETED)
                 agent.mark_done()
+
+        for unit in assignment.get_units():
+            self.shared_state.on_unit_submitted(unit)
+        del self.running_assignments[assignment.db_id]
 
         # Clear reservations
         task_run = self.task_run
