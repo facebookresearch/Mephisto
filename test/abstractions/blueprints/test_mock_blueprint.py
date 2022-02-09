@@ -9,7 +9,7 @@ import shutil
 import os
 import tempfile
 
-from typing import Type, ClassVar
+from typing import Type, ClassVar, List
 from mephisto.abstractions.test.blueprint_tester import BlueprintTests
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
@@ -107,6 +107,12 @@ class MockBlueprintTests(BlueprintTests):
         """
         assert isinstance(task_runner, MockTaskRunner), "Must be a mock runner"
         return assignment.db_id in task_runner.tracked_tasks
+
+    def prep_mock_agents_to_complete(self, agents: List["MockAgent"]) -> None:
+        """Handle initializing mock agents to be able to pass their task"""
+        for agent in agents:
+            agent.enqueue_mock_live_data({"text": "message"})
+            agent.enqueue_mock_submit_event({"submitted": True})
 
     # TODO(#97) are there any other unit tests we'd like to have?
 

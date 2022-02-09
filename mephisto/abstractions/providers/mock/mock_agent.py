@@ -39,12 +39,24 @@ class MockAgent(Agent):
                 "observed": [],
                 "pending_acts": [],
                 "acts": [],
+                "pending_submit": None,
             }
 
     def observe(self, live_data: Dict[str, Any]) -> None:
         """Put observations into this mock agent's observation list"""
         self.datastore.agent_data[self.db_id]["observed"].append(live_data)
         super().observe(live_data)
+
+    def enqueue_mock_live_data(self, data: Dict[str, Any]) -> None:
+        """Add a fake observation to pull off on the next act call"""
+        self.datastore.agent_data[self.db_id]["pending_acts"] = data
+
+    def enqueue_mock_submit_event(self, data: Dict[str, Any]) -> None:
+        """
+        Add a final submit event to put in the queue for this agent
+        to be called on completion
+        """
+        self.datastore.agent_data[self.db_id]["pending_submit"] = data
 
     def get_live_data(self, timeout=None) -> Optional[Dict[str, Any]]:
         """
@@ -81,7 +93,20 @@ class MockAgent(Agent):
 
     def mark_disconnected(self) -> None:
         """Mark this mock agent as having disconnected"""
-        self.db.update_agent(agent_id=self.db_id, status=AgentState.STATUS_DISCONNECT)
+        self.update_status(AgentState.STATUS_DISCONNECT)
+
+    def await_submit(self, timeout: Optional[int] = None) -> bool:
+        """
+        Check the submission status of this agent, first popping off
+        and triggering a local submit if there is one on a timeout submit
+        """
+        if self.did_submit.is_set():
+            return True
+        if timeout is not None:
+            local_submit = self.datastore.agent_data[self.db_id]["pending_submit"]
+            if local_submit is not None:
+                self.handle_submit(local_submit)
+        return super().await_submit(timeout)
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":

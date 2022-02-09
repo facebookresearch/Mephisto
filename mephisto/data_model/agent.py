@@ -346,6 +346,12 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         )
         return self.get_live_data(timeout)
 
+    def await_submit(self, timeout: Optional[int] = None) -> bool:
+        """Blocking wait for this agent to submit their task"""
+        if timeout is not None:
+            self.did_submit.wait(timeout=timeout)
+        return self.did_submit.is_set()
+
     def handle_submit(self, submit_data: Dict[str, Any]) -> None:
         """Handle final submission for an onboarding agent, with the given data"""
         self.did_submit.set()
@@ -632,6 +638,12 @@ class OnboardingAgent(
             "Agent.act is being deprecated in favor of Agent.get_live_data. Please update your callsites!"
         )
         return self.get_live_data(timeout)
+
+    def await_submit(self, timeout: Optional[int] = None) -> bool:
+        """Blocking wait for this agent to submit their task"""
+        if timeout is not None:
+            self.did_submit.wait(timeout=timeout)
+        return self.did_submit.is_set()
 
     def handle_submit(self, submit_data: Dict[str, Any]) -> None:
         """Handle final submission for an onboarding agent, with the given data"""
