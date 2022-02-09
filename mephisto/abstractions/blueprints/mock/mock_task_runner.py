@@ -55,7 +55,7 @@ class MockTaskRunner(TaskRunner):
         Mock runners simply wait for an act to come in with whether
         or not onboarding is complete
         """
-        onboarding_agent.did_submit.wait(self.timeout)
+        onboarding_agent.await_submit(self.timeout)
 
     def run_unit(self, unit: "Unit", agent: "Agent"):
         """
@@ -72,7 +72,7 @@ class MockTaskRunner(TaskRunner):
         packet = agent.get_live_data(timeout=self.timeout)
         if packet is not None:
             agent.observe(packet)
-        agent.did_submit.wait(self.timeout)
+        agent.await_submit(self.timeout)
         del self.tracked_tasks[unit.db_id]
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]):
@@ -95,7 +95,7 @@ class MockTaskRunner(TaskRunner):
             if packet is not None:
                 agent.observe(packet)
         for agent in agents:
-            agent.did_submit.wait(self.timeout)
+            agent.await_submit(self.timeout)
         del self.tracked_tasks[assignment.db_id]
 
     def cleanup_assignment(self, assignment: "Assignment"):

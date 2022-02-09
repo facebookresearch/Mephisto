@@ -57,7 +57,7 @@ class StaticTaskRunner(TaskRunner):
         Static onboarding flows exactly like a regular task, waiting for
         the submit to come through
         """
-        agent.did_submit.wait(self.assignment_duration_in_seconds)
+        agent.await_submit(self.assignment_duration_in_seconds)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent"):
         """Nothing to clean up in a static onboarding"""
@@ -68,7 +68,7 @@ class StaticTaskRunner(TaskRunner):
         Static runners will get the task data, send it to the user, then
         wait for the agent to act (the data to be completed)
         """
-        agent.did_submit.wait(self.assignment_duration_in_seconds)
+        agent.await_submit(self.assignment_duration_in_seconds)
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """There is currently no cleanup associated with killing an incomplete task"""
