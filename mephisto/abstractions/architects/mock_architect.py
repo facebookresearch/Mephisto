@@ -95,7 +95,9 @@ class SocketHandler(WebSocketHandler):
         if message["packet_type"] == PACKET_TYPE_ALIVE:
             self.app.last_alive_packet = message
         elif message["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_DATA:
-            self.app.actions_observed += 1
+            # ignore live act queries
+            if not message["data"].get("live_data_requested"):
+                self.app.actions_observed += 1
         elif message["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA:
             self.app.actions_observed += 1
         elif message["packet_type"] != PACKET_TYPE_REQUEST_STATUSES:
@@ -203,6 +205,20 @@ class MockServer(tornado.web.Application):
             }
         )
 
+    def submit_mock_unit(self, agent_id, submit_data):
+        """
+        Send a packet asking to register a mock agent.
+        """
+        submit_data["request_id"] = "1234"
+        submit_data["submission_type"] = "unit"
+        self._send_message(
+            {
+                "packet_type": PACKET_TYPE_SUBMIT,
+                "subject_id": agent_id,
+                "data": submit_data,
+            }
+        )
+
     def register_mock_agent_after_onboarding(self, worker_id, agent_id, onboard_data):
         """
         Send a packet asking to register a mock agent.
@@ -211,7 +227,7 @@ class MockServer(tornado.web.Application):
         onboard_data["submission_type"] = "onboarding"
         self._send_message(
             {
-                "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,
+                "packet_type": PACKET_TYPE_SUBMIT,
                 "subject_id": agent_id,
                 "data": onboard_data,
             }
