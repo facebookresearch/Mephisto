@@ -212,16 +212,13 @@ class ClientIOHandler:
 
         # If the packet is_submit, and has files, we need to
         # process downloading those files first
-        if packet.data.get("MEPHISTO_is_submit") is True:
-            data_files = packet.data.get("files")
-            if data_files is not None:
-                save_dir = agent.get_data_dir()
-                architect = live_run.architect
-                for f_obj in data_files:
-                    # TODO(#649) this is incredibly blocking!
-                    architect.download_file(f_obj["filename"], save_dir)
-        else:
-            raise Exception(f"Got submit call on a non-submit packet: {packet}")
+        data_files = packet.data.get("files")
+        if data_files is not None:
+            save_dir = agent.get_data_dir()
+            architect = live_run.architect
+            for f_obj in data_files:
+                # TODO(#649) this is incredibly blocking!
+                architect.download_file(f_obj["filename"], save_dir)
 
         agent.handle_submit(packet.data)
 
