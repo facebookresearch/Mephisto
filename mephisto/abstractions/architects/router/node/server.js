@@ -7,8 +7,6 @@
 const DEBUG = false;
 
 // TODO add some testing to launch this server and communicate with it
-// TODO import and use "child_process" to finally get this multiprocessing
-// (https://jeffdevslife.com/p/scaling-node.js-application-with-multiprocessing/)
 
 const bodyParser = require("body-parser");
 const express = require("express");
@@ -78,11 +76,10 @@ const STATUS_SOFT_REJECTED = "soft_rejected";
 const STATUS_REJECTED = "rejected";
 
 const SYSTEM_SOCKET_ID = "mephisto"; // TODO pull from somewhere
-// TODO use registered socket id from on_alive
-const SERVER_SOCKET_ID = "mephisto_server";
 
 const PACKET_TYPE_ALIVE = "alive";
-const PACKET_TYPE_SUBMIT = "submit";
+const PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding";
+const PACKET_TYPE_SUBMIT_UNIT = "submit_unit";
 const PACKET_TYPE_CLIENT_BOUND_LIVE_DATA = "client_bound_live_data";
 const PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA = "mephisto_bound_live_data";
 const PACKET_TYPE_REGISTER_AGENT = "register_agent";
@@ -91,13 +88,13 @@ const PACKET_TYPE_UPDATE_STATUS = "update_status";
 const PACKET_TYPE_REQUEST_STATUSES = "request_statuses";
 const PACKET_TYPE_RETURN_STATUSES = "return_statuses";
 const PACKET_TYPE_ERROR = "log_error";
+const PACKET_TYPE_HEARTBEAT = "heartbeat";
 
 // State for agents tracked by the server
 class LocalAgentState {
   constructor(agent_id) {
     this.status = STATUS_NONE;
     this.agent_id = agent_id;
-    this.unsent_messages = [];
     this.is_alive = false;
     this.last_ping = 0;
   }
@@ -121,7 +118,7 @@ var mephisto_socket = null;
 // This is a mapping of connection id -> state
 var agent_id_to_agent = {};
 
-var pending_provider_requests = {};
+var pending_agent_requests = {};
 
 var last_mephisto_ping = Date.now();
 
@@ -184,15 +181,16 @@ function clear_agent(agent_id) {
 // Open connections send alives to identify who they are,
 // register them correctly here
 function handle_alive(socket, alive_packet) {
-  if (alive_packet.sender_id == SYSTEM_SOCKET_ID) {
+  if (alive_packet.subject_id == SYSTEM_SOCKET_ID) {
     mephisto_socket = socket;
+    console.log("System socket attached:");
     console.log(socket._socket.remoteAddress);
     if (main_thread_timeout === null) {
       debug_log("launching main thread");
       main_thread_timeout = setTimeout(main_thread, 50);
     }
   } else {
-    var agent_id = alive_packet.sender_id;
+    var agent_id = alive_packet.subject_id;
     var agent = find_or_create_agent(agent_id);
     debug_log("Am linking socket for " + agent_id);
     agent.is_alive = true;
@@ -220,57 +218,38 @@ function ensure_live_connection(agent) {
 }
 
 // Return the status of all agents mapped by their agent id
-function handle_get_agent_status(status_packet) {
+function handle_get_agent_status(_status_packet) {
   last_mephisto_ping = Date.now();
   let agent_statuses = {};
   for (let agent_id in agent_id_to_agent) {
     let agent = agent_id_to_agent[agent_id];
     ensure_live_connection(agent);
     agent_statuses[agent_id] = agent.status;
-    let ping_packet = {
-      packet_type: PACKET_TYPE_REQUEST_AGENT_STATUS,
-      sender_id: SYSTEM_SOCKET_ID,
-      receiver_id: agent_id,
-      data: null,
-    };
-    handle_forward(ping_packet);
   }
   let packet = {
-    packet_type: PACKET_TYPE_RETURN_AGENT_STATUS,
-    sender_id: SERVER_SOCKET_ID,
-    receiver_id: SYSTEM_SOCKET_ID,
+    packet_type: PACKET_TYPE_RETURN_STATUSES,
+    subject_id: SYSTEM_SOCKET_ID,
     data: agent_statuses,
   };
   mephisto_message_queue.push(packet);
 }
 
-function get_agent_state(agent_id) {
-  let agent = find_or_create_agent(agent_id);
-  return agent.state;
-}
-
 function handle_update_local_status(status_packet) {
-  let agent_id = status_packet.receiver_id;
+  let agent_id = status_packet.subject_id;
   let agent = find_or_create_agent(agent_id);
   if (status_packet.data.status != undefined) {
     agent.status = status_packet.data.status;
   }
-  agent.state = Object.assign(agent.state, status_packet.data.state);
 }
 
-function update_wanted_acts(agent_id, wants_act) {
-  let agent = find_or_create_agent(agent_id);
-  agent.state.wants_act = wants_act;
-}
-
-// Handle a message being sent to or from a frontend agent
-function handle_forward(packet) {
-  if (packet.receiver_id == SYSTEM_SOCKET_ID) {
-    debug_log("Adding message to mephisto queue", packet);
-    mephisto_message_queue.push(packet);
+// Handle a message being sent to a frontend agent
+function forward_to_agent(packet) {
+  let agent = find_or_create_agent(packet.subject_id);
+  let socket = agent_id_to_socket[agent.agent_id];
+  if (socket) {
+    _send_message(socket, packet);
   } else {
-    let agent = find_or_create_agent(packet.receiver_id);
-    debug_log("Adding message to agent queue", packet);
+    debug_log("Socket not open yet, adding message to agent queue", packet);
     agent.unsent_messages.push(packet);
   }
 }
@@ -293,15 +272,13 @@ function handle_possible_disconnect(agent) {
 function send_status_for_agent(agent_id) {
   let agent = find_or_create_agent(agent_id);
   let packet = {
-    packet_type: PACKET_TYPE_UPDATE_AGENT_STATUS,
-    sender_id: SERVER_SOCKET_ID,
-    receiver_id: agent_id,
+    packet_type: PACKET_TYPE_UPDATE_STATUS,
+    subject_id: agent_id,
     data: {
       status: agent.status,
-      state: agent.state,
     },
   };
-  handle_forward(packet);
+  forward_to_agent(packet);
 }
 
 // Register handlers
@@ -330,66 +307,57 @@ wss.on("connection", function (socket) {
   socket.on("message", function (packet) {
     try {
       packet = JSON.parse(packet);
-      if (packet["packet_type"] == PACKET_TYPE_REQUEST_AGENT_STATUS) {
+      if (packet["packet_type"] == PACKET_TYPE_REQUEST_STATUSES) {
         debug_log("Mephisto requesting status");
         handle_get_agent_status(packet);
-      } else if (packet["packet_type"] == PACKET_TYPE_AGENT_ACTION) {
-        debug_log("Agent action: ", packet);
-        handle_forward(packet);
-        if (packet.receiver_id == SYSTEM_SOCKET_ID) {
-          update_wanted_acts(packet.sender_id, false);
-          send_status_for_agent(packet.sender_id);
-        }
+      } else if (
+        packet["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA
+      ) {
+        debug_log("Mephisto-bound action: ", packet);
+        mephisto_message_queue.push(packet);
+      } else if (packet["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_DATA) {
+        debug_log("Client-bound action: ", packet);
+        forward_to_agent(packet);
       } else if (packet["packet_type"] == PACKET_TYPE_ERROR) {
-        handle_forward(packet);
+        mephisto_message_queue.push(packet);
       } else if (packet["packet_type"] == PACKET_TYPE_ALIVE) {
         debug_log("Agent alive: ", packet);
         handle_alive(socket, packet);
-      } else if (packet["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS) {
+      } else if (packet["packet_type"] == PACKET_TYPE_UPDATE_STATUS) {
         debug_log("Update agent status", packet);
         handle_update_local_status(packet);
-        packet.data.state = get_agent_state(packet.receiver_id);
-        handle_forward(packet);
-      } else if (packet["packet_type"] == PACKET_TYPE_REQUEST_ACTION) {
-        debug_log("Requesting act", packet);
-        update_wanted_acts(packet.receiver_id, true);
-        let agent_id = packet["receiver_id"];
-        send_status_for_agent(agent_id);
-      } else if (
-        packet["packet_type"] == PACKET_TYPE_PROVIDER_DETAILS ||
-        packet["packet_type"] == PACKET_TYPE_INIT_DATA
-      ) {
+        forward_to_agent(packet);
+      } else if (packet["packet_type"] == PACKET_TYPE_AGENT_DETAILS) {
         let request_id = packet["data"]["request_id"];
         if (request_id === undefined) {
-          request_id = packet["receiver_id"];
+          request_id = packet["subject_id"];
         }
-        let res_obj = pending_provider_requests[request_id];
+        let res_obj = pending_agent_requests[request_id];
         if (res_obj) {
           res_obj.json(packet);
-          delete pending_provider_requests[request_id];
+          delete pending_agent_requests[request_id];
         }
       } else if (packet["packet_type"] == PACKET_TYPE_HEARTBEAT) {
         packet["data"] = { last_mephisto_ping: last_mephisto_ping };
-        let agent_id = packet["sender_id"];
-        packet["sender_id"] = packet["receiver_id"];
+        let agent_id = packet["subject_id"];
+        packet["subject_id"] = packet["receiver_id"];
         packet["receiver_id"] = agent_id;
         let agent = agent_id_to_agent[agent_id];
         if (agent !== undefined) {
           agent.is_alive = true;
           agent.last_ping = Date.now();
           packet.data.status = agent.status;
-          packet.data.state = agent.state;
           if (
             agent_id_to_socket[agent.agent_id] != socket &&
             agent_id_to_socket[agent.agent_id] != undefined
           ) {
-            // Not communicating to the correct socket, update
+            // Not communicating to the _correct_ socket, update
             debug_log("Updating socket for ", agent);
             agent_id_to_socket[agent.agent_id] = socket;
             socket_id_to_agent[socket.id] = agent;
           }
         }
-        handle_forward(packet);
+        forward_to_agent(packet);
       }
     } catch (error) {
       console.log("Transient error on message");
@@ -447,37 +415,22 @@ function main_thread() {
 // ======================= </Threads> ======================
 
 // ===================== <Routing> ========================
-function make_provider_request(request_type, provider_data, res) {
+app.post("/request_agent", function (req, res) {
+  var provider_data = req.body.provider_data;
   var request_id = uuidv4();
 
   let request_packet = {
-    packet_type: request_type,
-    sender_id: SERVER_SOCKET_ID,
-    receiver_id: SYSTEM_SOCKET_ID,
+    packet_type: PACKET_TYPE_REGISTER_AGENT,
+    subject_id: request_id,
     data: {
       provider_data: provider_data,
       request_id: request_id,
     },
   };
 
-  pending_provider_requests[request_id] = res;
+  pending_agent_requests[request_id] = res;
   _send_message(mephisto_socket, request_packet);
   // TODO set a timeout to expire this request rather than leave the worker hanging
-}
-
-app.post("/initial_task_data", function (req, res) {
-  var provider_data = req.body.provider_data;
-  make_provider_request(PACKET_TYPE_GET_INIT_DATA, provider_data, res);
-});
-
-app.post("/register_worker", function (req, res) {
-  var provider_data = req.body.provider_data;
-  make_provider_request(PACKET_TYPE_NEW_WORKER, provider_data, res);
-});
-
-app.post("/request_agent", function (req, res) {
-  var provider_data = req.body.provider_data;
-  make_provider_request(PACKET_TYPE_NEW_AGENT, provider_data, res);
 });
 
 app.post("/submit_onboarding", function (req, res) {
@@ -492,27 +445,24 @@ app.post("/submit_onboarding", function (req, res) {
 
   let submit_packet = {
     packet_type: PACKET_TYPE_SUBMIT_ONBOARDING,
-    sender_id: agent_id,
-    receiver_id: SYSTEM_SOCKET_ID,
+    subject_id: agent_id,
     data: provider_data,
   };
 
-  pending_provider_requests[request_id] = res;
+  pending_agent_requests[request_id] = res;
   _send_message(mephisto_socket, submit_packet);
   clear_agent(agent_id);
 });
 
 app.post("/submit_task", upload.any(), function (req, res) {
   const { USED_AGENT_ID: agent_id, final_data: final_data } = req.body;
+  if (req.files) {
+    final_data.files = req.files;
+  }
   let submit_packet = {
-    packet_type: PACKET_TYPE_AGENT_ACTION,
-    sender_id: agent_id,
-    receiver_id: SYSTEM_SOCKET_ID,
-    data: {
-      task_data: final_data,
-      MEPHISTO_is_submit: true,
-      files: req.files,
-    },
+    packet_type: PACKET_TYPE_SUBMIT_UNIT,
+    subject_id: agent_id,
+    data: final_data,
   };
   _send_message(mephisto_socket, submit_packet);
   res.json({ status: "Submitted!" });
@@ -529,11 +479,11 @@ app.post("/submit_task", upload.any(), function (req, res) {
 });
 
 app.post("/log_error", function (req, res) {
-  const { USED_AGENT_ID: agent_id, final_data: final_data } = req.body;
+  const { USED_AGENT_ID: agent_id, error_data: error_data } = req.body;
   let log_packet = {
     packet_type: PACKET_TYPE_ERROR,
     subject_id: agent_id,
-    data: final_data,
+    data: error_data,
   };
   _send_message(mephisto_socket, log_packet);
   res.json({ status: "Error log sent!" });
