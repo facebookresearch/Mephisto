@@ -7,6 +7,8 @@
 const DEBUG = false;
 
 // TODO add some testing to launch this server and communicate with it
+// TODO import and use "child_process" to finally get this multiprocessing
+// (https://jeffdevslife.com/p/scaling-node.js-application-with-multiprocessing/)
 
 const bodyParser = require("body-parser");
 const express = require("express");
@@ -79,20 +81,16 @@ const SYSTEM_SOCKET_ID = "mephisto"; // TODO pull from somewhere
 // TODO use registered socket id from on_alive
 const SERVER_SOCKET_ID = "mephisto_server";
 
-const PACKET_TYPE_REQUEST_AGENT_STATUS = "request_status";
-const PACKET_TYPE_RETURN_AGENT_STATUS = "return_status";
-const PACKET_TYPE_INIT_DATA = "initial_data_send";
-const PACKET_TYPE_AGENT_ACTION = "agent_action";
-const PACKET_TYPE_REQUEST_ACTION = "request_act";
-const PACKET_TYPE_UPDATE_AGENT_STATUS = "update_status";
-const PACKET_TYPE_NEW_AGENT = "register_agent";
-const PACKET_TYPE_NEW_WORKER = "register_worker";
-const PACKET_TYPE_GET_INIT_DATA = "init_data_request";
 const PACKET_TYPE_ALIVE = "alive";
-const PACKET_TYPE_PROVIDER_DETAILS = "provider_details";
-const PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding";
-const PACKET_TYPE_HEARTBEAT = "heartbeat";
-const PACKET_TYPE_ERROR_LOG = "log_error";
+const PACKET_TYPE_SUBMIT = "submit";
+const PACKET_TYPE_CLIENT_BOUND_LIVE_DATA = "client_bound_live_data";
+const PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA = "mephisto_bound_live_data";
+const PACKET_TYPE_REGISTER_AGENT = "register_agent";
+const PACKET_TYPE_AGENT_DETAILS = "agent_details";
+const PACKET_TYPE_UPDATE_STATUS = "update_status";
+const PACKET_TYPE_REQUEST_STATUSES = "request_statuses";
+const PACKET_TYPE_RETURN_STATUSES = "return_statuses";
+const PACKET_TYPE_ERROR = "log_error";
 
 // State for agents tracked by the server
 class LocalAgentState {
@@ -100,7 +98,6 @@ class LocalAgentState {
     this.status = STATUS_NONE;
     this.agent_id = agent_id;
     this.unsent_messages = [];
-    this.state = { wants_act: false, done_text: null };
     this.is_alive = false;
     this.last_ping = 0;
   }
@@ -343,7 +340,7 @@ wss.on("connection", function (socket) {
           update_wanted_acts(packet.sender_id, false);
           send_status_for_agent(packet.sender_id);
         }
-      } else if (packet["packet_type"] == PACKET_TYPE_ERROR_LOG) {
+      } else if (packet["packet_type"] == PACKET_TYPE_ERROR) {
         handle_forward(packet);
       } else if (packet["packet_type"] == PACKET_TYPE_ALIVE) {
         debug_log("Agent alive: ", packet);
@@ -506,15 +503,13 @@ app.post("/submit_onboarding", function (req, res) {
 });
 
 app.post("/submit_task", upload.any(), function (req, res) {
-  var provider_data = req.body;
-  let agent_id = provider_data.USED_AGENT_ID;
-  delete provider_data.USED_AGENT_ID;
+  const { USED_AGENT_ID: agent_id, final_data: final_data } = req.body;
   let submit_packet = {
     packet_type: PACKET_TYPE_AGENT_ACTION,
     sender_id: agent_id,
     receiver_id: SYSTEM_SOCKET_ID,
     data: {
-      task_data: provider_data,
+      task_data: final_data,
       MEPHISTO_is_submit: true,
       files: req.files,
     },
@@ -534,12 +529,11 @@ app.post("/submit_task", upload.any(), function (req, res) {
 });
 
 app.post("/log_error", function (req, res) {
-  const { USED_AGENT_ID: agent_id, ...provider_data } = req.body;
+  const { USED_AGENT_ID: agent_id, final_data: final_data } = req.body;
   let log_packet = {
-    packet_type: PACKET_TYPE_ERROR_LOG,
-    sender_id: agent_id,
-    receiver_id: SYSTEM_SOCKET_ID,
-    data: provider_data,
+    packet_type: PACKET_TYPE_ERROR,
+    subject_id: agent_id,
+    data: final_data,
   };
   _send_message(mephisto_socket, log_packet);
   res.json({ status: "Error log sent!" });
