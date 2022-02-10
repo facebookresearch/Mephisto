@@ -27,10 +27,10 @@ Once the task is done, or if it is cancelled or an error occurs, Mephisto will c
 
 # Implementations
 ## LocalArchitect
-The `LocalArchitect` implementation works by running a `node` server on the local machine at the given port in a background process. It communicates over websockets with the `WebsocketChannel`, and requires that there's a directory where node is actively running in. The particular node server is the baseline `router` implementation available in the `router/deploy` folder.
+The `LocalArchitect` implementation works by running a `node` server on the local machine at the given port in a background process. It communicates over websockets with the `WebsocketChannel`, and requires that there's a directory where node is actively running in. The particular node server is the baseline `router` implementation available in the `router/node` folder.
 
 ## HerokuArchitect
-The `HerokuArchitect` implementation works by getting access to the `heroku` cli, preparing a directory of what to deploy on that server, and then pushing it along. It communicates over the `WebsocketChannel`. This also relies on the node server implementation available in the `router/deploy` folder.
+The `HerokuArchitect` implementation works by getting access to the `heroku` cli, preparing a directory of what to deploy on that server, and then pushing it along. It communicates over the `WebsocketChannel`. This also relies on the node server implementation available in the `router/node` folder.
 
 You can specify Heroku configuration variables in `hydra` using your config file:
 ```
