@@ -18,7 +18,8 @@ from dataclasses import dataclass, field
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.packet import (
     PACKET_TYPE_ALIVE,
-    PACKET_TYPE_SUBMIT,
+    PACKET_TYPE_SUBMIT_ONBOARDING,
+    PACKET_TYPE_SUBMIT_UNIT,
     PACKET_TYPE_CLIENT_BOUND_LIVE_DATA,
     PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA,
     PACKET_TYPE_REGISTER_AGENT,
@@ -210,10 +211,9 @@ class MockServer(tornado.web.Application):
         Send a packet asking to register a mock agent.
         """
         submit_data["request_id"] = "1234"
-        submit_data["submission_type"] = "unit"
         self._send_message(
             {
-                "packet_type": PACKET_TYPE_SUBMIT,
+                "packet_type": PACKET_TYPE_SUBMIT_UNIT,
                 "subject_id": agent_id,
                 "data": submit_data,
             }
@@ -224,10 +224,9 @@ class MockServer(tornado.web.Application):
         Send a packet asking to register a mock agent.
         """
         onboard_data["request_id"] = "1234"
-        onboard_data["submission_type"] = "onboarding"
         self._send_message(
             {
-                "packet_type": PACKET_TYPE_SUBMIT,
+                "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,
                 "subject_id": agent_id,
                 "data": onboard_data,
             }

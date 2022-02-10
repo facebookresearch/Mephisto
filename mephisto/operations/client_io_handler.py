@@ -13,7 +13,8 @@ from queue import Queue
 from mephisto.data_model.packet import (
     Packet,
     PACKET_TYPE_ALIVE,
-    PACKET_TYPE_SUBMIT,
+    PACKET_TYPE_SUBMIT_ONBOARDING,
+    PACKET_TYPE_SUBMIT_UNIT,
     PACKET_TYPE_CLIENT_BOUND_LIVE_DATA,
     PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA,
     PACKET_TYPE_REGISTER_AGENT,
@@ -332,15 +333,10 @@ class ClientIOHandler:
         # TODO(#102) this method currently assumes that the packet's subject_id will
         # always be a valid agent in our list of agent_infos. This isn't always the case
         # when relaunching with the same URLs.
-        if packet.type == PACKET_TYPE_SUBMIT:
-            if packet.data["submission_type"] == "onboarding":
-                self._on_submit_onboarding(packet, channel_id)
-            elif packet.data["submission_type"] == "unit":
-                self._on_submit_unit(packet, channel_id)
-            else:
-                raise Exception(
-                    f"Submission packet with unknown target {packet.data['submission_type']}"
-                )
+        if packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:
+            self._on_submit_onboarding(packet, channel_id)
+        elif packet.type == PACKET_TYPE_SUBMIT_UNIT:
+            self._on_submit_unit(packet, channel_id)
         elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA:
             self._on_live_data(packet, channel_id)
         elif packet.type == PACKET_TYPE_REGISTER_AGENT:

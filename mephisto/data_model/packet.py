@@ -7,7 +7,8 @@
 from typing import Optional, Dict, Any
 
 PACKET_TYPE_ALIVE = "alive"
-PACKET_TYPE_SUBMIT = "submit"
+PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding"
+PACKET_TYPE_SUBMIT_UNIT = "submit_unit"
 PACKET_TYPE_CLIENT_BOUND_LIVE_DATA = "client_bound_live_data"
 PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA = "mephisto_bound_live_data"
 PACKET_TYPE_REGISTER_AGENT = "register_agent"
