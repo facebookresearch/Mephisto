@@ -95,6 +95,7 @@ class LocalAgentState {
   constructor(agent_id) {
     this.status = STATUS_NONE;
     this.agent_id = agent_id;
+    this.unsent_messages = [];
     this.is_alive = false;
     this.last_ping = 0;
   }
