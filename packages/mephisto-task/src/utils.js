@@ -13,8 +13,8 @@ const axios = require("axios");
   They are sideloaded and exposed as global import during the build process:
 */
 /* global
-  getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
-  getAgentRegistration, handleSubmitToProvider, getProviderURLParams
+  getWorkerName, getAssignmentId, getAgentRegistration,
+  handleSubmitToProvider, getProviderURLParams
 */
 
 /* ================= Utility functions ================= */
@@ -93,23 +93,8 @@ export function postProviderRequest(endpoint, data) {
   return postData(url, { provider_data: data });
 }
 
-export function requestAgent(mephisto_worker_id) {
-  return postProviderRequest(
-    "/request_agent",
-    getAgentRegistration(mephisto_worker_id)
-  );
-}
-
-export function registerWorker() {
-  return postProviderRequest("/register_worker", getWorkerRegistrationInfo());
-}
-
-// Sends a request to get the initial task data
-export function getInitTaskData(mephisto_worker_id, agent_id) {
-  return postProviderRequest("/initial_task_data", {
-    mephisto_worker_id: mephisto_worker_id,
-    agent_id: agent_id,
-  });
+export function requestAgent() {
+  return postProviderRequest("/request_agent", getAgentRegistration());
 }
 
 export function postCompleteOnboarding(agent_id, onboarding_data) {
@@ -148,10 +133,6 @@ export function getBlockedExplanation(reason) {
       "Sorry, this task cannot be completed on mobile devices. Please use a computer.",
     no_websockets:
       "Sorry, your browser does not support the required version of websockets for this task. Please upgrade to a modern browser.",
-    null_agent_id:
-      "Sorry, you have already worked on the maximum number of these tasks available to you, or are no longer eligible to work on this task.",
-    null_worker_id:
-      "Sorry, you are not eligible to work on any available tasks.",
   };
 
   if (reason in explanations) {

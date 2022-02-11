@@ -21,6 +21,7 @@ module.exports = {
       net: false,
       dns: false,
     },
+    symlinks: false,
   },
   module: {
     rules: [

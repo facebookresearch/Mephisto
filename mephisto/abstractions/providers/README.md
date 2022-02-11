@@ -79,8 +79,7 @@ The `<Crowd>Requester` mostly just needs to abstract the registration process, b
 A few frontend functions are required to be sure that the backend is able to interface with frontend interactions:
 - `getWorkerName()`: Return the worker name, as will be provided to as the identifier for mephisto to know who is attempting the task
 - `getAssignmentId()`: Return an identifier for the specific task as represented by the provider.
-- `getWorkerRegistrationInfo()`: Return any special information that would be required to register a worker. Currently the `worker_name` field is required.
-- `getAgentRegistration(mephisto_worker_id)`: Return the data that is going to be passed to the `<Crowd>Agent`'s `new_from_provider` method. The `worker_id` field should be the provided `mephisto_worker_id` in almost all cases.
+- `getAgentRegistration()`: Return the data that is going to be passed to the `<Crowd>Agent`'s `new_from_provider` method. Currently the `worker_name` field is required to also set up the `<Crowd>Worker`.
 - `handleSubmitToProvider()`: Tell the provider that the task is done from the frontend. Often amounts to hitting some kind of submit button after populating form data.
 
 This file may also contain additional logic for handling things like error handling in a crowd provider-specific manner.

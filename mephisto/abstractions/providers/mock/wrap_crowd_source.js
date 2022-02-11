@@ -28,20 +28,12 @@ function getAssignmentId() {
   return urlParams.get("assignment_id");
 }
 
-function getWorkerRegistrationInfo() {
-  // mock workers have no special registration
-  return {
-    worker_name: getWorkerName(),
-    provider_type: "mock",
-  };
-}
-
-function getAgentRegistration(mephisto_worker_id) {
+function getAgentRegistration() {
   // Mock agents are created using the Mephisto worker_id
   // and the supplied assignment id
   return {
-    worker_id: mephisto_worker_id,
-    agent_registration_id: getAssignmentId() + "-" + mephisto_worker_id,
+    worker_name: getWorkerName(),
+    agent_registration_id: getAssignmentId() + "-" + getWorkerName(),
     assignment_id: getAssignmentId(),
     provider_type: "mock",
   };
