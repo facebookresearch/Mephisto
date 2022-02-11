@@ -24,6 +24,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+from mephisto.abstractions.blueprint import AgentState
 from uuid import uuid4
 
 from typing import ClassVar, List, Type, Any, Dict, Union, cast, TYPE_CHECKING
@@ -33,7 +34,6 @@ if TYPE_CHECKING:
         SharedParlAITaskState,
     )
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.abstractions.blueprint import AgentState
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.unit import Unit
     from omegaconf import DictConfig
@@ -85,15 +85,14 @@ class MephistoAgentWrapper(ParlAIAgent):
             gotten_act = self.mephisto_agent.get_live_data(timeout=timeout)
         if gotten_act is None:
             return None
-        parsed_act = gotten_act.data
-        parsed_act["id"] = self.__agent_id
-        return Message(parsed_act)
+        gotten_act["id"] = self.__agent_id
+        return Message(gotten_act)
 
     def observe(self, act):
         """We can simply add a message id if not already provided to these"""
         if act.get("message_id") is None:
             act["message_id"] = str(uuid4())
-        self.mephisto_agent.observe(act)
+        self.mephisto_agent.observe(dict(act))
 
 
 class ParlAIChatTaskRunner(TaskRunner):
@@ -177,6 +176,10 @@ class ParlAIChatTaskRunner(TaskRunner):
             and agent.get_agent_id() in self.running_onboardings
         ):
             world.parley()
+
+        # Ensure agent can submit after onboarding
+        agent.update_status(AgentState.STATUS_WAITING)
+
         world.shutdown()
         agent.state.update_data(
             {
@@ -222,6 +225,10 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 
+        # Ensure agents can submit after completion
+        for idx in range(len(parlai_agents)):
+            agents[idx].observe({"state": {"task_done": True}})
+
         # TODO(WISH) it would be nice to have individual agents be able to submit their
         # final things without needing to wait for their partner, such
         # as if one needs to rate and the other doesn't
@@ -262,6 +269,9 @@ class ParlAIChatTaskRunner(TaskRunner):
         self.id_to_worlds[world_id] = world
         while not world.episode_done() and unit.db_id in self.running_units:
             world.parley()
+
+        # Ensure agent can submit after completion
+        agent.observe({"state": {"task_done": True}})
 
         world.shutdown()
         if hasattr(world, "prep_save_data"):
