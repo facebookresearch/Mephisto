@@ -92,7 +92,7 @@ const useMephistoTask = function () {
         mephistoWorkerId: workerId,
         agentId: agentId,
         blockedReason: "null_agent_id",
-        blockedExplanation: dataPacket.failure_reason,
+        blockedExplanation: dataPacket.data.failure_reason,
       });
     } else {
       setState({
