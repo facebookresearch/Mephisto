@@ -456,14 +456,22 @@ app.post("/submit_onboarding", function (req, res) {
 });
 
 app.post("/submit_task", upload.any(), function (req, res) {
-  const { USED_AGENT_ID: agent_id, final_data: final_data } = req.body;
+  const {
+    USED_AGENT_ID: agent_id,
+    final_data: final_data,
+    final_string_data: final_string_data,
+  } = req.body;
+  let extracted_data = final_data;
+  if (final_string_data) {
+    extracted_data = JSON.parse(final_string_data);
+  }
   if (req.files) {
-    final_data.files = req.files;
+    extracted_data.files = req.files;
   }
   let submit_packet = {
     packet_type: PACKET_TYPE_SUBMIT_UNIT,
     subject_id: agent_id,
-    data: final_data,
+    data: extracted_data,
   };
   _send_message(mephisto_socket, submit_packet);
   res.json({ status: "Submitted!" });
