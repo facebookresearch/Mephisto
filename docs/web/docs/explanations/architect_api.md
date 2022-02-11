@@ -108,3 +108,17 @@ Fourth, the router is responsible for serving the static `task_config.json` file
 The `useMephistoTask` hook is responsible for allowing a worker to connect to a task and submit the relevant data. For this, it only needs to make `POST` requests related to the `PACKET_TYPE_SUBMIT_*` and `PACKET_TYPE_REGISTER_AGENT` events. The former should be triggered on `handleSubmit`, while the latter should trigger immediately on load.
 
 The `useMephistoLiveTask` hook is responsible for the rest of the packets. Data packets should be sent via `sendData` and handled with the `onLiveDataReceived` callback. Providing a callback to `sendData` will call that with any response data that sets the `source_request_id` to the initial send's `message_id`. Local connection state is managed by the `socket_handler.jsx` class, and surfaced through the hook variables for UIs to use. 
+
+## Notes
+
+### LiveData and client agent state
+
+Oftentimes it makes sense to be sending information about the state of a client. For this, we suggest observing packets of the form:
+```python
+{
+    "state": {"live_data_requested": True}
+}
+```
+You can use the contents of this `state` field in any task to make updates to local state where you'd like. When provided, we call the `onStateUpdate` hook on this portion of the message, and `onMessageReceived` on the rest.
+
+Under our current setup., `live_data_requested` and `is_final` are reserved keys. The former generally is used to note that the backend is _waiting_ on a client action, and the latter optionally denotes the last live message a task will send (leading to socket closure, but more work can be done before submit).
