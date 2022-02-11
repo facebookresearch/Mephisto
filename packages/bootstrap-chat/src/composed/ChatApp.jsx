@@ -12,6 +12,7 @@ import {
   MephistoContext,
   useMephistoLiveTask,
   AGENT_STATUS,
+  STATUS_TO_TEXT_MAP,
 } from "mephisto-task";
 import BaseFrontend from "./BaseFrontend.jsx";
 
@@ -36,7 +37,9 @@ function ChatApp({
   defaultAppSettings = emptyAppSettings,
 }) {
   const [taskContext, updateContext] = React.useReducer(
-    (oldContext, newContext) => Object.assign(oldContext, newContext),
+    (oldContext, newContext) => {
+      return { ...oldContext, ...newContext };
+    },
     {}
   );
 
@@ -75,39 +78,55 @@ function ChatApp({
   }
 
   function trackAgentName(agentName) {
-    if (agentName) {
-      const previouslyTrackedNames = taskContext.currentAgentNames || {};
-      const newAgentName = { [agentId]: agentName };
-      const currentAgentNames = { ...previouslyTrackedNames, ...newAgentName };
-      updateContext({ currentAgentNames: currentAgentNames });
-    }
+    const previouslyTrackedNames = taskContext.currentAgentNames || {};
+    const newAgentName = { [agentId]: agentName, agentName: agentName };
+    const currentAgentNames = { ...previouslyTrackedNames, ...newAgentName };
+    updateContext({ currentAgentNames: currentAgentNames });
   }
 
   let mephistoProps = useMephistoLiveTask({
-    onStateUpdate: ({ state, status }) => {
-      trackAgentName(state.agent_display_name);
-      if (state.task_done) {
-        setInputMode(INPUT_MODE.DONE);
-      } else if (
+    onStatusUpdate: ({ status }) => {
+      if (
         [
           AGENT_STATUS.DISCONNECT,
           AGENT_STATUS.RETURNED,
           AGENT_STATUS.EXPIRED,
           AGENT_STATUS.TIMEOUT,
+          AGENT_STATUS.PARTNER_DISCONNECT,
           AGENT_STATUS.MEPHISTO_DISCONNECT,
         ].includes(status)
       ) {
         setInputMode(INPUT_MODE.INACTIVE);
-      } else if (state.wants_act) {
+        updateContext({
+          done_text: STATUS_TO_TEXT_MAP[status],
+          task_done: status == AGENT_STATUS.PARTNER_DISCONNECT,
+        });
+      }
+    },
+    onStateUpdate: ({ state }) => {
+      const { agent_display_name, ...remaining_state } = state;
+      if (agent_display_name) {
+        trackAgentName(agent_display_name);
+      }
+      if (remaining_state.task_done) {
+        setInputMode(INPUT_MODE.DONE);
+      } else if (remaining_state.live_data_requested === true) {
         setInputMode(INPUT_MODE.READY_FOR_INPUT);
         playNotifSound();
-      } else if (!state.wants_act) {
+      } else if (remaining_state.live_data_requested === false) {
         setInputMode(INPUT_MODE.WAITING);
       }
+      updateContext(remaining_state);
     },
     onMessageReceived: (message) => {
       updateContext(message.task_data);
       addMessage(message);
+      if (
+        taskContext.currentAgentNames &&
+        message.id in taskContext.currentAgentNames
+      ) {
+        setInputMode(INPUT_MODE.WAITING);
+      }
     },
   });
 
@@ -124,7 +143,6 @@ function ChatApp({
     destroy,
     sendMessage,
     isOnboarding,
-    agentState,
     agentStatus,
   } = mephistoProps;
 
@@ -146,13 +164,13 @@ function ChatApp({
       message = {
         ...message,
         id: agentId,
-        episode_done: agentState?.task_done || false,
+        episode_done: taskContext?.task_done || false,
       };
       return sendMessage(message)
         .then(addMessage)
         .then(() => setInputMode(INPUT_MODE.WAITING));
     },
-    [agentId, agentState?.task_done, addMessage, setInputMode]
+    [agentId, taskContext?.task_done, addMessage, setInputMode]
   );
 
   if (blockedReason !== null) {
