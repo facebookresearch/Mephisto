@@ -142,9 +142,7 @@ class WebsocketChannel(Channel):
                         except websockets.exceptions.ConnectionClosedOK:
                             pass
                         except websockets.exceptions.ConnectionClosedError as e:
-                            if isinstance(
-                                e.__cause__, asyncio.exceptions.CancelledError
-                            ):
+                            if isinstance(e.__cause__, asyncio.CancelledError):
                                 pass
                             else:
                                 await on_error(e)
@@ -201,7 +199,7 @@ class WebsocketChannel(Channel):
         except websockets.exceptions.ConnectionClosedOK:
             pass
         except websockets.exceptions.ConnectionClosedError as e:
-            if not isinstance(e.__cause__, asyncio.exceptions.CancelledError):
+            if not isinstance(e.__cause__, asyncio.CancelledError):
                 logger.exception(f"Caught error in _async_send {e}")
 
     def enqueue_send(self, packet: "Packet") -> bool:
