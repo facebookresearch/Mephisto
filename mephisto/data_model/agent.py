@@ -303,7 +303,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         to be returned.
 
         Information requests are handled with an outgoing `live_data` packet
-        with `live_data_requested` to true.
+        with `state.live_data_requested` to true.
         """
         if self.pending_actions.empty():
             if self._associated_live_run is not None:
