@@ -51,15 +51,12 @@ function MainApp() {
     } else {
       formData.append("USED_AGENT_ID", agentId);
       formData.append("final_string_data", JSON.stringify(objData));
-      console.log(formData);
       postData("/submit_task", formData)
         .then((data) => {
           handleSubmitToProvider(objData);
           return data;
         })
         .then(function (data) {
-          console.log("Submitted");
-          console.log(formData);
           console.table(objData);
         });
     }
