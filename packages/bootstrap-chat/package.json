@@ -5,7 +5,7 @@
   "main": "build/bundle.js",
   "scripts": {
     "dev": "webpack --mode=development -q",
-    "dev:watch": "webpack --mode development -q --watch",
+    "dev:watch": "webpack --mode=development -q --watch",
     "build": "NODE_ENV=production webpack --mode=production",
     "prepublishOnly": "NODE_ENV=production webpack --mode=production"
   },
