@@ -37,18 +37,6 @@ from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
-
-STATUS_TO_TEXT_MAP = {
-    AgentState.STATUS_EXPIRED: "This task is no longer available to be completed. "
-    "Please return it and try a different task",
-    AgentState.STATUS_TIMEOUT: "You took to long to respond to this task, and have timed out. "
-    "The task is no longer available, please return it.",
-    AgentState.STATUS_DISCONNECT: "You have disconnected from our server during the duration of the task. "
-    "If you have done substantial work, please reach out to see if we can recover it. ",
-    AgentState.STATUS_PARTNER_DISCONNECT: "One of your partners has disconnected while working on this task. We won't penalize "
-    "you for them leaving, so please submit this task as is.",
-}
-
 SYSTEM_CHANNEL_ID = "mephisto"
 START_DEATH_TIME = 10
 
@@ -224,9 +212,6 @@ class ClientIOHandler:
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
-        assert (
-            "onboarding_data" in packet.data
-        ), f"Onboarding packet {packet} submitted without data"
         live_run = self.get_live_run()
         onboarding_id = packet.subject_id
         if onboarding_id not in live_run.worker_pool.onboarding_agents:
@@ -247,7 +232,8 @@ class ClientIOHandler:
         # back properly under the new request)
         live_run.worker_pool.onboarding_infos[onboarding_id].request_id = request_id
 
-        agent.handle_submit(packet.data["onboarding_data"])
+        del packet.data["request_id"]
+        agent.handle_submit(packet.data)
 
     def _register_agent(self, packet: Packet, channel_id: str) -> None:
         """Read and forward a worker registration packet"""
@@ -293,35 +279,6 @@ class ClientIOHandler:
         self.process_outgoing_queue(self.message_queue)
         del self.request_id_to_channel_id[request_id]
 
-    def _get_init_data(self, packet, channel_id: str):
-        """Get the initialization data for the assigned agent's task"""
-        live_run = self.get_live_run()
-        task_runner = live_run.task_runner
-        agent_id = packet.data["provider_data"]["agent_id"]
-        agent = live_run.worker_pool.get_agent_for_id(agent_id)
-        assert isinstance(
-            agent, Agent
-        ), f"Can only get init unit data for Agents, not OnboardingAgents, got {agent}"
-        # TODO(#649) this is IO bound
-        unit_data = task_runner.get_init_data_for_agent(agent)
-
-        # agent_data_packet = Packet(
-        #     packet_type=PACKET_TYPE_INIT_DATA,
-        #     subject_id=agent_id,
-        #     data={"request_id": packet.data["request_id"], "init_data": unit_data},
-        # )
-
-        # self.message_queue.put(agent_data_packet)
-        self.process_outgoing_queue(self.message_queue)
-
-        # # TODO(#655) Move raw message (live message) processing into mephisto-task
-        # if isinstance(unit_data, dict) and unit_data.get("raw_messages") is not None:
-        #     # TODO(#651) clarify how raw messages are sent
-        #     for message in unit_data["raw_messages"]:
-        #         packet = Packet.from_dict(message)
-        #         packet.receiver_id = agent_id
-        #         agent.pending_observations.put(packet)
-
     def _on_message(self, packet: Packet, channel_id: str):
         """Handle incoming messages from the channel"""
         live_run = self.get_live_run()
@@ -366,7 +323,10 @@ class ClientIOHandler:
 
     def request_live_data(self, agent_id: str):
         """Send a live data packet requesting a live data response"""
-        self.send_live_data(agent_id, {"live_data_requested": True})
+        live_run = self.get_live_run()
+        agent = live_run.worker_pool.get_agent_for_id(agent_id)
+        if agent is not None:
+            agent.observe({"state": {"live_data_requested": True}})
 
     def send_live_data(self, agent_id: str, data: Dict[str, Any]):
         """Send a live data packet to the given agent id"""
@@ -387,21 +347,6 @@ class ClientIOHandler:
             },
         )
         self._get_channel_for_agent(agent_id).enqueue_send(status_packet)
-
-    def send_done_message(self, agent_id: str):
-        """Compose and send a done message to the given agent. This allows submission"""
-        done_packet = Packet(
-            packet_type=PACKET_TYPE_UPDATE_STATUS,
-            subject_id=agent_id,
-            data={
-                "status": "awaiting_submit",
-                "state": {
-                    "done_text": "You have completed this task. Please submit.",
-                    "task_done": True,
-                },
-            },
-        )
-        self._get_channel_for_agent(agent_id).enqueue_send(done_packet)
 
     def process_outgoing_queue(self, message_queue: "Queue[Packet]") -> None:
         """Sends messages from the given list until it is empty"""
