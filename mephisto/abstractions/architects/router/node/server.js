@@ -341,8 +341,6 @@ wss.on("connection", function (socket) {
       } else if (packet["packet_type"] == PACKET_TYPE_HEARTBEAT) {
         packet["data"] = { last_mephisto_ping: last_mephisto_ping };
         let agent_id = packet["subject_id"];
-        packet["subject_id"] = packet["receiver_id"];
-        packet["receiver_id"] = agent_id;
         let agent = agent_id_to_agent[agent_id];
         if (agent !== undefined) {
           agent.is_alive = true;
