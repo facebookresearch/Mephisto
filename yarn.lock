@@ -231,17 +231,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@annotated/template@workspace:packages/annotated/template":
-  version: 0.0.0-use.local
-  resolution: "@annotated/template@workspace:packages/annotated/template"
-  dependencies:
-    "@annotated/dev-scripts": "workspace:packages/annotated/dev-scripts"
-  peerDependencies:
-    react: ^16.13.1 || 17 || 18
-    react-dom: ^16.13.1 || 17 || 18
-  languageName: unknown
-  linkType: soft
-
 "@annotated/video-player@workspace:packages/annotated/video-player":
   version: 0.0.0-use.local
   resolution: "@annotated/video-player@workspace:packages/annotated/video-player"
