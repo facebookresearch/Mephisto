@@ -166,7 +166,6 @@ function MyApp() {
         destroy,
         sendMessage
 
-        agentState,
         agentStatus,
 
         connectionStatus,
@@ -174,8 +173,11 @@ function MyApp() {
         onConnectionStatusChange: (connectionStatus) => {
 
         },
-        onStateUpdate: ({ state, status }) => {
-            // called when either agentState or agentStatus updates
+        onStatusUpdate: ({ status }) => {
+            // Called when agentStatus updates
+        }
+        onStateUpdate: ({ state }) => {
+            // called when a message is received containing a `state` entry
         },
         onMessageReceived: (message) => {
 
@@ -197,19 +199,6 @@ Closes the socket connection that was created with the Mephisto live server. Thi
 ### `sendMessage(payload)`
 
 Once a connection is established, sends a message over the socket connection to the Mephisto live server on behalf of the current agent.
-
-### `agentState`
-
-This object may contain agent-specific information that the live server updates.
-
-For example, in the case of a server disconnect, the `agentState` will update with:
-
-```
-{
-    done_text: <message describing the disconnect>,
-    task_done: true
-}
-```
 
 ### `agentStatus`
 
