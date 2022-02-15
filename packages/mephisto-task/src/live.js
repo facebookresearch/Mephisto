@@ -59,8 +59,8 @@ const useMephistoLiveTask = function (props) {
   const { initialTaskData } = taskProps;
 
   function handleLiveData(liveData) {
-    const { message_id, timestamp, ...remaining_message } = message;
-    if (Object.keys(remaining_message).length != 0) {
+    const { message_id, timestamp, ...remainingData } = liveData;
+    if (Object.keys(remainingData).length != 0) {
       props.onLiveDataReceived && props.onLiveDataReceived(liveData);
     }
   }
