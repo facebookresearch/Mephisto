@@ -115,7 +115,7 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
         <DoneResponse
           onTaskComplete={onTaskComplete}
           onMessageSend={onMessageSend}
-          doneText={taskContext.done_text || null}
+          doneText={taskContext.doneText || null}
           isTaskDone={taskContext.task_done || null}
         />
       );

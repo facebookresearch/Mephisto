@@ -49,6 +49,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         self.mephisto_agent = agent
         self.__agent_id = "unnamed agent"
         self.__mephisto_agent_id = agent.get_agent_id()
+        self.__act_requested = False
 
     @property
     def id(self):
@@ -71,7 +72,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         world we forward that to the frontend
         """
         self.mephisto_agent.observe(
-            {"state": {"agent_display_name": new_agent_id}},
+            {"task_data": {"agent_display_name": new_agent_id}},
         )
         self.__agent_id = new_agent_id
 
@@ -79,12 +80,19 @@ class MephistoAgentWrapper(ParlAIAgent):
         """
         ParlAI Agents send an act dict, we must convert this
         """
-        if timeout is None:
-            gotten_act = self.mephisto_agent.get_live_data()
-        else:
-            gotten_act = self.mephisto_agent.get_live_data(timeout=timeout)
+        gotten_act = self.mephisto_agent.get_live_data()
+        if gotten_act is None:
+            # No act received, see that one is requested:
+            if not self.__act_requested:
+                self.mephisto_agent.observe(
+                    {"task_data": {"live_update_requested": True}}
+                )
+                self.__act_requested = True
+            if timeout is not None:
+                gotten_act = self.mephisto_agent.get_live_data(timeout=timeout)
         if gotten_act is None:
             return None
+        self.__act_requested = False
         gotten_act["id"] = self.__agent_id
         return Message(gotten_act)
 
@@ -227,7 +235,7 @@ class ParlAIChatTaskRunner(TaskRunner):
 
         # Ensure agents can submit after completion
         for idx in range(len(parlai_agents)):
-            agents[idx].observe({"state": {"task_done": True}})
+            agents[idx].observe({"task_data": {"task_done": True}})
 
         # TODO(WISH) it would be nice to have individual agents be able to submit their
         # final things without needing to wait for their partner, such
@@ -271,7 +279,7 @@ class ParlAIChatTaskRunner(TaskRunner):
             world.parley()
 
         # Ensure agent can submit after completion
-        agent.observe({"state": {"task_done": True}})
+        agent.observe({"task_data": {"task_done": True}})
 
         world.shutdown()
         if hasattr(world, "prep_save_data"):
