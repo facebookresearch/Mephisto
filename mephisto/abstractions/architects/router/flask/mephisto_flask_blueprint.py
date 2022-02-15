@@ -399,6 +399,9 @@ def submit_onboarding():
     del provider_data["USED_AGENT_ID"]
     provider_data["request_id"] = str(uuid4())
 
+    if "onboarding_data" not in provider_data:
+        provider_data["onboarding_data"] = {}
+
     # Construct and send onboarding submission packet
     packet = {
         "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,

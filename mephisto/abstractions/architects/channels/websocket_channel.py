@@ -129,7 +129,6 @@ class WebsocketChannel(Channel):
             # Outer loop allows reconnects
             while not self._is_closed:
                 try:
-                    print("TRYING TO CONNECT", self.socket_url)
                     async with websockets.connect(
                         self.socket_url, open_timeout=30
                     ) as websocket:
