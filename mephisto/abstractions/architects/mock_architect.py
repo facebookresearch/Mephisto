@@ -96,9 +96,7 @@ class SocketHandler(WebSocketHandler):
         if message["packet_type"] == PACKET_TYPE_ALIVE:
             self.app.last_alive_packet = message
         elif message["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_DATA:
-            # ignore live act queries
-            if not message["data"].get("state", {}).get("live_data_requested"):
-                self.app.actions_observed += 1
+            self.app.actions_observed += 1
         elif message["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA:
             self.app.actions_observed += 1
         elif message["packet_type"] != PACKET_TYPE_REQUEST_STATUSES:
