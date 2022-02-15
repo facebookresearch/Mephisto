@@ -301,14 +301,8 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         Request information from the Agent's frontend. If non-blocking,
         (timeout is None) should return None if no actions are ready
         to be returned.
-
-        Information requests are handled with an outgoing `live_data` packet
-        with `state.live_data_requested` to true.
         """
         if self.pending_actions.empty():
-            if self._associated_live_run is not None:
-                live_run = self.get_live_run()
-                live_run.client_io.request_live_data(self.get_agent_id())
             if timeout is None or timeout == 0:
                 return None
             self.has_live_data.wait(timeout)
@@ -599,9 +593,6 @@ class OnboardingAgent(
         to be returned.
         """
         if self.pending_actions.empty():
-            if self._associated_live_run is not None:
-                live_run = self.get_live_run()
-                live_run.client_io.request_live_data(self.get_agent_id())
             if timeout is None or timeout == 0:
                 return None
             self.has_live_data.wait(timeout)

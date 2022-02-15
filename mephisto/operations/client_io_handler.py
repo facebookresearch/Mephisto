@@ -323,13 +323,6 @@ class ClientIOHandler:
             self._request_status_update()
             await asyncio.sleep(STATUS_CHECK_TIME)
 
-    def request_live_data(self, agent_id: str):
-        """Send a live data packet requesting a live data response"""
-        live_run = self.get_live_run()
-        agent = live_run.worker_pool.get_agent_for_id(agent_id)
-        if agent is not None:
-            agent.observe({"state": {"live_data_requested": True}})
-
     def send_live_data(self, agent_id: str, data: Dict[str, Any]):
         """Send a live data packet to the given agent id"""
         data_packet = Packet(
