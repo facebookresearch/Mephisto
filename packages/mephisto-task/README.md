@@ -169,22 +169,19 @@ function MyApp() {
         agentStatus,
 
         connectionStatus,
-    } = useMephistoLiveTask(
+    } = useMephistoLiveTask({
         onConnectionStatusChange: (connectionStatus) => {
 
         },
         onStatusUpdate: ({ status }) => {
             // Called when agentStatus updates
         }
-        onStateUpdate: ({ state }) => {
-            // called when a message is received containing a `state` entry
-        },
-        onMessageReceived: (message) => {
+        onLiveDataReceived: (liveData) => {
 
         },
         config, // optional overrides for connection constants
         customConnectionHook, // (advanced usage) optional - provide your own hook for managing the under-the-hood connection mechanism to communicate with the Mephisto server. The default (useMephistoSocket) uses websockets.
-    );
+    });
 }
 ```
 

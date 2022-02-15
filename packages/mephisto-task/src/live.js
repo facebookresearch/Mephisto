@@ -58,20 +58,17 @@ const useMephistoLiveTask = function (props) {
 
   const { initialTaskData } = taskProps;
 
-  function onMessageReceived(message) {
-    const { state, message_id, timestamp, ...remaining_message } = message;
-    if (state !== undefined) {
-      props.onStateUpdate && props.onStateUpdate({ state });
-    }
+  function handleLiveData(liveData) {
+    const { message_id, timestamp, ...remaining_message } = message;
     if (Object.keys(remaining_message).length != 0) {
-      props.onMessageReceived && props.onMessageReceived(remaining_message);
+      props.onLiveDataReceived && props.onLiveDataReceived(liveData);
     }
   }
 
   React.useEffect(() => {
-    if (initialTaskData?.raw_messages) {
-      for (const raw_message of initialTaskData.raw_messages) {
-        onMessageReceived(raw_message);
+    if (initialTaskData?.past_live_data) {
+      for (const raw_message of initialTaskData.past_live_data) {
+        handleLiveData(raw_message);
       }
     }
   }, [initialTaskData]);
@@ -84,7 +81,7 @@ const useMephistoLiveTask = function (props) {
       setAgentStatus(status);
       props.onStatusUpdate && props.onStatusUpdate({ status });
     },
-    onMessageReceived,
+    handleLiveData,
   });
 
   if (!doesSupportWebsockets()) {

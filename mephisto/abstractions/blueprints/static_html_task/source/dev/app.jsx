@@ -73,7 +73,7 @@ function MainApp() {
   }
   if (isOnboarding) {
     return (
-      <SubmitFrame onSubmit={submitFromFrame} currTask={"onboarding"}>
+      <SubmitFrame onSubmit={submitFromFrame} currentTask={"onboarding"}>
         <ShowURL
           url={"onboarding.html"}
           data={initialTaskData}
@@ -86,7 +86,7 @@ function MainApp() {
     return <div>Loading...</div>;
   }
   return (
-    <SubmitFrame onSubmit={submitFromFrame} currTask={"main"}>
+    <SubmitFrame onSubmit={submitFromFrame} currentTask={"main"}>
       <ShowURL
         url={initialTaskData["html"]}
         data={initialTaskData}
@@ -96,13 +96,13 @@ function MainApp() {
   );
 }
 
-function SubmitFrame({ children, onSubmit, currTask }) {
+function SubmitFrame({ children, onSubmit, currentTask }) {
   const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     // Reset submitting when switching from onboarding
     setSubmitting(false);
-  }, [currTask]);
+  }, [currentTask]);
 
   function handleFormSubmit(event) {
     event.preventDefault();
