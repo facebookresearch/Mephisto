@@ -35,25 +35,23 @@ if TYPE_CHECKING:
 
 # Constants
 
-PACKET_TYPE_INIT_DATA = "initial_data_send"
-PACKET_TYPE_AGENT_ACTION = "agent_action"
-PACKET_TYPE_REQUEST_ACTION = "request_act"
-PACKET_TYPE_UPDATE_AGENT_STATUS = "update_status"
-PACKET_TYPE_NEW_AGENT = "register_agent"
-PACKET_TYPE_NEW_WORKER = "register_worker"
-PACKET_TYPE_REQUEST_AGENT_STATUS = "request_status"
-PACKET_TYPE_RETURN_AGENT_STATUS = "return_status"
-PACKET_TYPE_GET_INIT_DATA = "init_data_request"
 PACKET_TYPE_ALIVE = "alive"
-PACKET_TYPE_PROVIDER_DETAILS = "provider_details"
 PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding"
-PACKET_TYPE_ERROR_LOG = "log_error"
+PACKET_TYPE_SUBMIT_UNIT = "submit_unit"
+PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE = "client_bound_live_update"
+PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE = "mephisto_bound_live_update"
+PACKET_TYPE_REGISTER_AGENT = "register_agent"
+PACKET_TYPE_AGENT_DETAILS = "agent_details"
+PACKET_TYPE_UPDATE_STATUS = "update_status"
+PACKET_TYPE_REQUEST_STATUSES = "request_statuses"
+PACKET_TYPE_RETURN_STATUSES = "return_statuses"
+PACKET_TYPE_ERROR = "log_error"
 
 
 SYSTEM_CHANNEL_ID = "mephisto"
-SERVER_CHANNEL_ID = "mephisto_server"
 
 FAILED_RECONNECT_TIME = 10  # seconds
+FAILED_PING_TIME = 15  # seconds
 UPLOAD_FOLDER = "/tmp/"
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 
@@ -61,6 +59,9 @@ STATUS_INIT = "none"
 STATUS_CONNECTED = "connected"
 STATUS_DISCONNECTED = "disconnect"
 STATUS_COMPLETED = "completed"
+STATUS_WAITING = "waiting"
+STATUS_IN_TASK = "in task"
+STATUS_ONBOARDING = "onboarding"
 
 PACKET_TYPE_HEARTBEAT = "heartbeat"
 
@@ -102,12 +103,13 @@ class LocalAgentState:
         """Initialize an object to track the lifecycle of a connection"""
         self.status = STATUS_INIT
         self.agent_id = agent_id
-        self.state: Dict[str, Any] = {"wants_act": False, "done_text": None}
         self.is_alive = False
         self.disconnect_time = 0
+        self.last_ping = 0
+        self.unsent_messages: List[Dict[str, Any]] = []
 
     def __str__(self):
-        return f"Agent({self.agent_id}): {self.status}, {self.state}"
+        return f"Agent({self.agent_id}): {self.status}"
 
 
 class MephistoRouterState:
@@ -116,8 +118,8 @@ class MephistoRouterState:
         self.client_id_to_agent: Dict[str, LocalAgentState] = {}
         self.mephisto_socket: Optional["WebSocket"] = None
         self.agent_id_to_agent: Dict[str, LocalAgentState] = {}
-        self.pending_provider_requests: Dict[str, bool] = {}
-        self.received_provider_responses: Dict[str, Dict[str, Any]] = {}
+        self.pending_agent_requests: Dict[str, bool] = {}
+        self.received_agent_responses: Dict[str, Dict[str, Any]] = {}
         self.last_mephisto_ping: float = time.time()
 
 
@@ -179,20 +181,35 @@ class MephistoRouter(WebSocketApplication):
         them as correctly here.
         """
         state = self.mephisto_state
-        if alive_packet["sender_id"] == SYSTEM_CHANNEL_ID:
+        if alive_packet["subject_id"] == SYSTEM_CHANNEL_ID:
             state.mephisto_socket = client.ws
         else:
-            agent_id = alive_packet["sender_id"]
+            agent_id = alive_packet["subject_id"]
             agent = self._find_or_create_agent(agent_id)
             agent.is_alive = True
             state.agent_id_to_client[agent_id] = client
             state.client_id_to_agent[client.mephisto_id] = agent
 
+            # push out backlog
+            while len(agent.unsent_messages) > 0:
+                packet = agent.unsent_messages.pop(0)
+                self._handle_forward(packet)
+
+    def _ensure_live_connection(self, agent: LocalAgentState) -> None:
+        curr_status = agent.status
+        last_ping = agent.last_ping
+        if last_ping == 0:
+            return  # Not a live task, nothing to check
+        if curr_status not in [STATUS_ONBOARDING, STATUS_WAITING, STATUS_IN_TASK]:
+            return  # not in a live state, no reason to check liveliness
+        if time.time() - last_ping > FAILED_PING_TIME:
+            agent.status = STATUS_DISCONNECTED
+            self._send_status_for_agent(agent.agent_id)
+
     def _handle_get_agent_status(self, agent_status_packet: Dict[str, Any]) -> None:
         """
-        On a get agent status request, forward the request to all tracked agents
-        then without waiting for the response, respond to the core mephisto server
-        with the current status of each.
+        On a get agent status request, check the status of all agents and
+        respond to the core mephisto server with the current status of each.
 
         May return semi-stale information, but is non-blocking
         """
@@ -201,53 +218,36 @@ class MephistoRouter(WebSocketApplication):
         agent_statuses = {}
         for agent_id in state.agent_id_to_agent.keys():
             agent = self._find_or_create_agent(agent_id)
+            self._ensure_live_connection(agent)
             if not agent.is_alive and agent.status != STATUS_DISCONNECTED:
                 self._followup_possible_disconnect(agent)
             agent_statuses[agent_id] = state.agent_id_to_agent[agent_id].status
-            ping_packet = {
-                "packet_type": PACKET_TYPE_REQUEST_AGENT_STATUS,
-                "sender_id": SYSTEM_CHANNEL_ID,
-                "receiver_id": agent_id,
-                "data": None,
-            }
-            self._handle_forward(ping_packet)
         packet = {
-            "packet_type": PACKET_TYPE_RETURN_AGENT_STATUS,
-            "sender_id": SERVER_CHANNEL_ID,
-            "receiver_id": SYSTEM_CHANNEL_ID,
+            "packet_type": PACKET_TYPE_RETURN_STATUSES,
+            "subject_id": SYSTEM_CHANNEL_ID,
             "data": agent_statuses,
         }
         self._handle_forward(packet)
 
-    def _get_agent_state(self, agent_id: str) -> Dict[str, Any]:
-        """Return the agent state for a given tracked agent"""
-        agent = self._find_or_create_agent(agent_id)
-        return agent.state
-
     def _handle_update_local_status(self, status_packet: Dict[str, Any]) -> None:
         """Update the local agent status given a status packet"""
-        agent_id = status_packet["receiver_id"]
+        agent_id = status_packet["subject_id"]
         agent = self._find_or_create_agent(agent_id)
         if status_packet["data"].get("status") is not None:
             agent.status = status_packet["data"]["status"]
-        if status_packet["data"].get("state") is not None:
-            agent.state.update(status_packet["data"]["state"])
-
-    def _update_wanted_acts(self, agent_id: str, wants_act: bool) -> None:
-        """Update the wanted acts flag for a given agent"""
-        agent = self._find_or_create_agent(agent_id)
-        agent.state["wants_act"] = wants_act
 
     def _handle_forward(self, packet: Dict[str, Any]) -> None:
-        """Handle forwarding the given packet to the included receiver_id"""
-        if packet["receiver_id"] == SYSTEM_CHANNEL_ID:
-            debug_log("Adding message to mephisto queue", packet)
+        """Handle forwarding the given packet to the included subject_id"""
+        if packet["subject_id"] == SYSTEM_CHANNEL_ID:
+            debug_log("Sending message to Mephisto", packet)
             socket = self.mephisto_state.mephisto_socket
         else:
-            agent_id = packet["receiver_id"]
+            debug_log("Sending message to agent", packet)
+            agent_id = packet["subject_id"]
+            agent = self._find_or_create_agent(agent_id)
             client = self.mephisto_state.agent_id_to_client.get(agent_id)
             if client is None:
-                debug_log(f"No agent found to send {packet} to")
+                agent.unsent_messages.append(packet)
                 return
             socket = client.ws
         self._send_message(socket, packet)
@@ -267,12 +267,10 @@ class MephistoRouter(WebSocketApplication):
         """
         agent = self._find_or_create_agent(agent_id)
         packet = {
-            "packet_type": PACKET_TYPE_UPDATE_AGENT_STATUS,
-            "sender_id": SERVER_CHANNEL_ID,
-            "receiver_id": agent_id,
+            "packet_type": PACKET_TYPE_UPDATE_STATUS,
+            "subject_id": agent_id,
             "data": {
                 "status": agent.status,
-                "state": agent.state,
             },
         }
         self._handle_forward(packet)
@@ -296,52 +294,40 @@ class MephistoRouter(WebSocketApplication):
         current_client = self.ws.handler.active_client
         client = current_client
         packet = json.loads(message)
-        if packet["packet_type"] == PACKET_TYPE_REQUEST_AGENT_STATUS:
+        if packet["packet_type"] == PACKET_TYPE_REQUEST_STATUSES:
             debug_log("Mephisto requesting status")
             self._handle_get_agent_status(packet)
-        elif packet["packet_type"] == PACKET_TYPE_AGENT_ACTION:
-            debug_log("Agent action: ", packet)
+        elif packet["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE:
             self._handle_forward(packet)
-            if packet["receiver_id"] == SYSTEM_CHANNEL_ID:
-                self._update_wanted_acts(packet["sender_id"], False)
-                self._send_status_for_agent(packet["sender_id"])
-        elif packet["packet_type"] == PACKET_TYPE_ERROR_LOG:
+        elif packet["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
+            debug_log("Agent action: ", packet)
+            self._send_message(self.mephisto_state.mephisto_socket, packet)
+        elif packet["packet_type"] == PACKET_TYPE_ERROR:
             self._handle_forward(packet)
         elif packet["packet_type"] == PACKET_TYPE_ALIVE:
             debug_log("Agent alive: ", packet)
             self._handle_alive(self.ws.handler.active_client, packet)
-        elif packet["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS:
+        elif packet["packet_type"] == PACKET_TYPE_UPDATE_STATUS:
             debug_log("Update agent status", packet)
             self._handle_update_local_status(packet)
-            packet["data"]["state"] = self._get_agent_state(packet["receiver_id"])
             self._handle_forward(packet)
-        elif packet["packet_type"] == PACKET_TYPE_REQUEST_ACTION:
-            debug_log("Requesting act", packet)
-            agent_id = packet["receiver_id"]
-            self._update_wanted_acts(agent_id, True)
-            self._send_status_for_agent(agent_id)
-        elif packet["packet_type"] in [
-            PACKET_TYPE_PROVIDER_DETAILS,
-            PACKET_TYPE_INIT_DATA,
-        ]:
+        elif packet["packet_type"] == PACKET_TYPE_AGENT_DETAILS:
             request_id = packet["data"].get("request_id")
             if request_id is None:
-                request_id = packet["receiver_id"]
-            res_event = state.pending_provider_requests.get(request_id)
+                request_id = packet["subject_id"]
+            res_event = state.pending_agent_requests.get(request_id)
             if res_event is not None:
-                state.received_provider_responses[request_id] = packet
-                del state.pending_provider_requests[request_id]
+                state.received_agent_responses[request_id] = packet
+                del state.pending_agent_requests[request_id]
         elif packet["packet_type"] == PACKET_TYPE_HEARTBEAT:
             packet["data"] = {"last_mephisto_ping": js_time(state.last_mephisto_ping)}
-            agent_id = packet["sender_id"]
-            packet["sender_id"] = packet["receiver_id"]
-            packet["receiver_id"] = agent_id
+            agent_id = packet["subject_id"]
             agent = state.agent_id_to_agent.get(agent_id)
             if agent is not None:
                 agent.is_alive = True
                 packet["data"]["status"] = agent.status
-                packet["data"]["state"] = agent.state
-                if state.agent_id_to_client.get(agent.agent_id) != client:
+                local_client = state.agent_id_to_client.get(agent.agent_id)
+                if local_client != client and local_client is not None:
                     # Not communicating to the correct socket, update
                     debug_log("Updating client for ", agent)
                     state.agent_id_to_client[agent.agent_id] = client
@@ -360,71 +346,45 @@ class MephistoRouter(WebSocketApplication):
         agent.is_alive = False
         agent.disconnect_time = time.time()
 
-    def get_default_provider_request_packet(
-        self, request_type: str, provider_data: Dict[str, Any]
-    ):
-        """Create a packet used for simple provider requests"""
-        request_id = str(uuid4())
-        return {
-            "packet_type": request_type,
-            "sender_id": SERVER_CHANNEL_ID,
-            "receiver_id": SYSTEM_CHANNEL_ID,
-            "data": {
-                "provider_data": provider_data,
-                "request_id": request_id,
-            },
-        }
-
-    def make_provider_request(
+    def make_agent_request(
         self, request_packet: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Make a request to the core Mephisto server, and then await the response"""
         request_id = request_packet["data"]["request_id"]
 
-        self.mephisto_state.pending_provider_requests[request_id] = True
+        self.mephisto_state.pending_agent_requests[request_id] = True
         self._send_message(self.mephisto_state.mephisto_socket, request_packet)
         start_time = time.time()
         res = None
         while time.time() - start_time < 30 and res is None:
-            res = self.mephisto_state.received_provider_responses.get(request_id)
+            res = self.mephisto_state.received_agent_responses.get(request_id)
             time.sleep(0.01)
         if res is not None:
-            del self.mephisto_state.received_provider_responses[request_id]
+            del self.mephisto_state.received_agent_responses[request_id]
         return res
 
 
-def handle_provider_request(request_type: str, data: Dict[str, Any]):
-    """Wrapper for provider requests that handles extracting the result and timing out"""
+@mephisto_router.route("/request_agent", methods=["POST"])
+def request_agent():
+    data = request.get_json()
+    request_id = str(uuid4())
     provider_data = data["provider_data"]
     assert mephisto_router_app is not None, "Must initialize router before this call"
-    packet = mephisto_router_app.get_default_provider_request_packet(
-        request_type, provider_data
-    )
-    res = mephisto_router_app.make_provider_request(packet)
+    packet = {
+        "packet_type": PACKET_TYPE_REGISTER_AGENT,
+        "subject_id": request_id,
+        "data": {
+            "provider_data": provider_data,
+            "request_id": request_id,
+        },
+    }
+    res = mephisto_router_app.make_agent_request(packet)
     if res is not None:
         return jsonify(res)
     else:
         # Timed out waiting for Mephisto to respond
         abort(408)
         return None
-
-
-@mephisto_router.route("/initial_task_data", methods=["POST"])
-def initial_task_data():
-    data = request.get_json()
-    return handle_provider_request(PACKET_TYPE_GET_INIT_DATA, data)
-
-
-@mephisto_router.route("/register_worker", methods=["POST"])
-def register_worker():
-    data = request.get_json()
-    return handle_provider_request(PACKET_TYPE_NEW_WORKER, data)
-
-
-@mephisto_router.route("/request_agent", methods=["POST"])
-def request_agent():
-    data = request.get_json()
-    return handle_provider_request(PACKET_TYPE_NEW_AGENT, data)
 
 
 @mephisto_router.route("/submit_onboarding", methods=["POST"])
@@ -437,13 +397,15 @@ def submit_onboarding():
     provider_data = data["provider_data"]
     agent_id = provider_data["USED_AGENT_ID"]
     del provider_data["USED_AGENT_ID"]
+    provider_data["request_id"] = str(uuid4())
 
     # Construct and send onboarding submission packet
-    packet = mephisto_router_app.get_default_provider_request_packet(
-        PACKET_TYPE_SUBMIT_ONBOARDING, provider_data
-    )
-    packet["sender_id"] = agent_id
-    res = mephisto_router_app.make_provider_request(packet)
+    packet = {
+        "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,
+        "subject_id": agent_id,
+        "data": provider_data,
+    }
+    res = mephisto_router_app.make_agent_request(packet)
     if res is not None:
         return jsonify(res)
     else:
@@ -469,17 +431,19 @@ def submit_task():
                 filepoint.save(os.path.join("/tmp/", full_name))
                 filenames.append({"filename": full_name})
 
+    extracted_data = provider_data.get("final_data")
+    if extracted_data is None and "final_string_data" in provider_data:
+        extracted_data = json.loads(provider_data.final_string_data)
+
+    if len(filenames) > 0:
+        extracted_data.files = filenames
+
     agent_id = provider_data["USED_AGENT_ID"]
-    del provider_data["USED_AGENT_ID"]
+
     packet = {
-        "packet_type": PACKET_TYPE_AGENT_ACTION,
-        "sender_id": agent_id,
-        "receiver_id": SYSTEM_CHANNEL_ID,
-        "data": {
-            "task_data": provider_data,
-            "MEPHISTO_is_submit": True,
-            "files": filenames,
-        },
+        "packet_type": PACKET_TYPE_SUBMIT_UNIT,
+        "subject_id": agent_id,
+        "data": extracted_data,
     }
     mephisto_router_app._handle_forward(packet)
     return jsonify({"status": "Error log sent!"})
@@ -488,14 +452,10 @@ def submit_task():
 @mephisto_router.route("/log_error", methods=["POST"])
 def log_error():
     data = request.get_json()
-    provider_data = data["provider_data"]
-    agent_id = provider_data["USED_AGENT_ID"]
-    del provider_data["USED_AGENT_ID"]
     packet = {
-        "packet_type": PACKET_TYPE_ERROR_LOG,
-        "sender_id": agent_id,
-        "receiver_id": SYSTEM_CHANNEL_ID,
-        "data": provider_data,
+        "packet_type": PACKET_TYPE_ERROR,
+        "subject_id": data["USED_AGENT_ID"],
+        "data": data["error_data"],
     }
     mephisto_router_app._handle_forward(packet)
     return jsonify({"status": "Error log sent!"})

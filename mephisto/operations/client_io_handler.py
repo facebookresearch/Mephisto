@@ -212,9 +212,6 @@ class ClientIOHandler:
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
-        assert (
-            "onboarding_data" in packet.data
-        ), f"Onboarding packet {packet} submitted without data"
         live_run = self.get_live_run()
         onboarding_id = packet.subject_id
         if onboarding_id not in live_run.worker_pool.onboarding_agents:
@@ -235,7 +232,7 @@ class ClientIOHandler:
         # back properly under the new request)
         live_run.worker_pool.onboarding_infos[onboarding_id].request_id = request_id
 
-        agent.handle_submit(packet.data["onboarding_data"])
+        agent.handle_submit(packet.data)
 
     def _register_agent(self, packet: Packet, channel_id: str) -> None:
         """Read and forward a worker registration packet"""
