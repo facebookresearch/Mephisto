@@ -338,9 +338,6 @@ function useMephistoSocket({
         let new_message_ids = [...used_message_ids, packet.data.message_id];
         setState({ used_message_ids: new_message_ids });
       }
-      if (packet.data?.state?.is_final) {
-        callbacks.current.closeSocket();
-      }
       onLiveDataReceived(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATUS) {
       onStatusUpdate(packet.data); // packet.data looks like - {status: "<>"}
