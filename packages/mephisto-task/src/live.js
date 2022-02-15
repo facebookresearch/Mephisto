@@ -59,16 +59,13 @@ const useMephistoLiveTask = function (props) {
   const { initialTaskData } = taskProps;
 
   function handleLiveData(liveData) {
-    const { message_id, timestamp, ...remainingData } = liveData;
-    if (Object.keys(remainingData).length != 0) {
-      props.onLiveDataReceived && props.onLiveDataReceived(liveData);
-    }
+    props.onLiveDataReceived && props.onLiveDataReceived(liveData);
   }
 
   React.useEffect(() => {
     if (initialTaskData?.past_live_data) {
-      for (const raw_message of initialTaskData.past_live_data) {
-        handleLiveData(raw_message);
+      for (const liveData of initialTaskData.past_live_data) {
+        handleLiveData(liveData);
       }
     }
   }, [initialTaskData]);
@@ -81,7 +78,7 @@ const useMephistoLiveTask = function (props) {
       setAgentStatus(status);
       props.onStatusUpdate && props.onStatusUpdate({ status });
     },
-    handleLiveData,
+    onLiveDataReceived: handleLiveData,
   });
 
   if (!doesSupportWebsockets()) {

@@ -111,7 +111,7 @@ function useValue(value, defaultValue) {
 
 function useMephistoSocket({
   onConnectionStatusChange,
-  onMessageReceived,
+  onLiveDataReceived,
   onStatusUpdate /*, onStatusUpdate */,
   config = {},
 }) {
@@ -341,7 +341,7 @@ function useMephistoSocket({
       if (packet.data?.state?.is_final) {
         callbacks.current.closeSocket();
       }
-      onMessageReceived(packet.data);
+      onLiveDataReceived(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATUS) {
       onStatusUpdate(packet.data); // packet.data looks like - {status: "<>"}
     } else if (packet.packet_type == PACKET_TYPE_HEARTBEAT) {
