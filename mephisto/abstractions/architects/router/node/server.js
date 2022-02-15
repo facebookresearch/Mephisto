@@ -80,8 +80,8 @@ const SYSTEM_SOCKET_ID = "mephisto"; // TODO pull from somewhere
 const PACKET_TYPE_ALIVE = "alive";
 const PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding";
 const PACKET_TYPE_SUBMIT_UNIT = "submit_unit";
-const PACKET_TYPE_CLIENT_BOUND_LIVE_DATA = "client_bound_live_data";
-const PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA = "mephisto_bound_live_data";
+const PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE = "client_bound_live_update";
+const PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE = "mephisto_bound_live_update";
 const PACKET_TYPE_REGISTER_AGENT = "register_agent";
 const PACKET_TYPE_AGENT_DETAILS = "agent_details";
 const PACKET_TYPE_UPDATE_STATUS = "update_status";
@@ -312,11 +312,13 @@ wss.on("connection", function (socket) {
         debug_log("Mephisto requesting status");
         handle_get_agent_status(packet);
       } else if (
-        packet["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA
+        packet["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE
       ) {
         debug_log("Mephisto-bound action: ", packet);
         mephisto_message_queue.push(packet);
-      } else if (packet["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_DATA) {
+      } else if (
+        packet["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE
+      ) {
         debug_log("Client-bound action: ", packet);
         forward_to_agent(packet);
       } else if (packet["packet_type"] == PACKET_TYPE_ERROR) {

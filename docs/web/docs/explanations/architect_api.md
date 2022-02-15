@@ -75,8 +75,8 @@ There are a number of different packet types used by Mephisto:
 - `PACKET_TYPE_ALIVE`: Used to mark the success of a new socket connection.
 - `PACKET_TYPE_SUBMIT_ONBOARDING`: Used to handle submission of onboarding. 
 - `PACKET_TYPE_SUBMIT_UNIT`: Used to handle submission of a `Unit`. 
-- `PACKET_TYPE_CLIENT_BOUND_LIVE_DATA`: Used to send any new live data to an agent.
-- `PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA`: Used for the frontend to send any type of data to the backend, usually to be processed by a user-defined callback. 
+- `PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE`: Used to send any new live data to an agent.
+- `PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE`: Used for the frontend to send any type of data to the backend, usually to be processed by a user-defined callback. 
 - `PACKET_TYPE_REGISTER_AGENT`: Used to request a new `Agent` and `Unit` data for a specific worker on a task.
 - `PACKET_TYPE_AGENT_DETAILS`: Used to respond with the details of a worker registration request.
 - `PACKET_TYPE_UPDATE_STATUS`: Used by Mephisto to push a status update to the router and frontend worker.
@@ -89,7 +89,7 @@ There are a number of different packet types used by Mephisto:
 While this is the "Architect API" most of the responsibilities for the architect are merely pointing the `ClientIOHandler` to the correct `Channel`s for sending packets for a given client. Ultimately it is the `ClientIOHandler` that dictates the responsibilities that the transmitted messages carry:
 - The `ClientIOHandler` must send a `PACKET_TYPE_ALIVE` whenever it opens a new channel (in this case, to a router).
 - For `Unit` Registration, in response to a `PACKET_TYPE_REGISTER_AGENT`, the handler must return a `PACKET_TYPE_AGENT_DETAILS` with the details of an agent and it's initialization data, or the failure status for why an agent couldn't be created.
-- During a `Unit` the handler must process `PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA` and direct the content to the correct handlers, and should send a `PACKET_TYPE_CLIENT_BOUND_LIVE_DATA` for any `Agent.send_data()` call on a live connected `Agent`. The handler must also process `PACKET_TYPE_SUBMIT_*` packets for the key transitions of a `Unit` in progress, and should respond with `PACKET_TYPE_AGENT_DETAILS` for a submit on an `OnboardingAgent`.
+- During a `Unit` the handler must process `PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE` and direct the content to the correct handlers, and should send a `PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE` for any `Agent.send_data()` call on a live connected `Agent`. The handler must also process `PACKET_TYPE_SUBMIT_*` packets for the key transitions of a `Unit` in progress, and should respond with `PACKET_TYPE_AGENT_DETAILS` for a submit on an `OnboardingAgent`.
 - Over any run, the handler should poll with `PACKET_TYPE_REQUEST_STATUS` and update local `Agent` statuses on disconnects from `PACKET_TYPE_RETURN_STATUSES`. This also acts as a heartbeat from the Python core to the router. The handler should also take `PACKET_TYPE_ERROR` and log the contents if this ever occurs.
 
 
@@ -107,4 +107,4 @@ Fourth, the router is responsible for serving the static `task_config.json` file
 
 The `useMephistoTask` hook is responsible for allowing a worker to connect to a task and submit the relevant data. For this, it only needs to make `POST` requests related to the `PACKET_TYPE_SUBMIT_*` and `PACKET_TYPE_REGISTER_AGENT` events. The former should be triggered on `handleSubmit`, while the latter should trigger immediately on load.
 
-The `useMephistoLiveTask` hook is responsible for the rest of the packets. Data packets should be sent via `sendData` and handled with the `onLiveDataReceived` callback. Providing a callback to `sendData` will call that with any response data that sets the `source_request_id` to the initial send's `message_id`. Local connection state is managed by the `socket_handler.jsx` class, and surfaced through the hook variables for UIs to use. 
+The `useMephistoLiveTask` hook is responsible for the rest of the packets. Data packets should be sent via `sendData` and handled with the `onLiveUpdate` callback. Providing a callback to `sendData` will call that with any response data that sets the `source_request_id` to the initial send's `update_id`. Local connection state is managed by the `socket_handler.jsx` class, and surfaced through the hook variables for UIs to use. 

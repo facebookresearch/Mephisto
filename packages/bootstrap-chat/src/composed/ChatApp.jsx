@@ -128,7 +128,7 @@ function ChatApp({
         });
       }
     },
-    onLiveDataReceived: (message) => {
+    onLiveUpdate: (message) => {
       if (message.task_data !== undefined) {
         handleStateUpdate(message.task_data);
       }

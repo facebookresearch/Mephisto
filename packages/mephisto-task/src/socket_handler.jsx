@@ -23,8 +23,8 @@ const PACKET_TYPE_HEARTBEAT = "heartbeat"; // Heartbeat from agent, carries curr
 const PACKET_TYPE_ALIVE = "alive"; // packet from an agent alive event
 
 const PACKET_TYPE_UPDATE_STATUS = "update_status"; // packet for updating agent client state
-const PACKET_TYPE_CLIENT_BOUND_LIVE_DATA = "client_bound_live_data";
-const PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA = "mephisto_bound_live_data";
+const PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE = "client_bound_live_update";
+const PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE = "mephisto_bound_live_update";
 
 const CONNECTION_STATUS = {
   FAILED: "failed",
@@ -111,7 +111,7 @@ function useValue(value, defaultValue) {
 
 function useMephistoSocket({
   onConnectionStatusChange,
-  onLiveDataReceived,
+  onLiveUpdate,
   onStatusUpdate /*, onStatusUpdate */,
   config = {},
 }) {
@@ -121,7 +121,7 @@ function useMephistoSocket({
     setting_socket: false, // Flag for socket setup being underway
     heartbeats_without_response: 0, // HBs to the router without a pong back
     last_mephisto_ping: Date.now(),
-    used_message_ids: [],
+    used_update_ids: [],
   };
 
   const [state, setState] = React.useReducer(
@@ -231,8 +231,8 @@ function useMephistoSocket({
 
   function enqueuePacket(eventType, data, callback) {
     var time = Date.now();
-    if (data.message_id === undefined) {
-      data.message_id = uuidv4();
+    if (data.update_id === undefined) {
+      data.update_id = uuidv4();
     }
 
     var packet = {
@@ -252,7 +252,7 @@ function useMephistoSocket({
   function sendMessage(message) {
     return new Promise((resolve) => {
       callbacks.current.enqueuePacket(
-        PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA,
+        PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
         message,
         (msg) => {
           resolve(msg.data);
@@ -327,18 +327,18 @@ function useMephistoSocket({
   }
 
   function parseSocketMessage(packet) {
-    if (packet.packet_type == PACKET_TYPE_CLIENT_BOUND_LIVE_DATA) {
-      let used_message_ids = state.used_message_ids;
+    if (packet.packet_type == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE) {
+      let used_update_ids = state.used_update_ids;
 
-      if (used_message_ids.includes(packet.data.message_id)) {
+      if (used_update_ids.includes(packet.data.update_id)) {
         // Skip this message, it's a duplicate
-        log("Skipping existing message_id " + packet.data.message_id, 3);
+        log("Skipping existing update_id " + packet.data.update_id, 3);
         return;
       } else {
-        let new_message_ids = [...used_message_ids, packet.data.message_id];
-        setState({ used_message_ids: new_message_ids });
+        let new_update_ids = [...used_update_ids, packet.data.update_id];
+        setState({ used_update_ids: new_update_ids });
       }
-      onLiveDataReceived(packet.data);
+      onLiveUpdate(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATUS) {
       onStatusUpdate(packet.data); // packet.data looks like - {status: "<>"}
     } else if (packet.packet_type == PACKET_TYPE_HEARTBEAT) {

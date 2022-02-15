@@ -176,7 +176,7 @@ function MyApp() {
         onStatusUpdate: ({ status }) => {
             // Called when agentStatus updates
         }
-        onLiveDataReceived: (liveData) => {
+        onLiveUpdate: (liveUpdate) => {
 
         },
         config, // optional overrides for connection constants

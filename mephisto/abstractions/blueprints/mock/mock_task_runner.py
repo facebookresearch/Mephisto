@@ -69,7 +69,7 @@ class MockTaskRunner(TaskRunner):
         assert (
             assigned_agent.db_id == agent.db_id
         ), "Task was not given to assigned agent"
-        packet = agent.get_live_data(timeout=self.timeout)
+        packet = agent.get_live_update(timeout=self.timeout)
         if packet is not None:
             agent.observe(packet)
         agent.await_submit(self.timeout)
@@ -91,7 +91,7 @@ class MockTaskRunner(TaskRunner):
             assert agent is not None, "Task was not launched with assigned agents"
             agents.append(agent)
         for agent in agents:
-            packet = agent.get_live_data(timeout=self.timeout)
+            packet = agent.get_live_update(timeout=self.timeout)
             if packet is not None:
                 agent.observe(packet)
         for agent in agents:

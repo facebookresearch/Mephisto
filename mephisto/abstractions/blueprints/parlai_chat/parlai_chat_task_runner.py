@@ -80,7 +80,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         """
         ParlAI Agents send an act dict, we must convert this
         """
-        gotten_act = self.mephisto_agent.get_live_data()
+        gotten_act = self.mephisto_agent.get_live_update()
         if gotten_act is None:
             # No act received, see that one is requested:
             if not self.__act_requested:
@@ -89,7 +89,7 @@ class MephistoAgentWrapper(ParlAIAgent):
                 )
                 self.__act_requested = True
             if timeout is not None:
-                gotten_act = self.mephisto_agent.get_live_data(timeout=timeout)
+                gotten_act = self.mephisto_agent.get_live_update(timeout=timeout)
         if gotten_act is None:
             return None
         self.__act_requested = False
@@ -98,8 +98,8 @@ class MephistoAgentWrapper(ParlAIAgent):
 
     def observe(self, act):
         """We can simply add a message id if not already provided to these"""
-        if act.get("message_id") is None:
-            act["message_id"] = str(uuid4())
+        if act.get("update_id") is None:
+            act["update_id"] = str(uuid4())
         self.mephisto_agent.observe(dict(act))
 
 
