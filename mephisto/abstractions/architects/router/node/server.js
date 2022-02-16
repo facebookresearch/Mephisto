@@ -513,12 +513,10 @@ app.get("/task_config.json", function (req, res) {
           "Package `mephisto-task` version mismatch. Expected " +
           "version " +
           CURR_MEPHISTO_TASK_VERSION +
-          " but frontend is " +
-          "currently using " +
+          " but frontend is currently using " +
           mephisto_task_version +
-          ". This may " +
-          "cause unexpected errors, be sure to update your `mephisto-task` " +
-          "JS package.",
+          ". This may cause unexpected errors, be sure to " +
+          "update your `mephisto-task` JS package.",
       },
     });
   }
