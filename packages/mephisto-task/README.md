@@ -164,7 +164,7 @@ function MyApp() {
         // while also including the following:
         connect,
         destroy,
-        sendMessage
+        sendLiveUpdate,
 
         agentStatus,
 
@@ -193,9 +193,9 @@ Starts a persistent socket connection between the current `agentId` and the Meph
 
 Closes the socket connection that was created with the Mephisto live server. This connection cannot be reopened. 
 
-### `sendMessage(payload)`
+### `sendLiveUpdate(payload)`
 
-Once a connection is established, sends a message over the socket connection to the Mephisto live server on behalf of the current agent.
+Once a connection is established, sends an update packet over the socket connection to the Mephisto live server on behalf of the current agent.
 
 ### `agentStatus`
 

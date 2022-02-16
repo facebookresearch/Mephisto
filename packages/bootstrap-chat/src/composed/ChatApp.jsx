@@ -160,7 +160,7 @@ function ChatApp({
     handleSubmit,
     connect,
     destroy,
-    sendMessage,
+    sendLiveUpdate,
     isOnboarding,
     agentStatus,
   } = mephistoProps;
@@ -191,7 +191,7 @@ function ChatApp({
         id: agentId,
         episode_done: taskContext?.task_done || false,
       };
-      return sendMessage(message)
+      return sendLiveUpdate(message)
         .then(addMessage)
         .then(() => {
           if (appSettings.useTurns) {

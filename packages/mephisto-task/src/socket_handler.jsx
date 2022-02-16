@@ -249,7 +249,7 @@ function useMephistoSocket({
     queue.current.push(event, time);
   }
 
-  function sendMessage(message) {
+  function sendLiveUpdate(message) {
     return new Promise((resolve) => {
       callbacks.current.enqueuePacket(
         PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
@@ -426,7 +426,7 @@ function useMephistoSocket({
   return {
     connect: connect,
     destroy: () => callbacks.current.closeSocket(),
-    sendMessage: sendMessage,
+    sendLiveUpdate: sendLiveUpdate,
   };
 }
 
