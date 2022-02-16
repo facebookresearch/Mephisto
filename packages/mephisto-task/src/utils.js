@@ -85,7 +85,23 @@ export function doesSupportWebsockets() {
 
 // Sends a request to get the task_config
 export function getTaskConfig() {
-  return axiosInstance("/task_config.json").then((res) => res.data);
+  return axiosInstance("/task_config.json", {
+    params: { mephisto_task_version: libVersion },
+  }).then((res) => {
+    const taskConfig = res.data;
+    if (taskConfig.mephisto_task_version !== libVersion) {
+      console.warn(
+        "Version mismatch detected! Local `mephisto-task` package is " +
+          "on version " +
+          libVersion +
+          " but the server expected version " +
+          taskConfig.mephisto_task_version +
+          ". Please ensure you " +
+          "are using the package version expected by the Mephisto backend."
+      );
+    }
+    return res.data;
+  });
 }
 
 export function postProviderRequest(endpoint, data) {
@@ -174,3 +190,10 @@ export class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+export const libVersion = preval`
+  const fs = require('fs')
+  const file = fs.readFileSync(__dirname + '/../package.json', 'utf8')
+  const version = JSON.parse(file).version;
+  module.exports = version
+`;

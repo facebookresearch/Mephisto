@@ -33,7 +33,7 @@ from typing import Dict, Tuple, Union, Optional, List, Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.operations.logger_core import get_logger, format_loud
 
 logger = get_logger(name=__name__)
 
@@ -180,8 +180,11 @@ class ClientIOHandler:
 
     def _log_frontend_error(self, packet: Packet):
         """Log to the local logger an error that occurred on the frontend"""
-        error = packet.data["final_data"]
-        logger.warning(f"[FRONT_END_ERROR]: {error}")
+        error = packet.data
+        if "error_type" in error and error["error_type"] == "version-mismatch":
+            logger.warning(f"{format_loud('[Version Mismatch!!]')}: {error['text']}")
+        else:
+            logger.warning(f"[FRONT_END_ERROR]: {error}")
 
     def _on_live_update(self, packet: Packet, _channel_id: str):
         """Handle an action as sent from an agent, enqueuing to the agent"""
