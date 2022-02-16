@@ -198,7 +198,6 @@ class ParlAIChatTaskRunner(TaskRunner):
         )
 
         # Mark the agent as done, then wait for the incoming submit action
-        # TODO(#655) just wait on this condition!
         while not agent.await_submit(timeout=None):
             time.sleep(0.3)
 
