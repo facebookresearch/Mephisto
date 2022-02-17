@@ -156,6 +156,11 @@ class WebsocketChannel(Channel):
                     # Issue with opening this channel, should shut down to prevent inaccessible tasks
                     self.on_catastrophic_disconnect(self.channel_id)
                     return
+                except OSError as e:
+                    logger.info(
+                        f"Unhandled OSError exception in socket {e}, attempting restart"
+                    )
+                    await asyncio.sleep(0.2)
                 except Exception as e:
                     logger.exception(f"Unhandled exception in socket {e}, {repr(e)}")
                     if self._is_closed:

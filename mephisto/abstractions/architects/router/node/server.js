@@ -442,6 +442,8 @@ app.post("/submit_onboarding", function (req, res) {
   debug_log("Am submitting onboarding for " + agent_id);
   delete provider_data.USED_AGENT_ID;
 
+  provider_data.onboarding_data = provider_data.onboarding_data || {};
+
   provider_data.request_id = request_id;
 
   let submit_packet = {
