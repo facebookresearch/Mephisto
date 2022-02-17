@@ -35,7 +35,8 @@ def run_replace():
         version = json.load(mephisto_task_package)["version"]
 
     is_check_mode = len(sys.argv) > 1 and sys.argv[1] == "check"
-    are_all_synced = True
+    are_all_versions_synced = True
+    are_all_versions_found = True
 
     print(f"Detected mephisto-task version '{version}' at '{MEPHISTO_TASK_PACKAGE}'")
     if is_check_mode:
@@ -55,10 +56,11 @@ def run_replace():
         search = re.search(PATTERN, file_contents)
         if search is None:
             print(f"{format_loud('[NOT FOUND]')} {target_file}")
+            are_all_versions_found &= False
         elif is_check_mode:
             file_version = search.group(2)
             current_file_synced = file_version == version
-            are_all_synced = are_all_synced and current_file_synced
+            are_all_versions_synced &= current_file_synced
             print(
                 f"[{'CORRECT' if current_file_synced else format_loud(f'WRONG VERSION {file_version}')}] {target_file}"
             )
@@ -68,7 +70,9 @@ def run_replace():
                 file_to_replace.write(new_contents)
                 print(f"[REPLACED] {target_file}")
 
-    if is_check_mode and not are_all_synced:
+    if not are_all_versions_found:
+        sys.exit(1)
+    if is_check_mode and not are_all_versions_synced:
         sys.exit(1)
 
 
