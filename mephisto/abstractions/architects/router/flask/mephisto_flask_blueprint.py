@@ -35,6 +35,8 @@ if TYPE_CHECKING:
 
 # Constants
 
+CURR_MEPHISTO_TASK_VERSION = "2.0.0"
+
 PACKET_TYPE_ALIVE = "alive"
 PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding"
 PACKET_TYPE_SUBMIT_UNIT = "submit_unit"
@@ -486,6 +488,37 @@ def download_file(filename):
 def show_index():
     try:
         return send_from_directory("static", "index.html")
+    except:
+        abort(404)
+
+
+@mephisto_router.route("/task_config.json")
+def get_task_config(res):
+    args = request.args
+    mephisto_task_version = args.get("mephisto_task_version")
+    if mephisto_task_version != CURR_MEPHISTO_TASK_VERSION:
+        _handle_forward(
+            {
+                "packet_type": PACKET_TYPE_ERROR,
+                "subject_id": SYSTEM_CHANNEL_ID,
+                "data": {
+                    "error_type": "version-mismatch",
+                    "text": (
+                        "Package `mephisto-task` version mismatch. Expected "
+                        f"version {CURR_MEPHISTO_TASK_VERSION} but frontend is "
+                        f"currently using {mephisto_task_version}. This may "
+                        "cause unexpected errors, be sure to update your "
+                        "`mephisto-task` dependency with `npm install "
+                        f"mephisto-task@{CURR_MEPHISTO_TASK_VERSION} --save`. "
+                        "If this warning still persists or the version isn't found, "
+                        "please open an issue at "
+                        "https://github.com/facebookresearch/Mephisto/issues"
+                    ),
+                },
+            }
+        )
+    try:
+        return send_from_directory("static", "task_config.json")
     except:
         abort(404)
 
