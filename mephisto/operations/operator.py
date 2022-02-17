@@ -39,7 +39,11 @@ from mephisto.operations.registry import (
 )
 from mephisto.operations.utils import get_mock_requester
 
-from mephisto.operations.logger_core import get_logger, set_mephisto_log_level
+from mephisto.operations.logger_core import (
+    get_logger,
+    set_mephisto_log_level,
+    format_loud,
+)
 from omegaconf import DictConfig, OmegaConf
 
 logger = get_logger(name=__name__)
@@ -392,7 +396,7 @@ class Operator:
             def cant_cancel_expirations(self, sig, frame):
                 logging.warn(
                     "Ignoring ^C during unit expirations. ^| if you NEED to exit and you will "
-                    "clean up units that hadn't been expired afterwards."
+                    "have to clean up units that hadn't been expired afterwards."
                 )
 
             old_handler = signal.signal(signal.SIGINT, cant_cancel_expirations)
@@ -400,7 +404,12 @@ class Operator:
             signal.signal(signal.SIGINT, old_handler)
         try:
             remaining_runs = self._task_runs_tracked.values()
+
             while len(remaining_runs) > 0:
+                logger.info(
+                    f"Waiting on {len(remaining_runs)} task runs with assignments in-flight. "
+                    f"{format_loud('Ctrl-C ONCE')} to kill running tasks and FORCE QUIT."
+                )
                 next_runs = []
                 for tracked_run in remaining_runs:
                     if tracked_run.task_run.get_is_completed():
@@ -409,10 +418,6 @@ class Operator:
                     else:
                         next_runs.append(tracked_run)
                 if len(next_runs) > 0:
-                    logger.info(
-                        f"Waiting on {len(remaining_runs)} task runs with assignments in-flight "
-                        f"Ctrl-C ONCE to kill running tasks and FORCE QUIT."
-                    )
                     time.sleep(30)
                 remaining_runs = next_runs
         except Exception as e:
@@ -423,15 +428,35 @@ class Operator:
 
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
-            logger.info(
+            logger.warning(
                 "Skipping waiting for outstanding task completions, shutting down servers now!"
+                f"Follow cleanup instructions {format_loud('closely')} for proper cleanup.",
             )
             for tracked_run in remaining_runs:
-                logger.info(
-                    f"Shutting down Architect for task run {tracked_run.task_run.db_id}"
+                logger.warning(
+                    f"Cleaning up run {tracked_run.task_run.db_id}. {format_loud('Ctrl-C once per step')} to skip that step."
                 )
-                tracked_run.shutdown()
-                tracked_run.architect.shutdown()
+                try:
+                    logger.warning(f"Shutting down active Units in-flight.")
+                    tracked_run.worker_pool.disconnect_active_agents()
+                    tracked_run.task_runner.shutdown()
+                except (KeyboardInterrupt, SystemExit) as e:
+                    logger.warning("Skipped!")
+                try:
+                    logger.warning(f"Cleaning up remaining workers.")
+                    tracked_run.worker_pool.shutdown()
+                except (KeyboardInterrupt, SystemExit) as e:
+                    logger.warning("Skipped!")
+                try:
+                    logger.warning(f"Closing client communications.")
+                    tracked_run.client_io.shutdown()
+                except (KeyboardInterrupt, SystemExit) as e:
+                    logger.warning("Skipped!")
+                try:
+                    logger.warning(f"Shutting down servers")
+                    tracked_run.architect.shutdown()
+                except (KeyboardInterrupt, SystemExit) as e:
+                    logger.warning("Skipped!")
         finally:
             runs_to_close = list(self._task_runs_tracked.keys())
             for run_id in runs_to_close:
@@ -536,7 +561,9 @@ class Operator:
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
             logger.exception(
-                "Cleaning up after keyboard interrupt, please wait!", exc_info=True
+                "Cleaning up after keyboard interrupt, please "
+                f"{format_loud('wait to Ctrl-C again')} until instructed to.",
+                exc_info=False,
             )
         finally:
             self.shutdown()
