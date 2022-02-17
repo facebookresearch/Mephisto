@@ -6,10 +6,6 @@
 
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.packet import (
-    PACKET_TYPE_AGENT_ACTION,
-    PACKET_TYPE_UPDATE_AGENT_STATUS,
-)
 import os
 import json
 import time
@@ -38,6 +34,7 @@ class ParlAIChatAgentState(AgentState):
             self.load_data()
         else:
             self.messages: List[Dict[str, Any]] = []
+            self.final_submit: Optional[Dict[str, Any]] = None
             self.init_data = None
             self.save_data()
 
@@ -73,12 +70,18 @@ class ParlAIChatAgentState(AgentState):
             state = json.load(state_json)
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
+            self.final_submit = state["outputs"]["final_submission"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
         return {"outputs": {"messages": self.messages}, "inputs": self.init_data}
 
     def get_parsed_data(self) -> Dict[str, Any]:
+        """Return properly parsed data from this task"""
+        # TODO(#655) Implement when cleaning up ParlAI tasks
+        raise NotImplementedError()
+
+    def get_parsed_data_legacy(self) -> Dict[str, Any]:
         """Return the formatted input, conversations, and final data"""
         init_data = self.init_data
         save_data = None
@@ -86,14 +89,12 @@ class ParlAIChatAgentState(AgentState):
             m["data"]["timestamp"] = m["timestamp"]
 
         messages = [
-            m["data"]
-            for m in self.messages
-            if m["packet_type"] == PACKET_TYPE_AGENT_ACTION
+            m["data"] for m in self.messages if m["packet_type"] == "agent_action"
         ]
         agent_name = None
         if len(messages) > 0:
             for m in self.messages:
-                if m["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS:
+                if m["packet_type"] == "update_status":
                     if "agent_display_name" in m["data"]["state"]:
                         agent_name = m["data"]["state"]["agent_display_name"]
                         break
@@ -127,11 +128,15 @@ class ParlAIChatAgentState(AgentState):
         with open(agent_file, "w+") as state_json:
             json.dump(self.get_data(), state_json)
 
-    def update_data(self, packet: "Packet") -> None:
+    def update_data(self, live_data: Dict[str, Any]) -> None:
         """
         Append the incoming packet as well as who it came from
         """
-        message_data = packet.to_sendable_dict()
-        message_data["timestamp"] = time.time()
-        self.messages.append(message_data)
+        live_data["timestamp"] = time.time()
+        self.messages.append(live_data)
+        self.save_data()
+
+    def update_submit(self, submitted_data: Dict[str, Any]) -> None:
+        """Append any final submission to this state"""
+        self.final_submit = submitted_data
         self.save_data()
