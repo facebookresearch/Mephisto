@@ -303,7 +303,12 @@ class WorkerPool:
 
         # Assign to a unit
         if len(usable_units) == 0:
-            live_run.client_io.enqueue_agent_details(request_id, {"agent_id": None})
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    failure_reason=WorkerFailureReasons.NOT_QUALIFIED,
+                ).to_dict(),
+            )
         else:
             await self._assign_unit_to_agent(
                 crowd_data, worker, request_id, usable_units
@@ -556,6 +561,16 @@ class WorkerPool:
                     continue  # Only DISCONNECT can be marked remotely, rest are mismatch (except STATUS_COMPLETED)
                 agent.update_status(status)
         pass
+
+    def disconnect_active_agents(self) -> None:
+        """
+        Under a forced shutdown, set the status of all current agents
+        to disconnected to clear their running tasks
+        """
+        for agent in self.agents.values():
+            agent.update_status(AgentState.STATUS_DISCONNECT)
+        for onboarding_agent in self.onboarding_agents.values():
+            onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
 
     def shutdown(self) -> None:
         """Mark shut down. Handle resource cleanup if necessary"""

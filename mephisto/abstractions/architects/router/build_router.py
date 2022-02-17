@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
 
 ROUTER_ROOT_DIR = os.path.dirname(router_module.__file__)
-NODE_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "deploy")
+NODE_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "node")
 FLASK_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "flask")
 CROWD_SOURCE_PATH = "static/wrap_crowd_source.js"
 TASK_CONFIG_PATH = "static/task_config.json"

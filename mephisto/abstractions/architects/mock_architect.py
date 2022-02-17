@@ -96,9 +96,7 @@ class SocketHandler(WebSocketHandler):
         if message["packet_type"] == PACKET_TYPE_ALIVE:
             self.app.last_alive_packet = message
         elif message["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_DATA:
-            # ignore live act queries
-            if not message["data"].get("live_data_requested"):
-                self.app.actions_observed += 1
+            self.app.actions_observed += 1
         elif message["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA:
             self.app.actions_observed += 1
         elif message["packet_type"] != PACKET_TYPE_REQUEST_STATUSES:
@@ -208,9 +206,8 @@ class MockServer(tornado.web.Application):
 
     def submit_mock_unit(self, agent_id, submit_data):
         """
-        Send a packet asking to register a mock agent.
+        Send a packet asking to submit data.
         """
-        submit_data["request_id"] = "1234"
         self._send_message(
             {
                 "packet_type": PACKET_TYPE_SUBMIT_UNIT,
@@ -223,12 +220,14 @@ class MockServer(tornado.web.Application):
         """
         Send a packet asking to register a mock agent.
         """
-        onboard_data["request_id"] = "1234"
         self._send_message(
             {
                 "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,
                 "subject_id": agent_id,
-                "data": onboard_data,
+                "data": {
+                    "request_id": "1234",
+                    "onboarding_data": onboard_data,
+                },
             }
         )
 
