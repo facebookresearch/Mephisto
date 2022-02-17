@@ -23,12 +23,7 @@ from typing import List, Any
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 CORRECT_ANSWER = "apple"
 
-defaults = [
-    {"mephisto/blueprint": BLUEPRINT_TYPE},
-    {"mephisto/architect": "local"},
-    {"mephisto/provider": "mock"},
-    {"conf": "onboarding_example"},
-]
+defaults = ["_self_", {"conf": "onboarding_example"}]
 
 from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 

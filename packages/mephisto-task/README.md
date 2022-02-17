@@ -166,23 +166,22 @@ function MyApp() {
         destroy,
         sendMessage
 
-        agentState,
         agentStatus,
 
         connectionStatus,
-    } = useMephistoLiveTask(
+    } = useMephistoLiveTask({
         onConnectionStatusChange: (connectionStatus) => {
 
         },
-        onStateUpdate: ({ state, status }) => {
-            // called when either agentState or agentStatus updates
-        },
-        onMessageReceived: (message) => {
+        onStatusUpdate: ({ status }) => {
+            // Called when agentStatus updates
+        }
+        onLiveDataReceived: (liveData) => {
 
         },
         config, // optional overrides for connection constants
         customConnectionHook, // (advanced usage) optional - provide your own hook for managing the under-the-hood connection mechanism to communicate with the Mephisto server. The default (useMephistoSocket) uses websockets.
-    );
+    });
 }
 ```
 
@@ -197,19 +196,6 @@ Closes the socket connection that was created with the Mephisto live server. Thi
 ### `sendMessage(payload)`
 
 Once a connection is established, sends a message over the socket connection to the Mephisto live server on behalf of the current agent.
-
-### `agentState`
-
-This object may contain agent-specific information that the live server updates.
-
-For example, in the case of a server disconnect, the `agentState` will update with:
-
-```
-{
-    done_text: <message describing the disconnect>,
-    task_done: true
-}
-```
 
 ### `agentStatus`
 

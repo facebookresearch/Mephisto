@@ -100,18 +100,13 @@ class StaticAgentState(AgentState):
     def update_submit(self, submission_data: Dict[str, Any]) -> None:
         """Move the submitted output to the local dict"""
         outputs: Dict[str, Any]
-
-        if submission_data.get("onboarding_data") is not None:
-            outputs = submission_data["onboarding_data"]
-        else:
-            outputs = submission_data["task_data"]
+        output_files = submission_data.get("files")
+        if output_files is not None:
+            submission_data["files"] = [f["filename"] for f in submission_data["files"]]
+        self.state["outputs"] = submission_data
         times_dict = self.state["times"]
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
-        if submission_data.get("files") != None:
-            logger.info(f"Got files: {str(submission_data['files'])[:500]}")
-            outputs["files"] = [f["filename"] for f in submission_data["files"]]
-        self.state["outputs"] = outputs
         self.save_data()
 
     def get_task_start(self) -> Optional[float]:

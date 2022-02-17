@@ -24,27 +24,61 @@ const AGENT_STATUS = {
   MEPHISTO_DISCONNECT: "mephisto disconnect",
 };
 
+const STATUS_TO_TEXT_MAP = {
+  [AGENT_STATUS.EXPIRED]:
+    "This task is no longer available to be completed. " +
+    " Please return it and try a different task",
+  [AGENT_STATUS.TIMEOUT]:
+    "You took to long to respond to this task, and have timed out. " +
+    "The task is no longer available, please return it.",
+  [AGENT_STATUS.DISCONNECT]:
+    "You have disconnected from our server during the duration of the task. " +
+    "If you have done substantial work, please reach out to see if we can recover it. ",
+  [AGENT_STATUS.RETURNED]:
+    "You have disconnected from our server during the duration of the task. " +
+    "If you have done substantial work, please reach out to see if we can recover it. ",
+  [AGENT_STATUS.PARTNER_DISCONNECT]:
+    "One of your partners has disconnected while working on this task. We won't penalize " +
+    "you for them leaving, so please submit this task as is.",
+  [AGENT_STATUS.MEPHISTO_DISCONNECT]:
+    "Our server appears to have gone down during the " +
+    "duration of this Task. Please send us a message if you've done " +
+    "substantial work and we can find out if the task is complete enough to " +
+    "compensate.",
+};
+
 const useMephistoLiveTask = function (props) {
   const [connectionStatus, setConnectionStatus] = React.useState("");
-  const [agentState, setAgentState] = React.useState(null);
   const [agentStatus, setAgentStatus] = React.useState(null);
 
   const defaultConnectionHook = useMephistoSocket;
   const useConnectionHook = props.customConnectionHook || defaultConnectionHook;
 
   const taskProps = useMephistoTask();
+
+  const { initialTaskData } = taskProps;
+
+  function handleLiveData(liveData) {
+    props.onLiveDataReceived && props.onLiveDataReceived(liveData);
+  }
+
+  React.useEffect(() => {
+    if (initialTaskData?.past_live_data) {
+      for (const liveData of initialTaskData.past_live_data) {
+        handleLiveData(liveData);
+      }
+    }
+  }, [initialTaskData]);
+
   const socketProps = useConnectionHook({
     onConnectionStatusChange: (connectionStatus) => {
       setConnectionStatus(connectionStatus);
     },
-    onStateUpdate: ({ state, status }) => {
-      setAgentState(state);
+    onStatusUpdate: ({ status }) => {
       setAgentStatus(status);
-      props.onStateUpdate && props.onStateUpdate({ state, status });
+      props.onStatusUpdate && props.onStatusUpdate({ status });
     },
-    onMessageReceived: (message) => {
-      props.onMessageReceived && props.onMessageReceived(message);
-    },
+    onLiveDataReceived: handleLiveData,
   });
 
   if (!doesSupportWebsockets()) {
@@ -55,7 +89,6 @@ const useMephistoLiveTask = function (props) {
     ...taskProps,
     ...socketProps,
     connectionStatus,
-    agentState,
     agentStatus,
   };
 };
@@ -64,5 +97,6 @@ export {
   useMephistoLiveTask,
   useMephistoSocket,
   AGENT_STATUS,
+  STATUS_TO_TEXT_MAP,
   CONNECTION_STATUS,
 };

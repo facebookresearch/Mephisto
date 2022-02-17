@@ -7,10 +7,8 @@
 import React from "react";
 import {
   getTaskConfig,
-  registerWorker,
   requestAgent,
   isMobile,
-  getInitTaskData,
   postCompleteTask,
   postCompleteOnboarding,
   getBlockedExplanation,
@@ -27,8 +25,7 @@ export * from "./live";
   They are sideloaded and exposed as global import during the build process:
 */
 /* global
-  getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
-  getAgentRegistration, handleSubmitToProvider
+  getWorkerName, getAssignmentId, getAgentRegistration, handleSubmitToProvider
 */
 
 const useMephistoTask = function () {
@@ -49,6 +46,7 @@ const useMephistoTask = function () {
     isPreview: isPreview,
     previewHtml: null,
     blockedReason: null,
+    blockedExplanation: null,
     initialTaskData: null,
     isOnboarding: null,
     loaded: false,
@@ -60,8 +58,7 @@ const useMephistoTask = function () {
     (data) => {
       if (state.isOnboarding) {
         postCompleteOnboarding(state.agentId, data).then((packet) => {
-          setState({ initialTaskData: null, loaded: false });
-          afterAgentRegistration(state.workerId, packet);
+          afterAgentRegistration(packet);
         });
       } else {
         postCompleteTask(state.agentId, data);
@@ -81,34 +78,29 @@ const useMephistoTask = function () {
     if (taskConfig.block_mobile && isMobile()) {
       setState({ blockedReason: "no_mobile" });
     } else if (!state.isPreview) {
-      registerWorker().then((data) => afterWorkerRegistration(data));
+      requestAgent().then((data) => afterAgentRegistration(data));
     }
     setState({ taskConfig: taskConfig, loaded: isPreview });
   }
-  function afterAgentRegistration(workerId, dataPacket) {
+  function afterAgentRegistration(dataPacket) {
+    const workerId = dataPacket.data.worker_id;
     const agentId = dataPacket.data.agent_id;
     const isOnboarding = agentId !== null && agentId.startsWith("onboarding");
     setState({ agentId: agentId, isOnboarding: isOnboarding });
     if (agentId === null) {
-      setState({ blockedReason: "null_agent_id" });
-    } else if (isOnboarding) {
-      setState({ initialTaskData: dataPacket.data.onboard_data, loaded: true });
-    } else {
-      getInitTaskData(workerId, agentId).then((packet) => {
-        setState({ initialTaskData: packet.data.init_data, loaded: true });
+      setState({
+        mephistoWorkerId: workerId,
+        agentId: agentId,
+        blockedReason: "null_agent_id",
+        blockedExplanation: dataPacket.data.failure_reason,
       });
-    }
-  }
-  function afterWorkerRegistration(dataPacket) {
-    const workerId = dataPacket.data.worker_id;
-    setState({ mephistoWorkerId: workerId });
-    if (workerId !== null) {
-      requestAgent(workerId).then((data) =>
-        afterAgentRegistration(workerId, data)
-      );
     } else {
-      setState({ blockedReason: "null_worker_id" });
-      console.log("worker_id returned was null");
+      setState({
+        mephistoWorkerId: workerId,
+        mephistoAgentId: agentId,
+        initialTaskData: dataPacket.data.init_task_data,
+        loaded: true,
+      });
     }
   }
 
@@ -120,7 +112,8 @@ const useMephistoTask = function () {
     ...state,
     isLoading: !state.loaded,
     blockedExplanation:
-      state.blockedReason && getBlockedExplanation(state.blockedReason),
+      state.blockedExplanation ||
+      (state.blockedReason && getBlockedExplanation(state.blockedReason)),
     handleSubmit,
     handleFatalError,
   };
