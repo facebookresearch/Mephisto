@@ -12,6 +12,7 @@ import {
   MephistoContext,
   useMephistoLiveTask,
   AGENT_STATUS,
+  STATUS_TO_TEXT_MAP,
 } from "mephisto-task";
 import BaseFrontend from "./BaseFrontend.jsx";
 
@@ -36,7 +37,9 @@ function ChatApp({
   defaultAppSettings = emptyAppSettings,
 }) {
   const [taskContext, updateContext] = React.useReducer(
-    (oldContext, newContext) => Object.assign(oldContext, newContext),
+    (oldContext, newContext) => {
+      return { ...oldContext, ...newContext };
+    },
     {}
   );
 
@@ -58,6 +61,7 @@ function ChatApp({
     volume: 1,
     isReview: false,
     isCoverPage: false,
+    useTurns: true,
     ...defaultAppSettings,
   };
   const [appSettings, setAppSettings] = React.useReducer(
@@ -75,39 +79,73 @@ function ChatApp({
   }
 
   function trackAgentName(agentName) {
-    if (agentName) {
-      const previouslyTrackedNames = taskContext.currentAgentNames || {};
-      const newAgentName = { [agentId]: agentName };
-      const currentAgentNames = { ...previouslyTrackedNames, ...newAgentName };
-      updateContext({ currentAgentNames: currentAgentNames });
+    const previouslyTrackedNames = taskContext.currentAgentNames || {};
+    const newAgentName = { [agentId]: agentName, [agentName]: agentName };
+    const currentAgentNames = { ...previouslyTrackedNames, ...newAgentName };
+    updateContext({ currentAgentNames: currentAgentNames });
+  }
+
+  function handleStateUpdate(state) {
+    const {
+      agent_display_name,
+      live_update_requested,
+      ...remainingState
+    } = state;
+    if (agent_display_name) {
+      trackAgentName(agent_display_name);
+    }
+    if (remainingState.task_done) {
+      setInputMode(INPUT_MODE.DONE);
+    } else if (live_update_requested === true) {
+      setInputMode(INPUT_MODE.READY_FOR_INPUT);
+      if (appSettings.useTurns) {
+        playNotifSound();
+      }
+    } else if (live_update_requested === false) {
+      setInputMode(INPUT_MODE.WAITING);
+    }
+    if (Object.keys(remainingState).length > 0) {
+      updateContext(remainingState);
     }
   }
 
   let mephistoProps = useMephistoLiveTask({
-    onStateUpdate: ({ state, status }) => {
-      trackAgentName(state.agent_display_name);
-      if (state.task_done) {
-        setInputMode(INPUT_MODE.DONE);
-      } else if (
+    onStatusUpdate: ({ status }) => {
+      if (
         [
           AGENT_STATUS.DISCONNECT,
           AGENT_STATUS.RETURNED,
           AGENT_STATUS.EXPIRED,
           AGENT_STATUS.TIMEOUT,
+          AGENT_STATUS.PARTNER_DISCONNECT,
           AGENT_STATUS.MEPHISTO_DISCONNECT,
         ].includes(status)
       ) {
         setInputMode(INPUT_MODE.INACTIVE);
-      } else if (state.wants_act) {
-        setInputMode(INPUT_MODE.READY_FOR_INPUT);
-        playNotifSound();
-      } else if (!state.wants_act) {
-        setInputMode(INPUT_MODE.WAITING);
+        updateContext({
+          doneText: STATUS_TO_TEXT_MAP[status],
+          task_done: status == AGENT_STATUS.PARTNER_DISCONNECT,
+        });
       }
     },
-    onMessageReceived: (message) => {
-      updateContext(message.task_data);
-      addMessage(message);
+    onLiveDataReceived: (message) => {
+      if (message.task_data !== undefined) {
+        handleStateUpdate(message.task_data);
+      }
+      if (message.text !== undefined) {
+        addMessage(message);
+      }
+
+      // For handling reconnected packets and properly updating state
+      // during turns.
+      if (
+        taskContext.currentAgentNames &&
+        message.id in taskContext.currentAgentNames &&
+        appSettings.useTurns
+      ) {
+        // This was our own message, so update to not requesting
+        handleStateUpdate({ live_update_requested: false });
+      }
     },
   });
 
@@ -124,7 +162,6 @@ function ChatApp({
     destroy,
     sendMessage,
     isOnboarding,
-    agentState,
     agentStatus,
   } = mephistoProps;
 
@@ -134,6 +171,12 @@ function ChatApp({
       connect(agentId);
     }
   }, [agentId]);
+
+  React.useEffect(() => {
+    if (taskContext.is_final) {
+      destroy();
+    }
+  });
 
   React.useEffect(() => {
     if (isOnboarding && agentStatus === AGENT_STATUS.WAITING) {
@@ -146,13 +189,17 @@ function ChatApp({
       message = {
         ...message,
         id: agentId,
-        episode_done: agentState?.task_done || false,
+        episode_done: taskContext?.task_done || false,
       };
       return sendMessage(message)
         .then(addMessage)
-        .then(() => setInputMode(INPUT_MODE.WAITING));
+        .then(() => {
+          if (appSettings.useTurns) {
+            handleStateUpdate({ live_update_requested: false });
+          }
+        });
     },
-    [agentId, agentState?.task_done, addMessage, setInputMode]
+    [agentId, taskContext?.task_done, addMessage, setInputMode]
   );
 
   if (blockedReason !== null) {

@@ -106,7 +106,6 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
   const appContext = React.useContext(AppContext);
   const mephistoContext = React.useContext(MephistoContext);
   const { taskContext, onTaskComplete } = appContext;
-  const { agentState = {} } = mephistoContext;
 
   let response_pane = null;
   switch (inputMode) {
@@ -116,8 +115,8 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
         <DoneResponse
           onTaskComplete={onTaskComplete}
           onMessageSend={onMessageSend}
-          doneText={agentState.done_text || null}
-          isTaskDone={agentState.task_done || null}
+          doneText={taskContext.doneText || null}
+          isTaskDone={taskContext.task_done || null}
         />
       );
       break;
