@@ -46,6 +46,7 @@ from typing import (
     Dict,
     Iterable,
     Optional,
+    Mapping,
     TYPE_CHECKING,
 )
 
@@ -63,7 +64,12 @@ BLUEPRINT_TYPE = "remote_query"
 @dataclass
 class SharedRemoteQueryTaskState(OnboardingSharedState, SharedTaskState):
     function_registry: Optional[
-        Dict[str, Callable[[str, "RemoteQueryAgentState"], str]]
+        Mapping[
+            str,
+            Callable[
+                [str, Dict[str, Any], "RemoteQueryAgentState"], Optional[Dict[str, Any]]
+            ],
+        ]
     ] = None
     static_task_data: Iterable[Any] = field(default_factory=list)
 

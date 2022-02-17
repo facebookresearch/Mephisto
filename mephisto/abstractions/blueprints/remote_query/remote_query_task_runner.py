@@ -5,6 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.abstractions.blueprint import TaskRunner
+from mephisto.abstractions.blueprints.remote_query.remote_query_agent_state import (
+    RemoteQueryAgentState,
+)
 from mephisto.data_model.agent import Agent, OnboardingAgent
 import time
 import json
@@ -78,18 +81,29 @@ class RemoteQueryTaskRunner(TaskRunner):
         """
         live_update = agent.get_live_update()
         if live_update is not None and "request_id" in live_update:
+            request_id = live_update["request_id"]
             # Execute commands that come in from the frontend
-            # TODO clean up with assertions
+            # TODO extend scope to handle yield-style functions, and
+            # move these to async tasks
+            assert (
+                self.function_registry is not None
+                and live_update["target"] in self.function_registry
+            ), f"Target function {live_update['target']} not found in registry: {self.function_registry}"
+            state = agent.state
+            assert isinstance(
+                state, RemoteQueryAgentState
+            ), "Must use an agent with RemoteQueryAgentState"
             res = self.function_registry[live_update["target"]](
-                json.loads(live_update["args_json"]), agent.state
+                request_id, json.loads(live_update["args"]), state
             )
 
-            agent.observe(
-                {
-                    "handles": live_update["request_id"],
-                    "response": json.dumps(res),
-                }
-            )
+            if res is not None:
+                agent.observe(
+                    {
+                        "handles": request_id,
+                        "response": json.dumps(res),
+                    }
+                )
 
         # sleep to avoid tight loop
         time.sleep(THREAD_SHORT_SLEEP)
@@ -100,7 +114,7 @@ class RemoteQueryTaskRunner(TaskRunner):
         """
         # Run the server while the task isn't submitted yet
         while (
-            agent.state.final_submission is None
+            not agent.await_submit(timeout=None)
             and agent.get_agent_id() in self.running_onboardings
         ):
             self._run_server_timestep_for_agent(agent)
@@ -116,7 +130,7 @@ class RemoteQueryTaskRunner(TaskRunner):
         """
         Running a task with access to remote queries
         """
-        while agent.state.final_submission is None and unit.db_id in self.running_units:
+        while not agent.await_submit(timeout=None) and unit.db_id in self.running_units:
             self._run_server_timestep_for_agent(agent)
 
         while not agent.await_submit(timeout=None):

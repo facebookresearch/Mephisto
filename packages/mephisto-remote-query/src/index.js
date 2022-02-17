@@ -54,7 +54,7 @@ const useMephistoRemoteQueryTask = function (props) {
   requestCallbacksRef.current = requestCallbacks;
 
   function handleRemoteResponse(liveUpdate) {
-    let targetRequest = actionsRef.current[liveUpdate.handles];
+    let targetRequest = requestCallbacksRef.current[liveUpdate.handles];
     if (targetRequest === undefined) {
       console.log("No request found to handle this live update", liveUpdate);
       return;
@@ -94,6 +94,7 @@ const useMephistoRemoteQueryTask = function (props) {
     sendLiveUpdate,
     ...otherMephistoProps
   } = mephistoProps;
+  let { agentId } = mephistoProps;
 
   // They're still exposed in a separate manner though
   const _fullSocketProps = {
@@ -120,7 +121,7 @@ const useMephistoRemoteQueryTask = function (props) {
     // request, the returned data, and the input data as arguments.
     ({ targetEvent, args, callback }) => {
       const requestId = uuidv4();
-      liveUpdate = {
+      let liveUpdate = {
         request_id: requestId,
         target: targetEvent,
         args: JSON.stringify(args),
@@ -128,6 +129,7 @@ const useMephistoRemoteQueryTask = function (props) {
       sendLiveUpdate(liveUpdate).then((updatePacket) => {
         if (callback !== undefined) {
           updatePacket.callback = callback;
+          updatePacket.args = args;
           addRequestCallback(updatePacket);
         }
       });
