@@ -6,19 +6,17 @@
 
 from typing import Optional, Dict, Any
 
-PACKET_TYPE_INIT_DATA = "initial_data_send"
-PACKET_TYPE_AGENT_ACTION = "agent_action"
-PACKET_TYPE_REQUEST_ACTION = "request_act"
-PACKET_TYPE_UPDATE_AGENT_STATUS = "update_status"
-PACKET_TYPE_NEW_AGENT = "register_agent"
-PACKET_TYPE_NEW_WORKER = "register_worker"
-PACKET_TYPE_REQUEST_AGENT_STATUS = "request_status"
-PACKET_TYPE_RETURN_AGENT_STATUS = "return_status"
-PACKET_TYPE_GET_INIT_DATA = "init_data_request"
 PACKET_TYPE_ALIVE = "alive"
-PACKET_TYPE_PROVIDER_DETAILS = "provider_details"
 PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding"
-PACKET_TYPE_ERROR_LOG = "log_error"
+PACKET_TYPE_SUBMIT_UNIT = "submit_unit"
+PACKET_TYPE_CLIENT_BOUND_LIVE_DATA = "client_bound_live_data"
+PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA = "mephisto_bound_live_data"
+PACKET_TYPE_REGISTER_AGENT = "register_agent"
+PACKET_TYPE_AGENT_DETAILS = "agent_details"
+PACKET_TYPE_UPDATE_STATUS = "update_status"
+PACKET_TYPE_REQUEST_STATUSES = "request_statuses"
+PACKET_TYPE_RETURN_STATUSES = "return_statuses"
+PACKET_TYPE_ERROR = "log_error"
 
 
 class Packet:
@@ -33,36 +31,32 @@ class Packet:
     def __init__(
         self,
         packet_type: str,
-        sender_id: str,
-        receiver_id: str,
+        subject_id: str,  # Target agent id the packet is about
         data: Optional[Dict[str, Any]] = None,
     ):
         self.type = packet_type
-        self.sender_id = sender_id
-        self.receiver_id = receiver_id
+        self.subject_id = subject_id
         self.data = {} if data is None else data
         # TODO(#97) Packet validation! Only certain packets can be sent
         # with no data
 
     @staticmethod
     def from_dict(input_dict: Dict[str, Any]) -> "Packet":
-        required_fields = ["packet_type", "sender_id", "receiver_id", "data"]
+        required_fields = ["packet_type", "subject_id", "data"]
         for field in required_fields:
             assert (
                 field in input_dict
             ), f"Packet input dict {input_dict} missing required field {field}"
         return Packet(
             packet_type=input_dict["packet_type"],
-            sender_id=input_dict["sender_id"],
-            receiver_id=input_dict["receiver_id"],
+            subject_id=input_dict["subject_id"],
             data=input_dict["data"],
         )
 
     def to_sendable_dict(self) -> Dict[str, Any]:
         return {
             "packet_type": self.type,
-            "sender_id": self.sender_id,
-            "receiver_id": self.receiver_id,
+            "subject_id": self.subject_id,
             "data": self.data,
         }
 

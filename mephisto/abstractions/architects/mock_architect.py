@@ -18,13 +18,16 @@ from dataclasses import dataclass, field
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.packet import (
     PACKET_TYPE_ALIVE,
-    PACKET_TYPE_NEW_WORKER,
-    PACKET_TYPE_NEW_AGENT,
-    PACKET_TYPE_AGENT_ACTION,
     PACKET_TYPE_SUBMIT_ONBOARDING,
-    PACKET_TYPE_REQUEST_AGENT_STATUS,
-    PACKET_TYPE_RETURN_AGENT_STATUS,
-    PACKET_TYPE_GET_INIT_DATA,
+    PACKET_TYPE_SUBMIT_UNIT,
+    PACKET_TYPE_CLIENT_BOUND_LIVE_DATA,
+    PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA,
+    PACKET_TYPE_REGISTER_AGENT,
+    PACKET_TYPE_AGENT_DETAILS,
+    PACKET_TYPE_UPDATE_STATUS,
+    PACKET_TYPE_REQUEST_STATUSES,
+    PACKET_TYPE_RETURN_STATUSES,
+    PACKET_TYPE_ERROR,
 )
 from mephisto.operations.registry import register_mephisto_abstraction
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
@@ -92,9 +95,13 @@ class SocketHandler(WebSocketHandler):
         message = json.loads(message_text)
         if message["packet_type"] == PACKET_TYPE_ALIVE:
             self.app.last_alive_packet = message
-        elif message["packet_type"] == PACKET_TYPE_AGENT_ACTION:
+        elif message["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_DATA:
+            # ignore live act queries
+            if not message["data"].get("live_data_requested"):
+                self.app.actions_observed += 1
+        elif message["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA:
             self.app.actions_observed += 1
-        elif message["packet_type"] != PACKET_TYPE_REQUEST_AGENT_STATUS:
+        elif message["packet_type"] != PACKET_TYPE_REQUEST_STATUSES:
             self.app.last_packet = message
 
     def check_origin(self, origin):
@@ -175,48 +182,40 @@ class MockServer(tornado.web.Application):
         """
         self._send_message(
             {
-                "packet_type": PACKET_TYPE_AGENT_ACTION,
-                "sender_id": agent_id,
-                "receiver_id": "Mephisto",
+                "packet_type": PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA,
+                "subject_id": agent_id,
                 "data": act_content,
             }
         )
 
-    def request_init_data(self, agent_id):
-        """
-        Send a packet from the given agent with
-        the given content
-        """
-        self._send_message(
-            {
-                "packet_type": PACKET_TYPE_GET_INIT_DATA,
-                "sender_id": agent_id,
-                "receiver_id": "Mephisto",
-                "data": {
-                    "request_id": agent_id + str(time.time()),
-                    "provider_data": {
-                        "agent_id": agent_id,
-                    },
-                },
-            }
-        )
-
-    def register_mock_agent(self, worker_id, agent_details):
+    def register_mock_agent(self, worker_name, agent_details):
         """
         Send a packet asking to register a mock agent.
         """
         self._send_message(
             {
-                "packet_type": PACKET_TYPE_NEW_AGENT,
-                "sender_id": "MockServer",
-                "receiver_id": "Mephisto",
+                "packet_type": PACKET_TYPE_REGISTER_AGENT,
+                "subject_id": "MockServer",
                 "data": {
                     "request_id": agent_details,
                     "provider_data": {
-                        "worker_id": worker_id,
+                        "worker_name": worker_name,
                         "agent_registration_id": agent_details,
                     },
                 },
+            }
+        )
+
+    def submit_mock_unit(self, agent_id, submit_data):
+        """
+        Send a packet asking to register a mock agent.
+        """
+        submit_data["request_id"] = "1234"
+        self._send_message(
+            {
+                "packet_type": PACKET_TYPE_SUBMIT_UNIT,
+                "subject_id": agent_id,
+                "data": submit_data,
             }
         )
 
@@ -228,25 +227,8 @@ class MockServer(tornado.web.Application):
         self._send_message(
             {
                 "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,
-                "sender_id": agent_id,
-                "receiver_id": "Mephisto",
+                "subject_id": agent_id,
                 "data": onboard_data,
-            }
-        )
-
-    def register_mock_worker(self, worker_name):
-        """
-        send a packet asking to register a mock worker.
-        """
-        self._send_message(
-            {
-                "packet_type": PACKET_TYPE_NEW_WORKER,
-                "sender_id": "MockServer",
-                "receiver_id": "Mephisto",
-                "data": {
-                    "request_id": worker_name,
-                    "provider_data": {"worker_name": worker_name},
-                },
             }
         )
 
@@ -256,9 +238,8 @@ class MockServer(tornado.web.Application):
         """
         self._send_message(
             {
-                "packet_type": PACKET_TYPE_RETURN_AGENT_STATUS,
-                "sender_id": "MockServer",
-                "receiver_id": "Mephisto",
+                "packet_type": PACKET_TYPE_RETURN_STATUSES,
+                "subject_id": "Mephisto",
                 "data": {agent_id: AgentState.STATUS_DISCONNECT},
             }
         )
