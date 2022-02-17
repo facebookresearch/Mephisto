@@ -11,12 +11,14 @@ constant value
 """
 
 import os
+import sys
 import re
 import json
 from mephisto.operations.utils import get_root_dir
+from mephisto.operations.logger_core import format_loud
 
 ROOT_DIR = get_root_dir()
-PATTERN = r'(CURR_MEPHISTO_TASK_VERSION = "[0-9a-zA-Z.]*")'
+PATTERN = r'(CURR_MEPHISTO_TASK_VERSION = "([0-9a-zA-Z.]*)")'
 TARGET_FILES = [
     "mephisto/abstractions/architects/router/flask/mephisto_flask_blueprint.py",
     "mephisto/abstractions/architects/router/node/server.js",
@@ -32,18 +34,42 @@ def run_replace():
     with open(MEPHISTO_TASK_PACKAGE) as mephisto_task_package:
         version = json.load(mephisto_task_package)["version"]
 
-    print(f"Updating files to use mephisto-task version {version}")
+    is_check_mode = len(sys.argv) > 1 and sys.argv[1] == "check"
+    are_all_synced = True
+
+    print(f"Detected mephisto-task version '{version}' at '{MEPHISTO_TASK_PACKAGE}'")
+    if is_check_mode:
+        print(
+            f"Checking all dependent files are using mephisto-task version '{version}'...\n"
+        )
+    else:
+        print(f"Syncing all dependent files to mephisto-task version '{version}'...\n")
     output = f'CURR_MEPHISTO_TASK_VERSION = "{version}"'
 
     for fn in TARGET_FILES:
         target_file = os.path.join(ROOT_DIR, fn)
         assert os.path.exists(target_file), f"Missing target replace file {target_file}"
-        print(f"Replacing contents in: {target_file}")
         with open(target_file, "r") as file_to_replace:
             file_contents = file_to_replace.read()
-        new_contents = re.sub(PATTERN, output, file_contents)
-        with open(target_file, "w") as file_to_replace:
-            file_to_replace.write(new_contents)
+
+        search = re.search(PATTERN, file_contents)
+        if search is None:
+            print(f"{format_loud('[NOT FOUND]')} {target_file}")
+        elif is_check_mode:
+            file_version = search.group(2)
+            current_file_synced = file_version == version
+            are_all_synced = are_all_synced and current_file_synced
+            print(
+                f"[{'CORRECT' if current_file_synced else format_loud(f'WRONG VERSION {file_version}')}] {target_file}"
+            )
+        else:
+            new_contents = re.sub(PATTERN, output, file_contents)
+            with open(target_file, "w") as file_to_replace:
+                file_to_replace.write(new_contents)
+                print(f"[REPLACED] {target_file}")
+
+    if is_check_mode and not are_all_synced:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
