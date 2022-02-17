@@ -55,7 +55,7 @@ class ParlAIChatAgentState(AgentState):
         """
         if self.init_data is None:
             return None
-        return {"task_data": self.init_data, "past_live_data": self.messages}
+        return {"task_data": self.init_data, "past_live_updates": self.messages}
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""
@@ -125,12 +125,12 @@ class ParlAIChatAgentState(AgentState):
         with open(agent_file, "w+") as state_json:
             json.dump(self.get_data(), state_json)
 
-    def update_data(self, live_data: Dict[str, Any]) -> None:
+    def update_data(self, live_update: Dict[str, Any]) -> None:
         """
-        Append the incoming packet as well as who it came from
+        Append the incoming packet as well as its arrival time
         """
-        live_data["timestamp"] = time.time()
-        self.messages.append(live_data)
+        live_update["timestamp"] = time.time()
+        self.messages.append(live_update)
         self.save_data()
 
     def update_submit(self, submitted_data: Dict[str, Any]) -> None:

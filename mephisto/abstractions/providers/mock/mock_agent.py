@@ -42,12 +42,12 @@ class MockAgent(Agent):
                 "pending_submit": None,
             }
 
-    def observe(self, live_data: Dict[str, Any]) -> None:
+    def observe(self, live_update: Dict[str, Any]) -> None:
         """Put observations into this mock agent's observation list"""
-        self.datastore.agent_data[self.db_id]["observed"].append(live_data)
-        super().observe(live_data)
+        self.datastore.agent_data[self.db_id]["observed"].append(live_update)
+        super().observe(live_update)
 
-    def enqueue_mock_live_data(self, data: Dict[str, Any]) -> None:
+    def enqueue_mock_live_update(self, data: Dict[str, Any]) -> None:
         """Add a fake observation to pull off on the next act call"""
         self.datastore.agent_data[self.db_id]["pending_acts"] = data
 
@@ -58,7 +58,7 @@ class MockAgent(Agent):
         """
         self.datastore.agent_data[self.db_id]["pending_submit"] = data
 
-    def get_live_data(self, timeout=None) -> Optional[Dict[str, Any]]:
+    def get_live_update(self, timeout=None) -> Optional[Dict[str, Any]]:
         """
         Either take an act from this mock agent's act queue (for use
         by tests and other mock purposes) or request a regular act
@@ -67,7 +67,7 @@ class MockAgent(Agent):
         if len(self.datastore.agent_data[self.db_id]["pending_acts"]) > 0:
             act = self.datastore.agent_data[self.db_id]["pending_acts"].pop(0)
         else:
-            act = super().get_live_data(timeout=timeout)
+            act = super().get_live_update(timeout=timeout)
 
         if act is not None:
             self.datastore.agent_data[self.db_id]["acts"].append(act)

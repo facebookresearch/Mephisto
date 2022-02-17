@@ -168,10 +168,10 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_data(self, live_data: Dict[str, Any]) -> None:
+    def update_data(self, live_update: Dict[str, Any]) -> None:
         """
-        Put new live data into this AgentState. Keep only what is necessary
-        to recreate the task for evaluation and later use.
+        Put new live update data into this AgentState. Keep only what is
+        necessary to recreate the task for evaluation and later use.
         """
         raise NotImplementedError()
 

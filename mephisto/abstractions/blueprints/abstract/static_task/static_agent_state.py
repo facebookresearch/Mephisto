@@ -88,14 +88,11 @@ class StaticAgentState(AgentState):
             json.dump(self.state, data_file)
         logger.info(f"SAVED_DATA_TO_DISC at {out_filename}")
 
-    def update_data(self, live_data: Dict[str, Any]) -> None:
+    def update_data(self, live_update: Dict[str, Any]) -> None:
         """
-        Process the incoming data packet, and handle
-        updating the state
+        Process the incoming data packet, and handle updating the state
         """
-        raise Exception(
-            "Static tasks should only have final act, but updated live data"
-        )
+        raise Exception("Static tasks should only have final act, but got live update")
 
     def update_submit(self, submission_data: Dict[str, Any]) -> None:
         """Move the submitted output to the local dict"""

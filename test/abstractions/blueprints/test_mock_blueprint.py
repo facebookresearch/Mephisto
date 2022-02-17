@@ -111,7 +111,7 @@ class MockBlueprintTests(BlueprintTests):
     def prep_mock_agents_to_complete(self, agents: List["MockAgent"]) -> None:
         """Handle initializing mock agents to be able to pass their task"""
         for agent in agents:
-            agent.enqueue_mock_live_data({"text": "message"})
+            agent.enqueue_mock_live_update({"text": "message"})
             agent.enqueue_mock_submit_event({"submitted": True})
 
     # TODO(#97) are there any other unit tests we'd like to have?

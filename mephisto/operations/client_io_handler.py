@@ -15,8 +15,8 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_ALIVE,
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_SUBMIT_UNIT,
-    PACKET_TYPE_CLIENT_BOUND_LIVE_DATA,
-    PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA,
+    PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
+    PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
     PACKET_TYPE_REGISTER_AGENT,
     PACKET_TYPE_AGENT_DETAILS,
     PACKET_TYPE_UPDATE_STATUS,
@@ -183,14 +183,14 @@ class ClientIOHandler:
         error = packet.data["final_data"]
         logger.warning(f"[FRONT_END_ERROR]: {error}")
 
-    def _on_live_data(self, packet: Packet, _channel_id: str):
+    def _on_live_update(self, packet: Packet, _channel_id: str):
         """Handle an action as sent from an agent, enqueuing to the agent"""
         live_run = self.get_live_run()
         agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
         assert agent is not None, "Could not find given agent!"
 
         agent.pending_actions.put(packet.data)
-        agent.has_live_data.set()
+        agent.has_live_update.set()
 
     def _on_submit_unit(self, packet: Packet, _channel_id: str):
         """Handle an action as sent from an agent, enqueuing to the agent"""
@@ -291,8 +291,8 @@ class ClientIOHandler:
             self._on_submit_onboarding(packet, channel_id)
         elif packet.type == PACKET_TYPE_SUBMIT_UNIT:
             self._on_submit_unit(packet, channel_id)
-        elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA:
-            self._on_live_data(packet, channel_id)
+        elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
+            self._on_live_update(packet, channel_id)
         elif packet.type == PACKET_TYPE_REGISTER_AGENT:
             self._register_agent(packet, channel_id)
         elif packet.type == PACKET_TYPE_RETURN_STATUSES:
@@ -302,7 +302,7 @@ class ClientIOHandler:
             self._log_frontend_error(packet)
         else:
             # PACKET_TYPE_REQUEST_STATUSES, PACKET_TYPE_ALIVE,
-            # PACKET_TYPE_CLIENT_BOUND_LIVE_DATA, PACKET_TYPE_AGENT_DETAILS
+            # PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE, PACKET_TYPE_AGENT_DETAILS
             raise Exception(f"Unexpected packet type {packet.type}")
 
     def _request_status_update(self) -> None:
@@ -323,10 +323,10 @@ class ClientIOHandler:
             self._request_status_update()
             await asyncio.sleep(STATUS_CHECK_TIME)
 
-    def send_live_data(self, agent_id: str, data: Dict[str, Any]):
+    def send_live_update(self, agent_id: str, data: Dict[str, Any]):
         """Send a live data packet to the given agent id"""
         data_packet = Packet(
-            packet_type=PACKET_TYPE_CLIENT_BOUND_LIVE_DATA,
+            packet_type=PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
             subject_id=agent_id,
             data=data,
         )

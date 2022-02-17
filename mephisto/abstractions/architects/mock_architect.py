@@ -20,8 +20,8 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_ALIVE,
     PACKET_TYPE_SUBMIT_ONBOARDING,
     PACKET_TYPE_SUBMIT_UNIT,
-    PACKET_TYPE_CLIENT_BOUND_LIVE_DATA,
-    PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA,
+    PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE,
+    PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
     PACKET_TYPE_REGISTER_AGENT,
     PACKET_TYPE_AGENT_DETAILS,
     PACKET_TYPE_UPDATE_STATUS,
@@ -95,9 +95,9 @@ class SocketHandler(WebSocketHandler):
         message = json.loads(message_text)
         if message["packet_type"] == PACKET_TYPE_ALIVE:
             self.app.last_alive_packet = message
-        elif message["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_DATA:
+        elif message["packet_type"] == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE:
             self.app.actions_observed += 1
-        elif message["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA:
+        elif message["packet_type"] == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
             self.app.actions_observed += 1
         elif message["packet_type"] != PACKET_TYPE_REQUEST_STATUSES:
             self.app.last_packet = message
@@ -180,7 +180,7 @@ class MockServer(tornado.web.Application):
         """
         self._send_message(
             {
-                "packet_type": PACKET_TYPE_MEPHISTO_BOUND_LIVE_DATA,
+                "packet_type": PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
                 "subject_id": agent_id,
                 "data": act_content,
             }
