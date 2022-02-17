@@ -507,8 +507,12 @@ def get_task_config(res):
                         "Package `mephisto-task` version mismatch. Expected "
                         f"version {CURR_MEPHISTO_TASK_VERSION} but frontend is "
                         f"currently using {mephisto_task_version}. This may "
-                        "cause unexpected errors, be sure to update your `mephisto-task` "
-                        "JS package."
+                        "cause unexpected errors, be sure to update your "
+                        "`mephisto-task` dependency with `npm install "
+                        f"mephisto-task@{CURR_MEPHISTO_TASK_VERSION} --save`. "
+                        "If this warning still persists or the version isn't found, "
+                        "please open an issue at "
+                        "https://github.com/facebookresearch/Mephisto/issues"
                     ),
                 },
             }
