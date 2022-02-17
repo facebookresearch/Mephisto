@@ -30,9 +30,6 @@ function TaskFrontend({ taskData, actions, onRemoteCall, handleSubmit }) {
   }
 
   const [queryCount, setQueryCount] = React.useState(0);
-  React.useEffect(() => console.log(actions), [actions]);
-
-  let queryCount = Object.keys(actions).length;
   let canSubmit = queryCount > 3;
 
   return (
@@ -47,11 +44,11 @@ function TaskFrontend({ taskData, actions, onRemoteCall, handleSubmit }) {
         className="button"
         onClick={() => {
           setQueryCount(queryCount + 1);
-          onRemoteCall(
-            "handle_with_model",
-            { arg1: "hello", arg2: "goodbye", arg3: queryCount },
-            (response) => alert(JSON.stringify(response))
-          );
+          onRemoteCall({
+            targetEvent: "handle_with_model",
+            args: { arg1: "hello", arg2: "goodbye", arg3: queryCount },
+            callback: (response) => alert(JSON.stringify(response)),
+          });
         }}
       >
         Query Backend

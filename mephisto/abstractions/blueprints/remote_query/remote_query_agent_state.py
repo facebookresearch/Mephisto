@@ -48,8 +48,8 @@ class RemoteQueryAgentState(AgentState):
             self.requests: Dict[str, RemoteRequest] = {}
             self.start_time = time.time()
             self.end_time = -1
-            self.init_data = None
-            self.final_submission = None
+            self.init_data: Optional[Dict[str, Any]] = None
+            self.final_submission: Optional[Dict[str, Any]] = None
             self.save_data()
 
     def set_init_state(self, data: Any) -> bool:
@@ -91,7 +91,7 @@ class RemoteQueryAgentState(AgentState):
         return {
             "final_submission": self.final_submission,
             "init_data": self.init_data,
-            "requests": [r.to_json() for r in self.requests],
+            "requests": [r.to_dict() for r in self.requests.values()],
             "start_time": self.start_time,
             "end_time": self.end_time,
         }
