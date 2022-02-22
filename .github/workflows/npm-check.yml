@@ -1,0 +1,16 @@
+name: npm-check
+
+on:
+  pull_request_target:
+    branches: [main]
+
+jobs:
+  mephisto-task-latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Install Mephisto
+        run: pip install -e .
+      - name: Run version sync script
+        run: python scripts/check_npm_package_versions.py
