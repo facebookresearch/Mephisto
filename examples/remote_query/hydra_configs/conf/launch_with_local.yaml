@@ -7,16 +7,16 @@ mephisto:
   blueprint:
     task_source: ${task_dir}/webapp/build/bundle.js
     link_task_source: false
-    # TODO pick something based on your task
+    # NOTE pick something based on your task
     block_qualification: test_qual_block
     units_per_assignment: 1
   task:
     allowed_concurrent: 1
     task_name: remote-query-test-task
     task_title: "Test a static task that also has access to live backend queries"
-    # TODO you'll want to update your task description
+    # NOTE you'll want to update your task description
     task_description: "You will be shown a form that you can submit at any time, but can also toggle a backend query"
-    # TODO idk what a reasonable reward would be
+    # NOTE set a reasonable reward
     task_reward: 0.05
-    # TODO will want real tags
+    # NOTE will want real tags
     task_tags: "test,task,fix-me"
