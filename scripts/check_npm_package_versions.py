@@ -41,18 +41,18 @@ def run_check():
             contents = f.read().decode("utf-8")
             latest_version = json.loads(contents)["latest"]
             print(f"Detected '{pkg}@latest' as version '{latest_version}' on npm")
+
+            if latest_version != version:
+                print(
+                    f"{format_loud('[VERSION MISMATCH]')} The latest version of the "
+                    f"'{pkg}' package on npm ({latest_version}) doesn't match "
+                    f"the version in the codebase ({version}). If this is part of a"
+                    f"merge onto the main branch, you may want to deploy the packages first."
+                )
+                all_success &= False
         except:
             print(
                 f"{format_loud('[ERROR]')} Could not access latest version of package '{pkg}' on npm."
-            )
-            all_success &= False
-
-        if latest_version != version:
-            print(
-                f"{format_loud('[VERSION MISMATCH]')} The latest version of the "
-                f"'{pkg}' package on npm ({latest_version}) doesn't match "
-                f"the version in the codebase ({version}). If this is part of a"
-                f"merge onto the main branch, you may want to deploy the packages first."
             )
             all_success &= False
 
