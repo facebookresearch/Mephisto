@@ -14,4 +14,4 @@ jobs:
       - name: Install Mephisto
         run: pip install -e .
       - name: Run version sync script
-        run: python scripts/check_npm_package_version.py
+        run: python scripts/check_npm_package_versions.py
