@@ -109,7 +109,7 @@ class MephistoDB(ABC):
 
     @abstractmethod
     def shutdown(self) -> None:
-        """Do whatever is required to shut this server off"""
+        """Do whatever is required to close this database's resources"""
         raise NotImplementedError()
 
     @abstractmethod
@@ -121,6 +121,10 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def _new_project(self, project_name: str) -> str:
+        """new_project implementation"""
+        raise NotImplementedError()
+
     def new_project(self, project_name: str) -> str:
         """
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
@@ -128,9 +132,13 @@ class MephistoDB(ABC):
 
         Project names are permanent, as changing directories later is painful.
         """
-        raise NotImplementedError()
+        return self._new_project(project_name=project_name)
 
     @abstractmethod
+    def _get_project(self, project_id: str) -> Mapping[str, Any]:
+        """get_project implementation"""
+        raise NotImplementedError()
+
     def get_project(self, project_id: str) -> Mapping[str, Any]:
         """
         Return project's fields by the given project_id, raise EntryDoesNotExistException if no id exists
@@ -138,31 +146,49 @@ class MephistoDB(ABC):
 
         See Project for the expected returned mapping's fields
         """
-        raise NotImplementedError()
+        return self._get_project(project_id=project_id)
 
     @abstractmethod
+    def _find_projects(self, project_name: Optional[str] = None) -> List[Project]:
+        """find_projects implementation"""
+        raise NotImplementedError()
+
     def find_projects(self, project_name: Optional[str] = None) -> List[Project]:
         """
         Try to find any project that matches the above. When called with no arguments,
         return all projects.
         """
-        raise NotImplementedError()
+        return self._find_projects(project_name=project_name)
 
     @abstractmethod
+    def _new_task(
+        self,
+        task_name: str,
+        task_type: str,
+        project_id: Optional[str] = None,
+    ) -> str:
+        """new_task implementation"""
+        raise NotImplementedError()
+
     def new_task(
         self,
         task_name: str,
         task_type: str,
         project_id: Optional[str] = None,
-        parent_task_id: Optional[str] = None,
     ) -> str:
         """
         Create a new task with the given task name. Raise EntryAlreadyExistsException if a task
         with this name has already been created.
         """
-        raise NotImplementedError()
+        return self._new_task(
+            task_name=task_name, task_type=task_type, project_id=project_id
+        )
 
     @abstractmethod
+    def _get_task(self, task_id: str) -> Mapping[str, Any]:
+        """get_task implementation"""
+        raise NotImplementedError()
+
     def get_task(self, task_id: str) -> Mapping[str, Any]:
         """
         Return task's fields by task_id, raise EntryDoesNotExistException if no id exists
@@ -170,22 +196,38 @@ class MephistoDB(ABC):
 
         See Task for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_task(task_id=task_id)
 
     @abstractmethod
+    def _find_tasks(
+        self,
+        task_name: Optional[str] = None,
+        project_id: Optional[str] = None,
+    ) -> List[Task]:
+        """find_tasks implementation"""
+        raise NotImplementedError()
+
     def find_tasks(
         self,
         task_name: Optional[str] = None,
         project_id: Optional[str] = None,
-        parent_task_id: Optional[str] = None,
     ) -> List[Task]:
         """
         Try to find any task that matches the above. When called with no arguments,
         return all tasks.
         """
-        raise NotImplementedError()
+        return self._find_tasks(task_name=task_name, project_id=project_id)
 
     @abstractmethod
+    def _update_task(
+        self,
+        task_id: str,
+        task_name: Optional[str] = None,
+        project_id: Optional[str] = None,
+    ) -> None:
+        """update_task implementation"""
+        raise NotImplementedError()
+
     def update_task(
         self,
         task_id: str,
@@ -197,9 +239,21 @@ class MephistoDB(ABC):
 
         Should only be runable if no runs have been created for this task
         """
-        raise NotImplementedError()
+        self._update_task(task_id=task_id, task_name=task_name, project_id=project_id)
 
     @abstractmethod
+    def _new_task_run(
+        self,
+        task_id: str,
+        requester_id: str,
+        init_params: str,
+        provider_type: str,
+        task_type: str,
+        sandbox: bool = True,
+    ) -> str:
+        """new_task_run implementation"""
+        raise NotImplementedError()
+
     def new_task_run(
         self,
         task_id: str,
@@ -216,9 +270,20 @@ class MephistoDB(ABC):
         subassignments depend on the data set up within, as the launched task
         cannot be replaced and the requester can not be swapped mid-run.
         """
-        raise NotImplementedError()
+        return self._new_task_run(
+            task_id=task_id,
+            requester_id=requester_id,
+            init_params=init_params,
+            provider_type=provider_type,
+            task_type=task_type,
+            sandbox=sandbox,
+        )
 
     @abstractmethod
+    def _get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
+        """get_task_run implementation"""
+        raise NotImplementedError()
+
     def get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
         """
         Return the given task_run's fields by task_run_id, raise EntryDoesNotExistException if no id exists
@@ -226,9 +291,18 @@ class MephistoDB(ABC):
 
         See TaskRun for the expected fields to populate in the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_task_run(task_run_id=task_run_id)
 
     @abstractmethod
+    def _find_task_runs(
+        self,
+        task_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
+        is_completed: Optional[bool] = None,
+    ) -> List[TaskRun]:
+        """find_task_runs implementation"""
+        raise NotImplementedError()
+
     def find_task_runs(
         self,
         task_id: Optional[str] = None,
@@ -239,16 +313,34 @@ class MephistoDB(ABC):
         Try to find any task_run that matches the above. When called with no arguments,
         return all task_runs.
         """
-        raise NotImplementedError()
+        return self._find_task_runs(
+            task_id=task_id, requester_id=requester_id, is_completed=is_completed
+        )
 
     @abstractmethod
+    def _update_task_run(self, task_run_id: str, is_completed: bool):
+        """update_task_run implementation"""
+        raise NotImplementedError()
+
     def update_task_run(self, task_run_id: str, is_completed: bool):
         """
         Update a task run. At the moment, can only update completion status
         """
-        raise NotImplementedError()
+        return self._update_task_run(task_run_id=task_run_id, is_completed=is_completed)
 
     @abstractmethod
+    def _new_assignment(
+        self,
+        task_id: str,
+        task_run_id: str,
+        requester_id: str,
+        task_type: str,
+        provider_type: str,
+        sandbox: bool = True,
+    ) -> str:
+        """new_assignment implementation"""
+        raise NotImplementedError()
+
     def new_assignment(
         self,
         task_id: str,
@@ -263,9 +355,20 @@ class MephistoDB(ABC):
 
         Assignments should not be edited or altered once created
         """
-        raise NotImplementedError()
+        return self._new_assignment(
+            task_id=task_id,
+            task_run_id=task_run_id,
+            requester_id=requester_id,
+            task_type=task_type,
+            provider_type=provider_type,
+            sandbox=sandbox,
+        )
 
     @abstractmethod
+    def _get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
+        """get_assignment implementation"""
+        raise NotImplementedError()
+
     def get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
         """
         Return assignment's fields by assignment_id, raise EntryDoesNotExistException if
@@ -273,9 +376,21 @@ class MephistoDB(ABC):
 
         See Assignment for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_assignment(assignment_id=assignment_id)
 
     @abstractmethod
+    def _find_assignments(
+        self,
+        task_run_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
+        task_type: Optional[str] = None,
+        provider_type: Optional[str] = None,
+        sandbox: Optional[bool] = None,
+    ) -> List[Assignment]:
+        """find_assignments implementation"""
+        raise NotImplementedError()
+
     def find_assignments(
         self,
         task_run_id: Optional[str] = None,
@@ -289,9 +404,31 @@ class MephistoDB(ABC):
         Try to find any task that matches the above. When called with no arguments,
         return all tasks.
         """
-        raise NotImplementedError()
+        return self._find_assignments(
+            task_run_id=task_run_id,
+            task_id=task_id,
+            requester_id=requester_id,
+            task_type=task_type,
+            provider_type=provider_type,
+            sandbox=sandbox,
+        )
 
     @abstractmethod
+    def _new_unit(
+        self,
+        task_id: str,
+        task_run_id: str,
+        requester_id: str,
+        assignment_id: str,
+        unit_index: int,
+        pay_amount: float,
+        provider_type: str,
+        task_type: str,
+        sandbox: bool = True,
+    ) -> str:
+        """new_unit implementation"""
+        raise NotImplementedError()
+
     def new_unit(
         self,
         task_id: str,
@@ -308,9 +445,23 @@ class MephistoDB(ABC):
         Create a new unit with the given index. Raises EntryAlreadyExistsException
         if there is already a unit for the given assignment with the given index.
         """
-        raise NotImplementedError()
+        return self._new_unit(
+            task_id=task_id,
+            task_run_id=task_run_id,
+            requester_id=requester_id,
+            assignment_id=assignment_id,
+            unit_index=unit_index,
+            pay_amount=pay_amount,
+            provider_type=provider_type,
+            task_type=task_type,
+            sandbox=sandbox,
+        )
 
     @abstractmethod
+    def _get_unit(self, unit_id: str) -> Mapping[str, Any]:
+        """get_unit implementation"""
+        raise NotImplementedError()
+
     def get_unit(self, unit_id: str) -> Mapping[str, Any]:
         """
         Return unit's fields by unit_id, raise EntryDoesNotExistException
@@ -318,9 +469,26 @@ class MephistoDB(ABC):
 
         See unit for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_unit(unit_id=unit_id)
 
     @abstractmethod
+    def _find_units(
+        self,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        requester_id: Optional[str] = None,
+        assignment_id: Optional[str] = None,
+        unit_index: Optional[int] = None,
+        provider_type: Optional[str] = None,
+        task_type: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        sandbox: Optional[bool] = None,
+        status: Optional[str] = None,
+    ) -> List[Unit]:
+        """find_units implementation"""
+        raise NotImplementedError()
+
     def find_units(
         self,
         task_id: Optional[str] = None,
@@ -339,35 +507,67 @@ class MephistoDB(ABC):
         Try to find any unit that matches the above. When called with no arguments,
         return all units.
         """
-        raise NotImplementedError()
+        return self._find_units(
+            task_id=task_id,
+            task_run_id=task_run_id,
+            requester_id=requester_id,
+            assignment_id=assignment_id,
+            unit_index=unit_index,
+            provider_type=provider_type,
+            task_type=task_type,
+            agent_id=agent_id,
+            worker_id=worker_id,
+            sandbox=sandbox,
+            status=status,
+        )
 
     @abstractmethod
+    def _clear_unit_agent_assignment(self, unit_id: str) -> None:
+        """clear_unit_agent_assignment implementation"""
+        raise NotImplementedError()
+
     def clear_unit_agent_assignment(self, unit_id: str) -> None:
         """
         Update the given unit by removing the agent that is assigned to it, thus updating
         the status to assignable.
         """
-        raise NotImplementedError()
+        return self._clear_unit_agent_assignment(unit_id=unit_id)
 
     @abstractmethod
+    def _update_unit(
+        self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
+    ) -> None:
+        """update_unit implementation"""
+        raise NotImplementedError()
+
     def update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
-        raise NotImplementedError()
+        return self._update_unit(unit_id=unit_id, status=status)
 
     @abstractmethod
+    def _new_requester(self, requester_name: str, provider_type: str) -> str:
+        """new_requester implementation"""
+        raise NotImplementedError()
+
     def new_requester(self, requester_name: str, provider_type: str) -> str:
         """
         Create a new requester with the given name and provider type.
         Raises EntryAlreadyExistsException
         if there is already a requester with this name
         """
-        raise NotImplementedError()
+        return self._new_requester(
+            requester_name=requester_name, provider_type=provider_type
+        )
 
     @abstractmethod
+    def _get_requester(self, requester_id: str) -> Mapping[str, Any]:
+        """get_requester implementation"""
+        raise NotImplementedError()
+
     def get_requester(self, requester_id: str) -> Mapping[str, Any]:
         """
         Return requester's fields by requester_id, raise EntryDoesNotExistException
@@ -375,9 +575,15 @@ class MephistoDB(ABC):
 
         See requester for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_requester(requester_id=requester_id)
 
     @abstractmethod
+    def _find_requesters(
+        self, requester_name: Optional[str] = None, provider_type: Optional[str] = None
+    ) -> List[Requester]:
+        """find_requesters implementation"""
+        raise NotImplementedError()
+
     def find_requesters(
         self, requester_name: Optional[str] = None, provider_type: Optional[str] = None
     ) -> List[Requester]:
@@ -385,9 +591,15 @@ class MephistoDB(ABC):
         Try to find any requester that matches the above. When called with no arguments,
         return all requesters.
         """
-        raise NotImplementedError()
+        return self._find_requesters(
+            requester_name=requester_name, provider_type=provider_type
+        )
 
     @abstractmethod
+    def _new_worker(self, worker_name: str, provider_type: str) -> str:
+        """new_worker implementation"""
+        raise NotImplementedError()
+
     def new_worker(self, worker_name: str, provider_type: str) -> str:
         """
         Create a new worker with the given name and provider type.
@@ -397,9 +609,13 @@ class MephistoDB(ABC):
         worker_name should be the unique identifier by which the crowd provider
         is using to keep track of this worker
         """
-        raise NotImplementedError()
+        return self._new_worker(worker_name=worker_name, provider_type=provider_type)
 
     @abstractmethod
+    def _get_worker(self, worker_id: str) -> Mapping[str, Any]:
+        """get_worker implementation"""
+        raise NotImplementedError()
+
     def get_worker(self, worker_id: str) -> Mapping[str, Any]:
         """
         Return worker's fields by worker_id, raise EntryDoesNotExistException
@@ -407,9 +623,15 @@ class MephistoDB(ABC):
 
         See worker for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_worker(worker_id=worker_id)
 
     @abstractmethod
+    def _find_workers(
+        self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
+    ) -> List[Worker]:
+        """find_workers implementation"""
+        raise NotImplementedError()
+
     def find_workers(
         self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
     ) -> List[Worker]:
@@ -417,9 +639,22 @@ class MephistoDB(ABC):
         Try to find any worker that matches the above. When called with no arguments,
         return all workers.
         """
-        raise NotImplementedError()
+        return self._find_workers(worker_name=worker_name, provider_type=provider_type)
 
     @abstractmethod
+    def _new_agent(
+        self,
+        worker_id: str,
+        unit_id: str,
+        task_id: str,
+        task_run_id: str,
+        assignment_id: str,
+        task_type: str,
+        provider_type: str,
+    ) -> str:
+        """new_agent implementation"""
+        raise NotImplementedError()
+
     def new_agent(
         self,
         worker_id: str,
@@ -437,9 +672,21 @@ class MephistoDB(ABC):
         Should update the unit's status to ASSIGNED and the assigned agent to
         this one.
         """
-        raise NotImplementedError()
+        return self._new_agent(
+            worker_id=worker_id,
+            unit_id=unit_id,
+            task_id=task_id,
+            task_run_id=task_run_id,
+            assignment_id=assignment_id,
+            task_type=task_type,
+            provider_type=provider_type,
+        )
 
     @abstractmethod
+    def _get_agent(self, agent_id: str) -> Mapping[str, Any]:
+        """get_agent implementation"""
+        raise NotImplementedError()
+
     def get_agent(self, agent_id: str) -> Mapping[str, Any]:
         """
         Return agent's fields by agent_id, raise EntryDoesNotExistException
@@ -447,16 +694,34 @@ class MephistoDB(ABC):
 
         See Agent for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_agent(agent_id=agent_id)
 
     @abstractmethod
+    def _update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
+        """update_agent implementation"""
+        raise NotImplementedError()
+
     def update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
-        raise NotImplementedError()
+        return self._update_agent(agent_id=agent_id, status=status)
 
     @abstractmethod
+    def _find_agents(
+        self,
+        status: Optional[str] = None,
+        unit_id: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        assignment_id: Optional[str] = None,
+        task_type: Optional[str] = None,
+        provider_type: Optional[str] = None,
+    ) -> List[Agent]:
+        """find_agents implementation"""
+        raise NotImplementedError()
+
     def find_agents(
         self,
         status: Optional[str] = None,
@@ -472,9 +737,24 @@ class MephistoDB(ABC):
         Try to find any agent that matches the above. When called with no arguments,
         return all agents.
         """
-        raise NotImplementedError()
+        return self._find_agents(
+            status=status,
+            unit_id=unit_id,
+            worker_id=worker_id,
+            task_id=task_id,
+            task_run_id=task_run_id,
+            assignment_id=assignment_id,
+            task_type=task_type,
+            provider_type=provider_type,
+        )
 
     @abstractmethod
+    def _new_onboarding_agent(
+        self, worker_id: str, task_id: str, task_run_id: str, task_type: str
+    ) -> str:
+        """new_onboarding_agent implementation"""
+        raise NotImplementedError()
+
     def new_onboarding_agent(
         self, worker_id: str, task_id: str, task_run_id: str, task_type: str
     ) -> str:
@@ -485,9 +765,18 @@ class MephistoDB(ABC):
         Should update the unit's status to ASSIGNED and the assigned agent to
         this one.
         """
-        raise NotImplementedError()
+        return self._new_onboarding_agent(
+            worker_id=worker_id,
+            task_id=task_id,
+            task_run_id=task_run_id,
+            task_type=task_type,
+        )
 
     @abstractmethod
+    def _get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
+        """get_onboarding_agent implementation"""
+        raise NotImplementedError()
+
     def get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
         """
         Return onboarding agent's fields by onboarding_agent_id, raise
@@ -495,9 +784,15 @@ class MephistoDB(ABC):
 
         See OnboardingAgent for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_onboarding_agent(onboarding_agent_id=onboarding_agent_id)
 
     @abstractmethod
+    def _update_onboarding_agent(
+        self, onboarding_agent_id: str, status: Optional[str] = None
+    ) -> None:
+        """update_onboarding_agent implementation"""
+        raise NotImplementedError()
+
     def update_onboarding_agent(
         self, onboarding_agent_id: str, status: Optional[str] = None
     ) -> None:
@@ -505,9 +800,22 @@ class MephistoDB(ABC):
         Update the given onboarding agent with the given parameters if possible,
         raise appropriate exception otherwise.
         """
-        raise NotImplementedError()
+        return self._update_onboarding_agent(
+            onboarding_agent_id=onboarding_agent_id, status=status
+        )
 
     @abstractmethod
+    def _find_onboarding_agents(
+        self,
+        status: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+        task_run_id: Optional[str] = None,
+        task_type: Optional[str] = None,
+    ) -> List[OnboardingAgent]:
+        """find_onboarding_agents implementation"""
+        raise NotImplementedError()
+
     def find_onboarding_agents(
         self,
         status: Optional[str] = None,
@@ -520,26 +828,46 @@ class MephistoDB(ABC):
         Try to find any onboarding agent that matches the above. When called with no arguments,
         return all onboarding agents.
         """
-        raise NotImplementedError()
+        return self._find_onboarding_agents(
+            status=status,
+            worker_id=worker_id,
+            task_id=task_id,
+            task_run_id=task_run_id,
+            task_type=task_type,
+        )
 
     @abstractmethod
+    def _make_qualification(self, qualification_name: str) -> str:
+        """make_qualification implementation"""
+        raise NotImplementedError()
+
     def make_qualification(self, qualification_name: str) -> str:
         """
         Make a new qualification, throws an error if a qualification by the given name
         already exists. Return the id for the qualification.
         """
-        raise NotImplementedError()
+        return self._make_qualification(qualification_name=qualification_name)
 
     @abstractmethod
+    def _find_qualifications(
+        self, qualification_name: Optional[str] = None
+    ) -> List[Qualification]:
+        """find_qualifications implementation"""
+        raise NotImplementedError()
+
     def find_qualifications(
         self, qualification_name: Optional[str] = None
     ) -> List[Qualification]:
         """
         Find a qualification. If no name is supplied, returns all qualifications.
         """
-        raise NotImplementedError()
+        return self._find_qualifications(qualification_name=qualification_name)
 
     @abstractmethod
+    def _get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
+        """get_qualification implementation"""
+        raise NotImplementedError()
+
     def get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
         """
         Return qualification's fields by qualification_id, raise
@@ -547,7 +875,7 @@ class MephistoDB(ABC):
 
         See Qualification for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_qualification(qualification_id=qualification_id)
 
     @abstractmethod
     def _delete_qualification(self, qualification_name: str) -> None:
@@ -557,6 +885,12 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def _grant_qualification(
+        self, qualification_id: str, worker_id: str, value: int = 1
+    ) -> None:
+        """grant_qualification implementation"""
+        raise NotImplementedError()
+
     def grant_qualification(
         self, qualification_id: str, worker_id: str, value: int = 1
     ) -> None:
@@ -564,9 +898,20 @@ class MephistoDB(ABC):
         Grant a worker the given qualification. Update the qualification value if it
         already exists
         """
-        raise NotImplementedError()
+        return self._grant_qualification(
+            qualification_id=qualification_id, worker_id=worker_id, value=value
+        )
 
     @abstractmethod
+    def _check_granted_qualifications(
+        self,
+        qualification_id: Optional[str] = None,
+        worker_id: Optional[str] = None,
+        value: Optional[int] = None,
+    ) -> List[GrantedQualification]:
+        """check_granted_qualifications implementation"""
+        raise NotImplementedError()
+
     def check_granted_qualifications(
         self,
         qualification_id: Optional[str] = None,
@@ -576,11 +921,19 @@ class MephistoDB(ABC):
         """
         Find granted qualifications that match the given specifications
         """
-        raise NotImplementedError()
+        return self._check_granted_qualifications(
+            qualification_id=qualification_id, worker_id=worker_id, value=value
+        )
 
     @abstractmethod
+    def _get_granted_qualification(
+        self, qualification_id: str, worker_id: str
+    ) -> Mapping[str, Any]:
+        """get_granted_qualification implementation"""
+        raise NotImplementedError()
+
     def get_granted_qualification(
-        self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
+        self, qualification_id: str, worker_id: str
     ) -> Mapping[str, Any]:
         """
         Return the granted qualification in the database between the given
@@ -588,11 +941,19 @@ class MephistoDB(ABC):
 
         See GrantedQualification for the expected fields for the returned mapping
         """
-        raise NotImplementedError()
+        return self._get_granted_qualification(
+            qualification_id=qualification_id, worker_id=worker_id
+        )
 
     @abstractmethod
+    def _revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
+        """revoke_qualification implementation"""
+        raise NotImplementedError()
+
     def revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
         """
         Remove the given qualification from the given worker
         """
-        raise NotImplementedError()
+        return self._revoke_qualification(
+            qualification_id=qualification_id, worker_id=worker_id
+        )

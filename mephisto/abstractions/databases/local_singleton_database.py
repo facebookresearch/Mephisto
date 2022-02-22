@@ -101,7 +101,7 @@ class MephistoSingletonDB(LocalMephistoDB):
                 break
         return None
 
-    def new_agent(
+    def _new_agent(
         self,
         worker_id: str,
         unit_id: str,
@@ -115,7 +115,7 @@ class MephistoSingletonDB(LocalMephistoDB):
         Wrapper around the new_agent call that finds and updates the unit locally
         too, as this isn't guaranteed otherwise but is an important part of the singleton
         """
-        agent_id = super().new_agent(
+        agent_id = super()._new_agent(
             worker_id,
             unit_id,
             task_id,
@@ -131,7 +131,7 @@ class MephistoSingletonDB(LocalMephistoDB):
         unit.worker_id = agent.worker_id
         return agent_id
 
-    def find_units(
+    def _find_units(
         self,
         task_id: Optional[str] = None,
         task_run_id: Optional[str] = None,
@@ -172,12 +172,12 @@ class MephistoSingletonDB(LocalMephistoDB):
             ):
                 units = self._assignment_to_unit_mapping.get(assignment_id)
                 if units is None:
-                    units = super().find_units(assignment_id=assignment_id)
+                    units = super()._find_units(assignment_id=assignment_id)
                     self._assignment_to_unit_mapping[assignment_id] = units
                 return units
 
         # Any other cases are less common and more complicated, and so we don't cache
-        return super().find_units(
+        return super()._find_units(
             task_id=task_id,
             task_run_id=task_run_id,
             requester_id=requester_id,
@@ -209,7 +209,7 @@ class MephistoSingletonDB(LocalMephistoDB):
         """
         if assignment_id in self._assignment_to_unit_mapping:
             del self._assignment_to_unit_mapping[assignment_id]
-        return super().new_unit(
+        return super()._new_unit(
             task_id=task_id,
             task_run_id=task_run_id,
             requester_id=requester_id,
