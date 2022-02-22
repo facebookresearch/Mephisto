@@ -46,7 +46,7 @@ class EntryDoesNotExistException(MephistoDBException):
 DATABASE_LATENCY = Histogram(
     "database_latency_seconds", "Logging for db requests", ["method"]
 )
-# Need all the original decorators b/c cascading is not allowed in decorators
+# Need all the specific decorators b/c cascading is not allowed in decorators
 # thanks to https://mail.python.org/pipermail/python-dev/2004-August/046711.html
 NEW_PROJECT_LATENCY = DATABASE_LATENCY.labels(method="new_project")
 GET_PROJECT_LATENCY = DATABASE_LATENCY.labels(method="get_project")
