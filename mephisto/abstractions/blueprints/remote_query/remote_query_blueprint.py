@@ -226,5 +226,3 @@ class RemoteQueryBlueprint(OnboardingRequired, Blueprint):
                 )
                 for d in self._initialization_data_dicts
             ]
-
-    # TODO do we need to validate onboarding specially?
