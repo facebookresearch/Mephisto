@@ -25,6 +25,8 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import Qualification, GrantedQualification
 
+from prometheus_client import Histogram
+
 # TODO(#101) investigate cursors for DB queries as the project scales
 
 
@@ -38,6 +40,65 @@ class EntryAlreadyExistsException(MephistoDBException):
 
 class EntryDoesNotExistException(MephistoDBException):
     pass
+
+
+# Initialize histogram for database latency
+DATABASE_LATENCY = Histogram(
+    "database_latency_seconds", "Logging for db requests", ["method"]
+)
+# Need all the original decorators b/c cascading is not allowed in decorators
+# thanks to https://mail.python.org/pipermail/python-dev/2004-August/046711.html
+NEW_PROJECT_LATENCY = DATABASE_LATENCY.labels(method="new_project")
+GET_PROJECT_LATENCY = DATABASE_LATENCY.labels(method="get_project")
+FIND_PROJECTS_LATENCY = DATABASE_LATENCY.labels(method="find_projects")
+NEW_TASK_LATENCY = DATABASE_LATENCY.labels(method="new_task")
+GET_TASK_LATENCY = DATABASE_LATENCY.labels(method="get_task")
+FIND_TASKS_LATENCY = DATABASE_LATENCY.labels(method="find_tasks")
+UPDATE_TASK_LATENCY = DATABASE_LATENCY.labels(method="update_task")
+NEW_TASK_RUN_LATENCY = DATABASE_LATENCY.labels(method="new_task_run")
+GET_TASK_RUN_LATENCY = DATABASE_LATENCY.labels(method="get_task_run")
+FIND_TASK_RUNS_LATENCY = DATABASE_LATENCY.labels(method="find_task_runs")
+UPDATE_TASK_RUN_LATENCY = DATABASE_LATENCY.labels(method="update_task_run")
+NEW_ASSIGNMENT_LATENCY = DATABASE_LATENCY.labels(method="new_assignment")
+GET_ASSIGNMENT_LATENCY = DATABASE_LATENCY.labels(method="get_assignment")
+FIND_ASSIGNMENTS_LATENCY = DATABASE_LATENCY.labels(method="find_assignments")
+NEW_UNIT_LATENCY = DATABASE_LATENCY.labels(method="new_unit")
+GET_UNIT_LATENCY = DATABASE_LATENCY.labels(method="get_unit")
+FIND_UNITS_LATENCY = DATABASE_LATENCY.labels(method="find_units")
+UPDATE_UNIT_LATENCY = DATABASE_LATENCY.labels(method="update_unit")
+NEW_REQUESTER_LATENCY = DATABASE_LATENCY.labels(method="new_requester")
+GET_REQUESTER_LATENCY = DATABASE_LATENCY.labels(method="get_requester")
+FIND_REQUESTERS_LATENCY = DATABASE_LATENCY.labels(method="find_requesters")
+NEW_WORKER_LATENCY = DATABASE_LATENCY.labels(method="new_worker")
+GET_WORKER_LATENCY = DATABASE_LATENCY.labels(method="get_worker")
+FIND_WORKERS_LATENCY = DATABASE_LATENCY.labels(method="find_workers")
+NEW_AGENT_LATENCY = DATABASE_LATENCY.labels(method="new_agent")
+GET_AGENT_LATENCY = DATABASE_LATENCY.labels(method="get_agent")
+FIND_AGENTS_LATENCY = DATABASE_LATENCY.labels(method="find_agents")
+UPDATE_AGENT_LATENCY = DATABASE_LATENCY.labels(method="update_agent")
+CLEAR_UNIT_AGENT_ASSIGNMENT_LATENCY = DATABASE_LATENCY.labels(
+    method="clear_unit_agent_assignment"
+)
+NEW_ONBOARDING_AGENT_LATENCY = DATABASE_LATENCY.labels(method="new_onboarding_agent")
+GET_ONBOARDING_AGENT_LATENCY = DATABASE_LATENCY.labels(method="get_onboarding_agent")
+FIND_ONBOARDING_AGENTS_LATENCY = DATABASE_LATENCY.labels(
+    method="find_onboarding_agents"
+)
+UPDATE_ONBOARDING_AGENT_LATENCY = DATABASE_LATENCY.labels(
+    method="update_onboarding_agent"
+)
+MAKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="make_qualification")
+GET_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="get_qualification")
+FIND_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(method="find_qualifications")
+DELETE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="delete_qualification")
+GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="grant_qualification")
+CHECK_GRANTED_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(
+    method="check_granted_qualifications"
+)
+GET_GRANTED_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(
+    method="get_granted_qualification"
+)
+REVOKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="revoke_qualification")
 
 
 class MephistoDB(ABC):
@@ -81,16 +142,6 @@ class MephistoDB(ABC):
         """Set the provider datastore registered with this db"""
         self.__provider_datastores[provider_type] = datastore
 
-    def delete_qualification(self, qualification_name: str) -> None:
-        """
-        Remove this qualification from all workers that have it, then delete the qualification
-        """
-        self._delete_qualification(qualification_name)
-        for crowd_provider_name in get_valid_provider_types():
-            ProviderClass = get_crowd_provider_from_type(crowd_provider_name)
-            provider = ProviderClass(self)
-            provider.cleanup_qualification(qualification_name)
-
     def optimized_load(
         self,
         target_cls,
@@ -125,6 +176,7 @@ class MephistoDB(ABC):
         """new_project implementation"""
         raise NotImplementedError()
 
+    @NEW_PROJECT_LATENCY.time()
     def new_project(self, project_name: str) -> str:
         """
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
@@ -139,6 +191,7 @@ class MephistoDB(ABC):
         """get_project implementation"""
         raise NotImplementedError()
 
+    @GET_PROJECT_LATENCY.time()
     def get_project(self, project_id: str) -> Mapping[str, Any]:
         """
         Return project's fields by the given project_id, raise EntryDoesNotExistException if no id exists
@@ -153,6 +206,7 @@ class MephistoDB(ABC):
         """find_projects implementation"""
         raise NotImplementedError()
 
+    @FIND_PROJECTS_LATENCY.time()
     def find_projects(self, project_name: Optional[str] = None) -> List[Project]:
         """
         Try to find any project that matches the above. When called with no arguments,
@@ -170,6 +224,7 @@ class MephistoDB(ABC):
         """new_task implementation"""
         raise NotImplementedError()
 
+    @NEW_TASK_LATENCY.time()
     def new_task(
         self,
         task_name: str,
@@ -189,6 +244,7 @@ class MephistoDB(ABC):
         """get_task implementation"""
         raise NotImplementedError()
 
+    @GET_TASK_LATENCY.time()
     def get_task(self, task_id: str) -> Mapping[str, Any]:
         """
         Return task's fields by task_id, raise EntryDoesNotExistException if no id exists
@@ -207,6 +263,7 @@ class MephistoDB(ABC):
         """find_tasks implementation"""
         raise NotImplementedError()
 
+    @FIND_TASKS_LATENCY.time()
     def find_tasks(
         self,
         task_name: Optional[str] = None,
@@ -228,6 +285,7 @@ class MephistoDB(ABC):
         """update_task implementation"""
         raise NotImplementedError()
 
+    @UPDATE_TASK_LATENCY.time()
     def update_task(
         self,
         task_id: str,
@@ -254,6 +312,7 @@ class MephistoDB(ABC):
         """new_task_run implementation"""
         raise NotImplementedError()
 
+    @NEW_TASK_RUN_LATENCY.time()
     def new_task_run(
         self,
         task_id: str,
@@ -284,6 +343,7 @@ class MephistoDB(ABC):
         """get_task_run implementation"""
         raise NotImplementedError()
 
+    @GET_TASK_RUN_LATENCY.time()
     def get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
         """
         Return the given task_run's fields by task_run_id, raise EntryDoesNotExistException if no id exists
@@ -303,6 +363,7 @@ class MephistoDB(ABC):
         """find_task_runs implementation"""
         raise NotImplementedError()
 
+    @FIND_TASK_RUNS_LATENCY.time()
     def find_task_runs(
         self,
         task_id: Optional[str] = None,
@@ -322,6 +383,7 @@ class MephistoDB(ABC):
         """update_task_run implementation"""
         raise NotImplementedError()
 
+    @UPDATE_TASK_RUN_LATENCY.time()
     def update_task_run(self, task_run_id: str, is_completed: bool):
         """
         Update a task run. At the moment, can only update completion status
@@ -341,6 +403,7 @@ class MephistoDB(ABC):
         """new_assignment implementation"""
         raise NotImplementedError()
 
+    @NEW_ASSIGNMENT_LATENCY.time()
     def new_assignment(
         self,
         task_id: str,
@@ -369,6 +432,7 @@ class MephistoDB(ABC):
         """get_assignment implementation"""
         raise NotImplementedError()
 
+    @GET_ASSIGNMENT_LATENCY.time()
     def get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
         """
         Return assignment's fields by assignment_id, raise EntryDoesNotExistException if
@@ -391,6 +455,7 @@ class MephistoDB(ABC):
         """find_assignments implementation"""
         raise NotImplementedError()
 
+    @FIND_ASSIGNMENTS_LATENCY.time()
     def find_assignments(
         self,
         task_run_id: Optional[str] = None,
@@ -429,6 +494,7 @@ class MephistoDB(ABC):
         """new_unit implementation"""
         raise NotImplementedError()
 
+    @NEW_UNIT_LATENCY.time()
     def new_unit(
         self,
         task_id: str,
@@ -462,6 +528,7 @@ class MephistoDB(ABC):
         """get_unit implementation"""
         raise NotImplementedError()
 
+    @GET_UNIT_LATENCY.time()
     def get_unit(self, unit_id: str) -> Mapping[str, Any]:
         """
         Return unit's fields by unit_id, raise EntryDoesNotExistException
@@ -489,6 +556,7 @@ class MephistoDB(ABC):
         """find_units implementation"""
         raise NotImplementedError()
 
+    @FIND_UNITS_LATENCY.time()
     def find_units(
         self,
         task_id: Optional[str] = None,
@@ -526,6 +594,7 @@ class MephistoDB(ABC):
         """clear_unit_agent_assignment implementation"""
         raise NotImplementedError()
 
+    @CLEAR_UNIT_AGENT_ASSIGNMENT_LATENCY.time()
     def clear_unit_agent_assignment(self, unit_id: str) -> None:
         """
         Update the given unit by removing the agent that is assigned to it, thus updating
@@ -540,6 +609,7 @@ class MephistoDB(ABC):
         """update_unit implementation"""
         raise NotImplementedError()
 
+    @UPDATE_UNIT_LATENCY.time()
     def update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
@@ -553,6 +623,7 @@ class MephistoDB(ABC):
         """new_requester implementation"""
         raise NotImplementedError()
 
+    @NEW_REQUESTER_LATENCY.time()
     def new_requester(self, requester_name: str, provider_type: str) -> str:
         """
         Create a new requester with the given name and provider type.
@@ -568,6 +639,7 @@ class MephistoDB(ABC):
         """get_requester implementation"""
         raise NotImplementedError()
 
+    @GET_REQUESTER_LATENCY.time()
     def get_requester(self, requester_id: str) -> Mapping[str, Any]:
         """
         Return requester's fields by requester_id, raise EntryDoesNotExistException
@@ -584,6 +656,7 @@ class MephistoDB(ABC):
         """find_requesters implementation"""
         raise NotImplementedError()
 
+    @FIND_REQUESTERS_LATENCY.time()
     def find_requesters(
         self, requester_name: Optional[str] = None, provider_type: Optional[str] = None
     ) -> List[Requester]:
@@ -600,6 +673,7 @@ class MephistoDB(ABC):
         """new_worker implementation"""
         raise NotImplementedError()
 
+    @NEW_WORKER_LATENCY.time()
     def new_worker(self, worker_name: str, provider_type: str) -> str:
         """
         Create a new worker with the given name and provider type.
@@ -616,6 +690,7 @@ class MephistoDB(ABC):
         """get_worker implementation"""
         raise NotImplementedError()
 
+    @GET_WORKER_LATENCY.time()
     def get_worker(self, worker_id: str) -> Mapping[str, Any]:
         """
         Return worker's fields by worker_id, raise EntryDoesNotExistException
@@ -632,6 +707,7 @@ class MephistoDB(ABC):
         """find_workers implementation"""
         raise NotImplementedError()
 
+    @FIND_WORKERS_LATENCY.time()
     def find_workers(
         self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
     ) -> List[Worker]:
@@ -655,6 +731,7 @@ class MephistoDB(ABC):
         """new_agent implementation"""
         raise NotImplementedError()
 
+    @NEW_AGENT_LATENCY.time()
     def new_agent(
         self,
         worker_id: str,
@@ -687,6 +764,7 @@ class MephistoDB(ABC):
         """get_agent implementation"""
         raise NotImplementedError()
 
+    @GET_AGENT_LATENCY.time()
     def get_agent(self, agent_id: str) -> Mapping[str, Any]:
         """
         Return agent's fields by agent_id, raise EntryDoesNotExistException
@@ -701,6 +779,7 @@ class MephistoDB(ABC):
         """update_agent implementation"""
         raise NotImplementedError()
 
+    @UPDATE_AGENT_LATENCY.time()
     def update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
@@ -722,6 +801,7 @@ class MephistoDB(ABC):
         """find_agents implementation"""
         raise NotImplementedError()
 
+    @FIND_AGENTS_LATENCY.time()
     def find_agents(
         self,
         status: Optional[str] = None,
@@ -755,6 +835,7 @@ class MephistoDB(ABC):
         """new_onboarding_agent implementation"""
         raise NotImplementedError()
 
+    @NEW_ONBOARDING_AGENT_LATENCY.time()
     def new_onboarding_agent(
         self, worker_id: str, task_id: str, task_run_id: str, task_type: str
     ) -> str:
@@ -777,6 +858,7 @@ class MephistoDB(ABC):
         """get_onboarding_agent implementation"""
         raise NotImplementedError()
 
+    @GET_ONBOARDING_AGENT_LATENCY.time()
     def get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
         """
         Return onboarding agent's fields by onboarding_agent_id, raise
@@ -793,6 +875,7 @@ class MephistoDB(ABC):
         """update_onboarding_agent implementation"""
         raise NotImplementedError()
 
+    @UPDATE_ONBOARDING_AGENT_LATENCY.time()
     def update_onboarding_agent(
         self, onboarding_agent_id: str, status: Optional[str] = None
     ) -> None:
@@ -816,6 +899,7 @@ class MephistoDB(ABC):
         """find_onboarding_agents implementation"""
         raise NotImplementedError()
 
+    @FIND_ONBOARDING_AGENTS_LATENCY.time()
     def find_onboarding_agents(
         self,
         status: Optional[str] = None,
@@ -841,6 +925,7 @@ class MephistoDB(ABC):
         """make_qualification implementation"""
         raise NotImplementedError()
 
+    @MAKE_QUALIFICATION_LATENCY.time()
     def make_qualification(self, qualification_name: str) -> str:
         """
         Make a new qualification, throws an error if a qualification by the given name
@@ -855,6 +940,7 @@ class MephistoDB(ABC):
         """find_qualifications implementation"""
         raise NotImplementedError()
 
+    @FIND_QUALIFICATIONS_LATENCY.time()
     def find_qualifications(
         self, qualification_name: Optional[str] = None
     ) -> List[Qualification]:
@@ -868,6 +954,7 @@ class MephistoDB(ABC):
         """get_qualification implementation"""
         raise NotImplementedError()
 
+    @GET_QUALIFICATION_LATENCY.time()
     def get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
         """
         Return qualification's fields by qualification_id, raise
@@ -884,6 +971,17 @@ class MephistoDB(ABC):
         """
         raise NotImplementedError()
 
+    @DELETE_QUALIFICATION_LATENCY.time()
+    def delete_qualification(self, qualification_name: str) -> None:
+        """
+        Remove this qualification from all workers that have it, then delete the qualification
+        """
+        self._delete_qualification(qualification_name)
+        for crowd_provider_name in get_valid_provider_types():
+            ProviderClass = get_crowd_provider_from_type(crowd_provider_name)
+            provider = ProviderClass(self)
+            provider.cleanup_qualification(qualification_name)
+
     @abstractmethod
     def _grant_qualification(
         self, qualification_id: str, worker_id: str, value: int = 1
@@ -891,6 +989,7 @@ class MephistoDB(ABC):
         """grant_qualification implementation"""
         raise NotImplementedError()
 
+    @GRANT_QUALIFICATION_LATENCY.time()
     def grant_qualification(
         self, qualification_id: str, worker_id: str, value: int = 1
     ) -> None:
@@ -912,6 +1011,7 @@ class MephistoDB(ABC):
         """check_granted_qualifications implementation"""
         raise NotImplementedError()
 
+    @CHECK_GRANTED_QUALIFICATIONS_LATENCY.time()
     def check_granted_qualifications(
         self,
         qualification_id: Optional[str] = None,
@@ -932,6 +1032,7 @@ class MephistoDB(ABC):
         """get_granted_qualification implementation"""
         raise NotImplementedError()
 
+    @GET_GRANTED_QUALIFICATION_LATENCY.time()
     def get_granted_qualification(
         self, qualification_id: str, worker_id: str
     ) -> Mapping[str, Any]:
@@ -950,6 +1051,7 @@ class MephistoDB(ABC):
         """revoke_qualification implementation"""
         raise NotImplementedError()
 
+    @REVOKE_QUALIFICATION_LATENCY.time()
     def revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
         """
         Remove the given qualification from the given worker
