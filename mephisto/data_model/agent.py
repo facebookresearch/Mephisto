@@ -9,6 +9,7 @@ import threading
 from queue import Queue
 from mephisto.tools.misc import warn_once
 from uuid import uuid4
+from prometheus_client import Gauge
 
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.abstractions.blueprint import AgentState
@@ -39,6 +40,22 @@ from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
+
+ACTIVE_AGENT_STATUSES = Gauge(
+    "active_agent_statuses",
+    "Tracking of all units current statuses",
+    ["status", "agent_type"],
+)
+for status in AgentState.valid():
+    ACTIVE_AGENT_STATUSES.labels(status=status, agent_type="main")
+    ACTIVE_AGENT_STATUSES.labels(status=status, agent_type="onboarding")
+ACTIVE_WORKERS = Gauge(
+    "active_workers",
+    "Tracking of active workers and how many agents they have",
+    ["worker_id", "agent_type"],
+)
+
+
 # TODO(CLEAN) can probably refactor out some kind of AgentBase
 class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
@@ -66,17 +83,17 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             row = db.get_agent(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["agent_id"]
-        self.db_status = row["status"]
-        self.worker_id = row["worker_id"]
-        self.unit_id = row["unit_id"]
-        self.task_type = row["task_type"]
-        self.provider_type = row["provider_type"]
+        self.db_status: str = row["status"]
+        self.worker_id: str = row["worker_id"]
+        self.unit_id: str = row["unit_id"]
+        self.task_type: str = row["task_type"]
+        self.provider_type: str = row["provider_type"]
         self.pending_actions: "Queue[Dict[str, Any]]" = Queue()
         self.has_live_update = threading.Event()
         self.has_live_update.clear()
-        self.assignment_id = row["assignment_id"]
-        self.task_run_id = row["task_run_id"]
-        self.task_id = row["task_id"]
+        self.assignment_id: str = row["assignment_id"]
+        self.task_run_id: str = row["task_run_id"]
+        self.task_id: str = row["task_id"]
         self.did_submit = threading.Event()
         self.is_shutdown = False
 
@@ -243,6 +260,15 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 logger.debug(f"Clearing {self} from {unit} for update to {new_status}")
                 unit.clear_assigned_agent()
 
+        # Metrics changes
+        ACTIVE_AGENT_STATUSES.labels(status=old_status, agent_type="main").dec()
+        ACTIVE_AGENT_STATUSES.labels(status=new_status, agent_type="main").inc()
+        if (
+            old_status not in AgentState.complete()
+            and new_status in AgentState.complete()
+        ):
+            ACTIVE_WORKERS.labels(worker_id=self.worker_id, agent_type="main").dec()
+
     @staticmethod
     def _register_agent(
         db: "MephistoDB", worker: Worker, unit: "Unit", provider_type: str
@@ -260,6 +286,10 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             provider_type,
         )
         a = Agent.get(db, db_id)
+        ACTIVE_AGENT_STATUSES.labels(
+            status=AgentState.STATUS_NONE, agent_type="main"
+        ).inc()
+        ACTIVE_WORKERS.labels(worker_id=worker.db_id, agent_type="main").inc()
         logger.debug(f"Registered new agent {a} for {unit}.")
         a.update_status(AgentState.STATUS_ACCEPTED)
         return a
@@ -462,14 +492,14 @@ class OnboardingAgent(
             row = db.get_onboarding_agent(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["onboarding_agent_id"]
-        self.db_status = row["status"]
-        self.worker_id = row["worker_id"]
-        self.task_type = row["task_type"]
+        self.db_status: str = row["status"]
+        self.worker_id: str = row["worker_id"]
+        self.task_type: str = row["task_type"]
         self.pending_actions: "Queue[Dict[str, Any]]" = Queue()
         self.has_live_update = threading.Event()
         self.has_live_update.clear()
-        self.task_run_id = row["task_run_id"]
-        self.task_id = row["task_id"]
+        self.task_run_id: str = row["task_run_id"]
+        self.task_id: str = row["task_id"]
         self.did_submit = threading.Event()
         self.is_shutdown = False
 
@@ -559,6 +589,7 @@ class OnboardingAgent(
         if self.db_status in AgentState.complete():
             logger.info(f"Updating {self} from final status to {new_status}")
 
+        old_status = self.db_status
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
         if self._associated_live_run is not None:
@@ -574,6 +605,17 @@ class OnboardingAgent(
             # Disconnect statuses should free any pending acts
             self.has_live_update.set()
             self.did_submit.set()
+
+        # Metrics changes
+        ACTIVE_AGENT_STATUSES.labels(status=old_status, agent_type="onboarding").dec()
+        ACTIVE_AGENT_STATUSES.labels(status=new_status, agent_type="onboarding").inc()
+        if (
+            old_status not in AgentState.complete()
+            and new_status in AgentState.complete()
+        ):
+            ACTIVE_WORKERS.labels(
+                worker_id=self.worker_id, agent_type="onboarding"
+            ).dec()
 
     def observe(self, live_update: "Dict[str, Any]") -> None:
         """
@@ -686,6 +728,10 @@ class OnboardingAgent(
             worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
         a = OnboardingAgent.get(db, db_id)
+        ACTIVE_AGENT_STATUSES.labels(
+            status=AgentState.STATUS_NONE, agent_type="onboarding"
+        ).inc()
+        ACTIVE_WORKERS.labels(worker_id=worker.db_id, agent_type="onboarding").inc()
         logger.debug(f"Registered new {a} for worker {worker}.")
         return a
 

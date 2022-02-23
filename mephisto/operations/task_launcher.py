@@ -10,7 +10,12 @@ from mephisto.data_model.assignment import (
     InitializationData,
     AssignmentState,
 )
-from mephisto.data_model.unit import Unit
+from mephisto.data_model.unit import (
+    Unit,
+    SCREENING_UNIT_INDEX,
+    GOLD_UNIT_INDEX,
+    COMPENSATION_UNIT_INDEX,
+)
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING, Iterator
 from tqdm import tqdm  # type: ignore
@@ -30,9 +35,6 @@ logger = get_logger(name=__name__)
 
 UNIT_GENERATOR_WAIT_SECONDS = 10
 ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
-SCREENING_UNIT_INDEX = -1
-GOLD_UNIT_INDEX = -2
-COMPENSATION_UNIT_INDEX = -3
 
 
 class GeneratorType(enum.Enum):
