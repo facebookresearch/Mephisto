@@ -6,6 +6,7 @@
 
 
 from abc import ABC
+from prometheus_client import Gauge
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
@@ -30,6 +31,13 @@ from mephisto.tools.misc import warn_once
 from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
+
+
+ACTIVE_UNIT_STATUSES = Gauge(
+    "active_unit_statuses", "Tracking of all units current statuses", ["status"]
+)
+for status in AssignmentState.valid_unit():
+    ACTIVE_UNIT_STATUSES.labels(status=status)
 
 
 class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
@@ -61,18 +69,18 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             row = db.get_unit(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["unit_id"]
-        self.assignment_id = row["assignment_id"]
+        self.assignment_id: str = row["assignment_id"]
         self.unit_index: int = row["unit_index"]
-        self.pay_amount = row["pay_amount"]
-        self.agent_id = row["agent_id"]
-        self.provider_type = row["provider_type"]
-        self.db_status = row["status"]
-        self.task_type = row["task_type"]
-        self.task_id = row["task_id"]
-        self.task_run_id = row["task_run_id"]
-        self.sandbox = row["sandbox"]
-        self.requester_id = row["requester_id"]
-        self.worker_id = row["worker_id"]
+        self.pay_amount: float = row["pay_amount"]
+        self.agent_id: Optional[str] = row["agent_id"]
+        self.provider_type: str = row["provider_type"]
+        self.db_status: str = row["status"]
+        self.task_type: str = row["task_type"]
+        self.task_id: str = row["task_id"]
+        self.task_run_id: str = row["task_run_id"]
+        self.sandbox: bool = row["sandbox"]
+        self.requester_id: str = row["requester_id"]
+        self.worker_id: str = row["worker_id"]
 
         # Deferred loading of related entities
         self.__task: Optional["Task"] = None
@@ -149,6 +157,8 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         if status == self.db_status:
             return
         logger.debug(f"Updating status for {self} to {status}")
+        ACTIVE_UNIT_STATUSES.labels(status=self.db_status).dec()
+        ACTIVE_UNIT_STATUSES.labels(status=status).inc()
         self.db_status = status
         self.db.update_unit(self.db_id, status=status)
 
@@ -248,6 +258,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             assignment.task_type,
         )
         unit = Unit.get(db, db_id)
+        ACTIVE_UNIT_STATUSES.labels(status=AssignmentState.CREATED).inc()
         logger.debug(f"Registered new unit {unit} for {assignment}.")
         return unit
 
