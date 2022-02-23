@@ -62,7 +62,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["unit_id"]
         self.assignment_id = row["assignment_id"]
-        self.unit_index = row["unit_index"]
+        self.unit_index: int = row["unit_index"]
         self.pay_amount = row["pay_amount"]
         self.agent_id = row["agent_id"]
         self.provider_type = row["provider_type"]

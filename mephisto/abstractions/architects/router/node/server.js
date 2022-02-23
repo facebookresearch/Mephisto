@@ -130,6 +130,10 @@ function debug_log() {
   }
 }
 
+function pythonTime() {
+  return Date.now() / 1000;
+}
+
 // Handles sending a message through the socket
 function _send_message(socket, packet) {
   if (!socket) {
@@ -143,6 +147,7 @@ function _send_message(socket, packet) {
     return;
   }
 
+  packet["router_outgoing_timestamp"] = pythonTime();
   // Send the message through, with one retry a half second later
   socket.send(JSON.stringify(packet), function ack(error) {
     if (error === undefined) {
@@ -220,7 +225,7 @@ function ensure_live_connection(agent) {
 }
 
 // Return the status of all agents mapped by their agent id
-function handle_get_agent_status(_status_packet) {
+function handle_get_agent_status(status_packet) {
   last_mephisto_ping = Date.now();
   let agent_statuses = {};
   for (let agent_id in agent_id_to_agent) {
@@ -232,6 +237,8 @@ function handle_get_agent_status(_status_packet) {
     packet_type: PACKET_TYPE_RETURN_STATUSES,
     subject_id: SYSTEM_SOCKET_ID,
     data: agent_statuses,
+    client_timestamp: status_packet.server_timestamp,
+    router_incoming_timestamp: status_packet.router_incoming_timestamp,
   };
   mephisto_message_queue.push(packet);
 }
@@ -309,6 +316,7 @@ wss.on("connection", function (socket) {
   socket.on("message", function (packet) {
     try {
       packet = JSON.parse(packet);
+      packet["router_incoming_timestamp"] = pythonTime();
       if (packet["packet_type"] == PACKET_TYPE_REQUEST_STATUSES) {
         debug_log("Mephisto requesting status");
         handle_get_agent_status(packet);
@@ -419,6 +427,7 @@ function main_thread() {
 // ===================== <Routing> ========================
 app.post("/request_agent", function (req, res) {
   var provider_data = req.body.provider_data;
+  var client_timestamp = req.body.client_timestamp;
   var request_id = uuidv4();
 
   let request_packet = {
@@ -428,6 +437,8 @@ app.post("/request_agent", function (req, res) {
       provider_data: provider_data,
       request_id: request_id,
     },
+    client_timestamp: client_timestamp,
+    router_incoming_timestamp: pythonTime(),
   };
 
   pending_agent_requests[request_id] = res;
@@ -437,6 +448,7 @@ app.post("/request_agent", function (req, res) {
 
 app.post("/submit_onboarding", function (req, res) {
   var provider_data = req.body.provider_data;
+  var client_timestamp = req.body.client_timestamp;
   var request_id = uuidv4();
 
   let agent_id = provider_data.USED_AGENT_ID;
@@ -451,6 +463,8 @@ app.post("/submit_onboarding", function (req, res) {
     packet_type: PACKET_TYPE_SUBMIT_ONBOARDING,
     subject_id: agent_id,
     data: provider_data,
+    client_timestamp: client_timestamp,
+    router_incoming_timestamp: pythonTime(),
   };
 
   pending_agent_requests[request_id] = res;
@@ -463,6 +477,7 @@ app.post("/submit_task", upload.any(), function (req, res) {
     USED_AGENT_ID: agent_id,
     final_data: final_data,
     final_string_data: final_string_data,
+    client_timestamp: client_timestamp,
   } = req.body;
   let extracted_data = final_data;
   if (final_string_data) {
@@ -475,6 +490,8 @@ app.post("/submit_task", upload.any(), function (req, res) {
     packet_type: PACKET_TYPE_SUBMIT_UNIT,
     subject_id: agent_id,
     data: extracted_data,
+    client_timestamp: client_timestamp,
+    router_incoming_timestamp: pythonTime(),
   };
   _send_message(mephisto_socket, submit_packet);
   res.json({ status: "Submitted!" });
@@ -491,11 +508,17 @@ app.post("/submit_task", upload.any(), function (req, res) {
 });
 
 app.post("/log_error", function (req, res) {
-  const { USED_AGENT_ID: agent_id, error_data: error_data } = req.body;
+  const {
+    USED_AGENT_ID: agent_id,
+    error_data: error_data,
+    client_timestamp: client_timestamp,
+  } = req.body;
   let log_packet = {
     packet_type: PACKET_TYPE_ERROR,
     subject_id: agent_id,
     data: error_data,
+    client_timestamp: client_timestamp,
+    router_incoming_timestamp: pythonTime(),
   };
   _send_message(mephisto_socket, log_packet);
   res.json({ status: "Error log sent!" });

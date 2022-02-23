@@ -7,6 +7,7 @@
 
 import os
 import sqlite3
+from prometheus_client import Histogram
 
 from abc import ABC, abstractmethod
 from mephisto.operations.utils import get_data_dir
@@ -25,7 +26,6 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import Qualification, GrantedQualification
 
-from prometheus_client import Histogram
 
 # TODO(#101) investigate cursors for DB queries as the project scales
 
