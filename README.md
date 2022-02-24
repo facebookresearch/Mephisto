@@ -1,6 +1,6 @@
 <p align="center">
  <h1>
-  <img width="70%" src="docs/web/static/img/logo.svg" alt="Mephisto" />
+  <img width="250px" src="docs/web/static/img/logo.svg" alt="Mephisto" />
  </h1>
 </p>
 
