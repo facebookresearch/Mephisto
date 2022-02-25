@@ -14,6 +14,15 @@
   --ifm-color-primary-lighter: #a40000;
   --ifm-color-primary-lightest: #a40000;
   --ifm-code-font-size: 95%;
+
+  --mephisto-primary: #a40000;
+  --mephisto-secondary-dark: #344854;
+  --mephisto-secondary-mid: #67788a;
+  --mephisto-secondary-light: #dee3e9;
+
+  --mephisto-alt-purple: #f0ebf5;
+  --mephisto-alt-orange: #fbd6b7;
+  --mephisto-alt-yellow: #ffde89;
 }
 
 .docusaurus-highlight-code-line {
@@ -36,6 +45,15 @@ body {
     "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html[data-theme="dark"] body {
+  background-color: var(--ifm-background-color);
+  color: var(--ifm-menu-color);
+}
+
+html[data-theme="dark"]:root {
+  --ifm-color-primary: var(--mephisto-alt-yellow);
 }
 
 code {
