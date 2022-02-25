@@ -332,7 +332,7 @@ class WorkerPool:
                 None, partial(live_run.task_run.get_valid_units_for_worker, worker)
             )
         with EXTERNAL_FUNCTION_LATENCY.labels(
-            function="get_init_data_for_agent"
+            function="filter_units_for_worker"
         ).time():
             usable_units = await loop.run_in_executor(
                 None,
@@ -432,7 +432,10 @@ class WorkerPool:
         agent_registration_id = crowd_data["agent_registration_id"]
 
         # get the list of tentatively valid units
-        units = task_run.get_valid_units_for_worker(worker)
+        with EXTERNAL_FUNCTION_LATENCY.labels(
+            function="get_valid_units_for_worker"
+        ).time():
+            units = task_run.get_valid_units_for_worker(worker)
         if len(units) == 0:
             AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()
             live_run.client_io.enqueue_agent_details(
@@ -446,6 +449,14 @@ class WorkerPool:
                 f"agent_registration_id {agent_registration_id}, had no valid units."
             )
             return
+
+        with EXTERNAL_FUNCTION_LATENCY.labels(
+            function="filter_units_for_worker"
+        ).time():
+            units = await loop.run_in_executor(
+                None,
+                partial(live_run.task_runner.filter_units_for_worker, units, worker),
+            )
 
         # If there's onboarding, see if this worker has already been disqualified
         blueprint = live_run.blueprint
@@ -488,7 +499,7 @@ class WorkerPool:
                     request_id=request_id,
                 )
 
-                ONBOARDING_OUTCOMES.labels(outcome="launched")
+                ONBOARDING_OUTCOMES.labels(outcome="launched").inc()
                 ACTIVE_ONBOARDINGS.inc()
                 AGENT_DETAILS_COUNT.labels(response="assigned_onboarding").inc()
                 live_run.client_io.enqueue_agent_details(

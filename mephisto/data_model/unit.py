@@ -276,6 +276,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             pay_amount,
             provider_type,
             assignment.task_type,
+            sandbox=assignment.sandbox,
         )
         unit = Unit.get(db, db_id)
         ACTIVE_UNIT_STATUSES.labels(

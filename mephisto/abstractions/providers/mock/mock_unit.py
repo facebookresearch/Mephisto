@@ -43,7 +43,7 @@ class MockUnit(Unit):
 
     def launch(self, task_url: str) -> None:
         """Mock launches do nothing right now beyond updating state"""
-        self.db.update_unit(self.db_id, status=AssignmentState.LAUNCHED)
+        self.set_db_status(status=AssignmentState.LAUNCHED)
 
         # TODO(OWN) get this link to the frontend
         port = task_url.split(":")[1].split("/")[0]
@@ -65,7 +65,7 @@ class MockUnit(Unit):
             AssignmentState.EXPIRED,
             AssignmentState.COMPLETED,
         ]:
-            self.db.update_unit(self.db_id, status=AssignmentState.EXPIRED)
+            self.set_db_status(AssignmentState.EXPIRED)
         self.datastore.set_unit_expired(self.db_id, True)
         return 0.0
 

@@ -13,6 +13,7 @@ mephisto/server/blueprints/**/build/*
 **/build/*
 **/_generated/*
 **/outputs/*
+metrics/*
 .coverage
 
 # Examples
