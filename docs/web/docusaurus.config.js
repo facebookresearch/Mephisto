@@ -8,7 +8,7 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "Mephisto",
   tagline: "Bring your research ideas to life with effective data annotation",
-  url: "https://github.com/",
+  url: "https://mephisto.ai/",
   baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
