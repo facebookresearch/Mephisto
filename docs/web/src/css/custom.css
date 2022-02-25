@@ -69,3 +69,45 @@ h5,
 h6 {
   font-family: "Optimistic Display";
 }
+
+@font-face {
+  font-family: "Optimistic Display";
+  src: url("/fonts/Optimistic_Display/EOT/Optimistic_Display_W_Md.eot");
+  src: url("/fonts/Optimistic_Display/EOT/Optimistic_Display_W_Md.eot?#iefix")
+      format("embedded-opentype"),
+    url("/fonts/Optimistic_Display/WOFF/Optimistic_Display_W_Md.woff")
+      format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Optimistic Display";
+  src: url("/fonts/Optimistic_Display/EOT/Optimistic_Display_W_Bd.eot");
+  src: url("/fonts/Optimistic_Display/EOT/Optimistic_Display_W_Bd.eot?#iefix")
+      format("embedded-opentype"),
+    url("/fonts/Optimistic_Display/WOFF/Optimistic_Display_W_Bd.woff")
+      format("woff");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Optimistic Text";
+  src: url("/fonts/Optimistic_Text/EOT/Optimistic_Text_W_Rg.eot");
+  src: url("/fonts/Optimistic_Text/EOT/Optimistic_Text_W_Rg.eot?#iefix")
+      format("embedded-opentype"),
+    url("/fonts/Optimistic_Text/WOFF/Optimistic_Text_W_Rg.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Optimistic Text";
+  src: url("/fonts/Optimistic_Text/EOT/Optimistic_Text_W_Bd.eot");
+  src: url("/fonts/Optimistic_Text/EOT/Optimistic_Text_W_Bd.eot?#iefix")
+      format("embedded-opentype"),
+    url("/fonts/Optimistic_Text/WOFF/Optimistic_Text_W_Bd.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+}
