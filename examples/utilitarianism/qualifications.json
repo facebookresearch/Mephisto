@@ -1,0 +1,35 @@
+[
+    {
+      "QualificationTypeId": "36X0O00ZJ96OO8YY6VHIY0ULM025VG",
+      "Comparator": "GreaterThanOrEqualTo",
+      "IntegerValues": [
+        31
+      ],
+      "RequiredToPreview": false
+    },
+     {
+  	"QualificationTypeId": "00000000000000000071",
+  	"Comparator": "In",
+  	"LocaleValues": [
+      {
+        "Country": "US"
+      },
+      {
+        "Country": "CA"
+      },
+      {
+        "Country": "GB"
+      }
+    ]
+    },
+    {
+         "QualificationTypeId":"000000000000000000L0",
+         "Comparator":"GreaterThan",
+         "IntegerValues":[97]
+    },
+    {
+         "QualificationTypeId":"00000000000000000040",
+         "Comparator":"GreaterThan",
+         "IntegerValues":[999]
+    }
+   ]

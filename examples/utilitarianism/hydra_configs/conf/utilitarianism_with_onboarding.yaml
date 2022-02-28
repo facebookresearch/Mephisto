@@ -10,7 +10,7 @@ mephisto:
     units_per_assignment: 2
   task:
     task_name: utilitarianism_with_onboarding
-    task_title: "Utilitarianism task"
-    task_description: "Rewrite of utilitarianism from amti"
-    task_reward: 0.3
-    task_tags: "static,task,testing"
+    task_title: "Write scenarios then rank them by how enjoyable they are."
+    task_description: "Write scenarios of varying degrees of pleasantness. Then rank these four scenarios by how enjoyable they are to the person in the scenarios."
+    task_reward: 0.55
+    task_tags: "HTMLQuestion, writing, free response, creative, Dan, fun"

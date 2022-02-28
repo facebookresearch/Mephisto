@@ -19,6 +19,7 @@ import hydra
 from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any, Mapping
+import json
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 CORRECT_ANSWER = "apple"
@@ -27,7 +28,7 @@ defaults = [
     {"mephisto/blueprint": BLUEPRINT_TYPE},
     {"mephisto/architect": "local"},
     {"mephisto/provider": "mock"},
-    {"conf": "onboarding_example"},
+    {"conf": "utilitarianism_with_onboarding.yaml"},
 ]
 
 CORRECT_ANSWERS = {
@@ -37,6 +38,9 @@ CORRECT_ANSWERS = {
     "question4": "b2",
     "question5": "b3"
 }
+
+with open("qualifications.json") as f:
+    QUALIFICATIONS = json.load(f)
 
 from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
@@ -65,6 +69,7 @@ def main(cfg: DictConfig) -> None:
         onboarding_data={"correct_answers": CORRECT_ANSWERS},
         validate_onboarding=onboarding_is_valid,
     )
+    shared_state.mturk_specific_qualifications = QUALIFICATIONS
 
     db, cfg = load_db_and_process_config(cfg)
     operator = Operator(db)
