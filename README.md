@@ -11,11 +11,11 @@ Mephisto makes crowdsourcing easier.
 
 We provide a platform for launching, monitoring, and reviewing your crowdsourcing tasks. Tasks made on Mephisto can easily be open sourced as part of other projects.
 
-As of now we're in an early alpha release, more details to come.
+As of now we're in an early alpha release, more details to come. See our in-progress docs at [mephisto.ai](https://mephisto.ai).
 
 ## Quickstart
 
-[Get started in 10 minutes][quickstart]
+[Get started in 10 minutes][https://mephisto.ai/docs/guides/quickstart]
 
 ## Changelog
 
@@ -23,10 +23,7 @@ As of now we're in an early alpha release, more details to come.
 
 Check out our [guidelines for contributing](https://github.com/facebookresearch/Mephisto/blob/main/CONTRIBUTING.md) and then take a look at some of our tagged issues: [good first issue](https://github.com/facebookresearch/Mephisto/labels/good%20first%20issue), [help wanted](https://github.com/facebookresearch/Mephisto/labels/help%20wanted).
 
-For library authors, you may also find the [development documentation][development] helpful.
-
-[quickstart]: https://github.com/facebookresearch/mephisto/blob/main/docs/quickstart.md
-[development]: https://github.com/facebookresearch/mephisto/blob/main/docs/development.md
+For library authors, you may also find the [how to contribute][https://mephisto.ai/docs/guides/how_to_contribute/getting_started] documentation helpful.
 
 
 ## License
