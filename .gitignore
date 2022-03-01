@@ -14,6 +14,11 @@ mephisto/server/blueprints/**/build/*
 **/_generated/*
 **/outputs/*
 metrics/*
+!metrics/resources
+!metrics/install_*.sh
+!metrics/README.md
+!metrics/view_metrics.py
+!metrics/shutdown_metrics.py
 .coverage
 
 # Examples

@@ -38,6 +38,7 @@ from mephisto.operations.registry import (
     get_architect_from_type,
 )
 from mephisto.operations.utils import get_mock_requester
+from mephisto.utils.metrics import launch_prometheus_server, start_metrics_server
 
 from mephisto.operations.logger_core import (
     get_logger,
@@ -90,6 +91,8 @@ class Operator:
             self._track_and_kill_runs(),
         )
         self._stop_task: Optional[asyncio.Task] = None
+        launch_prometheus_server()
+        start_metrics_server()
 
     def get_running_task_runs(self) -> Dict[str, LiveTaskRun]:
         """Return the currently running task runs and their handlers"""

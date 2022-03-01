@@ -1,0 +1,2676 @@
+{
+  "meta": {
+    "isStarred": true,
+    "type": "db",
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true,
+    "canStar": true,
+    "slug": "default-mephisto-monitoring",
+    "url": "/d/vxUVjXfnk/default-mephisto-monitoring",
+    "expires": "0001-01-01T00:00:00Z",
+    "created": "2022-02-25T14:15:28-05:00",
+    "updated": "2022-02-25T17:49:28-05:00",
+    "updatedBy": "admin",
+    "createdBy": "admin",
+    "version": 6,
+    "hasAcl": false,
+    "isFolder": false,
+    "folderId": 0,
+    "folderUid": "",
+    "folderTitle": "General",
+    "folderUrl": "",
+    "provisioned": false,
+    "provisionedExternalId": ""
+  },
+  "dashboard": {
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations \u0026 Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": null,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 16,
+        "panels": [],
+        "title": "General health",
+        "type": "row"
+      },
+      {
+        "description": "Full end to end delay for processing and handling different packet types",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 1
+        },
+        "id": 49,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "histogram_quantile(.99, sum(rate(e2e_packet_latency_bucket{stage=\"e2e_time\"}[1m])*60) by (le, packet_type))",
+            "interval": "",
+            "legendFormat": "{{packet_type}}",
+            "refId": "A"
+          }
+        ],
+        "title": "P99 E2E processing by packet type",
+        "type": "timeseries"
+      },
+      {
+        "description": "Estimates the active worker count by finding the number of active agents per worker.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "Count",
+              "axisPlacement": "auto",
+              "axisSoftMin": 0,
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "fill": "solid"
+              },
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": 300000,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 1
+        },
+        "id": 10,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "sum(sum by (worker_id) (active_workers{agent_type=\"main\"}))",
+            "interval": "",
+            "legendFormat": "Active Agents",
+            "refId": "A"
+          }
+        ],
+        "title": "Estimated Active Worker Count",
+        "type": "timeseries"
+      },
+      {
+        "description": "Agent status for agents in task or otherwise un-actioned states. ",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-purples"
+            },
+            "custom": {
+              "fillOpacity": 70,
+              "lineWidth": 0,
+              "spanNulls": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 1
+        },
+        "id": 2,
+        "options": {
+          "alignValue": "left",
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "mergeValues": true,
+          "rowHeight": 0.9,
+          "showValue": "auto",
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "active_agent_statuses{agent_type=\"main\", status!~\"completed|onboarding|approved|expired|none|rejected|soft_rejected|timeout|disconnect|returned\"}",
+            "interval": "",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "sum(active_agent_statuses{agent_type=\"main\", status=~\"expired|timeout|disconnect|returned\"})",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "all incomplete",
+            "refId": "B"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "sum(active_agent_statuses{agent_type=\"main\", status=~\"completed|approved|soft_rejected|rejected\"})",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "all complete",
+            "refId": "C"
+          }
+        ],
+        "title": "Live task agent status",
+        "type": "state-timeline"
+      },
+      {
+        "description": "For each packet type, log the number of requests incoming for that packet.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "__systemRef": "hideSeriesFrom",
+              "matcher": {
+                "id": "byNames",
+                "options": {
+                  "mode": "exclude",
+                  "names": [
+                    "agent_details",
+                    "alive",
+                    "client_bound_live_update",
+                    "log_error",
+                    "mephisto_bound_live_update",
+                    "register_agent",
+                    "submit_onboarding",
+                    "submit_unit",
+                    "update_status"
+                  ],
+                  "prefix": "All except:",
+                  "readOnly": true
+                }
+              },
+              "properties": [
+                {
+                  "id": "custom.hideFrom",
+                  "value": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 9
+        },
+        "id": 56,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "sum(rate(client_io_handler_latency_seconds_count[1m])) by (packet_type) * 60",
+            "interval": "",
+            "legendFormat": "{{packet_type}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Incoming requests per minute",
+        "type": "timeseries"
+      },
+      {
+        "description": "Displays the 5m average for response codes on agents requesting to start a task.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 9
+        },
+        "id": 12,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "rate(agent_details_responses_total[1m]) * 60 * 1",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "{{response}}",
+            "refId": "B"
+          }
+        ],
+        "title": "Connecting Agent Responses",
+        "type": "timeseries"
+      },
+      {
+        "description": "Unit status for active units",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-greens"
+            },
+            "custom": {
+              "fillOpacity": 70,
+              "lineWidth": 0,
+              "spanNulls": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 17
+        },
+        "id": 6,
+        "options": {
+          "alignValue": "left",
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "mergeValues": true,
+          "rowHeight": 0.9,
+          "showValue": "auto",
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "active_unit_statuses{unit_type=\"standard\", status=~\"assigned|created|expired|launched\"}",
+            "interval": "",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "sum(active_unit_statuses{unit_type=\"standard\", status=~\"completed|approved|rejected|soft_rejected\"})",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "all complete",
+            "refId": "B"
+          }
+        ],
+        "title": "Live unit status",
+        "type": "state-timeline"
+      },
+      {
+        "description": "Unit status for active units",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 17
+        },
+        "id": 8,
+        "options": {
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true
+        },
+        "pluginVersion": "8.4.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "sum(active_unit_statuses{unit_type=\"standard\", status!='created'})",
+            "interval": "",
+            "legendFormat": "Standard Units",
+            "refId": "A"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "sum(active_unit_statuses{unit_type=\"gold_unit\", status!='created'})",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Gold Units",
+            "refId": "B"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "sum(active_unit_statuses{unit_type=\"screening_unit\", status!='created'})",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Screening Units",
+            "refId": "C"
+          }
+        ],
+        "title": "Launched Unit Counts",
+        "type": "gauge"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 25
+        },
+        "id": 22,
+        "panels": [],
+        "title": "Operator Health",
+        "type": "row"
+      },
+      {
+        "description": "Active TaskRunner threads tracking in-task agents through onboarding, units, or assignments",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 26
+        },
+        "id": 53,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "task_runner_thread_count",
+            "interval": "",
+            "legendFormat": "{{thread_type}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Active TaskRunner Threads",
+        "type": "timeseries"
+      },
+      {
+        "cards": {},
+        "color": {
+          "cardColor": "#b4ff00",
+          "colorScale": "sqrt",
+          "colorScheme": "interpolateOranges",
+          "exponent": 0.5,
+          "mode": "spectrum"
+        },
+        "dataFormat": "tsbuckets",
+        "description": "Time for a unit to be completed by workers, from initial request_agent to submit_unit.",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 26
+        },
+        "heatmap": {},
+        "hideZeroBuckets": false,
+        "highlightCards": true,
+        "id": 55,
+        "legend": {
+          "show": false
+        },
+        "pluginVersion": "8.4.2",
+        "reverseYBuckets": false,
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": false,
+            "expr": "sum by (le) (task_runner_thread_duration_bucket{thread_type!=\"onboarding\"})",
+            "format": "heatmap",
+            "interval": "",
+            "legendFormat": "{{le}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Unit completion time in seconds",
+        "tooltip": {
+          "show": true,
+          "showHistogram": false
+        },
+        "type": "heatmap",
+        "xAxis": {
+          "show": true
+        },
+        "yAxis": {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        "yBucketBound": "auto"
+      },
+      {
+        "description": "Time for the MephistoDB to respond to all of the different request types.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 34
+        },
+        "id": 52,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "histogram_quantile(.99, sum(rate(database_latency_seconds_bucket[1m])*60) by (le, method))",
+            "interval": "",
+            "legendFormat": "{{method}}",
+            "refId": "A"
+          }
+        ],
+        "title": "P99 database response time by method",
+        "type": "timeseries"
+      },
+      {
+        "description": "For each packet type, displays the socket handler's P99 processing time per that packet type",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 34
+        },
+        "id": 46,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": true,
+            "expr": "histogram_quantile(.99, sum(rate(client_io_handler_latency_seconds_bucket[1m])*60) by (le, packet_type))",
+            "interval": "",
+            "legendFormat": "{{packet_type}}",
+            "refId": "A"
+          }
+        ],
+        "title": "P99 Processing time by packet type",
+        "type": "timeseries"
+      },
+      {
+        "cards": {},
+        "color": {
+          "cardColor": "#b4ff00",
+          "colorScale": "sqrt",
+          "colorScheme": "interpolateOranges",
+          "exponent": 0.5,
+          "mode": "spectrum"
+        },
+        "dataFormat": "tsbuckets",
+        "description": "Time to calculate get_init_data_for_agent",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 42
+        },
+        "heatmap": {},
+        "hideZeroBuckets": false,
+        "highlightCards": true,
+        "id": 14,
+        "legend": {
+          "show": false
+        },
+        "pluginVersion": "8.4.2",
+        "reverseYBuckets": false,
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": false,
+            "expr": "external_function_latency_bucket{function=\"get_init_data_for_agent\"}",
+            "format": "heatmap",
+            "interval": "",
+            "legendFormat": "{{le}}",
+            "refId": "A"
+          }
+        ],
+        "title": "get_init_data_for_agent latency",
+        "tooltip": {
+          "show": true,
+          "showHistogram": false
+        },
+        "type": "heatmap",
+        "xAxis": {
+          "show": true
+        },
+        "yAxis": {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        "yBucketBound": "auto"
+      },
+      {
+        "cards": {},
+        "color": {
+          "cardColor": "#b4ff00",
+          "colorScale": "sqrt",
+          "colorScheme": "interpolateOranges",
+          "exponent": 0.5,
+          "mode": "spectrum"
+        },
+        "dataFormat": "tsbuckets",
+        "description": "Time to calculate get_valid_units_for_worker",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 42
+        },
+        "heatmap": {},
+        "hideZeroBuckets": false,
+        "highlightCards": true,
+        "id": 30,
+        "legend": {
+          "show": false
+        },
+        "pluginVersion": "8.4.2",
+        "reverseYBuckets": false,
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": false,
+            "expr": "external_function_latency_bucket{function=\"get_valid_units_for_worker\"}",
+            "format": "heatmap",
+            "interval": "",
+            "legendFormat": "{{le}}",
+            "refId": "A"
+          }
+        ],
+        "title": "get_valid_units_for_worker latency",
+        "tooltip": {
+          "show": true,
+          "showHistogram": false
+        },
+        "type": "heatmap",
+        "xAxis": {
+          "show": true
+        },
+        "yAxis": {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        "yBucketBound": "auto"
+      },
+      {
+        "cards": {},
+        "color": {
+          "cardColor": "#b4ff00",
+          "colorScale": "sqrt",
+          "colorScheme": "interpolateOranges",
+          "exponent": 0.5,
+          "mode": "spectrum"
+        },
+        "dataFormat": "tsbuckets",
+        "description": "Time to calculate filter_units_for_worker",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 42
+        },
+        "heatmap": {},
+        "hideZeroBuckets": false,
+        "highlightCards": true,
+        "id": 31,
+        "legend": {
+          "show": false
+        },
+        "pluginVersion": "8.4.2",
+        "reverseYBuckets": false,
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "43DrDwB7k"
+            },
+            "exemplar": false,
+            "expr": "external_function_latency_bucket{function=\"filter_units_for_worker\"}",
+            "format": "heatmap",
+            "interval": "",
+            "legendFormat": "{{le}}",
+            "refId": "A"
+          }
+        ],
+        "title": "filter_units_for_worker latency",
+        "tooltip": {
+          "show": true,
+          "showHistogram": false
+        },
+        "type": "heatmap",
+        "xAxis": {
+          "show": true
+        },
+        "yAxis": {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        "yBucketBound": "auto"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 50
+        },
+        "id": 20,
+        "panels": [
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between a mephisto client making a request and it being received by the router.",
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 3
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 41,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "sum by (le) (e2e_packet_latency_bucket{stage=\"client_to_router\"})",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Client to router latency",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "description": "Client to router latency split by packet type",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 0,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 3
+            },
+            "id": 47,
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom"
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "histogram_quantile(.99, sum(e2e_packet_latency_bucket{stage=\"client_to_router\"}) by (le, packet_type))",
+                "interval": "",
+                "legendFormat": "{{packet_type}}",
+                "refId": "A"
+              }
+            ],
+            "title": "P99 Client-to-router by packet type",
+            "type": "timeseries"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between the router receiving a packet and processing a response or routing.",
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 11
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 42,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "sum by (le) (e2e_packet_latency_bucket{stage=\"router_processing\"})",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Router processing latency",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "description": "Router processing latency split by packet type",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 0,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 11
+            },
+            "id": 48,
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom"
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "histogram_quantile(.99, sum(e2e_packet_latency_bucket{stage=\"router_processing\"}) by (le, packet_type))",
+                "interval": "",
+                "legendFormat": "{{packet_type}}",
+                "refId": "A"
+              }
+            ],
+            "title": "P99 router processing by packet type",
+            "type": "timeseries"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between the router sending a packet and Mephisto receiving it.",
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 19
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 43,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "sum by (le) (e2e_packet_latency_bucket{stage=\"router_to_server\"})",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Router to Mephisto latency",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "description": "Time between a packet send time and the mephisto server processing a response for it, by packet type",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 0,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 19
+            },
+            "id": 51,
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom"
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "histogram_quantile(.99, sum(e2e_packet_latency_bucket{stage=\"router_to_server\"}) by (le, packet_type))",
+                "interval": "",
+                "legendFormat": "{{packet_type}}",
+                "refId": "A"
+              }
+            ],
+            "title": "P99 router to server latency by packet type",
+            "type": "timeseries"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between mephisto receiving a message and processing it.",
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 27
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 44,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "sum by (le) (e2e_packet_latency_bucket{stage=\"server_processing\"})",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Mephisto processing delay",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "description": "Server processing latency split by packet type",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 0,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 27
+            },
+            "id": 50,
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom"
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "histogram_quantile(.99, sum(e2e_packet_latency_bucket{stage=\"server_processing\"}) by (le, packet_type))",
+                "interval": "",
+                "legendFormat": "{{packet_type}}",
+                "refId": "A"
+              }
+            ],
+            "title": "P99 server processing by packet type",
+            "type": "timeseries"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between user submission of onboarding and server response",
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 0,
+              "y": 35
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 36,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "e2e_packet_latency_bucket{packet_type=\"submit_onboarding\", stage=\"e2e_time\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Submit onboarding E2E latency",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between a user submitting a live update and mephisto processing it.",
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 8,
+              "y": 35
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 37,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "e2e_packet_latency_bucket{packet_type=\"mephisto_bound_live_update\", stage=\"e2e_time\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Mephisto live update processing times",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between a user requesting an agent and Mephisto providing a response.",
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 16,
+              "y": 35
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 38,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "e2e_packet_latency_bucket{packet_type=\"register_agent\", stage=\"e2e_time\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Mephisto register agent processing times",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between a user submitting a unit and mephisto processing it.",
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 4,
+              "y": 43
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 39,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "e2e_packet_latency_bucket{packet_type=\"submit_unit\", stage=\"e2e_time\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Mephisto unit submission processing times",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time between Mephisto requesting a status update from the server, and the server returning it and getting processed.",
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 12,
+              "y": 43
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 40,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "e2e_packet_latency_bucket{packet_type=\"return_statuses\", stage=\"e2e_time\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "Mephisto agent status ping round trip",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          }
+        ],
+        "title": "Network Health",
+        "type": "row"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 51
+        },
+        "id": 18,
+        "panels": [
+          {
+            "description": "Agent status for onboarding agents.",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "continuous-purples"
+                },
+                "custom": {
+                  "fillOpacity": 70,
+                  "lineWidth": 0,
+                  "spanNulls": false
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 52
+            },
+            "id": 3,
+            "options": {
+              "alignValue": "left",
+              "legend": {
+                "displayMode": "list",
+                "placement": "bottom"
+              },
+              "mergeValues": true,
+              "rowHeight": 0.9,
+              "showValue": "auto",
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "active_agent_statuses{agent_type=\"onboarding\", status!~\"completed|onboarding|approved|expired|none|rejected|soft_rejected|waiting|partner disconnect|timeout|disconnect|returned\"}",
+                "interval": "",
+                "legendFormat": "{{status}}",
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "sum(active_agent_statuses{agent_type=\"onboarding\", status=~\"expired|timeout|disconnect|returned\"})",
+                "hide": false,
+                "interval": "",
+                "legendFormat": "Incomplete",
+                "refId": "B"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "sum(active_agent_statuses{agent_type=\"onboarding\", status=~\"waiting|completed|approved|rejected\"})",
+                "hide": false,
+                "interval": "",
+                "legendFormat": "Completed",
+                "refId": "C"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "sum(active_agent_statuses{agent_type=\"onboarding\", status=~\"approved\"})",
+                "hide": false,
+                "interval": "",
+                "legendFormat": "Success",
+                "refId": "D"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "sum(active_agent_statuses{agent_type=\"onboarding\", status=~\"rejected\"})",
+                "hide": false,
+                "interval": "",
+                "legendFormat": "Failures",
+                "refId": "E"
+              }
+            ],
+            "title": "Live onboarding agent status",
+            "type": "state-timeline"
+          },
+          {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                },
+                "custom": {
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 19,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Passed"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.stacking",
+                      "value": {
+                        "group": "Completed",
+                        "mode": "normal"
+                      }
+                    },
+                    {
+                      "id": "color",
+                      "value": {
+                        "fixedColor": "green",
+                        "mode": "fixed"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Failed"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.stacking",
+                      "value": {
+                        "group": "Completed",
+                        "mode": "normal"
+                      }
+                    },
+                    {
+                      "id": "color",
+                      "value": {
+                        "fixedColor": "red",
+                        "mode": "fixed"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 52
+            },
+            "id": 35,
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom"
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "worker_pool_onboarding_outcomes_total{outcome=\"launched\"}",
+                "hide": false,
+                "interval": "",
+                "legendFormat": "Launched",
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "worker_pool_onboarding_outcomes_total{outcome=\"passed\"}",
+                "hide": false,
+                "interval": "",
+                "legendFormat": "Passed",
+                "refId": "B"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "worker_pool_onboarding_outcomes_total{outcome=\"failed\"}",
+                "hide": false,
+                "interval": "",
+                "legendFormat": "Failed",
+                "refId": "C"
+              }
+            ],
+            "title": "Onboarding Outcomes",
+            "type": "timeseries"
+          },
+          {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 0,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 60
+            },
+            "id": 33,
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom"
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": true,
+                "expr": "worker_pool_active_onboardings",
+                "interval": "",
+                "legendFormat": "Active Onboardings",
+                "refId": "A"
+              }
+            ],
+            "title": "Active Onboarding Count",
+            "type": "timeseries"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time to calculate validate_onboarding",
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 60
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 23,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "external_function_latency_bucket{function=\"validate_onboarding\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "validate_onboarding latency",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          }
+        ],
+        "title": "Onboarding Metrics",
+        "type": "row"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 52
+        },
+        "id": 25,
+        "panels": [
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time to calculate get_gold_unit_data_for_worker",
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 0,
+              "y": 29
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 26,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "external_function_latency_bucket{function=\"get_gold_unit_data_for_worker\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "get_gold_unit_data_for_worker latency",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time to calculate get_screening_unit_data",
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 8,
+              "y": 29
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 27,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "external_function_latency_bucket{function=\"get_screening_unit_data\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "get_screening_unit_data latency",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          },
+          {
+            "cards": {},
+            "color": {
+              "cardColor": "#b4ff00",
+              "colorScale": "sqrt",
+              "colorScheme": "interpolateOranges",
+              "exponent": 0.5,
+              "mode": "spectrum"
+            },
+            "dataFormat": "tsbuckets",
+            "description": "Time to calculate launch_screening_unit",
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 16,
+              "y": 29
+            },
+            "heatmap": {},
+            "hideZeroBuckets": false,
+            "highlightCards": true,
+            "id": 28,
+            "legend": {
+              "show": false
+            },
+            "pluginVersion": "8.4.2",
+            "reverseYBuckets": false,
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "43DrDwB7k"
+                },
+                "exemplar": false,
+                "expr": "external_function_latency_bucket{function=\"launch_screening_unit\"}",
+                "format": "heatmap",
+                "interval": "",
+                "legendFormat": "{{le}}",
+                "refId": "A"
+              }
+            ],
+            "title": "launch_screening_unit latency",
+            "tooltip": {
+              "show": true,
+              "showHistogram": false
+            },
+            "type": "heatmap",
+            "xAxis": {
+              "show": true
+            },
+            "yAxis": {
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            },
+            "yBucketBound": "auto"
+          }
+        ],
+        "title": "Other Validation metrics",
+        "type": "row"
+      }
+    ],
+    "refresh": false,
+    "schemaVersion": 35,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-3h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Default Mephisto Monitoring",
+    "uid": null,
+    "version": 6,
+    "weekStart": ""
+  }
+}
