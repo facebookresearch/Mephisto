@@ -276,6 +276,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         """
         Create this agent in the mephisto db with the correct setup
         """
+        unit._mark_agent_assignment()
         db_id = db.new_agent(
             worker.db_id,
             unit.db_id,

@@ -182,6 +182,20 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self.db_status = status
         self.db.update_unit(self.db_id, status=status)
 
+    def _mark_agent_assignment(self) -> None:
+        """Special helper to mark the transition from LAUNCHED to ASSIGNED"""
+        assert (
+            self.db_status == AssignmentState.LAUNCHED
+        ), "can only mark LAUNCHED units"
+        ACTIVE_UNIT_STATUSES.labels(
+            status=AssignmentState.LAUNCHED,
+            unit_type=INDEX_TO_TYPE_MAP[self.unit_index],
+        ).dec()
+        ACTIVE_UNIT_STATUSES.labels(
+            status=AssignmentState.ASSIGNED,
+            unit_type=INDEX_TO_TYPE_MAP[self.unit_index],
+        ).inc()
+
     def get_assignment(self) -> "Assignment":
         """
         Return the assignment that this Unit is part of.
