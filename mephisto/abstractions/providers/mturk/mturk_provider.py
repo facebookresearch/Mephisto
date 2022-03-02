@@ -17,8 +17,6 @@ from mephisto.abstractions.providers.mturk.mturk_worker import MTurkWorker
 from mephisto.abstractions.providers.mturk.mturk_utils import (
     create_hit_type,
     create_hit_config,
-    setup_sns_topic,
-    delete_sns_topic,
     delete_qualification,
 )
 from mephisto.operations.registry import register_mephisto_abstraction
@@ -63,10 +61,6 @@ class MTurkProvider(CrowdProvider):
 
     ArgsClass = MTurkProviderArgs
 
-    SUPPORTED_TASK_TYPES: ClassVar[List[str]] = [
-        # TODO
-    ]
-
     def initialize_provider_datastore(self, storage_path: str) -> Any:
         """
         MTurk itself is the source of truth for most data required to run
@@ -88,20 +82,12 @@ class MTurkProvider(CrowdProvider):
         shared_state: "SharedTaskState",
         server_url: str,
     ) -> None:
-        """
-        Set up SNS queue to recieve agent events from MTurk, and produce the
-        HIT type for this task run.
-        """
+        """Produce the HIT type for this task run."""
         requester = cast("MTurkRequester", task_run.get_requester())
         session = self.datastore.get_session_for_requester(requester._requester_name)
         task_config = task_run.get_task_config()
 
-        # Set up SNS queue
-        # TODO(OWN) implement arn?
         task_run_id = task_run.db_id
-        # task_name = task_run.get_task().task_name
-        # arn_id = setup_sns_topic(session, task_name, server_url, task_run_id)
-        arn_id = "TEST"
 
         # Set up HIT config
         config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
@@ -126,7 +112,7 @@ class MTurkProvider(CrowdProvider):
                 ] = requester._create_new_mturk_qualification(qualification_name)
 
         if hasattr(shared_state, "mturk_specific_qualifications"):
-            # TODO move specific qualifications into the fold for providers
+            # TODO(OWN) standardize provider-specific qualifications
             qualifications += shared_state.mturk_specific_qualifications  # type: ignore
 
         # Set up HIT type
@@ -135,18 +121,13 @@ class MTurkProvider(CrowdProvider):
         frame_height = (
             task_run.get_blueprint().get_frontend_args().get("frame_height", 0)
         )
-        self.datastore.register_run(
-            task_run_id, arn_id, hit_type_id, config_dir, frame_height
-        )
+        self.datastore.register_run(task_run_id, hit_type_id, config_dir, frame_height)
 
     def cleanup_resources_from_task_run(
         self, task_run: "TaskRun", server_url: str
     ) -> None:
-        """Shut down the SNS queue for this task."""
-        requester = cast("MTurkRequester", task_run.get_requester())
-        session = self.datastore.get_session_for_requester(requester._requester_name)
-        run_row = self.datastore.get_run(task_run.db_id)
-        delete_sns_topic(session, run_row["arn_id"])
+        """No cleanup necessary for task type"""
+        pass
 
     @classmethod
     def get_wrapper_js_path(cls):

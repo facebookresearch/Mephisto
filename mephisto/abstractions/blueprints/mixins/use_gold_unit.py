@@ -153,7 +153,7 @@ class UseGoldUnit(BlueprintMixin):
     Compositional class for blueprints that want to inject gold units
     into worker queues.
 
-    # TODO add support for adding gold subunits
+    # TODO(#97) add support for adding gold subunits
     """
 
     ArgsMixin = UseGoldUnitArgs
@@ -215,7 +215,7 @@ class UseGoldUnit(BlueprintMixin):
             "You must supply a get_gold_for_worker generator in your SharedTaskState to use "
             "gold units units."
         )
-        # TODO it would be nice to test that `get_gold_for_worker` actually returns a task when
+        # TODO(#97) it would be nice to test that `get_gold_for_worker` actually returns a task when
         # given a worker
 
     @staticmethod

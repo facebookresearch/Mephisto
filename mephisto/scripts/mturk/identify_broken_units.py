@@ -116,7 +116,7 @@ def main():
                 print(
                     f"Agent {agent} would be a good candidate to reconcile {assignment['HITId']}"
                 )
-                # TODO automate the below
+                # TODO(WISH) automate the below
                 print(
                     "You can do this manually by selecting the best candidate, then "
                     "updating the MTurk datastore to assign this HITId and assignmentId "

@@ -116,6 +116,7 @@ class Requester(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMe
             total_spend += run.get_total_spend()
         return total_spend
 
+    @classmethod
     def is_sandbox(self) -> bool:
         """
         Determine if this is a requester on a sandbox/test account

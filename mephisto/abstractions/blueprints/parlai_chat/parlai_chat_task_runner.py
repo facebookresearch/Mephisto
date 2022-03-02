@@ -294,10 +294,6 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not world.episode_done() and unit.db_id in self.running_units:
             world.parley()
 
-        # TODO(WISH) it would be nice to have individual agents be able to submit their
-        # final things without needing to wait for their partner, such
-        # as if one needs to rate and the other doesn't
-
         world.shutdown()
         if hasattr(world, "prep_save_data"):
             agent.observe(

@@ -139,11 +139,6 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = ParlAIChatTaskRunner
     ArgsClass = ParlAIChatBlueprintArgs
     SharedStateClass = SharedParlAITaskState
-    supported_architects: ClassVar[List[str]] = [
-        "mock",
-        "heroku",
-        "local",
-    ]  # TODO update?
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(

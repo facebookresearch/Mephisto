@@ -123,6 +123,30 @@ class BlueprintTests(unittest.TestCase):
         # TODO(#94?) implement with options implementations
         pass
 
+    def test_ensure_valid_statuses(self):
+        """Test that all the statuses are represented"""
+        a_state = self.BlueprintClass.AgentStateClass
+        found_valid = a_state.valid()
+        found_complete = a_state.complete()
+        found_keys = [k for k in dir(a_state) if k.startswith("STATUS_")]
+        found_vals = [getattr(a_state, k) for k in found_keys]
+        for v in found_vals:
+            self.assertIn(
+                v, found_valid, f"Expected to find {v} in valid list {found_valid}"
+            )
+        for v in found_complete:
+            self.assertIn(
+                v,
+                found_vals,
+                f"Expected to find {v} in {a_state} attributes, not in {found_vals}",
+            )
+        for v in found_valid:
+            self.assertIn(
+                v,
+                found_vals,
+                f"Expected to find {v} in {a_state} attributes, not in {found_vals}",
+            )
+
     def test_has_required_class_members(self) -> None:
         """Ensures that the BluePrint is well-formatted"""
         self.assertTrue(
@@ -151,11 +175,6 @@ class BlueprintTests(unittest.TestCase):
             self.TaskBuilderClass,
             TaskBuilder,
             "Can not use base TaskBuilder in a Blueprint implementation",
-        )
-        self.assertIn(
-            "mock",
-            self.BlueprintClass.supported_architects,
-            "Must support at least the mock architecture for testing",
         )
         # TODO(#94?) implement getting the defaults of TaskRunnerClass.get_extra_options() when
         # options are improved
@@ -194,7 +213,10 @@ class BlueprintTests(unittest.TestCase):
             cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
 
-        task_runner.launch_assignment(assignment, agents)
+        task_runner.running_assignments[
+            assignment.db_id
+        ] = None  # To ensure cleanup works
+        task_runner._launch_and_run_assignment(assignment, agents, lambda: None)
         self.assertTrue(self.assignment_completed_successfully(assignment))
 
     def test_can_exit_gracefully(self) -> None:
@@ -206,29 +228,11 @@ class BlueprintTests(unittest.TestCase):
         assert isinstance(fail_agent, MockAgent), "Agent must be mock agent for testing"
         fail_agent.mark_disconnected()
         try:
-            task_runner.launch_assignment(assignment, [fail_agent])
+            task_runner._launch_and_run_assignment(
+                assignment, [fail_agent], lambda: None
+            )
         except Exception as e:
             task_runner.cleanup_assignment(assignment)
 
         self.assertFalse(self.assignment_completed_successfully(assignment))
         self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
-
-    def test_run_tracked(self) -> None:
-        """Run a task in a thread, ensure we see it is being tracked"""
-        task_runner = self._get_init_task_runner()
-        assignment = self.get_test_assignment()
-        agents: List["Agent"] = [
-            cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
-        ]
-        task_thread = threading.Thread(
-            target=task_runner.launch_assignment,
-            args=(assignment, agents),
-            name="test-task-thread",
-        )
-        self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
-        task_thread.start()
-        time.sleep(0.1)  # Sleep to give the task_runner time to register
-        self.assertTrue(self.assignment_is_tracked(task_runner, assignment))
-        task_thread.join()
-        self.assertFalse(self.assignment_is_tracked(task_runner, assignment))
-        self.assertTrue(self.assignment_completed_successfully(assignment))

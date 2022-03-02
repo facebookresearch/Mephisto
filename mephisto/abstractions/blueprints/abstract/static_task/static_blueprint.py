@@ -116,7 +116,6 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = EmptyStaticTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = StaticBlueprintArgs
-    supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
     SharedStateClass = SharedStaticTaskState
 
     def __init__(
@@ -186,7 +185,8 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
             ), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif shared_state.static_task_data is not None:
             if isinstance(shared_state.static_task_data, types.GeneratorType):
-                # TODO can we check something about this?
+                # TODO(#97) can we check something about this?
+                # Some discussion here: https://stackoverflow.com/questions/661603/how-do-i-know-if-a-generator-is-empty-from-the-start
                 pass
             else:
                 assert (

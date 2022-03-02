@@ -32,7 +32,7 @@ def can_build(build_dir: str, task_run: "TaskRun") -> bool:
     # TODO(#97) incorporate this step into the blueprint
     # task builder test, as once the task is built, it
     # should be able to have the server build as well.
-    # TODO(#97) actually implement this when the full build
+    # TODO(#651) actually implement this when the full build
     # process for the router is decided
     return True
 

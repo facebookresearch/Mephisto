@@ -218,8 +218,6 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
     def __repr__(self) -> str:
         return f"Assignment({self.db_id})"
 
-    # TODO(100) add helpers to manage retrieving results as well
-
     @staticmethod
     def new(
         db: "MephistoDB", task_run: TaskRun, assignment_data: Optional[Dict[str, Any]]

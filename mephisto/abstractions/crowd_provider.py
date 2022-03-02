@@ -52,8 +52,6 @@ class CrowdProvider(ABC):
 
     ArgsClass: ClassVar[Type[ProviderArgs]] = ProviderArgs
 
-    SUPPORTED_TASK_TYPES: ClassVar[List[str]]
-
     def __init__(self, db: "MephistoDB"):
         """
         Crowd provider classes should keep as much of their state
@@ -74,6 +72,11 @@ class CrowdProvider(ABC):
             self.datastore_root = db.get_db_path_for_provider(self.PROVIDER_TYPE)
             self.datastore = self.initialize_provider_datastore(self.datastore_root)
             db.set_datastore_for_provider(self.PROVIDER_TYPE, self.datastore)
+
+    @classmethod
+    def is_sandbox(cls) -> bool:
+        """Determine if the given crowd provider is a sandbox provider"""
+        return cls.RequesterClass.is_sandbox()
 
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):

@@ -371,7 +371,7 @@ def convert_mephisto_qualifications(
                 False,
             )
             if qual_id is None:
-                # TODO log more loudly that this qualification is being skipped?
+                # TODO(#93) log more loudly that this qualification is being skipped?
                 print(
                     f"Qualification name {qualification_name} can not be found or created on MTurk"
                 )
@@ -574,86 +574,6 @@ def expire_hit(client: MTurkClient, hit_id: str):
     # Update expiration to a time in the past, the HIT expires instantly
     past_time = datetime(2015, 1, 1)
     client.update_expiration_for_hit(HITId=hit_id, ExpireAt=past_time)
-
-
-def setup_sns_topic(
-    session: boto3.Session, task_name: str, server_url: str, task_run_id: str
-) -> str:
-    """Create an sns topic and return the arn identifier"""
-    # Create the topic and subscribe to it so that our server receives notifs
-    client = session.client("sns", region_name="us-east-1", config=botoconfig)
-    pattern = re.compile("[^a-zA-Z0-9_-]+")
-    filtered_task_name = pattern.sub("", task_name)
-    response = client.create_topic(Name=filtered_task_name)
-    arn = response["TopicArn"]
-    topic_sub_url = "{}/sns_posts?task_run_id={}".format(server_url, task_run_id)
-    client.subscribe(TopicArn=arn, Protocol="https", Endpoint=topic_sub_url)
-    response = client.get_topic_attributes(TopicArn=arn)
-    policy_json = """{{
-    "Version": "2008-10-17",
-    "Id": "{}/MTurkOnlyPolicy",
-    "Statement": [
-        {{
-            "Sid": "MTurkOnlyPolicy",
-            "Effect": "Allow",
-            "Principal": {{
-                "Service": "mturk-requester.amazonaws.com"
-            }},
-            "Action": "SNS:Publish",
-            "Resource": "{}"
-        }}
-    ]}}""".format(
-        arn, arn
-    )
-    client.set_topic_attributes(
-        TopicArn=arn, AttributeName="Policy", AttributeValue=policy_json
-    )
-    return arn
-
-
-def subscribe_to_hits(client: MTurkClient, hit_type_id: str, sns_arn: str) -> None:
-    """Subscribe an sns channel to the specific hit type"""
-    # Get the mturk client and create notifications for our hits
-    client.update_notification_settings(
-        HITTypeId=hit_type_id,
-        Notification={
-            "Destination": sns_arn,
-            "Transport": "SNS",
-            "Version": "2006-05-05",
-            "EventTypes": [
-                "AssignmentAbandoned",
-                "AssignmentReturned",
-                "AssignmentSubmitted",
-            ],
-        },
-        Active=True,
-    )
-
-
-def send_test_notif(client: MTurkClient, topic_arn: str, event_type: str) -> None:
-    """
-    Send a test notification of the given event type to the sns
-    queue associated with the given arn
-    """
-    client.send_test_event_notification(
-        Notification={
-            "Destination": topic_arn,
-            "Transport": "SNS",
-            "Version": "2006-05-05",
-            "EventTypes": [
-                "AssignmentAbandoned",
-                "AssignmentReturned",
-                "AssignmentSubmitted",
-            ],
-        },
-        TestEventType=event_type,
-    )
-
-
-def delete_sns_topic(session: boto3.Session, topic_arn: str) -> None:
-    """Remove the sns queue of the given identifier"""
-    client = session.client("sns", region_name="us-east-1", config=botoconfig)
-    client.delete_topic(TopicArn=topic_arn)
 
 
 def get_hit(client: MTurkClient, hit_id: str) -> Dict[str, Any]:

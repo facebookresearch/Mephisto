@@ -28,7 +28,7 @@ from mephisto.abstractions.architects.ec2.ec2_helpers import (
 )
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.channel import Channel
+    from mephisto.abstractions._subcomponents.channel import Channel
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB
@@ -49,7 +49,7 @@ def url_safe_string(in_string: str) -> str:
     in ec2 resources
     """
     hyphenated = in_string.replace("_", "-")
-    return re.sub("[^0-9a-zA-Z\-]+", "", hyphenated)
+    return re.sub("[^0-9a-zA-Z-]+", "", hyphenated)
 
 
 @dataclass

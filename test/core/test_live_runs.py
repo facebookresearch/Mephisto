@@ -10,14 +10,12 @@ import shutil
 import os
 import tempfile
 import time
+import asyncio
 
-from typing import List
+from typing import List, Callable
 
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
-from mephisto.abstractions.architects.mock_architect import MockArchitect
-from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.operations.task_launcher import TaskLauncher, SCREENING_UNIT_INDEX
@@ -27,20 +25,24 @@ from mephisto.abstractions.blueprints.mixins.screen_task_required import (
 from mephisto.abstractions.test.utils import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.task_run import TaskRun
-from mephisto.operations.supervisor import Supervisor, Job
-from mephisto.operations.utils import find_or_create_qualification
+from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
+from mephisto.operations.client_io_handler import ClientIOHandler
+from mephisto.operations.worker_pool import WorkerPool
 
 from mephisto.abstractions.architects.mock_architect import (
     MockArchitect,
     MockArchitectArgs,
 )
 from mephisto.operations.hydra_config import MephistoConfig
-from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
+from mephisto.abstractions.providers.mock.mock_provider import (
+    MockProvider,
+    MockProviderArgs,
+)
 from mephisto.abstractions.blueprints.mock.mock_blueprint import (
+    MockBlueprint,
     MockBlueprintArgs,
     MockSharedState,
 )
-from mephisto.data_model.task_config import TaskConfigArgs
 from omegaconf import OmegaConf
 
 from typing import Type, ClassVar, TYPE_CHECKING
@@ -51,9 +53,9 @@ if TYPE_CHECKING:
 EMPTY_STATE = MockSharedState()
 
 
-class BaseTestSupervisor:
+class BaseTestLiveRuns:
     """
-    Unit testing for the Mephisto Supervisor,
+    Unit testing for the Mephisto Live Runs,
     uses WebsocketChannel and MockArchitect
     """
 
@@ -67,6 +69,7 @@ class BaseTestSupervisor:
         self.task_id = self.db.new_task("test_mock", MockBlueprint.BLUEPRINT_TYPE)
         self.task_run_id = get_test_task_run(self.db)
         self.task_run = TaskRun.get(self.db, self.task_run_id)
+        self.live_run = None
 
         architect_config = OmegaConf.structured(
             MephistoConfig(architect=MockArchitectArgs(should_run_server=True))
@@ -88,78 +91,150 @@ class BaseTestSupervisor:
         )
         self.launcher.create_assignments()
         self.launcher.launch_units(self.url)
-        self.sup = None
+        self.client_io = ClientIOHandler(self.db)
+        self.worker_pool = WorkerPool(self.db)
 
     def tearDown(self):
-        if self.sup is not None:
-            self.sup.shutdown()
         self.launcher.expire_units()
         self.architect.cleanup()
         self.architect.shutdown()
+        if self.live_run is not None:
+            self.live_run.shutdown()
+        else:
+            self.worker_pool.shutdown()
+            self.client_io.shutdown()
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
+
+    def get_mock_run(self, blueprint, task_runner) -> LiveTaskRun:
+        live_run = LiveTaskRun(
+            self.task_run,
+            self.architect,
+            blueprint,
+            self.provider,
+            [],
+            task_runner,
+            self.launcher,
+            self.client_io,
+            self.worker_pool,
+            LoopWrapper(asyncio.new_event_loop()),
+        )
+        self.client_io.register_run(live_run)
+        self.worker_pool.register_run(live_run)
+        return live_run
 
     def get_mock_assignment_data_array(self) -> List[InitializationData]:
         mock_data = MockTaskRunner.get_mock_assignment_data()
         return [mock_data, mock_data]
 
-    def test_initialize_supervisor(self):
-        """Ensure that the supervisor object can even be created"""
-        sup = Supervisor(self.db)
-        self.assertIsNotNone(sup)
-        self.assertDictEqual(sup.agents, {})
-        self.assertDictEqual(sup.channels, {})
-        sup.shutdown()
+    def _run_loop_until(
+        self,
+        live_run: LiveTaskRun,
+        condition_met: Callable[[], bool],
+        timeout,
+        failure_message=None,
+    ) -> bool:
+        """
+        Function to run the event loop until a specific condition is met, or
+        a timeout elapses
+        """
+        loop = live_run.loop_wrap.loop
+        asyncio.set_event_loop(loop)
+
+        async def wait_for_condition_or_timeout():
+            condition_was_met = False
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                await asyncio.sleep(0.01)
+                if condition_met():
+                    condition_was_met = True
+                    break
+                await asyncio.sleep(0.2)
+            return condition_was_met
+
+        return loop.run_until_complete(wait_for_condition_or_timeout())
+
+    def assert_sandbox_worker_created(self, live_run, worker_name, timeout=2) -> None:
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(self.db.find_workers(worker_name=worker_name + "_sandbox"))
+                > 0,
+                timeout,
+            ),
+            f"Worker {worker_name} not created in time!",
+        )
+
+    def assert_agent_created(self, live_run, agent_num, timeout=2) -> None:
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(self.db.find_agents()) == agent_num,
+                timeout,
+            ),
+            f"Agent {agent_num} not created in time!",
+        )
+        agents = self.db.find_agents()
+        agent = agents[agent_num - 1]
+        self.assertIsNotNone(agent)
+
+    def _await_current_tasks(self, live_run, timeout=5) -> None:
+        self._run_loop_until(
+            live_run,
+            lambda: len(asyncio.all_tasks(live_run.loop_wrap.loop)) < 3,
+            timeout,
+        )
+
+    def await_channel_requests(self, live_run, timeout=2) -> None:
+        self._await_current_tasks(live_run, timeout)
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(live_run.client_io.request_id_to_channel_id) == 0,
+                timeout,
+            ),
+            f"Channeled requests not processed in time!",
+        )
 
     def test_channel_operations(self):
         """
         Initialize a channel, and ensure the basic
         startup and shutdown functions are working
         """
-        sup = Supervisor(self.db)
-        self.sup = sup
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         args = MockBlueprint.ArgsClass()
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
-        test_job = Job(
-            architect=self.architect,
-            task_runner=task_runner,
-            provider=self.provider,
-            qualifications=[],
-            registered_channel_ids=[],
-            task_launcher=self.launcher,
-        )
 
         channels = self.architect.get_channels(
-            sup._on_channel_open, sup._on_catastrophic_disconnect, sup._on_message
+            self.client_io._on_channel_open,
+            self.client_io._on_catastrophic_disconnect,
+            self.client_io._on_message,
         )
         channel = channels[0]
-        channel.open()
-        channel_id = channel.channel_id
-        self.assertIsNotNone(channel_id)
+        self.client_io._register_channel(channel)
+        self.assertTrue(channel.is_alive())
         channel.close()
         self.assertTrue(channel.is_closed())
 
-    def test_register_concurrent_job(self):
-        """Test registering and running a job that requires multiple workers"""
+    def test_register_concurrent_run(self):
+        """Test registering and running a run that requires multiple workers"""
         # Handle baseline setup
-        sup = Supervisor(self.db)
-        self.sup = sup
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         args = MockBlueprint.ArgsClass()
         args.timeout_time = 5
         args.is_concurrent = False
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
-        sup.register_job(self.architect, task_runner, self.provider)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive)
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
-        self.assertIsNotNone(channel_id)
+        blueprint = self.task_run.get_blueprint()
+        live_run = self.get_mock_run(blueprint, task_runner)
+        self.live_run = live_run
+        live_run.client_io.launch_channels()
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -169,18 +244,18 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker = workers[0]
 
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         worker_id = workers[0].db_id
 
@@ -189,15 +264,19 @@ class BaseTestSupervisor:
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent was not created properly")
 
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent may have been duplicated")
         agent = agents[0]
         self.assertIsNotNone(agent)
-        self.assertEqual(len(sup.agents), 1, "Agent not registered with supervisor")
+        self.assertEqual(
+            len(live_run.worker_pool.agents), 1, "Agent not registered with worker pool"
+        )
 
         self.assertEqual(
             len(task_runner.running_units), 1, "Ready task was not launched"
@@ -206,15 +285,17 @@ class BaseTestSupervisor:
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
 
         self.assertEqual(len(task_runner.running_units), 2, "Tasks were not launched")
-        agents = [a.agent for a in sup.agents.values()]
+        agents = [a for a in live_run.worker_pool.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
@@ -222,62 +303,58 @@ class BaseTestSupervisor:
         agent_2_data = agents[1].datastore.agent_data[agent_id_2]
         self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
         self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
+        self.await_channel_requests(live_run)
 
         # Give up to 1 seconds for the actual operations to occur
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data["acts"]) > 0:
-                break
-            time.sleep(0.1)
-
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(agent_1_data["acts"]) > 0,
+                1,
+            ),
+            "Did not process messages in time",
         )
 
         # Give up to 1 seconds for the task to complete afterwards
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(task_runner.running_units) == 0:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(task_runner.running_units) == 0,
+                1,
+            ),
+            "Did not complete task in time",
         )
 
         # Give up to 1 seconds for all messages to propogate
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: self.architect.server.actions_observed == 2,
+                1,
+            ),
+            "Not all actions observed in time",
         )
 
-        sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed)
+        live_run.shutdown()
+        self.assertTrue(channel.is_closed)
 
-    def test_register_job(self):
-        """Test registering and running a job run asynchronously"""
+    def test_register_run(self):
+        """Test registering and running a task run asynchronously"""
         # Handle baseline setup
-        sup = Supervisor(self.db)
-        self.sup = sup
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         args = MockBlueprint.ArgsClass()
         args.timeout_time = 5
         config = OmegaConf.structured(MephistoConfig(blueprint=args))
         task_runner = TaskRunnerClass(self.task_run, config, EMPTY_STATE)
-        sup.register_job(self.architect, task_runner, self.provider)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive())
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
-        self.assertIsNotNone(channel_id)
+        blueprint = self.task_run.get_blueprint(args=config)
+        live_run = self.get_mock_run(blueprint, task_runner)
+        self.live_run = live_run
+        live_run.client_io.launch_channels()
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -287,18 +364,18 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker = workers[0]
 
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         worker_id = workers[0].db_id
 
@@ -307,15 +384,19 @@ class BaseTestSupervisor:
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent was not created properly")
 
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent may have been duplicated")
         agent = agents[0]
         self.assertIsNotNone(agent)
-        self.assertEqual(len(sup.agents), 1, "Agent not registered with supervisor")
+        self.assertEqual(
+            len(self.worker_pool.agents), 1, "Agent not registered with worker pool"
+        )
 
         self.assertEqual(
             len(task_runner.running_assignments), 0, "Task was not yet ready"
@@ -324,17 +405,19 @@ class BaseTestSupervisor:
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_id = workers[0].db_id
 
         # Register an agent
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
 
         self.assertEqual(
             len(task_runner.running_assignments), 1, "Task was not launched"
         )
-        agents = [a.agent for a in sup.agents.values()]
+        agents = [a for a in self.worker_pool.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
@@ -342,49 +425,44 @@ class BaseTestSupervisor:
         agent_2_data = agents[1].datastore.agent_data[agent_id_2]
         self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
         self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
+        self.await_channel_requests(live_run)
 
         # Give up to 1 seconds for the actual operation to occur
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data["acts"]) > 0:
-                break
-            time.sleep(0.1)
-
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(agent_1_data["acts"]) > 0,
+                1,
+            ),
+            "Did not process messages in time",
         )
 
         # Give up to 1 seconds for the task to complete afterwards
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(task_runner.running_assignments) == 0:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(task_runner.running_assignments) == 0,
+                1,
+            ),
+            "Did not complete task in time",
         )
 
         # Give up to 1 seconds for all messages to propogate
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: self.architect.server.actions_observed == 2,
+                1,
+            ),
+            "Not all actions observed in time",
         )
 
-        sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed())
+        live_run.shutdown()
+        self.assertTrue(channel.is_closed())
 
-    def test_register_concurrent_job_with_onboarding(self):
-        """Test registering and running a job with onboarding"""
+    def test_register_concurrent_run_with_onboarding(self):
+        """Test registering and running a run with onboarding"""
         # Handle baseline setup
-        sup = Supervisor(self.db)
-        self.sup = sup
         TEST_QUALIFICATION_NAME = "test_onboarding_qualification"
 
         task_run_args = self.task_run.args
@@ -400,14 +478,14 @@ class BaseTestSupervisor:
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
 
-        sup.register_job(self.architect, task_runner, self.provider)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive())
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
-        self.assertIsNotNone(channel_id)
+        live_run = self.get_mock_run(blueprint, task_runner)
+        self.live_run = live_run
+        live_run.client_io.launch_channels()
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -417,25 +495,26 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
 
         self.assertEqual(len(task_runner.running_units), 0)
 
         # Fail to register an agent who fails onboarding
         mock_worker_name = "BAD_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker_0 = workers[0]
 
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         worker_id = workers[0].db_id
 
         mock_agent_details = "FAKE_ASSIGNMENT"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet - need onboarding"
@@ -444,10 +523,13 @@ class BaseTestSupervisor:
         self.assertEqual(
             len(onboard_agents), 1, "Onboarding agent should have been created"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
+        if not last_packet["data"].get("status") == "onboarding":
+            self.assertIn(
+                "onboard_data", last_packet["data"], "Onboarding not triggered"
+            )
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
@@ -455,14 +537,18 @@ class BaseTestSupervisor:
         self.architect.server.register_mock_agent_after_onboarding(
             worker_id, onboard_agents[0].get_agent_id(), onboard_data
         )
+        self.await_channel_requests(live_run, 4)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 0, "Failed agent created after onboarding")
 
         # Re-register as if refreshing
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 0, "Failed agent created after onboarding")
-        self.assertEqual(len(sup.agents), 0, "Failed agent registered with supervisor")
+        self.assertEqual(
+            len(self.worker_pool.agents), 0, "Failed agent registered with worker pool"
+        )
 
         self.assertEqual(
             len(task_runner.running_units),
@@ -473,27 +559,30 @@ class BaseTestSupervisor:
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker_1 = workers[0]
 
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         worker_id = workers[0].db_id
 
         self.assertEqual(len(task_runner.running_assignments), 0)
 
         # Fail to register a blocked agent
-        mock_agent_details = "FAKE_ASSIGNMENT"
+        mock_agent_details = "FAKE_ASSIGNMENT_2"
         qualification_id = blueprint.onboarding_qualification_id
         self.db.grant_qualification(qualification_id, worker_1.db_id, 0)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet, failed onboarding"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -508,8 +597,9 @@ class BaseTestSupervisor:
         self.db.revoke_qualification(qualification_id, worker_id)
 
         # Register an onboarding agent successfully
-        mock_agent_details = "FAKE_ASSIGNMENT"
+        mock_agent_details = "FAKE_ASSIGNMENT_3"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet - need onboarding"
@@ -518,10 +608,13 @@ class BaseTestSupervisor:
         self.assertEqual(
             len(onboard_agents), 2, "Onboarding agent should have been created"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
+        if not last_packet["data"].get("status") == "onboarding":
+            self.assertIn(
+                "onboard_data", last_packet["data"], "Onboarding not triggered"
+            )
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
@@ -529,16 +622,20 @@ class BaseTestSupervisor:
         self.architect.server.register_mock_agent_after_onboarding(
             worker_id, onboard_agents[1].get_agent_id(), onboard_data
         )
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent not created after onboarding")
 
         # Re-register as if refreshing
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "Agent may have been duplicated")
         agent = agents[0]
         self.assertIsNotNone(agent)
-        self.assertEqual(len(sup.agents), 1, "Agent not registered with supervisor")
+        self.assertEqual(
+            len(self.worker_pool.agents), 1, "Agent not registered with worker pool"
+        )
 
         self.assertEqual(
             len(task_runner.running_assignments),
@@ -549,15 +646,17 @@ class BaseTestSupervisor:
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_2 = workers[0]
         worker_id = worker_2.db_id
 
         # Register an agent that is already qualified
-        mock_agent_details = "FAKE_ASSIGNMENT_2"
+        mock_agent_details = "FAKE_ASSIGNMENT_4"
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
-        time.sleep(0.1)
+        self.await_channel_requests(live_run)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -578,7 +677,7 @@ class BaseTestSupervisor:
         self.assertFalse(worker_1.is_disqualified(TEST_QUALIFICATION_NAME))
         self.assertTrue(worker_2.is_qualified(TEST_QUALIFICATION_NAME))
         self.assertFalse(worker_2.is_disqualified(TEST_QUALIFICATION_NAME))
-        agents = [a.agent for a in sup.agents.values()]
+        agents = [a for a in self.worker_pool.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
@@ -586,49 +685,44 @@ class BaseTestSupervisor:
         agent_2_data = agents[1].datastore.agent_data[agent_id_2]
         self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
         self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
+        self.await_channel_requests(live_run)
 
         # Give up to 1 seconds for the actual operation to occur
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data["acts"]) > 0:
-                break
-            time.sleep(0.1)
-
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(agent_1_data["acts"]) > 0,
+                1,
+            ),
+            "Did not process messages in time",
         )
 
         # Give up to 1 seconds for the task to complete afterwards
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(task_runner.running_assignments) == 0:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(task_runner.running_assignments) == 0,
+                1,
+            ),
+            "Did not complete task in time",
         )
 
         # Give up to 1 seconds for all messages to propogate
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: self.architect.server.actions_observed == 2,
+                1,
+            ),
+            "Not all actions observed in time",
         )
 
-        sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed())
+        live_run.shutdown()
+        self.assertTrue(channel.is_closed())
 
-    def test_register_job_with_onboarding(self):
-        """Test registering and running a job with onboarding"""
+    def test_register_run_with_onboarding(self):
+        """Test registering and running a run with onboarding"""
         # Handle baseline setup
-        sup = Supervisor(self.db)
-        self.sup = sup
         TEST_QUALIFICATION_NAME = "test_onboarding_qualification"
 
         # Register onboarding arguments for blueprint
@@ -644,14 +738,14 @@ class BaseTestSupervisor:
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         task_runner = TaskRunnerClass(self.task_run, task_run_args, EMPTY_STATE)
-        sup.register_job(self.architect, task_runner, self.provider)
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive())
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
-        self.assertIsNotNone(channel_id)
+        live_run = self.get_mock_run(blueprint, task_runner)
+        self.live_run = live_run
+        live_run.client_io.launch_channels()
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -661,18 +755,18 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
 
         # Register a worker
         mock_worker_name = "MOCK_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker_1 = workers[0]
 
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker potentially re-registered")
         worker_id = workers[0].db_id
 
@@ -683,11 +777,12 @@ class BaseTestSupervisor:
         qualification_id = blueprint.onboarding_qualification_id
         self.db.grant_qualification(qualification_id, worker_1.db_id, 0)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet, failed onboarding"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -704,6 +799,7 @@ class BaseTestSupervisor:
         # Register an agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents), 0, "Agent should not be created yet - need onboarding"
@@ -712,10 +808,13 @@ class BaseTestSupervisor:
         self.assertEqual(
             len(onboard_agents), 1, "Onboarding agent should have been created"
         )
-        time.sleep(0.1)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
+        if not last_packet["data"].get("status") == "onboarding":
+            self.assertIn(
+                "onboard_data", last_packet["data"], "Onboarding not triggered"
+            )
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
@@ -723,14 +822,18 @@ class BaseTestSupervisor:
         self.architect.server.register_mock_agent_after_onboarding(
             worker_id, onboard_agents[0].get_agent_id(), onboard_data
         )
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 0, "Failed agent created after onboarding")
 
         # Re-register as if refreshing
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 0, "Failed agent created after onboarding")
-        self.assertEqual(len(sup.agents), 0, "Failed agent registered with supervisor")
+        self.assertEqual(
+            len(self.worker_pool.agents), 0, "Failed agent registered with worker pool"
+        )
 
         self.assertEqual(
             len(task_runner.running_units),
@@ -741,7 +844,8 @@ class BaseTestSupervisor:
         # Register another worker
         mock_worker_name = "MOCK_WORKER_2"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_2 = workers[0]
         worker_id = worker_2.db_id
 
@@ -749,7 +853,8 @@ class BaseTestSupervisor:
         mock_agent_details = "FAKE_ASSIGNMENT_2"
         self.db.grant_qualification(qualification_id, worker_2.db_id, 1)
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
-        time.sleep(0.1)
+        self.await_channel_requests(live_run)
+
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
         self.assertNotIn(
@@ -770,11 +875,13 @@ class BaseTestSupervisor:
         # Register another worker
         mock_worker_name = "MOCK_WORKER_3"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_3 = workers[0]
         worker_id = worker_3.db_id
         mock_agent_details = "FAKE_ASSIGNMENT_3"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(
             len(agents), 1, "Agent should not be created yet - need onboarding"
@@ -783,10 +890,13 @@ class BaseTestSupervisor:
         self.assertEqual(
             len(onboard_agents), 2, "Onboarding agent should have been created"
         )
-        time.sleep(0.1)
+        self._await_current_tasks(live_run, 2)
         last_packet = self.architect.server.last_packet
         self.assertIsNotNone(last_packet)
-        self.assertIn("onboard_data", last_packet["data"], "Onboarding not triggered")
+        if not last_packet["data"].get("status") == "onboarding":
+            self.assertIn(
+                "onboard_data", last_packet["data"], "Onboarding not triggered"
+            )
         self.architect.server.last_packet = None
 
         # Submit onboarding from the agent
@@ -794,24 +904,28 @@ class BaseTestSupervisor:
         self.architect.server.register_mock_agent_after_onboarding(
             worker_id, onboard_agents[1].get_agent_id(), onboard_data
         )
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Agent not created after onboarding")
 
         # Re-register as if refreshing
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Duplicate agent created after onboarding")
         agent = agents[1]
         self.assertIsNotNone(agent)
         self.assertEqual(
-            len(sup.agents), 2, "Agent not registered supervisor after onboarding"
+            len(self.worker_pool.agents),
+            2,
+            "Agent not registered to worker pool after onboarding",
         )
 
         self.assertEqual(
             len(task_runner.running_units), 2, "Task not launched after onboarding"
         )
 
-        agents = [a.agent for a in sup.agents.values()]
+        agents = [a for a in self.worker_pool.agents.values()]
 
         # Make both agents act
         agent_id_1, agent_id_2 = agents[0].db_id, agents[1].db_id
@@ -819,53 +933,48 @@ class BaseTestSupervisor:
         agent_2_data = agents[1].datastore.agent_data[agent_id_2]
         self.architect.server.send_agent_act(agent_id_1, {"text": "message1"})
         self.architect.server.send_agent_act(agent_id_2, {"text": "message2"})
+        self.await_channel_requests(live_run)
 
         # Give up to 1 seconds for the actual operation to occur
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(agent_1_data["acts"]) > 0:
-                break
-            time.sleep(0.1)
-
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not process messages in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(agent_1_data["acts"]) > 0,
+                1,
+            ),
+            "Did not process messages in time",
         )
 
         # Give up to 1 seconds for the task to complete afterwards
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if len(task_runner.running_units) == 0:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not complete task in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: len(task_runner.running_units) == 0,
+                1,
+            ),
+            "Did not complete task in time",
         )
 
         # Give up to 1 seconds for all messages to propogate
-        start_time = time.time()
-        TIMEOUT_TIME = 1
-        while time.time() - start_time < TIMEOUT_TIME:
-            if self.architect.server.actions_observed == 2:
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Not all actions observed in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: self.architect.server.actions_observed == 2,
+                1,
+            ),
+            "Not all actions observed in time",
         )
 
-        sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed())
+        live_run.shutdown()
+        self.assertTrue(channel.is_closed())
 
-    def test_register_job_with_screening(self):
-        """Test registering and running a job with screening"""
+    def test_register_run_with_screening(self):
+        """Test registering and running a run with screening"""
         if self.DB_CLASS != MephistoSingletonDB:
             # TODO(#97) This test only works with singleton for now due to disconnect simulation
             return
 
         # Handle baseline setup
-        sup = Supervisor(self.db)
-        self.sup = sup
         PASSED_QUALIFICATION_NAME = "test_screening_qualification"
         FAILED_QUALIFICATION_NAME = "failed_screening_qualification"
 
@@ -901,15 +1010,14 @@ class BaseTestSupervisor:
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
         task_runner = TaskRunnerClass(self.task_run, task_run_args, shared_state)
-        job = sup.register_job(self.architect, task_runner, self.provider)
-        job.task_launcher = self.launcher
-        self.assertEqual(len(sup.channels), 1)
-        channel_info = list(sup.channels.values())[0]
-        self.assertIsNotNone(channel_info)
-        self.assertTrue(channel_info.channel.is_alive())
-        channel_id = channel_info.channel_id
-        task_runner = channel_info.job.task_runner
-        self.assertIsNotNone(channel_id)
+        live_run = self.get_mock_run(blueprint, task_runner)
+        self.live_run = live_run
+        live_run.client_io.launch_channels()
+        self.assertEqual(len(live_run.client_io.channels), 1)
+        channel = list(live_run.client_io.channels.values())[0]
+        self.assertIsNotNone(channel)
+        self.assertTrue(channel.is_alive())
+        task_runner = live_run.task_runner
         self.assertEqual(
             len(self.architect.server.subs),
             1,
@@ -919,26 +1027,27 @@ class BaseTestSupervisor:
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
         )
-        sup.launch_sending_thread()
-        self.assertIsNotNone(sup.sending_thread)
 
         # Register workers
         mock_worker_name = "MOCK_WORKER"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         self.assertEqual(len(workers), 1, "Worker not successfully registered")
         worker_1 = workers[0]
         worker_id = workers[0].db_id
 
         mock_worker_name = "MOCK_WORKER_2"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_2 = workers[0]
         worker_id_2 = worker_2.db_id
 
         mock_worker_name = "MOCK_WORKER_3"
         self.architect.server.register_mock_worker(mock_worker_name)
-        workers = self.db.find_workers(worker_name=mock_worker_name)
+        self.await_channel_requests(live_run)
+        workers = self.db.find_workers(worker_name=mock_worker_name + "_sandbox")
         worker_3 = workers[0]
         worker_id_3 = worker_3.db_id
 
@@ -947,9 +1056,10 @@ class BaseTestSupervisor:
         # Register a screening agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT"
         self.architect.server.register_mock_agent(worker_id, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 1, "No agent created for screening")
-        time.sleep(0.1)
+
         self.assertEqual(
             agents[0].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
@@ -959,10 +1069,11 @@ class BaseTestSupervisor:
         # Register a second screening agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT2"
         self.architect.server.register_mock_agent(worker_id_2, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "No agent created for screening")
         last_packet = None
-        time.sleep(0.1)
+
         self.assertEqual(
             agents[1].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
@@ -972,20 +1083,20 @@ class BaseTestSupervisor:
         # Fail to register a third screening agent
         mock_agent_details = "FAKE_ASSIGNMENT3"
         self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 2, "Third agent created, when 2 was max")
-        time.sleep(0.1)
 
         # Disconnect first agent
         agents[0].update_status(AgentState.STATUS_DISCONNECT)
-        time.sleep(0.5)
 
         # Register third screening agent
         mock_agent_details = "FAKE_ASSIGNMENT3"
         self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 3, "Third agent not created")
-        time.sleep(0.1)
+
         self.assertEqual(
             agents[2].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
@@ -995,56 +1106,57 @@ class BaseTestSupervisor:
         # Submit screening from the agent
         screening_data = {"success": False}
         self.architect.server.send_agent_act(agents[1].get_agent_id(), screening_data)
+        self.await_channel_requests(live_run)
         # Assert failed screening screening
-        start_time = time.time()
-        TIMEOUT_TIME = 5
-        while time.time() - start_time < TIMEOUT_TIME:
-            if worker_2.is_qualified(FAILED_QUALIFICATION_NAME):
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not qualify in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: worker_2.is_qualified(FAILED_QUALIFICATION_NAME),
+                5,
+            ),
+            "Did not disqualify in time",
         )
 
         # Submit screening from the agent
         screening_data = {"success": True}
         self.architect.server.send_agent_act(agents[2].get_agent_id(), screening_data)
+        self.await_channel_requests(live_run)
         # Assert successful screening screening
-        start_time = time.time()
-        TIMEOUT_TIME = 5
-        while time.time() - start_time < TIMEOUT_TIME:
-            if worker_3.is_qualified(PASSED_QUALIFICATION_NAME):
-                break
-            time.sleep(0.1)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Did not qualify in time"
+        self.assertTrue(
+            self._run_loop_until(
+                live_run,
+                lambda: worker_3.is_qualified(PASSED_QUALIFICATION_NAME),
+                5,
+            ),
+            "Did not qualify in time",
         )
 
         # Accept a real task, and complete it, from worker 3
         # Register a task agent successfully
         mock_agent_details = "FAKE_ASSIGNMENT4"
         self.architect.server.register_mock_agent(worker_id_3, mock_agent_details)
+        self.await_channel_requests(live_run)
         agents = self.db.find_agents()
         self.assertEqual(len(agents), 4, "No agent created for task")
         last_packet = None
-        time.sleep(0.1)
+
         self.assertNotEqual(
             agents[3].get_unit().unit_index,
             SCREENING_UNIT_INDEX,
             "Agent assigned screening unit",
         )
 
-        sup.shutdown()
-        self.assertTrue(channel_info.channel.is_closed())
+        live_run.shutdown()
+        self.assertTrue(channel.is_closed())
 
     # TODO(#97) handle testing for disconnecting in and out of tasks
 
 
-class TestSupervisorLocal(BaseTestSupervisor, unittest.TestCase):
+class TestSupervisorLocal(BaseTestLiveRuns, unittest.TestCase):
     DB_CLASS = LocalMephistoDB
 
 
-class TestSupervisorSingleton(BaseTestSupervisor, unittest.TestCase):
+class TestSupervisorSingleton(BaseTestLiveRuns, unittest.TestCase):
     DB_CLASS = MephistoSingletonDB
 
 

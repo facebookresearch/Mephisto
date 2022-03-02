@@ -29,7 +29,7 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.channel import Channel
+    from mephisto.abstractions._subcomponents.channel import Channel
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB

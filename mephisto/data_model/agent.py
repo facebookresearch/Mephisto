@@ -6,6 +6,7 @@
 
 import os
 import threading
+from queue import Queue
 from mephisto.tools.misc import warn_once
 from uuid import uuid4
 
@@ -32,12 +33,13 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task import Task
     from mephisto.data_model.task_run import TaskRun
+    from mephisto.operations.datatypes import LiveTaskRun
 
 from mephisto.operations.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
-
+# TODO(CLEAN) can probably refactor out some kind of AgentBase
 class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class encompasses a worker as they are working on an individual assignment.
@@ -69,13 +71,10 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self.unit_id = row["unit_id"]
         self.task_type = row["task_type"]
         self.provider_type = row["provider_type"]
-        self.pending_observations: List["Packet"] = []
-        self.pending_actions: List["Packet"] = []
+        self.pending_observations: "Queue[Packet]" = Queue()
+        self.pending_actions: "Queue[Packet]" = Queue()
         self.has_action = threading.Event()
         self.has_action.clear()
-        self.wants_action = threading.Event()
-        self.wants_action.clear()
-        self.has_updated_status = threading.Event()
         self.assignment_id = row["assignment_id"]
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
@@ -88,6 +87,9 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self._assignment: Optional["Assignment"] = None
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
+
+        # Related entity set by a live run
+        self._associated_live_run: Optional["LiveTaskRun"] = None
 
         # Follow-up initialization is deferred
         self._state = None  # type: ignore
@@ -127,6 +129,18 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    def set_live_run(self, live_run: "LiveTaskRun") -> None:
+        """Set an associated live run for this agent"""
+        self._associated_live_run = live_run
+
+    def get_live_run(self) -> "LiveTaskRun":
+        """Return the associated live run for this agent. Throw if not set"""
+        if self._associated_live_run is None:
+            raise AssertionError(
+                "Should not be getting the live run, not set for given agent"
+            )
+        return self._associated_live_run
 
     def get_agent_id(self) -> str:
         """Return this agent's id"""
@@ -210,7 +224,11 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         old_status = self.db_status
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        self.has_updated_status.set()
+        if self._associated_live_run is not None:
+            live_run = self.get_live_run()
+            live_run.loop_wrap.execute_coro(
+                live_run.worker_pool.push_status_update(self)
+            )
         if new_status in [
             AgentState.STATUS_RETURNED,
             AgentState.STATUS_DISCONNECT,
@@ -276,7 +294,10 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         sending_packet = packet.copy()
         sending_packet.receiver_id = self.db_id
         self.state.update_data(sending_packet)
-        self.pending_observations.append(sending_packet)
+        self.pending_observations.put(sending_packet)
+        if self._associated_live_run is not None:
+            live_run = self.get_live_run()
+            live_run.client_io.process_outgoing_queue(self.pending_observations)
 
     def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
         """
@@ -284,13 +305,15 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         (timeout is None) should return None if no actions are ready
         to be returned.
         """
-        if len(self.pending_actions) == 0:
-            self.wants_action.set()
+        if self.pending_actions.empty():
+            if self._associated_live_run is not None:
+                live_run = self.get_live_run()
+                live_run.client_io.request_action(self.get_agent_id())
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             if self.is_shutdown:
                 raise AgentShutdownError(self.db_id)
             # various disconnect cases
@@ -301,14 +324,16 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        assert len(self.pending_actions) > 0, "has_action released without an action!"
+        assert (
+            not self.pending_actions.empty()
+        ), "has_action released without an action!"
 
-        act = self.pending_actions.pop(0)
+        act = self.pending_actions.get()
 
         if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
             self.did_submit.set()
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             self.has_action.clear()
         self.state.update_data(act)
         return act
@@ -324,7 +349,11 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 ]:
                     # Disconnect statuses should free any pending acts
                     self.has_action.set()
-                self.has_updated_status.set()
+                if self._associated_live_run is not None:
+                    live_run = self.get_live_run()
+                    live_run.loop_wrap.execute_coro(
+                        live_run.worker_pool.push_status_update(self)
+                    )
             self.db_status = row["status"]
         return self.db_status
 
@@ -421,13 +450,10 @@ class OnboardingAgent(
         self.db_status = row["status"]
         self.worker_id = row["worker_id"]
         self.task_type = row["task_type"]
-        self.pending_observations: List["Packet"] = []
-        self.pending_actions: List["Packet"] = []
+        self.pending_observations: "Queue[Packet]" = Queue()
+        self.pending_actions: "Queue[Packet]" = Queue()
         self.has_action = threading.Event()
         self.has_action.clear()
-        self.wants_action = threading.Event()
-        self.wants_action.clear()
-        self.has_updated_status = threading.Event()
         self.task_run_id = row["task_run_id"]
         self.task_id = row["task_id"]
         self.did_submit = threading.Event()
@@ -438,12 +464,27 @@ class OnboardingAgent(
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
 
+        # Related entity set by a live run
+        self._associated_live_run: Optional["LiveTaskRun"] = None
+
         # Follow-up initialization
         self.state = AgentState(self)  # type: ignore
 
     def get_agent_id(self) -> str:
         """Return an id to use for onboarding agent requests"""
         return f"{self.DISPLAY_PREFIX}{self.db_id}"
+
+    def set_live_run(self, live_run: "LiveTaskRun") -> None:
+        """Set an associated live run for this agent"""
+        self._associated_live_run = live_run
+
+    def get_live_run(self) -> "LiveTaskRun":
+        """Return the associated live run for this agent. Throw if not set"""
+        if self._associated_live_run is None:
+            raise AssertionError(
+                "Should not be getting the live run, not set for given agent"
+            )
+        return self._associated_live_run
 
     @classmethod
     def is_onboarding_id(cls, agent_id: str) -> bool:
@@ -506,8 +547,15 @@ class OnboardingAgent(
 
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        if new_status not in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
-            self.has_updated_status.set()
+        if self._associated_live_run is not None:
+            if new_status not in [
+                AgentState.STATUS_APPROVED,
+                AgentState.STATUS_REJECTED,
+            ]:
+                live_run = self.get_live_run()
+                live_run.loop_wrap.execute_coro(
+                    live_run.worker_pool.push_status_update(self)
+                )
         if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
             # Disconnect statuses should free any pending acts
             self.has_action.set()
@@ -521,7 +569,7 @@ class OnboardingAgent(
         sending_packet = packet.copy()
         sending_packet.receiver_id = self.get_agent_id()
         self.state.update_data(sending_packet)
-        self.pending_observations.append(sending_packet)
+        self.pending_observations.put(sending_packet)
 
     def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
         """
@@ -529,13 +577,15 @@ class OnboardingAgent(
         (timeout is None) should return None if no actions are ready
         to be returned.
         """
-        if len(self.pending_actions) == 0:
-            self.wants_action.set()
+        if self.pending_actions.empty():
+            if self._associated_live_run is not None:
+                live_run = self.get_live_run()
+                live_run.client_io.request_action(self.get_agent_id())
             if timeout is None or timeout == 0:
                 return None
             self.has_action.wait(timeout)
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             # various disconnect cases
             if self.is_shutdown:
                 raise AgentShutdownError(self.db_id)
@@ -546,14 +596,16 @@ class OnboardingAgent(
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        assert len(self.pending_actions) > 0, "has_action released without an action!"
+        assert (
+            not self.pending_actions.empty()
+        ), "has_action released without an action!"
 
-        act = self.pending_actions.pop(0)
+        act = self.pending_actions.get()
 
         if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
             self.did_submit.set()
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             self.has_action.clear()
         self.state.update_data(act)
         return act
@@ -569,19 +621,23 @@ class OnboardingAgent(
                 ]:
                     # Disconnect statuses should free any pending acts
                     self.has_action.set()
-            if row["status"] not in [
-                AgentState.STATUS_APPROVED,
-                AgentState.STATUS_REJECTED,
-            ]:
-                self.has_updated_status.set()
+                if row["status"] not in [
+                    AgentState.STATUS_APPROVED,
+                    AgentState.STATUS_REJECTED,
+                ]:
+                    if self._associated_live_run is not None:
+                        live_run = self.get_live_run()
+                        live_run.loop_wrap.execute_coro(
+                            live_run.worker_pool.push_status_update(self)
+                        )
             self.db_status = row["status"]
         return self.db_status
 
     def mark_done(self) -> None:
         """Mark this agent as done by setting the status to a terminal onboarding state"""
-        # TODO the logic for when onboarding gets marked as waiting or approved/rejected
+        # TODO(#651) the logic for when onboarding gets marked as waiting or approved/rejected
         # should likely be cleaned up to remove these conditionals.
-        if self.get_status not in [
+        if self.get_status() not in [
             AgentState.STATUS_APPROVED,
             AgentState.STATUS_REJECTED,
         ]:
