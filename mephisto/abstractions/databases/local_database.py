@@ -291,7 +291,7 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
-                c.execute(CREATE_CORE_INDEXES)
+                c.executescript(CREATE_CORE_INDEXES)
 
     def __get_one_by_id(
         self, table_name: str, id_name: str, db_id: str
