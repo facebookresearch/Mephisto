@@ -18,7 +18,7 @@ from botocore.config import Config  # type: ignore
 from omegaconf import DictConfig
 
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
-from mephisto.operations.logger_core import get_logger
+from mephisto.operations.logger_core import get_logger, format_loud
 from mephisto.operations.config_handler import get_config_arg
 
 logger = get_logger(name=__name__)
@@ -371,9 +371,9 @@ def convert_mephisto_qualifications(
                 False,
             )
             if qual_id is None:
-                # TODO(#93) log more loudly that this qualification is being skipped?
-                print(
-                    f"Qualification name {qualification_name} can not be found or created on MTurk"
+                logger.warning(
+                    f"Qualification name {qualification_name} can not be found or created on MTurk. "
+                    f"{format_loud('SKIPPING THIS QUALIFICATION')} and continuing conversion."
                 )
             converted["QualificationTypeId"] = qual_id
 
@@ -610,8 +610,6 @@ def approve_work(
             AssignmentId=assignment_id, OverrideRejection=override_rejection
         )
     except Exception as e:
-        # TODO(#93) Break down this error to the many reasons why approve may fail,
-        # only silently pass on approving an already approved assignment
         logger.exception(
             f"Approving MTurk assignment failed, likely because it has auto-approved. Details: {e}",
             exc_info=True,
@@ -623,8 +621,6 @@ def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
     try:
         client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
     except Exception as e:
-        # TODO(#93) Break down this error to the many reasons why approve may fail,
-        # only silently pass on approving an already approved assignment
         logger.exception(
             f"Rejecting MTurk assignment failed, likely because it has auto-approved. Details:{e}",
             exc_info=True,
