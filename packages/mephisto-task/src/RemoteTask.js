@@ -123,7 +123,7 @@ const useMephistoRemoteQueryTask = function (props) {
         if (disconnectIssueText !== undefined) {
           reject({ disconnected: true, reason: disconnectIssueText });
         } else {
-          makeRemoteCall({ targetEvent, args, resolve });
+          makeRemoteCall({ targetEvent, args, callback: resolve });
         }
       });
       return Promise.all([remoteCallPromise]);
