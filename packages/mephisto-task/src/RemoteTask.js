@@ -14,14 +14,8 @@
 
 import React from "react";
 
-import ConnectionIndicator from "./ConnectionIndicator.jsx";
-import {
-  useMephistoLiveTask,
-  AGENT_STATUS,
-  STATUS_TO_TEXT_MAP,
-  MephistoContext,
-  ErrorBoundary,
-} from "mephisto-task";
+import { useMephistoLiveTask, AGENT_STATUS, STATUS_TO_TEXT_MAP } from "./index";
+import { promises } from "dns";
 
 // Generate a random id
 function uuidv4() {
@@ -34,18 +28,7 @@ function uuidv4() {
 
 const useMephistoRemoteQueryTask = function (props) {
   // mapping of request ID to the callback object
-  const [requestCallbacks, addRequestCallback] = React.useReducer(
-    (previousRequestCallbacks, newRequestCallback) => {
-      let requestId = newRequestCallback.request_id;
-      let newRequestCallbacks = {
-        ...previousRequestCallbacks,
-        [requestId]: newRequestCallback,
-      };
-      return newRequestCallbacks;
-    },
-    {}
-  );
-
+  const requestCallbacks = {};
   const [disconnectIssueText, setDisconnectIssueText] = React.useState();
 
   // We register a ref so that the liveUpdate handler has access
@@ -61,11 +44,7 @@ const useMephistoRemoteQueryTask = function (props) {
     }
 
     let parsedResponse = JSON.parse(liveUpdate.response);
-    targetRequest.callback({
-      requestId: targetRequest.request_id,
-      response: parsedResponse,
-      args: targetRequest.args,
-    });
+    targetRequest.callback(parsedResponse);
   }
 
   let mephistoProps = useMephistoLiveTask({
@@ -130,25 +109,35 @@ const useMephistoRemoteQueryTask = function (props) {
         if (callback !== undefined) {
           updatePacket.callback = callback;
           updatePacket.args = args;
-          addRequestCallback(updatePacket);
+          requestCallbacksRef.current[requestId] = updatePacket;
         }
       });
       return requestId;
     },
-    [agentId, addRequestCallback]
+    [agentId]
   );
+
+  function remoteProcedure(targetEvent) {
+    const procedure = (args) => {
+      const remoteCallPromise = new Promise((resolve, reject) => {
+        if (disconnectIssueText !== undefined) {
+          reject({ disconnected: true, reason: disconnectIssueText });
+        } else {
+          makeRemoteCall({ targetEvent, args, resolve });
+        }
+      });
+      return Promise.all([remoteCallPromise]);
+    };
+    procedure.invoke = procedure;
+    return procedure;
+  }
 
   return {
     ...otherMephistoProps,
-    makeRemoteCall,
+    remoteProcedure,
     disconnectIssueText,
     _fullSocketProps,
   };
 };
 
-export {
-  useMephistoRemoteQueryTask,
-  ConnectionIndicator,
-  MephistoContext,
-  ErrorBoundary,
-};
+export { useMephistoRemoteQueryTask };
