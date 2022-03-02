@@ -93,7 +93,7 @@ function RenderChatMessage({
         }
         message={message.text}
         taskData={message.task_data}
-        messageId={message.message_id}
+        messageId={message.update_id}
         onRadioChange={onRadioChange}
       />
     </div>
@@ -162,7 +162,7 @@ function MainApp() {
           mephistoContext={mephistoContext}
           appContext={appContext}
           idx={idx}
-          key={message.message_id + "-" + idx}
+          key={message.update_id + "-" + idx}
           onRadioChange={(val) => {
             setChatAnnotation({ index: idx, value: val });
           }}

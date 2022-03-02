@@ -85,7 +85,7 @@ A render prop that if implemented, overides the way a chat message is rendered.
 ```
 {
     'id', // the speaker id for the message
-    'message_id', // a unique id for the current message
+    'update_id', // a unique id for the current message, gotten from the liveUpdate it came from
     'text', // the actual message text, the message should not be displayed if this value is undefined or an empty string
     'task_data', // any additional data payload, also used to update the `taskContext`
 }

@@ -33,20 +33,12 @@ function getHITId() {
   return urlParams.get("hitId");
 }
 
-function getWorkerRegistrationInfo() {
-  // MTurk workers are registered by name only
-  return {
-    worker_name: getWorkerName(),
-    provider_type: "mturk_sandbox",
-  };
-}
-
-function getAgentRegistration(mephisto_worker_id) {
+function getAgentRegistration() {
   // MTurk agents are created using the Mephisto worker_id
   // and the supplied assignment id
   return {
-    worker_id: mephisto_worker_id,
-    agent_registration_id: getAssignmentId() + "-" + mephisto_worker_id,
+    worker_name: getWorkerName(),
+    agent_registration_id: getAssignmentId() + "-" + getWorkerName(),
     assignment_id: getAssignmentId(),
     hit_id: getHITId(),
     provider_type: "mturk_sandbox",

@@ -93,3 +93,11 @@ def get_logger(
         # logger.addHandler(handler)
         loggers[name] = logger
         return logger
+
+
+BOLD_RED = "\u001b[31;1m"
+RESET = "\u001b[0m"
+
+
+def format_loud(target_text: str):
+    return f"{BOLD_RED}{target_text}{RESET}"

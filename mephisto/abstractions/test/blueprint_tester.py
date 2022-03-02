@@ -18,6 +18,7 @@ from mephisto.abstractions.blueprint import (
     TaskRunner,
     TaskBuilder,
 )
+from mephisto.abstractions._subcomponents.task_runner import RunningAssignment
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task_run import TaskRun
@@ -118,6 +119,10 @@ class BlueprintTests(unittest.TestCase):
         shared_state = self.BlueprintClass.SharedStateClass()
         return self.TaskBuilderClass(self.task_run, config)
 
+    def prep_mock_agents_to_complete(self, agents: List["MockAgent"]) -> None:
+        """Handle initializing mock agents to be able to pass their task"""
+        pass
+
     def test_options(self) -> None:
         """Test the default options, and try to break the initialization"""
         # TODO(#94?) implement with options implementations
@@ -209,14 +214,17 @@ class BlueprintTests(unittest.TestCase):
         """Ensure that a task can be run to completion in the basic case"""
         task_runner = self._get_init_task_runner()
         assignment = self.get_test_assignment()
-        agents: List["Agent"] = [
-            cast("Agent", u.get_assigned_agent()) for u in assignment.get_units()
+        mock_agents: List["MockAgent"] = [
+            cast("MockAgent", u.get_assigned_agent()) for u in assignment.get_units()
         ]
 
-        task_runner.running_assignments[
-            assignment.db_id
-        ] = None  # To ensure cleanup works
-        task_runner._launch_and_run_assignment(assignment, agents, lambda: None)
+        self.prep_mock_agents_to_complete(mock_agents)
+
+        agents: List["Agent"] = [cast("Agent", a) for a in mock_agents]
+        task_runner.running_assignments[assignment.db_id] = RunningAssignment(
+            None, None, None
+        )  # type: ignore
+        task_runner._launch_and_run_assignment(assignment, agents)
         self.assertTrue(self.assignment_completed_successfully(assignment))
 
     def test_can_exit_gracefully(self) -> None:
@@ -228,9 +236,7 @@ class BlueprintTests(unittest.TestCase):
         assert isinstance(fail_agent, MockAgent), "Agent must be mock agent for testing"
         fail_agent.mark_disconnected()
         try:
-            task_runner._launch_and_run_assignment(
-                assignment, [fail_agent], lambda: None
-            )
+            task_runner._launch_and_run_assignment(assignment, [fail_agent])
         except Exception as e:
             task_runner.cleanup_assignment(assignment)
 

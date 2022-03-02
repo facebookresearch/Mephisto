@@ -1,4 +1,8 @@
 #@package _global_
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
 mephisto:
   blueprint:
     data_csv: ${task_dir}/data.csv

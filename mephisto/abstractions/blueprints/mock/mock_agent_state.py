@@ -55,6 +55,10 @@ class MockAgentState(AgentState):
         """Mock agents don't save data (yet)"""
         pass
 
-    def update_data(self, packet: "Packet") -> None:
+    def update_data(self, live_update: Dict[str, Any]) -> None:
         """Put new data into this mock state"""
-        self.state = packet.data
+        self.state = live_update
+
+    def update_submit(self, submitted_data: Dict[str, Any]) -> None:
+        """Move the submitted data into the live state"""
+        self.state = submitted_data

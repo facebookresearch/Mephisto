@@ -16,12 +16,6 @@ except ImportError:
 
     pass  # ParlAI is not installed. TODO remove when we move this blueprint to ParlAI
 
-from mephisto.data_model.packet import (
-    Packet,
-    PACKET_TYPE_AGENT_ACTION,
-    PACKET_TYPE_UPDATE_AGENT_STATUS,
-)
-
 from importlib import import_module
 
 import os
@@ -30,6 +24,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+from mephisto.abstractions.blueprint import AgentState
 from uuid import uuid4
 
 from typing import ClassVar, List, Type, Any, Dict, Union, cast, TYPE_CHECKING
@@ -39,7 +34,6 @@ if TYPE_CHECKING:
         SharedParlAITaskState,
     )
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.abstractions.blueprint import AgentState
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.unit import Unit
     from omegaconf import DictConfig
@@ -55,6 +49,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         self.mephisto_agent = agent
         self.__agent_id = "unnamed agent"
         self.__mephisto_agent_id = agent.get_agent_id()
+        self.__act_requested = False
 
     @property
     def id(self):
@@ -76,42 +71,36 @@ class MephistoAgentWrapper(ParlAIAgent):
         frontend users, so when these are updated by a
         world we forward that to the frontend
         """
-        packaged_act = Packet(
-            packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
-            sender_id="mephisto",
-            receiver_id=self.__mephisto_agent_id,
-            data={"state": {"agent_display_name": new_agent_id}},
+        self.mephisto_agent.observe(
+            {"task_data": {"agent_display_name": new_agent_id}},
         )
-        self.mephisto_agent.observe(packaged_act)
         self.__agent_id = new_agent_id
 
     def act(self, timeout=None):
         """
         ParlAI Agents send an act dict, we must convert this
         """
-        if timeout is None:
-            gotten_act = self.mephisto_agent.act()
-        else:
-            gotten_act = self.mephisto_agent.act(timeout=timeout)
+        gotten_act = self.mephisto_agent.get_live_update()
+        if gotten_act is None:
+            # No act received, see that one is requested:
+            if not self.__act_requested:
+                self.mephisto_agent.observe(
+                    {"task_data": {"live_update_requested": True}}
+                )
+                self.__act_requested = True
+            if timeout is not None:
+                gotten_act = self.mephisto_agent.get_live_update(timeout=timeout)
         if gotten_act is None:
             return None
-        parsed_act = gotten_act.data
-        parsed_act["id"] = self.__agent_id
-        return Message(parsed_act)
+        self.__act_requested = False
+        gotten_act["id"] = self.__agent_id
+        return Message(gotten_act)
 
     def observe(self, act):
-        """
-        ParlAI Agents observe a dict, we must convert these to  packets?
-        """
-        if act.get("message_id") is None:
-            act["message_id"] = str(uuid4())
-        packaged_act = Packet(
-            packet_type=PACKET_TYPE_AGENT_ACTION,
-            sender_id="mephisto",
-            receiver_id=self.__mephisto_agent_id,
-            data=act,
-        )
-        self.mephisto_agent.observe(packaged_act)
+        """We can simply add a message id if not already provided to these"""
+        if act.get("update_id") is None:
+            act["update_id"] = str(uuid4())
+        self.mephisto_agent.observe(dict(act))
 
 
 class ParlAIChatTaskRunner(TaskRunner):
@@ -195,26 +184,21 @@ class ParlAIChatTaskRunner(TaskRunner):
             and agent.get_agent_id() in self.running_onboardings
         ):
             world.parley()
+
+        # Ensure agent can submit after onboarding
+        agent.update_status(AgentState.STATUS_WAITING)
+
         world.shutdown()
         agent.state.update_data(
-            Packet(
-                packet_type=PACKET_TYPE_AGENT_ACTION,
-                sender_id="mephisto",
-                receiver_id=agent.db_id,
-                data={
-                    "id": "SUBMIT_WORLD_DATA",
-                    "WORLD_DATA": world.prep_save_data([parlai_agent]),
-                    "text": "",
-                },
-            )
+            {
+                "id": "SUBMIT_WORLD_DATA",
+                "WORLD_DATA": world.prep_save_data([parlai_agent]),
+                "text": "",
+            }
         )
 
         # Mark the agent as done, then wait for the incoming submit action
-        agent.mark_done()
-        while not agent.has_action.is_set():
-            done_act = agent.act()
-            if done_act is not None:
-                break
+        while not agent.await_submit(timeout=None):
             time.sleep(0.3)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
@@ -248,6 +232,10 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 
+        # Ensure agents can submit after completion
+        for idx in range(len(parlai_agents)):
+            agents[idx].observe({"task_data": {"task_done": True}})
+
         # TODO(WISH) it would be nice to have individual agents be able to submit their
         # final things without needing to wait for their partner, such
         # as if one needs to rate and the other doesn't
@@ -255,16 +243,11 @@ class ParlAIChatTaskRunner(TaskRunner):
         world.shutdown()
         for idx in range(len(parlai_agents)):
             agents[idx].state.update_data(
-                Packet(
-                    packet_type=PACKET_TYPE_AGENT_ACTION,
-                    sender_id="mephisto",
-                    receiver_id=agents[idx].db_id,
-                    data={
-                        "id": "SUBMIT_WORLD_DATA",
-                        "WORLD_DATA": world.prep_save_data([parlai_agents[idx]]),
-                        "text": "",
-                    },
-                )
+                {
+                    "id": "SUBMIT_WORLD_DATA",
+                    "WORLD_DATA": world.prep_save_data([parlai_agents[idx]]),
+                    "text": "",
+                }
             )
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
@@ -294,19 +277,17 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not world.episode_done() and unit.db_id in self.running_units:
             world.parley()
 
+        # Ensure agent can submit after completion
+        agent.observe({"task_data": {"task_done": True}})
+
         world.shutdown()
         if hasattr(world, "prep_save_data"):
             agent.observe(
-                Packet(
-                    packet_type=PACKET_TYPE_AGENT_ACTION,
-                    sender_id="mephisto",
-                    receiver_id=agent.db_id,
-                    data={
-                        "id": "SUBMIT_WORLD_DATA",
-                        "WORLD_DATA": world.prep_save_data(parlai_agents),
-                        "text": "",
-                    },
-                )
+                {
+                    "id": "SUBMIT_WORLD_DATA",
+                    "WORLD_DATA": world.prep_save_data(parlai_agents),
+                    "text": "",
+                }
             )
 
     def cleanup_unit(self, unit: "Unit") -> None:

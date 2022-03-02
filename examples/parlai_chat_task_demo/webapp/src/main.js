@@ -27,7 +27,7 @@ function RenderChatMessage({ message, mephistoContext, appContext, idx }) {
         }
         message={message.text}
         taskData={message.task_data}
-        messageId={message.message_id}
+        messageId={message.update_id}
       />
     </div>
   );
@@ -42,7 +42,7 @@ function MainApp() {
           mephistoContext={mephistoContext}
           appContext={appContext}
           idx={idx}
-          key={message.message_id + "-" + idx}
+          key={message.update_id + "-" + idx}
         />
       )}
       renderSidePane={({ mephistoContext: { taskConfig } }) => (

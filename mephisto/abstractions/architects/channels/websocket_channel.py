@@ -142,9 +142,7 @@ class WebsocketChannel(Channel):
                         except websockets.exceptions.ConnectionClosedOK:
                             pass
                         except websockets.exceptions.ConnectionClosedError as e:
-                            if isinstance(
-                                e.__cause__, asyncio.exceptions.CancelledError
-                            ):
+                            if isinstance(e.__cause__, asyncio.CancelledError):
                                 pass
                             else:
                                 await on_error(e)
@@ -158,6 +156,11 @@ class WebsocketChannel(Channel):
                     # Issue with opening this channel, should shut down to prevent inaccessible tasks
                     self.on_catastrophic_disconnect(self.channel_id)
                     return
+                except OSError as e:
+                    logger.info(
+                        f"Unhandled OSError exception in socket {e}, attempting restart"
+                    )
+                    await asyncio.sleep(0.2)
                 except Exception as e:
                     logger.exception(f"Unhandled exception in socket {e}, {repr(e)}")
                     if self._is_closed:
@@ -201,7 +204,7 @@ class WebsocketChannel(Channel):
         except websockets.exceptions.ConnectionClosedOK:
             pass
         except websockets.exceptions.ConnectionClosedError as e:
-            if not isinstance(e.__cause__, asyncio.exceptions.CancelledError):
+            if not isinstance(e.__cause__, asyncio.CancelledError):
                 logger.exception(f"Caught error in _async_send {e}")
 
     def enqueue_send(self, packet: "Packet") -> bool:

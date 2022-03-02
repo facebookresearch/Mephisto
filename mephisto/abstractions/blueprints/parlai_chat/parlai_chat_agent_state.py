@@ -6,10 +6,6 @@
 
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.packet import (
-    PACKET_TYPE_AGENT_ACTION,
-    PACKET_TYPE_UPDATE_AGENT_STATUS,
-)
 import os
 import json
 import time
@@ -38,6 +34,7 @@ class ParlAIChatAgentState(AgentState):
             self.load_data()
         else:
             self.messages: List[Dict[str, Any]] = []
+            self.final_submission: Optional[Dict[str, Any]] = None
             self.init_data = None
             self.save_data()
 
@@ -58,7 +55,7 @@ class ParlAIChatAgentState(AgentState):
         """
         if self.init_data is None:
             return None
-        return {"task_data": self.init_data, "raw_messages": self.messages}
+        return {"task_data": self.init_data, "past_live_updates": self.messages}
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""
@@ -73,40 +70,41 @@ class ParlAIChatAgentState(AgentState):
             state = json.load(state_json)
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
+            self.final_submission = state["outputs"].get("final_submission")
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
-        return {"outputs": {"messages": self.messages}, "inputs": self.init_data}
+        return {
+            "outputs": {
+                "messages": self.messages,
+                "final_submission": self.final_submission,
+            },
+            "inputs": self.init_data,
+        }
 
     def get_parsed_data(self) -> Dict[str, Any]:
-        """Return the formatted input, conversations, and final data"""
+        """Return properly parsed data from this task"""
         init_data = self.init_data
         save_data = None
-        for m in self.messages:
-            m["data"]["timestamp"] = m["timestamp"]
 
-        messages = [
-            m["data"]
-            for m in self.messages
-            if m["packet_type"] == PACKET_TYPE_AGENT_ACTION
-        ]
         agent_name = None
+        for m in self.messages:
+            if "agent_display_name" in m["task_data"]:
+                agent_name = m["task_data"]["agent_display_name"]
+                break
+
+        messages = self.messages
         if len(messages) > 0:
-            for m in self.messages:
-                if m["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS:
-                    if "agent_display_name" in m["data"]["state"]:
-                        agent_name = m["data"]["state"]["agent_display_name"]
-                        break
-            if "MEPHISTO_is_submit" in messages[-1]:
-                messages = messages[:-1]
             if "WORLD_DATA" in messages[-1]:
                 save_data = messages[-1]["WORLD_DATA"]
                 messages = messages[:-1]
+
         return {
             "agent_name": agent_name,
             "initial_data": init_data,
             "messages": messages,
             "save_data": save_data,
+            "final_submission": self.final_submission,
         }
 
     def get_task_start(self) -> float:
@@ -127,11 +125,15 @@ class ParlAIChatAgentState(AgentState):
         with open(agent_file, "w+") as state_json:
             json.dump(self.get_data(), state_json)
 
-    def update_data(self, packet: "Packet") -> None:
+    def update_data(self, live_update: Dict[str, Any]) -> None:
         """
-        Append the incoming packet as well as who it came from
+        Append the incoming packet as well as its arrival time
         """
-        message_data = packet.to_sendable_dict()
-        message_data["timestamp"] = time.time()
-        self.messages.append(message_data)
+        live_update["timestamp"] = time.time()
+        self.messages.append(live_update)
+        self.save_data()
+
+    def update_submit(self, submitted_data: Dict[str, Any]) -> None:
+        """Append any final submission to this state"""
+        self.final_submission = submitted_data
         self.save_data()

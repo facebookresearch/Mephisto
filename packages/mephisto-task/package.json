@@ -1,13 +1,13 @@
 {
   "name": "mephisto-task",
-  "version": "1.0.16",
+  "version": "2.0.0",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
-    "dev": "webpack --mode development -q",
-    "dev:watch": "webpack --mode development -q --watch",
-    "build": "NODE_ENV=production webpack -p",
-    "prepublishOnly": "NODE_ENV=production webpack -p"
+    "dev": "webpack --mode=development",
+    "dev:watch": "webpack --mode=development --watch",
+    "build": "NODE_ENV=production webpack --mode=production --optimize-minimize",
+    "prepublishOnly": "NODE_ENV=production webpack --mode=production --optimize-minimize"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "@typescript-eslint/eslint-plugin": "2.x",
     "@typescript-eslint/parser": "2.x",
     "babel-loader": "^8.1.0",
+    "babel-plugin-preval": "^5.1.0",
     "css-loader": "^3.5.1",
     "eslint": "6.x",
     "eslint-config-react-app": "^5.2.1",
@@ -33,8 +34,8 @@
     "react-dom": "16.13.1",
     "style-loader": "^1.1.3",
     "url-loader": "^4.1.0",
-    "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11"
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.0"
   },
   "peerDependencies": {
     "react": "16.13.1",

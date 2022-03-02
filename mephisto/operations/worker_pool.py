@@ -6,7 +6,7 @@
 
 import time
 from functools import partial
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -22,7 +22,7 @@ from mephisto.operations.task_launcher import (
     SCREENING_UNIT_INDEX,
     GOLD_UNIT_INDEX,
 )
-from mephisto.operations.datatypes import LiveTaskRun
+from mephisto.operations.datatypes import LiveTaskRun, WorkerFailureReasons
 
 from typing import Sequence, Dict, Union, Optional, List, Any, TYPE_CHECKING
 
@@ -40,6 +40,19 @@ logger = get_logger(name=__name__)
 class OnboardingInfo:
     crowd_data: Dict[str, Any]
     request_id: str
+
+
+@dataclass
+class AgentDetails:
+    """Class containing the information for a newly initialized frontend agent"""
+
+    worker_id: Optional[str] = None
+    agent_id: Optional[str] = None
+    init_task_data: Optional[Dict[str, Any]] = None
+    failure_reason: Optional[str] = None
+
+    def to_dict(self):
+        return dict((field.name, getattr(self, field.name)) for field in fields(self))
 
 
 class WorkerPool:
@@ -90,7 +103,10 @@ class WorkerPool:
     async def register_worker(
         self, crowd_data: Dict[str, Any], request_id: str
     ) -> None:
-        """Process a worker registration to register a worker"""
+        """
+        First process the worker registration, then hand off for
+        registering an agent
+        """
         live_run = self.get_live_run()
         loop = live_run.loop_wrap.loop
         crowd_provider = live_run.provider
@@ -118,30 +134,44 @@ class WorkerPool:
             None, partial(worker_is_qualified, worker, live_run.qualifications)
         )
         if not is_qualified:
-            live_run.client_io.enqueue_provider_details(request_id, {"worker_id": None})
-        else:
-            live_run.client_io.enqueue_provider_details(
-                request_id, {"worker_id": worker.db_id}
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    failure_reason=WorkerFailureReasons.NOT_QUALIFIED
+                ).to_dict(),
             )
+        else:
+            await self.register_agent(crowd_data, worker, request_id)
 
     async def _assign_unit_to_agent(
-        self, crowd_data: Dict[str, Any], request_id: str, units: List["Unit"]
+        self,
+        crowd_data: Dict[str, Any],
+        worker: "Worker",
+        request_id: str,
+        units: List["Unit"],
     ):
         live_run = self.get_live_run()
         task_run = live_run.task_run
         loop = live_run.loop_wrap.loop
+        task_runner = live_run.task_runner
         crowd_provider = live_run.provider
-        worker_id = crowd_data["worker_id"]
-        worker = await Worker.async_get(self.db, worker_id)
 
-        logger.debug(f"Worker {worker_id} is being assigned one of {len(units)} units.")
+        logger.debug(
+            f"Worker {worker.db_id} is being assigned one of {len(units)} units."
+        )
 
         reserved_unit = None
         while len(units) > 0 and reserved_unit is None:
             unit = units.pop(0)
             reserved_unit = task_run.reserve_unit(unit)
         if reserved_unit is None:
-            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    worker_id=worker.db_id,
+                    failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
+                ).to_dict(),
+            )
         else:
             agent = await loop.run_in_executor(
                 None,
@@ -160,9 +190,25 @@ class WorkerPool:
                 crowd_data["agent_registration_id"],
             )
             logger.debug(f"Created agent {agent}, {agent.db_id}.")
-            live_run.client_io.enqueue_provider_details(
-                request_id, {"agent_id": agent.get_agent_id()}
+
+            # TODO(#649) this is IO bound
+            init_task_data = await loop.run_in_executor(
+                None,
+                partial(
+                    task_runner.get_init_data_for_agent,
+                    agent,
+                ),
             )
+
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    worker_id=worker.db_id,
+                    agent_id=agent.get_agent_id(),
+                    init_task_data=init_task_data,
+                ).to_dict(),
+            )
+
             self.agents[agent.get_agent_id()] = agent
 
             # Launch individual tasks
@@ -171,7 +217,6 @@ class WorkerPool:
                 live_run.task_runner.execute_unit(
                     unit,
                     agent,
-                    lambda: self._mark_agent_done(agent),
                 )
             else:
                 # See if the concurrent unit is ready to launch
@@ -189,13 +234,7 @@ class WorkerPool:
                     if a is not None
                 ]
 
-                def mark_agents_done():
-                    for agent in registered_agents:
-                        self._mark_agent_done(agent)
-
-                live_run.task_runner.execute_assignment(
-                    assignment, registered_agents, mark_agents_done
-                )
+                live_run.task_runner.execute_assignment(assignment, registered_agents)
 
     async def register_agent_from_onboarding(self, onboarding_agent: "OnboardingAgent"):
         """
@@ -264,11 +303,70 @@ class WorkerPool:
 
         # Assign to a unit
         if len(usable_units) == 0:
-            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    failure_reason=WorkerFailureReasons.NOT_QUALIFIED,
+                ).to_dict(),
+            )
         else:
-            await self._assign_unit_to_agent(crowd_data, request_id, usable_units)
+            await self._assign_unit_to_agent(
+                crowd_data, worker, request_id, usable_units
+            )
 
-    async def register_agent(self, crowd_data: Dict[str, Any], request_id: str):
+    async def reconnect_agent(self, agent_id: str, request_id: str):
+        """When an agent reconnects, find and send the relevant data"""
+        live_run = self.get_live_run()
+        loop = live_run.loop_wrap.loop
+        task_runner = live_run.task_runner
+        agent = self.get_agent_for_id(agent_id)
+        if agent is None:
+            logger.info(
+                f"Looking for reconnecting agent {agent_id} but none found locally"
+            )
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    failure_reason=WorkerFailureReasons.TASK_MISSING,
+                ).to_dict(),
+            )
+            return
+        worker = agent.get_worker()
+        if isinstance(agent, OnboardingAgent):
+            blueprint = live_run.blueprint
+            assert (
+                isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
+            )
+            onboard_data = blueprint.get_onboarding_data(worker.db_id)
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    worker_id=worker.db_id,
+                    agent_id=agent.get_agent_id(),
+                    init_task_data=onboard_data,
+                ).to_dict(),
+            )
+        else:
+            # TODO(#649) this is IO bound
+            init_task_data = await loop.run_in_executor(
+                None,
+                partial(
+                    task_runner.get_init_data_for_agent,
+                    agent,
+                ),
+            )
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    worker_id=worker.db_id,
+                    agent_id=agent.get_agent_id(),
+                    init_task_data=init_task_data,
+                ).to_dict(),
+            )
+
+    async def register_agent(
+        self, crowd_data: Dict[str, Any], worker: "Worker", request_id: str
+    ):
         """Process an agent registration packet to register an agent, returning the agent_id"""
         # Process a new agent
         logger.debug(f"Registering agent {crowd_data}, {request_id}")
@@ -276,13 +374,17 @@ class WorkerPool:
         loop = live_run.loop_wrap.loop
         task_run = live_run.task_run
         agent_registration_id = crowd_data["agent_registration_id"]
-        worker_id = crowd_data["worker_id"]
-        worker = await Worker.async_get(self.db, worker_id)
 
         # get the list of tentatively valid units
         units = task_run.get_valid_units_for_worker(worker)
         if len(units) == 0:
-            live_run.client_io.enqueue_provider_details(request_id, {"agent_id": None})
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    worker_id=worker.db_id,
+                    failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
+                ).to_dict(),
+            )
             logger.debug(
                 f"agent_registration_id {agent_registration_id}, had no valid units."
             )
@@ -291,16 +393,24 @@ class WorkerPool:
         # If there's onboarding, see if this worker has already been disqualified
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
-            if worker.is_disqualified(blueprint.onboarding_qualification_name):
-                live_run.client_io.enqueue_provider_details(
-                    request_id, {"agent_id": None}
+            qual_name = blueprint.onboarding_qualification_name
+            assert (
+                qual_name is not None
+            ), "Cannot be using onboarding and have a null qual"
+            if worker.is_disqualified(qual_name):
+                live_run.client_io.enqueue_agent_details(
+                    request_id,
+                    AgentDetails(
+                        worker_id=worker.db_id,
+                        failure_reason=WorkerFailureReasons.NOT_QUALIFIED,
+                    ).to_dict(),
                 )
                 logger.debug(
-                    f"Worker {worker_id} is already disqualified by onboarding "
-                    f"qual {blueprint.onboarding_qualification_name}."
+                    f"Worker {worker.db_id} is already disqualified by onboarding "
+                    f"qual {qual_name}."
                 )
                 return
-            elif not worker.is_qualified(blueprint.onboarding_qualification_name):
+            elif not worker.is_qualified(qual_name):
                 # Send a packet with onboarding information
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 onboard_agent = OnboardingAgent.new(self.db, worker, task_run)
@@ -320,12 +430,13 @@ class WorkerPool:
                     request_id=request_id,
                 )
 
-                live_run.client_io.enqueue_provider_details(
+                live_run.client_io.enqueue_agent_details(
                     request_id,
-                    {
-                        "agent_id": onboard_id,
-                        "onboard_data": onboard_data,
-                    },
+                    AgentDetails(
+                        worker_id=worker.db_id,
+                        agent_id=onboard_id,
+                        init_task_data=onboard_data,
+                    ).to_dict(),
                 )
                 logger.info(
                     f"{worker} is starting onboarding thread with "
@@ -363,8 +474,12 @@ class WorkerPool:
                     )
                     units = [screen_unit]
                 else:
-                    live_run.client_io.enqueue_provider_details(
-                        request_id, {"agent_id": None}
+                    live_run.client_io.enqueue_agent_details(
+                        request_id,
+                        AgentDetails(
+                            worker_id=worker.db_id,
+                            failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
+                        ).to_dict(),
                     )
                     logger.debug(
                         f"No screening units left for {agent_registration_id}."
@@ -386,14 +501,18 @@ class WorkerPool:
                     )
                     units = [gold_unit]
                 else:
-                    live_run.client_io.enqueue_provider_details(
-                        request_id, {"agent_id": None}
+                    live_run.client_io.enqueue_agent_details(
+                        request_id,
+                        AgentDetails(
+                            worker_id=worker.db_id,
+                            failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
+                        ).to_dict(),
                     )
                     logger.debug(f"No gold units left for {agent_registration_id}...")
                     return
 
         # Not onboarding, so just register directly
-        await self._assign_unit_to_agent(crowd_data, request_id, units)
+        await self._assign_unit_to_agent(crowd_data, worker, request_id, units)
 
     async def push_status_update(
         self, agent: Union["Agent", "OnboardingAgent"]
@@ -412,22 +531,6 @@ class WorkerPool:
 
         live_run = self.get_live_run()
         live_run.client_io.send_status_update(agent.get_agent_id(), status)
-
-    def _mark_agent_done(self, agent: Union["Agent", "OnboardingAgent"]) -> None:
-        """
-        Handle marking an agent as done, and telling the frontend agent
-        that they have successfully completed their task.
-
-        If the agent is in a final non-successful status, or already
-        told of partner disconnect, skip
-        """
-        if agent.db_status in AgentState.complete() + [
-            AgentState.STATUS_PARTNER_DISCONNECT
-        ]:
-            return  # Don't send done messages to agents that are already completed
-
-        live_run = self.get_live_run()
-        live_run.client_io.send_done_message(agent.db_id)
 
     def handle_updated_agent_status(self, status_map: Dict[str, str]):
         """
@@ -458,6 +561,16 @@ class WorkerPool:
                     continue  # Only DISCONNECT can be marked remotely, rest are mismatch (except STATUS_COMPLETED)
                 agent.update_status(status)
         pass
+
+    def disconnect_active_agents(self) -> None:
+        """
+        Under a forced shutdown, set the status of all current agents
+        to disconnected to clear their running tasks
+        """
+        for agent in self.agents.values():
+            agent.update_status(AgentState.STATUS_DISCONNECT)
+        for onboarding_agent in self.onboarding_agents.values():
+            onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
 
     def shutdown(self) -> None:
         """Mark shut down. Handle resource cleanup if necessary"""

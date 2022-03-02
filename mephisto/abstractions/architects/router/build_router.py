@@ -18,10 +18,11 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
 
 ROUTER_ROOT_DIR = os.path.dirname(router_module.__file__)
-NODE_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "deploy")
+NODE_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "node")
 FLASK_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "flask")
 CROWD_SOURCE_PATH = "static/wrap_crowd_source.js"
 TASK_CONFIG_PATH = "static/task_config.json"
+CURR_MEPHISTO_TASK_VERSION = "2.0.0"
 
 
 def can_build(build_dir: str, task_run: "TaskRun") -> bool:
@@ -102,7 +103,9 @@ def build_router(
     local_task_config_path = os.path.join(local_server_directory_path, TASK_CONFIG_PATH)
     blueprint = task_run.get_blueprint()
     with open(local_task_config_path, "w+") as task_fp:
-        json.dump(blueprint.get_frontend_args(), task_fp)
+        frontend_args = blueprint.get_frontend_args()
+        frontend_args["mephisto_task_version"] = CURR_MEPHISTO_TASK_VERSION
+        json.dump(frontend_args, task_fp)
 
     # Consolidate task files as defined by the task
     TaskBuilderClass = blueprint.TaskBuilderClass

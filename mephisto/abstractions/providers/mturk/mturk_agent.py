@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.packet import Packet
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.abstractions.providers.mturk.mturk_utils import (
@@ -14,7 +13,6 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     get_assignment,
     get_assignments_for_hit,
 )
-from mephisto.data_model.packet import Packet, PACKET_TYPE_AGENT_ACTION
 
 import xmltodict  # type: ignore
 import json
@@ -107,17 +105,7 @@ class MTurkAgent(Agent):
             entry["QuestionIdentifier"]: entry["FreeText"] for entry in paired_data
         }
         parsed_data["MEPHISTO_MTURK_RECONCILED"] = True
-        packet = Packet(
-            packet_type=PACKET_TYPE_AGENT_ACTION,
-            sender_id=self.db_id,
-            receiver_id="mephisto",
-            data={
-                "task_data": parsed_data,
-                "MEPHISTO_is_submit": True,
-                "files": [],
-            },
-        )
-        self.pending_actions.put(packet)
+        self.handle_submit(parsed_data)
 
     # Required functions for Agent Interface
 

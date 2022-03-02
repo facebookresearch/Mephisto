@@ -168,19 +168,18 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_data(self, packet: "Packet") -> None:
+    def update_data(self, live_update: Dict[str, Any]) -> None:
         """
-        Put new current Unit data into this AgentState
+        Put new live update data into this AgentState. Keep only what is
+        necessary to recreate the task for evaluation and later use.
         """
-        # TODO(#100) maybe refine the signature for this function once use cases
-        # are fully scoped
+        raise NotImplementedError()
 
-        # Some use cases might just be appending new data, some
-        # might instead prefer to maintain a final state.
-
-        # Maybe the correct storage is of a series of actions taken
-        # on this Unit? Static tasks only have 2 turns max, dynamic
-        # ones may have multiple turns or steps.
+    @abstractmethod
+    def update_submit(self, submit_data: Dict[str, Any]) -> None:
+        """
+        Update this AgentState with the final submission data.
+        """
         raise NotImplementedError()
 
     def get_task_start(self) -> Optional[float]:
