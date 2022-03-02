@@ -97,13 +97,12 @@ class RemoteQueryTaskRunner(TaskRunner):
                 request_id, json.loads(live_update["args"]), state
             )
 
-            if res is not None:
-                agent.observe(
-                    {
-                        "handles": request_id,
-                        "response": json.dumps(res),
-                    }
-                )
+            agent.observe(
+                {
+                    "handles": request_id,
+                    "response": json.dumps(res),
+                }
+            )
 
         # sleep to avoid tight loop
         time.sleep(THREAD_SHORT_SLEEP)
