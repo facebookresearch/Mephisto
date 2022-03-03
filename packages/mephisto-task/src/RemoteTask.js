@@ -15,7 +15,6 @@
 import React from "react";
 
 import { useMephistoLiveTask, AGENT_STATUS, STATUS_TO_TEXT_MAP } from "./index";
-import { promises } from "dns";
 
 // Generate a random id
 function uuidv4() {
