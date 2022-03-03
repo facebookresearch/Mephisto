@@ -63,6 +63,7 @@ const useMephistoRemoteQueryTask = function (props) {
     onLiveUpdate: (liveUpdate) => {
       handleRemoteResponse(liveUpdate);
     },
+    ...props,
   });
 
   // We remove the live socket props, as we intend to provide a different interface
