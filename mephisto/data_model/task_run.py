@@ -62,18 +62,18 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             row = db.get_task_run(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["task_run_id"]
-        self.task_id = row["task_id"]
-        self.requester_id = row["requester_id"]
-        self.param_string = row["init_params"]
+        self.task_id: str = row["task_id"]
+        self.requester_id: str = row["requester_id"]
+        self.param_string: str = row["init_params"]
         try:
             self.args: "DictConfig" = OmegaConf.create(json.loads(self.param_string))
         except Exception as e:
             self.args = OmegaConf.create({})
             print(e)
         self.start_time = row["creation_date"]
-        self.provider_type = row["provider_type"]
-        self.task_type = row["task_type"]
-        self.sandbox = row["sandbox"]
+        self.provider_type: str = row["provider_type"]
+        self.task_type: str = row["task_type"]
+        self.sandbox: bool = row["sandbox"]
         self.assignments_generator_done: bool = False
 
         # properties with deferred loading

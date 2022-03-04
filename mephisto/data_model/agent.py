@@ -9,7 +9,7 @@ import threading
 from queue import Queue
 from mephisto.utils.misc import warn_once
 from uuid import uuid4
-from prometheus_client import Gauge
+from prometheus_client import Gauge  # type: ignore
 
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.abstractions.blueprint import AgentState

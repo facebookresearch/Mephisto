@@ -160,7 +160,7 @@ class BaseTestLiveRuns:
         return loop.run_until_complete(wait_for_condition_or_timeout())
 
     def assert_sandbox_worker_created(self, live_run, worker_name, timeout=2) -> None:
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self._run_loop_until(
                 live_run,
                 lambda: len(self.db.find_workers(worker_name=worker_name + "_sandbox"))
@@ -171,7 +171,7 @@ class BaseTestLiveRuns:
         )
 
     def assert_agent_created(self, live_run, agent_num, timeout=2) -> None:
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self._run_loop_until(
                 live_run,
                 lambda: len(self.db.find_agents()) == agent_num,
@@ -181,7 +181,7 @@ class BaseTestLiveRuns:
         )
         agents = self.db.find_agents()
         agent = agents[agent_num - 1]
-        self.assertIsNotNone(agent)
+        self.assertIsNotNone(agent)  # type: ignore
 
     def _await_current_tasks(self, live_run, timeout=5) -> None:
         self._run_loop_until(
@@ -192,7 +192,7 @@ class BaseTestLiveRuns:
 
     def await_channel_requests(self, live_run, timeout=2) -> None:
         self._await_current_tasks(live_run, timeout)
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self._run_loop_until(
                 live_run,
                 lambda: len(live_run.client_io.request_id_to_channel_id) == 0,

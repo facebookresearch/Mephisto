@@ -17,8 +17,8 @@ from typing import (
 )
 
 from omegaconf import DictConfig
-from prometheus_client import Histogram, Gauge
-from prometheus_client.utils import INF
+from prometheus_client import Histogram, Gauge  # type: ignore
+from prometheus_client.utils import INF  # type: ignore
 
 from dataclasses import dataclass
 from mephisto.data_model.exceptions import (

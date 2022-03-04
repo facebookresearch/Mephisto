@@ -7,7 +7,7 @@
 import time
 from functools import partial
 from dataclasses import dataclass, fields
-from prometheus_client import Histogram, Gauge, Counter
+from prometheus_client import Histogram, Gauge, Counter  # type: ignore
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent

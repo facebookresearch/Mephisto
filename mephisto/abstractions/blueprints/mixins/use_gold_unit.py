@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
+    from mephisto.abstractions.blueprint import SharedTaskState
     from argparse import _ArgumentGroup as ArgumentGroup
 
 from mephisto.utils.logger_core import get_logger
@@ -163,8 +164,11 @@ class UseGoldUnit(BlueprintMixin):
         self,
         task_run: "TaskRun",
         args: "DictConfig",
-        shared_state: "GoldUnitSharedState",
+        shared_state: "SharedTaskState",
     ) -> None:
+        assert isinstance(
+            shared_state, GoldUnitSharedState
+        ), f"Must use GoldUnitSharedState with this mixin, found {shared_state}"
         return self.init_gold_config(task_run, args, shared_state)
 
     def init_gold_config(
@@ -265,6 +269,8 @@ class UseGoldUnit(BlueprintMixin):
             completed_units, correct_units, incorrect_units, self.max_incorrect_golds
         ):
             worker.grant_qualification(self.disqualified_qual_name)
+            return True
+        return False
 
     def get_gold_unit_data_for_worker(
         self, worker: "Worker"
@@ -334,7 +340,9 @@ class UseGoldUnit(BlueprintMixin):
         return _wrapped_validate
 
     @classmethod
-    def get_mixin_qualifications(cls, args: "DictConfig"):
+    def get_mixin_qualifications(
+        cls, args: "DictConfig", shared_state: "SharedTaskState"
+    ):
         """Creates the relevant task qualifications for this task"""
         base_qual_name = args.blueprint.gold_qualification_base
         golds_failed_qual_name = f"{base_qual_name}-wrong-golds"

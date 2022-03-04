@@ -7,7 +7,7 @@
 
 import os
 import sqlite3
-from prometheus_client import Histogram
+from prometheus_client import Histogram  # type: ignore
 
 from abc import ABC, abstractmethod
 from mephisto.utils.dirs import get_data_dir

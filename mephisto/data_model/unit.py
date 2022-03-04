@@ -6,7 +6,7 @@
 
 
 from abc import ABC
-from prometheus_client import Gauge
+from prometheus_client import Gauge  # type: ignore
 from collections import defaultdict
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task

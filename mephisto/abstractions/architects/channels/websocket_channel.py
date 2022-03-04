@@ -218,5 +218,10 @@ class WebsocketChannel(Channel):
             return False
 
         self.outgoing_queue.put(packet)
-        self.loop_wrap.execute_coro(self._async_send_all())
+
+        loop_wrap = self.loop_wrap
+        if loop_wrap is None:
+            return False
+
+        loop_wrap.execute_coro(self._async_send_all())
         return True

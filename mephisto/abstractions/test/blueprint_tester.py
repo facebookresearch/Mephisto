@@ -222,8 +222,8 @@ class BlueprintTests(unittest.TestCase):
 
         agents: List["Agent"] = [cast("Agent", a) for a in mock_agents]
         task_runner.running_assignments[assignment.db_id] = RunningAssignment(
-            None, None, None
-        )  # type: ignore
+            None, None, None  # type: ignore
+        )
         task_runner._launch_and_run_assignment(assignment, agents)
         self.assertTrue(self.assignment_completed_successfully(assignment))
 

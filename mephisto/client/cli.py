@@ -208,7 +208,7 @@ def get_help_arguments(args):
         get_valid_provider_types,
         get_valid_architect_types,
     )
-    from mephisto.operations.hydra_configs import (
+    from mephisto.operations.hydra_config import (
         get_extra_argument_dicts,
         get_task_state_dicts,
     )

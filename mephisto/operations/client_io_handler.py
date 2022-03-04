@@ -9,7 +9,7 @@ import weakref
 import time
 import asyncio
 from queue import Queue
-from prometheus_client import Histogram
+from prometheus_client import Histogram  # type: ignore
 
 from mephisto.data_model.packet import (
     Packet,
