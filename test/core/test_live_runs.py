@@ -455,7 +455,7 @@ class BaseTestLiveRuns:
         task_run_args.blueprint.is_concurrent = True
         self.task_run.get_task_config()
 
-        # Supervisor expects that blueprint setup has already occurred
+        # LiveTaskRun expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
@@ -695,7 +695,7 @@ class BaseTestLiveRuns:
         task_run_args.blueprint.is_concurrent = False
         self.task_run.get_task_config()
 
-        # Supervisor expects that blueprint setup has already occurred
+        # LiveTaskRun expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
@@ -953,7 +953,7 @@ class BaseTestLiveRuns:
             screen_unit,
         )
 
-        # Supervisor expects that blueprint setup has already occurred
+        # LiveTaskRun expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint(task_run_args, shared_state)
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
@@ -1103,11 +1103,11 @@ class BaseTestLiveRuns:
     # TODO(#97) handle testing for disconnecting in and out of tasks
 
 
-class TestSupervisorLocal(BaseTestLiveRuns, unittest.TestCase):
+class TestLiveRunsLocal(BaseTestLiveRuns, unittest.TestCase):
     DB_CLASS = LocalMephistoDB
 
 
-class TestSupervisorSingleton(BaseTestLiveRuns, unittest.TestCase):
+class TestLiveRunsSingleton(BaseTestLiveRuns, unittest.TestCase):
     DB_CLASS = MephistoSingletonDB
 
 

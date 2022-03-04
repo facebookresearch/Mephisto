@@ -20,11 +20,12 @@ if TYPE_CHECKING:
 
 class Channel(ABC):
     """
-    Manages the API between the Supervisor and the server that is produced
-    by the architect.
+    Manages the API between the ClientIOHandler and the server
+    that is produced by the architect.
 
-    Should be able to be configured by an architect, and used to communicate
-    with that server based on the queries that a Supervisor needs to run a job
+    Should be able to be configured by an architect, and used to
+    communicate with that server based on the queries that a
+    ClientIOHandler needs to run a job
     """
 
     def __init__(
