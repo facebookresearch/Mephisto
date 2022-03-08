@@ -19,6 +19,7 @@ import {
 export * from "./MephistoContext";
 export * from "./utils";
 export * from "./live";
+export * from "./RemoteTask.js";
 
 /*
   The following global methods are to be specified in wrap_crowd_source.js

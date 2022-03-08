@@ -32,8 +32,7 @@ const useMephistoRemoteQueryTask = function (props) {
 
   // We register a ref so that the liveUpdate handler has access
   // to the current set of callbacks
-  const requestCallbacksRef = React.useRef();
-  requestCallbacksRef.current = requestCallbacks;
+  const requestCallbacksRef = React.useRef(requestCallbacks);
 
   function handleRemoteResponse(liveUpdate) {
     let targetRequest = requestCallbacksRef.current[liveUpdate.handles];
@@ -126,7 +125,7 @@ const useMephistoRemoteQueryTask = function (props) {
           makeRemoteCall({ targetEvent, args, callback: resolve });
         }
       });
-      return Promise.all([remoteCallPromise]);
+      return remoteCallPromise;
     };
     procedure.invoke = procedure;
     return procedure;
