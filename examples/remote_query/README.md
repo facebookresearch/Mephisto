@@ -1,9 +1,3 @@
-# Mephisto Remote Query Example
+# Mephisto Remote Query Examples
 
-This task is an _extremely rough_ bare-bones example of being able to set up a task where the frontend directly connects to the backend using the `mephisto-remote-query` package. It should serve as a decent example of how to get a `RemoteQueryBlueprint` task up off the ground.
-
-Deploying the task as-is brings up a page where the user needs to click the "query backend" button enough times for the task to be considered ready to submit.
-
-It makes use of the function_registry to use a `"handle_with_model"` method that, admittedly, doesn't use any models, but hopefully demonstrates where a model can fit into this type of task.
-
-As it stands, these queries are still just a single request to single response model, but that should be sufficient for most tasks that want to have a backend in-the-loop for an otherwise frontend-heavy task.
+This directory contains examples of using remote queries. The `template` example consists of the boilerplate with pointers about how the code interacts with the data model (and hints on how to build your own task), while the `mnist` example shows what a functioning model-in-the-loop task would really run like.
