@@ -39,10 +39,12 @@ function RemoteQueryApp() {
     initialTaskData,
     isLoading,
     handleSubmit,
-    makeRemoteCall,
+    remoteFunction,
     isOnboarding,
     handleFatalError,
   } = mephistoProps;
+
+  const handleRemoteCall = remoteFunction("handle_with_model");
 
   if (isOnboarding) {
     // TODO You can use this as an opportunity to display anything you want for
@@ -73,7 +75,7 @@ function RemoteQueryApp() {
         <div className="container-fluid" id="ui-container">
           <BaseFrontend
             taskData={initialTaskData}
-            onRemoteCall={makeRemoteCall}
+            handleRemoteCall={handleRemoteCall}
             handleSubmit={handleSubmit}
           />
         </div>
