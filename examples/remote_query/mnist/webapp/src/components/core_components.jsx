@@ -49,7 +49,6 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
     let urlData = canvasRef.current.getDataURL("png", false, "#FFF");
     querying.current = true;
     classifyDigit({ urlData }).then((res) => {
-      console.log("Got res", res);
       setCurrentAnnotation(res["digit_prediction"]);
       triggerUpdate();
       querying.current = false;
