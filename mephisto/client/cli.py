@@ -319,9 +319,9 @@ def metrics_cli(args):
         shutdown_grafana_server,
     )
 
-    if len(args) == 0 or args[0] not in ["install", "launch", "cleanup"]:
+    if len(args) == 0 or args[0] not in ["install", "view", "cleanup"]:
         click.echo(
-            "Usage: mephisto metrics <install|launch|cleanup>\n"
+            "Usage: mephisto metrics <install|view|cleanup>\n"
             f"install: Installs prometheus and grafana to {METRICS_DIR}\n"
             f"view: Launches a Prometheus and Grafana server, and shuts down on exit\n"
             f"cleanup: Shuts down prometheus and grafana resources that may have persisted"
@@ -333,7 +333,7 @@ def metrics_cli(args):
             click.echo(f"Metrics are already installed! See {METRICS_DIR}")
             return
         run_install_script()
-    elif command == "launch":
+    elif command == "view":
         if not metrics_are_installed():
             click.echo(
                 f"Metrics aren't installed! Use `mephisto metrics install` first."
