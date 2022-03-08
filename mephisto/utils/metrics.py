@@ -148,7 +148,7 @@ def launch_prometheus_server(args: Optional["DictConfig"] = None) -> bool:
                     "Use `shutdown_prometheus_server` in the future for proper cleanup."
                 )
         else:
-            logger.info("Prometheus server appears to be running at 9090")
+            logger.debug("Prometheus server appears to be running at 9090")
             return True
     if not os.path.exists(PROMETHEUS_EXECUTABLE):
         warn_once(
@@ -192,7 +192,7 @@ def launch_grafana_server(args: Optional["DictConfig"] = None) -> bool:
                     "Use `shutdown_grafana_server` in the future for proper cleanup."
                 )
         else:
-            logger.info("Grafana server appears to be running at 9090")
+            logger.debug("Grafana server appears to be running at 3032")
             return True
     if not os.path.exists(GRAFANA_EXECUTABLE):
         warn_once(
