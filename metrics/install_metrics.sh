@@ -1,15 +1,34 @@
+case "$OSTYPE" in
+  darwin*)
+    platform = 'darwin'
+    ;;
+  linux*)
+    platform = 'linux'
+    ;;
+  *)
+    echo "Unable to automate install for $OSTYPE"
+    exit 1
+    ;;
+esac
+
+if [ -d "prometheus" ]
+then
+    echo "Prometheus directory already exists, skipping install"
+    exit 0
+fi
+
 # Download and unpack grafana
-curl -O https://dl.grafana.com/oss/release/grafana-8.4.2.linux-amd64.tar.gz
-tar -zxvf grafana-8.4.2.linux-amd64.tar.gz > /dev/null 2>&1
+curl -O "https://dl.grafana.com/oss/release/grafana-8.4.2.$platform-amd64.tar.gz"
+tar -zxvf "grafana-8.4.2.$platform-amd64.tar.gz" > /dev/null 2>&1
 mv grafana-8.4.2 grafana
-rm grafana-8.4.2.linux-amd64.tar.gz
+rm "grafana-8.4.2.$platform-amd64.tar.gz"
 cp grafana_defaults.ini grafana/conf/defaults.ini
 
 # # Download and unpack prometheus
-curl -L -O https://github.com/prometheus/prometheus/releases/download/v2.33.4/prometheus-2.33.4.linux-amd64.tar.gz
+curl -L -O "https://github.com/prometheus/prometheus/releases/download/v2.33.4/prometheus-2.33.4.$platform-amd64.tar.gz"
 tar xvfz prometheus-*.tar.gz > /dev/null 2>&1
-mv prometheus-2.33.4.linux-amd64 prometheus
-rm prometheus-2.33.4.linux-amd64.tar.gz
+mv "prometheus-2.33.4.$platform-amd64" prometheus
+rm "prometheus-2.33.4.$platform-amd64.tar.gz"
 cp mephisto-prometheus-config.yml prometheus/prometheus-config.yml
 
 # Run grafana in background to receive the desired defaults

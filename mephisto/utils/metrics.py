@@ -13,8 +13,10 @@ import requests
 from requests.auth import HTTPBasicAuth
 import subprocess
 import sys
+import time
 
 from mephisto.operations.utils import get_mephisto_tmp_dir, get_root_dir
+from mephisto.tools.misc import warn_once
 from mephisto.operations.logger_core import get_logger
 from prometheus_client import start_http_server
 from omegaconf import DictConfig
@@ -56,6 +58,54 @@ def _get_pid_from_file(fn):
     with open(fn) as pid_file:
         pid = int(pid_file.read().strip())
     return pid
+
+
+def run_install_script() -> bool:
+    """Run the install script from METRICS_DIR"""
+    res = subprocess.check_call(
+        [
+            f"./install_metrics.sh",
+        ],
+        cwd=f"{METRICS_DIR}",
+    )
+    return res == 0
+
+
+def metrics_are_installed():
+    """Return whether metrics are installed"""
+    return os.path.exists(PROMETHEUS_EXECUTABLE) and os.path.exists(GRAFANA_EXECUTABLE)
+
+
+def launch_servers_and_wait():
+    """
+    Run a prometheus and grafana server, then suspend the thread
+    (ensuring prometheus remains up in case a task shuts it down).
+    Closes resources on Ctrl-C
+    """
+    try:
+        print("Servers launching...")
+        if not launch_grafana_server():
+            print("Issue launching grafana, see above")
+            return
+        if not launch_prometheus_server():
+            print("Issue launching prometheus, see above")
+            return
+        print(f"Waiting for grafana server to come up.")
+        time.sleep(3)
+        dash_url = get_dash_url()
+        print(f"Dashboard is now running, you can access it at http://{dash_url}")
+        print(f"Default user: admin, pass: admin")
+        while True:
+            # Relaunch the server in case it's shut down by a
+            # task thread
+            time.sleep(5)
+            if not os.path.exists(PROMETHEUS_PID_FILE):
+                launch_prometheus_server()
+    except KeyboardInterrupt:
+        print("Caught Ctrl-C, shutting down servers")
+    finally:
+        shutdown_grafana_server()
+        shutdown_prometheus_server()
 
 
 def start_metrics_server(args: Optional["DictConfig"] = None):
@@ -101,9 +151,10 @@ def launch_prometheus_server(args: Optional["DictConfig"] = None) -> bool:
             logger.info("Prometheus server appears to be running at 9090")
             return True
     if not os.path.exists(PROMETHEUS_EXECUTABLE):
-        logger.warning(
-            f"Cannot collect and display metrics without installing metrics. "
-            f"Use the scripts in the metrics dir ({METRICS_DIR}) to install. "
+        warn_once(
+            f"Mephisto supports rich run-time metrics visualization through Prometheus and Grafana. "
+            f"If you'd like to use this feature, use `mephisto metrics install` to install."
+            f"(Current install dir is '{METRICS_DIR}')'"
         )
         return False
     proc = subprocess.Popen(
@@ -144,9 +195,10 @@ def launch_grafana_server(args: Optional["DictConfig"] = None) -> bool:
             logger.info("Grafana server appears to be running at 9090")
             return True
     if not os.path.exists(GRAFANA_EXECUTABLE):
-        logger.warning(
-            f"Cannot collect and display metrics without installing metrics. "
-            f"Use the scripts in the metrics dir ({METRICS_DIR}) to install. "
+        warn_once(
+            f"Mephisto supports rich run-time metrics visualization through Prometheus and Grafana. "
+            f"If you'd like to use this feature, use `mephisto metrics install` to install."
+            f"(Current install dir is '{METRICS_DIR}')'"
         )
         return False
     proc = subprocess.Popen(
@@ -176,7 +228,9 @@ def get_dash_url(args: Optional["DictConfig"] = None):
     return f"localhost:3032{output[0]['url']}"
 
 
-def shutdown_prometheus_server(args: Optional["DictConfig"] = None):
+def shutdown_prometheus_server(
+    args: Optional["DictConfig"] = None, expect_exists=False
+):
     """
     Shutdown the prometheus server
     """
@@ -184,14 +238,14 @@ def shutdown_prometheus_server(args: Optional["DictConfig"] = None):
         os.kill(_get_pid_from_file(PROMETHEUS_PID_FILE), 9)
         logger.info("Prometheus server shut down")
         os.unlink(PROMETHEUS_PID_FILE)
-    else:
+    elif expect_exists:
         logger.warning(
             f"No PID file at {PROMETHEUS_PID_FILE}... Check lsof -i :9090 to find the "
             "process if it still exists and interrupt it yourself."
         )
 
 
-def shutdown_grafana_server(args: Optional["DictConfig"] = None):
+def shutdown_grafana_server(args: Optional["DictConfig"] = None, expect_exists=False):
     """
     Shutdown the grafana server
     """
@@ -199,7 +253,7 @@ def shutdown_grafana_server(args: Optional["DictConfig"] = None):
         os.kill(_get_pid_from_file(GRAFANA_PID_FILE), 9)
         logger.info("grafana server shut down")
         os.unlink(GRAFANA_PID_FILE)
-    else:
+    elif expect_exists:
         logger.warning(
             f"No PID file at {GRAFANA_PID_FILE}... Check lsof -i :3032 to find the "
             "process if it still exists and interrupt it yourself."

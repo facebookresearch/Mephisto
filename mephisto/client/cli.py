@@ -307,5 +307,50 @@ def get_help_arguments(args):
         click.echo(tabulate(wrap_fields(state_args).values(), headers="keys"))
 
 
+@cli.command("metrics", context_settings={"ignore_unknown_options": True})
+@click.argument("args", nargs=-1)
+def metrics_cli(args):
+    from mephisto.utils.metrics import (
+        launch_servers_and_wait,
+        metrics_are_installed,
+        run_install_script,
+        METRICS_DIR,
+        shutdown_prometheus_server,
+        shutdown_grafana_server,
+    )
+
+    if len(args) == 0 or args[0] not in ["install", "launch", "cleanup"]:
+        click.echo(
+            "Usage: mephisto metrics <install|launch|cleanup>\n"
+            f"install: Installs prometheus and grafana to {METRICS_DIR}\n"
+            f"view: Launches a Prometheus and Grafana server, and shuts down on exit\n"
+            f"cleanup: Shuts down prometheus and grafana resources that may have persisted"
+        )
+        return
+    command = args[0]
+    if command == "install":
+        if metrics_are_installed():
+            click.echo(f"Metrics are already installed! See {METRICS_DIR}")
+            return
+        run_install_script()
+    elif command == "launch":
+        if not metrics_are_installed():
+            click.echo(
+                f"Metrics aren't installed! Use `mephisto metrics install` first."
+            )
+            return
+        click.echo(f"Servers launching - use ctrl-C to shutdown")
+        launch_servers_and_wait()
+    else:  # command == 'cleanup':
+        if not metrics_are_installed():
+            click.echo(
+                f"Metrics aren't installed! Use `mephisto metrics install` first."
+            )
+            return
+        click.echo(f"Cleaning up existing servers if they exist")
+        shutdown_prometheus_server()
+        shutdown_grafana_server()
+
+
 if __name__ == "__main__":
     cli()
