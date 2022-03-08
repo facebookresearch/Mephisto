@@ -10,7 +10,7 @@ from mephisto.utils.metrics import (
     launch_prometheus_server,
     get_dash_url,
 )
-from mephisto.operations.logger_core import set_mephisto_log_level
+from mephisto.utils.logger_core import set_mephisto_log_level
 
 
 def launch_servers():

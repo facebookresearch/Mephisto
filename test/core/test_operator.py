@@ -15,7 +15,7 @@ import threading
 from unittest.mock import patch
 from tqdm import TMonitor
 
-from mephisto.abstractions.test.utils import get_test_requester
+from mephisto.utils.testing import get_test_requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB

@@ -6,7 +6,7 @@
 
 import os
 from mephisto.operations.operator import Operator
-from mephisto.operations.utils import get_root_dir
+from mephisto.utils.dirs import get_root_dir
 from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
     BLUEPRINT_TYPE,

@@ -72,7 +72,7 @@ shared_state.qualifications = [
 # Adding custom qualifications to SharedTaskState
 You should be able to specify a qualification in Mephisto using the following:
 ```python
-from mephisto.operations.utils import find_or_create_qualification
+from mephisto.utils.misc import find_or_create_qualification
 
 find_or_create_qualification(db, "MY_QUALIFICATION_NAME")
 ```

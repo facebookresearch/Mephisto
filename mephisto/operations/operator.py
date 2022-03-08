@@ -37,14 +37,13 @@ from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_architect_from_type,
 )
-from mephisto.operations.utils import get_mock_requester
+from mephisto.utils.misc import get_mock_requester
 from mephisto.utils.metrics import (
     launch_prometheus_server,
     start_metrics_server,
     shutdown_prometheus_server,
 )
-
-from mephisto.operations.logger_core import (
+from mephisto.utils.logger_core import (
     get_logger,
     set_mephisto_log_level,
     format_loud,

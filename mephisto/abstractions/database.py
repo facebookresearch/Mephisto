@@ -10,7 +10,7 @@ import sqlite3
 from prometheus_client import Histogram
 
 from abc import ABC, abstractmethod
-from mephisto.operations.utils import get_data_dir
+from mephisto.utils.dirs import get_data_dir
 from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,

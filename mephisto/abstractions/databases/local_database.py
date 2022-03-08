@@ -11,7 +11,7 @@ from mephisto.abstractions.database import (
     EntryDoesNotExistException,
 )
 from typing import Mapping, Optional, Any, List, Dict, Tuple, Union
-from mephisto.operations.utils import get_data_dir
+from mephisto.utils.dirs import get_data_dir
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
 from mephisto.data_model.unit import Unit
@@ -28,7 +28,7 @@ import sqlite3
 from sqlite3 import Connection, Cursor
 import threading
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

@@ -22,7 +22,7 @@ from mephisto.abstractions._subcomponents.task_runner import RunningAssignment
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task_run import TaskRun
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 from mephisto.abstractions.providers.mock.mock_agent import MockAgent
 from mephisto.data_model.agent import Agent
 from mephisto.operations.hydra_config import MephistoConfig

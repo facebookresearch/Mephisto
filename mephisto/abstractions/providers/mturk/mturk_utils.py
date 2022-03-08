@@ -18,7 +18,7 @@ from botocore.config import Config  # type: ignore
 from omegaconf import DictConfig
 
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
-from mephisto.operations.logger_core import get_logger, format_loud
+from mephisto.utils.logger_core import get_logger, format_loud
 from mephisto.operations.config_handler import get_config_arg
 
 logger = get_logger(name=__name__)

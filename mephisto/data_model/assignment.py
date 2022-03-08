@@ -23,10 +23,10 @@ if TYPE_CHECKING:
 
 import os
 import json
-from mephisto.tools.misc import warn_once
+from mephisto.utils.misc import warn_once
 from dataclasses import dataclass
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

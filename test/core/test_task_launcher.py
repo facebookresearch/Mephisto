@@ -11,7 +11,7 @@ import tempfile
 from typing import List, Iterable
 import time
 
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.operations.task_launcher import TaskLauncher

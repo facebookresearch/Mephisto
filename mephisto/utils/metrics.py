@@ -15,9 +15,10 @@ import subprocess
 import sys
 import time
 
-from mephisto.operations.utils import get_mephisto_tmp_dir, get_root_dir
-from mephisto.tools.misc import warn_once
-from mephisto.operations.logger_core import get_logger
+
+from mephisto.utils.dirs import get_mephisto_tmp_dir, get_root_dir
+from mephisto.utils.logger_core import get_logger
+from mephisto.utils.misc import warn_once
 from prometheus_client import start_http_server
 from omegaconf import DictConfig
 from typing import Optional

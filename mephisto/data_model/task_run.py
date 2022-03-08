@@ -7,7 +7,7 @@
 
 import os
 import json
-from mephisto.tools.misc import warn_once
+from mephisto.utils.misc import warn_once
 
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -16,7 +16,7 @@ from mephisto.data_model.db_backed_meta import (
     MephistoDBBackedMeta,
     MephistoDataModelComponentMixin,
 )
-from mephisto.operations.utils import get_dir_for_run
+from mephisto.utils.dirs import get_dir_for_run
 
 from omegaconf import OmegaConf
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import Task
     from omegaconf import DictConfig
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

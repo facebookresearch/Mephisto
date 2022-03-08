@@ -25,7 +25,7 @@ from mephisto.abstractions.blueprint import BlueprintMixin, AgentState
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
-from mephisto.operations.utils import find_or_create_qualification
+from mephisto.utils.misc import find_or_create_qualification
 from mephisto.operations.task_launcher import GOLD_UNIT_INDEX
 
 
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

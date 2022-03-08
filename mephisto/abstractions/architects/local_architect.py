@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 from mephisto.abstractions.architects.router.build_router import build_router
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
-from mephisto.operations.utils import get_mephisto_tmp_dir
+from mephisto.utils.dirs import get_mephisto_tmp_dir
 
 ARCHITECT_TYPE = "local"
 

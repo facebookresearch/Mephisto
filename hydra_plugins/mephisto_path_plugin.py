@@ -7,7 +7,7 @@
 from hydra.core.config_search_path import ConfigSearchPath
 from hydra.plugins.search_path_plugin import SearchPathPlugin
 
-from mephisto.operations.utils import get_root_dir
+from mephisto.utils.dirs import get_root_dir
 from mephisto.operations.config_handler import DEFAULT_CONFIG_FOLDER
 import os
 

@@ -116,7 +116,7 @@ def review(
 def check():
     """Checks that mephisto is setup correctly"""
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
-    from mephisto.operations.utils import get_mock_requester
+    from mephisto.utils.misc import get_mock_requester
 
     try:
         db = LocalMephistoDB()
@@ -150,7 +150,10 @@ def register_provider(args):
 
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
     from mephisto.operations.registry import get_crowd_provider_from_type
-    from mephisto.operations.utils import parse_arg_dict, get_extra_argument_dicts
+    from mephisto.operations.hydra_config import (
+        parse_arg_dict,
+        get_extra_argument_dicts,
+    )
 
     provider_type, requester_args = args[0], args[1:]
     args_dict = dict(arg.split("=", 1) for arg in requester_args)
@@ -205,7 +208,10 @@ def get_help_arguments(args):
         get_valid_provider_types,
         get_valid_architect_types,
     )
-    from mephisto.operations.utils import get_extra_argument_dicts, get_task_state_dicts
+    from mephisto.operations.hydra_configs import (
+        get_extra_argument_dicts,
+        get_task_state_dicts,
+    )
     from textwrap import wrap
 
     VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]

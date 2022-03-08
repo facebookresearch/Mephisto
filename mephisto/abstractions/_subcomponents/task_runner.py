@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 import asyncio
-from mephisto.operations.utils import find_or_create_qualification
+from mephisto.utils.misc import find_or_create_qualification
 from typing import (
     List,
     Dict,
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
     from mephisto.abstractions.blueprint import SharedTaskState
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

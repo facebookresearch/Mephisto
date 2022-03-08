@@ -25,7 +25,7 @@ from mephisto.abstractions.blueprint import (
 )
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task_run import TaskRun
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 
 # TODO(#97) Update supervisor to be able to provide mock setups to test against a blueprint
 from mephisto.abstractions.providers.mock.mock_agent import MockAgent

@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
 
 import threading
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 import types
 
 logger = get_logger(name=__name__)

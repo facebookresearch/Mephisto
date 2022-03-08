@@ -10,7 +10,7 @@ seen in the examine results scripts in the examples directory.
 
 from mephisto.tools.data_browser import DataBrowser
 from mephisto.data_model.worker import Worker
-from mephisto.operations.utils import find_or_create_qualification
+from mephisto.utils.misc import find_or_create_qualification
 import traceback
 
 from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any, List

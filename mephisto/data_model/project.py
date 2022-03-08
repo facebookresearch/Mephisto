@@ -10,7 +10,7 @@ from mephisto.data_model.db_backed_meta import (
     MephistoDataModelComponentMixin,
 )
 
-from mephisto.tools.misc import warn_once
+from mephisto.utils.misc import warn_once
 from typing import List, Mapping, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:

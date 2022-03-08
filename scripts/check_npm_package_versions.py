@@ -12,9 +12,9 @@ the version that's in our source repository.
 import os
 import sys
 import json
-from mephisto.operations.utils import get_root_dir
+from mephisto.utils.dirs import get_root_dir
 from urllib.request import urlopen
-from mephisto.operations.logger_core import format_loud
+from mephisto.utils.logger_core import format_loud
 
 
 ROOT_DIR = get_root_dir()

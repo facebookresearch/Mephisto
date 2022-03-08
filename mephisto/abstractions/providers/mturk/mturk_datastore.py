@@ -20,7 +20,7 @@ from mephisto.abstractions.databases.local_database import is_unique_failure
 
 from typing import Dict, Any, Optional
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

@@ -9,10 +9,16 @@ from mephisto.abstractions.blueprint import BlueprintArgs
 from mephisto.abstractions.architect import ArchitectArgs
 from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.data_model.task_config import TaskConfigArgs
-from mephisto.operations.logger_core import get_logger
-from dataclasses import dataclass, field
-from omegaconf import MISSING
-from typing import List, Any
+from mephisto.utils.logger_core import get_logger
+from dataclasses import dataclass, field, fields, Field
+from omegaconf import OmegaConf, MISSING, DictConfig
+from typing import List, Type, Dict, Any, TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from mephisto.abstractions.architect import Architect
+    from mephisto.abstractions.blueprint import Blueprint
+
 
 logger = get_logger(name=__name__)
 
@@ -82,3 +88,66 @@ def check_for_hydra_compat():
             "remediation details."
             "\u001b[0m"
         )
+
+
+## Hydra argument config parsing helpers for other uses, generally the server API
+
+
+def get_dict_from_field(in_field: Field) -> Dict[str, Any]:
+    """
+    Extract all of the arguments from an argument group
+    and return a dict mapping from argument dest to argument dict
+    """
+    try:
+        found_type = in_field.type.__name__
+    except AttributeError:
+        found_type = in_field.metadata.get("type", "unknown")
+    return {
+        "dest": in_field.name,
+        "type": found_type,
+        "default": in_field.metadata.get("default", in_field.default),
+        "help": in_field.metadata.get("help"),
+        "choices": in_field.metadata.get("choices"),
+        "required": in_field.metadata.get("required", False),
+    }
+
+
+def get_extra_argument_dicts(customizable_class: Any) -> List[Dict[str, Any]]:
+    """
+    Produce the argument dicts for the given customizable class
+    (Blueprint, Architect, etc)
+    """
+    dict_fields = fields(customizable_class.ArgsClass)
+    usable_fields = []
+    group_field = None
+    for f in dict_fields:
+        if not f.name.startswith("_"):
+            usable_fields.append(f)
+        elif f.name == "_group":
+            group_field = f
+    parsed_fields = [get_dict_from_field(f) for f in usable_fields]
+    help_text = ""
+    if group_field is not None:
+        help_text = group_field.metadata.get("help", "")
+    return [{"desc": help_text, "args": {f["dest"]: f for f in parsed_fields}}]
+
+
+def get_task_state_dicts(customizable_class: Type["Blueprint"]) -> List[Dict[str, Any]]:
+    """
+    Return the SharedTaskState configurable class for the given blueprint
+    """
+    dict_fields = fields(customizable_class.SharedStateClass)
+    usable_fields = []
+    for f in dict_fields:
+        if not f.name.startswith("_"):
+            usable_fields.append(f)
+    parsed_fields = [get_dict_from_field(f) for f in usable_fields]
+    return [{"desc": "", "args": {f["dest"]: f for f in parsed_fields}}]
+
+
+def parse_arg_dict(customizable_class: Any, args: Dict[str, Any]) -> DictConfig:
+    """
+    Get the ArgsClass for a class, then parse the given args using
+    it. Return the DictConfig of the finalized namespace.
+    """
+    return OmegaConf.structured(customizable_class.ArgsClass(**args))

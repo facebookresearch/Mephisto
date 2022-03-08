@@ -20,7 +20,7 @@ from mephisto.abstractions.blueprint import (
     BlueprintArgs,
     SharedTaskState,
 )
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 from mephisto.abstractions.architects.mock_architect import (
     MockArchitect,
     MockArchitectArgs,

@@ -6,7 +6,7 @@
 
 
 import os
-from mephisto.tools.misc import warn_once
+from mephisto.utils.misc import warn_once
 from shutil import copytree
 
 from mephisto.data_model.project import Project
@@ -14,10 +14,8 @@ from mephisto.data_model.db_backed_meta import (
     MephistoDBBackedMeta,
     MephistoDataModelComponentMixin,
 )
-from mephisto.operations.utils import (
-    get_dir_for_task,
-    ensure_user_confirm,
-)
+from mephisto.utils.dirs import get_dir_for_task
+from mephisto.utils.misc import ensure_user_confirm
 
 from functools import reduce
 
@@ -30,10 +28,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.crowd_provider import CrowdProvider
-
-
-# TODO(#98) pull from utils, these are blueprints
-VALID_TASK_TYPES = ["legacy_parlai", "generic", "mock"]
 
 
 def assert_task_is_valid(dir_name, task_type) -> None:
@@ -125,9 +119,6 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         # TODO(#567) this state management should be offloaded to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
-        assert (
-            task_type in VALID_TASK_TYPES
-        ), f"Given task type {task_type} is not recognized in {VALID_TASK_TYPES}"
         assert (
             len(db.find_tasks(task_name=task_name)) == 0
         ), f"A task named {task_name} already exists!"
