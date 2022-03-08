@@ -24,7 +24,7 @@ function Directions({ children }) {
   );
 }
 
-function TaskFrontend({ taskData, actions, onRemoteCall, handleSubmit }) {
+function TaskFrontend({ taskData, handleRemoteCall, handleSubmit }) {
   if (!taskData) {
     return <LoadingScreen />;
   }
@@ -44,11 +44,11 @@ function TaskFrontend({ taskData, actions, onRemoteCall, handleSubmit }) {
         className="button"
         onClick={() => {
           setQueryCount(queryCount + 1);
-          onRemoteCall({
-            targetEvent: "handle_with_model",
-            args: { arg1: "hello", arg2: "goodbye", arg3: queryCount },
-            callback: (response) => alert(JSON.stringify(response)),
-          });
+          handleRemoteCall({
+            arg1: "hello",
+            arg2: "goodbye",
+            arg3: queryCount,
+          }).then((response) => alert(JSON.stringify(response)));
         }}
       >
         Query Backend
