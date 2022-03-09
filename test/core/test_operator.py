@@ -27,7 +27,7 @@ from mephisto.abstractions.architects.mock_architect import (
 from mephisto.operations.hydra_config import MephistoConfig
 from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
-from mephisto.data_model.task_config import TaskConfigArgs
+from mephisto.data_model.task_run import TaskRunArgs
 from omegaconf import OmegaConf
 
 from typing import Type, ClassVar, TYPE_CHECKING
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 TIMEOUT_TIME = 15
 
 
-MOCK_TASK_ARGS = TaskConfigArgs(
+MOCK_TASK_ARGS = TaskRunArgs(
     task_title="title",
     task_description="This is a description",
     task_reward=0.3,
@@ -270,7 +270,7 @@ class OperatorBaseTest(object):
             blueprint=MockBlueprintArgs(num_assignments=3, is_concurrent=True),
             provider=provider_args,
             architect=architect_args,
-            task=TaskConfigArgs(
+            task=TaskRunArgs(
                 task_title="title",
                 task_description="This is a description",
                 task_reward="0.3",
@@ -413,7 +413,7 @@ class OperatorBaseTest(object):
             blueprint=MockBlueprintArgs(num_assignments=1, is_concurrent=True),
             provider=MockProviderArgs(requester_name=self.requester_name),
             architect=MockArchitectArgs(should_run_server=True),
-            task=TaskConfigArgs(
+            task=TaskRunArgs(
                 task_title="title",
                 task_description="This is a description",
                 task_reward="0.3",
