@@ -363,6 +363,7 @@ Once the template is done installing we'll create a new file at `custom-review/s
 
 ```jsx
 import React from "react";
+import { Card } from "@blueprintjs/core";
 
 export default function MyDataItem({item}) {
     const rating = item.data.data.outputs.final_data.rating;
@@ -374,6 +375,8 @@ export default function MyDataItem({item}) {
 }
 
 ```
+
+Note that we're leveraging the `<Card />` component from the rich suite of components [provided by BlueprintJS](https://blueprintjs.com/docs/#core/components/card) to create our renderer. By default, the review template imports the `@blueprintjs/core` library so you can immediately start using any of the UI components provided there.
 
 Now that we've created our own ItemRenderer, we'll use it by updating `custom-review/src/index.js` to first import the renderer:
 
