@@ -58,7 +58,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from argparse import _ArgumentGroup as ArgumentGroup
 
-BLUEPRINT_TYPE = "remote_query"
+BLUEPRINT_TYPE_REMOTE_QUERY = "remote_query"
 
 
 @dataclass
@@ -76,7 +76,7 @@ class SharedRemoteQueryTaskState(OnboardingSharedState, SharedTaskState):
 
 @dataclass
 class RemoteQueryBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
-    _blueprint_type: str = BLUEPRINT_TYPE
+    _blueprint_type: str = BLUEPRINT_TYPE_REMOTE_QUERY
     _group: str = field(
         default="RemoteQueryBlueprintArgs",
         metadata={
@@ -122,7 +122,7 @@ class RemoteQueryBlueprint(OnboardingRequired, Blueprint):
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = RemoteQueryTaskRunner
     ArgsClass = RemoteQueryBlueprintArgs
     SharedStateClass = SharedRemoteQueryTaskState
-    BLUEPRINT_TYPE = BLUEPRINT_TYPE
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE_REMOTE_QUERY
 
     def __init__(
         self,

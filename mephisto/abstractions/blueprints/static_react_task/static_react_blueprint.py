@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
     from omegaconf import DictConfig
 
-BLUEPRINT_TYPE = "static_react_task"
+BLUEPRINT_TYPE_STATIC_REACT = "static_react_task"
 
 
 @dataclass
@@ -46,7 +46,7 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
     with our provided useMephistoTask hook.
     """
 
-    _blueprint_type: str = BLUEPRINT_TYPE
+    _blueprint_type: str = BLUEPRINT_TYPE_STATIC_REACT
     _group: str = field(
         default="StaticReactBlueprint",
         metadata={
@@ -84,7 +84,7 @@ class StaticReactBlueprint(StaticBlueprint):
 
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = StaticReactTaskBuilder
     ArgsClass = StaticReactBlueprintArgs
-    BLUEPRINT_TYPE = BLUEPRINT_TYPE
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE_STATIC_REACT
 
     def __init__(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
