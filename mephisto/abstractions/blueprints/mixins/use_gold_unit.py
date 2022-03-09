@@ -24,8 +24,11 @@ import traceback
 from mephisto.abstractions.blueprint import BlueprintMixin, AgentState
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
-from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
-from mephisto.utils.misc import find_or_create_qualification
+from mephisto.data_model.qualification import (
+    make_qualification_dict,
+    QUAL_NOT_EXIST,
+    find_or_create_qualification,
+)
 from mephisto.operations.task_launcher import GOLD_UNIT_INDEX
 
 

@@ -174,6 +174,18 @@ def make_qualification_dict(
     return as_valid_qualification_dict(qual_dict)
 
 
+def find_or_create_qualification(db: "MephistoDB", qualification_name: str) -> str:
+    """
+    Ensure the given qualification exists in the db,
+    creating it if it doesn't already. Returns the id
+    """
+    found_qualifications = db.find_qualifications(qualification_name)
+    if len(found_qualifications) == 0:
+        return db.make_qualification(qualification_name)
+    else:
+        return found_qualifications[0].db_id
+
+
 class Qualification(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """Simple convenience wrapper for Qualifications in the data model"""
 

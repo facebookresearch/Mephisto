@@ -15,7 +15,7 @@ import pytest
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser
 from mephisto.data_model.worker import Worker
-from mephisto.utils.misc import find_or_create_qualification
+from mephisto.data_model.qualification import find_or_create_qualification
 
 
 class TestMTurkComponents(unittest.TestCase):
