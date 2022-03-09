@@ -107,4 +107,6 @@ Fourth, the router is responsible for serving the static `task_config.json` file
 
 The `useMephistoTask` hook is responsible for allowing a worker to connect to a task and submit the relevant data. For this, it only needs to make `POST` requests related to the `PACKET_TYPE_SUBMIT_*` and `PACKET_TYPE_REGISTER_AGENT` events. The former should be triggered on `handleSubmit`, while the latter should trigger immediately on load.
 
-The `useMephistoLiveTask` hook is responsible for the rest of the packets. Data packets should be sent via `sendData` and handled with the `onLiveUpdate` callback. Providing a callback to `sendData` will call that with any response data that sets the `source_request_id` to the initial send's `update_id`. Local connection state is managed by the `socket_handler.jsx` class, and surfaced through the hook variables for UIs to use. 
+The `useMephistoLiveTask` hook is responsible for the rest of the packets. Data packets should be sent via `sendData` and handled with the `onLiveUpdate` callback. So long as your data is json-serializable, you can send anything you want this way.
+
+We also provide a `useMephistoRemoteProcedureTask` hook, which is a wrapper around `useMephistoLiveTask` that instead allows for making remote procedure calls from static tasks (when combined with the `RemoteProcedureBlueprint` or a similar API). Here people can make requests to the backend from an otherwise static task, and potentially receive responses and take action on them if they've registered callbacks. The only interface here is thus `makeRemoteCall`.
