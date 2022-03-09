@@ -9,7 +9,7 @@ Utilities that are useful for Mephisto-related scripts.
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
-from mephisto.utils.misc import get_mock_requester
+from mephisto.utils.testing import get_mock_requester
 from mephisto.utils.dirs import get_root_data_dir
 
 from omegaconf import DictConfig, OmegaConf

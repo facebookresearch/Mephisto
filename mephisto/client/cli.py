@@ -116,7 +116,7 @@ def review(
 def check():
     """Checks that mephisto is setup correctly"""
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
-    from mephisto.utils.misc import get_mock_requester
+    from mephisto.utils.testing import get_mock_requester
 
     try:
         db = LocalMephistoDB()
