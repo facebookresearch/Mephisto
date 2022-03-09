@@ -8,15 +8,33 @@ Utilities that are useful for Mephisto-related scripts.
 """
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.utils.testing import get_mock_requester
-from mephisto.utils.dirs import get_root_data_dir
+from mephisto.utils.dirs import get_root_data_dir, get_run_file_dir
+from mephisto.operations.hydra_config import (
+    build_default_task_config,
+    register_script_config,
+    TaskConfig,
+)
 
 from omegaconf import DictConfig, OmegaConf
 
+import functools
+import hydra
 import argparse
 import subprocess
-from typing import Tuple, Dict, Any, TYPE_CHECKING
+from typing import (
+    Tuple,
+    Dict,
+    Any,
+    Type,
+    TypeVar,
+    Callable,
+    Optional,
+    cast,
+    TYPE_CHECKING,
+)
 import os
 
 if TYPE_CHECKING:
@@ -27,7 +45,7 @@ def load_db_and_process_config(
     cfg: DictConfig, print_config=False
 ) -> Tuple["MephistoDB", DictConfig]:
     """
-    Using a Hydra DictConfig built from a RunScriptConfig,
+    Using a Hydra DictConfig built from a TaskConfig,
     load the desired MephistoDB and
     validate the config against the database contents, then
     return the database and validated config.
@@ -39,6 +57,70 @@ def load_db_and_process_config(
     if print_config:
         print(OmegaConf.to_yaml(valid_config))
     return db, valid_config
+
+
+def process_config_and_get_operator(
+    cfg: DictConfig, print_config=False
+) -> Tuple["Operator", DictConfig]:
+    """
+    Using a Hydra DictConfig built from a TaskConfig,
+    return an operator for that task as well as a validated config.
+
+    Takes in an option to print out the configuration before returning
+    """
+    db, valid_config = load_db_and_process_config(cfg, print_config=print_config)
+    return Operator(db), valid_config
+
+
+TaskFunction = TypeVar("TaskFunction", bound=Callable[..., Any])
+
+
+def task_script(
+    config: Optional[Type[TaskConfig]] = None,
+    default_config_file: Optional[str] = None,
+    config_path: str = "hydra_configs",  # Override if using a different dir
+) -> Callable[[TaskFunction], Any]:
+    """
+    Create a decorator for the main of a Mephisto task script
+
+    Must provide one of config (a TaskConfig dataclass) or default_config_file
+    (the location of a default task config hydra yaml), the former
+    will be preferred.
+
+    May specify a config_path override if not using `hydra_configs` at the
+    run script location.
+    """
+    if config is not None:
+        used_config = config
+    else:
+        assert (
+            default_config_file is not None
+        ), "Must provide one of config or default_config_file"
+        used_config = build_default_task_config(default_config_file)
+    register_script_config(name="taskconfig", module=used_config)
+
+    def task_script_wrapper(script_func: TaskFunction) -> TaskFunction:
+        @functools.wraps(script_func)
+        def process_config_and_run_main(cfg: "DictConfig"):
+            operator, cfg = process_config_and_get_operator(cfg)
+            try:
+                ret_val = script_func(operator, cfg)
+            except Exception as e:
+                raise e
+            finally:
+                if not operator.is_shutdown:
+                    operator.shutdown()
+            return ret_val
+
+        absolute_config_path = os.path.abspath(
+            os.path.join(get_run_file_dir(), config_path)
+        )
+        hydra_wrapper = hydra.main(
+            config_path=absolute_config_path, config_name="taskconfig"
+        )
+        return cast(TaskFunction, hydra_wrapper(process_config_and_run_main))
+
+    return task_script_wrapper
 
 
 def get_db_from_config(cfg: DictConfig) -> "MephistoDB":

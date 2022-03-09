@@ -236,45 +236,54 @@ Complete this task, and you can review it in the same way as before.
 Now that you've gotten a task running, this section gives a quick overview on some of the components in the configs and `static_test_script.py` that led to the observed behaviors. The goal is to ensure you can write your own run files by the end of the tutorial sections.
 
 ### 3.1 Config registration
-Mephisto wires up to configuration using standard Hydra syntax, but with both `yaml` files (for ease of writing) _and_ structured configs (for ease of documentation). Here's the config we've set up for this example, re-ordered for understanding:
+Mephisto wires up to configuration using standard Hydra syntax, but with both `yaml` files (for ease of writing) _and_ structured configs (for ease of documentation). 
+Here's the config we've set up for this example:
 ```python
 # static_test_script.py
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
-    BLUEPRINT_TYPE,
+    BLUEPRINT_TYPE_STATIC_HTML,
 )
-...
+from mephisto.tools.scripts import process_config_and_get_operator, task_script
+from omegaconf import DictConfig
 
-defaults = ["_self_", {"conf": "example"}]
+@task_script(default_config_file="example")
+def main(operator: Operator, cfg: DictConfig) -> None:
+```
+This is all you really *need* to launch a Mephisto task! The `@task_script` decorator does the job of attaching your hydra yaml as default arguments for the main.
 
-from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
-TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+Of course, there's quite a bit of 'magic' happening underneath the hood thanks to the script utilities. This version is explicit to show where you may add customization, and re-ordered for understanding:
+```python
+# modified static_test_script.py
+from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
+    BLUEPRINT_TYPE_STATIC_HTML,
+)
+
+from mephisto.tools.scripts import task_script
+from mephisto.operations.hydra_config import build_default_task_config
+
 @dataclass
-class TestScriptConfig(RunScriptConfig):
-    defaults: List[Any] = field(default_factory=lambda: defaults)
-    task_dir: str = TASK_DIRECTORY
+class MyTaskConfig(build_default_task_config('example')):
+    custom_args: Any = 4
 
-register_script_config(name="scriptconfig", module=TestScriptConfig)
-@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
+@task_script(config=MyTaskConfig)
+def main(operator: Operator, cfg: DictConfig) -> None:
 ```
 In this snippet, we do a few things:
-1. We import the `BLUEPRINT_TYPE` to force an import of the blueprint we intend to use with this run script. This isn't *required* for Mephisto default blueprints, but is important for custom `Blueprint`s to ensure they are loaded into the Mephisto registry.
-2. We set up the default `conf` file to be `example`, which ensures that Hydra looks into `conf/example.yaml` on any run where this isn't overridden.
-3. We create a `RunScriptConfig`, which is a set of options that we are allowed to set for a task. Here, we only provide a `task_dir`, which you can override on the command line with `python static_test_script.py task_dir=some/other/path`. Mostly, we use this for ensuring that the `data_csv` and other path-related variables are portable.
-4. We register this config with hydra, and then have the `main` function point to this configuration. Note the `hydra_configs` value for `config_path`, which now fully explains the `hydra_configs/conf/example.yaml` path. 
+1. We import the `BLUEPRINT_TYPE_STATIC_HTML` to force an import of the blueprint we intend to use with this run script. This isn't *required* for Mephisto default blueprints, but is important for custom `Blueprint`s to ensure they are loaded into the Mephisto registry.
+2. We set up the default `conf` file to be `example`, using `build_default_task_config`, which returns a `TaskConfig` that we can extend.
+3. We extend the returned `TaskConfig` with `MyTaskConfig`, which allows us to specify custom arguments.
+4. We decorate the main, noting that the correct config is `MyTaskConfig`. Note that the `default_config_file` version of this simply takes care of the above steps inline in the decorator.
 
 With all the above, we're able to just make edits to `example.yaml` or make other configs in the `conf/` directory and route to them directly.
 
 ### 3.2 Invoking Mephisto
 Mephisto itself is actually invoked just a little later:
 ```python
-def main(cfg: DictConfig) -> None:
-    db, cfg = load_db_and_process_config(cfg)
-    operator = Operator(db)
-
+def main(operator: Operator, cfg: DictConfig) -> None:
     operator.validate_and_run_config(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 ```
-Here we use the `load_db_and_process_config` helper to extract specific arguments out of your configuration (and surface warnings about incompatibilities), as well as load the correct `MephistoDB` for the task. We then initialize an `Operator` (the main entry point for running a Mephisto `TaskRun`), and run the given config, then wait for it to run. To ensure we're not frozen, the operator takes in a `log_rate` in seconds to print status messages while the run is underway.
+Here we use the `process_config_and_get_operator` helper to extract specific arguments out of your configuration (and surface warnings about incompatibilities), as well as initialize an `Operator` on the correct `MephistoDB` for the task. Using this we can launch a `TaskRun` the given config, then wait for it to run. To ensure we're not frozen, the operator takes in a `log_rate` in seconds to print status messages while the run is underway.
 
 ### 3.3 Default abstraction usage
 Again we can look back at the `example.yaml` file to see this setup:
