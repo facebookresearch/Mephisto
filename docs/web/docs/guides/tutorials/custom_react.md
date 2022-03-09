@@ -36,7 +36,7 @@ mephisto:
     task_tags: "test,simple,button"
 ```
 
-The only change we'll make is to the `task_name` (as you should on any new tasks!), but we will update the other fields as we go. It's important to note the `task_source` and `extra_source_dir` arguments though, as this is where the `Blueprint` will be looking a compiled react app bundle, and for extra static resources for the page.
+The only change we'll make is to the `task_name` (as you should on any new tasks!), but we will update the other fields as we go. It's important to note the `task_source` and `extra_source_dir` arguments though, as this is where the `StaticReactBlueprint` class will be looking for the compiled React app's Javascript bundle as well as a folder for extra static resources for the page, respectively.
 
 ### 1.2 Launching the task
 From the current directory, you should be able to execute the run script and get a job working. We're using a different `task_name` to prevent polluting our later task with data that won't share the same format. It is a good practice to do this with initial iterations, and to change the `task_name` any time you change input or output arguments.
@@ -201,7 +201,7 @@ onClick={() => onSubmit({ rating: "bad" })}
 ```
 Based on how `onSubmit` is wired to Mephisto's `handleSubmit` function, anything (json-serializable) in the object passed to `onSubmit` will be what is saved for the task. For this tutorial we'll want to put something else useful into this object. To this end, let's add an input box that allows workers to submit an edit to correct the sentence in some way. 
 
-We can add some state to `SimpleFrontend` with one line. This provides us with an `editedText` value initialized to `taskData.text`, which we'll set to track the worker edits, and a setter to alter that value.
+We can add some state to `SimpleFrontend` with the [`useState` React Hook](https://reactjs.org/docs/hooks-state.html). This provides us with an `editedText` value initialized to `taskData.text`, which we'll set to track the worker edits, and a setter to alter that value.
 ```jsx
 // webapp/src/components/core_components.jsx
 function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
