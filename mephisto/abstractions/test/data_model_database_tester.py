@@ -27,8 +27,7 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task
-from mephisto.data_model.task_run import TaskRun
-from mephisto.data_model.task_config import TaskConfig
+from mephisto.data_model.task_run import TaskRun, TaskRunArgs
 from mephisto.data_model.qualification import Qualification
 from mephisto.data_model.worker import Worker
 from mephisto.abstractions.database import (
@@ -316,7 +315,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # But not after we've created a task run
         requester_name, requester_id = get_test_requester(db)
-        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
+        init_params = json.dumps(OmegaConf.to_yaml(TaskRunArgs.get_mock_params()))
         task_run_id = db.new_task_run(
             task_id_2, requester_id, init_params, "mock", "mock"
         )
@@ -450,7 +449,7 @@ class BaseDatabaseTests(unittest.TestCase):
         requester_name, requester_id = get_test_requester(db)
 
         # Check creation and retrieval of a task_run
-        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
+        init_params = json.dumps(OmegaConf.to_yaml(TaskRunArgs.get_mock_params()))
         task_run_id = db.new_task_run(
             task_id, requester_id, init_params, "mock", "mock"
         )
@@ -504,7 +503,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         task_name, task_id = get_test_task(db)
         requester_name, requester_id = get_test_requester(db)
-        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
+        init_params = json.dumps(OmegaConf.to_yaml(TaskRunArgs.get_mock_params()))
 
         # Can't create task run with invalid ids
         with self.assertRaises(EntryDoesNotExistException):

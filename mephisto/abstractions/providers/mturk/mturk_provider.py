@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from mephisto.data_model.task_config import TaskConfig
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
 from mephisto.abstractions.crowd_provider import CrowdProvider, ProviderArgs
@@ -85,13 +84,11 @@ class MTurkProvider(CrowdProvider):
         """Produce the HIT type for this task run."""
         requester = cast("MTurkRequester", task_run.get_requester())
         session = self.datastore.get_session_for_requester(requester._requester_name)
-        task_config = task_run.get_task_config()
-
         task_run_id = task_run.db_id
 
         # Set up HIT config
         config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
-        task_config = TaskConfig(task_run)
+        task_args = args.task
 
         # Find or create relevant qualifications
         qualifications = []
@@ -117,7 +114,7 @@ class MTurkProvider(CrowdProvider):
 
         # Set up HIT type
         client = self._get_client(requester._requester_name)
-        hit_type_id = create_hit_type(client, task_config, qualifications)
+        hit_type_id = create_hit_type(client, task_args, qualifications)
         frame_height = (
             task_run.get_blueprint().get_frontend_args().get("frame_height", 0)
         )

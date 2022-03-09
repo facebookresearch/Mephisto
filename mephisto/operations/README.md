@@ -65,7 +65,7 @@ Mephisto classes can then use the `get_<abstraction>_from_type` methods from the
 ## `TaskLauncher`
 The `TaskLauncher` class is a fairly lightweight class responsible for handling the process of launching units. A `TaskLauncher` is created for a specific `TaskRun`, and provided with `assignment_data` for that full task run. It creates `Assignment`s and `Unit`s for the `TaskRun`, and packages the expected data into the `Assignment`.  When a task is ready to go live, one calls `launch_units(url)` with the `url` that the task should be pointed to. If units need to be expired (such as during a shutdown), `expire_units` handles this for all units created for the given `TaskRun`.
 
-`TaskLauncher`s will parse the `TaskRun`'s `TaskConfig` to know what parameters to set. This info should be used to initialize the assignments and the units as specified. The `TaskLauncher` can also be used to limit the number of currently available tasks using the `max_num_concurrent_units` argument, which prevents too many tasks from running at the same time, potentially overrunning the `TaskRunner` that the `Blueprint` has provided.
+`TaskLauncher`s will parse the `TaskRun`'s `TaskRunArgs` to know what parameters to set. This info should be used to initialize the assignments and the units as specified. The `TaskLauncher` can also be used to limit the number of currently available tasks using the `max_num_concurrent_units` argument, which prevents too many tasks from running at the same time, potentially overrunning the `TaskRunner` that the `Blueprint` has provided.
 
 
 ## `config_handler.py`

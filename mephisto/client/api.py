@@ -20,7 +20,6 @@ from mephisto.operations.registry import (
     get_valid_provider_types,
     get_valid_architect_types,
 )
-from mephisto.data_model.task_config import TaskConfig
 import sys
 import traceback
 import os
@@ -118,7 +117,7 @@ def view_unit(task_id):
 
 @api.route("/task_runs/options")
 def get_basic_task_options():
-    params = get_extra_argument_dicts(TaskConfig)
+    params = get_extra_argument_dicts(TaskRun)
     return jsonify({"success": True, "options": params})
 
 

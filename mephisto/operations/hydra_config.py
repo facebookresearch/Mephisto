@@ -8,8 +8,9 @@ from hydra.core.config_store import ConfigStoreWithProvider
 from mephisto.abstractions.blueprint import BlueprintArgs
 from mephisto.abstractions.architect import ArchitectArgs
 from mephisto.abstractions.crowd_provider import ProviderArgs
-from mephisto.data_model.task_config import TaskConfigArgs
+from mephisto.data_model.task_run import TaskRunArgs
 from mephisto.utils.logger_core import get_logger
+from mephisto.utils.misc import get_run_file_dir
 from dataclasses import dataclass, field, fields, Field
 from omegaconf import OmegaConf, MISSING, DictConfig
 from typing import List, Type, Dict, Any, TYPE_CHECKING
@@ -35,7 +36,7 @@ class MephistoConfig:
     blueprint: BlueprintArgs = MISSING
     provider: ProviderArgs = MISSING
     architect: ArchitectArgs = MISSING
-    task: TaskConfigArgs = TaskConfigArgs()
+    task: TaskRunArgs = TaskRunArgs()
     database: DatabaseArgs = DatabaseArgs()
     log_level: str = "info"
 
@@ -43,6 +44,7 @@ class MephistoConfig:
 @dataclass
 class RunScriptConfig:
     mephisto: MephistoConfig = MephistoConfig()
+    task_dir: str = get_run_file_dir()
 
 
 def register_abstraction_config(name: str, node: Any, abstraction_type: str):

@@ -51,8 +51,5 @@ Some classes in the data model aren't backed by the data model because they are 
 ### `Packet`
 Encapsulates messages being sent from the `ClientIOhandler` to any Mephisto server.
 
-### `TaskConfig`
-Keeps track of specific parameters that are necessary to launch a task on any crowd provider, like `title`, `description`, `tags`, `quantity`, `pay_amount`, etc. `TaskRuns` leverage the `TaskConfig` to know what they're doing.
-
 ## Constants
 Some Mephisto constants that are able to standardize values across multiple classes live in the data model within the contants folder.

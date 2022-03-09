@@ -16,20 +16,18 @@ from mephisto.abstractions.database import (
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.assignment import Assignment
-from mephisto.data_model.task_config import TaskConfig
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task
-from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.task_run import TaskRun, TaskRunArgs
 from omegaconf import OmegaConf
 import json
 
 from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.abstractions.architects.mock_architect import MockArchitectArgs
-from mephisto.data_model.task_config import TaskConfigArgs
 from mephisto.operations.hydra_config import MephistoConfig
 
-MOCK_TASK_ARGS = TaskConfigArgs(
+MOCK_TASK_ARGS = TaskRunArgs(
     task_title="title",
     task_description="This is a description",
     task_reward=0.3,
