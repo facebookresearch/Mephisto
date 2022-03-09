@@ -191,7 +191,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         Get any units that the given worker could work on in this
         task run
         """
-        config = self.get_task_config()
+        config = self.get_task_args()
 
         if config.allowed_concurrent != 0 or config.maximum_units_per_worker:
             current_units = self.db.find_units(
@@ -432,7 +432,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             "task_name": self.get_task().task_name,
             "task_type": self.task_type,
             "start_time": self.start_time,
-            "params": OmegaConf.to_container(self.get_task_config().args),
+            "params": OmegaConf.to_container(self.args),
             "param_string": self.param_string,
             "task_status": self.get_assignment_statuses(),
             "sandbox": self.get_requester().is_sandbox(),

@@ -159,7 +159,7 @@ def main():
 
         # Create an assignment, unit, agent, and mark as assigned
         # Assignment creation
-        task_config = task_run.get_task_config()
+        task_args = task_run.get_task_args()
         assignment_id = db.new_assignment(
             task_run.task_id,
             task_run.db_id,
@@ -179,7 +179,7 @@ def main():
             task_run.requester_id,
             assignment_id,
             COMPENSATION_UNIT_INDEX,
-            task_config.task_reward,
+            task_args.task_reward,
             task_run.provider_type,
             task_run.task_type,
             task_run.sandbox,

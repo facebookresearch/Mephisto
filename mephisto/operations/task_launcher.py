@@ -91,7 +91,7 @@ class TaskLauncher:
     def _create_single_assignment(self, assignment_data) -> None:
         """Create a single assignment in the database using its read assignment_data"""
         task_run = self.task_run
-        task_config = task_run.get_task_config()
+        task_args = task_run.get_task_args()
         assignment_id = self.db.new_assignment(
             task_run.task_id,
             task_run.db_id,
@@ -106,7 +106,7 @@ class TaskLauncher:
         unit_count = len(assignment_data.unit_data)
         for unit_idx in range(unit_count):
             unit = self.UnitClass.new(
-                self.db, assignment, unit_idx, task_config.task_reward
+                self.db, assignment, unit_idx, task_args.task_reward
             )
             self.units.append(unit)
             with self.unlaunched_units_access_condition:
@@ -211,7 +211,7 @@ class TaskLauncher:
             self.launch_url is not None
         ), "Cannot launch an evaluation unit before launching others"
         task_run = self.task_run
-        task_config = task_run.get_task_config()
+        task_args = task_run.get_task_args()
         assignment_id = self.db.new_assignment(
             task_run.task_id,
             task_run.db_id,
@@ -225,7 +225,7 @@ class TaskLauncher:
         assignment.write_assignment_data(data)
         self.assignments.append(assignment)
         evaluation_unit = self.UnitClass.new(
-            self.db, assignment, unit_type_index, task_config.task_reward
+            self.db, assignment, unit_type_index, task_args.task_reward
         )
         evaluation_unit.launch(self.launch_url)
         return evaluation_unit

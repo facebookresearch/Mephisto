@@ -273,7 +273,7 @@ class MTurkUnit(Unit):
     def launch(self, task_url: str) -> None:
         """Create this HIT on MTurk (making it availalbe) and register the ids in the local db"""
         task_run = self.get_assignment().get_task_run()
-        duration = task_run.get_task_config().assignment_duration_in_seconds
+        duration = task_run.get_task_args().assignment_duration_in_seconds
         run_id = task_run.db_id
         run_details = self.datastore.get_run(run_id)
         hit_type_id = run_details["hit_type_id"]
