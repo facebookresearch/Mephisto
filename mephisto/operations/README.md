@@ -4,7 +4,7 @@ The contents of the operations folder comprise controllers for launching and mon
 ### High-level controller components
 This level of components is reserved for modules that operate on the highest level of the Mephisto heirarchy. These should be either directly usable, or easy to bundle into scripts for the client/api.
 
-- `Operator`: High-level class responsible for launching and monitoring a `TaskRun`. Generally initialized using a `RunScriptConfig` and the `validate_and_run_config` method.
+- `Operator`: High-level class responsible for launching and monitoring a `TaskRun`. Generally initialized using a `TaskConfig` and the `launch_task_run` method.
 
 At the moment only the `Operator` exists in this level, as the module that manages the process of launching and monitoring a complete data collection job. Modules on a similar level of complexity may be written for the review flow, and for packaging data for release.
 
@@ -20,16 +20,16 @@ These components are responsible for tying some of the underlying data model com
 These modules contain functionality that is used to condense shared behavior from various parts of the Mephisto codebase into standard functionality and utilities.
 
 - `config_handler.py`: Functions responsible for providing a consistent interface into a user's configuration file for Mephisto, stored at `~/.mephisto/config.yml`.
-- `hydra_config.py`: Classes and functionality responsible for ensuring that Mephisto operates well using Hydra, including base classes to build Hydra structured configs from (such as the `RunScriptConfig`) and methods to simplify interacting with Hydra in the codebase.
+- `hydra_config.py`: Classes and functionality responsible for ensuring that Mephisto operates well using Hydra, including base classes to build Hydra structured configs from (such as the `TaskConfig`) and methods to simplify interacting with Hydra in the codebase.
 - `logger_core.py`: Helpers to simplify the process of generating unique loggers and logging configuration for various parts of Mephisto. (Much still to be done here).
 
 
 ## `Operator`
-The Operator is responsible for actually coordinating launching tasks. This is managed using the `validate_and_run_config` function. It takes in a Hydra `DictConfig` of arguments corresponding to the `Blueprint`, `Architect`, and `CrowdProvider` of choice. It can also take a `SharedTaskState` object to pass information that wouldn't normally be able to be parsed on the command line, or where it can only be extracted at runtime.
+The Operator is responsible for actually coordinating launching tasks. This is managed using the `launch_task_run` function. It takes in a Hydra `DictConfig` of arguments corresponding to the `Blueprint`, `Architect`, and `CrowdProvider` of choice. It can also take a `SharedTaskState` object to pass information that wouldn't normally be able to be parsed on the command line, or where it can only be extracted at runtime.
 
 One important extra argument is `SharedTaskState.qualifications`, which allows configuring a task with requirements for workers to be eligibible to work on the task. Functionality for this can be seen in `data_model.qualifications`, with examples in how `operator` handles the `block_qualification`.
 
-The lifecycle of an operator is to launch as many LiveTaskRuns as desired using the `validate_and_run_config` function, and then to watch over their progress using the `wait_for_runs_then_shutdown` function. These methods cover the full requirements for launching and monitoring a job.
+The lifecycle of an operator is to launch as many LiveTaskRuns as desired using the `launch_task_run` function, and then to watch over their progress using the `wait_for_runs_then_shutdown` function. These methods cover the full requirements for launching and monitoring a job.
 
 If `wait_for_runs_then_shutdown` is not used, it's always important to call the `shutdown` methods whenever an operator has been created. While tasks are underway, a user can use `get_running_task_runs` to see the status of things that are currently running. Once there are no running task runs, the `Operator` can be told to shut down.
 
@@ -79,4 +79,4 @@ The following methods are defined:
 - `get_config_arg`: Returns a specific argument value from a section of the config.
 
 ## `hydra_config.py`
-The hydra config module contains a number of classes and methods to make interfacing with hydra a little more convenient for Mephisto and its users. It defines common structured config types, currently the `MephistoConfig` and the `RunScriptConfig`, for use in user code. It also defines methods for handling registering those structured configs under the expected names, which the `registry` relies on. Lastly, it provides the `register_script_config` method, which lets a user define a structured config for use in their scripts without needing to initialize a hydra `ConfigStore`.
+The hydra config module contains a number of classes and methods to make interfacing with hydra a little more convenient for Mephisto and its users. It defines common structured config types, currently the `MephistoConfig` and the `TaskConfig`, for use in user code. It also defines methods for handling registering those structured configs under the expected names, which the `registry` relies on. Lastly, it provides the `register_script_config` method, which lets a user define a structured config for use in their scripts without needing to initialize a hydra `ConfigStore`.

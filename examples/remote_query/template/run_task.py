@@ -4,38 +4,19 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import (
-    load_db_and_process_config,
+    task_script,
     build_and_return_custom_bundle,
 )
 from mephisto.abstractions.blueprints.remote_query.remote_query_blueprint import (
-    BLUEPRINT_TYPE,
+    BLUEPRINT_TYPE_REMOTE_QUERY,
     SharedRemoteQueryTaskState,
     RemoteQueryAgentState,
 )
 
-import hydra
 from omegaconf import DictConfig
-from dataclasses import dataclass, field
-from typing import List, Any, Dict, Optional
-
-TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-EXAMPLE_SOURCE = os.path.abspath(os.path.join(TASK_DIRECTORY, "source_files"))
-
-default_list = ["_self_", {"conf": "launch_with_local"}]
-
-from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
-
-
-@dataclass
-class TestScriptConfig(RunScriptConfig):
-    defaults: List[Any] = field(default_factory=lambda: default_list)
-    task_dir: str = TASK_DIRECTORY
-
-
-register_script_config(name="scriptconfig", module=TestScriptConfig)
+from typing import Any, Dict
 
 
 def build_local_context(num_tasks):
@@ -67,13 +48,8 @@ def build_tasks(num_tasks):
     return tasks
 
 
-@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
-def main(cfg: DictConfig) -> None:
-    task_dir = cfg.task_dir
-
-    db, cfg = load_db_and_process_config(cfg)
-    num_tasks = 2
-
+@task_script(default_config_file="launch_with_local")
+def main(operator: Operator, cfg: DictConfig) -> None:
     def onboarding_always_valid(onboarding_data):
         # NOTE you can make an onboarding task and validate it here
         print(onboarding_data)
@@ -81,8 +57,8 @@ def main(cfg: DictConfig) -> None:
 
     # Right now we're building locally, but should eventually
     # use non-local for the real thing
-    tasks = build_tasks(num_tasks)
-    context = build_local_context(num_tasks)
+    tasks = build_tasks(cfg.num_tasks)
+    context = build_local_context(cfg.num_tasks)
 
     def handle_with_model(
         _request_id: str, args: Dict[str, Any], agent_state: RemoteQueryAgentState
@@ -109,10 +85,9 @@ def main(cfg: DictConfig) -> None:
         function_registry=function_registry,
     )
 
+    task_dir = cfg.task_dir
     build_and_return_custom_bundle(task_dir)
-    operator = Operator(db)
-
-    operator.validate_and_run_config(cfg.mephisto, shared_state)
+    operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 

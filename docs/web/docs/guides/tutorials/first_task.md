@@ -280,7 +280,7 @@ With all the above, we're able to just make edits to `example.yaml` or make othe
 Mephisto itself is actually invoked just a little later:
 ```python
 def main(operator: Operator, cfg: DictConfig) -> None:
-    operator.validate_and_run_config(cfg.mephisto)
+    operator.launch_task_run(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 ```
 Here we use the `process_config_and_get_operator` helper to extract specific arguments out of your configuration (and surface warnings about incompatibilities), as well as initialize an `Operator` on the correct `MephistoDB` for the task. Using this we can launch a `TaskRun` the given config, then wait for it to run. To ensure we're not frozen, the operator takes in a `log_rate` in seconds to print status messages while the run is underway.

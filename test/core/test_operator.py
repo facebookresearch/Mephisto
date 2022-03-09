@@ -148,7 +148,7 @@ class OperatorBaseTest(object):
             architect=MockArchitectArgs(should_run_server=True),
             task=MOCK_TASK_ARGS,
         )
-        self.operator.validate_and_run_config(OmegaConf.structured(config))
+        self.operator.launch_task_run(OmegaConf.structured(config))
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]
@@ -208,7 +208,7 @@ class OperatorBaseTest(object):
             architect=MockArchitectArgs(should_run_server=True),
             task=MOCK_TASK_ARGS,
         )
-        self.operator.validate_and_run_config(OmegaConf.structured(config))
+        self.operator.launch_task_run(OmegaConf.structured(config))
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]
@@ -280,7 +280,7 @@ class OperatorBaseTest(object):
                 task_name="max-unit-test",
             ),
         )
-        self.operator.validate_and_run_config(OmegaConf.structured(config))
+        self.operator.launch_task_run(OmegaConf.structured(config))
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]
@@ -423,7 +423,7 @@ class OperatorBaseTest(object):
                 task_name="max-unit-test",
             ),
         )
-        self.operator.validate_and_run_config(OmegaConf.structured(config))
+        self.operator.launch_task_run(OmegaConf.structured(config))
         tracked_runs = self.operator.get_running_task_runs()
         self.assertEqual(len(tracked_runs), 1, "Run not launched")
         task_run_id, tracked_run = list(tracked_runs.items())[0]
