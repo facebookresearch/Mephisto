@@ -330,13 +330,82 @@ output_string = f"Provided rating: {outputs['rating']}\n{edit_text_string}"
 
 While creating review scripts is powerful, it's not always the easiest way to review data. Annotations that are best in full context, like videos for instance, would likely benefit from being able to view the data directly.
 
-### 4.2 Creating a viewer
+### 4.2 Using a web-based review flow
 
 For tasks that are best reviewed through a full UI, Mephisto offers a way to create web-based review flows. 
 
-TODO - Provide an explanation for how to use the web/UI based viewer for this specific task.
+To view the results of the task we just ran through the web-based workflow, run the `mephisto review` CLI tool:
 
-# Building from task blocks with @Annotated
+```
+mephisto review --db custom-react-tutorial-iterating --stdout --all
+```
+
+This will launch a local server where you will be able to browse, filter, and drill into the data collected for your task.
+
+![](/custom_react_review_all.png)
+
+You can also drill into a specific task to explore the details further.
+
+![](/custom_react_review_single.png)
+
+### 4.3 Customizing the web-based review flow
+
+By default, we ship with a batteries-included review experience, however you can easily create your own interface with custom "renderers" for visualizing your collected data.
+
+Let's walk through creating our own custom renderer for our data.
+
+First, we'll create our review application by using the `create-react-app` npm package, with a mephisto review template. Continuing from within our project folder at `tmp/static_tutorial/` let's run:
+
+```bash
+npx create-react-app@latest custom-review --template mephisto-review 
+```
+Once the template is done installing we'll create a new file at `custom-review/src/custom/MyDataItem.js` and fill it in as such:
+
+```jsx
+import React from "react";
+
+export default function MyDataItem({item}) {
+    const rating = item.data.data.outputs.final_data.rating;
+    const duration = Math.round(item.data.data.times.task_end - item.data.data.times.task_start);
+    return <Card>
+        <h1>{ rating === "good" ? "👍" : "👎"}</h1>
+        <p>{duration} seconds</p>
+    </Card>
+}
+
+```
+
+Now that we've created our own ItemRenderer, we'll use it by updating `custom-review/src/index.js` to first import the renderer:
+
+```jsx
+import MyDataItem from "./custom/MyDataItem"
+```
+
+Then we'll pass it to the `<CollectionView />` component to modify the way in which our data renders in the grid view:
+
+```jsx
+<CollectionView
+  collectionRenderer={GridCollection}
+  itemRenderer={MyDataItem}
+  pagination={true}
+  resultsPerPage={9}
+/>
+```
+
+To see our new renderer in action, let's build our app and invoke the mephisto review CLI with it.
+
+```bash
+cd custom-review/
+npm run build
+mephisto review build/ --db custom-react-tutorial-iterating --stdout --all
+```
+
+*Note:* Notice that the `mephisto review` command here is similar to the one run in the previous section, except this time we pass in the relative path to the build folder as an argument.
+
+![](/custom_react_review_renderer.png)
+
+
+# Building from task blocks with `@annotated`
 
 Mephisto at the core is built for complete flexibility over the kinds of tasks you can create. Building everything from scratch though can be a lot, so we've created the annotation toolkit and Annotated libraries. These have components that may be useful for your annotation tasks, as well as examples of developed flows you can use or extend for your tasks.
 
