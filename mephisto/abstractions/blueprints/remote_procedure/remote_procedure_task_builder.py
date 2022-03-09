@@ -9,7 +9,7 @@ from mephisto.abstractions.blueprints.static_react_task.static_react_task_builde
 )
 
 
-class RemoteQueryTaskBuilder(StaticReactTaskBuilder):
+class RemoteProcedureTaskBuilder(StaticReactTaskBuilder):
     """
     Builder for a "static task" that has access to remote queries.
     At the moment, simply a StaticReactTaskBuilder, as we will be using static react tasks

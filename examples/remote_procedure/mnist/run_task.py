@@ -4,22 +4,33 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+try:
+    import torch
+    from PIL import Image
+except ImportError:
+    print("Need to have torch, PIL installed to use this demo")
+    exit(1)
+
 import os
+from io import BytesIO
+import base64
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import (
     load_db_and_process_config,
     build_and_return_custom_bundle,
 )
-from mephisto.abstractions.blueprints.remote_query.remote_query_blueprint import (
+from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
     BLUEPRINT_TYPE,
-    SharedRemoteQueryTaskState,
-    RemoteQueryAgentState,
+    SharedRemoteProcedureTaskState,
+    RemoteProcedureAgentState,
 )
 
 import hydra
 from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any, Dict, Optional
+
+from model import mnist
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 EXAMPLE_SOURCE = os.path.abspath(os.path.join(TASK_DIRECTORY, "source_files"))
@@ -51,22 +62,6 @@ def build_local_context(num_tasks):
     return context
 
 
-def build_tasks(num_tasks):
-    """
-    Create a set of tasks you want annotated
-    """
-    # NOTE These form the init_data for a task
-    tasks = []
-    for x in range(num_tasks):
-        tasks.append(
-            {
-                "index": x,
-                "local_value_key": x,
-            }
-        )
-    return tasks
-
-
 @hydra.main(config_path="hydra_configs", config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
     task_dir = cfg.task_dir
@@ -81,29 +76,33 @@ def main(cfg: DictConfig) -> None:
 
     # Right now we're building locally, but should eventually
     # use non-local for the real thing
-    tasks = build_tasks(num_tasks)
+    tasks: List[Dict[str, Any]] = [{}] * num_tasks
+    mnist_model = mnist(pretrained=True)
     context = build_local_context(num_tasks)
 
     def handle_with_model(
-        _request_id: str, args: Dict[str, Any], agent_state: RemoteQueryAgentState
+        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
     ) -> Dict[str, Any]:
-        """Remote call to process external content using a 'model'"""
-        # NOTE this body can be whatever you want
-        print(f"The parsed args are {args}, you can do what you want with that")
-        print(f"You can also use {agent_state.init_data}, to get task keys")
-        assert agent_state.init_data is not None
-        idx = agent_state.init_data["local_value_key"]
-        print(f"And that may let you get local context, like {context[idx]}")
+        """Convert the image to be read by MNIST classifier, then classify"""
+        img_dat = args["urlData"].split("data:image/png;base64,")[1]
+        im = Image.open(BytesIO(base64.b64decode(img_dat)))
+        im_gray = im.convert("L")
+        im_resized = im_gray.resize((28, 28))
+        im_vals = list(im_resized.getdata())
+        norm_vals = [(255 - x) * 1.0 / 255.0 for x in im_vals]
+        in_tensor = torch.tensor([norm_vals])
+        output = mnist_model(in_tensor)
+        pred = output.data.max(1)[1]
+        print("Predicted digit:", pred.item())
         return {
-            "secret_local_value": context[idx],
-            "update": f"this was request {args['arg3'] + 1}",
+            "digit_prediction": pred.item(),
         }
 
     function_registry = {
-        "handle_with_model": handle_with_model,
+        "classify_digit": handle_with_model,
     }
 
-    shared_state = SharedRemoteQueryTaskState(
+    shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,
         validate_onboarding=onboarding_always_valid,
         function_registry=function_registry,

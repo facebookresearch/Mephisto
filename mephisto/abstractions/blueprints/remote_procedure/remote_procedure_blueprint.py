@@ -16,14 +16,14 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 )
 from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
-from mephisto.abstractions.blueprints.remote_query.remote_query_agent_state import (
-    RemoteQueryAgentState,
+from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_agent_state import (
+    RemoteProcedureAgentState,
 )
-from mephisto.abstractions.blueprints.remote_query.remote_query_task_runner import (
-    RemoteQueryTaskRunner,
+from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_task_runner import (
+    RemoteProcedureTaskRunner,
 )
-from mephisto.abstractions.blueprints.remote_query.remote_query_task_builder import (
-    RemoteQueryTaskBuilder,
+from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_task_builder import (
+    RemoteProcedureTaskBuilder,
 )
 from mephisto.operations.registry import register_mephisto_abstraction
 from omegaconf import DictConfig, MISSING
@@ -58,16 +58,17 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from argparse import _ArgumentGroup as ArgumentGroup
 
-BLUEPRINT_TYPE = "remote_query"
+BLUEPRINT_TYPE = "remote_procedure"
 
 
 @dataclass
-class SharedRemoteQueryTaskState(OnboardingSharedState, SharedTaskState):
+class SharedRemoteProcedureTaskState(OnboardingSharedState, SharedTaskState):
     function_registry: Optional[
         Mapping[
             str,
             Callable[
-                [str, Dict[str, Any], "RemoteQueryAgentState"], Optional[Dict[str, Any]]
+                [str, Dict[str, Any], "RemoteProcedureAgentState"],
+                Optional[Dict[str, Any]],
             ],
         ]
     ] = None
@@ -75,10 +76,10 @@ class SharedRemoteQueryTaskState(OnboardingSharedState, SharedTaskState):
 
 
 @dataclass
-class RemoteQueryBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
+class RemoteProcedureBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
     _blueprint_type: str = BLUEPRINT_TYPE
     _group: str = field(
-        default="RemoteQueryBlueprintArgs",
+        default="RemoteProcedureBlueprintArgs",
         metadata={
             "help": """
                 Tasks launched from remote query blueprints need a
@@ -113,22 +114,22 @@ class RemoteQueryBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
 
 
 @register_mephisto_abstraction()
-class RemoteQueryBlueprint(OnboardingRequired, Blueprint):
+class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
     """Blueprint for a task that runs a parlai chat"""
 
-    AgentStateClass: ClassVar[Type["AgentState"]] = RemoteQueryAgentState
-    OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = RemoteQueryAgentState
-    TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = RemoteQueryTaskBuilder
-    TaskRunnerClass: ClassVar[Type["TaskRunner"]] = RemoteQueryTaskRunner
-    ArgsClass = RemoteQueryBlueprintArgs
-    SharedStateClass = SharedRemoteQueryTaskState
+    AgentStateClass: ClassVar[Type["AgentState"]] = RemoteProcedureAgentState
+    OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = RemoteProcedureAgentState
+    TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = RemoteProcedureTaskBuilder
+    TaskRunnerClass: ClassVar[Type["TaskRunner"]] = RemoteProcedureTaskRunner
+    ArgsClass = RemoteProcedureBlueprintArgs
+    SharedStateClass = SharedRemoteProcedureTaskState
     BLUEPRINT_TYPE = BLUEPRINT_TYPE
 
     def __init__(
         self,
         task_run: "TaskRun",
         args: "DictConfig",
-        shared_state: "SharedRemoteQueryTaskState",
+        shared_state: "SharedRemoteProcedureTaskState",
     ):
         super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
@@ -169,8 +170,8 @@ class RemoteQueryBlueprint(OnboardingRequired, Blueprint):
     ) -> None:
         """Ensure that arguments are properly configured to launch this task"""
         assert isinstance(
-            shared_state, SharedRemoteQueryTaskState
-        ), "Must use SharedTaskState with RemoteQueryBlueprint"
+            shared_state, SharedRemoteProcedureTaskState
+        ), "Must use SharedTaskState with RemoteProcedureBlueprint"
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)

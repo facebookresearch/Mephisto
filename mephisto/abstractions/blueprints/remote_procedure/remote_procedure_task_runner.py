@@ -5,8 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.abstractions.blueprint import TaskRunner
-from mephisto.abstractions.blueprints.remote_query.remote_query_agent_state import (
-    RemoteQueryAgentState,
+from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_agent_state import (
+    RemoteProcedureAgentState,
 )
 from mephisto.data_model.agent import Agent, OnboardingAgent
 import time
@@ -22,15 +22,15 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from omegaconf import DictConfig
     from mephisto.data_model.unit import Unit
-    from mephisto.abstractions.blueprints.remote_query.remote_query_blueprint import (
-        SharedRemoteQueryTaskState,
+    from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
+        SharedRemoteProcedureTaskState,
     )
 
 
 THREAD_SHORT_SLEEP = 0.3
 
 
-class RemoteQueryTaskRunner(TaskRunner):
+class RemoteProcedureTaskRunner(TaskRunner):
     """
     Task runner for a task with live remote queries on the local machine
     # TODO this is pretty gross, and would be better as a series of worker
@@ -42,7 +42,7 @@ class RemoteQueryTaskRunner(TaskRunner):
         self,
         task_run: "TaskRun",
         args: "DictConfig",
-        shared_state: "SharedRemoteQueryTaskState",
+        shared_state: "SharedRemoteProcedureTaskState",
     ):
         super().__init__(task_run, args, shared_state)
         # TODO load up the possible functions from the shared_state
@@ -91,8 +91,8 @@ class RemoteQueryTaskRunner(TaskRunner):
             ), f"Target function {live_update['target']} not found in registry: {self.function_registry}"
             state = agent.state
             assert isinstance(
-                state, RemoteQueryAgentState
-            ), "Must use an agent with RemoteQueryAgentState"
+                state, RemoteProcedureAgentState
+            ), "Must use an agent with RemoteProcedureAgentState"
             res = self.function_registry[live_update["target"]](
                 request_id, json.loads(live_update["args"]), state
             )

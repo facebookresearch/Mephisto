@@ -8,17 +8,13 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import {
-  BaseFrontend,
-  LoadingScreen,
-  Instructions,
-} from "./components/core_components.jsx";
+import { BaseFrontend, LoadingScreen } from "./components/core_components.jsx";
 
 import {
   MephistoContext,
-  useMephistoRemoteQueryTask,
+  useMephistoRemoteProcedureTask,
   ErrorBoundary,
-} from "mephisto-task";
+} from "mephisto-remote-query";
 
 /* ================= Application Components ================= */
 
@@ -31,8 +27,8 @@ function uuidv4() {
   });
 }
 
-function RemoteQueryApp() {
-  let mephistoProps = useMephistoRemoteQueryTask({});
+function RemoteProcedureApp() {
+  let mephistoProps = useMephistoRemoteProcedureTask({});
 
   let {
     blockedReason,
@@ -40,14 +36,15 @@ function RemoteQueryApp() {
     taskConfig,
     isPreview,
     previewHtml,
+    initialTaskData,
     isLoading,
     handleSubmit,
-    remoteProcedure,
+    remoteFunction,
     isOnboarding,
     handleFatalError,
   } = mephistoProps;
 
-  const classifyDigit = remoteProcedure("classify_digit");
+  const handleRemoteCall = remoteFunction("handle_with_model");
 
   if (isOnboarding) {
     // TODO You can use this as an opportunity to display anything you want for
@@ -63,7 +60,13 @@ function RemoteQueryApp() {
     return <LoadingScreen />;
   }
   if (isPreview) {
-    return <Instructions />;
+    if (!taskConfig.has_preview) {
+      return <TaskPreviewView description={taskConfig.task_description} />;
+    }
+    if (previewHtml === null) {
+      return <div>Loading...</div>;
+    }
+    return <div dangerouslySetInnerHTML={{ __html: previewHtml }} />;
   }
 
   return (
@@ -71,7 +74,8 @@ function RemoteQueryApp() {
       <MephistoContext.Provider value={mephistoProps}>
         <div className="container-fluid" id="ui-container">
           <BaseFrontend
-            classifyDigit={classifyDigit}
+            taskData={initialTaskData}
+            handleRemoteCall={handleRemoteCall}
             handleSubmit={handleSubmit}
           />
         </div>
@@ -92,4 +96,4 @@ function TaskPreviewView({ description }) {
   );
 }
 
-ReactDOM.render(<RemoteQueryApp />, document.getElementById("app"));
+ReactDOM.render(<RemoteProcedureApp />, document.getElementById("app"));

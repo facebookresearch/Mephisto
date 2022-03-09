@@ -30,7 +30,7 @@ class RemoteRequest:
         return dict((field.name, getattr(self, field.name)) for field in fields(self))
 
 
-class RemoteQueryAgentState(AgentState):
+class RemoteProcedureAgentState(AgentState):
     """
     Holds information about tasks with live interactions in a remote query model.
     """
