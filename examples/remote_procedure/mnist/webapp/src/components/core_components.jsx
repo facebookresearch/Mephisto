@@ -39,7 +39,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
       isCorrect,
       trueAnnotation,
       currentAnnotation,
-      imgData: urlData,
+      imgData: canvasRef.current.getDataURL("png", false, "#FFF"),
     });
   }
 
@@ -50,7 +50,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
     querying.current = true;
     classifyDigit({ urlData }).then((res) => {
       setCurrentAnnotation(res["digit_prediction"]);
-      triggerUpdate();
+      triggerUpdate(urlData);
       querying.current = false;
       if (changed.current === true) {
         // If it's changed since we last ran, rerun!
