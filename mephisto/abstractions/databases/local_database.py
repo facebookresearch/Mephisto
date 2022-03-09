@@ -271,10 +271,6 @@ class LocalMephistoDB(MephistoDB):
         """
         Run all the table creation SQL queries to ensure the expected tables exist
         """
-        # TODO(#93) maybe raise flag when the schema of existing tables isn't what we expect
-        # it to be?
-        # "How to know that schema changes?"
-        # logger.warning("some message")
         with self.table_access_condition:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")

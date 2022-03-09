@@ -78,19 +78,16 @@ def get_logger(
             logger.setLevel(logging.DEBUG if verbose else logging.INFO)
         else:
             logger.setLevel(global_log_level)
-        if log_file is None:
-            handler = logging.StreamHandler()
-        else:
+        if log_file is not None:
             handler = RotatingFileHandler(log_file)
-        # TODO(#93) revisit logging handlers after deciding whether or not to just use
-        # Hydra default?
-        # formatter = logging.Formatter(
-        #     "[%(asctime)s] p%(process)s {%(filename)s:%(lineno)d} %(levelname)5s - %(message)s",
-        #     "%m-%d %H:%M:%S",
-        # )
+            formatter = logging.Formatter(
+                "[%(asctime)s] p%(process)s {%(filename)s:%(lineno)d} %(levelname)5s - %(message)s",
+                "%m-%d %H:%M:%S",
+            )
 
-        # handler.setFormatter(formatter)
-        # logger.addHandler(handler)
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+
         loggers[name] = logger
         return logger
 

@@ -173,7 +173,6 @@ class ClientIOHandler:
         try:
             self._on_message(packet, channel_id)
         except Exception as e:
-            # TODO(#93) better error handling about failed messages
             logger.exception(
                 f"Channel {channel_id} encountered error on packet {packet}",
                 exc_info=True,

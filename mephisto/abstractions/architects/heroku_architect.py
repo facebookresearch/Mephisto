@@ -375,7 +375,6 @@ class HerokuArchitect(Architect):
                 )
                 self.created = True
         except subprocess.CalledProcessError as e:  # User has too many apps?
-            # TODO(#93) check response codes to determine what actually happened
             logger.exception(e, exc_info=True)
             sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
             raise Exception(
