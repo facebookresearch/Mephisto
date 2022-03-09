@@ -9,6 +9,7 @@ Contains centralized accessors for default Mephisto directories
 """
 
 import os
+import sys
 
 from distutils.dir_util import copy_tree
 from mephisto.data_model.constants import NO_PROJECT_NAME
@@ -134,3 +135,18 @@ def get_dir_for_run(task_run: "TaskRun", project_name: str = NO_PROJECT_NAME) ->
     run_id = task_run.db_id
     root_dir = task_run.db.db_root
     return os.path.join(get_data_dir(root_dir), "runs", project_name, run_id)
+
+
+def get_run_file_dir() -> str:
+    """
+    Utility function to get the directory that a particular
+    python run file is contained in, even when run from
+    a different directory.
+
+    Useful as configuration information for a task is generally
+    kept within the same directory as the run script
+    """
+    if len(sys.argv) == 0:
+        return os.getcwd()
+    ran_file = sys.argv[0]
+    return os.path.abspath(os.path.dirname(ran_file))
