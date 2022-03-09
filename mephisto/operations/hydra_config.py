@@ -11,9 +11,8 @@ from mephisto.abstractions.blueprint import BlueprintArgs
 from mephisto.abstractions.architect import ArchitectArgs
 from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.data_model.task_run import TaskRunArgs
-from mephisto.utils.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 from mephisto.utils.dirs import get_run_file_dir
-from mephisto.utils.misc import warn_once
 from dataclasses import dataclass, field, fields, Field
 from omegaconf import OmegaConf, MISSING, DictConfig
 from typing import List, Type, Dict, Any, TYPE_CHECKING
