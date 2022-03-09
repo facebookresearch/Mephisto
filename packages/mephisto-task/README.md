@@ -2,7 +2,7 @@
 
 This package provides two hooks to faciliate React-based front-end development for Mephisto tasks.
 
-Use `useMephistoTask` for simple, static tasks, `useMephistoLiveTask` for multi-turn, socket-based tasks, and `useMephistoRemoteQueryTask` for static tasks with access to backend queries (for model-in-the-loop tasks, for instance).
+Use `useMephistoTask` for simple, static tasks, `useMephistoLiveTask` for multi-turn, socket-based tasks, and `useMephistoRemoteProcedureTask` for static tasks with access to backend queries (for model-in-the-loop tasks, for instance).
 
 ## Installation
 
@@ -252,9 +252,9 @@ For example, if you'd like to have the front-end poll the back-end less often (e
 
 --- 
 
-## Usage (`useMephistoRemoteQueryTask`)
+## Usage (`useMephistoRemoteProcedureTask`)
 
-This hook is an ease-of-use wrapper around `useMephistoLiveTask` that abstracts away most of the "live" considerations, such that you can generally treat the frontend as just having access to backend queries. You can see the `mephisto_remote_query` example in the mephisto examples folder for possible usage.
+This hook is an ease-of-use wrapper around `useMephistoLiveTask` that abstracts away most of the "live" considerations, such that you can generally treat the frontend as just having access to backend queries. You can see the `mephisto_remote_procedure` example in the mephisto examples folder for possible usage.
 
 
 ### `remoteProcedure(targetEvent)`
@@ -262,7 +262,7 @@ The primary function for interacting with the backend. Returns a function that y
 
 **Arguments:**
 
-**`targetEvent`**: The string name of an event registered with the backend RemoteQueryBlueprint.
+**`targetEvent`**: The string name of an event registered with the backend RemoteProcedureBlueprint.
 
 **Returns**
 A function you can invoke in one of the following manners.

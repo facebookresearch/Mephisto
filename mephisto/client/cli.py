@@ -328,9 +328,9 @@ def metrics_cli(args):
     if len(args) == 0 or args[0] not in ["install", "view", "cleanup"]:
         click.echo(
             "Usage: mephisto metrics <install|view|cleanup>\n"
-            f"install: Installs prometheus and grafana to {METRICS_DIR}\n"
+            f"install: Installs Prometheus and Grafana to {METRICS_DIR}\n"
             f"view: Launches a Prometheus and Grafana server, and shuts down on exit\n"
-            f"cleanup: Shuts down prometheus and grafana resources that may have persisted"
+            f"cleanup: Shuts down Prometheus and Grafana resources that may have persisted"
         )
         return
     command = args[0]

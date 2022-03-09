@@ -207,6 +207,22 @@ CREATE TABLE IF NOT EXISTS granted_qualifications (
 );
 """
 
+# Indices that are used by system-specific calls across Mephisto during live tasks
+# that improve the runtime of the system as a whole
+CREATE_CORE_INDEXES = """
+CREATE INDEX IF NOT EXISTS requesters_by_provider_index ON requesters(provider_type);
+CREATE INDEX IF NOT EXISTS unit_by_status_index ON units(status);
+CREATE INDEX IF NOT EXISTS unit_by_assignment_id_index ON units(assignment_id);
+CREATE INDEX IF NOT EXISTS unit_by_task_run_index ON units(task_run_id);
+CREATE INDEX IF NOT EXISTS unit_by_task_run_by_worker_by_status_index ON units(task_run_id, worker_id, status);
+CREATE INDEX IF NOT EXISTS unit_by_task_by_worker_index ON units(task_id, worker_id);
+CREATE INDEX IF NOT EXISTS agent_by_worker_by_status_index ON agents(worker_id, status);
+CREATE INDEX IF NOT EXISTS agent_by_task_run_index ON agents(task_run_id);
+CREATE INDEX IF NOT EXISTS assignment_by_task_run_index ON assignments(task_run_id);
+CREATE INDEX IF NOT EXISTS task_run_by_requester_index ON task_runs(requester_id);
+CREATE INDEX IF NOT EXISTS task_run_by_task_index ON task_runs(task_id);
+"""
+
 
 class StringIDRow(sqlite3.Row):
     def __getitem__(self, key: str) -> Any:
@@ -271,6 +287,7 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
+                c.executescript(CREATE_CORE_INDEXES)
 
     def __get_one_by_id(
         self, table_name: str, id_name: str, db_id: str

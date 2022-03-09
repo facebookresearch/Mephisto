@@ -25,7 +25,7 @@ function uuidv4() {
   });
 }
 
-const useMephistoRemoteQueryTask = function (props) {
+const useMephistoRemoteProcedureTask = function (props) {
   // mapping of request ID to the callback object
   const requestCallbacks = {};
   const [disconnectIssueText, setDisconnectIssueText] = React.useState();
@@ -139,4 +139,4 @@ const useMephistoRemoteQueryTask = function (props) {
   };
 };
 
-export { useMephistoRemoteQueryTask };
+export { useMephistoRemoteProcedureTask };

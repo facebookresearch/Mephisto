@@ -31,7 +31,7 @@ config = ConfigStoreWithProvider("mephisto")
 
 @dataclass
 class DatabaseArgs:
-    _database_type: str = "local"  # default DB is local
+    _database_type: str = "singleton"  # default DB is performant singleton
 
 
 @dataclass
