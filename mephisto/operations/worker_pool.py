@@ -7,10 +7,10 @@
 import time
 from functools import partial
 from dataclasses import dataclass, fields
-from prometheus_client import Histogram, Gauge, Counter
+from prometheus_client import Histogram, Gauge, Counter  # type: ignore
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.qualification import worker_is_qualified
 from mephisto.data_model.agent import Agent, OnboardingAgent
+from mephisto.utils.qualifications import worker_is_qualified
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

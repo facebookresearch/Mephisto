@@ -7,7 +7,7 @@
 
 import unittest
 from typing import Optional, Tuple
-from mephisto.abstractions.test.utils import (
+from mephisto.utils.testing import (
     get_test_assignment,
     get_test_project,
     get_test_requester,

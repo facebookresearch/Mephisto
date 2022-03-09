@@ -8,7 +8,7 @@ import os
 import shutil
 import subprocess
 from mephisto.operations.operator import Operator
-from mephisto.operations.utils import get_root_dir
+from mephisto.utils.dirs import get_root_dir
 from mephisto.tools.scripts import (
     load_db_and_process_config,
     build_and_return_custom_bundle,

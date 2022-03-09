@@ -9,7 +9,7 @@ import weakref
 import time
 import asyncio
 from queue import Queue
-from prometheus_client import Histogram
+from prometheus_client import Histogram  # type: ignore
 
 from mephisto.data_model.packet import (
     Packet,
@@ -34,7 +34,7 @@ from typing import Dict, Tuple, Union, Optional, List, Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
 
-from mephisto.operations.logger_core import get_logger, format_loud
+from mephisto.utils.logger_core import get_logger, format_loud
 
 logger = get_logger(name=__name__)
 

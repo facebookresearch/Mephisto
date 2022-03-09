@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.packet import Packet
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

@@ -71,6 +71,15 @@ def get_test_requester(db: MephistoDB) -> Tuple[str, str]:
     return requester_name, requester_id
 
 
+def get_mock_requester(db) -> "Requester":
+    """Get or create a mock requester to use for test tasks"""
+    mock_requesters = db.find_requesters(provider_type="mock")
+    if len(mock_requesters) == 0:
+        db.new_requester("MOCK_REQUESTER", "mock")
+    mock_requesters = db.find_requesters(provider_type="mock")
+    return mock_requesters[0]
+
+
 def get_test_task(db: MephistoDB) -> Tuple[str, str]:
     """Helper to create a task for tests"""
     task_name = "test_task"

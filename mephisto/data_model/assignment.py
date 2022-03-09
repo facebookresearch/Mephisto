@@ -23,10 +23,9 @@ if TYPE_CHECKING:
 
 import os
 import json
-from mephisto.tools.misc import warn_once
 from dataclasses import dataclass
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 
 logger = get_logger(name=__name__)
 
@@ -74,12 +73,12 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
             row = db.get_assignment(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["assignment_id"]
-        self.task_run_id = row["task_run_id"]
-        self.sandbox = row["sandbox"]
-        self.task_id = row["task_id"]
-        self.requester_id = row["requester_id"]
-        self.task_type = row["task_type"]
-        self.provider_type = row["provider_type"]
+        self.task_run_id: str = row["task_run_id"]
+        self.sandbox: bool = row["sandbox"]
+        self.task_id: str = row["task_id"]
+        self.requester_id: str = row["requester_id"]
+        self.task_type: str = row["task_type"]
+        self.provider_type: str = row["provider_type"]
 
         # Deferred loading of related entities
         self.__task_run: Optional["TaskRun"] = None

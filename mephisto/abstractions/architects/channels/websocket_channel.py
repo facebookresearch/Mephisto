@@ -19,7 +19,7 @@ import asyncio
 if TYPE_CHECKING:
     from websockets.client import WebSocketClientProtocol
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -218,5 +218,10 @@ class WebsocketChannel(Channel):
             return False
 
         self.outgoing_queue.put(packet)
-        self.loop_wrap.execute_coro(self._async_send_all())
+
+        loop_wrap = self.loop_wrap
+        if loop_wrap is None:
+            return False
+
+        loop_wrap.execute_coro(self._async_send_all())
         return True

@@ -22,7 +22,7 @@ from mephisto.operations.task_launcher import TaskLauncher, SCREENING_UNIT_INDEX
 from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
 )
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 from mephisto.data_model.assignment import InitializationData
 from mephisto.data_model.worker import Worker
 from mephisto.data_model.task_run import TaskRun
@@ -160,7 +160,7 @@ class BaseTestLiveRuns:
         return loop.run_until_complete(wait_for_condition_or_timeout())
 
     def assert_sandbox_worker_created(self, live_run, worker_name, timeout=2) -> None:
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self._run_loop_until(
                 live_run,
                 lambda: len(self.db.find_workers(worker_name=worker_name + "_sandbox"))
@@ -171,7 +171,7 @@ class BaseTestLiveRuns:
         )
 
     def assert_agent_created(self, live_run, agent_num, timeout=2) -> None:
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self._run_loop_until(
                 live_run,
                 lambda: len(self.db.find_agents()) == agent_num,
@@ -181,7 +181,7 @@ class BaseTestLiveRuns:
         )
         agents = self.db.find_agents()
         agent = agents[agent_num - 1]
-        self.assertIsNotNone(agent)
+        self.assertIsNotNone(agent)  # type: ignore
 
     def _await_current_tasks(self, live_run, timeout=5) -> None:
         self._run_loop_until(
@@ -192,7 +192,7 @@ class BaseTestLiveRuns:
 
     def await_channel_requests(self, live_run, timeout=2) -> None:
         self._await_current_tasks(live_run, timeout)
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self._run_loop_until(
                 live_run,
                 lambda: len(live_run.client_io.request_id_to_channel_id) == 0,
@@ -455,7 +455,7 @@ class BaseTestLiveRuns:
         task_run_args.blueprint.is_concurrent = True
         self.task_run.get_task_config()
 
-        # Supervisor expects that blueprint setup has already occurred
+        # LiveTaskRun expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
@@ -695,7 +695,7 @@ class BaseTestLiveRuns:
         task_run_args.blueprint.is_concurrent = False
         self.task_run.get_task_config()
 
-        # Supervisor expects that blueprint setup has already occurred
+        # LiveTaskRun expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
@@ -953,7 +953,7 @@ class BaseTestLiveRuns:
             screen_unit,
         )
 
-        # Supervisor expects that blueprint setup has already occurred
+        # LiveTaskRun expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint(task_run_args, shared_state)
 
         TaskRunnerClass = MockBlueprint.TaskRunnerClass
@@ -1103,11 +1103,11 @@ class BaseTestLiveRuns:
     # TODO(#97) handle testing for disconnecting in and out of tasks
 
 
-class TestSupervisorLocal(BaseTestLiveRuns, unittest.TestCase):
+class TestLiveRunsLocal(BaseTestLiveRuns, unittest.TestCase):
     DB_CLASS = LocalMephistoDB
 
 
-class TestSupervisorSingleton(BaseTestLiveRuns, unittest.TestCase):
+class TestLiveRunsSingleton(BaseTestLiveRuns, unittest.TestCase):
     DB_CLASS = MephistoSingletonDB
 
 

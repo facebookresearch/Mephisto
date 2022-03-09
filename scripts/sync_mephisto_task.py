@@ -14,8 +14,8 @@ import os
 import sys
 import re
 import json
-from mephisto.operations.utils import get_root_dir
-from mephisto.operations.logger_core import format_loud
+from mephisto.utils.dirs import get_root_dir
+from mephisto.utils.logger_core import format_loud
 
 ROOT_DIR = get_root_dir()
 PATTERN = r'(CURR_MEPHISTO_TASK_VERSION = "([0-9a-zA-Z.]*)")'

@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.worker import Worker
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -69,7 +69,7 @@ class SharedTaskState:
         metadata={
             "help": (
                 "List of qualification dicts of the form returned by "
-                "mephisto.data_model.qualification.make_qualification_dict "
+                "mephisto.utils.qualifications.make_qualification_dict "
                 "to be used with this task run."
             ),
             "type": "List[Dict]",

@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.abstractions.blueprint import SharedTaskState
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -131,8 +131,8 @@ class EC2Architect(Architect):
         on_message: Callable[[str, "Packet"], None],
     ) -> List["Channel"]:
         """
-        Return a list of all relevant channels that the Supervisor will
-        need to register to in order to function
+        Return a list of all relevant channels that the ClientIOHandler
+        will need to register to in order to function
         """
         urls = self._get_socket_urls()
         return [

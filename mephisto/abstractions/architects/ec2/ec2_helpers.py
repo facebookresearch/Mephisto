@@ -19,7 +19,7 @@ from mephisto.abstractions.architects.router import build_router
 from botocore import client  # type: ignore
 from botocore.exceptions import ClientError, ProfileNotFound  # type: ignore
 from botocore.config import Config  # type: ignore
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

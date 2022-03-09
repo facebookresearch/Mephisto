@@ -6,10 +6,23 @@
 
 import logging
 from logging.handlers import RotatingFileHandler
-from typing import Optional, Dict
+from typing import Optional, Dict, Set
 
 loggers: Dict[str, logging.Logger] = {}
 global_log_level = logging.INFO
+_seen_logs: Set[str] = set()
+
+
+def warn_once(msg: str) -> None:
+    """
+    Log a warning, but only once.
+
+    :param str msg: Message to display
+    """
+    global _seen_logs
+    if msg not in _seen_logs:
+        _seen_logs.add(msg)
+        logging.warn(msg)
 
 
 def set_mephisto_log_level(verbose: Optional[bool] = None, level: Optional[str] = None):

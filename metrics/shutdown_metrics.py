@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.utils.metrics import shutdown_grafana_server, shutdown_prometheus_server
-from mephisto.operations.logger_core import set_mephisto_log_level
+from mephisto.utils.logger_core import set_mephisto_log_level
 
 
 def shutdown_servers():

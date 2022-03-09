@@ -57,7 +57,7 @@ The `<Crowd>Agent` implementation needs to be able to handle the following inter
 - `new_from_provider_data`: As different providers may give different information upon the creation of an agent (which occurs when a worker accepts a unit), this information is sent through from the server via whatever is packaged in `wrap_crowd_source.js`. You can then store this into the provider datastore and return an `Agent`.
 - `approve_work`: Tell the crowd provider that this work is accepted. (If allowed)
 - `reject_work`: Tell the crowd provider that this work is rejected (if allowed), with the provided feedback `reason`.
-- `get_status`: Return the current agent's status according to the crowd provider (if this state is automatically tracked by the crowd provider, and can be queried). Defaults to whatever status updates the `Supervisor` can provide.
+- `get_status`: Return the current agent's status according to the crowd provider (if this state is automatically tracked by the crowd provider, and can be queried). Defaults to whatever status updates the `WorkerPool` can provide.
 - `mark_done`: Tell the crowd provider that the task this agent is working on is now complete (if required). Otherwise just mark it as so in the local database.
 
 ### `<Crowd>Unit`

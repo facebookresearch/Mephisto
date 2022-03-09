@@ -13,9 +13,9 @@ import tempfile
 import time
 import threading
 from unittest.mock import patch
-from tqdm import TMonitor
+from tqdm import TMonitor  # type: ignore
 
-from mephisto.abstractions.test.utils import get_test_requester
+from mephisto.utils.testing import get_test_requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
@@ -107,7 +107,7 @@ class OperatorBaseTest(object):
         self.operator = Operator(self.db)
 
     def assert_sandbox_worker_created(self, worker_name, timeout=2) -> None:
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self.operator._run_loop_until(
                 lambda: len(self.db.find_workers(worker_name=worker_name + "_sandbox"))
                 > 0,
@@ -117,7 +117,7 @@ class OperatorBaseTest(object):
         )
 
     def assert_agent_created(self, agent_num, timeout=2) -> str:
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self.operator._run_loop_until(
                 lambda: len(self.db.find_agents()) == agent_num,
                 timeout,
@@ -126,11 +126,11 @@ class OperatorBaseTest(object):
         )
         agents = self.db.find_agents()
         agent = agents[agent_num - 1]
-        self.assertIsNotNone(agent)
+        self.assertIsNotNone(agent)  # type: ignore
         return agent.db_id
 
     def await_channel_requests(self, tracked_run, timeout=2) -> None:
-        self.assertTrue(
+        self.assertTrue(  # type: ignore
             self.operator._run_loop_until(
                 lambda: len(tracked_run.client_io.request_id_to_channel_id) == 0,
                 timeout,

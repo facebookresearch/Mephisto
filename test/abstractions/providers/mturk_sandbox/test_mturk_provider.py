@@ -13,7 +13,7 @@ import pytest
 
 from mephisto.operations.config_handler import get_config_arg
 from typing import Type
-from mephisto.abstractions.test.utils import get_test_requester
+from mephisto.utils.testing import get_test_requester
 from mephisto.abstractions.test.crowd_provider_tester import CrowdProviderTests
 from mephisto.abstractions.crowd_provider import CrowdProvider
 from mephisto.abstractions.providers.mturk_sandbox.sandbox_mturk_provider import (

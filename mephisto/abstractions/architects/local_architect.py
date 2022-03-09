@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 from mephisto.abstractions.architects.router.build_router import build_router
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
-from mephisto.operations.utils import get_mephisto_tmp_dir
+from mephisto.utils.dirs import get_mephisto_tmp_dir
 
 ARCHITECT_TYPE = "local"
 
@@ -105,8 +105,8 @@ class LocalArchitect(Architect):
         on_message: Callable[[str, "Packet"], None],
     ) -> List["Channel"]:
         """
-        Return a list of all relevant channels that the Supervisor will
-        need to register to in order to function
+        Return a list of all relevant channels that the ClientIOHandler
+        will need to register to in order to function
         """
         urls = self._get_socket_urls()
         return [

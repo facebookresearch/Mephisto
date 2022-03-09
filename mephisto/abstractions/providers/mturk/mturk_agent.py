@@ -19,7 +19,7 @@ import json
 
 from typing import List, Optional, Tuple, Dict, Mapping, Any, cast, TYPE_CHECKING
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

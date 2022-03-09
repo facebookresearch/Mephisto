@@ -17,7 +17,7 @@ from mephisto.data_model.unit import (
     COMPENSATION_UNIT_INDEX,
 )
 
-from typing import Dict, Optional, List, Any, TYPE_CHECKING, Iterator
+from typing import Dict, Optional, List, Any, TYPE_CHECKING, Iterator, Iterable
 from tqdm import tqdm  # type: ignore
 import os
 import time
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
 
 import threading
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 import types
 
 logger = get_logger(name=__name__)
@@ -54,7 +54,7 @@ class TaskLauncher:
         self,
         db: "MephistoDB",
         task_run: "TaskRun",
-        assignment_data_iterator: Iterator[InitializationData],
+        assignment_data_iterator: Iterable[InitializationData],
         max_num_concurrent_units: int = 0,
     ):
         """Prepare the task launcher to get it ready to launch the assignments"""
@@ -112,11 +112,13 @@ class TaskLauncher:
             with self.unlaunched_units_access_condition:
                 self.unlaunched_units[unit.db_id] = unit
 
-    def _try_generating_assignments(self) -> None:
+    def _try_generating_assignments(
+        self, assignment_data_iterator: Iterator[InitializationData]
+    ) -> None:
         """Try to generate more assignments from the assignments_data_iterator"""
         while not self.finished_generators:
             try:
-                data = next(self.assignment_data_iterable)
+                data = next(assignment_data_iterator)
                 self._create_single_assignment(data)
             except StopIteration:
                 self.assignment_thread_done = True
@@ -129,9 +131,12 @@ class TaskLauncher:
             for data in self.assignment_data_iterable:
                 self._create_single_assignment(data)
         else:
+            assert isinstance(
+                self.assignment_data_iterable, types.GeneratorType
+            ), "Must have assignment data generator for this"
             self.assignments_thread = threading.Thread(
                 target=self._try_generating_assignments,
-                args=(),
+                args=(self.assignment_data_iterable),
                 name="assignment-generator",
             )
             self.assignments_thread.start()

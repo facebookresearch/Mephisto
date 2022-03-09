@@ -28,7 +28,8 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
 )
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
-from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
+from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.utils.qualifications import make_qualification_dict
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.operations.client_io_handler import ClientIOHandler
 from mephisto.operations.worker_pool import WorkerPool
@@ -37,14 +38,13 @@ from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_architect_from_type,
 )
-from mephisto.operations.utils import get_mock_requester
+from mephisto.utils.testing import get_mock_requester
 from mephisto.utils.metrics import (
     launch_prometheus_server,
     start_metrics_server,
     shutdown_prometheus_server,
 )
-
-from mephisto.operations.logger_core import (
+from mephisto.utils.logger_core import (
     get_logger,
     set_mephisto_log_level,
     format_loud,

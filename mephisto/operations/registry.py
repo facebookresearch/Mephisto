@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Union, Type, Dict, Any, List, TYPE_CHECKING
-from mephisto.operations.utils import get_root_dir, get_provider_dir
+from mephisto.utils.dirs import get_root_dir, get_provider_dir
 from mephisto.operations.hydra_config import register_abstraction_config
 import importlib
 import os
