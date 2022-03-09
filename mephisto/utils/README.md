@@ -13,5 +13,5 @@ This file contains number of helper utils that (at the moment) rely on the local
 ## `testing.py`
 This file contains functions that are specifically useful for setting up mock data in tests.
 
-## Misc
-The `misc.py` file contains remaining helpers that aren't related enough to any other groupings of utils, but are still used somewhere.
+## `qualifications.py`
+This file contains helpers that are used for interfacing with or creating Mephisto qualifications.
