@@ -7,7 +7,6 @@
 import os
 import threading
 from queue import Queue
-from mephisto.utils.misc import warn_once
 from uuid import uuid4
 from prometheus_client import Gauge  # type: ignore
 
@@ -36,7 +35,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.operations.datatypes import LiveTaskRun
 
-from mephisto.utils.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 
 logger = get_logger(name=__name__)
 

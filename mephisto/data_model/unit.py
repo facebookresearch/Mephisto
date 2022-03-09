@@ -27,9 +27,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment, InitializationData
 
 import os
-from mephisto.utils.misc import warn_once
 
-from mephisto.utils.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 
 logger = get_logger(name=__name__)
 

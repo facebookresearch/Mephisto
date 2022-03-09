@@ -6,7 +6,6 @@
 
 
 import os
-from mephisto.utils.misc import warn_once
 from shutil import copytree
 
 from mephisto.data_model.project import Project
@@ -15,7 +14,7 @@ from mephisto.data_model.db_backed_meta import (
     MephistoDataModelComponentMixin,
 )
 from mephisto.utils.dirs import get_dir_for_task
-from mephisto.utils.misc import ensure_user_confirm
+from mephisto.utils.logger_core import warn_once
 
 from functools import reduce
 

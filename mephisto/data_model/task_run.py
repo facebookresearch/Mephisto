@@ -7,7 +7,6 @@
 
 import os
 import json
-from mephisto.utils.misc import warn_once
 
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import Task
     from omegaconf import DictConfig
 
-from mephisto.utils.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 
 logger = get_logger(name=__name__)
 

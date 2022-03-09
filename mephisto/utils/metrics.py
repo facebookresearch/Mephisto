@@ -17,8 +17,7 @@ import time
 
 
 from mephisto.utils.dirs import get_mephisto_tmp_dir, get_root_dir
-from mephisto.utils.logger_core import get_logger
-from mephisto.utils.misc import warn_once
+from mephisto.utils.logger_core import get_logger, warn_once
 from prometheus_client import start_http_server
 from omegaconf import DictConfig
 from typing import Optional

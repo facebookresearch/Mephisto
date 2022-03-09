@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod, abstractstaticmethod
-from mephisto.utils.misc import warn_once
 from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
@@ -24,7 +23,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
     from argparse import _ArgumentGroup as ArgumentGroup
 
-from mephisto.utils.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 
 logger = get_logger(name=__name__)
 

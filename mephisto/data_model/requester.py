@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import abstractmethod, abstractstaticmethod
-from mephisto.utils.misc import warn_once
 from mephisto.data_model.db_backed_meta import (
     MephistoDBBackedABCMeta,
     MephistoDataModelComponentMixin,
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
 
-from mephisto.utils.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 
 logger = get_logger(name=__name__)
 
