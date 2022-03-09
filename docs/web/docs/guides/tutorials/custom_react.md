@@ -405,8 +405,8 @@ mephisto review build/ --db custom-react-tutorial-iterating --stdout --all
 ![](/custom_react_review_renderer.png)
 
 
-# Building from task blocks with `@annotated`
+# Building from task blocks with `@annotated` [BETA]
 
-Mephisto at the core is built for complete flexibility over the kinds of tasks you can create. Building everything from scratch though can be a lot, so we've created the annotation toolkit and Annotated libraries. These have components that may be useful for your annotation tasks, as well as examples of developed flows you can use or extend for your tasks.
+Mephisto at the core is built for complete flexibility over the kinds of tasks you can create. Building everything from scratch though can be a lot, so we've created the annotation toolkit and `@annotated` suite of libraries. These have components that may be useful for your annotation tasks, as well as examples of developed flows you can use or extend for your tasks.
 
-TODO - add links to the storybook and component documentation.
+The full suite of tools is currently in beta and can be found in the [Storybook here](https://annotation-toolkit-storybook.vercel.app/).
