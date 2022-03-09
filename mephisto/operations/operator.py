@@ -506,7 +506,7 @@ class Operator:
             not self.is_shutdown
         ), "Cannot run a config on a shutdown operator. Create a new one."
         try:
-            return self.validate_and_run_config_or_die(
+            return self.launch_task_run_or_die(
                 run_config=run_config, shared_state=shared_state
             )
         except (KeyboardInterrupt, Exception) as e:

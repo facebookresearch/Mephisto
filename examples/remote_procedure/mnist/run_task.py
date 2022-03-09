@@ -111,7 +111,7 @@ def main(cfg: DictConfig) -> None:
     build_and_return_custom_bundle(task_dir)
     operator = Operator(db)
 
-    operator.validate_and_run_config(cfg.mephisto, shared_state)
+    operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
