@@ -7,6 +7,7 @@
 /* eslint-disable react/no-direct-mutation-state */
 
 import React from "react";
+import { pythonTime } from "./utils";
 
 /* ================= Data Model Constants ================= */
 
@@ -239,6 +240,7 @@ function useMephistoSocket({
       packet_type: eventType,
       subject_id: state.agentId,
       data: data,
+      client_timestamp: pythonTime(),
     };
 
     var event = {
@@ -406,6 +408,7 @@ function useMephistoSocket({
       packet: {
         packet_type: PACKET_TYPE_HEARTBEAT,
         subject_id: state.agentId,
+        client_timestamp: pythonTime(),
       },
     });
     setState({

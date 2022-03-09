@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Optional, Dict, Any
+import time
 
 PACKET_TYPE_ALIVE = "alive"
 PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding"
@@ -33,12 +34,20 @@ class Packet:
         packet_type: str,
         subject_id: str,  # Target agent id the packet is about
         data: Optional[Dict[str, Any]] = None,
+        client_timestamp: Optional[float] = None,
+        router_incoming_timestamp: Optional[float] = None,
+        router_outgoing_timestamp: Optional[float] = None,
+        server_timestamp: Optional[float] = None,
     ):
         self.type = packet_type
         self.subject_id = subject_id
         self.data = {} if data is None else data
-        # TODO(#97) Packet validation! Only certain packets can be sent
-        # with no data
+        if server_timestamp is None:
+            server_timestamp = time.time()
+        self.server_timestamp = server_timestamp
+        self.client_timestamp = client_timestamp
+        self.router_incoming_timestamp = router_incoming_timestamp
+        self.router_outgoing_timestamp = router_outgoing_timestamp
 
     @staticmethod
     def from_dict(input_dict: Dict[str, Any]) -> "Packet":
@@ -51,6 +60,10 @@ class Packet:
             packet_type=input_dict["packet_type"],
             subject_id=input_dict["subject_id"],
             data=input_dict["data"],
+            client_timestamp=input_dict.get("client_timestamp"),
+            router_incoming_timestamp=input_dict.get("router_incoming_timestamp"),
+            router_outgoing_timestamp=input_dict.get("router_outgoing_timestamp"),
+            server_timestamp=input_dict.get("server_timestamp"),
         )
 
     def to_sendable_dict(self) -> Dict[str, Any]:
@@ -58,6 +71,10 @@ class Packet:
             "packet_type": self.type,
             "subject_id": self.subject_id,
             "data": self.data,
+            "client_timestamp": self.client_timestamp,
+            "router_incoming_timestamp": self.router_incoming_timestamp,
+            "router_outgoing_timestamp": self.router_outgoing_timestamp,
+            "server_timestamp": self.server_timestamp,
         }
 
     def copy(self):

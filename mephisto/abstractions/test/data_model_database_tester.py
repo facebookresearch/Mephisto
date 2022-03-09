@@ -189,13 +189,13 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Check creation of a task with a parent task, but no project
         task_name_2 = "test_task_2"
-        task_id_2 = db.new_task(task_name_2, task_type, parent_task_id=task_id_1)
+        task_id_2 = db.new_task(task_name_2, task_type)
         self.assertIsNotNone(task_id_2)
         self.assertTrue(isinstance(task_id_2, str))
         task_row = db.get_task(task_id_2)
         self.assertEqual(task_row["task_name"], task_name_2)
         self.assertEqual(task_row["task_type"], task_type)
-        self.assertEqual(task_row["parent_task_id"], task_id_1)
+        self.assertIsNone(task_row["parent_task_id"])
         self.assertIsNone(task_row["project_id"])
         task = Task.get(db, task_id_2)
         self.assertEqual(task.task_name, task_name_2)
@@ -217,12 +217,6 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertTrue(isinstance(tasks[0], Task))
         self.assertEqual(tasks[0].db_id, task_id_1)
         self.assertEqual(tasks[0].task_name, task_name_1)
-
-        tasks = db.find_tasks(parent_task_id=task_id_1)
-        self.assertEqual(len(tasks), 1)
-        self.assertTrue(isinstance(tasks[0], Task))
-        self.assertEqual(tasks[0].db_id, task_id_2)
-        self.assertEqual(tasks[0].task_name, task_name_2)
 
         tasks = db.find_tasks(task_name="fake_name")
         self.assertEqual(len(tasks), 0)
@@ -249,11 +243,6 @@ class BaseDatabaseTests(unittest.TestCase):
         with self.assertRaises(EntryDoesNotExistException):
             fake_id = self.get_fake_id("Project")
             task_id = db.new_task(task_name_2, task_type, project_id=fake_id)
-
-        # Can't create task with invalid parent task
-        with self.assertRaises(EntryDoesNotExistException):
-            fake_id = self.get_fake_id("Task")
-            task_id = db.new_task(task_name_2, task_type, parent_task_id=fake_id)
 
         # Can't use no name
         with self.assertRaises(MephistoDBException):

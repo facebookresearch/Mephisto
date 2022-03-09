@@ -38,6 +38,11 @@ from mephisto.operations.registry import (
     get_architect_from_type,
 )
 from mephisto.operations.utils import get_mock_requester
+from mephisto.utils.metrics import (
+    launch_prometheus_server,
+    start_metrics_server,
+    shutdown_prometheus_server,
+)
 
 from mephisto.operations.logger_core import (
     get_logger,
@@ -90,6 +95,8 @@ class Operator:
             self._track_and_kill_runs(),
         )
         self._stop_task: Optional[asyncio.Task] = None
+        self._using_prometheus = launch_prometheus_server()
+        start_metrics_server()
 
     def get_running_task_runs(self) -> Dict[str, LiveTaskRun]:
         """Return the currently running task runs and their handlers"""
@@ -328,6 +335,8 @@ class Operator:
                 tracked_run.architect.shutdown()
                 del self._task_runs_tracked[task_run.db_id]
             await asyncio.sleep(RUN_STATUS_POLL_TIME)
+            if self._using_prometheus:
+                launch_prometheus_server()
 
     def force_shutdown(self, timeout=5):
         """
@@ -464,6 +473,8 @@ class Operator:
             if self._event_loop.is_running():
                 self._event_loop.stop()
             self._event_loop.run_until_complete(self.shutdown_async())
+            if self._using_prometheus:
+                shutdown_prometheus_server()
 
     def validate_and_run_config(
         self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None

@@ -10,7 +10,12 @@ from mephisto.data_model.assignment import (
     InitializationData,
     AssignmentState,
 )
-from mephisto.data_model.unit import Unit
+from mephisto.data_model.unit import (
+    Unit,
+    SCREENING_UNIT_INDEX,
+    GOLD_UNIT_INDEX,
+    COMPENSATION_UNIT_INDEX,
+)
 
 from typing import Dict, Optional, List, Any, TYPE_CHECKING, Iterator
 from tqdm import tqdm  # type: ignore
@@ -30,9 +35,6 @@ logger = get_logger(name=__name__)
 
 UNIT_GENERATOR_WAIT_SECONDS = 10
 ASSIGNMENT_GENERATOR_WAIT_SECONDS = 0.5
-SCREENING_UNIT_INDEX = -1
-GOLD_UNIT_INDEX = -2
-COMPENSATION_UNIT_INDEX = -3
 
 
 class GeneratorType(enum.Enum):
@@ -62,6 +64,7 @@ class TaskLauncher:
         self.assignments: List[Assignment] = []
         self.units: List[Unit] = []
         self.provider_type = task_run.get_provider().PROVIDER_TYPE
+        self.UnitClass = task_run.get_provider().UnitClass
         self.max_num_concurrent_units = max_num_concurrent_units
         self.launched_units: Dict[str, Unit] = {}
         self.unlaunched_units: Dict[str, Unit] = {}
@@ -102,20 +105,12 @@ class TaskLauncher:
         self.assignments.append(assignment)
         unit_count = len(assignment_data.unit_data)
         for unit_idx in range(unit_count):
-            unit_id = self.db.new_unit(
-                task_run.task_id,
-                task_run.db_id,
-                task_run.requester_id,
-                assignment_id,
-                unit_idx,
-                task_config.task_reward,
-                task_run.provider_type,
-                task_run.task_type,
-                task_run.sandbox,
+            unit = self.UnitClass.new(
+                self.db, assignment, unit_idx, task_config.task_reward
             )
-            self.units.append(Unit.get(self.db, unit_id))
+            self.units.append(unit)
             with self.unlaunched_units_access_condition:
-                self.unlaunched_units[unit_id] = Unit.get(self.db, unit_id)
+                self.unlaunched_units[unit.db_id] = unit
 
     def _try_generating_assignments(self) -> None:
         """Try to generate more assignments from the assignments_data_iterator"""
@@ -224,18 +219,9 @@ class TaskLauncher:
         assignment = Assignment.get(self.db, assignment_id)
         assignment.write_assignment_data(data)
         self.assignments.append(assignment)
-        unit_id = self.db.new_unit(
-            task_run.task_id,
-            task_run.db_id,
-            task_run.requester_id,
-            assignment_id,
-            unit_type_index,
-            task_config.task_reward,
-            task_run.provider_type,
-            task_run.task_type,
-            task_run.sandbox,
+        evaluation_unit = self.UnitClass.new(
+            self.db, assignment, unit_type_index, task_config.task_reward
         )
-        evaluation_unit = Unit.get(self.db, unit_id)
         evaluation_unit.launch(self.launch_url)
         return evaluation_unit
 

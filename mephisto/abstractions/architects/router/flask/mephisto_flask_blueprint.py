@@ -166,6 +166,7 @@ class MephistoRouter(WebSocketApplication):
             # Socket is already closed, noop
             return
 
+        packet["router_outgoing_timestamp"] = time.time()
         socket.send(json.dumps(packet))
 
     def _find_or_create_agent(self, agent_id: str) -> "LocalAgentState":
@@ -228,6 +229,10 @@ class MephistoRouter(WebSocketApplication):
             "packet_type": PACKET_TYPE_RETURN_STATUSES,
             "subject_id": SYSTEM_CHANNEL_ID,
             "data": agent_statuses,
+            "client_timestamp": agent_status_packet["server_timestamp"],
+            "router_incoming_timestamp": agent_status_packet[
+                "router_incoming_timestamp"
+            ],
         }
         self._handle_forward(packet)
 
@@ -296,6 +301,7 @@ class MephistoRouter(WebSocketApplication):
         current_client = self.ws.handler.active_client
         client = current_client
         packet = json.loads(message)
+        packet["router_incoming_timestamp"] = time.time()
         if packet["packet_type"] == PACKET_TYPE_REQUEST_STATUSES:
             debug_log("Mephisto requesting status")
             self._handle_get_agent_status(packet)
@@ -368,6 +374,7 @@ class MephistoRouter(WebSocketApplication):
 
 @mephisto_router.route("/request_agent", methods=["POST"])
 def request_agent():
+    router_incoming_timestamp = time.time()
     data = request.get_json()
     request_id = str(uuid4())
     provider_data = data["provider_data"]
@@ -379,6 +386,8 @@ def request_agent():
             "provider_data": provider_data,
             "request_id": request_id,
         },
+        "client_timestamp": data["client_timestamp"],
+        "router_incoming_timestamp": router_incoming_timestamp,
     }
     res = mephisto_router_app.make_agent_request(packet)
     if res is not None:
@@ -395,6 +404,7 @@ def submit_onboarding():
     Parse onboarding as if it were a request sent from the
     active agent, rather than coming as a request from the router.
     """
+    router_incoming_timestamp = time.time()
     data = request.get_json()
     provider_data = data["provider_data"]
     agent_id = provider_data["USED_AGENT_ID"]
@@ -409,6 +419,8 @@ def submit_onboarding():
         "packet_type": PACKET_TYPE_SUBMIT_ONBOARDING,
         "subject_id": agent_id,
         "data": provider_data,
+        "client_timestamp": data["client_timestamp"],
+        "router_incoming_timestamp": router_incoming_timestamp,
     }
     res = mephisto_router_app.make_agent_request(packet)
     if res is not None:
@@ -422,6 +434,7 @@ def submit_onboarding():
 @mephisto_router.route("/submit_task", methods=["POST"])
 def submit_task():
     """Parse task submission as if it were an act"""
+    router_incoming_timestamp = time.time()
     provider_data = request.get_json()
     filenames = []
     if provider_data is None:
@@ -449,6 +462,8 @@ def submit_task():
         "packet_type": PACKET_TYPE_SUBMIT_UNIT,
         "subject_id": agent_id,
         "data": extracted_data,
+        "client_timestamp": data["client_timestamp"],
+        "router_incoming_timestamp": router_incoming_timestamp,
     }
     mephisto_router_app._handle_forward(packet)
     return jsonify({"status": "Error log sent!"})
@@ -456,11 +471,14 @@ def submit_task():
 
 @mephisto_router.route("/log_error", methods=["POST"])
 def log_error():
+    router_incoming_timestamp = time.time()
     data = request.get_json()
     packet = {
         "packet_type": PACKET_TYPE_ERROR,
         "subject_id": data["USED_AGENT_ID"],
         "data": data["error_data"],
+        "client_timestamp": data["client_timestamp"],
+        "router_incoming_timestamp": router_incoming_timestamp,
     }
     mephisto_router_app._handle_forward(packet)
     return jsonify({"status": "Error log sent!"})

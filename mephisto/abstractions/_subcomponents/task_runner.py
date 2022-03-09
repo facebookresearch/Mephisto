@@ -17,6 +17,8 @@ from typing import (
 )
 
 from omegaconf import DictConfig
+from prometheus_client import Histogram, Gauge
+from prometheus_client.utils import INF
 
 from dataclasses import dataclass
 from mephisto.data_model.exceptions import (
@@ -65,6 +67,39 @@ class RunningAssignment:
 class RunningOnboarding:
     onboarding_agent: "OnboardingAgent"
     thread: threading.Thread
+
+
+ONGOING_THREAD_COUNT = Gauge(
+    "task_runner_thread_count",
+    "Gauges for ongoing onboarding, unit, and assignment execution",
+    ["thread_type"],
+)
+EXECUTION_DURATION_SECONDS = Histogram(
+    "task_runner_thread_duration",
+    "Histogram for execution time across different task segments",
+    ["thread_type"],
+    buckets=(
+        10,
+        30,
+        60,
+        150,
+        300,
+        450,
+        600,
+        750,
+        900,
+        1200,
+        1800,
+        2400,
+        3600,
+        7200,
+        14400,
+        INF,
+    ),
+)
+for thread_type in ["onboarding", "unit", "assignment"]:
+    ONGOING_THREAD_COUNT.labels(thread_type=thread_type)
+    EXECUTION_DURATION_SECONDS.labels(thread_type=thread_type)
 
 
 class TaskRunner(ABC):
@@ -135,42 +170,47 @@ class TaskRunner(ABC):
         cleanup_after: Callable[[], Awaitable[None]],
     ) -> None:
         """Supervise the completion of an onboarding"""
-        live_run = onboarding_agent.get_live_run()
-        onboarding_id = onboarding_agent.get_agent_id()
-        logger.debug(f"Launching onboarding for {onboarding_agent}")
-        try:
-            self.run_onboarding(onboarding_agent)
-        except (
-            AgentReturnedError,
-            AgentTimeoutError,
-            AgentDisconnectedError,
-            AgentShutdownError,
-        ):
-            self.cleanup_onboarding(onboarding_agent)
-        except Exception as e:
-            logger.exception(
-                f"Unhandled exception in onboarding {onboarding_agent}",
-                exc_info=True,
-            )
-            self.cleanup_onboarding(onboarding_agent)
-        del self.running_onboardings[onboarding_id]
-
-        # Onboarding now complete
-        if onboarding_agent.get_status() == AgentState.STATUS_WAITING:
-            # The agent completed the onboarding task
-            async def register_then_cleanup():
-                await live_run.worker_pool.register_agent_from_onboarding(
-                    onboarding_agent
+        with ONGOING_THREAD_COUNT.labels(
+            thread_type="onboarding"
+        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(
+            thread_type="onboarding"
+        ).time():
+            live_run = onboarding_agent.get_live_run()
+            onboarding_id = onboarding_agent.get_agent_id()
+            logger.debug(f"Launching onboarding for {onboarding_agent}")
+            try:
+                self.run_onboarding(onboarding_agent)
+            except (
+                AgentReturnedError,
+                AgentTimeoutError,
+                AgentDisconnectedError,
+                AgentShutdownError,
+            ):
+                self.cleanup_onboarding(onboarding_agent)
+            except Exception as e:
+                logger.exception(
+                    f"Unhandled exception in onboarding {onboarding_agent}",
+                    exc_info=True,
                 )
-                await cleanup_after()
+                self.cleanup_onboarding(onboarding_agent)
+            del self.running_onboardings[onboarding_id]
 
-            live_run.loop_wrap.execute_coro(register_then_cleanup())
-        else:
-            logger.info(
-                f"Onboarding agent {onboarding_id} disconnected or errored, "
-                f"final status {onboarding_agent.get_status()}."
-            )
-            live_run.loop_wrap.execute_coro(cleanup_after())
+            # Onboarding now complete
+            if onboarding_agent.get_status() == AgentState.STATUS_WAITING:
+                # The agent completed the onboarding task
+                async def register_then_cleanup():
+                    await live_run.worker_pool.register_agent_from_onboarding(
+                        onboarding_agent
+                    )
+                    await cleanup_after()
+
+                live_run.loop_wrap.execute_coro(register_then_cleanup())
+            else:
+                logger.info(
+                    f"Onboarding agent {onboarding_id} disconnected or errored, "
+                    f"final status {onboarding_agent.get_status()}."
+                )
+                live_run.loop_wrap.execute_coro(cleanup_after())
 
     def execute_unit(
         self,
@@ -221,39 +261,44 @@ class TaskRunner(ABC):
         agent: "Agent",
     ) -> None:
         """Supervise the completion of a unit thread"""
-        try:
-            self.run_unit(unit, agent)
-        except (
-            AgentReturnedError,
-            AgentTimeoutError,
-            AgentDisconnectedError,
-            AgentShutdownError,
-        ) as e:
-            # A returned Unit can be worked on again by someone else.
-            if unit.get_status() != AssignmentState.EXPIRED:
-                unit_agent = unit.get_assigned_agent()
-                if unit_agent is not None and unit_agent.db_id == agent.db_id:
-                    logger.debug(f"Clearing {agent} from {unit} due to {e}")
-                    unit.clear_assigned_agent()
-            self.cleanup_unit(unit)
-        except Exception as e:
-            logger.exception(f"Unhandled exception in unit {unit}", exc_info=True)
-            # Exceptions mark as submitted to ensure task closure
-            self.cleanup_unit(unit)
+        with ONGOING_THREAD_COUNT.labels(
+            thread_type="unit"
+        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(
+            thread_type="unit"
+        ).time():
+            try:
+                self.run_unit(unit, agent)
+            except (
+                AgentReturnedError,
+                AgentTimeoutError,
+                AgentDisconnectedError,
+                AgentShutdownError,
+            ) as e:
+                # A returned Unit can be worked on again by someone else.
+                if unit.get_status() != AssignmentState.EXPIRED:
+                    unit_agent = unit.get_assigned_agent()
+                    if unit_agent is not None and unit_agent.db_id == agent.db_id:
+                        logger.debug(f"Clearing {agent} from {unit} due to {e}")
+                        unit.clear_assigned_agent()
+                self.cleanup_unit(unit)
+            except Exception as e:
+                logger.exception(f"Unhandled exception in unit {unit}", exc_info=True)
+                # Exceptions mark as submitted to ensure task closure
+                self.cleanup_unit(unit)
 
-        # Unit run now complete
-        if agent.get_status() not in AgentState.complete():
-            if not agent.await_submit(timeout=None):
-                # Wait for a submit to occur
-                agent.await_submit(timeout=self.args.task.submission_timout)
-            agent.update_status(AgentState.STATUS_COMPLETED)
-            agent.mark_done()
+            # Unit run now complete
+            if agent.get_status() not in AgentState.complete():
+                if not agent.await_submit(timeout=None):
+                    # Wait for a submit to occur
+                    agent.await_submit(timeout=self.args.task.submission_timout)
+                agent.update_status(AgentState.STATUS_COMPLETED)
+                agent.mark_done()
 
-        self.shared_state.on_unit_submitted(unit)
-        del self.running_units[unit.db_id]
+            self.shared_state.on_unit_submitted(unit)
+            del self.running_units[unit.db_id]
 
-        self._cleanup_special_units(unit, agent)
-        self.task_run.clear_reservation(unit)
+            self._cleanup_special_units(unit, agent)
+            self.task_run.clear_reservation(unit)
 
     def execute_assignment(
         self,
@@ -286,49 +331,54 @@ class TaskRunner(ABC):
         agents: List["Agent"],
     ) -> None:
         """Supervise the completion of an assignment thread"""
-        try:
-            self.run_assignment(assignment, agents)
-        except (
-            AgentReturnedError,
-            AgentTimeoutError,
-            AgentDisconnectedError,
-            AgentShutdownError,
-        ) as e:
-            # TODO(OWN) implement counting complete tasks, launching a
-            # new assignment copied from the parameters of this one
-            disconnected_agent_id = e.agent_id
+        with ONGOING_THREAD_COUNT.labels(
+            thread_type="assignment"
+        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(
+            thread_type="assignment"
+        ).time():
+            try:
+                self.run_assignment(assignment, agents)
+            except (
+                AgentReturnedError,
+                AgentTimeoutError,
+                AgentDisconnectedError,
+                AgentShutdownError,
+            ) as e:
+                # TODO(OWN) implement counting complete tasks, launching a
+                # new assignment copied from the parameters of this one
+                disconnected_agent_id = e.agent_id
+                for agent in agents:
+                    if agent.db_id != e.agent_id:
+                        agent.update_status(AgentState.STATUS_PARTNER_DISCONNECT)
+                    else:
+                        # Must expire the disconnected unit so that
+                        # new workers aren't shown it
+                        agent.get_unit().expire()
+                self.cleanup_assignment(assignment)
+            except Exception as e:
+                logger.exception(
+                    f"Unhandled exception in assignment {assignment}",
+                    exc_info=True,
+                )
+                self.cleanup_assignment(assignment)
+
+            # Wait for agents to be complete
             for agent in agents:
-                if agent.db_id != e.agent_id:
-                    agent.update_status(AgentState.STATUS_PARTNER_DISCONNECT)
-                else:
-                    # Must expire the disconnected unit so that
-                    # new workers aren't shown it
-                    agent.get_unit().expire()
-            self.cleanup_assignment(assignment)
-        except Exception as e:
-            logger.exception(
-                f"Unhandled exception in assignment {assignment}",
-                exc_info=True,
-            )
-            self.cleanup_assignment(assignment)
+                if agent.get_status() not in AgentState.complete():
+                    if not agent.await_submit(timeout=None):
+                        # Wait for a submit to occur
+                        agent.await_submit(timeout=self.args.task.submission_timout)
+                    agent.update_status(AgentState.STATUS_COMPLETED)
+                    agent.mark_done()
 
-        # Wait for agents to be complete
-        for agent in agents:
-            if agent.get_status() not in AgentState.complete():
-                if not agent.await_submit(timeout=None):
-                    # Wait for a submit to occur
-                    agent.await_submit(timeout=self.args.task.submission_timout)
-                agent.update_status(AgentState.STATUS_COMPLETED)
-                agent.mark_done()
+            for unit in assignment.get_units():
+                self.shared_state.on_unit_submitted(unit)
+            del self.running_assignments[assignment.db_id]
 
-        for unit in assignment.get_units():
-            self.shared_state.on_unit_submitted(unit)
-        del self.running_assignments[assignment.db_id]
-
-        # Clear reservations
-        task_run = self.task_run
-        for unit in assignment.get_units():
-            task_run.clear_reservation(unit)
+            # Clear reservations
+            task_run = self.task_run
+            for unit in assignment.get_units():
+                task_run.clear_reservation(unit)
 
     @staticmethod
     def get_data_for_assignment(assignment: "Assignment") -> "InitializationData":

@@ -106,7 +106,7 @@ export function getTaskConfig() {
 
 export function postProviderRequest(endpoint, data) {
   var url = new URL(window.location.origin + endpoint).toString();
-  return postData(url, { provider_data: data });
+  return postData(url, { provider_data: data, client_timestamp: pythonTime() });
 }
 
 export function requestAgent() {
@@ -124,6 +124,7 @@ export function postCompleteTask(agent_id, complete_data) {
   return postData("/submit_task", {
     USED_AGENT_ID: agent_id,
     final_data: complete_data,
+    client_timestamp: pythonTime(),
   })
     .then((data) => {
       handleSubmitToProvider(complete_data);
@@ -138,6 +139,7 @@ export function postErrorLog(agent_id, complete_data) {
   return postData("/log_error", {
     USED_AGENT_ID: agent_id,
     error_data: complete_data,
+    client_timestamp: pythonTime(),
   }).then(function (data) {
     // console.log("Error log sent to server");
   });
@@ -197,3 +199,7 @@ export const libVersion = preval`
   const version = JSON.parse(file).version;
   module.exports = version
 `;
+
+export function pythonTime() {
+  return Date.now() / 1000;
+}

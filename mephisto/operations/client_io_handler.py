@@ -9,6 +9,7 @@ import weakref
 import time
 import asyncio
 from queue import Queue
+from prometheus_client import Histogram
 
 from mephisto.data_model.packet import (
     Packet,
@@ -40,6 +41,35 @@ logger = get_logger(name=__name__)
 SYSTEM_CHANNEL_ID = "mephisto"
 START_DEATH_TIME = 10
 
+# Initialize monitoring metrics
+PACKET_PROCESSING_LATENCY = Histogram(
+    "client_io_handler_latency_seconds",
+    "Time spent processing a packet on the IO handler",
+    ["packet_type"],
+)
+E2E_PACKET_LATENCY = Histogram(
+    "e2e_packet_latency",
+    "Time spent processing packets across request lifecycle",
+    ["packet_type", "stage"],
+)
+for packet_type in [
+    PACKET_TYPE_SUBMIT_ONBOARDING,
+    PACKET_TYPE_SUBMIT_UNIT,
+    PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
+    PACKET_TYPE_REGISTER_AGENT,
+    PACKET_TYPE_RETURN_STATUSES,
+    PACKET_TYPE_ERROR,
+]:
+    PACKET_PROCESSING_LATENCY.labels(packet_type=packet_type)
+    for stage in [
+        "client_to_router",
+        "router_processing",
+        "router_to_server",
+        "server_processing",
+        "e2e_time",
+    ]:
+        E2E_PACKET_LATENCY.labels(packet_type=packet_type, stage=stage)
+
 
 class ClientIOHandler:
     """
@@ -64,11 +94,53 @@ class ClientIOHandler:
         self.agent_id_to_channel_id: Dict[str, str] = {}
         # Map from a request id to the channel that issued it
         self.request_id_to_channel_id: Dict[str, str] = {}
+        self.request_id_to_packet: Dict[str, Packet] = {}  # For metrics purposes
 
         self.is_shutdown = False
 
         # Deferred initializiation
         self._live_run: Optional["LiveTaskRun"] = None
+
+    def log_metrics_for_packet(self, packet: "Packet") -> None:
+        """
+        Log the full metrics for the provided packet, using now as the expected response time
+        """
+        client_timestamp = packet.client_timestamp
+        router_incoming_timestamp = packet.router_incoming_timestamp
+        router_outgoing_timestamp = packet.router_outgoing_timestamp
+        server_timestamp = packet.server_timestamp
+        response_timestamp = time.time()
+        if router_outgoing_timestamp is None:
+            print(packet, "no outgoing timestamp")
+            router_outgoing_timestamp = server_timestamp
+        if router_incoming_timestamp is None:
+            print(packet, "no incoming timestamp")
+            router_incoming_timestamp = router_outgoing_timestamp
+        if client_timestamp is None:
+            print(packet, "no client timestamp")
+            client_timestamp = router_incoming_timestamp
+        client_to_router = max(0, router_incoming_timestamp - client_timestamp)
+        router_processing = max(
+            0, router_outgoing_timestamp - router_incoming_timestamp
+        )
+        router_to_server = max(0, server_timestamp - router_outgoing_timestamp)
+        server_processing = max(0, response_timestamp - server_timestamp)
+        e2e_time = max(0, response_timestamp - client_timestamp)
+        E2E_PACKET_LATENCY.labels(
+            packet_type=packet.type, stage="client_to_router"
+        ).observe(client_to_router)
+        E2E_PACKET_LATENCY.labels(
+            packet_type=packet.type, stage="router_processing"
+        ).observe(router_processing)
+        E2E_PACKET_LATENCY.labels(
+            packet_type=packet.type, stage="router_to_server"
+        ).observe(router_to_server)
+        E2E_PACKET_LATENCY.labels(
+            packet_type=packet.type, stage="server_processing"
+        ).observe(server_processing)
+        E2E_PACKET_LATENCY.labels(packet_type=packet.type, stage="e2e_time").observe(
+            e2e_time
+        )
 
     def register_run(self, live_run: "LiveTaskRun") -> None:
         """Register a live run for this io handler"""
@@ -230,6 +302,7 @@ class ClientIOHandler:
         assert agent is not None, f"Could not find given agent by id {onboarding_id}"
         request_id = packet.data["request_id"]
         self.request_id_to_channel_id[request_id] = channel_id
+        self.request_id_to_packet[request_id] = packet
         agent.update_status(AgentState.STATUS_WAITING)
 
         logger.debug(f"{agent} has submitted onboarding: {packet}")
@@ -246,6 +319,7 @@ class ClientIOHandler:
         request_id = packet.data["request_id"]
 
         self.request_id_to_channel_id[request_id] = channel_id
+        self.request_id_to_packet[request_id] = packet
         crowd_data = packet.data["provider_data"]
 
         # Check for reconnecting agent
@@ -282,7 +356,9 @@ class ClientIOHandler:
             )
         )
         self.process_outgoing_queue(self.message_queue)
+        self.log_metrics_for_packet(self.request_id_to_packet[request_id])
         del self.request_id_to_channel_id[request_id]
+        del self.request_id_to_packet[request_id]
 
     def _on_message(self, packet: Packet, channel_id: str):
         """Handle incoming messages from the channel"""
@@ -290,23 +366,28 @@ class ClientIOHandler:
         # TODO(#102) this method currently assumes that the packet's subject_id will
         # always be a valid agent in our list of agent_infos. This isn't always the case
         # when relaunching with the same URLs.
-        if packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:
-            self._on_submit_onboarding(packet, channel_id)
-        elif packet.type == PACKET_TYPE_SUBMIT_UNIT:
-            self._on_submit_unit(packet, channel_id)
-        elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
-            self._on_live_update(packet, channel_id)
-        elif packet.type == PACKET_TYPE_REGISTER_AGENT:
-            self._register_agent(packet, channel_id)
-        elif packet.type == PACKET_TYPE_RETURN_STATUSES:
-            # Record this status response
-            live_run.worker_pool.handle_updated_agent_status(packet.data)
-        elif packet.type == PACKET_TYPE_ERROR:
-            self._log_frontend_error(packet)
-        else:
-            # PACKET_TYPE_REQUEST_STATUSES, PACKET_TYPE_ALIVE,
-            # PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE, PACKET_TYPE_AGENT_DETAILS
-            raise Exception(f"Unexpected packet type {packet.type}")
+        with PACKET_PROCESSING_LATENCY.labels(packet_type=packet.type).time():
+            if packet.type == PACKET_TYPE_SUBMIT_ONBOARDING:
+                self._on_submit_onboarding(packet, channel_id)
+            elif packet.type == PACKET_TYPE_SUBMIT_UNIT:
+                self._on_submit_unit(packet, channel_id)
+                self.log_metrics_for_packet(packet)
+            elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
+                self._on_live_update(packet, channel_id)
+                self.log_metrics_for_packet(packet)
+            elif packet.type == PACKET_TYPE_REGISTER_AGENT:
+                self._register_agent(packet, channel_id)
+            elif packet.type == PACKET_TYPE_RETURN_STATUSES:
+                # Record this status response
+                live_run.worker_pool.handle_updated_agent_status(packet.data)
+                self.log_metrics_for_packet(packet)
+            elif packet.type == PACKET_TYPE_ERROR:
+                self._log_frontend_error(packet)
+                self.log_metrics_for_packet(packet)
+            else:
+                # PACKET_TYPE_REQUEST_STATUSES, PACKET_TYPE_ALIVE,
+                # PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE, PACKET_TYPE_AGENT_DETAILS
+                raise Exception(f"Unexpected packet type {packet.type}")
 
     def _request_status_update(self) -> None:
         """
