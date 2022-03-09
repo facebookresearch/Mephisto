@@ -28,7 +28,8 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
 )
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
-from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
+from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.utils.qualifications import make_qualification_dict
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.operations.client_io_handler import ClientIOHandler
 from mephisto.operations.worker_pool import WorkerPool

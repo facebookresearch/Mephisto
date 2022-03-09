@@ -69,7 +69,7 @@ class SharedTaskState:
         metadata={
             "help": (
                 "List of qualification dicts of the form returned by "
-                "mephisto.data_model.qualification.make_qualification_dict "
+                "mephisto.utils.qualifications.make_qualification_dict "
                 "to be used with this task run."
             ),
             "type": "List[Dict]",

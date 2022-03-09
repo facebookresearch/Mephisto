@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 import asyncio
-from mephisto.data_model.qualification import find_or_create_qualification
+from mephisto.utils.qualifications import find_or_create_qualification
 from typing import (
     List,
     Dict,
