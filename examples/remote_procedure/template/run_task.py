@@ -11,7 +11,7 @@ from mephisto.tools.scripts import (
     build_and_return_custom_bundle,
 )
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
-    BLUEPRINT_TYPE,
+    BLUEPRINT_TYPE_REMOTE_PROCEDURE,
     SharedRemoteProcedureTaskState,
     RemoteProcedureAgentState,
 )
