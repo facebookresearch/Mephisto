@@ -14,7 +14,7 @@ import {
   MephistoContext,
   useMephistoRemoteProcedureTask,
   ErrorBoundary,
-} from "mephisto-remote-query";
+} from "mephisto-task";
 
 /* ================= Application Components ================= */
 
