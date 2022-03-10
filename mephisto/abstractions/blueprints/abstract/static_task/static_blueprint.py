@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from argparse import _ArgumentGroup as ArgumentGroup
 
 
-BLUEPRINT_TYPE = "abstract_static"
+BLUEPRINT_TYPE_STATIC = "abstract_static"
 
 
 @dataclass
@@ -70,7 +70,7 @@ class SharedStaticTaskState(OnboardingSharedState, SharedTaskState):
 
 @dataclass
 class StaticBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
-    _blueprint_type: str = BLUEPRINT_TYPE
+    _blueprint_type: str = BLUEPRINT_TYPE_STATIC
     _group: str = field(
         default="StaticBlueprint",
         metadata={

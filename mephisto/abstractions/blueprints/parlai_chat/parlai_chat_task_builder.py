@@ -58,7 +58,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
             )
         os.chdir(return_dir)
 
-    def build_and_return_custom_bundle(self, custom_src_dir):
+    def build_custom_bundle(self, custom_src_dir):
         """Locate all of the custom files used for a custom build, create
         a prebuild directory containing all of them, then build the
         custom source.
@@ -172,7 +172,7 @@ class ParlAIChatTaskBuilder(TaskBuilder):
         build_bundle = None
         if custom_source_dir is not None:
             custom_source_dir = os.path.expanduser(custom_source_dir)
-            build_bundle = self.build_and_return_custom_bundle(custom_source_dir)
+            build_bundle = self.build_custom_bundle(custom_source_dir)
 
         # Copy over the preview file as preview.html, use the default if none specified
         target_resource_dir = os.path.join(build_dir, "static")
