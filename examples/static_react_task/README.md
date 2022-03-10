@@ -19,13 +19,11 @@ python run_task.py conf=onboarding_example
 This task is configured using [Hydra](https://hydra.cc/) - details about using hydra to configure tasks can be read here and in other examples. For more about being able to customize the configuration files, please refer to the [Hydra documentation](https://hydra.cc/docs/intro). Under our current setup, using Hydra means that you must be in the same directory as the python script for hydra to correctly pick up the config files.
 #### Setting reasonable defaults
 In this script, we set certain configuration variables by default in every run:
-```python
-defaults = [
-    {"mephisto/blueprint": BLUEPRINT_TYPE_<>},
-    {"mephisto/architect": 'local'},
-    {"mephisto/provider": 'mock'},
-    {"conf": "example"},
-]
+```yaml
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
 ```
 These defaults are handed to Hydra in order to ensure that by default, we run a task locally with a mock provider (so we can demo). We also set `conf` to `example`, which means this script by default will also load in all of the configuration variables set in `conf/example.yaml`.
 
