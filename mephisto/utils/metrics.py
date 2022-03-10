@@ -64,6 +64,7 @@ def run_install_script() -> bool:
     """Run the install script from METRICS_DIR"""
     res = subprocess.check_call(
         [
+            "sh",
             f"./install_metrics.sh",
         ],
         cwd=f"{METRICS_DIR}",
