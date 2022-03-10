@@ -18,7 +18,7 @@ from model import mnist
 
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import (
-    build_and_return_custom_bundle,
+    build_custom_bundle,
     task_script,
 )
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
@@ -63,7 +63,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     )
 
     task_dir = cfg.task_dir
-    build_and_return_custom_bundle(task_dir)
+    build_custom_bundle(task_dir)
 
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)

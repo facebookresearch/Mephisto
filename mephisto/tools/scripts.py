@@ -215,7 +215,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
     return script_cfg
 
 
-def build_and_return_custom_bundle(custom_src_dir):
+def build_custom_bundle(custom_src_dir):
     """Locate all of the custom files used for a custom build, create
     a prebuild directory containing all of them, then build the
     custom source.
