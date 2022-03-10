@@ -59,7 +59,7 @@ class WebsocketChannel(Channel):
     def is_closed(self):
         """
         Return whether or not this connection has been explicitly closed
-        by the supervisor or another source.
+        by the ClientIOHandler or another source.
         """
         return self._is_closed
 

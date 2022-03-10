@@ -102,7 +102,7 @@ class OperatorBaseTest(object):
             time.sleep(0.1)
         self.assertLess(time.time() - start_time, 5, "Mock server not up in time")  # type: ignore
 
-    def test_initialize_supervisor(self):
+    def test_initialize_operator(self):
         """Quick test to ensure that the operator can be initialized"""
         self.operator = Operator(self.db)
 
@@ -140,7 +140,7 @@ class OperatorBaseTest(object):
 
     @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_job_concurrent(self):
-        """Ensure that the supervisor object can even be created"""
+        """Ensure that a job can be run that requires connected concurrent workers"""
         self.operator = Operator(self.db)
         config = MephistoConfig(
             blueprint=MockBlueprintArgs(num_assignments=1, is_concurrent=True),
@@ -200,7 +200,7 @@ class OperatorBaseTest(object):
 
     @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_job_not_concurrent(self):
-        """Ensure that the supervisor object can even be created"""
+        """Ensure that a job can be run that doesn't require connected workers"""
         self.operator = Operator(self.db)
         config = MephistoConfig(
             blueprint=MockBlueprintArgs(num_assignments=1, is_concurrent=False),
