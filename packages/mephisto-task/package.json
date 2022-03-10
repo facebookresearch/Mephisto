@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "webpack --mode=development",
     "dev:watch": "webpack --mode=development --watch",
-    "build": "NODE_ENV=production webpack --mode=production --optimize-minimize",
-    "prepublishOnly": "NODE_ENV=production webpack --mode=production --optimize-minimize"
+    "build": "NODE_ENV=production webpack --mode=production",
+    "prepublishOnly": "NODE_ENV=production webpack --mode=production"
   },
   "keywords": [],
   "author": "",

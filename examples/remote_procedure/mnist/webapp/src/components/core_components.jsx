@@ -93,7 +93,14 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
         type="checkbox"
         disabled={currentAnnotation === null}
         value={isCorrect !== true}
-        onChange={() => setIsCorrect(!isCorrect)}
+        onChange={() => {
+          // if previously indicated incorrect...
+          if (!isCorrect) {
+            // ...we'll be changing to correct, so clear out correction annotation
+            setTrueAnnotation("");
+          }
+          setIsCorrect(!isCorrect);
+        }}
       />
       <br />
       Corrected Annotation:
@@ -102,7 +109,12 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
         type="text"
         disabled={currentAnnotation === null}
         value={trueAnnotation}
-        onChange={(evt) => setTrueAnnotation(evt.target.value)}
+        onChange={(evt) => {
+          if (evt.target.value !== "") {
+            setIsCorrect(false);
+          }
+          setTrueAnnotation(evt.target.value);
+        }}
       />
     </div>
   );
@@ -139,7 +151,8 @@ function TaskFrontend({ classifyDigit, handleSubmit }) {
     })
   );
   let canSubmit =
-    annotations.filter((a) => a.isCorrect !== null).length == NUM_ANNOTATIONS;
+    annotations.filter((a) => a.isCorrect === true || a.trueAnnotation !== "")
+      .length == NUM_ANNOTATIONS;
 
   return (
     <div>
