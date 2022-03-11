@@ -93,9 +93,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
         type="checkbox"
         disabled={currentAnnotation === null}
         value={isCorrect !== true}
-        onChange={() => {
-          setIsCorrect(!isCorrect);
-        }}
+        onChange={() => setIsCorrect(!isCorrect)}
       />
       <br />
       Corrected Annotation:
@@ -104,12 +102,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
         type="text"
         disabled={currentAnnotation === null}
         value={trueAnnotation}
-        onChange={(evt) => {
-          if (evt.target.value !== "") {
-            setIsCorrect(false);
-          }
-          setTrueAnnotation(evt.target.value);
-        }}
+        onChange={(evt) => setTrueAnnotation(evt.target.value)}
       />
     </div>
   );
