@@ -243,7 +243,7 @@ Here's the config we've set up for this example:
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
     BLUEPRINT_TYPE_STATIC_HTML,
 )
-from mephisto.tools.scripts import process_config_and_get_operator, task_script
+from mephisto.tools.scripts import task_script
 from omegaconf import DictConfig
 
 @task_script(default_config_file="example")
@@ -269,8 +269,8 @@ class MyTaskConfig(build_default_task_config('example')):
 def main(operator: Operator, cfg: DictConfig) -> None:
 ```
 In this snippet, we do a few things:
-1. We import the `BLUEPRINT_TYPE_STATIC_HTML` to force an import of the blueprint we intend to use with this run script. This isn't *required* for Mephisto default blueprints, but is important for custom `Blueprint`s to ensure they are loaded into the Mephisto registry.
-2. We set up the default `conf` file to be `example`, using `build_default_task_config`, which returns a `TaskConfig` that we can extend.
+1. We import the `BLUEPRINT_TYPE_STATIC_HTML` to force an import of the blueprint we intend to use with this run script (making the `register_mephisto_abstraction` call). This isn't *required* for any of Mephisto's default blueprints, but would be necessary for use with custom `Blueprint`s not in the `mephisto/abstractions/blueprints` folder.
+2. We set up the default [`conf`](https://hydra.cc/docs/tutorials/basic/your_first_app/config_file/) file to be `example`, using `build_default_task_config`, which returns a `TaskConfig` that we can extend.
 3. We extend the returned `TaskConfig` with `MyTaskConfig`, which allows us to specify custom arguments.
 4. We decorate the main, noting that the correct config is `MyTaskConfig`. Note that the `default_config_file` version of this simply takes care of the above steps inline in the decorator.
 
@@ -283,7 +283,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     operator.launch_task_run(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 ```
-Here we use the `process_config_and_get_operator` helper to extract specific arguments out of your configuration (and surface warnings about incompatibilities), as well as initialize an `Operator` on the correct `MephistoDB` for the task. Using this we can launch a `TaskRun` the given config, then wait for it to run. To ensure we're not frozen, the operator takes in a `log_rate` in seconds to print status messages while the run is underway.
+Under the hood the `task_script` decorator extracts specific arguments out of your configuration (and surface warnings about incompatibilities) and initializes an `Operator` on the correct `MephistoDB` for the task. Using this we can launch a `TaskRun` the given config, then wait for it to run. To ensure we're not frozen, the operator takes in a `log_rate` in seconds to print status messages while the run is underway.
 
 ### 3.3 Default abstraction usage
 Again we can look back at the `example.yaml` file to see this setup:

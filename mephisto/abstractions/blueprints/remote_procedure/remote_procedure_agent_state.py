@@ -69,7 +69,12 @@ class RemoteProcedureAgentState(AgentState):
         """
         if self.init_data is None:
             return None
-        return {"task_data": self.init_data, "raw_messages": self.requests}
+        prev_requests = []
+        if len(self.requests) > 0:
+            requests = self.requests.values()
+            sorted_requests = sorted(requests, key=lambda x: x.timestamp)
+            prev_requests = [r.to_dict() for r in sorted_requests]
+        return {"task_data": self.init_data, "previous_requests": prev_requests}
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""

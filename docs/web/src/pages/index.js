@@ -11,14 +11,26 @@ function HomepageHeader() {
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
-        <h1 className="hero__title">{siteConfig.title}</h1>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
+        <img src="/img/logo_w.svg" style={{ width: 200, marginBottom: 50 }} />
+        <h1 className="">
+          Bring your research ideas to life
+          <br />
+          with powerful crowdsourcing tooling
+        </h1>
+        {/* <p className="hero__subtitle">{siteConfig.tagline}</p> */}
+        <div className={styles.buttons} style={{ marginTop: 50 }}>
           <Link
             className="button button--secondary button--lg"
             to="/docs/guides/quickstart"
           >
-            Mephisto Quickstart - 10min ⏱️
+            Quickstart - 10min ⏱️
+          </Link>
+          <Link
+            style={{ marginLeft: 20 }}
+            className="button button--secondary button--lg"
+            to="https://github.com/facebookresearch/Mephisto"
+          >
+            Github
           </Link>
         </div>
       </div>

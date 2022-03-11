@@ -74,7 +74,7 @@ class AgentState(ABC):
 
     @staticmethod
     def complete() -> List[str]:
-        """Return all final Agent statuses which will not be updated by the supervisor"""
+        """Return all final Agent statuses which will not be updated by the WorkerPool"""
         return [
             AgentState.STATUS_COMPLETED,
             AgentState.STATUS_DISCONNECT,

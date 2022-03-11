@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import click  # type: ignore
+import os
 from click_default_group import DefaultGroup  # type: ignore
 
 from omegaconf import MISSING
@@ -57,7 +58,11 @@ def config(identifier, value):
 
 
 @cli.command("review")
-@click.argument("review_app_dir", type=click.Path(exists=True))
+@click.argument(
+    "review_app_dir",
+    type=click.Path(exists=True),
+    default=os.path.join(os.path.dirname(__file__), "review/default-ui"),
+)
 @click.option("-p", "--port", type=(int), default=5000)
 @click.option("-o", "--output", type=(str), default="")
 @click.option("-a", "--assets", "assets_dir", type=(str), default=None)
