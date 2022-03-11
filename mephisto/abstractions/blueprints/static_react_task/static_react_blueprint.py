@@ -32,7 +32,7 @@ if TYPE_CHECKING:
         SharedTaskState,
     )
     from mephisto.data_model.assignment import Assignment
-    from argparse import _ArgumentGroup as ArgumentGroup
+    from mephisto.data_model.unit import Unit
     from omegaconf import DictConfig
 
 BLUEPRINT_TYPE_STATIC_REACT = "static_react_task"

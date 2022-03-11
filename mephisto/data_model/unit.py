@@ -12,7 +12,7 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedABCMeta,
     MephistoDataModelComponentMixin,
 )

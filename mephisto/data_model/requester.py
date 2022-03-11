@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import abstractmethod, abstractstaticmethod
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedABCMeta,
     MephistoDataModelComponentMixin,
 )

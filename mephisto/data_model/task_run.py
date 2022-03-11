@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedMeta,
     MephistoDataModelComponentMixin,
 )

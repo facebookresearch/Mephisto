@@ -15,7 +15,7 @@ from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
 )
-from typing import Mapping, Optional, Any, List
+from typing import Mapping, Optional, Any, List, Dict
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.assignment import Assignment

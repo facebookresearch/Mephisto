@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.agent import OnboardingAgent
     from mephisto.data_model.worker import Worker
+    from mephisto.data_model.unit import Unit
 
 BLUEPRINT_TYPE_STATIC_HTML = "static_task"
 

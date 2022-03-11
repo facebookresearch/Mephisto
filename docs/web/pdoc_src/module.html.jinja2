@@ -1,0 +1,10 @@
+{% extends "default/module.html.jinja2" %}
+{% block nav_title %}
+    {% if logo %}
+        {% if logo_link %}<a href="{{ logo_link }}">{% endif %}
+        <img src="{{ logo }}" class="logo" alt="project logo"/>
+        {% if logo_link %}</a>{% endif %}
+    {% endif %}
+    <h3>Python API docs</h3>
+    <p><small><a href="/docs/reference/overview">Return to all docs</a></small></p>
+{% endblock %}
