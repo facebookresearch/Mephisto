@@ -11,12 +11,32 @@ Gold labeling is commonly used for ensuring worker quality over the full duratio
 
 There are a few primary configuration parts for using gold units:
 - Hydra args
-  - `blueprint.gold_qualfiication_base`: A string representing the base qualification that required qualifications keeping track of success will be built from.
+  - `blueprint.gold_qualfification_base`: A string representing the base qualification that required qualifications keeping track of success will be built from.
   - `blueprint.use_golds`: Set to `True` to enable the feature.
   - `min_golds`: An int for the minimum number of golds a worker needs to complete for the first time before receiving real units.
   - `max_incorrect_golds`: An int for the number of golds a worker can get incorrect before being disqualified from this task.
 - `GoldUnitSharedState`:
   - `get_gold_for_worker`: A factory that generates input data for a gold unit for a worker. Explained in-depth below.
+
+With these set up, you'll also need to provide additional arguments to your `SharedTaskState` to register the required qualifications and the gold validation function. For example, your run script main may look something like like:
+```python
+...
+gold_data: List[Dict[str, Any]] = ...
+gold_ans = ...
+
+def validate_gold_unit(unit: "Unit"):
+    agent = unit.get_assigned_agent()
+    data = agent.state.get_data()
+    return data['outputs']['val'] == gold_ans[data['inputs']['ans_key']]
+
+shared_state = SharedTaskState(
+    ...
+    get_gold_for_worker=get_gold_factory(gold_data)
+    on_unit_submitted=UseGoldUnit.create_validation_function(cfg.mephisto, validate_gold_unit)
+)
+shared_state.qualifications += UseGoldUnit.get_mixin_qualifications(cfg.mephisto, shared_state)
+...
+```
 
 ### `get_gold_for_worker`
 
