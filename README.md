@@ -5,9 +5,9 @@
 
 Mephisto makes crowdsourcing easier.
 
-We provide a platform for launching, monitoring, and reviewing your crowdsourcing tasks. Tasks made on Mephisto can easily be open sourced as part of other projects.
+We provide a platform for launching, monitoring, and reviewing your crowdsourcing tasks. Tasks made on Mephisto can easily be open sourced as part of other projects. Like the [chess-playing automaton](https://en.wikipedia.org/wiki/Mephisto_(automaton)) we've adopted the name from, Mephisto hides the complexity of projects that need human interaction or input.
 
-As of now we're in an early alpha release, more details to come.
+You can find complete details about the project on our [docs website](https://mephisto.ai).
 
 ## Quickstart
 
