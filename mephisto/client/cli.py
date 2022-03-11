@@ -226,9 +226,9 @@ def get_help_arguments(args):
         return
 
     if abstraction == "task":
-        from mephisto.data_model.task_config import TaskConfig
+        from mephisto.data_model.task_run import TaskRun
 
-        target_class = TaskConfig
+        target_class = TaskRun
     else:
         if len(abstraction_equal_split) == 1:
             # querying about the general abstraction

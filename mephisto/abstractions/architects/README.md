@@ -8,7 +8,7 @@ This folder contains all of the current official `Architect` implementations.
 The `Architect` class is responsible for providing Mephisto with lifecycle functions for preparing, deploying, and shutting down a given server. It's also responsible with providing access to the user via a `Channel`, which defines an interface of callbacks for incoming messages and a function for outgoing messages. It should define the following things in order to operate properly:
 
 - `ArgsClass`: A dataclass that implements `ArchitectArgs`, specifying all of the configuration arguments that the `Architect` uses in order to properly initialize.
-- `get_channels`: A method that will return a list of initialized `Channel`'s that the supervisor will need to communicate with to manage running a task. Returns a list to handle cases where an `Architect` is communicating with multiple servers in a distributed setup.
+- `get_channels`: A method that will return a list of initialized `Channel`'s that the ClientIOHandler will need to communicate with to manage running a task. Returns a list to handle cases where an `Architect` is communicating with multiple servers in a distributed setup.
 - `prepare`: Prepare any files that will be used in the deploy process. Should return the location of the prepared server files.
 - `deploy`: Launch the server (if necessary) and deploy the prepared task files such that the server will be able to serve them. Return the server URL for this task, such that Mephisto can point workers to it.
 - `cleanup`: Clean up any files that were used in the deploy process that aren't necessarily useful for later

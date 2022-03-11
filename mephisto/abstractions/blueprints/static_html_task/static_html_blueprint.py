@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import OnboardingAgent
     from mephisto.data_model.worker import Worker
 
-BLUEPRINT_TYPE = "static_task"
+BLUEPRINT_TYPE_STATIC_HTML = "static_task"
 
 
 @dataclass
@@ -50,7 +50,7 @@ class StaticHTMLBlueprintArgs(StaticBlueprintArgs):
     data_csv has the data to be deployed for this task.
     """
 
-    _blueprint_type: str = BLUEPRINT_TYPE
+    _blueprint_type: str = BLUEPRINT_TYPE_STATIC_HTML
     _group: str = field(
         default="StaticBlueprint",
         metadata={
@@ -85,7 +85,7 @@ class StaticHTMLBlueprint(StaticBlueprint):
 
     TaskBuilderClass = StaticHTMLTaskBuilder
     ArgsClass = StaticHTMLBlueprintArgs
-    BLUEPRINT_TYPE = BLUEPRINT_TYPE
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE_STATIC_HTML
 
     def __init__(
         self,

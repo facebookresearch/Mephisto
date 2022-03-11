@@ -48,6 +48,7 @@ from mephisto.utils.logger_core import (
     get_logger,
     set_mephisto_log_level,
     format_loud,
+    warn_once,
 )
 from omegaconf import DictConfig, OmegaConf
 
@@ -206,6 +207,15 @@ class Operator:
         return live_run
 
     def validate_and_run_config_or_die(
+        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
+    ) -> str:
+        warn_once(
+            "`validate_and_run_config` functions are deprecated in 1.0, and will "
+            "be removed in Mephisto 1.1. Use `launch_task_run` versions instead."
+        )
+        return self.launch_task_run_or_die(run_config, shared_state=shared_state)
+
+    def launch_task_run_or_die(
         self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
     ) -> str:
         """
@@ -479,6 +489,15 @@ class Operator:
     def validate_and_run_config(
         self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
     ) -> Optional[str]:
+        warn_once(
+            "`validate_and_run_config` functions are deprecated in 1.0, and will "
+            "be removed in Mephisto 1.1. Use `launch_task_run` versions instead."
+        )
+        return self.launch_task_run(run_config, shared_state=shared_state)
+
+    def launch_task_run(
+        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
+    ) -> Optional[str]:
         """
         Wrapper around validate_and_run_config_or_die that prints errors on
         failure, rather than throwing. Generally for use in scripts.
@@ -487,7 +506,7 @@ class Operator:
             not self.is_shutdown
         ), "Cannot run a config on a shutdown operator. Create a new one."
         try:
-            return self.validate_and_run_config_or_die(
+            return self.launch_task_run_or_die(
                 run_config=run_config, shared_state=shared_state
             )
         except (KeyboardInterrupt, Exception) as e:

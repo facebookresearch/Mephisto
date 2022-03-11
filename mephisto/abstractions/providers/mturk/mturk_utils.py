@@ -9,7 +9,7 @@ import os
 import json
 import re
 from tqdm import tqdm  # type: ignore
-from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
+from typing import Dict, Optional, Tuple, List, Any
 from datetime import datetime
 
 from botocore import client  # type: ignore
@@ -22,9 +22,6 @@ from mephisto.utils.logger_core import get_logger, format_loud
 from mephisto.operations.config_handler import get_config_arg
 
 logger = get_logger(name=__name__)
-
-if TYPE_CHECKING:
-    from mephisto.data_model.task_config import TaskConfig
 
 MTURK_TASK_FEE = 0.2
 MTURK_BONUS_FEE = 0.2
@@ -413,17 +410,17 @@ def convert_mephisto_qualifications(
 
 def create_hit_type(
     client: MTurkClient,
-    task_config: "TaskConfig",
+    task_args: "DictConfig",  # MephistoConfig.task
     qualifications: List[Dict[str, Any]],
     auto_approve_delay: Optional[int] = 7 * 24 * 3600,  # default 1 week
     skip_locale_qual=False,
 ) -> str:
     """Create a HIT type to be used to generate HITs of the requested params"""
-    hit_title = task_config.task_title
-    hit_description = task_config.task_description
-    hit_keywords = ",".join(task_config.task_tags)
-    hit_reward = task_config.task_reward
-    assignment_duration_in_seconds = task_config.assignment_duration_in_seconds
+    hit_title = task_args.task_title
+    hit_description = task_args.task_description
+    hit_keywords = ",".join(task_args.task_tags)
+    hit_reward = task_args.task_reward
+    assignment_duration_in_seconds = task_args.assignment_duration_in_seconds
     existing_qualifications = convert_mephisto_qualifications(client, qualifications)
 
     # If the user hasn't specified a location qualification, we assume to

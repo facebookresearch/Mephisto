@@ -453,7 +453,6 @@ class BaseTestLiveRuns:
         task_run_args.blueprint.onboarding_qualification = TEST_QUALIFICATION_NAME
         task_run_args.blueprint.timeout_time = 5
         task_run_args.blueprint.is_concurrent = True
-        self.task_run.get_task_config()
 
         # LiveTaskRun expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
@@ -693,7 +692,6 @@ class BaseTestLiveRuns:
         task_run_args.blueprint.onboarding_qualification = TEST_QUALIFICATION_NAME
         task_run_args.blueprint.timeout_time = 5
         task_run_args.blueprint.is_concurrent = False
-        self.task_run.get_task_config()
 
         # LiveTaskRun expects that blueprint setup has already occurred
         blueprint = self.task_run.get_blueprint()
@@ -934,7 +932,6 @@ class BaseTestLiveRuns:
         task_run_args.blueprint.max_screening_units = 2
         task_run_args.blueprint.timeout_time = 5
         task_run_args.blueprint.is_concurrent = False
-        self.task_run.get_task_config()
 
         def screen_unit(unit):
             if unit.get_assigned_agent() is None:

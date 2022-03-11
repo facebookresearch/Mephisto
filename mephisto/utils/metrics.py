@@ -48,7 +48,7 @@ def _server_process_running(pid):
             # EPERM clearly means there's a process to deny access to
             return True
         else:
-            raise err
+            return False
     else:
         return True
 
@@ -64,6 +64,7 @@ def run_install_script() -> bool:
     """Run the install script from METRICS_DIR"""
     res = subprocess.check_call(
         [
+            "sh",
             f"./install_metrics.sh",
         ],
         cwd=f"{METRICS_DIR}",
@@ -132,8 +133,12 @@ def launch_prometheus_server(args: Optional["DictConfig"] = None) -> bool:
     Returns success or failure
     """
     if os.path.exists(PROMETHEUS_PID_FILE):
-        r = requests.get("http://localhost:9090/")
-        if not r.ok:
+        try:
+            r = requests.get("http://localhost:9090/")
+            is_ok = r.ok
+        except requests.exceptions.ConnectionError:
+            is_ok = False
+        if not is_ok:
             logger.warning(
                 "Prometheus PID existed, but server doesn't appear to be up."
             )
@@ -178,8 +183,12 @@ def launch_grafana_server(args: Optional["DictConfig"] = None) -> bool:
     Launch a grafana server if one is not already running (based on having an expected PID)
     """
     if os.path.exists(GRAFANA_PID_FILE):
-        r = requests.get("http://localhost:3032/")
-        if not r.ok:
+        try:
+            r = requests.get("http://localhost:3032/")
+            is_ok = r.ok
+        except requests.exceptions.ConnectionError:
+            is_ok = False
+        if not is_ok:
             logger.warning("Grafana PID existed, but server doesn't appear to be up.")
             if _server_process_running(_get_pid_from_file(GRAFANA_PID_FILE)):
                 logger.warning(

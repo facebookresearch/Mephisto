@@ -12,7 +12,7 @@ mephisto:
     units_per_assignment: 1
   task:
     allowed_concurrent: 1
-    task_name: remote-query-test-task
+    task_name: remote-procedure-test-task
     task_title: "Provide feedback on our MNIST model"
     # NOTE you'll want to update your task description
     task_description: "You will draw digits. Try to fool our MNIST model, and provide us the correct label."

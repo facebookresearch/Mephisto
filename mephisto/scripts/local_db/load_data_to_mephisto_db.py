@@ -14,7 +14,7 @@ MockWorkers as we don't know where the data actually came from.
 
 from mephisto.abstractions.blueprints.static_react_task.static_react_blueprint import (
     StaticReactBlueprint,
-    BLUEPRINT_TYPE,
+    BLUEPRINT_TYPE_STATIC_REACT,
 )
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.blueprints.abstract.static_task.static_agent_state import (
@@ -80,7 +80,7 @@ worker = db.find_workers(provider_type="mock", worker_name=use_name)[0]
 
 # Get or create a task run for this
 tasks = db.find_tasks()
-task_names = [t.task_name for t in tasks if t.task_type == BLUEPRINT_TYPE]
+task_names = [t.task_name for t in tasks if t.task_type == BLUEPRINT_TYPE_STATIC_REACT]
 print(f"Use an existing run? ")
 
 print(f"You have the following existing mock runs:")
@@ -95,20 +95,20 @@ while use_name not in task_names:
     if confirm.lower().startswith("n"):
         use_name = input(f"Okay, enter another name from {task_names} \n >> ")
     else:
-        task_id = db.new_task(use_name, BLUEPRINT_TYPE)
+        task_id = db.new_task(use_name, BLUEPRINT_TYPE_STATIC_REACT)
         task_names.append(use_name)
         task_run_id = db.new_task_run(
             task_id,
             requester.db_id,
             json.dumps({}),
             "mock",
-            BLUEPRINT_TYPE,
+            BLUEPRINT_TYPE_STATIC_REACT,
             requester.is_sandbox(),
         )
         task_run = TaskRun.get(db, task_run_id)
 
 tasks = db.find_tasks(task_name=use_name)
-valid_tasks = [t for t in tasks if t.task_type == BLUEPRINT_TYPE]
+valid_tasks = [t for t in tasks if t.task_type == BLUEPRINT_TYPE_STATIC_REACT]
 task_run = db.find_task_runs(task_id=valid_tasks[0].db_id)[0]
 
 print(f"Found task run: {task_run}")

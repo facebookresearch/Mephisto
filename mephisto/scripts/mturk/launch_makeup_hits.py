@@ -4,9 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.task_config import TaskConfig
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.task_run import TaskRun, TaskRunArgs
 from mephisto.abstractions.providers.mturk.mturk_utils import (
     create_hit_type,
     email_worker,
@@ -29,12 +28,11 @@ from mephisto.operations.task_launcher import COMPENSATION_UNIT_INDEX
 from mephisto.abstractions.providers.mturk.mturk_provider import MTurkProviderArgs
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
 from mephisto.abstractions.architects.mock_architect import MockArchitectArgs
-from mephisto.data_model.task_config import TaskConfigArgs
 from mephisto.operations.hydra_config import MephistoConfig
 
 
 def build_task_config(compensation_dict, requester):
-    task_args = TaskConfigArgs(
+    task_args = TaskRunArgs(
         task_title="Direct compensation task for requester issue",
         task_description=compensation_dict["reason"],
         task_reward=compensation_dict["amount"],
@@ -161,7 +159,7 @@ def main():
 
         # Create an assignment, unit, agent, and mark as assigned
         # Assignment creation
-        task_config = task_run.get_task_config()
+        task_args = task_run.get_task_args()
         assignment_id = db.new_assignment(
             task_run.task_id,
             task_run.db_id,
@@ -181,7 +179,7 @@ def main():
             task_run.requester_id,
             assignment_id,
             COMPENSATION_UNIT_INDEX,
-            task_config.task_reward,
+            task_args.task_reward,
             task_run.provider_type,
             task_run.task_type,
             task_run.sandbox,
@@ -190,10 +188,9 @@ def main():
         print(f"Created {task_run}, {assignment}, and {compensation_unit}...")
 
         # Set up HIT type
-        task_config = TaskConfig(task_run)
         hit_type_id = create_hit_type(
             client,
-            task_config,
+            task_run.get_task_args(),
             [qualification],
             auto_approve_delay=30,
             skip_locale_qual=True,
