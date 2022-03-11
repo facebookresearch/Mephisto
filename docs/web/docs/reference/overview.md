@@ -1,6 +1,8 @@
 # Overview
 
-This section of the documentation will soon be auto-generated.
+Our python API documentation can be found [here](pathname:python_api/mephisto.html).
+
+Other sections of the documentation may soon be auto-generated.
 
 In the meanwhile, you may find reference documentation in the following locations:
 
@@ -9,6 +11,3 @@ In the meanwhile, you may find reference documentation in the following location
 - [`annotation-toolkit` and `@annotated`](https://github.com/facebookresearch/Mephisto/tree/main/packages/annotation-toolkit) - This package helps users to build out review & annotation tooling for their research tasks. `annotation-toolkit` has been deprecated in favor of `@annotated`.
 - [`cra-template-mephisto-review`](https://github.com/facebookresearch/Mephisto/tree/main/packages/cra-template-mephisto-review) - A customizable base template for creating data exploration interfaces with first-class support for the `mephisto review` command.
 - [`mephisto-review-hook`](https://github.com/facebookresearch/Mephisto/tree/main/packages/mephisto-review-hook) - TODO
-- [Mephisto data model](https://github.com/facebookresearch/Mephisto/tree/main/mephisto/data_model) - Docs for the major Mephisto data model components are found here.
-- [Mephisto core abstractions](https://github.com/facebookresearch/Mephisto/tree/main/mephisto/abstractions) - Docs for core abstraction classes can be found here.
-
