@@ -139,7 +139,8 @@ function TaskFrontend({ classifyDigit, handleSubmit }) {
     })
   );
   let canSubmit =
-    annotations.filter((a) => a.isCorrect !== null).length == NUM_ANNOTATIONS;
+    annotations.filter((a) => a.isCorrect === true || a.trueAnnotation !== "")
+      .length == NUM_ANNOTATIONS;
 
   return (
     <div>
