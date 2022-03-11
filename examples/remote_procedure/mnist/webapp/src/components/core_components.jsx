@@ -94,11 +94,6 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
         disabled={currentAnnotation === null}
         value={isCorrect !== true}
         onChange={() => {
-          // if previously indicated incorrect...
-          if (!isCorrect) {
-            // ...we'll be changing to correct, so clear out correction annotation
-            setTrueAnnotation("");
-          }
           setIsCorrect(!isCorrect);
         }}
       />
