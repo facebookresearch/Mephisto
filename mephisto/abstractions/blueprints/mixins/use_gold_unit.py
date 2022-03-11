@@ -61,7 +61,7 @@ class UseGoldUnitArgs:
         default=1,
         metadata={
             "help": (
-                "Minimum golds a worker needs to complete before " "getting real units."
+                "Minimum golds a worker needs to complete before getting real units."
             )
         },
     )
