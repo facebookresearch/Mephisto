@@ -186,7 +186,7 @@ You'll note that Mephisto launches the task under your new task name:
 ```
 
 > **A note on `task_name`s:**
-> The `task_name` parameter is particularly important for setting up workflows. Many of Mephisto's features are shared under a specific `task_name` namespace, including review flows and unit completion maximums per worker per namespace. Later [tutorials](workflows) and [how-to guides](../how_to_use/efficiency_organization/task_organization) go more in-depth on best practices.
+> The `task_name` parameter is particularly important for setting up workflows. Many of Mephisto's features are shared under a specific `task_name` namespace, including review flows and unit completion maximums per worker per namespace. Later [guides](workflows) go more in-depth on best practices.
 
 Navigating to a task (`localhost:3000/?worker_id=x&assignment_id=1`) should now show you a task loaded from a different data file. Completing this task will lead Mephisto to shut down cleanly.
 

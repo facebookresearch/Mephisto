@@ -2,6 +2,8 @@
 sidebar_position: 3
 ---
 
+import Link from '@docusaurus/Link';
+
 # Check worker quality with Screening Units
 
 Screening units help filter out low-quality work, generally by hiding parts of the validation you're paying attention to behind the Mephisto server. To support this we provide the `ScreenTaskRequred` blueprint mixin.
@@ -50,4 +52,4 @@ def my_screening_unit_generator():
 
 ## Additional Questions?
 
-You can find more information on using screening units in the reference documentation for [`ScreenTaskRequired`](pathname:python_api/mephisto/abstractions/blueprints/mixins/screen_task_required.html).
+You can find more information on using screening units in the reference documentation for <Link target={null} to="pathname:///python_api/mephisto/abstractions/blueprints/mixins/screen_task_required.html">`ScreenTaskRequired`</Link>.

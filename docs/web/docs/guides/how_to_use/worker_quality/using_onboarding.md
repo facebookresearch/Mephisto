@@ -2,6 +2,8 @@
 sidebar_position: 2
 ---
 
+import Link from '@docusaurus/Link';
+
 # Teach potential workers with Onboarding
 
 The first step to getting quality data is describing your task properly and ensuring that workers have understood your instructions. To this end, Mephisto provides the `OnboardingRequired` Blueprint mixin.
@@ -37,10 +39,10 @@ shared_state = SharedTaskState(
 ...
 ```
 
-Unlike Screening and Gold units, Onboarding expects that you set up a custom frontend compared to your main task. You want to provide workers with an in-depth exploration of your task up-front (though you can always re-use onboarding components in your main task as reference materials). For more info on how to build out onboarding frontends, check out our [tutorial](tutorials/worker_controls).
+Unlike Screening and Gold units, Onboarding expects that you set up a custom frontend compared to your main task. You want to provide workers with an in-depth exploration of your task up-front (though you can always re-use onboarding components in your main task as reference materials). For more info on how to build out onboarding frontends, check out our [tutorial](../../tutorials/worker_controls).
 
 **Note:** We've observed that some workers may share out the answers for onboarding tasks, so we encourage that you make your validation questions configurable such that you can update them with a change to `onboarding_data`.
 
 ## Additional Questions?
 
-You can find more information on using onboarding before your units in the reference documentation for [`OnboardingRequired`](pathname:python_api/mephisto/abstractions/blueprints/mixins/onboarding_required.html).
+You can find more information on using onboarding before your units in the reference documentation for <Link target={null} to="pathname:///python_api/mephisto/abstractions/blueprints/mixins/onboarding_required.html">`OnboardingRequired`</Link>.

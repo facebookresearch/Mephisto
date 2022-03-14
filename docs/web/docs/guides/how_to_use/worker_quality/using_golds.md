@@ -2,6 +2,8 @@
 sidebar_position: 4
 ---
 
+import Link from '@docusaurus/Link';
+
 # Check against standards with Gold Labels
 
 Gold labeling is commonly used for ensuring worker quality over the full duration of a task. It's valuable as an automated measure to track the consistency your workers. For this Mephisto provides the `UseGoldUnit` blueprint mixin. 
@@ -64,4 +66,4 @@ By default we use a strikes system, where if the worker exceeds the `max_incorre
 
 ## Additional Questions?
 
-You can find more information on using gold units in the reference documentation for [`UseGoldUnit`](pathname:python_api/mephisto/abstractions/blueprints/mixins/use_gold_unit.html).
+You can find more information on using gold units in the reference documentation for <Link target={null} to="pathname:///python_api/mephisto/abstractions/blueprints/mixins/use_gold_unit.html">`UseGoldUnit`</Link>.

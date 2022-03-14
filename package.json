@@ -18,6 +18,7 @@
     "packages/annotated/*",
     "packages/mephisto-task",
     "packages/bootstrap-chat",
+    "packages/global-context-store",
     "docs/storybook",
     "docs/web"
   ],

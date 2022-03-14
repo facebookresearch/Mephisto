@@ -1,6 +1,8 @@
+import Link from '@docusaurus/Link';
+
 # Overview
 
-Our python API documentation can be found [here](pathname:python_api/mephisto.html).
+Our Python API documentation can be found <Link target={null} to="pathname:///python_api/mephisto.html">here</Link>.
 
 Other sections of the documentation may soon be auto-generated.
 
