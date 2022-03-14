@@ -208,8 +208,11 @@ class ScreenTaskRequired(BlueprintMixin):
             if unit.unit_index >= 0:
                 return  # We only run validation on the validatable units
 
-            validation_result = screen_unit(unit)
             agent = unit.get_assigned_agent()
+            if agent is None:
+                return  # Cannot validate a unit with no agent
+
+            validation_result = screen_unit(unit)
             if validation_result is True:
                 agent.get_worker().grant_qualification(passed_qualification_name)
             elif validation_result is False:

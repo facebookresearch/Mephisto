@@ -16,7 +16,7 @@ To setup your local codebase to auto-lint and avoid lint test failures for your 
 ## Package Development (new)
 *For commits after the `yarn-pkg-reorg` tag and for newer packages (`@annotated/*`)*
 
-This repo uses yarn workspaces to manage it's front-end dependencies.
+This repo uses yarn workspaces to manage its front-end dependencies.
 
 **First ensure that you're on the latest version of yarn.**
 

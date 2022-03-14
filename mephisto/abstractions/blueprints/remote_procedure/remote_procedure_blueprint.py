@@ -55,8 +55,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
-    from mephisto.data_model.assignment import Assignment
-    from argparse import _ArgumentGroup as ArgumentGroup
+    from mephisto.data_model.unit import Unit
 
 BLUEPRINT_TYPE_REMOTE_PROCEDURE = "remote_procedure"
 
@@ -132,7 +131,7 @@ class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
         shared_state: "SharedRemoteProcedureTaskState",
     ):
         super().__init__(task_run, args, shared_state)
-        self._initialization_data_dicts: List[Dict[str, Any]] = []
+        self._initialization_data_dicts: Iterable[Dict[str, Any]] = []
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
@@ -194,7 +193,7 @@ class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
                 pass
             else:
                 assert (
-                    len(shared_state.static_task_data) > 0
+                    len([x for x in shared_state.static_task_data]) > 0
                 ), "Length of data dict provided was 0"
         else:
             raise AssertionError(

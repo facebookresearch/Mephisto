@@ -9,7 +9,7 @@ import os
 from shutil import copytree
 
 from mephisto.data_model.project import Project
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedMeta,
     MephistoDataModelComponentMixin,
 )

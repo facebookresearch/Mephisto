@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
-    from argparse import _ArgumentGroup as ArgumentGroup
+    from mephisto.data_model.unit import Unit
 
 BLUEPRINT_TYPE_PARLAI_CHAT = "parlai_chat"
 

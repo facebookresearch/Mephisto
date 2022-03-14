@@ -10,21 +10,27 @@ from mephisto.abstractions.providers.mturk.utils.script_utils import (
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 
-db = LocalMephistoDB()
-reqs = db.find_requesters(provider_type="mturk")
-names = [r.requester_name for r in reqs]
-print("Available Requesters: ", names)
 
-requester_name = input("Select a requester to soft block from: ")
-soft_block_qual_name = input("Provide a soft blocking qualification name: ")
+def main():
+    db = LocalMephistoDB()
+    reqs = db.find_requesters(provider_type="mturk")
+    names = [r.requester_name for r in reqs]
+    print("Available Requesters: ", names)
 
-workers_to_block = []
-while True:
-    new_id = input("MTurk Worker Id to soft block (blank to block all entered): ")
-    if len(new_id.strip()) == 0:
-        break
-    workers_to_block.append(new_id)
+    requester_name = input("Select a requester to soft block from: ")
+    soft_block_qual_name = input("Provide a soft blocking qualification name: ")
 
-direct_soft_block_mturk_workers(
-    db, workers_to_block, soft_block_qual_name, requester_name
-)
+    workers_to_block = []
+    while True:
+        new_id = input("MTurk Worker Id to soft block (blank to block all entered): ")
+        if len(new_id.strip()) == 0:
+            break
+        workers_to_block.append(new_id)
+
+    direct_soft_block_mturk_workers(
+        db, workers_to_block, soft_block_qual_name, requester_name
+    )
+
+
+if __name__ == "__main__":
+    main()

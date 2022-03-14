@@ -29,7 +29,7 @@ curl -L -O "https://github.com/prometheus/prometheus/releases/download/v2.33.4/p
 tar xvfz prometheus-*.tar.gz > /dev/null 2>&1
 mv "prometheus-2.33.4.$platform-amd64" prometheus
 rm "prometheus-2.33.4.$platform-amd64.tar.gz"
-cp resources/mephisto-prometheus-config.yml prometheus/prometheus-config.yml
+cp resources/mephisto-prometheus-config.yml prometheus/prometheus.yml
 
 # Run grafana in background to receive the desired defaults
 cd grafana

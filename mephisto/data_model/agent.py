@@ -4,6 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from __future__ import annotations
+
 import os
 import threading
 from queue import Queue
@@ -13,7 +15,7 @@ from prometheus_client import Gauge  # type: ignore
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedABCMeta,
     MephistoDataModelComponentMixin,
 )

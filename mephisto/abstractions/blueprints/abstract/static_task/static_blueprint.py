@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     )
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.worker import Worker
-    from argparse import _ArgumentGroup as ArgumentGroup
+    from mephisto.data_model.unit import Unit
 
 
 BLUEPRINT_TYPE_STATIC = "abstract_static"

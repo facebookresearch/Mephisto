@@ -1,0 +1,34 @@
+# Using the -slim version below for minimal size. You may want to
+# remove -slim, or switch to -alpine if encountering issues
+ARG BASE_TAG=python3.9-nodejs15-slim
+ARG BASE_IMAGE=nikolaik/python-nodejs:$BASE_TAG
+
+FROM $BASE_IMAGE
+
+# Storybook will be launched on this port:
+EXPOSE 6006
+
+COPY . /mephisto
+RUN mkdir ~/.mephisto
+
+WORKDIR /mephisto
+
+# The `open` package needs to be unplugged from yarn 2 ONLY for Linux
+# See more details here: https://github.com/yarnpkg/berry/issues/856
+RUN yarn unplug -AR open
+
+RUN yarn install
+RUN yarn build-all
+
+
+# Write the mephisto config file manually for now to avoid prompt.
+# For bash-style string $ expansion for newlines,
+# we need to switch the shell to bash:
+SHELL ["/bin/bash", "-c"]
+RUN echo $'core: \n  main_data_directory: /mephisto/data' >> ~/.mephisto/config.yml
+
+# Uncomment if you'd like to install the Mephisto CLI as well:
+# RUN cd /mephisto && ls && pip install -e .
+# RUN mephisto check # Run mephisto check so a mock requester gets created
+
+CMD yarn sb

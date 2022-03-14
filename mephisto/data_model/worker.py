@@ -7,7 +7,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedABCMeta,
     MephistoDataModelComponentMixin,
 )
