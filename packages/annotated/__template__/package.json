@@ -1,5 +1,5 @@
 {
-  "name": "ADD NAME HERE",
+  "name": "EXAMPLE",
   "version": "0.0.1",
   "source": "src/index.js",
   "main": "build/bundle.js",
@@ -21,7 +21,6 @@
   "dependencies": {
     "@annotated/dev-scripts": "workspace:packages/annotated/dev-scripts"
   },
-  "devDependencies": {},
   "peerDependencies": {
     "global-context-store": "^1.0.1",
     "react": "^16.13.1 || 17 || 18",

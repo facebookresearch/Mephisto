@@ -4,6 +4,8 @@ sidebar_position: 1
 
 # Developing and debugging frontends
 
+## The `mephisto-task` package
+
 We provide the `mephisto-task` package for use in your front-end React tasks.
 
 To install, add it to your npm project as such:
