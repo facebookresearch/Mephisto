@@ -8,11 +8,11 @@ import os
 import shutil
 import subprocess
 from mephisto.operations.operator import Operator
-from mephisto.operations.utils import get_root_dir
 from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
+from mephisto.tools.scripts import task_script
 
 import hydra
 from omegaconf import DictConfig
@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from typing import List, Any
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+NUM_TASKS = 10
 
 EXAMPLES = [
     {
@@ -247,13 +248,12 @@ from mephisto.operations.hydra_config import RunScriptConfig, register_script_co
 class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
+    num_tasks : int = NUM_TASKS
 
 
 register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 
-# TODO it would be nice if this was automated in the way that it
-# is for ParlAI custom frontend tasks
 def build_task(task_dir):
     """Rebuild the frontend for this task"""
 
@@ -280,8 +280,8 @@ def build_task(task_dir):
     os.chdir(return_dir)
 
 
-@hydra.main(config_path="hydra_configs", config_name="scriptconfig")
-def main(cfg: DictConfig) -> None:
+@task_script(default_config_file="with_onboarding")
+def main(operator: Operator, cfg: DictConfig) -> None:
     task_dir = cfg.task_dir
 
     def onboarding_check(onboarding_data):
@@ -293,16 +293,15 @@ def main(cfg: DictConfig) -> None:
 
     shared_state = SharedStaticTaskState(
         onboarding_data=ONBOARDING_CONFIG,
-        static_task_data=[TASK_CONFIG]*10,
+        static_task_data=[TASK_CONFIG]*cfg.num_tasks,
         validate_onboarding=onboarding_check,
     )
 
     build_task(task_dir)
 
-    db, cfg = load_db_and_process_config(cfg)
-    operator = Operator(db)
+    operator = Operator(operator.db)
 
-    operator.validate_and_run_config(cfg.mephisto, shared_state)
+    operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
