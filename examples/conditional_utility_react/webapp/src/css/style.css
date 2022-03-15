@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.error-message {
+  color: red;
+  font-weight: bold;
+}
+
+.arrow-button {
+    position: relative;
+    float: right;
+    background-color: #ec7211;
+    border-radius: 2px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffffff;
+    padding: 4.8px 22.4px 4.8px 22.4px;
+    cursor: pointer;
+    max-width: 100px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.modification-entry {
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 5px;
+    border-color: #838b8b;
+    margin: 10px 0 10px 0;
+}
+
+.switch-section {
+    height: 30px;
+}

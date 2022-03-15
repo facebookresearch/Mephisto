@@ -1,0 +1,16 @@
+#@package _global_
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/qual_data.csv
+    task_source: ${task_dir}/server_files/demo_task.html
+    preview_source: ${task_dir}/server_files/demo_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    onboarding_source: ${task_dir}/server_files/demo_onboarding.html
+    onboarding_qualification: static-test-onboarding-qual
+    units_per_assignment: 2
+  task:
+    task_name: utilitarianism_with_onboarding
+    task_title: "Write scenarios then rank them by how enjoyable they are."
+    task_description: "Write scenarios of varying degrees of pleasantness. Then rank these four scenarios by how enjoyable they are to the person in the scenarios."
+    task_reward: 0.55
+    task_tags: "HTMLQuestion, writing, free response, creative, Dan, fun"

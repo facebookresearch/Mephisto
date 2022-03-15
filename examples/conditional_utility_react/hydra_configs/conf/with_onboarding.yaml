@@ -1,0 +1,17 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+mephisto:
+  blueprint:
+    task_source: ${task_dir}/webapp/build/bundle.js
+    extra_source_dir: ${task_dir}/webapp/src/static
+    units_per_assignment: 1
+    onboarding_qualification: test-react-static-qualification
+  task:
+    task_name: conditional_utility_with_onboarding
+    task_title: "Conditional Utilities"
+    task_description: "In this task, you'll write scenarios and compare how good or bad they are."
+    task_reward: 0.30
+    task_tags: "test,simple,button"
