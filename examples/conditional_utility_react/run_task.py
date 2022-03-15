@@ -293,7 +293,7 @@ def main(cfg: DictConfig) -> None:
 
     shared_state = SharedStaticTaskState(
         onboarding_data=ONBOARDING_CONFIG,
-        static_task_data=[TASK_CONFIG],
+        static_task_data=[TASK_CONFIG]*10,
         validate_onboarding=onboarding_check,
     )
 
