@@ -82,9 +82,9 @@ class MockBlueprintTests(BlueprintTests):
             task_run.provider_type,
             task_run.task_type,
         )
-        unit = MockUnit(self.db, unit_id)
+        unit = MockUnit.get(self.db, unit_id)
         worker_id = self.db.new_worker("MOCK_TEST_WORKER", MOCK_PROVIDER_TYPE)
-        worker = MockWorker(self.db, worker_id)
+        worker = MockWorker.get(self.db, worker_id)
         agent_id = self.db.new_agent(
             worker.db_id,
             unit_id,
@@ -94,7 +94,7 @@ class MockBlueprintTests(BlueprintTests):
             task_run.task_type,
             task_run.provider_type,
         )
-        Agent = MockAgent(self.db, agent_id)
+        Agent = MockAgent.get(self.db, agent_id)
         return assign
 
     def assignment_is_tracked(
