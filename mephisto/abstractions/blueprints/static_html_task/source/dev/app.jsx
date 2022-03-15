@@ -13,8 +13,7 @@ import { useMephistoTask, postData } from "mephisto-task";
 const axios = require("axios");
 
 /* global
-  getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
-  getAgentRegistration, handleSubmitToProvider
+  getWorkerName, getAssignmentId, getAgentRegistration, handleSubmitToProvider
 */
 
 /* ================= Utility functions ================= */
@@ -51,15 +50,13 @@ function MainApp() {
       handleSubmit(objData);
     } else {
       formData.append("USED_AGENT_ID", agentId);
-      formData.append("final_data", JSON.stringify(objData));
+      formData.append("final_string_data", JSON.stringify(objData));
       postData("/submit_task", formData)
         .then((data) => {
           handleSubmitToProvider(objData);
           return data;
         })
         .then(function (data) {
-          console.log("Submitted");
-          console.log(formData);
           console.table(objData);
         });
     }
@@ -76,7 +73,7 @@ function MainApp() {
   }
   if (isOnboarding) {
     return (
-      <SubmitFrame onSubmit={submitFromFrame}>
+      <SubmitFrame onSubmit={submitFromFrame} currentTask={"onboarding"}>
         <ShowURL
           url={"onboarding.html"}
           data={initialTaskData}
@@ -89,7 +86,7 @@ function MainApp() {
     return <div>Loading...</div>;
   }
   return (
-    <SubmitFrame onSubmit={submitFromFrame}>
+    <SubmitFrame onSubmit={submitFromFrame} currentTask={"main"}>
       <ShowURL
         url={initialTaskData["html"]}
         data={initialTaskData}
@@ -99,8 +96,13 @@ function MainApp() {
   );
 }
 
-function SubmitFrame({ children, onSubmit }) {
+function SubmitFrame({ children, onSubmit, currentTask }) {
   const [submitting, setSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    // Reset submitting when switching from onboarding
+    setSubmitting(false);
+  }, [currentTask]);
 
   function handleFormSubmit(event) {
     event.preventDefault();
@@ -139,8 +141,10 @@ function ShowURL({ url, data = null, mephisto_keys = null }) {
   );
 
   React.useEffect(() => {
-    requestTaskHMTL(url).then((data) => setRetrievedHtml(data));
-  }, []);
+    if (url) {
+      requestTaskHMTL(url).then((data) => setRetrievedHtml(data));
+    }
+  }, [url]);
 
   return (
     <HtmlRenderer

@@ -45,7 +45,8 @@ class SandboxMTurkRequester(MTurkRequester):
         """
         return self.datastore.get_sandbox_client_for_requester(requester_name)
 
-    def is_sandbox(self) -> bool:
+    @classmethod
+    def is_sandbox(cls) -> bool:
         """
         Determine if this is a requester on sandbox
         """

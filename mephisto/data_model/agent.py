@@ -4,15 +4,18 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from __future__ import annotations
+
 import os
 import threading
-from mephisto.tools.misc import warn_once
+from queue import Queue
 from uuid import uuid4
+from prometheus_client import Gauge  # type: ignore
 
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedABCMeta,
     MephistoDataModelComponentMixin,
 )
@@ -32,12 +35,29 @@ if TYPE_CHECKING:
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task import Task
     from mephisto.data_model.task_run import TaskRun
+    from mephisto.operations.datatypes import LiveTaskRun
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 
 logger = get_logger(name=__name__)
 
 
+ACTIVE_AGENT_STATUSES = Gauge(
+    "active_agent_statuses",
+    "Tracking of all units current statuses",
+    ["status", "agent_type"],
+)
+for status in AgentState.valid():
+    ACTIVE_AGENT_STATUSES.labels(status=status, agent_type="main")
+    ACTIVE_AGENT_STATUSES.labels(status=status, agent_type="onboarding")
+ACTIVE_WORKERS = Gauge(
+    "active_workers",
+    "Tracking of active workers and how many agents they have",
+    ["worker_id", "agent_type"],
+)
+
+
+# TODO(CLEAN) can probably refactor out some kind of AgentBase
 class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class encompasses a worker as they are working on an individual assignment.
@@ -64,21 +84,17 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             row = db.get_agent(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["agent_id"]
-        self.db_status = row["status"]
-        self.worker_id = row["worker_id"]
-        self.unit_id = row["unit_id"]
-        self.task_type = row["task_type"]
-        self.provider_type = row["provider_type"]
-        self.pending_observations: List["Packet"] = []
-        self.pending_actions: List["Packet"] = []
-        self.has_action = threading.Event()
-        self.has_action.clear()
-        self.wants_action = threading.Event()
-        self.wants_action.clear()
-        self.has_updated_status = threading.Event()
-        self.assignment_id = row["assignment_id"]
-        self.task_run_id = row["task_run_id"]
-        self.task_id = row["task_id"]
+        self.db_status: str = row["status"]
+        self.worker_id: str = row["worker_id"]
+        self.unit_id: str = row["unit_id"]
+        self.task_type: str = row["task_type"]
+        self.provider_type: str = row["provider_type"]
+        self.pending_actions: "Queue[Dict[str, Any]]" = Queue()
+        self.has_live_update = threading.Event()
+        self.has_live_update.clear()
+        self.assignment_id: str = row["assignment_id"]
+        self.task_run_id: str = row["task_run_id"]
+        self.task_id: str = row["task_id"]
         self.did_submit = threading.Event()
         self.is_shutdown = False
 
@@ -88,6 +104,9 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self._assignment: Optional["Assignment"] = None
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
+
+        # Related entity set by a live run
+        self._associated_live_run: Optional["LiveTaskRun"] = None
 
         # Follow-up initialization is deferred
         self._state = None  # type: ignore
@@ -127,6 +146,18 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    def set_live_run(self, live_run: "LiveTaskRun") -> None:
+        """Set an associated live run for this agent"""
+        self._associated_live_run = live_run
+
+    def get_live_run(self) -> "LiveTaskRun":
+        """Return the associated live run for this agent. Throw if not set"""
+        if self._associated_live_run is None:
+            raise AssertionError(
+                "Should not be getting the live run, not set for given agent"
+            )
+        return self._associated_live_run
 
     def get_agent_id(self) -> str:
         """Return this agent's id"""
@@ -210,14 +241,18 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         old_status = self.db_status
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        self.has_updated_status.set()
+        if self._associated_live_run is not None:
+            live_run = self.get_live_run()
+            live_run.loop_wrap.execute_coro(
+                live_run.worker_pool.push_status_update(self)
+            )
         if new_status in [
             AgentState.STATUS_RETURNED,
             AgentState.STATUS_DISCONNECT,
             AgentState.STATUS_TIMEOUT,
         ]:
             # Disconnect statuses should free any pending acts
-            self.has_action.set()
+            self.has_live_update.set()
             self.did_submit.set()
             if old_status == AgentState.STATUS_WAITING:
                 # Waiting agents' unit can be reassigned, as no work
@@ -226,6 +261,15 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 logger.debug(f"Clearing {self} from {unit} for update to {new_status}")
                 unit.clear_assigned_agent()
 
+        # Metrics changes
+        ACTIVE_AGENT_STATUSES.labels(status=old_status, agent_type="main").dec()
+        ACTIVE_AGENT_STATUSES.labels(status=new_status, agent_type="main").inc()
+        if (
+            old_status not in AgentState.complete()
+            and new_status in AgentState.complete()
+        ):
+            ACTIVE_WORKERS.labels(worker_id=self.worker_id, agent_type="main").dec()
+
     @staticmethod
     def _register_agent(
         db: "MephistoDB", worker: Worker, unit: "Unit", provider_type: str
@@ -233,6 +277,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         """
         Create this agent in the mephisto db with the correct setup
         """
+        unit._mark_agent_assignment()
         db_id = db.new_agent(
             worker.db_id,
             unit.db_id,
@@ -243,6 +288,10 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             provider_type,
         )
         a = Agent.get(db, db_id)
+        ACTIVE_AGENT_STATUSES.labels(
+            status=AgentState.STATUS_NONE, agent_type="main"
+        ).inc()
+        ACTIVE_WORKERS.labels(worker_id=worker.db_id, agent_type="main").inc()
         logger.debug(f"Registered new agent {a} for {unit}.")
         a.update_status(AgentState.STATUS_ACCEPTED)
         return a
@@ -266,31 +315,33 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         agent._unit = unit
         return agent
 
-    def observe(self, packet: "Packet") -> None:
+    def observe(self, live_update: "Dict[str, Any]") -> None:
         """
         Pass the observed information to the AgentState, then
         queue the information to be pushed to the user
         """
-        if packet.data.get("message_id") is None:
-            packet.data["message_id"] = str(uuid4())
-        sending_packet = packet.copy()
-        sending_packet.receiver_id = self.db_id
-        self.state.update_data(sending_packet)
-        self.pending_observations.append(sending_packet)
+        if live_update.get("update_id") is None:
+            live_update["update_id"] = str(uuid4())
+        self.state.update_data(live_update)
 
-    def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
+        if self._associated_live_run is not None:
+            live_run = self.get_live_run()
+            live_run.client_io.send_live_update(self.get_agent_id(), live_update)
+
+    def get_live_update(
+        self, timeout: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Request information from the Agent's frontend. If non-blocking,
         (timeout is None) should return None if no actions are ready
         to be returned.
         """
-        if len(self.pending_actions) == 0:
-            self.wants_action.set()
+        if self.pending_actions.empty():
             if timeout is None or timeout == 0:
                 return None
-            self.has_action.wait(timeout)
+            self.has_live_update.wait(timeout)
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             if self.is_shutdown:
                 raise AgentShutdownError(self.db_id)
             # various disconnect cases
@@ -301,17 +352,38 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        assert len(self.pending_actions) > 0, "has_action released without an action!"
+        assert (
+            not self.pending_actions.empty()
+        ), "has_live_update released without an action!"
 
-        act = self.pending_actions.pop(0)
+        act = self.pending_actions.get()
 
-        if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
-            self.did_submit.set()
-
-        if len(self.pending_actions) == 0:
-            self.has_action.clear()
+        if self.pending_actions.empty():
+            self.has_live_update.clear()
         self.state.update_data(act)
         return act
+
+    def act(self, timeout: Optional[int] = None) -> Optional[Dict[str, Any]]:
+        """
+        Request information from the Agent's frontend. If non-blocking,
+        (timeout is None) should return None if no actions are ready
+        to be returned.
+        """
+        warn_once(
+            "Agent.act is being deprecated in favor of Agent.get_live_update. Please update your callsites!"
+        )
+        return self.get_live_update(timeout)
+
+    def await_submit(self, timeout: Optional[int] = None) -> bool:
+        """Blocking wait for this agent to submit their task"""
+        if timeout is not None:
+            self.did_submit.wait(timeout=timeout)
+        return self.did_submit.is_set()
+
+    def handle_submit(self, submit_data: Dict[str, Any]) -> None:
+        """Handle final submission for an onboarding agent, with the given data"""
+        self.did_submit.set()
+        self.state.update_submit(submit_data)
 
     def get_status(self) -> str:
         """Get the status of this agent in their work on their unit"""
@@ -323,8 +395,12 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                     AgentState.STATUS_DISCONNECT,
                 ]:
                     # Disconnect statuses should free any pending acts
-                    self.has_action.set()
-                self.has_updated_status.set()
+                    self.has_live_update.set()
+                if self._associated_live_run is not None:
+                    live_run = self.get_live_run()
+                    live_run.loop_wrap.execute_coro(
+                        live_run.worker_pool.push_status_update(self)
+                    )
             self.db_status = row["status"]
         return self.db_status
 
@@ -334,7 +410,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         from any acts called on it, ensuring tasks using this agent can be cleaned up.
         """
         logger.debug(f"{self} is shutting down")
-        self.has_action.set()
+        self.has_live_update.set()
         self.is_shutdown = True
 
     def __repr__(self) -> str:
@@ -418,18 +494,14 @@ class OnboardingAgent(
             row = db.get_onboarding_agent(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["onboarding_agent_id"]
-        self.db_status = row["status"]
-        self.worker_id = row["worker_id"]
-        self.task_type = row["task_type"]
-        self.pending_observations: List["Packet"] = []
-        self.pending_actions: List["Packet"] = []
-        self.has_action = threading.Event()
-        self.has_action.clear()
-        self.wants_action = threading.Event()
-        self.wants_action.clear()
-        self.has_updated_status = threading.Event()
-        self.task_run_id = row["task_run_id"]
-        self.task_id = row["task_id"]
+        self.db_status: str = row["status"]
+        self.worker_id: str = row["worker_id"]
+        self.task_type: str = row["task_type"]
+        self.pending_actions: "Queue[Dict[str, Any]]" = Queue()
+        self.has_live_update = threading.Event()
+        self.has_live_update.clear()
+        self.task_run_id: str = row["task_run_id"]
+        self.task_id: str = row["task_id"]
         self.did_submit = threading.Event()
         self.is_shutdown = False
 
@@ -438,12 +510,27 @@ class OnboardingAgent(
         self._task_run: Optional["TaskRun"] = None
         self._task: Optional["Task"] = None
 
+        # Related entity set by a live run
+        self._associated_live_run: Optional["LiveTaskRun"] = None
+
         # Follow-up initialization
         self.state = AgentState(self)  # type: ignore
 
     def get_agent_id(self) -> str:
         """Return an id to use for onboarding agent requests"""
         return f"{self.DISPLAY_PREFIX}{self.db_id}"
+
+    def set_live_run(self, live_run: "LiveTaskRun") -> None:
+        """Set an associated live run for this agent"""
+        self._associated_live_run = live_run
+
+    def get_live_run(self) -> "LiveTaskRun":
+        """Return the associated live run for this agent. Throw if not set"""
+        if self._associated_live_run is None:
+            raise AssertionError(
+                "Should not be getting the live run, not set for given agent"
+            )
+        return self._associated_live_run
 
     @classmethod
     def is_onboarding_id(cls, agent_id: str) -> bool:
@@ -504,38 +591,61 @@ class OnboardingAgent(
         if self.db_status in AgentState.complete():
             logger.info(f"Updating {self} from final status to {new_status}")
 
+        old_status = self.db_status
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        if new_status not in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
-            self.has_updated_status.set()
+        if self._associated_live_run is not None:
+            if new_status not in [
+                AgentState.STATUS_APPROVED,
+                AgentState.STATUS_REJECTED,
+            ]:
+                live_run = self.get_live_run()
+                live_run.loop_wrap.execute_coro(
+                    live_run.worker_pool.push_status_update(self)
+                )
         if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
             # Disconnect statuses should free any pending acts
-            self.has_action.set()
+            self.has_live_update.set()
             self.did_submit.set()
 
-    def observe(self, packet: "Packet") -> None:
+        # Metrics changes
+        ACTIVE_AGENT_STATUSES.labels(status=old_status, agent_type="onboarding").dec()
+        ACTIVE_AGENT_STATUSES.labels(status=new_status, agent_type="onboarding").inc()
+        if (
+            old_status not in AgentState.complete()
+            and new_status in AgentState.complete()
+        ):
+            ACTIVE_WORKERS.labels(
+                worker_id=self.worker_id, agent_type="onboarding"
+            ).dec()
+
+    def observe(self, live_update: "Dict[str, Any]") -> None:
         """
         Pass the observed information to the AgentState, then
         queue the information to be pushed to the user
         """
-        sending_packet = packet.copy()
-        sending_packet.receiver_id = self.get_agent_id()
-        self.state.update_data(sending_packet)
-        self.pending_observations.append(sending_packet)
+        if live_update.get("update_id") is None:
+            live_update["update_id"] = str(uuid4())
+        self.state.update_data(live_update)
 
-    def act(self, timeout: Optional[int] = None) -> Optional["Packet"]:
+        if self._associated_live_run is not None:
+            live_run = self.get_live_run()
+            live_run.client_io.send_live_update(self.get_agent_id(), live_update)
+
+    def get_live_update(
+        self, timeout: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Request information from the Agent's frontend. If non-blocking,
         (timeout is None) should return None if no actions are ready
         to be returned.
         """
-        if len(self.pending_actions) == 0:
-            self.wants_action.set()
+        if self.pending_actions.empty():
             if timeout is None or timeout == 0:
                 return None
-            self.has_action.wait(timeout)
+            self.has_live_update.wait(timeout)
 
-        if len(self.pending_actions) == 0:
+        if self.pending_actions.empty():
             # various disconnect cases
             if self.is_shutdown:
                 raise AgentShutdownError(self.db_id)
@@ -546,17 +656,38 @@ class OnboardingAgent(
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        assert len(self.pending_actions) > 0, "has_action released without an action!"
+        assert (
+            not self.pending_actions.empty()
+        ), "has_live_update released without an action!"
 
-        act = self.pending_actions.pop(0)
+        act = self.pending_actions.get()
 
-        if "MEPHISTO_is_submit" in act.data and act.data["MEPHISTO_is_submit"]:
-            self.did_submit.set()
-
-        if len(self.pending_actions) == 0:
-            self.has_action.clear()
+        if self.pending_actions.empty():
+            self.has_live_update.clear()
         self.state.update_data(act)
         return act
+
+    def act(self, timeout: Optional[int] = None) -> Optional[Dict[str, Any]]:
+        """
+        Request information from the Agent's frontend. If non-blocking,
+        (timeout is None) should return None if no actions are ready
+        to be returned.
+        """
+        warn_once(
+            "Agent.act is being deprecated in favor of Agent.get_live_update. Please update your callsites!"
+        )
+        return self.get_live_update(timeout)
+
+    def await_submit(self, timeout: Optional[int] = None) -> bool:
+        """Blocking wait for this agent to submit their task"""
+        if timeout is not None:
+            self.did_submit.wait(timeout=timeout)
+        return self.did_submit.is_set()
+
+    def handle_submit(self, submit_data: Dict[str, Any]) -> None:
+        """Handle final submission for an onboarding agent, with the given data"""
+        self.did_submit.set()
+        self.state.update_submit(submit_data)
 
     def get_status(self) -> str:
         """Get the status of this agent in their work on their unit"""
@@ -568,24 +699,18 @@ class OnboardingAgent(
                     AgentState.STATUS_DISCONNECT,
                 ]:
                     # Disconnect statuses should free any pending acts
-                    self.has_action.set()
-            if row["status"] not in [
-                AgentState.STATUS_APPROVED,
-                AgentState.STATUS_REJECTED,
-            ]:
-                self.has_updated_status.set()
+                    self.has_live_update.set()
+                if row["status"] not in [
+                    AgentState.STATUS_APPROVED,
+                    AgentState.STATUS_REJECTED,
+                ]:
+                    if self._associated_live_run is not None:
+                        live_run = self.get_live_run()
+                        live_run.loop_wrap.execute_coro(
+                            live_run.worker_pool.push_status_update(self)
+                        )
             self.db_status = row["status"]
         return self.db_status
-
-    def mark_done(self) -> None:
-        """Mark this agent as done by setting the status to a terminal onboarding state"""
-        # TODO the logic for when onboarding gets marked as waiting or approved/rejected
-        # should likely be cleaned up to remove these conditionals.
-        if self.get_status not in [
-            AgentState.STATUS_APPROVED,
-            AgentState.STATUS_REJECTED,
-        ]:
-            self.update_status(AgentState.STATUS_WAITING)
 
     def shutdown(self) -> None:
         """
@@ -593,7 +718,7 @@ class OnboardingAgent(
         from any acts called on it, ensuring tasks using this agent can be cleaned up.
         """
         logger.debug(f"{self} is shutting down")
-        self.has_action.set()
+        self.has_live_update.set()
         self.is_shutdown = True
 
     @staticmethod
@@ -605,6 +730,10 @@ class OnboardingAgent(
             worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
         a = OnboardingAgent.get(db, db_id)
+        ACTIVE_AGENT_STATUSES.labels(
+            status=AgentState.STATUS_NONE, agent_type="onboarding"
+        ).inc()
+        ACTIVE_WORKERS.labels(worker_id=worker.db_id, agent_type="onboarding").inc()
         logger.debug(f"Registered new {a} for worker {worker}.")
         return a
 

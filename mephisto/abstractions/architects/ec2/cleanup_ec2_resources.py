@@ -12,7 +12,7 @@ import json
 from typing import Dict, Any
 
 
-# TODO Hydrize
+# TODO(CLEAN) Hydrize
 def main():
     confirm = input(
         "This is going to completely delete all resources for your EC2 architect, including the VPC, routes, and fallback server. Are you sure you want to do this?[yes/no]\n>> "

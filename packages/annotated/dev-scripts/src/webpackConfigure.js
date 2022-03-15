@@ -36,13 +36,13 @@ const baseConfig = {
     modules: ["node_modules", paths.appNodeModules].concat(
       /*modules.additionalModulePaths*/ [] || []
     ),
+    fallback: {
+      net: false,
+      dns: false,
+    },
   },
   resolveLoader: {
     plugins: [PnpWebpackPlugin.moduleLoader(module)],
-  },
-  node: {
-    net: "empty",
-    dns: "empty",
   },
   plugins: [
     new MiniCssExtractPlugin({
@@ -64,26 +64,38 @@ const baseConfig = {
       },
       {
         test: /\.*css$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader"],
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: require.resolve("css-loader"),
+          },
+        ],
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: "url-loader?limit=100000",
+        use: [
+          {
+            loader: require.resolve("url-loader"),
+            options: {
+              limit: 100000,
+            },
+          },
+        ],
       },
       {
         test: /\.jpg$/,
-        loader: "file-loader",
+        loader: require.resolve("file-loader"),
       },
       {
         test: /\.(ttf|eot)$/,
         use: {
-          loader: "ignore-loader",
+          loader: require.resolve("ignore-loader"),
         },
       },
       {
         test: /\.(woff|woff2)$/,
         use: {
-          loader: "ignore-loader",
+          loader: require.resolve("ignore-loader"),
         },
       },
     ],

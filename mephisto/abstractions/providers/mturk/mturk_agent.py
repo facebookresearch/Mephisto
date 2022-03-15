@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.packet import Packet
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.abstractions.providers.mturk.mturk_utils import (
@@ -14,14 +13,13 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     get_assignment,
     get_assignments_for_hit,
 )
-from mephisto.data_model.packet import Packet, PACKET_TYPE_AGENT_ACTION
 
 import xmltodict  # type: ignore
 import json
 
 from typing import List, Optional, Tuple, Dict, Mapping, Any, cast, TYPE_CHECKING
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -57,8 +55,6 @@ class MTurkAgent(Agent):
         )
         unit: "MTurkUnit" = cast("MTurkUnit", self.get_unit())
         self.mturk_assignment_id = unit.get_mturk_assignment_id()
-        # TODO(#97) any additional init as is necessary once
-        # a mock DB exists
 
     def _get_mturk_assignment_id(self):
         if self.mturk_assignment_id is None:
@@ -109,19 +105,7 @@ class MTurkAgent(Agent):
             entry["QuestionIdentifier"]: entry["FreeText"] for entry in paired_data
         }
         parsed_data["MEPHISTO_MTURK_RECONCILED"] = True
-        packet = Packet(
-            packet_type=PACKET_TYPE_AGENT_ACTION,
-            sender_id=self.db_id,
-            receiver_id="mephisto",
-            data={
-                "task_data": parsed_data,
-                "MEPHISTO_is_submit": True,
-                "files": [],
-            },
-        )
-        self.pending_actions.append(packet)
-        self.has_action.set()
-        self.did_submit.set()
+        self.handle_submit(parsed_data)
 
     # Required functions for Agent Interface
 

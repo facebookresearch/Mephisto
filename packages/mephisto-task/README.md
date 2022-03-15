@@ -2,7 +2,7 @@
 
 This package provides two hooks to faciliate React-based front-end development for Mephisto tasks.
 
-Use `useMephistoTask` for simple, static tasks or `useMephistoLiveTask` for multi-turn, socket-based tasks.
+Use `useMephistoTask` for simple, static tasks, `useMephistoLiveTask` for multi-turn, socket-based tasks, and `useMephistoRemoteProcedureTask` for static tasks with access to backend queries (for model-in-the-loop tasks, for instance).
 
 ## Installation
 
@@ -164,25 +164,24 @@ function MyApp() {
         // while also including the following:
         connect,
         destroy,
-        sendMessage
+        sendLiveUpdate,
 
-        agentState,
         agentStatus,
 
         connectionStatus,
-    } = useMephistoLiveTask(
+    } = useMephistoLiveTask({
         onConnectionStatusChange: (connectionStatus) => {
 
         },
-        onStateUpdate: ({ state, status }) => {
-            // called when either agentState or agentStatus updates
-        },
-        onMessageReceived: (message) => {
+        onStatusUpdate: ({ status }) => {
+            // Called when agentStatus updates
+        }
+        onLiveUpdate: (liveUpdate) => {
 
         },
         config, // optional overrides for connection constants
         customConnectionHook, // (advanced usage) optional - provide your own hook for managing the under-the-hood connection mechanism to communicate with the Mephisto server. The default (useMephistoSocket) uses websockets.
-    );
+    });
 }
 ```
 
@@ -194,22 +193,9 @@ Starts a persistent socket connection between the current `agentId` and the Meph
 
 Closes the socket connection that was created with the Mephisto live server. This connection cannot be reopened. 
 
-### `sendMessage(payload)`
+### `sendLiveUpdate(payload)`
 
-Once a connection is established, sends a message over the socket connection to the Mephisto live server on behalf of the current agent.
-
-### `agentState`
-
-This object may contain agent-specific information that the live server updates.
-
-For example, in the case of a server disconnect, the `agentState` will update with:
-
-```
-{
-    done_text: <message describing the disconnect>,
-    task_done: true
-}
-```
+Once a connection is established, sends an update packet over the socket connection to the Mephisto live server on behalf of the current agent.
 
 ### `agentStatus`
 
@@ -263,3 +249,44 @@ These constants and their defaults are as follows:
 ```
 
 For example, if you'd like to have the front-end poll the back-end less often (e.g. 1s as opposed to 100ms), you could configure this as such: `useMephistoLiveTask({ config: { sendThreadRefresh: 1000 } })`.
+
+--- 
+
+## Usage (`useMephistoRemoteProcedureTask`)
+
+This hook is an ease-of-use wrapper around `useMephistoLiveTask` that abstracts away most of the "live" considerations, such that you can generally treat the frontend as just having access to backend queries. You can see the `mephisto_remote_procedure` example in the mephisto examples folder for possible usage.
+
+
+### `remoteProcedure(targetEvent)`
+The primary function for interacting with the backend. Returns a function that you can use to query for the specified `targetEvent`, either directly or with `invoke`.
+
+**Arguments:**
+
+**`targetEvent`**: The string name of an event registered with the backend RemoteProcedureBlueprint.
+
+**Returns**
+A function you can invoke in one of the following manners.
+
+```js
+// Using invoke
+remoteProcedure("run_mnist_classifier") // create an RPC fn reference here
+   .invoke({img: img_binary})
+   .then(res => console.log(res))
+   .catch(err => console.error(err))
+
+// Creating a remote function to use inline with await syntax
+const classifyNumber = remoteProcedure("run_mnist_classifier");
+classifyNumber({img: img_binary})
+    .then(res => updateClass(res));
+
+// Using inline functions with await syntax (in async functions)
+const result = await classifyNumber({img: img_binary});
+```
+
+The input arguments for `invoke` and for the returned function are the same, and both accept any json-serializable argument object that will be passed to the backend event handler.
+
+The response in both cases is a promise, for which the return value from the backend will be passed to.
+
+
+### `disconnectIssueText`
+If this string is not `undefined`, it's because something has gone wrong with the task and it is now in a state that can no longer be completed. Further details can be seen in the `STATUS_TO_TEXT_MAP` constant provided by `mephisto-task`

@@ -44,9 +44,9 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
-    from argparse import _ArgumentGroup as ArgumentGroup
+    from mephisto.data_model.unit import Unit
 
-BLUEPRINT_TYPE = "parlai_chat"
+BLUEPRINT_TYPE_PARLAI_CHAT = "parlai_chat"
 
 
 MISSING_SOMETHING_TEXT = (
@@ -68,7 +68,7 @@ class SharedParlAITaskState(OnboardingSharedState, SharedTaskState):
 
 @dataclass
 class ParlAIChatBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
-    _blueprint_type: str = BLUEPRINT_TYPE
+    _blueprint_type: str = BLUEPRINT_TYPE_PARLAI_CHAT
     _group: str = field(
         default="ParlAIChatBlueprint",
         metadata={
@@ -139,12 +139,7 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = ParlAIChatTaskRunner
     ArgsClass = ParlAIChatBlueprintArgs
     SharedStateClass = SharedParlAITaskState
-    supported_architects: ClassVar[List[str]] = [
-        "mock",
-        "heroku",
-        "local",
-    ]  # TODO update?
-    BLUEPRINT_TYPE = BLUEPRINT_TYPE
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE_PARLAI_CHAT
 
     def __init__(
         self,

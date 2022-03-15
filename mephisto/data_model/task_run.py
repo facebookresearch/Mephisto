@@ -7,18 +7,17 @@
 
 import os
 import json
-from mephisto.tools.misc import warn_once
+from dataclasses import dataclass, field
 
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
-from mephisto.data_model.task_config import TaskConfig
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedMeta,
     MephistoDataModelComponentMixin,
 )
-from mephisto.operations.utils import get_dir_for_run
+from mephisto.utils.dirs import get_dir_for_run
 
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, MISSING
 
 from typing import List, Optional, Dict, Mapping, TYPE_CHECKING, Any
 
@@ -32,9 +31,103 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import Task
     from omegaconf import DictConfig
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, warn_once
 
 logger = get_logger(name=__name__)
+
+
+@dataclass
+class TaskRunArgs:
+    """Object for grouping the contents to configure a class"""
+
+    task_name: Optional[str] = field(
+        default=MISSING,
+        metadata={
+            "help": "Grouping to launch this task run under, none defaults to the blueprint type"
+        },
+    )
+    task_title: str = field(
+        default=MISSING,
+        metadata={
+            "help": "Display title for your task on the crowd provider.",
+            "required": True,
+        },
+    )
+    task_description: str = field(
+        default=MISSING,
+        metadata={
+            "help": "Longer form description for what your task entails.",
+            "required": True,
+        },
+    )
+    task_reward: float = field(
+        default=MISSING,
+        metadata={
+            "help": "Amount to pay per worker per unit, in dollars.",
+            "required": True,
+        },
+    )
+    task_tags: str = field(
+        default=MISSING,
+        metadata={
+            "help": "Comma seperated tags for workers to use to find your task.",
+            "required": True,
+        },
+    )
+    assignment_duration_in_seconds: int = field(
+        default=30 * 60,
+        metadata={"help": "Time that workers have to work on your task once accepted."},
+    )
+    allowed_concurrent: int = field(
+        default=0,
+        metadata={
+            "help": "Maximum units a worker is allowed to work on at once. (0 is infinite)",
+            "required": True,
+        },
+    )
+    maximum_units_per_worker: int = field(
+        default=0,
+        metadata={
+            "help": (
+                "Maximum tasks of this task name that a worker can work on across all "
+                "tasks that share this task_name. (0 is infinite)"
+            )
+        },
+    )
+    max_num_concurrent_units: int = field(
+        default=0,
+        metadata={
+            "help": (
+                "Maximum units that will be released simultaneously, setting a limit "
+                "on concurrent connections to Mephisto overall. (0 is infinite)"
+            )
+        },
+    )
+    submission_timout: int = field(
+        default=600,
+        metadata={
+            "help": (
+                "Time that mephisto will wait after marking a task done before abandoning "
+                "waiting for the worker to actually press submit."
+            )
+        },
+    )
+
+    @classmethod
+    def get_mock_params(cls) -> str:
+        """Returns a param string with default / mock arguments to use for testing"""
+        from mephisto.operations.hydra_config import MephistoConfig
+
+        return OmegaConf.structured(
+            MephistoConfig(
+                task=TaskRunArgs(
+                    task_title="Mock Task Title",
+                    task_reward=0.3,
+                    task_tags="mock,task,tags",
+                    task_description="This is a test description",
+                )
+            )
+        )
 
 
 class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
@@ -42,6 +135,8 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     This class tracks an individual run of a specific task, and handles state management
     for the set of assignments within
     """
+
+    ArgsClass = TaskRunArgs
 
     def __init__(
         self,
@@ -62,24 +157,23 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             row = db.get_task_run(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["task_run_id"]
-        self.task_id = row["task_id"]
-        self.requester_id = row["requester_id"]
-        self.param_string = row["init_params"]
+        self.task_id: str = row["task_id"]
+        self.requester_id: str = row["requester_id"]
+        self.param_string: str = row["init_params"]
         try:
             self.args: "DictConfig" = OmegaConf.create(json.loads(self.param_string))
         except Exception as e:
             self.args = OmegaConf.create({})
             print(e)
         self.start_time = row["creation_date"]
-        self.provider_type = row["provider_type"]
-        self.task_type = row["task_type"]
-        self.sandbox = row["sandbox"]
+        self.provider_type: str = row["provider_type"]
+        self.task_type: str = row["task_type"]
+        self.sandbox: bool = row["sandbox"]
         self.assignments_generator_done: bool = False
 
         # properties with deferred loading
         self.__is_completed = row["is_completed"]
         self.__has_assignments = False
-        self.__task_config: Optional["TaskConfig"] = None
         self.__task: Optional["Task"] = None
         self.__requester: Optional["Requester"] = None
         self.__run_dir: Optional[str] = None
@@ -97,7 +191,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         Get any units that the given worker could work on in this
         task run
         """
-        config = self.get_task_config()
+        config = self.get_task_args()
 
         if config.allowed_concurrent != 0 or config.maximum_units_per_worker:
             current_units = self.db.find_units(
@@ -232,10 +326,8 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             self.__task = Task.get(self.db, self.task_id)
         return self.__task
 
-    def get_task_config(self) -> "TaskConfig":
-        if self.__task_config is None:
-            self.__task_config = TaskConfig(self)
-        return self.__task_config
+    def get_task_args(self) -> "DictConfig":
+        return self.args.task
 
     def get_requester(self) -> Requester:
         """
@@ -340,7 +432,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             "task_name": self.get_task().task_name,
             "task_type": self.task_type,
             "start_time": self.start_time,
-            "params": OmegaConf.to_container(self.get_task_config().args),
+            "params": OmegaConf.to_container(self.args),
             "param_string": self.param_string,
             "task_status": self.get_assignment_statuses(),
             "sandbox": self.get_requester().is_sandbox(),

@@ -19,13 +19,11 @@ python run_task.py conf=onboarding_example
 This task is configured using [Hydra](https://hydra.cc/) - details about using hydra to configure tasks can be read here and in other examples. For more about being able to customize the configuration files, please refer to the [Hydra documentation](https://hydra.cc/docs/intro). Under our current setup, using Hydra means that you must be in the same directory as the python script for hydra to correctly pick up the config files.
 #### Setting reasonable defaults
 In this script, we set certain configuration variables by default in every run:
-```python
-defaults = [
-    {"mephisto/blueprint": BLUEPRINT_TYPE},
-    {"mephisto/architect": 'local'},
-    {"mephisto/provider": 'mock'},
-    {"conf": "example"},
-]
+```yaml
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
 ```
 These defaults are handed to Hydra in order to ensure that by default, we run a task locally with a mock provider (so we can demo). We also set `conf` to `example`, which means this script by default will also load in all of the configuration variables set in `conf/example.yaml`.
 
@@ -52,7 +50,7 @@ shared_state = SharedStaticTaskState(
     validate_onboarding=onboarding_always_valid,
 )
 ```
-This block of code is preparing two tasks, each with a `"text"` field set. When the task run is launched with `operator.validate_and_run_config(cfg.mephisto, shared_state)`, this creates two tasks for workers to work on, one for each entry in the `static_task_data` array.
+This block of code is preparing two tasks, each with a `"text"` field set. When the task run is launched with `operator.launch_task_run(cfg.mephisto, shared_state)`, this creates two tasks for workers to work on, one for each entry in the `static_task_data` array.
 
 This data is later pulled via the `useMephistoTask` hook, and when a worker accepts a task, they will be given the contents of one of the entries as their `initialTaskData`. See the `webapp/src/app.jsx` file. We render
 ```js

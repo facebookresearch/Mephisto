@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
     from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -163,7 +163,7 @@ class MTurkUnit(Unit):
                 f"assignment clear is thus being ignored, but this message "
                 f"is indicative of some data loss. "
             )
-            # TODO how can we reconcile missing data here? Marking this agent as
+            # TODO(OWN) how can we reconcile missing data here? Marking this agent as
             # COMPLETED will pollute the data, but not marking it means that
             # it will have to be the auto-approve deadline.
             return
@@ -273,7 +273,7 @@ class MTurkUnit(Unit):
     def launch(self, task_url: str) -> None:
         """Create this HIT on MTurk (making it availalbe) and register the ids in the local db"""
         task_run = self.get_assignment().get_task_run()
-        duration = task_run.get_task_config().assignment_duration_in_seconds
+        duration = task_run.get_task_args().assignment_duration_in_seconds
         run_id = task_run.db_id
         run_details = self.datastore.get_run(run_id)
         hit_type_id = run_details["hit_type_id"]
@@ -283,7 +283,7 @@ class MTurkUnit(Unit):
         hit_link, hit_id, response = create_hit_with_hit_type(
             client, frame_height, task_url, hit_type_id
         )
-        # TODO(OWN) get this link to the frontend
+        # TODO(OWN) get this link to the mephisto frontend
         print(hit_link)
 
         # We create a hit for this unit, but note that this unit may not

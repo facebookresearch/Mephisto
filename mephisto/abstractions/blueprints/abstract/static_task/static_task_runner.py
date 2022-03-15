@@ -21,9 +21,6 @@ if TYPE_CHECKING:
     from omegaconf import DictConfig
 
 
-SYSTEM_SENDER = "mephisto"  # TODO(CLEAN) pull from somewhere
-
-
 class StaticTaskRunner(TaskRunner):
     """
     Task runner for a static task
@@ -38,7 +35,7 @@ class StaticTaskRunner(TaskRunner):
         super().__init__(task_run, args, shared_state)
         self.is_concurrent = False
         self.assignment_duration_in_seconds = (
-            task_run.get_task_config().assignment_duration_in_seconds
+            task_run.get_task_args().assignment_duration_in_seconds
         )
 
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
@@ -57,10 +54,10 @@ class StaticTaskRunner(TaskRunner):
 
     def run_onboarding(self, agent: "OnboardingAgent"):
         """
-        Static onboarding flows eaxactly like a regular task, waiting for
+        Static onboarding flows exactly like a regular task, waiting for
         the submit to come through
         """
-        agent_act = agent.act(timeout=self.assignment_duration_in_seconds)
+        agent.await_submit(self.assignment_duration_in_seconds)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent"):
         """Nothing to clean up in a static onboarding"""
@@ -71,10 +68,7 @@ class StaticTaskRunner(TaskRunner):
         Static runners will get the task data, send it to the user, then
         wait for the agent to act (the data to be completed)
         """
-        # Frontend implicitly asks for the initialization data, so we just need
-        # to wait for a response
-        agent_act = agent.act(timeout=self.assignment_duration_in_seconds)
-        agent.did_submit.set()
+        agent.await_submit(self.assignment_duration_in_seconds)
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """There is currently no cleanup associated with killing an incomplete task"""

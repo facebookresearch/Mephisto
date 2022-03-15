@@ -13,7 +13,7 @@ import shutil
 import requests
 from mephisto.abstractions.architect import Architect
 from mephisto.data_model.task_run import TaskRun
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 from mephisto.abstractions.database import MephistoDB
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockSharedState
 from mephisto.abstractions.blueprints.mock.mock_task_builder import MockTaskBuilder

@@ -15,7 +15,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     setup_aws_credentials,
     get_requester_balance,
     check_aws_credentials,
-    find_or_create_qualification,
+    find_or_create_qualification as find_or_create_mturk_qualification,
 )
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
 
@@ -118,20 +118,20 @@ class MTurkRequester(Requester):
         client = self._get_client(self._requester_name)
         qualification_desc = f"Equivalent qualification for {qualification_name}."
         use_qualification_name = qualification_name
-        qualification_id = find_or_create_qualification(
+        qualification_id = find_or_create_mturk_qualification(
             client, qualification_name, qualification_desc, must_be_owned=True
         )
         if qualification_id is None:
             # Try to append time to make the qualification unique
             use_qualification_name = f"{qualification_name}_{time.time()}"
-            qualification_id = find_or_create_qualification(
+            qualification_id = find_or_create_mturk_qualification(
                 client, use_qualification_name, qualification_desc, must_be_owned=True
             )
             attempts = 0
             while qualification_id is None:
                 # Append something somewhat random
                 use_qualification_name = f"{qualification_name}_{str(uuid4())}"
-                qualification_id = find_or_create_qualification(
+                qualification_id = find_or_create_mturk_qualification(
                     client,
                     use_qualification_name,
                     qualification_desc,

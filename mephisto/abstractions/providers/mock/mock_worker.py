@@ -63,4 +63,4 @@ class MockWorker(Worker):
 
     @staticmethod
     def new(db: "MephistoDB", worker_id: str) -> "Worker":
-        return MockWorker._register_worker(db, worker_id, PROVIDER_TYPE)
+        return MockWorker._register_worker(db, worker_id + "_sandbox", PROVIDER_TYPE)

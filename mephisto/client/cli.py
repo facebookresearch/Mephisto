@@ -121,7 +121,7 @@ def review(
 def check():
     """Checks that mephisto is setup correctly"""
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
-    from mephisto.operations.utils import get_mock_requester
+    from mephisto.utils.testing import get_mock_requester
 
     try:
         db = LocalMephistoDB()
@@ -155,7 +155,10 @@ def register_provider(args):
 
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
     from mephisto.operations.registry import get_crowd_provider_from_type
-    from mephisto.operations.utils import parse_arg_dict, get_extra_argument_dicts
+    from mephisto.operations.hydra_config import (
+        parse_arg_dict,
+        get_extra_argument_dicts,
+    )
 
     provider_type, requester_args = args[0], args[1:]
     args_dict = dict(arg.split("=", 1) for arg in requester_args)
@@ -210,7 +213,10 @@ def get_help_arguments(args):
         get_valid_provider_types,
         get_valid_architect_types,
     )
-    from mephisto.operations.utils import get_extra_argument_dicts, get_task_state_dicts
+    from mephisto.operations.hydra_config import (
+        get_extra_argument_dicts,
+        get_task_state_dicts,
+    )
     from textwrap import wrap
 
     VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
@@ -225,9 +231,9 @@ def get_help_arguments(args):
         return
 
     if abstraction == "task":
-        from mephisto.data_model.task_config import TaskConfig
+        from mephisto.data_model.task_run import TaskRun
 
-        target_class = TaskConfig
+        target_class = TaskRun
     else:
         if len(abstraction_equal_split) == 1:
             # querying about the general abstraction
@@ -310,6 +316,51 @@ def get_help_arguments(args):
         if len(args) > 1:
             state_args = {k: v for k, v in state_args.items() if k in args[1:]}
         click.echo(tabulate(wrap_fields(state_args).values(), headers="keys"))
+
+
+@cli.command("metrics", context_settings={"ignore_unknown_options": True})
+@click.argument("args", nargs=-1)
+def metrics_cli(args):
+    from mephisto.utils.metrics import (
+        launch_servers_and_wait,
+        metrics_are_installed,
+        run_install_script,
+        METRICS_DIR,
+        shutdown_prometheus_server,
+        shutdown_grafana_server,
+    )
+
+    if len(args) == 0 or args[0] not in ["install", "view", "cleanup"]:
+        click.echo(
+            "Usage: mephisto metrics <install|view|cleanup>\n"
+            f"install: Installs Prometheus and Grafana to {METRICS_DIR}\n"
+            f"view: Launches a Prometheus and Grafana server, and shuts down on exit\n"
+            f"cleanup: Shuts down Prometheus and Grafana resources that may have persisted"
+        )
+        return
+    command = args[0]
+    if command == "install":
+        if metrics_are_installed():
+            click.echo(f"Metrics are already installed! See {METRICS_DIR}")
+            return
+        run_install_script()
+    elif command == "view":
+        if not metrics_are_installed():
+            click.echo(
+                f"Metrics aren't installed! Use `mephisto metrics install` first."
+            )
+            return
+        click.echo(f"Servers launching - use ctrl-C to shutdown")
+        launch_servers_and_wait()
+    else:  # command == 'cleanup':
+        if not metrics_are_installed():
+            click.echo(
+                f"Metrics aren't installed! Use `mephisto metrics install` first."
+            )
+            return
+        click.echo(f"Cleaning up existing servers if they exist")
+        shutdown_prometheus_server()
+        shutdown_grafana_server()
 
 
 if __name__ == "__main__":

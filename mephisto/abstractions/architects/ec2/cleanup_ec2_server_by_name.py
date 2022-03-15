@@ -12,7 +12,7 @@ from mephisto.abstractions.architects.ec2.ec2_helpers import (
     DEFAULT_FALLBACK_FILE,
     DEFAULT_SERVER_DETAIL_LOCATION,
 )
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 

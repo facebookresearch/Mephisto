@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -66,7 +66,9 @@ class MTurkWorker(Worker):
             worker_name=mturk_worker_id, provider_type=cls.PROVIDER_TYPE
         )
         if len(workers) == 0:
-            # TODO warn?
+            logger.warning(
+                f"Could not find a Mephisto Worker for mturk_id {mturk_worker_id}"
+            )
             return None
         return cast("MTurkWorker", workers[0])
 
@@ -148,7 +150,8 @@ class MTurkWorker(Worker):
     ) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return tuple of success and failure message"""
         if unit is None:
-            # TODO(WISH) implement
+            # TODO(#652) implement. The content in scripts/mturk/launch_makeup_hits.py
+            # may prove useful for this.
             return False, "bonusing via compensation tasks not yet available"
 
         unit = cast("MTurkUnit", unit)

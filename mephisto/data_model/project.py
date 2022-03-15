@@ -5,12 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto.data_model.constants import NO_PROJECT_NAME
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedMeta,
     MephistoDataModelComponentMixin,
 )
 
-from mephisto.tools.misc import warn_once
+from mephisto.utils.logger_core import warn_once
 from typing import List, Mapping, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
