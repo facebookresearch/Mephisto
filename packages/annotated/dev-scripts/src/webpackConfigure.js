@@ -36,13 +36,13 @@ const baseConfig = {
     modules: ["node_modules", paths.appNodeModules].concat(
       /*modules.additionalModulePaths*/ [] || []
     ),
+    fallback: {
+      net: false,
+      dns: false,
+    },
   },
   resolveLoader: {
     plugins: [PnpWebpackPlugin.moduleLoader(module)],
-  },
-  node: {
-    net: "empty",
-    dns: "empty",
   },
   plugins: [
     new MiniCssExtractPlugin({
@@ -68,7 +68,14 @@ const baseConfig = {
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: "url-loader?limit=100000",
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 100000,
+            },
+          },
+        ],
       },
       {
         test: /\.jpg$/,
