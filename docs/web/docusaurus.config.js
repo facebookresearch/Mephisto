@@ -7,12 +7,12 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "Mephisto",
-  tagline: "Mephisto makes crowdsourcing easier",
-  url: "https://github.com/",
+  tagline: "Bring your research ideas to life with effective data annotation",
+  url: "https://mephisto.ai/",
   baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
-  favicon: "img/favicon.ico",
+  favicon: "img/favicon.png",
   organizationName: "facebookresearch", // Usually your GitHub org/user name.
   projectName: "mephisto", // Usually your repo name.
 
@@ -43,10 +43,11 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: "Mephisto",
+        // title: "Mephisto",
         logo: {
-          alt: "My Site Logo",
+          alt: "Mephisto",
           src: "img/logo.svg",
+          srcDark: "img/logo_w.svg",
         },
         items: [
           {
@@ -115,10 +116,10 @@ const config = {
           {
             title: "More",
             items: [
-              {
-                label: "Blog",
-                to: "/blog",
-              },
+              // {
+              //   label: "Blog",
+              //   to: "/blog",
+              // },
               {
                 label: "GitHub",
                 href: "https://github.com/facebookresearch/Mephisto",

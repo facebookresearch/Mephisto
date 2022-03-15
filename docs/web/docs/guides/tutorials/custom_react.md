@@ -36,7 +36,7 @@ mephisto:
     task_tags: "test,simple,button"
 ```
 
-The only change we'll make is to the `task_name` (as you should on any new tasks!), but we will update the other fields as we go. It's important to note the `task_source` and `extra_source_dir` arguments though, as this is where the `Blueprint` will be looking a compiled react app bundle, and for extra static resources for the page.
+The only change we'll make is to the `task_name` (as you should on any new tasks!), but we will update the other fields as we go. It's important to note the `task_source` and `extra_source_dir` arguments though, as this is where the `StaticReactBlueprint` class will be looking for the compiled React app's Javascript bundle as well as a folder for extra static resources for the page, respectively.
 
 ### 1.2 Launching the task
 From the current directory, you should be able to execute the run script and get a job working. We're using a different `task_name` to prevent polluting our later task with data that won't share the same format. It is a good practice to do this with initial iterations, and to change the `task_name` any time you change input or output arguments.
@@ -201,7 +201,7 @@ onClick={() => onSubmit({ rating: "bad" })}
 ```
 Based on how `onSubmit` is wired to Mephisto's `handleSubmit` function, anything (json-serializable) in the object passed to `onSubmit` will be what is saved for the task. For this tutorial we'll want to put something else useful into this object. To this end, let's add an input box that allows workers to submit an edit to correct the sentence in some way. 
 
-We can add some state to `SimpleFrontend` with one line. This provides us with an `editedText` value initialized to `taskData.text`, which we'll set to track the worker edits, and a setter to alter that value.
+We can add some state to `SimpleFrontend` with the [`useState` React Hook](https://reactjs.org/docs/hooks-state.html). This provides us with an `editedText` value initialized to `taskData.text`, which we'll set to track the worker edits, and a setter to alter that value.
 ```jsx
 // webapp/src/components/core_components.jsx
 function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
@@ -330,14 +330,86 @@ output_string = f"Provided rating: {outputs['rating']}\n{edit_text_string}"
 
 While creating review scripts is powerful, it's not always the easiest way to review data. Annotations that are best in full context, like videos for instance, would likely benefit from being able to view the data directly.
 
-### 4.2 Creating a viewer
+### 4.2 Using a web-based review flow
 
 For tasks that are best reviewed through a full UI, Mephisto offers a way to create web-based review flows. 
 
-TODO - Provide an explanation for how to use the web/UI based viewer for this specific task.
+To view the results of the task we just ran through the web-based workflow, run the `mephisto review` CLI tool:
 
-# Building from task blocks with @Annotated
+```
+mephisto review --db custom-react-tutorial-iterating --stdout --all
+```
 
-Mephisto at the core is built for complete flexibility over the kinds of tasks you can create. Building everything from scratch though can be a lot, so we've created the annotation toolkit and Annotated libraries. These have components that may be useful for your annotation tasks, as well as examples of developed flows you can use or extend for your tasks.
+This will launch a local server where you will be able to browse, filter, and drill into the data collected for your task.
 
-TODO - add links to the storybook and component documentation.
+![](/custom_react_review_all.png)
+
+You can also drill into a specific task to explore the details further.
+
+![](/custom_react_review_single.png)
+
+### 4.3 Customizing the web-based review flow
+
+By default, we ship with a batteries-included review experience, however you can easily create your own interface with custom "renderers" for visualizing your collected data.
+
+Let's walk through creating our own custom renderer for our data.
+
+First, we'll create our review application by using the `create-react-app` npm package, with a mephisto review template. Continuing from within our project folder at `tmp/static_tutorial/` let's run:
+
+```bash
+npx create-react-app@latest custom-review --template mephisto-review 
+```
+Once the template is done installing we'll create a new file at `custom-review/src/custom/MyDataItem.js` and fill it in as such:
+
+```jsx
+import React from "react";
+import { Card } from "@blueprintjs/core";
+
+export default function MyDataItem({item}) {
+    const rating = item.data.data.outputs.final_data.rating;
+    const duration = Math.round(item.data.data.times.task_end - item.data.data.times.task_start);
+    return <Card>
+        <h1>{ rating === "good" ? "👍" : "👎"}</h1>
+        <p>{duration} seconds</p>
+    </Card>
+}
+
+```
+
+Note that we're leveraging the `<Card />` component from the rich suite of components [provided by BlueprintJS](https://blueprintjs.com/docs/#core/components/card) to create our renderer. By default, the review template imports the `@blueprintjs/core` library so you can immediately start using any of the UI components provided there.
+
+Now that we've created our own ItemRenderer, we'll use it by updating `custom-review/src/index.js` to first import the renderer:
+
+```jsx
+import MyDataItem from "./custom/MyDataItem"
+```
+
+Then we'll pass it to the `<CollectionView />` component to modify the way in which our data renders in the grid view:
+
+```jsx
+<CollectionView
+  collectionRenderer={GridCollection}
+  itemRenderer={MyDataItem}
+  pagination={true}
+  resultsPerPage={9}
+/>
+```
+
+To see our new renderer in action, let's build our app and invoke the mephisto review CLI with it.
+
+```bash
+cd custom-review/
+npm run build
+mephisto review build/ --db custom-react-tutorial-iterating --stdout --all
+```
+
+*Note:* Notice that the `mephisto review` command here is similar to the one run in the previous section, except this time we pass in the relative path to the build folder as an argument.
+
+![](/custom_react_review_renderer.png)
+
+
+# Building from task blocks with `@annotated` [BETA]
+
+Mephisto at the core is built for complete flexibility over the kinds of tasks you can create. Building everything from scratch though can be a lot, so we've created the annotation toolkit and `@annotated` suite of libraries. These have components that may be useful for your annotation tasks, as well as examples of developed flows you can use or extend for your tasks.
+
+The full suite of tools is currently in beta and can be found in the [Storybook here](https://annotation-toolkit-storybook.vercel.app/).
