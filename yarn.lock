@@ -337,10 +337,13 @@ __metadata:
     babel-loader: ^8.1.0
     chalk: ^4.1.2
     cross-spawn: ^7.0.3
-    css-loader: ^3.5.1
+    css-loader: ^6.7.1
+    file-loader: ^6.2.0
     fs-extra: ^10.0.0
+    ignore-loader: ^0.1.2
     mini-css-extract-plugin: ^1.4.1
     pnp-webpack-plugin: ^1.7.0
+    url-loader: ^4.1.1
     webpack: ^5.70.0
     webpack-cli: ^4.9.0
     webpack-merge: ^5.8.0
@@ -12346,6 +12349,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"css-loader@npm:^6.7.1":
+  version: 6.7.1
+  resolution: "css-loader@npm:6.7.1"
+  dependencies:
+    icss-utils: ^5.1.0
+    postcss: ^8.4.7
+    postcss-modules-extract-imports: ^3.0.0
+    postcss-modules-local-by-default: ^4.0.0
+    postcss-modules-scope: ^3.0.0
+    postcss-modules-values: ^4.0.0
+    postcss-value-parser: ^4.2.0
+    semver: ^7.3.5
+  peerDependencies:
+    webpack: ^5.0.0
+  checksum: 170fdbc630a05a43679ef60fa97694766b568dbde37adccc0faafa964fc675f08b976bc68837bb73b61d60240e8d2cbcbf51540fe94ebc9dafc56e7c46ba5527
+  languageName: node
+  linkType: hard
+
 "css-minimizer-webpack-plugin@npm:^3.0.2":
   version: 3.4.1
   resolution: "css-minimizer-webpack-plugin@npm:3.4.1"
@@ -17078,6 +17099,13 @@ fsevents@^1.2.7:
   version: 0.1.5
   resolution: "iferr@npm:0.1.5"
   checksum: a18d19b6ad06a2d5412c0d37f6364869393ef6d1688d59d00082c1f35c92399094c031798340612458cd832f4f2e8b13bc9615934a7d8b0c53061307a3816aa1
+  languageName: node
+  linkType: hard
+
+"ignore-loader@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "ignore-loader@npm:0.1.2"
+  checksum: 26b5f81b24e59c575d5314e1416c4ae21fb88e65b3c60c90581288ef925fcaa2b39e7f8f96cd449e488c217337d5240fba5a916f9aec073ec04495d7a5716ac4
   languageName: node
   linkType: hard
 
@@ -23766,7 +23794,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.2.15, postcss@npm:^8.3.7":
+"postcss@npm:^8.2.15, postcss@npm:^8.3.7, postcss@npm:^8.4.7":
   version: 8.4.8
   resolution: "postcss@npm:8.4.8"
   dependencies:
@@ -26103,20 +26131,7 @@ resolve@^2.0.0-next.3:
   version: 0.0.0-use.local
   resolution: "root@workspace:."
   dependencies:
-    "@babel/core": ^7.9.0
-    "@babel/preset-env": ^7.9.5
-    "@babel/preset-react": ^7.9.4
-    babel-loader: ^8.1.0
-    chalk: ^4.1.2
-    cross-spawn: ^7.0.3
-    css-loader: ^3.5.1
-    fs-extra: ^10.0.0
     lerna: ^4.0.0
-    mini-css-extract-plugin: ^1.4.1
-    pnp-webpack-plugin: ^1.7.0
-    webpack: ^5.70.0
-    webpack-cli: ^4.9.0
-    webpack-merge: ^5.8.0
   languageName: unknown
   linkType: soft
 

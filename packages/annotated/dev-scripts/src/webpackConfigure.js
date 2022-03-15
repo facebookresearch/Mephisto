@@ -64,13 +64,18 @@ const baseConfig = {
       },
       {
         test: /\.*css$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader"],
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: require.resolve("css-loader"),
+          },
+        ],
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
         use: [
           {
-            loader: "url-loader",
+            loader: require.resolve("url-loader"),
             options: {
               limit: 100000,
             },
@@ -79,18 +84,18 @@ const baseConfig = {
       },
       {
         test: /\.jpg$/,
-        loader: "file-loader",
+        loader: require.resolve("file-loader"),
       },
       {
         test: /\.(ttf|eot)$/,
         use: {
-          loader: "ignore-loader",
+          loader: require.resolve("ignore-loader"),
         },
       },
       {
         test: /\.(woff|woff2)$/,
         use: {
-          loader: "ignore-loader",
+          loader: require.resolve("ignore-loader"),
         },
       },
     ],
