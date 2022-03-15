@@ -10,7 +10,6 @@ from mephisto.data_model._db_backed_meta import (
     MephistoDataModelComponentMixin,
 )
 
-from mephisto.utils.logger_core import warn_once
 from typing import List, Mapping, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -34,11 +33,9 @@ class Project(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         _used_new_call: bool = False,
     ):
         if not _used_new_call:
-            warn_once(
+            raise AssertionError(
                 "Direct Project and data model access via Project(db, id) is "
                 "now deprecated in favor of calling Project.get(db, id). "
-                "Please update callsites, as we'll remove this compatibility "
-                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:

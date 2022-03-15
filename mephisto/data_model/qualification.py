@@ -15,7 +15,7 @@ from typing import Optional, Mapping, TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
 
-from mephisto.utils.logger_core import get_logger, warn_once
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -67,11 +67,9 @@ class Qualification(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedM
         _used_new_call: bool = False,
     ):
         if not _used_new_call:
-            warn_once(
+            raise AssertionError(
                 "Direct Qualification and data model access via Qualification(db, id) is "
                 "now deprecated in favor of calling Qualification.get(db, id). "
-                "Please update callsites, as we'll remove this compatibility "
-                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:

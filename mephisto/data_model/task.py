@@ -14,7 +14,6 @@ from mephisto.data_model._db_backed_meta import (
     MephistoDataModelComponentMixin,
 )
 from mephisto.utils.dirs import get_dir_for_task
-from mephisto.utils.logger_core import warn_once
 
 from functools import reduce
 
@@ -53,11 +52,9 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         _used_new_call: bool = False,
     ):
         if not _used_new_call:
-            warn_once(
+            raise AssertionError(
                 "Direct Task and data model access via Task(db, id) is "
                 "now deprecated in favor of calling Task.get(db, id). "
-                "Please update callsites, as we'll remove this compatibility "
-                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:
