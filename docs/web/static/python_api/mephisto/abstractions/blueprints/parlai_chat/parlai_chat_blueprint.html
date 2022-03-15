@@ -1691,7 +1691,7 @@ containing every act from the ParlAI world.</p>
             <span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">return_dir</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">build_and_return_custom_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_src_dir</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">build_custom_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_src_dir</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Locate all of the custom files used for a custom build, create</span>
 <span class="sd">        a prebuild directory containing all of them, then build the</span>
 <span class="sd">        custom source.</span>
@@ -1805,7 +1805,7 @@ containing every act from the ParlAI world.</p>
         <span class="n">build_bundle</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">custom_source_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">custom_source_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">custom_source_dir</span><span class="p">)</span>
-            <span class="n">build_bundle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_and_return_custom_bundle</span><span class="p">(</span><span class="n">custom_source_dir</span><span class="p">)</span>
+            <span class="n">build_bundle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_custom_bundle</span><span class="p">(</span><span class="n">custom_source_dir</span><span class="p">)</span>
 
         <span class="c1"># Copy over the preview file as preview.html, use the default if none specified</span>
         <span class="n">target_resource_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">build_dir</span><span class="p">,</span> <span class="s2">&quot;static&quot;</span><span class="p">)</span>
@@ -1862,7 +1862,7 @@ then puts the file into the server directory</p>
                                 <dd id="ParlAIChatBlueprint.TaskBuilderClass.BUILT_FILE" class="variable"><a href="parlai_chat_task_builder.html#ParlAIChatTaskBuilder.BUILT_FILE">BUILT_FILE</a></dd>
                 <dd id="ParlAIChatBlueprint.TaskBuilderClass.BUILT_MESSAGE" class="variable"><a href="parlai_chat_task_builder.html#ParlAIChatTaskBuilder.BUILT_MESSAGE">BUILT_MESSAGE</a></dd>
                 <dd id="ParlAIChatBlueprint.TaskBuilderClass.rebuild_core" class="function"><a href="parlai_chat_task_builder.html#ParlAIChatTaskBuilder.rebuild_core">rebuild_core</a></dd>
-                <dd id="ParlAIChatBlueprint.TaskBuilderClass.build_and_return_custom_bundle" class="function"><a href="parlai_chat_task_builder.html#ParlAIChatTaskBuilder.build_and_return_custom_bundle">build_and_return_custom_bundle</a></dd>
+                <dd id="ParlAIChatBlueprint.TaskBuilderClass.build_custom_bundle" class="function"><a href="parlai_chat_task_builder.html#ParlAIChatTaskBuilder.build_custom_bundle">build_custom_bundle</a></dd>
                 <dd id="ParlAIChatBlueprint.TaskBuilderClass.build_in_dir" class="function"><a href="parlai_chat_task_builder.html#ParlAIChatTaskBuilder.build_in_dir">build_in_dir</a></dd>
 
             </div>
