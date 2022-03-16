@@ -8,7 +8,7 @@ mephisto:
     task_source: ${task_dir}/webapp/build/bundle.js
     extra_source_dir: ${task_dir}/webapp/src/static
     units_per_assignment: 1
-    onboarding_qualification: test-react-static-qualification
+    onboarding_qualification: qualification_6
   task:
     task_name: conditional_utility_with_onboarding
     task_title: "Conditional Utilities"

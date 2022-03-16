@@ -162,7 +162,7 @@ function BaseEntryComponent({instructions, placeholder, name, control, index}) {
                 defaultValue=""
                 rules={{
                     validate: {
-                        first_person: v => (v.includes("I") || v.includes("my") || v.includes("me") || v.includes("My")
+                        first_person: v => (name !== "scenario" || v.includes("I") || v.includes("my") || v.includes("me") || v.includes("My")
                             || 'Scenarios must be written in the first person, and include "I," "my", or "me".'),
                         ...VALIDATE
                     }
@@ -227,6 +227,7 @@ function SwitchButton({setValue, getValues, input_config, name1, name2, enabled,
 
 
 function Frontend({ taskData, onSubmit}) {
+    console.log(taskData);
     const {handleSubmit, control, setValue, getValues, formState: { errors } } = useForm();
     const [open, setOpen] = React.useState(false);
     const [inspiration, setInspiration] = React.useState(null);
@@ -241,6 +242,8 @@ function Frontend({ taskData, onSubmit}) {
             inspiration[Math.floor(Math.random() * inspiration.length)]
         )));
     }
+
+    console.log(taskData);
 
     return (
         <div>

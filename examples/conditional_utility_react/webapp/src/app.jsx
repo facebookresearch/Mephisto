@@ -64,12 +64,12 @@ function MainApp() {
   return (
     <div>
       <ErrorBoundary handleError={handleFatalError}>
-        <BaseFrontend
+      {initialTaskData.input_config !== undefined ? <BaseFrontend
           taskData={initialTaskData}
           onSubmit={handleSubmit}
           isOnboarding={isOnboarding}
           onError={handleFatalError}
-        />
+        /> :null}
       </ErrorBoundary>
     </div>
   );
