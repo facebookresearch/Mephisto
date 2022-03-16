@@ -88,7 +88,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
       <br />
       Current Annotation: {currentAnnotation}
       <br />
-      Annotation Correct?
+      Annotation Correct?{" "}
       <input
         type="checkbox"
         disabled={currentAnnotation === null}
