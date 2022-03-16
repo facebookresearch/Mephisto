@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 import os
 
-from mephisto.utils.logger_core import get_logger, warn_once
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -73,11 +73,9 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         _used_new_call: bool = False,
     ):
         if not _used_new_call:
-            warn_once(
+            raise AssertionError(
                 "Direct Unit and data model access via ...Unit(db, id) is "
                 "now deprecated in favor of calling Unit.get(db, id). "
-                "Please update callsites, as we'll remove this compatibility "
-                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:

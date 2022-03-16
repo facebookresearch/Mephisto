@@ -251,7 +251,7 @@
         <span class="n">shared_state</span><span class="p">:</span> <span class="s2">&quot;SharedRemoteProcedureTaskState&quot;</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">task_run</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">shared_state</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_initialization_data_dicts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialization_data_dicts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">blue_args</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">blueprint</span>
         <span class="k">if</span> <span class="n">blue_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_csv&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">csv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">blue_args</span><span class="o">.</span><span class="n">data_csv</span><span class="p">)</span>
@@ -313,7 +313,7 @@
                 <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="p">(</span>
-                    <span class="nb">len</span><span class="p">(</span><span class="n">shared_state</span><span class="o">.</span><span class="n">static_task_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">shared_state</span><span class="o">.</span><span class="n">static_task_data</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
                 <span class="p">),</span> <span class="s2">&quot;Length of data dict provided was 0&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
@@ -558,7 +558,7 @@
         <span class="n">shared_state</span><span class="p">:</span> <span class="s2">&quot;SharedRemoteProcedureTaskState&quot;</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">task_run</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">shared_state</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_initialization_data_dicts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialization_data_dicts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">blue_args</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">blueprint</span>
         <span class="k">if</span> <span class="n">blue_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_csv&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">csv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">blue_args</span><span class="o">.</span><span class="n">data_csv</span><span class="p">)</span>
@@ -620,7 +620,7 @@
                 <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="p">(</span>
-                    <span class="nb">len</span><span class="p">(</span><span class="n">shared_state</span><span class="o">.</span><span class="n">static_task_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">shared_state</span><span class="o">.</span><span class="n">static_task_data</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
                 <span class="p">),</span> <span class="s2">&quot;Length of data dict provided was 0&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
@@ -681,7 +681,7 @@
         <span class="n">shared_state</span><span class="p">:</span> <span class="s2">&quot;SharedRemoteProcedureTaskState&quot;</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">task_run</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">shared_state</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_initialization_data_dicts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialization_data_dicts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">blue_args</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">blueprint</span>
         <span class="k">if</span> <span class="n">blue_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_csv&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">csv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">blue_args</span><span class="o">.</span><span class="n">data_csv</span><span class="p">)</span>
@@ -774,7 +774,7 @@
                 <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="p">(</span>
-                    <span class="nb">len</span><span class="p">(</span><span class="n">shared_state</span><span class="o">.</span><span class="n">static_task_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">shared_state</span><span class="o">.</span><span class="n">static_task_data</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
                 <span class="p">),</span> <span class="s2">&quot;Length of data dict provided was 0&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
@@ -914,7 +914,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;task_data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span><span class="p">,</span> <span class="s2">&quot;raw_messages&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">requests</span><span class="p">}</span>
+        <span class="n">prev_requests</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">requests</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">requests</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requests</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="n">sorted_requests</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">requests</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span>
+            <span class="n">prev_requests</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sorted_requests</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;task_data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span><span class="p">,</span> <span class="s2">&quot;previous_requests&quot;</span><span class="p">:</span> <span class="n">prev_requests</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_get_expected_data_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the place we would expect to find data for this agent state&quot;&quot;&quot;</span>
@@ -1091,7 +1096,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;task_data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span><span class="p">,</span> <span class="s2">&quot;raw_messages&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">requests</span><span class="p">}</span>
+        <span class="n">prev_requests</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">requests</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">requests</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requests</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="n">sorted_requests</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">requests</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span>
+            <span class="n">prev_requests</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sorted_requests</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;task_data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span><span class="p">,</span> <span class="s2">&quot;previous_requests&quot;</span><span class="p">:</span> <span class="n">prev_requests</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_get_expected_data_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the place we would expect to find data for this agent state&quot;&quot;&quot;</span>

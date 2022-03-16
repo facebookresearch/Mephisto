@@ -73,11 +73,9 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         _used_new_call: bool = False,
     ):
         if not _used_new_call:
-            warn_once(
-                "Direct Agent and data model access via ...Agent(db, id) is "
+            raise AssertionError(
+                "Direct Agent and data model access via ...Agent(db, id) was "
                 "now deprecated in favor of calling Agent.get(db, id). "
-                "Please update callsites, as we'll remove this compatibility "
-                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:
@@ -370,7 +368,8 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         to be returned.
         """
         warn_once(
-            "Agent.act is being deprecated in favor of Agent.get_live_update. Please update your callsites!"
+            "As of Mephisto 1.0 Agent.act is being deprecated in favor of Agent.get_live_update. "
+            "This functionality will no longer work in 1.1"
         )
         return self.get_live_update(timeout)
 
@@ -483,11 +482,9 @@ class OnboardingAgent(
         _used_new_call: bool = False,
     ):
         if not _used_new_call:
-            warn_once(
+            raise AssertionError(
                 "Direct OnboardingAgent and data model access via OnboardingAgent(db, id) is "
                 "now deprecated in favor of calling OnboardingAgent.get(db, id). "
-                "Please update callsites, as we'll remove this compatibility "
-                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:
@@ -674,7 +671,8 @@ class OnboardingAgent(
         to be returned.
         """
         warn_once(
-            "Agent.act is being deprecated in favor of Agent.get_live_update. Please update your callsites!"
+            "As of Mephisto 1.0 Agent.act is being deprecated in favor of Agent.get_live_update. "
+            "This functionality will no longer work in 1.1"
         )
         return self.get_live_update(timeout)
 
