@@ -136,7 +136,7 @@ class TaskLauncher:
             ), "Must have assignment data generator for this"
             self.assignments_thread = threading.Thread(
                 target=self._try_generating_assignments,
-                args=(self.assignment_data_iterable),
+                args=(self.assignment_data_iterable,),
                 name="assignment-generator",
             )
             self.assignments_thread.start()
