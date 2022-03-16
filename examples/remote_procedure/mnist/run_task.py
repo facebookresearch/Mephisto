@@ -8,7 +8,9 @@ try:
     import torch
     from PIL import Image
 except ImportError:
-    print("Need to have torch, PIL installed to use this demo")
+    print(
+        "Need to have torch, PIL, numpy installed to use this demo. For example: pip install torch pillow numpy"
+    )
     exit(1)
 
 import os
