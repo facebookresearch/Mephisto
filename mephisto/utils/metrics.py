@@ -17,7 +17,7 @@ import time
 
 
 from mephisto.utils.dirs import get_mephisto_tmp_dir, get_root_dir
-from mephisto.utils.logger_core import get_logger, warn_once
+from mephisto.utils.logger_core import get_logger, warn_once, format_loud
 from prometheus_client import start_http_server
 from omegaconf import DictConfig
 from typing import Optional
@@ -95,7 +95,11 @@ def launch_servers_and_wait():
         time.sleep(3)
         dash_url = get_dash_url()
         print(f"Dashboard is now running, you can access it at http://{dash_url}")
-        print(f"Default user: admin, pass: admin")
+        print(f"===========================")
+        print(f"| Default username: admin |")
+        print(f"| Default password: admin |")
+        print(f"===========================")
+
         while True:
             # Relaunch the server in case it's shut down by a
             # task thread
