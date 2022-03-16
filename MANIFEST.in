@@ -1,11 +1,10 @@
 include README.md
 include mephisto/VERSION
 include mephisto/__init__.py
-include metrics/install_metrics.sh
-include metrics/shutdown_metrics.py
-include metrics/view_metrics.py
-include metrics/README.md
-recursive-include metrics/resources/*
+include mephisto/scripts/metrics/install_metrics.sh
+include mephisto/scripts/metrics/shutdown_metrics.py
+include mephisto/scripts/metrics/view_metrics.py
+include mephisto/scripts/metrics/README.md
 recursive-include mephisto abstractions/**/*
 recursive-include mephisto client/**/*
 recursive-exclude mephisto **/__pycache__/**/*

@@ -28,7 +28,7 @@ logger = get_logger(name=__name__)
 
 PROMETHEUS_PID_FILE = os.path.join(get_mephisto_tmp_dir(), "PROMETHEUS_PID.txt")
 GRAFANA_PID_FILE = os.path.join(get_mephisto_tmp_dir(), "GRAFANA_PID.txt")
-METRICS_DIR = os.path.join(get_root_dir(), "metrics")
+METRICS_DIR = os.path.join(get_root_dir(), "mephisto", "scripts", "metrics")
 PROMETHEUS_DIR = os.path.join(METRICS_DIR, "prometheus")
 PROMETHEUS_EXECUTABLE = os.path.join(PROMETHEUS_DIR, "prometheus")
 PROMETHEUS_CONFIG = os.path.join(PROMETHEUS_DIR, "prometheus.yml")
