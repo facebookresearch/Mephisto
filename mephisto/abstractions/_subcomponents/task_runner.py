@@ -290,7 +290,7 @@ class TaskRunner(ABC):
             if agent.get_status() not in AgentState.complete():
                 if not agent.await_submit(timeout=None):
                     # Wait for a submit to occur
-                    agent.await_submit(timeout=self.args.task.submission_timout)
+                    agent.await_submit(timeout=self.args.task.submission_timeout)
                 agent.update_status(AgentState.STATUS_COMPLETED)
                 agent.mark_done()
 
@@ -367,7 +367,7 @@ class TaskRunner(ABC):
                 if agent.get_status() not in AgentState.complete():
                     if not agent.await_submit(timeout=None):
                         # Wait for a submit to occur
-                        agent.await_submit(timeout=self.args.task.submission_timout)
+                        agent.await_submit(timeout=self.args.task.submission_timeout)
                     agent.update_status(AgentState.STATUS_COMPLETED)
                     agent.mark_done()
 

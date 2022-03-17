@@ -103,7 +103,7 @@ class TaskRunArgs:
             )
         },
     )
-    submission_timout: int = field(
+    submission_timeout: int = field(
         default=600,
         metadata={
             "help": (
