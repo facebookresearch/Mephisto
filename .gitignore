@@ -13,12 +13,12 @@ mephisto/server/blueprints/**/build/*
 **/build/*
 **/_generated/*
 **/outputs/*
-metrics/*
-!metrics/resources
-!metrics/install_*.sh
-!metrics/README.md
-!metrics/view_metrics.py
-!metrics/shutdown_metrics.py
+mephisto/scripts/metrics/*
+!mephisto/scripts/metrics/resources
+!mephisto/scripts/metrics/install_*.sh
+!mephisto/scripts/metrics/README.md
+!mephisto/scripts/metrics/view_metrics.py
+!mephisto/scripts/metrics/shutdown_metrics.py
 .coverage
 
 # Examples

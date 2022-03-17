@@ -28,7 +28,7 @@ logger = get_logger(name=__name__)
 
 PROMETHEUS_PID_FILE = os.path.join(get_mephisto_tmp_dir(), "PROMETHEUS_PID.txt")
 GRAFANA_PID_FILE = os.path.join(get_mephisto_tmp_dir(), "GRAFANA_PID.txt")
-METRICS_DIR = os.path.join(get_root_dir(), "metrics")
+METRICS_DIR = os.path.join(get_root_dir(), "mephisto", "scripts", "metrics")
 PROMETHEUS_DIR = os.path.join(METRICS_DIR, "prometheus")
 PROMETHEUS_EXECUTABLE = os.path.join(PROMETHEUS_DIR, "prometheus")
 PROMETHEUS_CONFIG = os.path.join(PROMETHEUS_DIR, "prometheus.yml")
@@ -95,7 +95,11 @@ def launch_servers_and_wait():
         time.sleep(3)
         dash_url = get_dash_url()
         print(f"Dashboard is now running, you can access it at http://{dash_url}")
-        print(f"Default user: admin, pass: admin")
+        print(f"===========================")
+        print(f"| Default username: admin |")
+        print(f"| Default password: admin |")
+        print(f"===========================")
+
         while True:
             # Relaunch the server in case it's shut down by a
             # task thread
