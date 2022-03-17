@@ -10,6 +10,7 @@ Utilities that are useful for Mephisto-related scripts.
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
+from mephisto.utils.logger_core import format_loud
 from mephisto.utils.testing import get_mock_requester
 from mephisto.utils.dirs import get_root_data_dir, get_run_file_dir
 from mephisto.operations.hydra_config import (
@@ -194,7 +195,15 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
                 "have you registered with `mephisto register`?"
             )
             exit(1)
-        provider_type = reqs[0].provider_type
+        requester_provider_type = reqs[0].provider_type
+        if provider_type != requester_provider_type:
+            print(
+                f"{format_loud('[WARNING]:')} Mismatch between specified provider_type "
+                f"{provider_type} and the provider_type of the specified requester "
+                f"{requester_name}. Overriding with {requester_name}'s provider_type "
+                f"{requester_provider_type}."
+            )
+        provider_type = requester_provider_type
 
     if provider_type in ["mturk"]:
         input(
