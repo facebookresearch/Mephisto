@@ -15,3 +15,9 @@ slorber:
   title: Docusaurus maintainer
   url: https://sebastienlorber.com
   image_url: https://github.com/slorber.png
+
+core:
+  name: Mephisto Core Team
+  title: Mephisto Core Team
+  url: https://mephisto.ai
+  image_url: /img/logo_symbol_red.png
