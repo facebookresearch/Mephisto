@@ -68,7 +68,7 @@ const config = {
             position: "left",
             label: "API Reference",
           },
-          // { to: "/blog", label: "Blog", position: "left" },
+          { to: "/blog", label: "Blog", position: "left" },
           {
             href: "https://github.com/facebookresearch/Mephisto",
             label: "GitHub",
