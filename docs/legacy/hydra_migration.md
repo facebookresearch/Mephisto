@@ -10,7 +10,7 @@ import os
 import time
 import shlex
 from mephisto.operations.operator import Operator
-from mephisto.operations.utils import get_root_dir
+from mephisto.utils.dirs import get_root_dir
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE
 from mephisto.tools.scripts import MephistoRunScriptParser, str2bool
 
@@ -322,7 +322,7 @@ operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 import os
 import shlex  # shlex is no longer required, as we're not using arg strings
 from mephisto.operations.operator import Operator
-from mephisto.operations.utils import get_root_dir
+from mephisto.utils.dirs import get_root_dir
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import BLUEPRINT_TYPE
 from mephisto.tools.scripts import MephistoRunScriptParser, str2bool # RunScriptParser has been deprecated.
 ```

@@ -1,20 +1,19 @@
 [tool.poetry]
 name = "mephisto"
-version = "0.4.2"
+version = "1.0.0"
 description = ""
 authors = ["Jack Urbanek <jju@fb.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 click = "^7.0"
 flask = "^1.1"
 click_default_group = "^1.2"
 boto3 = "^1.17"
 requests = "^2.22"
 sh = "^1.12"
-websocket-client = "^0.56.0"
 tornado = "^6.0"
-parlai = {version = "^0.1.2", optional = true }
+parlai = {version = "^1.5.0", optional = true }
 torch = {version = "^1.4.0", optional = true }
 pyyaml = {version = "^5.4", optional = true }
 gevent-websocket = "^0.10.1"
@@ -22,6 +21,8 @@ tabulate = "^0.8.7"
 hydra-core = "^1.1.0"
 tqdm = "^4.50.2"
 xmltodict = "^0.12.0"
+prometheus-client = "^0.13.1"
+websockets = "^10.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"

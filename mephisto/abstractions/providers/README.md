@@ -57,7 +57,7 @@ The `<Crowd>Agent` implementation needs to be able to handle the following inter
 - `new_from_provider_data`: As different providers may give different information upon the creation of an agent (which occurs when a worker accepts a unit), this information is sent through from the server via whatever is packaged in `wrap_crowd_source.js`. You can then store this into the provider datastore and return an `Agent`.
 - `approve_work`: Tell the crowd provider that this work is accepted. (If allowed)
 - `reject_work`: Tell the crowd provider that this work is rejected (if allowed), with the provided feedback `reason`.
-- `get_status`: Return the current agent's status according to the crowd provider (if this state is automatically tracked by the crowd provider, and can be queried). Defaults to whatever status updates the `Supervisor` can provide.
+- `get_status`: Return the current agent's status according to the crowd provider (if this state is automatically tracked by the crowd provider, and can be queried). Defaults to whatever status updates the `WorkerPool` can provide.
 - `mark_done`: Tell the crowd provider that the task this agent is working on is now complete (if required). Otherwise just mark it as so in the local database.
 
 ### `<Crowd>Unit`
@@ -79,8 +79,7 @@ The `<Crowd>Requester` mostly just needs to abstract the registration process, b
 A few frontend functions are required to be sure that the backend is able to interface with frontend interactions:
 - `getWorkerName()`: Return the worker name, as will be provided to as the identifier for mephisto to know who is attempting the task
 - `getAssignmentId()`: Return an identifier for the specific task as represented by the provider.
-- `getWorkerRegistrationInfo()`: Return any special information that would be required to register a worker. Currently the `worker_name` field is required.
-- `getAgentRegistration(mephisto_worker_id)`: Return the data that is going to be passed to the `<Crowd>Agent`'s `new_from_provider` method. The `worker_id` field should be the provided `mephisto_worker_id` in almost all cases.
+- `getAgentRegistration()`: Return the data that is going to be passed to the `<Crowd>Agent`'s `new_from_provider` method. Currently the `worker_name` field is required to also set up the `<Crowd>Worker`.
 - `handleSubmitToProvider()`: Tell the provider that the task is done from the frontend. Often amounts to hitting some kind of submit button after populating form data.
 
 This file may also contain additional logic for handling things like error handling in a crowd provider-specific manner.

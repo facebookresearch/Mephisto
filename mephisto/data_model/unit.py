@@ -6,17 +6,19 @@
 
 
 from abc import ABC
+from prometheus_client import Gauge  # type: ignore
+from collections import defaultdict
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedABCMeta,
     MephistoDataModelComponentMixin,
 )
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.requester import Requester
-from typing import Optional, Mapping, Dict, Any, Type, TYPE_CHECKING
+from typing import Optional, Mapping, Dict, Any, Type, DefaultDict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -25,11 +27,32 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment, InitializationData
 
 import os
-from mephisto.tools.misc import warn_once
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
+
+SCREENING_UNIT_INDEX = -1
+GOLD_UNIT_INDEX = -2
+COMPENSATION_UNIT_INDEX = -3
+INDEX_TO_TYPE_MAP: DefaultDict[int, str] = defaultdict(
+    lambda: "standard",
+    {
+        0: "standard",
+        SCREENING_UNIT_INDEX: "screening_unit",
+        GOLD_UNIT_INDEX: "gold_unit",
+        COMPENSATION_UNIT_INDEX: "compensation_unit",
+    },
+)
+
+ACTIVE_UNIT_STATUSES = Gauge(
+    "active_unit_statuses",
+    "Tracking of all units current statuses",
+    ["status", "unit_type"],
+)
+for status in AssignmentState.valid_unit():
+    for unit_type in INDEX_TO_TYPE_MAP.values():
+        ACTIVE_UNIT_STATUSES.labels(status=status, unit_type=unit_type)
 
 
 class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
@@ -50,29 +73,27 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         _used_new_call: bool = False,
     ):
         if not _used_new_call:
-            warn_once(
+            raise AssertionError(
                 "Direct Unit and data model access via ...Unit(db, id) is "
                 "now deprecated in favor of calling Unit.get(db, id). "
-                "Please update callsites, as we'll remove this compatibility "
-                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_unit(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["unit_id"]
-        self.assignment_id = row["assignment_id"]
-        self.unit_index = row["unit_index"]
-        self.pay_amount = row["pay_amount"]
-        self.agent_id = row["agent_id"]
-        self.provider_type = row["provider_type"]
-        self.db_status = row["status"]
-        self.task_type = row["task_type"]
-        self.task_id = row["task_id"]
-        self.task_run_id = row["task_run_id"]
-        self.sandbox = row["sandbox"]
-        self.requester_id = row["requester_id"]
-        self.worker_id = row["worker_id"]
+        self.assignment_id: str = row["assignment_id"]
+        self.unit_index: int = row["unit_index"]
+        self.pay_amount: float = row["pay_amount"]
+        self.agent_id: Optional[str] = row["agent_id"]
+        self.provider_type: str = row["provider_type"]
+        self.db_status: str = row["status"]
+        self.task_type: str = row["task_type"]
+        self.task_id: str = row["task_id"]
+        self.task_run_id: str = row["task_run_id"]
+        self.sandbox: bool = row["sandbox"]
+        self.requester_id: str = row["requester_id"]
+        self.worker_id: str = row["worker_id"]
 
         # Deferred loading of related entities
         self.__task: Optional["Task"] = None
@@ -125,7 +146,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         Ensure that the queried status from this unit and the db status
         are up to date
         """
-        # TODO(102) this will need to be run periodically/on crashes
+        # TODO(#102) this will need to be run periodically/on crashes
         # to sync any lost state
         self.set_db_status(self.get_status())
 
@@ -149,8 +170,28 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         if status == self.db_status:
             return
         logger.debug(f"Updating status for {self} to {status}")
+        ACTIVE_UNIT_STATUSES.labels(
+            status=self.db_status, unit_type=INDEX_TO_TYPE_MAP[self.unit_index]
+        ).dec()
+        ACTIVE_UNIT_STATUSES.labels(
+            status=status, unit_type=INDEX_TO_TYPE_MAP[self.unit_index]
+        ).inc()
         self.db_status = status
         self.db.update_unit(self.db_id, status=status)
+
+    def _mark_agent_assignment(self) -> None:
+        """Special helper to mark the transition from LAUNCHED to ASSIGNED"""
+        assert (
+            self.db_status == AssignmentState.LAUNCHED
+        ), "can only mark LAUNCHED units"
+        ACTIVE_UNIT_STATUSES.labels(
+            status=AssignmentState.LAUNCHED,
+            unit_type=INDEX_TO_TYPE_MAP[self.unit_index],
+        ).dec()
+        ACTIVE_UNIT_STATUSES.labels(
+            status=AssignmentState.ASSIGNED,
+            unit_type=INDEX_TO_TYPE_MAP[self.unit_index],
+        ).inc()
 
     def get_assignment(self) -> "Assignment":
         """
@@ -213,7 +254,6 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         """
         # In these statuses, we know the agent isn't changing anymore, and thus will
         # not need to be re-queried
-        # TODO(#97) add test to ensure this behavior/assumption holds always
         if self.db_status in AssignmentState.final_unit():
             if self.agent_id is None:
                 return None
@@ -247,8 +287,12 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             pay_amount,
             provider_type,
             assignment.task_type,
+            sandbox=assignment.sandbox,
         )
         unit = Unit.get(db, db_id)
+        ACTIVE_UNIT_STATUSES.labels(
+            status=AssignmentState.CREATED, unit_type=INDEX_TO_TYPE_MAP[index]
+        ).inc()
         logger.debug(f"Registered new unit {unit} for {assignment}.")
         return unit
 

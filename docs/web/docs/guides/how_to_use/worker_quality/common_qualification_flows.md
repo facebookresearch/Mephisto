@@ -19,7 +19,8 @@ You can also set up tasks that are only available to workers that have passed an
 
 ```python
 from mephisto.abstractions.blueprints.mixins.onboarding_required import OnboardingRequired
-from mephisto.data_model.qualification import QUAL_EQUAL, QUAL_NOT_EXIST, make_qualification_dict
+from mephisto.data_model.qualification import QUAL_EQUAL, QUAL_NOT_EXIST
+from mephisto.utils.qualifications import make_qualification_dict
 
 ONBOARDING_QUALIFICATION_NAME = "TEST_ONBOARDING_QUAL_NAME"
 
@@ -46,7 +47,8 @@ shared_state.qualifications = [
 ### Allowlists and Blocklists
 Similarly to how the standard `block_qualification` works, it's possible to add additional qualifications to `Worker`s by granting workers qualifications and making their existence exclusive or inclusive. This is accomplished by adding the qualifications to your `SharedTaskState`:
 ```python
-from mephisto.data_model.qualification import QUAL_NOT_EXIST, make_qualification_dict
+from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.utils.qualifications import make_qualification_dict
 
 # Qualifications
 ALLOWLIST_QUALIFICATION = "some_allowlist_qual"
@@ -75,13 +77,13 @@ shared_state.qualifications = [
 ### Adding custom qualifications to SharedTaskState
 You should be able to specify a qualification in Mephisto using the following:
 ```python
-from mephisto.operations.utils import find_or_create_qualification
+from mephisto.utils.qualifications import find_or_create_qualification
 
 find_or_create_qualification(db, "MY_QUALIFICATION_NAME")
 ```
 This will create a local Mephisto registration for the given qualification by name. Later on if you try to use this qualification with a crowd provider (like MTurk), it'll go through the process of making sure it's registered with them properly for you. So then later on you can do:
 ```python
-from mephisto.data_model.qualification import make_qualification_dict
+from mephisto.utils.qualifications import make_qualification_dict
 ...
 shared_state.qualifications = [
     make_qualification_dict(

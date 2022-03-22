@@ -5,8 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import abstractmethod, abstractstaticmethod
-from mephisto.tools.misc import warn_once
-from mephisto.data_model.db_backed_meta import (
+from mephisto.data_model._db_backed_meta import (
     MephistoDBBackedABCMeta,
     MephistoDataModelComponentMixin,
 )
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from argparse import _ArgumentGroup as ArgumentGroup
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -55,11 +54,9 @@ class Requester(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMe
         _used_new_call: bool = False,
     ):
         if not _used_new_call:
-            warn_once(
+            raise AssertionError(
                 "Direct Requester and data model access via Requester(db, id) is "
                 "now deprecated in favor of calling Requester.get(db, id). "
-                "Please update callsites, as we'll remove this compatibility "
-                "in the 1.0 release, targetting October 2021",
             )
         self.db: "MephistoDB" = db
         if row is None:
@@ -116,6 +113,7 @@ class Requester(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMe
             total_spend += run.get_total_spend()
         return total_spend
 
+    @classmethod
     def is_sandbox(self) -> bool:
         """
         Determine if this is a requester on a sandbox/test account

@@ -38,14 +38,14 @@ if TYPE_CHECKING:
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.worker import Worker
-    from argparse import _ArgumentGroup as ArgumentGroup
+    from mephisto.data_model.unit import Unit
 
-BLUEPRINT_TYPE = "mock"
+BLUEPRINT_TYPE_MOCK = "mock"
 
 
 @dataclass
 class MockBlueprintArgs(BlueprintArgs, OnboardingRequiredArgs, ScreenTaskRequiredArgs):
-    _blueprint_type: str = BLUEPRINT_TYPE
+    _blueprint_type: str = BLUEPRINT_TYPE_MOCK
     num_assignments: int = field(
         default=MISSING,
         metadata={
@@ -82,9 +82,8 @@ class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = MockTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = MockBlueprintArgs
-    supported_architects: ClassVar[List[str]] = ["mock"]
     SharedStateClass: ClassVar[Type["SharedTaskState"]] = MockSharedState
-    BLUEPRINT_TYPE = BLUEPRINT_TYPE
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE_MOCK
 
     # making Mypy happy, these aren't used in a blueprint, only mixins
     ArgsMixin: ClassVar[Any]

@@ -21,8 +21,11 @@ import types
 from mephisto.abstractions.blueprint import BlueprintMixin
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
-from mephisto.data_model.qualification import make_qualification_dict, QUAL_NOT_EXIST
-from mephisto.operations.utils import find_or_create_qualification
+from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.utils.qualifications import (
+    make_qualification_dict,
+    find_or_create_qualification,
+)
 
 
 if TYPE_CHECKING:
@@ -205,8 +208,11 @@ class ScreenTaskRequired(BlueprintMixin):
             if unit.unit_index >= 0:
                 return  # We only run validation on the validatable units
 
-            validation_result = screen_unit(unit)
             agent = unit.get_assigned_agent()
+            if agent is None:
+                return  # Cannot validate a unit with no agent
+
+            validation_result = screen_unit(unit)
             if validation_result is True:
                 agent.get_worker().grant_qualification(passed_qualification_name)
             elif validation_result is False:

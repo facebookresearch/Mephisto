@@ -9,7 +9,7 @@ import os
 import json
 import re
 from tqdm import tqdm  # type: ignore
-from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
+from typing import Dict, Optional, Tuple, List, Any
 from datetime import datetime
 
 from botocore import client  # type: ignore
@@ -18,13 +18,10 @@ from botocore.config import Config  # type: ignore
 from omegaconf import DictConfig
 
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger, format_loud
 from mephisto.operations.config_handler import get_config_arg
 
 logger = get_logger(name=__name__)
-
-if TYPE_CHECKING:
-    from mephisto.data_model.task_config import TaskConfig
 
 MTURK_TASK_FEE = 0.2
 MTURK_BONUS_FEE = 0.2
@@ -371,9 +368,9 @@ def convert_mephisto_qualifications(
                 False,
             )
             if qual_id is None:
-                # TODO log more loudly that this qualification is being skipped?
-                print(
-                    f"Qualification name {qualification_name} can not be found or created on MTurk"
+                logger.warning(
+                    f"Qualification name {qualification_name} can not be found or created on MTurk. "
+                    f"{format_loud('SKIPPING THIS QUALIFICATION')} and continuing conversion."
                 )
             converted["QualificationTypeId"] = qual_id
 
@@ -413,17 +410,17 @@ def convert_mephisto_qualifications(
 
 def create_hit_type(
     client: MTurkClient,
-    task_config: "TaskConfig",
+    task_args: "DictConfig",  # MephistoConfig.task
     qualifications: List[Dict[str, Any]],
     auto_approve_delay: Optional[int] = 7 * 24 * 3600,  # default 1 week
     skip_locale_qual=False,
 ) -> str:
     """Create a HIT type to be used to generate HITs of the requested params"""
-    hit_title = task_config.task_title
-    hit_description = task_config.task_description
-    hit_keywords = ",".join(task_config.task_tags)
-    hit_reward = task_config.task_reward
-    assignment_duration_in_seconds = task_config.assignment_duration_in_seconds
+    hit_title = task_args.task_title
+    hit_description = task_args.task_description
+    hit_keywords = ",".join(task_args.task_tags)
+    hit_reward = task_args.task_reward
+    assignment_duration_in_seconds = task_args.assignment_duration_in_seconds
     existing_qualifications = convert_mephisto_qualifications(client, qualifications)
 
     # If the user hasn't specified a location qualification, we assume to
@@ -576,86 +573,6 @@ def expire_hit(client: MTurkClient, hit_id: str):
     client.update_expiration_for_hit(HITId=hit_id, ExpireAt=past_time)
 
 
-def setup_sns_topic(
-    session: boto3.Session, task_name: str, server_url: str, task_run_id: str
-) -> str:
-    """Create an sns topic and return the arn identifier"""
-    # Create the topic and subscribe to it so that our server receives notifs
-    client = session.client("sns", region_name="us-east-1", config=botoconfig)
-    pattern = re.compile("[^a-zA-Z0-9_-]+")
-    filtered_task_name = pattern.sub("", task_name)
-    response = client.create_topic(Name=filtered_task_name)
-    arn = response["TopicArn"]
-    topic_sub_url = "{}/sns_posts?task_run_id={}".format(server_url, task_run_id)
-    client.subscribe(TopicArn=arn, Protocol="https", Endpoint=topic_sub_url)
-    response = client.get_topic_attributes(TopicArn=arn)
-    policy_json = """{{
-    "Version": "2008-10-17",
-    "Id": "{}/MTurkOnlyPolicy",
-    "Statement": [
-        {{
-            "Sid": "MTurkOnlyPolicy",
-            "Effect": "Allow",
-            "Principal": {{
-                "Service": "mturk-requester.amazonaws.com"
-            }},
-            "Action": "SNS:Publish",
-            "Resource": "{}"
-        }}
-    ]}}""".format(
-        arn, arn
-    )
-    client.set_topic_attributes(
-        TopicArn=arn, AttributeName="Policy", AttributeValue=policy_json
-    )
-    return arn
-
-
-def subscribe_to_hits(client: MTurkClient, hit_type_id: str, sns_arn: str) -> None:
-    """Subscribe an sns channel to the specific hit type"""
-    # Get the mturk client and create notifications for our hits
-    client.update_notification_settings(
-        HITTypeId=hit_type_id,
-        Notification={
-            "Destination": sns_arn,
-            "Transport": "SNS",
-            "Version": "2006-05-05",
-            "EventTypes": [
-                "AssignmentAbandoned",
-                "AssignmentReturned",
-                "AssignmentSubmitted",
-            ],
-        },
-        Active=True,
-    )
-
-
-def send_test_notif(client: MTurkClient, topic_arn: str, event_type: str) -> None:
-    """
-    Send a test notification of the given event type to the sns
-    queue associated with the given arn
-    """
-    client.send_test_event_notification(
-        Notification={
-            "Destination": topic_arn,
-            "Transport": "SNS",
-            "Version": "2006-05-05",
-            "EventTypes": [
-                "AssignmentAbandoned",
-                "AssignmentReturned",
-                "AssignmentSubmitted",
-            ],
-        },
-        TestEventType=event_type,
-    )
-
-
-def delete_sns_topic(session: boto3.Session, topic_arn: str) -> None:
-    """Remove the sns queue of the given identifier"""
-    client = session.client("sns", region_name="us-east-1", config=botoconfig)
-    client.delete_topic(TopicArn=topic_arn)
-
-
 def get_hit(client: MTurkClient, hit_id: str) -> Dict[str, Any]:
     """Get hit from mturk by hit_id"""
     hit = None
@@ -690,8 +607,6 @@ def approve_work(
             AssignmentId=assignment_id, OverrideRejection=override_rejection
         )
     except Exception as e:
-        # TODO(#93) Break down this error to the many reasons why approve may fail,
-        # only silently pass on approving an already approved assignment
         logger.exception(
             f"Approving MTurk assignment failed, likely because it has auto-approved. Details: {e}",
             exc_info=True,
@@ -703,8 +618,6 @@ def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
     try:
         client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
     except Exception as e:
-        # TODO(#93) Break down this error to the many reasons why approve may fail,
-        # only silently pass on approving an already approved assignment
         logger.exception(
             f"Rejecting MTurk assignment failed, likely because it has auto-approved. Details:{e}",
             exc_info=True,

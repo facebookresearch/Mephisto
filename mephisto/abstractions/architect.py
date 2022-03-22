@@ -10,7 +10,7 @@ from omegaconf import MISSING, DictConfig
 from typing import Dict, List, Any, ClassVar, Type, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.channel import Channel
+    from mephisto.abstractions._subcomponents.channel import Channel
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB
@@ -84,8 +84,8 @@ class Architect(ABC):
         on_message: Callable[[str, "Packet"], None],
     ) -> List["Channel"]:
         """
-        Return a list of all relevant channels that the Supervisor will
-        need to register to in order to function
+        Return a list of all relevant channels that the ClientIOHandler
+        will need to register to in order to function
         """
         raise NotImplementedError()
 

@@ -21,7 +21,7 @@ import requests
 import re
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
-from mephisto.operations.utils import get_mephisto_tmp_dir
+from mephisto.utils.dirs import get_mephisto_tmp_dir
 from mephisto.abstractions.architect import Architect, ArchitectArgs
 from mephisto.abstractions.architects.router.build_router import build_router
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
@@ -29,14 +29,14 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.channel import Channel
+    from mephisto.abstractions._subcomponents.channel import Channel
     from mephisto.data_model.packet import Packet
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB
     from mephisto.abstractions.blueprint import SharedTaskState
     from argparse import _ArgumentGroup as ArgumentGroup
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -134,8 +134,8 @@ class HerokuArchitect(Architect):
         on_message: Callable[[str, "Packet"], None],
     ) -> List["Channel"]:
         """
-        Return a list of all relevant channels that the Supervisor will
-        need to register to in order to function
+        Return a list of all relevant channels that the ClientIOHandler
+        will need to register to in order to function
         """
         urls = self._get_socket_urls()
         return [
@@ -375,7 +375,6 @@ class HerokuArchitect(Architect):
                 )
                 self.created = True
         except subprocess.CalledProcessError as e:  # User has too many apps?
-            # TODO(#93) check response codes to determine what actually happened
             logger.exception(e, exc_info=True)
             sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
             raise Exception(

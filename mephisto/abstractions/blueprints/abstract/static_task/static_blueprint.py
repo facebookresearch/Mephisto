@@ -46,10 +46,10 @@ if TYPE_CHECKING:
     )
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.worker import Worker
-    from argparse import _ArgumentGroup as ArgumentGroup
+    from mephisto.data_model.unit import Unit
 
 
-BLUEPRINT_TYPE = "abstract_static"
+BLUEPRINT_TYPE_STATIC = "abstract_static"
 
 
 @dataclass
@@ -70,7 +70,7 @@ class SharedStaticTaskState(OnboardingSharedState, SharedTaskState):
 
 @dataclass
 class StaticBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
-    _blueprint_type: str = BLUEPRINT_TYPE
+    _blueprint_type: str = BLUEPRINT_TYPE_STATIC
     _group: str = field(
         default="StaticBlueprint",
         metadata={
@@ -116,7 +116,6 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = EmptyStaticTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = StaticBlueprintArgs
-    supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
     SharedStateClass = SharedStaticTaskState
 
     def __init__(
@@ -186,7 +185,8 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
             ), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif shared_state.static_task_data is not None:
             if isinstance(shared_state.static_task_data, types.GeneratorType):
-                # TODO can we check something about this?
+                # TODO(#97) can we check something about this?
+                # Some discussion here: https://stackoverflow.com/questions/661603/how-do-i-know-if-a-generator-is-empty-from-the-start
                 pass
             else:
                 assert (

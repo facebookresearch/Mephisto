@@ -12,7 +12,7 @@ import shutil
 from omegaconf import OmegaConf
 from dataclasses import dataclass
 
-from mephisto.data_model.task_run import TaskRun
+from mephisto.data_model.task_run import TaskRun, TaskRunArgs
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.blueprint import (
     Blueprint,
@@ -20,7 +20,7 @@ from mephisto.abstractions.blueprint import (
     BlueprintArgs,
     SharedTaskState,
 )
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 from mephisto.abstractions.architects.mock_architect import (
     MockArchitect,
     MockArchitectArgs,
@@ -28,7 +28,6 @@ from mephisto.abstractions.architects.mock_architect import (
 from mephisto.operations.hydra_config import MephistoConfig
 from mephisto.abstractions.providers.mock.mock_provider import MockProviderArgs
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprintArgs
-from mephisto.data_model.task_config import TaskConfigArgs
 
 from typing import List, Dict, ClassVar, Optional, Any, TYPE_CHECKING
 
@@ -163,7 +162,7 @@ class TestBlueprintMixinCore(unittest.TestCase):
             blueprint=blueprint_args,
             provider=MockProviderArgs(requester_name="mock_requester"),
             architect=MockArchitectArgs(should_run_server=False),
-            task=TaskConfigArgs(
+            task=TaskRunArgs(
                 task_title="title",
                 task_description="This is a description",
                 task_reward="0.3",

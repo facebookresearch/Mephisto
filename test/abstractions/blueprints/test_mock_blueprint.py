@@ -9,7 +9,7 @@ import shutil
 import os
 import tempfile
 
-from typing import Type, ClassVar
+from typing import Type, ClassVar, List
 from mephisto.abstractions.test.blueprint_tester import BlueprintTests
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
@@ -25,9 +25,9 @@ from mephisto.abstractions.blueprint import (
 )
 from mephisto.data_model.assignment import Assignment
 from mephisto.data_model.task_run import TaskRun
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 
-# TODO(#97) Update supervisor to be able to provide mock setups to test against a blueprint
+# TODO(#97) Update operator to be able to provide mock setups to test against a blueprint
 from mephisto.abstractions.providers.mock.mock_agent import MockAgent
 from mephisto.abstractions.providers.mock.mock_unit import MockUnit
 from mephisto.abstractions.providers.mock.mock_worker import MockWorker
@@ -82,9 +82,9 @@ class MockBlueprintTests(BlueprintTests):
             task_run.provider_type,
             task_run.task_type,
         )
-        unit = MockUnit(self.db, unit_id)
+        unit = MockUnit.get(self.db, unit_id)
         worker_id = self.db.new_worker("MOCK_TEST_WORKER", MOCK_PROVIDER_TYPE)
-        worker = MockWorker(self.db, worker_id)
+        worker = MockWorker.get(self.db, worker_id)
         agent_id = self.db.new_agent(
             worker.db_id,
             unit_id,
@@ -94,7 +94,7 @@ class MockBlueprintTests(BlueprintTests):
             task_run.task_type,
             task_run.provider_type,
         )
-        Agent = MockAgent(self.db, agent_id)
+        Agent = MockAgent.get(self.db, agent_id)
         return assign
 
     def assignment_is_tracked(
@@ -107,6 +107,12 @@ class MockBlueprintTests(BlueprintTests):
         """
         assert isinstance(task_runner, MockTaskRunner), "Must be a mock runner"
         return assignment.db_id in task_runner.tracked_tasks
+
+    def prep_mock_agents_to_complete(self, agents: List["MockAgent"]) -> None:
+        """Handle initializing mock agents to be able to pass their task"""
+        for agent in agents:
+            agent.enqueue_mock_live_update({"text": "message"})
+            agent.enqueue_mock_submit_event({"submitted": True})
 
     # TODO(#97) are there any other unit tests we'd like to have?
 

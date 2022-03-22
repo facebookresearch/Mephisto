@@ -7,6 +7,7 @@
 /* eslint-disable react/no-direct-mutation-state */
 
 import React from "react";
+import { pythonTime } from "./utils";
 
 /* ================= Data Model Constants ================= */
 
@@ -20,10 +21,11 @@ const STATUS_MEPHISTO_DISCONNECT = "mephisto disconnect";
 
 // Socket function types
 const PACKET_TYPE_HEARTBEAT = "heartbeat"; // Heartbeat from agent, carries current state
-const PACKET_TYPE_AGENT_ALIVE = "alive"; // packet from an agent alive event
+const PACKET_TYPE_ALIVE = "alive"; // packet from an agent alive event
 
-const PACKET_TYPE_UPDATE_STATE = "update_status"; // packet for updating agent client state
-const PACKET_TYPE_AGENT_ACTION = "agent_action";
+const PACKET_TYPE_UPDATE_STATUS = "update_status"; // packet for updating agent client state
+const PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE = "client_bound_live_update";
+const PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE = "mephisto_bound_live_update";
 
 const CONNECTION_STATUS = {
   FAILED: "failed",
@@ -110,8 +112,8 @@ function useValue(value, defaultValue) {
 
 function useMephistoSocket({
   onConnectionStatusChange,
-  onMessageReceived,
-  onStateUpdate /*, onStateUpdate */,
+  onLiveUpdate,
+  onStatusUpdate /*, onStatusUpdate */,
   config = {},
 }) {
   const initialState = {
@@ -120,7 +122,7 @@ function useMephistoSocket({
     setting_socket: false, // Flag for socket setup being underway
     heartbeats_without_response: 0, // HBs to the router without a pong back
     last_mephisto_ping: Date.now(),
-    used_message_ids: [],
+    used_update_ids: [],
   };
 
   const [state, setState] = React.useReducer(
@@ -185,9 +187,6 @@ function useMephistoSocket({
         const item = queue.current.pop();
         const [event, queue_time] = item;
 
-        console.log("sending");
-        console.log(event);
-
         const success = resilientPacketSend(event);
         if (!success) {
           queue.current.push(event, queue_time); // This message needs to be retried
@@ -233,14 +232,15 @@ function useMephistoSocket({
 
   function enqueuePacket(eventType, data, callback) {
     var time = Date.now();
-    let messageId = uuidv4();
+    if (data.update_id === undefined) {
+      data.update_id = uuidv4();
+    }
 
     var packet = {
       packet_type: eventType,
-      sender_id: state.agentId,
-      receiver_id: SYSTEM_SOCKET_ID,
+      subject_id: state.agentId,
       data: data,
-      msg_id: messageId,
+      client_timestamp: pythonTime(),
     };
 
     var event = {
@@ -251,13 +251,10 @@ function useMephistoSocket({
     queue.current.push(event, time);
   }
 
-  function sendMessage(message) {
-    if (message.message_id === undefined) {
-      message.message_id = uuidv4();
-    }
+  function sendLiveUpdate(message) {
     return new Promise((resolve) => {
       callbacks.current.enqueuePacket(
-        PACKET_TYPE_AGENT_ACTION,
+        PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE,
         message,
         (msg) => {
           resolve(msg.data);
@@ -279,9 +276,8 @@ function useMephistoSocket({
 
     let browserUrl = window.location;
 
-    // Localhost can't always handle secure websockets, so we special case
-    let socketProtocol =
-      browserUrl.hostname == "localhost" ? "ws://" : "wss://";
+    // Inherit socket protocol from web address protocol
+    let socketProtocol = browserUrl.protocol == "https:" ? "wws://" : "ws://";
     let socketUrl =
       socketProtocol + browserUrl.hostname + ":" + browserUrl.port;
     socket.current = new WebSocket(socketUrl);
@@ -297,7 +293,7 @@ function useMephistoSocket({
       log("Server connected.", 2);
 
       /* sendAlive */
-      callbacks.current.enqueuePacket(PACKET_TYPE_AGENT_ALIVE, {}, () => {
+      callbacks.current.enqueuePacket(PACKET_TYPE_ALIVE, {}, () => {
         onConnectionStatusChange(CONNECTION_STATUS.CONNECTED);
       });
 
@@ -333,23 +329,20 @@ function useMephistoSocket({
   }
 
   function parseSocketMessage(packet) {
-    if (packet.packet_type == PACKET_TYPE_AGENT_ACTION) {
-      let used_message_ids = state.used_message_ids;
+    if (packet.packet_type == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE) {
+      let used_update_ids = state.used_update_ids;
 
-      if (used_message_ids.includes(packet.data.message_id)) {
-        // Skip this message
+      if (used_update_ids.includes(packet.data.update_id)) {
+        // Skip this message, it's a duplicate
+        log("Skipping existing update_id " + packet.data.update_id, 3);
         return;
       } else {
-        let new_message_ids = [...used_message_ids, packet.data.message_id];
-        setState({ used_message_ids: new_message_ids });
+        let new_update_ids = [...used_update_ids, packet.data.update_id];
+        setState({ used_update_ids: new_update_ids });
       }
-      onMessageReceived(packet.data);
-    } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATE) {
-      onStateUpdate(packet.data); // packet.data looks like - {state: {}, status: "<>"}
-      // TODO: Document that is_final is what closes the socket
-      if (packet.data.state.is_final) {
-        callbacks.current.closeSocket();
-      }
+      onLiveUpdate(packet.data);
+    } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATUS) {
+      onStatusUpdate(packet.data); // packet.data looks like - {status: "<>"}
     } else if (packet.packet_type == PACKET_TYPE_HEARTBEAT) {
       setState({
         last_mephisto_ping: packet.data["last_mephisto_ping"],
@@ -398,16 +391,7 @@ function useMephistoSocket({
       useValue(config.connectionDeadMephistoPing, CONNECTION_DEAD_MEPHISTO_PING)
     ) {
       callbacks.current.closeSocket();
-      let done_text =
-        "Our server appears to have gone down during the \
-        duration of this Task. Please send us a message if you've done \
-        substantial work and we can find out if the task is complete enough to \
-        compensate.";
-      onStateUpdate({
-        state: {
-          done_text: done_text,
-          task_done: true,
-        },
+      onStatusUpdate({
         status: STATUS_MEPHISTO_DISCONNECT,
       });
       onConnectionStatusChange(CONNECTION_STATUS.DISCONNECTED_SERVER);
@@ -423,9 +407,8 @@ function useMephistoSocket({
     resilientPacketSend({
       packet: {
         packet_type: PACKET_TYPE_HEARTBEAT,
-        msg_id: uuidv4(),
-        receiver_id: SERVER_SOCKET_ID,
-        sender_id: state.agentId,
+        subject_id: state.agentId,
+        client_timestamp: pythonTime(),
       },
     });
     setState({
@@ -446,7 +429,7 @@ function useMephistoSocket({
   return {
     connect: connect,
     destroy: () => callbacks.current.closeSocket(),
-    sendMessage: sendMessage,
+    sendLiveUpdate: sendLiveUpdate,
   };
 }
 

@@ -4,6 +4,38 @@ sidebar_position: 1
 
 # Developing and debugging frontends
 
+## The `mephisto-task` package
+
+We provide the `mephisto-task` package for use in your front-end React tasks.
+
+To install, add it to your npm project as such:
+
+```
+npm install mephisto-task
+```
+
+The `mephisto-task` project surfaces three React hooks depending on your use case:
+
+1. `useMephisoTask` - Used for static tasks where one-time initial data is enough to power the task. See the example task in `/examples/static_react_task/` for an example project using this hook.
+2. `useMephistoLiveTask` - Used for multi-turn, socket-based tasks, such as a dialogue task. See the example task in `/examples/parlai_chat_task_demo/` for an example project using this hook.
+3. `useMephistoRemoteProcedureTask` - Used for static tasks that require access to some remote function on the back-end, for example invoking a back-end model for model-assisted annotation. See the example task in `/examples/remote_procedure/mnist/` for an example project using this hook.
+
+Complete documentation for each of the hooks can be found in the [associated README for the `mephisto-task` package](https://github.com/facebookresearch/Mephisto/tree/main/packages/mephisto-task).
+
+## Reusable UI component libraries
+
+#### `@annotated` [BETA]
+
+To make common annotation tasks easier, we provide the `@annotated/*` suite of packages.
+
+These suite of packages were formerly published under the `annotation-toolkit` and have now been broken down into their own individual packages. We provide helper UI components such as `@annotated/bbox`, `@annotated/video-player`, etc.
+
+ We welcome contributions to these packages. To create your own package, you can clone the template folder at `packages/annotated/__template__`.
+
+#### `bootstrap-chat`
+
+For chat-based components, we provide custom UI components in the `bootstrap-chat` package. You can find further information for them in the [associated README for the `bootstrap-chat` package](https://github.com/facebookresearch/Mephisto/tree/main/packages/bootstrap-chat).
+
 ## Adding UI error handling to tasks
 
 Currently, we have beta functionality for error handling. We provide a few ways of getting a signal into how your tasks are faring:

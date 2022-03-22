@@ -7,7 +7,7 @@
 
 import unittest
 from typing import Optional, Tuple
-from mephisto.abstractions.test.utils import (
+from mephisto.utils.testing import (
     get_test_assignment,
     get_test_project,
     get_test_requester,
@@ -27,8 +27,7 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.project import Project
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.task import Task
-from mephisto.data_model.task_run import TaskRun
-from mephisto.data_model.task_config import TaskConfig
+from mephisto.data_model.task_run import TaskRun, TaskRunArgs
 from mephisto.data_model.qualification import Qualification
 from mephisto.data_model.worker import Worker
 from mephisto.abstractions.database import (
@@ -189,13 +188,13 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Check creation of a task with a parent task, but no project
         task_name_2 = "test_task_2"
-        task_id_2 = db.new_task(task_name_2, task_type, parent_task_id=task_id_1)
+        task_id_2 = db.new_task(task_name_2, task_type)
         self.assertIsNotNone(task_id_2)
         self.assertTrue(isinstance(task_id_2, str))
         task_row = db.get_task(task_id_2)
         self.assertEqual(task_row["task_name"], task_name_2)
         self.assertEqual(task_row["task_type"], task_type)
-        self.assertEqual(task_row["parent_task_id"], task_id_1)
+        self.assertIsNone(task_row["parent_task_id"])
         self.assertIsNone(task_row["project_id"])
         task = Task.get(db, task_id_2)
         self.assertEqual(task.task_name, task_name_2)
@@ -217,12 +216,6 @@ class BaseDatabaseTests(unittest.TestCase):
         self.assertTrue(isinstance(tasks[0], Task))
         self.assertEqual(tasks[0].db_id, task_id_1)
         self.assertEqual(tasks[0].task_name, task_name_1)
-
-        tasks = db.find_tasks(parent_task_id=task_id_1)
-        self.assertEqual(len(tasks), 1)
-        self.assertTrue(isinstance(tasks[0], Task))
-        self.assertEqual(tasks[0].db_id, task_id_2)
-        self.assertEqual(tasks[0].task_name, task_name_2)
 
         tasks = db.find_tasks(task_name="fake_name")
         self.assertEqual(len(tasks), 0)
@@ -249,11 +242,6 @@ class BaseDatabaseTests(unittest.TestCase):
         with self.assertRaises(EntryDoesNotExistException):
             fake_id = self.get_fake_id("Project")
             task_id = db.new_task(task_name_2, task_type, project_id=fake_id)
-
-        # Can't create task with invalid parent task
-        with self.assertRaises(EntryDoesNotExistException):
-            fake_id = self.get_fake_id("Task")
-            task_id = db.new_task(task_name_2, task_type, parent_task_id=fake_id)
 
         # Can't use no name
         with self.assertRaises(MephistoDBException):
@@ -327,7 +315,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # But not after we've created a task run
         requester_name, requester_id = get_test_requester(db)
-        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
+        init_params = json.dumps(OmegaConf.to_yaml(TaskRunArgs.get_mock_params()))
         task_run_id = db.new_task_run(
             task_id_2, requester_id, init_params, "mock", "mock"
         )
@@ -461,7 +449,7 @@ class BaseDatabaseTests(unittest.TestCase):
         requester_name, requester_id = get_test_requester(db)
 
         # Check creation and retrieval of a task_run
-        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
+        init_params = json.dumps(OmegaConf.to_yaml(TaskRunArgs.get_mock_params()))
         task_run_id = db.new_task_run(
             task_id, requester_id, init_params, "mock", "mock"
         )
@@ -515,7 +503,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         task_name, task_id = get_test_task(db)
         requester_name, requester_id = get_test_requester(db)
-        init_params = json.dumps(OmegaConf.to_yaml(TaskConfig.get_mock_params()))
+        init_params = json.dumps(OmegaConf.to_yaml(TaskRunArgs.get_mock_params()))
 
         # Can't create task run with invalid ids
         with self.assertRaises(EntryDoesNotExistException):

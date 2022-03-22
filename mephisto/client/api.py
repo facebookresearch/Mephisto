@@ -11,7 +11,7 @@ from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.assignment import Assignment
-from mephisto.operations.utils import parse_arg_dict, get_extra_argument_dicts
+from mephisto.operations.hydra_config import parse_arg_dict, get_extra_argument_dicts
 from mephisto.operations.registry import (
     get_blueprint_from_type,
     get_crowd_provider_from_type,
@@ -20,7 +20,6 @@ from mephisto.operations.registry import (
     get_valid_provider_types,
     get_valid_architect_types,
 )
-from mephisto.data_model.task_config import TaskConfig
 import sys
 import traceback
 import os
@@ -118,7 +117,7 @@ def view_unit(task_id):
 
 @api.route("/task_runs/options")
 def get_basic_task_options():
-    params = get_extra_argument_dicts(TaskConfig)
+    params = get_extra_argument_dicts(TaskRun)
     return jsonify({"success": True, "options": params})
 
 
