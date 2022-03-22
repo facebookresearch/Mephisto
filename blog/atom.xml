@@ -2,62 +2,22 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://mephisto.ai/blog</id>
     <title>Mephisto Blog</title>
-    <updated>2021-08-26T00:00:00.000Z</updated>
+    <updated>2022-03-22T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://mephisto.ai/blog"/>
     <subtitle>Mephisto Blog</subtitle>
     <icon>https://mephisto.ai/img/favicon.png</icon>
     <entry>
-        <title type="html"><![CDATA[Welcome]]></title>
-        <id>welcome</id>
-        <link href="https://mephisto.ai/blog/welcome"/>
-        <updated>2021-08-26T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Docusaurus blogging features are powered by the blog plugin.]]></summary>
-        <content type="html"><![CDATA[<p><a href="https://docusaurus.io/docs/blog">Docusaurus blogging features</a> are powered by the <a href="https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-blog">blog plugin</a>.</p><p>Simply add Markdown files (or folders) to the <code>blog</code> directory.</p><p>Regular blog authors can be added to <code>authors.yml</code>.</p><p>The blog post date can be extracted from filenames, such as:</p><ul><li><code>2019-05-30-welcome.md</code></li><li><code>2019-05-30-welcome/index.md</code></li></ul><p>A blog post folder can be convenient to co-locate blog post images:</p><p><img src="./docusaurus-plushie-banner.jpeg" alt="Docusaurus Plushie"/></p><p>The blog supports tags as well!</p><p><strong>And if you don&#x27;t want a blog</strong>: just delete this directory, and use <code>blog: false</code> in your Docusaurus config.</p>]]></content>
+        <title type="html"><![CDATA[Announcing Mephisto 1.0]]></title>
+        <id>mephisto-1.0</id>
+        <link href="https://mephisto.ai/blog/mephisto-1.0"/>
+        <updated>2022-03-22T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[We are super excited to announce Mephisto 1.0!]]></summary>
+        <content type="html"><![CDATA[<p>We are super excited to announce Mephisto 1.0! </p><p><img src="/img/Mephisto1.0.png"/></p><h2>What&#x27;s new?</h2><h3><strong>Live Metrics Dasbhoard</strong></h3><p>Gain insights into your task runs for better observability and debugging. Built upon the rich Prometheus and Grafana ecosystems. To get started, run <code>mephisto metrics install</code> using the CLI tool before your next task.</p><h3><strong>Model-in-the-loop</strong></h3><p>We provide an all new <code>RemoteQueryBlueprint</code> for tasks to enable model-in-the-loop capabilities via the ability to invoke remote procedures from the front-end to the back-end. Check out the new example we added at <code>/examples/remote_procedure/mnist/</code>.</p><h3><strong>Reduced boilerplate</strong></h3><p>We&#x27;ve vastly reduced the amount of boilerplate code needed to create a Mephisto run script. In some cases, up to a 30% reduction in lines of code. Our examples have been updated to reflect the new workflow.</p><h3><strong>Validation and Gold units</strong></h3><p>Improving on our QA functionality, we&#x27;ve introduced validation and gold units. These are launched as additional units during a run to check for worker quality either at the start or throughout the duration of a task. Both are usable by default on Static and RemoteQuery tasks. You can also add these mixins to any Blueprint you write to get this functionality for free.</p><h3><strong>New Docs Website</strong></h3><p>We&#x27;re revamped our docs on our brand new docs website. We&#x27;ve added more tutorials, Python API references, and design documentation.</p><h3><strong>UI Package Updates</strong></h3><p>We&#x27;ve updated our package management to be cleaner and scale towards the future. This will allow us to provide more templated and sharable components as we work with teams to build new tasks.</p><h3><strong>IO protocol revamp</strong></h3><p>Mephisto&#x27;s communication layer has been rebuilt from the ground-up to vastly simplify the client/server interface, improve reliability, reduce the number of messages required, and provide clear error messaging for task developers and workers.</p><h3>...and more</h3><p><strong>Asyncio Integration + Refactoring</strong>:
+We&#x27;ve migrated to an asyncio-based design under-the-hood to prevent threading and locking issues, reduce invalid states, and prepare us for adopting multiprocessing in future releases. This means Mephisto 1.0 now requires Python &gt;= 3.7.</p><p><strong>Other Performance Improvements</strong>: Database indexing, SingletonDB by default, and other minor enhancements should improve run performance and the maximum number of concurrent tasks.</p><p><strong>Improved Developer Tooling</strong>: For Mephisto developers and people interested in working on Mephisto, we&#x27;ve built out new tooling to ensure that our releases are automated/tested, scripts to facilitate entering dev mode, and documentation specifically for you. We&#x27;ve also refactored parts of our underlying codebase to make it easier to jump into and work with.</p><p>To upgrade your existing projects to Mephisto 1.0, <a href="/docs/guides/upgrade_to_1/guide">see our upgrade guide here</a>.</p>]]></content>
         <author>
-            <name>Sébastien Lorber</name>
-            <uri>https://sebastienlorber.com</uri>
-        </author>
-        <author>
-            <name>Yangshun Tay</name>
-            <uri>https://github.com/yangshun</uri>
-        </author>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[MDX Blog Post]]></title>
-        <id>mdx-blog-post</id>
-        <link href="https://mephisto.ai/blog/mdx-blog-post"/>
-        <updated>2021-08-01T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Blog posts support Docusaurus Markdown features, such as MDX.]]></summary>
-        <content type="html"><![CDATA[<p>Blog posts support <a href="https://docusaurus.io/docs/markdown-features">Docusaurus Markdown features</a>, such as <a href="https://mdxjs.com/">MDX</a>.</p><p>:::tip</p><p>Use the power of React to create interactive blog posts.</p><pre><code class="language-js">&lt;button onClick={() =&gt; alert(&#x27;button clicked!&#x27;)}&gt;Click me!&lt;/button&gt;
-</code></pre><button>Click me!</button><p>:::</p>]]></content>
-        <author>
-            <name>Sébastien Lorber</name>
-            <uri>https://sebastienlorber.com</uri>
-        </author>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Long Blog Post]]></title>
-        <id>long-blog-post</id>
-        <link href="https://mephisto.ai/blog/long-blog-post"/>
-        <updated>2019-05-29T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[This is the summary of a very long blog post,]]></summary>
-        <content type="html"><![CDATA[<p>This is the summary of a very long blog post,</p><p>Use a <code>&lt;!--</code> <code>truncate</code> <code>--&gt;</code> comment to limit blog post size in the list view.</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>]]></content>
-        <author>
-            <name>Endilie Yacop Sucipto</name>
-            <uri>https://github.com/endiliey</uri>
-        </author>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[First Blog Post]]></title>
-        <id>first-blog-post</id>
-        <link href="https://mephisto.ai/blog/first-blog-post"/>
-        <updated>2019-05-28T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet]]></summary>
-        <content type="html"><![CDATA[<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>]]></content>
-        <author>
-            <name>Gao Wei</name>
-            <uri>https://github.com/wgao19</uri>
+            <name>Mephisto Core Team</name>
+            <uri>https://mephisto.ai</uri>
         </author>
     </entry>
 </feed>
