@@ -24,12 +24,12 @@ const config = {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl:
-            "https://https://github.com/facebookresearch/Mephisto/tree/main/docs/web/",
+            "https://github.com/facebookresearch/Mephisto/tree/main/docs/web/",
         },
         blog: {
           showReadingTime: true,
           editUrl:
-            "https://https://github.com/facebookresearch/Mephisto/tree/main/docs/web/blog/",
+            "https://github.com/facebookresearch/Mephisto/tree/main/docs/web/blog/",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
