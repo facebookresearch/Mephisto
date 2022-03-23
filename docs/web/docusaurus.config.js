@@ -15,6 +15,7 @@ const config = {
   favicon: "img/favicon.png",
   organizationName: "facebookresearch",
   projectName: "mephisto",
+  trailingSlash: false,
 
   presets: [
     [
