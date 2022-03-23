@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Working on a custom task
 
-Now that you've [launched a task or two](first_task), it's time to get into building your own. This tutorial focuses on giving you the tools to collect the specific data you're looking for by building a task of your own. This tutorial itself won't produce a useful task, but it should be useful for understanding how to go about creating a real one. You don't _need_ any React experience to get through this guide, though it will be helpful for understanding the usage more deeply.
+Now that you've [launched a task or two](../first_task), it's time to get into building your own. This tutorial focuses on giving you the tools to collect the specific data you're looking for by building a task of your own. This tutorial itself won't produce a useful task, but it should be useful for understanding how to go about creating a real one. You don't _need_ any React experience to get through this guide, though it will be helpful for understanding the usage more deeply.
 
 ## 1. Getting started
 ### 1.1 Making a new workspace
@@ -97,7 +97,7 @@ python run_task.py mephisto.task.task_name=custom-react-tutorial-iterating
 ```
 Note the first one you work on displays your new edited text. But what about the new `edited_by_requester` field?
 
-> **Tip:** In your own tasks, you can use a function that creates static task data, or even a generator for it, but this is discussed more in the [workflows](workflows) tutorial.
+> **Tip:** In your own tasks, you can use a function that creates static task data, or even a generator for it, but this is discussed more in the [workflows](../workflows) tutorial.
 
 ## 3. Accessing the new data
 ### 3.1 Using React Dev Tools

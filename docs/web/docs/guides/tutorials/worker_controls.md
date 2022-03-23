@@ -4,9 +4,9 @@ sidebar_position: 3
 
 # Introducing worker controls
 
-Now that you have a task to show workers, in order to get quality data you'll want to include a mix of automated and manual reviewing. This guide introduces onboarding, which is a good opportunity to provide workers with a simple test to ensure they read and understand task instructions. A more in-depth guide into their use can be found [here](../how_to_use/worker_quality/using_onboarding/). We expect familiarity with React's core concepts to understand the frontend part of this tutorial.
+Now that you have a task to show workers, in order to get quality data you'll want to include a mix of automated and manual reviewing. This guide introduces onboarding, which is a good opportunity to provide workers with a simple test to ensure they read and understand task instructions. A more in-depth guide into their use can be found [here](../../how_to_use/worker_quality/using_onboarding/). We expect familiarity with React's core concepts to understand the frontend part of this tutorial.
 
-**Note:** Generally this flow should be combined with other methods for ensuring quality, such as [screening units](../how_to_use/worker_quality/using_screen_units/) or [gold units](../how_to_use/worker_quality/using_golds/).
+**Note:** Generally this flow should be combined with other methods for ensuring quality, such as [screening units](../../how_to_use/worker_quality/using_screen_units/) or [gold units](../../how_to_use/worker_quality/using_golds/).
 
 ## 1. Launching with onboarding
 

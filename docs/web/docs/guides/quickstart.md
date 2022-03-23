@@ -25,7 +25,7 @@ $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/main/get-poet
 $ poetry install
 ```
 
-*Are you a Docker user? We support that too! Check out [our Docker guide](how_to_use/efficiency_organization/docker).*
+*Are you a Docker user? We support that too! Check out [our Docker guide](../how_to_use/efficiency_organization/docker).*
 
 ### Setup
 
@@ -86,4 +86,4 @@ If you get the message "Successfully identified a logged in heroku user.", then 
 
 ## Let's get launching!
 
-Now that you have your environment set up, you're ready to get your first task running. [Continue here.](tutorials/first_task)
+Now that you have your environment set up, you're ready to get your first task running. [Continue here.](../tutorials/first_task)

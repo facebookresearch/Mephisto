@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Running your first task
 
-So you want to launch your first task. Thankfully Mephisto makes this fairly easy! We'll launch an HTML-based task as a way to get you started. This guide assumes you've worked through [the quickstart](../quickstart), so begin there if you haven't.
+So you want to launch your first task. Thankfully Mephisto makes this fairly easy! We'll launch an HTML-based task as a way to get you started. This guide assumes you've worked through [the quickstart](../../quickstart), so begin there if you haven't.
 
 ## 1. Launching with default arguments
 
@@ -186,7 +186,7 @@ You'll note that Mephisto launches the task under your new task name:
 ```
 
 > **A note on `task_name`s:**
-> The `task_name` parameter is particularly important for setting up workflows. Many of Mephisto's features are shared under a specific `task_name` namespace, including review flows and unit completion maximums per worker per namespace. Later [guides](workflows) go more in-depth on best practices.
+> The `task_name` parameter is particularly important for setting up workflows. Many of Mephisto's features are shared under a specific `task_name` namespace, including review flows and unit completion maximums per worker per namespace. Later [guides](../workflows) go more in-depth on best practices.
 
 Navigating to a task (`localhost:3000/?worker_id=x&assignment_id=1`) should now show you a task loaded from a different data file. Completing this task will lead Mephisto to shut down cleanly.
 
@@ -196,7 +196,7 @@ You can now review this task with the review script again, this time providing t
 
 > Note: The Mephisto process must remain running when in-use, so you must leave your machine running to be able to access a task.
 
-You don't need to do this step *right now*, however it's important for understanding how to take one of these tasks live. Assuming you've completed the optional steps in [the quickstart](../quickstart#optional-set-up-mturk), you can make the following changes to your config file, replacing `my_mturk_user_sandbox` with the id you used in it's place when registering initially:
+You don't need to do this step *right now*, however it's important for understanding how to take one of these tasks live. Assuming you've completed the optional steps in [the quickstart](../../quickstart#optional-set-up-mturk), you can make the following changes to your config file, replacing `my_mturk_user_sandbox` with the id you used in it's place when registering initially:
 ```yaml
 #hydra_configs/conf/my_config.yaml
 
@@ -229,7 +229,7 @@ Mephisto should print out a link to view your task on the mturk sandbox, like `h
 
 Complete this task, and you can review it in the same way as before.
 
-> **Tip**: You can reuse common configurations by [associating them with a profile](../how_to_use/efficiency_organization/reusing_configs). Usually these contain `Provider` and `Architect` arguments, as these usually aren't related to a specific task.
+> **Tip**: You can reuse common configurations by [associating them with a profile](../../how_to_use/efficiency_organization/reusing_configs). Usually these contain `Provider` and `Architect` arguments, as these usually aren't related to a specific task.
 
 ## 3. Task breakdown
 
@@ -326,4 +326,4 @@ On the second launch, we had a file with only one entry and set `units_per_assig
 
 ### 3.5 HTML static tasks in general
 
-You can use HTML static tasks to render simple annotation with custom HTML code. They may act as a good starting point for working on the platform, however they aren't the easiest or most powerful way to use Mephisto.  More details can be found on how to customize these tasks [here](https://github.com/facebookresearch/Mephisto/tree/main/mephisto/abstractions/blueprints/static_html_task), though the rest of the tutorials will focus on React-based tasks. You can build your first in the [next tutorial](custom_react).
+You can use HTML static tasks to render simple annotation with custom HTML code. They may act as a good starting point for working on the platform, however they aren't the easiest or most powerful way to use Mephisto.  More details can be found on how to customize these tasks [here](https://github.com/facebookresearch/Mephisto/tree/main/mephisto/abstractions/blueprints/static_html_task), though the rest of the tutorials will focus on React-based tasks. You can build your first in the [next tutorial](../custom_react).

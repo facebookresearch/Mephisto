@@ -12,7 +12,7 @@ sidebar_position: 1
     npm install mephisto-task@2
     npm install bootstrap-chat@2 # if applicable
     ```
-3. [Migrate your run scripts](run_scripts) to use the newly introduced syntax, aimed to reduce boilerplate.
+3. [Migrate your run scripts](../run_scripts) to use the newly introduced syntax, aimed to reduce boilerplate.
 
 
 :::info

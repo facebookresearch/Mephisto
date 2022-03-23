@@ -100,7 +100,7 @@ if __name__ == "__main__":
     main()
 ```
 
-And you collected some initial pilot data, reviewed, and chose some specific high-quality workers to assign an [allowlist qualification](../how_to_use/worker_quality/common_qualification_flows#allowlists-and-blocklists) to.
+And you collected some initial pilot data, reviewed, and chose some specific high-quality workers to assign an [allowlist qualification](../../how_to_use/worker_quality/common_qualification_flows#allowlists-and-blocklists) to.
 
 Now sometimes you want to launch with that allowlist, while othertimes you want to specifically look for new workers to add to your allowlist. Rather than require two separate scripts, you may create something like the following:
 ```python
