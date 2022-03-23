@@ -12,7 +12,7 @@ Onboarding is an opportunity to give workers complete context of your task the f
 
 Mephisto's onboarding disqualifies workers that fail the test, so it's good practice to ensure that the tests should be completable by anyone who reads through the instructions and also don't take up too much time.
 
-If you're instead interested in filtering out workers who don't hit a specific quality bar, refer to [using screening units](using_screen_units), as Mephisto doesn't pay out for failed onboarding.
+If you're instead interested in filtering out workers who don't hit a specific quality bar, refer to [using screening units](../using_screen_units), as Mephisto doesn't pay out for failed onboarding.
 
 
 ## Basic configuration
@@ -39,7 +39,7 @@ shared_state = SharedTaskState(
 ...
 ```
 
-Unlike Screening and Gold units, Onboarding expects that you set up a custom frontend compared to your main task. You want to provide workers with an in-depth exploration of your task up-front (though you can always re-use onboarding components in your main task as reference materials). For more info on how to build out onboarding frontends, check out our [tutorial](../../tutorials/worker_controls).
+Unlike Screening and Gold units, Onboarding expects that you set up a custom frontend compared to your main task. You want to provide workers with an in-depth exploration of your task up-front (though you can always re-use onboarding components in your main task as reference materials). For more info on how to build out onboarding frontends, check out our [tutorial](../../../tutorials/worker_controls).
 
 **Note:** We've observed that some workers may share out the answers for onboarding tasks, so we encourage that you make your validation questions configurable such that you can update them with a change to `onboarding_data`.
 
