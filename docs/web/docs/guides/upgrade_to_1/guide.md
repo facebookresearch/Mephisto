@@ -10,7 +10,7 @@ sidebar_position: 1
 2. Ensure that your front-end code is using the latest packages, by running the following **in your task's webapp folder**.
     ```bash
     npm install --save mephisto-task@2
-    npm install --sav bootstrap-chat@2 # if applicable
+    npm install --save bootstrap-chat@2 # if applicable
     ```
 3. [Migrate your run scripts](../run_scripts) to use the newly introduced syntax, aimed to reduce boilerplate.
 
