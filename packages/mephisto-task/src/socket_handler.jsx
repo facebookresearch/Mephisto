@@ -277,7 +277,7 @@ function useMephistoSocket({
     let browserUrl = window.location;
 
     // Inherit socket protocol from web address protocol
-    let socketProtocol = browserUrl.protocol == "https:" ? "wws://" : "ws://";
+    let socketProtocol = browserUrl.protocol == "https:" ? "wss://" : "ws://";
     let socketUrl =
       socketProtocol + browserUrl.hostname + ":" + browserUrl.port;
     socket.current = new WebSocket(socketUrl);
