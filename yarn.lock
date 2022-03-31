@@ -10372,7 +10372,7 @@ __metadata:
     eslint-plugin-react: 7.x
     eslint-plugin-react-hooks: 2.x
     jquery: 3.5.0
-    mephisto-task: ^2.0.0
+    mephisto-task: ^2.0.1
     rc-slider: ^9.3.1
     react: 16.13.1
     react-bootstrap: 0.32.4
@@ -10382,7 +10382,7 @@ __metadata:
     webpack: ^5.68.0
     webpack-cli: ^4.9.0
   peerDependencies:
-    mephisto-task: ^2.0.0
+    mephisto-task: ^2.0.1
     react: 16.13.1
     react-dom: 16.13.1
   languageName: unknown
