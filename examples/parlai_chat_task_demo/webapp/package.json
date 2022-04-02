@@ -10,7 +10,7 @@
   "author": "",
   "dependencies": {
     "bootstrap": "^4.3.1",
-    "bootstrap-chat": "^2.0.0",
+    "bootstrap-chat": "^2.0.1",
     "rc-slider": "^8.6.3",
     "react": "16.13.1",
     "react-bootstrap": "^0.32.4",
@@ -35,7 +35,7 @@
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-react-hooks": "^4.3.0",
-    "style-loader": "^0.23.0",
+    "style-loader": "^3.3.1",
     "url-loader": "^4.1.1",
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.0"
