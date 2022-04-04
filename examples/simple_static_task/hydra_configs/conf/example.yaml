@@ -16,3 +16,5 @@ mephisto:
     task_description: "This is a simple test of static tasks."
     task_reward: 0.3
     task_tags: "static,task,testing"
+    # We expect to be able to handle 300 concurrent tasks without issue
+    max_num_concurrent_units: 300

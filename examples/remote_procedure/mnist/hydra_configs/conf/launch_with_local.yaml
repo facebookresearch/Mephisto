@@ -20,3 +20,5 @@ mephisto:
     task_reward: 0.05
     # NOTE will want real tags
     task_tags: "mnist,drawing,models,correction"
+    # We expect to handle 25 people using the MNIST model at once
+    max_num_concurrent_units: 25
