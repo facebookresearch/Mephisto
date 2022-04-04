@@ -272,15 +272,18 @@ class ClientIOHandler:
         agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
         assert agent is not None, "Could not find given agent!"
 
-        # If the packet is_submit, and has files, we need to
-        # process downloading those files first
-        data_files = packet.data.get("files")
-        if data_files is not None:
-            save_dir = agent.get_data_dir()
-            architect = live_run.architect
-            for f_obj in data_files:
-                # TODO(#649) this is incredibly blocking!
-                architect.download_file(f_obj["filename"], save_dir)
+        # Special handler for file downloads while we have architect access
+        # NOTE: this is a leaky abstraction at the moment - only architects
+        # know how to save files but "file saving" methods are defined by
+        # AgentStates, which don't have architect access.
+        if isinstance(packet.data, dict):
+            data_files = packet.data.get("files")
+            if data_files is not None:
+                save_dir = agent.get_data_dir()
+                architect = live_run.architect
+                for f_obj in data_files:
+                    # TODO(#649) this is incredibly blocking!
+                    architect.download_file(f_obj["filename"], save_dir)
 
         agent.handle_submit(packet.data)
 
