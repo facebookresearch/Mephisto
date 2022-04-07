@@ -10,4 +10,4 @@ mephisto:
     num_conversations: 1
   task:
     # We expect to be able to handle 25 concurrent conversations without issue
-    max_num_concurrent_units: 50
+    max_num_concurrent_units: 50 # 25 convos * 2 people per
