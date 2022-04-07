@@ -97,6 +97,10 @@ class StaticAgentState(AgentState):
     def update_submit(self, submission_data: Dict[str, Any]) -> None:
         """Move the submitted output to the local dict"""
         outputs: Dict[str, Any]
+        assert isinstance(submission_data, dict), (
+            "Static tasks must get dict results. Ensure you are passing an object to "
+            f"your frontend task's `handleSubmit` method. Got {submission_data}"
+        )
         output_files = submission_data.get("files")
         if output_files is not None:
             submission_data["files"] = [f["filename"] for f in submission_data["files"]]
