@@ -214,7 +214,7 @@ function HtmlRenderer({ html, data, mephisto_keys }) {
     if (scripts_to_load.length > 0) {
       handleUpdatingRemainingScripts(0, scripts_to_load);
     }
-  }, [elRef.current]);
+  }, [elRef.current, html]);
 
   return (
     <div
