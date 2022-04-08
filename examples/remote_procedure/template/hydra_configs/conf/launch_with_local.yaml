@@ -20,3 +20,6 @@ mephisto:
     task_reward: 0.05
     # NOTE will want real tags
     task_tags: "test,task,fix-me"
+    # NOTE Model-in-the-loop tasks need to be careful to configure only as many concurrent
+    # connections as their model can handle at once
+    max_num_concurrent_units: 40

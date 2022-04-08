@@ -15,3 +15,5 @@ mephisto:
     task_description: "In this task, you'll be given a sentence. It is your job to rate it as either good or bad."
     task_reward: 0.05
     task_tags: "test,simple,button"
+    # We expect to be able to handle 300 concurrent tasks without issue
+    max_num_concurrent_units: 300
