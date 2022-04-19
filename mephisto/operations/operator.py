@@ -413,7 +413,7 @@ class Operator:
                 )
 
             def cant_cancel_expirations(self, sig, frame):
-                logging.warn(
+                logger.warn(
                     "Ignoring ^C during unit expirations. ^| if you NEED to exit and you will "
                     "have to clean up units that hadn't been expired afterwards."
                 )

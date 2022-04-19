@@ -7,7 +7,7 @@ sudo yum install -y httpd >> /home/ec2-user/routing_server/setup/setup_log.txt 2
 echo "Downloading Node..."
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash >> /home/ec2-user/routing_server/setup/setup_log.txt 2>&1
 . ~/.nvm/nvm.sh >> /home/ec2-user/routing_server/setup/setup_log.txt 2>&1
-nvm install node >> /home/ec2-user/routing_server/setup/setup_log.txt 2>&1
+nvm install v16.14.2 >> /home/ec2-user/routing_server/setup/setup_log.txt 2>&1
 
 echo "Installing router modules..."
 cd /home/ec2-user/routing_server/router/
