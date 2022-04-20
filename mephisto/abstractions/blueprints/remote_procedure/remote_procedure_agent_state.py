@@ -87,9 +87,11 @@ class RemoteProcedureAgentState(AgentState):
         agent_file = self._get_expected_data_file()
         with open(agent_file, "r") as state_json:
             state = json.load(state_json)
-            self.requests = {x["uuid"]: x for x in state["requests"]}
+            self.requests = {x["uuid"]: RemoteRequest(**x) for x in state["requests"]}
             self.init_data = state["init_data"]
-            self.outputs = state["final_submission"]
+            self.final_submission = state["final_submission"]
+            self.start_time = state["start_time"]
+            self.end_time = state["end_time"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
