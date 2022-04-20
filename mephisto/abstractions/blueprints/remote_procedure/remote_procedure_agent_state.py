@@ -47,7 +47,7 @@ class RemoteProcedureAgentState(AgentState):
         else:
             self.requests: Dict[str, RemoteRequest] = {}
             self.start_time = time.time()
-            self.end_time = -1
+            self.end_time = -1.0
             self.init_data: Optional[Dict[str, Any]] = None
             self.final_submission: Optional[Dict[str, Any]] = None
             self.save_data()
