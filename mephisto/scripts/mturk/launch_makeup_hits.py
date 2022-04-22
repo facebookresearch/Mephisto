@@ -22,7 +22,7 @@ from mephisto.data_model.assignment import (
     AssignmentState,
 )
 from mephisto.data_model.unit import Unit
-from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.data_model.qualification import QUAL_EXISTS
 from mephisto.utils.qualifications import make_qualification_dict
 from mephisto.operations.task_launcher import COMPENSATION_UNIT_INDEX
 from mephisto.abstractions.providers.mturk.mturk_provider import MTurkProviderArgs
