@@ -84,7 +84,9 @@ def setup_aws_credentials(
                     ] = "aws_access_key_id={}".format(register_args.access_key_id)
                     aws_credentials[
                         credentialIndex + 2
-                    ] = "aws_secret_access_key={}".format(register_args.secret_access_key)
+                    ] = "aws_secret_access_key={}".format(
+                        register_args.secret_access_key
+                    )
                     break
 
             with open(expanded_aws_file_path, "w") as aws_credentials_file:
