@@ -103,6 +103,7 @@ class WorkerPool:
         self.agents: Dict[str, "Agent"] = {}
         self.onboarding_agents: Dict[str, "OnboardingAgent"] = {}
         self.onboarding_infos: Dict[str, OnboardingInfo] = {}
+        self.final_onboardings: Dict[str, "OnboardingAgent"] = {}
         # Agent status handling
         self.last_status_check = time.time()
 
@@ -132,6 +133,11 @@ class WorkerPool:
             return self.agents[agent_id]
         elif agent_id in self.onboarding_agents:
             return self.onboarding_agents[agent_id]
+        elif agent_id in self.final_onboardings:
+            logger.debug(
+                f"Found agent id {agent_id} in final_onboardings for get_agent_for_id"
+            )
+            return self.final_onboardings[agent_id]
         return None
 
     async def register_worker(
@@ -516,7 +522,9 @@ class WorkerPool:
                 )
 
                 async def cleanup_onboarding():
+                    onboarding_agent = self.onboarding_agents[onboard_id]
                     del self.onboarding_agents[onboard_id]
+                    self.final_onboardings[onboard_id] = onboarding_agent
                     del self.onboarding_infos[onboard_id]
                     ACTIVE_ONBOARDINGS.dec()
 

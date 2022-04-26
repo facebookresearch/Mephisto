@@ -392,7 +392,7 @@ class Agent(
         old_status = self.db_status
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        if agent_in_active_run(self):
+        if self.agent_in_active_run():
             live_run = self.get_live_run()
             live_run.loop_wrap.execute_coro(
                 live_run.worker_pool.push_status_update(self)

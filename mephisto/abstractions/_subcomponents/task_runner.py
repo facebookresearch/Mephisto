@@ -299,6 +299,7 @@ class TaskRunner(ABC):
 
             self._cleanup_special_units(unit, agent)
             self.task_run.clear_reservation(unit)
+            agent.hide_state()
 
     def execute_assignment(
         self,
@@ -370,6 +371,7 @@ class TaskRunner(ABC):
                         agent.await_submit(timeout=self.args.task.submission_timeout)
                     agent.update_status(AgentState.STATUS_COMPLETED)
                     agent.mark_done()
+                agent.hide_state()
 
             for unit in assignment.get_units():
                 self.shared_state.on_unit_submitted(unit)

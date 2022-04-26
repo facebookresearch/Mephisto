@@ -191,6 +191,8 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         """
         config = self.get_task_args()
 
+        # TODO handle with temporary local qualifications to prevent
+        # needing to call expensive `find_units`
         if config.allowed_concurrent != 0 or config.maximum_units_per_worker:
             current_units = self.db.find_units(
                 task_run_id=self.db_id,
