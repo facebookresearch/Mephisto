@@ -639,9 +639,7 @@ class WorkerPool:
                     continue
                 if status != AgentState.STATUS_DISCONNECT:
                     # Stale or reconnect, send a status update
-                    live_run.loop_wrap.execute_coro(
-                        self.push_status_update(self.agents[agent_id])
-                    )
+                    live_run.loop_wrap.execute_coro(self.push_status_update(agent))
                     continue  # Only DISCONNECT can be marked remotely, rest are mismatch (except STATUS_COMPLETED)
                 agent.update_status(status)
         pass
@@ -652,9 +650,11 @@ class WorkerPool:
         to disconnected to clear their running tasks
         """
         for agent in self.agents.values():
-            agent.update_status(AgentState.STATUS_DISCONNECT)
+            if agent.get_status() not in AgentState.complete():
+                agent.update_status(AgentState.STATUS_DISCONNECT)
         for onboarding_agent in self.onboarding_agents.values():
-            onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
+            if agent.get_status() not in AgentState.complete():
+                onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
 
     def shutdown(self) -> None:
         """Mark shut down. Handle resource cleanup if necessary"""

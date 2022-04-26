@@ -26,7 +26,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 
-from typing import List, Optional, Tuple, Mapping, Dict, Any, cast, TYPE_CHECKING
+from typing import Union, List, Optional, Tuple, Mapping, Dict, Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -55,6 +55,18 @@ ACTIVE_WORKERS = Gauge(
     "Tracking of active workers and how many agents they have",
     ["worker_id", "agent_type"],
 )
+
+
+def agent_in_active_run(agent: Union["Agent", "OnboardingAgent"]) -> bool:
+    """
+    Returns whether the given agent is in an active LiveTaskRun
+    and can have status updates
+    """
+    if agent._associated_live_run is None:
+        return False  # No live run
+    if agent._associated_live_run.client_io.is_shutdown:
+        return False  # Live run, but is shutdown
+    return True
 
 
 # TODO(CLEAN) can probably refactor out some kind of AgentBase
@@ -239,7 +251,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         old_status = self.db_status
         self.db.update_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        if self._associated_live_run is not None:
+        if agent_in_active_run(self):
             live_run = self.get_live_run()
             live_run.loop_wrap.execute_coro(
                 live_run.worker_pool.push_status_update(self)
@@ -322,7 +334,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
             live_update["update_id"] = str(uuid4())
         self.state.update_data(live_update)
 
-        if self._associated_live_run is not None:
+        if agent_in_active_run(self):
             live_run = self.get_live_run()
             live_run.client_io.send_live_update(self.get_agent_id(), live_update)
 
@@ -395,7 +407,7 @@ class Agent(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
                 ]:
                     # Disconnect statuses should free any pending acts
                     self.has_live_update.set()
-                if self._associated_live_run is not None:
+                if agent_in_active_run(self):
                     live_run = self.get_live_run()
                     live_run.loop_wrap.execute_coro(
                         live_run.worker_pool.push_status_update(self)
@@ -591,7 +603,7 @@ class OnboardingAgent(
         old_status = self.db_status
         self.db.update_onboarding_agent(self.db_id, status=new_status)
         self.db_status = new_status
-        if self._associated_live_run is not None:
+        if agent_in_active_run(self):
             if new_status not in [
                 AgentState.STATUS_APPROVED,
                 AgentState.STATUS_REJECTED,
@@ -625,7 +637,7 @@ class OnboardingAgent(
             live_update["update_id"] = str(uuid4())
         self.state.update_data(live_update)
 
-        if self._associated_live_run is not None:
+        if agent_in_active_run(self):
             live_run = self.get_live_run()
             live_run.client_io.send_live_update(self.get_agent_id(), live_update)
 
@@ -702,7 +714,7 @@ class OnboardingAgent(
                     AgentState.STATUS_APPROVED,
                     AgentState.STATUS_REJECTED,
                 ]:
-                    if self._associated_live_run is not None:
+                    if agent_in_active_run(self):
                         live_run = self.get_live_run()
                         live_run.loop_wrap.execute_coro(
                             live_run.worker_pool.push_status_update(self)

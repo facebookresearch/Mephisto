@@ -111,13 +111,10 @@ class ClientIOHandler:
         server_timestamp = packet.server_timestamp
         response_timestamp = time.time()
         if router_outgoing_timestamp is None:
-            print(packet, "no outgoing timestamp")
             router_outgoing_timestamp = server_timestamp
         if router_incoming_timestamp is None:
-            print(packet, "no incoming timestamp")
             router_incoming_timestamp = router_outgoing_timestamp
         if client_timestamp is None:
-            print(packet, "no client timestamp")
             client_timestamp = router_incoming_timestamp
         client_to_router = max(0, router_incoming_timestamp - client_timestamp)
         router_processing = max(
@@ -261,7 +258,7 @@ class ClientIOHandler:
         """Handle an action as sent from an agent, enqueuing to the agent"""
         live_run = self.get_live_run()
         agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
-        assert agent is not None, "Could not find given agent!"
+        assert agent is not None, f"Could not find given agent: {packet.subject_id}"
 
         agent.pending_actions.put(packet.data)
         agent.has_live_update.set()
