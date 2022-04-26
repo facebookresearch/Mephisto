@@ -111,13 +111,10 @@ class ClientIOHandler:
         server_timestamp = packet.server_timestamp
         response_timestamp = time.time()
         if router_outgoing_timestamp is None:
-            print(packet, "no outgoing timestamp")
             router_outgoing_timestamp = server_timestamp
         if router_incoming_timestamp is None:
-            print(packet, "no incoming timestamp")
             router_incoming_timestamp = router_outgoing_timestamp
         if client_timestamp is None:
-            print(packet, "no client timestamp")
             client_timestamp = router_incoming_timestamp
         client_to_router = max(0, router_incoming_timestamp - client_timestamp)
         router_processing = max(
