@@ -652,9 +652,11 @@ class WorkerPool:
         to disconnected to clear their running tasks
         """
         for agent in self.agents.values():
-            agent.update_status(AgentState.STATUS_DISCONNECT)
+            if agent.get_status() not in AgentState.complete():
+                agent.update_status(AgentState.STATUS_DISCONNECT)
         for onboarding_agent in self.onboarding_agents.values():
-            onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
+            if agent.get_status() not in AgentState.complete():
+                onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
 
     def shutdown(self) -> None:
         """Mark shut down. Handle resource cleanup if necessary"""
