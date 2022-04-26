@@ -261,7 +261,7 @@ class ClientIOHandler:
         """Handle an action as sent from an agent, enqueuing to the agent"""
         live_run = self.get_live_run()
         agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
-        assert agent is not None, "Could not find given agent!"
+        assert agent is not None, f"Could not find given agent: {packet.subject_id}"
 
         agent.pending_actions.put(packet.data)
         agent.has_live_update.set()
