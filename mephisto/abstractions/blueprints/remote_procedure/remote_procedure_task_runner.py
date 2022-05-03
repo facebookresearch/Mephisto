@@ -48,6 +48,9 @@ class RemoteProcedureTaskRunner(TaskRunner):
         # TODO load up the possible functions from the shared_state
         self.is_concurrent = False  # This task is 1 person w/ backend
         self.function_registry = shared_state.function_registry
+        self.assignment_duration_in_seconds = (
+            task_run.get_task_args().assignment_duration_in_seconds
+        )
 
     def get_init_data_for_agent(self, agent: "Agent") -> Dict[str, Any]:
         """
@@ -112,14 +115,18 @@ class RemoteProcedureTaskRunner(TaskRunner):
         Running onboarding with access to remote queries
         """
         # Run the server while the task isn't submitted yet
+        start_time = time.time()
         while (
             not agent.await_submit(timeout=None)
             and agent.get_agent_id() in self.running_onboardings
+            and time.time() - start_time < self.assignment_duration_in_seconds
         ):
             self._run_server_timestep_for_agent(agent)
 
-        while not agent.await_submit(timeout=None):
-            time.sleep(0.3)
+        remaining_time = self.assignment_duration_in_seconds - (
+            time.time() - start_time
+        )
+        agent.await_submit(timeout=remaining_time)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
         """Shutdown onboarding resources"""
@@ -129,11 +136,18 @@ class RemoteProcedureTaskRunner(TaskRunner):
         """
         Running a task with access to remote queries
         """
-        while not agent.await_submit(timeout=None) and unit.db_id in self.running_units:
+        start_time = time.time()
+        while (
+            not agent.await_submit(timeout=None)
+            and unit.db_id in self.running_units
+            and time.time() - start_time < self.assignment_duration_in_seconds
+        ):
             self._run_server_timestep_for_agent(agent)
 
-        while not agent.await_submit(timeout=None):
-            time.sleep(0.3)
+        remaining_time = self.assignment_duration_in_seconds - (
+            time.time() - start_time
+        )
+        agent.await_submit(timeout=remaining_time)
 
     def cleanup_unit(self, unit: "Unit") -> None:
         """Handle cleanup for a specific unit"""

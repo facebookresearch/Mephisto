@@ -392,19 +392,29 @@ class WorkerPool:
         worker = agent.get_worker()
         AGENT_DETAILS_COUNT.labels(response="reconnection").inc()
         if isinstance(agent, OnboardingAgent):
-            blueprint = live_run.blueprint
-            assert (
-                isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
-            )
-            onboard_data = blueprint.get_onboarding_data(worker.db_id)
-            live_run.client_io.enqueue_agent_details(
-                request_id,
-                AgentDetails(
-                    worker_id=worker.db_id,
-                    agent_id=agent.get_agent_id(),
-                    init_task_data=onboard_data,
-                ).to_dict(),
-            )
+            if agent.get_status() == AgentState.STATUS_REJECTED:
+                # Rejected agent should get failed response
+                live_run.client_io.enqueue_agent_details(
+                    request_id,
+                    AgentDetails(
+                        failure_reason=WorkerFailureReasons.NOT_QUALIFIED
+                    ).to_dict(),
+                )
+            else:
+                blueprint = live_run.blueprint
+                assert (
+                    isinstance(blueprint, OnboardingRequired)
+                    and blueprint.use_onboarding
+                )
+                onboard_data = blueprint.get_onboarding_data(worker.db_id)
+                live_run.client_io.enqueue_agent_details(
+                    request_id,
+                    AgentDetails(
+                        worker_id=worker.db_id,
+                        agent_id=agent.get_agent_id(),
+                        init_task_data=onboard_data,
+                    ).to_dict(),
+                )
         else:
             # TODO(#649) this is IO bound
             with EXTERNAL_FUNCTION_LATENCY.labels(
@@ -635,6 +645,9 @@ class WorkerPool:
         for agent_id, status in status_map.items():
             if status not in AgentState.valid():
                 logger.warning(f"Invalid status for agent {agent_id}: {status}")
+                continue
+            if agent_id in self.final_onboardings:
+                # no longer tracking this onboarding
                 continue
             agent = self.get_agent_for_id(agent_id)
             if agent is None:

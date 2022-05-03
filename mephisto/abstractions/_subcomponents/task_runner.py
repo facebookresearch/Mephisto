@@ -226,6 +226,7 @@ class TaskRunner(ABC):
             args=(unit, agent),
             name=f"Unit-thread-{unit.db_id}",
         )
+        agent.update_status(AgentState.STATUS_IN_TASK)
         self.running_units[unit.db_id] = RunningUnit(
             unit=unit,
             agent=agent,
