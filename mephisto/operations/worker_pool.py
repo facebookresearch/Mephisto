@@ -674,8 +674,7 @@ class WorkerPool:
             if agent.get_status() not in AgentState.complete():
                 agent.update_status(AgentState.STATUS_DISCONNECT)
         for onboarding_agent in self.onboarding_agents.values():
-            if agent.get_status() not in AgentState.complete():
-                onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
+            onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
 
     def shutdown(self) -> None:
         """Mark shut down. Handle resource cleanup if necessary"""

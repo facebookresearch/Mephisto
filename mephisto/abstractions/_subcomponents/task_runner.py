@@ -372,7 +372,6 @@ class TaskRunner(ABC):
                         agent.await_submit(timeout=self.args.task.submission_timeout)
                     agent.update_status(AgentState.STATUS_COMPLETED)
                     agent.mark_done()
-                agent.hide_state()
 
             for unit in assignment.get_units():
                 self.shared_state.on_unit_submitted(unit)
@@ -382,6 +381,9 @@ class TaskRunner(ABC):
             task_run = self.task_run
             for unit in assignment.get_units():
                 task_run.clear_reservation(unit)
+
+            for agent in agents:
+                agent.hide_state()
 
     @staticmethod
     def get_data_for_assignment(assignment: "Assignment") -> "InitializationData":

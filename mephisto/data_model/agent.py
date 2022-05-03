@@ -243,6 +243,7 @@ class _AgentBase(ABC):
         """
         logger.debug(f"{self} is shutting down")
         self.has_live_update.set()
+        self.did_submit.set()
         self.is_shutdown = True
 
     def __repr__(self) -> str:
