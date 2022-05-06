@@ -226,9 +226,14 @@ class _AgentBase(ABC):
         return self.get_live_update(timeout)
 
     def await_submit(self, timeout: Optional[int] = None) -> bool:
-        """Blocking wait for this agent to submit their task"""
+        """
+        Blocking wait for this agent to submit their task
+        If timeout is provided and exceeded, raises AgentTimeoutError
+        """
         if timeout is not None:
             self.did_submit.wait(timeout=timeout)
+            if not self.did_submit.is_set():
+                raise AgentTimeoutError(timeout, self.db_id)
         return self.did_submit.is_set()
 
     def handle_submit(self, submit_data: Dict[str, Any]) -> None:
