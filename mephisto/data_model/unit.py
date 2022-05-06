@@ -244,6 +244,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         """Clear the agent that is assigned to this unit"""
         logger.debug(f"Clearing assigned agent {self.agent_id} from {self}")
         self.db.clear_unit_agent_assignment(self.db_id)
+        self.set_db_status(AssignmentState.LAUNCHED)
         self.get_task_run().clear_reservation(self)
         self.agent_id = None
         self.__agent = None

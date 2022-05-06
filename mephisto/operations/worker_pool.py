@@ -400,6 +400,14 @@ class WorkerPool:
                         failure_reason=WorkerFailureReasons.NOT_QUALIFIED
                     ).to_dict(),
                 )
+            elif agent.get_status() == AgentState.STATUS_DISCONNECT:
+                # Disconnected agent should get missing response
+                live_run.client_io.enqueue_agent_details(
+                    request_id,
+                    AgentDetails(
+                        failure_reason=WorkerFailureReasons.TASK_MISSING,
+                    ).to_dict(),
+                )
             else:
                 blueprint = live_run.blueprint
                 assert (
