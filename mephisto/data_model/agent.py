@@ -231,8 +231,18 @@ class _AgentBase(ABC):
         If timeout is provided and exceeded, raises AgentTimeoutError
         """
         if timeout is not None:
+            # Handle disconnect possibilities first
+            status = self.get_status()
+            if status == AgentState.STATUS_DISCONNECT:
+                raise AgentDisconnectedError(self.db_id)
+            elif status == AgentState.STATUS_RETURNED:
+                raise AgentReturnedError(self.db_id)
+            elif status == AgentState.STATUS_TIMEOUT:
+                raise AgentTimeoutError(self.db_id)
+            # Wait for the status change
             self.did_submit.wait(timeout=timeout)
             if not self.did_submit.is_set():
+                # If released without submit, raise timeout
                 raise AgentTimeoutError(timeout, self.db_id)
         return self.did_submit.is_set()
 
