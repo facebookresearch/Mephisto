@@ -20,7 +20,7 @@ $ pip install -e .
 
 ```bash
 # install poetry
-$ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/main/get-poetry.py | python
+$ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 # from the root dir, install Mephisto:
 $ poetry install
 ```
