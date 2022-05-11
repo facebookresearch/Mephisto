@@ -72,7 +72,7 @@ class MockTaskRunner(TaskRunner):
         packet = agent.get_live_update(timeout=self.timeout)
         if packet is not None:
             agent.observe(packet)
-        agent.await_submit(self.timeout)
+        agent.await_submit(self.args.task.submission_timeout)
         del self.tracked_tasks[unit.db_id]
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]):
@@ -95,7 +95,7 @@ class MockTaskRunner(TaskRunner):
             if packet is not None:
                 agent.observe(packet)
         for agent in agents:
-            agent.await_submit(self.timeout)
+            agent.await_submit(self.args.task.submission_timeout)
         del self.tracked_tasks[assignment.db_id]
 
     def cleanup_assignment(self, assignment: "Assignment"):

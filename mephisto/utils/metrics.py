@@ -121,7 +121,7 @@ def start_metrics_server(args: Optional["DictConfig"] = None):
     Future work will extend our metrics logging configuration.
     """
     try:
-        start_http_server(3031)
+        start_http_server(3131)
     except Exception as e:
         logger.exception(
             "Could not launch prometheus metrics client, perhaps a process is already running on 3031? "
