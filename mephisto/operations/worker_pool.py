@@ -103,6 +103,7 @@ class WorkerPool:
         self.agents: Dict[str, "Agent"] = {}
         self.onboarding_agents: Dict[str, "OnboardingAgent"] = {}
         self.onboarding_infos: Dict[str, OnboardingInfo] = {}
+        self.final_onboardings: Dict[str, "OnboardingAgent"] = {}
         # Agent status handling
         self.last_status_check = time.time()
 
@@ -132,6 +133,11 @@ class WorkerPool:
             return self.agents[agent_id]
         elif agent_id in self.onboarding_agents:
             return self.onboarding_agents[agent_id]
+        elif agent_id in self.final_onboardings:
+            logger.debug(
+                f"Found agent id {agent_id} in final_onboardings for get_agent_for_id"
+            )
+            return self.final_onboardings[agent_id]
         return None
 
     async def register_worker(
@@ -386,19 +392,37 @@ class WorkerPool:
         worker = agent.get_worker()
         AGENT_DETAILS_COUNT.labels(response="reconnection").inc()
         if isinstance(agent, OnboardingAgent):
-            blueprint = live_run.blueprint
-            assert (
-                isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
-            )
-            onboard_data = blueprint.get_onboarding_data(worker.db_id)
-            live_run.client_io.enqueue_agent_details(
-                request_id,
-                AgentDetails(
-                    worker_id=worker.db_id,
-                    agent_id=agent.get_agent_id(),
-                    init_task_data=onboard_data,
-                ).to_dict(),
-            )
+            if agent.get_status() == AgentState.STATUS_REJECTED:
+                # Rejected agent should get failed response
+                live_run.client_io.enqueue_agent_details(
+                    request_id,
+                    AgentDetails(
+                        failure_reason=WorkerFailureReasons.NOT_QUALIFIED
+                    ).to_dict(),
+                )
+            elif agent.get_status() == AgentState.STATUS_DISCONNECT:
+                # Disconnected agent should get missing response
+                live_run.client_io.enqueue_agent_details(
+                    request_id,
+                    AgentDetails(
+                        failure_reason=WorkerFailureReasons.TASK_MISSING,
+                    ).to_dict(),
+                )
+            else:
+                blueprint = live_run.blueprint
+                assert (
+                    isinstance(blueprint, OnboardingRequired)
+                    and blueprint.use_onboarding
+                )
+                onboard_data = blueprint.get_onboarding_data(worker.db_id)
+                live_run.client_io.enqueue_agent_details(
+                    request_id,
+                    AgentDetails(
+                        worker_id=worker.db_id,
+                        agent_id=agent.get_agent_id(),
+                        init_task_data=onboard_data,
+                    ).to_dict(),
+                )
         else:
             # TODO(#649) this is IO bound
             with EXTERNAL_FUNCTION_LATENCY.labels(
@@ -516,7 +540,9 @@ class WorkerPool:
                 )
 
                 async def cleanup_onboarding():
+                    onboarding_agent = self.onboarding_agents[onboard_id]
                     del self.onboarding_agents[onboard_id]
+                    self.final_onboardings[onboard_id] = onboarding_agent
                     del self.onboarding_infos[onboard_id]
                     ACTIVE_ONBOARDINGS.dec()
 
@@ -628,6 +654,9 @@ class WorkerPool:
             if status not in AgentState.valid():
                 logger.warning(f"Invalid status for agent {agent_id}: {status}")
                 continue
+            if agent_id in self.final_onboardings:
+                # no longer tracking this onboarding
+                continue
             agent = self.get_agent_for_id(agent_id)
             if agent is None:
                 # no longer tracking agent
@@ -653,8 +682,7 @@ class WorkerPool:
             if agent.get_status() not in AgentState.complete():
                 agent.update_status(AgentState.STATUS_DISCONNECT)
         for onboarding_agent in self.onboarding_agents.values():
-            if agent.get_status() not in AgentState.complete():
-                onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
+            onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
 
     def shutdown(self) -> None:
         """Mark shut down. Handle resource cleanup if necessary"""

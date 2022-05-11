@@ -169,7 +169,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         ), f"{status} not valid Assignment Status, not in {AssignmentState.valid_unit()}"
         if status == self.db_status:
             return
-        logger.debug(f"Updating status for {self} to {status}")
+        logger.debug(f"Updating status for {self} from {self.db_status} to {status}")
         ACTIVE_UNIT_STATUSES.labels(
             status=self.db_status, unit_type=INDEX_TO_TYPE_MAP[self.unit_index]
         ).dec()
@@ -244,6 +244,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         """Clear the agent that is assigned to this unit"""
         logger.debug(f"Clearing assigned agent {self.agent_id} from {self}")
         self.db.clear_unit_agent_assignment(self.db_id)
+        self.set_db_status(AssignmentState.LAUNCHED)
         self.get_task_run().clear_reservation(self)
         self.agent_id = None
         self.__agent = None

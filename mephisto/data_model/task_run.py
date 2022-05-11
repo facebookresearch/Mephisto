@@ -191,6 +191,9 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         """
         config = self.get_task_args()
 
+        # TODO(#773) handle with temporary local qualifications to allow
+        # pushing real exclusionary qualifications after exceeding
+        # maximum_units_per_worker
         if config.allowed_concurrent != 0 or config.maximum_units_per_worker:
             current_units = self.db.find_units(
                 task_run_id=self.db_id,
@@ -236,11 +239,14 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
             if not any(is_self_set):
                 units += unit_set
+
         # Valid units must be launched and must not be special units (negative indices)
+        # Can use db_status directly rather than polling in the critical path, as in
+        # the worst case we miss the transition from an active to launched unit
         valid_units = [
             u
             for u in units
-            if u.get_status() == AssignmentState.LAUNCHED and u.unit_index >= 0
+            if u.db_status == AssignmentState.LAUNCHED and u.unit_index >= 0
         ]
         logger.debug(f"Found {len(valid_units)} available units")
 

@@ -254,6 +254,7 @@ class MTurkUnit(Unit):
                 # Treat this as a return event, this hit may be doable by someone else
                 agent = self.get_assigned_agent()
                 if agent is not None and agent.get_status() in [
+                    AgentState.STATUS_ACCEPTED,
                     AgentState.STATUS_IN_TASK,
                     AgentState.STATUS_ONBOARDING,
                     AgentState.STATUS_WAITING,

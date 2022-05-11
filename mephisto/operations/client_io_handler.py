@@ -296,6 +296,12 @@ class ClientIOHandler:
                 f"Onboarding agent {onboarding_id} already submitted or disconnected, "
                 f"but is calling _on_submit_onboarding again"
             )
+            # On resubmit, ensure that the client has the same status
+            agent = live_run.worker_pool.final_onboardings.get(onboarding_id)
+            if agent is not None:
+                live_run.loop_wrap.execute_coro(
+                    live_run.worker_pool.push_status_update(agent)
+                )
             return
         agent = live_run.worker_pool.get_agent_for_id(onboarding_id)
         assert agent is not None, f"Could not find given agent by id {onboarding_id}"

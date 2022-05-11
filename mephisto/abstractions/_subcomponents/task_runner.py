@@ -226,6 +226,7 @@ class TaskRunner(ABC):
             args=(unit, agent),
             name=f"Unit-thread-{unit.db_id}",
         )
+        agent.update_status(AgentState.STATUS_IN_TASK)
         self.running_units[unit.db_id] = RunningUnit(
             unit=unit,
             agent=agent,
@@ -299,6 +300,7 @@ class TaskRunner(ABC):
 
             self._cleanup_special_units(unit, agent)
             self.task_run.clear_reservation(unit)
+            agent.hide_state()
 
     def execute_assignment(
         self,
@@ -379,6 +381,9 @@ class TaskRunner(ABC):
             task_run = self.task_run
             for unit in assignment.get_units():
                 task_run.clear_reservation(unit)
+
+            for agent in agents:
+                agent.hide_state()
 
     @staticmethod
     def get_data_for_assignment(assignment: "Assignment") -> "InitializationData":

@@ -43,6 +43,7 @@ MOCK_TASK_ARGS = TaskRunArgs(
     task_description="This is a description",
     task_reward=0.3,
     task_tags="1,2,3",
+    submission_timeout=5,
 )
 
 
