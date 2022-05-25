@@ -420,7 +420,7 @@ def create_hit_type(
     """Create a HIT type to be used to generate HITs of the requested params"""
     hit_title = task_args.task_title
     hit_description = task_args.task_description
-    if isinstance(task_args.task_tags, str)
+    if isinstance(task_args.task_tags, str):
         hit_keywords = task_args.task_tags
     else:
         hit_keywords = ",".join(task_args.task_tags)
