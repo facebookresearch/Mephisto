@@ -420,7 +420,10 @@ def create_hit_type(
     """Create a HIT type to be used to generate HITs of the requested params"""
     hit_title = task_args.task_title
     hit_description = task_args.task_description
-    hit_keywords = ",".join(task_args.task_tags)
+    if isinstance(task_args.task_tags, str)
+        hit_keywords = task_args.task_tags
+    else:
+        hit_keywords = ",".join(task_args.task_tags)
     hit_reward = task_args.task_reward
     assignment_duration_in_seconds = task_args.assignment_duration_in_seconds
     existing_qualifications = convert_mephisto_qualifications(client, qualifications)
