@@ -36,17 +36,18 @@ from typing import List, Any, Dict
 def determine_toxicity(text):
     return Detoxify("original").predict(text)["toxicity"]
 
+
 @task_script(default_config_file="launch_with_local")
 def main(operator: Operator, cfg: DictConfig) -> None:
     tasks: List[Dict[str, Any]] = [{}] * cfg.num_tasks
 
-    function_registry = {
-        """ "classify_digit": handle_with_model, """
-    }
+    # function_registry = {
+    #     "classify_digit": handle_with_model,
+    # }
 
     shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,
-        function_registry=function_registry,
+        # function_registry=function_registry,
     )
 
     task_dir = cfg.task_dir

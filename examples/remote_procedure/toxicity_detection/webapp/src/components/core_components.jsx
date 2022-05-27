@@ -25,10 +25,7 @@ function Directions({ children }) {
   );
 }
 function Instructions() {
-  return (
-    <div>
-    </div>
-  );
+  return <div></div>;
 }
 
 function TaskFrontend({ handleSubmit }) {

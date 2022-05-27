@@ -20,7 +20,6 @@ import {
   ErrorBoundary,
 } from "mephisto-task";
 
-
 function RemoteProcedureApp() {
   let mephistoProps = useMephistoRemoteProcedureTask({});
 
@@ -58,9 +57,7 @@ function RemoteProcedureApp() {
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
         <div className="container-fluid" id="ui-container">
-          <BaseFrontend
-            handleSubmit={handleSubmit}
-          />
+          <BaseFrontend handleSubmit={handleSubmit} />
         </div>
       </MephistoContext.Provider>
     </ErrorBoundary>
