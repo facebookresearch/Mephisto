@@ -95,7 +95,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
         value={isCorrect !== true}
         onChange={() => setIsCorrect(!isCorrect)}
       />
-      {!isCorrect &&
+      {!isCorrect && (
         <Fragment>
           <br />
           Corrected Annotation:
@@ -107,8 +107,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
             onChange={(evt) => setTrueAnnotation(evt.target.value)}
           />
         </Fragment>
-      }
-
+      )}
     </div>
   );
 }
