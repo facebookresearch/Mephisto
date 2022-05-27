@@ -6,7 +6,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React from "react";
+import React, { Fragment } from "react";
 import CanvasDraw from "react-canvas-draw";
 
 function LoadingScreen() {
@@ -95,15 +95,20 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
         value={isCorrect !== true}
         onChange={() => setIsCorrect(!isCorrect)}
       />
-      <br />
-      Corrected Annotation:
-      <br />
-      <input
-        type="text"
-        disabled={currentAnnotation === null}
-        value={trueAnnotation}
-        onChange={(evt) => setTrueAnnotation(evt.target.value)}
-      />
+      {!isCorrect &&
+        <Fragment>
+          <br />
+          Corrected Annotation:
+          <br />
+          <input
+            type="text"
+            disabled={currentAnnotation === null}
+            value={trueAnnotation}
+            onChange={(evt) => setTrueAnnotation(evt.target.value)}
+          />
+        </Fragment>
+      }
+
     </div>
   );
 }
