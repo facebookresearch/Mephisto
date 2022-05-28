@@ -33,21 +33,44 @@ from omegaconf import DictConfig
 from typing import List, Any, Dict
 
 
-def determine_toxicity(text):
+def build_tasks(num_tasks):
+    """
+    Create a set of tasks you want annotated
+    """
+    # NOTE These form the init_data for a task
+    tasks = []
+    for x in range(num_tasks):
+        tasks.append(
+            {
+                "index": x,
+                "local_value_key": x,
+            }
+        )
+    return tasks
+
+
+def determine_toxicity(text: str):
     return Detoxify("original").predict(text)["toxicity"]
 
 
 @task_script(default_config_file="launch_with_local")
 def main(operator: Operator, cfg: DictConfig) -> None:
-    tasks: List[Dict[str, Any]] = [{}] * cfg.num_tasks
+    tasks = build_tasks(cfg.num_tasks)
 
-    # function_registry = {
-    #     "classify_digit": handle_with_model,
-    # }
+    def handle_with_model(
+        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
+    ) -> Dict[str, Any]:
+        print(args)
+        return {
+            "toxicity": str(determine_toxicity(args['text'])),
+        }
+    function_registry = {
+        "determine_toxicity": handle_with_model
+    }
 
     shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,
-        # function_registry=function_registry,
+        function_registry=function_registry,
     )
 
     task_dir = cfg.task_dir
@@ -58,5 +81,4 @@ def main(operator: Operator, cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    if(len(sys.argv) > 1):
-        print(determine_toxicity(sys.argv[1]))
+    main()

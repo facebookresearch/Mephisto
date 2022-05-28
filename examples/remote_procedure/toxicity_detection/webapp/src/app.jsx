@@ -36,6 +36,7 @@ function RemoteProcedureApp() {
     handleFatalError,
   } = mephistoProps;
 
+  const handleToxicityCalculation = remoteProcedure("determine_toxicity");
   if (isOnboarding) {
     // TODO You can use this as an opportunity to display anything you want for
     // an onboarding agent
@@ -56,8 +57,15 @@ function RemoteProcedureApp() {
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
-        <div className="container-fluid" id="ui-container">
-          <BaseFrontend handleSubmit={handleSubmit} />
+        <div
+          className="container-fluid"
+          id="ui-container"
+          style={{ padding: "1rem 1.5rem" }}
+        >
+          <BaseFrontend
+            handleSubmit={handleSubmit}
+            handleToxicityCalculation={handleToxicityCalculation}
+          />
         </div>
       </MephistoContext.Provider>
     </ErrorBoundary>
