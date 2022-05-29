@@ -7,7 +7,6 @@
  */
 
 import React, { Fragment, useState } from "react";
-import CanvasDraw from "react-canvas-draw";
 
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;

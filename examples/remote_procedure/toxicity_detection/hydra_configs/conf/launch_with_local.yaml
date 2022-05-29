@@ -13,12 +13,12 @@ mephisto:
   task:
     allowed_concurrent: 1
     task_name: remote-procedure-test-task
-    task_title: "Provide feedback on our MNIST model"
+    task_title: "Provide feedback on our toxicity detection model"
     # NOTE you'll want to update your task description
-    task_description: "You will draw digits. Try to fool our MNIST model, and provide us the correct label."
+    task_description: "Type text into the input box. You will not be able to submit your message to the backend if the message is too toxic (>0.5)."
     # NOTE set a reasonable reward
     task_reward: 0.05
     # NOTE will want real tags
-    task_tags: "mnist,drawing,models,correction"
-    # We expect to handle 25 people using the MNIST model at once
+    task_tags: "detoxify,input,toxic"
+    # We expect to handle 25 people using the Toxicity Detection model at once
     max_num_concurrent_units: 25

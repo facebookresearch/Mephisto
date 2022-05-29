@@ -38,10 +38,6 @@ function RemoteProcedureApp() {
 
   const handleToxicityCalculation = remoteProcedure("determine_toxicity");
   if (isOnboarding) {
-    // TODO You can use this as an opportunity to display anything you want for
-    // an onboarding agent
-
-    // At the moment, this task has no onboarding
     return <h1>This task doesn't currently have an onboarding example set</h1>;
   }
   if (blockedReason !== null) {
