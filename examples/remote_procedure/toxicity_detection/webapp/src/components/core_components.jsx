@@ -41,7 +41,7 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState("");
-  const [toxicity, setToxicity] = useState("0");
+  const [toxicity, setToxicity] = useState(0);
 
   function calculateToxicity() {
     setIsLoading(true);
@@ -49,10 +49,15 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
       text: text,
     }).then((response) => {
       setIsLoading(false);
-      setToxicity(response.toxicity);
-      setResult(
-        `The statement, "${text}," has a toxicity of: ${response.toxicity}`
-      );
+      const parsedToxicity = parseFloat(response.toxicity);
+      setToxicity(parsedToxicity);
+      if (parsedToxicity <= 0.5) {
+        handleSubmit({ toxicity: response.toxicity });
+      } else {
+        setResult(
+          `The statement, "${text}," has a toxicity of: ${response.toxicity}. This message is too toxic to submit.`
+        );
+      }
     });
   }
 
@@ -69,25 +74,26 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
         <textarea
           placeholder="type your text here"
           onChange={(e) => setText(e.target.value)}
-          style={{ margin: "0.5rem 0 1rem" }}
+          style={{
+            margin: "0.5rem 0 1rem",
+            minHeight: "5rem",
+            padding: "0.25rem 0.4rem",
+          }}
           disabled={isLoading}
         />
         <button
-          style={{ marginBottom: "0.5rem" }}
-          className="button"
-          disabled={isLoading || text.length === 0}
-          onClick={calculateToxicity}
-        >
-          {isLoading ? <span className="loader"></span> : "Calculate Toxicity"}
-        </button>
-        <div style={{ marginBottom: "0.5rem" }}>{result}</div>
-        <button
           className="button"
           disabled={isLoading}
-          onClick={() => handleSubmit({ toxicity: toxicity })}
+          onClick={() => calculateToxicity()}
+          style={{ marginBottom: "0.5rem" }}
         >
-          Submit Task
+          {isLoading ? <span className="loader"></span> : "Submit Task"}
         </button>
+        {toxicity > 0.5 && (
+          <div class="alert alert-danger" role="alert">
+            {result}
+          </div>
+        )}
       </div>
     </Fragment>
   );
