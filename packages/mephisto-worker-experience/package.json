@@ -1,18 +1,29 @@
 {
   "name": "mephisto-worker-experience",
   "version": "1.0.0",
-  "description": "Provides UI components to be used with Mephisto",
-  "main": "index.js",
+  "description": "A package that provides ui components for Mephisto",
+  "main": "./lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
   },
   "keywords": [
-    "mephisto"
+    "mephisto",
+    "meta",
+    "ai"
   ],
-  "author": "Etesam913",
+  "author": "etesam",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
+    "@babel/core": "^7.18.2",
+    "@babel/preset-env": "^7.18.2",
+    "@babel/preset-react": "^7.17.12",
+    "@babel/preset-stage-0": "^7.8.3",
+    "babel-loader": "^8.2.5",
+    "css-loader": "^6.7.1",
     "react": "^18.1.0",
-    "webpack": "^5.72.1"
+    "style-loader": "^3.3.1",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2"
   }
 }
