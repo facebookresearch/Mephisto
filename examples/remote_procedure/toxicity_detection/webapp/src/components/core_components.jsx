@@ -28,7 +28,7 @@ function Instructions() {
     <div>
       <h1>Toxicity Detection Model</h1>
       <p>
-        To submit this task, you'll need to enter a sentence of sentences in the
+        To submit this task, you'll need to enter one or many sentences in the
         input box below. The model will calculate the toxicity of the inputted
         text.
       </p>
@@ -57,7 +57,7 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
           `The statement, "${text}," has a toxicity of: ${response.toxicity}. This message is too toxic to submit.`
         );
       }
-    });
+    }).catch((err) => console.error(err));
   }
 
   return (
