@@ -46,18 +46,20 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
     setIsLoading(true);
     handleToxicityCalculation({
       text: text,
-    }).then((response) => {
-      setIsLoading(false);
-      const parsedToxicity = parseFloat(response.toxicity);
-      setToxicity(parsedToxicity);
-      if (parsedToxicity <= 0.5) {
-        handleSubmit({ toxicity: response.toxicity });
-      } else {
-        setResult(
-          `The statement, "${text}," has a toxicity of: ${response.toxicity}. This message is too toxic to submit.`
-        );
-      }
-    }).catch((err) => console.error(err));
+    })
+      .then((response) => {
+        setIsLoading(false);
+        const parsedToxicity = parseFloat(response.toxicity);
+        setToxicity(parsedToxicity);
+        if (parsedToxicity <= 0.5) {
+          handleSubmit({ toxicity: response.toxicity });
+        } else {
+          setResult(
+            `The statement, "${text}," has a toxicity of: ${response.toxicity}. This message is too toxic to submit.`
+          );
+        }
+      })
+      .catch((err) => console.error(err));
   }
 
   return (
