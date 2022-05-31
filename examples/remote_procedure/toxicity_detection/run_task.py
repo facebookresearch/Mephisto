@@ -5,19 +5,10 @@
 # LICENSE file in the root directory of this source tree.
 
 try:
-    import torch
-    from PIL import Image
     from detoxify import Detoxify
 except ImportError:
-    print(
-        "Need to have torch, PIL, numpy installed, detoxify to use this demo. For example: pip install torch pillow numpy detoxify"
-    )
+    print("Need to have detoxify to use this demo. For example: pip install detoxify")
     exit(1)
-
-import os
-import base64
-from io import BytesIO
-import sys
 
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import (
@@ -30,7 +21,7 @@ from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprin
 )
 
 from omegaconf import DictConfig
-from typing import List, Any, Dict
+from typing import Any, Dict
 
 
 def build_tasks(num_tasks):
@@ -60,13 +51,11 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     def handle_with_model(
         _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
     ) -> Dict[str, Any]:
-        print(args)
         return {
-            "toxicity": str(determine_toxicity(args['text'])),
+            "toxicity": str(determine_toxicity(args["text"])),
         }
-    function_registry = {
-        "determine_toxicity": handle_with_model
-    }
+
+    function_registry = {"determine_toxicity": handle_with_model}
 
     shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,
