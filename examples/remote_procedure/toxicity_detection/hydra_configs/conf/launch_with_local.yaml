@@ -1,0 +1,24 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: remote_procedure
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+mephisto:
+  blueprint:
+    task_source: ${task_dir}/webapp/build/bundle.js
+    link_task_source: false
+    # NOTE pick something based on your task
+    block_qualification: test_qual_block
+    units_per_assignment: 1
+  task:
+    allowed_concurrent: 1
+    task_name: remote-procedure-test-task
+    task_title: "Provide feedback on our toxicity detection model"
+    # NOTE you'll want to update your task description
+    task_description: "Type text into the input box. You will not be able to submit your message to the backend if the message is too toxic (>0.5)."
+    # NOTE set a reasonable reward
+    task_reward: 0.05
+    # NOTE will want real tags
+    task_tags: "detoxify,input,toxic,text"
+    # We expect to handle 25 people using the Toxicity Detection model at once
+    max_num_concurrent_units: 25
