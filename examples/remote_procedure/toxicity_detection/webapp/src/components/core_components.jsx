@@ -28,7 +28,7 @@ function Instructions() {
     <div>
       <h1>Toxicity Detection Model</h1>
       <p>
-        To submit this task, you'll need to enter a sentence of sentences in the
+        To submit this task, you'll need to enter one or many sentences in the
         input box below. The model will calculate the toxicity of the inputted
         text.
       </p>
@@ -41,23 +41,31 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState("");
   const [toxicity, setToxicity] = useState(0);
+  const [submitError, setSubmitError] = useState(null);
 
   function calculateToxicity() {
     setIsLoading(true);
     handleToxicityCalculation({
       text: text,
-    }).then((response) => {
-      setIsLoading(false);
-      const parsedToxicity = parseFloat(response.toxicity);
-      setToxicity(parsedToxicity);
-      if (parsedToxicity <= 0.5) {
-        handleSubmit({ toxicity: response.toxicity });
-      } else {
-        setResult(
-          `The statement, "${text}," has a toxicity of: ${response.toxicity}. This message is too toxic to submit.`
-        );
-      }
-    });
+    })
+      .then((response) => {
+        setSubmitError(null);
+        setIsLoading(false);
+        const parsedToxicity = parseFloat(response.toxicity);
+        setToxicity(parsedToxicity);
+        if (parsedToxicity <= 0.5) {
+          handleSubmit({ toxicity: response.toxicity });
+        } else {
+          setResult(
+            `The statement, "${text}," has a toxicity of: ${response.toxicity}. This message is too toxic to submit.`
+          );
+        }
+      })
+      .catch((err) => {
+        setIsLoading(false);
+        setSubmitError(err);
+        console.error(err);
+      });
   }
 
   return (
@@ -88,9 +96,14 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
         >
           {isLoading ? <span className="loader"></span> : "Submit Task"}
         </button>
-        {toxicity > 0.5 && (
-          <div class="alert alert-danger" role="alert">
+        {!submitError && toxicity > 0.5 && (
+          <div className="alert alert-danger" role="alert">
             {result}
+          </div>
+        )}
+        {submitError && (
+          <div className="alert alert-danger" role="alert">
+            {submitError?.reason}
           </div>
         )}
       </div>

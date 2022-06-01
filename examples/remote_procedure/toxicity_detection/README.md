@@ -1,5 +1,23 @@
-# Mephisto MNIST Model Evaluator demo
+# Mephisto Toxicity Detection Demo
+## Summary
 
-This task is a simple model evaluation demo, presenting the worker with three spaces to draw images in, running an MNIST model on them to predict an output, and then allowing the worker to assess and correct that output.
+This task presents the worker with a text input.
 
-Introduced in [#677](https://github.com/facebookresearch/Mephisto/pull/677), some screenshots and discussion there.
+Written text can only be submitted if its toxicity is is calculated to be <= 0.5. If the toxicity is > 0.5 an alert is shown and the text is not submitted.
+
+The toxicity of written text is calculated from the detoxify python library.
+
+## Steps to run demo
+
+To run the demo first detoxify has to be installed. This can be done using 
+
+```bash
+pip install detoxify
+```
+
+Then typing 
+```bash
+python run_task.py
+``` 
+
+should run the demo.
