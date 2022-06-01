@@ -12,3 +12,15 @@
 .tip:last-child{
   margin-bottom: 0;
 }
+
+.submit-button{
+  display: block;
+  margin-top: 0.75rem;
+}
+
+.tip-label{
+  display: block;
+  margin-top: 0.75rem;
+  cursor: pointer;
+  width: 100%;
+}

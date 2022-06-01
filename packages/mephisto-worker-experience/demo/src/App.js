@@ -7,6 +7,7 @@ function App() {
     <div className="card">
       <h1>Here Are Some Tips:</h1>
       <Tips
+        handleSubmit={() => console.log("Submitted!")}
         list={[
           {
             header: "Functional or Class Components?",
