@@ -41,6 +41,7 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState("");
   const [toxicity, setToxicity] = useState(0);
+  const [submitError, setSubmitError] = useState(null);
 
   function calculateToxicity() {
     setIsLoading(true);
@@ -48,6 +49,7 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
       text: text,
     })
       .then((response) => {
+        setSubmitError(null);
         setIsLoading(false);
         const parsedToxicity = parseFloat(response.toxicity);
         setToxicity(parsedToxicity);
@@ -59,7 +61,11 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
           );
         }
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        setIsLoading(false);
+        setSubmitError(err);
+        console.error(err);
+      });
   }
 
   return (
@@ -90,9 +96,14 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
         >
           {isLoading ? <span className="loader"></span> : "Submit Task"}
         </button>
-        {toxicity > 0.5 && (
-          <div class="alert alert-danger" role="alert">
+        {!submitError && toxicity > 0.5 && (
+          <div className="alert alert-danger" role="alert">
             {result}
+          </div>
+        )}
+        {submitError && (
+          <div className="alert alert-danger" role="alert">
+            {submitError?.reason}
           </div>
         )}
       </div>
