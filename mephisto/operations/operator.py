@@ -250,7 +250,16 @@ class Operator:
                 f"Task is using the default blueprint name {task_name} as a name, "
                 "as no task_name is provided"
             )
+
         tasks = self.db.find_tasks(task_name=task_name)
+        # remove below line after done
+        all_tasks = self.db.find_tasks()
+
+        print("tasks:")
+        for i in range(len(all_tasks)):
+            print("task_name:" + all_tasks[i].task_name)
+            print("---------")
+
         task_id = None
         if len(tasks) == 0:
             task_id = self.db.new_task(task_name, blueprint_type)
@@ -258,6 +267,17 @@ class Operator:
             task_id = tasks[0].db_id
 
         logger.info(f"Creating a task run under task name: {task_name}")
+
+        """ self.db.drop_table(table_name="tips") """
+        self.db.new_tip(task_name=task_name, tip_text="this is a sample tip")
+        tips = self.db.get_tip_by_task_name(task_name=task_name)
+
+        print("tips:")
+        for i in range(len(tips)):
+            print("tip_id:" + tips[i]["tip_id"])
+            print("task_name: " + tips[i]["task_name"])
+            print("tip_text: " + tips[i]["tip_text"])
+            print("---------")
 
         # Create a new task run
         new_run_id = self.db.new_task_run(

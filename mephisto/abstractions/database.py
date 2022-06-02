@@ -99,6 +99,8 @@ GET_GRANTED_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(
     method="get_granted_qualification"
 )
 REVOKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="revoke_qualification")
+NEW_TIP_LATENCY = DATABASE_LATENCY.labels(method="new_tip")
+GET_TIP_BY_TASK_NAME_LATENCY = DATABASE_LATENCY.labels(method="get_tip_by_task_name")
 
 
 class MephistoDB(ABC):
@@ -1059,3 +1061,32 @@ class MephistoDB(ABC):
         return self._revoke_qualification(
             qualification_id=qualification_id, worker_id=worker_id
         )
+
+    @abstractmethod
+    def _new_tip(self, task_name: str, tip_text: str) -> None:
+        raise NotImplementedError()
+
+    @NEW_TIP_LATENCY.time()
+    def new_tip(self, task_name: str, tip_text: str) -> None:
+        """
+        Remove the given qualification from the given worker
+        """
+        return self._new_tip(task_name=task_name, tip_text=tip_text)
+
+    @abstractmethod
+    def _drop_table(self, table_name: str) -> None:
+        raise NotImplementedError()
+    
+    def drop_table(self, table_name) -> None:
+        return self._drop_table(table_name=table_name)
+
+    @abstractmethod
+    def _get_tip_by_task_name(self, task_name: str) -> None:
+        raise NotImplementedError()
+
+    @GET_TIP_BY_TASK_NAME_LATENCY.time()
+    def get_tip_by_task_name(self, task_name: str) -> None:
+        """
+        Remove the given qualification from the given worker
+        """
+        return self._get_tip_by_task_name(task_name=task_name)

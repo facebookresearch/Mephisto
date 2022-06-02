@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from re import L
 from mephisto.abstractions.database import (
     MephistoDB,
     MephistoDBException,
@@ -207,6 +208,15 @@ CREATE TABLE IF NOT EXISTS granted_qualifications (
 );
 """
 
+CREATE_TIPS_TABLE = """
+CREATE TABLE IF NOT EXISTS tips(
+    tip_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_name TEXT NOT NULL,
+    tip_text TEXT NOT NULL,
+    FOREIGN KEY (task_name) REFERENCES tasks (task_name)
+)
+"""
+
 # Indices that are used by system-specific calls across Mephisto during live tasks
 # that improve the runtime of the system as a whole
 CREATE_CORE_INDEXES = """
@@ -287,6 +297,7 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
+                c.execute(CREATE_TIPS_TABLE)
                 c.executescript(CREATE_CORE_INDEXES)
 
     def __get_one_by_id(
@@ -1465,3 +1476,53 @@ class LocalMephistoDB(MephistoDB):
                 )
                 for r in rows
             ]
+
+    def _new_tip(self, task_name: str, tip_text: str):
+        if task_name in [""]:
+            raise MephistoDBException(f'Invalid task name "{task_name}')
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            try:
+                c.execute(
+                    """INSERT INTO tips(
+                        task_name,
+                        tip_text
+                    ) VALUES (?, ?);""",
+                    (
+                        task_name,
+                        tip_text,
+                    ),
+                )
+                tip_id = str(c.lastrowid)
+                return tip_id
+            except sqlite3.IntegrityError as e:
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException(e)
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException(e)
+                raise MephistoDBException(e)
+
+    def _get_tip_by_task_name(self, task_name: str):
+        if task_name in [""]:
+            raise MephistoDBException(f'Invalid task name "{task_name}')
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["task_name"],
+                [task_name],
+            )
+            c.execute(
+                """
+                SELECT * from tips
+                """
+                + additional_query,
+                arg_tuple,
+            )
+            rows = c.fetchall()
+            return rows
+
+    def _drop_table(self, table_name: str):
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute("DROP TABLE " + table_name)
