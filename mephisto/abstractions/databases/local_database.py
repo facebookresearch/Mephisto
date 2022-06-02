@@ -1502,7 +1502,11 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException(e)
                 raise MephistoDBException(e)
 
-    def _get_tip_by_task_name(self, task_name: str):
+    def _get_tip_by_task_name(self, task_name: Optional[str] = None):
+        """
+        Finds any tips that match the given task_name. When called with no task_name,
+        returns all tips.
+        """
         if task_name in [""]:
             raise MephistoDBException(f'Invalid task name "{task_name}')
         with self.table_access_condition, self._get_connection() as conn:
@@ -1521,7 +1525,16 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return rows
 
+    def _get_tip(self, tip_id: str) -> Mapping[str, Any]:
+        """
+        Returns tip's field by tip_id, raise EntryDoesNotExistException if no id exists in tips
+
+        Returns a SQLite Row object with the expected fields
+        """
+        return self.__get_one_by_id("tips", "tip_id", tip_id)
+
     def _drop_table(self, table_name: str):
+        """Drops a table given a table_name"""
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()

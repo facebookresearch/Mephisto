@@ -271,6 +271,7 @@ class Operator:
         """ self.db.drop_table(table_name="tips") """
         self.db.new_tip(task_name=task_name, tip_text="this is a sample tip")
         tips = self.db.get_tip_by_task_name(task_name=task_name)
+        all_tips = self.db.get_tip_by_task_name()
 
         print("tips:")
         for i in range(len(tips)):
