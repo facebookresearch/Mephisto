@@ -1,5 +1,3 @@
-import Tips from './Tips'
+import Tips from "./Tips";
 
-export {
-  Tips
-}
+export { Tips };
