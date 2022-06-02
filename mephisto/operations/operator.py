@@ -12,6 +12,7 @@ import threading
 import traceback
 import signal
 import asyncio
+from mephisto.data_model.tip import Tip
 
 from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
 
@@ -252,13 +253,6 @@ class Operator:
             )
 
         tasks = self.db.find_tasks(task_name=task_name)
-        # remove below line after done
-        all_tasks = self.db.find_tasks()
-
-        print("tasks:")
-        for i in range(len(all_tasks)):
-            print("task_name:" + all_tasks[i].task_name)
-            print("---------")
 
         task_id = None
         if len(tasks) == 0:
@@ -268,7 +262,7 @@ class Operator:
 
         logger.info(f"Creating a task run under task name: {task_name}")
 
-        """ self.db.drop_table(table_name="tips") """
+        """ self.db.drop_table(table_name="tips") 
         self.db.new_tip(task_name=task_name, tip_text="this is a sample tip")
         tips = self.db.get_tip_by_task_name(task_name=task_name)
         all_tips = self.db.get_tip_by_task_name()
@@ -281,7 +275,7 @@ class Operator:
             tips[i].test()
             print("---------")
             
-
+        """
         # Create a new task run
         new_run_id = self.db.new_task_run(
             task_id,
@@ -619,3 +613,41 @@ class Operator:
             )
         finally:
             self.shutdown()
+
+    # This is just for testing, will be removed after this pr
+    def test_tips_methods(
+        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
+    ):
+
+        task_name = run_config.task.get("task_name", None)
+        tasks = self.db.find_tasks(task_name=task_name)
+        print("task_name:" + tasks[0].task_name)
+
+        self.db.new_tip(task_name=task_name, tip_text="this is tip 1")
+        self.db.new_tip(task_name=task_name, tip_text="this is tip 2")
+        self.db.new_tip(task_name=task_name, tip_text="this is tip 3")
+        self.db.new_tip(task_name=task_name, tip_text="this is tip 4")
+
+        # Gets tips by task name
+        tips = self.db.get_tip_by_task_name(task_name=task_name)
+
+        print("Listing out all tips under " + task_name + ":")
+        for i in range(len(tips)):
+            print("tip_id:" + tips[i].db_id)
+            print("task_name: " + tips[i].task_name)
+            print("tip_text: " + tips[i].tip_text)
+            print("-----------------")
+
+        second_tip_row = self.db.get_tip(tip_id="2")
+
+        # Creaing a Tip object
+        second_tip = Tip(self.db, str(second_tip_row["tip_id"]), second_tip_row)
+
+        print("getting second tip by id:")
+        print("tip_id:" + second_tip.db_id)
+        print("task_name: " + second_tip.task_name)
+        print("tip_text: " + second_tip.tip_text)
+        print("-----------------")
+
+        # Removing the table
+        self.db.drop_table(table_name="tips")

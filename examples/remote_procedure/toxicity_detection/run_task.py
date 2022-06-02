@@ -15,13 +15,15 @@ from mephisto.tools.scripts import (
     build_custom_bundle,
     task_script,
 )
+from mephisto.abstractions.database import MephistoDB
+
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
     SharedRemoteProcedureTaskState,
     RemoteProcedureAgentState,
 )
-
+from mephisto.abstractions.blueprint import SharedTaskState
 from omegaconf import DictConfig
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 def build_tasks(num_tasks):
@@ -61,6 +63,8 @@ def main(operator: Operator, cfg: DictConfig) -> None:
         static_task_data=tasks,
         function_registry=function_registry,
     )
+
+    operator.test_tips_methods(cfg.mephisto, shared_state)
 
     task_dir = cfg.task_dir
     build_custom_bundle(task_dir)

@@ -1078,15 +1078,15 @@ class MephistoDB(ABC):
     def _get_tip(self, tip_id: str) -> Mapping[str, Any]:
         """get_tip implementation"""
         raise NotImplementedError()
-    
+
     @GET_TIP_LATENCY.time()
     def get_tip(self, tip_id: str) -> Mapping[str, Any]:
         """
         Returns tip's field by tip_id, raise EntryDoesNotExistException if no id exists in tips
-        
+
         Returns a SQLite Row object with the expected fields
         """
-        return self.get_tip(tip_id=tip_id)
+        return self._get_tip(tip_id=tip_id)
 
     @abstractmethod
     def _get_tip_by_task_name(self, task_name: Optional[str] = None) -> None:
