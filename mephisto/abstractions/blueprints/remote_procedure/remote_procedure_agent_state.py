@@ -101,6 +101,9 @@ class RemoteProcedureAgentState(AgentState):
             "requests": [r.to_dict() for r in self.requests.values()],
             "start_time": self.start_time,
             "end_time": self.end_time,
+            #TODO: Add a metadata field here which handles tips that the agent submits
+            #TODO: Create a script that can review these tips by looping through all agents
+                           
         }
 
     def get_parsed_data(self) -> Dict[str, Any]:
