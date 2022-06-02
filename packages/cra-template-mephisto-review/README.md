@@ -64,7 +64,7 @@ You can customize the way review items are displayed for both of the two routes 
 
 1. Customize the layout of all data:
 
-    - **Modify the properties of the ```<CollectionView/>``` tag under the ```/``` route on line 35.**
+    - **Modify the properties of the ```<CollectionView/>``` tag under the ```/``` route.**
 
     - If you do not wish to use pagination, set the ```pagination``` property to ```false``` (default is true, must be a boolean value)
 
@@ -84,7 +84,7 @@ You can customize the way review items are displayed for both of the two routes 
 
 2. Customize the layout of individual item views:
 
-    - **Modify the properties of the ```<ItemView/>``` tag under the ```/``` route on line 24.**
+    - **Modify the properties of the ```<ItemView/>``` tag under the ```/``` route.**
 
     - Add custom renderers for items by passing an ```itemRenderer``` property to ItemView:
         - The itemRenderer property must be a react component.
