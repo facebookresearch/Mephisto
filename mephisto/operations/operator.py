@@ -275,10 +275,12 @@ class Operator:
 
         print("tips:")
         for i in range(len(tips)):
-            print("tip_id:" + tips[i]["tip_id"])
-            print("task_name: " + tips[i]["task_name"])
-            print("tip_text: " + tips[i]["tip_text"])
+            print("tip_id:" + tips[i].db_id)
+            print("task_name: " + tips[i].task_name)
+            print("tip_text: " + tips[i].tip_text)
+            tips[i].test()
             print("---------")
+            
 
         # Create a new task run
         new_run_id = self.db.new_task_run(

@@ -12,6 +12,7 @@ from mephisto.abstractions.database import (
     EntryDoesNotExistException,
 )
 from typing import Mapping, Optional, Any, List, Dict, Tuple, Union
+from mephisto.data_model.tip import Tip
 from mephisto.utils.dirs import get_data_dir
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
@@ -1523,7 +1524,9 @@ class LocalMephistoDB(MephistoDB):
                 arg_tuple,
             )
             rows = c.fetchall()
-            return rows
+            return [
+                Tip(self, str(r["tip_id"]), row=r) for r in rows
+            ]
 
     def _get_tip(self, tip_id: str) -> Mapping[str, Any]:
         """
