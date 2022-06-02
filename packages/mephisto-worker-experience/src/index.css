@@ -1,24 +1,24 @@
-.tips-list{
+.tips-list {
   list-style-type: none;
   padding: 0;
 }
-.tip{
+.tip {
   margin-bottom: 1.35rem;
 }
 
-.tip-header{
+.tip-header {
   margin-bottom: 0.5rem;
 }
-.tip:last-child{
+.tip:last-child {
   margin-bottom: 0;
 }
 
-.submit-button{
+.submit-button {
   display: block;
   margin-top: 0.75rem;
 }
 
-.tip-label{
+.tip-label {
   display: block;
   margin-top: 0.75rem;
   cursor: pointer;
