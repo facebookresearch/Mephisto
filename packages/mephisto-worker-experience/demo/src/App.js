@@ -11,11 +11,13 @@ function App() {
         list={[
           {
             header: "Functional or Class Components?",
-            text: "It is generally advised to use functional components as they are thought to be the future of React.",
+            text:
+              "It is generally advised to use functional components as they are thought to be the future of React.",
           },
           {
             header: "When to Use Context?",
-            text: "To avoid having to pass props down 3+ levels, the createContext() and useContext() methods can be used.",
+            text:
+              "To avoid having to pass props down 3+ levels, the createContext() and useContext() methods can be used.",
           },
         ]}
       />
