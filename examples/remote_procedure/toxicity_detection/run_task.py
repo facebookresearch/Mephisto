@@ -50,25 +50,32 @@ def determine_toxicity(text: str):
 def main(operator: Operator, cfg: DictConfig) -> None:
     tasks = build_tasks(cfg.num_tasks)
 
-    def handle_with_model(
+    def calculate_toxicity(
         _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
     ) -> Dict[str, Any]:
         return {
             "toxicity": str(determine_toxicity(args["text"])),
         }
 
-    function_registry = {"determine_toxicity": handle_with_model}
+    def get_current_tips(
+        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
+    ) -> Dict[str, Any]:
+        return {"currentTips": operator.get_current_tips(cfg.mephisto, shared_state)}
+
+    function_registry = {
+        "determine_toxicity": calculate_toxicity,
+        "get_current_tips": get_current_tips,
+    }
 
     shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,
         function_registry=function_registry,
     )
-
-    operator.test_tips_methods(cfg.mephisto, shared_state)
+    """ operator.test_tips_methods(cfg.mephisto, shared_state) """
 
     task_dir = cfg.task_dir
     build_custom_bundle(task_dir)
-
+    """ operator.test_tips_methods(cfg.mephisto, shared_state) """
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 

@@ -600,6 +600,14 @@ class Operator:
         finally:
             self.shutdown()
 
+    def get_current_tips(
+        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
+    ):
+        task_name = run_config.task.get("task_name", None)
+        print(task_name)
+        tips = self.db.get_tip_by_task_name(task_name=task_name)
+        return [t.tip_text for t in tips]
+
     # This is just for testing, will be removed after this pr
     def test_tips_methods(
         self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
@@ -635,6 +643,6 @@ class Operator:
         print("tip_text: " + second_tip.tip_text)
         print("-----------------")
 
-        # Removing the table
+    """     # Removing the table
         self.db.drop_table(table_name="tips")
-        print("Dropped tips table")
+        print("Dropped tips table") """
