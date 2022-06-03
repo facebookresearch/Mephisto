@@ -1,7 +1,8 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import "./index.css";
 
 function Tips({ list, handleSubmit, disableUserSubmission }) {
+  const [tipData, setTipData] = useState({ header: "", body: "" });
   const tipsComponents = list.map((tip, index) => {
     return (
       <li key={`tip-${index + 1}`} className="tip">
@@ -22,12 +23,26 @@ function Tips({ list, handleSubmit, disableUserSubmission }) {
           <input
             id="tip-headline"
             placeholder="Write your tip's headline here..."
+            onBlur={(e) =>
+              setTipData({ header: e.target.value, body: tipData.body })
+            }
           />
           <label htmlFor="tip-body" className="tip-label">
             Tip Body:
           </label>
-          <textarea placeholder="Write your tip body here..." id="tip-body" />
-          <button className="submit-button" onClick={handleSubmit}>
+          <textarea
+            placeholder="Write your tip body here..."
+            id="tip-body"
+            onBlur={(e) =>
+              setTipData({ header: tipData.header, body: e.target.value })
+            }
+          />
+          <button
+            className="submit-button"
+            onClick={() =>
+              handleSubmit({ header: tipData.header, body: tipData.body })
+            }
+          >
             Submit Tip
           </button>
         </Fragment>
