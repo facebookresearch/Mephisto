@@ -262,20 +262,6 @@ class Operator:
 
         logger.info(f"Creating a task run under task name: {task_name}")
 
-        """ self.db.drop_table(table_name="tips") 
-        self.db.new_tip(task_name=task_name, tip_text="this is a sample tip")
-        tips = self.db.get_tip_by_task_name(task_name=task_name)
-        all_tips = self.db.get_tip_by_task_name()
-
-        print("tips:")
-        for i in range(len(tips)):
-            print("tip_id:" + tips[i].db_id)
-            print("task_name: " + tips[i].task_name)
-            print("tip_text: " + tips[i].tip_text)
-            tips[i].test()
-            print("---------")
-            
-        """
         # Create a new task run
         new_run_id = self.db.new_task_run(
             task_id,
@@ -651,3 +637,4 @@ class Operator:
 
         # Removing the table
         self.db.drop_table(table_name="tips")
+        print("Dropped tips table")

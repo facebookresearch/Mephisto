@@ -1524,9 +1524,7 @@ class LocalMephistoDB(MephistoDB):
                 arg_tuple,
             )
             rows = c.fetchall()
-            return [
-                Tip(self, str(r["tip_id"]), row=r) for r in rows
-            ]
+            return [Tip(self, str(r["tip_id"]), row=r) for r in rows]
 
     def _get_tip(self, tip_id: str) -> Mapping[str, Any]:
         """
