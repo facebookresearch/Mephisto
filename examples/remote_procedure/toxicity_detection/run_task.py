@@ -11,6 +11,7 @@ except ImportError:
     exit(1)
 
 from mephisto.operations.operator import Operator
+from mephisto.tools.data_browser import DataBrowser
 from mephisto.tools.scripts import (
     build_custom_bundle,
     task_script,
@@ -62,20 +63,28 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     ) -> Dict[str, Any]:
         return {"currentTips": operator.get_current_tips(cfg.mephisto, shared_state)}
 
+    def add_tip_to_agent_metadata(
+        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
+    ):
+        tip_text = args["tipText"]
+        operator.update_current_agent_state_metadata(
+            "wow this is a tip!", args["agentId"]
+        )
+        return {}
+
     function_registry = {
         "determine_toxicity": calculate_toxicity,
         "get_current_tips": get_current_tips,
+        "add_tip_for_review": add_tip_to_agent_metadata,
     }
 
     shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,
         function_registry=function_registry,
     )
-    """ operator.test_tips_methods(cfg.mephisto, shared_state) """
 
     task_dir = cfg.task_dir
     build_custom_bundle(task_dir)
-    """ operator.test_tips_methods(cfg.mephisto, shared_state) """
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 

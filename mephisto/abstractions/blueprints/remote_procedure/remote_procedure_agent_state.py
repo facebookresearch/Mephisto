@@ -50,6 +50,7 @@ class RemoteProcedureAgentState(AgentState):
             self.end_time = -1.0
             self.init_data: Optional[Dict[str, Any]] = None
             self.final_submission: Optional[Dict[str, Any]] = None
+            self.metadata: Optional[Dict[str, Any]] = {"tips": []}
             self.save_data()
 
     def set_init_state(self, data: Any) -> bool:
@@ -74,7 +75,11 @@ class RemoteProcedureAgentState(AgentState):
             requests = self.requests.values()
             sorted_requests = sorted(requests, key=lambda x: x.timestamp)
             prev_requests = [r.to_dict() for r in sorted_requests]
-        return {"task_data": self.init_data, "previous_requests": prev_requests}
+        return {
+            "task_data": self.init_data,
+            "previous_requests": prev_requests,
+            "metadata": self.metadata,
+        }
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""
@@ -92,6 +97,7 @@ class RemoteProcedureAgentState(AgentState):
             self.final_submission = state["final_submission"]
             self.start_time = state["start_time"]
             self.end_time = state["end_time"]
+            self.metadata = state["metadata"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
@@ -101,6 +107,7 @@ class RemoteProcedureAgentState(AgentState):
             "requests": [r.to_dict() for r in self.requests.values()],
             "start_time": self.start_time,
             "end_time": self.end_time,
+            "metadata": self.metadata
             # TODO: Add a metadata field here which handles tips that the agent submits
             # TODO: Create a script that can review these tips by looping through all agents
         }
@@ -158,4 +165,9 @@ class RemoteProcedureAgentState(AgentState):
         """Append any final submission to this state"""
         self.final_submission = submitted_data
         self.end_time = time.time()
+        self.save_data()
+
+    def update_metadata(self, new_metadata: Dict[str, Any]) -> None:
+        """Replace metadata field with new metadata and write it"""
+        self.metadata = new_metadata
         self.save_data()

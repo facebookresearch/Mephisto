@@ -6,7 +6,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import {
   BaseFrontend,
@@ -34,11 +34,16 @@ function RemoteProcedureApp() {
     remoteProcedure,
     isOnboarding,
     handleFatalError,
+    agentId,
+    assignmentId,
   } = mephistoProps;
 
   const handleToxicityCalculation = remoteProcedure("determine_toxicity");
-  const [tips, setTips] = useState([]);
   const getCurrentTips = remoteProcedure("get_current_tips");
+  const addTipForReview = remoteProcedure("add_tip_for_review");
+  const [tips, setTips] = useState([]);
+  console.log("agentId: ", agentId);
+  console.log("assignmentId: ", assignmentId);
 
   if (isOnboarding) {
     return <h1>This task doesn't currently have an onboarding example set</h1>;
@@ -86,6 +91,16 @@ function RemoteProcedureApp() {
                 Show Tips!
               </button>
               {tipsComponents}
+              <button
+                onClick={() =>
+                  addTipForReview({
+                    tipText: "submitted tip, wow!",
+                    agentId: agentId,
+                  })
+                }
+              >
+                Add tip
+              </button>
             </div>
           </div>
         </div>

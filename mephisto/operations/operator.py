@@ -12,6 +12,7 @@ import threading
 import traceback
 import signal
 import asyncio
+from mephisto.data_model.agent import Agent
 from mephisto.data_model.tip import Tip
 
 from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
@@ -30,6 +31,7 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 )
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.utils.qualifications import make_qualification_dict
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.operations.client_io_handler import ClientIOHandler
@@ -646,3 +648,21 @@ class Operator:
     """     # Removing the table
         self.db.drop_table(table_name="tips")
         print("Dropped tips table") """
+
+    def update_current_agent_state_metadata(self, tip_text: str, agent_id: str):
+        """
+        Updates metadata of the agent_id
+        """
+        agent_row = self.db.get_agent(agent_id=agent_id)
+        desired_agent = Agent(self.db, agent_id, agent_row)
+        desired_data = desired_agent.state.get_init_state()
+        if desired_data is not None:
+            desired_data["metadata"]["tips"].append(tip_text)
+        desired_agent.state.update_metadata(desired_data["metadata"])
+        """
+        all_agents = self.db.find_agents()
+        for i in range(len(all_agents)):
+            print(str(i) + ": ")
+            print(all_agents[i].state.get_init_state())
+            print("")
+        """
