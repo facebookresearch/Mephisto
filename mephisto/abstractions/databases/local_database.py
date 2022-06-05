@@ -1526,6 +1526,15 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [Tip(self, str(r["tip_id"]), row=r) for r in rows]
 
+    def _remove_tip(self, tip_id: str):
+        """Removes a tip row by tip_id from the tips table"""
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                "DELETE FROM tips WHERE tip_id = ?;",
+                (int(tip_id),),
+            )
+
     def _get_tip(self, tip_id: str) -> Mapping[str, Any]:
         """
         Returns tip's field by tip_id, raise EntryDoesNotExistException if no id exists in tips

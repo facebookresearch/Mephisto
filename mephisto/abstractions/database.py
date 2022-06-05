@@ -1102,6 +1102,15 @@ class MephistoDB(ABC):
         return self._get_tip_by_task_name(task_name=task_name)
 
     @abstractmethod
+    def _remove_tip(self, tip_id: str) -> None:
+        """remove_tip implementation"""
+        raise NotImplementedError()
+
+    def remove_tip(self, tip_id: str) -> None:
+        """Removes a tip row by tip_id from the tips table"""
+        return self._remove_tip(tip_id=tip_id)
+
+    @abstractmethod
     def _drop_table(self, table_name: str) -> None:
         """drop_table implementation"""
         raise NotImplementedError()

@@ -47,7 +47,6 @@ def main():
         quit()
 
     for unit in units:
-
         unit_parsed_data = mephisto_data_browser.get_data_from_unit(unit)["data"]
         metadata = unit_parsed_data["metadata"]
         tips = metadata["tips"]
@@ -64,15 +63,15 @@ def main():
                     # persists the tip in the db as it is accepted
                     db.new_tip(task_name=task_name, tip_text=tips[i]["text"])
                     remove_tip_from_metadata(tips, tips_copy, i, unit)
-                    print("Tip Accepted\n")
+                    print("Tip Accepted\n\n")
 
                 elif tip_response == "r" or tip_response == "reject":
                     remove_tip_from_metadata(tips, tips_copy, i, unit)
-                    print("Tip Rejected\n")
+                    print("Tip Rejected\n\n")
                 else:
-                    print("That response is not valid")
+                    print("That response is not valid\n")
                     quit()
-            print("------------------------------------------\n")
+    print("There are no more tips to review\n")
 
 
 if __name__ == "__main__":
