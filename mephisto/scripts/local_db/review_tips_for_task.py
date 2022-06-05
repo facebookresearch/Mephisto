@@ -7,6 +7,7 @@ to it, except that it is not written to the db.
 
 from typing import List
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
 
@@ -47,8 +48,8 @@ def main():
         quit()
 
     for unit in units:
-        unit_parsed_data = mephisto_data_browser.get_data_from_unit(unit)["data"]
-        metadata = unit_parsed_data["metadata"]
+        unit_data = mephisto_data_browser.get_data_from_unit(unit)
+        metadata = unit_data["data"]["metadata"]
         tips = metadata["tips"]
         if len(tips) > 0:
             print("Unit id: " + unit.db_id)
@@ -63,7 +64,25 @@ def main():
                     # persists the tip in the db as it is accepted
                     db.new_tip(task_name=task_name, tip_text=tips[i]["text"])
                     remove_tip_from_metadata(tips, tips_copy, i, unit)
-                    print("Tip Accepted\n\n")
+                    print("Tip Accepted\n")
+                    # given the option to pay a bonus to the worker who wrote the tip
+                    is_bonus = input(
+                    "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): "
+                    )
+                    if is_bonus == "y" or is_bonus == "yes":
+                        bonus_amount = input("How much money do you want to give: ")
+                        reason = input("What is your reason for the bonus: ")
+                        worker_id = float(unit_data["worker_id"])
+                        worker =  Worker.get(db, worker_id)
+                        if worker is not None:
+                            bonus_successfully_paid = worker.bonus_worker(bonus_amount, reason, unit)
+                            if bonus_successfully_paid:
+                                print("Bonus Successfully Paid!\n")
+                            else:
+                                print("There was an error when paying out your bonus\n")
+                    elif is_bonus != "n" and is_bonus != "no":
+                        print("That response is not valid\n")
+                        quit()
 
                 elif tip_response == "r" or tip_response == "reject":
                     remove_tip_from_metadata(tips, tips_copy, i, unit)
