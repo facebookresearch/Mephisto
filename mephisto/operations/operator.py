@@ -11,6 +11,7 @@ import time
 import threading
 import traceback
 import signal
+import uuid
 import asyncio
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.tip import Tip
@@ -657,7 +658,9 @@ class Operator:
         desired_agent = Agent(self.db, agent_id, agent_row)
         desired_data = desired_agent.state.get_init_state()
         if desired_data is not None:
-            desired_data["metadata"]["tips"].append(tip_text)
+            desired_data["metadata"]["tips"].append(
+                {"id": str(uuid.uuid4()), "text": tip_text}
+            )
         desired_agent.state.update_metadata(desired_data["metadata"])
         """
         all_agents = self.db.find_agents()

@@ -10,6 +10,7 @@ except ImportError:
     print("Need to have detoxify to use this demo. For example: pip install detoxify")
     exit(1)
 
+import random
 from mephisto.operations.operator import Operator
 from mephisto.tools.data_browser import DataBrowser
 from mephisto.tools.scripts import (
@@ -68,7 +69,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     ):
         tip_text = args["tipText"]
         operator.update_current_agent_state_metadata(
-            "wow this is a tip!", args["agentId"]
+            str(random.random()), args["agentId"]
         )
         return {}
 
