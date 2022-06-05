@@ -62,3 +62,6 @@ class MockAgentState(AgentState):
     def update_submit(self, submitted_data: Dict[str, Any]) -> None:
         """Move the submitted data into the live state"""
         self.state = submitted_data
+    def update_metadata(self, new_metadata: Dict[str, Any]) -> None:
+        """Mock agents don't have metadata"""
+        pass 
