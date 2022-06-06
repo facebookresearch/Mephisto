@@ -24,8 +24,6 @@ class Tip(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["tip_id"]
         self.task_name: str = row["task_name"]
+        self.tip_header: str = row["tip_header"]
         self.tip_text: str = row["tip_text"]
 
-    # TODO: Add possible helper methods here
-    def test(self):
-        print("helper method")

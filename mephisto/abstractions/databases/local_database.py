@@ -213,6 +213,7 @@ CREATE_TIPS_TABLE = """
 CREATE TABLE IF NOT EXISTS tips(
     tip_id INTEGER PRIMARY KEY AUTOINCREMENT,
     task_name TEXT NOT NULL,
+    tip_header TEXT NOT NULL,
     tip_text TEXT NOT NULL,
     FOREIGN KEY (task_name) REFERENCES tasks (task_name)
 )
@@ -1478,7 +1479,7 @@ class LocalMephistoDB(MephistoDB):
                 for r in rows
             ]
 
-    def _new_tip(self, task_name: str, tip_text: str):
+    def _new_tip(self, task_name: str, tip_header: str, tip_text: str):
         if task_name in [""]:
             raise MephistoDBException(f'Invalid task name "{task_name}')
         with self.table_access_condition, self._get_connection() as conn:
@@ -1487,10 +1488,12 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(
                     """INSERT INTO tips(
                         task_name,
+                        tip_header,
                         tip_text
-                    ) VALUES (?, ?);""",
+                    ) VALUES (?, ?, ?);""",
                     (
                         task_name,
+                        tip_header,
                         tip_text,
                     ),
                 )

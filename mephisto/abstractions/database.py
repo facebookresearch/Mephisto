@@ -1064,15 +1064,17 @@ class MephistoDB(ABC):
         )
 
     @abstractmethod
-    def _new_tip(self, task_name: str, tip_text: str) -> None:
+    def _new_tip(self, task_name: str, tip_header: str, tip_text: str) -> None:
         raise NotImplementedError()
 
     @NEW_TIP_LATENCY.time()
-    def new_tip(self, task_name: str, tip_text: str) -> None:
+    def new_tip(self, task_name: str, tip_header: str, tip_text: str) -> None:
         """
         Remove the given qualification from the given worker
         """
-        return self._new_tip(task_name=task_name, tip_text=tip_text)
+        return self._new_tip(
+            task_name=task_name, tip_header=tip_header, tip_text=tip_text
+        )
 
     @abstractmethod
     def _get_tip(self, tip_id: str) -> Mapping[str, Any]:
