@@ -16,6 +16,7 @@ def get_index_of_value(lst: List[str], property: str):
         if lst[i] == property:
             return i
 
+
 def is_number(s):
     if s == "NaN":
         return False
@@ -101,7 +102,7 @@ def main():
                             print("That is not a number\n")
                             bonus_amount = input("How much money do you want to give: ")
                             print("")
-                        
+
                         reason = input("What is your reason for the bonus: ")
                         worker_id = float(unit_data["worker_id"])
                         worker = Worker.get(db, worker_id)
