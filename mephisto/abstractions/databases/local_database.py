@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from re import L
 from mephisto.abstractions.database import (
     MephistoDB,
     MephistoDBException,
@@ -11,6 +12,7 @@ from mephisto.abstractions.database import (
     EntryDoesNotExistException,
 )
 from typing import Mapping, Optional, Any, List, Dict, Tuple, Union
+from mephisto.data_model.tip import Tip
 from mephisto.utils.dirs import get_data_dir
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
@@ -207,6 +209,15 @@ CREATE TABLE IF NOT EXISTS granted_qualifications (
 );
 """
 
+CREATE_TIPS_TABLE = """
+CREATE TABLE IF NOT EXISTS tips(
+    tip_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_name TEXT NOT NULL,
+    tip_text TEXT NOT NULL,
+    FOREIGN KEY (task_name) REFERENCES tasks (task_name)
+)
+"""
+
 # Indices that are used by system-specific calls across Mephisto during live tasks
 # that improve the runtime of the system as a whole
 CREATE_CORE_INDEXES = """
@@ -287,6 +298,7 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
+                c.execute(CREATE_TIPS_TABLE)
                 c.executescript(CREATE_CORE_INDEXES)
 
     def __get_one_by_id(
@@ -1465,3 +1477,75 @@ class LocalMephistoDB(MephistoDB):
                 )
                 for r in rows
             ]
+
+    def _new_tip(self, task_name: str, tip_text: str):
+        if task_name in [""]:
+            raise MephistoDBException(f'Invalid task name "{task_name}')
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            try:
+                c.execute(
+                    """INSERT INTO tips(
+                        task_name,
+                        tip_text
+                    ) VALUES (?, ?);""",
+                    (
+                        task_name,
+                        tip_text,
+                    ),
+                )
+                tip_id = str(c.lastrowid)
+                return tip_id
+            except sqlite3.IntegrityError as e:
+                if is_key_failure(e):
+                    raise EntryDoesNotExistException(e)
+                elif is_unique_failure(e):
+                    raise EntryAlreadyExistsException(e)
+                raise MephistoDBException(e)
+
+    def _get_tip_by_task_name(self, task_name: Optional[str] = None):
+        """
+        Finds any tips that match the given task_name. When called with no task_name,
+        returns all tips.
+        """
+        if task_name in [""]:
+            raise MephistoDBException(f'Invalid task name "{task_name}')
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["task_name"],
+                [task_name],
+            )
+            c.execute(
+                """
+                SELECT * from tips
+                """
+                + additional_query,
+                arg_tuple,
+            )
+            rows = c.fetchall()
+            return [Tip(self, str(r["tip_id"]), row=r) for r in rows]
+
+    def _remove_tip(self, tip_id: str):
+        """Removes a tip row by tip_id from the tips table"""
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                "DELETE FROM tips WHERE tip_id = ?;",
+                (int(tip_id),),
+            )
+
+    def _get_tip(self, tip_id: str) -> Mapping[str, Any]:
+        """
+        Returns tip's field by tip_id, raise EntryDoesNotExistException if no id exists in tips
+
+        Returns a SQLite Row object with the expected fields
+        """
+        return self.__get_one_by_id("tips", "tip_id", tip_id)
+
+    def _drop_table(self, table_name: str):
+        """Drops a table given a table_name"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute("DROP TABLE " + table_name)

@@ -99,6 +99,9 @@ GET_GRANTED_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(
     method="get_granted_qualification"
 )
 REVOKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="revoke_qualification")
+NEW_TIP_LATENCY = DATABASE_LATENCY.labels(method="new_tip")
+GET_TIP_LATENCY = DATABASE_LATENCY.labels(method="get_tip")
+GET_TIP_BY_TASK_NAME_LATENCY = DATABASE_LATENCY.labels(method="get_tip_by_task_name")
 
 
 class MephistoDB(ABC):
@@ -1059,3 +1062,59 @@ class MephistoDB(ABC):
         return self._revoke_qualification(
             qualification_id=qualification_id, worker_id=worker_id
         )
+
+    @abstractmethod
+    def _new_tip(self, task_name: str, tip_text: str) -> None:
+        raise NotImplementedError()
+
+    @NEW_TIP_LATENCY.time()
+    def new_tip(self, task_name: str, tip_text: str) -> None:
+        """
+        Remove the given qualification from the given worker
+        """
+        return self._new_tip(task_name=task_name, tip_text=tip_text)
+
+    @abstractmethod
+    def _get_tip(self, tip_id: str) -> Mapping[str, Any]:
+        """get_tip implementation"""
+        raise NotImplementedError()
+
+    @GET_TIP_LATENCY.time()
+    def get_tip(self, tip_id: str) -> Mapping[str, Any]:
+        """
+        Returns tip's field by tip_id, raise EntryDoesNotExistException if no id exists in tips
+
+        Returns a SQLite Row object with the expected fields
+        """
+        return self._get_tip(tip_id=tip_id)
+
+    @abstractmethod
+    def _get_tip_by_task_name(self, task_name: Optional[str] = None) -> None:
+        """get_tip_by_task_name implementation"""
+        raise NotImplementedError()
+
+    @GET_TIP_BY_TASK_NAME_LATENCY.time()
+    def get_tip_by_task_name(self, task_name: Optional[str] = None) -> None:
+        """
+        Finds any tips that match the given task_name. When called with no task_name,
+        returns all tips.
+        """
+        return self._get_tip_by_task_name(task_name=task_name)
+
+    @abstractmethod
+    def _remove_tip(self, tip_id: str) -> None:
+        """remove_tip implementation"""
+        raise NotImplementedError()
+
+    def remove_tip(self, tip_id: str) -> None:
+        """Removes a tip row by tip_id from the tips table"""
+        return self._remove_tip(tip_id=tip_id)
+
+    @abstractmethod
+    def _drop_table(self, table_name: str) -> None:
+        """drop_table implementation"""
+        raise NotImplementedError()
+
+    def drop_table(self, table_name: str) -> None:
+        """Drops a table given a table_name"""
+        return self._drop_table(table_name=table_name)

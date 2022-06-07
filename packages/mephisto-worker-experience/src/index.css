@@ -1,0 +1,26 @@
+.tips-list {
+  list-style-type: none;
+  padding: 0;
+}
+.tip {
+  margin-bottom: 1.35rem;
+}
+
+.tip-header {
+  margin-bottom: 0.5rem;
+}
+.tip:last-child {
+  margin-bottom: 0;
+}
+
+.submit-button {
+  display: block;
+  margin-top: 0.75rem;
+}
+
+.tip-label {
+  display: block;
+  margin-top: 0.75rem;
+  cursor: pointer;
+  width: 100%;
+}

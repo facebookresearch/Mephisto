@@ -182,6 +182,13 @@ class AgentState(ABC):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def update_metadata(self, new_metadata: Dict[str, Any]) -> None:
+        """
+        Update this AgentState with the final metadata.
+        """
+        raise NotImplementedError()
+
     def get_task_start(self) -> Optional[float]:
         """
         Return the start time for this task, if it is available

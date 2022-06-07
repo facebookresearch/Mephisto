@@ -10,18 +10,22 @@ except ImportError:
     print("Need to have detoxify to use this demo. For example: pip install detoxify")
     exit(1)
 
+import random
 from mephisto.operations.operator import Operator
+from mephisto.tools.data_browser import DataBrowser
 from mephisto.tools.scripts import (
     build_custom_bundle,
     task_script,
 )
+from mephisto.abstractions.database import MephistoDB
+
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
     SharedRemoteProcedureTaskState,
     RemoteProcedureAgentState,
 )
-
+from mephisto.abstractions.blueprint import SharedTaskState
 from omegaconf import DictConfig
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 def build_tasks(num_tasks):
@@ -48,14 +52,32 @@ def determine_toxicity(text: str):
 def main(operator: Operator, cfg: DictConfig) -> None:
     tasks = build_tasks(cfg.num_tasks)
 
-    def handle_with_model(
+    def calculate_toxicity(
         _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
     ) -> Dict[str, Any]:
         return {
             "toxicity": str(determine_toxicity(args["text"])),
         }
 
-    function_registry = {"determine_toxicity": handle_with_model}
+    def get_current_tips(
+        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
+    ) -> Dict[str, Any]:
+        return {"currentTips": operator.get_current_tips(cfg.mephisto, shared_state)}
+
+    def add_tip_to_agent_metadata(
+        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
+    ):
+        tip_text = args["tipText"]
+        operator.update_current_agent_state_metadata(
+            str(random.random()), args["agentId"]
+        )
+        return {}
+
+    function_registry = {
+        "determine_toxicity": calculate_toxicity,
+        "get_current_tips": get_current_tips,
+        "add_tip_for_review": add_tip_to_agent_metadata,
+    }
 
     shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,
@@ -64,7 +86,6 @@ def main(operator: Operator, cfg: DictConfig) -> None:
 
     task_dir = cfg.task_dir
     build_custom_bundle(task_dir)
-
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
