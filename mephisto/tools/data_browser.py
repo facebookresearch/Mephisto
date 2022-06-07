@@ -48,6 +48,26 @@ class DataBrowser:
                         units.append(unit)
         return units
 
+    def _get_all_units_for_task_runs(self, task_runs: List[TaskRun]) -> List[Unit]:
+        """
+        Does the same as _get_units_for_task_runs except that it includes the EXPIRED state
+        """
+        units = []
+        for task_run in task_runs:
+            assignments = task_run.get_assignments()
+            for assignment in assignments:
+                found_units = assignment.get_units()
+                for unit in found_units:
+                    if unit.get_status() in [
+                        AssignmentState.COMPLETED,
+                        AssignmentState.ACCEPTED,
+                        AssignmentState.REJECTED,
+                        AssignmentState.SOFT_REJECTED,
+                        AssignmentState.EXPIRED,
+                    ]:
+                        units.append(unit)
+        return units
+
     def get_task_name_list(self) -> List[str]:
         return [task.task_name for task in self.db.find_tasks()]
 
@@ -60,6 +80,12 @@ class DataBrowser:
         assert len(tasks) >= 1, f"No task found under name {task_name}"
         task_runs = self.db.find_task_runs(task_id=tasks[0].db_id)
         return self._get_units_for_task_runs(task_runs)
+
+    def get_all_units_for_task_name(self, task_name: str) -> List[Unit]:
+        tasks = self.db.find_tasks(task_name=task_name)
+        assert len(tasks) >= 1, f"No task found under name {task_name}"
+        task_runs = self.db.find_task_runs(task_id=tasks[0].db_id)
+        return self._get_all_units_for_task_runs(task_runs)
 
     def get_units_for_run_id(self, run_id: str) -> List[Unit]:
         """

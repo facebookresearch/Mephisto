@@ -7,6 +7,7 @@ to it, except that it is not written to the db.
 
 from typing import List, Set
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
@@ -28,7 +29,8 @@ def is_number(s):
 
 
 def remove_tip_from_metadata(tips, tips_copy, i, unit):
-    tips_id = [tipObj["id"] for tipObj in tips_copy]
+    """"""
+    tips_id = [tip_obj["id"] for tip_obj in tips_copy]
     index_to_remove = get_index_of_value(tips_id, tips[i]["id"])
     assigned_agent = unit.get_assigned_agent()
 
@@ -36,6 +38,17 @@ def remove_tip_from_metadata(tips, tips_copy, i, unit):
         tips_copy.pop(index_to_remove)
         assigned_agent.state.update_metadata({"tips": tips_copy})
 
+
+def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit):
+    """"""
+    tips_id = [tip_obj["id"] for tip_obj in tips_copy]
+    # gets the index of the tip in the tip_copy list
+    index_to_update = get_index_of_value(tips_id, tips[i]["id"])
+    assigned_agent = unit.get_assigned_agent()
+
+    if assigned_agent is not None:
+        tips_copy[index_to_update]["accepted"] = True
+        assigned_agent.state.update_metadata({"tips": tips_copy})
 
 def main():
     db = LocalMephistoDB()
@@ -55,72 +68,78 @@ def main():
             "Enter the name of the task that you want to review the tips of: \n"
         )
         print("")
-    units = mephisto_data_browser.get_units_for_task_name(task_name)
+    units = mephisto_data_browser.get_all_units_for_task_name(task_name)
     if len(units) == 0:
         print("No units were received")
         quit()
 
     for unit in units:
-        unit_data = mephisto_data_browser.get_data_from_unit(unit)        
-        metadata = unit_data["data"]["metadata"]
+
+        unit_data = mephisto_data_browser.get_data_from_unit(unit)
+        print(unit_data)
+        print("\n\n")
+
+        """ metadata = unit_data["data"]["metadata"]
         tips = metadata["tips"]
         if len(tips) > 0:
             print("Unit id: " + unit.db_id)
             tips_copy = tips.copy()
             for i in range(len(tips)):
-                print("Current Tip Text: " + tips[i]["text"] + "\n")
-                tip_response = input(
-                    "Do you want to accept or reject this tip? accept(a)/reject(r): \n"
-                )
-                print("")
-                acceptable_tip_responses = set(["a", "accept", "r", "reject"])
-                while tip_response not in acceptable_tip_responses:
-                    print("That response is not valid\n")
+                if tips[i]["accepted"] == False:
+                    print("Current Tip Id: " + tips[i]["id"] + "\n")
+                    print("Current Tip Header: " + tips[i]["header"] + "\n")
+                    print("Current Tip Text: " + tips[i]["text"] + "\n")
                     tip_response = input(
                         "Do you want to accept or reject this tip? accept(a)/reject(r): \n"
                     )
                     print("")
-                if tip_response == "a" or tip_response == "accept":
-                    # persists the tip in the db as it is accepted
-                    db.new_tip(task_name=task_name, tip_text=tips[i]["text"])
-                    remove_tip_from_metadata(tips, tips_copy, i, unit)
-                    print("Tip Accepted\n")
-                    # given the option to pay a bonus to the worker who wrote the tip
-                    is_bonus = input(
-                        "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): "
-                    )
-                    acceptable_bonus_responses = set(["yes", "y", "no", "n"])
-                    while is_bonus not in acceptable_bonus_responses:
+                    acceptable_tip_responses = set(["a", "accept", "r", "reject"])
+                    while tip_response not in acceptable_tip_responses:
                         print("That response is not valid\n")
-                        is_bonus = input(
-                            "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): \n"
+                        tip_response = input(
+                            "Do you want to accept or reject this tip? accept(a)/reject(r): \n"
                         )
                         print("")
-                    if is_bonus == "y" or is_bonus == "yes":
-                        bonus_amount = input("How much money do you want to give: ")
-                        while is_number(bonus_amount) is False:
-                            print("That is not a number\n")
-                            bonus_amount = input("How much money do you want to give: ")
-                            print("")
-
-                        reason = input("What is your reason for the bonus: ")
-                        worker_id = float(unit_data["worker_id"])
-                        worker = Worker.get(db, worker_id)
-                        if worker is not None:
-                            bonus_successfully_paid = worker.bonus_worker(
-                                bonus_amount, reason, unit
+                    if tip_response == "a" or tip_response == "accept":
+                        # persists the tip in the db as it is accepted
+                        accept_tip(tips, tips_copy, i, unit)
+                        print("Tip Accepted\n")
+                        # given the option to pay a bonus to the worker who wrote the tip
+                        is_bonus = input(
+                            "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): "
+                        )
+                        acceptable_bonus_responses = set(["yes", "y", "no", "n"])
+                        while is_bonus not in acceptable_bonus_responses:
+                            print("That response is not valid\n")
+                            is_bonus = input(
+                                "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): \n"
                             )
-                            if bonus_successfully_paid:
-                                print("Bonus Successfully Paid!\n")
-                            else:
-                                print("There was an error when paying out your bonus\n")
-                    elif is_bonus == "n" or is_bonus == "no":
-                        print("No bonus paid\n")
+                            print("")
+                        if is_bonus == "y" or is_bonus == "yes":
+                            bonus_amount = input("How much money do you want to give: ")
+                            while is_number(bonus_amount) is False:
+                                print("That is not a number\n")
+                                bonus_amount = input("How much money do you want to give: ")
+                                print("")
 
-                elif tip_response == "r" or tip_response == "reject":
-                    remove_tip_from_metadata(tips, tips_copy, i, unit)
-                    print("Tip Rejected\n\n")
+                            reason = input("What is your reason for the bonus: ")
+                            worker_id = float(unit_data["worker_id"])
+                            worker = Worker.get(db, worker_id)
+                            if worker is not None:
+                                bonus_successfully_paid = worker.bonus_worker(
+                                    bonus_amount, reason, unit
+                                )
+                                if bonus_successfully_paid:
+                                    print("Bonus Successfully Paid!\n")
+                                else:
+                                    print("There was an error when paying out your bonus\n")
+                        elif is_bonus == "n" or is_bonus == "no":
+                            print("No bonus paid\n")
 
+                    elif tip_response == "r" or tip_response == "reject":
+                        remove_tip_from_metadata(tips, tips_copy, i, unit)
+                        print("Tip Rejected\n\n")
+ """
     print("There are no more tips to review\n")
 
 

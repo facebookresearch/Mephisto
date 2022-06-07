@@ -102,7 +102,7 @@ function RemoteProcedureApp() {
                     tipText: "submitted tip, wow!",
                     agentId: agentId,
                   }) */
-                  handleTipSubmit({ tipText: tipText })
+                  handleTipSubmit({header: "This is a sample header", text: tipText})
                 }
               >
                 Add tip

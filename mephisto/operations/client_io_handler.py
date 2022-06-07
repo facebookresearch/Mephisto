@@ -5,6 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 
+from mimetypes import init
+from uuid import uuid4
 import weakref
 import time
 import asyncio
@@ -24,6 +26,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_REQUEST_STATUSES,
     PACKET_TYPE_RETURN_STATUSES,
     PACKET_TYPE_ERROR,
+    PACKET_TYPE_SUBMIT_TIP,
 )
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -284,6 +287,28 @@ class ClientIOHandler:
 
         agent.handle_submit(packet.data)
 
+    def _on_submit_tip(self, packet: Packet):
+        """Handles the submission of a tip"""
+        live_run = self.get_live_run()
+        agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
+        assert agent is not None, "Could not find given agent!"
+        init_agent_data = agent.state.get_init_state().copy()
+        assert init_agent_data is not None, "Could not find agent data"
+        # Updates tips
+        new_tip_header = packet.data["header"]
+        new_tip_text = packet.data["text"]
+        init_agent_data["metadata"]["tips"].append(
+            # QUESTION: may be a better way of generating id than uuid?
+            {
+                "id": str(uuid4()),
+                "header": new_tip_header,
+                "text": new_tip_text,
+                "accepted": False,
+            }
+        )
+        # Sets agent tips to updated version
+        agent.state.update_metadata({"tips": init_agent_data["metadata"]["tips"]})
+
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
         assert (
@@ -377,6 +402,8 @@ class ClientIOHandler:
             elif packet.type == PACKET_TYPE_SUBMIT_UNIT:
                 self._on_submit_unit(packet, channel_id)
                 self.log_metrics_for_packet(packet)
+            elif packet.type == PACKET_TYPE_SUBMIT_TIP:
+                self._on_submit_tip(packet)
             elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
                 self._on_live_update(packet, channel_id)
                 self.log_metrics_for_packet(packet)

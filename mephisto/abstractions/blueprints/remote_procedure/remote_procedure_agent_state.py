@@ -52,6 +52,7 @@ class RemoteProcedureAgentState(AgentState):
             self.final_submission: Optional[Dict[str, Any]] = None
             self.metadata: Optional[Dict[str, Any]] = {"tips": []}
             self.save_data()
+            #{"id": "", "header": "", "text": "", accepted: False}
 
     def set_init_state(self, data: Any) -> bool:
         """Set the initial state for this agent"""
