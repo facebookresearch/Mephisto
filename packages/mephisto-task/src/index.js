@@ -106,6 +106,7 @@ const useMephistoTask = function () {
   }
 
   React.useEffect(() => {
+    console.log('Update!')
     getTaskConfig().then((data) => handleIncomingTaskConfig(data));
   }, []);
 

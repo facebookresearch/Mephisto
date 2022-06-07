@@ -65,6 +65,7 @@ function RemoteProcedureApp() {
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
+        <div>testing</div>
         <div
           className="container"
           id="ui-container"

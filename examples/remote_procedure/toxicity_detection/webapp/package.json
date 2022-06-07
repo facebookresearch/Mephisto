@@ -10,13 +10,13 @@
   "author": "",
   "dependencies": {
     "bootstrap": "^4.6.0",
-    "mephisto-task": "^2.0.1",
     "rc-slider": "^8.6.3",
     "react": "16.13.1",
     "react-bootstrap": "^1.6.0",
     "react-canvas-draw": "^1.2.1",
     "react-dom": "16.13.1",
-    "react-table": "^6.8.6"
+    "react-table": "^6.8.6",
+    "mephisto-task": "file:../../../../packages/mephisto-task"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.0",
