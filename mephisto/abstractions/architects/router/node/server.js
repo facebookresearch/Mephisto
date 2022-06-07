@@ -507,6 +507,17 @@ app.post("/submit_task", upload.any(), function (req, res) {
   }
 });
 
+app.post("/submit-tip", function (req, res) {
+  const {
+    USED_AGENT_ID: agent_id,
+    tip_data: tip_data,
+    client_timestamp: client_timestamp,
+  } = req.body;
+
+  let extracted_data = tip_data;
+  console.log(req.body);
+});
+
 app.post("/log_error", function (req, res) {
   const {
     USED_AGENT_ID: agent_id,

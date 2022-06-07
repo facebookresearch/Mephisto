@@ -36,12 +36,14 @@ function RemoteProcedureApp() {
     handleFatalError,
     agentId,
     assignmentId,
+    handleTipSubmit,
   } = mephistoProps;
 
   const handleToxicityCalculation = remoteProcedure("determine_toxicity");
-  const getCurrentTips = remoteProcedure("get_current_tips");
-  const addTipForReview = remoteProcedure("add_tip_for_review");
+  /* const getCurrentTips = remoteProcedure("get_current_tips");
+  const addTipForReview = remoteProcedure("add_tip_for_review"); */
   const [tips, setTips] = useState([]);
+  const [tipText, setTipText] = useState("")
   console.log("agentId: ", agentId);
   console.log("assignmentId: ", assignmentId);
 
@@ -79,7 +81,7 @@ function RemoteProcedureApp() {
               />
             </div>
             <div className="col">
-              <button
+              {/* <button
                 onClick={() =>
                   getCurrentTips({})
                     .then((response) => {
@@ -90,14 +92,17 @@ function RemoteProcedureApp() {
                 }
               >
                 Show Tips!
-              </button>
+              </button> */}
               {tipsComponents}
+              <input onBlur={(e)=> setTipText(e.target.value)}/>
               <button
+                disabled={tipText.length === 0}
                 onClick={() =>
-                  addTipForReview({
+                  /* addTipForReview({
                     tipText: "submitted tip, wow!",
                     agentId: agentId,
-                  })
+                  }) */
+                  handleTipSubmit({ tipText: tipText })
                 }
               >
                 Add tip

@@ -61,7 +61,7 @@ def main():
         quit()
 
     for unit in units:
-        unit_data = mephisto_data_browser.get_data_from_unit(unit)
+        unit_data = mephisto_data_browser.get_data_from_unit(unit)        
         metadata = unit_data["data"]["metadata"]
         tips = metadata["tips"]
         if len(tips) > 0:

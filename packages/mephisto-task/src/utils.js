@@ -135,6 +135,14 @@ export function postCompleteTask(agent_id, complete_data) {
     });
 }
 
+export function postTip(agent_id, tip_data){
+  return postData("/submit-tip", {
+    USED_AGENT_ID: agent_id,
+    tip_data: tip_data,
+    client_timestamp: pythonTime(),
+  })
+}
+
 export function postErrorLog(agent_id, complete_data) {
   return postData("/log_error", {
     USED_AGENT_ID: agent_id,

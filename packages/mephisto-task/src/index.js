@@ -14,6 +14,7 @@ import {
   getBlockedExplanation,
   postErrorLog,
   ErrorBoundary,
+  postTip
 } from "./utils";
 
 export * from "./MephistoContext";
@@ -67,6 +68,9 @@ const useMephistoTask = function () {
     },
     [state.agentId]
   );
+  const handleTipSubmit = React.useCallback((data) => {
+    postTip(state.agentId, data)
+  }, [state.agentId])
 
   const handleFatalError = React.useCallback(
     (data) => {
@@ -106,7 +110,6 @@ const useMephistoTask = function () {
   }
 
   React.useEffect(() => {
-    console.log('Update!')
     getTaskConfig().then((data) => handleIncomingTaskConfig(data));
   }, []);
 
@@ -117,6 +120,7 @@ const useMephistoTask = function () {
       state.blockedExplanation ||
       (state.blockedReason && getBlockedExplanation(state.blockedReason)),
     handleSubmit,
+    handleTipSubmit,
     handleFatalError,
   };
 };
