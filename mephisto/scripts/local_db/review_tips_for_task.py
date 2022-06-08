@@ -1,11 +1,15 @@
 """
 Script that allows for tips to be approved or rejected. 
-An approved tip gets written to the local db and removed from
-the AgentState metadata. A rejected tip has the same done 
-to it, except that it is not written to the db.
+Tips are collected by retrieving all units and then getting the agent of each unit.
+The agent state has the tip data.
+
+Approving a tip sets the accept property of the tip to be True. 
+This prevents it from appearing again when running this script.
+
+Rejecting a tip deletes the tip from the tips list in the AgentState metadata.
 """
 
-from typing import List, Set
+from typing import List
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
@@ -19,6 +23,7 @@ def get_index_of_value(lst: List[str], property: str):
 
 
 def is_number(s):
+    """Validates the input to make sure that it is a number"""
     if s == "NaN":
         return False
     try:
@@ -29,7 +34,7 @@ def is_number(s):
 
 
 def remove_tip_from_metadata(tips, tips_copy, i, unit):
-    """"""
+    """Removes a tip from metadata"""
     tips_id = [tip_obj["id"] for tip_obj in tips_copy]
     index_to_remove = get_index_of_value(tips_id, tips[i]["id"])
     assigned_agent = unit.get_assigned_agent()
@@ -40,7 +45,7 @@ def remove_tip_from_metadata(tips, tips_copy, i, unit):
 
 
 def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit):
-    """"""
+    """Accepts a tip in metadata"""
     tips_id = [tip_obj["id"] for tip_obj in tips_copy]
     # gets the index of the tip in the tip_copy list
     index_to_update = get_index_of_value(tips_id, tips[i]["id"])
@@ -49,6 +54,7 @@ def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit):
     if assigned_agent is not None:
         tips_copy[index_to_update]["accepted"] = True
         assigned_agent.state.update_metadata({"tips": tips_copy})
+
 
 def main():
     db = LocalMephistoDB()
@@ -73,7 +79,7 @@ def main():
         print("No units were received")
         quit()
     for unit in units:
-        if(unit.agent_id is not None):
+        if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
 
             metadata = unit_data["data"]["metadata"]
@@ -112,10 +118,14 @@ def main():
                                 )
                                 print("")
                             if is_bonus == "y" or is_bonus == "yes":
-                                bonus_amount = input("How much money do you want to give: ")
+                                bonus_amount = input(
+                                    "How much money do you want to give: "
+                                )
                                 while is_number(bonus_amount) is False:
                                     print("That is not a number\n")
-                                    bonus_amount = input("How much money do you want to give: ")
+                                    bonus_amount = input(
+                                        "How much money do you want to give: "
+                                    )
                                     print("")
 
                                 reason = input("What is your reason for the bonus: ")
@@ -128,14 +138,16 @@ def main():
                                     if bonus_successfully_paid:
                                         print("Bonus Successfully Paid!\n")
                                     else:
-                                        print("There was an error when paying out your bonus\n")
+                                        print(
+                                            "There was an error when paying out your bonus\n"
+                                        )
                             elif is_bonus == "n" or is_bonus == "no":
                                 print("No bonus paid\n")
 
                         elif tip_response == "r" or tip_response == "reject":
                             remove_tip_from_metadata(tips, tips_copy, i, unit)
                             print("Tip Rejected\n\n")
-    
+
     print("There are no more tips to review\n")
 
 

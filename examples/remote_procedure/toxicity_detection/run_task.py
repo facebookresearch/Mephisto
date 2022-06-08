@@ -12,20 +12,17 @@ except ImportError:
 
 import random
 from mephisto.operations.operator import Operator
-from mephisto.tools.data_browser import DataBrowser
 from mephisto.tools.scripts import (
     build_custom_bundle,
     task_script,
 )
-from mephisto.abstractions.database import MephistoDB
 
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
     SharedRemoteProcedureTaskState,
     RemoteProcedureAgentState,
 )
-from mephisto.abstractions.blueprint import SharedTaskState
 from omegaconf import DictConfig
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 def build_tasks(num_tasks):
@@ -59,24 +56,8 @@ def main(operator: Operator, cfg: DictConfig) -> None:
             "toxicity": str(determine_toxicity(args["text"])),
         }
 
-    def get_current_tips(
-        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
-    ) -> Dict[str, Any]:
-        return {"currentTips": operator.get_current_tips(cfg.mephisto, shared_state)}
-
-    def add_tip_to_agent_metadata(
-        _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
-    ):
-        tip_text = args["tipText"]
-        operator.update_current_agent_state_metadata(
-            str(random.random()), args["agentId"]
-        )
-        return {}
-
     function_registry = {
         "determine_toxicity": calculate_toxicity,
-        "get_current_tips": get_current_tips,
-        "add_tip_for_review": add_tip_to_agent_metadata,
     }
 
     shared_state = SharedRemoteProcedureTaskState(
