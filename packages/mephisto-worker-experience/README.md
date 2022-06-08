@@ -58,6 +58,7 @@ The Tips component accepts the following props.
 The `list` prop accepts an array of objects where each object has a header property and a text property. This property is where the data for the tips is defined.
 ### `disableUserSubmission`
 The `disableUserSubmission` prop accepts a boolean where a true value hides the text inputs and hides the submit button. Setting `disableUserSubmission` to false keeps the user inputs and submit button visible. 
+The default value of this prop is false.
 ### `handleSubmit`
 The `handleSubmit` prop accepts a function that runs when the "Submit Tip" button is pressed. The tipData property can be passed down through to the function. This method can only be ran when `disableUserSubmission` is set to false.
 ### `tipData`
