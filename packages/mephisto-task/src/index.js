@@ -1,5 +1,4 @@
-/*
- * Copyright (c) Facebook, Inc. and its affiliates.
+/* Copyright (c) Facebook, Inc. and its affiliates.
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -69,13 +68,15 @@ const useMephistoTask = function () {
     [state.agentId]
   );
   const handleMetadataSubmit = React.useCallback(
-    (dataObj1, dataObj2) => {
+    (...args) => {
       const metadata = {};
       // Update metadata
-      if (dataObj1 && dataObj1.hasOwnProperty("type"))
-        metadata[dataObj1["type"]] = dataObj1;
-      if (dataObj2 && dataObj2.hasOwnProperty("type"))
-        metadata[dataObj2["type"]] = dataObj2;
+      for (const arg of args) {
+        if (arg && arg.hasOwnProperty("type")) {
+          const typeOfItemToAdd = arg["type"];
+          metadata[typeOfItemToAdd] = arg;
+        }
+      }
 
       postMetadata(state.agentId, metadata);
     },

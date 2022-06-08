@@ -67,7 +67,7 @@ function RemoteProcedureApp() {
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
-        <div>🍋</div>
+        <div>🍎</div>
         <div
           className="container"
           id="ui-container"
@@ -102,11 +102,17 @@ function RemoteProcedureApp() {
                     tipText: "submitted tip, wow!",
                     agentId: agentId,
                   }) */
-                  handleMetadataSubmit({
-                    header: "This is a sample header",
-                    text: tipText,
-                    type: "tips",
-                  })
+                  handleMetadataSubmit(
+                    {
+                      header: "This is a sample header",
+                      text: tipText,
+                      type: "tips",
+                    },
+                    {
+                      text: tipText,
+                      type: "feedback",
+                    }
+                  )
                 }
               >
                 Add tip

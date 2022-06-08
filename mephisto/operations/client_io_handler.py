@@ -288,7 +288,7 @@ class ClientIOHandler:
         agent.handle_submit(packet.data)
 
     def _on_submit_metadata(self, packet: Packet):
-        if "tip" in packet.data:
+        if "tips" in packet.data:
             """Handles the submission of a tip"""
             live_run = self.get_live_run()
             agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
@@ -309,6 +309,8 @@ class ClientIOHandler:
             )
             # Sets agent tips to updated version
             agent.state.update_metadata({"tips": init_agent_data["metadata"]["tips"]})
+        if "feedback" in packet.data:
+            print("Feedback received")
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
