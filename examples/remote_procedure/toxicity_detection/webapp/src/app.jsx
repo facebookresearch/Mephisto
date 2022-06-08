@@ -6,7 +6,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import {
   BaseFrontend,
@@ -46,6 +46,7 @@ function RemoteProcedureApp() {
   const [tipText, setTipText] = useState("");
   console.log("agentId: ", agentId);
   console.log("assignmentId: ", assignmentId);
+  console.log("taskConfig: ", taskConfig);
 
   if (isOnboarding) {
     return <h1>This task doesn't currently have an onboarding example set</h1>;
@@ -60,14 +61,18 @@ function RemoteProcedureApp() {
     return <Instructions />;
   }
 
-  const tipsComponents = tips.map((tipText, index) => {
-    return <div key={`tip-${index}`}>{tipText}</div>;
+  const tipsComponents = tips.map((tipObj, index) => {
+    return (
+      <div key={`tip-${index}`}>
+        <h2>{tipObj.header}</h2> <p>{tipObj.text}</p>
+      </div>
+    );
   });
 
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
-        <div>🍎</div>
+        <div>🍊</div>
         <div
           className="container"
           id="ui-container"
@@ -81,38 +86,19 @@ function RemoteProcedureApp() {
               />
             </div>
             <div className="col">
-              {/* <button
-                onClick={() =>
-                  getCurrentTips({})
-                    .then((response) => {
-                      console.log(response);
-                      setTips(response.currentTips);
-                    })
-                    .catch((err) => console.error(err))
-                }
-              >
-                Show Tips!
-              </button> */}
-              {tipsComponents}
+              <button onClick={() => setTips(taskConfig["metadata"]["tips"])}>
+                Show Tips
+              </button>
+              {tips.length > 0 && <div>{tipsComponents}</div>}
               <input onBlur={(e) => setTipText(e.target.value)} />
               <button
                 disabled={tipText.length === 0}
                 onClick={() =>
-                  /* addTipForReview({
-                    tipText: "submitted tip, wow!",
-                    agentId: agentId,
-                  }) */
-                  handleMetadataSubmit(
-                    {
-                      header: "This is a sample header",
-                      text: tipText,
-                      type: "tips",
-                    },
-                    {
-                      text: tipText,
-                      type: "feedback",
-                    }
-                  )
+                  handleMetadataSubmit({
+                    header: "This is a sample header",
+                    text: tipText,
+                    type: "tips",
+                  })
                 }
               >
                 Add tip

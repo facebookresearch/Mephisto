@@ -128,3 +128,18 @@ class DataBrowser:
             qualification_id=qualification_id, value=1
         )
         return [Worker.get(self.db, qual.worker_id) for qual in qualifieds]
+
+    def get_metadata_from_task_name(self, task_name: str) -> Dict[str, Any]:
+        """Returns all metadata for a task by going through its agents"""
+        units = self.get_all_units_for_task_name(task_name=task_name)
+        tips: List[Any] = []
+        feedback: List[Any] = []
+        for unit in units:
+            if unit.agent_id is not None:
+                unit_data = self.get_data_from_unit(unit)
+                metadata = unit_data["data"]["metadata"]
+                unit_tips = metadata["tips"]
+                unit_feedback = metadata["feedback"]
+                tips = tips + unit_tips
+                feedback = feedback + unit_feedback
+        return {"tips": tips, "feedback": feedback}

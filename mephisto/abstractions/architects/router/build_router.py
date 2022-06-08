@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from curses import meta
 import mephisto.abstractions.architects.router as router_module
 import os
 import sh  # type: ignore
@@ -12,10 +13,14 @@ import shlex
 import subprocess
 import json
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
+
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.scripts.local_db.review_tips_for_task import accept_tip
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
+from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
 ROUTER_ROOT_DIR = os.path.dirname(router_module.__file__)
 NODE_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "node")
@@ -105,6 +110,22 @@ def build_router(
     with open(local_task_config_path, "w+") as task_fp:
         frontend_args = blueprint.get_frontend_args()
         frontend_args["mephisto_task_version"] = CURR_MEPHISTO_TASK_VERSION
+        # Getting the metadata to display in taskConfig
+        task_id = task_run.task_id
+        db = LocalMephistoDB()
+        task_row = db.get_task(task_id)
+        task_name = task_row["task_name"]
+
+        mephisto_data_browser = MephistoDataBrowser(db)
+        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
+        accepted_tips = list(
+            filter(lambda tip: tip["accepted"] == True, metadata["tips"])
+        )
+        
+        frontend_args["metadata"] = {
+            "tips": accepted_tips,
+            "feedback": metadata["feedback"],
+        }
         json.dump(frontend_args, task_fp)
 
     # Consolidate task files as defined by the task

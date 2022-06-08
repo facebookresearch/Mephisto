@@ -94,7 +94,10 @@ const useMephistoTask = function () {
     if (taskConfig.block_mobile && isMobile()) {
       setState({ blockedReason: "no_mobile" });
     } else if (!state.isPreview) {
-      requestAgent().then((data) => afterAgentRegistration(data));
+      requestAgent().then((data) => {
+        console.log(data);
+        afterAgentRegistration(data);
+      });
     }
     setState({ taskConfig: taskConfig, loaded: isPreview });
   }

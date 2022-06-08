@@ -50,7 +50,7 @@ class RemoteProcedureAgentState(AgentState):
             self.end_time = -1.0
             self.init_data: Optional[Dict[str, Any]] = None
             self.final_submission: Optional[Dict[str, Any]] = None
-            self.metadata: Optional[Dict[str, Any]] = {"tips": []}
+            self.metadata: Optional[Dict[str, Any]] = {"tips": [], "feedback": []}
             self.save_data()
 
     def set_init_state(self, data: Any) -> bool:
@@ -97,7 +97,11 @@ class RemoteProcedureAgentState(AgentState):
             self.final_submission = state["final_submission"]
             self.start_time = state["start_time"]
             self.end_time = state["end_time"]
-            self.metadata = state["metadata"]
+            # Metadata field would not exist prior to this pr
+            if "metadata" not in state:
+                self.metadata = {"tips": [], "feedback": []}
+            else:
+                self.metadata = state["metadata"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
@@ -165,7 +169,13 @@ class RemoteProcedureAgentState(AgentState):
         self.end_time = time.time()
         self.save_data()
 
-    def update_metadata(self, new_metadata: Dict[str, Any]) -> None:
+    def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
         """Replace metadata field with new metadata and write it"""
-        self.metadata = new_metadata
-        self.save_data()
+        new_metadata = self.metadata
+        if(new_metadata is not None):
+            if "tips" in new_metadata_obj:
+                new_metadata["tips"] = new_metadata_obj["tips"]
+            if "feedback" in new_metadata_obj:
+                new_metadata["feedback"] = new_metadata_obj["feedback"]
+            self.metadata = new_metadata
+            self.save_data()
