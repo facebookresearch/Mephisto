@@ -1,6 +1,6 @@
 # mephisto-worker-experience
 
-This package provides the Tips component to aid in the creation of user-interfaces for Mephisto
+The Tips component will allow task authors to set up a communication channel to solicit "tips" from workers to share with other workers, thus allowing for the "crowdsourcing" of the instructions for tasks as well. We find that workers sometimes will share these tips in third-party forums or via emails to the task authors. This feature creates a more vetted channel for such communication.
 
 ## Installation
 
@@ -35,7 +35,7 @@ function App() {
     <div>
       <h1>Here Are Some Tips:</h1>
       <Tips
-        handleSubmit={()=> console.log("Submitted!")}
+        handleSubmit={(tipData)=> console.log(tipData)}
         list={[
           {
             header: "Functional or Class Components?",
@@ -57,6 +57,15 @@ The Tips component accepts the following props.
 ### `list`
 The `list` prop accepts an array of objects where each object has a header property and a text property. This property is where the data for the tips is defined.
 ### `disableUserSubmission`
-The `disableUserSubmission` property accepts a boolean where a true value hides the text inputs and hides the submit button. Setting `disableUserSubmission` to false keeps the user inputs and submit button visible. 
+The `disableUserSubmission` prop accepts a boolean where a true value hides the text inputs and hides the submit button. Setting `disableUserSubmission` to false keeps the user inputs and submit button visible. 
+The default value of this prop is false.
 ### `handleSubmit`
-The `handleSubmit` property accepts a function that runs when the "Submit Tip" button is pressed. This method can only be ran when `disableUserSubmission` is set to false.
+The `handleSubmit` prop accepts a function that runs when the "Submit Tip" button is pressed. The tipData property can be passed down through to the function. This method can only be ran when `disableUserSubmission` is set to false.
+### `tipData`
+The `tipData` parameter exists when using the `handleSubmit` property. It records the inputted header and body of the submitted tip. The parameter is an object of the type:
+```
+{
+  header: "this is a tip header"
+  body: "this is a tip body"
+}
+```

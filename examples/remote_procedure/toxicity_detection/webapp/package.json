@@ -16,6 +16,7 @@
     "react-canvas-draw": "^1.2.1",
     "react-dom": "16.13.1",
     "react-table": "^6.8.6",
+    "mephisto-worker-experience": "file:../../../../packages/mephisto-worker-experience",
     "mephisto-task": "file:../../../../packages/mephisto-task"
   },
   "devDependencies": {

@@ -1,11 +1,17 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import "./index.css";
 
 function Tips({ list, handleSubmit, disableUserSubmission }) {
+  const [tipData, setTipData] = useState({ header: "", body: "" });
   const tipsComponents = list.map((tip, index) => {
     return (
-      <li key={`tip-${index + 1}`} className="tip">
-        <h2 className="tip-header">{tip.header}</h2>
+      <li
+        key={`tip-${index + 1}`}
+        className="mephisto-worker-experience-tips__tip"
+      >
+        <h2 className="mephisto-worker-experience-tips__tip-header">
+          {tip.header}
+        </h2>
         <p>{tip.text}</p>
       </li>
     );
@@ -13,21 +19,43 @@ function Tips({ list, handleSubmit, disableUserSubmission }) {
 
   return (
     <div>
-      <ul className="tips-list">{tipsComponents}</ul>
+      <ul className="mephisto-worker-experience-tips__tips-list">
+        {tipsComponents}
+      </ul>
       {!disableUserSubmission && (
         <Fragment>
-          <label htmlFor="tip-headline" className="tip-label">
+          <label
+            htmlFor="mephisto-worker-experience-tips__tip-headline"
+            className="mephisto-worker-experience-tips__tip-label"
+          >
             Tip Headline:
           </label>
           <input
-            id="tip-headline"
+            id="mephisto-worker-experience-tips__tip-headline"
             placeholder="Write your tip's headline here..."
+            onBlur={(e) =>
+              setTipData({ header: e.target.value, body: tipData.body })
+            }
           />
-          <label htmlFor="tip-body" className="tip-label">
+          <label
+            htmlFor="mephisto-worker-experience-tips__tip-body"
+            className="mephisto-worker-experience-tips__tip-label"
+          >
             Tip Body:
           </label>
-          <textarea placeholder="Write your tip body here..." id="tip-body" />
-          <button className="submit-button" onClick={handleSubmit}>
+          <textarea
+            placeholder="Write your tip body here..."
+            id="mephisto-worker-experience-tips__tip-body"
+            onBlur={(e) =>
+              setTipData({ header: tipData.header, body: e.target.value })
+            }
+          />
+          <button
+            className="mephisto-worker-experience-tips__submit-button"
+            onClick={() =>
+              handleSubmit({ header: tipData.header, body: tipData.body })
+            }
+          >
             Submit Tip
           </button>
         </Fragment>

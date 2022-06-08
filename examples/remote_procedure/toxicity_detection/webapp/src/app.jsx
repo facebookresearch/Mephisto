@@ -6,7 +6,8 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { Tips } from "mephisto-worker-experience";
 import ReactDOM from "react-dom";
 import {
   BaseFrontend,
@@ -28,14 +29,11 @@ function RemoteProcedureApp() {
     blockedExplanation,
     taskConfig,
     isPreview,
-    previewHtml,
     isLoading,
     handleSubmit,
     remoteProcedure,
     isOnboarding,
     handleFatalError,
-    agentId,
-    assignmentId,
     handleMetadataSubmit,
   } = mephistoProps;
 
@@ -43,10 +41,6 @@ function RemoteProcedureApp() {
   /* const getCurrentTips = remoteProcedure("get_current_tips");
   const addTipForReview = remoteProcedure("add_tip_for_review"); */
   const [tips, setTips] = useState([]);
-  const [tipText, setTipText] = useState("");
-  console.log("agentId: ", agentId);
-  console.log("assignmentId: ", assignmentId);
-  console.log("taskConfig: ", taskConfig);
 
   if (isOnboarding) {
     return <h1>This task doesn't currently have an onboarding example set</h1>;
@@ -60,14 +54,6 @@ function RemoteProcedureApp() {
   if (isPreview) {
     return <Instructions />;
   }
-
-  const tipsComponents = tips.map((tipObj, index) => {
-    return (
-      <div key={`tip-${index}`}>
-        <h2>{tipObj.header}</h2> <p>{tipObj.text}</p>
-      </div>
-    );
-  });
 
   return (
     <ErrorBoundary handleError={handleFatalError}>
@@ -89,20 +75,16 @@ function RemoteProcedureApp() {
               <button onClick={() => setTips(taskConfig["metadata"]["tips"])}>
                 Show Tips
               </button>
-              {tips.length > 0 && <div>{tipsComponents}</div>}
-              <input onBlur={(e) => setTipText(e.target.value)} />
-              <button
-                disabled={tipText.length === 0}
-                onClick={() =>
+              <Tips
+                handleSubmit={(tipObj) =>
                   handleMetadataSubmit({
-                    header: "This is a sample header",
-                    text: tipText,
+                    header: tipObj.header,
+                    text: tipObj.body,
                     type: "tips",
                   })
                 }
-              >
-                Add tip
-              </button>
+                list={tips}
+              />
             </div>
           </div>
         </div>
