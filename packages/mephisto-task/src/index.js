@@ -14,7 +14,7 @@ import {
   getBlockedExplanation,
   postErrorLog,
   ErrorBoundary,
-  postTip
+  postMetadata,
 } from "./utils";
 
 export * from "./MephistoContext";
@@ -68,9 +68,19 @@ const useMephistoTask = function () {
     },
     [state.agentId]
   );
-  const handleTipSubmit = React.useCallback((data) => {
-    postTip(state.agentId, data)
-  }, [state.agentId])
+  const handleMetadataSubmit = React.useCallback(
+    (dataObj1, dataObj2) => {
+      const metadata = {};
+      // Update metadata
+      if (dataObj1 && dataObj1.hasOwnProperty("type"))
+        metadata[dataObj1["type"]] = dataObj1;
+      if (dataObj2 && dataObj2.hasOwnProperty("type"))
+        metadata[dataObj2["type"]] = dataObj2;
+
+      postMetadata(state.agentId, metadata);
+    },
+    [state.agentId]
+  );
 
   const handleFatalError = React.useCallback(
     (data) => {
@@ -120,7 +130,7 @@ const useMephistoTask = function () {
       state.blockedExplanation ||
       (state.blockedReason && getBlockedExplanation(state.blockedReason)),
     handleSubmit,
-    handleTipSubmit,
+    handleMetadataSubmit,
     handleFatalError,
   };
 };

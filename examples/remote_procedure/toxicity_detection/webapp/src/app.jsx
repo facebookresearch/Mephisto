@@ -36,14 +36,14 @@ function RemoteProcedureApp() {
     handleFatalError,
     agentId,
     assignmentId,
-    handleTipSubmit,
+    handleMetadataSubmit,
   } = mephistoProps;
 
   const handleToxicityCalculation = remoteProcedure("determine_toxicity");
   /* const getCurrentTips = remoteProcedure("get_current_tips");
   const addTipForReview = remoteProcedure("add_tip_for_review"); */
   const [tips, setTips] = useState([]);
-  const [tipText, setTipText] = useState("")
+  const [tipText, setTipText] = useState("");
   console.log("agentId: ", agentId);
   console.log("assignmentId: ", assignmentId);
 
@@ -67,7 +67,7 @@ function RemoteProcedureApp() {
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
-        <div>testing</div>
+        <div>🍋</div>
         <div
           className="container"
           id="ui-container"
@@ -94,7 +94,7 @@ function RemoteProcedureApp() {
                 Show Tips!
               </button> */}
               {tipsComponents}
-              <input onBlur={(e)=> setTipText(e.target.value)}/>
+              <input onBlur={(e) => setTipText(e.target.value)} />
               <button
                 disabled={tipText.length === 0}
                 onClick={() =>
@@ -102,7 +102,11 @@ function RemoteProcedureApp() {
                     tipText: "submitted tip, wow!",
                     agentId: agentId,
                   }) */
-                  handleTipSubmit({header: "This is a sample header", text: tipText})
+                  handleMetadataSubmit({
+                    header: "This is a sample header",
+                    text: tipText,
+                    type: "tips",
+                  })
                 }
               >
                 Add tip

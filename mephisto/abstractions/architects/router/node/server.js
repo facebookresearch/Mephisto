@@ -80,7 +80,7 @@ const SYSTEM_SOCKET_ID = "mephisto"; // TODO pull from somewhere
 const PACKET_TYPE_ALIVE = "alive";
 const PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding";
 const PACKET_TYPE_SUBMIT_UNIT = "submit_unit";
-const PACKET_TYPE_SUBMIT_TIP = "submit_tip"
+const PACKET_TYPE_SUBMIT_METADATA = "submit_metadata";
 const PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE = "client_bound_live_update";
 const PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE = "mephisto_bound_live_update";
 const PACKET_TYPE_REGISTER_AGENT = "register_agent";
@@ -507,24 +507,22 @@ app.post("/submit_task", upload.any(), function (req, res) {
   }
 });
 
-app.post("/submit-tip", function (req, res) {
+app.post("/submit-metadata", function (req, res) {
   const {
     USED_AGENT_ID: agent_id,
-    tip_data: tip_data,
+    metadata: metadata,
     client_timestamp: client_timestamp,
   } = req.body;
-  // tip_data should be a list ["header text", "tip_text"]
-  let extracted_data = tip_data;
+  // ex: handleMetadataSubmit(createTip(), createFeedback())
   let submit_packet = {
-    packet_type: PACKET_TYPE_SUBMIT_TIP,
+    packet_type: PACKET_TYPE_SUBMIT_METADATA,
     subject_id: agent_id,
-    data: extracted_data,
+    data: metadata,
     client_timestamp: client_timestamp,
     router_incoming_timestamp: pythonTime(),
   };
   _send_message(mephisto_socket, submit_packet);
-  res.json({ status: "Submitted Tip!" });
-
+  res.json({ status: "Submitted Metadata!" });
 });
 
 app.post("/log_error", function (req, res) {
