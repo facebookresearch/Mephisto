@@ -1,9 +1,9 @@
 """
-Script that allows for tips to be approved or rejected. 
+Script that allows for tips to be approved or rejected.
 Tips are collected by retrieving all units and then getting the agent of each unit.
 The agent state has the tip data.
 
-Approving a tip sets the accept property of the tip to be True. 
+Approving a tip sets the accept property of the tip to be True.
 This prevents it from appearing again when running this script.
 
 Rejecting a tip deletes the tip from the tips list in the AgentState metadata.
