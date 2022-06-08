@@ -5,7 +5,6 @@ import { Tips } from "mephisto-worker-experience";
 function App() {
   return (
     <div className="card">
-      <h1>Here Are Some Tips:</h1>
       <Tips
         handleSubmit={(tipData) => console.log(tipData)}
         list={[

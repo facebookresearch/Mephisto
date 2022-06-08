@@ -1,12 +1,55 @@
+/* Headless Classes */
+.headless-mephisto-worker-experience-tips__tips-list {
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 2.5rem;
+}
+.headless-mephisto-worker-experience-tips__tip {
+  margin-bottom: 1.35rem;
+}
+
+.headless-mephisto-worker-experience-tips__tip-header2 {
+  margin-bottom: 0.5rem;
+}
+.headless-mephisto-worker-experience-tips__tip:last-child {
+  margin-bottom: 0;
+}
+
+.headless-mephisto-worker-experience-tips__submit-button {
+  display: block;
+  margin: 0.75rem 0 0 auto;
+}
+
+.headless-mephisto-worker-experience-tips__tip-label {
+  display: block;
+  margin: 0.75rem 0 0.35rem;
+  cursor: pointer;
+  width: fit-content;
+}
+
+#headless-mephisto-worker-experience-tips__tip-header-input {
+  width: 100%;
+}
+#headless-mephisto-worker-experience-tips__tip-text-input {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Non-Headless Classes */
+.mephisto-worker-experience-tips-container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
 .mephisto-worker-experience-tips__tips-list {
   list-style-type: none;
   padding: 0;
+  margin-bottom: 2.5rem;
 }
 .mephisto-worker-experience-tips__tip {
   margin-bottom: 1.35rem;
 }
 
-.mephisto-worker-experience-tips__tip-header {
+.mephisto-worker-experience-tips__tip-header2 {
   margin-bottom: 0.5rem;
 }
 .mephisto-worker-experience-tips__tip:last-child {
@@ -15,12 +58,57 @@
 
 .mephisto-worker-experience-tips__submit-button {
   display: block;
-  margin-top: 0.75rem;
+  margin: 0.75rem 0 0 auto;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: 0;
+  background-color: rgb(236, 236, 236);
+  transition: background-color 200ms;
+}
+.mephisto-worker-experience-tips__submit-button:hover {
+  background-color: rgb(230, 230, 230);
+  transition: background-color 200ms;
+}
+
+.mephisto-worker-experience-tips__submit-button:active {
+  background-color: rgb(224, 224, 224);
+  transition: background-color 200ms;
 }
 
 .mephisto-worker-experience-tips__tip-label {
   display: block;
-  margin-top: 0.75rem;
+  margin: 0.75rem 0 0.35rem;
   cursor: pointer;
   width: fit-content;
+}
+
+#mephisto-worker-experience-tips__tip-text-input {
+  max-width: 100%;
+  min-height: 42px;
+}
+#mephisto-worker-experience-tips__tip-header-input,
+#mephisto-worker-experience-tips__tip-text-input {
+  background-color: rgb(240, 240, 240);
+  box-shadow: 0 0 0 0.15rem rgba(193, 193, 193, 0.5);
+  border: 0;
+  border-radius: 0.35rem;
+  width: 100%;
+  padding: 0.5rem;
+  transition: background-color 200ms, box-shadow 200ms;
+  outline: none;
+}
+
+#mephisto-worker-experience-tips__tip-header-input:hover,
+#mephisto-worker-experience-tips__tip-text-input:hover {
+  background-color: rgb(245, 245, 245);
+  box-shadow: 0 0 0 0.2rem rgba(209, 209, 209, 0.5);
+  transition: background-color 200ms, box-shadow 200ms;
+}
+
+#mephisto-worker-experience-tips__tip-header-input:focus,
+#mephisto-worker-experience-tips__tip-text-input:focus {
+  background-color: rgb(255, 255, 255);
+  transition: background-color 200ms, box-shadow 200ms;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
 }

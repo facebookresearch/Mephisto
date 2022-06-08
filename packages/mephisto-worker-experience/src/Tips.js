@@ -1,15 +1,18 @@
 import React, { Fragment, useState } from "react";
 import "./index.css";
 
-function Tips({ list, handleSubmit, disableUserSubmission }) {
+function Tips({ list, handleSubmit, disableUserSubmission, headless }) {
+  const headlessPrefix = headless ? "headless-" : "";
   const [tipData, setTipData] = useState({ header: "", body: "" });
   const tipsComponents = list.map((tip, index) => {
     return (
       <li
         key={`tip-${index + 1}`}
-        className="mephisto-worker-experience-tips__tip"
+        className={`${headlessPrefix}mephisto-worker-experience-tips__tip`}
       >
-        <h2 className="mephisto-worker-experience-tips__tip-header">
+        <h2
+          className={`${headlessPrefix}mephisto-worker-experience-tips__tip-header2`}
+        >
           {tip.header}
         </h2>
         <p>{tip.text}</p>
@@ -18,42 +21,51 @@ function Tips({ list, handleSubmit, disableUserSubmission }) {
   });
 
   return (
-    <div>
-      <ul className="mephisto-worker-experience-tips__tips-list">
+    <div
+      className={`${headlessPrefix}mephisto-worker-experience-tips-container`}
+    >
+      <h1>Task Tips</h1>
+      <ul
+        className={`${headlessPrefix}mephisto-worker-experience-tips__tips-list`}
+      >
         {tipsComponents}
       </ul>
       {!disableUserSubmission && (
         <Fragment>
+          <h3>Submit A Tip</h3>
           <label
-            htmlFor="mephisto-worker-experience-tips__tip-headline"
-            className="mephisto-worker-experience-tips__tip-label"
+            htmlFor={`${headlessPrefix}mephisto-worker-experience-tips__tip-header-input`}
+            className={`${headlessPrefix}mephisto-worker-experience-tips__tip-label`}
           >
             Tip Headline:
           </label>
-          <input
-            id="mephisto-worker-experience-tips__tip-headline"
-            placeholder="Write your tip's headline here..."
-            onBlur={(e) =>
-              setTipData({ header: e.target.value, body: tipData.body })
-            }
-          />
+          <div>
+            <input
+              id={`${headlessPrefix}mephisto-worker-experience-tips__tip-header-input`}
+              placeholder="Write your tip's headline here..."
+              onBlur={(e) =>
+                setTipData({ header: e.target.value, text: tipData.text })
+              }
+            />
+          </div>
+
           <label
-            htmlFor="mephisto-worker-experience-tips__tip-body"
-            className="mephisto-worker-experience-tips__tip-label"
+            htmlFor={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
+            className={`${headlessPrefix}mephisto-worker-experience-tips__tip-label`}
           >
             Tip Body:
           </label>
           <textarea
             placeholder="Write your tip body here..."
-            id="mephisto-worker-experience-tips__tip-body"
+            id={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
             onBlur={(e) =>
-              setTipData({ header: tipData.header, body: e.target.value })
+              setTipData({ header: tipData.header, text: e.target.value })
             }
           />
           <button
-            className="mephisto-worker-experience-tips__submit-button"
+            className={`${headlessPrefix}mephisto-worker-experience-tips__submit-button`}
             onClick={() =>
-              handleSubmit({ header: tipData.header, body: tipData.body })
+              handleSubmit({ header: tipData.header, text: tipData.text })
             }
           >
             Submit Tip
