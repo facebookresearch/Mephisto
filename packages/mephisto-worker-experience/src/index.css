@@ -1,26 +1,26 @@
-.tips-list {
+.mephisto-worker-experience-tips__tips-list {
   list-style-type: none;
   padding: 0;
 }
-.tip {
+.mephisto-worker-experience-tips__tip {
   margin-bottom: 1.35rem;
 }
 
-.tip-header {
+.mephisto-worker-experience-tips__tip-header {
   margin-bottom: 0.5rem;
 }
-.tip:last-child {
+.mephisto-worker-experience-tips__tip:last-child {
   margin-bottom: 0;
 }
 
-.submit-button {
+.mephisto-worker-experience-tips__submit-button {
   display: block;
   margin-top: 0.75rem;
 }
 
-.tip-label {
+.mephisto-worker-experience-tips__tip-label {
   display: block;
   margin-top: 0.75rem;
   cursor: pointer;
-  width: 100%;
+  width: fit-content;
 }

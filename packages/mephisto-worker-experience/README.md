@@ -1,6 +1,6 @@
 # mephisto-worker-experience
 
-This package provides the Tips component to aid in the creation of user-interfaces for Mephisto
+The Tips component will allow task authors to set up a communication channel to solicit "tips" from workers to share with other workers, thus allowing for the "crowdsourcing" of the instructions for tasks as well. We find that workers sometimes will share these tips in third-party forums or via emails to the task authors. This feature creates a more vetted channel for such communication.
 
 ## Installation
 
