@@ -1,13 +1,13 @@
 import React from "react";
 import "./index.css";
-import { Tips } from "mephisto-worker-experience";
+import { Tips, createTip } from "mephisto-worker-experience";
 
 function App() {
   return (
-    <div className="card">
-      <h1>Here Are Some Tips:</h1>
+    <div className="container">
       <Tips
-        handleSubmit={(tipData) => console.log(tipData)}
+        handleSubmit={(tipData) => createTip(tipData.header, tipData.text)}
+        maxHeight="20rem"
         list={[
           {
             header: "Functional or Class Components?",
