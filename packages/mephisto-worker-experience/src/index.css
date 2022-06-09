@@ -15,9 +15,9 @@
   margin-bottom: 0;
 }
 
-.headless-mephisto-worker-experience-tips__submit-button {
+.headless-mephisto-worker-experience-tips__button {
   display: block;
-  margin: 0.75rem 0 0 auto;
+  margin: 0.75rem 0;
 }
 
 .headless-mephisto-worker-experience-tips__tip-label {
@@ -36,10 +36,12 @@
 }
 
 /* Non-Headless Classes */
-.mephisto-worker-experience-tips-container {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+:root {
+  --shadow-color: 338deg 11% 70%;
+  --shadow-elevation-medium: 0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.44),
+    4.2px 8.5px 11px -2.2px hsl(var(--shadow-color) / 0.49);
 }
+
 .mephisto-worker-experience-tips__tips-list {
   list-style-type: none;
   padding: 0;
@@ -56,29 +58,35 @@
   margin-bottom: 0;
 }
 
-.mephisto-worker-experience-tips__submit-button {
+.mephisto-worker-experience-tips__button,
+.mephisto-worker-experience-tips__button:hover,
+.mephisto-worker-experience-tips__button:active,
+.mephisto-worker-experience-tips__button:focus {
+  transition: background-color 200ms, box-shadow 200ms;
+}
+.mephisto-worker-experience-tips__button {
   display: block;
-  margin: 0.75rem 0 0 auto;
+  margin: 0.75rem 0;
   padding: 0.65rem 0.75rem;
   border-radius: 0.5rem;
   cursor: pointer;
   border: 0;
   background-color: rgb(236, 236, 236);
-  transition: background-color 200ms;
+  font-size: 0.9em;
+  outline: none;
 }
-.mephisto-worker-experience-tips__submit-button:hover {
+.mephisto-worker-experience-tips__button:hover {
   background-color: rgb(230, 230, 230);
-  transition: background-color 200ms;
+  box-shadow: 0 0 0 0.1rem rgba(209, 209, 209, 0.5);
 }
 
-.mephisto-worker-experience-tips__submit-button:active {
-  background-color: rgb(224, 224, 224);
-  transition: background-color 200ms;
+.mephisto-worker-experience-tips__button:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.4);
 }
 
 .mephisto-worker-experience-tips__tip-label {
   display: block;
-  margin: 0.75rem 0 0.35rem;
+  margin: 0.75rem 0;
   cursor: pointer;
   width: fit-content;
 }
@@ -97,6 +105,9 @@
   padding: 0.5rem;
   transition: background-color 200ms, box-shadow 200ms;
   outline: none;
+  font-family: inherit;
+  font-size: 0.9em;
+  box-sizing: border-box;
 }
 
 #mephisto-worker-experience-tips__tip-header-input:hover,
@@ -111,4 +122,32 @@
   background-color: rgb(255, 255, 255);
   transition: background-color 200ms, box-shadow 200ms;
   box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
+}
+
+/* Common Classes */
+.mephisto-worker-experience-tips__container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background-color: rgb(245, 245, 245);
+  box-shadow: 10px 10px 33px -8px rgba(0,0,0,0.36);
+  -webkit-box-shadow: 10px 10px 33px -8px rgba(0,0,0,0.36);
+  -moz-box-shadow: 10px 10px 33px -8px rgba(0,0,0,0.36);
+  border-radius: 1.25rem;
+}
+
+.mephisto-worker-experience-tips__showing {
+  display: block;
+}
+.mephisto-worker-experience-tips__hiding {
+  display: none;
+}
+.mephisto-worker-experience-tips__padding-container {
+  padding: 0.25rem 1rem 0.75rem;
+}
+
+.test-box {
+  height: 50rem;
+  width: 50rem;
+  margin: 1rem;
+  background-color: red;
 }
