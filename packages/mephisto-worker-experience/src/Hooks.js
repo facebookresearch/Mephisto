@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import { useEffect } from "react";
 
 export function useOnClickOutside(refs, handler) {
   useEffect(
@@ -6,16 +6,14 @@ export function useOnClickOutside(refs, handler) {
       const listener = (event) => {
         // Do nothing if clicking ref's element or descendent elements
         let isClickOutside = true;
-        for(let i = 0; i < refs.length; i++){
-          if(refs[i].current && refs[i].current.contains(event.target)){
-            isClickOutside = false
+        for (let i = 0; i < refs.length; i++) {
+          if (refs[i].current && refs[i].current.contains(event.target)) {
+            isClickOutside = false;
           }
-          
         }
-        if(isClickOutside){
+        if (isClickOutside) {
           handler(event);
-        }
-        else return
+        } else return;
       };
       document.addEventListener("mousedown", listener);
       document.addEventListener("touchstart", listener);

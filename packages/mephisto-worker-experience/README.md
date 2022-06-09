@@ -65,7 +65,27 @@ The `handleSubmit` prop accepts a function that runs when the "Submit Tip" butto
 The `tipData` parameter exists when using the `handleSubmit` property. It records the inputted header and body of the submitted tip. The parameter is an object of the type:
 ```
 {
-  header: "this is a tip header"
-  body: "this is a tip body"
+  header: "this is a tip header",
+  text: "this is a tip body"
+}
+```
+### `headless`
+The `headless` prop accepts a boolean where a a true value removes most of the styling and a false value keeps the original styling. The default value of this prop is false.
+### `createTip(header, text)`
+This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createTip(header, text)` takes two strings as parameters. If one or both of the parameters are not a string then a rejected promise gets returned that can be caught for error handling. If both the two parameters are strings then the following object gets returned
+```
+{
+  header: header,
+  text: text,
+  type: "tips"
+}
+```
+
+### `createFeedback(text)`
+This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createFeedback(text)` takes one strings as parameters. If the parameter is not a string then a rejected promise gets returned that can be caught for error handling. If the parameter is a string then the following object gets returned
+```
+{
+  text: text,
+  type: "feedback"
 }
 ```
