@@ -1,12 +1,12 @@
 import React from "react";
 import "./index.css";
-import { Tips } from "mephisto-worker-experience";
+import { Tips, createTip } from "mephisto-worker-experience";
 
 function App() {
   return (
     <div className="container">
       <Tips
-        handleSubmit={(tipData) => console.log(tipData)}
+        handleSubmit={(tipData) => createTip(tipData.header, tipData.text)}
         list={[
           {
             header: "Functional or Class Components?",
