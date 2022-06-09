@@ -143,6 +143,7 @@
 }
 .mephisto-worker-experience-tips__padding-container {
   padding: 0.25rem 1rem 0.75rem;
+  overflow-y: auto;
 }
 
 .test-box {

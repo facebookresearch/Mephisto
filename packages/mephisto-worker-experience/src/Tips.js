@@ -1,9 +1,15 @@
 import React, { useState, Fragment, useRef } from "react";
-import { useOnClickOutside } from "./hooks";
+import { useOnClickOutside } from "./Hooks";
 import { usePopper } from "react-popper";
 import "./index.css";
 
-function Tips({ list, handleSubmit, disableUserSubmission, headless }) {
+function Tips({
+  list,
+  handleSubmit,
+  disableUserSubmission,
+  headless,
+  maxHeight,
+}) {
   const [isVisible, setIsVisible] = useState(false);
   const referenceRef = useRef(null);
   const popperRef = useRef(null);
@@ -60,7 +66,10 @@ function Tips({ list, handleSubmit, disableUserSubmission, headless }) {
           isVisible ? "showing" : "hiding"
         }`}
       >
-        <div className="mephisto-worker-experience-tips__padding-container">
+        <div
+          className="mephisto-worker-experience-tips__padding-container"
+          style={{ maxHeight: maxHeight }}
+        >
           <h1>Task Tips</h1>
           <ul
             className={`${headlessPrefix}mephisto-worker-experience-tips__tips-list`}
