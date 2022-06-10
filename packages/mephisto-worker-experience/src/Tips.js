@@ -20,17 +20,17 @@ function Tips({
     setTriggerRef,
     visible,
   } = usePopperTooltip(
-      {
-        trigger: "click",
-        closeOnOutsideClick: true,
-        visible: isVisible,
-        offset: [0, 6],
-        onVisibleChange: setIsVisible,
-      },
-      {
-        placement: placement ? placement : "top-start",
-      }
-    );
+    {
+      trigger: "click",
+      closeOnOutsideClick: true,
+      visible: isVisible,
+      offset: [0, 6],
+      onVisibleChange: setIsVisible,
+    },
+    {
+      placement: placement ? placement : "top-start",
+    }
+  );
 
   const headlessPrefix = headless ? "headless-" : "";
   const [tipData, setTipData] = useState({ header: "", body: "" });
