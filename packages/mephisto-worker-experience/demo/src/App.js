@@ -7,7 +7,9 @@ function App() {
     <div className="container">
       <Tips
         handleSubmit={(tipData) => createTip(tipData.header, tipData.text)}
-        maxHeight="20rem"
+        maxHeight="25rem"
+        maxWidth="25rem"
+        placement="bottom"
         list={[
           {
             header: "Functional or Class Components?",
