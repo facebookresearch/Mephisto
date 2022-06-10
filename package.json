@@ -17,6 +17,7 @@
   "workspaces": [
     "packages/annotated/*",
     "packages/mephisto-task",
+    "packages/mephisto-worker-experience",
     "packages/bootstrap-chat",
     "packages/global-context-store",
     "docs/storybook",
