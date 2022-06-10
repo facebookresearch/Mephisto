@@ -10,14 +10,14 @@
   "author": "",
   "dependencies": {
     "bootstrap": "^4.6.0",
-    "rc-slider": "^8.6.3",
-    "react": "16.13.1",
-    "react-bootstrap": "^1.6.0",
-    "react-canvas-draw": "^1.2.1",
-    "react-dom": "16.13.1",
-    "react-table": "^6.8.6",
+    "mephisto-task": "file:../../../../packages/mephisto-task",
     "mephisto-worker-experience": "file:../../../../packages/mephisto-worker-experience",
-    "mephisto-task": "file:../../../../packages/mephisto-task"
+    "pm": "^2.2.6",
+    "rc-slider": "^8.6.3",
+    "react": "^18.1.0",
+    "react-bootstrap": "^1.6.0",
+    "react-dom": "^18.1.0",
+    "request": "^2.79.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.0",

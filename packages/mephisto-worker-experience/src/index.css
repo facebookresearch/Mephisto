@@ -135,20 +135,13 @@
   border-radius: 1.25rem;
 }
 
+.mephisto-worker-experience-tips__padding_container {
+  padding: 1rem;
+  overflow-y: auto;
+}
 .mephisto-worker-experience-tips__showing {
   display: block;
 }
 .mephisto-worker-experience-tips__hiding {
   display: none;
-}
-.mephisto-worker-experience-tips__padding-container {
-  padding: 0.25rem 1rem 0.75rem;
-  overflow-y: auto;
-}
-
-.test-box {
-  height: 50rem;
-  width: 50rem;
-  margin: 1rem;
-  background-color: red;
 }

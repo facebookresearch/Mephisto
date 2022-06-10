@@ -7,7 +7,11 @@ export function useOnClickOutside(refs, handler) {
         // Do nothing if clicking ref's element or descendent elements
         let isClickOutside = true;
         for (let i = 0; i < refs.length; i++) {
-          if (refs[i].current && refs[i].current.contains(event.target)) {
+          if (
+            refs[i] &&
+            refs[i].current &&
+            refs[i].current.contains(event.target)
+          ) {
             isClickOutside = false;
           }
         }

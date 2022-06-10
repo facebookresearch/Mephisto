@@ -58,34 +58,49 @@ function RemoteProcedureApp() {
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
-        <div>🍊</div>
+        <div>🍐 🍐</div>
         <div
           className="container"
           id="ui-container"
           style={{ padding: "1rem 1.5rem" }}
         >
-          <div className="row">
-            <div className="col">
-              <BaseFrontend
-                handleSubmit={handleSubmit}
-                handleToxicityCalculation={handleToxicityCalculation}
-              />
-            </div>
-            <div className="col">
-              <button onClick={() => setTips(taskConfig["metadata"]["tips"])}>
+          <BaseFrontend
+            handleSubmit={handleSubmit}
+            handleToxicityCalculation={handleToxicityCalculation}
+          />
+
+          {/*        <button onClick={() => setTips(taskConfig["metadata"]["tips"])}>
                 Show Tips
-              </button>
-              <Tips
-                handleSubmit={(tipObj) =>
-                  handleMetadataSubmit({
-                    header: tipObj.header,
-                    text: tipObj.body,
-                    type: "tips",
-                  })
-                }
-                list={tips}
-              />
-            </div>
+              </button> */}
+          <div
+            style={{
+              marginTop: "20rem",
+              marginLeft: "auto",
+              width: "fit-content",
+            }}
+          >
+            <Tips
+              maxHeight="30rem"
+              maxWidth="30rem"
+              handleSubmit={(tipObj) =>
+                handleMetadataSubmit({
+                  header: tipObj.header,
+                  text: tipObj.body,
+                  type: "tips",
+                })
+              }
+              placement="top-end"
+              list={[
+                {
+                  header: "Functional or Class Components?",
+                  text: "It is generally advised to use functional components as they are thought to be the future of React.",
+                },
+                {
+                  header: "When to Use Context?",
+                  text: "To avoid having to pass props down 3+ levels, the createContext() and useContext() methods can be used.",
+                },
+              ]}
+            />
           </div>
         </div>
       </MephistoContext.Provider>

@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   mode: "production",
-  entry: "./src/index.jsx",
+  entry: path.resolve(__dirname, "./src/index.jsx"),
   output: {
     path: path.resolve("lib"),
     filename: "index.js",
@@ -23,10 +23,6 @@ module.exports = {
   },
   resolve: {
     extensions: ["", ".js", ".jsx", ".css"],
-    alias: {
-      react: path.resolve(__dirname, "./node_modules/react"),
-      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
-    },
   },
   externals: {
     // Don't bundle react or react-dom
@@ -42,5 +38,5 @@ module.exports = {
       amd: "ReactDOM",
       root: "ReactDOM",
     },
-  },
+  }, 
 };
