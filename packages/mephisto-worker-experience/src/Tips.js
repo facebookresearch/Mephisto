@@ -1,5 +1,4 @@
-import React, { useState, Fragment, useRef } from "react";
-import { useOnClickOutside } from "./Hooks";
+import React, { useState, Fragment } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
 
 import "./index.css";
