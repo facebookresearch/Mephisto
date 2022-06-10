@@ -14,8 +14,12 @@ function Tips({
   placement,
 }) {
   const [isVisible, setIsVisible] = useState(false);
-  const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
-    usePopperTooltip(
+  const {
+    getTooltipProps,
+    setTooltipRef,
+    setTriggerRef,
+    visible,
+  } = usePopperTooltip(
       {
         trigger: "click",
         closeOnOutsideClick: true,

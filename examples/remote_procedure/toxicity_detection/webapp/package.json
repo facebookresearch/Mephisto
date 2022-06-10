@@ -11,6 +11,7 @@
   "dependencies": {
     "bootstrap": "^4.6.0",
     "mephisto-task": "^2.0.1",
+    "mephisto-worker-experience": "file:../../../../packages/mephisto-worker-experience",
     "rc-slider": "^8.6.3",
     "react": "16.13.1",
     "react-bootstrap": "^1.6.0",

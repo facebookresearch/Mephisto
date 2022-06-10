@@ -6,10 +6,12 @@ function App() {
   return (
     <div className="container">
       <Tips
-        handleSubmit={(tipData) => createTip(tipData.header, tipData.text)}
+        handleSubmit={(tipData) =>
+          console.log(createTip(tipData.header, tipData.text))
+        }
         maxHeight="25rem"
         maxWidth="25rem"
-        placement="bottom"
+        placement="right-start"
         list={[
           {
             header: "Functional or Class Components?",
