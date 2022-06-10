@@ -140,6 +140,8 @@ export function postMetadata(agent_id, metadata) {
     USED_AGENT_ID: agent_id,
     metadata: metadata,
     client_timestamp: pythonTime(),
+  }).then(function (data) {
+    return data;
   });
 }
 

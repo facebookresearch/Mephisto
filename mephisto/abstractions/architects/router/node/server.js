@@ -522,7 +522,7 @@ app.post("/submit-metadata", function (req, res) {
     router_incoming_timestamp: pythonTime(),
   };
   _send_message(mephisto_socket, submit_packet);
-  res.json({ status: "Submitted Metadata!" });
+  res.json({ status: "Submitted metadata for review" });
 });
 
 app.post("/log_error", function (req, res) {

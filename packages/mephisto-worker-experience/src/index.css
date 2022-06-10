@@ -19,7 +19,9 @@
   display: block;
   margin: 0.75rem 0;
 }
-
+.headless-mephisto-worker-experience-tips__button:disabled {
+  cursor: not-allowed !important;
+}
 .headless-mephisto-worker-experience-tips__tip-label {
   display: block;
   margin: 0.75rem 0 0.35rem;
@@ -74,7 +76,14 @@
   background-color: rgb(236, 236, 236);
   font-size: 0.9em;
   outline: none;
+  display: flex;
+  align-items: center;
 }
+
+.mephisto-worker-experience-tips__button:disabled {
+  cursor: not-allowed !important;
+}
+
 .mephisto-worker-experience-tips__button:hover {
   background-color: rgb(230, 230, 230);
   box-shadow: 0 0 0 0.1rem rgba(209, 209, 209, 0.5);
@@ -136,7 +145,7 @@
 }
 
 .mephisto-worker-experience-tips__padding_container {
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   overflow-y: auto;
 }
 .mephisto-worker-experience-tips__showing {
@@ -144,4 +153,42 @@
 }
 .mephisto-worker-experience-tips__hiding {
   display: none;
+}
+
+.mephisto-worker-experience-tips__green-box,
+.mephisto-worker-experience-tips__red-box {
+  padding: 1rem;
+  width: min(18rem, 100%);
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+}
+
+.mephisto-worker-experience-tips__green-box {
+  background-color: #d1e7dd;
+  color: #315243;
+}
+
+.mephisto-worker-experience-tips__red-box {
+  background-color: #f8d7da;
+  color: #5c3c3f;
+}
+
+.loader {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgb(23, 23, 23);
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

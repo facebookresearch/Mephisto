@@ -69,6 +69,7 @@ const useMephistoTask = function () {
   );
   const handleMetadataSubmit = React.useCallback(
     (...args) => {
+      let malformed = false;
       const metadata = {};
       // Update metadata
       for (const arg of args) {
@@ -78,7 +79,9 @@ const useMephistoTask = function () {
         }
       }
 
-      postMetadata(state.agentId, metadata);
+      return new Promise(function (resolve, reject) {
+        resolve(postMetadata(state.agentId, metadata));
+      });
     },
     [state.agentId]
   );

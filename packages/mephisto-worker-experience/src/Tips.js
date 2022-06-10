@@ -1,9 +1,11 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, Fragment, useReducer, useEffect } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
 import { createTip } from "./Functions";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
 import "react-popper-tooltip/dist/styles.css";
+import { tipsReducer } from "./Reducers";
+import InfoIcon from "./InfoIcon";
 
 function Tips({
   list,
@@ -15,6 +17,15 @@ function Tips({
   placement,
 }) {
   const [isVisible, setIsVisible] = useState(false);
+  const [state, dispatch] = useReducer(tipsReducer, {
+    status: 0,
+    text: "",
+  });
+
+  useEffect(() => {
+    console.log(state);
+  }, [state]);
+
   const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
     usePopperTooltip(
       {
@@ -32,7 +43,7 @@ function Tips({
   const { taskConfig, handleMetadataSubmit } = useMephistoTask();
   const tipsArr = taskConfig ? taskConfig["metadata"]["tips"] : [];
   const headlessPrefix = headless ? "headless-" : "";
-  const [tipData, setTipData] = useState({ header: "", body: "" });
+  const [tipData, setTipData] = useState({ header: "", text: "" });
   const tipsComponents = tipsArr.map((tip, index) => {
     return (
       <li
@@ -56,6 +67,7 @@ function Tips({
         onClick={() => setIsVisible(!isVisible)}
         className={`${headlessPrefix}mephisto-worker-experience-tips__button`}
       >
+        <InfoIcon margin="0 0.225rem 0 0" />
         {visible ? "Hide Tips" : "Show Tips"}
       </button>
       {visible && (
@@ -68,7 +80,7 @@ function Tips({
             className="mephisto-worker-experience-tips__padding_container"
             style={{ maxHeight: maxHeight, maxWidth: maxWidth }}
           >
-            <h1>Task Tips</h1>
+            <h1>Task Tips:</h1>
             <ul
               className={`${headlessPrefix}mephisto-worker-experience-tips__tips-list`}
             >
@@ -88,7 +100,7 @@ function Tips({
             </ul>
             {!disableUserSubmission && (
               <Fragment>
-                <h3>Submit A Tip</h3>
+                <h1>Submit A Tip: </h1>
                 <label
                   htmlFor={`${headlessPrefix}mephisto-worker-experience-tips__tip-header-input`}
                   className={`${headlessPrefix}mephisto-worker-experience-tips__tip-label`}
@@ -122,16 +134,55 @@ function Tips({
                       })
                     }
                   />
+                  {/* {state.status === 2 && <div
+                      className={`mephisto-worker-experience-tips__green-box`}
+                    >
+                      {state.text}
+                    </div>} */}
+                  {(state.status === 2 || state.status === 3) && (
+                    <div
+                      className={`mephisto-worker-experience-tips__${
+                        state.status === 2 ? "green" : "red"
+                      }-box`}
+                    >
+                      {state.text}
+                    </div>
+                  )}
                   <button
+                    disabled={
+                      state.status === 1 ||
+                      tipData.text.length === 0 ||
+                      tipData.header.length === 0
+                    }
                     className={`${headlessPrefix}mephisto-worker-experience-tips__button`}
                     onClick={() => {
+                      dispatch({ type: "loading" });
                       handleMetadataSubmit(
                         createTip(tipData.header, tipData.text)
-                      );
-                      setTipData({ header: "", text: "" });
+                      )
+                        .then((data) => {
+                          if (data.status === "Submitted metadata for review") {
+                            setTipData({ header: "", text: "" });
+                            dispatch({ type: "success" });
+                            setTimeout(() => {
+                              dispatch({ type: "return-to-default" });
+                            }, 5000);
+                          }
+                        })
+                        .catch((error) => {
+                          console.error(error);
+                          dispatch({ type: "error" });
+                          setTimeout(() => {
+                            dispatch({ type: "return-to-default" });
+                          }, 6000);
+                        });
                     }}
                   >
-                    Submit Tip
+                    {state.status === 1 ? (
+                      <span className="loader"></span>
+                    ) : (
+                      "Submit Tip"
+                    )}
                   </button>
                 </div>
               </Fragment>

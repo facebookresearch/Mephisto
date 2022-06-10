@@ -6,7 +6,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React, { useState } from "react";
+import React from "react";
 import { Tips } from "mephisto-worker-experience";
 import ReactDOM from "react-dom";
 import {
@@ -19,7 +19,6 @@ import {
   MephistoContext,
   useMephistoRemoteProcedureTask,
   ErrorBoundary,
-  createTip,
 } from "mephisto-task";
 
 function RemoteProcedureApp() {
@@ -28,20 +27,15 @@ function RemoteProcedureApp() {
   let {
     blockedReason,
     blockedExplanation,
-    taskConfig,
     isPreview,
     isLoading,
     handleSubmit,
     remoteProcedure,
     isOnboarding,
     handleFatalError,
-    handleMetadataSubmit,
   } = mephistoProps;
 
   const handleToxicityCalculation = remoteProcedure("determine_toxicity");
-  /* const getCurrentTips = remoteProcedure("get_current_tips");
-  const addTipForReview = remoteProcedure("add_tip_for_review"); */
-  const [tips, setTips] = useState([]);
 
   if (isOnboarding) {
     return <h1>This task doesn't currently have an onboarding example set</h1>;
@@ -59,7 +53,7 @@ function RemoteProcedureApp() {
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
-        <div>🍐 🍐</div>
+        <div>👍</div>
         <div
           className="container"
           id="ui-container"
@@ -69,10 +63,6 @@ function RemoteProcedureApp() {
             handleSubmit={handleSubmit}
             handleToxicityCalculation={handleToxicityCalculation}
           />
-
-          {/*        <button onClick={() => setTips(taskConfig["metadata"]["tips"])}>
-                Show Tips
-              </button> */}
           <div
             style={{
               marginTop: "20rem",
@@ -80,14 +70,7 @@ function RemoteProcedureApp() {
               width: "fit-content",
             }}
           >
-            <Tips
-              maxHeight="30rem"
-              maxWidth="35rem"
-             /*  handleSubmit={(tipObj) =>
-                handleMetadataSubmit(createTip(tipObj.header, tipObj.text))
-              } */
-              placement="top-end"
-            />
+            <Tips maxHeight="30rem" maxWidth="35rem" placement="top-end" />
           </div>
         </div>
       </MephistoContext.Provider>
