@@ -73,9 +73,16 @@ The `tipData` parameter exists when using the `handleSubmit` property. It record
 The `headless` prop accepts a boolean where a a true value removes most of the styling and a false value keeps the original styling. The default value of this prop is false.
 ### `maxHeight`
 This prop accepts a string that specifies the maximum height for the tips popup. ex: maxHeight="30rem". Content that overflows can be navigated to using the scrollbar.
-### `maxHeight`
+### `maxWidth`
 This prop accepts a string that specifies the maximum width for the tips popup. ex: maxWidth="25rem". Content that overflows can be navigated to using the scrollbar.
+### `placement`
+This prop accepts a string that specifies the placement of the tips popup relative to the "Show/Hide Tips" button. 
 
+It accepts values of "top-start", "top", "top-end", "right-start", "right", "right-end", "bottom-start", "bottom", "bottom-end","left-start", "left", "left-end". 
+
+Only some of these values will be able to be applied in certain cases. For example, if the button is in the top right corner of the screen, then only the bottom and right values will be recognized as the left and top values would lead to the popup overflowing. 
+
+The default value for this prop is "top-start", but this may not always be applied as mentioned in the case above.
 ### `createTip(header, text)`
 This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createTip(header, text)` takes two strings as parameters. If one or both of the parameters are not a string then a rejected promise gets returned that can be caught for error handling. If both the two parameters are strings then the following object gets returned
 ```

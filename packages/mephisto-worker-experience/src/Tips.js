@@ -1,7 +1,7 @@
-import React, { useState, Fragment, useRef } from "react";
-import { useOnClickOutside } from "./Hooks";
+import React, { useState, Fragment } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
-
+import { createTip } from "./Functions";
+import { useMephistoTask } from "mephisto-task";
 import "./index.css";
 import "react-popper-tooltip/dist/styles.css";
 
@@ -29,9 +29,11 @@ function Tips({
       }
     );
 
+  const { taskConfig, handleMetadataSubmit } = useMephistoTask();
+  const tipsArr = taskConfig ? taskConfig["metadata"]["tips"] : [];
   const headlessPrefix = headless ? "headless-" : "";
   const [tipData, setTipData] = useState({ header: "", body: "" });
-  const tipsComponents = list.map((tip, index) => {
+  const tipsComponents = tipsArr.map((tip, index) => {
     return (
       <li
         key={`tip-${index + 1}`}
@@ -70,7 +72,19 @@ function Tips({
             <ul
               className={`${headlessPrefix}mephisto-worker-experience-tips__tips-list`}
             >
-              {tipsComponents}
+              {tipsArr.length <= 0 ? (
+                <li
+                  className={`${headlessPrefix}mephisto-worker-experience-tips__tip`}
+                >
+                  <h2
+                    className={`${headlessPrefix}mephisto-worker-experience-tips__tip-header2`}
+                  >
+                    There are no submitted tips!
+                  </h2>
+                </li>
+              ) : (
+                tipsComponents
+              )}
             </ul>
             {!disableUserSubmission && (
               <Fragment>
@@ -111,10 +125,9 @@ function Tips({
                   <button
                     className={`${headlessPrefix}mephisto-worker-experience-tips__button`}
                     onClick={() => {
-                      handleSubmit({
-                        header: tipData.header,
-                        text: tipData.text,
-                      });
+                      handleMetadataSubmit(
+                        createTip(tipData.header, tipData.text)
+                      );
                       setTipData({ header: "", text: "" });
                     }}
                   >

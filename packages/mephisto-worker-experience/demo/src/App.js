@@ -6,18 +6,20 @@ function App() {
   return (
     <div className="container">
       <Tips
-        handleSubmit={(tipData) => createTip(tipData.header, tipData.text)}
-        maxHeight="40rem"
+        handleSubmit={(tipData) =>
+          console.log(createTip(tipData.header, tipData.text))
+        }
+        maxHeight="25rem"
+        maxWidth="25rem"
+        placement="right-start"
         list={[
           {
             header: "Functional or Class Components?",
-            text:
-              "It is generally advised to use functional components as they are thought to be the future of React.",
+            text: "This is some tip text",
           },
           {
             header: "When to Use Context?",
-            text:
-              "To avoid having to pass props down 3+ levels, the createContext() and useContext() methods can be used.",
+            text: "This is some other tip text",
           },
         ]}
       />

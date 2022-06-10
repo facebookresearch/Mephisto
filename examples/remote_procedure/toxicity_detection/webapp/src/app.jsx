@@ -19,6 +19,7 @@ import {
   MephistoContext,
   useMephistoRemoteProcedureTask,
   ErrorBoundary,
+  createTip,
 } from "mephisto-task";
 
 function RemoteProcedureApp() {
@@ -81,25 +82,11 @@ function RemoteProcedureApp() {
           >
             <Tips
               maxHeight="30rem"
-              maxWidth="30rem"
-              handleSubmit={(tipObj) =>
-                handleMetadataSubmit({
-                  header: tipObj.header,
-                  text: tipObj.body,
-                  type: "tips",
-                })
-              }
+              maxWidth="35rem"
+             /*  handleSubmit={(tipObj) =>
+                handleMetadataSubmit(createTip(tipObj.header, tipObj.text))
+              } */
               placement="top-end"
-              list={[
-                {
-                  header: "Functional or Class Components?",
-                  text: "It is generally advised to use functional components as they are thought to be the future of React.",
-                },
-                {
-                  header: "When to Use Context?",
-                  text: "To avoid having to pass props down 3+ levels, the createContext() and useContext() methods can be used.",
-                },
-              ]}
             />
           </div>
         </div>
