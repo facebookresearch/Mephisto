@@ -70,7 +70,12 @@ function RemoteProcedureApp() {
               width: "fit-content",
             }}
           >
-            <Tips maxHeight="30rem" maxWidth="35rem" placement="top-end" />
+            <Tips
+              maxHeight="30rem"
+              maxWidth="35rem"
+              placement="top-end"
+              handleSubmit={(tipData) => console.log(tipData)}
+            />
           </div>
         </div>
       </MephistoContext.Provider>

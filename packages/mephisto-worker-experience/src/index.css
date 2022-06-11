@@ -1,11 +1,10 @@
 /* Headless Classes */
 .headless-mephisto-worker-experience-tips__tips-list {
-  list-style-type: none;
   padding: 0;
   margin-bottom: 2.5rem;
 }
 .headless-mephisto-worker-experience-tips__tip {
-  margin-bottom: 1.35rem;
+  margin: 0 0 1.35rem 1rem;
 }
 
 .headless-mephisto-worker-experience-tips__tip-header2 {
@@ -16,8 +15,10 @@
 }
 
 .headless-mephisto-worker-experience-tips__button {
-  display: block;
   margin: 0.75rem 0;
+  display: flex;
+  align-items: center;
+  
 }
 .headless-mephisto-worker-experience-tips__button:disabled {
   cursor: not-allowed !important;
@@ -45,12 +46,11 @@
 }
 
 .mephisto-worker-experience-tips__tips-list {
-  list-style-type: none;
   padding: 0;
   margin-bottom: 2.5rem;
 }
 .mephisto-worker-experience-tips__tip {
-  margin-bottom: 1.35rem;
+  margin: 0 0 1.35rem 1.75rem;
 }
 
 .mephisto-worker-experience-tips__tip-header2 {
@@ -67,7 +67,6 @@
   transition: background-color 200ms, box-shadow 200ms;
 }
 .mephisto-worker-experience-tips__button {
-  display: block;
   margin: 0.75rem 0;
   padding: 0.65rem 0.75rem;
   border-radius: 0.5rem;

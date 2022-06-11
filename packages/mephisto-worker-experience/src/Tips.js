@@ -37,7 +37,9 @@ function Tips({
     );
 
   const { taskConfig, handleMetadataSubmit } = useMephistoTask();
-  const tipsArr = taskConfig ? taskConfig["metadata"]["tips"] : [];
+  const tipsArr = (list ? list : []).concat(
+    taskConfig ? taskConfig["metadata"]["tips"] : []
+  );
   const headlessPrefix = headless ? "headless-" : "";
   const [tipData, setTipData] = useState({ header: "", text: "" });
   const tipsComponents = tipsArr.map((tip, index) => {
@@ -103,66 +105,64 @@ function Tips({
                 >
                   Tip Headline:
                 </label>
-                <div>
-                  <input
-                    id={`${headlessPrefix}mephisto-worker-experience-tips__tip-header-input`}
-                    placeholder="Write your tip's headline here..."
-                    value={tipData.header}
-                    onChange={(e) =>
-                      setTipData({ header: e.target.value, text: tipData.text })
-                    }
-                  />
+                <input
+                  id={`${headlessPrefix}mephisto-worker-experience-tips__tip-header-input`}
+                  placeholder="Write your tip's headline here..."
+                  value={tipData.header}
+                  onChange={(e) =>
+                    setTipData({ header: e.target.value, text: tipData.text })
+                  }
+                />
 
-                  <label
-                    htmlFor={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
-                    className={`${headlessPrefix}mephisto-worker-experience-tips__tip-label`}
+                <label
+                  htmlFor={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
+                  className={`${headlessPrefix}mephisto-worker-experience-tips__tip-label`}
+                >
+                  Tip Body:
+                </label>
+                <textarea
+                  placeholder="Write your tip body here..."
+                  id={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
+                  value={tipData.text}
+                  onChange={(e) =>
+                    setTipData({
+                      header: tipData.header,
+                      text: e.target.value,
+                    })
+                  }
+                />
+                {(state.status === 2 || state.status === 3) && (
+                  <div
+                    className={`mephisto-worker-experience-tips__${
+                      state.status === 2 ? "green" : "red"
+                    }-box`}
                   >
-                    Tip Body:
-                  </label>
-                  <textarea
-                    placeholder="Write your tip body here..."
-                    id={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
-                    value={tipData.text}
-                    onChange={(e) =>
-                      setTipData({
-                        header: tipData.header,
-                        text: e.target.value,
-                      })
-                    }
-                  />
-                  {(state.status === 2 || state.status === 3) && (
-                    <div
-                      className={`mephisto-worker-experience-tips__${
-                        state.status === 2 ? "green" : "red"
-                      }-box`}
-                    >
-                      {state.text}
-                    </div>
+                    {state.text}
+                  </div>
+                )}
+                <button
+                  disabled={
+                    state.status === 1 ||
+                    tipData.text.length === 0 ||
+                    tipData.header.length === 0
+                  }
+                  className={`${headlessPrefix}mephisto-worker-experience-tips__button`}
+                  onClick={() =>
+                    handleTipSubmit(
+                      handleSubmit,
+                      handleMetadataSubmit,
+                      dispatch,
+                      tipData,
+                      setTipData
+                    )
+                  }
+                >
+                  {state.status === 1 ? (
+                    <span className="loader"></span>
+                  ) : (
+                    "Submit Tip"
                   )}
-                  <button
-                    disabled={
-                      state.status === 1 ||
-                      tipData.text.length === 0 ||
-                      tipData.header.length === 0
-                    }
-                    className={`${headlessPrefix}mephisto-worker-experience-tips__button`}
-                    onClick={() =>
-                      handleTipSubmit(
-                        handleSubmit,
-                        handleMetadataSubmit,
-                        dispatch,
-                        tipData,
-                        setTipData
-                      )
-                    }
-                  >
-                    {state.status === 1 ? (
-                      <span className="loader"></span>
-                    ) : (
-                      "Submit Tip"
-                    )}
-                  </button>
-                </div>
+                </button>
               </Fragment>
             )}
           </div>

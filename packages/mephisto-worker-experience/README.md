@@ -60,7 +60,7 @@ The `list` prop accepts an array of objects where each object has a header prope
 The `disableUserSubmission` prop accepts a boolean where a true value hides the text inputs and hides the submit button. Setting `disableUserSubmission` to false keeps the user inputs and submit button visible. 
 The default value of this prop is false.
 ### `handleSubmit`
-The `handleSubmit` prop accepts a function that runs when the "Submit Tip" button is pressed. The tipData property can be passed down through to the function. This method can only be ran when `disableUserSubmission` is set to false.
+The `handleSubmit` prop accepts a function that runs when the "Submit Tip" button is pressed instead of the default behavior of submitting a tip. The tipData property can be passed down through to the function. This method can only be ran when `disableUserSubmission` is set to false.
 ### `tipData`
 The `tipData` parameter exists when using the `handleSubmit` property. It records the inputted header and body of the submitted tip. The parameter is an object of the type:
 ```
