@@ -32,6 +32,7 @@ class StaticAgentState(AgentState):
             "inputs": None,
             "outputs": None,
             "times": {"task_start": 0, "task_end": 0},
+            "metadata": {"tips": [], "feedback": []},
         }
 
     def __init__(self, agent: "Agent"):
@@ -109,6 +110,16 @@ class StaticAgentState(AgentState):
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
         self.save_data()
+
+    def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
+        new_metadata = self.state["metadata"]
+        if new_metadata is not None:
+            if "tips" in new_metadata_obj:
+                new_metadata["tips"] = new_metadata_obj["tips"]
+            if "feedback" in new_metadata_obj:
+                new_metadata["feedback"] = new_metadata_obj["feedback"]
+            self.state["metadata"] = new_metadata
+            self.save_data()
 
     def get_task_start(self) -> Optional[float]:
         """

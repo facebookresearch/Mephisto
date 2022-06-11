@@ -183,7 +183,7 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_metadata(self, new_metadata: Dict[str, Any]) -> None:
+    def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
         """
         Update this AgentState with the final metadata.
         """

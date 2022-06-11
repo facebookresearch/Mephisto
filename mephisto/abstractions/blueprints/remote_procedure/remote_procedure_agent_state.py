@@ -172,7 +172,7 @@ class RemoteProcedureAgentState(AgentState):
     def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
         """Replace metadata field with new metadata and write it"""
         new_metadata = self.metadata
-        if(new_metadata is not None):
+        if new_metadata is not None:
             if "tips" in new_metadata_obj:
                 new_metadata["tips"] = new_metadata_obj["tips"]
             if "feedback" in new_metadata_obj:

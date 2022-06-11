@@ -311,7 +311,6 @@ class ClientIOHandler:
         if "feedback" in packet.data:
             print("Feedback received")
         # Sets agent tips to updated version
-            
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""

@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from curses import meta
 import mephisto.abstractions.architects.router as router_module
 import os
 import sh  # type: ignore
@@ -13,10 +12,9 @@ import shlex
 import subprocess
 import json
 
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.scripts.local_db.review_tips_for_task import accept_tip
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
@@ -121,7 +119,7 @@ def build_router(
         accepted_tips = list(
             filter(lambda tip: tip["accepted"] == True, metadata["tips"])
         )
-        
+
         frontend_args["metadata"] = {
             "tips": accepted_tips,
             "feedback": metadata["feedback"],

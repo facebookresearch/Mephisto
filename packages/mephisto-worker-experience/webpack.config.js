@@ -38,5 +38,5 @@ module.exports = {
       amd: "ReactDOM",
       root: "ReactDOM",
     },
-  }, 
+  },
 };
