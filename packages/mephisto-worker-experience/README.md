@@ -55,7 +55,7 @@ function App() {
 ## Documentation
 The Tips component accepts the following props.
 ### `list`
-The `list` prop accepts an array of objects where each object has a header property and a text property. This property is where the data for the tips is defined.
+The `list` prop accepts an array of objects where each object has a header property and a text property. This property is where the initial data for the tips is defined.
 ### `disableUserSubmission`
 The `disableUserSubmission` prop accepts a boolean where a true value hides the text inputs and hides the submit button. Setting `disableUserSubmission` to false keeps the user inputs and submit button visible. 
 The default value of this prop is false.
@@ -83,21 +83,3 @@ It accepts values of "top-start", "top", "top-end", "right-start", "right", "rig
 Only some of these values will be able to be applied in certain cases. For example, if the button is in the top right corner of the screen, then only the bottom and right values will be recognized as the left and top values would lead to the popup overflowing. 
 
 The default value for this prop is "top-start", but this may not always be applied as mentioned in the case above.
-### `createTip(header, text)`
-This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createTip(header, text)` takes two strings as parameters. If one or both of the parameters are not a string then a rejected promise gets returned that can be caught for error handling. If both the two parameters are strings then the following object gets returned
-```
-{
-  header: header,
-  text: text,
-  type: "tips"
-}
-```
-
-### `createFeedback(text)`
-This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createFeedback(text)` takes one strings as parameters. If the parameter is not a string then a rejected promise gets returned that can be caught for error handling. If the parameter is a string then the following object gets returned
-```
-{
-  text: text,
-  type: "feedback"
-}
-```
