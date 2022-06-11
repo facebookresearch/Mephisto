@@ -1,6 +1,6 @@
-import React, { useState, Fragment, useReducer, useEffect } from "react";
+import React, { useState, Fragment, useReducer } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
-import { createTip } from "./Functions";
+import { handleTipSubmit } from "./Functions";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
 import "react-popper-tooltip/dist/styles.css";
@@ -21,10 +21,6 @@ function Tips({
     status: 0,
     text: "",
   });
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
 
   const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
     usePopperTooltip(
@@ -134,11 +130,6 @@ function Tips({
                       })
                     }
                   />
-                  {/* {state.status === 2 && <div
-                      className={`mephisto-worker-experience-tips__green-box`}
-                    >
-                      {state.text}
-                    </div>} */}
                   {(state.status === 2 || state.status === 3) && (
                     <div
                       className={`mephisto-worker-experience-tips__${
@@ -155,28 +146,15 @@ function Tips({
                       tipData.header.length === 0
                     }
                     className={`${headlessPrefix}mephisto-worker-experience-tips__button`}
-                    onClick={() => {
-                      dispatch({ type: "loading" });
-                      handleMetadataSubmit(
-                        createTip(tipData.header, tipData.text)
+                    onClick={() =>
+                      handleTipSubmit(
+                        handleSubmit,
+                        handleMetadataSubmit,
+                        dispatch,
+                        tipData,
+                        setTipData
                       )
-                        .then((data) => {
-                          if (data.status === "Submitted metadata for review") {
-                            setTipData({ header: "", text: "" });
-                            dispatch({ type: "success" });
-                            setTimeout(() => {
-                              dispatch({ type: "return-to-default" });
-                            }, 5000);
-                          }
-                        })
-                        .catch((error) => {
-                          console.error(error);
-                          dispatch({ type: "error" });
-                          setTimeout(() => {
-                            dispatch({ type: "return-to-default" });
-                          }, 6000);
-                        });
-                    }}
+                    }
                   >
                     {state.status === 1 ? (
                       <span className="loader"></span>
