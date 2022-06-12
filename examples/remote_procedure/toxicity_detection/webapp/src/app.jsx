@@ -7,7 +7,6 @@
  */
 
 import React from "react";
-import { Tips } from "mephisto-worker-experience";
 import ReactDOM from "react-dom";
 import {
   BaseFrontend,
@@ -53,7 +52,6 @@ function RemoteProcedureApp() {
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
-        <div>👍 👍</div>
         <div
           className="container"
           id="ui-container"
@@ -69,14 +67,7 @@ function RemoteProcedureApp() {
               marginLeft: "auto",
               width: "fit-content",
             }}
-          >
-            <Tips
-              maxHeight="30rem"
-              maxWidth="35rem"
-              placement="top-end"
-              handleSubmit={(tipData) => console.log(tipData)}
-            />
-          </div>
+          ></div>
         </div>
       </MephistoContext.Provider>
     </ErrorBoundary>

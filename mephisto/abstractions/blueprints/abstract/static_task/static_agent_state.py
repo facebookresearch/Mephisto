@@ -57,12 +57,16 @@ class StaticAgentState(AgentState):
             self.save_data()
             return True
 
-    def get_init_state(self) -> Optional[Dict[str, Any]]:
+    def get_init_state(
+        self, get_all_state: Optional[bool] = False
+    ) -> Optional[Dict[str, Any]]:
         """
         Return the initial state for this agent,
         None if no such state exists
         """
-        if self.state["inputs"] is None:
+        if get_all_state == True:
+            return self.state
+        elif self.state["inputs"] is None:
             return None
         return self.state["inputs"].copy()
 

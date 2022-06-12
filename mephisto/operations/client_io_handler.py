@@ -293,7 +293,7 @@ class ClientIOHandler:
             live_run = self.get_live_run()
             agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
             assert agent is not None, "Could not find given agent!"
-            init_agent_data = agent.state.get_init_state().copy()
+            init_agent_data = agent.state.get_init_state(get_all_state=True).copy()
             assert init_agent_data is not None, "Could not find agent data"
             # Updates tips
             new_tip_header = packet.data["tips"]["header"]
