@@ -26,7 +26,7 @@ function Tips({
     getTooltipProps,
     setTooltipRef,
     setTriggerRef,
-    visible
+    visible,
   } = usePopperTooltip(
     {
       trigger: "click",
