@@ -137,7 +137,8 @@ class ArchitectTests(unittest.TestCase):
             self.db, args, EMPTY_STATE, self.task_run, self.build_dir
         )
         return self.curr_architect
-    @patch('builtins.input', side_effects=[""])
+
+    @patch("builtins.input", lambda *args: "")
     def test_prepare_cleanup(self) -> None:
         """Test preparation and cleanup for server"""
         architect = self.get_architect()
@@ -147,7 +148,7 @@ class ArchitectTests(unittest.TestCase):
         architect.cleanup()
         self.assertTrue(self.server_is_cleaned(self.build_dir))
 
-    @patch('builtins.input', side_effects=[""])
+    @patch("builtins.input", lambda *args: "")
     def test_deploy_shutdown(self) -> None:
         """Test deploying the server, and shutting it down"""
         architect = self.get_architect()
