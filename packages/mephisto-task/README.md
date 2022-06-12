@@ -102,6 +102,9 @@ Generally speaking, the value is the `InitializationData` object that the `TaskR
 
 A callback provided for the webapp to finalize and submit the worker's resulting work back to Mephisto.
 
+### `handleMetadataSubmit(payload)`
+A callback provided for the Tips component in the `mephisto-worker-experience` package to submit a tip to its agent's metadata.
+
 ### `isLoading`
 
 A boolean flag to be used to render a loading state while a task is handshaking with the Mephisto server backend and initializing. Once the `initialTaskData` is loaded, this will be set to `true`.

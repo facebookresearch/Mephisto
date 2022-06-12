@@ -1,17 +1,12 @@
-# Simple Static React Task
-This example script is to demonstrate how to launch a simple task using a frontend webapp built in React. The "static" nature of this task means that all of the content required for a worker to complete the task must be set before the task is launched, and must be able to be sent to the app upon initialization. The actual app you write can vary in complexity however you like so long as this constraint is met.
+# Simple Static React Task With Tips
+This task is essentially the same as the "static-react-task" task except that there is a tips button that allows for the viewing and submission of tips. 
+
+The "static-react-task" readme should be read before running this task.
+
 
 This specific example can be run with:
 ```console
 python run_task.py
-```
-and can additionally be launched with an onboarding step by specifying an onboarding qualification:
-```console
-python run_task.py mephisto.blueprint.onboarding_qualification=test-react-static-qualification
-```
-or by specifying the config file that already has this set:
-```console
-python run_task.py conf=onboarding_example
 ```
 
 ## Implementation
@@ -83,6 +78,23 @@ From within the frontend, any call to the `handleSubmit` method will store the d
 ```
 
 This data can later be viewed using `MephistoDataBrowser` or other scripts.
+### Adding Tips
+Tips can be imported from `mephisto-user-experience` to be used.
+```js
+import { Tips } from "mephisto-worker-experience";
+```
+Then adding the following to inside your BaseFrontend should show the tips button.
+```js
+<Tips maxHeight="30rem" maxWidth="35rem" placement="top-start" />
+```
+To see some of the other props of the Tips component see the 
+[mephisto-worker-experience readme](https://github.com/facebookresearch/Mephisto/blob/add-tips-example/packages/mephisto-worker-experience/README.md)
+
+Once a worker submits a tip from the popup that shows when clicking on the tips button, then these tips can be reviewed to either accept or reject them.
+
+This can be done by running the [review_tips_for_task.py](https://github.com/facebookresearch/Mephisto/blob/add-tips-example/mephisto/scripts/local_db/review_tips_for_task.py) script and following the instructions. If a tip is accepted, then running python run_task.py on this task should show the accepted tip when opening the tips popup.
+
+If you accepted a tip by accident, then running the [remove_accepted_tip.py](https://github.com/facebookresearch/Mephisto/blob/add-tips-example/mephisto/scripts/local_db/remove_accepted_tip.py) script and following the instructions will allow you to remove the accepted tip. Running the task again and opening the tips popup will confirm that the accepted tip was removed.
 
 ### Onboarding
 An onboarding step can be added to tasks, which will be shown the first time a worker encounters a task with the same `onboarding_qualification` set. For Static React Tasks, calling `handleSubmit` when `isOnboarding` is true will submit the onboarding. The object passed will be sent to the Mephisto backend, wherein the contents will be passed to the `validate_onboarding` method of the `SharedTaskState`. If that method returns `False`, the worker will be prevented from working on the real task, or any future tasks with the same `onboarding_qualification` set. This task has one such button in `webapp/src/components/core_components.jsx` that is only shown if `isOnboarding` is true, and always submits a successful onboarding. See the [README on Blueprints](https://github.com/facebookresearch/Mephisto/blob/main/mephisto/abstractions/blueprints/README.md) for more info on the `SharedTaskState`.
