@@ -7,7 +7,7 @@
  */
 
 import React from "react";
-import { Tips } from "mephisto-worker-experience";
+import { Tips, Feedback } from "mephisto-worker-experience";
 
 function OnboardingComponent({ onSubmit }) {
   return (
@@ -43,7 +43,7 @@ function Directions({ children }) {
   );
 }
 
-function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
+function SimpleFrontend({ taskData, onSubmit }) {
   return (
     <div>
       <Directions>
@@ -71,8 +71,11 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
               </button>
             </div>
           </div>
-          <div style={{ marginTop: "14.5rem" }}>
+          <div style={{ marginTop: "14.5rem", display: "flex" }}>
             <Tips maxHeight="30rem" maxWidth="35rem" placement="top-start" />
+            <span style={{ marginLeft: "1rem" }}>
+              <Feedback width="30rem" />
+            </span>
           </div>
         </div>
       </section>
