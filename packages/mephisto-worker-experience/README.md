@@ -105,3 +105,5 @@ function App() {
 The `headless` prop accepts a boolean where a a true value removes most of the styling and a false value keeps the original styling. The default value of this prop is false.
 ### `handleSubmit`
 The `handleSubmit` prop accepts a function that runs when the "Submit Feedback" button is pressed instead of the default behavior of submitting feedback. The text property can be passed down through to the function.
+### `width`
+The `width` prop accepts a string that sets the width of the feedback component (text input and button). ex: width="30rem"

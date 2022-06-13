@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import "./index.css";
 
-function Feedback({ headless, handleSubmit }) {
+function Feedback({ headless, handleSubmit, width }) {
   const headlessPrefix = headless ? "headless-" : "";
   const [feedbackText, setFeedbackText] = useState("");
 
   return (
-    <span className="mephisto-worker-experience-feedback__container">
+    <span
+      style={{ width: width }}
+      className="mephisto-worker-experience-feedback__container"
+    >
       <input
         onChange={(e) => setFeedbackText(e.target.value)}
         value={feedbackText}
