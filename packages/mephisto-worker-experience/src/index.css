@@ -140,3 +140,7 @@
 .mephisto-worker-experience-tips__hiding {
   display: none;
 }
+
+.mephisto-worker-experience-tips__button-no-margin{
+  margin: 0;
+}

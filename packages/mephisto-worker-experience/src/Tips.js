@@ -55,7 +55,7 @@ function Tips({
       <button
         ref={setTriggerRef}
         onClick={() => setIsVisible(!isVisible)}
-        className={`${headlessPrefix}mephisto-worker-experience-tips__button`}
+        className={`${headlessPrefix}mephisto-worker-experience-tips__button mephisto-worker-experience-tips__button-no-margin`}
       >
         {visible ? "Hide Tips" : "Show Tips"}
       </button>
