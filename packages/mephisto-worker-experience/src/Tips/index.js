@@ -4,7 +4,7 @@ import { handleTipSubmit } from "../Functions";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
 import "react-popper-tooltip/dist/styles.css";
-import { tipsReducer } from "../Reducers";
+import { tipReducer } from "../Reducers";
 import InfoIcon from "./InfoIcon";
 
 function Tips({
@@ -17,7 +17,7 @@ function Tips({
   placement,
 }) {
   const [isVisible, setIsVisible] = useState(false);
-  const [state, dispatch] = useReducer(tipsReducer, {
+  const [state, dispatch] = useReducer(tipReducer, {
     status: 0,
     text: "",
   });

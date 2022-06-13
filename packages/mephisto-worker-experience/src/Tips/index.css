@@ -71,6 +71,7 @@
   outline: none;
   display: flex;
   align-items: center;
+  height: 2.4rem;
 }
 
 .mephisto-worker-experience-tips__button:disabled {

@@ -22,6 +22,7 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
+  height: 2.4rem;
 }
 
 .mephisto-worker-experience-feedback__button:disabled {
@@ -42,13 +43,13 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
 }
 
-#mephisto-worker-experience-feedback__text-input {
+#mephisto-worker-experience-feedback__text-area {
   max-width: 100%;
-  min-height: 2rem;
+  height: 2.09375rem;
   background-color: rgb(240, 240, 240);
   box-shadow: 0 0 0 0.15rem rgba(193, 193, 193, 0.5);
   border: 0;
@@ -63,14 +64,33 @@
   margin-right: 0.75rem;
 }
 
-#mephisto-worker-experience-feedback__text-input:hover {
+#mephisto-worker-experience-feedback__text-area:hover {
   background-color: rgb(245, 245, 245);
   box-shadow: 0 0 0 0.2rem rgba(209, 209, 209, 0.5);
   transition: background-color 200ms, box-shadow 200ms;
 }
 
-#mephisto-worker-experience-feedback__text-input:focus {
+#mephisto-worker-experience-feedback__text-area:focus {
   background-color: rgb(255, 255, 255);
   transition: background-color 200ms, box-shadow 200ms;
   box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
+}
+
+.mephisto-worker-experience-feedback__green-box,
+.mephisto-worker-experience-feedback__red-box {
+  padding: 1rem;
+  width: min(18rem, 100%);
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  box-shadow: 10px 10px 23px -15px rgba(0, 0, 0, 0.26);
+}
+
+.mephisto-worker-experience-feedback__green-box {
+  background-color: #d1e7dd;
+  color: #315243;
+}
+
+.mephisto-worker-experience-feedback__red-box {
+  background-color: #f8d7da;
+  color: #5c3c3f;
 }
