@@ -1,10 +1,10 @@
 import React, { useState, Fragment, useReducer } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
-import { handleTipSubmit } from "./Functions";
+import { handleTipSubmit } from "../Functions";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
 import "react-popper-tooltip/dist/styles.css";
-import { tipsReducer } from "./Reducers";
+import { tipsReducer } from "../Reducers";
 import InfoIcon from "./InfoIcon";
 
 function Tips({
@@ -22,23 +22,19 @@ function Tips({
     text: "",
   });
 
-  const {
-    getTooltipProps,
-    setTooltipRef,
-    setTriggerRef,
-    visible,
-  } = usePopperTooltip(
-    {
-      trigger: "click",
-      closeOnOutsideClick: true,
-      visible: isVisible,
-      offset: [0, 6],
-      onVisibleChange: setIsVisible,
-    },
-    {
-      placement: placement ? placement : "top-start",
-    }
-  );
+  const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
+    usePopperTooltip(
+      {
+        trigger: "click",
+        closeOnOutsideClick: true,
+        visible: isVisible,
+        offset: [0, 6],
+        onVisibleChange: setIsVisible,
+      },
+      {
+        placement: placement ? placement : "top-start",
+      }
+    );
 
   const { taskConfig, handleMetadataSubmit } = useMephistoTask();
   const tipsArr = (list ? list : []).concat(
