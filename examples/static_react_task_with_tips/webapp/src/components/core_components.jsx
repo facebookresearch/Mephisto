@@ -75,7 +75,7 @@ function SimpleFrontend({ taskData, onSubmit }) {
             style={{
               marginTop: "14.5rem",
               display: "flex",
-              alignItems: "flex-start",
+              alignItems: "center",
             }}
           >
             <Tips maxHeight="30rem" maxWidth="35rem" placement="top-start" />

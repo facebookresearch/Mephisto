@@ -138,8 +138,41 @@ export function handleFeedbackSubmit(
 }
 
 /**
- * Runs the change callback when typing occurs in an input.
- * If the input content is too long, then change state
+ * Runs the change callback when typing occurs in a tip text input.
+ * If the tip text area input is too long, then change state
+ * @param {React.ChangeEvent<HTMLInputElement>} e A typical react event
+ * @param {header: string; text: string} tipData Stores data for the tip
+ * @param {any} state State that is retrived from reducer. It should have a status property.
+ * @param {React.Dispatch<any>} dispatch Dispatch that is retrieved from reducer
+ * @param {changeCallback} changeCallback A function that gets ran on every keystroke
+ * @param {{header: int; body: int}} maxLength The largest length before an error message will show for the header and body
+ * @return
+ */
+export function handleChangeTip(
+  e,
+  tipData,
+  dispatch,
+  changeCallback,
+  maxLength
+) {
+  changeCallback();
+  let isHeader = false;
+  if (e.target.id.includes("mephisto-worker-experience-tips__tip-header-input"))
+    isHeader = true;
+
+  const headerLength = isHeader ? e.target.value.length : tipData.header.length;
+  const bodyLength = isHeader ? tipData.text.length : e.target.value.length;
+
+  if (headerLength > maxLength.header) dispatch({ type: "header-too-long" });
+  else if (bodyLength > maxLength.body) {
+    dispatch({ type: "body-too-long" });
+  } else if (headerLength <= maxLength.header && bodyLength <= maxLength.body)
+    dispatch({ type: "return-to-default" });
+}
+
+/**
+ * Runs the change callback when typing occurs in a feedback textarea.
+ * If the feedback text area content is too long, then change state
  * @param {React.ChangeEvent<HTMLInputElement>} e A typical react event
  * @param {any} state State that is retrived from reducer. It should have a status property.
  * @param {React.Dispatch<any>} dispatch Dispatch that is retrieved from reducer
@@ -147,7 +180,13 @@ export function handleFeedbackSubmit(
  * @param {int} maxLength The largest length before an error message will show
  * @return
  */
-export function handleChangeFeedback(e, state, dispatch, changeCallback, maxLength) {
+export function handleChangeFeedback(
+  e,
+  state,
+  dispatch,
+  changeCallback,
+  maxLength
+) {
   changeCallback(e);
   if (e.target.value.length > maxLength && state.status !== 4) {
     dispatch({ type: "too-long" });

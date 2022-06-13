@@ -16,7 +16,6 @@ export function tipReducer(state, action) {
       newState.status = 0;
       newState.text = "";
       return newState;
-
     case "loading":
       newState.status = 1;
       newState.text = "Loading";
@@ -28,6 +27,14 @@ export function tipReducer(state, action) {
     case "error":
       newState.status = 3;
       newState.text = "❌ Something went wrong when submitting your tip";
+      return newState;
+    case "header-too-long":
+      newState.status = 4;
+      newState.text = "📝 Your tip header is too long";
+      return newState;
+    case "body-too-long":
+      newState.status = 5;
+      newState.text = "📝 Your tip body is too long";
       return newState;
     default:
       throw new Error();

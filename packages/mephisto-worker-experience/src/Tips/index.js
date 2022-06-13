@@ -1,6 +1,6 @@
 import React, { useState, Fragment, useReducer } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
-import { handleTipSubmit } from "../Functions";
+import { handleChangeTip, handleTipSubmit } from "../Functions";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
 import "react-popper-tooltip/dist/styles.css";
@@ -21,7 +21,7 @@ function Tips({
     status: 0,
     text: "",
   });
-
+  const maxLengths = { header: 72, body: 500 };
   const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
     usePopperTooltip(
       {
@@ -110,7 +110,17 @@ function Tips({
                   placeholder="Write your tip's headline here..."
                   value={tipData.header}
                   onChange={(e) =>
-                    setTipData({ header: e.target.value, text: tipData.text })
+                    handleChangeTip(
+                      e,
+                      tipData,
+                      dispatch,
+                      () =>
+                        setTipData({
+                          header: e.target.value,
+                          text: tipData.text,
+                        }),
+                      maxLengths
+                    )
                   }
                 />
 
@@ -125,13 +135,23 @@ function Tips({
                   id={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
                   value={tipData.text}
                   onChange={(e) =>
-                    setTipData({
-                      header: tipData.header,
-                      text: e.target.value,
-                    })
+                    handleChangeTip(
+                      e,
+                      tipData,
+                      dispatch,
+                      () =>
+                        setTipData({
+                          header: tipData.header,
+                          text: e.target.value,
+                        }),
+                      maxLengths
+                    )
                   }
                 />
-                {(state.status === 2 || state.status === 3) && (
+                {(state.status === 2 ||
+                  state.status === 3 ||
+                  state.status === 4 ||
+                  state.status === 5) && (
                   <div
                     className={`mephisto-worker-experience-tips__${
                       state.status === 2 ? "green" : "red"
@@ -143,6 +163,8 @@ function Tips({
                 <button
                   disabled={
                     state.status === 1 ||
+                    state.status === 4 ||
+                    state.status === 5 ||
                     tipData.text.length === 0 ||
                     tipData.header.length === 0
                   }

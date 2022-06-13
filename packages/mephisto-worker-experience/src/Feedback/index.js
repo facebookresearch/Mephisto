@@ -14,7 +14,7 @@ function Feedback({ headless, handleSubmit, width }) {
     text: "",
   });
   const maxFeedbackLength = 3000;
-  const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
+  const { getTooltipProps, setTooltipRef, setTriggerRef, visible, update } =
     usePopperTooltip(
       {
         trigger: null,
