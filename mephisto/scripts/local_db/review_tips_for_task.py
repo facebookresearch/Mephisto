@@ -16,13 +16,14 @@ from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
 
-def get_index_of_value(lst: List[str], property: str):
+def get_index_of_value(lst: List[str], property: str) -> int:
     for i in range(len(lst)):
         if lst[i] == property:
             return i
+    return 0
 
 
-def is_number(s):
+def is_number(s) -> bool:
     """Validates the input to make sure that it is a number"""
     if s == "NaN":
         return False
@@ -33,7 +34,7 @@ def is_number(s):
         return False
 
 
-def remove_tip_from_metadata(tips, tips_copy, i, unit):
+def remove_tip_from_metadata(tips, tips_copy, i, unit) -> None:
     """Removes a tip from metadata"""
     tips_id = [tip_obj["id"] for tip_obj in tips_copy]
     index_to_remove = get_index_of_value(tips_id, tips[i]["id"])
@@ -44,7 +45,7 @@ def remove_tip_from_metadata(tips, tips_copy, i, unit):
         assigned_agent.state.update_metadata({"tips": tips_copy})
 
 
-def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit):
+def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
     """Accepts a tip in metadata"""
     tips_id = [tip_obj["id"] for tip_obj in tips_copy]
     # gets the index of the tip in the tip_copy list

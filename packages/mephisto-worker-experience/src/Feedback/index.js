@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import { useMephistoTask } from "mephisto-task";
 import "./index.css";
+import { createFeedback } from "../Functions";
 
 function Feedback({ headless, handleSubmit, width }) {
   const headlessPrefix = headless ? "headless-" : "";
   const [feedbackText, setFeedbackText] = useState("");
+  const { taskConfig, handleMetadataSubmit } = useMephistoTask();
 
   return (
     <span
@@ -19,6 +22,9 @@ function Feedback({ headless, handleSubmit, width }) {
       <button
         className={`${headlessPrefix}mephisto-worker-experience-feedback__button`}
         disabled={feedbackText.length <= 0}
+        onClick={() => {
+          handleMetadataSubmit(createFeedback(feedbackText));
+        }}
       >
         Submit Feedback
       </button>

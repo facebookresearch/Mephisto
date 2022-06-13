@@ -185,3 +185,7 @@
     transform: rotate(360deg);
   }
 }
+
+.mephisto-worker-experience-tips__button-no-margin {
+  margin: 0;
+}

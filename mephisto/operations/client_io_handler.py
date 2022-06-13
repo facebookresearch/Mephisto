@@ -309,8 +309,24 @@ class ClientIOHandler:
             )
             agent.state.update_metadata({"tips": init_agent_data["metadata"]["tips"]})
         if "feedback" in packet.data:
-            print("Feedback received")
-        # Sets agent tips to updated version
+            live_run = self.get_live_run()
+            agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
+            assert agent is not None, "Could not find given agent!"
+            init_agent_data = agent.state.get_init_state(get_all_state=True).copy()
+            assert init_agent_data is not None, "Could not find agent data"
+            new_feedback_text = packet.data["feedback"]["text"]
+            init_agent_data["metadata"]["feedback"].append(
+                {
+                    "id": str(uuid4()),
+                    "text": new_feedback_text,
+                    "reviewed": False,
+                }
+            )
+            print(init_agent_data)
+            # Sets agent tips to updated version
+            agent.state.update_metadata(
+                {"feedback": init_agent_data["metadata"]["feedback"]}
+            )
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
