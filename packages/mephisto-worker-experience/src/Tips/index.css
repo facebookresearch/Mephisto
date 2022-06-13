@@ -38,11 +38,6 @@
 }
 
 /* Non-Headless Classes */
-:root {
-  --shadow-color: 338deg 11% 70%;
-  --shadow-elevation-medium: 0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.44),
-    4.2px 8.5px 11px -2.2px hsl(var(--shadow-color) / 0.49);
-}
 
 .mephisto-worker-experience-tips__tips-list {
   padding: 0;

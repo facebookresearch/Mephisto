@@ -27,6 +27,7 @@ npm link mephisto-worker-experience
 
 ## Usage (`Tips`)
 
+
 ```jsx
 import { Tips } from "mephisto-worker-experience";
 
@@ -35,7 +36,6 @@ function App() {
     <div>
       <h1>Here Are Some Tips:</h1>
       <Tips
-        handleSubmit={(tipData)=> console.log(tipData)}
         list={[
           {
             header: "Functional or Class Components?",
@@ -83,3 +83,25 @@ It accepts values of "top-start", "top", "top-end", "right-start", "right", "rig
 Only some of these values will be able to be applied in certain cases. For example, if the button is in the top right corner of the screen, then only the bottom and right values will be recognized as the left and top values would lead to the popup overflowing. 
 
 The default value for this prop is "top-start", but this may not always be applied as mentioned in the case above.
+
+## Usage(`Feedback`)
+```jsx
+import { Feedback } from "mephisto-worker-experience";
+
+function App() {
+  return (
+    <div>
+      <Feedback
+        headless={false}
+        handleSubmit={(text)=> console.log(text)}
+      />
+    </div>
+  );
+}
+```
+
+## Documentation
+### `headless`
+The `headless` prop accepts a boolean where a a true value removes most of the styling and a false value keeps the original styling. The default value of this prop is false.
+### `handleSubmit`
+The `handleSubmit` prop accepts a function that runs when the "Submit Feedback" button is pressed instead of the default behavior of submitting feedback. The text property can be passed down through to the function.
