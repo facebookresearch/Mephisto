@@ -94,7 +94,7 @@ This method is meant to be used as a parameter to the `handleSubmitMetadata` fun
 ```
 
 ### `createFeedback(text)`
-This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createFeedback(text)` takes one strings as parameters. If the parameter is not a string then a rejected promise gets returned that can be caught for error handling. If the parameter is a string then the following object gets returned
+This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createFeedback(text)` takes one string as parameters. If the parameter is not a string then a rejected promise gets returned that can be caught for error handling. If the parameter is a string then the following object gets returned
 ```
 {
   text: text,
