@@ -83,6 +83,11 @@ It accepts values of "top-start", "top", "top-end", "right-start", "right", "rig
 Only some of these values will be able to be applied in certain cases. For example, if the button is in the top right corner of the screen, then only the bottom and right values will be recognized as the left and top values would lead to the popup overflowing. 
 
 The default value for this prop is "top-start", but this may not always be applied as mentioned in the case above.
+### `maxHeaderLength`
+The max character length of a tip header before an error message is shown. The default value for this prop is 72.
+### `maxTextLength`
+The max character length of tip text before an error message is shown. The default value for this prop is 500.
+
 
 ## Usage(`Feedback`)
 ```jsx
@@ -106,4 +111,6 @@ The `headless` prop accepts a boolean where a a true value removes most of the s
 ### `handleSubmit`
 The `handleSubmit` prop accepts a function that runs when the "Submit Feedback" button is pressed instead of the default behavior of submitting feedback. The text property can be passed down through to the function.
 ### `width`
-The `width` prop accepts a string that sets the width of the textarea. ex: width="30rem" sets the textarea width to 30rem.
+The `width` prop accepts a string that sets the width and min-width of the textarea. ex: width="30rem" sets the textarea width and min-width to 30rem. The default value for this prop is 18rem.
+### `maxTextLength`
+The max character length of feedback text before an error message is shown. The default value for this prop is 700.

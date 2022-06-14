@@ -5,8 +5,9 @@ import "./index.css";
 import { handleFeedbackSubmit, handleChangeFeedback } from "../Functions";
 import { feedbackReducer } from "../Reducers";
 
-function Feedback({ headless, handleSubmit, width }) {
+function Feedback({ headless, handleSubmit, width, maxTextLength }) {
   const headlessPrefix = headless ? "headless-" : "";
+  const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
 
   const [feedbackText, setFeedbackText] = useState("");
   const { handleMetadataSubmit } = useMephistoTask();
@@ -14,7 +15,6 @@ function Feedback({ headless, handleSubmit, width }) {
     status: 0,
     text: "",
   });
-  const maxFeedbackLength = 50;
 
   const updateSizeRef = useRef(null);
   const { getTooltipProps, setTooltipRef, setTriggerRef, update } =
@@ -52,7 +52,10 @@ function Feedback({ headless, handleSubmit, width }) {
       >
         <textarea
           ref={setTriggerRef}
-          style={{ width: width }}
+          style={{
+            minWidth: width ? width : "18rem",
+            width: width ? width : "18rem",
+          }}
           onChange={(e) =>
             handleChangeFeedback(
               e,

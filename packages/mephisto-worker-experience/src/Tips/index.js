@@ -15,13 +15,18 @@ function Tips({
   maxHeight,
   maxWidth,
   placement,
+  maxHeaderLength,
+  maxTextLength,
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [state, dispatch] = useReducer(tipReducer, {
     status: 0,
     text: "",
   });
-  const maxLengths = { header: 72, body: 500 };
+  const maxLengths = {
+    header: maxHeaderLength ? maxHeaderLength : 72,
+    body: maxTextLength ? maxTextLength : 500,
+  };
   const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
     usePopperTooltip(
       {
