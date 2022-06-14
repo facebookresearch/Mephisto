@@ -78,6 +78,7 @@ def main():
                     for i in range(len(reviewed_feedback)):
                         print("Feedback Id: " + reviewed_feedback[i]["id"])
                         print("Feedback Text: " + reviewed_feedback[i]["text"])
+                        print("Feedback Toxicity: " + reviewed_feedback[i]["toxicity"])
                         print("")
                 elif see_reviewed_feedback == "n" or see_reviewed_feedback == "no":
                     un_reviewed_feedback = list(
@@ -89,6 +90,9 @@ def main():
                     for i in range(len(un_reviewed_feedback)):
                         print("Feedback Id: " + un_reviewed_feedback[i]["id"])
                         print("Feedback Text: " + un_reviewed_feedback[i]["text"])
+                        print(
+                            "Feedback Toxicity: " + un_reviewed_feedback[i]["toxicity"]
+                        )
                         mark_feedback_as_reviewed = input(
                             "\nDo you want to mark this feedback as reviewed? yes(y)/no(n): "
                         )

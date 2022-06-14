@@ -11,6 +11,7 @@ import weakref
 import time
 import asyncio
 from queue import Queue
+from detoxify import Detoxify
 from prometheus_client import Histogram  # type: ignore
 
 from mephisto.data_model.packet import (
@@ -315,11 +316,13 @@ class ClientIOHandler:
             init_agent_data = agent.state.get_init_state(get_all_state=True).copy()
             assert init_agent_data is not None, "Could not find agent data"
             new_feedback_text = packet.data["feedback"]["text"]
+            new_feedback_toxicity = Detoxify("original").predict(new_feedback_text)["toxicity"]
             init_agent_data["metadata"]["feedback"].append(
                 {
                     "id": str(uuid4()),
                     "text": new_feedback_text,
                     "reviewed": False,
+                    "toxicity": str(new_feedback_toxicity),
                 }
             )
             print(init_agent_data)
