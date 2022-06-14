@@ -299,7 +299,6 @@ class ClientIOHandler:
             new_tip_header = packet.data["tips"]["header"]
             new_tip_text = packet.data["tips"]["text"]
             init_agent_data["metadata"]["tips"].append(
-                # QUESTION: may be a better way of generating id than uuid?
                 {
                     "id": str(uuid4()),
                     "header": new_tip_header,

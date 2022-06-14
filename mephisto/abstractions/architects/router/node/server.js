@@ -507,7 +507,7 @@ app.post("/submit_task", upload.any(), function (req, res) {
   }
 });
 
-app.post("/submit-metadata", function (req, res) {
+app.post("/submit_metadata", function (req, res) {
   const {
     USED_AGENT_ID: agent_id,
     metadata: metadata,

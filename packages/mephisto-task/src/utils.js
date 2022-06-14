@@ -136,7 +136,7 @@ export function postCompleteTask(agent_id, complete_data) {
 }
 
 export function postMetadata(agent_id, metadata) {
-  return postData("/submit-metadata", {
+  return postData("/submit_metadata", {
     USED_AGENT_ID: agent_id,
     metadata: metadata,
     client_timestamp: pythonTime(),
