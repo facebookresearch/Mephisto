@@ -62,7 +62,7 @@ function MainApp() {
   return (
     <div>
       <ErrorBoundary handleError={handleFatalError}>
-        <div>🥑 🥑</div>
+        <div>🥑 🥑 🥑</div>
         <BaseFrontend
           taskData={initialTaskData}
           onSubmit={handleSubmit}

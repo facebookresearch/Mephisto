@@ -1,4 +1,4 @@
-import React, { useState, useReducer } from "react";
+import React, { useState, useEffect, useReducer, useRef } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
@@ -7,14 +7,17 @@ import { feedbackReducer } from "../Reducers";
 
 function Feedback({ headless, handleSubmit, width }) {
   const headlessPrefix = headless ? "headless-" : "";
+
   const [feedbackText, setFeedbackText] = useState("");
   const { handleMetadataSubmit } = useMephistoTask();
   const [state, dispatch] = useReducer(feedbackReducer, {
     status: 0,
     text: "",
   });
-  const maxFeedbackLength = 3000;
-  const { getTooltipProps, setTooltipRef, setTriggerRef, visible, update } =
+  const maxFeedbackLength = 50;
+
+  const updateSizeRef = useRef(null);
+  const { getTooltipProps, setTooltipRef, setTriggerRef, update } =
     usePopperTooltip(
       {
         trigger: null,
@@ -27,26 +30,44 @@ function Feedback({ headless, handleSubmit, width }) {
       }
     );
 
+  // Used to make tooltip stay in correct position even if text area size is dragged
+  const observer = useRef(null);
+  useEffect(() => {
+    if (updateSizeRef && updateSizeRef.current) {
+      observer.current = new ResizeObserver((entries) => {
+        if (update) update();
+      });
+      observer.current.observe(updateSizeRef.current);
+      return () => {
+        observer.current.unobserve(updateSizeRef.current);
+      };
+    }
+  }, [observer, updateSizeRef, update]);
+
   return (
-    <span
-      style={{ width: width }}
-      className="mephisto-worker-experience-feedback__container"
-    >
-      <textarea
-        ref={setTriggerRef}
-        onChange={(e) =>
-          handleChangeFeedback(
-            e,
-            state,
-            dispatch,
-            (event) => setFeedbackText(event.target.value),
-            maxFeedbackLength
-          )
-        }
-        value={feedbackText}
-        placeholder="Enter feedback text here"
-        id={`${headlessPrefix}mephisto-worker-experience-feedback__text-area`}
-      />
+    <span className="mephisto-worker-experience-feedback__container">
+      <span
+        ref={updateSizeRef}
+        className={`mephisto-worker-experience-feedback__text-area-container`}
+      >
+        <textarea
+          ref={setTriggerRef}
+          style={{ width: width }}
+          onChange={(e) =>
+            handleChangeFeedback(
+              e,
+              state,
+              dispatch,
+              (event) => setFeedbackText(event.target.value),
+              maxFeedbackLength
+            )
+          }
+          value={feedbackText}
+          placeholder="Enter feedback text here"
+          id={`${headlessPrefix}mephisto-worker-experience-feedback__text-area`}
+        />
+      </span>
+
       {(state.status === 2 || state.status === 3 || state.status === 4) && (
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
