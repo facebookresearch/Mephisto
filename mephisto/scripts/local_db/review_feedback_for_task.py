@@ -30,7 +30,10 @@ def set_feedback_as_reviewed(feedback: List, id: str, unit: Unit) -> None:
 
 
 def main():
-    acceptable_responses = set(["yes", "y", "no", "n"])
+    yes_no_responses = set(["yes", "y", "YES", "Yes", "no", "n", "NO", "No"])
+    yes_response = set(["yes", "y", "YES", "Yes"])
+    no_response = set(["no", "n", "NO", "No"])
+
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
@@ -53,11 +56,20 @@ def main():
     if len(units) == 0:
         print("No units were received")
         quit()
+    filter_toxic_comments = input(
+        "Do you want to filter out toxic comments? yes(y)/no(n): "
+    )
+    while filter_toxic_comments not in yes_no_responses:
+        print("That response is not valid\n")
+        filter_toxic_comments = input(
+            "Do you want to filter out toxic comments? yes(y)/no(n): "
+        )
+
     see_reviewed_feedback = input(
         "Do you want to see already reviewed feedback? yes(y)/no(n): "
     )
     print("")
-    while see_reviewed_feedback not in acceptable_responses:
+    while see_reviewed_feedback not in yes_no_responses:
         print("That response is not valid\n")
         see_reviewed_feedback = input(
             "Do you want to see already reviewed feedback? yes(y)/no(n): "
@@ -68,7 +80,15 @@ def main():
             metadata = unit_data["data"]["metadata"]
             feedback = metadata["feedback"]
             if len(feedback) > 0:
-                if see_reviewed_feedback == "y" or see_reviewed_feedback == "yes":
+                if filter_toxic_comments in yes_response:
+                    feedback = list(
+                        filter(
+                            lambda feedback_obj: float(feedback_obj["toxicity"]) < 0.5,
+                            feedback,
+                        )
+                    )
+
+                if see_reviewed_feedback in yes_response:
                     reviewed_feedback = list(
                         filter(
                             lambda feedback_obj: feedback_obj["reviewed"] == True,
@@ -80,7 +100,7 @@ def main():
                         print("Feedback Text: " + reviewed_feedback[i]["text"])
                         print("Feedback Toxicity: " + reviewed_feedback[i]["toxicity"])
                         print("")
-                elif see_reviewed_feedback == "n" or see_reviewed_feedback == "no":
+                elif see_reviewed_feedback in no_response:
                     un_reviewed_feedback = list(
                         filter(
                             lambda feedback_obj: feedback_obj["reviewed"] == False,
@@ -96,28 +116,22 @@ def main():
                         mark_feedback_as_reviewed = input(
                             "\nDo you want to mark this feedback as reviewed? yes(y)/no(n): "
                         )
-                        while mark_feedback_as_reviewed not in acceptable_responses:
+                        while mark_feedback_as_reviewed not in yes_no_responses:
                             print("That response is not valid\n")
                             mark_feedback_as_reviewed = input(
                                 "\nDo you want to mark this feedback as reviewed? yes(y)/no(n): "
                             )
-                        if (
-                            mark_feedback_as_reviewed == "y"
-                            or mark_feedback_as_reviewed == "yes"
-                        ):
+                        if mark_feedback_as_reviewed in yes_response:
                             set_feedback_as_reviewed(
                                 feedback, un_reviewed_feedback[i]["id"], unit
                             )
                             print("\nMarked the feedback as reviewed!")
-                        elif (
-                            mark_feedback_as_reviewed == "n"
-                            or mark_feedback_as_reviewed == "no"
-                        ):
+                        elif mark_feedback_as_reviewed in no_response:
                             print("\nDid not mark the feedback as reviewed!")
                         print("\n")
     print(
         "There is no more {} feedback!\n".format(
-            "reviewed" if see_reviewed_feedback in ["y", "yes"] else "unreviewed"
+            "reviewed" if see_reviewed_feedback in yes_response else "unreviewed"
         )
     )
 

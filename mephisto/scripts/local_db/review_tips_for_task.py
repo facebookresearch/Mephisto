@@ -61,6 +61,15 @@ def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
+    acceptable_responses = set(
+        ["a", "accept", "ACCEPT", "Accept", "r", "reject", "REJECT", "Reject"]
+    )
+    accept_response = set(["a", "accept", "ACCEPT", "Accept"])
+    reject_response = set(["r", "reject", "REJECT", "Reject"])
+    yes_no_responses = set(["yes", "y", "YES", "Yes", "no", "n", "NO", "No"])
+    yes_response = set(["yes", "y", "YES", "Yes"])
+    no_response = set(["no", "n", "NO", "No"])
+
     print("\nTask Names:")
     for task_name in task_names:
         print(task_name)
@@ -96,14 +105,13 @@ def main():
                             "Do you want to accept or reject this tip? accept(a)/reject(r): \n"
                         )
                         print("")
-                        acceptable_tip_responses = set(["a", "accept", "r", "reject"])
-                        while tip_response not in acceptable_tip_responses:
+                        while tip_response not in acceptable_responses:
                             print("That response is not valid\n")
                             tip_response = input(
                                 "Do you want to accept or reject this tip? accept(a)/reject(r): \n"
                             )
                             print("")
-                        if tip_response == "a" or tip_response == "accept":
+                        if tip_response in accept_response:
                             # persists the tip in the db as it is accepted
                             accept_tip(tips, tips_copy, i, unit)
                             print("Tip Accepted\n")
@@ -111,14 +119,13 @@ def main():
                             is_bonus = input(
                                 "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): "
                             )
-                            acceptable_bonus_responses = set(["yes", "y", "no", "n"])
-                            while is_bonus not in acceptable_bonus_responses:
+                            while is_bonus not in yes_no_responses:
                                 print("That response is not valid\n")
                                 is_bonus = input(
                                     "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): \n"
                                 )
                                 print("")
-                            if is_bonus == "y" or is_bonus == "yes":
+                            if is_bonus in yes_response:
                                 bonus_amount = input(
                                     "How much money do you want to give: "
                                 )
@@ -142,10 +149,10 @@ def main():
                                         print(
                                             "There was an error when paying out your bonus\n"
                                         )
-                            elif is_bonus == "n" or is_bonus == "no":
+                            elif is_bonus in no_response:
                                 print("No bonus paid\n")
 
-                        elif tip_response == "r" or tip_response == "reject":
+                        elif tip_response in reject_response:
                             remove_tip_from_metadata(tips, tips_copy, i, unit)
                             print("Tip Rejected\n\n")
 
