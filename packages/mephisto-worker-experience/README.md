@@ -83,3 +83,21 @@ It accepts values of "top-start", "top", "top-end", "right-start", "right", "rig
 Only some of these values will be able to be applied in certain cases. For example, if the button is in the top right corner of the screen, then only the bottom and right values will be recognized as the left and top values would lead to the popup overflowing. 
 
 The default value for this prop is "top-start", but this may not always be applied as mentioned in the case above.
+### `createTip(header, text)`
+This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createTip(header, text)` takes two strings as parameters. If one or both of the parameters are not a string then an error gets thrown. If both the two parameters are strings then the following object gets returned:
+```
+{
+  header: header,
+  text: text,
+  type: "tips"
+}
+```
+
+### `createFeedback(text)`
+This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createFeedback(text)` takes one string as parameters. If the parameter is not a string then an error gets thrown. If the parameter is a string then the following object gets returned:
+```
+{
+  text: text,
+  type: "feedback"
+}
+```

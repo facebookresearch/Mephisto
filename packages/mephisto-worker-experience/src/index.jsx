@@ -1,2 +1,3 @@
 import Tips from "./Tips";
-export { Tips };
+import { createFeedback, createTip } from "./Functions";
+export { Tips, createFeedback, createTip };
