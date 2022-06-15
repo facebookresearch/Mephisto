@@ -27,6 +27,7 @@ function MainApp() {
     handleSubmit,
     handleFatalError,
     isOnboarding,
+    taskConfig,
   } = useMephistoTask();
 
   if (blockedReason !== null) {
@@ -58,7 +59,7 @@ function MainApp() {
   if (isOnboarding) {
     return <OnboardingComponent onSubmit={handleSubmit} />;
   }
-
+  console.log(taskConfig);
   return (
     <div>
       <ErrorBoundary handleError={handleFatalError}>
