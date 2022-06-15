@@ -84,7 +84,7 @@ Only some of these values will be able to be applied in certain cases. For examp
 
 The default value for this prop is "top-start", but this may not always be applied as mentioned in the case above.
 ### `createTip(header, text)`
-This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createTip(header, text)` takes two strings as parameters. If one or both of the parameters are not a string then a rejected promise gets returned that can be caught for error handling. If both the two parameters are strings then the following object gets returned
+This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createTip(header, text)` takes two strings as parameters. If one or both of the parameters are not a string then an error gets thrown. If both the two parameters are strings then the following object gets returned:
 ```
 {
   header: header,
@@ -94,7 +94,7 @@ This method is meant to be used as a parameter to the `handleSubmitMetadata` fun
 ```
 
 ### `createFeedback(text)`
-This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createFeedback(text)` takes one string as parameters. If the parameter is not a string then a rejected promise gets returned that can be caught for error handling. If the parameter is a string then the following object gets returned
+This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createFeedback(text)` takes one string as parameters. If the parameter is not a string then an error gets thrown. If the parameter is a string then the following object gets returned:
 ```
 {
   text: text,
