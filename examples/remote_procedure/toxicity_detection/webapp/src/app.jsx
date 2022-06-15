@@ -27,9 +27,7 @@ function RemoteProcedureApp() {
   let {
     blockedReason,
     blockedExplanation,
-    taskConfig,
     isPreview,
-    previewHtml,
     isLoading,
     handleSubmit,
     remoteProcedure,
@@ -64,9 +62,7 @@ function RemoteProcedureApp() {
             handleToxicityCalculation={handleToxicityCalculation}
           />
           <Tips
-            handleSubmit={(tipData) =>
-              console.log(tipData.header, tipData.text)
-            }
+            handleSubmit={(tipData) => console.log(tipData.header, tipData.text)}
             maxHeight="25rem"
             maxWidth="25rem"
             placement="bottom-start"
