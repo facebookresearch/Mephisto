@@ -12,7 +12,7 @@ from mephisto.abstractions.blueprint import (
 from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
     OnboardingSharedState,
-OnboardingRequiredArgs,
+    OnboardingRequiredArgs,
 )
 from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData

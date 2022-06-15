@@ -7,7 +7,7 @@
  */
 
 import React from "react";
-/* import { Tips } from "mephisto-worker-experience"; */
+import { Tips } from "mephisto-worker-experience";
 
 function OnboardingComponent({ onSubmit }) {
   return (
@@ -72,7 +72,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
             </div>
           </div>
           <div style={{ marginTop: "14.5rem" }}>
-            {/* <Tips maxHeight="30rem" maxWidth="35rem" placement="top-start" /> */}
+            <Tips maxHeight="30rem" maxWidth="35rem" placement="top-start" />
           </div>
         </div>
       </section>

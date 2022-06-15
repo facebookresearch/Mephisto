@@ -59,7 +59,6 @@ function MainApp() {
   if (isOnboarding) {
     return <OnboardingComponent onSubmit={handleSubmit} />;
   }
-  console.log(taskConfig);
   return (
     <div>
       <ErrorBoundary handleError={handleFatalError}>
