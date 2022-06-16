@@ -1,12 +1,11 @@
-name: static_react_task_cypress
-
+name: cypress-integration-tests
 on:
   pull_request:
   push:
     branches: [main]
 
 jobs:
-  cypress:
+  static-react-task:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -14,4 +13,9 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: Install Mephisto
-        run: pip install -e .
+        run: pip install -e .  
+
+      - name: Run Task
+        run: python ./examples/static_react_task/run_task.py
+        
+    
