@@ -15,6 +15,15 @@ jobs:
       - name: Install Mephisto
         run: pip install -e .  
 
+      - name: Create data directory
+        run: | 
+          mkdir data-dir
+          cd data-dir
+          mkdir data
+          cd ..
+        
+      - name: Set the data directory
+        run: mephisto config core.main_data_directory ./data-dir/data
       - name: Run Task
         run: python ./examples/static_react_task/run_task.py
         
