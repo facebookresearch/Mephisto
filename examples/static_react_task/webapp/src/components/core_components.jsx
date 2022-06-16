@@ -12,7 +12,7 @@ function OnboardingComponent({ onSubmit }) {
   return (
     <div>
       <Directions>
-        .This component only renders if you have chosen to assign an onboarding
+        This component only renders if you have chosen to assign an onboarding
         qualification for your task. Click the button to move on to the main
         task.
       </Directions>
