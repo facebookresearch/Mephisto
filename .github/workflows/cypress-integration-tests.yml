@@ -23,7 +23,9 @@ jobs:
           cd ..
         
       - name: Set the data directory
-        run: mephisto config core.main_data_directory ./data-dir/data
+        run: |
+          ls -a 
+          mephisto config core.main_data_directory data-dir/data
       - name: Run Task
         run: python ./examples/static_react_task/run_task.py
         
