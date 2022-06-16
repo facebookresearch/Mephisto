@@ -17,10 +17,10 @@ jobs:
 
       - name: Create data directory
         run: | 
-          mkdir data-dir
-          cd data-dir
+          cd ~
+          mkdir mephisto
+          cd mephisto
           mkdir data
-          cd ..
         
       - name: Set the data directory
         run: |
