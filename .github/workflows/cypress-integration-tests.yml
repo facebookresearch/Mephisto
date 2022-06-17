@@ -34,7 +34,7 @@ jobs:
         uses: cypress-io/github-action@v3.1.0
         with:
           install: false
-          working-directory: examples/static_react_task/webapp
+          project: ./examples/static_react_task/webapp
           start: python examples/static_react_task/run_task.py
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
