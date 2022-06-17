@@ -25,9 +25,12 @@ jobs:
       - name: Set the data directory
         run: | 
           mephisto config core.main_data_directory ~/mephisto/data
-      - name: Testing
+        
+      - name: Installing example dependencies
         run: |
-          pwd
+          cd examples/static_react_task/webapp
+          npm install
+
       - uses: cypress-io/github-action@v2
         with:
           start: python examples/static_react_task/run_task.py
