@@ -39,12 +39,12 @@ function RemoteProcedureApp() {
     initialTaskData,
     isLoading,
     handleSubmit,
-    remoteFunction,
+    remoteProcedure,
     isOnboarding,
     handleFatalError,
   } = mephistoProps;
 
-  const handleRemoteCall = remoteFunction("handle_with_model");
+  const handleRemoteCall = remoteProcedure("handle_with_model");
 
   if (isOnboarding) {
     // TODO You can use this as an opportunity to display anything you want for
