@@ -20,19 +20,19 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: pip install -e .  
+        run: pip install -e .
 
       - name: 🖋 Create data directory
-        run: | 
+        run: |
           cd ~
           mkdir mephisto
           cd mephisto
           mkdir data
-        
+
       - name: 📂 Set the data directory
-        run: | 
+        run: |
           mephisto config core.main_data_directory ~/mephisto/data
-  
+
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
