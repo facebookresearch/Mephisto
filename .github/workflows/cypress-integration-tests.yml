@@ -36,11 +36,10 @@ jobs:
           cd examples/static_react_task/
           yarn add cypress
       - name: Cypress
-        uses: cypress-io/github-action@v4
+        uses: cypress-io/github-action@v3.1.0
         with:
           config-file: examples/static_react_task/webapp/cypress.config.js
           command-prefix: yarn dlx
-          install-command: yarn install --immutable
           headless: true
           start: python examples/static_react_task/run_task.py
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
