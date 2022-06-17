@@ -27,9 +27,7 @@ jobs:
           mephisto config core.main_data_directory ~/mephisto/data
       - name: Testing
         run: |
-          cd examples/static_react_task
           pwd
-          ls -a
       - uses: cypress-io/github-action@v2
         with:
           start: python examples/static_react_task/run_task.py
