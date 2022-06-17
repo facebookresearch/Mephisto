@@ -31,9 +31,10 @@ jobs:
         run: | 
           mephisto config core.main_data_directory ~/mephisto/data
       - name: Cypress
-        uses: cypress-io/github-action@v4.1.0
+        uses: cypress-io/github-action@v2
         with:
           command-prefix: yarn dlx
+          spec: cypress/e2e/static_react_task.cy.js
           start: python examples/static_react_task/run_task.py
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
 
