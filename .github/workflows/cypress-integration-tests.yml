@@ -31,7 +31,7 @@ jobs:
         run: | 
           mephisto config core.main_data_directory ~/mephisto/data
       - name: Cypress
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         with:
           command-prefix: yarn dlx
           config-file: examples/static_react_task/webapp/cypress.config.js
