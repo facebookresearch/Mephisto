@@ -14,6 +14,12 @@ We actively welcome your pull requests.
 5. Make sure your code lints.
 6. If you haven't already, complete the Contributor License Agreement ("CLA").
 
+### Cypress Testing
+To test a task:
+1. Run the task by running python run_task.py in the appropriate folder
+2. In a separate terminal window go into the webapp directory and run npm run test
+3. This should open a cypress app where you can see if your tests pass/fail
+
 ### Task Contributions
 Generally we encourage people to provide their own blueprints as part of the repo in which they release their code, though if someone creates a strong case for an abstract `Blueprint` that is generally applicable we'd be happy to review it.
 
