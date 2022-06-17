@@ -30,6 +30,11 @@ jobs:
       - name: Set the data directory
         run: | 
           mephisto config core.main_data_directory ~/mephisto/data
+          
+      - name: Install cypress
+        run: |
+          cd examples/static_react_task/
+          yarn add cypress
       - name: Cypress
         uses: cypress-io/github-action@v4
         with:
