@@ -1,0 +1,45 @@
+name: cypress-integration-tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  static-react-task:
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: 🔀 Checking out repo
+        uses: actions/checkout@v2
+      - name: 🐍 Installing python
+        uses: actions/setup-python@v2
+
+      - name: 🪨 Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+
+      - name: 🤖 Install Mephisto
+        run: pip install -e .  
+
+      - name: 🖋 Create data directory
+        run: | 
+          cd ~
+          mkdir mephisto
+          cd mephisto
+          mkdir data
+        
+      - name: 📂 Set the data directory
+        run: | 
+          mephisto config core.main_data_directory ~/mephisto/data
+  
+      - name: ⌛️ Running cypress tests
+        uses: cypress-io/github-action@v3.1.0
+        with:
+          install: false
+          project: ./examples/static_react_task/webapp
+          config-file: ./cypress.config.js
+          start: python examples/static_react_task/run_task.py
+          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
+          command-prefix: yarn dlx
+          headless: true
