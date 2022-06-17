@@ -30,8 +30,7 @@ jobs:
         with:
           start: python ./examples/static_react_task/run_task.py
           wait-on: localhost:3000/?worker_id=x&assignment_id=1
-          wait-on-timeout: 30
-          working-directory: ./examples/static_react_task/webapp
+          working-directory: ~/home/runner/work/Mephisto/examples/static_react_task/webapp
 
         
     
