@@ -29,7 +29,7 @@ jobs:
       - uses: cypress-io/github-action@v2
         with:
           start: python examples/static_react_task/run_task.py
-          wait-on: localhost:3000/?worker_id=x&assignment_id=1
+          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           working-directory: examples/static_react_task/webapp
 
         
