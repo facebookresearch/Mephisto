@@ -30,17 +30,13 @@ jobs:
       - name: Set the data directory
         run: | 
           mephisto config core.main_data_directory ~/mephisto/data
-          
-      - name: Install cypress
-        run: |
-          cd examples/static_react_task/
-          yarn add cypress
       - name: Cypress
-        uses: cypress-io/github-action@v3.1.0
+        uses: cypress-io/github-action@v4
         with:
+          install: false
+          working-directory: examples/examples/static_react_task/webapp
           config-file: examples/static_react_task/webapp/cypress.config.js
-          command-prefix: yarn dlx
-          headless: true
+          spec: cypress/e2e/static_react_task.cy.js
           start: python examples/static_react_task/run_task.py
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
 
