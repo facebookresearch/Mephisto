@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "webpack --mode development",
     "dev:watch": "webpack --mode development --watch",
-    "test": "cypress open --config-file=cypress.config.js",
+    "test": "cypress open",
     "test-other": "cypress run"
   },
   "keywords": [],
