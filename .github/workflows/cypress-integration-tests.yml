@@ -26,7 +26,12 @@ jobs:
         run: |
           ls -a 
           mephisto config core.main_data_directory ~/mephisto/data
-      - name: Run Task
-        run: python ./examples/static_react_task/run_task.py
+      - uses: cypress-io/github-action@v2
+        with:
+          start: python ./examples/static_react_task/run_task.py
+          wait-on: localhost:3000/?worker_id=x&assignment_id=1
+          wait-on-timeout: 30
+          working-directory: ./examples/static_react_task/webapp
+
         
     
