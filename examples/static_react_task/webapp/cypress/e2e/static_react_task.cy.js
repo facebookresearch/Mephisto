@@ -1,7 +1,7 @@
 describe("Loads static_react_task", () => {
   it("Makes request for agent", () => {
-    cy.visit("/");
     cy.intercept({ pathname: "/request_agent" }).as("agentRequest");
+    cy.visit("/");
     cy.wait("@agentRequest").then((interception) => {
       expect(interception.response.statusCode).to.eq(200);
     });
