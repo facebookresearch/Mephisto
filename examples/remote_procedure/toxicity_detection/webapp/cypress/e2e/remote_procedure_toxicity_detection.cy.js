@@ -23,9 +23,10 @@ describe("Loads remote_procedure_toxicity_detection", () => {
     cy.get("@textArea").type("I hate bob!");
     cy.get("@submitButton").click();
     cy.get('[data-cy="loading-spinner"]');
-    
-    cy.get('[data-cy="toxicity-alert"]').as("toxicityAlert");
-    cy.get("@toxicityAlert");
+
+    cy.get('[data-cy="toxicity-alert"]', { timeout: 15000 }).as(
+      "toxicityAlert"
+    );
     cy.get("@toxicityAlert").contains(
       'The statement, "I hate bob!," has a toxicity of:'
     );
