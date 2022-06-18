@@ -12,7 +12,7 @@ function OnboardingComponent({ onSubmit }) {
   return (
     <div>
       <Directions>
-        This component only renders if you have chosen to assign an onboarding
+        .This component only renders if you have chosen to assign an onboarding
         qualification for your task. Click the button to move on to the main
         task.
       </Directions>
@@ -32,7 +32,7 @@ function LoadingScreen() {
 
 function Directions({ children }) {
   return (
-    <section className="hero is-light">
+    <section className="hero is-light" data-cy="directions-container">
       <div className="hero-body">
         <div className="container">
           <p className="subtitle is-5">{children}</p>
@@ -51,10 +51,13 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
       <section className="section">
         <div className="container">
           <p className="subtitle is-5"></p>
-          <p className="title is-3 is-spaced">{taskData.text}</p>
+          <p className="title is-3 is-spaced" data-cy="task-data-text">
+            {taskData.text}
+          </p>
           <div className="field is-grouped">
             <div className="control">
               <button
+                data-cy="good-button"
                 className="button is-success is-large"
                 onClick={() => onSubmit({ rating: "good" })}
               >
@@ -63,6 +66,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
             </div>
             <div className="control">
               <button
+                data-cy="bad-button"
                 className="button is-danger is-large"
                 onClick={() => onSubmit({ rating: "bad" })}
               >
