@@ -23,7 +23,7 @@ describe("Loads remote_procedure_toxicity_detection", () => {
     cy.get("@textArea").type("I hate bob!");
     cy.get("@submitButton").click();
     cy.get('[data-cy="loading-spinner"]');
-    cy.wait(2000);
+    cy.wait(10000);
     cy.get('[data-cy="loading-spinner"]').should("not.be.exist");
     cy.get('[data-cy="toxicity-alert"]').as("toxicityAlert");
     cy.get("@toxicityAlert");
@@ -49,7 +49,7 @@ describe("Loads remote_procedure_toxicity_detection", () => {
     cy.wait("@submitTaskRequest").then((interception) => {
       expect(interception.response.statusCode).to.eq(200);
     });
-    cy.wait(4000);
+    cy.wait(10000);
     cy.get('[data-cy="loading-spinner"]').should("not.be.exist");
   });
 });
