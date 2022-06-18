@@ -79,7 +79,7 @@ jobs:
           project: ./examples/remote_procedure/template/webapp
           config-file: ./cypress.config.js
           start: python examples/remote_procedure/template/run_task.py
-          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
+          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=3"
           command-prefix: yarn dlx
           headless: true
 
