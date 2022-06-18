@@ -1,4 +1,4 @@
-name: cypress-integration-tests
+name: cypress-e2e-tests
 on:
   pull_request:
   push:
@@ -79,7 +79,7 @@ jobs:
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
           headless: true
-          
+
   remote_procedure_toxicity_detection:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -109,16 +109,16 @@ jobs:
       - name: 📂 Set the data directory
         run: |
           mephisto config core.main_data_directory ~/mephisto/data
-        
+
       - name: ⛓ Creating link
         run: |
           cd packages/mephisto-worker-experience
           npm install
           npm run build
           npm link
-          
+
       - name: 🔗 Linking to mephisto-worker-experience
-        run: | 
+        run: |
           cd examples/remote_procedure/toxicity_detection/webapp
           npm link mephisto-worker-experience
 
