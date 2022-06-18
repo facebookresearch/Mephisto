@@ -113,6 +113,7 @@ jobs:
       - name: ⛓ Creating link
         run: |
           cd packages/mephisto-worker-experience
+          npm install
           npm run build
           npm link
           
