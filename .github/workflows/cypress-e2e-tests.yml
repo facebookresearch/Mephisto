@@ -111,9 +111,9 @@ jobs:
         with:
           install: false
           browser: chrome
-          project: ./examples/toxicity_detection/webapp
+          project: ./examples/remote_procedure/toxicity_detection/webapp
           config-file: ./cypress.config.js
-          start: python examples/toxicity_detection/run_task.py
+          start: python examples/remote_procedure/toxicity_detection/run_task.py
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
           headless: true
