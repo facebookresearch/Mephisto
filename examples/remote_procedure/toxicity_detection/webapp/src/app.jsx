@@ -19,6 +19,7 @@ import {
   useMephistoRemoteProcedureTask,
   ErrorBoundary,
 } from "mephisto-task";
+import { Tips } from "mephisto-worker-experience";
 
 function RemoteProcedureApp() {
   let mephistoProps = useMephistoRemoteProcedureTask({});
@@ -59,6 +60,26 @@ function RemoteProcedureApp() {
           <BaseFrontend
             handleSubmit={handleSubmit}
             handleToxicityCalculation={handleToxicityCalculation}
+          />
+          <Tips
+            handleSubmit={(tipData) =>
+              console.log(tipData.header, tipData.text)
+            }
+            maxHeight="25rem"
+            maxWidth="25rem"
+            placement="bottom-start"
+            list={[
+              {
+                header: "Functional or Class Components?",
+                text:
+                  "It is generally advised to use functional components as they are thought to be the future of React.",
+              },
+              {
+                header: "When to Use Context?",
+                text:
+                  "To avoid having to pass props down 3+ levels, the createContext() and useContext() methods can be used.",
+              },
+            ]}
           />
         </div>
       </MephistoContext.Provider>
