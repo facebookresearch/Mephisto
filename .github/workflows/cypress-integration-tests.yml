@@ -76,6 +76,7 @@ jobs:
         uses: cypress-io/github-action@v3.1.0
         with:
           install: false
+          browser: chrome
           project: ./examples/remote_procedure/template/webapp
           config-file: ./cypress.config.js
           start: python examples/remote_procedure/template/run_task.py
