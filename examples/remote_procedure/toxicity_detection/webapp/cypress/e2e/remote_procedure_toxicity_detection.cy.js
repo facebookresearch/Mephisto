@@ -24,7 +24,6 @@ describe("Loads remote_procedure_toxicity_detection", () => {
     cy.get("@submitButton").click();
     cy.get('[data-cy="loading-spinner"]');
     
-    cy.get('[data-cy="loading-spinner"]').should("not.be.exist");
     cy.get('[data-cy="toxicity-alert"]').as("toxicityAlert");
     cy.get("@toxicityAlert");
     cy.get("@toxicityAlert").contains(
