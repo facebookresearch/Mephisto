@@ -9,28 +9,31 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: 🔀 Checking out repo
+        uses: actions/checkout@v2
+      - name: 🐍 Installing python
+        uses: actions/setup-python@v2
 
-      - name: Setup Node
+      - name: 🪨 Setup Node
         uses: actions/setup-node@v1
         with:
           node-version: 16
 
-      - name: Install Mephisto
+      - name: 🤖 Install Mephisto
         run: pip install -e .  
 
-      - name: Create data directory
+      - name: 🖋 Create data directory
         run: | 
           cd ~
           mkdir mephisto
           cd mephisto
           mkdir data
         
-      - name: Set the data directory
+      - name: 📂 Set the data directory
         run: | 
           mephisto config core.main_data_directory ~/mephisto/data
-      - name: Cypress
+  
+      - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
           install: false
