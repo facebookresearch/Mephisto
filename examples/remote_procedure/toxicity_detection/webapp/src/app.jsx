@@ -26,9 +26,7 @@ function RemoteProcedureApp() {
   let {
     blockedReason,
     blockedExplanation,
-    taskConfig,
     isPreview,
-    previewHtml,
     isLoading,
     handleSubmit,
     remoteProcedure,
