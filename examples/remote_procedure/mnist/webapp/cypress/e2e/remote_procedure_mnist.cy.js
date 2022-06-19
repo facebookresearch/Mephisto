@@ -1,4 +1,4 @@
-/* 
+/*
   Not really sure how to test react-canvas-draw
   so the test is kind of incomplete
 */
@@ -61,4 +61,3 @@ describe("Loads remote_procedure_mnist", () => {
     cy.get("@clearButton2").click({ force: true });
   });
 });
-
