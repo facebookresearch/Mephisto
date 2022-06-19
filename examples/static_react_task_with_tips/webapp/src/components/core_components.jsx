@@ -33,7 +33,7 @@ function LoadingScreen() {
 
 function Directions({ children }) {
   return (
-    <section className="hero is-light">
+    <section className="hero is-light" data-cy="directions">
       <div className="hero-body">
         <div className="container">
           <p className="subtitle is-5">{children}</p>
@@ -52,10 +52,13 @@ function SimpleFrontend({ taskData, onSubmit }) {
       <section className="section">
         <div className="container">
           <p className="subtitle is-5"></p>
-          <p className="title is-3 is-spaced">{taskData.text}</p>
+          <p className="title is-3 is-spaced" data-cy="task-text">
+            {taskData.text}
+          </p>
           <div className="field is-grouped">
             <div className="control">
               <button
+                data-cy="good-button"
                 className="button is-success is-large"
                 onClick={() => onSubmit({ rating: "good" })}
               >
@@ -64,6 +67,7 @@ function SimpleFrontend({ taskData, onSubmit }) {
             </div>
             <div className="control">
               <button
+                data-cy="bad-button"
                 className="button is-danger is-large"
                 onClick={() => onSubmit({ rating: "bad" })}
               >
@@ -78,7 +82,13 @@ function SimpleFrontend({ taskData, onSubmit }) {
               alignItems: "flex-start",
             }}
           >
-            <Tips maxHeight="30rem" maxWidth="35rem" placement="top-start" />
+            <Tips
+              maxHeaderLength={35}
+              maxTextLength={85}
+              maxHeight="30rem"
+              maxWidth="35rem"
+              placement="top-start"
+            />
             <span style={{ marginLeft: "1rem" }}>
               <Feedback />
             </span>
