@@ -95,7 +95,9 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: pip install -e .
+        run: |
+          pip install -e .
+          pip install torch pillow numpy
 
       - name: 🖋 Create data directory
         run: |
