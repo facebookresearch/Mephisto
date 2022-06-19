@@ -49,5 +49,6 @@ jobs:
           cd mephisto
           cd scripts
           cd local_db
-          python review_tips_for_task.py
-          echo "react-static-task-example"
+          python review_tips_for_task.py <<EOF
+          "react-static-task-example"
+          EOF
