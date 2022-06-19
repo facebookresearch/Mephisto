@@ -43,3 +43,10 @@ jobs:
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
           headless: true
+
+      - name: Running user script
+        run: |
+          cd mephisto
+          cd scripts
+          cd local_db
+          python review_tips_for_task.py
