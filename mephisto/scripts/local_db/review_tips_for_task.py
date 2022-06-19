@@ -25,6 +25,7 @@ def main():
         "Enter the name of the task that you want to review the tips of: \n"
     )
     print("")
+    print(task_name)
     
     
 if __name__ == "__main__":
