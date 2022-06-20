@@ -7,7 +7,7 @@ describe("Loads static_react_task_with_tips", () => {
     });
   });
 
-  it("Loads correct react elements", () => {
+  it("Loads correct react elements ", () => {
     cy.visit("/");
     cy.get('[data-cy="directions"]');
     cy.get('[data-cy="task-text"]');
