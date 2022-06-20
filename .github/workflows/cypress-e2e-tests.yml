@@ -58,7 +58,7 @@ jobs:
           browser: chrome
           project: ./examples/static_react_task_with_tips/webapp
           config-file: ./cypress.config.js
-          spec: cypress/e2e/static_react_task_with_tips_pre_tip_submission.cy.js
+          #spec: cypress/e2e/static_react_task_with_tips_pre_tip_submission.cy.js
           start: python examples/static_react_task_with_tips/run_task.py
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
