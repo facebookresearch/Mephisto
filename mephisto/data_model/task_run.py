@@ -113,6 +113,16 @@ class TaskRunArgs:
         },
     )
 
+    package_to_link_to: str = field(
+        default="",
+        metadata={
+            "help": (
+                "Runs npm link to the package name specified before running npm run dev. Good for testing with the local package."
+            )
+        },
+    )
+    
+
     @classmethod
     def get_mock_params(cls) -> str:
         """Returns a param string with default / mock arguments to use for testing"""

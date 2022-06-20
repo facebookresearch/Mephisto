@@ -20,7 +20,7 @@ from mephisto.operations.hydra_config import (
 )
 
 from omegaconf import DictConfig, OmegaConf
-
+import sys
 import functools
 import hydra
 import argparse
@@ -224,7 +224,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
     return script_cfg
 
 
-def build_custom_bundle(custom_src_dir):
+def build_custom_bundle(custom_src_dir, package_to_link_to: Optional[str] = ""):
     """Locate all of the custom files used for a custom build, create
     a prebuild directory containing all of them, then build the
     custom source.
@@ -239,6 +239,7 @@ def build_custom_bundle(custom_src_dir):
     build_path = os.path.join(prebuild_path, "build", "bundle.js")
 
     # see if we need to rebuild
+    """
     if os.path.exists(build_path):
         created_date = os.path.getmtime(build_path)
         up_to_date = True
@@ -259,16 +260,27 @@ def build_custom_bundle(custom_src_dir):
                     break
         if up_to_date:
             return build_path
-
+    """
     # navigate and build
     return_dir = os.getcwd()
     os.chdir(prebuild_path)
+
     packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
             "please make sure npm is installed, otherwise view "
             "the above error for more info."
         )
+
+    if package_to_link_to is not None and len(package_to_link_to) > 0:
+        link_complete = subprocess.call(["npm", "link", package_to_link_to])
+        # link failed
+        if link_complete == 1:
+            raise Exception(
+                "\nThat package name does not exist."
+                "\nYou may need to run npm link in the package directory first "
+                "so that this package name is recognized."
+            )
 
     webpack_complete = subprocess.call(["npm", "run", "dev"])
     if webpack_complete != 0:
