@@ -34,8 +34,8 @@ jobs:
       - name: 🏗 Building mephisto-task
         run: |
           cd packages/mephisto-task
-          npm install
-          npm run build
+          yarn install
+          yarn build
           npm link
       - name: 🏗 Building mephisto-worker-experience
         run: |
