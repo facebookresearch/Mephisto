@@ -50,7 +50,7 @@ jobs:
         run: |
           cd examples/static_react_task_with_tips/webapp
           npm install
-          npm ls
+          npm install cypress --save-dev
           npm link mephisto-worker-experience
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
