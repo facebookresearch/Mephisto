@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  static-react-task-with-tips:
+  static-react-task:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -20,9 +20,7 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: |
-          pip install -e .
-          pip install detoxify
+        run: pip install -e .
 
       - name: 🖋 Create data directory
         run: |
@@ -54,6 +52,7 @@ jobs:
         uses: cypress-io/github-action@v3.1.0
         with:
           install: false
+          browser: chrome
           project: ./examples/static_react_task_with_tips/webapp
           config-file: ./cypress.config.js
           spec: cypress/e2e/static_react_task_with_tips_pre_tip_submission.cy.js
