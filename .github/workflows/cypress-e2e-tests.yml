@@ -50,11 +50,13 @@ jobs:
         run: |
           cd examples/static_react_task_with_tips/webapp
           npm install
+          npm ls
           npm link mephisto-worker-experience
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
           browser: chrome
+          install: false
           project: ./examples/static_react_task_with_tips/webapp
           config-file: ./cypress.config.js
           #spec: cypress/e2e/static_react_task_with_tips_pre_tip_submission.cy.js
