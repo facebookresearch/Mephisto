@@ -86,7 +86,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     )
 
     task_dir = cfg.task_dir
-    build_custom_bundle(task_dir)
+    build_custom_bundle(task_dir, cfg.mephisto.task.package_to_link_to)
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
