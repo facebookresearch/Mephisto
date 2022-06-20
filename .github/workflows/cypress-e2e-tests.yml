@@ -150,18 +150,6 @@ jobs:
         run: |
           mephisto config core.main_data_directory ~/mephisto/data
 
-      - name: ⛓ Creating link
-        run: |
-          cd packages/mephisto-worker-experience
-          npm install
-          npm run build
-          npm link
-
-      - name: 🔗 Linking to mephisto-worker-experience
-        run: |
-          cd examples/remote_procedure/toxicity_detection/webapp
-          npm link mephisto-worker-experience
-
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
