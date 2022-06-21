@@ -38,6 +38,7 @@ jobs:
           yarn install
           yarn build
           npm link
+
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
