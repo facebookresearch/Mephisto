@@ -1,4 +1,4 @@
-name: cypress-e2e-tests
+name: cypress-end-to-end-tests
 on:
   pull_request:
   push:
@@ -31,6 +31,14 @@ jobs:
       - name: 📂 Set the data directory
         run: |
           mephisto config core.main_data_directory ~/mephisto/data
+
+      - name: 📦 Setting up mephisto-task package
+        run: |
+          cd packages/mephisto-task
+          yarn install
+          yarn build
+          npm link
+
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
