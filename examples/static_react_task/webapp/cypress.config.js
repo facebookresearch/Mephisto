@@ -1,4 +1,4 @@
-module.exports ({
+module.exports = {
   video: false,
 
   e2e: {
