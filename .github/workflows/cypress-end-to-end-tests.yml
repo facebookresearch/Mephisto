@@ -122,7 +122,7 @@ jobs:
           cd mephisto
           mkdir data
       - name: 📂 Set the data directory
-        run:  mephisto config core.main_data_directory ~/mephisto/data
+        run: mephisto config core.main_data_directory ~/mephisto/data
 
       - name: 📦 Setting up mephisto-task package
         run: |
@@ -130,7 +130,7 @@ jobs:
           yarn install
           yarn build
           npm link
-        
+
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
@@ -171,7 +171,7 @@ jobs:
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
-      
+
       - name: 📦 Setting up mephisto-task package
         run: |
           cd packages/mephisto-task
@@ -187,6 +187,62 @@ jobs:
           project: ./examples/remote_procedure/toxicity_detection/webapp
           config-file: ./cypress.config.js
           start: python examples/remote_procedure/toxicity_detection/run_task.py mephisto.task.post_build_script=link_mephisto_task.sh
+          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
+          command-prefix: yarn dlx
+          headless: true
+
+  static_react_task_with_tios:
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: 🔀 Checking out repo
+        uses: actions/checkout@v2
+      - name: 🐍 Installing python
+        uses: actions/setup-python@v2
+
+      - name: 🪨 Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+
+      - name: 🤖 Install Mephisto
+        run: |
+          pip install -e .
+          pip install detoxify
+
+      - name: 🖋 Create data directory
+        run: |
+          cd ~
+          mkdir mephisto
+          cd mephisto
+          mkdir data
+
+      - name: 📂 Set the data directory
+        run: mephisto config core.main_data_directory ~/mephisto/data
+
+      - name: 📦 Setting up mephisto-task package
+        run: |
+          cd packages/mephisto-task
+          yarn install
+          yarn build
+          npm link
+
+      - name: 📦 Setting up mephisto-worker-experience package
+        run: |
+          cd packages/mephisto-worker-experience
+          npm install
+          npm run build
+          npm link
+
+      - name: ⌛️ Running cypress tests
+        uses: cypress-io/github-action@v3.1.0
+        with:
+          install: false
+          browser: chrome
+          project: ./examples/static_react_task_with_tips/webapp
+          config-file: ./cypress.config.js
+          spec: cypress/static_react_task_with_tips_pre_tip_submission.cy.js
+          start: python examples/static_react_task_with_tips/webapp mephisto.task.post_build_script=link_packages.sh
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
           headless: true
