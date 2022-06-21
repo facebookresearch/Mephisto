@@ -113,15 +113,26 @@ class TaskRunArgs:
         },
     )
 
-    package_to_link_to: str = field(
+    post_build_script: str = field(
         default="",
         metadata={
             "help": (
-                "Runs npm link to the package name specified before running npm run dev. Good for testing with the local package."
+                "The path to a shell script that will run after npm build."
+                "This can be useful for local package development where you would want to link a package."
             )
         },
     )
-    
+
+    force_rebuild: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Determines if npm run build should be ran every time the task is ran."
+                "By default there is an optimization that only builds the webapp when there is a change in its contents."
+                "It would make sense to turn this on when doing local package development as you want to force a rebuild after linking"
+            )
+        },
+    )
 
     @classmethod
     def get_mock_params(cls) -> str:
