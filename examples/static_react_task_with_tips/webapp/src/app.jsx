@@ -27,7 +27,6 @@ function MainApp() {
     handleSubmit,
     handleFatalError,
     isOnboarding,
-    taskConfig,
   } = useMephistoTask();
 
   if (blockedReason !== null) {
