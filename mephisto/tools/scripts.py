@@ -7,6 +7,7 @@
 Utilities that are useful for Mephisto-related scripts.
 """
 
+from struct import pack
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
@@ -20,12 +21,13 @@ from mephisto.operations.hydra_config import (
 )
 
 from omegaconf import DictConfig, OmegaConf
-
+import sys
 import functools
 import hydra
 import argparse
 import subprocess
 from typing import (
+    List,
     Tuple,
     Dict,
     Any,
@@ -224,7 +226,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
     return script_cfg
 
 
-def build_custom_bundle(custom_src_dir):
+def build_custom_bundle(custom_src_dir, run_config: DictConfig):
     """Locate all of the custom files used for a custom build, create
     a prebuild directory containing all of them, then build the
     custom source.
@@ -237,38 +239,45 @@ def build_custom_bundle(custom_src_dir):
 
     IGNORE_FOLDERS = {os.path.join(prebuild_path, f) for f in IGNORE_FOLDERS}
     build_path = os.path.join(prebuild_path, "build", "bundle.js")
-
     # see if we need to rebuild
-    if os.path.exists(build_path):
-        created_date = os.path.getmtime(build_path)
-        up_to_date = True
+    if run_config.task.force_rebuild is False:
+        if os.path.exists(build_path):
+            created_date = os.path.getmtime(build_path)
+            up_to_date = True
 
-        for root, dirs, files in os.walk(prebuild_path):
-            for igf in IGNORE_FOLDERS:
-                should_ignore = False
-                if igf in root:
-                    should_ignore = True
-            if should_ignore:
-                continue
-            if not up_to_date:
-                break
-            for fname in files:
-                path = os.path.join(root, fname)
-                if os.path.getmtime(path) > created_date:
-                    up_to_date = False
+            for root, dirs, files in os.walk(prebuild_path):
+                for igf in IGNORE_FOLDERS:
+                    should_ignore = False
+                    if igf in root:
+                        should_ignore = True
+                if should_ignore:
+                    continue
+                if not up_to_date:
                     break
-        if up_to_date:
-            return build_path
+                for fname in files:
+                    path = os.path.join(root, fname)
+                    if os.path.getmtime(path) > created_date:
+                        up_to_date = False
+                        break
+            if up_to_date:
+                return build_path
 
     # navigate and build
     return_dir = os.getcwd()
     os.chdir(prebuild_path)
+
     packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
             "please make sure npm is installed, otherwise view "
             "the above error for more info."
         )
+    print(run_config.task.post_build_script)
+    if (
+        run_config.task.post_build_script is not None
+        and len(run_config.task.post_build_script) > 0
+    ):
+        subprocess.call(["bash", run_config.task.post_build_script])
 
     webpack_complete = subprocess.call(["npm", "run", "dev"])
     if webpack_complete != 0:
