@@ -20,7 +20,9 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: pip install -e .
+        run: |
+        pip install -e .
+        pip install detoxify
 
       - name: 🖋 Create data directory
         run: |
@@ -65,7 +67,9 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: pip install -e .
+        run: |
+          pip install -e .
+          pip install detoxify
 
       - name: 🖋 Create data directory
         run: |
@@ -113,7 +117,7 @@ jobs:
       - name: 🤖 Install Mephisto
         run: |
           pip install -e .
-          pip install torch pillow numpy
+          pip install torch pillow numpy detoxify
 
       - name: 🖋 Create data directory
         run: |
@@ -191,7 +195,7 @@ jobs:
           command-prefix: yarn dlx
           headless: true
 
-  static_react_task_with_tios:
+  static_react_task_with_tips:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
