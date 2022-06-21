@@ -21,8 +21,8 @@ jobs:
 
       - name: 🤖 Install Mephisto
         run: |
-        pip install -e .
-        pip install detoxify
+          pip install -e .
+          pip install detoxify
 
       - name: 🖋 Create data directory
         run: |
