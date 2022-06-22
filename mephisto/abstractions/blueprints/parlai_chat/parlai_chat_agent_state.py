@@ -76,10 +76,7 @@ class ParlAIChatAgentState(AgentState):
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
             self.final_submission = state["outputs"].get("final_submission")
-            if "metadata" not in state:
-                self.metadata = {"tips": [], "feedback": []}
-            else:
-                self.metadata = state["metadata"]
+            self.metadata = state["metadata"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
