@@ -13,7 +13,6 @@ describe("Loads static_react_task_with_tips", () => {
     cy.get('[data-cy="task-text"]');
     cy.get('[data-cy="good-button"]');
     cy.get('[data-cy="bad-button"]');
-    
   });
 
   it("Loads correct tip react elements", () => {
@@ -23,7 +22,7 @@ describe("Loads static_react_task_with_tips", () => {
     cy.get(".mephisto-worker-experience-feedback__button").should(
       "be.disabled"
     );
-  })
+  });
 });
 
 describe("Tips Popup", () => {
@@ -152,5 +151,9 @@ describe("Tips Popup", () => {
     cy.wait("@submitMetadataRequest").then((interception) => {
       expect(interception.response.statusCode).to.eq(200);
     });
+
+    cy.get("@tipsHeaderInput").should("have.value", "");
+    cy.get("@tipsBodyInput").should("have.value", "");
+    cy.get("@submitButton").should("be.disabled");
   });
 });

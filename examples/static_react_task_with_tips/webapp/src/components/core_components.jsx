@@ -90,7 +90,7 @@ function SimpleFrontend({ taskData, onSubmit }) {
               placement="top-start"
             />
             <span style={{ marginLeft: "1rem" }}>
-              <Feedback />
+              <Feedback maxTextLength={50} />
             </span>
           </div>
         </div>

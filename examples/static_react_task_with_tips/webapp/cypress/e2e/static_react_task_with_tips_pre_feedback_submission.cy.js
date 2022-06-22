@@ -27,6 +27,7 @@ describe("Loads static_react_task_with_tips", () => {
     );
   });
   it("Submitting feedback", () => {
+    cy.intercept({ pathname: "/submit_metadata" }).as("submitMetadataRequest");
     cy.visit("/");
     cy.get("#mephisto-worker-experience-feedback__text-area").as(
       "feedbackTextArea"
@@ -37,6 +38,14 @@ describe("Loads static_react_task_with_tips", () => {
 
     cy.get("@submitButton").should("not.be.disabled");
     cy.get("@submitButton").click();
-    
+    cy.wait("@submitMetadataRequest").then((interception) => {
+      expect(interception.response.statusCode).to.eq(200);
+    });
+    cy.get(".mephisto-worker-experience-feedback__green-box").should(
+      "have.text",
+      "✅ Your feedback has been submitted for review"
+    );
+    cy.get("@feedbackTextArea").should("have.value", "");
+    cy.get("@submitButton").should("be.disabled");
   });
 });
