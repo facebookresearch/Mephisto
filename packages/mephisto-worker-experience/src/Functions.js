@@ -32,7 +32,7 @@ export function createTip(header, text) {
  * @return {{text: text; type: "feedback"; }} An object that can be used as a parameter of the handleSubmitMetadata() method in the mephisto-task package
  */
 export function createFeedback(text) {
-  if (!text || !(typeof text === "string") || !(text instanceof String))
+  if (!text || !(typeof text === "string"))
     throw new Error("Feedback text is not a string");
 
   return {
