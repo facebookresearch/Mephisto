@@ -24,6 +24,20 @@ For cypress testing the base url is: http://localhost:3000/?worker_id=x&assignme
 4. It is advised to test in Chrome(Chrome, Electron, and Firefox are all the options) as this browser works well with Cypress.
 5. After clicking one of the spec files, the tests will automatically run
 
+### Troubleshooting:
+### There may be a case where this is a baseUrl mismatch.
+
+For example:
+Suppose you ran the toxicity detection task and then closed it. This would use assignmentId=1 and assignmentId=2. 
+
+If you then ran the mnist task, for example, then assignmentId=3 and assignmentId=4 would be used. While this task is running you can choose to run cypress tests in a different terminal window by going into the webapp folder and running `npm run test`.
+
+These tests will fail because the base url of http://localhost:3000/?worker_id=x&assignment_id=1 is not associated with the mnist task, it is associated with toxicity detection. The correct react-elements will not show up.
+
+There is a way to fix this:
+* You can change the base url to the current url that you are on. 
+    * Make sure to reset the baseUrl back to default if contributing as the GitHub action will fail otherwise.
+
 ## Local Package Development
 If you are modifying either the `mephisto-task` or `mephisto-worker-experience` packages you probably want to see your changes propagate to the task that you are working on.
 
@@ -41,21 +55,6 @@ Alternatively, these values can be set in the task's hydra_configs/conf yaml fil
 python run_task.py
 ```
 instead.
-
-
-### Troubleshooting:
-### There may be a case where this is a baseUrl mismatch.
-
-For example:
-Suppose you ran the toxicity detection task and then closed it. This would use assignmentId=1 and assignmentId=2. 
-
-If you then ran the mnist task, for example, then assignmentId=3 and assignmentId=4 would be used. While this task is running you can choose to run cypress tests in a different terminal window by going into the webapp folder and running `npm run test`.
-
-These tests will fail because the base url of http://localhost:3000/?worker_id=x&assignment_id=1 is not associated with the mnist task, it is associated with toxicity detection. The correct react-elements will not show up.
-
-There is a way to fix this:
-* You can change the base url to the current url that you are on. 
-    * Make sure to reset the baseUrl back to default if contributing as the GitHub action will fail otherwise.
 
 ## Task Contributions
 Generally we encourage people to provide their own blueprints as part of the repo in which they release their code, though if someone creates a strong case for an abstract `Blueprint` that is generally applicable we'd be happy to review it.
