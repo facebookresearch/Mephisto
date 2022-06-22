@@ -7,18 +7,23 @@ describe("Loads static_react_task_with_tips", () => {
     });
   });
 
-  it("Loads correct react elements", () => {
+  it("Loads correct task react elements", () => {
     cy.visit("/");
     cy.get('[data-cy="directions"]');
     cy.get('[data-cy="task-text"]');
     cy.get('[data-cy="good-button"]');
     cy.get('[data-cy="bad-button"]');
+    
+  });
+
+  it("Loads correct tip react elements", () => {
+    cy.visit("/");
     cy.get(".mephisto-worker-experience-tips__button");
     cy.get("#mephisto-worker-experience-feedback__text-area");
     cy.get(".mephisto-worker-experience-feedback__button").should(
       "be.disabled"
     );
-  });
+  })
 });
 
 describe("Tips Popup", () => {
