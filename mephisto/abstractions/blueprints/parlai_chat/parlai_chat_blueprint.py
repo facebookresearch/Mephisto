@@ -15,6 +15,8 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequiredArgs,
 )
 from dataclasses import dataclass, field
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_agent_state import (
     ParlAIChatAgentState,
@@ -149,7 +151,7 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
     ):
         super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
-
+        self.task_run = task_run
         if args.blueprint.get("context_csv", None) is not None:
             csv_file = os.path.expanduser(args.blueprint.context_csv)
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
@@ -293,6 +295,14 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
         assert isinstance(
             shared_state, SharedParlAITaskState
         ), "Must use SharedParlAITaskState with ParlAIChatBlueprint"
+        task_name = self.task_run.to_dict()["task_name"]
+        db = LocalMephistoDB()
+        mephisto_data_browser = MephistoDataBrowser(db)
+        print(task_name)
+        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
+        accepted_tips = list(
+            filter(lambda tip: tip["accepted"] == True, metadata["tips"])
+        )
         # Add ParlAI standards
         frontend_task_config.update(
             {
@@ -304,6 +314,7 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
                 is not None,
                 "block_mobile": True,
                 "frontend_task_opts": shared_state.frontend_task_opts,
+                "metadata": {"tips": accepted_tips},
             }
         )
         # Use overrides provided downstream

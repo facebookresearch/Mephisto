@@ -36,6 +36,7 @@ class ParlAIChatAgentState(AgentState):
             self.messages: List[Dict[str, Any]] = []
             self.final_submission: Optional[Dict[str, Any]] = None
             self.init_data = None
+            self.metadata: Optional[Dict[str, Any]] = {"tips": [], "feedback": []}
             self.save_data()
 
     def set_init_state(self, data: Any) -> bool:
@@ -48,14 +49,18 @@ class ParlAIChatAgentState(AgentState):
             self.save_data()
             return True
 
-    def get_init_state(self) -> Optional[Dict[str, Any]]:
+    def get_init_state(self, get_all_state: bool = False) -> Optional[Dict[str, Any]]:
         """
         Return the initial state for this agent,
         None if no such state exists
         """
         if self.init_data is None:
             return None
-        return {"task_data": self.init_data, "past_live_updates": self.messages}
+        return {
+            "task_data": self.init_data,
+            "past_live_updates": self.messages,
+            "metadata": self.metadata,
+        }
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""
@@ -71,6 +76,10 @@ class ParlAIChatAgentState(AgentState):
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
             self.final_submission = state["outputs"].get("final_submission")
+            if "metadata" not in state:
+                self.metadata = {"tips": [], "feedback": []}
+            else:
+                self.metadata = state["metadata"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
@@ -80,6 +89,7 @@ class ParlAIChatAgentState(AgentState):
                 "final_submission": self.final_submission,
             },
             "inputs": self.init_data,
+            "metadata": self.metadata,
         }
 
     def get_parsed_data(self) -> Dict[str, Any]:
@@ -105,19 +115,20 @@ class ParlAIChatAgentState(AgentState):
             "messages": messages,
             "save_data": save_data,
             "final_submission": self.final_submission,
+            "metadata": self.metadata,
         }
 
     def get_task_start(self) -> float:
         """
         Return the start time for this task, the timestamp of the very first message.
         """
-        return self.messages[0]["timestamp"]
+        return 0 if len(self.messages) == 0 else self.messages[0]["timestamp"]
 
     def get_task_end(self) -> float:
         """
         Return the end time for this task, the timestamp of the very final message.
         """
-        return self.messages[-1]["timestamp"]
+        return 0 if len(self.messages) == 0 else self.messages[-1]["timestamp"]
 
     def save_data(self) -> None:
         """Save all messages from this agent to"""
@@ -137,3 +148,14 @@ class ParlAIChatAgentState(AgentState):
         """Append any final submission to this state"""
         self.final_submission = submitted_data
         self.save_data()
+
+    def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
+        """Replace metadata field with new metadata and write it"""
+        new_metadata = self.metadata
+        if new_metadata is not None:
+            if "tips" in new_metadata_obj:
+                new_metadata["tips"] = new_metadata_obj["tips"]
+            if "feedback" in new_metadata_obj:
+                new_metadata["feedback"] = new_metadata_obj["feedback"]
+            self.metadata = new_metadata
+            self.save_data()
