@@ -35,7 +35,7 @@ export function createTip(header, text) {
  *                                            handleSubmitMetadata() method in the mephisto-task package
  */
 export function createFeedback(text) {
-  if (!text || !(typeof text === "string") || !(text instanceof String))
+  if (!text || !(typeof text === "string"))
     throw new Error("Feedback text is not a string");
 
   return {
