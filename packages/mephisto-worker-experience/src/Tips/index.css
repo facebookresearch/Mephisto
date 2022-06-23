@@ -187,11 +187,7 @@
 .loader {
   width: 21px;
   height: 21px;
-<<<<<<< HEAD:packages/mephisto-worker-experience/src/Tips/index.css
   border: 3px solid rgb(83, 83, 83);
-=======
-  border: 3px solid rgb(98, 98, 98);
->>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e:packages/mephisto-worker-experience/src/index.css
   border-bottom-color: transparent;
   border-radius: 50%;
   display: inline-block;
@@ -207,10 +203,6 @@
     transform: rotate(360deg);
   }
 }
-<<<<<<< HEAD:packages/mephisto-worker-experience/src/Tips/index.css
-
-=======
->>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e:packages/mephisto-worker-experience/src/index.css
 .mephisto-worker-experience-tips__button-no-margin {
   margin: 0;
 }
