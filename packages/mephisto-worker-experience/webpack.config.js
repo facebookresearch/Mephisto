@@ -1,42 +1,57 @@
-const path = require("path");
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+var path = require("path");
+var webpack = require("webpack");
 
 module.exports = {
-  mode: "production",
-  entry: path.resolve(__dirname, "./src/index.jsx"),
+  entry: "./src/index.jsx",
   output: {
-    path: path.resolve("lib"),
-    filename: "index.js",
-    libraryTarget: "commonjs2",
+    path: __dirname,
+    filename: "lib/index.js",
+    library: "mephisto-worker-experience",
+    libraryTarget: "umd",
+  },
+  target: "web",
+  externals: {
+    react: "react",
+  },
+  resolve: {
+    fallback: {
+      net: false,
+      dns: false,
+    },
   },
   module: {
     rules: [
       {
-        test: /\.js?$/,
-        exclude: /(node_modules)/,
-        use: "babel-loader",
+        test: /\.(js|jsx)$/,
+        loader: "babel-loader",
+        exclude: /node_modules/,
+        options: { presets: ["@babel/env"] },
       },
       {
         test: /\.css$/,
         use: ["style-loader", "css-loader"],
       },
+      {
+        test: /\.(svg|png|jpe?g|ttf)$/,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 100000,
+            },
+          },
+        ],
+      },
+      {
+        test: /\.jpg$/,
+        loader: "file-loader",
+      },
     ],
-  },
-  resolve: {
-    extensions: ["", ".js", ".jsx", ".css"],
-  },
-  externals: {
-    // Don't bundle react or react-dom
-    react: {
-      commonjs: "react",
-      commonjs2: "react",
-      amd: "React",
-      root: "React",
-    },
-    "react-dom": {
-      commonjs: "react-dom",
-      commonjs2: "react-dom",
-      amd: "ReactDOM",
-      root: "ReactDOM",
-    },
   },
 };

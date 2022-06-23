@@ -10,8 +10,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "mephisto-task": "file:../../../packages/mephisto-task",
-    "mephisto-worker-experience": "file:../../../packages/mephisto-worker-experience",
+    "mephisto-task": "^2.0.1",
     "react": "16.13.1",
     "react-dom": "16.13.1"
   },
