@@ -33,10 +33,7 @@
     "react-dom": "16.13.1"
   },
   "dependencies": {
-<<<<<<< HEAD
-=======
     "mephisto-task": "2.0.1",
->>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e
     "react-popper-tooltip": "^4.4.1"
   }
 }
