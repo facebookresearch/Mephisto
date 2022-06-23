@@ -108,22 +108,6 @@ def build_router(
     with open(local_task_config_path, "w+") as task_fp:
         frontend_args = blueprint.get_frontend_args()
         frontend_args["mephisto_task_version"] = CURR_MEPHISTO_TASK_VERSION
-        # Getting the metadata to display in taskConfig
-        task_id = task_run.task_id
-        db = LocalMephistoDB()
-        task_row = db.get_task(task_id)
-        task_name = task_row["task_name"]
-
-        mephisto_data_browser = MephistoDataBrowser(db)
-        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
-        accepted_tips = list(
-            filter(lambda tip: tip["accepted"] == True, metadata["tips"])
-        )
-
-        frontend_args["metadata"] = {
-            "tips": accepted_tips,
-            "feedback": metadata["feedback"],
-        }
         json.dump(frontend_args, task_fp)
 
     # Consolidate task files as defined by the task

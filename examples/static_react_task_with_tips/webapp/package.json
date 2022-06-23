@@ -12,7 +12,6 @@
   "author": "",
   "dependencies": {
     "mephisto-task": "^2.0.1",
-    "mephisto-worker-experience": "file:../../../packages/mephisto-worker-experience",
     "react": "16.13.1",
     "react-dom": "16.13.1"
   },

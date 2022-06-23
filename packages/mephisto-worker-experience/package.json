@@ -21,12 +21,22 @@
     "@babel/preset-stage-0": "^7.8.3",
     "babel-loader": "^8.2.5",
     "css-loader": "^6.7.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "request": "2.79.0",
     "style-loader": "^3.3.1",
     "webpack": "^5.72.1",
     "webpack-cli": "^4.9.2"
   },
+  "peerDependencies": {
+    "react": "16.13.1",
+    "react-dom": "16.13.1"
+  },
   "dependencies": {
+<<<<<<< HEAD
+=======
+    "mephisto-task": "2.0.1",
+>>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e
     "react-popper-tooltip": "^4.4.1"
   }
 }

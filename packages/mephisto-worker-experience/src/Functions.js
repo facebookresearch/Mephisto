@@ -9,8 +9,12 @@
  * mephisto-task library
  * @param {string} header The tip header
  * @param {string} text The tip text or a.k.a the tip body
+<<<<<<< HEAD
  * @return {{header: string; text: string; type: string; }} An object that can be used as a parameter of
  *                                                          the handleSubmitMetadata() method in the mephisto-task package
+=======
+ * @return {{header: string; text: string; type: string; }} An object that can be used as a parameter of the handleSubmitMetadata() method in the mephisto-task package
+>>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e
  */
 export function createTip(header, text) {
   if (!header || !(typeof header === "string"))
@@ -31,8 +35,12 @@ export function createTip(header, text) {
  * by the handleMetadataSubmit function from the
  * mephisto-task library
  * @param {string} text The feedback text
+<<<<<<< HEAD
  * @return {{text: text; type: "feedback"; }} An object that can be used as a parameter of the
  *                                            handleSubmitMetadata() method in the mephisto-task package
+=======
+ * @return {{text: text; type: "feedback"; }} An object that can be used as a parameter of the handleSubmitMetadata() method in the mephisto-task package
+>>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e
  */
 export function createFeedback(text) {
   if (!text || !(typeof text === "string"))

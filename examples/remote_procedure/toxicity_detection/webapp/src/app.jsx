@@ -61,6 +61,16 @@ function RemoteProcedureApp() {
             handleSubmit={handleSubmit}
             handleToxicityCalculation={handleToxicityCalculation}
           />
+<<<<<<< HEAD
+=======
+          <div
+            style={{
+              marginTop: "20rem",
+              marginLeft: "auto",
+              width: "fit-content",
+            }}
+          ></div>
+>>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e
         </div>
       </MephistoContext.Provider>
     </ErrorBoundary>

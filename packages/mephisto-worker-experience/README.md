@@ -83,6 +83,7 @@ It accepts values of "top-start", "top", "top-end", "right-start", "right", "rig
 Only some of these values will be able to be applied in certain cases. For example, if the button is in the top right corner of the screen, then only the bottom and right values will be recognized as the left and top values would lead to the popup overflowing. 
 
 The default value for this prop is "top-start", but this may not always be applied as mentioned in the case above.
+<<<<<<< HEAD
 ### `maxHeaderLength`
 The max character length of a tip header before an error message is shown. The default value for this prop is 72.
 ### `maxTextLength`
@@ -114,6 +115,8 @@ The `handleSubmit` prop accepts a function that runs when the "Submit Feedback" 
 The `width` prop accepts a string that sets the width and min-width of the textarea. ex: width="30rem" sets the textarea width and min-width to 30rem. The default value for this prop is 18rem.
 ### `maxTextLength`
 The max character length of feedback text before an error message is shown. The default value for this prop is 700.
+=======
+>>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e
 ### `createTip(header, text)`
 This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createTip(header, text)` takes two strings as parameters. If one or both of the parameters are not a string then an error gets thrown. If both the two parameters are strings then the following object gets returned:
 ```

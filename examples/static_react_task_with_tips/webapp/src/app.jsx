@@ -58,7 +58,6 @@ function MainApp() {
   if (isOnboarding) {
     return <OnboardingComponent onSubmit={handleSubmit} />;
   }
-
   return (
     <div>
       <ErrorBoundary handleError={handleFatalError}>
