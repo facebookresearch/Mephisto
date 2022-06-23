@@ -22,6 +22,9 @@ function Tips({
     text: "",
   });
 
+  const maxPopupHeight = maxHeight ? maxHeight : "30rem";
+  const maxPopupWidth = maxWidth ? maxWidth : "30rem";
+
   const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
     usePopperTooltip(
       {
@@ -76,10 +79,11 @@ function Tips({
         >
           <div
             className="mephisto-worker-experience-tips__padding_container"
-            style={{ maxHeight: maxHeight, maxWidth: maxWidth }}
+            style={{ maxHeight: maxPopupHeight, maxWidth: maxPopupWidth }}
           >
-            <h1>Task Tips:</h1>
+            <h1 className={`${headlessPrefix}mephisto-worker-experience-tips__tip-header1`}>Task Tips:</h1>
             <ul
+              style={{ maxHeight: `calc(${maxPopupHeight}/2)` }}
               className={`${headlessPrefix}mephisto-worker-experience-tips__tips-list`}
             >
               {tipsArr.length <= 0 ? (
@@ -98,7 +102,11 @@ function Tips({
             </ul>
             {!disableUserSubmission && (
               <Fragment>
-                <h1>Submit A Tip: </h1>
+                <h1
+                  className={`${headlessPrefix}mephisto-worker-experience-tips__tip-header1`}
+                >
+                  Submit A Tip:{" "}
+                </h1>
                 <label
                   htmlFor={`${headlessPrefix}mephisto-worker-experience-tips__tip-header-input`}
                   className={`${headlessPrefix}mephisto-worker-experience-tips__tip-label`}

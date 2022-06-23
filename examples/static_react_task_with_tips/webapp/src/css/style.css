@@ -3,16 +3,4 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-ul {
-  list-style-type: disc !important;
-}
-h1 {
-  font-weight: bold !important;
-  font-size: 2em !important;
-  margin: 0.75rem 0 !important;
-}
-h2 {
-  font-weight: bold !important;
-  font-size: 1.45em !important
-  ;
-}
+
