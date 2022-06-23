@@ -17,18 +17,22 @@ function Feedback({ headless, handleSubmit, width, maxTextLength }) {
   });
 
   const updateSizeRef = useRef(null);
-  const { getTooltipProps, setTooltipRef, setTriggerRef, update } =
-    usePopperTooltip(
-      {
-        trigger: null,
-        visible: state.status === 2 || state.status === 3,
-        offset: [0, 9],
-        onVisibleChange: () => {},
-      },
-      {
-        placement: "top-start",
-      }
-    );
+  const {
+    getTooltipProps,
+    setTooltipRef,
+    setTriggerRef,
+    update,
+  } = usePopperTooltip(
+    {
+      trigger: null,
+      visible: state.status === 2 || state.status === 3,
+      offset: [0, 9],
+      onVisibleChange: () => {},
+    },
+    {
+      placement: "top-start",
+    }
+  );
 
   // Used to make tooltip stay in correct position even if text area size is dragged
   const observer = useRef(null);
