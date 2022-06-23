@@ -1,6 +1,6 @@
 {
   "name": "mephisto-task",
-  "version": "2.1.1",
+  "version": "2.0.1",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
