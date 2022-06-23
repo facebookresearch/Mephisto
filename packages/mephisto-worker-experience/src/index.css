@@ -93,13 +93,16 @@
   width: fit-content;
 }
 
-#mephisto-worker-experience-tips__tip-text-input {
-  max-width: 100%;
-  min-height: 42px;
+.mephisto-worker-experience-tips__tip-text {
+  white-space: pre-wrap;
+  font-size: 1em;
 }
+
 #mephisto-worker-experience-tips__tip-header-input,
 #mephisto-worker-experience-tips__tip-text-input {
   background-color: rgb(240, 240, 240);
+  max-width: 100%;
+  min-height: 42px;
   box-shadow: 0 0 0 0.15rem rgba(193, 193, 193, 0.5);
   border: 0;
   border-radius: 0.35rem;
@@ -110,6 +113,7 @@
   font-family: inherit;
   font-size: 0.9em;
   box-sizing: border-box;
+  white-space: pre-wrap;
 }
 
 #mephisto-worker-experience-tips__tip-header-input:hover,
