@@ -71,7 +71,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
               </button>
             </div>
           </div>
-          <div style={{ marginLeft: "auto", marginTop: "25rem" }}>
+          <div style={{ margin: "25rem 0 1.5rem auto", float: "right" }}>
             <Tips maxHeight="40rem" placement="top-end" />
           </div>
         </div>
