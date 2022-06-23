@@ -244,11 +244,8 @@ class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
         task_name = self.task_run.to_dict()["task_name"]
         db = LocalMephistoDB()
         mephisto_data_browser = MephistoDataBrowser(db)
-        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
-        accepted_tips = list(
-            filter(lambda tip: tip["accepted"] == True, metadata["tips"])
+        front_end_task_config_with_metadata = super().update_task_config_with_metadata(
+            mephisto_data_browser, task_name, frontend_task_config
         )
-        frontend_task_config.update({"metadata": {"tips": accepted_tips}})
-        # Use overrides provided downstream
-        frontend_task_config.update(self.frontend_task_config)
-        return frontend_task_config
+        front_end_task_config_with_metadata.update(self.frontend_task_config)
+        return front_end_task_config_with_metadata

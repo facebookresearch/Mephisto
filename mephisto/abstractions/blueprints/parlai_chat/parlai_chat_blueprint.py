@@ -17,6 +17,7 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 from dataclasses import dataclass, field
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_agent_state import (
     ParlAIChatAgentState,
@@ -295,14 +296,6 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
         assert isinstance(
             shared_state, SharedParlAITaskState
         ), "Must use SharedParlAITaskState with ParlAIChatBlueprint"
-        task_name = self.task_run.to_dict()["task_name"]
-        db = LocalMephistoDB()
-        mephisto_data_browser = MephistoDataBrowser(db)
-        print(task_name)
-        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
-        accepted_tips = list(
-            filter(lambda tip: tip["accepted"] == True, metadata["tips"])
-        )
         # Add ParlAI standards
         frontend_task_config.update(
             {
@@ -314,11 +307,18 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
                 is not None,
                 "block_mobile": True,
                 "frontend_task_opts": shared_state.frontend_task_opts,
-                "metadata": {"tips": accepted_tips},
             }
         )
+
+        task_name = self.task_run.to_dict()["task_name"]
+        db = LocalMephistoDB()
+        mephisto_data_browser = MephistoDataBrowser(db)
+
+        front_end_task_config_with_metadata = super().update_task_config_with_metadata(
+            mephisto_data_browser, task_name, frontend_task_config
+        )
         # Use overrides provided downstream
-        frontend_task_config.update(self.frontend_task_config)
+        front_end_task_config_with_metadata.update(self.frontend_task_config)
         return frontend_task_config
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:

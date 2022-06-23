@@ -264,6 +264,25 @@ class Blueprint(ABC):
         """
         return self.frontend_task_config.copy()
 
+    def update_task_config_with_metadata(
+        self,
+        mephisto_data_browser,
+        task_name: str,
+        frontend_task_config: Dict[str, Any],
+    ):
+        """
+        Updates the frontend args metadata with accepted tips
+        """
+        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
+        accepted_tips = list(
+            filter(lambda tip: tip["accepted"] == True, metadata["tips"])
+        )
+        metadata["tips"] = accepted_tips
+        frontend_task_config.update({"metadata": metadata})
+        # Use overrides provided downstream
+        frontend_task_config.update(frontend_task_config)
+        return frontend_task_config
+
     @abstractmethod
     def get_initialization_data(
         self,
