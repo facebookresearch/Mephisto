@@ -21,15 +21,11 @@ from mephisto.operations.hydra_config import (
 )
 
 from omegaconf import DictConfig, OmegaConf
-import sys
 import functools
 import hydra
-import argparse
 import subprocess
 from typing import (
-    List,
     Tuple,
-    Dict,
     Any,
     Type,
     TypeVar,
@@ -272,7 +268,7 @@ def build_custom_bundle(custom_src_dir, run_config: DictConfig):
             "please make sure npm is installed, otherwise view "
             "the above error for more info."
         )
-    print(run_config.task.post_build_script)
+
     if (
         run_config.task.post_build_script is not None
         and len(run_config.task.post_build_script) > 0

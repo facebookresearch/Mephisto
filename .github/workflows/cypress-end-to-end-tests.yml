@@ -7,7 +7,7 @@ on:
 jobs:
   static-react-task:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
+
     steps:
       - name: 🔀 Checking out repo
         uses: actions/checkout@v2
@@ -28,9 +28,9 @@ jobs:
           mkdir mephisto
           cd mephisto
           mkdir data
+
       - name: 📂 Set the data directory
-        run: |
-          mephisto config core.main_data_directory ~/mephisto/data
+        run: mephisto config core.main_data_directory ~/mephisto/data
 
       - name: 📦 Setting up mephisto-task package
         run: |
@@ -43,6 +43,7 @@ jobs:
         uses: cypress-io/github-action@v3.1.0
         with:
           install: false
+          browser: chrome
           project: ./examples/static_react_task/webapp
           config-file: ./cypress.config.js
           start: python examples/static_react_task/run_task.py mephisto.task.post_build_script=link_mephisto_task.sh
@@ -52,7 +53,7 @@ jobs:
 
   remote_procedure_template:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
+
     steps:
       - name: 🔀 Checking out repo
         uses: actions/checkout@v2
@@ -74,8 +75,7 @@ jobs:
           cd mephisto
           mkdir data
       - name: 📂 Set the data directory
-        run: |
-          mephisto config core.main_data_directory ~/mephisto/data
+        run: mephisto config core.main_data_directory ~/mephisto/data
 
       - name: 📦 Setting up mephisto-task package
         run: |
@@ -98,7 +98,7 @@ jobs:
 
   remote_procedure_mnist:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
+
     steps:
       - name: 🔀 Checking out repo
         uses: actions/checkout@v2
@@ -121,8 +121,9 @@ jobs:
           mkdir mephisto
           cd mephisto
           mkdir data
+
       - name: 📂 Set the data directory
-        run:  mephisto config core.main_data_directory ~/mephisto/data
+        run: mephisto config core.main_data_directory ~/mephisto/data
 
       - name: 📦 Setting up mephisto-task package
         run: |
@@ -130,7 +131,7 @@ jobs:
           yarn install
           yarn build
           npm link
-        
+
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
@@ -145,10 +146,11 @@ jobs:
 
   remote_procedure_toxicity_detection:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
+
     steps:
       - name: 🔀 Checking out repo
         uses: actions/checkout@v2
+
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
 
@@ -171,7 +173,7 @@ jobs:
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
-      
+
       - name: 📦 Setting up mephisto-task package
         run: |
           cd packages/mephisto-task

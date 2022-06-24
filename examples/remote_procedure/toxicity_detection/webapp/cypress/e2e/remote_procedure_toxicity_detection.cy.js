@@ -24,7 +24,7 @@ describe("Loads remote_procedure_toxicity_detection", () => {
     cy.get("@submitButton").click();
     cy.get('[data-cy="loading-spinner"]');
 
-    cy.get('[data-cy="toxicity-alert"]', { timeout: 15000 }).as(
+    cy.get('[data-cy="toxicity-alert"]', { timeout: 25000 }).as(
       "toxicityAlert"
     );
     cy.get("@toxicityAlert").contains(
