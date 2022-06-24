@@ -245,7 +245,7 @@ jobs:
           browser: chrome
           project: ./examples/static_react_task_with_tips/webapp
           config-file: ./cypress.config.js
-          spec: cypress/e2e/working_tests/*
+          spec: ./examples/static_react_task_with_tips/webapp/cypress/e2e/working_tests/*
           start: python examples/static_react_task_with_tips/run_task.py mephisto.task.post_build_script=link_packages.sh
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
