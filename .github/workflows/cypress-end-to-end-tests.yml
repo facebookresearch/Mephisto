@@ -2,7 +2,7 @@ name: cypress-end-to-end-tests
 on:
   pull_request:
   push:
-    branches: [add-tests-for-tips-example]
+    branches: [main]
 
 jobs:
   static-react-task:
