@@ -52,7 +52,8 @@ describe("Tips Popup", () => {
       "tipsHeaderInput"
     );
     cy.get("@tipsHeaderInput").type("This header is tooooooooooooooooo long");
-    cy.get(".mephisto-worker-experience-tips__red-box").contains(
+    cy.get(".mephisto-worker-experience-tips__red-box").should(
+      "have.text",
       "📝 Your tip header is too long"
     );
     cy.get(".mephisto-worker-experience-tips__button").should("be.disabled");
@@ -71,7 +72,8 @@ describe("Tips Popup", () => {
     cy.get("@tipsBodyInput").type(
       "This body is tooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long"
     );
-    cy.get(".mephisto-worker-experience-tips__red-box").contains(
+    cy.get(".mephisto-worker-experience-tips__red-box").should(
+      "have.text",
       "📝 Your tip body is too long"
     );
     cy.get(".mephisto-worker-experience-tips__button").should("be.disabled");
@@ -88,7 +90,8 @@ describe("Tips Popup", () => {
       "tipsHeaderInput"
     );
     cy.get("@tipsHeaderInput").type("This header is tooooooooooooooooo long");
-    cy.get(".mephisto-worker-experience-tips__red-box").contains(
+    cy.get(".mephisto-worker-experience-tips__red-box").should(
+      "have.text",
       "📝 Your tip header is too long"
     );
     cy.get(".mephisto-worker-experience-tips__button").should("be.disabled");
@@ -101,12 +104,14 @@ describe("Tips Popup", () => {
     );
 
     cy.get(".mephisto-worker-experience-tips__button").should("be.disabled");
-    cy.get(".mephisto-worker-experience-tips__red-box").contains(
+    cy.get(".mephisto-worker-experience-tips__red-box").should(
+      "have.text",
       "📝 Your tip header is too long"
     );
 
     cy.get("@tipsHeaderInput").clear();
-    cy.get(".mephisto-worker-experience-tips__red-box").contains(
+    cy.get(".mephisto-worker-experience-tips__red-box").should(
+      "have.text",
       "📝 Your tip body is too long"
     );
     cy.get(".mephisto-worker-experience-tips__button").should("be.disabled");
@@ -155,5 +160,9 @@ describe("Tips Popup", () => {
     cy.get("@tipsHeaderInput").should("have.value", "");
     cy.get("@tipsBodyInput").should("have.value", "");
     cy.get("@submitButton").should("be.disabled");
+    cy.get(".mephisto-worker-experience-tips__green-box").should(
+      "have.text",
+      "✅ Your tip has been submitted for review"
+    );
   });
 });
