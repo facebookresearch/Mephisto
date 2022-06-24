@@ -280,6 +280,21 @@ jobs:
           r
           EOF
 
+      - name: 📖 Reviewing the accepted feedback
+        run: |
+          cd mephisto/scripts/local_db
+          python review_feedback_for_task.py << EOF
+          react-static-task-with-tips
+          n
+          n
+          y
+          EOF
+          python review_feedback_for_task.py << EOF
+          react-static-task-with-tips
+          n
+          y
+          EOF
+
       - name: ⌛️ Running post-submission cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
@@ -292,3 +307,11 @@ jobs:
           command-prefix: yarn dlx
           browser: chrome
           headless: true
+
+      - name: 🔥 Removing the accepted tip
+        run: |
+          cd mephisto/scripts/local_db
+          python remove_accepted_tip.py << EOF
+          react-static-task-with-tips
+          y
+          EOF
