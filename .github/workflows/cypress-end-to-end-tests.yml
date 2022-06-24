@@ -270,13 +270,14 @@ jobs:
           cd mephisto/scripts/local_db
           python expire_all_units.py
 
-      - name: 📚 Acepting the submitted tip
+      - name: 📚 Accepting the first submitted tip and rejecting the second submitted tip
         run: |
           cd mephisto/scripts/local_db
           python review_tips_for_task.py << EOF
           react-static-task-with-tips
           a
           n
+          r
           EOF
 
       - name: ⌛️ Running post-submission cypress tests
