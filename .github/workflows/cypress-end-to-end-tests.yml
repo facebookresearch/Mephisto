@@ -251,6 +251,20 @@ jobs:
           command-prefix: yarn dlx
           headless: true
 
+      - name: 🔪 Killing the web server
+        run: |
+          lsof -nPi :3000
+          lsof -i -P -n | grep LISTEN | grep python | awk '{print $2}'
+          kill -INT $(lsof -i -P -n | grep LISTEN | grep python | awk '{print $2}')
+          echo "killed 1"
+          sleep 0.5
+          kill -INT $(lsof -i -P -n | grep LISTEN | grep python | awk '{print $2}')
+          echo "killed 2"
+          lsof -i -P -n | grep LISTEN | grep node | awk '{print $2}'
+          kill -INT $(lsof -i -P -n | grep LISTEN | grep node | awk '{print $2}')
+          sleep 30
+          echo "30 seconds passed"
+
       - name: 🥛 Expiring units
         run: |
           cd mephisto/scripts/local_db
