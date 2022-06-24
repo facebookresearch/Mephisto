@@ -26,15 +26,13 @@ describe("Submits static_react_task", () => {
   });
   it("Shows alert from pressing good button", () => {
     cy.visit("/");
-    const stub = cy.stub();
-    cy.on("window:alert", stub);
-    cy.get('[data-cy="good-button"]')
-      .click()
-      .then(() => {
-        expect(stub.getCall(0)).to.be.calledWith(
-          'The task has been submitted! Data: {"rating":"good"}'
-        );
-      });
+
+    cy.on("window:alert", (txt) => {
+      expect(txt).to.contains(
+        'The task has been submitted! Data: {"rating":"good"}'
+      );
+    });
+    cy.get('[data-cy="good-button"]').click();
   });
 
   it("Gets request from pressing bad button", () => {
@@ -48,14 +46,11 @@ describe("Submits static_react_task", () => {
 
   it("Shows alert from pressing bad button", () => {
     cy.visit("/");
-    const stub = cy.stub();
-    cy.on("window:alert", stub);
-    cy.get('[data-cy="bad-button"]')
-      .click()
-      .then(() => {
-        expect(stub.getCall(0)).to.be.calledWith(
-          'The task has been submitted! Data: {"rating":"bad"}'
-        );
-      });
+    cy.on("window:alert", (txt) => {
+      expect(txt).to.contains(
+        'The task has been submitted! Data: {"rating":"bad"}'
+      );
+    });
+    cy.get('[data-cy="bad-button"]').click();
   });
 });
