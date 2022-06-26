@@ -7,7 +7,6 @@
 Utilities that are useful for Mephisto-related scripts.
 """
 
-from struct import pack
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
