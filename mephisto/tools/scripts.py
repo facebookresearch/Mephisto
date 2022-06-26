@@ -7,7 +7,6 @@
 Utilities that are useful for Mephisto-related scripts.
 """
 
-from struct import pack
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
@@ -273,7 +272,12 @@ def build_custom_bundle(custom_src_dir, run_config: DictConfig):
         run_config.task.post_build_script is not None
         and len(run_config.task.post_build_script) > 0
     ):
-        subprocess.call(["bash", run_config.task.post_build_script])
+        script_failure = subprocess.call(["bash", run_config.task.post_build_script])
+        if script_failure != 0:
+            raise Exception(
+                "\nRunning your post_build script failed"
+                "\nPlease make sure your script exists and is in the webapp directory"
+            )
 
     webpack_complete = subprocess.call(["npm", "run", "dev"])
     if webpack_complete != 0:

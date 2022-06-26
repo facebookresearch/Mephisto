@@ -50,5 +50,3 @@ describe("Loads remote_procedure_template", () => {
     cy.get("@submitButton").should("not.be.disabled");
   });
 });
-
-//http://localhost:3000/?worker_id=x&assignment_id=58
