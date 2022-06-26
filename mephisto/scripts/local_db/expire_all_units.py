@@ -18,6 +18,7 @@ def main():
             found_units = assignment.get_units()
             for unit in found_units:
                 unit.set_db_status("expired")
-    
+
+
 if __name__ == "__main__":
     main()
