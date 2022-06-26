@@ -6,6 +6,7 @@ authors = ["Jack Urbanek <jju@fb.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+detoxify = "^0.5.0"
 click = "^7.0"
 flask = "^1.1"
 click_default_group = "^1.2"
