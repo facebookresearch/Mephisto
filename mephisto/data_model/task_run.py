@@ -113,12 +113,12 @@ class TaskRunArgs:
         },
     )
 
-    post_build_script: str = field(
+    post_install_script: str = field(
         default="",
         metadata={
             "help": (
-                "The path to a shell script that will run right before npm build."
-                "This can be useful for local package development where you would want to link a package."
+                "The name of a shell script in your webapp directory that will run right after npm install."
+                "This can be useful for local package development where you would want to link a package after installing dependencies from package.json"
             )
         },
     )
