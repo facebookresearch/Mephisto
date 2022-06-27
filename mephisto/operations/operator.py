@@ -11,6 +11,7 @@ import time
 import threading
 import signal
 import asyncio
+import traceback
 
 from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
 
@@ -445,7 +446,6 @@ class Operator:
             logger.exception(
                 f"Encountered problem during shutting down {e}", exc_info=True
             )
-            import traceback
 
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
@@ -587,8 +587,6 @@ class Operator:
         try:
             self._event_loop.run_forever()
         except Exception as e:
-            import traceback
-
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
             logger.exception(

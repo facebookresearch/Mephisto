@@ -101,3 +101,25 @@ This method is meant to be used as a parameter to the `handleSubmitMetadata` fun
   type: "feedback"
 }
 ```
+
+
+### General Info
+When a tip is submitted, `handleMetadataSubmit(payload)` from the `mephisto-task` package is ran.
+
+
+The payload accepts:
+```js
+{
+    header: string,
+    text: string,
+    type: "tips"
+}
+```
+or
+```js
+{
+    text: string,
+    type: "feedback"
+}
+```
+

@@ -39,9 +39,9 @@ function MyApp() {
         taskConfig,
         agentId,
         assignmentId,
-
         initialTaskData,
         handleSubmit,
+        handleMetadataSubmit,
         isLoading,
         isOnboarding,
         isPreview,
@@ -51,7 +51,6 @@ function MyApp() {
         // advanced usage:
         providerWorkerId,
         mephistoWorkerId,
-
     } = useMephistoTask();
 }
 ```
@@ -84,8 +83,6 @@ Usually you'll want to use `agentId` to represent workers in your task code as o
 
 More details about Agents can be found in the [Mephisto architecture overview docs](https://github.com/facebookresearch/Mephisto/blob/main/docs/web/docs/explanations/architecture_overview.md#agent).
 
-
-
 ### `assignmentId`
 
 An `assignmentId` uniquely represents the portion of the task that a worker will be working on.
@@ -105,24 +102,8 @@ Generally speaking, the value is the `InitializationData` object that the `TaskR
 A callback provided for the webapp to finalize and submit the worker's resulting work back to Mephisto.
 
 ### `handleMetadataSubmit(payload)`
-A callback provided for the Tips component in the `mephisto-worker-experience` package to submit a tip to its agent's metadata. 
-Not recommended to be used by the user as mephisto-worker-experience should use this for you under the hood.
 
-payload accepts
-```js
-{
-    header: string,
-    text: string,
-    type: "tips"
-}
-```
-or
-```js
-{
-    text: string,
-    type: "feedback"
-}
-```
+A callback provided for the webapp to finalize and submit metadata to a Mephisto agent.
 
 ### `isLoading`
 
@@ -168,7 +149,6 @@ The ID created for the worker by the provider, e.g. mTurk.
 ### `mephistoWorkerId` (advanced usage)
 
 The ID created for the worker by Mephisto.
-
 
 ---
 
