@@ -7,6 +7,8 @@ import { feedbackReducer } from "../Reducers";
 
 function Feedback({ headless, handleSubmit, width, maxTextLength }) {
   const headlessPrefix = headless ? "headless-" : "";
+  const stylePrefix = `${headlessPrefix}mephisto-worker-addons-feedback__`;
+  const stylePrefixNoHeadlessPrefix = `mephisto-worker-addons-feedback__`;
   const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
 
   const [feedbackText, setFeedbackText] = useState("");
@@ -45,10 +47,10 @@ function Feedback({ headless, handleSubmit, width, maxTextLength }) {
   }, [observer, updateSizeRef, update]);
 
   return (
-    <span className="mephisto-worker-experience-feedback__container">
+    <span className={`${stylePrefixNoHeadlessPrefix}container`}>
       <span
         ref={updateSizeRef}
-        className={`mephisto-worker-experience-feedback__text-area-container`}
+        className={`${stylePrefixNoHeadlessPrefix}text-area-container`}
       >
         <textarea
           ref={setTriggerRef}
@@ -67,7 +69,7 @@ function Feedback({ headless, handleSubmit, width, maxTextLength }) {
           }
           value={feedbackText}
           placeholder="Enter feedback text here"
-          id={`${headlessPrefix}mephisto-worker-experience-feedback__text-area`}
+          id={`${stylePrefix}text-area`}
         />
       </span>
 
@@ -75,7 +77,7 @@ function Feedback({ headless, handleSubmit, width, maxTextLength }) {
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
-          className={`mephisto-worker-experience-feedback__${
+          className={`${stylePrefixNoHeadlessPrefix}${
             state.status === 2 ? "green" : "red"
           }-box`}
         >
@@ -83,7 +85,7 @@ function Feedback({ headless, handleSubmit, width, maxTextLength }) {
         </div>
       )}
       <button
-        className={`${headlessPrefix}mephisto-worker-experience-feedback__button`}
+        className={`${stylePrefix}button`}
         disabled={
           feedbackText.length <= 0 || state.status === 1 || state.status === 4
         }

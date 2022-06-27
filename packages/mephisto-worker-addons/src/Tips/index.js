@@ -28,7 +28,7 @@ function Tips({
     header: maxHeaderLength ? maxHeaderLength : 72,
     body: maxTextLength ? maxTextLength : 500,
   };
-  
+
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
   const maxPopupWidth = maxWidth ? maxWidth : "30rem";
   const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
@@ -66,11 +66,7 @@ function Tips({
       <button
         ref={setTriggerRef}
         onClick={() => setIsVisible(!isVisible)}
-<<<<<<< HEAD:packages/mephisto-worker-addons/src/Tips/index.js
-        className={`${headlessPrefix}mephisto-worker-experience-tips__button mephisto-worker-experience-tips__button-no-margin `}
-=======
         className={`${stylePrefix}button ${stylePrefix}no-margin`}
->>>>>>> 6893718b19458c1c089a534bfdbf20a0cb6a5b95:packages/mephisto-worker-addons/src/Tips.js
       >
         <InfoIcon margin="0 0.225rem 0 0" />
         {visible ? "Hide Tips" : "Show Tips"}
@@ -79,10 +75,10 @@ function Tips({
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
-          className={`${stylePrefix}container`}
+          className={`mephisto-worker-addons-tips__container`}
         >
           <div
-            className={`${stylePrefix}padding_container`}
+            className={`mephisto-worker-addons-tips__padding_container`}
             style={{ maxHeight: maxPopupHeight, maxWidth: maxPopupWidth }}
           >
             <h1 className={`${stylePrefix}tip-header1`}>Task Tips:</h1>
