@@ -68,7 +68,7 @@ export function handleTipSubmit(
     dispatch({ type: "loading" });
     handleMetadataSubmit(createTip(tipData.header, tipData.text))
       .then((data) => {
-        if (data.status === "Submitted metadata for review") {
+        if (data.status === "Submitted metadata") {
           setTipData({ header: "", text: "" });
           dispatch({ type: "success" });
           setTimeout(() => {

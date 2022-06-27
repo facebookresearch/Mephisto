@@ -25,7 +25,6 @@ from mephisto.abstractions._subcomponents.task_runner import TaskRunner
 from mephisto.abstractions._subcomponents.agent_state import AgentState
 
 if TYPE_CHECKING:
-    from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.assignment import InitializationData
     from mephisto.data_model.unit import Unit
@@ -266,14 +265,12 @@ class Blueprint(ABC):
 
     def update_task_config_with_metadata(
         self,
-        mephisto_data_browser,
-        task_name: str,
+        metadata: Dict[str, Any],
         frontend_task_config: Dict[str, Any],
     ):
         """
         Updates the frontend args metadata with accepted tips
         """
-        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
         accepted_tips = list(
             filter(lambda tip: tip["accepted"] == True, metadata["tips"])
         )
