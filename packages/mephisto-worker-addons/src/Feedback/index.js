@@ -2,21 +2,23 @@ import React, { useState, useEffect, useReducer, useRef } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
-import { handleFeedbackSubmit, handleChangeFeedback } from "../Functions";
+import { handleFeedbackSubmit } from "../Functions";
 import { feedbackReducer } from "../Reducers";
+import FeedbackTextArea from "./FeedbackTextArea";
 
-function Feedback({ headless, handleSubmit, width, maxTextLength }) {
+function Feedback({ headless, questions, handleSubmit, width, maxTextLength }) {
   const headlessPrefix = headless ? "headless-" : "";
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-feedback__`;
   const stylePrefixNoHeadlessPrefix = `mephisto-worker-addons-feedback__`;
   const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
-
+  const handleMetadataSubmit = useMephistoTask();
   const [feedbackText, setFeedbackText] = useState("");
-  const { handleMetadataSubmit } = useMephistoTask();
+
   const [state, dispatch] = useReducer(feedbackReducer, {
     status: 0,
     text: "",
   });
+  const containsQuestions = questions?.length > 0;
 
   const updateSizeRef = useRef(null);
   const { getTooltipProps, setTooltipRef, setTriggerRef, update } =
@@ -47,30 +49,35 @@ function Feedback({ headless, handleSubmit, width, maxTextLength }) {
   }, [observer, updateSizeRef, update]);
 
   return (
-    <span className={`${stylePrefixNoHeadlessPrefix}container`}>
+    <span
+      className={`${stylePrefixNoHeadlessPrefix}container ${
+        containsQuestions && "vertical"
+      }`}
+    >
       <span
         ref={updateSizeRef}
-        className={`${stylePrefixNoHeadlessPrefix}text-area-container`}
+        className={`${stylePrefixNoHeadlessPrefix}${
+          containsQuestions
+            ? "text-area-container-vertical"
+            : "text-area-container"
+        }`}
       >
-        <textarea
-          ref={setTriggerRef}
-          style={{
-            minWidth: width ? width : "18rem",
-            width: width ? width : "18rem",
-          }}
-          onChange={(e) =>
-            handleChangeFeedback(
-              e,
-              state,
-              dispatch,
-              (event) => setFeedbackText(event.target.value),
-              maxFeedbackLength
-            )
-          }
-          value={feedbackText}
-          placeholder="Enter feedback text here"
-          id={`${stylePrefix}text-area`}
-        />
+        {containsQuestions ? (
+          questions.map((question, index) => {
+            return <div>{question}</div>;
+          })
+        ) : (
+          <FeedbackTextArea
+            setTriggerRef={setTriggerRef}
+            width={width}
+            feedbackText={feedbackText}
+            setFeedbackText={setFeedbackText}
+            stylePrefix={stylePrefix}
+            state={state}
+            dispatch={dispatch}
+            maxFeedbackLength={maxFeedbackLength}
+          />
+        )}
       </span>
 
       {(state.status === 2 || state.status === 3 || state.status === 4) && (

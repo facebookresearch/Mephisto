@@ -75,7 +75,7 @@ function SimpleFrontend({ taskData, onSubmit }) {
           <div style={{ margin: "25rem 0 1.5rem auto", float: "right" }}>
             <Tips maxHeight="40rem" placement="top-start" />
             <span style={{ marginLeft: "1rem" }}>
-              <Feedback />
+              <Feedback questions={["This is my first question 🗯"]} />
             </span>
           </div>
         </div>
