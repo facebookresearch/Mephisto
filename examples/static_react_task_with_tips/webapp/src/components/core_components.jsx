@@ -7,7 +7,7 @@
  */
 
 import React from "react";
-import { Tips, Feedback } from "mephisto-worker-experience";
+import { Tips, Feedback } from "mephisto-worker-addons";
 
 function OnboardingComponent({ onSubmit }) {
   return (

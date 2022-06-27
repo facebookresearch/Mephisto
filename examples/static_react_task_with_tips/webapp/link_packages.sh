@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/sh
 npm link mephisto-task
-npm link mephisto-worker-experience
+npm link mephisto-worker-addons

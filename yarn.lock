@@ -21084,9 +21084,9 @@ fsevents@^1.2.7:
   languageName: unknown
   linkType: soft
 
-"mephisto-worker-experience@workspace:packages/mephisto-worker-experience":
+"mephisto-worker-addons@workspace:packages/mephisto-worker-addons":
   version: 0.0.0-use.local
-  resolution: "mephisto-worker-experience@workspace:packages/mephisto-worker-experience"
+  resolution: "mephisto-worker-addons@workspace:packages/mephisto-worker-addons"
   dependencies:
     "@babel/core": ^7.18.2
     "@babel/preset-env": ^7.18.2

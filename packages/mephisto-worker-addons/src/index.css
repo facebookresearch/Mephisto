@@ -1,79 +1,82 @@
 /* Headless Classes */
-.headless-mephisto-worker-experience-tips__tips-list {
-  padding: 0;
+.headless-mephisto-worker-addons-tips__tips-list {
+  padding: 0.5rem;
   margin-bottom: 1.5rem;
+  list-style-type: disc;
+  overflow: auto;
+  border: 2px solid black;
 }
-.headless-mephisto-worker-experience-tips__tip {
+
+.headless-mephisto-worker-addons-tips__tip {
   margin: 0 0 1.35rem 1rem;
 }
 
-.headless-mephisto-worker-experience-tips__tip-header2 {
+.headless-mephisto-worker-addons-tips__tip-header2 {
   margin-bottom: 0.5rem;
 }
-.headless-mephisto-worker-experience-tips__tip:last-child {
+.headless-mephisto-worker-addons-tips__tip:last-child {
   margin-bottom: 0;
 }
 
-.headless-mephisto-worker-experience-tips__button {
+.headless-mephisto-worker-addons-tips__button {
   margin: 0.75rem 0;
   display: flex;
   align-items: center;
 }
-.headless-mephisto-worker-experience-tips__button:disabled {
+.headless-mephisto-worker-addons-tips__button:disabled {
   cursor: not-allowed !important;
 }
-.headless-mephisto-worker-experience-tips__tip-label {
+.headless-mephisto-worker-addons-tips__tip-label {
   display: block;
   margin: 0.75rem 0 0.35rem;
   cursor: pointer;
   width: fit-content;
 }
 
-#headless-mephisto-worker-experience-tips__tip-header-input {
+#headless-mephisto-worker-addons-tips__tip-header-input {
   width: 100%;
 }
-#headless-mephisto-worker-experience-tips__tip-text-input {
+#headless-mephisto-worker-addons-tips__tip-text-input {
   width: 100%;
   max-width: 100%;
 }
 
 /* Non-Headless Classes */
 
-.mephisto-worker-experience-tips__tips-list {
-  padding: 0;
+.mephisto-worker-addons-tips__tips-list {
   margin-bottom: 1.5rem;
   overflow: auto;
   border: 4px solid #dbdbdb;
   border-radius: 0.5rem;
-  padding: 1rem 0;
+  padding: 1rem 1rem 1rem 0;
   list-style-type: disc;
 }
-.mephisto-worker-experience-tips__tip-header1 {
+.mephisto-worker-addons-tips__tip-header1 {
   font-weight: bold;
   font-size: 1.75em;
   margin: 0.75rem 0;
 }
 
-.mephisto-worker-experience-tips__tip-header2 {
+.mephisto-worker-addons-tips__tip-header2 {
   font-weight: bold;
   font-size: 1.25em;
   margin-bottom: 0.5rem;
 }
 
-.mephisto-worker-experience-tips__tip {
+.mephisto-worker-addons-tips__tip {
   margin: 0 0 1.35rem 1.75rem;
 }
-.mephisto-worker-experience-tips__tip:last-child {
+.mephisto-worker-addons-tips__tip:last-child {
   margin-bottom: 0;
 }
 
-.mephisto-worker-experience-tips__button,
-.mephisto-worker-experience-tips__button:hover,
-.mephisto-worker-experience-tips__button:active,
-.mephisto-worker-experience-tips__button:focus {
+.mephisto-worker-addons-tips__button,
+.mephisto-worker-addons-tips__button:hover,
+.mephisto-worker-addons-tips__button:active,
+.mephisto-worker-addons-tips__button:focus {
   transition: background-color 200ms, box-shadow 200ms;
 }
-.mephisto-worker-experience-tips__button {
+.mephisto-worker-addons-tips__button {
   margin: 0.75rem 0;
   padding: 0.65rem 0.75rem;
   border-radius: 0.5rem;
@@ -87,33 +90,33 @@
   height: 2.4rem;
 }
 
-.mephisto-worker-experience-tips__button:disabled {
+.mephisto-worker-addons-tips__button:disabled {
   cursor: not-allowed !important;
 }
 
-.mephisto-worker-experience-tips__button:hover {
+.mephisto-worker-addons-tips__button:hover {
   background-color: rgb(230, 230, 230);
   box-shadow: 0 0 0 0.1rem rgba(209, 209, 209, 0.5);
 }
 
-.mephisto-worker-experience-tips__button:focus {
+.mephisto-worker-addons-tips__button:focus {
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.4);
 }
 
-.mephisto-worker-experience-tips__tip-label {
+.mephisto-worker-addons-tips__tip-label {
   display: block;
   margin: 0.75rem 0;
   cursor: pointer;
   width: fit-content;
 }
 
-.mephisto-worker-experience-tips__tip-text {
+.mephisto-worker-addons-tips__tip-text {
   white-space: pre-wrap;
   font-size: 1em;
 }
 
-#mephisto-worker-experience-tips__tip-header-input,
-#mephisto-worker-experience-tips__tip-text-input {
+#mephisto-worker-addons-tips__tip-header-input,
+#mephisto-worker-addons-tips__tip-text-input {
   background-color: rgb(240, 240, 240);
   max-width: 100%;
   min-height: 42px;
@@ -130,22 +133,22 @@
   white-space: pre-wrap;
 }
 
-#mephisto-worker-experience-tips__tip-header-input:hover,
-#mephisto-worker-experience-tips__tip-text-input:hover {
+#mephisto-worker-addons-tips__tip-header-input:hover,
+#mephisto-worker-addons-tips__tip-text-input:hover {
   background-color: rgb(245, 245, 245);
   box-shadow: 0 0 0 0.2rem rgba(209, 209, 209, 0.5);
   transition: background-color 200ms, box-shadow 200ms;
 }
 
-#mephisto-worker-experience-tips__tip-header-input:focus,
-#mephisto-worker-experience-tips__tip-text-input:focus {
+#mephisto-worker-addons-tips__tip-header-input:focus,
+#mephisto-worker-addons-tips__tip-text-input:focus {
   background-color: rgb(255, 255, 255);
   transition: background-color 200ms, box-shadow 200ms;
   box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
 }
 
 /* Common Classes */
-.mephisto-worker-experience-tips__container {
+.mephisto-worker-addons-tips__container {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   background-color: rgb(245, 245, 245);
@@ -155,31 +158,31 @@
   border-radius: 1.25rem;
 }
 
-.mephisto-worker-experience-tips__padding_container {
+.mephisto-worker-addons-tips__padding_container {
   padding: 1rem 1.5rem;
   overflow-y: auto;
 }
-.mephisto-worker-experience-tips__showing {
+.mephisto-worker-addons-tips__showing {
   display: block;
 }
-.mephisto-worker-experience-tips__hiding {
+.mephisto-worker-addons-tips__hiding {
   display: none;
 }
 
-.mephisto-worker-experience-tips__green-box,
-.mephisto-worker-experience-tips__red-box {
+.mephisto-worker-addons-tips__green-box,
+.mephisto-worker-addons-tips__red-box {
   padding: 1rem;
   width: min(18rem, 100%);
   border-radius: 0.5rem;
   margin-top: 1rem;
 }
 
-.mephisto-worker-experience-tips__green-box {
+.mephisto-worker-addons-tips__green-box {
   background-color: #d1e7dd;
   color: #315243;
 }
 
-.mephisto-worker-experience-tips__red-box {
+.mephisto-worker-addons-tips__red-box {
   background-color: #f8d7da;
   color: #5c3c3f;
 }
@@ -203,6 +206,6 @@
     transform: rotate(360deg);
   }
 }
-.mephisto-worker-experience-tips__button-no-margin {
+.mephisto-worker-addons-tips__no-margin {
   margin: 0;
 }

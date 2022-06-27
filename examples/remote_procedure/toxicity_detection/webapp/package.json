@@ -12,10 +12,10 @@
     "bootstrap": "^4.6.0",
     "mephisto-task": "^2.0.1",
     "rc-slider": "^8.6.3",
-    "react": "^18.1.0",
     "react-bootstrap": "^1.6.0",
-    "react-dom": "^18.1.0",
-    "request": "^2.79.0"
+    "request": "^2.79.0",
+    "react": "16.13.1",
+    "react-dom": "16.13.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.0",

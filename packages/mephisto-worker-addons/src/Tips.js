@@ -31,41 +31,32 @@ function Tips({
   
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
   const maxPopupWidth = maxWidth ? maxWidth : "30rem";
-  const {
-    getTooltipProps,
-    setTooltipRef,
-    setTriggerRef,
-    visible,
-  } = usePopperTooltip(
-    {
-      trigger: "click",
-      closeOnOutsideClick: true,
-      visible: isVisible,
-      offset: [0, 6],
-      onVisibleChange: setIsVisible,
-    },
-    {
-      placement: placement ? placement : "top-start",
-    }
-  );
+  const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
+    usePopperTooltip(
+      {
+        trigger: "click",
+        closeOnOutsideClick: true,
+        visible: isVisible,
+        offset: [0, 6],
+        onVisibleChange: setIsVisible,
+      },
+      {
+        placement: placement ? placement : "top-start",
+      }
+    );
   const { taskConfig, handleMetadataSubmit } = useMephistoTask();
   const tipsArr = (list ? list : []).concat(
     taskConfig ? taskConfig["metadata"]["tips"] : []
   );
   const headlessPrefix = headless ? "headless-" : "";
+  const stylePrefix = `${headlessPrefix}mephisto-worker-addons-tips__`;
+
   const [tipData, setTipData] = useState({ header: "", text: "" });
   const tipsComponents = tipsArr.map((tip, index) => {
     return (
-      <li
-        key={`tip-${index + 1}`}
-        className={`${headlessPrefix}mephisto-worker-experience-tips__tip`}
-      >
-        <h2
-          className={`${headlessPrefix}mephisto-worker-experience-tips__tip-header2`}
-        >
-          {tip.header}
-        </h2>
-        <p className="mephisto-worker-experience-tips__tip-text">{tip.text}</p>
+      <li key={`tip-${index + 1}`} className={`${stylePrefix}tip`}>
+        <h2 className={`${stylePrefix}tip-header2`}>{tip.header}</h2>
+        <p className={`${stylePrefix}tip-text`}>{tip.text}</p>
       </li>
     );
   });
@@ -75,7 +66,11 @@ function Tips({
       <button
         ref={setTriggerRef}
         onClick={() => setIsVisible(!isVisible)}
+<<<<<<< HEAD:packages/mephisto-worker-addons/src/Tips/index.js
         className={`${headlessPrefix}mephisto-worker-experience-tips__button mephisto-worker-experience-tips__button-no-margin `}
+=======
+        className={`${stylePrefix}button ${stylePrefix}no-margin`}
+>>>>>>> 6893718b19458c1c089a534bfdbf20a0cb6a5b95:packages/mephisto-worker-addons/src/Tips.js
       >
         <InfoIcon margin="0 0.225rem 0 0" />
         {visible ? "Hide Tips" : "Show Tips"}
@@ -84,27 +79,21 @@ function Tips({
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
-          className={`mephisto-worker-experience-tips__container`}
+          className={`${stylePrefix}container`}
         >
           <div
-            className="mephisto-worker-experience-tips__padding_container"
+            className={`${stylePrefix}padding_container`}
             style={{ maxHeight: maxPopupHeight, maxWidth: maxPopupWidth }}
           >
-            <h1
-              className={`${headlessPrefix}mephisto-worker-experience-tips__tip-header1`}
-            >
-              Task Tips:
-            </h1>
+            <h1 className={`${stylePrefix}tip-header1`}>Task Tips:</h1>
             <ul
               style={{ maxHeight: `calc(${maxPopupHeight}/2)` }}
-              className={`${headlessPrefix}mephisto-worker-experience-tips__tips-list`}
+              className={`${stylePrefix}tips-list`}
             >
               {tipsArr.length <= 0 ? (
-                <li
-                  className={`${headlessPrefix}mephisto-worker-experience-tips__tip`}
-                >
+                <li className={`${stylePrefix}tip`}>
                   <h2
-                    className={`${headlessPrefix}mephisto-worker-experience-tips__tip-header2`}
+                    className={`${stylePrefix}tip-header2  ${stylePrefix}no-margin`}
                   >
                     There are no submitted tips!
                   </h2>
@@ -115,19 +104,15 @@ function Tips({
             </ul>
             {!disableUserSubmission && (
               <Fragment>
-                <h1
-                  className={`${headlessPrefix}mephisto-worker-experience-tips__tip-header1`}
-                >
-                  Submit A Tip:{" "}
-                </h1>
+                <h1 className={`${stylePrefix}tip-header1`}>Submit A Tip: </h1>
                 <label
-                  htmlFor={`${headlessPrefix}mephisto-worker-experience-tips__tip-header-input`}
-                  className={`${headlessPrefix}mephisto-worker-experience-tips__tip-label`}
+                  htmlFor={`${stylePrefix}tip-header-input`}
+                  className={`${stylePrefix}tip-label`}
                 >
                   Tip Headline:
                 </label>
                 <input
-                  id={`${headlessPrefix}mephisto-worker-experience-tips__tip-header-input`}
+                  id={`${stylePrefix}tip-header-input`}
                   placeholder="Write your tip's headline here..."
                   value={tipData.header}
                   onChange={(e) =>
@@ -146,14 +131,14 @@ function Tips({
                 />
 
                 <label
-                  htmlFor={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
-                  className={`${headlessPrefix}mephisto-worker-experience-tips__tip-label`}
+                  htmlFor={`${stylePrefix}tip-text-input`}
+                  className={`${stylePrefix}tip-label`}
                 >
                   Tip Body:
                 </label>
                 <textarea
                   placeholder="Write your tip body here..."
-                  id={`${headlessPrefix}mephisto-worker-experience-tips__tip-text-input`}
+                  id={`${stylePrefix}tip-text-input`}
                   value={tipData.text}
                   onChange={(e) =>
                     handleChangeTip(
@@ -174,7 +159,7 @@ function Tips({
                   state.status === 4 ||
                   state.status === 5) && (
                   <div
-                    className={`mephisto-worker-experience-tips__${
+                    className={`${stylePrefix}${
                       state.status === 2 ? "green" : "red"
                     }-box`}
                   >
@@ -189,7 +174,7 @@ function Tips({
                     tipData.text.length === 0 ||
                     tipData.header.length === 0
                   }
-                  className={`${headlessPrefix}mephisto-worker-experience-tips__button`}
+                  className={`${stylePrefix}button`}
                   onClick={() =>
                     handleTipSubmit(
                       handleSubmit,
