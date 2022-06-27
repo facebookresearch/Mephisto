@@ -117,3 +117,15 @@ In order to get started on your own task, it is a good idea to copy this `static
 7. Launch a small batch on a crowd provider to see how real workers handle your task.
 8. Iterate more.
 9. Collect some good data.
+
+## Testing
+To run tests locally you should first launch the task as follows:
+
+```bash
+python run_task.py mephisto.task.post_build_script=link_mephisto_task.sh mephisto.task.force_rebuild=true
+```
+This will run the task and make sure to link the `mephisto-task` package with the local one. 
+
+Also make sure that the baseUrl property in the cypress.config.js matches one of the urls that are outputted from the run_task.py script.
+
+Then you can run cypress by going into the webapp directory and running `npm run test`. This should open the cypress app. It should be self-explanatory from this point on.
