@@ -113,6 +113,27 @@ class TaskRunArgs:
         },
     )
 
+    post_build_script: str = field(
+        default="",
+        metadata={
+            "help": (
+                "The path to a shell script that will run right before npm build."
+                "This can be useful for local package development where you would want to link a package."
+            )
+        },
+    )
+
+    force_rebuild: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Determines if npm build should be ran every time the task is ran."
+                "By default there is an optimization that only builds the webapp when there is a change in its contents."
+                "It would make sense to set this to true when doing local package development as you want to force a rebuild after running the post_build_script."
+            )
+        },
+    )
+
     @classmethod
     def get_mock_params(cls) -> str:
         """Returns a param string with default / mock arguments to use for testing"""
