@@ -129,7 +129,7 @@ class TaskRunArgs:
             "help": (
                 "Determines if npm build should be ran every time the task is ran."
                 "By default there is an optimization that only builds the webapp when there is a change in its contents."
-                "It would make sense to set this to true when doing local package development as you want to force a rebuild after running the post_build_script."
+                "It would make sense to set this to true when doing local package development as you want to force a rebuild after running the post_install_script."
             )
         },
     )

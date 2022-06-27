@@ -122,7 +122,7 @@ In order to get started on your own task, it is a good idea to copy this `static
 To run tests locally you should first launch the task as follows:
 
 ```bash
-python run_task.py mephisto.task.post_build_script=link_mephisto_task.sh mephisto.task.force_rebuild=true
+python run_task.py mephisto.task.post_install_script=link_mephisto_task.sh mephisto.task.force_rebuild=true
 ```
 This will run the task and make sure to link the `mephisto-task` package with the local one. 
 

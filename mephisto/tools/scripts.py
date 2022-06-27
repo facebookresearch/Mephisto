@@ -269,10 +269,10 @@ def build_custom_bundle(custom_src_dir, run_config: DictConfig):
         )
 
     if (
-        run_config.task.post_build_script is not None
-        and len(run_config.task.post_build_script) > 0
+        run_config.task.post_install_script is not None
+        and len(run_config.task.post_install_script) > 0
     ):
-        subprocess.call(["bash", run_config.task.post_build_script])
+        subprocess.call(["bash", run_config.task.post_install_script])
 
     webpack_complete = subprocess.call(["npm", "run", "dev"])
     if webpack_complete != 0:

@@ -23,5 +23,5 @@ mephisto:
     # NOTE Model-in-the-loop tasks need to be careful to configure only as many concurrent
     # connections as their model can handle at once
     max_num_concurrent_units: 40
-    post_build_script: ""
+    post_install_script: ""
     force_rebuild: false

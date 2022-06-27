@@ -22,5 +22,5 @@ mephisto:
     task_tags: "mnist,drawing,models,correction"
     # We expect to handle 25 people using the MNIST model at once
     max_num_concurrent_units: 25
-    post_build_script: ""
+    post_install_script: ""
     force_rebuild: false
