@@ -24,19 +24,23 @@ function Tips({
 
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
   const maxPopupWidth = maxWidth ? maxWidth : "30rem";
-  const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
-    usePopperTooltip(
-      {
-        trigger: "click",
-        closeOnOutsideClick: true,
-        visible: isVisible,
-        offset: [0, 6],
-        onVisibleChange: setIsVisible,
-      },
-      {
-        placement: placement ? placement : "top-start",
-      }
-    );
+  const {
+    getTooltipProps,
+    setTooltipRef,
+    setTriggerRef,
+    visible
+  } = usePopperTooltip(
+    {
+      trigger: "click",
+      closeOnOutsideClick: true,
+      visible: isVisible,
+      offset: [0, 6],
+      onVisibleChange: setIsVisible,
+    },
+    {
+      placement: placement ? placement : "top-start",
+    }
+  );
   const { taskConfig, handleMetadataSubmit } = useMephistoTask();
   const tipsArr = (list ? list : []).concat(
     taskConfig ? taskConfig["metadata"]["tips"] : []

@@ -4,7 +4,7 @@ This task is essentially the same as the "static-react-task" task except that th
 The [static-react-task readme](https://github.com/facebookresearch/Mephisto/blob/add-tips-example/examples/static_react_task/README.md) should be read before running this task.
 
 ### Adding Tips
-Tips can be imported from `mephisto-user-experience` to be used.
+Tips can be imported from `mephisto-worker-experience` to be used.
 ```js
 import { Tips } from "mephisto-worker-addons";
 ```
