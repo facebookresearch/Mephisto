@@ -10,7 +10,6 @@ except ImportError:
     print("Need to have detoxify to use this demo. For example: pip install detoxify")
     exit(1)
 
-import random
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import (
     build_custom_bundle,

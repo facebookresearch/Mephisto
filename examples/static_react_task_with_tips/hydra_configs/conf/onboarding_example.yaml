@@ -12,7 +12,7 @@ mephisto:
   task:
     task_name: react-static-task-with-tips
     task_title: "Rating a sentence as good or bad. There is a tips button that can help when completing this task."
-    task_description: "In this task, you'll be given a sentence. It is your job to rate it as either good or bad. Look at the tips to help."
+    task_description: "In this task, you'll be given a sentence. It is your job to rate it as either good or bad. Look at the tips for help."
     task_reward: 0.05
     task_tags: "test,simple,button,tips"
     # We expect to be able to handle 300 concurrent tasks without issue

@@ -71,14 +71,9 @@ function SimpleFrontend({ taskData, onSubmit }) {
               </button>
             </div>
           </div>
-          <div
-            style={{
-              marginTop: "14.5rem",
-              display: "flex",
-              alignItems: "flex-start",
-            }}
-          >
-            <Tips maxHeight="30rem" maxWidth="35rem" placement="top-start" />
+
+          <div style={{ margin: "25rem 0 1.5rem auto", float: "right" }}>
+            <Tips maxHeight="40rem" placement="top-end" />
             <span style={{ marginLeft: "1rem" }}>
               <Feedback />
             </span>

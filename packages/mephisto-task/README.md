@@ -103,7 +103,24 @@ Generally speaking, the value is the `InitializationData` object that the `TaskR
 A callback provided for the webapp to finalize and submit the worker's resulting work back to Mephisto.
 
 ### `handleMetadataSubmit(payload)`
-A callback provided for the Tips component in the `mephisto-worker-experience` package to submit a tip to its agent's metadata.
+A callback provided for the Tips component in the `mephisto-worker-experience` package to submit a tip to its agent's metadata. 
+Not recommended to be used by the user as mephisto-worker-experience should use this for you under the hood.
+
+payload accepts
+```js
+{
+    header: string,
+    text: string,
+    type: "tips"
+}
+```
+or
+```js
+{
+    text: string,
+    type: "feedback"
+}
+```
 
 ### `isLoading`
 

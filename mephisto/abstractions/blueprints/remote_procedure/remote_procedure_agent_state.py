@@ -97,11 +97,7 @@ class RemoteProcedureAgentState(AgentState):
             self.final_submission = state["final_submission"]
             self.start_time = state["start_time"]
             self.end_time = state["end_time"]
-            # Metadata field would not exist prior to this pr
-            if "metadata" not in state:
-                self.metadata = {"tips": [], "feedback": []}
-            else:
-                self.metadata = state["metadata"]
+            self.metadata = state["metadata"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""

@@ -1,7 +1,7 @@
 /* Headless Classes */
 .headless-mephisto-worker-experience-tips__tips-list {
   padding: 0;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 .headless-mephisto-worker-experience-tips__tip {
   margin: 0 0 1.35rem 1rem;
@@ -41,14 +41,27 @@
 
 .mephisto-worker-experience-tips__tips-list {
   padding: 0;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
+  overflow: auto;
+  border: 4px solid #dbdbdb;
+  border-radius: 0.5rem;
+  padding: 1rem 0;
+  list-style-type: disc;
 }
-.mephisto-worker-experience-tips__tip {
-  margin: 0 0 1.35rem 1.75rem;
+.mephisto-worker-experience-tips__tip-header1 {
+  font-weight: bold;
+  font-size: 1.75em;
+  margin: 0.75rem 0;
 }
 
 .mephisto-worker-experience-tips__tip-header2 {
+  font-weight: bold;
+  font-size: 1.25em;
   margin-bottom: 0.5rem;
+}
+
+.mephisto-worker-experience-tips__tip {
+  margin: 0 0 1.35rem 1.75rem;
 }
 .mephisto-worker-experience-tips__tip:last-child {
   margin-bottom: 0;
@@ -94,13 +107,16 @@
   width: fit-content;
 }
 
-#mephisto-worker-experience-tips__tip-text-input {
-  max-width: 100%;
-  min-height: 42px;
+.mephisto-worker-experience-tips__tip-text {
+  white-space: pre-wrap;
+  font-size: 1em;
 }
+
 #mephisto-worker-experience-tips__tip-header-input,
 #mephisto-worker-experience-tips__tip-text-input {
   background-color: rgb(240, 240, 240);
+  max-width: 100%;
+  min-height: 42px;
   box-shadow: 0 0 0 0.15rem rgba(193, 193, 193, 0.5);
   border: 0;
   border-radius: 0.35rem;
@@ -111,6 +127,7 @@
   font-family: inherit;
   font-size: 0.9em;
   box-sizing: border-box;
+  white-space: pre-wrap;
 }
 
 #mephisto-worker-experience-tips__tip-header-input:hover,
@@ -186,7 +203,6 @@
     transform: rotate(360deg);
   }
 }
-
 .mephisto-worker-experience-tips__button-no-margin {
   margin: 0;
 }
