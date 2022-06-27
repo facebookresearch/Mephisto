@@ -110,8 +110,13 @@ function App() {
 The `headless` prop accepts a boolean where a a true value removes most of the styling and a false value keeps the original styling. The default value of this prop is false.
 ### `handleSubmit`
 The `handleSubmit` prop accepts a function that runs when the "Submit Feedback" button is pressed instead of the default behavior of submitting feedback. The text property can be passed down through to the function.
-### `width`
-The `width` prop accepts a string that sets the width and min-width of the textarea. ex: width="30rem" sets the textarea width and min-width to 30rem. The default value for this prop is 18rem.
+### `textAreaWidth`
+The `textAreaWidth` prop accepts a string that sets the width of the text area. ex: textAreaWidth="30rem" sets the textarea width and min-width to 30rem. The default value for this prop is 18rem.
+### `textAreaMinWidth`
+The `textAreaMinWidth` prop accepts a string that sets the min width of the text area. The default value for this prop is unset.
+### `textAreaMaxWidth`
+The `textAreaMaxWidth` prop accepts a string that sets the max width of the text area. The default value for this prop is unset.
+
 ### `maxTextLength`
 The max character length of feedback text before an error message is shown. The default value for this prop is 700.
 ### `createTip(header, text)`

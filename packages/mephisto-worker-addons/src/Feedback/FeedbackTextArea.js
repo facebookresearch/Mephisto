@@ -1,20 +1,26 @@
+import React from "react";
 import { handleChangeFeedback } from "../Functions";
+import "./index.css";
+
 function FeedbackTextArea({
   setTriggerRef,
-  width,
+  widths,
   feedbackText,
   setFeedbackText,
   stylePrefix,
   state,
   dispatch,
   maxFeedbackLength,
+  id,
 }) {
   return (
     <textarea
+      id={id}
       ref={setTriggerRef}
       style={{
-        minWidth: width ? width : "18rem",
-        width: width ? width : "18rem",
+        minWidth: widths.min,
+        width: widths.regular,
+        maxWidth: widths.max,
       }}
       onChange={(e) =>
         handleChangeFeedback(
@@ -27,7 +33,7 @@ function FeedbackTextArea({
       }
       value={feedbackText}
       placeholder="Enter feedback text here"
-      id={`${stylePrefix}text-area`}
+      className={`${stylePrefix}text-area`}
     />
   );
 }

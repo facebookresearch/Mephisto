@@ -156,6 +156,7 @@
   -webkit-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
   -moz-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
   border-radius: 1.25rem;
+  z-index: 999;
 }
 
 .mephisto-worker-addons-tips__padding_container {
