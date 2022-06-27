@@ -39,7 +39,7 @@ There is a way to fix this:
     * Make sure to reset the baseUrl back to default("/") if contributing to the repo as the GitHub action will fail otherwise.
 
 ## Local Package Development
-If you are modifying either the `mephisto-task` or `mephisto-worker-experience` packages you probably want to see your changes propagate to the task that you are working on.
+If you are modifying either the `mephisto-task` or `mephisto-worker-addons` packages you probably want to see your changes propagate to the task that you are working on.
 
 The easiest way to do this is to run a task by doing:
 ```bash

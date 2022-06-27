@@ -6,14 +6,14 @@ The [static-react-task readme](https://github.com/facebookresearch/Mephisto/blob
 ### Adding Tips
 Tips can be imported from `mephisto-user-experience` to be used.
 ```js
-import { Tips } from "mephisto-worker-experience";
+import { Tips } from "mephisto-worker-addons";
 ```
 Then adding the following to inside your BaseFrontend should show the tips button.
 ```js
 <Tips maxHeight="30rem" maxWidth="35rem" placement="top-start" />
 ```
 To see some of the other props of the Tips component see the 
-[mephisto-worker-experience readme](https://github.com/facebookresearch/Mephisto/blob/add-tips-example/packages/mephisto-worker-experience/README.md)
+[mephisto-worker-addons readme](https://github.com/facebookresearch/Mephisto/blob/add-tips-example/packages/mephisto-worker-addons/README.md)
 
 Once a worker submits a tip from the popup that shows when clicking on the tips button, then these tips can be reviewed to either accept or reject them.
 
