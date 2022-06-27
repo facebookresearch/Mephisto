@@ -18,7 +18,7 @@ function Tips({
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [state, dispatch] = useReducer(tipsReducer, {
-    status: 0,
+    status: 1,
     text: "",
   });
 
@@ -157,7 +157,7 @@ function Tips({
                   }
                 >
                   {state.status === 1 ? (
-                    <span className="loader"></span>
+                    <span className="mephisto-worker-addons-tips__loader"></span>
                   ) : (
                     "Submit Tip"
                   )}
