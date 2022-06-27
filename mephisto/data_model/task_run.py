@@ -117,7 +117,7 @@ class TaskRunArgs:
         default="",
         metadata={
             "help": (
-                "The path to a shell script that will run after npm build."
+                "The path to a shell script that will run right before npm build."
                 "This can be useful for local package development where you would want to link a package."
             )
         },
@@ -127,9 +127,9 @@ class TaskRunArgs:
         default=False,
         metadata={
             "help": (
-                "Determines if npm run build should be ran every time the task is ran."
+                "Determines if npm build should be ran every time the task is ran."
                 "By default there is an optimization that only builds the webapp when there is a change in its contents."
-                "It would make sense to turn this on when doing local package development as you want to force a rebuild after linking"
+                "It would make sense to set this to true when doing local package development as you want to force a rebuild after running the post_build_script."
             )
         },
     )
