@@ -72,7 +72,19 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
             </div>
           </div>
           <div style={{ margin: "25rem 0 1.5rem auto", float: "right" }}>
-            <Tips maxHeight="40rem" placement="top-end" />
+            <Tips
+              list={[
+                { header: "wow", text: "wowowowow\nowowowo\nwowowo" },
+                { header: "wow", text: "wowowowowowowo\nwowow\nowo" },
+                {
+                  header: "wow",
+                  text: "wowowowowowowowowowowo\n\n adjfoiajfiodas",
+                },
+              ]}
+              headless
+              maxHeight="40rem"
+              placement="top-end"
+            />
           </div>
         </div>
       </section>
