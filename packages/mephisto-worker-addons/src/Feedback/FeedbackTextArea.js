@@ -1,40 +1,63 @@
-import React from "react";
-import { handleChangeFeedback } from "../Functions";
+import React, { forwardRef } from "react";
+import {
+  dispatchFeedbackActionNoQuestions,
+  dispatchFeedbackActionWithQuestions,
+  handleChangeFeedback,
+} from "../Functions";
 import "./index.css";
 
-function FeedbackTextArea({
-  setTriggerRef,
-  widths,
-  feedbackText,
-  setFeedbackText,
-  stylePrefix,
-  state,
-  dispatch,
-  maxFeedbackLength,
-  id,
-}) {
-  return (
+const FeedbackTextArea = forwardRef(
+  (
+    {
+      width,
+      feedbackText,
+      setFeedbackText,
+      stylePrefix,
+      state,
+      dispatch,
+      maxFeedbackLength,
+      id,
+      containsQuestions,
+      questionsFeedbackText,
+      index,
+    },
+    ref
+  ) => (
     <textarea
       id={id}
-      ref={setTriggerRef}
-      style={{
-        minWidth: widths.min,
-        width: widths.regular,
-        maxWidth: widths.max,
-      }}
-      onChange={(e) =>
+      ref={ref}
+      style={{ width: width }}
+      onChange={(e) => {
         handleChangeFeedback(
           e,
-          state,
-          dispatch,
-          (event) => setFeedbackText(event.target.value),
-          maxFeedbackLength
-        )
-      }
+          () => {
+            containsQuestions
+              ? dispatchFeedbackActionWithQuestions(
+                  e,
+                  maxFeedbackLength,
+                  index,
+                  dispatch,
+                  questionsFeedbackText
+                )
+              : dispatchFeedbackActionNoQuestions(
+                  e,
+                  maxFeedbackLength,
+                  state,
+                  dispatch
+                );
+          },
+          (e) => setFeedbackText(e.target.value)
+        );
+      }}
       value={feedbackText}
       placeholder="Enter feedback text here"
-      className={`${stylePrefix}text-area`}
+      className={`${stylePrefix}text-area ${
+        containsQuestions &&
+        state.status === 5 &&
+        state.errorIndexes.has(index) &&
+        stylePrefix + "text-area-error"
+      }`}
     />
-  );
-}
+  )
+);
 export default FeedbackTextArea;

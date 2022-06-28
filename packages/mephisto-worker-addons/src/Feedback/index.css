@@ -54,6 +54,13 @@
   justify-content: flex-start;
 }
 
+.mephisto-worker-addons-feedback__questions-container {
+  margin-bottom: 1rem;
+}
+.mephisto-worker-addons-feedback__text-area-container {
+  margin-right: 1rem;
+}
+
 .mephisto-worker-addons-feedback__text-area {
   max-width: 100%;
   height: 2.09375rem;
@@ -68,13 +75,14 @@
   font-size: 0.9em;
   box-sizing: border-box;
   transform: translateY(2.2px);
+  resize: vertical;
 }
-.mephisto-worker-addons-feedback__questions-container {
-  margin-bottom: 1rem;
+
+.mephisto-worker-addons-feedback__text-area-error {
+  box-shadow: 0 0 0 0.25rem rgba(241, 91, 91, 0.65) !important;
+  transition: background-color 200ms, box-shadow 200ms;
 }
-.mephisto-worker-addons-feedback__text-area-container {
-  margin-right: 1rem;
-}
+
 .mephisto-worker-addons-feedback__text-area-container-vertical {
   margin: 0 0 1rem;
 }

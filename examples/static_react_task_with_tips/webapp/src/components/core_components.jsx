@@ -76,6 +76,7 @@ function SimpleFrontend({ taskData, onSubmit }) {
             <Tips maxHeight="40rem" placement="top-start" />
             <span style={{ marginLeft: "1rem" }}>
               <Feedback
+                maxTextLength={30}
                 textAreaMinWidth="10rem"
                 textAreaMaxWidth="30rem"
                 questions={[

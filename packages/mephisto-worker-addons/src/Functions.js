@@ -115,7 +115,7 @@ export function handleFeedbackSubmit(
     dispatch({ type: "loading" });
     handleMetadataSubmit(createFeedback(feedbackText))
       .then((data) => {
-        if (data.status === "Submitted metadata for review") {
+        if (data.status === "Submitted metadata") {
           setFeedbackText("");
           dispatch({ type: "success" });
           setTimeout(() => {
@@ -166,6 +166,54 @@ export function handleChangeTip(
     dispatch({ type: "return-to-default" });
 }
 
+export function dispatchFeedbackActionNoQuestions(
+  e,
+  maxLength,
+  state,
+  dispatch
+) {
+  if (e.target.value.length > maxLength && state.status !== 4) {
+    dispatch({ type: "too-long" });
+  } else if (e.target.value.length <= maxLength) {
+    dispatch({ type: "return-to-default" });
+  }
+}
+
+export function dispatchFeedbackActionWithQuestions(
+  e,
+  maxLength,
+  currentIndex,
+  dispatch,
+  questionsFeedbackText
+) {
+  const errorIndexes = new Set([]);
+  for (let i = 0; i < questionsFeedbackText.length; i++) {
+    if (currentIndex === i) {
+      if (e.target.value.length > maxLength) {
+        console.log("current", e.target.value.length);
+        errorIndexes.add(i);
+      } else if (errorIndexes.has(i)) {
+        errorIndexes.remove(i);
+      }
+    } else {
+      if (questionsFeedbackText[i].length > maxLength) {
+        console.log("others", questionsFeedbackText[i].length);
+        errorIndexes.add(i);
+      } else if (errorIndexes.has(i)) {
+        errorIndexes.remove(i);
+      }
+    }
+  }
+  if (errorIndexes.size > 0) {
+    dispatch({ type: "multiple-errors", errorIndexes: errorIndexes });
+  } else {
+    dispatch({ type: "return-to-default" });
+  }
+}
+
+
+
+
 /**
  * Runs the change callback when typing occurs in a feedback textarea.
  * If the feedback text area content is too long, then change state
@@ -178,15 +226,9 @@ export function handleChangeTip(
  */
 export function handleChangeFeedback(
   e,
-  state,
-  dispatch,
-  changeCallback,
-  maxLength
+  dispatchFeedbackAction,
+  changeCallback
 ) {
   changeCallback(e);
-  if (e.target.value.length > maxLength && state.status !== 4) {
-    dispatch({ type: "too-long" });
-  } else if (e.target.value.length <= maxLength) {
-    dispatch({ type: "return-to-default" });
-  }
+  dispatchFeedbackAction();
 }

@@ -5,33 +5,30 @@ import "./index.css";
 import { handleFeedbackSubmit } from "../Functions";
 import { feedbackReducer } from "../Reducers";
 import FeedbackTextArea from "./FeedbackTextArea";
+import Question from "./Question";
 
 function Feedback({
   headless,
   questions,
   handleSubmit,
   textAreaWidth,
-  textAreaMinWidth,
-  textAreaMaxWidth,
   maxTextLength,
-  width,
 }) {
   const headlessPrefix = headless ? "headless-" : "";
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-feedback__`;
   const stylePrefixNoHeadlessPrefix = `mephisto-worker-addons-feedback__`;
   const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
-  const handleMetadataSubmit = useMephistoTask();
+  const { handleMetadataSubmit } = useMephistoTask();
+  const modifiedTextAreaWidth = textAreaWidth ? textAreaWidth : "20rem";
+  const [questionsFeedbackText, setQuestionsFeedbackText] = useState([]);
+  // For use when there are no questions
   const [feedbackText, setFeedbackText] = useState("");
   const [state, dispatch] = useReducer(feedbackReducer, {
     status: 0,
     text: "",
+    errorIndexes: null,
   });
   const containsQuestions = questions?.length > 0;
-  const textAreaWidths = {
-    min: textAreaMinWidth ? textAreaMinWidth : "",
-    regular: textAreaWidth ? textAreaWidth : "22rem",
-    max: textAreaMaxWidth ? textAreaMaxWidth : "27rem",
-  };
   const updateSizeRef = useRef(null);
   const { getTooltipProps, setTooltipRef, setTriggerRef, update } =
     usePopperTooltip(
@@ -45,6 +42,10 @@ function Feedback({
         placement: "top-start",
       }
     );
+
+  useEffect(() => {
+    if (questions) setQuestionsFeedbackText(questions.map(() => ""));
+  }, [questions]);
 
   // Used to make tooltip stay in correct position even if text area size is dragged
   const observer = useRef(null);
@@ -62,13 +63,11 @@ function Feedback({
 
   return (
     <span
-      style={{ minWidth: textAreaWidths.regular }}
       className={`${stylePrefixNoHeadlessPrefix}container ${
         containsQuestions && "vertical"
       }`}
     >
       <span
-        style={{ minWidth: textAreaWidths.regular }}
         ref={updateSizeRef}
         className={`${stylePrefixNoHeadlessPrefix}${
           containsQuestions
@@ -79,41 +78,32 @@ function Feedback({
         {containsQuestions ? (
           questions.map((question, index) => {
             return (
-              <div
-                className={`${stylePrefix}questions-container`}
-                key={`question-${index}`}
-              >
-                <label
-                  style={{ width: textAreaWidths.regular }}
-                  className={`${stylePrefix}question`}
-                  htmlFor={`question-${index}`}
-                >
-                  {question}
-                </label>{" "}
-                <FeedbackTextArea
-                  id={`question-${index}`}
-                  setTriggerRef={setTriggerRef}
-                  widths={textAreaWidths}
-                  feedbackText={feedbackText}
-                  setFeedbackText={setFeedbackText}
-                  stylePrefix={stylePrefix}
-                  state={state}
-                  dispatch={dispatch}
-                  maxFeedbackLength={maxFeedbackLength}
-                />
-              </div>
+              <Question
+                question={question}
+                index={index}
+                ref={setTriggerRef}
+                textAreaWidth={modifiedTextAreaWidth}
+                questionsFeedbackText={questionsFeedbackText}
+                setQuestionsFeedbackText={setQuestionsFeedbackText}
+                stylePrefix={stylePrefix}
+                state={state}
+                dispatch={dispatch}
+                maxFeedbackLength={maxFeedbackLength}
+                containsQuestions={containsQuestions}
+              />
             );
           })
         ) : (
           <FeedbackTextArea
-            setTriggerRef={setTriggerRef}
-            widths={textAreaWidths}
+            ref={setTriggerRef}
+            width={modifiedTextAreaWidth}
             feedbackText={feedbackText}
             setFeedbackText={setFeedbackText}
             stylePrefix={stylePrefix}
             state={state}
             dispatch={dispatch}
             maxFeedbackLength={maxFeedbackLength}
+            containsQuestions={containsQuestions}
           />
         )}
       </span>
