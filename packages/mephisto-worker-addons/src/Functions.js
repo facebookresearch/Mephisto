@@ -31,17 +31,46 @@ export function createTip(header, text) {
  * by the handleMetadataSubmit function from the
  * mephisto-task library
  * @param {string} text The feedback text
+ * @param {string[]} questionsFeedbackText
+ * @param {bool} containsQuestions
  * @return {{text: text; type: "feedback"; }} An object that can be used as a parameter of the
  *                                            handleSubmitMetadata() method in the mephisto-task package
  */
-export function createFeedback(text) {
-  if (!text || !(typeof text === "string"))
-    throw new Error("Feedback text is not a string");
+export function createFeedback(
+  generalFeedbackText,
+  questionsFeedbackText,
+  questions,
+  containsQuestions
+) {
+  if (containsQuestions) {
+    const isAllQuestionFeedbackStrings = questionsFeedbackText.every(
+      (currentQuestionFeedbackText) =>
+        currentQuestionFeedbackText &&
+        typeof currentQuestionFeedbackText === "string"
+    );
+    if (!isAllQuestionFeedbackStrings) {
+      throw new Error(
+        "A feedback response to one of the questions is not a string"
+      );
+    }
+    const questionsAndAnswers = questions.map((currentQuestion, index) => ({
+      question: currentQuestion,
+      text: questionsFeedbackText[index],
+    }));
 
-  return {
-    text: text,
-    type: "feedback",
-  };
+    return {
+      feedback: questionsAndAnswers,
+      type: "feedback",
+    };
+  } else {
+    if (!generalFeedbackText || !(typeof generalFeedbackText === "string"))
+      throw new Error("Feedback text is not a string");
+
+    return {
+      feedback: [{ question: "", text: generalFeedbackText }],
+      type: "feedback",
+    };
+  }
 }
 const hideAlertDelay = 5000;
 
@@ -99,8 +128,12 @@ export function handleTipSubmit(
  * @param {submitCallback} handleSubmit
  * @param {submitCallback} handleMetadataSubmit
  * @param {React.Dispatch<any>} dispatch
- * @param {string} feedbackText
- * @param {React.Dispatch<React.SetStateAction<string>>} setFeedbackText
+ * @param {string} generalFeedbackText
+ * @param {React.Dispatch<React.SetStateAction<string>>} setGeneralFeedbackText
+ * @param {string[]} questionsFeedbackText
+ * @param {React.Dispatch<React.SetStateAction<string[]>>} setQuestionsFeedbackText
+ * @param {string[]} questions
+ * @param {bool} containsQuestions
  * @return
  */
 export function handleFeedbackSubmit(
@@ -108,15 +141,27 @@ export function handleFeedbackSubmit(
   handleMetadataSubmit,
   dispatch,
   generalFeedbackText,
-  setGeneralFeedbackText
+  setGeneralFeedbackText,
+  questionsFeedbackText,
+  setQuestionsFeedbackText,
+  questions,
+  containsQuestions
 ) {
   if (handleSubmit) handleSubmit(generalFeedbackText);
   else {
     dispatch({ type: "loading" });
-    handleMetadataSubmit(createFeedback(generalFeedbackText))
+    handleMetadataSubmit(
+      createFeedback(
+        generalFeedbackText,
+        questionsFeedbackText,
+        questions,
+        containsQuestions
+      )
+    )
       .then((data) => {
         if (data.status === "Submitted metadata") {
           setGeneralFeedbackText("");
+          setQuestionsFeedbackText(questionsFeedbackText.map(() => ""));
           dispatch({ type: "success" });
           setTimeout(() => {
             dispatch({ type: "return-to-default" });

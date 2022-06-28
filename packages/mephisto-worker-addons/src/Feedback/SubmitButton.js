@@ -5,11 +5,14 @@ import { useMephistoTask } from "mephisto-task";
 function SubmitButton({
   containsQuestions,
   generalFeedbackText,
+  setGeneralFeedbackText,
   questionsFeedbackText,
+  setQuestionsFeedbackText,
   state,
   dispatch,
   handleSubmit,
-  stylePrefix
+  stylePrefix,
+  questions,
 }) {
   const { handleMetadataSubmit } = useMephistoTask();
   return (
@@ -27,12 +30,16 @@ function SubmitButton({
           handleMetadataSubmit,
           dispatch,
           generalFeedbackText,
-          setGeneralFeedbackText
+          setGeneralFeedbackText,
+          questionsFeedbackText,
+          setQuestionsFeedbackText,
+          questions,
+          containsQuestions
         )
       }
     >
       {state.status === 1 ? (
-        <span className={`${stylePrefixNoHeadlessPrefix}loader`}></span>
+        <span className={`mephisto-worker-addons-feedback__loader`}></span>
       ) : (
         "Submit Feedback"
       )}

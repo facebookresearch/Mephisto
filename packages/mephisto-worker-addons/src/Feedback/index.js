@@ -49,7 +49,7 @@ function Feedback({
   return (
     <span
       className={`${stylePrefixNoHeadlessPrefix}container ${
-        containsQuestions && "vertical"
+        containsQuestions && `${stylePrefixNoHeadlessPrefix}vertical`
       }`}
     >
       <span
@@ -108,13 +108,25 @@ function Feedback({
 
       <SubmitButton
         containsQuestions={containsQuestions}
+        questions={questions}
         generalFeedbackText={generalFeedbackText}
+        setGeneralFeedbackText={setGeneralFeedbackText}
         questionsFeedbackText={questionsFeedbackText}
+        setQuestionsFeedbackText={setQuestionsFeedbackText}
         state={state}
         dispatch={dispatch}
         handleSubmit={handleSubmit}
         stylePrefix={stylePrefix}
       />
+
+      {containsQuestions && state.status === 2 && (
+        <div
+          className={`${stylePrefixNoHeadlessPrefix}green-box`}
+          style={{ width: modifiedTextAreaWidth }}
+        >
+          {state.text}
+        </div>
+      )}
     </span>
   );
 }
