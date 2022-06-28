@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useReducer, useRef } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
-import { useMephistoTask } from "mephisto-task";
 import "./index.css";
-import { handleFeedbackSubmit } from "../Functions";
 import { feedbackReducer } from "../Reducers";
 import FeedbackTextArea from "./FeedbackTextArea";
 import Question from "./Question";
+import SubmitButton from "./SubmitButton";
 
 function Feedback({
   headless,
@@ -18,18 +17,17 @@ function Feedback({
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-feedback__`;
   const stylePrefixNoHeadlessPrefix = `mephisto-worker-addons-feedback__`;
   const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
-  const { handleMetadataSubmit } = useMephistoTask();
   const modifiedTextAreaWidth = textAreaWidth ? textAreaWidth : "20rem";
+  // For when there are questions
   const [questionsFeedbackText, setQuestionsFeedbackText] = useState([]);
   // For use when there are no questions
-  const [feedbackText, setFeedbackText] = useState("");
+  const [generalFeedbackText, setGeneralFeedbackText] = useState("");
   const [state, dispatch] = useReducer(feedbackReducer, {
     status: 0,
     text: "",
     errorIndexes: null,
   });
   const containsQuestions = questions?.length > 0;
-  const updateSizeRef = useRef(null);
   const { getTooltipProps, setTooltipRef, setTriggerRef, update } =
     usePopperTooltip(
       {
@@ -43,23 +41,10 @@ function Feedback({
       }
     );
 
+  // Setting up the questionsFeedbackText state based off of how many questions were set
   useEffect(() => {
     if (questions) setQuestionsFeedbackText(questions.map(() => ""));
   }, [questions]);
-
-  // Used to make tooltip stay in correct position even if text area size is dragged
-  const observer = useRef(null);
-  useEffect(() => {
-    if (updateSizeRef && updateSizeRef.current) {
-      observer.current = new ResizeObserver((entries) => {
-        if (update) update();
-      });
-      observer.current.observe(updateSizeRef.current);
-      return () => {
-        observer.current.unobserve(updateSizeRef.current);
-      };
-    }
-  }, [observer, updateSizeRef, update]);
 
   return (
     <span
@@ -68,7 +53,6 @@ function Feedback({
       }`}
     >
       <span
-        ref={updateSizeRef}
         className={`${stylePrefixNoHeadlessPrefix}${
           containsQuestions
             ? "text-area-container-vertical"
@@ -97,8 +81,8 @@ function Feedback({
           <FeedbackTextArea
             ref={setTriggerRef}
             width={modifiedTextAreaWidth}
-            feedbackText={feedbackText}
-            setFeedbackText={setFeedbackText}
+            feedbackText={generalFeedbackText}
+            setFeedbackText={setGeneralFeedbackText}
             stylePrefix={stylePrefix}
             state={state}
             dispatch={dispatch}
@@ -108,7 +92,9 @@ function Feedback({
         )}
       </span>
 
-      {(state.status === 2 || state.status === 3 || state.status === 4) && (
+      {((!containsQuestions && state.status === 2) ||
+        state.status === 3 ||
+        state.status === 4) && (
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
@@ -119,27 +105,16 @@ function Feedback({
           {state.text}
         </div>
       )}
-      <button
-        className={`${stylePrefix}button`}
-        disabled={
-          feedbackText.length <= 0 || state.status === 1 || state.status === 4
-        }
-        onClick={() =>
-          handleFeedbackSubmit(
-            handleSubmit,
-            handleMetadataSubmit,
-            dispatch,
-            feedbackText,
-            setFeedbackText
-          )
-        }
-      >
-        {state.status === 1 ? (
-          <span className="loader"></span>
-        ) : (
-          "Submit Feedback"
-        )}
-      </button>
+
+      <SubmitButton
+        containsQuestions={containsQuestions}
+        generalFeedbackText={generalFeedbackText}
+        questionsFeedbackText={questionsFeedbackText}
+        state={state}
+        dispatch={dispatch}
+        handleSubmit={handleSubmit}
+        stylePrefix={stylePrefix}
+      />
     </span>
   );
 }

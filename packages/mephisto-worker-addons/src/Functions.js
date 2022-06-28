@@ -107,16 +107,16 @@ export function handleFeedbackSubmit(
   handleSubmit,
   handleMetadataSubmit,
   dispatch,
-  feedbackText,
-  setFeedbackText
+  generalFeedbackText,
+  setGeneralFeedbackText
 ) {
-  if (handleSubmit) handleSubmit(feedbackText);
+  if (handleSubmit) handleSubmit(generalFeedbackText);
   else {
     dispatch({ type: "loading" });
-    handleMetadataSubmit(createFeedback(feedbackText))
+    handleMetadataSubmit(createFeedback(generalFeedbackText))
       .then((data) => {
         if (data.status === "Submitted metadata") {
-          setFeedbackText("");
+          setGeneralFeedbackText("");
           dispatch({ type: "success" });
           setTimeout(() => {
             dispatch({ type: "return-to-default" });
@@ -141,7 +141,7 @@ export function handleFeedbackSubmit(
  * @param {any} state State that is retrived from reducer. It should have a status property.
  * @param {React.Dispatch<any>} dispatch Dispatch that is retrieved from reducer
  * @param {changeCallback} changeCallback A function that gets ran on every keystroke
- * @param {{header: int; body: int}} maxLength The largest length before an error message will show for the header and body
+ * @param {{header: Number; body: Number}} maxLength The largest length before an error message will show for the header and body
  * @return
  */
 export function handleChangeTip(
@@ -166,6 +166,14 @@ export function handleChangeTip(
     dispatch({ type: "return-to-default" });
 }
 
+/**
+ * Dispatches the correct action to handle length error
+ * This is ran when the general feedback text (no questions) changes
+ * @param {React.ChangeEvent<HTMLTextAreaElement>} e
+ * @param {Number} maxLength
+ * @param {{status: Number; text: string; errorIndexes: Set<Number>;}} state
+ * @param {React.Dispatch<any>} dispatch
+ */
 export function dispatchFeedbackActionNoQuestions(
   e,
   maxLength,
@@ -179,6 +187,15 @@ export function dispatchFeedbackActionNoQuestions(
   }
 }
 
+/**
+ * Dispatches the correct action to handle length errors for any of the questions
+ * This is ran when there are questions present.
+ * @param {React.ChangeEvent<HTMLTextAreaElement>} e
+ * @param {Number} maxLength
+ * @param {Number} currentIndex
+ * @param {React.Dispatch<any>} dispatch
+ * @param {string[]} questionsFeedbackText
+ */
 export function dispatchFeedbackActionWithQuestions(
   e,
   maxLength,
@@ -211,8 +228,31 @@ export function dispatchFeedbackActionWithQuestions(
   }
 }
 
-
-
+/**
+ * Determines if the submit button should be disabled.
+ * There are different disabling conditions if there are questions present vs if there are no questions present.
+ * @param {boolean} containsQuestions
+ * @param {string} feedbackText
+ * @param {string[]} questionsFeedbackText
+ * @param {{status: Number; text: string; errorIndexes: Set<Number>;}} state
+ * @returns {boolean}
+ */
+export function isSubmitButtonDisabled(
+  containsQuestions,
+  generalFeedbackText,
+  questionsFeedbackText,
+  state
+) {
+  if (containsQuestions) {
+    return state.errorIndexes !== null || questionsFeedbackText.includes("");
+  } else {
+    return (
+      generalFeedbackText.length <= 0 ||
+      state.status === 1 ||
+      state.status === 4
+    );
+  }
+}
 
 /**
  * Runs the change callback when typing occurs in a feedback textarea.
@@ -221,7 +261,7 @@ export function dispatchFeedbackActionWithQuestions(
  * @param {any} state State that is retrived from reducer. It should have a status property.
  * @param {React.Dispatch<any>} dispatch Dispatch that is retrieved from reducer
  * @param {changeCallback} changeCallback A function that gets ran on every keystroke
- * @param {int} maxLength The largest length before an error message will show
+ * @param {Number} maxLength The largest length before an error message will show
  * @return
  */
 export function handleChangeFeedback(

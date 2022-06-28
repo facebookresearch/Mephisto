@@ -79,12 +79,12 @@ function SimpleFrontend({ taskData, onSubmit }) {
                 maxTextLength={30}
                 textAreaMinWidth="10rem"
                 textAreaMaxWidth="30rem"
-                questions={[
+                /* questions={[
                   "This is my first question?",
                   "This is my second question?",
                   "This is a very loooooooooooooooong question",
                   "This is a very loooooooooooooooooooooooooooooooooooooooooooooooooooooooong question",
-                ]}
+                ]} */
               />
             </span>
           </div>

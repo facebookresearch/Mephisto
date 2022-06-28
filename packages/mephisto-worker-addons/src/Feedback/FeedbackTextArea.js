@@ -52,10 +52,13 @@ const FeedbackTextArea = forwardRef(
       value={feedbackText}
       placeholder="Enter feedback text here"
       className={`${stylePrefix}text-area ${
-        containsQuestions &&
-        state.status === 5 &&
-        state.errorIndexes.has(index) &&
-        stylePrefix + "text-area-error"
+        (containsQuestions &&
+          state.status === 5 &&
+          state.errorIndexes.has(index) &&
+          stylePrefix + "text-area-error") ||
+        (!containsQuestions &&
+          state.status === 4 &&
+          stylePrefix + "text-area-error")
       }`}
     />
   )
