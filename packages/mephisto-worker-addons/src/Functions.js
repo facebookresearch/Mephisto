@@ -59,7 +59,7 @@ export function createFeedback(
     }));
 
     return {
-      feedback: questionsAndAnswers,
+      data: questionsAndAnswers,
       type: "feedback",
     };
   } else {
@@ -67,7 +67,7 @@ export function createFeedback(
       throw new Error("Feedback text is not a string");
 
     return {
-      feedback: [{ question: "", text: generalFeedbackText }],
+      data: [{ question: "General Feedback", text: generalFeedbackText }],
       type: "feedback",
     };
   }
