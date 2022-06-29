@@ -2,6 +2,11 @@
 #headless-mephisto-worker-addons-feedback__text-input {
   margin-right: 0.75rem;
 }
+.headless-mephisto-worker-addons-feedback__question {
+  display: block;
+  cursor: pointer;
+  overflow-wrap: break-word;
+}
 
 /* Non-Headless Classes */
 .mephisto-worker-addons-feedback__button,
@@ -10,7 +15,6 @@
 .mephisto-worker-addons-feedback__button:focus {
   transition: background-color 200ms, box-shadow 200ms;
 }
-
 .mephisto-worker-addons-feedback__button {
   padding: 0.65rem 0.75rem;
   border-radius: 0.5rem;

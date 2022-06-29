@@ -91,7 +91,7 @@ The max character length of tip text before an error message is shown. The defau
 
 ## Usage(`Feedback`)
 ```jsx
-import { Feedback } from "mephisto-worker-experience";
+import { Feedback } from "mephisto-worker-addons";
 
 function App() {
   return (

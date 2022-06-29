@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer, useRef } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
 import "./index.css";
 import { feedbackReducer } from "../Reducers";
@@ -13,13 +13,18 @@ function Feedback({
   textAreaWidth,
   maxTextLength,
 }) {
+  // To make classNames more readable
   const headlessPrefix = headless ? "headless-" : "";
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-feedback__`;
   const stylePrefixNoHeadlessPrefix = `mephisto-worker-addons-feedback__`;
+
+  // Setting defaults
   const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
   const modifiedTextAreaWidth = textAreaWidth ? textAreaWidth : "20rem";
+
   // For when there are questions
   const [questionsFeedbackText, setQuestionsFeedbackText] = useState([]);
+
   // For use when there are no questions
   const [generalFeedbackText, setGeneralFeedbackText] = useState("");
   const [state, dispatch] = useReducer(feedbackReducer, {
@@ -28,18 +33,18 @@ function Feedback({
     errorIndexes: null,
   });
   const containsQuestions = questions?.length > 0;
-  const { getTooltipProps, setTooltipRef, setTriggerRef, update } =
-    usePopperTooltip(
-      {
-        trigger: null,
-        visible: state.status === 2 || state.status === 3,
-        offset: [0, 9],
-        onVisibleChange: () => {},
-      },
-      {
-        placement: "top-start",
-      }
-    );
+  // Configuring react-popper-tooltip
+  const { getTooltipProps, setTooltipRef, setTriggerRef } = usePopperTooltip(
+    {
+      trigger: null,
+      visible: state.status === 2 || state.status === 3,
+      offset: [0, 9],
+      onVisibleChange: () => {},
+    },
+    {
+      placement: "top-start",
+    }
+  );
 
   // Setting up the questionsFeedbackText state based off of how many questions were set
   useEffect(() => {

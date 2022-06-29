@@ -22,6 +22,7 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
       </label>
       <input
         id={`${stylePrefix}tip-header-input`}
+        className={state.status == 4 && `${stylePrefix}tip-input-error`}
         placeholder="Write your tip's headline here..."
         value={tipData.header}
         onChange={(e) =>
@@ -48,6 +49,7 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
       <textarea
         placeholder="Write your tip body here..."
         id={`${stylePrefix}tip-text-input`}
+        className={state.status == 5 && `${stylePrefix}tip-input-error`}
         value={tipData.text}
         onChange={(e) =>
           handleChangeTip(

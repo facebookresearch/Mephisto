@@ -42,7 +42,10 @@
 }
 
 /* Non-Headless Classes */
-
+.mephisto-worker-addons-tips__tip-input-error {
+  box-shadow: 0 0 0 0.25rem rgba(241, 91, 91, 0.65) !important;
+  transition: background-color 200ms, box-shadow 200ms;
+}
 .mephisto-worker-addons-tips__tips-list {
   margin-bottom: 1.5rem;
   overflow: auto;

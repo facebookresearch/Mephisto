@@ -73,7 +73,12 @@ function SimpleFrontend({ taskData, onSubmit }) {
           </div>
 
           <div style={{ margin: "15rem 0 1.5rem auto", width: "fit-content" }}>
-            <Tips maxHeight="30rem" placement="top-start" />
+            <Tips
+              maxHeight="30rem"
+              placement="top-start"
+              maxHeaderLength={30}
+              maxTextLength={300}
+            />
             <span style={{ marginLeft: "1rem" }}>
               <Feedback
                 maxTextLength={30}

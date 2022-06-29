@@ -198,12 +198,11 @@ export function handleChangeTip(
 ) {
   changeCallback();
   let isHeader = false;
-  if (e.target.id.includes("mephisto-worker-experience-tips__tip-header-input"))
+  if (e.target.id.includes("mephisto-worker-addons-tips__tip-header-input"))
     isHeader = true;
 
   const headerLength = isHeader ? e.target.value.length : tipData.header.length;
   const bodyLength = isHeader ? tipData.text.length : e.target.value.length;
-
   if (headerLength > maxLength.header) dispatch({ type: "header-too-long" });
   else if (bodyLength > maxLength.body) {
     dispatch({ type: "body-too-long" });
