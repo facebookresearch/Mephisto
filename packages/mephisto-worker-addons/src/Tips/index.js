@@ -48,15 +48,6 @@ function Tips({
   const headlessPrefix = headless ? "headless-" : "";
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-tips__`;
 
-  const tipsComponents = tipsArr.map((tip, index) => {
-    return (
-      <li key={`tip-${index + 1}`} className={`${stylePrefix}tip`}>
-        <h2 className={`${stylePrefix}tip-header2`}>{tip.header}</h2>
-        <p className={`${stylePrefix}tip-text`}>{tip.text}</p>
-      </li>
-    );
-  });
-
   return (
     <Fragment>
       <button
@@ -85,7 +76,6 @@ function Tips({
               <TaskTips
                 tipsArr={tipsArr}
                 stylePrefix={stylePrefix}
-                tipsComponents={tipsComponents}
               />
             </ul>
             {!disableUserSubmission && (
