@@ -72,7 +72,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
             </div>
           </div>
           <div style={{ margin: "25rem 0 1.5rem auto", float: "right" }}>
-            <Tips maxHeight="40rem" placement="top-end" />
+            <Tips maxHeight="30rem" width="25rem" placement="top-end" />
           </div>
         </div>
       </section>

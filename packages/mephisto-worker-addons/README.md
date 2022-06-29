@@ -73,8 +73,8 @@ The `tipData` parameter exists when using the `handleSubmit` property. It record
 The `headless` prop accepts a boolean where a a true value removes most of the styling and a false value keeps the original styling. The default value of this prop is false.
 ### `maxHeight`
 This prop accepts a string that specifies the maximum height for the tips popup. ex: maxHeight="30rem". Content that overflows can be navigated to using the scrollbar.
-### `maxWidth`
-This prop accepts a string that specifies the maximum width for the tips popup. ex: maxWidth="25rem". Content that overflows can be navigated to using the scrollbar.
+### `width`
+This prop accepts a string that specifies the width for the tips popup. ex: width="25rem".
 ### `placement`
 This prop accepts a string that specifies the placement of the tips popup relative to the "Show/Hide Tips" button. 
 
