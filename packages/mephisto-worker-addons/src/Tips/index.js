@@ -1,11 +1,11 @@
 import React, { useState, Fragment, useReducer } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
-import { handleTipSubmit } from "./Functions";
+import { handleTipSubmit } from "../Functions";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
 import "react-popper-tooltip/dist/styles.css";
-import { tipsReducer } from "./Reducers";
-import InfoIcon from "./InfoIcon";
+import { tipsReducer } from "../Reducers";
+import InfoIcon from "../InfoIcon";
 
 function Tips({
   list,
@@ -18,29 +18,25 @@ function Tips({
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [state, dispatch] = useReducer(tipsReducer, {
-    status: 1,
+    status: 0,
     text: "",
   });
 
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
   const maxPopupWidth = maxWidth ? maxWidth : "30rem";
-  const {
-    getTooltipProps,
-    setTooltipRef,
-    setTriggerRef,
-    visible
-  } = usePopperTooltip(
-    {
-      trigger: "click",
-      closeOnOutsideClick: true,
-      visible: isVisible,
-      offset: [0, 6],
-      onVisibleChange: setIsVisible,
-    },
-    {
-      placement: placement ? placement : "top-start",
-    }
-  );
+  const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
+    usePopperTooltip(
+      {
+        trigger: "click",
+        closeOnOutsideClick: true,
+        visible: isVisible,
+        offset: [0, 6],
+        onVisibleChange: setIsVisible,
+      },
+      {
+        placement: placement ? placement : "top-start",
+      }
+    );
   const { taskConfig, handleMetadataSubmit } = useMephistoTask();
   const tipsArr = (list ? list : []).concat(
     taskConfig ? taskConfig["metadata"]["tips"] : []

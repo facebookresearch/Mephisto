@@ -1,3 +1,3 @@
-import Tips from "./Tips";
+import Tips from "./Tips/index";
 import { createFeedback, createTip } from "./Functions";
 export { Tips, createFeedback, createTip };
