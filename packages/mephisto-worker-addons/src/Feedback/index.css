@@ -27,6 +27,7 @@
   align-items: center;
   white-space: nowrap;
   height: 2.4rem;
+  width: fit-content;
 }
 
 .mephisto-worker-addons-feedback__button:disabled {
@@ -48,6 +49,12 @@
   cursor: pointer;
   overflow-wrap: break-word;
 }
+.mephisto-worker-addons-feedback__header1 {
+  font-weight: bold;
+  font-size: 1.4em;
+  margin: 0.75rem 0;
+  color: rgb(70, 70, 70);
+}
 
 /* Common Classes */
 .mephisto-worker-addons-feedback__container {
@@ -56,13 +63,21 @@
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
+  background-color: rgb(245, 245, 245);
+  padding: 1.5rem;
+  border-radius: 1rem;
 }
 
 .mephisto-worker-addons-feedback__questions-container {
   margin-bottom: 1rem;
 }
-.mephisto-worker-addons-feedback__text-area-container {
-  margin-right: 1rem;
+.mephisto-worker-addons-feedback__items-horizontal {
+  display: flex;
+}
+
+.mephisto-worker-addons-feedback__items-vertical {
+  display: flex;
+  flex-direction: column;
 }
 
 .mephisto-worker-addons-feedback__text-area {
@@ -87,7 +102,7 @@
   transition: background-color 200ms, box-shadow 200ms;
 }
 
-.mephisto-worker-addons-feedback__text-area-container-vertical {
+.mephisto-worker-addons-feedback__content-container-vertical {
   margin: 0 0 1rem;
 }
 .mephisto-worker-addons-feedback__text-area:hover {
