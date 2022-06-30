@@ -9,7 +9,6 @@ function TaskTips({ tipsArr, stylePrefix, maxPopupHeight }) {
       </li>
     );
   });
-  tipsArr = [];
   return (
     <ul
       style={{ maxHeight: `calc(${maxPopupHeight}/2)` }}
