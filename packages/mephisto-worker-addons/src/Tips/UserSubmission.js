@@ -13,15 +13,15 @@ function UserSubmission({ stylePrefix, handleSubmit }) {
 
   return (
     <Fragment>
-      <h1 className={`${stylePrefix}tip-header1`}>Submit A Tip: </h1>
+      <h1 className={`${stylePrefix}header1`}>Submit A Tip: </h1>
       <label
-        htmlFor={`${stylePrefix}tip-header-input`}
-        className={`${stylePrefix}tip-label`}
+        htmlFor={`${stylePrefix}header-input`}
+        className={`${stylePrefix}label`}
       >
         Tip Headline:
       </label>
       <input
-        id={`${stylePrefix}tip-header-input`}
+        id={`${stylePrefix}header-input`}
         placeholder="Write your tip's headline here..."
         value={tipData.header}
         onChange={(e) =>
@@ -30,14 +30,14 @@ function UserSubmission({ stylePrefix, handleSubmit }) {
       />
 
       <label
-        htmlFor={`${stylePrefix}tip-text-input`}
-        className={`${stylePrefix}tip-label`}
+        htmlFor={`${stylePrefix}text-input`}
+        className={`${stylePrefix}label`}
       >
         Tip Body:
       </label>
       <textarea
         placeholder="Write your tip body here..."
-        id={`${stylePrefix}tip-text-input`}
+        id={`${stylePrefix}text-input`}
         value={tipData.text}
         onChange={(e) =>
           setTipData({

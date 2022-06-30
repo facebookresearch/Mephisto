@@ -68,13 +68,15 @@ function Tips({
             className={`${stylePrefix}padding_container`}
             style={{ maxHeight: maxPopupHeight, width: popupWidth }}
           >
-            <h1 className={`${stylePrefix}tip-header1`}>Task Tips:</h1>
-            <ul
-              style={{ maxHeight: `calc(${maxPopupHeight}/2)` }}
-              className={`${stylePrefix}tips-list`}
-            >
-              <TaskTips tipsArr={tipsArr} stylePrefix={stylePrefix} />
-            </ul>
+            <h1 style={{ marginTop: 0 }} className={`${stylePrefix}header1`}>
+              Task Tips:
+            </h1>
+            <TaskTips
+              tipsArr={tipsArr}
+              stylePrefix={stylePrefix}
+              maxPopupHeight={maxPopupHeight}
+            />
+
             {!disableUserSubmission && (
               <UserSubmission
                 stylePrefix={stylePrefix}

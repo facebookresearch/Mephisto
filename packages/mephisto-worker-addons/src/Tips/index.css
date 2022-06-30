@@ -1,5 +1,23 @@
 /* Headless Classes */
-.headless-mephisto-worker-addons-tips__tips-list {
+
+.headless-mephisto-worker-addons-tips__container {
+  background-color: rgb(245, 245, 245);
+  box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  -webkit-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  -moz-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+}
+.headless-mephisto-worker-addons-tips__no-submissions {
+  margin: 0 0 0 0.75rem !important;
+  color: #565656;
+  font-style: italic;
+}
+
+.headless-mephisto-worker-addons-tips__padding_container {
+  padding: 0.65rem 1rem;
+  overflow-y: auto;
+}
+
+.headless-mephisto-worker-addons-tips__list {
   padding: 0.5rem;
   margin-bottom: 1.5rem;
   list-style-type: disc;
@@ -11,7 +29,7 @@
   margin: 0 0 1.35rem 1rem;
 }
 
-.headless-mephisto-worker-addons-tips__tip-header2 {
+.headless-mephisto-worker-addons-tips__header2 {
   margin-bottom: 0.5rem;
 }
 .headless-mephisto-worker-addons-tips__tip:last-child {
@@ -26,24 +44,23 @@
 .headless-mephisto-worker-addons-tips__button:disabled {
   cursor: not-allowed !important;
 }
-.headless-mephisto-worker-addons-tips__tip-label {
+.headless-mephisto-worker-addons-tips__label {
   display: block;
-  margin: 0.75rem 0 0.35rem;
   cursor: pointer;
   width: fit-content;
 }
 
-#headless-mephisto-worker-addons-tips__tip-header-input {
+#headless-mephisto-worker-addons-tips__header-input {
   width: 100%;
 }
-#headless-mephisto-worker-addons-tips__tip-text-input {
+#headless-mephisto-worker-addons-tips__text-input {
   width: 100%;
   max-width: 100%;
 }
 
 /* Non-Headless Classes */
 
-.mephisto-worker-addons-tips__tips-list {
+.mephisto-worker-addons-tips__list {
   margin-bottom: 1.5rem;
   overflow: auto;
   border: 4px solid #dbdbdb;
@@ -51,16 +68,18 @@
   padding: 1rem 1rem 1rem 0;
   list-style-type: disc;
 }
-.mephisto-worker-addons-tips__tip-header1 {
+.mephisto-worker-addons-tips__header1 {
   font-weight: bold;
-  font-size: 1.75em;
+  font-size: 1.4em;
   margin: 0.75rem 0;
+  color: rgb(70, 70, 70);
 }
 
-.mephisto-worker-addons-tips__tip-header2 {
+.mephisto-worker-addons-tips__header2 {
   font-weight: bold;
-  font-size: 1.25em;
+  font-size: 1.125em;
   margin-bottom: 0.5rem;
+  color: rgb(70, 70, 70);
 }
 
 .mephisto-worker-addons-tips__tip {
@@ -102,20 +121,20 @@
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.4);
 }
 
-.mephisto-worker-addons-tips__tip-label {
+.mephisto-worker-addons-tips__label {
   display: block;
   margin: 0.75rem 0;
   cursor: pointer;
   width: fit-content;
 }
 
-.mephisto-worker-addons-tips__tip-text {
+.mephisto-worker-addons-tips__text {
   white-space: pre-wrap;
   font-size: 1em;
 }
 
-#mephisto-worker-addons-tips__tip-header-input,
-#mephisto-worker-addons-tips__tip-text-input {
+#mephisto-worker-addons-tips__header-input,
+#mephisto-worker-addons-tips__text-input {
   background-color: rgb(240, 240, 240);
   max-width: 100%;
   height: 2.25rem;
@@ -132,21 +151,25 @@
   white-space: pre-wrap;
 }
 
-#mephisto-worker-addons-tips__tip-header-input:hover,
-#mephisto-worker-addons-tips__tip-text-input:hover {
+#mephisto-worker-addons-tips__header-input:hover,
+#mephisto-worker-addons-tips__text-input:hover {
   background-color: rgb(245, 245, 245);
   box-shadow: 0 0 0 0.2rem rgba(209, 209, 209, 0.5);
   transition: background-color 200ms, box-shadow 200ms;
 }
 
-#mephisto-worker-addons-tips__tip-header-input:focus,
-#mephisto-worker-addons-tips__tip-text-input:focus {
+#mephisto-worker-addons-tips__header-input:focus,
+#mephisto-worker-addons-tips__text-input:focus {
   background-color: rgb(255, 255, 255);
   transition: background-color 200ms, box-shadow 200ms;
   box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
 }
+.mephisto-worker-addons-tips__no-submissions {
+  margin: 0 0 0 0.75rem !important;
+  color: #565656;
+  font-style: italic;
+}
 
-/* Common Classes */
 .mephisto-worker-addons-tips__container {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -161,6 +184,8 @@
   padding: 1rem 1.5rem;
   overflow-y: auto;
 }
+
+/* Common Classes */
 .mephisto-worker-addons-tips__showing {
   display: block;
 }
