@@ -7,7 +7,7 @@
  */
 
 import React from "react";
-import { Tips, Feedback } from "mephisto-worker-experience";
+import { Tips } from "mephisto-worker-addons";
 
 function OnboardingComponent({ onSubmit }) {
   return (
@@ -75,23 +75,14 @@ function SimpleFrontend({ taskData, onSubmit }) {
               </button>
             </div>
           </div>
-          <div
-            style={{
-              marginTop: "14.5rem",
-              display: "flex",
-              alignItems: "flex-start",
-            }}
-          >
+          <div style={{ margin: "25rem 0 1.5rem auto", float: "right" }}>
             <Tips
               maxHeaderLength={35}
-              maxTextLength={85}
+              maxTextLength={50}
               maxHeight="30rem"
-              maxWidth="35rem"
-              placement="top-start"
+              width="25rem"
+              placement="top-end"
             />
-            <span style={{ marginLeft: "1rem" }}>
-              <Feedback maxTextLength={50} />
-            </span>
           </div>
         </div>
       </section>

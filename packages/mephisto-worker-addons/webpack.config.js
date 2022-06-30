@@ -12,7 +12,7 @@ module.exports = {
   output: {
     path: __dirname,
     filename: "lib/index.js",
-    library: "mephisto-worker-experience",
+    library: "mephisto-worker-addons",
     libraryTarget: "umd",
   },
   target: "web",

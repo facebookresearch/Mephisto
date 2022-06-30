@@ -69,7 +69,6 @@ const useMephistoTask = function () {
   );
   const handleMetadataSubmit = React.useCallback(
     (...args) => {
-      let malformed = false;
       const metadata = {};
       // Update metadata
       for (const arg of args) {

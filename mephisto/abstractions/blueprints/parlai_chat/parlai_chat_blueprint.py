@@ -32,7 +32,6 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from omegaconf import DictConfig, MISSING
 
 import os
-import time
 import csv
 import sys
 import json
@@ -43,11 +42,10 @@ from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHE
 
 if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.agent import Agent, OnboardingAgent
+    from mephisto.data_model.agent import OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
-    from mephisto.data_model.assignment import Assignment
-    from mephisto.data_model.unit import Unit
+
 
 BLUEPRINT_TYPE_PARLAI_CHAT = "parlai_chat"
 
@@ -313,10 +311,11 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
         task_name = self.task_run.to_dict()["task_name"]
         db = LocalMephistoDB()
         mephisto_data_browser = MephistoDataBrowser(db)
-
+        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
         front_end_task_config_with_metadata = super().update_task_config_with_metadata(
-            mephisto_data_browser, task_name, frontend_task_config
+            metadata, frontend_task_config
         )
+
         # Use overrides provided downstream
         front_end_task_config_with_metadata.update(self.frontend_task_config)
         return frontend_task_config

@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from dataclasses import dataclass, field
@@ -20,10 +19,8 @@ from mephisto.abstractions.blueprints.static_react_task.static_react_task_builde
 from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
-import time
-import csv
 
-from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
+from typing import ClassVar, Type, Any, Dict, TYPE_CHECKING
 from mephisto.abstractions.blueprint import (
     SharedTaskState,
 )
@@ -31,12 +28,8 @@ from mephisto.abstractions.blueprint import (
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import (
-        AgentState,
         TaskBuilder,
-        TaskRunner,
     )
-    from mephisto.data_model.assignment import Assignment
-    from mephisto.data_model.unit import Unit
     from omegaconf import DictConfig
 
 BLUEPRINT_TYPE_STATIC_REACT = "static_react_task"
@@ -145,8 +138,9 @@ class StaticReactBlueprint(StaticBlueprint):
         task_name = self.task_run.to_dict()["task_name"]
         db = LocalMephistoDB()
         mephisto_data_browser = MephistoDataBrowser(db)
+        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
         front_end_task_config_with_metadata = super().update_task_config_with_metadata(
-            mephisto_data_browser, task_name, frontend_task_config
+            metadata, frontend_task_config
         )
         # Use overrides provided downstream
         front_end_task_config_with_metadata.update(self.frontend_task_config)
