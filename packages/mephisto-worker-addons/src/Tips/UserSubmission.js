@@ -13,16 +13,16 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
 
   return (
     <Fragment>
-      <h1 className={`${stylePrefix}tip-header1`}>Submit A Tip: </h1>
+      <h1 className={`${stylePrefix}header1`}>Submit A Tip: </h1>
       <label
-        htmlFor={`${stylePrefix}tip-header-input`}
-        className={`${stylePrefix}tip-label`}
+        htmlFor={`${stylePrefix}header-input`}
+        className={`${stylePrefix}label`}
       >
         Tip Headline:
       </label>
       <input
-        id={`${stylePrefix}tip-header-input`}
-        className={state.status == 4 && `${stylePrefix}tip-input-error`}
+        id={`${stylePrefix}header-input`}
+        className={state.status == 4 && `${stylePrefix}input-error`}
         placeholder="Write your tip's headline here..."
         value={tipData.header}
         onChange={(e) =>
@@ -41,15 +41,15 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
       />
 
       <label
-        htmlFor={`${stylePrefix}tip-text-input`}
-        className={`${stylePrefix}tip-label`}
+        htmlFor={`${stylePrefix}text-input`}
+        className={`${stylePrefix}label`}
       >
         Tip Body:
       </label>
       <textarea
         placeholder="Write your tip body here..."
-        id={`${stylePrefix}tip-text-input`}
-        className={state.status == 5 && `${stylePrefix}tip-input-error`}
+        id={`${stylePrefix}text-input`}
+        className={state.status == 5 && `${stylePrefix}input-error`}
         value={tipData.text}
         onChange={(e) =>
           handleChangeTip(

@@ -27,19 +27,23 @@ function Tips({
 
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
   const popupWidth = width ? width : "30rem";
-  const { getTooltipProps, setTooltipRef, setTriggerRef, visible } =
-    usePopperTooltip(
-      {
-        trigger: "click",
-        closeOnOutsideClick: true,
-        visible: isVisible,
-        offset: [0, 6],
-        onVisibleChange: setIsVisible,
-      },
-      {
-        placement: placement ? placement : "top-start",
-      }
-    );
+  const {
+    getTooltipProps,
+    setTooltipRef,
+    setTriggerRef,
+    visible,
+  } = usePopperTooltip(
+    {
+      trigger: "click",
+      closeOnOutsideClick: true,
+      visible: isVisible,
+      offset: [0, 6],
+      onVisibleChange: setIsVisible,
+    },
+    {
+      placement: placement ? placement : "top-start",
+    }
+  );
   const { taskConfig } = useMephistoTask();
   const tipsArr = (list ? list : []).concat(
     taskConfig ? taskConfig["metadata"]["tips"] : []
@@ -67,7 +71,9 @@ function Tips({
             className={`mephisto-worker-addons-tips__padding_container`}
             style={{ maxHeight: maxPopupHeight, width: popupWidth }}
           >
-            <h1 className={`${stylePrefix}tip-header1`}>Task Tips:</h1>
+            <h1 style={{ marginTop: 0 }} className={`${stylePrefix}header1`}>
+              Task Tips:
+            </h1>
             <TaskTips
               tipsArr={tipsArr}
               stylePrefix={stylePrefix}
