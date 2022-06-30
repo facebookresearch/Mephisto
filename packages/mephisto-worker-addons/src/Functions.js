@@ -9,12 +9,8 @@
  * mephisto-task library
  * @param {string} header The tip header
  * @param {string} text The tip text or a.k.a the tip body
-<<<<<<< HEAD
  * @return {{header: string; text: string; type: string; }} An object that can be used as a parameter of
  *                                                          the handleSubmitMetadata() method in the mephisto-task package
-=======
- * @return {{header: string; text: string; type: string; }} An object that can be used as a parameter of the handleSubmitMetadata() method in the mephisto-task package
->>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e
  */
 export function createTip(header, text) {
   if (!header || !(typeof header === "string"))
@@ -35,21 +31,48 @@ export function createTip(header, text) {
  * by the handleMetadataSubmit function from the
  * mephisto-task library
  * @param {string} text The feedback text
-<<<<<<< HEAD
  * @return {{text: text; type: "feedback"; }} An object that can be used as a parameter of the
  *                                            handleSubmitMetadata() method in the mephisto-task package
-=======
- * @return {{text: text; type: "feedback"; }} An object that can be used as a parameter of the handleSubmitMetadata() method in the mephisto-task package
->>>>>>> cd73e77670972fda6c5b1e25ca1e62f51ea44b0e
+ * @param {string[]} questionsFeedbackText
+ * @param {bool} containsQuestions
+ * @return {{text: text; type: "feedback"; }} An object that can be used as a parameter of the
+ *                                            handleSubmitMetadata() method in the mephisto-task package
  */
-export function createFeedback(text) {
-  if (!text || !(typeof text === "string"))
-    throw new Error("Feedback text is not a string");
+export function createFeedback(
+  generalFeedbackText,
+  questionsFeedbackText,
+  questions,
+  containsQuestions
+) {
+  if (containsQuestions) {
+    const isAllQuestionFeedbackStrings = questionsFeedbackText.every(
+      (currentQuestionFeedbackText) =>
+        currentQuestionFeedbackText &&
+        typeof currentQuestionFeedbackText === "string"
+    );
+    if (!isAllQuestionFeedbackStrings) {
+      throw new Error(
+        "A feedback response to one of the questions is not a string"
+      );
+    }
+    const questionsAndAnswers = questions.map((currentQuestion, index) => ({
+      question: currentQuestion,
+      text: questionsFeedbackText[index],
+    }));
 
-  return {
-    text: text,
-    type: "feedback",
-  };
+    return {
+      data: questionsAndAnswers,
+      type: "feedback",
+    };
+  } else {
+    if (!generalFeedbackText || !(typeof generalFeedbackText === "string"))
+      throw new Error("Feedback text is not a string");
+
+    return {
+      data: [{ question: "General Feedback", text: generalFeedbackText }],
+      type: "feedback",
+    };
+  }
 }
 const hideAlertDelay = 5000;
 
@@ -107,24 +130,40 @@ export function handleTipSubmit(
  * @param {submitCallback} handleSubmit
  * @param {submitCallback} handleMetadataSubmit
  * @param {React.Dispatch<any>} dispatch
- * @param {string} feedbackText
- * @param {React.Dispatch<React.SetStateAction<string>>} setFeedbackText
+ * @param {string} generalFeedbackText
+ * @param {React.Dispatch<React.SetStateAction<string>>} setGeneralFeedbackText
+ * @param {string[]} questionsFeedbackText
+ * @param {React.Dispatch<React.SetStateAction<string[]>>} setQuestionsFeedbackText
+ * @param {string[]} questions
+ * @param {bool} containsQuestions
  * @return
  */
 export function handleFeedbackSubmit(
   handleSubmit,
   handleMetadataSubmit,
   dispatch,
-  feedbackText,
-  setFeedbackText
+  generalFeedbackText,
+  setGeneralFeedbackText,
+  questionsFeedbackText,
+  setQuestionsFeedbackText,
+  questions,
+  containsQuestions
 ) {
-  if (handleSubmit) handleSubmit(feedbackText);
+  if (handleSubmit) handleSubmit(generalFeedbackText);
   else {
     dispatch({ type: "loading" });
-    handleMetadataSubmit(createFeedback(feedbackText))
+    handleMetadataSubmit(
+      createFeedback(
+        generalFeedbackText,
+        questionsFeedbackText,
+        questions,
+        containsQuestions
+      )
+    )
       .then((data) => {
-        if (data.status === "Submitted metadata for review") {
-          setFeedbackText("");
+        if (data.status === "Submitted metadata") {
+          setGeneralFeedbackText("");
+          setQuestionsFeedbackText(questionsFeedbackText.map(() => ""));
           dispatch({ type: "success" });
           setTimeout(() => {
             dispatch({ type: "return-to-default" });
@@ -149,7 +188,7 @@ export function handleFeedbackSubmit(
  * @param {any} state State that is retrived from reducer. It should have a status property.
  * @param {React.Dispatch<any>} dispatch Dispatch that is retrieved from reducer
  * @param {changeCallback} changeCallback A function that gets ran on every keystroke
- * @param {{header: int; body: int}} maxLength The largest length before an error message will show for the header and body
+ * @param {{header: Number; body: Number}} maxLength The largest length before an error message will show for the header and body
  * @return
  */
 export function handleChangeTip(
@@ -161,17 +200,104 @@ export function handleChangeTip(
 ) {
   changeCallback();
   let isHeader = false;
-  if (e.target.id.includes("mephisto-worker-experience-tips__tip-header-input"))
+  if (e.target.id.includes("mephisto-worker-addons-tips__tip-header-input"))
     isHeader = true;
 
   const headerLength = isHeader ? e.target.value.length : tipData.header.length;
   const bodyLength = isHeader ? tipData.text.length : e.target.value.length;
-
   if (headerLength > maxLength.header) dispatch({ type: "header-too-long" });
   else if (bodyLength > maxLength.body) {
     dispatch({ type: "body-too-long" });
   } else if (headerLength <= maxLength.header && bodyLength <= maxLength.body)
     dispatch({ type: "return-to-default" });
+}
+
+/**
+ * Dispatches the correct action to handle length error
+ * This is ran when the general feedback text (no questions) changes
+ * @param {React.ChangeEvent<HTMLTextAreaElement>} e
+ * @param {Number} maxLength
+ * @param {{status: Number; text: string; errorIndexes: Set<Number>;}} state
+ * @param {React.Dispatch<any>} dispatch
+ */
+export function dispatchFeedbackActionNoQuestions(
+  e,
+  maxLength,
+  state,
+  dispatch
+) {
+  if (e.target.value.length > maxLength && state.status !== 4) {
+    dispatch({ type: "too-long" });
+  } else if (e.target.value.length <= maxLength) {
+    dispatch({ type: "return-to-default" });
+  }
+}
+
+/**
+ * Dispatches the correct action to handle length errors for any of the questions
+ * This is ran when there are questions present.
+ * @param {React.ChangeEvent<HTMLTextAreaElement>} e
+ * @param {Number} maxLength
+ * @param {Number} currentIndex
+ * @param {React.Dispatch<any>} dispatch
+ * @param {string[]} questionsFeedbackText
+ */
+export function dispatchFeedbackActionWithQuestions(
+  e,
+  maxLength,
+  currentIndex,
+  dispatch,
+  questionsFeedbackText
+) {
+  const errorIndexes = new Set([]);
+  for (let i = 0; i < questionsFeedbackText.length; i++) {
+    if (currentIndex === i) {
+      if (e.target.value.length > maxLength) {
+        console.log("current", e.target.value.length);
+        errorIndexes.add(i);
+      } else if (errorIndexes.has(i)) {
+        errorIndexes.remove(i);
+      }
+    } else {
+      if (questionsFeedbackText[i].length > maxLength) {
+        console.log("others", questionsFeedbackText[i].length);
+        errorIndexes.add(i);
+      } else if (errorIndexes.has(i)) {
+        errorIndexes.remove(i);
+      }
+    }
+  }
+  if (errorIndexes.size > 0) {
+    dispatch({ type: "multiple-errors", errorIndexes: errorIndexes });
+  } else {
+    dispatch({ type: "return-to-default" });
+  }
+}
+
+/**
+ * Determines if the submit button should be disabled.
+ * There are different disabling conditions if there are questions present vs if there are no questions present.
+ * @param {boolean} containsQuestions
+ * @param {string} feedbackText
+ * @param {string[]} questionsFeedbackText
+ * @param {{status: Number; text: string; errorIndexes: Set<Number>;}} state
+ * @returns {boolean}
+ */
+export function isSubmitButtonDisabled(
+  containsQuestions,
+  generalFeedbackText,
+  questionsFeedbackText,
+  state
+) {
+  if (containsQuestions) {
+    return state.errorIndexes !== null || questionsFeedbackText.includes("");
+  } else {
+    return (
+      generalFeedbackText.length <= 0 ||
+      state.status === 1 ||
+      state.status === 4
+    );
+  }
 }
 
 /**
@@ -181,20 +307,14 @@ export function handleChangeTip(
  * @param {any} state State that is retrived from reducer. It should have a status property.
  * @param {React.Dispatch<any>} dispatch Dispatch that is retrieved from reducer
  * @param {changeCallback} changeCallback A function that gets ran on every keystroke
- * @param {int} maxLength The largest length before an error message will show
+ * @param {Number} maxLength The largest length before an error message will show
  * @return
  */
 export function handleChangeFeedback(
   e,
-  state,
-  dispatch,
-  changeCallback,
-  maxLength
+  dispatchFeedbackAction,
+  changeCallback
 ) {
   changeCallback(e);
-  if (e.target.value.length > maxLength && state.status !== 4) {
-    dispatch({ type: "too-long" });
-  } else if (e.target.value.length <= maxLength) {
-    dispatch({ type: "return-to-default" });
-  }
+  dispatchFeedbackAction();
 }

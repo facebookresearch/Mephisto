@@ -72,6 +72,10 @@
 }
 
 /* Non-Headless Classes */
+.mephisto-worker-addons-tips__input-error {
+  box-shadow: 0 0 0 0.25rem rgba(241, 91, 91, 0.65) !important;
+  transition: background-color 200ms, box-shadow 200ms;
+}
 
 .mephisto-worker-addons-tips__list {
   margin-bottom: 1.5rem;
@@ -119,6 +123,7 @@
   outline: none;
   display: flex;
   align-items: center;
+  height: 2.4rem;
 }
 
 .mephisto-worker-addons-tips__task-header-container {
@@ -216,6 +221,7 @@
   -webkit-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
   -moz-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
   border-radius: 1.25rem;
+  z-index: 999;
 }
 
 .mephisto-worker-addons-tips__padding_container {
@@ -252,7 +258,7 @@
 .mephisto-worker-addons-tips__loader {
   width: 21px;
   height: 21px;
-  border: 3px solid rgb(98, 98, 98);
+  border: 3px solid rgb(83, 83, 83);
   border-bottom-color: transparent;
   border-radius: 50%;
   display: inline-block;

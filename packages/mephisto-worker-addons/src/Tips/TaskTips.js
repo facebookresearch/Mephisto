@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 
 function TaskTips({ tipsArr, stylePrefix, maxPopupHeight }) {
   const tipsComponents = tipsArr.map((tip, index) => {

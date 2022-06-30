@@ -1,12 +1,12 @@
 import React, { Fragment, useState, useReducer } from "react";
-import { handleTipSubmit } from "../Functions";
-import { tipsReducer } from "../Reducers";
+import { handleTipSubmit, handleChangeTip } from "../Functions";
+import { tipReducer } from "../Reducers";
 import { useMephistoTask } from "mephisto-task";
 
-function UserSubmission({ stylePrefix, handleSubmit }) {
+function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
   const [tipData, setTipData] = useState({ header: "", text: "" });
   const { handleMetadataSubmit } = useMephistoTask();
-  const [state, dispatch] = useReducer(tipsReducer, {
+  const [state, dispatch] = useReducer(tipReducer, {
     status: 0,
     text: "",
   });
@@ -22,10 +22,21 @@ function UserSubmission({ stylePrefix, handleSubmit }) {
       </label>
       <input
         id={`${stylePrefix}header-input`}
+        className={state.status == 4 && `${stylePrefix}input-error`}
         placeholder="Write your tip's headline here..."
         value={tipData.header}
         onChange={(e) =>
-          setTipData({ header: e.target.value, text: tipData.text })
+          handleChangeTip(
+            e,
+            tipData,
+            dispatch,
+            () =>
+              setTipData({
+                header: e.target.value,
+                text: tipData.text,
+              }),
+            maxLengths
+          )
         }
       />
 
@@ -38,15 +49,26 @@ function UserSubmission({ stylePrefix, handleSubmit }) {
       <textarea
         placeholder="Write your tip body here..."
         id={`${stylePrefix}text-input`}
+        className={state.status == 5 && `${stylePrefix}input-error`}
         value={tipData.text}
         onChange={(e) =>
-          setTipData({
-            header: tipData.header,
-            text: e.target.value,
-          })
+          handleChangeTip(
+            e,
+            tipData,
+            dispatch,
+            () =>
+              setTipData({
+                header: tipData.header,
+                text: e.target.value,
+              }),
+            maxLengths
+          )
         }
       />
-      {(state.status === 2 || state.status === 3) && (
+      {(state.status === 2 ||
+        state.status === 3 ||
+        state.status === 4 ||
+        state.status === 5) && (
         <div
           className={`${stylePrefix}${
             state.status === 2 ? "green" : "red"
@@ -58,6 +80,8 @@ function UserSubmission({ stylePrefix, handleSubmit }) {
       <button
         disabled={
           state.status === 1 ||
+          state.status === 4 ||
+          state.status === 5 ||
           tipData.text.length === 0 ||
           tipData.header.length === 0
         }

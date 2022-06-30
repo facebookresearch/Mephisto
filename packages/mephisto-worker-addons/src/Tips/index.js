@@ -3,7 +3,7 @@ import { usePopperTooltip } from "react-popper-tooltip";
 import { useMephistoTask } from "mephisto-task";
 import "./index.css";
 import "react-popper-tooltip/dist/styles.css";
-import InfoIcon from "../InfoIcon";
+import InfoIcon from "./InfoIcon";
 import UserSubmission from "./UserSubmission";
 import TaskTips from "./TaskTips";
 import CloseIcon from "./CloseIcon";
@@ -16,13 +16,18 @@ function Tips({
   maxHeight,
   width,
   placement,
+  maxHeaderLength,
+  maxTextLength,
 }) {
   const [isVisible, setIsVisible] = useState(false);
 
+  const maxLengths = {
+    header: maxHeaderLength ? maxHeaderLength : 72,
+    body: maxTextLength ? maxTextLength : 500,
+  };
+
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
   const popupWidth = width ? width : "30rem";
-
-  // This is to configure react-popper-tooltip
   const {
     getTooltipProps,
     setTooltipRef,
@@ -44,8 +49,6 @@ function Tips({
   const tipsArr = (list ? list : []).concat(
     taskConfig ? taskConfig["metadata"]["tips"] : []
   );
-
-  // These exist to help make reading classnames easier
   const headlessPrefix = headless ? "headless-" : "";
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-tips__`;
   const stylePrefixWithNoHeadlessPrefix = "mephisto-worker-addons-tips__";
@@ -64,10 +67,10 @@ function Tips({
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
-          className={`${stylePrefix}container`}
+          className={`mephisto-worker-addons-tips__container`}
         >
           <div
-            className={`${stylePrefix}padding_container`}
+            className={`mephisto-worker-addons-tips__padding_container`}
             style={{ maxHeight: maxPopupHeight, width: popupWidth }}
           >
             <div className={`${stylePrefix}task-header-container`}>
@@ -87,11 +90,11 @@ function Tips({
               stylePrefix={stylePrefix}
               maxPopupHeight={maxPopupHeight}
             />
-
             {!disableUserSubmission && (
               <UserSubmission
                 stylePrefix={stylePrefix}
                 handleSubmit={handleSubmit}
+                maxLengths={maxLengths}
               />
             )}
           </div>
