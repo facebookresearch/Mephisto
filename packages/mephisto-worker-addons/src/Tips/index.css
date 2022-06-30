@@ -17,6 +17,19 @@
   overflow-y: auto;
 }
 
+.headless-mephisto-worker-addons-tips__task-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headless-mephisto-worker-addons-tips__close-icon-container {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 .headless-mephisto-worker-addons-tips__list {
   padding: 0.5rem;
   margin-bottom: 1.5rem;
@@ -106,6 +119,31 @@
   outline: none;
   display: flex;
   align-items: center;
+}
+
+.mephisto-worker-addons-tips__task-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.mephisto-worker-addons-tips__close-icon-container {
+  background: none;
+  border: 0;
+  padding: 0;
+  transform: translate(0.5rem, -0.5rem) scale(1);
+  transition: transform 150ms ease-in-out;
+  cursor: pointer;
+}
+
+.mephisto-worker-addons-tips__close-icon-container:hover {
+  transform: translate(0.5rem, -0.5rem) scale(1.1);
+  transition: transform 150ms ease-in-out;
+}
+.mephisto-worker-addons-tips__close-icon-container:active {
+  transform: translate(0.5rem, -0.5rem) scale(0.9);
+  transition: transform 150ms ease-in-out;
 }
 
 .mephisto-worker-addons-tips__button:disabled {
