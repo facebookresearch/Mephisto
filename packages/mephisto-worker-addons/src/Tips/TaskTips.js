@@ -9,7 +9,7 @@ function TaskTips({ tipsArr, stylePrefix }) {
       </li>
     );
   });
-  
+
   return (
     <Fragment>
       {tipsArr.length <= 0 ? (

@@ -73,10 +73,7 @@ function Tips({
               style={{ maxHeight: `calc(${maxPopupHeight}/2)` }}
               className={`${stylePrefix}tips-list`}
             >
-              <TaskTips
-                tipsArr={tipsArr}
-                stylePrefix={stylePrefix}
-              />
+              <TaskTips tipsArr={tipsArr} stylePrefix={stylePrefix} />
             </ul>
             {!disableUserSubmission && (
               <UserSubmission
