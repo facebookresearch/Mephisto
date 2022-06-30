@@ -6,6 +6,7 @@ import "react-popper-tooltip/dist/styles.css";
 import InfoIcon from "./InfoIcon";
 import UserSubmission from "./UserSubmission";
 import TaskTips from "./TaskTips";
+import CloseIcon from "./CloseIcon";
 
 function Tips({
   list,
@@ -50,6 +51,7 @@ function Tips({
   );
   const headlessPrefix = headless ? "headless-" : "";
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-tips__`;
+  const stylePrefixWithNoHeadlessPrefix = "mephisto-worker-addons-tips__";
 
   return (
     <Fragment>
@@ -71,9 +73,18 @@ function Tips({
             className={`mephisto-worker-addons-tips__padding_container`}
             style={{ maxHeight: maxPopupHeight, width: popupWidth }}
           >
-            <h1 style={{ marginTop: 0 }} className={`${stylePrefix}header1`}>
-              Task Tips:
-            </h1>
+            <div className={`${stylePrefix}task-header-container`}>
+              <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
+                Task Tips:
+              </h1>
+              <button
+                onClick={() => setIsVisible(false)}
+                className={`${stylePrefix}close-icon-container`}
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
             <TaskTips
               tipsArr={tipsArr}
               stylePrefix={stylePrefix}
