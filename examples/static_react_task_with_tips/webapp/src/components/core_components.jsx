@@ -81,7 +81,7 @@ function SimpleFrontend({ taskData, onSubmit }) {
               maxHeight="30rem"
               placement="top-start"
               maxHeaderLength={30}
-              maxTextLength={300}
+              maxTextLength={80}
             />
             <span style={{ marginLeft: "1rem" }}>
               <Feedback
