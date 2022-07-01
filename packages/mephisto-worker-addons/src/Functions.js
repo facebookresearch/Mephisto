@@ -200,7 +200,7 @@ export function handleChangeTip(
 ) {
   changeCallback();
   let isHeader = false;
-  if (e.target.id.includes("mephisto-worker-addons-tips__tip-header-input"))
+  if (e.target.id.includes("mephisto-worker-addons-tips__header-input"))
     isHeader = true;
 
   const headerLength = isHeader ? e.target.value.length : tipData.header.length;
