@@ -66,7 +66,7 @@ function SimpleFrontend({ taskData, onSubmit }) {
           </button>
 
           <div style={{ margin: "15rem 0 1.5rem auto", width: "fit-content" }}>
-            <Tips headless maxHeight="30rem" placement="top-start" />
+            <Tips maxHeight="30rem" placement="top-start" />
           </div>
         </div>
       </section>
