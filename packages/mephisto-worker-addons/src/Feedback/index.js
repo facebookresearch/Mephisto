@@ -38,7 +38,7 @@ function Feedback({
     {
       trigger: null,
       visible: state.status === 2 || state.status === 3,
-      offset: [0, 9],
+      offset: [0, 15],
       onVisibleChange: () => {},
     },
     {
@@ -52,16 +52,20 @@ function Feedback({
   }, [questions]);
 
   return (
-    <span
+    <div
       className={`${stylePrefixNoHeadlessPrefix}container ${
         containsQuestions && `${stylePrefixNoHeadlessPrefix}vertical`
       }`}
     >
       <div className={`${stylePrefixNoHeadlessPrefix}content-container`}>
-        <h1 style={{ marginTop: 0 }} className={`${stylePrefix}header1`}>
-          Write Feedback
-        </h1>
-        <div
+        <header className={`${stylePrefix}header-items`}>
+          <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
+            Write Feedback
+          </h1>
+          <p className={`${stylePrefix}subtitle`}> (optional)</p>
+        </header>
+
+        <section
           className={
             containsQuestions
               ? `${stylePrefix}items-vertical`
@@ -88,6 +92,7 @@ function Feedback({
             })
           ) : (
             <FeedbackTextArea
+              id={`${stylePrefixNoHeadlessPrefix}solo-input`}
               ref={setTriggerRef}
               width={modifiedTextAreaWidth}
               feedbackText={generalFeedbackText}
@@ -106,7 +111,7 @@ function Feedback({
             <div
               {...getTooltipProps({ className: "tooltip-container" })}
               ref={setTooltipRef}
-              className={`${stylePrefixNoHeadlessPrefix}${
+              className={`${stylePrefix}${
                 state.status === 2 ? "green" : "red"
               }-box`}
             >
@@ -135,9 +140,9 @@ function Feedback({
               {state.text}
             </div>
           )}
-        </div>
+        </section>
       </div>
-    </span>
+    </div>
   );
 }
 export default Feedback;

@@ -33,12 +33,8 @@ function LoadingScreen() {
 
 function Directions({ children }) {
   return (
-    <section className="hero is-light" data-cy="directions">
-      <div className="hero-body">
-        <div className="container">
-          <p className="subtitle is-5">{children}</p>
-        </div>
-      </div>
+    <section className="hero" data-cy="directions">
+      <p>{children}</p>
     </section>
   );
 }
@@ -50,33 +46,26 @@ function SimpleFrontend({ taskData, onSubmit }) {
         Directions: Please rate the below sentence as good or bad.
       </Directions>
       <section className="section">
-        <div className="container">
-          <p className="subtitle is-5"></p>
-          <p className="title is-3 is-spaced" data-cy="task-text">
-            {taskData.text}
-          </p>
-          <div className="field is-grouped">
-            <div className="control">
-              <button
-                data-cy="good-button"
-                className="button is-success is-large"
-                onClick={() => onSubmit({ rating: "good" })}
-              >
-                Mark as Good
-              </button>
-            </div>
-            <div className="control">
-              <button
-                data-cy="bad-button"
-                className="button is-danger is-large"
-                onClick={() => onSubmit({ rating: "bad" })}
-              >
-                Mark as Bad
-              </button>
-            </div>
-          </div>
+        <h1 className="task-text" data-cy="task-text">
+          {taskData.text}
+        </h1>
+        <div className="button-row">
+          <button
+            data-cy="good-button"
+            className="button good"
+            onClick={() => onSubmit({ rating: "good" })}
+          >
+            Mark as Good
+          </button>
+          <button
+            data-cy="bad-button"
+            className="button bad"
+            onClick={() => onSubmit({ rating: "bad" })}
+          >
+            Mark as Bad
+          </button>
 
-          <div style={{ margin: "15rem 0 1.5rem auto", width: "fit-content" }}>
+          <div style={{ margin: "20rem 0 1.5rem auto", width: "fit-content" }}>
             <Tips
               maxHeight="30rem"
               placement="top-start"
