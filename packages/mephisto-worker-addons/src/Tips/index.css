@@ -124,6 +124,7 @@
   display: flex;
   align-items: center;
   height: 2.4rem;
+  white-space: nowrap;
 }
 
 .mephisto-worker-addons-tips__task-header-container {
