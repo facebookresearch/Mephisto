@@ -119,6 +119,7 @@
   outline: none;
   display: flex;
   align-items: center;
+  white-space: nowrap;
 }
 
 .mephisto-worker-addons-tips__task-header-container {
