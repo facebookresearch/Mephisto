@@ -1,28 +1,40 @@
-import React, { useState, useEffect, useReducer, useRef } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
-import { useMephistoTask } from "mephisto-task";
 import "./index.css";
-import { handleFeedbackSubmit, handleChangeFeedback } from "../Functions";
 import { feedbackReducer } from "../Reducers";
+import FeedbackTextArea from "./FeedbackTextArea";
+import Question from "./Question";
+import SubmitButton from "./SubmitButton";
 
-function Feedback({ headless, handleSubmit, width, maxTextLength }) {
+function Feedback({
+  headless,
+  questions,
+  handleSubmit,
+  textAreaWidth,
+  maxTextLength,
+}) {
+  // To make classNames more readable
   const headlessPrefix = headless ? "headless-" : "";
-  const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
+  const stylePrefix = `${headlessPrefix}mephisto-worker-addons-feedback__`;
+  const stylePrefixNoHeadlessPrefix = `mephisto-worker-addons-feedback__`;
 
-  const [feedbackText, setFeedbackText] = useState("");
-  const { handleMetadataSubmit } = useMephistoTask();
+  // Setting defaults
+  const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
+  const modifiedTextAreaWidth = textAreaWidth ? textAreaWidth : "20rem";
+
+  // For when there are questions
+  const [questionsFeedbackText, setQuestionsFeedbackText] = useState([]);
+
+  // For use when there are no questions
+  const [generalFeedbackText, setGeneralFeedbackText] = useState("");
   const [state, dispatch] = useReducer(feedbackReducer, {
     status: 0,
     text: "",
+    errorIndexes: null,
   });
-
-  const updateSizeRef = useRef(null);
-  const {
-    getTooltipProps,
-    setTooltipRef,
-    setTriggerRef,
-    update,
-  } = usePopperTooltip(
+  const containsQuestions = questions?.length > 0;
+  // Configuring react-popper-tooltip
+  const { getTooltipProps, setTooltipRef, setTriggerRef } = usePopperTooltip(
     {
       trigger: null,
       visible: state.status === 2 || state.status === 3,
@@ -34,79 +46,97 @@ function Feedback({ headless, handleSubmit, width, maxTextLength }) {
     }
   );
 
-  // Used to make tooltip stay in correct position even if text area size is dragged
-  const observer = useRef(null);
+  // Setting up the questionsFeedbackText state based off of how many questions were set
   useEffect(() => {
-    if (updateSizeRef && updateSizeRef.current) {
-      observer.current = new ResizeObserver((entries) => {
-        if (update) update();
-      });
-      observer.current.observe(updateSizeRef.current);
-      return () => {
-        observer.current.unobserve(updateSizeRef.current);
-      };
-    }
-  }, [observer, updateSizeRef, update]);
+    if (questions) setQuestionsFeedbackText(questions.map(() => ""));
+  }, [questions]);
 
   return (
-    <span className="mephisto-worker-experience-feedback__container">
-      <span
-        ref={updateSizeRef}
-        className={`mephisto-worker-experience-feedback__text-area-container`}
-      >
-        <textarea
-          ref={setTriggerRef}
-          style={{
-            minWidth: width ? width : "18rem",
-            width: width ? width : "18rem",
-          }}
-          onChange={(e) =>
-            handleChangeFeedback(
-              e,
-              state,
-              dispatch,
-              (event) => setFeedbackText(event.target.value),
-              maxFeedbackLength
-            )
-          }
-          value={feedbackText}
-          placeholder="Enter feedback text here"
-          id={`${headlessPrefix}mephisto-worker-experience-feedback__text-area`}
-        />
-      </span>
-
-      {(state.status === 2 || state.status === 3 || state.status === 4) && (
+    <span
+      className={`${stylePrefixNoHeadlessPrefix}container ${
+        containsQuestions && `${stylePrefixNoHeadlessPrefix}vertical`
+      }`}
+    >
+      <div className={`${stylePrefixNoHeadlessPrefix}content-container`}>
+        <h1 style={{ marginTop: 0 }} className={`${stylePrefix}header1`}>
+          Write Feedback
+        </h1>
         <div
-          {...getTooltipProps({ className: "tooltip-container" })}
-          ref={setTooltipRef}
-          className={`mephisto-worker-experience-feedback__${
-            state.status === 2 ? "green" : "red"
-          }-box`}
+          className={
+            containsQuestions
+              ? `${stylePrefix}items-vertical`
+              : `${stylePrefix}items-horizontal`
+          }
         >
-          {state.text}
+          {containsQuestions ? (
+            questions.map((question, index) => {
+              return (
+                <Question
+                  question={question}
+                  index={index}
+                  ref={setTriggerRef}
+                  textAreaWidth={modifiedTextAreaWidth}
+                  questionsFeedbackText={questionsFeedbackText}
+                  setQuestionsFeedbackText={setQuestionsFeedbackText}
+                  stylePrefix={stylePrefix}
+                  state={state}
+                  dispatch={dispatch}
+                  maxFeedbackLength={maxFeedbackLength}
+                  containsQuestions={containsQuestions}
+                />
+              );
+            })
+          ) : (
+            <FeedbackTextArea
+              ref={setTriggerRef}
+              width={modifiedTextAreaWidth}
+              feedbackText={generalFeedbackText}
+              setFeedbackText={setGeneralFeedbackText}
+              stylePrefix={stylePrefix}
+              state={state}
+              dispatch={dispatch}
+              maxFeedbackLength={maxFeedbackLength}
+              containsQuestions={containsQuestions}
+            />
+          )}
+
+          {((!containsQuestions && state.status === 2) ||
+            state.status === 3 ||
+            state.status === 4) && (
+            <div
+              {...getTooltipProps({ className: "tooltip-container" })}
+              ref={setTooltipRef}
+              className={`${stylePrefixNoHeadlessPrefix}${
+                state.status === 2 ? "green" : "red"
+              }-box`}
+            >
+              {state.text}
+            </div>
+          )}
+
+          <SubmitButton
+            containsQuestions={containsQuestions}
+            questions={questions}
+            generalFeedbackText={generalFeedbackText}
+            setGeneralFeedbackText={setGeneralFeedbackText}
+            questionsFeedbackText={questionsFeedbackText}
+            setQuestionsFeedbackText={setQuestionsFeedbackText}
+            state={state}
+            dispatch={dispatch}
+            handleSubmit={handleSubmit}
+            stylePrefix={stylePrefix}
+          />
+
+          {containsQuestions && state.status === 2 && (
+            <div
+              className={`${stylePrefixNoHeadlessPrefix}green-box`}
+              style={{ width: modifiedTextAreaWidth }}
+            >
+              {state.text}
+            </div>
+          )}
         </div>
-      )}
-      <button
-        className={`${headlessPrefix}mephisto-worker-experience-feedback__button`}
-        disabled={
-          feedbackText.length <= 0 || state.status === 1 || state.status === 4
-        }
-        onClick={() =>
-          handleFeedbackSubmit(
-            handleSubmit,
-            handleMetadataSubmit,
-            dispatch,
-            feedbackText,
-            setFeedbackText
-          )
-        }
-      >
-        {state.status === 1 ? (
-          <span className="loader"></span>
-        ) : (
-          "Submit Feedback"
-        )}
-      </button>
+      </div>
     </span>
   );
 }
