@@ -7,6 +7,35 @@
   cursor: pointer;
   overflow-wrap: break-word;
 }
+.headless-mephisto-worker-addons-feedback__header-items {
+  display: flex;
+  align-items: center;
+}
+
+.headless-mephisto-worker-addons-feedback__green-box,
+.headless-mephisto-worker-addons-feedback__red-box {
+  padding: 1rem;
+  width: min(18rem, 100%);
+}
+
+.headless-mephisto-worker-addons-feedback__green-box {
+  background-color: #d1e7dd;
+  color: #315243;
+}
+
+.headless-mephisto-worker-addons-feedback__red-box {
+  background-color: #f8d7da;
+  color: #5c3c3f;
+}
+.headless-mephisto-worker-addons-feedback__items-horizontal {
+  display: flex;
+  align-items: center;
+}
+.headless-mephisto-worker-addons-feedback__subtitle {
+  font-style: italic;
+  font-size: 0.85em;
+  margin: 0;
+}
 
 /* Non-Headless Classes */
 .mephisto-worker-addons-feedback__button,
@@ -54,6 +83,38 @@
   font-size: 1.4em;
   margin: 0.75rem 0;
   color: rgb(70, 70, 70);
+}
+
+.mephisto-worker-addons-feedback__subtitle {
+  font-style: italic;
+  font-size: 0.85em;
+  color: rgb(97, 97, 97);
+  margin: 0 0 0 0.175rem;
+}
+
+.mephisto-worker-addons-feedback__header-items {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.mephisto-worker-addons-feedback__green-box,
+.mephisto-worker-addons-feedback__red-box {
+  padding: 1rem;
+  width: min(18rem, 100%);
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  box-shadow: 10px 10px 23px -15px rgba(0, 0, 0, 0.26);
+}
+
+.mephisto-worker-addons-feedback__green-box {
+  background-color: #d1e7dd;
+  color: #315243;
+}
+
+.mephisto-worker-addons-feedback__red-box {
+  background-color: #f8d7da;
+  color: #5c3c3f;
 }
 
 /* Common Classes */
@@ -115,25 +176,6 @@
   background-color: rgb(255, 255, 255);
   transition: background-color 200ms, box-shadow 200ms;
   box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
-}
-
-.mephisto-worker-addons-feedback__green-box,
-.mephisto-worker-addons-feedback__red-box {
-  padding: 1rem;
-  width: min(18rem, 100%);
-  border-radius: 0.5rem;
-  margin-top: 1rem;
-  box-shadow: 10px 10px 23px -15px rgba(0, 0, 0, 0.26);
-}
-
-.mephisto-worker-addons-feedback__green-box {
-  background-color: #d1e7dd;
-  color: #315243;
-}
-
-.mephisto-worker-addons-feedback__red-box {
-  background-color: #f8d7da;
-  color: #5c3c3f;
 }
 
 .mephisto-worker-addons-feedback__vertical {
