@@ -38,7 +38,7 @@ function Tips({
       trigger: "click",
       closeOnOutsideClick: true,
       visible: isVisible,
-      offset: [0, 6],
+      offset: [0, 18],
       onVisibleChange: setIsVisible,
     },
     {
@@ -68,32 +68,40 @@ function Tips({
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
           className={`${stylePrefixWithNoHeadlessPrefix}container`}
-          style={{ maxHeight: maxPopupHeight, width: popupWidth }}
         >
-          <div className={`${stylePrefix}task-header-container`}>
-            <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
-              Task Tips:
-            </h1>
-            <button
-              onClick={() => setIsVisible(false)}
-              className={`${stylePrefix}close-icon-container`}
-            >
-              <CloseIcon />
-            </button>
-          </div>
+          <div
+            style={{ maxHeight: maxPopupHeight, width: popupWidth }}
+            className={`${stylePrefixWithNoHeadlessPrefix}padding-container`}
+          >
+            <div className={`${stylePrefix}task-header-container`}>
+              <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
+                Task Tips:
+              </h1>
+              <button
+                onClick={() => setIsVisible(false)}
+                className={`${stylePrefix}close-icon-container`}
+              >
+                <CloseIcon />
+              </button>
+            </div>
 
-          <TaskTips
-            tipsArr={tipsArr}
-            stylePrefix={stylePrefix}
-            maxPopupHeight={maxPopupHeight}
-          />
-          {!disableUserSubmission && (
-            <UserSubmission
+            <TaskTips
+              tipsArr={tipsArr}
               stylePrefix={stylePrefix}
-              handleSubmit={handleSubmit}
-              maxLengths={maxLengths}
+              maxPopupHeight={maxPopupHeight}
             />
-          )}
+
+            {!disableUserSubmission && (
+              <UserSubmission
+                stylePrefixWithNoHeadlessPrefix={
+                  stylePrefixWithNoHeadlessPrefix
+                }
+                stylePrefix={stylePrefix}
+                handleSubmit={handleSubmit}
+                maxLengths={maxLengths}
+              />
+            )}
+          </div>
         </div>
       )}
     </Fragment>

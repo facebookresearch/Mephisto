@@ -28,7 +28,7 @@ const FeedbackTextArea = forwardRef(
       id={id}
       ref={ref}
       style={{
-        width: width,
+        width: `calc(${width} - 8px)`,
         boxShadow: containsQuestions
           ? ""
           : "10px 10px 23px -15px rgba(0, 0, 0, 0.26)",

@@ -3,7 +3,11 @@ import { handleTipSubmit, handleChangeTip } from "../Functions";
 import { tipReducer } from "../Reducers";
 import { useMephistoTask } from "mephisto-task";
 
-function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
+function UserSubmission({
+  stylePrefixWithNoHeadlessPrefix,
+  stylePrefix,
+  handleSubmit,
+}) {
   const [tipData, setTipData] = useState({ header: "", text: "" });
   const { handleMetadataSubmit } = useMephistoTask();
   const [state, dispatch] = useReducer(tipReducer, {
@@ -70,7 +74,7 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
         state.status === 4 ||
         state.status === 5) && (
         <div
-          className={`${stylePrefix}${
+          className={`${stylePrefixWithNoHeadlessPrefix}${
             state.status === 2 ? "green" : "red"
           }-box`}
         >
@@ -97,7 +101,7 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
         }
       >
         {state.status === 1 ? (
-          <span className="mephisto-worker-addons-tips__loader"></span>
+          <span className={`${stylePrefixWithNoHeadlessPrefix}loader`}></span>
         ) : (
           "Submit Tip"
         )}
