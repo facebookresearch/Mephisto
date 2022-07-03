@@ -7,6 +7,7 @@ function UserSubmission({
   stylePrefixWithNoHeadlessPrefix,
   stylePrefix,
   handleSubmit,
+  maxLengths,
 }) {
   const [tipData, setTipData] = useState({ header: "", text: "" });
   const { handleMetadataSubmit } = useMephistoTask();
