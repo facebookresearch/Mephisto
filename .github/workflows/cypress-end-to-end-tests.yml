@@ -231,9 +231,9 @@ jobs:
           yarn build
           npm link
 
-      - name: 📦 Setting up mephisto-worker-experience package
+      - name: 📦 Setting up mephisto-worker-addons package
         run: |
-          cd packages/mephisto-worker-experience
+          cd packages/mephisto-worker-addons
           yarn install
           yarn build
           npm link
