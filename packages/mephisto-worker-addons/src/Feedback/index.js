@@ -72,6 +72,7 @@ function Feedback({
           questions.map((question, index) => {
             return (
               <Question
+                key={`question-${index}`}
                 question={question}
                 index={index}
                 ref={setTriggerRef}

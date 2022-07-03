@@ -27,7 +27,7 @@ function UserSubmission({
       </label>
       <input
         id={`${stylePrefix}header-input`}
-        className={state.status == 4 && `${stylePrefix}input-error`}
+        className={state.status == 4 ? `${stylePrefix}input-error` : undefined}
         placeholder="Write your tip's headline here..."
         value={tipData.header}
         onChange={(e) =>
@@ -54,7 +54,7 @@ function UserSubmission({
       <textarea
         placeholder="Write your tip body here..."
         id={`${stylePrefix}text-input`}
-        className={state.status == 5 && `${stylePrefix}input-error`}
+        className={state.status == 5 ? `${stylePrefix}input-error` : undefined}
         value={tipData.text}
         onChange={(e) =>
           handleChangeTip(
