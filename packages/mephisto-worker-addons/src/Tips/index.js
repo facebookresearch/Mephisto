@@ -27,7 +27,7 @@ function Tips({
   };
 
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
-  const popupWidth = width ? width : "30rem";
+  const popupWidth = width ? width : "min(30rem, 100%)";
   const {
     getTooltipProps,
     setTooltipRef,
@@ -67,37 +67,33 @@ function Tips({
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
-          className={`mephisto-worker-addons-tips__container`}
+          className={`${stylePrefixWithNoHeadlessPrefix}container`}
+          style={{ maxHeight: maxPopupHeight, width: popupWidth }}
         >
-          <div
-            className={`mephisto-worker-addons-tips__padding_container`}
-            style={{ maxHeight: maxPopupHeight, width: popupWidth }}
-          >
-            <div className={`${stylePrefix}task-header-container`}>
-              <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
-                Task Tips:
-              </h1>
-              <button
-                onClick={() => setIsVisible(false)}
-                className={`${stylePrefix}close-icon-container`}
-              >
-                <CloseIcon />
-              </button>
-            </div>
-
-            <TaskTips
-              tipsArr={tipsArr}
-              stylePrefix={stylePrefix}
-              maxPopupHeight={maxPopupHeight}
-            />
-            {!disableUserSubmission && (
-              <UserSubmission
-                stylePrefix={stylePrefix}
-                handleSubmit={handleSubmit}
-                maxLengths={maxLengths}
-              />
-            )}
+          <div className={`${stylePrefix}task-header-container`}>
+            <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
+              Task Tips:
+            </h1>
+            <button
+              onClick={() => setIsVisible(false)}
+              className={`${stylePrefix}close-icon-container`}
+            >
+              <CloseIcon />
+            </button>
           </div>
+
+          <TaskTips
+            tipsArr={tipsArr}
+            stylePrefix={stylePrefix}
+            maxPopupHeight={maxPopupHeight}
+          />
+          {!disableUserSubmission && (
+            <UserSubmission
+              stylePrefix={stylePrefix}
+              handleSubmit={handleSubmit}
+              maxLengths={maxLengths}
+            />
+          )}
         </div>
       )}
     </Fragment>

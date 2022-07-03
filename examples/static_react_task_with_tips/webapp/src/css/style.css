@@ -7,6 +7,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   margin: 0;
+  overflow-x: hidden;
 }
 
 .hero {
@@ -16,6 +17,7 @@ body {
 }
 .section {
   padding: 3rem 1.5rem;
+  margin: 0 1.5rem;
 }
 .task-text {
   font-size: 2rem;
@@ -26,22 +28,22 @@ body {
 
 .button-row {
   display: flex;
+  flex-wrap: wrap;
 }
 
 .button {
-  height: 3rem;
+  min-height: 2.5rem;
   padding: 2rem;
   border: 0;
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  white-space: nowrap;
-
   border-radius: 0.25rem;
   margin-right: 1rem;
   font-size: 1.7em;
   cursor: pointer;
+  margin-top: 0.5rem;
 }
 .good {
   background-color: #48c774;

@@ -20,13 +20,19 @@ const FeedbackTextArea = forwardRef(
       containsQuestions,
       questionsFeedbackText,
       index,
+      placeholder,
     },
     ref
   ) => (
     <textarea
       id={id}
       ref={ref}
-      style={{ width: width }}
+      style={{
+        width: width,
+        boxShadow: containsQuestions
+          ? ""
+          : "10px 10px 23px -15px rgba(0, 0, 0, 0.26)",
+      }}
       onChange={(e) => {
         handleChangeFeedback(
           e,
@@ -50,7 +56,7 @@ const FeedbackTextArea = forwardRef(
         );
       }}
       value={feedbackText}
-      placeholder="Enter feedback text here"
+      placeholder={placeholder ? placeholder : "Enter feedback text here"}
       className={`${stylePrefix}text-area ${
         (containsQuestions &&
           state.status === 5 &&

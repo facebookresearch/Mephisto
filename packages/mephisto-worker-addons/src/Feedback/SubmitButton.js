@@ -17,7 +17,6 @@ function SubmitButton({
   const { handleMetadataSubmit } = useMephistoTask();
   return (
     <button
-      style={{ marginLeft: containsQuestions ? "0" : "0.5rem" }}
       className={`${stylePrefix}button`}
       disabled={isSubmitButtonDisabled(
         containsQuestions,

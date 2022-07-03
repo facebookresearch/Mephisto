@@ -5,16 +5,14 @@
   box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
   -webkit-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
   -moz-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  padding: 0.65rem 1rem;
+  overflow-y: auto;
+  position: absolute;
 }
 .headless-mephisto-worker-addons-tips__no-submissions {
   margin: 0 0 0 0.75rem !important;
   color: #565656;
   font-style: italic;
-}
-
-.headless-mephisto-worker-addons-tips__padding_container {
-  padding: 0.65rem 1rem;
-  overflow-y: auto;
 }
 
 .headless-mephisto-worker-addons-tips__task-header-container {
@@ -82,7 +80,7 @@
   overflow: auto;
   border: 4px solid #dbdbdb;
   border-radius: 0.5rem;
-  padding: 1rem 1rem 1rem 0;
+  padding: 0 1rem 0 0;
   list-style-type: disc;
 }
 .mephisto-worker-addons-tips__header1 {
@@ -181,7 +179,9 @@
 #mephisto-worker-addons-tips__text-input {
   background-color: rgb(240, 240, 240);
   max-width: 100%;
-  height: 2.25rem;
+  min-height: 2.4rem;
+  height: 2.4rem;
+  max-height: 12rem;
   box-shadow: 0 0 0 0.15rem rgba(193, 193, 193, 0.5);
   border: 0;
   border-radius: 0.35rem;
@@ -193,6 +193,7 @@
   font-size: 0.9em;
   box-sizing: border-box;
   white-space: pre-wrap;
+  line-height: 1.5;
 }
 
 #mephisto-worker-addons-tips__header-input:hover,
@@ -223,11 +224,9 @@
   -moz-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
   border-radius: 1.25rem;
   z-index: 999;
-}
-
-.mephisto-worker-addons-tips__padding_container {
-  padding: 1rem 1.5rem;
+  line-height: 1.5;
   overflow-y: auto;
+  padding: 1rem 1.5rem;
 }
 
 /* Common Classes */
@@ -244,6 +243,7 @@
   width: 100%;
   border-radius: 0.5rem;
   margin-top: 1rem;
+  box-sizing: border-box;
 }
 
 .mephisto-worker-addons-tips__green-box {

@@ -10,8 +10,8 @@ function Feedback({
   headless,
   questions,
   handleSubmit,
-  textAreaWidth,
   maxTextLength,
+  textAreaWidth,
 }) {
   // To make classNames more readable
   const headlessPrefix = headless ? "headless-" : "";
@@ -20,8 +20,7 @@ function Feedback({
 
   // Setting defaults
   const maxFeedbackLength = maxTextLength ? maxTextLength : 700;
-  const modifiedTextAreaWidth = textAreaWidth ? textAreaWidth : "20rem";
-
+  const modifiedTextAreaWidth = textAreaWidth ? textAreaWidth : "100%";
   // For when there are questions
   const [questionsFeedbackText, setQuestionsFeedbackText] = useState([]);
 
@@ -38,7 +37,7 @@ function Feedback({
     {
       trigger: null,
       visible: state.status === 2 || state.status === 3,
-      offset: [0, 15],
+      offset: [0, 18],
       onVisibleChange: () => {},
     },
     {
@@ -53,95 +52,92 @@ function Feedback({
 
   return (
     <div
-      className={`${stylePrefixNoHeadlessPrefix}container ${
-        containsQuestions && `${stylePrefixNoHeadlessPrefix}vertical`
-      }`}
+      className={`${stylePrefixNoHeadlessPrefix}container ${stylePrefixNoHeadlessPrefix}vertical`}
     >
-      <div className={`${stylePrefixNoHeadlessPrefix}content-container`}>
-        <header className={`${stylePrefix}header-items`}>
-          <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
-            Write Feedback
-          </h1>
-          <p className={`${stylePrefix}subtitle`}> (optional)</p>
-        </header>
+      <header className={`${stylePrefix}header-items`}>
+        <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
+          Write Feedback
+        </h1>
+        <p className={`${stylePrefix}subtitle`}> (optional)</p>
+      </header>
 
-        <section
-          className={
-            containsQuestions
-              ? `${stylePrefix}items-vertical`
-              : `${stylePrefix}items-horizontal`
-          }
-        >
-          {containsQuestions ? (
-            questions.map((question, index) => {
-              return (
-                <Question
-                  question={question}
-                  index={index}
-                  ref={setTriggerRef}
-                  textAreaWidth={modifiedTextAreaWidth}
-                  questionsFeedbackText={questionsFeedbackText}
-                  setQuestionsFeedbackText={setQuestionsFeedbackText}
-                  stylePrefix={stylePrefix}
-                  state={state}
-                  dispatch={dispatch}
-                  maxFeedbackLength={maxFeedbackLength}
-                  containsQuestions={containsQuestions}
-                />
-              );
-            })
-          ) : (
-            <FeedbackTextArea
-              id={`${stylePrefixNoHeadlessPrefix}solo-input`}
-              ref={setTriggerRef}
-              width={modifiedTextAreaWidth}
-              feedbackText={generalFeedbackText}
-              setFeedbackText={setGeneralFeedbackText}
-              stylePrefix={stylePrefix}
-              state={state}
-              dispatch={dispatch}
-              maxFeedbackLength={maxFeedbackLength}
-              containsQuestions={containsQuestions}
-            />
-          )}
-
-          {((!containsQuestions && state.status === 2) ||
-            state.status === 3 ||
-            state.status === 4) && (
-            <div
-              {...getTooltipProps({ className: "tooltip-container" })}
-              ref={setTooltipRef}
-              className={`${stylePrefix}${
-                state.status === 2 ? "green" : "red"
-              }-box`}
-            >
-              {state.text}
-            </div>
-          )}
-
-          <SubmitButton
-            containsQuestions={containsQuestions}
-            questions={questions}
-            generalFeedbackText={generalFeedbackText}
-            setGeneralFeedbackText={setGeneralFeedbackText}
-            questionsFeedbackText={questionsFeedbackText}
-            setQuestionsFeedbackText={setQuestionsFeedbackText}
+      <section
+        className={
+          containsQuestions
+            ? `${stylePrefix}items-vertical`
+            : `${stylePrefix}items-horizontal`
+        }
+      >
+        {containsQuestions ? (
+          questions.map((question, index) => {
+            return (
+              <Question
+                question={question}
+                index={index}
+                ref={setTriggerRef}
+                textAreaWidth={modifiedTextAreaWidth}
+                questionsFeedbackText={questionsFeedbackText}
+                setQuestionsFeedbackText={setQuestionsFeedbackText}
+                stylePrefix={stylePrefix}
+                state={state}
+                dispatch={dispatch}
+                maxFeedbackLength={maxFeedbackLength}
+                containsQuestions={containsQuestions}
+                placeholder="Answer the above question here"
+              />
+            );
+          })
+        ) : (
+          <FeedbackTextArea
+            id={`${stylePrefixNoHeadlessPrefix}solo-input`}
+            ref={setTriggerRef}
+            width={modifiedTextAreaWidth}
+            feedbackText={generalFeedbackText}
+            setFeedbackText={setGeneralFeedbackText}
+            stylePrefix={stylePrefix}
             state={state}
             dispatch={dispatch}
-            handleSubmit={handleSubmit}
-            stylePrefix={stylePrefix}
+            maxFeedbackLength={maxFeedbackLength}
+            containsQuestions={containsQuestions}
           />
+        )}
 
-          {containsQuestions && state.status === 2 && (
-            <div
-              className={`${stylePrefixNoHeadlessPrefix}green-box`}
-              style={{ width: modifiedTextAreaWidth }}
-            >
-              {state.text}
-            </div>
-          )}
-        </section>
-      </div>
+        {((!containsQuestions && state.status === 2) ||
+          state.status === 3 ||
+          state.status === 4) && (
+          <div
+            {...getTooltipProps({ className: "tooltip-container" })}
+            ref={setTooltipRef}
+            className={`${stylePrefix}${
+              state.status === 2 ? "green" : "red"
+            }-box`}
+          >
+            {state.text}
+          </div>
+        )}
+
+        <SubmitButton
+          containsQuestions={containsQuestions}
+          questions={questions}
+          generalFeedbackText={generalFeedbackText}
+          setGeneralFeedbackText={setGeneralFeedbackText}
+          questionsFeedbackText={questionsFeedbackText}
+          setQuestionsFeedbackText={setQuestionsFeedbackText}
+          state={state}
+          dispatch={dispatch}
+          handleSubmit={handleSubmit}
+          stylePrefix={stylePrefix}
+        />
+
+        {containsQuestions && state.status === 2 && (
+          <div
+            className={`${stylePrefixNoHeadlessPrefix}green-box`}
+            style={{ width: modifiedTextAreaWidth }}
+          >
+            {state.text}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
