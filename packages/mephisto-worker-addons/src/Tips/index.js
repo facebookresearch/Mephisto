@@ -16,13 +16,18 @@ function Tips({
   maxHeight,
   width,
   placement,
+  maxHeaderLength,
+  maxTextLength,
 }) {
   const [isVisible, setIsVisible] = useState(false);
 
-  const maxPopupHeight = maxHeight ? maxHeight : "30rem";
-  const popupWidth = width ? width : "30rem";
+  const maxLengths = {
+    header: maxHeaderLength ? maxHeaderLength : 72,
+    body: maxTextLength ? maxTextLength : 500,
+  };
 
-  // This is to configure react-popper-tooltip
+  const maxPopupHeight = maxHeight ? maxHeight : "30rem";
+  const popupWidth = width ? width : "min(30rem, 100%)";
   const {
     getTooltipProps,
     setTooltipRef,
@@ -33,7 +38,7 @@ function Tips({
       trigger: "click",
       closeOnOutsideClick: true,
       visible: isVisible,
-      offset: [0, 6],
+      offset: [0, 25],
       onVisibleChange: setIsVisible,
     },
     {
@@ -44,8 +49,6 @@ function Tips({
   const tipsArr = (list ? list : []).concat(
     taskConfig ? taskConfig["metadata"]["tips"] : []
   );
-
-  // These exist to help make reading classnames easier
   const headlessPrefix = headless ? "headless-" : "";
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-tips__`;
   const stylePrefixWithNoHeadlessPrefix = "mephisto-worker-addons-tips__";
@@ -64,11 +67,11 @@ function Tips({
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
-          className={`${stylePrefix}container`}
+          className={`${stylePrefixWithNoHeadlessPrefix}container`}
         >
           <div
-            className={`${stylePrefix}padding_container`}
             style={{ maxHeight: maxPopupHeight, width: popupWidth }}
+            className={`${stylePrefixWithNoHeadlessPrefix}padding-container`}
           >
             <div className={`${stylePrefix}task-header-container`}>
               <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
@@ -87,11 +90,11 @@ function Tips({
               stylePrefix={stylePrefix}
               maxPopupHeight={maxPopupHeight}
             />
-
             {!disableUserSubmission && (
               <UserSubmission
                 stylePrefix={stylePrefix}
                 handleSubmit={handleSubmit}
+                maxLengths={maxLengths}
               />
             )}
           </div>
