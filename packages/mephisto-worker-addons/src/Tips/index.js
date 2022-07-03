@@ -92,6 +92,9 @@ function Tips({
             />
             {!disableUserSubmission && (
               <UserSubmission
+                stylePrefixWithNoHeadlessPrefix={
+                  stylePrefixWithNoHeadlessPrefix
+                }
                 stylePrefix={stylePrefix}
                 handleSubmit={handleSubmit}
                 maxLengths={maxLengths}

@@ -226,13 +226,13 @@
   border-radius: 1.25rem;
   z-index: 999;
   line-height: 1.5;
-  box-sizing: border-box;
   color: rgb(70, 70, 70);
   position: absolute;
 }
 .mephisto-worker-addons-tips__padding-container {
   padding: 1rem 1.5rem;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 /* Common Classes */
@@ -265,7 +265,7 @@
 .mephisto-worker-addons-tips__loader {
   width: 21px;
   height: 21px;
-  border: 3px solid rgb(83, 83, 83);
+  border: 3px solid rgb(70, 70, 70);
   border-bottom-color: transparent;
   border-radius: 50%;
   display: inline-block;
