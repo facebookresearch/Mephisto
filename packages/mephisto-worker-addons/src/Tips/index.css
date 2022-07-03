@@ -173,6 +173,7 @@
 .mephisto-worker-addons-tips__text {
   white-space: pre-wrap;
   font-size: 1em;
+  margin: 0.5rem 0;
 }
 
 #mephisto-worker-addons-tips__header-input,
