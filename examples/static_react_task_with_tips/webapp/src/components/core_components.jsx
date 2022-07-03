@@ -64,12 +64,11 @@ function SimpleFrontend({ taskData, onSubmit }) {
           >
             Mark as Bad
           </button>
-
-          <div style={{ margin: "20rem 0 1.5rem auto", width: "fit-content" }}>
-            <Tips maxHeight="30rem" placement="top-start" />
-          </div>
         </div>
       </section>
+      <div style={{ margin: "15rem 2rem 2rem auto", width: "fit-content" }}>
+        <Tips width="30rem" maxHeight="30rem" />
+      </div>
     </div>
   );
 }
