@@ -64,25 +64,23 @@ function SimpleFrontend({ taskData, onSubmit }) {
           >
             Mark as Bad
           </button>
-
-          <div style={{ margin: "20rem 0 1.5rem auto", width: "fit-content" }}>
-            <Tips
-              maxHeight="30rem"
-              placement="top-start"
-              maxHeaderLength={30}
-              maxTextLength={80}
+        </div>
+        <div style={{ margin: "10rem 0 0 0", width: "min(25rem, 100%)" }}>
+          <Tips
+            width="25rem"
+            maxHeight="30rem"
+            placement="top-start"
+            maxHeaderLength={30}
+            maxTextLength={80}
+          />
+          <div style={{ margin: "1rem 0 0" }}>
+            <Feedback
+              maxTextLength={30}
+              questions={[
+                "What is your favorite part of this task?",
+                "Are you satisfied with this task?",
+              ]}
             />
-            <span style={{ marginLeft: "1rem" }}>
-              <Feedback
-                maxTextLength={30}
-                textAreaMinWidth="10rem"
-                textAreaMaxWidth="30rem"
-                questions={[
-                  "What is your favorite part of this task?",
-                  "Were you satisfied with this task?",
-                ]}
-              />
-            </span>
           </div>
         </div>
       </section>

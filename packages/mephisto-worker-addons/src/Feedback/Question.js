@@ -13,6 +13,7 @@ const Question = forwardRef(
       state,
       dispatch,
       maxFeedbackLength,
+      placeholder,
     },
     ref
   ) => (
@@ -20,11 +21,7 @@ const Question = forwardRef(
       className={`${stylePrefix}questions-container`}
       key={`question-${index}`}
     >
-      <label
-        style={{ width: textAreaWidth }}
-        className={`${stylePrefix}question`}
-        htmlFor={`question-${index}`}
-      >
+      <label className={`${stylePrefix}question`} htmlFor={`question-${index}`}>
         {question}
       </label>{" "}
       <FeedbackTextArea
@@ -44,6 +41,7 @@ const Question = forwardRef(
         dispatch={dispatch}
         maxFeedbackLength={maxFeedbackLength}
         containsQuestions
+        placeholder={placeholder}
       />
       {state.status === 5 && state.errorIndexes.has(index) && (
         <div

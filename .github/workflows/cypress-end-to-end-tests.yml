@@ -285,13 +285,16 @@ jobs:
           cd mephisto/scripts/local_db
           python review_feedback_for_task.py << EOF
           react-static-task-with-tips
+          0
           n
-          n
+          y
           y
           EOF
           python review_feedback_for_task.py << EOF
           react-static-task-with-tips
+          1
           n
+          y
           y
           EOF
 

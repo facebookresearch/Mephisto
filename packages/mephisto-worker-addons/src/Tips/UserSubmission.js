@@ -3,7 +3,12 @@ import { handleTipSubmit, handleChangeTip } from "../Functions";
 import { tipReducer } from "../Reducers";
 import { useMephistoTask } from "mephisto-task";
 
-function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
+function UserSubmission({
+  stylePrefixWithNoHeadlessPrefix,
+  stylePrefix,
+  handleSubmit,
+  maxLengths,
+}) {
   const [tipData, setTipData] = useState({ header: "", text: "" });
   const { handleMetadataSubmit } = useMephistoTask();
   const [state, dispatch] = useReducer(tipReducer, {
@@ -22,7 +27,7 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
       </label>
       <input
         id={`${stylePrefix}header-input`}
-        className={state.status == 4 && `${stylePrefix}input-error`}
+        className={state.status == 4 ? `${stylePrefix}input-error` : undefined}
         placeholder="Write your tip's headline here..."
         value={tipData.header}
         onChange={(e) =>
@@ -49,7 +54,7 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
       <textarea
         placeholder="Write your tip body here..."
         id={`${stylePrefix}text-input`}
-        className={state.status == 5 && `${stylePrefix}input-error`}
+        className={state.status == 5 ? `${stylePrefix}input-error` : undefined}
         value={tipData.text}
         onChange={(e) =>
           handleChangeTip(
@@ -70,7 +75,7 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
         state.status === 4 ||
         state.status === 5) && (
         <div
-          className={`${stylePrefix}${
+          className={`${stylePrefixWithNoHeadlessPrefix}${
             state.status === 2 ? "green" : "red"
           }-box`}
         >
@@ -97,7 +102,7 @@ function UserSubmission({ stylePrefix, handleSubmit, maxLengths }) {
         }
       >
         {state.status === 1 ? (
-          <span className="mephisto-worker-addons-tips__loader"></span>
+          <span className={`${stylePrefixWithNoHeadlessPrefix}loader`}></span>
         ) : (
           "Submit Tip"
         )}

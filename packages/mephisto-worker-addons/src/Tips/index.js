@@ -27,7 +27,7 @@ function Tips({
   };
 
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
-  const popupWidth = width ? width : "30rem";
+  const popupWidth = width ? width : "min(30rem, 100%)";
   const {
     getTooltipProps,
     setTooltipRef,
@@ -38,7 +38,7 @@ function Tips({
       trigger: "click",
       closeOnOutsideClick: true,
       visible: isVisible,
-      offset: [0, 6],
+      offset: [0, 18],
       onVisibleChange: setIsVisible,
     },
     {
@@ -67,11 +67,11 @@ function Tips({
         <div
           {...getTooltipProps({ className: "tooltip-container" })}
           ref={setTooltipRef}
-          className={`mephisto-worker-addons-tips__container`}
+          className={`${stylePrefixWithNoHeadlessPrefix}container`}
         >
           <div
-            className={`mephisto-worker-addons-tips__padding_container`}
             style={{ maxHeight: maxPopupHeight, width: popupWidth }}
+            className={`${stylePrefixWithNoHeadlessPrefix}padding-container`}
           >
             <div className={`${stylePrefix}task-header-container`}>
               <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
@@ -90,8 +90,12 @@ function Tips({
               stylePrefix={stylePrefix}
               maxPopupHeight={maxPopupHeight}
             />
+
             {!disableUserSubmission && (
               <UserSubmission
+                stylePrefixWithNoHeadlessPrefix={
+                  stylePrefixWithNoHeadlessPrefix
+                }
                 stylePrefix={stylePrefix}
                 handleSubmit={handleSubmit}
                 maxLengths={maxLengths}
