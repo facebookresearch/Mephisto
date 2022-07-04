@@ -27,6 +27,7 @@ from mephisto.data_model.exceptions import (
 )
 
 from typing import Union, List, Optional, Tuple, Mapping, Dict, Any, cast, TYPE_CHECKING
+from detoxify import Detoxify
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -250,6 +251,49 @@ class _AgentBase(ABC):
         """Handle final submission for an onboarding agent, with the given data"""
         self.did_submit.set()
         self.state.update_submit(submit_data)
+
+    def handle_metadata_submit(self, data: Dict[str, Any]) -> None:
+        """Handles the submission of metadata (as of now that is tips and feedback)"""
+        init_agent_data = self.state.get_init_state(get_all_state=True)
+        assert init_agent_data is not None, "Could not find agent data"
+        init_agent_data = init_agent_data.copy()
+
+        if "tips" in data:
+            """Handles the submission of a tip"""
+            # Updates tips
+            new_tip_header = data["tips"]["header"]
+            new_tip_text = data["tips"]["text"]
+            init_agent_data["metadata"]["tips"].append(
+                {
+                    "id": str(uuid4()),
+                    "header": new_tip_header,
+                    "text": new_tip_text,
+                    "accepted": False,
+                }
+            )
+            self.state.update_metadata({"tips": init_agent_data["metadata"]["tips"]})
+
+        elif "feedback" in data:
+            questions_and_answers = data["feedback"]["data"]
+            for question_obj in questions_and_answers:
+                new_feedback_text = question_obj["text"]
+                new_feedback_toxicity = Detoxify("original").predict(new_feedback_text)[
+                    "toxicity"
+                ]
+                init_agent_data["metadata"]["feedback"].append(
+                    {
+                        "id": str(uuid4()),
+                        "question": question_obj["question"],
+                        "text": new_feedback_text,
+                        "reviewed": False,
+                        "toxicity": str(new_feedback_toxicity),
+                    }
+                )
+
+            # Sets agent tips to updated version
+            self.state.update_metadata(
+                {"feedback": init_agent_data["metadata"]["feedback"]}
+            )
 
     def shutdown(self) -> None:
         """
