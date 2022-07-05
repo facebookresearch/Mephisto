@@ -505,8 +505,7 @@ def create_compensation_hit_with_hit_type(
 
     is_sandbox = client_is_sandbox(client)
 
-    # Create the HIT
-    # Question: Does method below need to be updated as well?
+    # Creates a compensation HIT to be completed in the next month
     response = client.create_hit_with_hit_type(
         HITTypeId=hit_type_id,
         MaxAssignments=num_assignments,
