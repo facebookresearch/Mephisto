@@ -113,12 +113,12 @@ class TaskRunArgs:
         },
     )
 
-    post_build_script: str = field(
+    post_install_script: str = field(
         default="",
         metadata={
             "help": (
-                "The path to a shell script that will run right before npm build."
-                "This can be useful for local package development where you would want to link a package."
+                "The name of a shell script in your webapp directory that will run right after npm install."
+                "This can be useful for local package development where you would want to link a package after installing dependencies from package.json"
             )
         },
     )
@@ -129,7 +129,7 @@ class TaskRunArgs:
             "help": (
                 "Determines if npm build should be ran every time the task is ran."
                 "By default there is an optimization that only builds the webapp when there is a change in its contents."
-                "It would make sense to set this to true when doing local package development as you want to force a rebuild after running the post_build_script."
+                "It would make sense to set this to true when doing local package development as you want to force a rebuild after running the post_install_script."
             )
         },
     )
