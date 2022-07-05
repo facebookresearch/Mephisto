@@ -7,6 +7,7 @@
 Utilities that are useful for Mephisto-related scripts.
 """
 
+import warnings
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
@@ -24,12 +25,14 @@ import functools
 import hydra
 import subprocess
 from typing import (
+    Dict,
     Tuple,
     Any,
     Type,
     TypeVar,
     Callable,
     Optional,
+    Union,
     cast,
     TYPE_CHECKING,
 )
@@ -221,7 +224,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
     return script_cfg
 
 
-def build_custom_bundle(custom_src_dir, run_config: DictConfig):
+def build_custom_bundle(custom_src_dir, **kwargs: Union[str, bool]):
     """Locate all of the custom files used for a custom build, create
     a prebuild directory containing all of them, then build the
     custom source.
@@ -234,8 +237,21 @@ def build_custom_bundle(custom_src_dir, run_config: DictConfig):
 
     IGNORE_FOLDERS = {os.path.join(prebuild_path, f) for f in IGNORE_FOLDERS}
     build_path = os.path.join(prebuild_path, "build", "bundle.js")
+
+    if "force_rebuild" not in kwargs:
+        warnings.warn(
+            "Consider adding the force_rebuild property to your hydra config and passing it into build_custom_bundle()\nSteps on how to do this: \nhttps://github.com/facebookresearch/Mephisto/issues/811",
+            stacklevel=2,
+        )
+
+    if "post_install_script" not in kwargs:
+        warnings.warn(
+            "Consider adding the post_install_script property to your hydra config and passing it into build_custom_bundle()\nSteps on how to do this: \nhttps://github.com/facebookresearch/Mephisto/issues/811",
+            stacklevel=2,
+        )
+
     # see if we need to rebuild
-    if run_config.task.force_rebuild is False:
+    if "force_rebuild" not in kwargs or kwargs["force_rebuild"] == False:
         if os.path.exists(build_path):
             created_date = os.path.getmtime(build_path)
             up_to_date = True
@@ -269,10 +285,13 @@ def build_custom_bundle(custom_src_dir, run_config: DictConfig):
         )
 
     if (
-        run_config.task.post_install_script is not None
-        and len(run_config.task.post_install_script) > 0
+        "post_install_script" in kwargs
+        and kwargs["post_install_script"] is not None
+        and isinstance(kwargs["post_install_script"], str)
     ):
-        subprocess.call(["bash", run_config.task.post_install_script])
+        post_install_string: str = str(kwargs["post_install_script"])
+        if len(post_install_string) > 0:
+            subprocess.call(["bash", post_install_string])
 
     webpack_complete = subprocess.call(["npm", "run", "dev"])
     if webpack_complete != 0:
