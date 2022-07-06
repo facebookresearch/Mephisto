@@ -6,10 +6,8 @@
 
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
-import os
-import json
+import os.path
 import time
-import weakref
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -22,31 +20,9 @@ class ParlAIChatAgentState(AgentState):
     containing every act from the ParlAI world.
     """
 
-    def __init__(self, agent: "Agent"):
-        """
-        Create an AgentState to track the state of an agent's work on a Unit
-
-        Initialize with an existing file if it exists.
-        """
-        self.agent = weakref.proxy(agent)
-        data_file = self._get_expected_data_file()
-        if os.path.exists(data_file):
-            self.load_data()
-        else:
-            self.messages: List[Dict[str, Any]] = []
-            self.final_submission: Optional[Dict[str, Any]] = None
-            self.init_data = None
-            self.save_data()
-
-    def set_init_state(self, data: Any) -> bool:
+    def _set_init_state(self, data: Any):
         """Set the initial state for this agent"""
-        if self.init_data is not None:
-            # Initial state is already set
-            return False
-        else:
-            self.init_data = data
-            self.save_data()
-            return True
+        self.init_data: Optional[Any] = data
 
     def get_init_state(self) -> Optional[Dict[str, Any]]:
         """
@@ -60,14 +36,17 @@ class ParlAIChatAgentState(AgentState):
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""
         agent_dir = self.agent.get_data_dir()
-        os.makedirs(agent_dir, exist_ok=True)
         return os.path.join(agent_dir, "state.json")
 
-    def load_data(self) -> None:
+    def _load_data(self) -> None:
         """Load stored data from a file to this object"""
         agent_file = self._get_expected_data_file()
-        with open(agent_file, "r") as state_json:
-            state = json.load(state_json)
+        if not self.agent.db.key_exists(agent_file):
+            self.messages: List[Dict[str, Any]] = []
+            self.final_submission: Optional[Dict[str, Any]] = None
+            self.init_data = None
+        else:
+            state = self.agent.db.read_dict(agent_file)
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
             self.final_submission = state["outputs"].get("final_submission")
@@ -119,11 +98,10 @@ class ParlAIChatAgentState(AgentState):
         """
         return self.messages[-1]["timestamp"]
 
-    def save_data(self) -> None:
+    def _save_data(self) -> None:
         """Save all messages from this agent to"""
         agent_file = self._get_expected_data_file()
-        with open(agent_file, "w+") as state_json:
-            json.dump(self.get_data(), state_json)
+        self.agent.db.write_dict(agent_file, self.get_data())
 
     def update_data(self, live_update: Dict[str, Any]) -> None:
         """
@@ -133,7 +111,6 @@ class ParlAIChatAgentState(AgentState):
         self.messages.append(live_update)
         self.save_data()
 
-    def update_submit(self, submitted_data: Dict[str, Any]) -> None:
+    def _update_submit(self, submitted_data: Dict[str, Any]) -> None:
         """Append any final submission to this state"""
         self.final_submission = submitted_data
-        self.save_data()

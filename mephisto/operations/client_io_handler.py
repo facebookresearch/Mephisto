@@ -26,7 +26,7 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_ERROR,
 )
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.agent import Agent, OnboardingAgent
+from mephisto.data_model.agent import Agent, OnboardingAgent, _AgentBase
 from mephisto.operations.datatypes import LiveTaskRun
 from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
 from typing import Dict, Tuple, Union, Optional, List, Any, TYPE_CHECKING
@@ -289,6 +289,7 @@ class ClientIOHandler:
         assert (
             "onboarding_data" in packet.data
         ), f"Onboarding packet {packet} submitted without data"
+        agent: Optional["_AgentBase"]
         live_run = self.get_live_run()
         onboarding_id = packet.subject_id
         if onboarding_id not in live_run.worker_pool.onboarding_agents:
