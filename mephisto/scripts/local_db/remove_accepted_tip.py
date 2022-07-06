@@ -22,7 +22,7 @@ def main():
     print("")
     task_name = Confirm.get_input(
         console,
-        ":writing_hand:  [green]Enter the name of the task that you want to review the tips of[/green]: \n",
+        "[green]Enter the name of the task that you want to review the tips of[/green]: \n",
         False,
     ).strip()
 
@@ -31,13 +31,13 @@ def main():
         print("[red]That task name is not valid[/red]\n")
         task_name = Confirm.get_input(
             console,
-            ":writing_hand:  [green]Enter the name of the task that you want to review the tips of[/green]: \n",
+            "[green]Enter the name of the task that you want to review the tips of[/green]: \n",
             False,
         ).strip()
         print("")
     units = mephisto_data_browser.get_all_units_for_task_name(task_name)
     if len(units) == 0:
-        print("No units were received")
+        print("[red]No units were received[/red]")
         quit()
     for unit in units:
         if unit.agent_id is not None:
@@ -77,10 +77,10 @@ def main():
                     print("")
                 if removal_response == "y" or removal_response == "yes":
                     remove_tip_from_metadata(accepted_tips, accepted_tips_copy, i, unit)
-                    print("[green]:wastebasket:  Removed tip[/green]\n")
+                    print("[green]Removed tip[/green]\n")
                 elif removal_response == "n" or removal_response == "no":
                     print("[green]Did not remove tip[/green]\n")
-    print("[green]There are no more tips to look at :sunglasses:[/green]\n")
+    print("[green]There are no more tips to look at[/green]\n")
 
 
 if __name__ == "__main__":

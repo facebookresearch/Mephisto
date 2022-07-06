@@ -67,7 +67,7 @@ def main():
     print("")
     task_name = Confirm.get_input(
         console,
-        ":writing_hand:  [green]Enter the name of the task that you want to review the tips of[/green]: \n",
+        "[green]Enter the name of the task that you want to review the tips of[/green]: \n",
         False,
     ).strip()
     print("")
@@ -75,7 +75,7 @@ def main():
         print("[red]That task name is not valid\n[/red]")
         task_name = Confirm.get_input(
             console,
-            ":writing_hand:  [green]Enter the name of the task that you want to review the tips of[/green]: \n",
+            "[green]Enter the name of the task that you want to review the tips of[/green]: \n",
             False,
         ).strip()
         print("")
@@ -115,7 +115,7 @@ def main():
                         print("")
                         acceptable_tip_responses = set(["a", "accept", "r", "reject"])
                         while tip_response not in acceptable_tip_responses:
-                            print("That response is not valid\n")
+                            print("[red]That response is not valid[/red]\n")
                             tip_response = Confirm.get_input(
                                 console,
                                 "[green]Do you want to accept or reject this tip?[/green] [magenta]accept(a)/reject(r):[/magenta] \n",
@@ -134,7 +134,7 @@ def main():
                             ).strip()
                             acceptable_bonus_responses = set(["yes", "y", "no", "n"])
                             while is_bonus not in acceptable_bonus_responses:
-                                print("That response is not valid\n")
+                                print("[red]That response is not valid[/red]\n")
                                 is_bonus = Confirm.get_input(
                                     console,
                                     "[green]Do you want to pay a bonus to this worker for their tip?[/green] [magenta]yes(y)/no(n):[/magenta] \n",
@@ -159,7 +159,7 @@ def main():
                                     )
                                     if bonus_successfully_paid:
                                         print(
-                                            "\n[green]:moneybag: Bonus Successfully Paid![/green]\n"
+                                            "\n[green]Bonus Successfully Paid![/green]\n"
                                         )
                                     else:
                                         print(
@@ -172,7 +172,7 @@ def main():
                             remove_tip_from_metadata(tips, tips_copy, i, unit)
                             print("[green]Tip Rejected[/green]\n")
 
-    print("[green]There are no more tips to review :thumbsup:[/green]\n")
+    print("[green]There are no more tips to review[/green]\n")
 
 
 if __name__ == "__main__":
