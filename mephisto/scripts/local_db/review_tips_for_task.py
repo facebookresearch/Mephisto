@@ -14,14 +14,12 @@ from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
-from rich.console import Console
 from rich import print
 from rich.markdown import Markdown
-from rich.table import Table, Column
 from rich import box
 from rich.prompt import Confirm, FloatPrompt
-
-console = Console()
+from rich.table import Table, Column
+from mephisto.utils.rich import console
 
 
 def get_index_of_value(lst: List[str], property: str):
@@ -64,7 +62,7 @@ def main():
     for task_name in task_names:
         task_names_text += "\n* " + task_name
 
-    task_names_markdown = Markdown(task_names_text, justify="left")
+    task_names_markdown = Markdown(task_names_text)
     console.print(task_names_markdown)
     print("")
     task_name = Confirm.get_input(
