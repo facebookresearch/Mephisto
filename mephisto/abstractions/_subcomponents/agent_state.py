@@ -37,7 +37,7 @@ class _AgentStateMetadata:
     Class to track the first-class feature fields of info about an AgentState.
 
     AgentState subclasses may choose to track additional metadata, but should
-    attach to the agent state subclass directly.
+    put these as attributes of the agent state subclass directly.
     """
 
     task_start: Optional[float] = None
