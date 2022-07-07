@@ -8,13 +8,19 @@ This prevents it from appearing again when running this script.
 
 Rejecting a tip deletes the tip from the tips list in the AgentState metadata.
 """
+try:
+    from rich import print
+except ImportError:
+    print(
+        "\nYou need to have rich installed to use this script. For example: pip install rich\n"
+    )
+    exit(1)
 
 from typing import List
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
-from rich import print
 from rich.markdown import Markdown
 from rich import box
 from rich.prompt import Prompt

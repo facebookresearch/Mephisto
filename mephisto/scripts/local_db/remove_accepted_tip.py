@@ -1,8 +1,23 @@
+"""
+Script that allows for accepted tips to be removed.
+Accepted tips are collected by retrieving all units and then getting the agent of each unit.
+The tips for each agent state is filtered to only collect accepted tips.
+
+For each accepted tip you have the option to remove the tip from the agent state.
+"""
+
+try:
+    from rich import print
+except ImportError:
+    print(
+        "\nYou need to have rich installed to use this script. For example: pip install rich\n"
+    )
+    exit(1)
+
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.scripts.local_db.review_tips_for_task import remove_tip_from_metadata
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.utils.rich import console
-from rich import print
 from rich.prompt import Prompt
 from rich.markdown import Markdown
 from rich.table import Table, Column
