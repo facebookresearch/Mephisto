@@ -42,7 +42,9 @@ def main():
                 current_tip_table = Table(
                     "Property",
                     Column("Value"),
-                    title="Tip " + str(i + 1) + " of " + str(len(accepted_tips)),
+                    title="Tip {current_tip} of {total_number_of_tips}".format(
+                        current_tip=i + 1, total_number_of_tips=len(accepted_tips)
+                    ),
                     box=box.ROUNDED,
                     expand=True,
                     show_lines=True,

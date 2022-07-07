@@ -89,7 +89,9 @@ def main():
                         current_tip_table = Table(
                             "Property",
                             "Value",
-                            title="Tip " + str(i + 1) + " of " + str(len(tips)),
+                            title="Tip {current_tip} of {total_number_of_tips}".format(
+                                current_tip=i + 1, total_number_of_tips=len(tips)
+                            ),
                             box=box.ROUNDED,
                             expand=True,
                             show_lines=True,
@@ -108,7 +110,7 @@ def main():
                         if tip_response == "a":
                             # persists the tip in the db as it is accepted
                             accept_tip(tips, tips_copy, i, unit)
-                            print("Tip Accepted")
+                            print("[green]Tip Accepted[/green]")
                             # given the option to pay a bonus to the worker who wrote the tip
                             is_bonus = Prompt.ask(
                                 "\nDo you want to pay a bonus to this worker for their tip",
@@ -122,7 +124,7 @@ def main():
 
                                 reason = Confirm.get_input(
                                     console,
-                                    "\nWhat is your reason for the bonus:",
+                                    "\nWhat is your reason for the bonus: ",
                                     False,
                                 )
                                 worker_id = float(unit_data["worker_id"])
@@ -132,7 +134,9 @@ def main():
                                         bonus_amount, reason, unit
                                     )
                                     if bonus_successfully_paid:
-                                        print("\nBonus Successfully Paid!\n")
+                                        print(
+                                            "\n[green]Bonus Successfully Paid![/green]\n"
+                                        )
                                     else:
                                         print(
                                             "\n[red]There was an error when paying out your bonus[/red]\n"
