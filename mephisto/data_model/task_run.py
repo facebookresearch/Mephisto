@@ -74,6 +74,10 @@ class TaskRunArgs:
             "required": True,
         },
     )
+    task_lifetime_in_seconds: int = field(
+        default=60 * 60 * 24 * 31,
+        metadata={"help": "The time that the task will last for before expiring"},
+    )
     assignment_duration_in_seconds: int = field(
         default=30 * 60,
         metadata={"help": "Time that workers have to work on your task once accepted."},

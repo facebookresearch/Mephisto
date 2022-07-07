@@ -16,6 +16,7 @@ from mephisto.operations.registry import (
     get_valid_provider_types,
 )
 from typing import Mapping, Optional, Any, List, Dict
+import enum
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.assignment import Assignment
@@ -1059,3 +1060,30 @@ class MephistoDB(ABC):
         return self._revoke_qualification(
             qualification_id=qualification_id, worker_id=worker_id
         )
+
+    # File/blob manipulation methods
+
+    @abstractmethod
+    def write_dict(self, path_key: str, target_dict: Dict[str, Any]):
+        """Write an object to the given key"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def read_dict(self, path_key: str) -> Dict[str, Any]:
+        """Return the dict loaded from the given path key"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def write_text(self, path_key: str, data_string: str):
+        """Write the given text to the given key"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def read_text(self, path_key: str) -> str:
+        """Get text data stored at the given key"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def key_exists(self, path_key: str) -> bool:
+        """See if the given path refers to a known file"""
+        raise NotImplementedError()

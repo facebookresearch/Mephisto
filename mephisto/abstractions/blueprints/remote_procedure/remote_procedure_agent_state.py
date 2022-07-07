@@ -35,33 +35,9 @@ class RemoteProcedureAgentState(AgentState):
     Holds information about tasks with live interactions in a remote query model.
     """
 
-    def __init__(self, agent: "Agent"):
-        """
-        Create an agent state that keeps track of incoming actions from the frontend client
-        Initialize with an existing file if it exists.
-        """
-        self.agent = weakref.proxy(agent)
-        data_file = self._get_expected_data_file()
-        if os.path.exists(data_file):
-            self.load_data()
-        else:
-            self.requests: Dict[str, RemoteRequest] = {}
-            self.start_time = time.time()
-            self.end_time = -1.0
-            self.init_data: Optional[Dict[str, Any]] = None
-            self.final_submission: Optional[Dict[str, Any]] = None
-            self.metadata: Optional[Dict[str, Any]] = {"tips": [], "feedback": []}
-            self.save_data()
-
-    def set_init_state(self, data: Any) -> bool:
+    def _set_init_state(self, data: Any):
         """Set the initial state for this agent"""
-        if self.init_data is not None:
-            # Initial state is already set
-            return False
-        else:
-            self.init_data = data
-            self.save_data()
-            return True
+        self.init_data: Optional[Dict[str, Any]] = data
 
     def get_init_state(self, get_all_state: bool = False) -> Optional[Dict[str, Any]]:
         """
@@ -87,17 +63,21 @@ class RemoteProcedureAgentState(AgentState):
         os.makedirs(agent_dir, exist_ok=True)
         return os.path.join(agent_dir, "state.json")
 
-    def load_data(self) -> None:
+    def _load_data(self) -> None:
         """Load stored data from a file to this object"""
+        self.requests: Dict[str, RemoteRequest] = {}
+        self.init_data = None
+        self.final_submission: Optional[Dict[str, Any]] = None
         agent_file = self._get_expected_data_file()
-        with open(agent_file, "r") as state_json:
-            state = json.load(state_json)
+        if self.agent.db.key_exists(agent_file):
+            state = self.agent.db.read_dict(agent_file)
             self.requests = {x["uuid"]: RemoteRequest(**x) for x in state["requests"]}
             self.init_data = state["init_data"]
             self.final_submission = state["final_submission"]
-            self.start_time = state["start_time"]
-            self.end_time = state["end_time"]
-            self.metadata = state["metadata"]
+            # Backwards compatibility for times
+            if "start_time" in state:
+                self.metadata.task_start = state["start_time"]
+                self.metadata.task_end = state["end_time"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
@@ -105,9 +85,8 @@ class RemoteProcedureAgentState(AgentState):
             "final_submission": self.final_submission,
             "init_data": self.init_data,
             "requests": [r.to_dict() for r in self.requests.values()],
-            "start_time": self.start_time,
-            "end_time": self.end_time,
-            "metadata": self.metadata,
+            "start_time": self.metadata.task_start,
+            "end_time": self.metadata.task_end,
         }
 
     def get_parsed_data(self) -> Dict[str, Any]:
@@ -115,23 +94,10 @@ class RemoteProcedureAgentState(AgentState):
         # TODO implement actually getting this data
         return self.get_data()
 
-    def get_task_start(self) -> float:
-        """
-        Return the start time for this task
-        """
-        return self.start_time
-
-    def get_task_end(self) -> float:
-        """
-        Return the end time for this task
-        """
-        return self.end_time
-
-    def save_data(self) -> None:
+    def _save_data(self) -> None:
         """Save all messages from this agent to"""
         agent_file = self._get_expected_data_file()
-        with open(agent_file, "w+") as state_json:
-            json.dump(self.get_data(), state_json)
+        self.agent.db.write_dict(agent_file, self.get_data())
 
     def update_data(self, live_update: Dict[str, Any]) -> None:
         """
@@ -159,12 +125,13 @@ class RemoteProcedureAgentState(AgentState):
             )
             self.requests[live_update["request_id"]] = request
 
-    def update_submit(self, submitted_data: Dict[str, Any]) -> None:
+    def _update_submit(self, submitted_data: Dict[str, Any]) -> None:
         """Append any final submission to this state"""
         self.final_submission = submitted_data
         self.end_time = time.time()
         self.save_data()
 
+    # TODO: Remove this and put it in agent_state
     def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
         """Replace metadata field with new metadata and write it"""
         new_metadata = self.metadata

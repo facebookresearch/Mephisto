@@ -238,7 +238,7 @@ class _AgentBase(ABC):
             elif status == AgentState.STATUS_RETURNED:
                 raise AgentReturnedError(self.db_id)
             elif status == AgentState.STATUS_TIMEOUT:
-                raise AgentTimeoutError(self.db_id)
+                raise AgentTimeoutError(timeout, self.db_id)
             # Wait for the status change
             self.did_submit.wait(timeout=timeout)
             if not self.did_submit.is_set():

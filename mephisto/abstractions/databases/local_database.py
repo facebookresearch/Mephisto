@@ -28,6 +28,8 @@ from mephisto.data_model.qualification import Qualification, GrantedQualificatio
 import sqlite3
 from sqlite3 import Connection, Cursor
 import threading
+import os
+import json
 
 from mephisto.utils.logger_core import get_logger
 
@@ -1466,3 +1468,42 @@ class LocalMephistoDB(MephistoDB):
                 )
                 for r in rows
             ]
+
+    # File/blob manipulation methods
+
+    def _assert_path_in_domain(self, path_key: str) -> None:
+        """Helper method to ensure we only manage data we're supposed to"""
+        assert path_key.startswith(
+            self.db_root
+        ), f"Accessing invalid key {path_key} for root {self.db_root}"
+
+    def write_dict(self, path_key: str, target_dict: Dict[str, Any]):
+        """Write an object to the given key"""
+        self._assert_path_in_domain(path_key)
+        os.makedirs(os.path.dirname(path_key), exist_ok=True)
+        with open(path_key, "w+") as data_file:
+            json.dump(target_dict, data_file)
+
+    def read_dict(self, path_key: str) -> Dict[str, Any]:
+        """Return the dict loaded from the given path key"""
+        self._assert_path_in_domain(path_key)
+        with open(path_key, "r") as data_file:
+            return json.load(data_file)
+
+    def write_text(self, path_key: str, data_string: str):
+        """Write the given text to the given key"""
+        self._assert_path_in_domain(path_key)
+        os.makedirs(os.path.dirname(path_key), exist_ok=True)
+        with open(path_key, "w+") as data_file:
+            data_file.write(data_string)
+
+    def read_text(self, path_key: str) -> str:
+        """Get text data stored at the given key"""
+        self._assert_path_in_domain(path_key)
+        with open(path_key, "r") as data_file:
+            return data_file.read()
+
+    def key_exists(self, path_key: str) -> bool:
+        """See if the given path refers to a known file"""
+        self._assert_path_in_domain(path_key)
+        return os.path.exists(path_key)
