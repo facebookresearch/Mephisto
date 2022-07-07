@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from __future__ import annotations
+from copy import copy
 
 import os
 import threading
@@ -255,21 +256,32 @@ class _AgentBase(ABC):
         """Handles the submission of metadata (as of now that is tips and feedback)"""
         if "tips" in data:
             """Handles the submission of a tip"""
-            init_agent_data = self.state.get_init_state(get_all_state=True)
-            assert init_agent_data is not None, "Could not find agent data"
-            init_agent_data = init_agent_data.copy()
-            # Updates tips
+            print("Metadata")
+            assert (
+                self.state.does_metadata_have_property("tips") == True
+            ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
+                property_name="tips"
+            )
             new_tip_header = data["tips"]["header"]
             new_tip_text = data["tips"]["text"]
-            init_agent_data["metadata"]["tips"].append(
-                {
-                    "id": str(uuid4()),
-                    "header": new_tip_header,
-                    "text": new_tip_text,
-                    "accepted": False,
-                }
-            )
-            self.state.update_metadata({"tips": init_agent_data["metadata"]["tips"]})
+            copy_of_tips = None
+            item_to_add = {
+                "id": str(uuid4()),
+                "header": new_tip_header,
+                "text": new_tip_text,
+                "accepted": False,
+            }
+            if self.state.metadata.tips is None:
+                self.state.update_metadata(
+                    property_name="tips", property_value=[item_to_add]
+                )
+            else:
+                copy_of_tips = self.state.metadata.tips.copy()
+                copy_of_tips.append(item_to_add)
+                self.state.update_metadata(
+                    property_name="tips", property_value=copy_of_tips
+                )
+            print(self.state.metadata.tips)
 
         if "feedback" in data:
             print("Feedback received")

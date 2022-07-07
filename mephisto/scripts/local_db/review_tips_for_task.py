@@ -11,6 +11,7 @@ Rejecting a tip deletes the tip from the tips list in the AgentState metadata.
 
 from typing import List
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.data_model.agent import Agent
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
@@ -37,11 +38,13 @@ def remove_tip_from_metadata(tips, tips_copy, i, unit):
     """Removes a tip from metadata"""
     tips_id = [tip_obj["id"] for tip_obj in tips_copy]
     index_to_remove = get_index_of_value(tips_id, tips[i]["id"])
-    assigned_agent = unit.get_assigned_agent()
+    assigned_agent: Agent = unit.get_assigned_agent()
 
     if assigned_agent is not None:
         tips_copy.pop(index_to_remove)
-        assigned_agent.state.update_metadata({"tips": tips_copy})
+        assigned_agent.state.update_metadata(
+            property_name="tips", property_value=tips_copy
+        )
 
 
 def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit):
@@ -53,7 +56,9 @@ def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit):
 
     if assigned_agent is not None:
         tips_copy[index_to_update]["accepted"] = True
-        assigned_agent.state.update_metadata({"tips": tips_copy})
+        assigned_agent.state.update_metadata(
+            property_name="tips", property_value=tips_copy
+        )
 
 
 def main():
@@ -82,9 +87,9 @@ def main():
         if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
 
-            metadata = unit_data["data"]["metadata"]
-            tips = metadata["tips"]
-            if len(tips) > 0:
+            metadata = unit_data["metadata"]
+            tips = metadata.tips
+            if tips is not None and len(tips) > 0:
                 tips_copy = tips.copy()
                 for i in range(len(tips)):
                     if tips[i]["accepted"] == False:

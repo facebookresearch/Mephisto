@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import dataclasses
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
 import os
@@ -39,7 +40,9 @@ class RemoteProcedureAgentState(AgentState):
         """Set the initial state for this agent"""
         self.init_data: Optional[Dict[str, Any]] = data
 
-    def get_init_state(self, get_all_state: bool = False) -> Optional[Dict[str, Any]]:
+    def get_init_state(
+        self, get_all_state: Optional[bool] = False
+    ) -> Optional[Dict[str, Any]]:
         """
         Return the initial state for this agent,
         None if no such state exists
@@ -54,7 +57,7 @@ class RemoteProcedureAgentState(AgentState):
         return {
             "task_data": self.init_data,
             "previous_requests": prev_requests,
-            "metadata": self.metadata,
+            "metadata": dataclasses.asdict(self.metadata),
         }
 
     def _get_expected_data_file(self) -> str:
@@ -130,15 +133,3 @@ class RemoteProcedureAgentState(AgentState):
         self.final_submission = submitted_data
         self.end_time = time.time()
         self.save_data()
-
-    # TODO: Remove this and put it in agent_state
-    def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
-        """Replace metadata field with new metadata and write it"""
-        new_metadata = self.metadata
-        if new_metadata is not None:
-            if "tips" in new_metadata_obj:
-                new_metadata["tips"] = new_metadata_obj["tips"]
-            if "feedback" in new_metadata_obj:
-                new_metadata["feedback"] = new_metadata_obj["feedback"]
-            self.metadata = new_metadata
-            self.save_data()

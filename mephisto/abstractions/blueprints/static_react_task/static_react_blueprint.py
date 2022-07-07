@@ -144,4 +144,4 @@ class StaticReactBlueprint(StaticBlueprint):
         )
         # Use overrides provided downstream
         front_end_task_config_with_metadata.update(self.frontend_task_config)
-        return front_end_task_config_with_metadata
+        return frontend_task_config

@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import time
 from typing import List, Dict, Optional, Any, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
 import os.path
@@ -93,14 +94,3 @@ class StaticAgentState(AgentState):
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
         self.save_data()
-
-    # TODO: Remove this and put it in agent_state
-    def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
-        new_metadata = self.state["metadata"]
-        if new_metadata is not None:
-            if "tips" in new_metadata_obj:
-                new_metadata["tips"] = new_metadata_obj["tips"]
-            if "feedback" in new_metadata_obj:
-                new_metadata["feedback"] = new_metadata_obj["feedback"]
-            self.state["metadata"] = new_metadata
-            self.save_data()
