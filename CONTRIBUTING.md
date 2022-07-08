@@ -12,6 +12,8 @@ We actively welcome your pull requests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
 5. Make sure your code lints.
+    * This can be done by running `pre-commit install`. This will check the if your code is formatted correctly on each commit.
+    * Make sure that pre-commit is installed by following the steps in [this website](https://pre-commit.com/).
 6. If you haven't already, complete the Contributor License Agreement ("CLA").
 
 ## Cypress Testing
@@ -43,12 +45,12 @@ If you are modifying either the `mephisto-task` or `mephisto-worker-addons` pack
 
 The easiest way to do this is to run a task by doing:
 ```bash
-python run_task.py mephisto.task.post_build_script=link_mephisto_task.sh mephisto.task.force_rebuild=true
+python run_task.py mephisto.task.post_install_script=link_mephisto_task.sh mephisto.task.force_rebuild=true
 ```
 
 Setting `mephisto.task.force_rebuild=true` runs `npm build` before running your task. By default the task is only rebuilt if a file is changed in the webapp, not if a linked package is changed.
 
-Setting `mephisto.task.post_build_script=link_mephisto_task.sh` runs the `link_mephisto_task.sh` script after `npm install` is ran and before the task is started. This script should be located in the webapp folder of the task. While this script can do many things, for local package development the primary purpose of it is to link to a local package.
+Setting `mephisto.task.post_install_script=link_mephisto_task.sh` runs the `link_mephisto_task.sh` script after `npm install` is ran and before the task is started. This script should be located in the webapp folder of the task. While this script can do many things, for local package development the primary purpose of it is to link to a local package.
 
 Alternatively, these values can be set in the task's hydra_configs/conf yaml file if you want to forgo typing the above and just type
 ```bash

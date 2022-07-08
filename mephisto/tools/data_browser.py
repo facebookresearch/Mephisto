@@ -115,6 +115,8 @@ class DataBrowser:
             "data": agent.state.get_parsed_data(),
             "task_start": agent.state.get_task_start(),
             "task_end": agent.state.get_task_end(),
+            "tips": agent.state.get_tips(),
+            "feedback": agent.state.get_feedback(),
         }
 
     def get_workers_with_qualification(self, qualification_name: str) -> List[Worker]:
@@ -129,17 +131,29 @@ class DataBrowser:
         )
         return [Worker.get(self.db, qual.worker_id) for qual in qualifieds]
 
-    def get_metadata_from_task_name(self, task_name: str) -> Dict[str, Any]:
+    def get_metadata_property_from_task_name(
+        self, task_name: str, property_name: str
+    ) -> List[Any]:
         """Returns all metadata for a task by going through its agents"""
+
+        """
+        This will have to be optimized later as this is being ran every time run_task.py is ran
+        Reading from a file instead of looping through all units may be a faster solution
+        """
+
         units = self.get_all_units_for_task_name(task_name=task_name)
-        tips: List[Any] = []
-        feedback: List[Any] = []
+        result: List[Any] = []
+
         for unit in units:
             if unit.agent_id is not None:
                 unit_data = self.get_data_from_unit(unit)
-                metadata = unit_data["data"]["metadata"]
-                unit_tips = metadata["tips"]
-                unit_feedback = metadata["feedback"]
-                tips = tips + unit_tips
-                feedback = feedback + unit_feedback
-        return {"tips": tips, "feedback": feedback}
+
+                assert property_name in unit_data, (
+                    "The {property_name} field must exist in the unit's data. Look for {property_name} in the get_data_from_unit function"
+                ).format(property_name=property_name)
+
+                unit_property_val = unit_data[property_name]
+                if unit_property_val is not None:
+                    result = result + unit_property_val
+
+        return result

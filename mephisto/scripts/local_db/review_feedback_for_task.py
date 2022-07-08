@@ -30,7 +30,9 @@ def set_feedback_as_reviewed(feedback: List, id: str, unit: Unit) -> None:
     index_to_modify = get_index_of_value(feedback_ids, id)
     if assigned_agent is not None:
         feedback[index_to_modify]["reviewed"] = True
-        assigned_agent.state.update_metadata({"feedback": feedback})
+        assigned_agent.state.update_metadata(
+            property_name="feedback", property_value=feedback
+        )
 
 
 def print_out_feedback_elements(
@@ -101,10 +103,10 @@ def main():
     for unit in units:
         if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
-            metadata = unit_data["data"]["metadata"]
-            feedback = metadata["feedback"]
-            for current_feedback in feedback:
-                questions.add(current_feedback["question"])
+            feedback = unit_data["feedback"]
+            if feedback is not None:
+                for current_feedback in feedback:
+                    questions.add(current_feedback["question"])
     questions_list = list(questions)
     questions_list.sort()
 
@@ -162,56 +164,57 @@ def main():
     for unit in units:
         if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
-            metadata = unit_data["data"]["metadata"]
-            feedback = metadata["feedback"]
-            filtered_feedback = feedback.copy()
-            if len(feedback) > 0:
-                # Firstly, filter by question if an index is specified
-                if filter_by_question_index != -1:
-                    filtered_feedback = list(
-                        filter(
-                            lambda feedback_obj: feedback_obj["question"]
-                            == questions_list[filter_by_question_index],
-                            feedback,
+            feedback = unit_data["feedback"]
+            if feedback is not None:
+                filtered_feedback = feedback.copy()
+                if len(feedback) > 0:
+                    # Firstly, filter by question if an index is specified
+                    if filter_by_question_index != -1:
+                        filtered_feedback = list(
+                            filter(
+                                lambda feedback_obj: feedback_obj["question"]
+                                == questions_list[filter_by_question_index],
+                                feedback,
+                            )
                         )
-                    )
-                if filter_toxic_comments in yes_response:
-                    # Secondly, filter the question feedback for toxicity
-                    filtered_feedback = list(
-                        filter(
-                            lambda feedback_obj: float(feedback_obj["toxicity"]) < 0.5,
-                            filtered_feedback,
+                    if filter_toxic_comments in yes_response:
+                        # Secondly, filter the question feedback for toxicity
+                        filtered_feedback = list(
+                            filter(
+                                lambda feedback_obj: float(feedback_obj["toxicity"])
+                                < 0.5,
+                                filtered_feedback,
+                            )
                         )
-                    )
 
-                if see_unreviewed_feedback in no_response:
-                    # Filter the toxicity feedback to get unreviewed feedback
-                    reviewed_feedback = list(
-                        filter(
-                            lambda feedback_obj: feedback_obj["reviewed"] == True,
-                            filtered_feedback,
+                    if see_unreviewed_feedback in no_response:
+                        # Filter the toxicity feedback to get unreviewed feedback
+                        reviewed_feedback = list(
+                            filter(
+                                lambda feedback_obj: feedback_obj["reviewed"] == True,
+                                filtered_feedback,
+                            )
                         )
-                    )
-                    print_out_feedback_elements(
-                        filtered_feedback_list=reviewed_feedback,
-                        is_unreviewed=False,
-                        unit=unit,
-                        feedback=feedback,
-                    )
-                elif see_unreviewed_feedback in yes_response:
-                    # Filter the toxicity feedback to get reviewed feedback
-                    un_reviewed_feedback = list(
-                        filter(
-                            lambda feedback_obj: feedback_obj["reviewed"] == False,
-                            filtered_feedback,
+                        print_out_feedback_elements(
+                            filtered_feedback_list=reviewed_feedback,
+                            is_unreviewed=False,
+                            unit=unit,
+                            feedback=feedback,
                         )
-                    )
-                    print_out_feedback_elements(
-                        filtered_feedback_list=un_reviewed_feedback,
-                        is_unreviewed=True,
-                        unit=unit,
-                        feedback=feedback,
-                    )
+                    elif see_unreviewed_feedback in yes_response:
+                        # Filter the toxicity feedback to get reviewed feedback
+                        un_reviewed_feedback = list(
+                            filter(
+                                lambda feedback_obj: feedback_obj["reviewed"] == False,
+                                filtered_feedback,
+                            )
+                        )
+                        print_out_feedback_elements(
+                            filtered_feedback_list=un_reviewed_feedback,
+                            is_unreviewed=True,
+                            unit=unit,
+                            feedback=feedback,
+                        )
 
     print(
         "There is no more {} feedback!\n".format(
