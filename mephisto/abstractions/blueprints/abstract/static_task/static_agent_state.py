@@ -90,7 +90,3 @@ class StaticAgentState(AgentState):
         if output_files is not None:
             submission_data["files"] = [f["filename"] for f in submission_data["files"]]
         self.state["outputs"] = submission_data
-        times_dict = self.state["times"]
-        assert isinstance(times_dict, dict)
-        times_dict["task_end"] = time.time()
-        self.save_data()
