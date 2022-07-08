@@ -13,7 +13,7 @@ from typing import (
     Union,
     TYPE_CHECKING,
 )
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import time
 import weakref
 import os.path
