@@ -263,19 +263,16 @@ class Blueprint(ABC):
         """
         return self.frontend_task_config.copy()
 
-    def update_task_config_with_metadata(
+    def update_task_config_with_tips(
         self,
-        metadata: Dict[str, Any],
+        tips: List[Dict[str, Any]],
         frontend_task_config: Dict[str, Any],
     ):
         """
-        Updates the frontend args metadata with accepted tips
+        Updates the frontend args with accepted tips list
         """
-        accepted_tips = list(
-            filter(lambda tip: tip["accepted"] == True, metadata["tips"])
-        )
-        metadata["tips"] = accepted_tips
-        frontend_task_config.update({"metadata": metadata})
+        accepted_tips = list(filter(lambda tip: tip["accepted"] == True, tips))
+        frontend_task_config.update({"tips": accepted_tips})
         # Use overrides provided downstream
         frontend_task_config.update(frontend_task_config)
         return frontend_task_config

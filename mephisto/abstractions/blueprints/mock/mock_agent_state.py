@@ -8,7 +8,6 @@ from typing import List, Optional, Dict, Any, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
 import os
 import json
-import weakref
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -22,28 +21,24 @@ class MockAgentState(AgentState):
 
     def __init__(self, agent: "Agent"):
         """Mock agent states keep everything in local memory"""
-        self.agent = weakref.proxy(agent)
+        super().__init__(agent)
         self.state: Dict[str, Any] = {}
         self.init_state: Any = None
 
-    def set_init_state(self, data: Any) -> bool:
+    def _set_init_state(self, data: Any):
         """Set the initial state for this agent"""
-        if self.init_state is not None:
-            # Initial state is already set
-            return False
-        else:
-            self.init_state = data
-            self.save_data()
-            return True
+        self.init_state = data
 
-    def get_init_state(self) -> Optional[Dict[str, Any]]:
+    def get_init_state(
+        self, get_all_state: Optional[bool] = False
+    ) -> Optional[Dict[str, Any]]:
         """
         Return the initial state for this agent,
         None if no such state exists
         """
         return self.init_state
 
-    def load_data(self) -> None:
+    def _load_data(self) -> None:
         """Mock agent states have no data stored"""
         pass
 
@@ -51,7 +46,7 @@ class MockAgentState(AgentState):
         """Return dict of this agent's state"""
         return self.state
 
-    def save_data(self) -> None:
+    def _save_data(self) -> None:
         """Mock agents don't save data (yet)"""
         pass
 
@@ -59,10 +54,6 @@ class MockAgentState(AgentState):
         """Put new data into this mock state"""
         self.state = live_update
 
-    def update_submit(self, submitted_data: Dict[str, Any]) -> None:
+    def _update_submit(self, submitted_data: Dict[str, Any]) -> None:
         """Move the submitted data into the live state"""
         self.state = submitted_data
-
-    def update_metadata(self, new_metadata: Dict[str, Any]) -> None:
-        """Mock agents don't have metadata"""
-        pass

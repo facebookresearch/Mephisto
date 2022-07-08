@@ -12,7 +12,7 @@ from queue import Queue
 from uuid import uuid4
 from prometheus_client import Gauge  # type: ignore
 
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractmethod
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
 from mephisto.data_model._db_backed_meta import (
@@ -26,7 +26,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 
-from typing import Union, List, Optional, Tuple, Mapping, Dict, Any, cast, TYPE_CHECKING
+from typing import Optional, Mapping, Dict, Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -238,7 +238,7 @@ class _AgentBase(ABC):
             elif status == AgentState.STATUS_RETURNED:
                 raise AgentReturnedError(self.db_id)
             elif status == AgentState.STATUS_TIMEOUT:
-                raise AgentTimeoutError(self.db_id)
+                raise AgentTimeoutError(timeout, self.db_id)
             # Wait for the status change
             self.did_submit.wait(timeout=timeout)
             if not self.did_submit.is_set():
@@ -255,21 +255,30 @@ class _AgentBase(ABC):
         """Handles the submission of metadata (as of now that is tips and feedback)"""
         if "tips" in data:
             """Handles the submission of a tip"""
-            init_agent_data = self.state.get_init_state(get_all_state=True)
-            assert init_agent_data is not None, "Could not find agent data"
-            init_agent_data = init_agent_data.copy()
-            # Updates tips
+            assert (
+                hasattr(self.state.metadata, "tips") == True
+            ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
+                property_name="tips"
+            )
             new_tip_header = data["tips"]["header"]
             new_tip_text = data["tips"]["text"]
-            init_agent_data["metadata"]["tips"].append(
-                {
-                    "id": str(uuid4()),
-                    "header": new_tip_header,
-                    "text": new_tip_text,
-                    "accepted": False,
-                }
-            )
-            self.state.update_metadata({"tips": init_agent_data["metadata"]["tips"]})
+            copy_of_tips = None
+            item_to_add = {
+                "id": str(uuid4()),
+                "header": new_tip_header,
+                "text": new_tip_text,
+                "accepted": False,
+            }
+            if self.state.metadata.tips is None:
+                self.state.update_metadata(
+                    property_name="tips", property_value=[item_to_add]
+                )
+            else:
+                copy_of_tips = self.state.metadata.tips.copy()
+                copy_of_tips.append(item_to_add)
+                self.state.update_metadata(
+                    property_name="tips", property_value=copy_of_tips
+                )
 
         if "feedback" in data:
             print("Feedback received")

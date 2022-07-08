@@ -48,8 +48,8 @@ def main():
     for unit in units:
         if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
-            metadata = unit_data["data"]["metadata"]
-            tips = metadata["tips"]
+
+            tips = unit_data["tips"]
             accepted_tips = list(filter(lambda tip: tip["accepted"] == True, tips))
             accepted_tips_copy = accepted_tips.copy()
 

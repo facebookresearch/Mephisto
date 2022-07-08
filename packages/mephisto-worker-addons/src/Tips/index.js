@@ -7,6 +7,7 @@ import InfoIcon from "../InfoIcon";
 import UserSubmission from "./UserSubmission";
 import TaskTips from "./TaskTips";
 import CloseIcon from "./CloseIcon";
+import { getTipsArr } from "../Functions";
 
 function Tips({
   list,
@@ -46,9 +47,7 @@ function Tips({
     }
   );
   const { taskConfig } = useMephistoTask();
-  const tipsArr = (list ? list : []).concat(
-    taskConfig ? taskConfig["metadata"]["tips"] : []
-  );
+  const tipsArr = getTipsArr(list, taskConfig);
   const headlessPrefix = headless ? "headless-" : "";
   const stylePrefix = `${headlessPrefix}mephisto-worker-addons-tips__`;
   const stylePrefixWithNoHeadlessPrefix = "mephisto-worker-addons-tips__";

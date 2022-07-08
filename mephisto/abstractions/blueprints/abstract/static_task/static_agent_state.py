@@ -4,12 +4,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import time
 from typing import List, Dict, Optional, Any, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
-import os
-import json
-import time
-import weakref
+import os.path
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -31,31 +29,11 @@ class StaticAgentState(AgentState):
         return {
             "inputs": None,
             "outputs": None,
-            "times": {"task_start": 0, "task_end": 0},
-            "metadata": {"tips": [], "feedback": []},
         }
 
-    def __init__(self, agent: "Agent"):
-        """
-        Static agent states should store
-        input dict -> output dict pairs to disc
-        """
-        self.agent = weakref.proxy(agent)
-        self.state: Dict[str, Optional[Dict[str, Any]]] = self._get_empty_state()
-        self.load_data()
-
-    def set_init_state(self, data: Any) -> bool:
+    def _set_init_state(self, data: Any):
         """Set the initial state for this agent"""
-        if self.get_init_state() is not None:
-            # Initial state is already set
-            return False
-        else:
-            self.state["inputs"] = data
-            times_dict = self.state["times"]
-            assert isinstance(times_dict, dict)
-            times_dict["task_start"] = time.time()
-            self.save_data()
-            return True
+        self.state["inputs"] = data
 
     def get_init_state(
         self, get_all_state: Optional[bool] = False
@@ -70,13 +48,17 @@ class StaticAgentState(AgentState):
             return None
         return self.state["inputs"].copy()
 
-    def load_data(self) -> None:
+    def _load_data(self) -> None:
         """Load data for this agent from disk"""
         data_dir = self.agent.get_data_dir()
         data_path = os.path.join(data_dir, DATA_FILE)
-        if os.path.exists(data_path):
-            with open(data_path, "r") as data_file:
-                self.state = json.load(data_file)
+        if self.agent.db.key_exists(data_path):
+            self.state = self.agent.db.read_dict(data_path)
+            # Old compatibility with saved times
+            if "times" in self.state:
+                assert isinstance(self.state["times"], dict)
+                self.metadata.task_start = self.state["times"]["task_start"]
+                self.metadata.task_end = self.state["times"]["task_end"]
         else:
             self.state = self._get_empty_state()
 
@@ -84,13 +66,11 @@ class StaticAgentState(AgentState):
         """Return dict of this agent's state"""
         return self.state.copy()
 
-    def save_data(self) -> None:
+    def _save_data(self) -> None:
         """Save static agent data to disk"""
         data_dir = self.agent.get_data_dir()
-        os.makedirs(data_dir, exist_ok=True)
         out_filename = os.path.join(data_dir, DATA_FILE)
-        with open(out_filename, "w+") as data_file:
-            json.dump(self.state, data_file)
+        self.agent.db.write_dict(out_filename, self.state)
         logger.info(f"SAVED_DATA_TO_DISC at {out_filename}")
 
     def update_data(self, live_update: Dict[str, Any]) -> None:
@@ -99,7 +79,7 @@ class StaticAgentState(AgentState):
         """
         raise Exception("Static tasks should only have final act, but got live update")
 
-    def update_submit(self, submission_data: Dict[str, Any]) -> None:
+    def _update_submit(self, submission_data: Dict[str, Any]) -> None:
         """Move the submitted output to the local dict"""
         outputs: Dict[str, Any]
         assert isinstance(submission_data, dict), (
@@ -114,29 +94,3 @@ class StaticAgentState(AgentState):
         assert isinstance(times_dict, dict)
         times_dict["task_end"] = time.time()
         self.save_data()
-
-    def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
-        new_metadata = self.state["metadata"]
-        if new_metadata is not None:
-            if "tips" in new_metadata_obj:
-                new_metadata["tips"] = new_metadata_obj["tips"]
-            if "feedback" in new_metadata_obj:
-                new_metadata["feedback"] = new_metadata_obj["feedback"]
-            self.state["metadata"] = new_metadata
-            self.save_data()
-
-    def get_task_start(self) -> Optional[float]:
-        """
-        Extract out and return the start time recorded for this task.
-        """
-        stored_times = self.state["times"]
-        assert stored_times is not None
-        return stored_times["task_start"]
-
-    def get_task_end(self) -> Optional[float]:
-        """
-        Extract out and return the end time recorded for this task.
-        """
-        stored_times = self.state["times"]
-        assert stored_times is not None
-        return stored_times["task_end"]

@@ -7,7 +7,7 @@
 
 import unittest
 from unittest.mock import patch
-from typing import Optional, Tuple, Type
+from typing import Optional, Type
 import tempfile
 import os
 import shutil
@@ -138,7 +138,6 @@ class ArchitectTests(unittest.TestCase):
         )
         return self.curr_architect
 
-    @patch("builtins.input", lambda *args: "")
     def test_prepare_cleanup(self) -> None:
         """Test preparation and cleanup for server"""
         architect = self.get_architect()
@@ -148,7 +147,6 @@ class ArchitectTests(unittest.TestCase):
         architect.cleanup()
         self.assertTrue(self.server_is_cleaned(self.build_dir))
 
-    @patch("builtins.input", lambda *args: "")
     def test_deploy_shutdown(self) -> None:
         """Test deploying the server, and shutting it down"""
         architect = self.get_architect()
