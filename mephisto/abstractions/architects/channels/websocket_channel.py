@@ -198,8 +198,6 @@ class WebsocketChannel(Channel):
             return
         # TODO(#651) pop all messages and batch, rather than just one
         packet = self.outgoing_queue.get()
-        print("JSON packet:")
-        print(packet.to_sendable_dict())
         send_str = json.dumps(packet.to_sendable_dict())
         try:
             await self.socket.send(send_str)

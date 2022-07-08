@@ -157,8 +157,6 @@ class AgentState(ABC):
     def save_metadata(self) -> None:
         """Read in the saved metadata for this agent state from file"""
         metadata_dict = self.metadata.__dict__
-        print("saved")
-        print(metadata_dict)
         md_path = self._get_metadata_path()
         self.agent.db.write_dict(md_path, metadata_dict)
 

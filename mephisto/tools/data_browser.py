@@ -130,7 +130,9 @@ class DataBrowser:
         )
         return [Worker.get(self.db, qual.worker_id) for qual in qualifieds]
 
-    def get_metadata_from_task_name(self, task_name: str) -> Dict[str, Any]:
+    def get_metadata_property_from_task_name(
+        self, task_name: str, property_name: str
+    ) -> List[Any]:
         """Returns all metadata for a task by going through its agents"""
 
         """
@@ -139,18 +141,20 @@ class DataBrowser:
         """
 
         units = self.get_all_units_for_task_name(task_name=task_name)
-        tips: List[Any] = []
-        feedback: List[Any] = []
+        result: List[Any] = []
+
         for unit in units:
             if unit.agent_id is not None:
                 unit_data = self.get_data_from_unit(unit)
                 metadata = unit_data["metadata"]
-                unit_tips = metadata.tips
-                if unit_tips is not None:
-                    tips = tips + unit_tips
+                assert (
+                    hasattr(metadata, property_name) == True
+                ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
+                    property_name=property_name
+                )
 
-                """ unit_feedback = metadata["feedback"]
-                if unit_feedback is not None
-                    feedback = feedback + unit_feedback  """
+                unit_property_val = getattr(metadata, property_name)
+                if unit_property_val is not None:
+                    result = result + unit_property_val
 
-        return {"tips": tips, "feedback": feedback}
+        return result

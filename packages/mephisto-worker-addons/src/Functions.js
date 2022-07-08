@@ -95,8 +95,8 @@ export function handleTipSubmit(
 export function getTipsArr(list, taskConfig) {
   let tipsArr = [];
   if (list) tipsArr.concat(list);
-  if (taskConfig && taskConfig["metadata"] && taskConfig["metadata"]["tips"])
-    tipsArr = tipsArr.concat(taskConfig["metadata"]["tips"]);
+  if (taskConfig && taskConfig["tips"])
+    tipsArr = tipsArr.concat(taskConfig["tips"]);
 
   return tipsArr;
 }

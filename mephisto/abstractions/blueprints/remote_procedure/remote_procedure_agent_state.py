@@ -57,7 +57,7 @@ class RemoteProcedureAgentState(AgentState):
         return {
             "task_data": self.init_data,
             "previous_requests": prev_requests,
-            "metadata": dataclasses.asdict(self.metadata),
+            # "metadata": dataclasses.asdict(self.metadata),
         }
 
     def _get_expected_data_file(self) -> str:
@@ -78,9 +78,9 @@ class RemoteProcedureAgentState(AgentState):
             self.init_data = state["init_data"]
             self.final_submission = state["final_submission"]
             # Backwards compatibility for times
-            if "start_time" in state:
+            """ if "start_time" in state:
                 self.metadata.task_start = state["start_time"]
-                self.metadata.task_end = state["end_time"]
+                self.metadata.task_end = state["end_time"] """
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""

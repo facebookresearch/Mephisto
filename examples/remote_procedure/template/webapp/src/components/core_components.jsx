@@ -7,7 +7,6 @@
  */
 
 import React from "react";
-import { Tips } from "mephisto-task";
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;
 }
@@ -64,7 +63,6 @@ function TaskFrontend({ taskData, handleRemoteCall, handleSubmit }) {
       >
         Submit Task
       </button>
-      <Tips />
     </div>
   );
 }

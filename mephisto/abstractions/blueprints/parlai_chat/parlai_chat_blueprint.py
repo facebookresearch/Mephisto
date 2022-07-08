@@ -311,9 +311,11 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
         task_name = self.task_run.to_dict()["task_name"]
         db = LocalMephistoDB()
         mephisto_data_browser = MephistoDataBrowser(db)
-        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
-        front_end_task_config_with_metadata = super().update_task_config_with_metadata(
-            metadata, frontend_task_config
+        tips = mephisto_data_browser.get_metadata_property_from_task_name(
+            task_name=task_name, property_name="tips"
+        )
+        front_end_task_config_with_metadata = super().update_task_config_with_tips(
+            tips, frontend_task_config
         )
 
         # Use overrides provided downstream
