@@ -197,8 +197,8 @@ class AgentState(ABC):
         """
         Load stored data from a file to this object, including metadata
         """
-        self._load_data()
         self.load_metadata()
+        self._load_data()
 
     @abstractmethod
     def get_data(self) -> Dict[str, Any]:
