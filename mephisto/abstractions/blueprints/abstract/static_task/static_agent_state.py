@@ -38,6 +38,7 @@ class StaticAgentState(AgentState):
     def get_init_state(
         self, get_all_state: Optional[bool] = False
     ) -> Optional[Dict[str, Any]]:
+
         """
         Return the initial state for this agent,
         None if no such state exists
@@ -90,7 +91,3 @@ class StaticAgentState(AgentState):
         if output_files is not None:
             submission_data["files"] = [f["filename"] for f in submission_data["files"]]
         self.state["outputs"] = submission_data
-        times_dict = self.state["times"]
-        assert isinstance(times_dict, dict)
-        times_dict["task_end"] = time.time()
-        self.save_data()
