@@ -13,7 +13,7 @@ from typing import (
     Union,
     TYPE_CHECKING,
 )
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 import time
 import weakref
 import os.path
@@ -197,6 +197,7 @@ class AgentState(ABC):
         """
         Load stored data from a file to this object, including metadata
         """
+
         self.load_metadata()
         self._load_data()
 

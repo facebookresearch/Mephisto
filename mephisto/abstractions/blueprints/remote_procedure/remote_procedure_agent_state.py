@@ -124,5 +124,3 @@ class RemoteProcedureAgentState(AgentState):
     def _update_submit(self, submitted_data: Dict[str, Any]) -> None:
         """Append any final submission to this state"""
         self.final_submission = submitted_data
-        self.end_time = time.time()
-        self.save_data()
