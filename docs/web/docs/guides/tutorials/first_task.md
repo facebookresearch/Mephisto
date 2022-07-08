@@ -46,9 +46,9 @@ If you change to another `worker_id`, however, you can complete two more tasks. 
 
 By this stage, we've collected data and can now review it.
 
-To do so, you can write a Python script using the Mephisto [DataBrowser](https://github.com/facebookresearch/Mephisto/blob/main/mephisto/tools/data_browser.py) class to access the submitted data.
+To view/export the data, you can write a Python script using the Mephisto [`DataBrowser` class](https://github.com/facebookresearch/Mephisto/blob/main/mephisto/tools/data_browser.py) to access the submitted data.
 
-For your convenience, for the `html-static-task-example` task we've already provided such a script for you in the task folder, called [`examine_results.py`](https://github.com/facebookresearch/Mephisto/blob/main/examples/simple_static_task/examine_results.py)
+For your convenience, for the `html-static-task-example` task we've already provided such a script for you in the task folder, called [`examine_results.py`](https://github.com/facebookresearch/Mephisto/blob/main/examples/simple_static_task/examine_results.py). (This file uses the Mephisto `DataBrowser` class through the helpers in `mephisto.tools.examine_utils`.)
 
 ```bash
 $ python examine_results.py
