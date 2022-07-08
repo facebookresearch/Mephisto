@@ -50,35 +50,41 @@ def main():
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
 
             tips = unit_data["tips"]
-            accepted_tips = list(filter(lambda tip: tip["accepted"] == True, tips))
-            accepted_tips_copy = accepted_tips.copy()
+            if tips is not None:
+                accepted_tips = list(filter(lambda tip: tip["accepted"] == True, tips))
+                accepted_tips_copy = accepted_tips.copy()
 
-            for i in range(len(accepted_tips)):
-                current_tip_table = Table(
-                    "Property",
-                    Column("Value"),
-                    title="Tip {current_tip} of {total_number_of_tips}".format(
-                        current_tip=i + 1, total_number_of_tips=len(accepted_tips)
-                    ),
-                    box=box.ROUNDED,
-                    expand=True,
-                    show_lines=True,
-                )
-                current_tip_table.add_row("Tip Id", accepted_tips[i]["id"])
-                current_tip_table.add_row("Tip Header", accepted_tips[i]["header"])
-                current_tip_table.add_row("Tip Text", accepted_tips[i]["text"])
-                console.print(current_tip_table)
+                for i in range(len(accepted_tips)):
+                    current_tip_table = Table(
+                        "Property",
+                        Column("Value"),
+                        title="Tip {current_tip} of {total_number_of_tips}".format(
+                            current_tip=i + 1, total_number_of_tips=len(accepted_tips)
+                        ),
+                        box=box.ROUNDED,
+                        expand=True,
+                        show_lines=True,
+                    )
+                    current_tip_table.add_row("Tip Id", accepted_tips[i]["id"])
+                    current_tip_table.add_row("Tip Header", accepted_tips[i]["header"])
+                    current_tip_table.add_row("Tip Text", accepted_tips[i]["text"])
+                    console.print(current_tip_table)
 
-                removal_response = Prompt.ask(
-                    "\nDo you want to remove this tip", choices=["y", "n"]
-                ).strip()
-                print("")
+                    removal_response = Prompt.ask(
+                        "\nDo you want to remove this tip? (Default: n)",
+                        choices=["y", "n"],
+                        default="n",
+                        show_default=False,
+                    ).strip()
+                    print("")
 
-                if removal_response == "y":
-                    remove_tip_from_metadata(accepted_tips, accepted_tips_copy, i, unit)
-                    print("Removed tip\n")
-                elif removal_response == "n":
-                    print("Did not remove tip\n")
+                    if removal_response == "y":
+                        remove_tip_from_metadata(
+                            accepted_tips, accepted_tips_copy, i, unit
+                        )
+                        print("Removed tip\n")
+                    elif removal_response == "n":
+                        print("Did not remove tip\n")
     print("There are no more tips to look at\n")
 
 

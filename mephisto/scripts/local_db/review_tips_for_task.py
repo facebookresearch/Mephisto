@@ -112,8 +112,10 @@ def main():
                         console.print(current_tip_table)
 
                         tip_response = Prompt.ask(
-                            "\nDo you want to accept, reject, or skip this tip",
+                            "\nDo you want to (a)ccept, (r)eject, or (s)kip this tip? (Default: s)",
                             choices=["a", "r", "s"],
+                            default="s",
+                            show_default=False,
                         ).strip()
 
                         print("")
@@ -122,26 +124,22 @@ def main():
                             accept_tip(tips, tips_copy, i, unit)
                             print("[green]Tip Accepted[/green]")
                             # given the option to pay a bonus to the worker who wrote the tip
-                            is_bonus = Prompt.ask(
-                                "\nDo you want to pay a bonus to this worker for their tip",
-                                choices=["y", "n"],
-                            ).strip()
-
-                            if is_bonus == "y":
-                                bonus_amount = FloatPrompt.ask(
-                                    "\nHow much money do you want to give"
-                                )
-
-                                reason = Confirm.get_input(
-                                    console,
-                                    "\nWhat is your reason for the bonus: ",
-                                    False,
+                            bonus = FloatPrompt.ask(
+                                "\nHow much would you like to bonus the tip submitter? (Default: 0.0)",
+                                show_default=False,
+                                default=0.0,
+                            )
+                            if bonus > 0:
+                                reason = Prompt.ask(
+                                    "\nWhat reason would you like to give the worker for this tip? NOTE: This will be shared with the worker.(Default: Thank you for submitting a tip!)",
+                                    default="Thank you for submitting a tip!",
+                                    show_default=False,
                                 )
                                 worker_id = float(unit_data["worker_id"])
                                 worker = Worker.get(db, worker_id)
                                 if worker is not None:
                                     bonus_successfully_paid = worker.bonus_worker(
-                                        bonus_amount, reason, unit
+                                        bonus, reason, unit
                                     )
                                     if bonus_successfully_paid:
                                         print(
@@ -151,8 +149,6 @@ def main():
                                         print(
                                             "\n[red]There was an error when paying out your bonus[/red]\n"
                                         )
-                            elif is_bonus == "n":
-                                print("No bonus paid\n")
 
                         elif tip_response == "r":
                             remove_tip_from_metadata(tips, tips_copy, i, unit)
