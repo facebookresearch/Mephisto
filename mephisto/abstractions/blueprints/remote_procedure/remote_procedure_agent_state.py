@@ -4,19 +4,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import dataclasses
-from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
+from typing import Optional, Dict, Any, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
 import os
-import json
 import time
-import weakref
 from uuid import uuid4
 from dataclasses import dataclass, fields
-
-if TYPE_CHECKING:
-    from mephisto.data_model.agent import Agent
-    from mephisto.data_model.packet import Packet
 
 
 @dataclass
@@ -78,9 +71,9 @@ class RemoteProcedureAgentState(AgentState):
             self.init_data = state["init_data"]
             self.final_submission = state["final_submission"]
             # Backwards compatibility for times
-            """ if "start_time" in state:
+            if "start_time" in state:
                 self.metadata.task_start = state["start_time"]
-                self.metadata.task_end = state["end_time"] """
+                self.metadata.task_end = state["end_time"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""

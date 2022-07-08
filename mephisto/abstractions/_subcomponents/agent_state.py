@@ -268,13 +268,16 @@ class AgentState(ABC):
         """
         return self.metadata.task_end
 
-    def does_metadata_have_property(self, property_name: str):
-        return hasattr(self.metadata, property_name)
+    def get_tips(self) -> Optional[List[Dict[str, Any]]]:
+        """
+        Return the tips for this task, if it is available
+        """
+        return self.metadata.tips
 
     def update_metadata(self, property_name: str, property_value: Any) -> None:
         if self.metadata is not None:
             assert (
-                self.does_metadata_have_property(property_name=property_name) == True
+                hasattr(self.metadata, property_name) == True
             ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
                 property_name=property_name
             )

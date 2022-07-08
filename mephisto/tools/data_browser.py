@@ -115,7 +115,7 @@ class DataBrowser:
             "data": agent.state.get_parsed_data(),
             "task_start": agent.state.get_task_start(),
             "task_end": agent.state.get_task_end(),
-            "metadata": agent.state.metadata,
+            "tips": agent.state.get_tips(),
         }
 
     def get_workers_with_qualification(self, qualification_name: str) -> List[Worker]:
@@ -146,14 +146,12 @@ class DataBrowser:
         for unit in units:
             if unit.agent_id is not None:
                 unit_data = self.get_data_from_unit(unit)
-                metadata = unit_data["metadata"]
-                assert (
-                    hasattr(metadata, property_name) == True
-                ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
-                    property_name=property_name
-                )
 
-                unit_property_val = getattr(metadata, property_name)
+                assert property_name in unit_data, (
+                    "The {property_name} field must exist in the unit's data. Look for {property_name} in the get_data_from_unit function"
+                ).format(property_name=property_name)
+
+                unit_property_val = unit_data[property_name]
                 if unit_property_val is not None:
                     result = result + unit_property_val
 

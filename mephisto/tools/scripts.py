@@ -7,7 +7,6 @@
 Utilities that are useful for Mephisto-related scripts.
 """
 
-import warnings
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
@@ -25,14 +24,12 @@ import functools
 import hydra
 import subprocess
 from typing import (
-    Dict,
     Tuple,
     Any,
     Type,
     TypeVar,
     Callable,
     Optional,
-    Union,
     cast,
     TYPE_CHECKING,
 )

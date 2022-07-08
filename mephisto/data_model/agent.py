@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from __future__ import annotations
-from copy import copy
 
 import os
 import threading
@@ -13,7 +12,7 @@ from queue import Queue
 from uuid import uuid4
 from prometheus_client import Gauge  # type: ignore
 
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractmethod
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
 from mephisto.data_model._db_backed_meta import (
@@ -27,7 +26,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 
-from typing import Union, List, Optional, Tuple, Mapping, Dict, Any, cast, TYPE_CHECKING
+from typing import Optional, Mapping, Dict, Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -256,9 +255,8 @@ class _AgentBase(ABC):
         """Handles the submission of metadata (as of now that is tips and feedback)"""
         if "tips" in data:
             """Handles the submission of a tip"""
-            print("Metadata")
             assert (
-                self.state.does_metadata_have_property("tips") == True
+                hasattr(self.state.metadata, "tips") == True
             ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
                 property_name="tips"
             )
@@ -281,7 +279,6 @@ class _AgentBase(ABC):
                 self.state.update_metadata(
                     property_name="tips", property_value=copy_of_tips
                 )
-            print(self.state.metadata.tips)
 
         if "feedback" in data:
             print("Feedback received")

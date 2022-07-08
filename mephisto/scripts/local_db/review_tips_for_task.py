@@ -86,9 +86,8 @@ def main():
     for unit in units:
         if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
+            tips = unit_data["tips"]
 
-            metadata = unit_data["metadata"]
-            tips = metadata.tips
             if tips is not None and len(tips) > 0:
                 tips_copy = tips.copy()
                 for i in range(len(tips)):

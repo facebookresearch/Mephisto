@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from re import L
 from mephisto.abstractions.database import (
     MephistoDB,
     MephistoDBException,
@@ -12,7 +11,6 @@ from mephisto.abstractions.database import (
     EntryDoesNotExistException,
 )
 from typing import Mapping, Optional, Any, List, Dict, Tuple, Union
-from mephisto.utils.dirs import get_data_dir
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
 from mephisto.data_model.unit import Unit
@@ -26,7 +24,7 @@ from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import Qualification, GrantedQualification
 
 import sqlite3
-from sqlite3 import Connection, Cursor
+from sqlite3 import Connection
 import threading
 import os
 import json

@@ -29,7 +29,9 @@ class MockAgentState(AgentState):
         """Set the initial state for this agent"""
         self.init_state = data
 
-    def get_init_state(self) -> Optional[Dict[str, Any]]:
+    def get_init_state(
+        self, get_all_state: Optional[bool] = False
+    ) -> Optional[Dict[str, Any]]:
         """
         Return the initial state for this agent,
         None if no such state exists
@@ -55,7 +57,3 @@ class MockAgentState(AgentState):
     def _update_submit(self, submitted_data: Dict[str, Any]) -> None:
         """Move the submitted data into the live state"""
         self.state = submitted_data
-
-    def update_metadata(self, new_metadata: Dict[str, Any]) -> None:
-        """Mock agents don't have metadata"""
-        pass

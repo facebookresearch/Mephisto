@@ -36,7 +36,6 @@ class ParlAIChatAgentState(AgentState):
         return {
             "task_data": self.init_data,
             "past_live_updates": self.messages,
-            "metadata": self.metadata,
         }
 
     def _get_expected_data_file(self) -> str:
@@ -92,7 +91,6 @@ class ParlAIChatAgentState(AgentState):
             "messages": messages,
             "save_data": save_data,
             "final_submission": self.final_submission,
-            "metadata": self.metadata,
         }
 
     def get_task_start(self) -> float:

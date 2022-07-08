@@ -269,7 +269,7 @@ class Blueprint(ABC):
         frontend_task_config: Dict[str, Any],
     ):
         """
-        Updates the frontend args metadata with accepted tips
+        Updates the frontend args with accepted tips list
         """
         accepted_tips = list(filter(lambda tip: tip["accepted"] == True, tips))
         frontend_task_config.update({"tips": accepted_tips})

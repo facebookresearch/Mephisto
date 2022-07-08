@@ -87,7 +87,7 @@ export function handleTipSubmit(
 }
 
 /**
- *
+ * Collects all tips that should be displayed in the tips popup
  * @param {{header: string; text: string;}[]} list The array that is retrieved from the list prop
  * @param {any} taskConfig The object that you get from useMephistoTask()
  * @returns An array that includes both the default tips and the tips retrieved from the backend

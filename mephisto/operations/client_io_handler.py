@@ -4,11 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
-from mimetypes import init
-from struct import pack
-from uuid import uuid4
-import weakref
 import time
 import asyncio
 from queue import Queue
@@ -30,10 +25,10 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_SUBMIT_METADATA,
 )
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.agent import Agent, OnboardingAgent, _AgentBase
+from mephisto.data_model.agent import _AgentBase
 from mephisto.operations.datatypes import LiveTaskRun
 from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
-from typing import Dict, Tuple, Union, Optional, List, Any, TYPE_CHECKING
+from typing import Dict, Tuple, Optional, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
