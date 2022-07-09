@@ -25,7 +25,7 @@ from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from rich.markdown import Markdown
 from rich import box
 from rich.prompt import Prompt
-from rich.prompt import Confirm, FloatPrompt
+from rich.prompt import FloatPrompt
 from rich.table import Table
 from mephisto.utils.rich import console
 
