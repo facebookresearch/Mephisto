@@ -198,6 +198,7 @@ class AgentState(ABC):
         """
         Load stored data from a file to this object, including metadata
         """
+
         self.load_metadata()
         self._load_data()
 
