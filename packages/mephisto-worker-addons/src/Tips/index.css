@@ -11,7 +11,6 @@
 }
 .headless-mephisto-worker-addons-tips__no-submissions {
   margin: 0 0 0 0.75rem !important;
-  color: #565656;
   font-style: italic;
 }
 
@@ -196,6 +195,10 @@
   white-space: pre-wrap;
   line-height: 1.5;
   resize: vertical;
+}
+#mephisto-worker-addons-tips__header-input:disabled,
+#mephisto-worker-addons-tips__text-input:disabled {
+  cursor: not-allowed !important;
 }
 
 #mephisto-worker-addons-tips__header-input:hover,
