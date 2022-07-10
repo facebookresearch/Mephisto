@@ -64,7 +64,7 @@ def print_out_reviewed_feedback_elements(
             expand=True,
             show_lines=True,
         )
-        # TODO: sort filtered_feedback_list by question
+        filtered_feedback_list.sort(key=lambda x: x["question"])
         for feedback_obj in filtered_feedback_list:
             feedback_table.add_row(
                 feedback_obj["id"],
@@ -169,9 +169,9 @@ def main():
 
     if filter_by_question_index != -1:
         print(
-            '\nYou chose to look at feedback from the following question: "'
+            "\nYou chose to look at feedback from the following question: [bold]"
             + str(questions_list[filter_by_question_index])
-            + '"\n'
+            + "[/bold]\n"
         )
 
     # Allowing user to filter out toxic comments
@@ -184,9 +184,9 @@ def main():
 
     # Allowing user to see reviewed feedback or unreviewed feedback
     see_unreviewed_feedback = Prompt.ask(
-        "Do you want to see unreviewed feedback? (Default: y)",
-        choices=["y", "n"],
-        default="y",
+        "Do you want to see (r)eviewed or (u)nreviewed feedback? (Default: u)",
+        choices=["r", "u"],
+        default="u",
         show_default=False,
     )
     print("")
@@ -217,8 +217,8 @@ def main():
                             )
                         )
 
-                    if see_unreviewed_feedback == "n":
-                        # Filter the toxicity feedback to get unreviewed feedback
+                    if see_unreviewed_feedback == "r":
+                        # Filter the toxicity feedback to get reviewed feedback
                         reviewed_feedback = list(
                             filter(
                                 lambda feedback_obj: feedback_obj["reviewed"] == True,
@@ -229,8 +229,8 @@ def main():
                             filtered_feedback_list=reviewed_feedback,
                             agent=unit.get_assigned_agent(),
                         )
-                    elif see_unreviewed_feedback == "y":
-                        # Filter the toxicity feedback to get reviewed feedback
+                    elif see_unreviewed_feedback == "u":
+                        # Filter the toxicity feedback to get unreviewed feedback
                         un_reviewed_feedback = list(
                             filter(
                                 lambda feedback_obj: feedback_obj["reviewed"] == False,
@@ -245,7 +245,7 @@ def main():
 
     print(
         "[green]There is no more {} feedback![/green]\n".format(
-            "unreviewed" if see_unreviewed_feedback in yes_response else "reviewed"
+            "unreviewed" if see_unreviewed_feedback == "u" else "reviewed"
         )
     )
 
