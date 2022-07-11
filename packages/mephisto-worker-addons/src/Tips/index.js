@@ -54,7 +54,7 @@ function Tips({
   const stylePrefixWithNoHeadlessPrefix = "mephisto-worker-addons-tips__";
 
   return (
-    <root.div>
+    <Fragment>
       <button
         ref={setTriggerRef}
         onClick={() => setIsVisible(!isVisible)}
@@ -103,8 +103,8 @@ function Tips({
           </div>
         </div>
       )}
-      <style type="text/css">{tipsStyles}</style>
-    </root.div>
+      {/* <style type="text/css">{tipsStyles}</style> */}
+    </Fragment>
   );
 }
 export default Tips;

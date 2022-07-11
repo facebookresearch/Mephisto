@@ -33,13 +33,16 @@ function TaskFrontend({ taskData, handleRemoteCall, handleSubmit }) {
 
   return (
     <div>
-      <h1>
+      <h1 data-cy="directions-header">
         This is a simple task to demonstrate a static task with backend
         capabilities.
       </h1>
-      <p>To submit this task, you must make a few backend queries first</p>
+      <p data-cy="directions-paragraph">
+        To submit this task, you must make a few backend queries first
+      </p>
 
       <button
+        data-cy="query-backend-button"
         className="button"
         onClick={() => {
           setQueryCount(queryCount + 1);
@@ -53,6 +56,7 @@ function TaskFrontend({ taskData, handleRemoteCall, handleSubmit }) {
         Query Backend
       </button>
       <button
+        data-cy="submit-button"
         className="button"
         onClick={() =>
           handleSubmit({
