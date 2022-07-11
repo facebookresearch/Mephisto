@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 
+from locale import strcoll
 from mephisto.data_model.assignment import (
     Assignment,
     InitializationData,
@@ -180,7 +181,7 @@ class TaskLauncher:
             if not self.unlaunched_units:
                 break
 
-    def _launch_limited_units(self, url: str) -> None:
+    def _launch_limited_units(self, url: str, assignment_id_file_path: str) -> None:
         """use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
         # Continue launching if we haven't pulled the plug, so long as there are currently
         # units to launch, or more may come in the future.
@@ -190,16 +191,21 @@ class TaskLauncher:
             for unit in self.generate_units():
                 if unit is None:
                     break
+                if assignment_id_file_path is not None:
+                    with open(assignment_id_file_path, "w") as fp:
+                        fp.write(str(unit.assignment_id))
                 unit.launch(url)
             if self.generator_type == GeneratorType.NONE:
                 break
         self.finished_generators = True
 
-    def launch_units(self, url: str) -> None:
+    def launch_units(self, url: str, assignment_id_file_path: str) -> None:
         """launch any units registered by this TaskLauncher"""
         self.launch_url = url
         self.units_thread = threading.Thread(
-            target=self._launch_limited_units, args=(url,), name="unit-generator"
+            target=self._launch_limited_units,
+            args=(url, assignment_id_file_path),
+            name="unit-generator",
         )
         self.units_thread.start()
 

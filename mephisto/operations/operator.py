@@ -216,7 +216,10 @@ class Operator:
         return self.launch_task_run_or_die(run_config, shared_state=shared_state)
 
     def launch_task_run_or_die(
-        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
+        self,
+        run_config: DictConfig,
+        shared_state: Optional[SharedTaskState] = None,
+        assignment_id_file_path: str = None,
     ) -> str:
         """
         Parse the given arguments and launch a job.
@@ -226,7 +229,6 @@ class Operator:
         requester, provider_type = self._get_requester_and_provider_from_config(
             run_config
         )
-
         # Next get the abstraction classes, and run validation
         # before anything is actually created in the database
         blueprint_type = run_config.blueprint._blueprint_type
@@ -302,6 +304,7 @@ class Operator:
             )
             try:
                 live_run.architect.shutdown()
+
             except (KeyboardInterrupt, Exception) as architect_exception:
                 logger.exception(
                     f"Could not shut down architect: {architect_exception}",
@@ -310,7 +313,7 @@ class Operator:
             raise e
 
         live_run.task_launcher.create_assignments()
-        live_run.task_launcher.launch_units(task_url)
+        live_run.task_launcher.launch_units(task_url, assignment_id_file_path)
 
         self._task_runs_tracked[task_run.db_id] = live_run
         task_run.update_completion_progress(status=False)
@@ -496,7 +499,10 @@ class Operator:
         return self.launch_task_run(run_config, shared_state=shared_state)
 
     def launch_task_run(
-        self, run_config: DictConfig, shared_state: Optional[SharedTaskState] = None
+        self,
+        run_config: DictConfig,
+        shared_state: Optional[SharedTaskState] = None,
+        assignment_id_file_path: str = None,
     ) -> Optional[str]:
         """
         Wrapper around validate_and_run_config_or_die that prints errors on
@@ -507,7 +513,9 @@ class Operator:
         ), "Cannot run a config on a shutdown operator. Create a new one."
         try:
             return self.launch_task_run_or_die(
-                run_config=run_config, shared_state=shared_state
+                run_config=run_config,
+                shared_state=shared_state,
+                assignment_id_file_path=assignment_id_file_path,
             )
         except (KeyboardInterrupt, Exception) as e:
             logger.error("Ran into error while launching run: ", exc_info=True)
@@ -570,7 +578,10 @@ class Operator:
         self._event_loop.run_forever()
 
     def wait_for_runs_then_shutdown(
-        self, skip_input=False, log_rate: Optional[int] = None
+        self,
+        skip_input=False,
+        log_rate: Optional[int] = None,
+        assignment_id_file_path: str = None,
     ) -> None:
         """
         Wait for task_runs to complete, and then shutdown.
@@ -595,4 +606,6 @@ class Operator:
                 exc_info=False,
             )
         finally:
+            if assignment_id_file_path is not None:
+                os.remove(assignment_id_file_path)
             self.shutdown()

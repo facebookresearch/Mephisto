@@ -27,15 +27,17 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     )
 
     task_dir = cfg.task_dir
-
+    assignment_id_file_path = task_dir + "/webapp/cypress/assignment_id.txt"
     build_custom_bundle(
         task_dir,
         force_rebuild=cfg.mephisto.task.force_rebuild,
         post_install_script=cfg.mephisto.task.post_install_script,
     )
 
-    operator.launch_task_run(cfg.mephisto, shared_state)
-    operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
+    operator.launch_task_run(cfg.mephisto, shared_state, assignment_id_file_path)
+    operator.wait_for_runs_then_shutdown(
+        skip_input=True, log_rate=30, assignment_id_file_path=assignment_id_file_path
+    )
 
 
 if __name__ == "__main__":
