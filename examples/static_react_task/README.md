@@ -110,7 +110,11 @@ In order to get started on your own task, it is a good idea to copy this `static
 
 1. Copy the `static_react_task` directory to your project directory
 2. Update `static_task_data` in the `run_task.py` script to provide the required data for your task
-3. Update any task-related variables in your `conf/my_new_config.yaml` file to make sense for your task.
+3. Update any task-related variables in your `conf/my_new_config.yaml` file to make sense for your task. Some examples of blueprint variables are: 
+    * `extra_source_dir` takes in an optional path to sources that the frontend may refer to (such as images/video/css/scripts) 
+    * `data_json` takes in a path to a json file containing task data  
+    * To see other configurable blueprint variables type `mephisto wut blueprint=static_task`
+
 4. Update `webapp/src/components/core_components.jsx` to have the frontend you'd like. Include an onboarding step if possible.
 5. Run `run_task.py` to pilot your task over localhost.
 6. Repeat 4 & 5 until you're happy with your task.
