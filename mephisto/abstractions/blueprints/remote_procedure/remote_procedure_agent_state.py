@@ -50,7 +50,6 @@ class RemoteProcedureAgentState(AgentState):
         return {
             "task_data": self.init_data,
             "previous_requests": prev_requests,
-            # "metadata": dataclasses.asdict(self.metadata),
         }
 
     def _get_expected_data_file(self) -> str:
