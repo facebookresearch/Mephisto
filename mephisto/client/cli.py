@@ -7,16 +7,12 @@
 
 from typing import List
 from rich import print
-from rich.table import Table
-from rich import box
 from mephisto.operations.registry import get_valid_provider_types
-from mephisto.utils.rich import console
+from mephisto.utils.rich import console, create_table
 import rich_click as click  # type: ignore
 import os
-from click_default_group import DefaultGroup  # type: ignore
 from rich_click import RichCommand, RichGroup
 from rich.markdown import Markdown
-from omegaconf import MISSING
 
 
 # @click.group(cls=DefaultGroup, default="web", default_if_no_args=True)
@@ -161,13 +157,7 @@ def list_requesters():
     requesters = db.find_requesters()
     dict_requesters = [r.to_dict() for r in requesters]
     requester_keys = list(dict_requesters[0].keys())
-    requester_table = Table(
-        *requester_keys,
-        title="\n\n Requesters",
-        box=box.ROUNDED,
-        expand=True,
-        show_lines=True,
-    )
+    requester_table = create_table(requester_keys, "\n\n Requesters")
     for requester in dict_requesters:
         requester_vals = list(requester.values())
         requester_vals = [str(x) for x in requester_vals]
@@ -212,13 +202,7 @@ def register_provider(args):
 
             first_arg_key = list(param["args"].keys())[0]
             requester_headers = list(param["args"][first_arg_key].keys())
-            requester_table = Table(
-                *requester_headers,
-                title="\n[b]Arguments[/b]",
-                box=box.ROUNDED,
-                expand=True,
-                show_lines=True,
-            )
+            requester_table = create_table(requester_headers, "\n[b]Arguments[/b]")
             for arg in param["args"]:
                 arg_values = list(param["args"][arg].values())
                 arg_values = [str(x) for x in arg_values]
@@ -265,13 +249,8 @@ def get_help_arguments(args):
         print(
             "\n[red]Usage: mephisto wut <abstraction>[=<type>] [...specific args to check][/red]"
         )
-        abstractions_table = Table(
-            "Abstraction",
-            "Description",
-            title="\n\n[b]Abstractions[/b]",
-            box=box.ROUNDED,
-            expand=True,
-            show_lines=True,
+        abstractions_table = create_table(
+            ["Abstraction", "Description"], "\n\n[b]Abstractions[/b]"
         )
         abstractions_table.add_row(
             "blueprint",
@@ -400,13 +379,7 @@ def get_help_arguments(args):
         checking_args = {k: v for k, v in checking_args.items() if k in args[1:]}
     first_arg = list(checking_args.keys())[0]
     first_arg_keys = list(checking_args[first_arg].keys())
-    args_table = Table(
-        *first_arg_keys,
-        title="\n[b]Blueprint Arguments[/b]",
-        box=box.ROUNDED,
-        expand=True,
-        show_lines=True,
-    )
+    args_table = create_table(first_arg_keys, "\n[b]Blueprint Arguments[/b]")
     for arg in checking_args:
         arg_keys = checking_args[arg].keys()
         if "required" in arg_keys and checking_args[arg]["required"] == True:
@@ -427,12 +400,8 @@ def get_help_arguments(args):
         first_state_arg = list(state_args.keys())[0]
         first_arg_keys = list(state_args[first_state_arg].keys())
 
-        state_args_table = Table(
-            *first_arg_keys,
-            title="\n[b]Additional Shared TaskState args[/b]",
-            box=box.ROUNDED,
-            expand=True,
-            show_lines=True,
+        state_args_table = create_table(
+            first_arg_keys, "\n[b]Additional Shared TaskState args[/b]"
         )
         for arg in state_args:
             arg_values = list(state_args[arg].values())
