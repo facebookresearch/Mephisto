@@ -35,17 +35,13 @@ class StaticAgentState(AgentState):
         """Set the initial state for this agent"""
         self.state["inputs"] = data
 
-    def get_init_state(
-        self, get_all_state: Optional[bool] = False
-    ) -> Optional[Dict[str, Any]]:
+    def get_init_state(self) -> Optional[Dict[str, Any]]:
 
         """
         Return the initial state for this agent,
         None if no such state exists
         """
-        if get_all_state == True:
-            return self.state
-        elif self.state["inputs"] is None:
+        if self.state["inputs"] is None:
             return None
         return self.state["inputs"].copy()
 

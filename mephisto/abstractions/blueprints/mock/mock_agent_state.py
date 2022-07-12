@@ -29,9 +29,7 @@ class MockAgentState(AgentState):
         """Set the initial state for this agent"""
         self.init_state = data
 
-    def get_init_state(
-        self, get_all_state: Optional[bool] = False
-    ) -> Optional[Dict[str, Any]]:
+    def get_init_state(self) -> Optional[Dict[str, Any]]:
         """
         Return the initial state for this agent,
         None if no such state exists
