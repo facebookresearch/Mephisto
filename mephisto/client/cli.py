@@ -27,8 +27,6 @@ def cli():
 
 
 click.rich_click.USE_RICH_MARKUP = True
-
-click.rich_click.STYLE_ERRORS_SUGGESTION = "black"
 click.rich_click.ERRORS_SUGGESTION = (
     "\nTry running the '--help' flag for more information."
 )
@@ -157,12 +155,23 @@ def check():
 def list_requesters():
     """Lists all registered requesters"""
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
-    from tabulate import tabulate
 
     db = LocalMephistoDB()
     requesters = db.find_requesters()
     dict_requesters = [r.to_dict() for r in requesters]
-    click.echo(tabulate(dict_requesters, headers="keys"))
+    requester_keys = list(dict_requesters[0].keys())
+    requester_table = Table(
+        *requester_keys,
+        title="\n\n Requesters",
+        box=box.ROUNDED,
+        expand=True,
+        show_lines=True,
+    )
+    for requester in dict_requesters:
+        requester_vals = list(requester.values())
+        requester_vals = [str(x) for x in requester_vals]
+        requester_table.add_row(*requester_vals)
+    console.print(requester_table)
 
 
 @cli.command("register", context_settings={"ignore_unknown_options": True})
