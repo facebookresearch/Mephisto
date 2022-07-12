@@ -9,6 +9,7 @@ from typing import List
 from rich import print
 from rich.table import Table
 from rich import box
+from mephisto.operations.registry import get_valid_provider_types
 from mephisto.utils.rich import console
 import rich_click as click  # type: ignore
 import os
@@ -179,7 +180,16 @@ def list_requesters():
 def register_provider(args):
     """Register a requester with a crowd provider"""
     if len(args) == 0:
-        click.echo("Usage: mephisto register <provider_type> arg1=value arg2=value")
+        print(
+            "\n[red]Usage: mephisto register <provider_type> arg1=value arg2=value[/red]"
+        )
+        print("\n[b]Valid Providers[/b]")
+        provider_text = """"""
+        for provider in get_valid_provider_types():
+            provider_text += "\n* " + provider
+        provider_text_markdown = Markdown(provider_text)
+        console.print(provider_text_markdown)
+        print("")
         return
 
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
@@ -196,12 +206,24 @@ def register_provider(args):
     RequesterClass = crowd_provider.RequesterClass
 
     if len(requester_args) == 0:
-        from tabulate import tabulate
-
         params = get_extra_argument_dicts(RequesterClass)
         for param in params:
-            click.echo(param["desc"])
-            click.echo(tabulate(param["args"].values(), headers="keys"))
+            click.echo("\n" + param["desc"])
+
+            first_arg_key = list(param["args"].keys())[0]
+            requester_headers = list(param["args"][first_arg_key].keys())
+            requester_table = Table(
+                *requester_headers,
+                title="\n[b]Arguments[/b]",
+                box=box.ROUNDED,
+                expand=True,
+                show_lines=True,
+            )
+            for arg in param["args"]:
+                arg_values = list(param["args"][arg].values())
+                arg_values = [str(x) for x in arg_values]
+                requester_table.add_row(*arg_values)
+            console.print(requester_table)
         return
 
     try:
@@ -220,7 +242,7 @@ def register_provider(args):
         requester = requesters[0]
     try:
         requester.register(parsed_options)
-        click.echo("Registered successfully.")
+        print("[green]Registered successfully.[/green]")
     except Exception as e:
         click.echo(str(e))
 
@@ -241,7 +263,7 @@ def get_help_arguments(args):
 
     if len(args) == 0:
         print(
-            "\n[red]Usage mephisto wut <abstraction>[=<type>] [...specific args to check][/red]"
+            "\n[red]Usage: mephisto wut <abstraction>[=<type>] [...specific args to check][/red]"
         )
         abstractions_table = Table(
             "Abstraction",
@@ -370,17 +392,6 @@ def get_help_arguments(args):
             print_out_valid_options(valid_options_text, valid)
             print(f"[red]'{abstract_value}' not found[/red]\n")
             return
-
-    from tabulate import tabulate
-
-    def wrap_fields(in_dict):
-        return {
-            out_key: {
-                in_key: "\n".join(wrap(str(in_val), width=40))
-                for in_key, in_val in out_val.items()
-            }
-            for out_key, out_val in in_dict.items()
-        }
 
     arg_dict = get_extra_argument_dicts(target_class)[0]
     click.echo(arg_dict["desc"])
