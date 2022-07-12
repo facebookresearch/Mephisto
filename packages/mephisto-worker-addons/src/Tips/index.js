@@ -10,6 +10,14 @@ import TaskTips from "./TaskTips";
 import CloseIcon from "./CloseIcon";
 import { getTipsArr } from "../Functions";
 
+function TipsContainer({ headless, children }) {
+  if (headless) {
+    return <div>{children}</div>;
+  } else {
+    return <root.div>{children}</root.div>;
+  }
+}
+
 function Tips({
   list,
   handleSubmit,
@@ -54,7 +62,7 @@ function Tips({
   const stylePrefixWithNoHeadlessPrefix = "mephisto-worker-addons-tips__";
 
   return (
-    <root.div>
+    <TipsContainer headless={headless}>
       <button
         ref={setTriggerRef}
         onClick={() => setIsVisible(!isVisible)}
@@ -104,7 +112,7 @@ function Tips({
         </div>
       )}
       <style type="text/css">{tipsStyles}</style>
-    </root.div>
+    </TipsContainer>
   );
 }
 export default Tips;
