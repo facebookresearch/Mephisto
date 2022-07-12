@@ -1,13 +1,22 @@
 import React, { useState, Fragment } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
 import { useMephistoTask } from "mephisto-task";
-import "./index.css";
+import root from "react-shadow";
+import tipsStyles from "!raw-loader!./index.css";
 import "react-popper-tooltip/dist/styles.css";
 import InfoIcon from "./InfoIcon";
 import UserSubmission from "./UserSubmission";
 import TaskTips from "./TaskTips";
 import CloseIcon from "./CloseIcon";
 import { getTipsArr } from "../Functions";
+
+function TipsContainer({ headless, children }) {
+  if (headless) {
+    return <div>{children}</div>;
+  } else {
+    return <root.div>{children}</root.div>;
+  }
+}
 
 function Tips({
   list,
@@ -53,7 +62,7 @@ function Tips({
   const stylePrefixWithNoHeadlessPrefix = "mephisto-worker-addons-tips__";
 
   return (
-    <Fragment>
+    <TipsContainer headless={headless}>
       <button
         ref={setTriggerRef}
         onClick={() => setIsVisible(!isVisible)}
@@ -103,7 +112,8 @@ function Tips({
           </div>
         </div>
       )}
-    </Fragment>
+      <style type="text/css">{tipsStyles}</style>
+    </TipsContainer>
   );
 }
 export default Tips;
