@@ -156,13 +156,16 @@ def list_requesters():
     db = LocalMephistoDB()
     requesters = db.find_requesters()
     dict_requesters = [r.to_dict() for r in requesters]
-    requester_keys = list(dict_requesters[0].keys())
-    requester_table = create_table(requester_keys, "\n\n Requesters")
-    for requester in dict_requesters:
-        requester_vals = list(requester.values())
-        requester_vals = [str(x) for x in requester_vals]
-        requester_table.add_row(*requester_vals)
-    console.print(requester_table)
+    if len(dict_requesters) > 0:
+        requester_keys = list(dict_requesters[0].keys())
+        requester_table = create_table(requester_keys, "\n\n Requesters")
+        for requester in dict_requesters:
+            requester_vals = list(requester.values())
+            requester_vals = [str(x) for x in requester_vals]
+            requester_table.add_row(*requester_vals)
+        console.print(requester_table)
+    else:
+        print("[red]No requesters found[/red]")
 
 
 @cli.command("register", context_settings={"ignore_unknown_options": True})
@@ -199,15 +202,18 @@ def register_provider(args):
         params = get_extra_argument_dicts(RequesterClass)
         for param in params:
             click.echo("\n" + param["desc"])
-
-            first_arg_key = list(param["args"].keys())[0]
-            requester_headers = list(param["args"][first_arg_key].keys())
-            requester_table = create_table(requester_headers, "[b]Arguments[/b]")
-            for arg in param["args"]:
-                arg_values = list(param["args"][arg].values())
-                arg_values = [str(x) for x in arg_values]
-                requester_table.add_row(*arg_values)
-            console.print(requester_table)
+            param_keys = list(param["args"].keys())
+            if len(param_keys) > 0:
+                first_arg_key = param_keys[0]
+                requester_headers = list(param["args"][first_arg_key].keys())
+                requester_table = create_table(requester_headers, "[b]Arguments[/b]")
+                for arg in param["args"]:
+                    arg_values = list(param["args"][arg].values())
+                    arg_values = [str(x) for x in arg_values]
+                    requester_table.add_row(*arg_values)
+                console.print(requester_table)
+            else:
+                print("[red]Requester has no args[/red]")
         return
 
     try:
