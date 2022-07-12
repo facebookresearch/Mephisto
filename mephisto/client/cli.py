@@ -362,63 +362,56 @@ def get_help_arguments(args):
             print(f"[red]'{abstract_value}' not found[/red]\n")
             return
 
-    from tabulate import tabulate
-
-    def wrap_fields(in_dict):
-        return {
-            out_key: {
-                in_key: "\n".join(wrap(str(in_val), width=40))
-                for in_key, in_val in out_val.items()
-            }
-            for out_key, out_val in in_dict.items()
-        }
-
     arg_dict = get_extra_argument_dicts(target_class)[0]
     click.echo(arg_dict["desc"])
     checking_args = arg_dict["args"]
     if len(args) > 1:
         checking_args = {k: v for k, v in checking_args.items() if k in args[1:]}
-    first_arg = list(checking_args.keys())[0]
-    first_arg_keys = list(checking_args[first_arg].keys())
-    args_table = Table(
-        *first_arg_keys,
-        title="\n[b]Blueprint Arguments[/b]",
-        box=box.ROUNDED,
-        expand=True,
-        show_lines=True,
-    )
-    for arg in checking_args:
-        arg_keys = checking_args[arg].keys()
-        if "required" in arg_keys and checking_args[arg]["required"] == True:
-            checking_args[arg]["required"] = "[b]{requiredVal}[/b]".format(
-                requiredVal=checking_args[arg]["required"]
-            )
-        arg_values = list(checking_args[arg].values())
-        arg_values = [str(x) for x in arg_values]
-        args_table.add_row(*arg_values)
-    console.print(args_table)
-    if abstraction == "blueprint":
-        click.echo(
-            f"\n\nAdditional SharedTaskState args from {target_class.SharedStateClass.__name__}, which may be configured in your run script"
-        )
-        state_args = get_task_state_dicts(target_class)[0]["args"]
-        if len(args) > 1:
-            state_args = {k: v for k, v in state_args.items() if k in args[1:]}
-        first_state_arg = list(state_args.keys())[0]
-        first_arg_keys = list(state_args[first_state_arg].keys())
-
-        state_args_table = Table(
+    checking_args_keys = list(checking_args.keys())
+    if len(checking_args_keys) > 0:
+        first_arg = checking_args_keys[0]
+        first_arg_keys = list(checking_args[first_arg].keys())
+        args_table = Table(
             *first_arg_keys,
-            title="\n[b]Additional Shared TaskState args[/b]",
+            title="\n[b]Blueprint Arguments[/b]",
             box=box.ROUNDED,
             expand=True,
             show_lines=True,
         )
-        for arg in state_args:
-            arg_values = list(state_args[arg].values())
+        for arg in checking_args:
+            arg_keys = checking_args[arg].keys()
+            if "required" in arg_keys and checking_args[arg]["required"] == True:
+                checking_args[arg]["required"] = "[b]{requiredVal}[/b]".format(
+                    requiredVal=checking_args[arg]["required"]
+                )
+            arg_values = list(checking_args[arg].values())
             arg_values = [str(x) for x in arg_values]
-            state_args_table.add_row(*arg_values)
-        console.print(state_args_table)
+            args_table.add_row(*arg_values)
+        console.print(args_table)
+    if abstraction == "blueprint":
+        state_args = get_task_state_dicts(target_class)[0]["args"]
+        if len(args) > 1:
+            state_args = {k: v for k, v in state_args.items() if k in args[1:]}
+        state_args_keys = list(state_args.keys())
+        if len(state_args_keys) > 0:
+            click.echo(
+                f"\n\nAdditional SharedTaskState args from {target_class.SharedStateClass.__name__}, which may be configured in your run script"
+            )
+            first_state_arg = state_args_keys[0]
+            first_arg_keys = list(state_args[first_state_arg].keys())
+
+            state_args_table = Table(
+                *first_arg_keys,
+                title="\n[b]Additional Shared TaskState args[/b]",
+                box=box.ROUNDED,
+                expand=True,
+                show_lines=True,
+            )
+            for arg in state_args:
+                arg_values = list(state_args[arg].values())
+                arg_values = [str(x) for x in arg_values]
+                state_args_table.add_row(*arg_values)
+            console.print(state_args_table)
 
 
 @cli.command("metrics", context_settings={"ignore_unknown_options": True})
