@@ -69,7 +69,7 @@ def config(identifier, value):
     else:
         # Write mode:
         add_config_arg(section, key, value)
-        click.echo(f"{identifier} succesfully updated to: {value}")
+        print(f"[green]{identifier} succesfully updated to: {value}[/green]")
 
 
 @cli.command("review")
@@ -142,10 +142,10 @@ def check():
         db = LocalMephistoDB()
         get_mock_requester(db)
     except Exception as e:
-        click.echo("Something went wrong.")
+        print("\n[red]Something went wrong.[/red]")
         click.echo(e)
         return
-    click.echo("Mephisto seems to be set up correctly.")
+    print("\n[green]Mephisto seems to be set up correctly.[/green]\n")
 
 
 @cli.command("requesters")
@@ -202,7 +202,7 @@ def register_provider(args):
 
             first_arg_key = list(param["args"].keys())[0]
             requester_headers = list(param["args"][first_arg_key].keys())
-            requester_table = create_table(requester_headers, "\n[b]Arguments[/b]")
+            requester_table = create_table(requester_headers, "[b]Arguments[/b]")
             for arg in param["args"]:
                 arg_values = list(param["args"][arg].values())
                 arg_values = [str(x) for x in arg_values]
@@ -216,7 +216,7 @@ def register_provider(args):
         click.echo(str(e))
 
     if parsed_options.name is None:
-        click.echo("No name was specified for the requester.")
+        print("[red]No name was specified for the requester.[/red]")
 
     db = LocalMephistoDB()
     requesters = db.find_requesters(requester_name=parsed_options.name)
@@ -278,7 +278,6 @@ def get_help_arguments(args):
         get_extra_argument_dicts,
         get_task_state_dicts,
     )
-    from textwrap import wrap
 
     VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
 
@@ -423,12 +422,20 @@ def metrics_cli(args):
     )
 
     if len(args) == 0 or args[0] not in ["install", "view", "cleanup"]:
-        click.echo(
-            "Usage: mephisto metrics <install|view|cleanup>\n"
-            f"install: Installs Prometheus and Grafana to {METRICS_DIR}\n"
-            f"view: Launches a Prometheus and Grafana server, and shuts down on exit\n"
-            f"cleanup: Shuts down Prometheus and Grafana resources that may have persisted"
+        print("\n[red]Usage: mephisto metrics <install|view|cleanup>[/red]")
+        metrics_table = create_table(["Property", "Value"], "Metrics Arguments")
+        metrics_table.add_row(
+            "install", f"Installs Prometheus and Grafana to {METRICS_DIR}"
         )
+        metrics_table.add_row(
+            "view",
+            "Launches a Prometheus and Grafana server, and shuts down on exit",
+        )
+        metrics_table.add_row(
+            "cleanup",
+            "Shuts down Prometheus and Grafana resources that may have persisted",
+        )
+        console.print(metrics_table)
         return
     command = args[0]
     if command == "install":
