@@ -4,17 +4,35 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+
+from typing import List
+from rich import print
+from rich.table import Table
+from rich import box
+from mephisto.utils.rich import console
 import rich_click as click  # type: ignore
 import os
 from click_default_group import DefaultGroup  # type: ignore
 from rich_click import RichCommand, RichGroup
+from rich.markdown import Markdown
 from omegaconf import MISSING
 
 
 # @click.group(cls=DefaultGroup, default="web", default_if_no_args=True)
 @click.group(cls=RichGroup)
 def cli():
-    pass
+    """[deep_sky_blue4]Bring your research ideas to life
+    with powerful crowdsourcing tooling[/]
+    """
+
+
+click.rich_click.USE_RICH_MARKUP = True
+
+click.rich_click.STYLE_ERRORS_SUGGESTION = "blue italic"
+click.rich_click.ERRORS_SUGGESTION = (
+    "Try running the '--help' flag for more information."
+)
+click.rich_click.ERRORS_EPILOGUE = "To find out more, visit https://mytool.com"
 
 
 @cli.command("web")
@@ -196,130 +214,178 @@ def register_provider(args):
         click.echo(str(e))
 
 
-click.rich_click.USE_RICH_MARKUP = True
-
-
 @cli.command("wut", cls=RichCommand, context_settings={"ignore_unknown_options": True})
 @click.argument("args", nargs=-1)
 def get_help_arguments(args):
+    """Display information about hydra config properties"""
+
+    from mephisto.operations.registry import (
+        get_blueprint_from_type,
+        get_crowd_provider_from_type,
+        get_architect_from_type,
+        get_valid_blueprint_types,
+        get_valid_provider_types,
+        get_valid_architect_types,
+    )
+
     if len(args) == 0:
-        click.echo(
-            "Usage mephisto wut <abstraction>[=<type>] [...specific args to check]"
+        print(
+            "\n[red]Usage mephisto wut <abstraction>[=<type>] [...specific args to check][/red]"
+        )
+        abstractions_table = Table(
+            "Abstraction",
+            "Description",
+            title="\n\n[b]Abstractions[/b]",
+            box=box.ROUNDED,
+            expand=True,
+            show_lines=True,
+        )
+        abstractions_table.add_row(
+            "blueprint",
+            f"The blueprint determines the task content. \nValid blueprints types are [b]{get_valid_blueprint_types()}[/b]",
+        )
+        abstractions_table.add_row(
+            "architect",
+            f"The architect determines the server where a task is hosted. \nValid architects types are [b]{get_valid_architect_types()}[/b]",
+        )
+        abstractions_table.add_row(
+            "requester",
+            f"The requester is an account for a crowd provider. \nValid requester types types are [b]{get_valid_provider_types()}[/b]. \n"
+            "\nUse `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register.",
+        )
+        abstractions_table.add_row(
+            "provider",
+            f"The crowd provider determines the source of the crowd workers. \nValid provider types are [b]{get_valid_provider_types()}[/b]",
+        )
+        console.print(abstractions_table)
+        return
+
+    VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
+
+    from mephisto.operations.hydra_config import (
+        get_extra_argument_dicts,
+        get_task_state_dicts,
+    )
+    from textwrap import wrap
+
+    VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
+
+    abstraction_equal_split = args[0].split("=", 1)
+    abstraction = abstraction_equal_split[0]
+
+    def print_out_valid_options(markdown_text: str, valid_options: List[str]) -> None:
+        for valid_option in valid_options:
+            markdown_text += "\n* " + valid_option
+        console.print(Markdown(markdown_text))
+        click.echo("")
+
+    if abstraction not in VALID_ABSTRACTIONS:
+        print(
+            f"[red]Given abstraction {abstraction} not in valid abstractions {VALID_ABSTRACTIONS}][/red]"
         )
         return
 
+    if abstraction == "task":
+        from mephisto.data_model.task_run import TaskRun
 
-# from mephisto.operations.registry import (
-#     get_blueprint_from_type,
-#     get_crowd_provider_from_type,
-#     get_architect_from_type,
-#     get_valid_blueprint_types,
-#     get_valid_provider_types,
-#     get_valid_architect_types,
-# )
-# from mephisto.operations.hydra_config import (
-#     get_extra_argument_dicts,
-#     get_task_state_dicts,
-# )
-# from textwrap import wrap
+        target_class = TaskRun
+    else:
+        if len(abstraction_equal_split) == 1:
+            # querying about the general abstraction
+            if abstraction == "blueprint":
+                click.echo("The blueprint determines the task content.\n")
+                valid_blueprints_text = """**Valid blueprints are:**"""
+                print_out_valid_options(
+                    valid_blueprints_text, get_valid_blueprint_types()
+                )
+                return
+            elif abstraction == "architect":
+                click.echo(
+                    "The architect determines the server where a task is hosted.\n"
+                )
+                valid_architect_text = """**Valid architects are:**"""
+                print_out_valid_options(
+                    valid_architect_text, get_valid_architect_types()
+                )
+                return
+            elif abstraction == "requester":
+                click.echo(
+                    f"The requester is an account for a crowd provider. \n"
+                    "Use `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register.\n"
+                )
+                valid_requester_text = """**Valid requesters are:**"""
+                print_out_valid_options(
+                    valid_requester_text, get_valid_provider_types()
+                )
+                return
+            elif abstraction == "provider":
+                # TODO: Use markdown list here
+                click.echo(
+                    "The crowd provider determines the source of the crowd workers.\n"
+                )
+                valid_provider_text = """**Valid providers are:**"""
+                print_out_valid_options(valid_provider_text, get_valid_provider_types())
+                return
 
-# VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
+        # There's a specific abstraction to check
+        abstract_value = abstraction_equal_split[1]
+        target_class = None
+        valid = None
+        if abstraction == "blueprint":
+            try:
+                target_class = get_blueprint_from_type(abstract_value)
+            except:
+                valid = get_valid_blueprint_types()
+        elif abstraction == "architect":
+            try:
+                target_class = get_architect_from_type(abstract_value)
+            except:
+                valid = get_valid_architect_types()
+        elif abstraction == "provider":
+            try:
+                target_class = get_crowd_provider_from_type(abstract_value)
+            except:
+                valid = get_valid_provider_types()
+        elif abstraction == "requester":
+            try:
+                target_class = get_crowd_provider_from_type(
+                    abstract_value
+                ).RequesterClass
+            except:
+                valid = get_valid_provider_types()
+        if valid is not None:
+            click.echo(f"\nThe valid types for {abstraction} are:")
+            valid_options_text = """"""
+            print_out_valid_options(valid_options_text, valid)
+            click.echo(f"'{abstract_value}' not found")
+            return
 
-# abstraction_equal_split = args[0].split("=", 1)
-# abstraction = abstraction_equal_split[0]
+    from tabulate import tabulate
 
-# if abstraction not in VALID_ABSTRACTIONS:
-#     click.echo(
-#         f"Given abstraction {abstraction} not in valid abstractions {VALID_ABSTRACTIONS}"
-#     )
-#     return
+    def wrap_fields(in_dict):
+        return {
+            out_key: {
+                in_key: "\n".join(wrap(str(in_val), width=40))
+                for in_key, in_val in out_val.items()
+            }
+            for out_key, out_val in in_dict.items()
+        }
 
-# if abstraction == "task":
-#     from mephisto.data_model.task_run import TaskRun
-
-#     target_class = TaskRun
-# else:
-#     if len(abstraction_equal_split) == 1:
-#         # querying about the general abstraction
-#         if abstraction == "blueprint":
-#             click.echo(
-#                 f"The blueprint determines the task content. Valid blueprints are {get_valid_blueprint_types()}"
-#             )
-#             return
-#         elif abstraction == "architect":
-#             click.echo(
-#                 f"The architect determines the server where a task is hosted. Valid architects are {get_valid_architect_types()}"
-#             )
-#             return
-#         elif abstraction == "requester":
-#             click.echo(
-#                 f"The requester is an account for a crowd provider. Valid requester types are {get_valid_provider_types()}. \n"
-#                 "Use `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register."
-#             )
-#             return
-#         elif abstraction == "provider":
-#             click.echo(
-#                 f"The crowd provider determines the source of the crowd workers. Valid provider are {get_valid_provider_types()}"
-#             )
-#             return
-
-#     # There's a specific abstraction to check
-#     abstract_value = abstraction_equal_split[1]
-#     target_class = None
-#     valid = None
-#     if abstraction == "blueprint":
-#         try:
-#             target_class = get_blueprint_from_type(abstract_value)
-#         except:
-#             valid = get_valid_blueprint_types()
-#     elif abstraction == "architect":
-#         try:
-#             target_class = get_architect_from_type(abstract_value)
-#         except:
-#             valid = get_valid_architect_types()
-#     elif abstraction == "provider":
-#         try:
-#             target_class = get_crowd_provider_from_type(abstract_value)
-#         except:
-#             valid = get_valid_provider_types()
-#     elif abstraction == "requester":
-#         try:
-#             target_class = get_crowd_provider_from_type(
-#                 abstract_value
-#             ).RequesterClass
-#         except:
-#             valid = get_valid_provider_types()
-#     if valid is not None:
-#         click.echo(
-#             f"The valid types for {abstraction} are {valid}. '{abstract_value}' not found."
-#         )
-#         return
-
-# from tabulate import tabulate
-
-# def wrap_fields(in_dict):
-#     return {
-#         out_key: {
-#             in_key: "\n".join(wrap(str(in_val), width=40))
-#             for in_key, in_val in out_val.items()
-#         }
-#         for out_key, out_val in in_dict.items()
-#     }
-
-# arg_dict = get_extra_argument_dicts(target_class)[0]
-# click.echo(arg_dict["desc"])
-# checking_args = arg_dict["args"]
-# if len(args) > 1:
-#     checking_args = {k: v for k, v in checking_args.items() if k in args[1:]}
-# click.echo(tabulate(wrap_fields(checking_args).values(), headers="keys"))
-# if abstraction == "blueprint":
-#     click.echo(
-#         f"Additional SharedTaskState args from {target_class.SharedStateClass.__name__}, which may be configured in your run script"
-#     )
-#     state_args = get_task_state_dicts(target_class)[0]["args"]
-#     if len(args) > 1:
-#         state_args = {k: v for k, v in state_args.items() if k in args[1:]}
-#     click.echo(tabulate(wrap_fields(state_args).values(), headers="keys"))
+    arg_dict = get_extra_argument_dicts(target_class)[0]
+    print(arg_dict)
+    click.echo(arg_dict["desc"])
+    checking_args = arg_dict["args"]
+    if len(args) > 1:
+        checking_args = {k: v for k, v in checking_args.items() if k in args[1:]}
+    click.echo(tabulate(wrap_fields(checking_args).values(), headers="keys"))
+    if abstraction == "blueprint":
+        click.echo(
+            f"Additional SharedTaskState args from {target_class.SharedStateClass.__name__}, which may be configured in your run script"
+        )
+        state_args = get_task_state_dicts(target_class)[0]["args"]
+        if len(args) > 1:
+            state_args = {k: v for k, v in state_args.items() if k in args[1:]}
+        click.echo(tabulate(wrap_fields(state_args).values(), headers="keys"))
 
 
 @cli.command("metrics", context_settings={"ignore_unknown_options": True})
