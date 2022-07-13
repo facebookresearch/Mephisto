@@ -103,14 +103,6 @@ class RemoteProcedureBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
         default=1, metadata={"help": "How many workers you want to do each assignment"}
     )
 
-    tips_location: str = field(
-        default="${task_dir}/outputs/tips.csv",
-        metadata={
-            "help": "Path to csv file containing tips",
-            "required": False,
-        },
-    )
-
 
 @register_mephisto_abstraction()
 class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):

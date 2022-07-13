@@ -47,6 +47,13 @@ class BlueprintArgs:
             "help": ("Specify the name of a qualification used to soft block workers.")
         },
     )
+    tips_location: str = field(
+        default="${task_dir}/outputs/tips.csv",
+        metadata={
+            "help": "Path to csv file containing tips",
+            "required": False,
+        },
+    )
 
 
 @dataclass
