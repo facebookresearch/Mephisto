@@ -272,9 +272,10 @@ class Blueprint(ABC):
         Returns the tips directory as set in hydra config
         By default this is '${task_dir}/outputs/tips'
         """
-        path_to_tips = self.args["blueprint"]["tips_location"]
-        if exists(path_to_tips):
-            return path_to_tips
+        if "tips_location" in self.args["blueprint"]:
+            path_to_tips = self.args["blueprint"]["tips_location"]
+            if exists(path_to_tips):
+                return path_to_tips
         return None
 
     def update_task_config_with_tips(
