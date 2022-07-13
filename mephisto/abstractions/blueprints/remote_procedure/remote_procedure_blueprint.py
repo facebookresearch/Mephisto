@@ -226,21 +226,3 @@ class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
                 )
                 for d in self._initialization_data_dicts
             ]
-
-    def get_frontend_args(self) -> Dict[str, Any]:
-        """
-        Specifies what options within a task_config should be fowarded
-        to the client for use by the task's frontend
-        """
-        # Start with standard task configuration arguments
-        frontend_task_config = super().get_frontend_args()
-        shared_state = self.shared_state
-        assert isinstance(
-            shared_state, SharedRemoteProcedureTaskState
-        ), "Must use SharedRemoteProcedureTaskState with RemoteProcedureBlueprint"
-
-        front_end_task_config_with_metadata = super().update_task_config_with_tips(
-            frontend_task_config
-        )
-        front_end_task_config_with_metadata.update(self.frontend_task_config)
-        return front_end_task_config_with_metadata

@@ -8,7 +8,6 @@ from abc import ABC, abstractmethod
 import csv
 from genericpath import exists
 import os
-from pathlib import Path
 from typing import (
     ClassVar,
     List,
@@ -21,7 +20,6 @@ from typing import (
     Callable,
     TYPE_CHECKING,
 )
-import json
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 
@@ -227,14 +225,6 @@ class Blueprint(ABC):
     SharedStateClass: ClassVar[Type["SharedTaskState"]] = SharedTaskState
     BLUEPRINT_TYPE: str
 
-    """
-    TODO:
-    Use get_dir_for_task(task_name) to get directory where tips should be saved/read from
-    task_name can be retrieved from task_run.get_task_args()
-
-    define get_tips_directory() method for easy access in review scripts and data browser start
-    """
-
     def __init__(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
@@ -274,6 +264,7 @@ class Blueprint(ABC):
         Specifies what options should be fowarded
         to the client for use by the task's frontend
         """
+        self.update_task_config_with_tips(self.frontend_task_config)
         return self.frontend_task_config.copy()
 
     def get_tips_directory(self) -> Optional[str]:

@@ -125,11 +125,6 @@ class DataBrowser:
     ) -> List[Any]:
         """Returns all metadata for a task by going through its agents"""
 
-        """
-        This will have to be optimized later as this is being ran every time run_task.py is ran
-        Reading from a file instead of looping through all units may be a faster solution
-        """
-
         units = self.get_all_units_for_task_name(task_name=task_name)
         result: List[Any] = []
 

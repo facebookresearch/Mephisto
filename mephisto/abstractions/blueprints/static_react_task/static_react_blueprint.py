@@ -127,23 +127,3 @@ class StaticReactBlueprint(StaticBlueprint):
         assert link_task_source == False or (
             link_task_source == True and current_architect in allowed_architects
         ), f"`link_task_source={link_task_source}` is not compatible with architect type: {args.architect._architect_type}. Please check your task configuration."
-
-    def get_frontend_args(self) -> Dict[str, Any]:
-        """
-        Specifies what options within a task_config should be fowarded
-        to the client for use by the task's frontend
-        """
-        # Start with standard task configuration arguments
-
-        self.get_tips_directory()
-        frontend_task_config = super().get_frontend_args()
-        shared_state = self.shared_state
-        assert isinstance(
-            shared_state, SharedTaskState
-        ), "Must use SharedTaskState with StaticReactBlueprint"
-        front_end_task_config_with_metadata = super().update_task_config_with_tips(
-            frontend_task_config
-        )
-        # Use overrides provided downstream
-        front_end_task_config_with_metadata.update(self.frontend_task_config)
-        return frontend_task_config
