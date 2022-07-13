@@ -420,7 +420,10 @@ def create_hit_type(
     """Create a HIT type to be used to generate HITs of the requested params"""
     hit_title = task_args.task_title
     hit_description = task_args.task_description
-    hit_keywords = ",".join(task_args.task_tags)
+    if isinstance(task_args.task_tags, str):
+        hit_keywords = task_args.task_tags
+    else:
+        hit_keywords = ",".join(task_args.task_tags)
     hit_reward = task_args.task_reward
     assignment_duration_in_seconds = task_args.assignment_duration_in_seconds
     existing_qualifications = convert_mephisto_qualifications(client, qualifications)
@@ -502,7 +505,7 @@ def create_compensation_hit_with_hit_type(
 
     is_sandbox = client_is_sandbox(client)
 
-    # Create the HIT
+    # Creates a compensation HIT to be completed in the next month
     response = client.create_hit_with_hit_type(
         HITTypeId=hit_type_id,
         MaxAssignments=num_assignments,
@@ -530,6 +533,7 @@ def create_hit_with_hit_type(
     page_url: str,
     hit_type_id: str,
     num_assignments: int = 1,
+    lifetime_in_seconds: int = 60 * 60 * 24 * 31,
 ) -> Tuple[str, str, Dict[str, Any]]:
     """Creates the actual HIT given the type and page to direct clients to"""
     page_url = page_url.replace("&", "&amp;")
@@ -551,7 +555,7 @@ def create_hit_with_hit_type(
     response = client.create_hit_with_hit_type(
         HITTypeId=hit_type_id,
         MaxAssignments=num_assignments,
-        LifetimeInSeconds=60 * 60 * 24 * 31,
+        LifetimeInSeconds=lifetime_in_seconds,
         Question=question_data_structure,
     )
 

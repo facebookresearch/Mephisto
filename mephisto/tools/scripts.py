@@ -7,6 +7,7 @@
 Utilities that are useful for Mephisto-related scripts.
 """
 
+import warnings
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
@@ -20,19 +21,18 @@ from mephisto.operations.hydra_config import (
 )
 
 from omegaconf import DictConfig, OmegaConf
-
 import functools
 import hydra
-import argparse
 import subprocess
 from typing import (
-    Tuple,
     Dict,
+    Tuple,
     Any,
     Type,
     TypeVar,
     Callable,
     Optional,
+    Union,
     cast,
     TYPE_CHECKING,
 )
@@ -224,13 +224,23 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
     return script_cfg
 
 
-def build_custom_bundle(custom_src_dir):
+def build_custom_bundle(
+    custom_src_dir,
+    force_rebuild: Optional[bool] = None,
+    post_install_script: Optional[str] = None,
+):
     """Locate all of the custom files used for a custom build, create
     a prebuild directory containing all of them, then build the
     custom source.
 
     Check dates to only go through this build process when files have changes
     """
+
+    """
+    If doing local package development make sure to check out the below link:
+    https://github.com/facebookresearch/Mephisto/issues/811
+    """
+
     IGNORE_FOLDERS = {"node_modules", "build"}
 
     prebuild_path = os.path.join(custom_src_dir, "webapp")
@@ -239,36 +249,47 @@ def build_custom_bundle(custom_src_dir):
     build_path = os.path.join(prebuild_path, "build", "bundle.js")
 
     # see if we need to rebuild
-    if os.path.exists(build_path):
-        created_date = os.path.getmtime(build_path)
-        up_to_date = True
+    if force_rebuild is None or force_rebuild == False:
+        if os.path.exists(build_path):
+            created_date = os.path.getmtime(build_path)
+            up_to_date = True
 
-        for root, dirs, files in os.walk(prebuild_path):
-            for igf in IGNORE_FOLDERS:
-                should_ignore = False
-                if igf in root:
-                    should_ignore = True
-            if should_ignore:
-                continue
-            if not up_to_date:
-                break
-            for fname in files:
-                path = os.path.join(root, fname)
-                if os.path.getmtime(path) > created_date:
-                    up_to_date = False
+            for root, dirs, files in os.walk(prebuild_path):
+                for igf in IGNORE_FOLDERS:
+                    should_ignore = False
+                    if igf in root:
+                        should_ignore = True
+                if should_ignore:
+                    continue
+                if not up_to_date:
                     break
-        if up_to_date:
-            return build_path
+                for fname in files:
+                    path = os.path.join(root, fname)
+                    if os.path.getmtime(path) > created_date:
+                        up_to_date = False
+                        break
+            if up_to_date:
+                return build_path
 
     # navigate and build
     return_dir = os.getcwd()
     os.chdir(prebuild_path)
+
     packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
             "please make sure npm is installed, otherwise view "
             "the above error for more info."
         )
+
+    if post_install_script is not None and len(post_install_script) > 0:
+        did_fail_script = subprocess.call(["bash", post_install_script])
+        if did_fail_script != 0:
+            raise Exception(
+                "Please make sure that the post_install_script mentioned in your hydra config "
+                "exists in the webapp folder for this task!\n"
+                "The script should be able to be ran with bash"
+            )
 
     webpack_complete = subprocess.call(["npm", "run", "dev"])
     if webpack_complete != 0:
