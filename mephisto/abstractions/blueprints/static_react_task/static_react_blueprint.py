@@ -4,8 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from dataclasses import dataclass, field
 from omegaconf import MISSING
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
@@ -20,7 +18,7 @@ from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
 
-from typing import ClassVar, Type, Any, Dict, TYPE_CHECKING
+from typing import ClassVar, Type, TYPE_CHECKING
 from mephisto.abstractions.blueprint import (
     SharedTaskState,
 )
@@ -74,7 +72,7 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
         },
     )
     tips_location: str = field(
-        default=MISSING,
+        default="${task_dir}/outputs/tips.csv",
         metadata={
             "help": "Path to csv file containing tips",
             "required": False,
@@ -97,7 +95,6 @@ class StaticReactBlueprint(StaticBlueprint):
             shared_state, SharedStaticTaskState
         ), "Cannot initialize with a non-static state"
         super().__init__(task_run, args, shared_state)
-        self.task_run = task_run
         self.js_bundle = os.path.expanduser(args.blueprint.task_source)
         if not os.path.exists(self.js_bundle):
             raise FileNotFoundError(

@@ -14,8 +14,6 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingSharedState,
     OnboardingRequiredArgs,
 )
-from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_agent_state import (
@@ -106,7 +104,7 @@ class RemoteProcedureBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
     )
 
     tips_location: str = field(
-        default=MISSING,
+        default="${task_dir}/outputs/tips.csv",
         metadata={
             "help": "Path to csv file containing tips",
             "required": False,
@@ -133,7 +131,6 @@ class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
         shared_state: "SharedRemoteProcedureTaskState",
     ):
         super().__init__(task_run, args, shared_state)
-        self.task_run = task_run
         self._initialization_data_dicts: Iterable[Dict[str, Any]] = []
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
