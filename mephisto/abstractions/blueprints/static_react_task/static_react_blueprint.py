@@ -73,6 +73,10 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
             "required": False,
         },
     )
+    tips_location: str = field(
+        default="${task_dir}/outputs/tips.csv",
+        metadata={"help": "Path to csv file containing tips"},
+    )
 
 
 @register_mephisto_abstraction()
@@ -130,19 +134,15 @@ class StaticReactBlueprint(StaticBlueprint):
         to the client for use by the task's frontend
         """
         # Start with standard task configuration arguments
+
+        self.get_tips_directory()
         frontend_task_config = super().get_frontend_args()
         shared_state = self.shared_state
         assert isinstance(
             shared_state, SharedTaskState
         ), "Must use SharedTaskState with StaticReactBlueprint"
-        task_name = self.task_run.to_dict()["task_name"]
-        db = LocalMephistoDB()
-        mephisto_data_browser = MephistoDataBrowser(db)
-        tips = mephisto_data_browser.get_metadata_property_from_task_name(
-            task_name=task_name, property_name="tips"
-        )
         front_end_task_config_with_metadata = super().update_task_config_with_tips(
-            tips, frontend_task_config
+            frontend_task_config
         )
         # Use overrides provided downstream
         front_end_task_config_with_metadata.update(self.frontend_task_config)

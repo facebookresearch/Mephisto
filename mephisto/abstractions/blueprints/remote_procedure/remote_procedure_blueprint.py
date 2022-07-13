@@ -105,6 +105,11 @@ class RemoteProcedureBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
         default=1, metadata={"help": "How many workers you want to do each assignment"}
     )
 
+    tips_location: str = field(
+        default="${task_dir}/outputs/tips.csv",
+        metadata={"help": "Path to csv file containing tips"},
+    )
+
 
 @register_mephisto_abstraction()
 class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
@@ -233,14 +238,9 @@ class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
         assert isinstance(
             shared_state, SharedRemoteProcedureTaskState
         ), "Must use SharedRemoteProcedureTaskState with RemoteProcedureBlueprint"
-        task_name = self.task_run.to_dict()["task_name"]
-        db = LocalMephistoDB()
-        mephisto_data_browser = MephistoDataBrowser(db)
-        tips = mephisto_data_browser.get_metadata_property_from_task_name(
-            task_name=task_name, property_name="tips"
-        )
+
         front_end_task_config_with_metadata = super().update_task_config_with_tips(
-            tips, frontend_task_config
+            frontend_task_config
         )
         front_end_task_config_with_metadata.update(self.frontend_task_config)
         return front_end_task_config_with_metadata

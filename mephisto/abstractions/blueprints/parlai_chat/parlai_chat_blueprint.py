@@ -128,6 +128,10 @@ class ParlAIChatBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
             "help": "Optional count of conversations to have if no context provided"
         },
     )
+    tips_location: str = field(
+        default="${task_dir}/outputs/tips.csv",
+        metadata={"help": "Path to csv file containing tips"},
+    )
 
 
 @register_mephisto_abstraction()
@@ -308,14 +312,8 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
             }
         )
 
-        task_name = self.task_run.to_dict()["task_name"]
-        db = LocalMephistoDB()
-        mephisto_data_browser = MephistoDataBrowser(db)
-        tips = mephisto_data_browser.get_metadata_property_from_task_name(
-            task_name=task_name, property_name="tips"
-        )
         front_end_task_config_with_metadata = super().update_task_config_with_tips(
-            tips, frontend_task_config
+            frontend_task_config
         )
 
         # Use overrides provided downstream

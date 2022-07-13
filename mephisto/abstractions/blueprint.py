@@ -5,18 +5,23 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+import csv
+from genericpath import exists
+import os
+from pathlib import Path
 from typing import (
     ClassVar,
     List,
     Dict,
     Any,
+    Optional,
     Type,
     Union,
     Iterable,
     Callable,
     TYPE_CHECKING,
 )
-
+import json
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 
@@ -222,13 +227,21 @@ class Blueprint(ABC):
     SharedStateClass: ClassVar[Type["SharedTaskState"]] = SharedTaskState
     BLUEPRINT_TYPE: str
 
+    """
+    TODO:
+    Use get_dir_for_task(task_name) to get directory where tips should be saved/read from
+    task_name can be retrieved from task_run.get_task_args()
+
+    define get_tips_directory() method for easy access in review scripts and data browser start
+    """
+
     def __init__(
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
         self.args = args
         self.shared_state = shared_state
         self.frontend_task_config = shared_state.task_config
-
+        self.task_run = task_run
         # We automatically call all mixins `init_mixin_config` methods available.
         mixin_subclasses = BlueprintMixin.extract_unique_mixins(self.__class__)
         for clazz in mixin_subclasses:
@@ -263,18 +276,42 @@ class Blueprint(ABC):
         """
         return self.frontend_task_config.copy()
 
+    def get_tips_directory(self) -> Optional[str]:
+        """
+        Returns the tips directory as set in hydra config
+        By default this is '${task_dir}/outputs/tips'
+        """
+        path_to_tips = self.args["blueprint"]["tips_location"]
+        if exists(path_to_tips):
+            return path_to_tips
+        return None
+
     def update_task_config_with_tips(
         self,
-        tips: List[Dict[str, Any]],
         frontend_task_config: Dict[str, Any],
     ):
         """
         Updates the frontend args with accepted tips list
         """
-        accepted_tips = list(filter(lambda tip: tip["accepted"] == True, tips))
-        frontend_task_config.update({"tips": accepted_tips})
-        # Use overrides provided downstream
-        frontend_task_config.update(frontend_task_config)
+        tips: List[Dict[str, Any]] = []
+        path_to_tips = self.get_tips_directory()
+        if path_to_tips is not None:
+            with open(path_to_tips) as tips_file:
+                reader = csv.reader(tips_file)
+                is_csv_empty = os.stat(path_to_tips).st_size == 0
+                if is_csv_empty == False:
+                    heading = next(tips_file)
+                    headers = heading.split(",")
+                    tips_header_index = headers.index("header")
+                    tips_text_index = headers.index("text")
+                    for row in reader:
+                        tips_obj = {}
+                        tips_obj["header"] = row[tips_header_index]
+                        tips_obj["text"] = row[tips_text_index]
+                        tips.append(tips_obj)
+
+            frontend_task_config.update({"tips": tips})
+
         return frontend_task_config
 
     @abstractmethod
