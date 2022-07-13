@@ -130,7 +130,10 @@ class ParlAIChatBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
     )
     tips_location: str = field(
         default="${task_dir}/outputs/tips.csv",
-        metadata={"help": "Path to csv file containing tips"},
+        metadata={
+            "help": "Path to csv file containing tips",
+            "required": False,
+        },
     )
 
 
