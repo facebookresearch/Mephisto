@@ -74,7 +74,7 @@ class StaticReactBlueprintArgs(StaticBlueprintArgs):
         },
     )
     tips_location: str = field(
-        default="${task_dir}/outputs/tips.csv",
+        default=MISSING,
         metadata={
             "help": "Path to csv file containing tips",
             "required": False,
