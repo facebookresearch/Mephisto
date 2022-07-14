@@ -83,7 +83,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit, index }) {
       data-cy={`canvas-container-${index}`}
       style={{ float: "left", padding: "3px", borderStyle: "solid" }}
     >
-      {canvas}
+      <div data-cy={`canvas-mouse-down-container-${index}`}>{canvas}</div>
       <button
         data-cy={`clear-button-${index}`}
         className="button"
@@ -93,7 +93,9 @@ function AnnotationCanvas({ onUpdate, classifyDigit, index }) {
         Clear Drawing{" "}
       </button>
       <br />
-      Current Annotation: {currentAnnotation}
+      <span data-cy={`current-annotation-${index}`}>
+        Current Annotation: {currentAnnotation}
+      </span>
       <br />
       Annotation Correct?{" "}
       <input
