@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
 import { useMephistoTask } from "mephisto-task";
 import root from "react-shadow";
@@ -9,6 +9,14 @@ import UserSubmission from "./UserSubmission";
 import TaskTips from "./TaskTips";
 import CloseIcon from "./CloseIcon";
 import { getTipsArr } from "../Functions";
+
+function TipsContainer({ headless, children }) {
+  if (headless) {
+    return <div>{children}</div>;
+  } else {
+    return <root.div>{children}</root.div>;
+  }
+}
 
 function Tips({
   list,
@@ -29,7 +37,7 @@ function Tips({
   };
 
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
-  const popupWidth = width ? width : "min(30rem, 100%)";
+  const popupWidth = width ? width : "30rem";
   const {
     getTooltipProps,
     setTooltipRef,
@@ -54,7 +62,7 @@ function Tips({
   const stylePrefixWithNoHeadlessPrefix = "mephisto-worker-addons-tips__";
 
   return (
-    <Fragment>
+    <TipsContainer headless={headless}>
       <button
         ref={setTriggerRef}
         onClick={() => setIsVisible(!isVisible)}
@@ -70,8 +78,8 @@ function Tips({
           className={`${stylePrefixWithNoHeadlessPrefix}container`}
         >
           <div
-            style={{ maxHeight: maxPopupHeight, width: popupWidth }}
             className={`${stylePrefixWithNoHeadlessPrefix}padding-container`}
+            style={{ maxHeight: maxPopupHeight, width: popupWidth }}
           >
             <div className={`${stylePrefix}task-header-container`}>
               <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
@@ -103,8 +111,8 @@ function Tips({
           </div>
         </div>
       )}
-      {/* <style type="text/css">{tipsStyles}</style> */}
-    </Fragment>
+      <style type="text/css">{tipsStyles}</style>
+    </TipsContainer>
   );
 }
 export default Tips;
