@@ -55,12 +55,19 @@ describe("Loads remote_procedure_mnist", () => {
     // draw 1
     cy.get('[data-cy="canvas-mouse-down-container-1"]')
       .trigger("mouseover")
-      .trigger("mousedown", 100, 20)
-      .trigger("mousedown", 120, 200)
-      .trigger("mouseup", 120, 200);
+      .trigger("mousedown", 20, 60)
+      .trigger("mousedown", 40, 40)
+      .trigger("mousedown", 150, 30)
+      .trigger("mousedown", 180, 60)
+      .trigger("mousedown", 180, 120)
+      .trigger("mousedown", 150, 135)
+      .trigger("mousedown", 85, 145)
+      .trigger("mousedown", 180, 150)
+      .trigger("mousedown", 180, 210)
+      .trigger("mouseup", 65, 220);
 
     cy.wait(2000);
-    cy.get('[data-cy="current-annotation-1"]').should("contain.text", "1");
+    cy.get('[data-cy="current-annotation-1"]').should("contain.text", "3");
     cy.get('[data-cy="correct-checkbox-1"]').check();
     cy.get('[data-cy="correct-text-input-1]').should("not.exist");
 
@@ -82,6 +89,6 @@ describe("Loads remote_procedure_mnist", () => {
 
     cy.get('[data-cy="correct-text-input-2"]').type("7");
 
-    cy.get('[data-cy="submit-button"]').click({ force: true });
+    //cy.get('[data-cy="submit-button"]').click({ force: true });
   });
 });
