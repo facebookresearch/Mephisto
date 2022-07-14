@@ -349,7 +349,7 @@ class HerokuArchitect(Architect):
         print("Heroku: Starting server...")
 
         heroku_server_directory_path = os.path.join(server_dir, "router")
-        sh.git(shlex.split(f"-C {heroku_server_directory_path} init"))
+        sh.git(shlex.split(f"-C {heroku_server_directory_path} init -b master"))
 
         heroku_app_name = self.__get_app_name()
 
