@@ -26,6 +26,7 @@ from omegaconf import MISSING, DictConfig
 from mephisto.abstractions._subcomponents.task_builder import TaskBuilder
 from mephisto.abstractions._subcomponents.task_runner import TaskRunner
 from mephisto.abstractions._subcomponents.agent_state import AgentState
+from mephisto.utils.dirs import get_run_file_dir, get_tasks_dir
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
@@ -48,7 +49,7 @@ class BlueprintArgs:
         },
     )
     tips_location: str = field(
-        default="${task_dir}/outputs/tips.csv",
+        default=os.path.join(get_run_file_dir(), "assets/tips.csv"),
         metadata={
             "help": "Path to csv file containing tips",
             "required": False,

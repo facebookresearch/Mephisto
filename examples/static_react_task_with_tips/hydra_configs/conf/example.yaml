@@ -7,7 +7,6 @@ mephisto:
   blueprint:
     task_source: ${task_dir}/webapp/build/bundle.js
     link_task_source: true
-    tips_location: ${task_dir}/outputs/tips.csv
     extra_source_dir: ${task_dir}/webapp/src/static
     units_per_assignment: 1
   task:
@@ -18,3 +17,5 @@ mephisto:
     task_tags: "test,simple,button,tips"
     # We expect to be able to handle 300 concurrent tasks without issue
     max_num_concurrent_units: 300
+    force_rebuild: true
+    post_install_script: "link_packages.sh"
