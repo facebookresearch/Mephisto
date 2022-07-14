@@ -239,7 +239,6 @@ class Blueprint(ABC):
         self.args = args
         self.shared_state = shared_state
         self.frontend_task_config = shared_state.task_config
-        self.task_run = task_run
         # We automatically call all mixins `init_mixin_config` methods available.
         mixin_subclasses = BlueprintMixin.extract_unique_mixins(self.__class__)
         for clazz in mixin_subclasses:
