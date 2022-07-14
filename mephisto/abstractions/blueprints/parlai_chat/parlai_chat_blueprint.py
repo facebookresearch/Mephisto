@@ -15,6 +15,7 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequiredArgs,
 )
 from dataclasses import dataclass, field
+
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_agent_state import (
     ParlAIChatAgentState,
@@ -29,7 +30,6 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from omegaconf import DictConfig, MISSING
 
 import os
-import time
 import csv
 import sys
 import json
@@ -40,11 +40,10 @@ from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHE
 
 if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.agent import Agent, OnboardingAgent
+    from mephisto.data_model.agent import OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
-    from mephisto.data_model.assignment import Assignment
-    from mephisto.data_model.unit import Unit
+
 
 BLUEPRINT_TYPE_PARLAI_CHAT = "parlai_chat"
 
@@ -149,7 +148,6 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
     ):
         super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
-
         if args.blueprint.get("context_csv", None) is not None:
             csv_file = os.path.expanduser(args.blueprint.context_csv)
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:

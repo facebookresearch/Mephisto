@@ -4,18 +4,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
+from typing import Optional, Dict, Any, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
 import os
-import json
 import time
-import weakref
 from uuid import uuid4
 from dataclasses import dataclass, fields
-
-if TYPE_CHECKING:
-    from mephisto.data_model.agent import Agent
-    from mephisto.data_model.packet import Packet
 
 
 @dataclass
@@ -51,7 +45,10 @@ class RemoteProcedureAgentState(AgentState):
             requests = self.requests.values()
             sorted_requests = sorted(requests, key=lambda x: x.timestamp)
             prev_requests = [r.to_dict() for r in sorted_requests]
-        return {"task_data": self.init_data, "previous_requests": prev_requests}
+        return {
+            "task_data": self.init_data,
+            "previous_requests": prev_requests,
+        }
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""

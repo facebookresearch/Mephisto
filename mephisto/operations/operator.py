@@ -9,9 +9,9 @@ import json
 import os
 import time
 import threading
-import traceback
 import signal
 import asyncio
+import traceback
 
 from mephisto.operations.datatypes import LiveTaskRun, LoopWrapper
 
@@ -29,6 +29,7 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 )
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.utils.qualifications import make_qualification_dict
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.operations.client_io_handler import ClientIOHandler
@@ -250,7 +251,9 @@ class Operator:
                 f"Task is using the default blueprint name {task_name} as a name, "
                 "as no task_name is provided"
             )
+
         tasks = self.db.find_tasks(task_name=task_name)
+
         task_id = None
         if len(tasks) == 0:
             task_id = self.db.new_task(task_name, blueprint_type)
@@ -443,7 +446,6 @@ class Operator:
             logger.exception(
                 f"Encountered problem during shutting down {e}", exc_info=True
             )
-            import traceback
 
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
@@ -585,8 +587,6 @@ class Operator:
         try:
             self._event_loop.run_forever()
         except Exception as e:
-            import traceback
-
             traceback.print_exc()
         except (KeyboardInterrupt, SystemExit) as e:
             logger.exception(
