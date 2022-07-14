@@ -50,6 +50,7 @@ sh = "^1.12"
 hydra-core = "^1.1.0"
 tqdm = "^4.50.2"
 websockets = "^10.1"
+pyyaml = "^5.4.0"
 
 [tool.poetry.group.aws.dependencies]
 boto3 = "^1.17"
@@ -77,7 +78,6 @@ optional=true
 [tool.poetry.group.parlai.dependencies]
 parlai = "^1.6.0"
 torch = "^1.4.0"
-pyyaml = "^5.4.0"
 
 [tool.poetry.group.dev.dependencies]
 docutils = "^0.15"
