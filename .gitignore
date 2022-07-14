@@ -2,6 +2,7 @@ mephisto/tasks/*
 **/.mypy_cache/*
 **/__pycache__/*
 data/*
+dist/*
 mephisto.egg-info/*
 .DS_Store
 tmp/*
