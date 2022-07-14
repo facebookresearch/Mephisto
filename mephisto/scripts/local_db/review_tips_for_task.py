@@ -9,9 +9,13 @@ This prevents it from appearing again when running this script.
 Rejecting a tip deletes the tip from the tips list in the AgentState metadata.
 """
 
-from typing import List
+import csv
+from genericpath import exists
+from pathlib import Path
+from typing import Any, List, Dict, Optional
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.agent import Agent
+from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
@@ -35,11 +39,33 @@ def is_number(s) -> bool:
         return False
 
 
-def remove_tip_from_metadata(tips, tips_copy, i, unit) -> None:
+def add_row_to_tips_file(task_run: TaskRun, item_to_add: Dict[str, Any]):
+    """Adds a row the tips csv file"""
+    blueprint_task_run_args = task_run.args["blueprint"]
+    if "tips_location" in blueprint_task_run_args:
+        tips_location = blueprint_task_run_args["tips_location"]
+        does_file_exist = exists(tips_location)
+        if does_file_exist == False:
+            # Creates the file
+            create_tips_file = Path(tips_location)
+            create_tips_file.touch(exist_ok=True)
+        with open(tips_location, "r") as inp, open(tips_location, "a+") as tips_file:
+            field_names = list(item_to_add.keys())
+            writer = csv.DictWriter(tips_file, fieldnames=field_names)
+            reader = csv.reader(inp)
+            # Add header if the file is newly created or empty
+            if does_file_exist == False or len(list(reader)) == 0:
+                writer.writeheader()
+            writer.writerow(item_to_add)
+
+
+def remove_tip_from_metadata(
+    tips: List[Dict[str, Any]], tips_copy: List[Dict[str, Any]], i: int, unit: Unit
+):
     """Removes a tip from metadata"""
     tips_id = [tip_obj["id"] for tip_obj in tips_copy]
     index_to_remove = get_index_of_value(tips_id, tips[i]["id"])
-    assigned_agent: Agent = unit.get_assigned_agent()
+    assigned_agent: Optional[Agent] = unit.get_assigned_agent()
 
     if assigned_agent is not None:
         tips_copy.pop(index_to_remove)
@@ -60,6 +86,7 @@ def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
         assigned_agent.state.update_metadata(
             property_name="tips", property_value=tips_copy
         )
+        add_row_to_tips_file(unit.get_task_run(), tips_copy[index_to_update])
 
 
 def main():

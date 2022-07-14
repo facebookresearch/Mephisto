@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState } from "react";
 import { usePopperTooltip } from "react-popper-tooltip";
 import { useMephistoTask } from "mephisto-task";
 import root from "react-shadow";
@@ -37,7 +37,7 @@ function Tips({
   };
 
   const maxPopupHeight = maxHeight ? maxHeight : "30rem";
-  const popupWidth = width ? width : "min(30rem, 100%)";
+  const popupWidth = width ? width : "30rem";
   const {
     getTooltipProps,
     setTooltipRef,
@@ -78,8 +78,8 @@ function Tips({
           className={`${stylePrefixWithNoHeadlessPrefix}container`}
         >
           <div
-            style={{ maxHeight: maxPopupHeight, width: popupWidth }}
             className={`${stylePrefixWithNoHeadlessPrefix}padding-container`}
+            style={{ maxHeight: maxPopupHeight, width: popupWidth }}
           >
             <div className={`${stylePrefix}task-header-container`}>
               <h1 style={{ margin: 0 }} className={`${stylePrefix}header1`}>
