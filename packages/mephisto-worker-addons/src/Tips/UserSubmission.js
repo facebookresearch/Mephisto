@@ -31,6 +31,7 @@ function UserSubmission({
         onChange={(e) =>
           setTipData({ header: e.target.value, text: tipData.text })
         }
+        disabled={state.status === 1}
       />
 
       <label
@@ -49,6 +50,7 @@ function UserSubmission({
             text: e.target.value,
           })
         }
+        disabled={state.status === 1}
       />
       {(state.status === 2 || state.status === 3) && (
         <div

@@ -179,7 +179,7 @@ class AgentState(ABC):
         return True
 
     @abstractmethod
-    def get_init_state(self, get_all_state: Optional[bool] = False) -> Optional[Any]:
+    def get_init_state(self) -> Optional[Any]:
         """
         Return the initial state for this agent,
         None if no such state exists

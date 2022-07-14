@@ -4,17 +4,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.abstractions.database import MephistoDB
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.task_run import TaskRun
-from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.agent import Agent
 from mephisto.data_model.worker import Worker
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.constants.assignment_state import AssignmentState
 
-from typing import List, Optional, Any, Dict
+from typing import List, Any, Dict
 
 
 class DataBrowser:
@@ -28,45 +25,38 @@ class DataBrowser:
             db = LocalMephistoDB()
         self.db = db
 
+    def collect_matching_units_from_task_runs(
+        self, task_runs: List[TaskRun], statuses: List[str]
+    ) -> List[Unit]:
+        """
+        Loops through task_runs to collect all units in the provided statuses list
+        """
+        units = []
+        for task_run in task_runs:
+            assignments = task_run.get_assignments()
+            for assignment in assignments:
+                found_units = assignment.get_units()
+                for unit in found_units:
+                    if unit.get_status() in statuses:
+                        units.append(unit)
+        return units
+
     def _get_units_for_task_runs(self, task_runs: List[TaskRun]) -> List[Unit]:
         """
         Return a list of all Units in a terminal completed state from all
         the provided TaskRuns.
         """
-        units = []
-        for task_run in task_runs:
-            assignments = task_run.get_assignments()
-            for assignment in assignments:
-                found_units = assignment.get_units()
-                for unit in found_units:
-                    if unit.get_status() in [
-                        AssignmentState.COMPLETED,
-                        AssignmentState.ACCEPTED,
-                        AssignmentState.REJECTED,
-                        AssignmentState.SOFT_REJECTED,
-                    ]:
-                        units.append(unit)
-        return units
+        return self.collect_matching_units_from_task_runs(
+            task_runs, AssignmentState.completed()
+        )
 
     def _get_all_units_for_task_runs(self, task_runs: List[TaskRun]) -> List[Unit]:
         """
         Does the same as _get_units_for_task_runs except that it includes the EXPIRED state
         """
-        units = []
-        for task_run in task_runs:
-            assignments = task_run.get_assignments()
-            for assignment in assignments:
-                found_units = assignment.get_units()
-                for unit in found_units:
-                    if unit.get_status() in [
-                        AssignmentState.COMPLETED,
-                        AssignmentState.ACCEPTED,
-                        AssignmentState.REJECTED,
-                        AssignmentState.SOFT_REJECTED,
-                        AssignmentState.EXPIRED,
-                    ]:
-                        units.append(unit)
-        return units
+        return self.collect_matching_units_from_task_runs(
+            task_runs, AssignmentState.final_agent()
+        )
 
     def get_task_name_list(self) -> List[str]:
         return [task.task_name for task in self.db.find_tasks()]
@@ -134,11 +124,6 @@ class DataBrowser:
         self, task_name: str, property_name: str
     ) -> List[Any]:
         """Returns all metadata for a task by going through its agents"""
-
-        """
-        This will have to be optimized later as this is being ran every time run_task.py is ran
-        Reading from a file instead of looping through all units may be a faster solution
-        """
 
         units = self.get_all_units_for_task_name(task_name=task_name)
         result: List[Any] = []

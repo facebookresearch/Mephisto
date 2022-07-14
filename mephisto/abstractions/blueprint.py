@@ -5,24 +5,28 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
+import csv
+from genericpath import exists
+import os
 from typing import (
     ClassVar,
     List,
     Dict,
     Any,
+    Optional,
     Type,
     Union,
     Iterable,
     Callable,
     TYPE_CHECKING,
 )
-
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 
 from mephisto.abstractions._subcomponents.task_builder import TaskBuilder
 from mephisto.abstractions._subcomponents.task_runner import TaskRunner
 from mephisto.abstractions._subcomponents.agent_state import AgentState
+from mephisto.utils.dirs import get_run_file_dir, get_tasks_dir
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
@@ -42,6 +46,13 @@ class BlueprintArgs:
         default=MISSING,
         metadata={
             "help": ("Specify the name of a qualification used to soft block workers.")
+        },
+    )
+    tips_location: str = field(
+        default=os.path.join(get_run_file_dir(), "assets/tips.csv"),
+        metadata={
+            "help": "Path to csv file containing tips",
+            "required": False,
         },
     )
 
@@ -228,7 +239,6 @@ class Blueprint(ABC):
         self.args = args
         self.shared_state = shared_state
         self.frontend_task_config = shared_state.task_config
-
         # We automatically call all mixins `init_mixin_config` methods available.
         mixin_subclasses = BlueprintMixin.extract_unique_mixins(self.__class__)
         for clazz in mixin_subclasses:
@@ -261,20 +271,46 @@ class Blueprint(ABC):
         Specifies what options should be fowarded
         to the client for use by the task's frontend
         """
+        self.update_task_config_with_tips(self.frontend_task_config)
         return self.frontend_task_config.copy()
+
+    def get_tips_directory(self) -> Optional[str]:
+        """
+        Returns the tips directory as set in hydra config
+        By default this is '${task_dir}/outputs/tips'
+        """
+        if "tips_location" in self.args.blueprint:
+            path_to_tips = self.args.blueprint.tips_location
+            if exists(path_to_tips):
+                return path_to_tips
+        return None
 
     def update_task_config_with_tips(
         self,
-        tips: List[Dict[str, Any]],
         frontend_task_config: Dict[str, Any],
     ):
         """
         Updates the frontend args with accepted tips list
         """
-        accepted_tips = list(filter(lambda tip: tip["accepted"] == True, tips))
-        frontend_task_config.update({"tips": accepted_tips})
-        # Use overrides provided downstream
-        frontend_task_config.update(frontend_task_config)
+        tips: List[Dict[str, Any]] = []
+        path_to_tips = self.get_tips_directory()
+        if path_to_tips is not None:
+            with open(path_to_tips) as tips_file:
+                reader = csv.reader(tips_file)
+                is_csv_empty = os.stat(path_to_tips).st_size == 0
+                if is_csv_empty == False:
+                    heading = next(tips_file)
+                    headers = heading.split(",")
+                    tips_header_index = headers.index("header")
+                    tips_text_index = headers.index("text")
+                    for row in reader:
+                        tips_obj = {}
+                        tips_obj["header"] = row[tips_header_index]
+                        tips_obj["text"] = row[tips_text_index]
+                        tips.append(tips_obj)
+
+            frontend_task_config.update({"tips": tips})
+
         return frontend_task_config
 
     @abstractmethod
