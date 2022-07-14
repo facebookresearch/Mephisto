@@ -15,11 +15,11 @@ from mephisto.tools.scripts import (
     build_custom_bundle,
     task_script,
 )
+
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
     SharedRemoteProcedureTaskState,
     RemoteProcedureAgentState,
 )
-
 from omegaconf import DictConfig
 from typing import Any, Dict
 
@@ -48,14 +48,16 @@ def determine_toxicity(text: str):
 def main(operator: Operator, cfg: DictConfig) -> None:
     tasks = build_tasks(cfg.num_tasks)
 
-    def handle_with_model(
+    def calculate_toxicity(
         _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
     ) -> Dict[str, Any]:
         return {
             "toxicity": str(determine_toxicity(args["text"])),
         }
 
-    function_registry = {"determine_toxicity": handle_with_model}
+    function_registry = {
+        "determine_toxicity": calculate_toxicity,
+    }
 
     shared_state = SharedRemoteProcedureTaskState(
         static_task_data=tasks,

@@ -6,7 +6,7 @@
 
 
 import unittest
-from typing import Optional, Tuple, Type
+from typing import Optional, Type
 import tempfile
 import os
 import shutil

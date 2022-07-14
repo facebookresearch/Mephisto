@@ -31,7 +31,10 @@ class ParlAIChatAgentState(AgentState):
         """
         if self.init_data is None:
             return None
-        return {"task_data": self.init_data, "past_live_updates": self.messages}
+        return {
+            "task_data": self.init_data,
+            "past_live_updates": self.messages,
+        }
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""
@@ -50,6 +53,7 @@ class ParlAIChatAgentState(AgentState):
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
             self.final_submission = state["outputs"].get("final_submission")
+            self.metadata = state["metadata"]
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
@@ -59,6 +63,7 @@ class ParlAIChatAgentState(AgentState):
                 "final_submission": self.final_submission,
             },
             "inputs": self.init_data,
+            "metadata": self.metadata,
         }
 
     def get_parsed_data(self) -> Dict[str, Any]:
@@ -90,13 +95,13 @@ class ParlAIChatAgentState(AgentState):
         """
         Return the start time for this task, the timestamp of the very first message.
         """
-        return self.messages[0]["timestamp"]
+        return 0 if len(self.messages) == 0 else self.messages[0]["timestamp"]
 
     def get_task_end(self) -> float:
         """
         Return the end time for this task, the timestamp of the very final message.
         """
-        return self.messages[-1]["timestamp"]
+        return 0 if len(self.messages) == 0 else self.messages[-1]["timestamp"]
 
     def _save_data(self) -> None:
         """Save all messages from this agent to"""

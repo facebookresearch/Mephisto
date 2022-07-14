@@ -16,7 +16,6 @@ const fs = require("fs");
 const WebSocket = require("ws");
 const multer = require("multer");
 const path = require("path");
-
 const task_directory_name = "static";
 
 const PORT = process.env.PORT || 3000;
@@ -81,6 +80,7 @@ const SYSTEM_SOCKET_ID = "mephisto"; // TODO pull from somewhere
 const PACKET_TYPE_ALIVE = "alive";
 const PACKET_TYPE_SUBMIT_ONBOARDING = "submit_onboarding";
 const PACKET_TYPE_SUBMIT_UNIT = "submit_unit";
+const PACKET_TYPE_SUBMIT_METADATA = "submit_metadata";
 const PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE = "client_bound_live_update";
 const PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE = "mephisto_bound_live_update";
 const PACKET_TYPE_REGISTER_AGENT = "register_agent";
@@ -505,6 +505,24 @@ app.post("/submit_task", upload.any(), function (req, res) {
     delete agent_id_to_socket[agent_id];
     delete socket_id_to_agent[socket_id];
   }
+});
+
+app.post("/submit_metadata", function (req, res) {
+  const {
+    USED_AGENT_ID: agent_id,
+    metadata: metadata,
+    client_timestamp: client_timestamp,
+  } = req.body;
+  // ex: handleMetadataSubmit(createTip(), createFeedback())
+  let submit_packet = {
+    packet_type: PACKET_TYPE_SUBMIT_METADATA,
+    subject_id: agent_id,
+    data: metadata,
+    client_timestamp: client_timestamp,
+    router_incoming_timestamp: pythonTime(),
+  };
+  _send_message(mephisto_socket, submit_packet);
+  res.json({ status: "Submitted metadata" });
 });
 
 app.post("/log_error", function (req, res) {

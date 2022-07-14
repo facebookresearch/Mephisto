@@ -29,18 +29,13 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from omegaconf import DictConfig, MISSING
 
 import os
-import time
 import csv
-import sys
 import json
 import types
-
-from importlib import import_module
 
 from typing import (
     ClassVar,
     Callable,
-    List,
     Type,
     Any,
     Dict,
@@ -51,11 +46,8 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from mephisto.data_model.worker import Worker
-    from mephisto.data_model.agent import Agent, OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
-    from mephisto.data_model.unit import Unit
 
 BLUEPRINT_TYPE_REMOTE_PROCEDURE = "remote_procedure"
 
