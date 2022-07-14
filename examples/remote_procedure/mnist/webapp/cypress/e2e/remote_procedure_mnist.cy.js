@@ -89,6 +89,6 @@ describe("Loads remote_procedure_mnist", () => {
 
     cy.get('[data-cy="correct-text-input-2"]').type("7");
 
-    //cy.get('[data-cy="submit-button"]').click({ force: true });
+    cy.get('[data-cy="submit-button"]').click({ force: true });
   });
 });
