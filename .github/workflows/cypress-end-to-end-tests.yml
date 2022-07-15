@@ -249,6 +249,7 @@ jobs:
 
       - name: 🔪 Killing the web server
         run: |
+          sleep 40
           lsof -nPi :3000
           lsof -i -P -n | grep LISTEN | grep python | awk '{print $2}'
           kill -INT $(lsof -i -P -n | grep LISTEN | grep python | awk '{print $2}')
