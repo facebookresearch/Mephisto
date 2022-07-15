@@ -23,6 +23,7 @@ from mephisto.scripts.local_db.review_tips_for_task import (
     remove_tip_from_metadata,
 )
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
 from rich.prompt import Prompt
 from rich.markdown import Markdown
@@ -60,13 +61,7 @@ def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
-    task_names_text = """# Tips Removal\n ## Task Names:"""
-    for task_name in task_names:
-        task_names_text += "\n* " + task_name
-
-    task_names_markdown = Markdown(task_names_text)
-    console.print(task_names_markdown)
-    print("")
+    print_out_task_names(task_names)
     task_name = Prompt.ask(
         "\nEnter the name of the task that you want to review the tips of",
         choices=task_names,
