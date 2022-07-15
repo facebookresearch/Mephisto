@@ -51,6 +51,7 @@ hydra-core = "^1.1.0"
 tqdm = "^4.50.2"
 websockets = "^10.1"
 pyyaml = "^5.4.0"
+detoxify = "^0.5.0"
 
 # [tool.poetry.group.aws.dependencies]
 boto3 = "^1.17"
