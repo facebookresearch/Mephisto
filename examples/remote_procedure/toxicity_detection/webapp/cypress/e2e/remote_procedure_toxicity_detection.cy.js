@@ -1,14 +1,14 @@
 describe("Loads remote_procedure_toxicity_detection", () => {
   it("Makes request for agent", () => {
     cy.intercept({ pathname: "/request_agent" }).as("agentRequest");
-    cy.visit("http://localhost:3000/?worker_id=x&assignment_id=31");
+    cy.visit("/");
     cy.wait("@agentRequest").then((interception) => {
       expect(interception.response.statusCode).to.eq(200);
     });
   });
 
   it("Loads correct react elements", () => {
-    cy.visit("http://localhost:3000/?worker_id=x&assignment_id=31");
+    cy.visit("/");
     cy.get('[data-cy="directions-header"]');
     cy.get('[data-cy="directions-paragraph"]');
     cy.get('[data-cy="detection-text-area"]');
@@ -16,14 +16,14 @@ describe("Loads remote_procedure_toxicity_detection", () => {
   });
 
   it("Typing and submitting a toxic statement", () => {
-    cy.visit("http://localhost:3000/?worker_id=x&assignment_id=31");
+    cy.visit("/");
     cy.get('[data-cy="detection-text-area"]').as("textArea");
     cy.get('[data-cy="submit-button"]').as("submitButton");
 
     cy.get("@textArea").type("I hate bob!");
     cy.get("@submitButton").click();
     cy.get('[data-cy="loading-spinner"]');
-
+    // This timeout is 25000 because the detoxify model takes a good bit of time to run
     cy.get('[data-cy="toxicity-alert"]', { timeout: 25000 }).as(
       "toxicityAlert"
     );
@@ -39,7 +39,7 @@ describe("Loads remote_procedure_toxicity_detection", () => {
         'The task has been submitted! Data: {"toxicity":'
       );
     });
-    cy.visit("http://localhost:3000/?worker_id=x&assignment_id=31");
+    cy.visit("/");
     cy.get('[data-cy="detection-text-area"]').as("textArea");
     cy.get('[data-cy="submit-button"]').as("submitButton");
 
