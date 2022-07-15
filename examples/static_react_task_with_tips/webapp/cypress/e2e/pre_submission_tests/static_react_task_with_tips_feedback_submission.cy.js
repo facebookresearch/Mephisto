@@ -1,10 +1,11 @@
 import { feedbackClassNamePrefix } from "../../helper";
 
-const feedbackTextError = "This is toooooooooooooooooooooo long";
+const feedbackTextError =
+  "This is toooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long";
 const feedbackText1 = "🥳 First question should pass";
 const feedbackText2 = "🎉 Second question should pass";
 const question1 = "What is your favorite part of this task?";
-const question2 = "Are you satisfied with this task?";
+const question2 = "Were you satisfied with this task?";
 
 describe("Loads static_react_task_with_tips", () => {
   it("Feedback component contains correct react elements", () => {
