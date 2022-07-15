@@ -20,9 +20,7 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: |
-          pip install -e .
-          pip install detoxify
+        run: pip install -e .
 
       - name: 🖋 Create data directory
         run: |
@@ -69,9 +67,7 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: |
-          pip install -e .
-          pip install detoxify
+        run: pip install -e .
 
       - name: 🖋 Create data directory
         run: |
@@ -119,7 +115,7 @@ jobs:
       - name: 🤖 Install Mephisto
         run: |
           pip install -e .
-          pip install torch pillow numpy detoxify
+          pip install torch pillow numpy
 
       - name: 🖋 Create data directory
         run: |
@@ -166,9 +162,7 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: |
-          pip install -e .
-          pip install detoxify
+        run: pip install -e .
 
       - name: 🖋 Create data directory
         run: |
@@ -214,9 +208,7 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: |
-          pip install -e .
-          pip install detoxify
+        run: pip install -e .
 
       - name: 🖋 Create data directory
         run: |

@@ -148,6 +148,7 @@ def main():
         if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
             feedback = unit_data["feedback"]
+            print(unit_data)
             if feedback is not None:
                 for current_feedback in feedback:
                     questions.add(current_feedback["question"])
