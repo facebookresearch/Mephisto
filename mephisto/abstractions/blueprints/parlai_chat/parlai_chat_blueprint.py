@@ -15,8 +15,6 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequiredArgs,
 )
 from dataclasses import dataclass, field
-from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_agent_state import (
@@ -150,7 +148,6 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
     ):
         super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
-        self.task_run = task_run
         if args.blueprint.get("context_csv", None) is not None:
             csv_file = os.path.expanduser(args.blueprint.context_csv)
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
@@ -307,19 +304,8 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
                 "frontend_task_opts": shared_state.frontend_task_opts,
             }
         )
-
-        task_name = self.task_run.to_dict()["task_name"]
-        db = LocalMephistoDB()
-        mephisto_data_browser = MephistoDataBrowser(db)
-        tips = mephisto_data_browser.get_metadata_property_from_task_name(
-            task_name=task_name, property_name="tips"
-        )
-        front_end_task_config_with_metadata = super().update_task_config_with_tips(
-            tips, frontend_task_config
-        )
-
         # Use overrides provided downstream
-        front_end_task_config_with_metadata.update(self.frontend_task_config)
+        frontend_task_config.update(self.frontend_task_config)
         return frontend_task_config
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:

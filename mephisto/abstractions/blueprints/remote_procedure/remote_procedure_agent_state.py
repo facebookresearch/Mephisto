@@ -33,9 +33,7 @@ class RemoteProcedureAgentState(AgentState):
         """Set the initial state for this agent"""
         self.init_data: Optional[Dict[str, Any]] = data
 
-    def get_init_state(
-        self, get_all_state: Optional[bool] = False
-    ) -> Optional[Dict[str, Any]]:
+    def get_init_state(self) -> Optional[Dict[str, Any]]:
         """
         Return the initial state for this agent,
         None if no such state exists
@@ -50,7 +48,6 @@ class RemoteProcedureAgentState(AgentState):
         return {
             "task_data": self.init_data,
             "previous_requests": prev_requests,
-            # "metadata": dataclasses.asdict(self.metadata),
         }
 
     def _get_expected_data_file(self) -> str:

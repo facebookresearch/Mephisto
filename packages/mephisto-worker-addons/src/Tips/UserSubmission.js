@@ -43,6 +43,7 @@ function UserSubmission({
             maxLengths
           )
         }
+        disabled={state.status === 1}
       />
 
       <label
@@ -69,6 +70,7 @@ function UserSubmission({
             maxLengths
           )
         }
+        disabled={state.status === 1}
       />
       {(state.status === 2 ||
         state.status === 3 ||
