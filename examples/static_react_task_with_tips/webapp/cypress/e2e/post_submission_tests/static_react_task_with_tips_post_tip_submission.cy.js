@@ -6,20 +6,17 @@ describe("Checking for tips", () => {
     cy.get(`.${tipClassNamePrefix}button`).as("tipsButton");
     cy.get("@tipsButton").click();
 
-    cy.get(`.${tipClassNamePrefix}tip`).eq(-2).as("secondToLastTip");
+    cy.get(`.${tipClassNamePrefix}tip`).eq(-1).as("lastTip");
 
-    cy.get("@secondToLastTip").find("h2").as("secondToLastTipHeader");
-    cy.get("@secondToLastTip").find("p").as("secondToLastTipBody");
+    cy.get("@lastTip").find("h2").as("lastTipHeader");
+    cy.get("@lastTip").find("p").as("lastTipBody");
 
-    cy.get("@secondToLastTipHeader").should(
+    cy.get("@lastTipHeader").should(
       "have.text",
       "🎉 This is my test tip header"
     );
-    cy.get("@secondToLastTipBody").should(
-      "have.text",
-      "🎈 This is my test tip body"
-    );
-    cy.get(`.${tipClassNamePrefix}tip`).eq(-1).as("lastTip");
+    cy.get("@lastTipBody").should("have.text", "🎈 This is my test tip body");
+    /* cy.get(`.${tipClassNamePrefix}tip`).eq(-1).as("lastTip");
 
     cy.get("@lastTip").find("h2").as("lastTipHeader");
     cy.get("@lastTip").find("p").as("lastTipBody");
@@ -28,6 +25,6 @@ describe("Checking for tips", () => {
       "have.text",
       "This is my second tip header"
     );
-    cy.get("@lastTipBody").should("have.text", "This is my second tip body");
+    cy.get("@lastTipBody").should("have.text", "This is my second tip body"); */
   });
 });

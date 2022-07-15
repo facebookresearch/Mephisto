@@ -280,7 +280,8 @@ jobs:
           python review_tips_for_task.py << EOF
           react-static-task-with-tips
           a
-          n
+          5
+          The tip is very informative
           r
           EOF
 
@@ -290,16 +291,16 @@ jobs:
           python review_feedback_for_task.py << EOF
           react-static-task-with-tips
           0
-          n
+          u
           y
           y
           EOF
           python review_feedback_for_task.py << EOF
           react-static-task-with-tips
           1
+          u
+          y
           n
-          y
-          y
           EOF
 
       - name: ⌛️ Running post-submission cypress tests
