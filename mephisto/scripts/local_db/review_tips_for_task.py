@@ -26,11 +26,11 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
-from rich.markdown import Markdown
 from rich import box
 from rich.prompt import Prompt
-from rich.prompt import Confirm, FloatPrompt
+from rich.prompt import FloatPrompt
 from rich.table import Table
+from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
 
 
@@ -108,13 +108,7 @@ def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
-    task_names_text = """# Tips Review \n ## Task Names:"""
-    for task_name in task_names:
-        task_names_text += "\n* " + task_name
-
-    task_names_markdown = Markdown(task_names_text)
-    console.print(task_names_markdown)
-    print("")
+    print_out_task_names(task_names)
     task_name = Prompt.ask(
         "\nEnter the name of the task that you want to review the tips of",
         choices=task_names,
