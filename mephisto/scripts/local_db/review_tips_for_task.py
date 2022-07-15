@@ -41,17 +41,6 @@ def get_index_of_value(lst: List[str], property: str) -> int:
     return 0
 
 
-def is_number(s):
-    """Validates the input to make sure that it is a number"""
-    if s == "NaN":
-        return False
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
-
-
 def add_row_to_tips_file(task_run: TaskRun, item_to_add: Dict[str, Any]):
     """Adds a row the tips csv file"""
     blueprint_task_run_args = task_run.args["blueprint"]

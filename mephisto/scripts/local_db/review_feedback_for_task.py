@@ -29,6 +29,7 @@ from mephisto.scripts.local_db.review_tips_for_task import get_index_of_value
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from rich.markdown import Markdown
 from rich.prompt import Prompt, IntPrompt
+from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
 from rich.table import Table
 from rich import box
@@ -84,14 +85,16 @@ def print_out_unreviewed_feedback_elements(
 ) -> None:
     """Prints out the desired feedback object properties from a filtered list"""
     i = 0
+    agent = unit.get_assigned_agent()
     for feedback_obj in filtered_feedback_list:
         feedback_table = Table(
             "Property",
             "Value",
-            title="Unreviewed feedback "
-            + str(i + 1)
-            + " of "
-            + str(len(filtered_feedback_list)),
+            title="Unreviewed Feedback {current_feedback} of {total_feedback} From Agent {agent_id}".format(
+                current_feedback=i + 1,
+                total_feedback=len(filtered_feedback_list),
+                agent_id=agent.get_agent_id() if agent is not None else "-1",
+            ),
             box=box.ROUNDED,
             expand=True,
             show_lines=True,
@@ -123,12 +126,7 @@ def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
-    task_names_text = """# Feedback Review \n ## Task Names:"""
-    for task_name in task_names:
-        task_names_text += "\n* " + task_name
-    task_names_markdown = Markdown(task_names_text)
-    console.print(task_names_markdown)
-    # Getting the task name
+    print_out_task_names(task_names)
     task_name = Prompt.ask(
         "\nEnter the name of the task that you want to review the tips of",
         choices=task_names,
