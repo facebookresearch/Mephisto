@@ -1,48 +1,106 @@
 [tool.poetry]
 name = "mephisto"
-version = "1.0.1"
-description = ""
-authors = ["Jack Urbanek <jju@fb.com>"]
+version = "1.0.2"
+description = "Crowdsourcing made simpler."
+license = "MIT"
+authors = [
+    "Jack Urbanek <jju@fb.com>",
+    "Pratik Ringshia <tikir@fb.com>"
+]
+readme = "README.md"
+homepage = "https://mephisto.ai/"
+repository = "https://github.com/facebookresearch/Mephisto"
+documentation = "https://mephisto.ai/docs/reference/overview/"
+keywords = ["crowdsourcing", "data", "collection", "review"]
+classifiers = [
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+    "Natural Language :: English",
+]
+packages = [
+    { include = "mephisto" },
+    { include = "hydra_plugins" },
+]
+include = [
+    "README.md",
+    "mephisto/__init__.py",
+    "mephisto/scripts/metrics/install_metrics.sh",
+    "mephisto/scripts/metrics/shutdown_metrics.py",
+    "mephisto/scripts/metrics/view_metrics.py",
+    "mephisto/scripts/metrics/README.md",
+    "mephisto/scripts/metrics/resources/*",
+]
+exclude = [
+    "**/__pycache__/**/*.*",
+    "**/.mypy_cache/**/*",
+    "**/node_modules/*",
+    "**/node_modules/**/*",
+    "**/build/*",
+    "**/build/**/*",
+    "**/_generated/*",
+    "**/_generated/**/*",
+    "mephisto/scripts/metrics/grafana/*",
+    "mephisto/scripts/metrics/prometheus/*",
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-click = "^7.0"
-flask = "^1.1"
-click_default_group = "^1.2"
-boto3 = "^1.17"
 requests = "^2.22"
 sh = "^1.12"
-tornado = "^6.0"
-parlai = {version = "^1.5.0", optional = true }
-torch = {version = "^1.4.0", optional = true }
-pyyaml = {version = "^5.4", optional = true }
-gevent-websocket = "^0.10.1"
-tabulate = "^0.8.7"
 hydra-core = "^1.1.0"
 tqdm = "^4.50.2"
-xmltodict = "^0.12.0"
-prometheus-client = "^0.13.1"
 websockets = "^10.1"
+pyyaml = "^5.4.0"
 
-[tool.poetry.dev-dependencies]
-pytest = "^5.0"
+# [tool.poetry.group.aws.dependencies]
+boto3 = "^1.17"
+botocore = "^1.20.95"
+xmltodict = "^0.12.0"
+
+# [tool.poetry.group.cli.dependencies]
+click = "^7.0"
+click_default_group = "^1.2"
+tabulate = "^0.8.7"
+
+# [tool.poetry.group.metrics.dependencies]
+prometheus-client = "^0.13.1"
+
+# [tool.poetry.group.flask_architect.dependencies]
+flask = "^1.1"
+gevent-websocket = "^0.10.1"
+werkzeug = "^1.0.1"
+
+# [tool.poetry.group.mock_architect.dependencies]
+tornado = "^6.0"
+
+# [tool.poetry.group.parlai]
+# optional=true
+# [tool.poetry.group.parlai.dependencies]
+parlai = "^1.6.0"
+torch = "^1.4.0"
+
+# [tool.poetry.group.dev.dependencies]
+docutils = "^0.15"
+pdoc = "^10.0.3"
 pylint = "^2.4"
-mypy = "^0.761.0"
+pytest = "^5.0"
 pytest-cov = "^2.10.1"
+mypy = "^0.931.0"
 
-[tool.poetry.extras]
-parlai = [ "parlai" , "torch" , "pyyaml" ]
 
 [tool.poetry.scripts]
 'mephisto' = 'mephisto.client.cli:cli'
 
+[tool.poetry.extras]
+parlai = ["parlai", "torch", "pyyaml"]
+
 [build-system]
 requires = [
-    "poetry>=0.12",
-    "setuptools!=50.0",
+    "poetry>=1.2.0b2",
+    "poetry-core>=1.1.0a7",
     "wheel",
 ]
-build-backend = "poetry.masonry.api"
+build-backend = "poetry.core.masonry.api"
 
 [mypy]
 ignore_missing_imports = true
