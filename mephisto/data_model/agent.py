@@ -257,9 +257,6 @@ class _AgentBase(ABC):
 
     def handle_metadata_submit(self, data: Dict[str, Any]) -> None:
         """Handles the submission of metadata (as of now that is tips and feedback)"""
-        init_agent_data = self.state.get_init_state(get_all_state=True)
-        assert init_agent_data is not None, "Could not find agent data"
-        init_agent_data = init_agent_data.copy()
 
         if "tips" in data:
             """Handles the submission of a tip"""

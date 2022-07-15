@@ -55,6 +55,7 @@ const FeedbackTextArea = forwardRef(
           (e) => setFeedbackText(e.target.value)
         );
       }}
+      disabled={state.status === 1}
       value={feedbackText}
       placeholder={placeholder ? placeholder : "Enter feedback text here"}
       className={`${stylePrefix}text-area ${

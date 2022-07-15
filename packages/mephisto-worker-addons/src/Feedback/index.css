@@ -146,7 +146,9 @@
   flex-direction: column;
   width: 100%;
 }
-
+.mephisto-worker-addons-feedback__text-area:disabled {
+  cursor: not-allowed !important;
+}
 .mephisto-worker-addons-feedback__text-area {
   min-width: min(8rem, 100%);
   max-width: 100%;
