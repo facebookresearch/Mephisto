@@ -284,6 +284,7 @@ jobs:
           python review_feedback_for_task.py << EOF
           react-static-task-with-tips
           0
+          n
           u
           y
           y
@@ -291,6 +292,7 @@ jobs:
           python review_feedback_for_task.py << EOF
           react-static-task-with-tips
           1
+          n
           u
           y
           n
