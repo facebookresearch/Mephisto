@@ -143,6 +143,8 @@ def main():
     # Getting all questions
     questions = set({})
     for unit in units:
+        print(unit)
+        print(unit.agent_id)
         if unit.agent_id is not None:
             unit_data = mephisto_data_browser.get_data_from_unit(unit)
             feedback = unit_data["feedback"]
