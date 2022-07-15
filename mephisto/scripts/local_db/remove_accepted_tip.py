@@ -26,7 +26,6 @@ from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
 from rich.prompt import Prompt
-from rich.markdown import Markdown
 from rich.table import Table, Column
 from rich import box
 
