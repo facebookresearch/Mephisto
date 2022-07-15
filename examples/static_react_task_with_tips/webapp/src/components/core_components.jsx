@@ -77,7 +77,7 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
           </div>
         </div>
         <div style={{ margin: "15rem 2rem 2rem auto", width: "fit-content" }}>
-          <Tips width="30rem" maxHeight="30rem" />
+          <Tips headless width="30rem" maxHeight="30rem" />
         </div>
       </section>
     </div>
