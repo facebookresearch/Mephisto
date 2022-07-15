@@ -281,8 +281,9 @@ class TaskRunner(ABC):
                     if unit_agent is not None and unit_agent.db_id == agent.db_id:
                         logger.debug(f"Clearing {agent} from {unit} due to {e}")
                         unit.clear_assigned_agent()
-                        if agent.get_status() not in AgentState.complete():
-                            agent.update_status(AgentState.STATUS_DISCONNECT)
+                    if agent.get_status() not in AgentState.complete():
+                        # Absent agents at this stage should be disconnected
+                        agent.update_status(AgentState.STATUS_DISCONNECT)
                 self.cleanup_unit(unit)
             except Exception as e:
                 logger.exception(f"Unhandled exception in unit {unit}", exc_info=True)
