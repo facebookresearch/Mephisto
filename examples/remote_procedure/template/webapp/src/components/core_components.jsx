@@ -7,7 +7,6 @@
  */
 
 import React from "react";
-
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;
 }

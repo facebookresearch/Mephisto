@@ -4,5 +4,6 @@ module.exports = {
   e2e: {
     baseUrl: "http://localhost:3000/?worker_id=x&assignment_id=1",
     supportFile: false,
+    includeShadowDom: true,
   },
 };

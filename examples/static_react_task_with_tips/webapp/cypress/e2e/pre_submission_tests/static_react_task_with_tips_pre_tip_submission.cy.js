@@ -6,6 +6,10 @@ const firstTipBody = "🎈 This is my test tip body";
 const secondTipHeader = "This is my second tip header";
 const secondTipBody = "This is my second tip body";
 
+const headerError = "This header is toooooooooooooooooooooooooooooooooo long";
+const bodyError =
+  "This body is toooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long";
+
 describe("Loads static_react_task_with_tips", () => {
   it("Makes request for agent", () => {
     cy.intercept({ pathname: "/request_agent" }).as("agentRequest");
@@ -17,8 +21,8 @@ describe("Loads static_react_task_with_tips", () => {
 
   it("Loads correct task react elements", () => {
     cy.visit("/");
-    cy.get('[data-cy="directions"]');
-    cy.get('[data-cy="task-text"]');
+    cy.get('[data-cy="directions-container"]');
+    cy.get('[data-cy="task-data-text"]');
     cy.get('[data-cy="good-button"]');
     cy.get('[data-cy="bad-button"]');
   });
@@ -66,13 +70,23 @@ describe("Tips Popup", () => {
     cy.get("@tipsButton").click();
 
     cy.get(`#${tipClassNamePrefix}header-input`).as("tipsHeaderInput");
-    cy.get("@tipsHeaderInput").type("This header is tooooooooooooooooo long");
+    cy.get("@tipsHeaderInput").type(headerError);
     cy.get(`.${tipClassNamePrefix}red-box`).should(
       "have.text",
       "📝 Your tip header is too long"
     );
     cy.get(`.${tipClassNamePrefix}button`).should("be.disabled");
-    cy.get("@tipsHeaderInput").clear();
+
+    /*
+    There needs to be {force:true} in the clear because otherwise there is a
+    "cy.type() failed because it targeted a disabled element" error
+
+    These issues are both related to it, there seems to be no clear solution:
+    https://github.com/cypress-io/cypress/issues/5830
+    https://github.com/cypress-io/cypress/issues/21433
+
+    */
+    cy.get("@tipsHeaderInput").clear({ force: true });
     cy.get(`.${tipClassNamePrefix}red-box`).should("not.exist");
   });
 
@@ -82,15 +96,13 @@ describe("Tips Popup", () => {
     cy.get("@tipsButton").click();
 
     cy.get(`#${tipClassNamePrefix}text-input`).as("tipsBodyInput");
-    cy.get("@tipsBodyInput").type(
-      "This body is tooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long"
-    );
+    cy.get("@tipsBodyInput").type(bodyError);
     cy.get(`.${tipClassNamePrefix}red-box`).should(
       "have.text",
       "📝 Your tip body is too long"
     );
     cy.get(`.${tipClassNamePrefix}button`).should("be.disabled");
-    cy.get("@tipsBodyInput").clear();
+    cy.get("@tipsBodyInput").clear({ force: true });
     cy.get(`.${tipClassNamePrefix}red-box`).should("not.exist");
   });
 
@@ -100,7 +112,8 @@ describe("Tips Popup", () => {
     cy.get("@tipsButton").click();
 
     cy.get(`#${tipClassNamePrefix}header-input`).as("tipsHeaderInput");
-    cy.get("@tipsHeaderInput").type("This header is tooooooooooooooooo long");
+    cy.get("@tipsHeaderInput").should("not.be.disabled");
+    cy.get("@tipsHeaderInput").type(headerError);
     cy.get(`.${tipClassNamePrefix}red-box`).should(
       "have.text",
       "📝 Your tip header is too long"
@@ -108,24 +121,21 @@ describe("Tips Popup", () => {
     cy.get(`.${tipClassNamePrefix}button`).should("be.disabled");
 
     cy.get(`#${tipClassNamePrefix}text-input`).as("tipsBodyInput");
-    cy.get("@tipsBodyInput").type(
-      "This body is tooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long"
-    );
+    cy.get("@tipsBodyInput").should("not.be.disabled");
+    cy.get("@tipsBodyInput").type(bodyError);
 
     cy.get(`.${tipClassNamePrefix}button`).should("be.disabled");
     cy.get(`.${tipClassNamePrefix}red-box`).should(
       "have.text",
       "📝 Your tip header is too long"
     );
-
-    cy.get("@tipsHeaderInput").clear();
+    cy.get("@tipsHeaderInput").clear({ force: true });
     cy.get(`.${tipClassNamePrefix}red-box`).should(
       "have.text",
       "📝 Your tip body is too long"
     );
     cy.get(`.${tipClassNamePrefix}button`).should("be.disabled");
-
-    cy.get("@tipsBodyInput").clear();
+    cy.get("@tipsBodyInput").clear({ force: true });
     cy.get(`.${tipClassNamePrefix}red-box`).should("not.exist");
   });
 
@@ -141,10 +151,10 @@ describe("Tips Popup", () => {
       .as("submitButton");
     cy.get("@submitButton").should("be.disabled");
     cy.get(`#${tipClassNamePrefix}header-input`).as("tipsHeaderInput");
-    cy.get("@tipsHeaderInput").type(firstTipHeader);
+    cy.get("@tipsHeaderInput").type(firstTipHeader, { force: true });
 
     cy.get(`#${tipClassNamePrefix}text-input`).as("tipsBodyInput");
-    cy.get("@tipsBodyInput").type(firstTipBody);
+    cy.get("@tipsBodyInput").type(firstTipBody, { force: true });
     cy.get("@submitButton").should("not.be.disabled");
 
     cy.get("@tipsHeaderInput").should("have.value", firstTipHeader);
@@ -177,10 +187,10 @@ describe("Tips Popup", () => {
       .as("submitButton");
     cy.get("@submitButton").should("be.disabled");
     cy.get(`#${tipClassNamePrefix}header-input`).as("tipsHeaderInput");
-    cy.get("@tipsHeaderInput").type(secondTipHeader);
+    cy.get("@tipsHeaderInput").type(secondTipHeader, { force: true });
 
     cy.get(`#${tipClassNamePrefix}text-input`).as("tipsBodyInput");
-    cy.get("@tipsBodyInput").type(secondTipBody);
+    cy.get("@tipsBodyInput").type(secondTipBody, { force: true });
     cy.get("@submitButton").should("not.be.disabled");
 
     cy.get("@tipsHeaderInput").should("have.value", secondTipHeader);

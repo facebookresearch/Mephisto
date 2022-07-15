@@ -18,12 +18,14 @@ from mephisto.operations.hydra_config import (
     register_script_config,
     TaskConfig,
 )
-
+from rich.markdown import Markdown
+from mephisto.utils.rich import console
 from omegaconf import DictConfig, OmegaConf
 import functools
 import hydra
 import subprocess
 from typing import (
+    List,
     Tuple,
     Any,
     Type,
@@ -34,6 +36,7 @@ from typing import (
     TYPE_CHECKING,
 )
 import os
+from rich import print
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -221,21 +224,32 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
     return script_cfg
 
 
-def build_custom_bundle(custom_src_dir, run_config: DictConfig):
+def build_custom_bundle(
+    custom_src_dir,
+    force_rebuild: Optional[bool] = None,
+    post_install_script: Optional[str] = None,
+):
     """Locate all of the custom files used for a custom build, create
     a prebuild directory containing all of them, then build the
     custom source.
 
     Check dates to only go through this build process when files have changes
     """
+
+    """
+    If doing local package development make sure to check out the below link:
+    https://github.com/facebookresearch/Mephisto/issues/811
+    """
+
     IGNORE_FOLDERS = {"node_modules", "build"}
 
     prebuild_path = os.path.join(custom_src_dir, "webapp")
 
     IGNORE_FOLDERS = {os.path.join(prebuild_path, f) for f in IGNORE_FOLDERS}
     build_path = os.path.join(prebuild_path, "build", "bundle.js")
+
     # see if we need to rebuild
-    if run_config.task.force_rebuild is False:
+    if force_rebuild is None or force_rebuild == False:
         if os.path.exists(build_path):
             created_date = os.path.getmtime(build_path)
             up_to_date = True
@@ -268,11 +282,14 @@ def build_custom_bundle(custom_src_dir, run_config: DictConfig):
             "the above error for more info."
         )
 
-    if (
-        run_config.task.post_build_script is not None
-        and len(run_config.task.post_build_script) > 0
-    ):
-        subprocess.call(["bash", run_config.task.post_build_script])
+    if post_install_script is not None and len(post_install_script) > 0:
+        did_fail_script = subprocess.call(["bash", post_install_script])
+        if did_fail_script != 0:
+            raise Exception(
+                "Please make sure that the post_install_script mentioned in your hydra config "
+                "exists in the webapp folder for this task!\n"
+                "The script should be able to be ran with bash"
+            )
 
     webpack_complete = subprocess.call(["npm", "run", "dev"])
     if webpack_complete != 0:
@@ -284,3 +301,19 @@ def build_custom_bundle(custom_src_dir, run_config: DictConfig):
     # cleanup and return
     os.chdir(return_dir)
     return build_path
+
+
+def print_out_task_names(task_names: List[str]) -> None:
+    """Prints out task names and formats them nicely using rich"""
+    if len(task_names) == 0:
+        print(
+            "\n[red]There are no task names found[/red] \nYou should launch a task first and then run this script after the task is shut down\n"
+        )
+        quit()
+    task_names_text = """# Tips Review \n ## Task Names:"""
+    for task_name in task_names:
+        task_names_text += "\n* " + task_name
+
+    task_names_markdown = Markdown(task_names_text)
+    console.print(task_names_markdown)
+    print("")

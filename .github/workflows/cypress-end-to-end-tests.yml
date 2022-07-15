@@ -47,7 +47,7 @@ jobs:
           install: false
           project: ./examples/static_react_task/webapp
           config-file: ./cypress.config.js
-          start: python examples/static_react_task/run_task.py mephisto.task.post_build_script=link_mephisto_task.sh
+          start: python examples/static_react_task/run_task.py mephisto.task.post_install_script=link_mephisto_task.sh
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
           headless: true

@@ -14,8 +14,6 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingSharedState,
     OnboardingRequiredArgs,
 )
-from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from dataclasses import dataclass, field
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_agent_state import (
@@ -125,7 +123,6 @@ class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
         shared_state: "SharedRemoteProcedureTaskState",
     ):
         super().__init__(task_run, args, shared_state)
-        self.task_run = task_run
         self._initialization_data_dicts: Iterable[Dict[str, Any]] = []
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
@@ -221,24 +218,3 @@ class RemoteProcedureBlueprint(OnboardingRequired, Blueprint):
                 )
                 for d in self._initialization_data_dicts
             ]
-
-    def get_frontend_args(self) -> Dict[str, Any]:
-        """
-        Specifies what options within a task_config should be fowarded
-        to the client for use by the task's frontend
-        """
-        # Start with standard task configuration arguments
-        frontend_task_config = super().get_frontend_args()
-        shared_state = self.shared_state
-        assert isinstance(
-            shared_state, SharedRemoteProcedureTaskState
-        ), "Must use SharedRemoteProcedureTaskState with RemoteProcedureBlueprint"
-        task_name = self.task_run.to_dict()["task_name"]
-        db = LocalMephistoDB()
-        mephisto_data_browser = MephistoDataBrowser(db)
-        metadata = mephisto_data_browser.get_metadata_from_task_name(task_name)
-        front_end_task_config_with_metadata = super().update_task_config_with_metadata(
-            metadata, frontend_task_config
-        )
-        front_end_task_config_with_metadata.update(self.frontend_task_config)
-        return front_end_task_config_with_metadata

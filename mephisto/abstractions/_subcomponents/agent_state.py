@@ -10,10 +10,13 @@ from typing import (
     List,
     Dict,
     Any,
-    Type,
     Union,
     TYPE_CHECKING,
 )
+from dataclasses import dataclass, replace
+import time
+import weakref
+import os.path
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -23,6 +26,23 @@ if TYPE_CHECKING:
 from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
+
+METADATA_FILE = "agent_meta.json"
+
+
+@dataclass
+class _AgentStateMetadata:
+    """
+    Class to track the first-class feature fields of info about an AgentState.
+
+    AgentState subclasses may choose to track additional metadata, but should
+    put these as attributes of the agent state subclass directly.
+    """
+
+    task_start: Optional[float] = None
+    task_end: Optional[float] = None
+    tips: Optional[List[Dict[str, Any]]] = None
+    feedback: Optional[List[Dict[str, Any]]] = None
 
 
 # TODO(#567) File manipulations should ultimately be handled by the MephistoDB, rather than
@@ -108,26 +128,59 @@ class AgentState(ABC):
 
     # Implementations of an AgentState must implement the following:
 
-    @abstractmethod
     def __init__(self, agent: "Agent"):
         """
         Create an AgentState to track the state of an agent's work on a Unit
 
         Implementations should initialize any required files for saving and
-        loading state data somewhere.
+        loading state data somewhere in their _load_data methods
 
         If said file already exists based on the given agent, load that data
         instead.
         """
-        raise NotImplementedError()
+        self.agent = weakref.proxy(agent)
+        self.load_data()
+
+    def _get_metadata_path(self) -> str:
+        """Return the path we expect to store metadata in"""
+        data_dir = self.agent.get_data_dir()
+        return os.path.join(data_dir, METADATA_FILE)
+
+    def load_metadata(self) -> None:
+        """Write out the metadata for this agent state to file"""
+        md_path = self._get_metadata_path()
+        if self.agent.db.key_exists(md_path):
+            metadata_dict = self.agent.db.read_dict(md_path)
+            self.metadata = _AgentStateMetadata(**metadata_dict)
+        else:
+            self.metadata = _AgentStateMetadata()
+
+    def save_metadata(self) -> None:
+        """Read in the saved metadata for this agent state from file"""
+        metadata_dict = self.metadata.__dict__
+        md_path = self._get_metadata_path()
+        self.agent.db.write_dict(md_path, metadata_dict)
 
     @abstractmethod
-    def set_init_state(self, data: Any) -> bool:
+    def _set_init_state(self, data: Any) -> None:
         """Set the initial state for this agent"""
         raise NotImplementedError()
 
+    def set_init_state(self, data: Any) -> bool:
+        """
+        Set the initial state for this agent, if it's not already set
+
+        Update the start time and return true if set, otherwise return false
+        """
+        if self.get_init_state() is not None:
+            return False
+        self.metadata.task_start = time.time()
+        self._set_init_state(data)
+        self.save_data()
+        return True
+
     @abstractmethod
-    def get_init_state(self, get_all_state: Optional[bool] = False) -> Optional[Any]:
+    def get_init_state(self) -> Optional[Any]:
         """
         Return the initial state for this agent,
         None if no such state exists
@@ -135,17 +188,24 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def load_data(self) -> None:
+    def _load_data(self) -> None:
         """
         Load stored data from a file to this object
         """
         raise NotImplementedError()
 
+    def load_data(self) -> None:
+        """
+        Load stored data from a file to this object, including metadata
+        """
+
+        self.load_metadata()
+        self._load_data()
+
     @abstractmethod
     def get_data(self) -> Dict[str, Any]:
         """
-        Return the currently stored data for this task in the format
-        expected by any frontend displays
+        Return the currently stored data for this task
         """
         raise NotImplementedError()
 
@@ -161,11 +221,18 @@ class AgentState(ABC):
         return self.get_data()
 
     @abstractmethod
-    def save_data(self) -> None:
+    def _save_data(self) -> None:
         """
         Save the relevant data from this Unit to a file in the expected location
         """
         raise NotImplementedError()
+
+    def save_data(self) -> None:
+        """
+        Save the relevant data from this AgentState, including metadata
+        """
+        self._save_data()
+        self.save_metadata()
 
     @abstractmethod
     def update_data(self, live_update: Dict[str, Any]) -> None:
@@ -176,27 +243,52 @@ class AgentState(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def update_submit(self, submit_data: Dict[str, Any]) -> None:
+    def _update_submit(self, submit_data: Dict[str, Any]) -> None:
         """
         Update this AgentState with the final submission data.
         """
         raise NotImplementedError()
 
-    @abstractmethod
-    def update_metadata(self, new_metadata_obj: Dict[str, Any]) -> None:
+    def update_submit(self, submit_data: Dict[str, Any]) -> None:
         """
-        Update this AgentState with the final metadata.
+        Update this AgentState with the final submission data, marking
+        completion of the task in the metadata
         """
-        raise NotImplementedError()
+        self.metadata.task_end = time.time()
+        self._update_submit(submit_data)
+        self.save_data()
 
     def get_task_start(self) -> Optional[float]:
         """
         Return the start time for this task, if it is available
         """
-        return 0.0
+        return self.metadata.task_start
 
     def get_task_end(self) -> Optional[float]:
         """
         Return the end time for this task, if it is available
         """
-        return 0.0
+        return self.metadata.task_end
+
+    def get_tips(self) -> Optional[List[Dict[str, Any]]]:
+        """
+        Return the tips for this task, if it is available
+        """
+        return self.metadata.tips
+
+    def get_feedback(self) -> Optional[List[Dict[str, Any]]]:
+        """
+        Return the tips for this task, if it is available
+        """
+        return self.metadata.feedback
+
+    def update_metadata(self, property_name: str, property_value: Any) -> None:
+        if self.metadata is not None:
+            assert (
+                hasattr(self.metadata, property_name) == True
+            ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
+                property_name=property_name
+            )
+            replaced = {property_name: property_value}
+            self.metadata = replace(self.metadata, **replaced)
+            self.save_data()

@@ -17,5 +17,5 @@ mephisto:
     task_tags: "test,simple,button,tips"
     # We expect to be able to handle 300 concurrent tasks without issue
     max_num_concurrent_units: 300
-    post_build_script: ""
-    force_rebuild: false
+    force_rebuild: true
+    post_install_script: "link_packages.sh"

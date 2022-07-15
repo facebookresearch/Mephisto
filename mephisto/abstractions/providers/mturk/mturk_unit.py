@@ -272,9 +272,14 @@ class MTurkUnit(Unit):
         return self.db_status
 
     def launch(self, task_url: str) -> None:
-        """Create this HIT on MTurk (making it availalbe) and register the ids in the local db"""
+        """Create this HIT on MTurk (making it available) and register the ids in the local db"""
         task_run = self.get_assignment().get_task_run()
         duration = task_run.get_task_args().assignment_duration_in_seconds
+        task_lifetime_in_seconds = (
+            task_run.get_task_args().task_lifetime_in_seconds
+            if task_run.get_task_args().task_lifetime_in_seconds
+            else 60 * 60 * 24 * 31
+        )
         run_id = task_run.db_id
         run_details = self.datastore.get_run(run_id)
         hit_type_id = run_details["hit_type_id"]
@@ -282,7 +287,11 @@ class MTurkUnit(Unit):
         client = self._get_client(requester._requester_name)
         frame_height = run_details["frame_height"]
         hit_link, hit_id, response = create_hit_with_hit_type(
-            client, frame_height, task_url, hit_type_id
+            client,
+            frame_height,
+            task_url,
+            hit_type_id,
+            lifetime_in_seconds=task_lifetime_in_seconds,
         )
         # TODO(OWN) get this link to the mephisto frontend
         print(hit_link)

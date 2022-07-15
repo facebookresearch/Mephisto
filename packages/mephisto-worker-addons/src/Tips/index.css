@@ -11,7 +11,6 @@
 }
 .headless-mephisto-worker-addons-tips__no-submissions {
   margin: 0 0 0 0.75rem !important;
-  color: #565656;
   font-style: italic;
 }
 
@@ -197,6 +196,10 @@
   line-height: 1.5;
   resize: vertical;
 }
+#mephisto-worker-addons-tips__header-input:disabled,
+#mephisto-worker-addons-tips__text-input:disabled {
+  cursor: not-allowed !important;
+}
 
 #mephisto-worker-addons-tips__header-input:hover,
 #mephisto-worker-addons-tips__text-input:hover {
@@ -212,7 +215,7 @@
   box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
 }
 .mephisto-worker-addons-tips__no-submissions {
-  margin: 0 0 0 0.75rem !important;
+  margin: 0.75rem 0 0.75rem 0.75rem !important;
   color: #565656;
   font-style: italic;
 }

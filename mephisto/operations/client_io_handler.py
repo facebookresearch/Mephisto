@@ -4,14 +4,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
-from mimetypes import init
-from uuid import uuid4
-import weakref
 import time
 import asyncio
 from queue import Queue
-from detoxify import Detoxify
 from prometheus_client import Histogram  # type: ignore
 
 from mephisto.data_model.packet import (
@@ -30,10 +25,10 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_SUBMIT_METADATA,
 )
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.agent import Agent, OnboardingAgent
+from mephisto.data_model.agent import _AgentBase
 from mephisto.operations.datatypes import LiveTaskRun
 from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
-from typing import Dict, Tuple, Union, Optional, List, Any, TYPE_CHECKING
+from typing import Dict, Tuple, Optional, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -289,58 +284,17 @@ class ClientIOHandler:
         agent.handle_submit(packet.data)
 
     def _on_submit_metadata(self, packet: Packet):
-        if "tips" in packet.data:
-            """Handles the submission of a tip"""
-            live_run = self.get_live_run()
-            agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
-            assert agent is not None, "Could not find given agent!"
-            init_agent_data = agent.state.get_init_state(get_all_state=True).copy()
-            assert init_agent_data is not None, "Could not find agent data"
-            # Updates tips
-            new_tip_header = packet.data["tips"]["header"]
-            new_tip_text = packet.data["tips"]["text"]
-            init_agent_data["metadata"]["tips"].append(
-                {
-                    "id": str(uuid4()),
-                    "header": new_tip_header,
-                    "text": new_tip_text,
-                    "accepted": False,
-                }
-            )
-            agent.state.update_metadata({"tips": init_agent_data["metadata"]["tips"]})
-        if "feedback" in packet.data:
-            live_run = self.get_live_run()
-            agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
-            assert agent is not None, "Could not find given agent!"
-            init_agent_data = agent.state.get_init_state(get_all_state=True).copy()
-            assert init_agent_data is not None, "Could not find agent data"
-            print(packet.data)
-            questions_and_answers = packet.data["feedback"]["data"]
-            for question_obj in questions_and_answers:
-                new_feedback_text = question_obj["text"]
-                new_feedback_toxicity = Detoxify("original").predict(new_feedback_text)[
-                    "toxicity"
-                ]
-                init_agent_data["metadata"]["feedback"].append(
-                    {
-                        "id": str(uuid4()),
-                        "question": question_obj["question"],
-                        "text": new_feedback_text,
-                        "reviewed": False,
-                        "toxicity": str(new_feedback_toxicity),
-                    }
-                )
-
-            # Sets agent tips to updated version
-            agent.state.update_metadata(
-                {"feedback": init_agent_data["metadata"]["feedback"]}
-            )
+        live_run = self.get_live_run()
+        agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
+        assert agent is not None, "Could not find given agent!"
+        agent.handle_metadata_submit(packet.data)
 
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
         assert (
             "onboarding_data" in packet.data
         ), f"Onboarding packet {packet} submitted without data"
+        agent: Optional["_AgentBase"]
         live_run = self.get_live_run()
         onboarding_id = packet.subject_id
         if onboarding_id not in live_run.worker_pool.onboarding_agents:
