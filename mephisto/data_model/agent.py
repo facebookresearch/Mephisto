@@ -30,7 +30,13 @@ from mephisto.data_model.exceptions import (
 )
 
 from typing import Optional, Mapping, Dict, Any, cast, TYPE_CHECKING
-from detoxify import Detoxify
+
+try:
+    from detoxify import Detoxify
+
+    DETOXIFY_INSTALLED = True
+except ImportError:
+    DETOXIFY_INSTALLED = False
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -289,15 +295,19 @@ class _AgentBase(ABC):
             questions_and_answers = data["feedback"]["data"]
             for question_obj in questions_and_answers:
                 new_feedback_text = question_obj["text"]
-                new_feedback_toxicity = Detoxify("original").predict(new_feedback_text)[
-                    "toxicity"
-                ]
+                new_feedback_toxicity = (
+                    Detoxify("original").predict(new_feedback_text)["toxicity"]
+                    if DETOXIFY_INSTALLED == True
+                    else None
+                )
                 feedback_to_add = {
                     "id": str(uuid4()),
                     "question": question_obj["question"],
                     "text": new_feedback_text,
                     "reviewed": False,
-                    "toxicity": str(new_feedback_toxicity),
+                    "toxicity": None
+                    if new_feedback_toxicity is None
+                    else str(new_feedback_toxicity),
                 }
                 if self.state.metadata.feedback is None:
                     self.state.update_metadata(
