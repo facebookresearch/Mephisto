@@ -47,7 +47,7 @@ def print_out_feedback_elements(
         print("Feedback Id: " + feedback_obj["id"])
         print("Feedback Question: " + feedback_obj["question"])
         print("Feedback Text: " + feedback_obj["text"])
-        print("Feedback Toxicity: " + feedback_obj["toxicity"])
+        print("Feedback Toxicity: " + str(feedback_obj["toxicity"]))
         print("")
 
         """
@@ -181,8 +181,8 @@ def main():
                         # Secondly, filter the question feedback for toxicity
                         filtered_feedback = list(
                             filter(
-                                lambda feedback_obj: float(feedback_obj["toxicity"])
-                                < 0.5,
+                                lambda feedback_obj: feedback_obj["toxicity"] is None
+                                or float(feedback_obj["toxicity"]) < 0.5,
                                 filtered_feedback,
                             )
                         )
@@ -217,8 +217,11 @@ def main():
                         )
 
     print(
-        "There is no more {} feedback!\n".format(
-            "unreviewed" if see_unreviewed_feedback in yes_response else "reviewed"
+        "You went through all the {type_of_feedback} feedback {ending}!\n".format(
+            type_of_feedback="unreviewed"
+            if see_unreviewed_feedback in yes_response
+            else "reviewed",
+            ending="for this question" if filter_by_question_index != -1 else "",
         )
     )
 
