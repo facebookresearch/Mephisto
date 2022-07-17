@@ -209,8 +209,8 @@ def main():
                         # Secondly, filter the question feedback for toxicity
                         filtered_feedback = list(
                             filter(
-                                lambda feedback_obj: float(feedback_obj["toxicity"])
-                                < 0.5,
+                                lambda feedback_obj: feedback_obj["toxicity"] is None
+                                or float(feedback_obj["toxicity"]) < 0.5,
                                 filtered_feedback,
                             )
                         )
