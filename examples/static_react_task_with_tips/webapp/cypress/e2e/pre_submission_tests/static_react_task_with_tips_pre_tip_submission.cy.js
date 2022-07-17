@@ -6,6 +6,9 @@ const firstTipBody = "🎈 This is my test tip body";
 const secondTipHeader = "This is my second tip header";
 const secondTipBody = "This is my second tip body";
 
+const thirdTipHeader = "🐍 🦀 🦑";
+const thirdTipBody = "🥨 🍗 🍟";
+
 const headerError = "This header is toooooooooooooooooooooooooooooooooo long";
 const bodyError =
   "This body is toooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long";
@@ -139,7 +142,7 @@ describe("Tips Popup", () => {
     cy.get(`.${tipClassNamePrefix}red-box`).should("not.exist");
   });
 
-  it("Submitting a tip", () => {
+  it("Submitting three tips", () => {
     cy.intercept({ pathname: "/submit_metadata" }).as("submitMetadataRequest");
     cy.visit("/");
     cy.get(`.${tipClassNamePrefix}button`)
@@ -151,63 +154,10 @@ describe("Tips Popup", () => {
       .as("submitButton");
     cy.get("@submitButton").should("be.disabled");
     cy.get(`#${tipClassNamePrefix}header-input`).as("tipsHeaderInput");
-    cy.get("@tipsHeaderInput").type(firstTipHeader, { force: true });
 
     cy.get(`#${tipClassNamePrefix}text-input`).as("tipsBodyInput");
-    cy.get("@tipsBodyInput").type(firstTipBody, { force: true });
-    cy.get("@submitButton").should("not.be.disabled");
-
-    cy.get("@tipsHeaderInput").should("have.value", firstTipHeader);
-    cy.get("@tipsBodyInput").should("have.value", firstTipBody);
-
-    cy.get("@submitButton").click();
-
-    cy.wait("@submitMetadataRequest").then((interception) => {
-      expect(interception.response.statusCode).to.eq(200);
-    });
-
-    cy.get("@tipsHeaderInput").should("have.value", "");
-    cy.get("@tipsBodyInput").should("have.value", "");
-    cy.get("@submitButton").should("be.disabled");
-    cy.get(`.${tipClassNamePrefix}green-box`).should(
-      "have.text",
-      "✅ Your tip has been submitted for review"
-    );
-  });
-
-  it("Submitting another tip", () => {
-    cy.intercept({ pathname: "/submit_metadata" }).as("submitMetadataRequest");
-    cy.visit("/");
-    cy.get(`.${tipClassNamePrefix}button`)
-      .contains("Show Tips")
-      .as("tipsButton");
-    cy.get("@tipsButton").click();
-    cy.get(`.${tipClassNamePrefix}button`)
-      .contains("Submit Tip")
-      .as("submitButton");
-    cy.get("@submitButton").should("be.disabled");
-    cy.get(`#${tipClassNamePrefix}header-input`).as("tipsHeaderInput");
-    cy.get("@tipsHeaderInput").type(secondTipHeader, { force: true });
-
-    cy.get(`#${tipClassNamePrefix}text-input`).as("tipsBodyInput");
-    cy.get("@tipsBodyInput").type(secondTipBody, { force: true });
-    cy.get("@submitButton").should("not.be.disabled");
-
-    cy.get("@tipsHeaderInput").should("have.value", secondTipHeader);
-    cy.get("@tipsBodyInput").should("have.value", secondTipBody);
-
-    cy.get("@submitButton").click();
-
-    cy.wait("@submitMetadataRequest").then((interception) => {
-      expect(interception.response.statusCode).to.eq(200);
-    });
-
-    cy.get("@tipsHeaderInput").should("have.value", "");
-    cy.get("@tipsBodyInput").should("have.value", "");
-    cy.get("@submitButton").should("be.disabled");
-    cy.get(`.${tipClassNamePrefix}green-box`).should(
-      "have.text",
-      "✅ Your tip has been submitted for review"
-    );
+    cy.submitTip(firstTipHeader, firstTipBody);
+    cy.submitTip(secondTipHeader, secondTipBody);
+    cy.submitTip(thirdTipHeader, thirdTipBody);
   });
 });

@@ -74,7 +74,6 @@ describe("Loads static_react_task_with_tips", () => {
       "have.text",
       "✅ Your feedback has been submitted for review"
     );
-    cy.wait(30000);
     cy.get("@firstFeedbackTextArea").should("have.value", "");
     cy.get("@secondFeedbackTextArea").should("have.value", "");
     cy.get("@submitButton").should("be.disabled");
