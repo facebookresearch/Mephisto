@@ -56,7 +56,6 @@ describe("Loads static_react_task_with_tips", () => {
   it("Submitting feedback", () => {
     cy.intercept({ pathname: "/submit_metadata" }).as("submitMetadataRequest");
     cy.visit("/");
-    jbnvuchujtebviirtbhkijidecjkjrtu;
     cy.get(`#question-0`).as("firstFeedbackTextArea");
     cy.get(`#question-1`).as("secondFeedbackTextArea");
     cy.get("@firstFeedbackTextArea").type(feedbackText1);
