@@ -210,7 +210,9 @@ jobs:
       - name: 🤖 Install Mephisto
         run: |
           pip install -e .
-          pip uninstall detoxify
+          pip uninstall detoxify <<EOF
+          y
+          EOF
 
       - name: 🖋 Create data directory
         run: |
