@@ -23,8 +23,8 @@ describe("Loads remote_procedure_toxicity_detection", () => {
     cy.get("@textArea").type("I hate bob!");
     cy.get("@submitButton").click();
     cy.get('[data-cy="loading-spinner"]');
-    // This timeout is 25000 because the detoxify model takes a good bit of time to run
-    cy.get('[data-cy="toxicity-alert"]', { timeout: 25000 }).as(
+    // This timeout is 40000 because the detoxify model takes a good bit of time to run
+    cy.get('[data-cy="toxicity-alert"]', { timeout: 40000 }).as(
       "toxicityAlert"
     );
     cy.get("@toxicityAlert").contains(
