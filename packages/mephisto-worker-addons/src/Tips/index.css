@@ -1,0 +1,290 @@
+/* Headless Classes */
+
+.headless-mephisto-worker-addons-tips__container {
+  background-color: rgb(245, 245, 245);
+  box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  -webkit-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  -moz-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  padding: 0.65rem 1rem;
+  overflow-y: auto;
+  position: absolute;
+}
+.headless-mephisto-worker-addons-tips__no-submissions {
+  margin: 0 0 0 0.75rem !important;
+  font-style: italic;
+}
+
+.headless-mephisto-worker-addons-tips__task-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headless-mephisto-worker-addons-tips__close-icon-container {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.headless-mephisto-worker-addons-tips__list {
+  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+  list-style-type: disc;
+  overflow: auto;
+  border: 2px solid black;
+}
+
+.headless-mephisto-worker-addons-tips__tip {
+  margin: 0 0 1.35rem 1rem;
+}
+
+.headless-mephisto-worker-addons-tips__header2 {
+  margin-bottom: 0.5rem;
+}
+.headless-mephisto-worker-addons-tips__tip:last-child {
+  margin-bottom: 0;
+}
+
+.headless-mephisto-worker-addons-tips__button {
+  margin: 0.75rem 0;
+  display: flex;
+  align-items: center;
+}
+.headless-mephisto-worker-addons-tips__button:disabled {
+  cursor: not-allowed !important;
+}
+.headless-mephisto-worker-addons-tips__label {
+  display: block;
+  cursor: pointer;
+  width: fit-content;
+}
+
+#headless-mephisto-worker-addons-tips__header-input {
+  width: 100%;
+}
+#headless-mephisto-worker-addons-tips__text-input {
+  width: 100%;
+  max-width: 100%;
+  resize: vertical;
+}
+
+/* Non-Headless Classes */
+.mephisto-worker-addons-tips__input-error {
+  box-shadow: 0 0 0 0.25rem rgba(241, 91, 91, 0.65) !important;
+  transition: background-color 200ms, box-shadow 200ms;
+}
+
+.mephisto-worker-addons-tips__list {
+  margin-bottom: 1.5rem;
+  overflow: auto;
+  border: 4px solid #dbdbdb;
+  border-radius: 0.5rem;
+  padding: 0 1rem 0 0;
+  list-style-type: disc;
+}
+.mephisto-worker-addons-tips__header1 {
+  font-weight: bold;
+  font-size: 1.4em;
+  margin: 0.75rem 0;
+}
+
+.mephisto-worker-addons-tips__header2 {
+  font-weight: bold;
+  font-size: 1.125em;
+  margin-bottom: 0.5rem;
+}
+
+.mephisto-worker-addons-tips__tip {
+  margin: 0 0 1.35rem 1.75rem;
+}
+.mephisto-worker-addons-tips__tip:last-child {
+  margin-bottom: 0;
+}
+
+.mephisto-worker-addons-tips__button,
+.mephisto-worker-addons-tips__button:hover,
+.mephisto-worker-addons-tips__button:active,
+.mephisto-worker-addons-tips__button:focus {
+  transition: background-color 200ms, box-shadow 200ms;
+}
+.mephisto-worker-addons-tips__button {
+  margin: 0.75rem 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: 0;
+  background-color: rgb(236, 236, 236);
+  font-size: 0.9em;
+  outline: none;
+  display: flex;
+  align-items: center;
+  height: 2.4rem;
+  white-space: nowrap;
+}
+
+.mephisto-worker-addons-tips__task-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.mephisto-worker-addons-tips__close-icon-container {
+  background: none;
+  border: 0;
+  padding: 0;
+  transform: translate(0.5rem, -0.5rem) scale(1);
+  transition: transform 150ms ease-in-out;
+  cursor: pointer;
+}
+
+.mephisto-worker-addons-tips__close-icon-container:hover {
+  transform: translate(0.5rem, -0.5rem) scale(1.1);
+  transition: transform 150ms ease-in-out;
+}
+.mephisto-worker-addons-tips__close-icon-container:active {
+  transform: translate(0.5rem, -0.5rem) scale(0.9);
+  transition: transform 150ms ease-in-out;
+}
+
+.mephisto-worker-addons-tips__button:disabled {
+  cursor: not-allowed !important;
+  color: rgb(164, 164, 164);
+}
+
+.mephisto-worker-addons-tips__button:hover {
+  background-color: rgb(230, 230, 230);
+  box-shadow: 0 0 0 0.1rem rgba(209, 209, 209, 0.5);
+}
+
+.mephisto-worker-addons-tips__button:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.4);
+}
+
+.mephisto-worker-addons-tips__label {
+  display: block;
+  margin: 0.75rem 0;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.mephisto-worker-addons-tips__text {
+  white-space: pre-wrap;
+  font-size: 1em;
+  margin: 0.5rem 0;
+}
+
+#mephisto-worker-addons-tips__header-input,
+#mephisto-worker-addons-tips__text-input {
+  background-color: rgb(240, 240, 240);
+  max-width: 100%;
+  min-height: 2.4rem;
+  height: 2.4rem;
+  max-height: 12rem;
+  box-shadow: 0 0 0 0.15rem rgba(193, 193, 193, 0.5);
+  border: 0;
+  border-radius: 0.35rem;
+  width: 100%;
+  padding: 0.5rem;
+  transition: background-color 200ms, box-shadow 200ms;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.9em;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  resize: vertical;
+}
+#mephisto-worker-addons-tips__header-input:disabled,
+#mephisto-worker-addons-tips__text-input:disabled {
+  cursor: not-allowed !important;
+}
+
+#mephisto-worker-addons-tips__header-input:hover,
+#mephisto-worker-addons-tips__text-input:hover {
+  background-color: rgb(245, 245, 245);
+  box-shadow: 0 0 0 0.2rem rgba(209, 209, 209, 0.5);
+  transition: background-color 200ms, box-shadow 200ms;
+}
+
+#mephisto-worker-addons-tips__header-input:focus,
+#mephisto-worker-addons-tips__text-input:focus {
+  background-color: rgb(255, 255, 255);
+  transition: background-color 200ms, box-shadow 200ms;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
+}
+.mephisto-worker-addons-tips__no-submissions {
+  margin: 0.75rem 0 0.75rem 0.75rem !important;
+  color: #565656;
+  font-style: italic;
+}
+
+.mephisto-worker-addons-tips__container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background-color: rgb(245, 245, 245);
+  box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  -webkit-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  -moz-box-shadow: 10px 10px 33px -8px rgba(0, 0, 0, 0.36);
+  border-radius: 1.25rem;
+  z-index: 999;
+  line-height: 1.5;
+  color: rgb(70, 70, 70);
+  position: absolute;
+}
+.mephisto-worker-addons-tips__padding-container {
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Common Classes */
+.mephisto-worker-addons-tips__showing {
+  display: block;
+}
+.mephisto-worker-addons-tips__hiding {
+  display: none;
+}
+
+.mephisto-worker-addons-tips__green-box,
+.mephisto-worker-addons-tips__red-box {
+  padding: 1rem;
+  width: 100%;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  box-sizing: border-box;
+}
+
+.mephisto-worker-addons-tips__green-box {
+  background-color: #d1e7dd;
+  color: #315243;
+}
+
+.mephisto-worker-addons-tips__red-box {
+  background-color: #f8d7da;
+  color: #5c3c3f;
+}
+
+.mephisto-worker-addons-tips__loader {
+  width: 21px;
+  height: 21px;
+  border: 3px solid rgb(70, 70, 70);
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: mephisto-worker-addons-tips__rotation 1s linear infinite;
+}
+
+@keyframes mephisto-worker-addons-tips__rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.mephisto-worker-addons-tips__no-margin {
+  margin: 0;
+}

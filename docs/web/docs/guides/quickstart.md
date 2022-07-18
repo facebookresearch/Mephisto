@@ -20,7 +20,7 @@ $ pip install -e .
 
 ```bash
 # install poetry
-$ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+$ curl -sSL https://install.python-poetry.org | python3 -
 # from the root dir, install Mephisto:
 $ poetry install
 ```
@@ -34,7 +34,7 @@ Now that you have Mephisto installed, you should have access to the `mephisto` C
 Let's use this CLI tool to set up a data directory via the `mephisto config` command. The data directory is where the results of your crowdsourcing tasks will be stored.
 
 ```bash
-$ mephisto config core.main_data_directory ~/mephisto/data
+$ mephisto config core.main_data_directory ~/Mephisto/data
 ```
 
 Check that everything is set up correctly!

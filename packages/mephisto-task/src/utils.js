@@ -135,6 +135,16 @@ export function postCompleteTask(agent_id, complete_data) {
     });
 }
 
+export function postMetadata(agent_id, metadata) {
+  return postData("/submit_metadata", {
+    USED_AGENT_ID: agent_id,
+    metadata: metadata,
+    client_timestamp: pythonTime(),
+  }).then(function (data) {
+    return data;
+  });
+}
+
 export function postErrorLog(agent_id, complete_data) {
   return postData("/log_error", {
     USED_AGENT_ID: agent_id,

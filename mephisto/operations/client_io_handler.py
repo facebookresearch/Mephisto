@@ -4,8 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
-import weakref
 import time
 import asyncio
 from queue import Queue
@@ -24,12 +22,13 @@ from mephisto.data_model.packet import (
     PACKET_TYPE_REQUEST_STATUSES,
     PACKET_TYPE_RETURN_STATUSES,
     PACKET_TYPE_ERROR,
+    PACKET_TYPE_SUBMIT_METADATA,
 )
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.agent import Agent, OnboardingAgent, _AgentBase
+from mephisto.data_model.agent import _AgentBase
 from mephisto.operations.datatypes import LiveTaskRun
 from mephisto.abstractions._subcomponents.channel import Channel, STATUS_CHECK_TIME
-from typing import Dict, Tuple, Union, Optional, List, Any, TYPE_CHECKING
+from typing import Dict, Tuple, Optional, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -284,6 +283,12 @@ class ClientIOHandler:
 
         agent.handle_submit(packet.data)
 
+    def _on_submit_metadata(self, packet: Packet):
+        live_run = self.get_live_run()
+        agent = live_run.worker_pool.get_agent_for_id(packet.subject_id)
+        assert agent is not None, "Could not find given agent!"
+        agent.handle_metadata_submit(packet.data)
+
     def _on_submit_onboarding(self, packet: Packet, channel_id: str) -> None:
         """Handle the submission of onboarding data"""
         assert (
@@ -378,6 +383,8 @@ class ClientIOHandler:
             elif packet.type == PACKET_TYPE_SUBMIT_UNIT:
                 self._on_submit_unit(packet, channel_id)
                 self.log_metrics_for_packet(packet)
+            elif packet.type == PACKET_TYPE_SUBMIT_METADATA:
+                self._on_submit_metadata(packet)
             elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
                 self._on_live_update(packet, channel_id)
                 self.log_metrics_for_packet(packet)

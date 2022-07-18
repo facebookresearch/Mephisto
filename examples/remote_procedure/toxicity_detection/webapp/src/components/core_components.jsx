@@ -26,8 +26,8 @@ function Directions({ children }) {
 function Instructions() {
   return (
     <div>
-      <h1>Toxicity Detection Model</h1>
-      <p>
+      <h1 data-cy="directions-header">Toxicity Detection Model</h1>
+      <p data-cy="directions-paragraph">
         To submit this task, you'll need to enter one or many sentences in the
         input box below. The model will calculate the toxicity of the inputted
         text.
@@ -79,6 +79,7 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
         }}
       >
         <textarea
+          data-cy="detection-text-area"
           placeholder="type your text here"
           onChange={(e) => setText(e.target.value)}
           style={{
@@ -89,15 +90,24 @@ function TaskFrontend({ handleSubmit, handleToxicityCalculation }) {
           disabled={isLoading}
         />
         <button
+          data-cy="submit-button"
           className="button"
           disabled={isLoading}
           onClick={() => calculateToxicity()}
           style={{ marginBottom: "0.5rem" }}
         >
-          {isLoading ? <span className="loader"></span> : "Submit Task"}
+          {isLoading ? (
+            <span data-cy="loading-spinner" className="loader"></span>
+          ) : (
+            "Submit Task"
+          )}
         </button>
         {!submitError && toxicity > 0.5 && (
-          <div className="alert alert-danger" role="alert">
+          <div
+            className="alert alert-danger"
+            role="alert"
+            data-cy="toxicity-alert"
+          >
             {result}
           </div>
         )}

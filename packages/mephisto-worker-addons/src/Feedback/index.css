@@ -1,0 +1,218 @@
+/* Headless Classes */
+.headless-mephisto-worker-addons-feedback__question {
+  display: block;
+  cursor: pointer;
+  overflow-wrap: break-word;
+}
+.headless-mephisto-worker-addons-feedback__header-items {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.headless-mephisto-worker-addons-feedback__green-box,
+.headless-mephisto-worker-addons-feedback__red-box {
+  padding: 1rem;
+  width: min(18rem, 100%);
+  box-sizing: border-box;
+}
+
+.headless-mephisto-worker-addons-feedback__green-box {
+  background-color: #d1e7dd;
+  color: #315243;
+}
+
+.headless-mephisto-worker-addons-feedback__red-box {
+  background-color: #f8d7da;
+  color: #5c3c3f;
+}
+.headless-mephisto-worker-addons-feedback__items-horizontal {
+  display: flex;
+  align-items: center;
+}
+.headless-mephisto-worker-addons-feedback__subtitle {
+  font-style: italic;
+  font-size: 0.85em;
+  margin: 0;
+}
+
+/* Non-Headless Classes */
+.mephisto-worker-addons-feedback__button,
+.mephisto-worker-addons-feedback__button:hover,
+.mephisto-worker-addons-feedback__button:active,
+.mephisto-worker-addons-feedback__button:focus {
+  transition: background-color 200ms, box-shadow 200ms;
+}
+.mephisto-worker-addons-feedback__button {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: 0;
+  background-color: rgb(236, 236, 236);
+  font-size: 0.9em;
+  outline: none;
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  width: fit-content;
+  margin: 0.5rem 0.25rem;
+}
+
+.mephisto-worker-addons-feedback__button:disabled {
+  cursor: not-allowed !important;
+  color: #969696;
+}
+
+.mephisto-worker-addons-feedback__button:hover {
+  background-color: rgb(230, 230, 230);
+  box-shadow: 0 0 0 0.1rem rgba(209, 209, 209, 0.5);
+}
+
+.mephisto-worker-addons-feedback__button:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.4);
+}
+
+.mephisto-worker-addons-feedback__question {
+  margin-bottom: 0.25rem;
+  display: block;
+  cursor: pointer;
+  overflow-wrap: break-word;
+  width: fit-content;
+}
+.mephisto-worker-addons-feedback__header1 {
+  font-weight: bold;
+  font-size: 1.4em;
+  margin: 0.75rem 0;
+}
+
+.mephisto-worker-addons-feedback__subtitle {
+  font-style: italic;
+  font-size: 0.85em;
+  color: rgb(97, 97, 97);
+  margin: 0 0 0 0.175rem;
+}
+
+.mephisto-worker-addons-feedback__header-items {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.mephisto-worker-addons-feedback__green-box,
+.mephisto-worker-addons-feedback__red-box {
+  padding: 1rem;
+  width: min(18rem, 100%);
+  border-radius: 0.5rem;
+  margin: 1rem 0 0.75rem;
+  box-sizing: border-box;
+}
+
+.mephisto-worker-addons-feedback__green-box {
+  background-color: #d1e7dd;
+  color: #315243;
+}
+
+.mephisto-worker-addons-feedback__red-box {
+  background-color: #f8d7da;
+  color: #5c3c3f;
+}
+
+/* Common Classes */
+.mephisto-worker-addons-feedback__container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background-color: rgb(245, 245, 245);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  line-height: 1.5;
+  color: rgb(70, 70, 70);
+}
+
+.mephisto-worker-addons-feedback__questions-container {
+  margin-bottom: 0.5rem;
+}
+.mephisto-worker-addons-feedback__items-horizontal {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.mephisto-worker-addons-feedback__items-vertical {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.mephisto-worker-addons-feedback__text-area:disabled {
+  cursor: not-allowed !important;
+}
+.mephisto-worker-addons-feedback__text-area {
+  min-width: min(8rem, 100%);
+  max-width: 100%;
+  min-height: 2.4rem;
+  height: 2.4rem;
+  max-height: 12rem;
+  background-color: rgb(240, 240, 240);
+  box-shadow: 0 0 0 0.15rem rgba(193, 193, 193, 0.5);
+  border: 0;
+  border-radius: 0.35rem;
+  padding: 0.5rem;
+  transition: background-color 200ms, box-shadow 200ms;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.9em;
+  box-sizing: border-box;
+  transform: translateY(2.2px);
+  resize: vertical;
+  line-height: 1.5;
+  flex: 1;
+  margin: 0.5rem 0.25rem;
+}
+
+.mephisto-worker-addons-feedback__text-area-error {
+  box-shadow: 0 0 0 0.25rem rgba(241, 91, 91, 0.65) !important;
+  transition: background-color 200ms, box-shadow 200ms;
+}
+
+.mephisto-worker-addons-feedback__content-container {
+  margin: 0 0 1rem;
+  width: 100%;
+}
+.mephisto-worker-addons-feedback__text-area:hover {
+  background-color: rgb(245, 245, 245);
+  box-shadow: 0 0 0 0.2rem rgba(209, 209, 209, 0.5);
+  transition: background-color 200ms, box-shadow 200ms;
+}
+
+.mephisto-worker-addons-feedback__text-area:focus {
+  background-color: rgb(255, 255, 255);
+  transition: background-color 200ms, box-shadow 200ms;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
+}
+
+.mephisto-worker-addons-feedback__vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mephisto-worker-addons-feedback__loader {
+  width: 21px;
+  height: 21px;
+  border: 3px solid rgb(83, 83, 83);
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,5 +1,4 @@
-/*
- * Copyright (c) Facebook, Inc. and its affiliates.
+/* Copyright (c) Facebook, Inc. and its affiliates.
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -14,6 +13,7 @@ import {
   getBlockedExplanation,
   postErrorLog,
   ErrorBoundary,
+  postMetadata,
 } from "./utils";
 
 export * from "./MephistoContext";
@@ -67,6 +67,23 @@ const useMephistoTask = function () {
     },
     [state.agentId]
   );
+  const handleMetadataSubmit = React.useCallback(
+    (...args) => {
+      const metadata = {};
+      // Update metadata
+      for (const arg of args) {
+        if (arg && arg.hasOwnProperty("type")) {
+          const typeOfItemToAdd = arg["type"];
+          metadata[typeOfItemToAdd] = arg;
+        }
+      }
+
+      return new Promise(function (resolve, reject) {
+        resolve(postMetadata(state.agentId, metadata));
+      });
+    },
+    [state.agentId]
+  );
 
   const handleFatalError = React.useCallback(
     (data) => {
@@ -79,7 +96,10 @@ const useMephistoTask = function () {
     if (taskConfig.block_mobile && isMobile()) {
       setState({ blockedReason: "no_mobile" });
     } else if (!state.isPreview) {
-      requestAgent().then((data) => afterAgentRegistration(data));
+      requestAgent().then((data) => {
+        console.log(data);
+        afterAgentRegistration(data);
+      });
     }
     setState({ taskConfig: taskConfig, loaded: isPreview });
   }
@@ -116,6 +136,7 @@ const useMephistoTask = function () {
       state.blockedExplanation ||
       (state.blockedReason && getBlockedExplanation(state.blockedReason)),
     handleSubmit,
+    handleMetadataSubmit,
     handleFatalError,
   };
 };

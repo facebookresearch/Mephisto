@@ -5,14 +5,17 @@
 # LICENSE file in the root directory of this source tree.
 
 from __future__ import annotations
+import csv
+from genericpath import exists
 
 import os
+from pathlib import Path
 import threading
 from queue import Queue
 from uuid import uuid4
 from prometheus_client import Gauge  # type: ignore
 
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractmethod
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.data_model.worker import Worker
 from mephisto.data_model._db_backed_meta import (
@@ -26,7 +29,14 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 
-from typing import Union, List, Optional, Tuple, Mapping, Dict, Any, cast, TYPE_CHECKING
+from typing import Optional, Mapping, Dict, Any, cast, TYPE_CHECKING
+
+try:
+    from detoxify import Detoxify
+
+    DETOXIFY_INSTALLED = True
+except ImportError:
+    DETOXIFY_INSTALLED = False
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -250,6 +260,65 @@ class _AgentBase(ABC):
         """Handle final submission for an onboarding agent, with the given data"""
         self.did_submit.set()
         self.state.update_submit(submit_data)
+
+    def handle_metadata_submit(self, data: Dict[str, Any]) -> None:
+        """Handles the submission of metadata (as of now that is tips and feedback)"""
+
+        if "tips" in data:
+            """Handles the submission of a tip"""
+            assert (
+                hasattr(self.state.metadata, "tips") == True
+            ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
+                property_name="tips"
+            )
+            new_tip_header = data["tips"]["header"]
+            new_tip_text = data["tips"]["text"]
+            copy_of_tips = None
+            tip_to_add = {
+                "id": str(uuid4()),
+                "header": new_tip_header,
+                "text": new_tip_text,
+                "accepted": False,
+            }
+            if self.state.metadata.tips is None:
+                self.state.update_metadata(
+                    property_name="tips", property_value=[tip_to_add]
+                )
+            else:
+                copy_of_tips = self.state.metadata.tips.copy()
+                copy_of_tips.append(tip_to_add)
+                self.state.update_metadata(
+                    property_name="tips", property_value=copy_of_tips
+                )
+
+        elif "feedback" in data:
+            questions_and_answers = data["feedback"]["data"]
+            for question_obj in questions_and_answers:
+                new_feedback_text = question_obj["text"]
+                new_feedback_toxicity = (
+                    Detoxify("original").predict(new_feedback_text)["toxicity"]
+                    if DETOXIFY_INSTALLED == True
+                    else None
+                )
+                feedback_to_add = {
+                    "id": str(uuid4()),
+                    "question": question_obj["question"],
+                    "text": new_feedback_text,
+                    "reviewed": False,
+                    "toxicity": None
+                    if new_feedback_toxicity is None
+                    else str(new_feedback_toxicity),
+                }
+                if self.state.metadata.feedback is None:
+                    self.state.update_metadata(
+                        property_name="feedback", property_value=[feedback_to_add]
+                    )
+                else:
+                    copy_of_feedback = self.state.metadata.feedback.copy()
+                    copy_of_feedback.append(feedback_to_add)
+                    self.state.update_metadata(
+                        property_name="feedback", property_value=copy_of_feedback
+                    )
 
     def shutdown(self) -> None:
         """

@@ -44,7 +44,12 @@ If you change to another `worker_id`, however, you can complete two more tasks. 
 
 ### 1.3 Reviewing tasks
 
-At this stage, we've collected data, and we'd like to review it. Here we'll do so with the command line interface, using the review script, which is in the same directory:
+By this stage, we've collected data and can now review it.
+
+Generally, to view/export the data, you could write a Python script using the Mephisto [`DataBrowser` class](https://github.com/facebookresearch/Mephisto/blob/main/mephisto/tools/data_browser.py) to access the submitted data.
+
+For your convenience, for the `html-static-task-example` task we've already provided such a script for you in the task folder, called [`examine_results.py`](https://github.com/facebookresearch/Mephisto/blob/main/examples/simple_static_task/examine_results.py). (This file uses the Mephisto `DataBrowser` class through the helpers in `mephisto.tools.examine_utils`.)
+
 ```bash
 $ python examine_results.py
 Do you want to (r)eview, or (e)xamine data? Default examine. Can put e <end> or e <start> <end> to choose how many to view

@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import time
 from typing import List, Dict, Optional, Any, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
 import os.path
@@ -35,6 +36,7 @@ class StaticAgentState(AgentState):
         self.state["inputs"] = data
 
     def get_init_state(self) -> Optional[Dict[str, Any]]:
+
         """
         Return the initial state for this agent,
         None if no such state exists

@@ -25,7 +25,7 @@ function Directions({ children }) {
   );
 }
 
-function AnnotationCanvas({ onUpdate, classifyDigit }) {
+function AnnotationCanvas({ onUpdate, classifyDigit, index }) {
   const [currentAnnotation, setCurrentAnnotation] = React.useState(null);
   const [trueAnnotation, setTrueAnnotation] = React.useState("");
   const [isCorrect, setIsCorrect] = React.useState(null);
@@ -79,18 +79,28 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
   );
 
   return (
-    <div style={{ float: "left", padding: "3px", borderStyle: "solid" }}>
-      {canvas}
-      <button className="button" onClick={() => canvasRef.current.eraseAll()}>
+    <div
+      data-cy={`canvas-container-${index}`}
+      style={{ float: "left", padding: "3px", borderStyle: "solid" }}
+    >
+      <div data-cy={`canvas-mouse-down-container-${index}`}>{canvas}</div>
+      <button
+        data-cy={`clear-button-${index}`}
+        className="button"
+        onClick={() => canvasRef.current.eraseAll()}
+      >
         {" "}
         Clear Drawing{" "}
       </button>
       <br />
-      Current Annotation: {currentAnnotation}
+      <span data-cy={`current-annotation-${index}`}>
+        Current Annotation: {currentAnnotation}
+      </span>
       <br />
       Annotation Correct?{" "}
       <input
         type="checkbox"
+        data-cy={`correct-checkbox-${index}`}
         disabled={currentAnnotation === null}
         value={isCorrect !== true}
         onChange={() => setIsCorrect(!isCorrect)}
@@ -104,6 +114,7 @@ function AnnotationCanvas({ onUpdate, classifyDigit }) {
             type="text"
             disabled={currentAnnotation === null}
             value={trueAnnotation}
+            data-cy={`correct-text-input-${index}`}
             onChange={(evt) => setTrueAnnotation(evt.target.value)}
           />
         </Fragment>
@@ -152,6 +163,7 @@ function TaskFrontend({ classifyDigit, handleSubmit }) {
       <div>
         {annotations.map((_d, idx) => (
           <AnnotationCanvas
+            index={idx}
             key={"Annotation-" + String(idx)}
             classifyDigit={classifyDigit}
             onUpdate={(annotation) =>
@@ -166,6 +178,7 @@ function TaskFrontend({ classifyDigit, handleSubmit }) {
       </div>
 
       <button
+        data-cy="submit-button"
         className="button"
         onClick={() =>
           handleSubmit({

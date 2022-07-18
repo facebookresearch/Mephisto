@@ -121,7 +121,7 @@ class TaskRunArgs:
         default="",
         metadata={
             "help": (
-                "The name of a shell script in your webapp directory that will run right after npm install."
+                "The name of a shell script in your webapp directory that will run right after npm install and before npm build."
                 "This can be useful for local package development where you would want to link a package after installing dependencies from package.json"
             )
         },
