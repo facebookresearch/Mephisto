@@ -49,12 +49,12 @@ class MockUnit(Unit):
         port = task_url.split(":")[1].split("/")[0]
         print(task_url)
         print(
-            f"Mock task launched: localhost:{port} for preview, "
-            f"localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
+            f"Mock task launched: http://localhost:{port} for preview, "
+            f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
         )
         logger.info(
-            f"Mock task launched: localhost:{port} for preview, "
-            f"localhost:{port}/?worker_id=x&assignment_id={self.db_id} for assignment {self.assignment_id}"
+            f"Mock task launched: http://localhost:{port} for preview, "
+            f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id} for assignment {self.assignment_id}"
         )
 
         return None
