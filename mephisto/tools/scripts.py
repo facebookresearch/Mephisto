@@ -303,14 +303,14 @@ def build_custom_bundle(
     return build_path
 
 
-def print_out_task_names(task_names: List[str]) -> None:
+def print_out_task_names(header: str, task_names: List[str]) -> None:
     """Prints out task names and formats them nicely using rich"""
     if len(task_names) == 0:
         print(
             "\n[red]There are no task names found[/red] \nYou should launch a task first and then run this script after the task is shut down\n"
         )
         quit()
-    task_names_text = """# Tips Review \n ## Task Names:"""
+    task_names_text = """# {header} \n ## Task Names:""".format(header=header)
     for task_name in task_names:
         task_names_text += "\n* " + task_name
 

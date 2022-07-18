@@ -61,7 +61,7 @@ def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
-    print_out_task_names(task_names)
+    print_out_task_names("Tips Removal", task_names)
     task_name = Prompt.ask(
         "\nEnter the name of the task that you want to review the tips of",
         choices=task_names,
