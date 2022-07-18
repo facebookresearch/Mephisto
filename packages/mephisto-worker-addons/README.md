@@ -27,6 +27,7 @@ npm link mephisto-worker-addons
 
 ## Usage (`Tips`)
 
+
 ```jsx
 import { Tips } from "mephisto-worker-addons";
 
@@ -35,7 +36,6 @@ function App() {
     <div>
       <h1>Here Are Some Tips:</h1>
       <Tips
-        handleSubmit={(tipData)=> console.log(tipData)}
         list={[
           {
             header: "Functional or Class Components?",
@@ -83,43 +83,36 @@ It accepts values of "top-start", "top", "top-end", "right-start", "right", "rig
 Only some of these values will be able to be applied in certain cases. For example, if the button is in the top right corner of the screen, then only the bottom and right values will be recognized as the left and top values would lead to the popup overflowing. 
 
 The default value for this prop is "top-start", but this may not always be applied as mentioned in the case above.
-### `createTip(header, text)`
-This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createTip(header, text)` takes two strings as parameters. If one or both of the parameters are not a string then an error gets thrown. If both the two parameters are strings then the following object gets returned:
-```
-{
-  header: header,
-  text: text,
-  type: "tips"
+### `maxHeaderLength`
+The max character length of a tip header before an error message is shown. The default value for this prop is 72.
+### `maxTextLength`
+The max character length of tip text before an error message is shown. The default value for this prop is 500.
+
+
+## Usage(`Feedback`)
+```jsx
+import { Feedback } from "mephisto-worker-addons";
+
+function App() {
+  return (
+    <div>
+      <Feedback
+        headless={false}
+        handleSubmit={(text)=> console.log(text)}
+      />
+    </div>
+  );
 }
 ```
 
-### `createFeedback(text)`
-This method is meant to be used as a parameter to the `handleSubmitMetadata` function of the `mephisto-task` library. The `createFeedback(text)` takes one string as parameters. If the parameter is not a string then an error gets thrown. If the parameter is a string then the following object gets returned:
-```
-{
-  text: text,
-  type: "feedback"
-}
-```
-
-
-### General Info
-When a tip is submitted, `handleMetadataSubmit(payload)` from the `mephisto-task` package is ran.
-
-
-The payload accepts:
-```js
-{
-    header: string,
-    text: string,
-    type: "tips"
-}
-```
-or
-```js
-{
-    text: string,
-    type: "feedback"
-}
-```
-
+## Documentation
+### `headless`
+The `headless` prop accepts a boolean where a a true value removes most of the styling and a false value keeps the original styling. The default value of this prop is false.
+### `questions`
+The `questions` prop accepts a list of strings where each string is displayed with its own textarea input. When reviewing the feedback in the task, there is an option to filter by question. By default there are no questions defined and feedback is collected under the 'General Feedback' label.
+### `handleSubmit`
+The `handleSubmit` prop accepts a function that runs when the "Submit Feedback" button is pressed instead of the default behavior of submitting feedback. The text property can be passed down through to the function.
+### `textAreaWidth`
+The `textAreaWidth` prop accepts a string that sets the width of the text-area. ex: textAreaWidth="30rem" sets the text-area width. The default value for this prop is 100%.
+### `maxTextLength`
+The max character length of feedback text before an error message is shown. The default value for this prop is 700.

@@ -52,6 +52,9 @@ tqdm = "^4.50.2"
 websockets = "^10.1"
 pyyaml = "^5.4.0"
 
+# [tool.poetry.group.worker_addons.dependencies]
+detoxify = "^0.5.0"
+
 # [tool.poetry.group.aws.dependencies]
 boto3 = "^1.17"
 botocore = "^1.20.95"

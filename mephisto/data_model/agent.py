@@ -31,6 +31,13 @@ from mephisto.data_model.exceptions import (
 
 from typing import Optional, Mapping, Dict, Any, cast, TYPE_CHECKING
 
+try:
+    from detoxify import Detoxify
+
+    DETOXIFY_INSTALLED = True
+except ImportError:
+    DETOXIFY_INSTALLED = False
+
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.assignment import Assignment
@@ -256,6 +263,7 @@ class _AgentBase(ABC):
 
     def handle_metadata_submit(self, data: Dict[str, Any]) -> None:
         """Handles the submission of metadata (as of now that is tips and feedback)"""
+
         if "tips" in data:
             """Handles the submission of a tip"""
             assert (
@@ -266,7 +274,7 @@ class _AgentBase(ABC):
             new_tip_header = data["tips"]["header"]
             new_tip_text = data["tips"]["text"]
             copy_of_tips = None
-            item_to_add = {
+            tip_to_add = {
                 "id": str(uuid4()),
                 "header": new_tip_header,
                 "text": new_tip_text,
@@ -274,17 +282,43 @@ class _AgentBase(ABC):
             }
             if self.state.metadata.tips is None:
                 self.state.update_metadata(
-                    property_name="tips", property_value=[item_to_add]
+                    property_name="tips", property_value=[tip_to_add]
                 )
             else:
                 copy_of_tips = self.state.metadata.tips.copy()
-                copy_of_tips.append(item_to_add)
+                copy_of_tips.append(tip_to_add)
                 self.state.update_metadata(
                     property_name="tips", property_value=copy_of_tips
                 )
 
-        if "feedback" in data:
-            print("Feedback received")
+        elif "feedback" in data:
+            questions_and_answers = data["feedback"]["data"]
+            for question_obj in questions_and_answers:
+                new_feedback_text = question_obj["text"]
+                new_feedback_toxicity = (
+                    Detoxify("original").predict(new_feedback_text)["toxicity"]
+                    if DETOXIFY_INSTALLED == True
+                    else None
+                )
+                feedback_to_add = {
+                    "id": str(uuid4()),
+                    "question": question_obj["question"],
+                    "text": new_feedback_text,
+                    "reviewed": False,
+                    "toxicity": None
+                    if new_feedback_toxicity is None
+                    else str(new_feedback_toxicity),
+                }
+                if self.state.metadata.feedback is None:
+                    self.state.update_metadata(
+                        property_name="feedback", property_value=[feedback_to_add]
+                    )
+                else:
+                    copy_of_feedback = self.state.metadata.feedback.copy()
+                    copy_of_feedback.append(feedback_to_add)
+                    self.state.update_metadata(
+                        property_name="feedback", property_value=copy_of_feedback
+                    )
 
     def shutdown(self) -> None:
         """

@@ -42,6 +42,7 @@ class _AgentStateMetadata:
     task_start: Optional[float] = None
     task_end: Optional[float] = None
     tips: Optional[List[Dict[str, Any]]] = None
+    feedback: Optional[List[Dict[str, Any]]] = None
 
 
 # TODO(#567) File manipulations should ultimately be handled by the MephistoDB, rather than
@@ -274,6 +275,12 @@ class AgentState(ABC):
         Return the tips for this task, if it is available
         """
         return self.metadata.tips
+
+    def get_feedback(self) -> Optional[List[Dict[str, Any]]]:
+        """
+        Return the tips for this task, if it is available
+        """
+        return self.metadata.feedback
 
     def update_metadata(self, property_name: str, property_value: Any) -> None:
         if self.metadata is not None:
