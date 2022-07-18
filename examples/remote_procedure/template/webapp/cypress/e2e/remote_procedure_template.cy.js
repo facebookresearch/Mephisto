@@ -8,7 +8,6 @@ describe("Loads remote_procedure_template", () => {
   });
 
   it("Loads correct react elements", () => {
-    cy.visit("/");
     cy.get('[data-cy="directions-header"]');
     cy.get('[data-cy="directions-paragraph"]');
     cy.get('[data-cy="query-backend-button"]');
@@ -16,9 +15,6 @@ describe("Loads remote_procedure_template", () => {
   });
 
   it("Submit button not disabled after querying backend four times", () => {
-    cy.visit("/");
-    let currentRequest = 1;
-
     cy.on("window:alert", (txt) => {
       expect(txt).to.contain("this was request");
     });
@@ -51,7 +47,6 @@ describe("Loads remote_procedure_template", () => {
     cy.wait(1000);
     cy.get("@queryBackendButton").should("be.visible");
     cy.get("@queryBackendButton").click();
-    currentRequest += 1;
 
     cy.wait(1000);
     cy.get("@submitButton").should("not.be.disabled");

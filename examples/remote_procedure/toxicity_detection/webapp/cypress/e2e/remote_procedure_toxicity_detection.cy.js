@@ -8,7 +8,6 @@ describe("Loads remote_procedure_toxicity_detection", () => {
   });
 
   it("Loads correct react elements", () => {
-    cy.visit("/");
     cy.get('[data-cy="directions-header"]');
     cy.get('[data-cy="directions-paragraph"]');
     cy.get('[data-cy="detection-text-area"]');
@@ -16,7 +15,6 @@ describe("Loads remote_procedure_toxicity_detection", () => {
   });
 
   it("Typing and submitting a toxic statement", () => {
-    cy.visit("/");
     cy.get('[data-cy="detection-text-area"]').as("textArea");
     cy.get('[data-cy="submit-button"]').as("submitButton");
 
@@ -39,7 +37,6 @@ describe("Loads remote_procedure_toxicity_detection", () => {
         'The task has been submitted! Data: {"toxicity":'
       );
     });
-    cy.visit("/");
     cy.get('[data-cy="detection-text-area"]').as("textArea");
     cy.get('[data-cy="submit-button"]').as("submitButton");
 
