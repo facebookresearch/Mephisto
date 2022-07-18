@@ -4,7 +4,7 @@ import { useMephistoTask } from "mephisto-task";
 import root from "react-shadow";
 import tipsStyles from "!raw-loader!./index.css";
 import "react-popper-tooltip/dist/styles.css";
-import InfoIcon from "../InfoIcon";
+import InfoIcon from "./InfoIcon";
 import UserSubmission from "./UserSubmission";
 import TaskTips from "./TaskTips";
 import CloseIcon from "./CloseIcon";
@@ -48,7 +48,7 @@ function Tips({
       trigger: "click",
       closeOnOutsideClick: true,
       visible: isVisible,
-      offset: [0, 25],
+      offset: [0, 18],
       onVisibleChange: setIsVisible,
     },
     {
@@ -98,6 +98,7 @@ function Tips({
               stylePrefix={stylePrefix}
               maxPopupHeight={maxPopupHeight}
             />
+
             {!disableUserSubmission && (
               <UserSubmission
                 stylePrefixWithNoHeadlessPrefix={

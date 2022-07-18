@@ -6,7 +6,7 @@ import Link from '@docusaurus/Link';
 
 # Check worker quality with Screening Units
 
-Screening units help filter out low-quality work, generally by hiding parts of the validation you're paying attention to behind the Mephisto server. To support this we provide the `ScreenTaskRequred` blueprint mixin.
+Screening units help filter out low-quality work, generally by hiding parts of the validation you're paying attention to behind the Mephisto server. To support this we provide the `ScreenTaskRequired` blueprint mixin.
 
 Screening units are a heuristic-based way to determine, on the first task completion, if a worker has understood the instructions of a task. They can be run either on real data you want annotated (for cases where your heuristics can be run whenever) or on specific 'test' data you believe it's easier to validate on.
 
@@ -33,9 +33,9 @@ def validate_screening_unit(unit: "Unit"):
 shared_state = SharedTaskState(
     ...
     screening_data_factory=False
-    on_unit_submitted=UseGoldUnit.create_validation_function(cfg.mephisto, validate_gold_unit)
+    on_unit_submitted=ScreenTaskRequired.create_validation_function(cfg.mephisto, validate_gold_unit)
 )
-shared_state.qualifications += UseGoldUnit.get_mixin_qualifications(cfg.mephisto, shared_state)
+shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(cfg.mephisto, shared_state)
 ...
 ```
 

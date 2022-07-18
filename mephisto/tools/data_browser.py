@@ -106,6 +106,7 @@ class DataBrowser:
             "task_start": agent.state.get_task_start(),
             "task_end": agent.state.get_task_end(),
             "tips": agent.state.get_tips(),
+            "feedback": agent.state.get_feedback(),
         }
 
     def get_workers_with_qualification(self, qualification_name: str) -> List[Worker]:
