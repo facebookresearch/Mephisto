@@ -386,7 +386,12 @@ def get_help_arguments(args):
     if len(checking_args_keys) > 0:
         first_arg = checking_args_keys[0]
         first_arg_keys = list(checking_args[first_arg].keys())
-        args_table = create_table(first_arg_keys, "\n[b]Blueprint Arguments[/b]")
+        args_table = create_table(
+            first_arg_keys,
+            "\n[b]{abstraction} Arguments[/b]".format(
+                abstraction=abstraction.capitalize()
+            ),
+        )
         for arg in checking_args:
             arg_keys = checking_args[arg].keys()
             if "required" in arg_keys and checking_args[arg]["required"] == True:
