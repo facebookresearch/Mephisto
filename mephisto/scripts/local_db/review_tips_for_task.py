@@ -5,8 +5,11 @@ The agent state has the tip data.
 
 Approving a tip sets the accept property of the tip to be True.
 This prevents it from appearing again when running this script.
+It is stored in the agent state's metadata and in the assets/tips.csv file
+in your task's directory.
 
-Rejecting a tip deletes the tip from the tips list in the AgentState metadata.
+Rejecting a tip deletes the tip from the tips list in the AgentState's metadata.
+It also removed the row in the assets/tips.csv file in your task's directory.
 """
 try:
     from rich import print

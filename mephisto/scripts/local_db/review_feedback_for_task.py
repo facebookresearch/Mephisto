@@ -209,8 +209,8 @@ def main():
                         # Secondly, filter the question feedback for toxicity
                         filtered_feedback = list(
                             filter(
-                                lambda feedback_obj: float(feedback_obj["toxicity"])
-                                < 0.5,
+                                lambda feedback_obj: feedback_obj["toxicity"] is None
+                                or float(feedback_obj["toxicity"]) < 0.5,
                                 filtered_feedback,
                             )
                         )
@@ -242,8 +242,11 @@ def main():
                         )
 
     print(
-        "[green]There is no more {} feedback![/green]\n".format(
-            "unreviewed" if see_unreviewed_feedback == "u" else "reviewed"
+        "[green]You went through all the {type_of_feedback} feedback {ending}![/green]\n".format(
+            type_of_feedback="unreviewed"
+            if see_unreviewed_feedback in yes_response
+            else "reviewed",
+            ending="for this question" if filter_by_question_index != -1 else "",
         )
     )
 
