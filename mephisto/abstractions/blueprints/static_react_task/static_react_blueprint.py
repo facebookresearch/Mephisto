@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.assignment import InitializationData
 from dataclasses import dataclass, field
 from omegaconf import MISSING
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
@@ -18,21 +17,17 @@ from mephisto.abstractions.blueprints.static_react_task.static_react_task_builde
 from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
-import time
-import csv
 
-from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
+from typing import ClassVar, Type, TYPE_CHECKING
+from mephisto.abstractions.blueprint import (
+    SharedTaskState,
+)
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import (
-        AgentState,
-        TaskRunner,
         TaskBuilder,
-        SharedTaskState,
     )
-    from mephisto.data_model.assignment import Assignment
-    from mephisto.data_model.unit import Unit
     from omegaconf import DictConfig
 
 BLUEPRINT_TYPE_STATIC_REACT = "static_react_task"

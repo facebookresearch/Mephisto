@@ -10,11 +10,10 @@ from typing import (
     List,
     Dict,
     Any,
-    Type,
     Union,
     TYPE_CHECKING,
 )
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import time
 import weakref
 import os.path
@@ -42,7 +41,8 @@ class _AgentStateMetadata:
 
     task_start: Optional[float] = None
     task_end: Optional[float] = None
-    # TODO other metadata fields can be initialized
+    tips: Optional[List[Dict[str, Any]]] = None
+    feedback: Optional[List[Dict[str, Any]]] = None
 
 
 # TODO(#567) File manipulations should ultimately be handled by the MephistoDB, rather than
@@ -198,8 +198,9 @@ class AgentState(ABC):
         """
         Load stored data from a file to this object, including metadata
         """
-        self._load_data()
+
         self.load_metadata()
+        self._load_data()
 
     @abstractmethod
     def get_data(self) -> Dict[str, Any]:
@@ -268,3 +269,26 @@ class AgentState(ABC):
         Return the end time for this task, if it is available
         """
         return self.metadata.task_end
+
+    def get_tips(self) -> Optional[List[Dict[str, Any]]]:
+        """
+        Return the tips for this task, if it is available
+        """
+        return self.metadata.tips
+
+    def get_feedback(self) -> Optional[List[Dict[str, Any]]]:
+        """
+        Return the tips for this task, if it is available
+        """
+        return self.metadata.feedback
+
+    def update_metadata(self, property_name: str, property_value: Any) -> None:
+        if self.metadata is not None:
+            assert (
+                hasattr(self.metadata, property_name) == True
+            ), "The {property_name} field must exist in _AgentStateMetadata. Go into _AgentStateMetadata and add the {property_name} field".format(
+                property_name=property_name
+            )
+            replaced = {property_name: property_value}
+            self.metadata = replace(self.metadata, **replaced)
+            self.save_data()

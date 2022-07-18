@@ -125,7 +125,6 @@ class StaticBlueprint(OnboardingRequired, Blueprint):
         shared_state: "SharedStaticTaskState",
     ):
         super().__init__(task_run, args, shared_state)
-
         # Originally just a list of dicts, but can also be a generator of dicts
         self._initialization_data_dicts: Iterable[Dict[str, Any]] = []
         blue_args = args.blueprint

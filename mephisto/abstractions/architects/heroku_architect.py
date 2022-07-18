@@ -347,9 +347,9 @@ class HerokuArchitect(Architect):
         server_dir = self.__get_build_directory()
 
         print("Heroku: Starting server...")
-
+        branch = "main"
         heroku_server_directory_path = os.path.join(server_dir, "router")
-        sh.git(shlex.split(f"-C {heroku_server_directory_path} init"))
+        sh.git(shlex.split(f"-C {heroku_server_directory_path} init -b {branch}"))
 
         heroku_app_name = self.__get_app_name()
 
@@ -419,7 +419,9 @@ class HerokuArchitect(Architect):
         # commit and push to the heroku server
         sh.git(shlex.split(f"-C {heroku_server_directory_path} add -A"))
         sh.git(shlex.split(f'-C {heroku_server_directory_path} commit -m "app"'))
-        sh.git(shlex.split(f"-C {heroku_server_directory_path} push -f heroku master"))
+        sh.git(
+            shlex.split(f"-C {heroku_server_directory_path} push -f heroku {branch}")
+        )
 
         os.chdir(heroku_server_directory_path)
         subprocess.check_output(
