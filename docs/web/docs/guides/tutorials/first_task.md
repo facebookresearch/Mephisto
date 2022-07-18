@@ -99,42 +99,90 @@ Mephisto configuration options can be inherited from a number of different locat
 ```bash
 $ mephisto wut architect=local
 
-dest                type    default    help                                    choices    required
-------------------  ------  ---------  --------------------------------------  ---------  ----------
-server_type         str     node       None                                    None       False
-server_source_path  str     ???        Optional path to a prepared server      None       False
-                                       directory containing everything needed
-                                       to run a server of the given type.
-                                       Overrides server type.
-hostname            str     localhost  Addressible location of the server      None       False
-port                str     3000       Port to launch the server on            None       False
+                                     Architect Arguments                                     
+╭────────────────────┬──────┬───────────┬──────────────────────────────┬─────────┬──────────╮
+│ dest               │ type │ default   │ help                         │ choices │ required │
+├────────────────────┼──────┼───────────┼──────────────────────────────┼─────────┼──────────┤
+│ server_type        │ str  │ node      │ None                         │ None    │ False    │
+├────────────────────┼──────┼───────────┼──────────────────────────────┼─────────┼──────────┤
+│ server_source_path │ str  │ ???       │ Optional path to a prepared  │ None    │ False    │
+│                    │      │           │ server directory containing  │         │          │
+│                    │      │           │ everything needed to run a   │         │          │
+│                    │      │           │ server of the given type.    │         │          │
+│                    │      │           │ Overrides server type.       │         │          │
+├────────────────────┼──────┼───────────┼──────────────────────────────┼─────────┼──────────┤
+│ hostname           │ str  │ localhost │ Addressible location of the  │ None    │ False    │
+│                    │      │           │ server                       │         │          │
+├────────────────────┼──────┼───────────┼──────────────────────────────┼─────────┼──────────┤
+│ port               │ str  │ 3000      │ Port to launch the server on │ None    │ False    │
+╰────────────────────┴──────┴───────────┴──────────────────────────────┴─────────┴──────────╯
 ```
 
 **For the blueprint:**
 ```bash
 $ mephisto wut blueprint=static_task
-Tasks launched from static blueprints need a source html file to display to workers, as well as a csv containing values that will be inserted into templates in the html. 
-dest                      type     default    help                                      choices    required
-------------------------  -------  ---------  ----------------------------------------  ---------  ----------
-block_qualification       str      ???        Specify the name of a qualification used  None       False
-                                              to soft block workers.
-onboarding_qualification  str      ???        Specify the name of a qualification used  None       False
-                                              to block workers who fail onboarding,
-                                              Empty will skip onboarding.
-units_per_assignment      int      1          How many workers you want to do each      None       False
-                                              assignment
-extra_source_dir          str      ???        Optional path to sources that the HTML    None       False
-                                              may refer to (such as
-                                              images/video/css/scripts)
-data_json                 str      ???        Path to JSON file containing task data    None       False
-data_jsonl                str      ???        Path to JSON-L file containing task data  None       False
-data_csv                  str      ???        Path to csv file containing task data     None       False
-task_source               str      ???        Path to source HTML file for the task     None       True
-                                              being run
-preview_source            unknown  ???        Optional path to source HTML file to      None       False
-                                              preview the task
-onboarding_source         unknown  ???        Optional path to source HTML file to      None       False
-                                              onboarding the task
+Tasks launched from static blueprints need a source html file to display to workers, 
+as well as a csv containing values that will be inserted into templates in the html. 
+
+                                     Blueprint Arguments                                     
+╭───────────────────┬─────────┬────────────────────┬───────────────────┬─────────┬──────────╮
+│ dest              │ type    │ default            │ help              │ choices │ required │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ block_qualificat… │ str     │ ???                │ Specify the name  │ None    │ False    │
+│                   │         │                    │ of a              │         │          │
+│                   │         │                    │ qualification     │         │          │
+│                   │         │                    │ used to soft      │         │          │
+│                   │         │                    │ block workers.    │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ tips_location     │ str     │ /Users/etesam1/Do… │ Path to csv file  │ None    │ False    │
+│                   │         │                    │ containing tips   │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ onboarding_quali… │ str     │ ???                │ Specify the name  │ None    │ False    │
+│                   │         │                    │ of a              │         │          │
+│                   │         │                    │ qualification     │         │          │
+│                   │         │                    │ used to block     │         │          │
+│                   │         │                    │ workers who fail  │         │          │
+│                   │         │                    │ onboarding, Empty │         │          │
+│                   │         │                    │ will skip         │         │          │
+│                   │         │                    │ onboarding.       │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ units_per_assign… │ int     │ 1                  │ How many workers  │ None    │ False    │
+│                   │         │                    │ you want to do    │         │          │
+│                   │         │                    │ each assignment   │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ extra_source_dir  │ str     │ ???                │ Optional path to  │ None    │ False    │
+│                   │         │                    │ sources that the  │         │          │
+│                   │         │                    │ HTML may refer to │         │          │
+│                   │         │                    │ (such as          │         │          │
+│                   │         │                    │ images/video/css… │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ data_json         │ str     │ ???                │ Path to JSON file │ None    │ False    │
+│                   │         │                    │ containing task   │         │          │
+│                   │         │                    │ data              │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ data_jsonl        │ str     │ ???                │ Path to JSON-L    │ None    │ False    │
+│                   │         │                    │ file containing   │         │          │
+│                   │         │                    │ task data         │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ data_csv          │ str     │ ???                │ Path to csv file  │ None    │ False    │
+│                   │         │                    │ containing task   │         │          │
+│                   │         │                    │ data              │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ task_source       │ str     │ ???                │ Path to source    │ None    │ True     │
+│                   │         │                    │ HTML file for the │         │          │
+│                   │         │                    │ task being run    │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ preview_source    │ unknown │ ???                │ Optional path to  │ None    │ False    │
+│                   │         │                    │ source HTML file  │         │          │
+│                   │         │                    │ to preview the    │         │          │
+│                   │         │                    │ task              │         │          │
+├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
+│ onboarding_source │ unknown │ ???                │ Optional path to  │ None    │ False    │
+│                   │         │                    │ source HTML file  │         │          │
+│                   │         │                    │ to onboarding the │         │          │
+│                   │         │                    │ task              │         │          │
+╰───────────────────┴─────────┴────────────────────┴───────────────────┴─────────┴──────────╯
+
 Additional SharedTaskState args from SharedStaticTaskState
 # ... snipped ...
 ```
