@@ -7,15 +7,12 @@
 
 from typing import List
 from rich import print
-from rich.table import Table
-from rich import box
-from mephisto.utils.rich import console
+from mephisto.operations.registry import get_valid_provider_types
+from mephisto.utils.rich import console, create_table
 import rich_click as click  # type: ignore
 import os
-from click_default_group import DefaultGroup  # type: ignore
 from rich_click import RichCommand, RichGroup
 from rich.markdown import Markdown
-from omegaconf import MISSING
 
 
 # @click.group(cls=DefaultGroup, default="web", default_if_no_args=True)
@@ -27,8 +24,6 @@ def cli():
 
 
 click.rich_click.USE_RICH_MARKUP = True
-
-click.rich_click.STYLE_ERRORS_SUGGESTION = "black"
 click.rich_click.ERRORS_SUGGESTION = (
     "\nTry running the '--help' flag for more information."
 )
@@ -74,7 +69,7 @@ def config(identifier, value):
     else:
         # Write mode:
         add_config_arg(section, key, value)
-        click.echo(f"{identifier} succesfully updated to: {value}")
+        print(f"[green]{identifier} succesfully updated to: {value}[/green]")
 
 
 @cli.command("review")
@@ -147,22 +142,30 @@ def check():
         db = LocalMephistoDB()
         get_mock_requester(db)
     except Exception as e:
-        click.echo("Something went wrong.")
+        print("\n[red]Something went wrong.[/red]")
         click.echo(e)
         return
-    click.echo("Mephisto seems to be set up correctly.")
+    print("\n[green]Mephisto seems to be set up correctly.[/green]\n")
 
 
 @cli.command("requesters")
 def list_requesters():
     """Lists all registered requesters"""
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
-    from tabulate import tabulate
 
     db = LocalMephistoDB()
     requesters = db.find_requesters()
     dict_requesters = [r.to_dict() for r in requesters]
-    click.echo(tabulate(dict_requesters, headers="keys"))
+    if len(dict_requesters) > 0:
+        requester_keys = list(dict_requesters[0].keys())
+        requester_table = create_table(requester_keys, "\n\n Requesters")
+        for requester in dict_requesters:
+            requester_vals = list(requester.values())
+            requester_vals = [str(x) for x in requester_vals]
+            requester_table.add_row(*requester_vals)
+        console.print(requester_table)
+    else:
+        print("[red]No requesters found[/red]")
 
 
 @cli.command("register", context_settings={"ignore_unknown_options": True})
@@ -170,7 +173,16 @@ def list_requesters():
 def register_provider(args):
     """Register a requester with a crowd provider"""
     if len(args) == 0:
-        click.echo("Usage: mephisto register <provider_type> arg1=value arg2=value")
+        print(
+            "\n[red]Usage: mephisto register <provider_type> arg1=value arg2=value[/red]"
+        )
+        print("\n[b]Valid Providers[/b]")
+        provider_text = """"""
+        for provider in get_valid_provider_types():
+            provider_text += "\n* " + provider
+        provider_text_markdown = Markdown(provider_text)
+        console.print(provider_text_markdown)
+        print("")
         return
 
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
@@ -187,12 +199,21 @@ def register_provider(args):
     RequesterClass = crowd_provider.RequesterClass
 
     if len(requester_args) == 0:
-        from tabulate import tabulate
-
         params = get_extra_argument_dicts(RequesterClass)
         for param in params:
-            click.echo(param["desc"])
-            click.echo(tabulate(param["args"].values(), headers="keys"))
+            click.echo("\n" + param["desc"])
+            param_keys = list(param["args"].keys())
+            if len(param_keys) > 0:
+                first_arg_key = param_keys[0]
+                requester_headers = list(param["args"][first_arg_key].keys())
+                requester_table = create_table(requester_headers, "[b]Arguments[/b]")
+                for arg in param["args"]:
+                    arg_values = list(param["args"][arg].values())
+                    arg_values = [str(x) for x in arg_values]
+                    requester_table.add_row(*arg_values)
+                console.print(requester_table)
+            else:
+                print("[red]Requester has no args[/red]")
         return
 
     try:
@@ -201,7 +222,7 @@ def register_provider(args):
         click.echo(str(e))
 
     if parsed_options.name is None:
-        click.echo("No name was specified for the requester.")
+        print("[red]No name was specified for the requester.[/red]")
 
     db = LocalMephistoDB()
     requesters = db.find_requesters(requester_name=parsed_options.name)
@@ -211,7 +232,7 @@ def register_provider(args):
         requester = requesters[0]
     try:
         requester.register(parsed_options)
-        click.echo("Registered successfully.")
+        print("[green]Registered successfully.[/green]")
     except Exception as e:
         click.echo(str(e))
 
@@ -232,15 +253,10 @@ def get_help_arguments(args):
 
     if len(args) == 0:
         print(
-            "\n[red]Usage mephisto wut <abstraction>[=<type>] [...specific args to check][/red]"
+            "\n[red]Usage: mephisto wut <abstraction>[=<type>] [...specific args to check][/red]"
         )
-        abstractions_table = Table(
-            "Abstraction",
-            "Description",
-            title="\n\n[b]Abstractions[/b]",
-            box=box.ROUNDED,
-            expand=True,
-            show_lines=True,
+        abstractions_table = create_table(
+            ["Abstraction", "Description"], "\n\n[b]Abstractions[/b]"
         )
         abstractions_table.add_row(
             "blueprint",
@@ -268,7 +284,6 @@ def get_help_arguments(args):
         get_extra_argument_dicts,
         get_task_state_dicts,
     )
-    from textwrap import wrap
 
     VALID_ABSTRACTIONS = ["blueprint", "architect", "requester", "provider", "task"]
 
@@ -370,12 +385,11 @@ def get_help_arguments(args):
     if len(checking_args_keys) > 0:
         first_arg = checking_args_keys[0]
         first_arg_keys = list(checking_args[first_arg].keys())
-        args_table = Table(
-            *first_arg_keys,
-            title="\n[b]Blueprint Arguments[/b]",
-            box=box.ROUNDED,
-            expand=True,
-            show_lines=True,
+        args_table = create_table(
+            first_arg_keys,
+            "\n[b]{abstraction} Arguments[/b]".format(
+                abstraction=abstraction.capitalize()
+            ),
         )
         for arg in checking_args:
             arg_keys = checking_args[arg].keys()
@@ -399,13 +413,10 @@ def get_help_arguments(args):
             first_state_arg = state_args_keys[0]
             first_arg_keys = list(state_args[first_state_arg].keys())
 
-            state_args_table = Table(
-                *first_arg_keys,
-                title="\n[b]Additional Shared TaskState args[/b]",
-                box=box.ROUNDED,
-                expand=True,
-                show_lines=True,
+            state_args_table = create_table(
+                first_arg_keys, "\n[b]Additional Shared TaskState args[/b]"
             )
+
             for arg in state_args:
                 arg_values = list(state_args[arg].values())
                 arg_values = [str(x) for x in arg_values]
@@ -426,12 +437,20 @@ def metrics_cli(args):
     )
 
     if len(args) == 0 or args[0] not in ["install", "view", "cleanup"]:
-        click.echo(
-            "Usage: mephisto metrics <install|view|cleanup>\n"
-            f"install: Installs Prometheus and Grafana to {METRICS_DIR}\n"
-            f"view: Launches a Prometheus and Grafana server, and shuts down on exit\n"
-            f"cleanup: Shuts down Prometheus and Grafana resources that may have persisted"
+        print("\n[red]Usage: mephisto metrics <install|view|cleanup>[/red]")
+        metrics_table = create_table(["Property", "Value"], "Metrics Arguments")
+        metrics_table.add_row(
+            "install", f"Installs Prometheus and Grafana to {METRICS_DIR}"
         )
+        metrics_table.add_row(
+            "view",
+            "Launches a Prometheus and Grafana server, and shuts down on exit",
+        )
+        metrics_table.add_row(
+            "cleanup",
+            "Shuts down Prometheus and Grafana resources that may have persisted",
+        )
+        console.print(metrics_table)
         return
     command = args[0]
     if command == "install":
