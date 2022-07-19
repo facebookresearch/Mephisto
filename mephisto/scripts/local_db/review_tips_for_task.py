@@ -108,7 +108,7 @@ def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
-    print_out_task_names(task_names)
+    print_out_task_names("Tips Review", task_names)
     task_name = Prompt.ask(
         "\nEnter the name of the task that you want to review the tips of",
         choices=task_names,
@@ -131,8 +131,10 @@ def main():
                         current_tip_table = Table(
                             "Property",
                             "Value",
-                            title="Tip {current_tip} of {total_number_of_tips}".format(
-                                current_tip=i + 1, total_number_of_tips=len(tips)
+                            title="\nTip {current_tip} of {total_number_of_tips} From Agent {agent_id}".format(
+                                current_tip=i + 1,
+                                total_number_of_tips=len(tips),
+                                agent_id=unit.agent_id,
                             ),
                             box=box.ROUNDED,
                             expand=True,
