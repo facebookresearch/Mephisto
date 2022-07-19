@@ -11,14 +11,6 @@ in your task's directory.
 Rejecting a tip deletes the tip from the tips list in the AgentState's metadata.
 It also removed the row in the assets/tips.csv file in your task's directory.
 """
-try:
-    from rich import print
-except ImportError:
-    print(
-        "\nYou need to have rich installed to use this script. For example: pip install rich\n"
-    )
-    exit(1)
-
 import csv
 from genericpath import exists
 from pathlib import Path
@@ -29,12 +21,20 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+from rich import print
 from rich import box
 from rich.prompt import Prompt
 from rich.prompt import FloatPrompt
 from rich.table import Table
 from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
+import enum
+
+
+class TipsReviewType(enum.Enum):
+    ACCEPTED = "a"
+    REJECTED = "r"
+    SKIP = "s"
 
 
 def get_index_of_value(lst: List[str], property: str) -> int:
@@ -151,7 +151,7 @@ def main():
                         ).strip()
 
                         print("")
-                        if tip_response == "a":
+                        if tip_response == TipsReviewType.ACCEPTED:
                             # persists the tip in the db as it is accepted
                             accept_tip(tips, tips_copy, i, unit)
                             print("[green]Tip Accepted[/green]")
@@ -182,10 +182,10 @@ def main():
                                             "\n[red]There was an error when paying out your bonus[/red]\n"
                                         )
 
-                        elif tip_response == "r":
+                        elif tip_response == TipsReviewType.REJECTED:
                             remove_tip_from_metadata(tips, tips_copy, i, unit)
                             print("Tip Rejected\n")
-                        elif tip_response == "s":
+                        elif tip_response == TipsReviewType.SKIP:
                             print("Tip Skipped\n")
 
     print("There are no more tips to review\n")

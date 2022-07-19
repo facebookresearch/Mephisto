@@ -6,14 +6,7 @@ The tips for each agent state is filtered to only collect accepted tips.
 For each accepted tip you have the option to remove the tip from the agent state.
 """
 
-try:
-    from rich import print
-except ImportError:
-    print(
-        "\nYou need to have rich installed to use this script. For example: pip install rich\n"
-    )
-    exit(1)
-
+import enum
 from genericpath import exists
 from typing import Any, Dict, List
 import csv
@@ -25,9 +18,15 @@ from mephisto.scripts.local_db.review_tips_for_task import (
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
+from rich import print
 from rich.prompt import Prompt
 from rich.table import Table, Column
 from rich import box
+
+
+class TipsRemovalType(enum.Enum):
+    REMOVE = "y"
+    KEEP = "n"
 
 
 def remove_tip_from_tips_file(
@@ -103,7 +102,7 @@ def main():
                     ).strip()
                     print("")
 
-                    if removal_response == "y":
+                    if removal_response == TipsRemovalType.REMOVE:
                         remove_tip_from_tips_file(
                             accepted_tips_copy, i, unit.get_task_run()
                         )
@@ -111,7 +110,7 @@ def main():
                             accepted_tips, accepted_tips_copy, i, unit
                         )
                         print("Removed tip\n")
-                    elif removal_response == "n":
+                    elif removal_response == TipsRemovalType.KEEP:
                         print("Did not remove tip\n")
     print("There are no more tips to look at\n")
 
