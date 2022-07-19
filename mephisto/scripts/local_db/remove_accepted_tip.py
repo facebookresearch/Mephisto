@@ -34,22 +34,27 @@ def remove_tip_from_tips_file(
     i: int,
     task_run: TaskRun,
 ):
+    """Removes the specified tip row from the csv file"""
     tip_id = tips[i]["id"]
     blueprint_task_run_args = task_run.args["blueprint"]
     if "tips_location" in blueprint_task_run_args:
         tips_location = blueprint_task_run_args["tips_location"]
         does_file_exist = exists(tips_location)
         if does_file_exist == False:
-            print("You do not have a tips.csv file in your task's output directory")
+            print(
+                "\n[red]You do not have a tips.csv file in your task's output directory[/red]"
+            )
             quit()
 
         lines_to_write = []
+        # Getting the row in the csv file
         with open(tips_location) as read_tips_file:
             reader = csv.reader(read_tips_file)
             for row in reader:
                 if row[0] != tip_id:
                     lines_to_write.append(row)
 
+        # Writing all rows except the row to remove
         with open(tips_location, "w") as write_tips_file:
             writer = csv.writer(write_tips_file)
             writer.writerows(lines_to_write)
