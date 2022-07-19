@@ -64,6 +64,7 @@ xmltodict = "^0.12.0"
 click = "^7.0"
 click_default_group = "^1.2"
 tabulate = "^0.8.7"
+rich = "^12.4.4"
 
 # [tool.poetry.group.metrics.dependencies]
 prometheus-client = "^0.13.1"

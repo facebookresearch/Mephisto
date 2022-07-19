@@ -18,12 +18,14 @@ from mephisto.operations.hydra_config import (
     register_script_config,
     TaskConfig,
 )
-
+from rich.markdown import Markdown
+from mephisto.utils.rich import console
 from omegaconf import DictConfig, OmegaConf
 import functools
 import hydra
 import subprocess
 from typing import (
+    List,
     Tuple,
     Any,
     Type,
@@ -34,6 +36,7 @@ from typing import (
     TYPE_CHECKING,
 )
 import os
+from rich import print
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -298,3 +301,19 @@ def build_custom_bundle(
     # cleanup and return
     os.chdir(return_dir)
     return build_path
+
+
+def print_out_task_names(task_names: List[str]) -> None:
+    """Prints out task names and formats them nicely using rich"""
+    if len(task_names) == 0:
+        print(
+            "\n[red]There are no task names found[/red] \nYou should launch a task first and then run this script after the task is shut down\n"
+        )
+        quit()
+    task_names_text = """# Tips Review \n ## Task Names:"""
+    for task_name in task_names:
+        task_names_text += "\n* " + task_name
+
+    task_names_markdown = Markdown(task_names_text)
+    console.print(task_names_markdown)
+    print("")
