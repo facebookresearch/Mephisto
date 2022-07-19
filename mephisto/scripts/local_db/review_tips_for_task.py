@@ -131,8 +131,10 @@ def main():
                         current_tip_table = Table(
                             "Property",
                             "Value",
-                            title="Tip {current_tip} of {total_number_of_tips}".format(
-                                current_tip=i + 1, total_number_of_tips=len(tips)
+                            title="\nTip {current_tip} of {total_number_of_tips} From Agent {agent_id}".format(
+                                current_tip=i + 1,
+                                total_number_of_tips=len(tips),
+                                agent_id=unit.agent_id,
                             ),
                             box=box.ROUNDED,
                             expand=True,
