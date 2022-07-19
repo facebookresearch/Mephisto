@@ -243,11 +243,11 @@ def main():
                         )
 
     print(
-        "[green]You went through all the {type_of_feedback} feedback {ending}![/green]\n".format(
+        "[green]You went through all the {type_of_feedback} feedback{ending}![/green]\n".format(
             type_of_feedback="unreviewed"
             if see_unreviewed_feedback == FeedbackReviewType.UNREVIEWED.value
             else "reviewed",
-            ending="for this question" if filter_by_question_index != -1 else "",
+            ending=" for this question" if filter_by_question_index != -1 else "",
         )
     )
 
