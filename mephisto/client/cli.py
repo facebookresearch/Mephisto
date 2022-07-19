@@ -13,6 +13,10 @@ import rich_click as click  # type: ignore
 import os
 from rich_click import RichCommand, RichGroup
 from rich.markdown import Markdown
+import mephisto.scripts.local_db.review_tips_for_task as review_tips
+import mephisto.scripts.local_db.remove_accepted_tip as remove_accepted_tip
+import mephisto.scripts.local_db.review_feedback_for_task as review_feedback
+import mephisto.scripts.local_db.load_data_to_mephisto_db as load_data
 
 
 # @click.group(cls=DefaultGroup, default="web", default_if_no_args=True)
@@ -24,6 +28,7 @@ def cli():
 
 
 click.rich_click.USE_RICH_MARKUP = True
+click.rich_click.SHOW_ARGUMENTS = True
 click.rich_click.ERRORS_SUGGESTION = (
     "\nTry running the '--help' flag for more information."
 )
@@ -130,6 +135,13 @@ def review(
         debug,
         assets_dir,
     )
+
+
+def print_out_valid_options(markdown_text: str, valid_options: List[str]) -> None:
+    for valid_option in valid_options:
+        markdown_text += "\n* " + valid_option
+    console.print(Markdown(markdown_text))
+    click.echo("")
 
 
 @cli.command("check")
@@ -290,12 +302,6 @@ def get_help_arguments(args):
     abstraction_equal_split = args[0].split("=", 1)
     abstraction = abstraction_equal_split[0]
 
-    def print_out_valid_options(markdown_text: str, valid_options: List[str]) -> None:
-        for valid_option in valid_options:
-            markdown_text += "\n* " + valid_option
-        console.print(Markdown(markdown_text))
-        click.echo("")
-
     if abstraction not in VALID_ABSTRACTIONS:
         print(
             f"[red]Given abstraction {abstraction} not in valid abstractions {VALID_ABSTRACTIONS}][/red]"
@@ -422,6 +428,37 @@ def get_help_arguments(args):
                 arg_values = [str(x) for x in arg_values]
                 state_args_table.add_row(*arg_values)
             console.print(state_args_table)
+
+
+@cli.command(
+    "scripts", cls=RichCommand, context_settings={"ignore_unknown_options": True}
+)
+@click.argument("script", required=True, nargs=1)
+def run_script(script):
+    """Run a review(tips/feedback) or load data script. Valid script names are: ["review_tips", "remove_tip", "load_data", "review_feedback"]"""
+
+    VALID_SCRIPTS = [
+        "review_tips",
+        "remove_tip",
+        "load_data",
+        "review_feedback",
+    ]
+    if script not in VALID_SCRIPTS:
+        print("\n[red]Usage: mephisto scripts <script_name> [/red]\n")
+        script_names_list = """**Valid script names are:**"""
+        print_out_valid_options(script_names_list, VALID_SCRIPTS)
+        print(
+            "[red]'{script}' is not a valid script name[/red]\n".format(script=script)
+        )
+        quit()
+    if script == "load_data":
+        load_data.main()
+    elif script == "review_tips":
+        review_tips.main()
+    elif script == "remove_tip":
+        remove_accepted_tip.main()
+    elif script == "review_feedback":
+        review_feedback.main()
 
 
 @cli.command("metrics", context_settings={"ignore_unknown_options": True})
