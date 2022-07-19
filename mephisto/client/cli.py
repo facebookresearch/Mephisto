@@ -32,7 +32,7 @@ click.rich_click.ERRORS_EPILOGUE = (
 )
 
 
-@cli.command("web")
+@cli.command("web", cls=RichCommand)
 def web():
     """Launch a local webserver with the Mephisto UI"""
     from mephisto.client.full.server import app
@@ -40,7 +40,7 @@ def web():
     app.run(debug=False)
 
 
-@cli.command("config")
+@cli.command("config", cls=RichCommand)
 @click.argument("identifier", type=(str), default=None, required=False)
 @click.argument("value", type=(str), default=None, required=False)
 def config(identifier, value):
@@ -72,7 +72,10 @@ def config(identifier, value):
         print(f"[green]{identifier} succesfully updated to: {value}[/green]")
 
 
-@cli.command("review")
+@cli.command(
+    "review",
+    cls=RichCommand,
+)
 @click.argument(
     "review_app_dir",
     type=click.Path(exists=True),
@@ -132,7 +135,7 @@ def review(
     )
 
 
-@cli.command("check")
+@cli.command("check", cls=RichCommand)
 def check():
     """Checks that mephisto is setup correctly"""
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
@@ -148,7 +151,7 @@ def check():
     print("\n[green]Mephisto seems to be set up correctly.[/green]\n")
 
 
-@cli.command("requesters")
+@cli.command("requesters", cls=RichCommand)
 def list_requesters():
     """Lists all registered requesters"""
     from mephisto.abstractions.databases.local_database import LocalMephistoDB
@@ -168,7 +171,9 @@ def list_requesters():
         print("[red]No requesters found[/red]")
 
 
-@cli.command("register", context_settings={"ignore_unknown_options": True})
+@cli.command(
+    "register", cls=RichCommand, context_settings={"ignore_unknown_options": True}
+)
 @click.argument("args", nargs=-1)
 def register_provider(args):
     """Register a requester with a crowd provider"""
@@ -424,7 +429,9 @@ def get_help_arguments(args):
             console.print(state_args_table)
 
 
-@cli.command("metrics", context_settings={"ignore_unknown_options": True})
+@cli.command(
+    "metrics", cls=RichCommand, context_settings={"ignore_unknown_options": True}
+)
 @click.argument("args", nargs=-1)
 def metrics_cli(args):
     from mephisto.utils.metrics import (
