@@ -11,7 +11,6 @@ in your task's directory.
 Rejecting a tip deletes the tip from the tips list in the AgentState's metadata.
 It also removed the row in the assets/tips.csv file in your task's directory.
 """
-
 import csv
 from genericpath import exists
 from pathlib import Path
@@ -22,6 +21,20 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+from rich import print
+from rich import box
+from rich.prompt import Prompt
+from rich.prompt import FloatPrompt
+from rich.table import Table
+from mephisto.tools.scripts import print_out_task_names
+from mephisto.utils.rich import console
+import enum
+
+
+class TipsReviewType(enum.Enum):
+    ACCEPTED = "a"
+    REJECTED = "r"
+    SKIP = "s"
 
 
 def get_index_of_value(lst: List[str], property: str) -> int:
@@ -29,17 +42,6 @@ def get_index_of_value(lst: List[str], property: str) -> int:
         if lst[i] == property:
             return i
     return 0
-
-
-def is_number(s) -> bool:
-    """Validates the input to make sure that it is a number"""
-    if s == "NaN":
-        return False
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
 
 
 def add_row_to_tips_file(task_run: TaskRun, item_to_add: Dict[str, Any]):
@@ -51,7 +53,14 @@ def add_row_to_tips_file(task_run: TaskRun, item_to_add: Dict[str, Any]):
         if does_file_exist == False:
             # Creates the file
             create_tips_file = Path(tips_location)
-            create_tips_file.touch(exist_ok=True)
+            try:
+                create_tips_file.touch(exist_ok=True)
+            except FileNotFoundError:
+                print(
+                    "\n[red]Your task folder must have an assets folder in it.[/red]\n"
+                )
+                quit()
+
         with open(tips_location, "r") as inp, open(tips_location, "a+") as tips_file:
             field_names = list(item_to_add.keys())
             writer = csv.DictWriter(tips_file, fieldnames=field_names)
@@ -75,6 +84,9 @@ def remove_tip_from_metadata(
         assigned_agent.state.update_metadata(
             property_name="tips", property_value=tips_copy
         )
+    else:
+        print("[red]An assigned agent was not able to be found for this tip[/red]")
+        quit()
 
 
 def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
@@ -86,42 +98,26 @@ def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
 
     if assigned_agent is not None:
         tips_copy[index_to_update]["accepted"] = True
+        add_row_to_tips_file(unit.get_task_run(), tips_copy[index_to_update])
         assigned_agent.state.update_metadata(
             property_name="tips", property_value=tips_copy
         )
-        add_row_to_tips_file(unit.get_task_run(), tips_copy[index_to_update])
 
 
 def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
-    acceptable_responses = set(
-        ["a", "accept", "ACCEPT", "Accept", "r", "reject", "REJECT", "Reject"]
-    )
-    accept_response = set(["a", "accept", "ACCEPT", "Accept"])
-    reject_response = set(["r", "reject", "REJECT", "Reject"])
-    yes_no_responses = set(["yes", "y", "YES", "Yes", "no", "n", "NO", "No"])
-    yes_response = set(["yes", "y", "YES", "Yes"])
-    no_response = set(["no", "n", "NO", "No"])
-
-    print("\nTask Names:")
-    for task_name in task_names:
-        print(task_name)
+    print_out_task_names("Tips Review", task_names)
+    task_name = Prompt.ask(
+        "\nEnter the name of the task that you want to review the tips of",
+        choices=task_names,
+        show_choices=False,
+    ).strip()
     print("")
-    task_name = input(
-        "Enter the name of the task that you want to review the tips of: \n"
-    )
-    print("")
-    while task_name not in task_names:
-        print("That task name is not valid\n")
-        task_name = input(
-            "Enter the name of the task that you want to review the tips of: \n"
-        )
-        print("")
     units = mephisto_data_browser.get_all_units_for_task_name(task_name)
     if len(units) == 0:
-        print("No units were received")
+        print("[red]No units were received[/red]")
         quit()
     for unit in units:
         if unit.agent_id is not None:
@@ -132,63 +128,67 @@ def main():
                 tips_copy = tips.copy()
                 for i in range(len(tips)):
                     if tips[i]["accepted"] == False:
-                        print("Current Tip Id: " + tips[i]["id"] + "\n")
-                        print("Current Tip Header: " + tips[i]["header"] + "\n")
-                        print("Current Tip Text: " + tips[i]["text"] + "\n")
-                        tip_response = input(
-                            "Do you want to accept or reject this tip? accept(a)/reject(r): \n"
+                        current_tip_table = Table(
+                            "Property",
+                            "Value",
+                            title="\nTip {current_tip} of {total_number_of_tips} From Agent {agent_id}".format(
+                                current_tip=i + 1,
+                                total_number_of_tips=len(tips),
+                                agent_id=unit.agent_id,
+                            ),
+                            box=box.ROUNDED,
+                            expand=True,
+                            show_lines=True,
                         )
+                        current_tip_table.add_row("Tip Id", tips[i]["id"])
+                        current_tip_table.add_row("Tip Header", tips[i]["header"])
+                        current_tip_table.add_row("Tip Text", tips[i]["text"])
+                        console.print(current_tip_table)
+
+                        tip_response = Prompt.ask(
+                            "\nDo you want to (a)ccept, (r)eject, or (s)kip this tip? (Default: s)",
+                            choices=[tips_type.value for tips_type in TipsReviewType],
+                            default=TipsReviewType.SKIP.value,
+                            show_default=False,
+                        ).strip()
+
                         print("")
-                        while tip_response not in acceptable_responses:
-                            print("That response is not valid\n")
-                            tip_response = input(
-                                "Do you want to accept or reject this tip? accept(a)/reject(r): \n"
-                            )
-                            print("")
-                        if tip_response in accept_response:
+                        if tip_response == TipsReviewType.ACCEPTED.value:
                             # persists the tip in the db as it is accepted
                             accept_tip(tips, tips_copy, i, unit)
-                            print("Tip Accepted\n")
+                            print("[green]Tip Accepted[/green]")
                             # given the option to pay a bonus to the worker who wrote the tip
-                            is_bonus = input(
-                                "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): "
+                            bonus = FloatPrompt.ask(
+                                "\nHow much would you like to bonus the tip submitter? (Default: 0.0)",
+                                show_default=False,
+                                default=0.0,
                             )
-                            while is_bonus not in yes_no_responses:
-                                print("That response is not valid\n")
-                                is_bonus = input(
-                                    "Do you want to pay a bonus to this worker for their tip? yes(y)/no(n): \n"
+                            if bonus > 0:
+                                reason = Prompt.ask(
+                                    "\nWhat reason would you like to give the worker for this tip? NOTE: This will be shared with the worker.(Default: Thank you for submitting a tip!)",
+                                    default="Thank you for submitting a tip!",
+                                    show_default=False,
                                 )
-                                print("")
-                            if is_bonus in yes_response:
-                                bonus_amount = input(
-                                    "How much money do you want to give: "
-                                )
-                                while is_number(bonus_amount) is False:
-                                    print("That is not a number\n")
-                                    bonus_amount = input(
-                                        "How much money do you want to give: "
-                                    )
-                                    print("")
-
-                                reason = input("What is your reason for the bonus: ")
                                 worker_id = float(unit_data["worker_id"])
                                 worker = Worker.get(db, worker_id)
                                 if worker is not None:
                                     bonus_successfully_paid = worker.bonus_worker(
-                                        bonus_amount, reason, unit
+                                        bonus, reason, unit
                                     )
                                     if bonus_successfully_paid:
-                                        print("Bonus Successfully Paid!\n")
+                                        print(
+                                            "\n[green]Bonus Successfully Paid![/green]\n"
+                                        )
                                     else:
                                         print(
-                                            "There was an error when paying out your bonus\n"
+                                            "\n[red]There was an error when paying out your bonus[/red]\n"
                                         )
-                            elif is_bonus in no_response:
-                                print("No bonus paid\n")
 
-                        elif tip_response in reject_response:
+                        elif tip_response == TipsReviewType.REJECTED.value:
                             remove_tip_from_metadata(tips, tips_copy, i, unit)
-                            print("Tip Rejected\n\n")
+                            print("Tip Rejected\n")
+                        elif tip_response == TipsReviewType.SKIP.value:
+                            print("Tip Skipped\n")
 
     print("There are no more tips to review\n")
 
