@@ -96,8 +96,8 @@ def main():
 
                     removal_response = Prompt.ask(
                         "\nDo you want to remove this tip? (Default: n)",
-                        choices=["y", "n"],
-                        default="n",
+                        choices=[TipsRemovalType.REMOVE, TipsRemovalType.KEEP],
+                        default=TipsRemovalType.KEEP,
                         show_default=False,
                     ).strip()
                     print("")

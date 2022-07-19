@@ -145,8 +145,12 @@ def main():
 
                         tip_response = Prompt.ask(
                             "\nDo you want to (a)ccept, (r)eject, or (s)kip this tip? (Default: s)",
-                            choices=["a", "r", "s"],
-                            default="s",
+                            choices=[
+                                TipsReviewType.ACCEPTED,
+                                TipsReviewType.REJECTED,
+                                TipsReviewType.SKIP,
+                            ],
+                            default=TipsReviewType.SKIP,
                             show_default=False,
                         ).strip()
 
