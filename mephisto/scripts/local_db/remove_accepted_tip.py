@@ -6,14 +6,7 @@ The tips for each agent state is filtered to only collect accepted tips.
 For each accepted tip you have the option to remove the tip from the agent state.
 """
 
-try:
-    from rich import print
-except ImportError:
-    print(
-        "\nYou need to have rich installed to use this script. For example: pip install rich\n"
-    )
-    exit(1)
-
+import enum
 from genericpath import exists
 from typing import Any, Dict, List
 import csv
@@ -25,10 +18,15 @@ from mephisto.scripts.local_db.review_tips_for_task import (
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
+from rich import print
 from rich.prompt import Prompt
-from rich.markdown import Markdown
 from rich.table import Table, Column
 from rich import box
+
+
+class TipsRemovalType(enum.Enum):
+    REMOVE = "y"
+    KEEP = "n"
 
 
 def remove_tip_from_tips_file(
@@ -36,22 +34,27 @@ def remove_tip_from_tips_file(
     i: int,
     task_run: TaskRun,
 ):
+    """Removes the specified tip row from the csv file"""
     tip_id = tips[i]["id"]
     blueprint_task_run_args = task_run.args["blueprint"]
     if "tips_location" in blueprint_task_run_args:
         tips_location = blueprint_task_run_args["tips_location"]
         does_file_exist = exists(tips_location)
         if does_file_exist == False:
-            print("You do not have a tips.csv file in your task's output directory")
+            print(
+                "\n[red]You do not have a tips.csv file in your task's output directory[/red]"
+            )
             quit()
 
         lines_to_write = []
+        # Getting the row in the csv file
         with open(tips_location) as read_tips_file:
             reader = csv.reader(read_tips_file)
             for row in reader:
                 if row[0] != tip_id:
                     lines_to_write.append(row)
 
+        # Writing all rows except the row to remove
         with open(tips_location, "w") as write_tips_file:
             writer = csv.writer(write_tips_file)
             writer.writerows(lines_to_write)
@@ -98,13 +101,13 @@ def main():
 
                     removal_response = Prompt.ask(
                         "\nDo you want to remove this tip? (Default: n)",
-                        choices=["y", "n"],
-                        default="n",
+                        choices=[tips_type.value for tips_type in TipsRemovalType],
+                        default=TipsRemovalType.KEEP.value,
                         show_default=False,
                     ).strip()
                     print("")
 
-                    if removal_response == "y":
+                    if removal_response == TipsRemovalType.REMOVE.value:
                         remove_tip_from_tips_file(
                             accepted_tips_copy, i, unit.get_task_run()
                         )
@@ -112,7 +115,7 @@ def main():
                             accepted_tips, accepted_tips_copy, i, unit
                         )
                         print("Removed tip\n")
-                    elif removal_response == "n":
+                    elif removal_response == TipsRemovalType.KEEP.value:
                         print("Did not remove tip\n")
     print("There are no more tips to look at\n")
 

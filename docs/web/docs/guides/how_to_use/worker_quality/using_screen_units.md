@@ -33,9 +33,9 @@ def validate_screening_unit(unit: "Unit"):
 shared_state = SharedTaskState(
     ...
     screening_data_factory=False
-    on_unit_submitted=UseGoldUnit.create_validation_function(cfg.mephisto, validate_gold_unit)
+    on_unit_submitted=ScreenTaskRequired.create_validation_function(cfg.mephisto, validate_gold_unit)
 )
-shared_state.qualifications += UseGoldUnit.get_mixin_qualifications(cfg.mephisto, shared_state)
+shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(cfg.mephisto, shared_state)
 ...
 ```
 

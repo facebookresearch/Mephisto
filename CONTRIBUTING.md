@@ -80,8 +80,4 @@ By contributing to Mephisto, you agree that your contributions will be licensed
 under the LICENSE file in the root directory of this source tree.
 
 ## Dependencies
-To add a python dependency you need to update the requirements.txt file.
-
-This can be done by first installing hashin through `pip install hashin`.
-
-Then type `hashin <name of package here>`.
+To add a python dependency you need to add the dependency as well as its version number to the pyproject.toml file.

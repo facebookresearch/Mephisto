@@ -7,7 +7,6 @@ describe("Loads remote_procedure_mnist", () => {
     });
   });
   it("Loads correct react elements", () => {
-    cy.visit("/");
     cy.get('[data-cy="canvas-container-0"]');
     cy.get('[data-cy="clear-button-0"]');
     cy.get('[data-cy="correct-checkbox-0"]');
@@ -28,7 +27,6 @@ describe("Loads remote_procedure_mnist", () => {
   });
 
   it("Submitting with three corrected annotations", () => {
-    cy.visit("/");
     cy.on("window:alert", (txt) => {
       expect(txt).to.contain("The task has been submitted!");
     });
@@ -47,7 +45,7 @@ describe("Loads remote_procedure_mnist", () => {
       .trigger("mouseup", 150, 220);
 
     // There is a wait statement here because it takes some time for the model to calculate that it is a 4
-    cy.wait(2000);
+    cy.wait(1000);
     cy.get('[data-cy="current-annotation-0"]').should("contain.text", "4");
     cy.get('[data-cy="correct-checkbox-0"]').check();
     cy.get('[data-cy="correct-text-input-0"]').should("not.exist");
@@ -66,7 +64,7 @@ describe("Loads remote_procedure_mnist", () => {
       .trigger("mousedown", 180, 210)
       .trigger("mouseup", 65, 220);
 
-    cy.wait(2000);
+    cy.wait(1000);
     cy.get('[data-cy="current-annotation-1"]').should("contain.text", "3");
     cy.get('[data-cy="correct-checkbox-1"]').check();
     cy.get('[data-cy="correct-text-input-1]').should("not.exist");
