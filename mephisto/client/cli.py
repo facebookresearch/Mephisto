@@ -321,7 +321,6 @@ def get_help_arguments(args):
                 )
                 return
             elif abstraction == "provider":
-                # TODO: Use markdown list here
                 click.echo(
                     "The crowd provider determines the source of the crowd workers.\n"
                 )
