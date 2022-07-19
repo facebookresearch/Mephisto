@@ -145,17 +145,13 @@ def main():
 
                         tip_response = Prompt.ask(
                             "\nDo you want to (a)ccept, (r)eject, or (s)kip this tip? (Default: s)",
-                            choices=[
-                                TipsReviewType.ACCEPTED,
-                                TipsReviewType.REJECTED,
-                                TipsReviewType.SKIP,
-                            ],
-                            default=TipsReviewType.SKIP,
+                            choices=[tips_type.value for tips_type in TipsReviewType],
+                            default=TipsReviewType.SKIP.value,
                             show_default=False,
                         ).strip()
 
                         print("")
-                        if tip_response == TipsReviewType.ACCEPTED:
+                        if tip_response == TipsReviewType.ACCEPTED.value:
                             # persists the tip in the db as it is accepted
                             accept_tip(tips, tips_copy, i, unit)
                             print("[green]Tip Accepted[/green]")
@@ -186,10 +182,10 @@ def main():
                                             "\n[red]There was an error when paying out your bonus[/red]\n"
                                         )
 
-                        elif tip_response == TipsReviewType.REJECTED:
+                        elif tip_response == TipsReviewType.REJECTED.value:
                             remove_tip_from_metadata(tips, tips_copy, i, unit)
                             print("Tip Rejected\n")
-                        elif tip_response == TipsReviewType.SKIP:
+                        elif tip_response == TipsReviewType.SKIP.value:
                             print("Tip Skipped\n")
 
     print("There are no more tips to review\n")

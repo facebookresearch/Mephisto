@@ -96,13 +96,13 @@ def main():
 
                     removal_response = Prompt.ask(
                         "\nDo you want to remove this tip? (Default: n)",
-                        choices=[TipsRemovalType.REMOVE, TipsRemovalType.KEEP],
-                        default=TipsRemovalType.KEEP,
+                        choices=[tips_type.value for tips_type in TipsRemovalType],
+                        default=TipsRemovalType.KEEP.value,
                         show_default=False,
                     ).strip()
                     print("")
 
-                    if removal_response == TipsRemovalType.REMOVE:
+                    if removal_response == TipsRemovalType.REMOVE.value:
                         remove_tip_from_tips_file(
                             accepted_tips_copy, i, unit.get_task_run()
                         )
@@ -110,7 +110,7 @@ def main():
                             accepted_tips, accepted_tips_copy, i, unit
                         )
                         print("Removed tip\n")
-                    elif removal_response == TipsRemovalType.KEEP:
+                    elif removal_response == TipsRemovalType.KEEP.value:
                         print("Did not remove tip\n")
     print("There are no more tips to look at\n")
 
