@@ -15,7 +15,6 @@ from rich_click import RichCommand, RichGroup
 from rich.markdown import Markdown
 
 
-# @click.group(cls=DefaultGroup, default="web", default_if_no_args=True)
 @click.group(cls=RichGroup)
 def cli():
     """[deep_sky_blue4]Bring your research ideas to life
