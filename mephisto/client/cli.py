@@ -34,9 +34,9 @@ click.rich_click.ERRORS_EPILOGUE = (
 @cli.command("web", cls=RichCommand)
 def web():
     """Launch a local webserver with the Mephisto UI"""
-    from mephisto.client.full.server import app
+    from mephisto.client.full.server import get_app
 
-    app.run(debug=False)
+    get_app().run(debug=False)
 
 
 @cli.command("config", cls=RichCommand)
