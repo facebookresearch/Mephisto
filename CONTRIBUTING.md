@@ -78,3 +78,6 @@ outlined on that page and do not file a public issue.
 ## License
 By contributing to Mephisto, you agree that your contributions will be licensed
 under the LICENSE file in the root directory of this source tree.
+
+## Dependencies
+To add a python dependency you need to add the dependency as well as its version number to the pyproject.toml file.
