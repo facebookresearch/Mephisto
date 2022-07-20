@@ -21494,7 +21494,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"mephisto-task@2.0.1, mephisto-task@^2.0.1, mephisto-task@workspace:packages/mephisto-task":
+"mephisto-task@^2.0.1, mephisto-task@workspace:packages/mephisto-task":
   version: 0.0.0-use.local
   resolution: "mephisto-task@workspace:packages/mephisto-task"
   dependencies:
@@ -21529,6 +21529,20 @@ fsevents@^1.2.7:
     react-dom: 16.13.1
   languageName: unknown
   linkType: soft
+
+"mephisto-task@npm:2.0.1":
+  version: 2.0.1
+  resolution: "mephisto-task@npm:2.0.1"
+  dependencies:
+    axios: ^0.21.1
+    babel-eslint: 10.x
+    bowser: ^2.9.0
+  peerDependencies:
+    react: 16.13.1
+    react-dom: 16.13.1
+  checksum: 0630e9d7667c472d29e976d9cb5c383188a723f8053d8d689c795581fc0e2ae04d2e671bb8324663024a9e04473f3f88d67e6901c8b85220d38f74c83d7cc00a
+  languageName: node
+  linkType: hard
 
 "mephisto-worker-addons@workspace:packages/mephisto-worker-addons":
   version: 0.0.0-use.local
