@@ -26,3 +26,9 @@ html[data-theme="dark"] .heroBanner {
   background-color: var(--ifm-background-surface-color);
   color: white;
 }
+
+.searchBarContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
