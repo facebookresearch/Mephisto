@@ -93,16 +93,17 @@ The max character length of tip text before an error message is shown. The defau
 ```jsx
 import { Feedback } from "mephisto-worker-addons";
 
-function App() {
-  return (
-    <div>
-      <Feedback
-        headless={false}
-        handleSubmit={(text)=> console.log(text)}
-      />
-    </div>
-  );
-}
+return(
+  <div>
+    <SomeTaskCodeGoesHere />
+    <Feedback  
+      questions={[
+        "What is your favorite part of this task?",
+        "Were you satisfied with this task?",
+      ]}
+    />
+  </div>
+)
 ```
 
 ## Documentation
