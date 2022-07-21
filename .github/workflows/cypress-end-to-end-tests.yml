@@ -248,7 +248,7 @@ jobs:
 
       - name: 🥛 Expiring units
         run: |
-          cd mephisto/scripts/local_db
+          cd mephisto/scripts/local_db/gh_actions
           python expire_all_units.py
 
       - name: 📚 Accepting the first submitted tip, accepting the second submitted tip, and rejecting the last submitted tip
