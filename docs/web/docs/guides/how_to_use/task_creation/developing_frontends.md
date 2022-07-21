@@ -43,7 +43,7 @@ To allow for greater communication between workers to workers and it is recommen
 ### How to add Tips:
 1. Add the Tips component to your task's react webapp code
 2. Workers submit tips related to the task that they are working on.
-3. Once the task is shut down, the researcher can review the submitted tips to either accept/reject them
+3. **Once the task is shut down**, the researcher can review the submitted tips to either accept/reject them
 4. The accepted tips are displayed by the Tips component when the task is launched again.
 
 ### Tips Code Snippet:
@@ -65,7 +65,7 @@ How the component looks like:
 ![](/tips_component.png)
 
 ### Reviewing the worker submitted tips
-To review and accept/reject tips run the `mephisto/scripts/local_db/review_tips_for_task.py` script and follow the prompts.
+To review and accept/reject tips run the `mephisto scripts local_db review_tips` script and follow the prompts.
 
 Example output:
 ```bash
@@ -121,10 +121,12 @@ Tip Rejected
 There are no more tips to review
 ```
 
+If you want to remove a tip that you accepted you can run `mephisto scripts local_db remove_tip` in the terminal.
+
 ### How to add Feedback:
 1. Add the Feedback component to your task's react webapp code and define questions.
 2. Workers submit feedback related to the feedback questions.
-3. Once the task is shut down, the researcher can review the feedback for the task.
+3. **Once the task is shut down**, the researcher can review the feedback for the task.
 
 ### Feedback Code Snippet:
 ```jsx
@@ -149,7 +151,7 @@ Image of feedback component:
 ![](/feedback_component.png)
 
 ### Reviewing the feedback
-To review and feedback run the `mephisto/scripts/local_db/review_feedback_for_task.py` script and follow the prompts.
+To review feedback run `mephisto scripts local_db review_feedback` in the terminal and follow the prompts.
 
 Example output:
 ```bash
