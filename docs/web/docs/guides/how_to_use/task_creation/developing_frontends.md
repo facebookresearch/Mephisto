@@ -65,7 +65,7 @@ How the component looks like:
 ![](/tips_component.png)
 
 ### Reviewing the worker submitted tips
-To review and accept/reject tips run the `mephisto scripts local_db review_tips` script and follow the prompts.
+To review and accept/reject tips run `mephisto scripts local_db review_tips` in the terminal and follow the prompts.
 
 Example output:
 ```bash
@@ -121,7 +121,7 @@ Tip Rejected
 There are no more tips to review
 ```
 
-If you want to remove a tip that you accepted you can run `mephisto scripts local_db remove_tip` in the terminal.
+If you want to remove a tip that you accepted, then you can run `mephisto scripts local_db remove_tip` in the terminal and follow the prompts.
 
 ### How to add Feedback:
 1. Add the Feedback component to your task's react webapp code and define questions.
