@@ -13,6 +13,18 @@ import rich_click as click  # type: ignore
 import os
 from rich_click import RichCommand, RichGroup
 from rich.markdown import Markdown
+import mephisto.scripts.local_db.review_tips_for_task as review_tips_local_db
+import mephisto.scripts.local_db.remove_accepted_tip as remove_accepted_tip_local_db
+import mephisto.scripts.local_db.review_feedback_for_task as review_feedback_local_db
+import mephisto.scripts.local_db.load_data_to_mephisto_db as load_data_local_db
+import mephisto.scripts.heroku.initialize_heroku as initialize_heroku
+import mephisto.scripts.metrics.view_metrics as view_metrics
+import mephisto.scripts.metrics.shutdown_metrics as shutdown_metrics
+import mephisto.scripts.mturk.cleanup as cleanup_mturk
+import mephisto.scripts.mturk.identify_broken_units as identify_broken_units_mturk
+import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
+import mephisto.scripts.mturk.print_outstanding_hit_status as print_outstanding_hit_status_mturk
+import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
 
 
 @click.group(cls=RichGroup)
@@ -23,6 +35,7 @@ def cli():
 
 
 click.rich_click.USE_RICH_MARKUP = True
+click.rich_click.SHOW_ARGUMENTS = True
 click.rich_click.ERRORS_SUGGESTION = (
     "\nTry running the '--help' flag for more information."
 )
@@ -132,6 +145,13 @@ def review(
         debug,
         assets_dir,
     )
+
+
+def print_out_valid_options(markdown_text: str, valid_options: List[str]) -> None:
+    for valid_option in valid_options:
+        markdown_text += "\n* " + valid_option
+    console.print(Markdown(markdown_text))
+    click.echo("")
 
 
 @cli.command("check", cls=RichCommand)
@@ -294,12 +314,6 @@ def get_help_arguments(args):
     abstraction_equal_split = args[0].split("=", 1)
     abstraction = abstraction_equal_split[0]
 
-    def print_out_valid_options(markdown_text: str, valid_options: List[str]) -> None:
-        for valid_option in valid_options:
-            markdown_text += "\n* " + valid_option
-        console.print(Markdown(markdown_text))
-        click.echo("")
-
     if abstraction not in VALID_ABSTRACTIONS:
         print(
             f"[red]Given abstraction {abstraction} not in valid abstractions {VALID_ABSTRACTIONS}][/red]"
@@ -426,6 +440,91 @@ def get_help_arguments(args):
                 arg_values = [str(x) for x in arg_values]
                 state_args_table.add_row(*arg_values)
             console.print(state_args_table)
+
+
+@cli.command(
+    "scripts", cls=RichCommand, context_settings={"ignore_unknown_options": True}
+)
+@click.argument("script_type", required=False, nargs=1)
+@click.argument("script_name", required=False, nargs=1)
+def run_script(script_type, script_name):
+    """Run one of the many mephisto scripts."""
+
+    def print_non_markdown_list(items: List[str]):
+        res = ""
+        for item in items:
+            res += "\n  * " + item
+        return res
+
+    VALID_SCRIPT_TYPES = ["local_db", "heroku", "metrics", "mturk"]
+    if script_type is None or script_type.strip() not in VALID_SCRIPT_TYPES:
+        print("")
+        raise click.UsageError(
+            "You must specify a valid script_type from below. \n\nValid script types are:"
+            + print_non_markdown_list(VALID_SCRIPT_TYPES)
+        )
+    script_type = script_type.strip()
+    LOCAL_DB_VALID_SCRIPTS_NAMES = [
+        "review_tips",
+        "remove_tip",
+        "review_feedback",
+        "load_data",
+    ]
+    HEROKU_VALID_SCRIPTS_NAMES = ["initialize"]
+    METRICS_VALID_SCRIPTS_NAMES = ["view", "shutdown"]
+    MTURK_VALID_SCRIPTS_NAMES = [
+        "cleanup",
+        "identify_broken_units",
+        "launch_makeup_hits",
+        "print_outstanding_hit_status",
+        "soft_block_workers_by_mturk_id",
+    ]
+    script_type_to_scripts_data = {
+        "local_db": {
+            "valid_script_names": LOCAL_DB_VALID_SCRIPTS_NAMES,
+            "scripts": {
+                LOCAL_DB_VALID_SCRIPTS_NAMES[0]: review_tips_local_db.main,
+                LOCAL_DB_VALID_SCRIPTS_NAMES[1]: remove_accepted_tip_local_db.main,
+                LOCAL_DB_VALID_SCRIPTS_NAMES[2]: review_feedback_local_db.main,
+                LOCAL_DB_VALID_SCRIPTS_NAMES[3]: load_data_local_db.main,
+            },
+        },
+        "heroku": {
+            "valid_script_names": HEROKU_VALID_SCRIPTS_NAMES,
+            "scripts": {HEROKU_VALID_SCRIPTS_NAMES[0]: initialize_heroku.main},
+        },
+        "metrics": {
+            "valid_script_names": METRICS_VALID_SCRIPTS_NAMES,
+            "scripts": {
+                METRICS_VALID_SCRIPTS_NAMES[0]: view_metrics.launch_servers,
+                METRICS_VALID_SCRIPTS_NAMES[1]: shutdown_metrics.shutdown_servers,
+            },
+        },
+        "mturk": {
+            "valid_script_names": MTURK_VALID_SCRIPTS_NAMES,
+            "scripts": {
+                MTURK_VALID_SCRIPTS_NAMES[0]: cleanup_mturk.main,
+                MTURK_VALID_SCRIPTS_NAMES[1]: identify_broken_units_mturk.main,
+                MTURK_VALID_SCRIPTS_NAMES[2]: launch_makeup_hits_mturk.main,
+                MTURK_VALID_SCRIPTS_NAMES[3]: print_outstanding_hit_status_mturk.main,
+                MTURK_VALID_SCRIPTS_NAMES[4]: soft_block_workers_by_mturk_id_mturk.main,
+            },
+        },
+    }
+
+    if script_name is None or (
+        script_name
+        not in script_type_to_scripts_data[script_type]["valid_script_names"]
+    ):
+        print("")
+        raise click.UsageError(
+            "You must specify a valid script_name from below. \n\nValid script names are:"
+            + print_non_markdown_list(
+                script_type_to_scripts_data[script_type]["valid_script_names"]
+            )
+        )
+    # runs the script
+    script_type_to_scripts_data[script_type]["scripts"][script_name]()
 
 
 @cli.command(
