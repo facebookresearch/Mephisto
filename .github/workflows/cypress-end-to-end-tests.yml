@@ -23,11 +23,7 @@ jobs:
         run: pip install -e .
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
@@ -70,11 +66,8 @@ jobs:
         run: pip install -e .
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
+
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
 
@@ -118,11 +111,7 @@ jobs:
           pip install torch pillow numpy
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
@@ -165,11 +154,7 @@ jobs:
         run: pip install -e .
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
@@ -215,11 +200,7 @@ jobs:
           EOF
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
