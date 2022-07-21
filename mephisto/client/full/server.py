@@ -15,7 +15,7 @@ import atexit
 import signal
 
 
-def main():
+def get_app():
     app = Flask(
         __name__, static_url_path="/static", static_folder="webapp/build/static"
     )
@@ -57,7 +57,4 @@ def main():
 
     atexit.register(cleanup_resources)
     signal.signal(signal.SIGINT, cleanup_resources)
-
-
-if __name__ == "__main__":
-    main()
+    return app
