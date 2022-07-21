@@ -53,19 +53,29 @@ We'll begin by modifying the `SharedStaticTaskState`'s `static_task_data` attrib
 ```bash 
 $ mephisto wut blueprint=static_react_task static_task_data
 
+
                 Tasks launched from static blueprints need
                 a prebuilt javascript bundle containing the task. We suggest building
                 with our provided useMephistoTask hook.
             
 
+
 Additional SharedTaskState args from SharedStaticTaskState, which may be configured in your run script
-dest              type                      default    help                                     choices    required
-----------------  ------------------------  ---------  ---------------------------------------  ---------  ----------
-static_task_data  Iterable[Dict[str, Any]]  []         List or generator that returns dicts of  None       False
-                                                       task data. Generators can be used for
-                                                       tasks with lengths that aren't known at
-                                                       the start of a run, or are otherwise
-                                                       determined during the run.
+                                                                                             
+                              Additional Shared TaskState args                               
+╭──────────────────┬────────────────┬─────────┬────────────────────────┬─────────┬──────────╮
+│ dest             │ type           │ default │ help                   │ choices │ required │
+├──────────────────┼────────────────┼─────────┼────────────────────────┼─────────┼──────────┤
+│ static_task_data │ Iterable[Dict] │ []      │ List or generator that │ None    │ False    │
+│                  │                │         │ returns dicts of task  │         │          │
+│                  │                │         │ data. Generators can   │         │          │
+│                  │                │         │ be used for tasks with │         │          │
+│                  │                │         │ lengths that aren't    │         │          │
+│                  │                │         │ known at the start of  │         │          │
+│                  │                │         │ a run, or are          │         │          │
+│                  │                │         │ otherwise determined   │         │          │
+│                  │                │         │ during the run.        │         │          │
+╰──────────────────┴────────────────┴─────────┴────────────────────────┴─────────┴──────────╯
 ```
 This field replaces using the `csv_file` used in the previous tutorial, allowing our run script to specify data directly. React tasks can be run off of `.csv` files as well, if you'd prefer.
 

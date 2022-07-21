@@ -11,22 +11,15 @@ If you select reviewed feedback, then the script will print out all of the revie
 If you select unreviewed feedback, then the script will print out each
 unreviewed feedback and give you the option to mark the feedback as reviewed.
 """
-try:
-    from rich import print
-except ImportError:
-    print(
-        "\nYou need to have rich installed to use this script. For example: pip install rich\n"
-    )
-    exit(1)
 
+import enum
 from typing import Any, Dict, List
-
-from pyparsing import Optional
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.unit import Unit
 from mephisto.scripts.local_db.review_tips_for_task import get_index_of_value
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+from rich import print
 from rich.markdown import Markdown
 from rich.prompt import Prompt, IntPrompt
 from mephisto.tools.scripts import print_out_task_names
@@ -34,9 +27,14 @@ from mephisto.utils.rich import console
 from rich.table import Table
 from rich import box
 
-yes_no_responses = set(["yes", "y", "YES", "Yes", "no", "n", "NO", "No"])
 yes_response = set(["yes", "y", "YES", "Yes"])
-no_response = set(["no", "n", "NO", "No"])
+
+
+class FeedbackReviewType(enum.Enum):
+    YES = "y"
+    NO = "n"
+    REVIEWED = "r"
+    UNREVIEWED = "u"
 
 
 def set_feedback_as_reviewed(feedback: List, id: str, unit: Unit) -> None:
@@ -107,15 +105,15 @@ def print_out_unreviewed_feedback_elements(
         console.print(feedback_table)
         mark_feedback_as_reviewed = Prompt.ask(
             "\nDo you want to mark this feedback as reviewed? (Default: y)",
-            choices=["y", "n"],
-            default="y",
+            choices=[FeedbackReviewType.YES.value, FeedbackReviewType.NO.value],
+            default=FeedbackReviewType.YES.value,
             show_default=False,
         )
-        if mark_feedback_as_reviewed == "y":
+        if mark_feedback_as_reviewed == FeedbackReviewType.YES.value:
             set_feedback_as_reviewed(feedback, feedback_obj["id"], unit)
             print("\nMarked the feedback as reviewed!")
 
-        elif mark_feedback_as_reviewed == "n":
+        elif mark_feedback_as_reviewed == FeedbackReviewType.NO.value:
             print("\nDid not mark the feedback as reviewed!")
 
         print("")
@@ -126,7 +124,7 @@ def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
-    print_out_task_names(task_names)
+    print_out_task_names("Feedback Review", task_names)
     task_name = Prompt.ask(
         "\nEnter the name of the task that you want to review the tips of",
         choices=task_names,
@@ -175,16 +173,19 @@ def main():
     # Allowing user to filter out toxic comments
     filter_toxic_comments = Prompt.ask(
         "Do you want to filter out toxic comments? (Default: n)",
-        choices=["y", "n"],
-        default="n",
+        choices=[FeedbackReviewType.YES.value, FeedbackReviewType.NO.value],
+        default=FeedbackReviewType.NO.value,
         show_default=False,
     )
 
     # Allowing user to see reviewed feedback or unreviewed feedback
     see_unreviewed_feedback = Prompt.ask(
         "Do you want to see (r)eviewed or (u)nreviewed feedback? (Default: u)",
-        choices=["r", "u"],
-        default="u",
+        choices=[
+            FeedbackReviewType.REVIEWED.value,
+            FeedbackReviewType.UNREVIEWED.value,
+        ],
+        default=FeedbackReviewType.UNREVIEWED.value,
         show_default=False,
     )
     print("")
@@ -205,7 +206,7 @@ def main():
                                 feedback,
                             )
                         )
-                    if filter_toxic_comments == "y":
+                    if filter_toxic_comments == FeedbackReviewType.YES.value:
                         # Secondly, filter the question feedback for toxicity
                         filtered_feedback = list(
                             filter(
@@ -215,7 +216,7 @@ def main():
                             )
                         )
 
-                    if see_unreviewed_feedback == "r":
+                    if see_unreviewed_feedback == FeedbackReviewType.REVIEWED.value:
                         # Filter the toxicity feedback to get reviewed feedback
                         reviewed_feedback = list(
                             filter(
@@ -227,7 +228,7 @@ def main():
                             filtered_feedback_list=reviewed_feedback,
                             agent=unit.get_assigned_agent(),
                         )
-                    elif see_unreviewed_feedback == "u":
+                    elif see_unreviewed_feedback == FeedbackReviewType.UNREVIEWED.value:
                         # Filter the toxicity feedback to get unreviewed feedback
                         un_reviewed_feedback = list(
                             filter(
@@ -242,8 +243,11 @@ def main():
                         )
 
     print(
-        "[green]There is no more {} feedback![/green]\n".format(
-            "unreviewed" if see_unreviewed_feedback == "u" else "reviewed"
+        "[green]You went through all the {type_of_feedback} feedback{ending}![/green]\n".format(
+            type_of_feedback="unreviewed"
+            if see_unreviewed_feedback == FeedbackReviewType.UNREVIEWED.value
+            else "reviewed",
+            ending=" for this question" if filter_by_question_index != -1 else "",
         )
     )
 

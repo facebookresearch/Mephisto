@@ -11,14 +11,6 @@ in your task's directory.
 Rejecting a tip deletes the tip from the tips list in the AgentState's metadata.
 It also removed the row in the assets/tips.csv file in your task's directory.
 """
-try:
-    from rich import print
-except ImportError:
-    print(
-        "\nYou need to have rich installed to use this script. For example: pip install rich\n"
-    )
-    exit(1)
-
 import csv
 from genericpath import exists
 from pathlib import Path
@@ -29,12 +21,20 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+from rich import print
 from rich import box
 from rich.prompt import Prompt
 from rich.prompt import FloatPrompt
 from rich.table import Table
 from mephisto.tools.scripts import print_out_task_names
 from mephisto.utils.rich import console
+import enum
+
+
+class TipsReviewType(enum.Enum):
+    ACCEPTED = "a"
+    REJECTED = "r"
+    SKIP = "s"
 
 
 def get_index_of_value(lst: List[str], property: str) -> int:
@@ -53,7 +53,14 @@ def add_row_to_tips_file(task_run: TaskRun, item_to_add: Dict[str, Any]):
         if does_file_exist == False:
             # Creates the file
             create_tips_file = Path(tips_location)
-            create_tips_file.touch(exist_ok=True)
+            try:
+                create_tips_file.touch(exist_ok=True)
+            except FileNotFoundError:
+                print(
+                    "\n[red]Your task folder must have an assets folder in it.[/red]\n"
+                )
+                quit()
+
         with open(tips_location, "r") as inp, open(tips_location, "a+") as tips_file:
             field_names = list(item_to_add.keys())
             writer = csv.DictWriter(tips_file, fieldnames=field_names)
@@ -91,17 +98,17 @@ def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
 
     if assigned_agent is not None:
         tips_copy[index_to_update]["accepted"] = True
+        add_row_to_tips_file(unit.get_task_run(), tips_copy[index_to_update])
         assigned_agent.state.update_metadata(
             property_name="tips", property_value=tips_copy
         )
-        add_row_to_tips_file(unit.get_task_run(), tips_copy[index_to_update])
 
 
 def main():
     db = LocalMephistoDB()
     mephisto_data_browser = MephistoDataBrowser(db)
     task_names = mephisto_data_browser.get_task_name_list()
-    print_out_task_names(task_names)
+    print_out_task_names("Tips Review", task_names)
     task_name = Prompt.ask(
         "\nEnter the name of the task that you want to review the tips of",
         choices=task_names,
@@ -124,8 +131,10 @@ def main():
                         current_tip_table = Table(
                             "Property",
                             "Value",
-                            title="Tip {current_tip} of {total_number_of_tips}".format(
-                                current_tip=i + 1, total_number_of_tips=len(tips)
+                            title="\nTip {current_tip} of {total_number_of_tips} From Agent {agent_id}".format(
+                                current_tip=i + 1,
+                                total_number_of_tips=len(tips),
+                                agent_id=unit.agent_id,
                             ),
                             box=box.ROUNDED,
                             expand=True,
@@ -138,13 +147,13 @@ def main():
 
                         tip_response = Prompt.ask(
                             "\nDo you want to (a)ccept, (r)eject, or (s)kip this tip? (Default: s)",
-                            choices=["a", "r", "s"],
-                            default="s",
+                            choices=[tips_type.value for tips_type in TipsReviewType],
+                            default=TipsReviewType.SKIP.value,
                             show_default=False,
                         ).strip()
 
                         print("")
-                        if tip_response == "a":
+                        if tip_response == TipsReviewType.ACCEPTED.value:
                             # persists the tip in the db as it is accepted
                             accept_tip(tips, tips_copy, i, unit)
                             print("[green]Tip Accepted[/green]")
@@ -175,10 +184,10 @@ def main():
                                             "\n[red]There was an error when paying out your bonus[/red]\n"
                                         )
 
-                        elif tip_response == "r":
+                        elif tip_response == TipsReviewType.REJECTED.value:
                             remove_tip_from_metadata(tips, tips_copy, i, unit)
                             print("Tip Rejected\n")
-                        elif tip_response == "s":
+                        elif tip_response == TipsReviewType.SKIP.value:
                             print("Tip Skipped\n")
 
     print("There are no more tips to review\n")
