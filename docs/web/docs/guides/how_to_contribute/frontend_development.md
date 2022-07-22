@@ -13,6 +13,16 @@ To setup your local codebase to auto-lint and avoid lint test failures for your 
 3. `pre-commit run --all-files` (optional - run ad-hoc against all files)
 
 
+## Cypress Testing
+
+This repo uses cypress to conduct frontend end to end tests. Tasks in the examples folder have cypress tests.
+
+To run the tests for a task:
+* Launch the task using `python run_task.py`.
+* Open cypress by running `npm run test` in the tasks' webapp folder.
+* Choose the Chrome browser to run the tests (it is the most consistent).
+* Click one of the specs to run its tests.
+
 ## Package Development (new)
 *For commits after the `yarn-pkg-reorg` tag and for newer packages (`@annotated/*`)*
 
