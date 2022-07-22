@@ -142,7 +142,7 @@ jobs:
 
   remote_procedure_mnist:
     needs: changes
-    if: ${{ (needs.changes.outputs.mnist == 'true') || (needs.changes.outputs.mephisto-task == 'true') || (needs.changes.outputs.abstractions == 'true') || (needs.changes.outputs.data_model == 'true') || (needs.changes.outputs.operations == 'true') || (needs.changes.outputs.tools == 'true')}}
+    if: ${{ (needs.changes.outputs.mnist == 'true') || (needs.changes.outputs.mephisto-task == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
@@ -188,7 +188,7 @@ jobs:
 
   remote_procedure_toxicity_detection:
     needs: changes
-    if: ${{ (needs.changes.outputs.toxicity_detection == 'true') || (needs.changes.outputs.mephisto-task == 'true') || (needs.changes.outputs.abstractions == 'true') || (needs.changes.outputs.data_model == 'true') || (needs.changes.outputs.operations == 'true') || (needs.changes.outputs.tools == 'true')}}
+    if: ${{ (needs.changes.outputs.toxicity_detection == 'true') || (needs.changes.outputs.mephisto-task == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - name: 🔀 Checking out repo
