@@ -5,9 +5,13 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
-from mephisto.abstractions.blueprint import AgentState
+from mephisto.abstractions._subcomponents.agent_state import (
+    AgentState,
+    _AgentStateMetadata,
+)
 import os.path
 import time
+import dataclasses
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -53,17 +57,18 @@ class ParlAIChatAgentState(AgentState):
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
             self.final_submission = state["outputs"].get("final_submission")
-            self.metadata = state["metadata"]
+            self.metadata = _AgentStateMetadata(**state["metadata"])
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
+        print(self.metadata)
         return {
             "outputs": {
                 "messages": self.messages,
                 "final_submission": self.final_submission,
             },
             "inputs": self.init_data,
-            "metadata": self.metadata,
+            "metadata": dataclasses.asdict(self.metadata),
         }
 
     def get_parsed_data(self) -> Dict[str, Any]:
