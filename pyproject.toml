@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mephisto"
-version = "1.0.2"
+version = "1.0.3"
 description = "Crowdsourcing made simpler."
 license = "MIT"
 authors = [
