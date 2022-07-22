@@ -16,7 +16,7 @@ npm install mephisto-task
 
 The `mephisto-task` project surfaces three React hooks depending on your use case:
 
-1. `useMephistoTask` - Used for static tasks where one-time initial data is enough to power the task. See the example task in `/examples/static_react_task/` for an example project using this hook. 
+1. `useMephistoTask` - Used for static tasks where one-time initial data is enough to power the task. See the example task in `/examples/static_react_task/` for an example project using this hook.
 2. `useMephistoLiveTask` - Used for multi-turn, socket-based tasks, such as a dialogue task. See the example task in `/examples/parlai_chat_task_demo/` for an example project using this hook.
 3. `useMephistoRemoteProcedureTask` - Used for static tasks that require access to some remote function on the back-end, for example invoking a back-end model for model-assisted annotation. See the example task in `/examples/remote_procedure/mnist/` for an example project using this hook.
 
@@ -37,6 +37,10 @@ These suite of packages were formerly published under the `annotation-toolkit` a
 For chat-based components, we provide custom UI components in the `bootstrap-chat` package. You can find further information for them in the [associated README for the `bootstrap-chat` package](https://github.com/facebookresearch/Mephisto/tree/main/packages/bootstrap-chat).
 
 ## Adding tips/feedback to tasks
+First make sure to install the `mephisto-worker-addons` library as this is where the components will come from.
+```bash
+npm install mephisto-worker-addons
+```
 
 To allow for greater communication between workers to workers and it is recommended to use the Tips component. 
 
