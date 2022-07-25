@@ -195,9 +195,7 @@ jobs:
       - name: 🤖 Install Mephisto
         run: |
           pip install -e .
-          pip uninstall detoxify <<EOF
-          y
-          EOF
+          yes | pip uninstall detoxify
 
       - name: 🖋 Create data directory
         run: mkdir -p ~/mephisto/data
