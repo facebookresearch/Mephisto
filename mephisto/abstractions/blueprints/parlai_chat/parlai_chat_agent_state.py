@@ -57,7 +57,12 @@ class ParlAIChatAgentState(AgentState):
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
             self.final_submission = state["outputs"].get("final_submission")
-            self.metadata = _AgentStateMetadata(**state["metadata"])
+            if 'metadata' in state:
+                self.metadata = _AgentStateMetadata(**state["metadata"])
+            elif 'times' in state:
+                self.metadata = _AgentStateMetadata(start_time=state['times']['start_time'], end_time=state['times']['end_time'])
+            else:
+                self.meatadata = _AgentStateMetadata()
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
