@@ -49,7 +49,7 @@ const config = {
         // Public API key: it is safe to commit it
         apiKey: "ac51a5b25842fad8a3a7b1f384496bf9",
 
-        indexName: "docsearch",
+        indexName: "mephisto",
 
         // Optional: see doc section below
         contextualSearch: true,
