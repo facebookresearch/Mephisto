@@ -120,3 +120,13 @@ h6 {
     margin: 60px 0 !important;
   }
 }
+
+/*
+  This hides the text that allows you to see all results
+  As of now when you try to see all results it takes you to a separate page
+  This page has a searchbar, but no options show.
+  That is why it is being hidden.
+*/
+.DocSearch-HitsFooter {
+  display: none !important;
+}

@@ -35,18 +35,11 @@ function HomepageHeader() {
             Github
           </Link>
         </div>
-        <div className={styles.searchBarContainer}>
-          <DocSearch
-            appId="J6ARWT70HK"
-            apiKey="ac51a5b25842fad8a3a7b1f384496bf9"
-            indexName="docsearch"
-          />
-        </div>
+        <div className={styles.searchBarContainer}></div>
       </div>
     </header>
   );
 }
-
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (

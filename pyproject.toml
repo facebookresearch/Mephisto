@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mephisto"
-version = "1.0.2"
+version = "1.0.3"
 description = "Crowdsourcing made simpler."
 license = "MIT"
 authors = [
@@ -91,7 +91,7 @@ pdoc = "^10.0.3"
 pylint = "^2.4"
 pytest = "^5.0"
 pytest-cov = "^2.10.1"
-mypy = "^0.931.0"
+mypy = "^0.971.0"
 
 
 [tool.poetry.scripts]

@@ -36,6 +36,7 @@ These suite of packages were formerly published under the `annotation-toolkit` a
 
 For chat-based components, we provide custom UI components in the `bootstrap-chat` package. You can find further information for them in the [associated README for the `bootstrap-chat` package](https://github.com/facebookresearch/Mephisto/tree/main/packages/bootstrap-chat).
 
+
 ## Adding UI error handling to tasks
 
 Currently, we have beta functionality for error handling. We provide a few ways of getting a signal into how your tasks are faring:
