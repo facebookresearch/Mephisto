@@ -37,8 +37,8 @@ function HomepageHeader() {
         </div>
         <div className={styles.searchBarContainer}>
           <DocSearch
-            appId="R2IYF7ETH7"
-            apiKey="599cec31baffa4868cae4e79f180729b"
+            appId="J6ARWT70HK"
+            apiKey="ac51a5b25842fad8a3a7b1f384496bf9"
             indexName="docsearch"
           />
         </div>
