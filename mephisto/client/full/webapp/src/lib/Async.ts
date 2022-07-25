@@ -5,34 +5,39 @@
  */
 import React from "react";
 import { AxiosPromise, AxiosRequestConfig } from "axios";
-import { ResponseValues, RefetchOptions } from "axios-hooks";
+import { ResponseValues, RefetchOptions, UseAxiosResult } from "axios-hooks";
 const isEmpty = require("lodash.isempty");
 
-type AxiosInfo<T> =
+type AxiosInfo<T, TError> =
   | [
-      ResponseValues<T>,
-      (config?: AxiosRequestConfig, options?: RefetchOptions) => AxiosPromise<T>
+      ResponseValues<T, TError>,
+      (
+        config?: AxiosRequestConfig,
+        options?: RefetchOptions
+      ) => AxiosPromise<TError>
     ]
-  | [ResponseValues<T>];
+  | [ResponseValues<T, TError>];
 
-type BaseAsyncProps<T> = {
-  axiosInfo: AxiosInfo<T>;
+type BaseAsyncProps<T, TError> = {
+  axiosInfo: UseAxiosResult<T, TError>;
   refetch: Function;
 };
 
-type AsyncProps<T> = {
-  info: AxiosInfo<T>;
-  onLoading: React.FC<BaseAsyncProps<T>>;
-  onError: React.FC<{ error: any } & BaseAsyncProps<T>>;
-  onData: React.FC<{ data: T } & BaseAsyncProps<T>>;
-  onEmptyData?: React.FC<{ data: T } & BaseAsyncProps<T>>;
+type AsyncProps<T, TError> = {
+  info: UseAxiosResult<T, TError>;
+  onLoading: React.FC<BaseAsyncProps<T, TError>>;
+  onError: React.FC<{ error: any } & BaseAsyncProps<T, TError>>;
+  onData: React.FC<{ data: T } & BaseAsyncProps<T, TError>>;
+  onEmptyData?: React.FC<{ data: T } & BaseAsyncProps<T, TError>>;
   checkIfEmptyFn?: (data: T) => any;
 };
 
-export type AsyncComponent<T = any> = React.FC<AsyncProps<T>>;
+export type AsyncComponent<T = any, TError = any> = React.FC<
+  AsyncProps<T, TError>
+>;
 
-export function createAsync<T>() {
-  return Async as AsyncComponent<T>;
+export function createAsync<T, TError>() {
+  return Async as AsyncComponent<T, TError>;
 }
 
 const Async: AsyncComponent = ({
@@ -45,7 +50,7 @@ const Async: AsyncComponent = ({
 }) => {
   const [{ data, loading, error }, refetch = () => {}] = info;
 
-  const baseProps: BaseAsyncProps<any> = { refetch, axiosInfo: info };
+  const baseProps: BaseAsyncProps<any, any> = { refetch, axiosInfo: info };
 
   if (loading) return onLoading({ ...baseProps });
   else if (error) return onError({ error: error.response?.data, ...baseProps });
@@ -70,6 +75,6 @@ export function mockRequest<T>(
     data: mockData,
     loading,
     error: error && { response: { data: error } },
-  } as ResponseValues<T>;
-  return [request, () => {}] as [ResponseValues<T>, any];
+  } as ResponseValues<T, T>;
+  return [request, () => {}] as [ResponseValues<T, T>, any];
 }

@@ -15,8 +15,8 @@ import { ParamDetails, LaunchOptions } from "../../models";
 type Provider = any;
 type ProviderParams = any;
 
-const ProviderParamsAsync = createAsync<ProviderParams>();
-const LaunchOptionsAsync = createAsync<LaunchOptions>();
+const ProviderParamsAsync = createAsync<ProviderParams, any>();
+const LaunchOptionsAsync = createAsync<LaunchOptions, any>();
 
 function RequesterForm({
   data,

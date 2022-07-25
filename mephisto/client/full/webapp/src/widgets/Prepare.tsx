@@ -14,7 +14,7 @@ import { Requesters, Requester } from "../models";
 import { createAsync } from "../lib/Async";
 import RequesterForm from "../widgets/components/RequesterForm";
 
-const Async = createAsync<Requesters>();
+const Async = createAsync<Requesters, any>();
 
 export default (function PrepareWidget() {
   const [numProviders, setNumProviders] = React.useState(0);

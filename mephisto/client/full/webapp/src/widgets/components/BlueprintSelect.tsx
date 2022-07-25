@@ -19,7 +19,7 @@ type IBlueprint = {
 type BlueprintParams = any;
 
 const BlueprintSelect = Select.ofType<IBlueprint>();
-const BlueprintParamsAsync = createAsync<BlueprintParams>();
+const BlueprintParamsAsync = createAsync<BlueprintParams, any>();
 
 const renderBlueprintItem: ItemRenderer<IBlueprint> = (
   blueprint,

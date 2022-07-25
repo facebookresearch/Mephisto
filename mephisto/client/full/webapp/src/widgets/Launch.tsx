@@ -28,10 +28,10 @@ import { toaster } from "../lib/toaster";
 import { launchTask } from "../service";
 import OptionsForm from "./components/OptionsForm";
 
-const Async = createAsync<RunningTasks>();
-const LaunchInfoAsync = createAsync<any>();
-const RequesterInfoAsync = createAsync<any>();
-const DefaultTaskInfoAsync = createAsync<any>();
+const Async = createAsync<RunningTasks, any>();
+const LaunchInfoAsync = createAsync<any, any>();
+const RequesterInfoAsync = createAsync<any, any>();
+const DefaultTaskInfoAsync = createAsync<any, any>();
 
 export default (function LaunchWidget() {
   // const runningTasksAsync = mockRequest<RunningTasks>(task_runs__running);
@@ -100,7 +100,7 @@ function LaunchForm() {
     url: "task_runs/options",
   });
 
-  const [params, addToParams] = React.useReducer((state, params) => {
+  const [params, addToParams] = React.useReducer((state: any, params: any) => {
     let nextState;
     if (params === "CLEAR_ALL") {
       nextState = {};
