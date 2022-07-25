@@ -11,10 +11,12 @@ import { ButtonGroup, Tooltip, Icon } from "@blueprintjs/core";
 import { Link } from "react-router-dom";
 import { reviewActions } from "../service";
 import { ObjectInspector } from "react-inspector";
+import { useParams } from "react-router";
 
 const GridReviewAsync = createAsync();
 
-function GridReviewWithData({ id }) {
+function GridReviewWithData() {
+  const { id } = useParams();
   const gridReviewAsync = useAxios({
     url: "data/submitted_data?task_run_id=" + id,
   });

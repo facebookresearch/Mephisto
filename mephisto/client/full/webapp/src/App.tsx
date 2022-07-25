@@ -4,16 +4,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from "react";
+import React, { Fragment } from "react";
 import "./App.css";
 import PrepareWidget from "./widgets/Prepare";
 import LaunchWidget from "./widgets/Launch";
 import ReviewWidget from "./widgets/Review";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { Card } from "@blueprintjs/core";
 import GridReview from "./widgets/GridReview";
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <Router>
       <div className="App">
@@ -32,25 +32,28 @@ const App: React.FC = () => {
           </div>
         </header>
         <div>
-          <Switch>
-            <Route exact path="/">
-              <div className="container">
-                <PrepareWidget />
-                <LaunchWidget />
-                <ReviewWidget />
-              </div>
-            </Route>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <div className="container">
+                  <PrepareWidget />
+                  <LaunchWidget />
+                  <ReviewWidget />
+                </div>
+              }
+            ></Route>
             <Route
               path="/review/:id"
-              render={({ match: { params } }) => (
+              element={
                 <div style={{ margin: 30 }}>
                   <div className="bp3-card bp3-elevation-3 widget widget">
-                    <GridReview id={params.id} />
+                    <GridReview />
                   </div>
                 </div>
-              )}
+              }
             />
-          </Switch>
+          </Routes>
         </div>
       </div>
     </Router>
