@@ -31,7 +31,7 @@
     "react-dom": "16.13.1"
   },
   "dependencies": {
-    "mephisto-task": "2.0.1",
+    "mephisto-task": "2.0.2",
     "prop-types": "^15.8.1",
     "raw-loader": "^4.0.2",
     "react-popper-tooltip": "^4.4.1",
