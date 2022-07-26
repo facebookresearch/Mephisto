@@ -23,6 +23,8 @@
   --mephisto-alt-purple: #f0ebf5;
   --mephisto-alt-orange: #fbd6b7;
   --mephisto-alt-yellow: #ffde89;
+  --docsearch-primary-color: var(--ifm-color-primary-darkest) !important;
+  --docsearch-logo-color: var(--ifm-color-primary) !important;
 }
 
 .docusaurus-highlight-code-line {
@@ -116,17 +118,13 @@ h6 {
 }
 
 @media (max-width: 750px) {
+  .DocSearch-Container {
+    position: fixed !important;
+  }
   .DocSearch-Modal {
     margin: 60px 0 !important;
   }
-}
-
-/*
-  This hides the text that allows you to see all results
-  As of now when you try to see all results it takes you to a separate page
-  This page has a searchbar, but no options show.
-  That is why it is being hidden.
-*/
-.DocSearch-HitsFooter {
-  display: none !important;
+  .DocSearch-Dropdown {
+    padding-bottom: 20px !important;
+  }
 }
