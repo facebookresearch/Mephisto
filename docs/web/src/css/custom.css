@@ -118,6 +118,9 @@ h6 {
 }
 
 @media (max-width: 750px) {
+  .DocSearch-Container {
+    position: fixed !important;
+  }
   .DocSearch-Modal {
     margin: 60px 0 !important;
   }
