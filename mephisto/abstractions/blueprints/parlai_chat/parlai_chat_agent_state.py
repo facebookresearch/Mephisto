@@ -60,7 +60,10 @@ class ParlAIChatAgentState(AgentState):
             if 'metadata' in state:
                 self.metadata = _AgentStateMetadata(**state["metadata"])
             elif 'times' in state:
-                self.metadata = _AgentStateMetadata(start_time=state['times']['start_time'], end_time=state['times']['end_time'])
+                self.metadata = _AgentStateMetadata(
+                    start_time=state['times']['start_time'],
+                    end_time=state['times']['end_time'],
+                )
             else:
                 self.meatadata = _AgentStateMetadata()
 
