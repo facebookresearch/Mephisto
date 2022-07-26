@@ -7,19 +7,16 @@ import React from "react";
 import BaseWidget from "./Base";
 import useAxios from "axios-hooks";
 import { TaskRun, RunningTasks } from "../models";
-import { task_runs__running } from "../mocks";
 import {
   Colors,
   Icon,
   Drawer,
   Position,
   Classes,
-  Card,
   Button,
   Intent,
-  Toaster,
 } from "@blueprintjs/core";
-import { createAsync, mockRequest } from "../lib/Async";
+import { createAsync } from "../lib/Async";
 import TaskRunSummary from "./TaskRunSummary";
 import BlueprintSelect from "./components/BlueprintSelect";
 import ArchitectSelect from "./components/ArchitectSelect";
