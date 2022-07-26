@@ -51,6 +51,7 @@ const config = {
 
         indexName: "mephisto",
         contextualSearch: false,
+        searchPagePath: false,
       },
       navbar: {
         // title: "Mephisto",
