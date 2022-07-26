@@ -5,6 +5,8 @@ import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import styles from "./index.module.css";
 import HomepageFeatures from "../components/HomepageFeatures";
+import { DocSearch } from "@docsearch/react";
+import "@docsearch/css";
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
@@ -33,11 +35,11 @@ function HomepageHeader() {
             Github
           </Link>
         </div>
+        <div className={styles.searchBarContainer}></div>
       </div>
     </header>
   );
 }
-
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (

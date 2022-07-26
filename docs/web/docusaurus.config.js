@@ -42,6 +42,16 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      algolia: {
+        // The application ID provided by Algolia
+        appId: "J6ARWT70HK",
+
+        // Public API key: it is safe to commit it
+        apiKey: "ac51a5b25842fad8a3a7b1f384496bf9",
+
+        indexName: "mephisto",
+        searchPagePath: false,
+      },
       navbar: {
         // title: "Mephisto",
         logo: {

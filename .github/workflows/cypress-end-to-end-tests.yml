@@ -23,11 +23,7 @@ jobs:
         run: pip install -e .
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
@@ -70,11 +66,8 @@ jobs:
         run: pip install -e .
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
+
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
 
@@ -118,11 +111,7 @@ jobs:
           pip install torch pillow numpy
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
@@ -162,16 +151,10 @@ jobs:
           node-version: 16
 
       - name: 🤖 Install Mephisto
-        run: |
-          pip install -e .
-          pip install detoxify
+        run: pip install -e .
 
       - name: 🖋 Create data directory
-        run: |
-          cd ~
-          mkdir mephisto
-          cd mephisto
-          mkdir data
+        run: mkdir -p ~/mephisto/data
 
       - name: 📂 Set the data directory
         run: mephisto config core.main_data_directory ~/mephisto/data
@@ -193,4 +176,130 @@ jobs:
           start: python examples/remote_procedure/toxicity_detection/run_task.py mephisto.task.post_install_script=link_mephisto_task.sh
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           command-prefix: yarn dlx
+          headless: true
+
+  static_react_task_with_tips:
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: 🔀 Checking out repo
+        uses: actions/checkout@v2
+      - name: 🐍 Installing python
+        uses: actions/setup-python@v2
+
+      - name: 🪨 Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+
+      - name: 🤖 Install Mephisto
+        run: |
+          pip install -e .
+          yes | pip uninstall detoxify
+
+      - name: 🖋 Create data directory
+        run: mkdir -p ~/mephisto/data
+
+      - name: 📂 Set the data directory
+        run: mephisto config core.main_data_directory ~/mephisto/data
+
+      - name: 📦 Setting up mephisto-task package
+        run: |
+          cd packages/mephisto-task
+          yarn install
+          yarn build
+          npm link
+
+      - name: 📦 Setting up mephisto-worker-addons package
+        run: |
+          cd packages/mephisto-worker-addons
+          yarn install
+          yarn build
+          npm link
+
+      - name: ⌛️ Running pre-submission cypress tests
+        uses: cypress-io/github-action@v3.1.0
+        with:
+          install: false
+          browser: chrome
+          project: ./examples/static_react_task_with_tips/webapp
+          config-file: ./cypress.config.js
+          spec: ./examples/static_react_task_with_tips/webapp/cypress/e2e/pre_submission_tests/*
+          start: python examples/static_react_task_with_tips/run_task.py mephisto.task.force_rebuild=true mephisto.task.post_install_script=link_packages.sh
+          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
+          command-prefix: yarn dlx
+          headless: true
+
+      - name: 🔪 Killing the web server
+        run: |
+          lsof -nPi :3000
+          lsof -i -P -n | grep LISTEN | grep python | awk '{print $2}'
+          kill -INT $(lsof -i -P -n | grep LISTEN | grep python | awk '{print $2}')
+          echo "killed 1"
+          sleep 0.5
+          kill -INT $(lsof -i -P -n | grep LISTEN | grep python | awk '{print $2}')
+          echo "killed 2"
+          lsof -i -P -n | grep LISTEN | grep node | awk '{print $2}'
+          kill -INT $(lsof -i -P -n | grep LISTEN | grep node | awk '{print $2}')
+          sleep 30
+          echo "30 seconds passed"
+
+      - name: 🥛 Expiring units
+        run: |
+          cd mephisto/scripts/local_db/gh_actions
+          python expire_all_units.py
+
+      - name: 📚 Accepting the first submitted tip, accepting the second submitted tip, and rejecting the last submitted tip
+        run: |
+          cd mephisto/scripts/local_db
+          python review_tips_for_task.py << EOF
+          react-static-task-with-tips
+          a
+          5
+          The tip is very informative
+          a
+          0
+          r
+          EOF
+
+      - name: 🔥 Removing the second accepted tip
+        run: |
+          cd mephisto/scripts/local_db
+          python remove_accepted_tip.py << EOF
+          react-static-task-with-tips
+          n
+          y
+          EOF
+
+      - name: 📖 Reviewing the accepted feedback
+        run: |
+          cd mephisto/scripts/local_db
+          python review_feedback_for_task.py << EOF
+          react-static-task-with-tips
+          0
+          n
+          u
+          y
+          y
+          EOF
+          python review_feedback_for_task.py << EOF
+          react-static-task-with-tips
+          1
+          n
+          u
+          y
+          n
+          EOF
+
+      - name: ⌛️ Running post-submission cypress tests
+        uses: cypress-io/github-action@v3.1.0
+        with:
+          install: false
+          project: ./examples/static_react_task_with_tips/webapp
+          config-file: cypress.config.js
+          spec: ./examples/static_react_task_with_tips/webapp/cypress/e2e/post_submission_tests/*
+          start: python examples/static_react_task_with_tips/run_task.py mephisto.task.post_install_script=link_packages.sh mephisto.task.force_rebuild=true
+          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
+          command-prefix: yarn dlx
+          browser: chrome
           headless: true

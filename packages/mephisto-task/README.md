@@ -57,7 +57,7 @@ function MyApp() {
 
 ## Documentation
 
-The `useMephisoTask` React hook exposes the following fields:
+The `useMephistoTask` React hook exposes the following fields:
 
 ### `taskConfig`
 An arbitrary task-specific config object passed to the front-end from your back-end server. This `taskConfig` object can be specified from the `get_frontend_args` of the `Blueprint` Python class for your task.
