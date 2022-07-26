@@ -205,13 +205,16 @@ class ScreenTaskRequired(BlueprintMixin):
         failed_qualification_name = args.blueprint.block_qualification
 
         def _wrapped_validate(unit):
-            if unit.unit_index >= 0:
+            if args.blueprint.max_screening_units > 0 and unit.unit_index >= 0:
                 return  # We only run validation on the validatable units
-
             agent = unit.get_assigned_agent()
             if agent is None:
                 return  # Cannot validate a unit with no agent
-
+            if (
+                args.blueprint.max_screening_units == 0
+                and agent.get_worker().is_qualified(passed_qualification_name)
+            ):
+                return
             validation_result = screen_unit(unit)
             if validation_result is True:
                 agent.get_worker().grant_qualification(passed_qualification_name)
