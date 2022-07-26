@@ -167,3 +167,10 @@ h1 a:hover {
   transform: scale(1.02, 1.02);
   transition: transform 0.1s ease-out;
 }
+
+.grid-review-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 30px;
+  box-sizing: border-box;
+}

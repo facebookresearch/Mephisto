@@ -45,7 +45,7 @@ const App = () => {
             <Route
               path="/review/:id"
               element={
-                <div style={{ margin: 30 }}>
+                <div className="grid-review-container">
                   <div className="bp3-card bp3-elevation-3 widget widget">
                     <GridReview />
                   </div>
