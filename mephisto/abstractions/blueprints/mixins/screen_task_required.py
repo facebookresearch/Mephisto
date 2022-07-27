@@ -217,7 +217,7 @@ class ScreenTaskRequired(BlueprintMixin):
                 args.blueprint.max_screening_units == 0
                 and agent.get_worker().is_qualified(passed_qualification_name)
             ):
-                return
+                return  # Do not run validation if running with no screening_data_factory and worker is qualified
             validation_result = screen_unit(unit)
             if validation_result is True:
                 agent.get_worker().grant_qualification(passed_qualification_name)
