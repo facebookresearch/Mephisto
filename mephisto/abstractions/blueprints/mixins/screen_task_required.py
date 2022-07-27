@@ -193,7 +193,7 @@ class ScreenTaskRequired(BlueprintMixin):
                 self.screening_units_launched += 1
                 return data
         except StopIteration:
-            return None  # No screening units left...x
+            return None  # No screening units left...
 
     @classmethod
     def create_validation_function(
