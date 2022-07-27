@@ -17,7 +17,7 @@ import { createAsync } from "../../lib/Async";
 import OptionsForm from "./OptionsForm";
 
 type ArchitectParams = any;
-const ArchitectParamsAsync = createAsync<ArchitectParams>();
+const ArchitectParamsAsync = createAsync<ArchitectParams, any>();
 
 export default function ArchitectSelect({
   data,

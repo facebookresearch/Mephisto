@@ -12,7 +12,7 @@ import { ReviewableTasks } from "../models";
 import TaskRunSummary from "./TaskRunSummary";
 import { Link } from "react-router-dom";
 
-const Async = createAsync<ReviewableTasks>();
+const Async = createAsync<ReviewableTasks, any>();
 
 export default (function ReviewWidget() {
   const reviewAsync = useAxios({
