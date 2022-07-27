@@ -168,6 +168,9 @@ class ScreenTaskRequired(BlueprintMixin):
                 "Must provide a generator function to SharedTaskState.screening_data_factory if "
                 "you want to generate screening tasks on the fly, or False if you can screen on any task "
             )
+            assert(max_screening_units > 0), "max_screening_units must be greater than zero if using a screening_data_factory"
+        else:
+            assert(max_screening_units == 0), "max_screening_units must be zero if not using a screening_data_factory"
 
     def worker_needs_screening(self, worker: "Worker") -> bool:
         """Workers that are able to access the task (not blocked) but are not passed need qualification"""
@@ -190,7 +193,7 @@ class ScreenTaskRequired(BlueprintMixin):
                 self.screening_units_launched += 1
                 return data
         except StopIteration:
-            return None  # No screening units left...
+            return None  # No screening units left...x
 
     @classmethod
     def create_validation_function(
