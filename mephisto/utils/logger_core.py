@@ -86,7 +86,7 @@ def get_logger(
             "error": logging.ERROR,
             "critical": logging.CRITICAL,
         }
-        ch = RichHandler(console=console)
+        ch = RichHandler()
         ch.setFormatter(logging.Formatter(LOGFORMAT_RICH))
         logging_format: List[Any] = [ch]
         if log_file is not None:
