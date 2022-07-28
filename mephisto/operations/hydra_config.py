@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 logger = get_logger(name=__name__)
-LOGGING_OVERRIDE = {"override /hydra/hydra_logging": "mephisto_default"}
+LOGGING_OVERRIDE = {"override /hydra/job_logging": "mephisto_default"}
 config = ConfigStoreWithProvider("mephisto")
 
 
