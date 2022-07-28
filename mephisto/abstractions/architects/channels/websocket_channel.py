@@ -99,7 +99,7 @@ class WebsocketChannel(Channel):
                         f"Socket {self.socket_url} refused connection, cancelling"
                     )
             else:
-                logger.error(f"Socket logged error: {error}")
+                logger.info(f"Socket logged error: {error}")
 
                 import traceback
 
