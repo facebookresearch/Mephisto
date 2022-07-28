@@ -6,7 +6,9 @@
 
 import logging
 from logging.handlers import RotatingFileHandler
-from typing import Optional, Dict, Set
+from typing import Any, List, Optional, Dict, Set
+from rich.logging import RichHandler
+from mephisto.utils.rich import console
 
 loggers: Dict[str, logging.Logger] = {}
 global_log_level = logging.INFO
@@ -69,13 +71,13 @@ def get_logger(
             Returns:
                     logger (logging.Logger): the corresponding logger to the given module name.
     """
-
+    LOGFORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    LOGFORMAT_RICH = "%(message)s"
     global loggers
     found_logger = loggers.get(name)
     if found_logger is not None:
         return found_logger
     else:
-        logger = logging.getLogger(name)
 
         level_dict = {
             "debug": logging.DEBUG,
@@ -84,6 +86,20 @@ def get_logger(
             "error": logging.ERROR,
             "critical": logging.CRITICAL,
         }
+        ch = RichHandler(console=console)
+        ch.setFormatter(logging.Formatter(LOGFORMAT_RICH))
+        logging_format: List[Any] = [ch]
+        if log_file is not None:
+            logging_format.append(RotatingFileHandler(log_file))
+        logging.basicConfig(
+            level=level_dict[level.lower()] if level is not None else logging.INFO,
+            format=LOGFORMAT,
+            handlers=logging_format,
+        )
+
+        logger = logging.getLogger(name)
+
+        logger.addHandler(ch)
 
         if level is not None:
             logger.setLevel(level_dict[level.lower()])
@@ -91,15 +107,6 @@ def get_logger(
             logger.setLevel(logging.DEBUG if verbose else logging.INFO)
         else:
             logger.setLevel(global_log_level)
-        if log_file is not None:
-            handler = RotatingFileHandler(log_file)
-            formatter = logging.Formatter(
-                "[%(asctime)s] p%(process)s {%(filename)s:%(lineno)d} %(levelname)5s - %(message)s",
-                "%m-%d %H:%M:%S",
-            )
-
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
 
         loggers[name] = logger
         return logger

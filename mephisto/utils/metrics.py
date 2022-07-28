@@ -14,7 +14,7 @@ from requests.auth import HTTPBasicAuth
 import subprocess
 import sys
 import time
-
+from mephisto.utils.rich import console
 
 from mephisto.utils.dirs import get_mephisto_tmp_dir, get_root_dir
 from mephisto.utils.logger_core import get_logger, warn_once

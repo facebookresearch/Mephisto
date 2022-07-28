@@ -157,7 +157,7 @@ class WebsocketChannel(Channel):
                     self.on_catastrophic_disconnect(self.channel_id)
                     return
                 except OSError as e:
-                    logger.info(
+                    logger.error(
                         f"Unhandled OSError exception in socket {e}, attempting restart"
                     )
                     await asyncio.sleep(0.2)
