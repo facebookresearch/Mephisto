@@ -4,7 +4,7 @@ from rich.table import Table
 from rich import box
 from rich.markdown import Markdown
 
-console = Console(record=True)
+console = Console()
 
 
 def create_table(headers: List[str], title: str) -> Table:

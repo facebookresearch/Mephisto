@@ -1,6 +1,4 @@
-from distutils import extension
 from mephisto.client.cli_commands import get_wut_arguments
-from rich import print
 from mdutils.mdutils import MdUtils
 from copy import deepcopy
 
@@ -70,8 +68,6 @@ def main():
     create_blueprint_info(blueprint_file, arg_dict)
     blueprint_file.create_md_file()
 
-
-# ('blueprint=static_react_task',)
 
 if __name__ == "__main__":
     main()
