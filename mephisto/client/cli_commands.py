@@ -133,6 +133,9 @@ def get_wut_arguments(args):
             print(f"[red]'{abstract_value}' not found[/red]\n")
             return
 
+    # These are values that do not convert to a string well or are incorrect, so they need to be hardcoded
+    argument_overrides = {"tips_location": ("default", "path_to_task/assets/tips.csv")}
+
     arg_dict = get_extra_argument_dicts(target_class)[0]
     click.echo(arg_dict["desc"])
     checking_args = arg_dict["args"]
@@ -149,17 +152,14 @@ def get_wut_arguments(args):
             ),
         )
         for arg in checking_args:
-            arg_keys = checking_args[arg].keys()
-            if "required" in arg_keys and checking_args[arg]["required"] == True:
-                checking_args[arg]["required"] = "[b]{requiredVal}[/b]".format(
-                    requiredVal=checking_args[arg]["required"]
-                )
-            if arg == "tips_location":
-                checking_args[arg]["default"] = "path_to_task/assets/tips.csv"
+            if arg in argument_overrides:
+                checking_args[arg][argument_overrides[arg][0]] = argument_overrides[
+                    arg
+                ][1]
             arg_values = list(checking_args[arg].values())
             arg_values = [str(x) for x in arg_values]
-
             args_table.add_row(*arg_values)
+
         console.print(args_table)
         if abstraction != "blueprint":
             return [arg_dict]
