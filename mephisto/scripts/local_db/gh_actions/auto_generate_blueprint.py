@@ -23,10 +23,10 @@ def create_blueprint_info(blueprint_file, arg_dict):
             )
             if (
                 isinstance(item_to_append, str)
-                and item_to_append.find("mephisto/") != -1
+                and item_to_append.rfind("mephisto/") != -1
             ):
                 item_to_append = item_to_append[
-                    item_to_append.find("mephisto/") : len(item_to_append)
+                    item_to_append.rfind("mephisto/") : len(item_to_append)
                 ]
 
             extension_list.append(item_to_append)

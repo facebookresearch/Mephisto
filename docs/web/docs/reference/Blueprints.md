@@ -16,9 +16,9 @@ Tasks launched from ParlAI blueprints require the number of
 |dest|type|default|help|choices|required|
 | :--- | :--- | :--- | :--- | :--- | :--- |
 |block_qualification|str|???|Specify the name of a qualification used to soft block workers.|None|False|
-|tips_location|str|mephisto/scripts/local_db/gh_actions/assets/tips.csv|Path to csv file containing tips|None|False|
+|tips_location|str|path_to_task/assets/tips.csv|Path to csv file containing tips|None|False|
 |onboarding_qualification|str|???|Specify the name of a qualification used to block workers who fail onboarding, Empty will skip onboarding.|None|False|
-|world_file|str|???|Path to file containing ParlAI world|None|[b]True[/b]|
+|world_file|str|???|Path to file containing ParlAI world|None|True|
 |preview_source|str|???|Optional path to source HTML file to preview the task|None|False|
 |task_description_file|str|???|Path to file for the extended description of the task. Required if not providing a custom source bundle.|None|False|
 |custom_source_bundle|str|???|Optional path to a fully custom frontend bundle|None|False|
@@ -40,8 +40,8 @@ Tasks launched from ParlAI blueprints require the number of
 |use_screening_task|bool|False|Whether or not to use a screening task in this run.|None|False|
 |onboarding_qualification|str|???|Specify the name of a qualification used to block workers who fail onboarding, Empty will skip onboarding.|None|False|
 |block_qualification|str|???|Specify the name of a qualification used to soft block workers.|None|False|
-|tips_location|str|mephisto/scripts/local_db/gh_actions/assets/tips.csv|Path to csv file containing tips|None|False|
-|num_assignments|int|???|How many workers you want to do each assignment|None|[b]True[/b]|
+|tips_location|str|path_to_task/assets/tips.csv|Path to csv file containing tips|None|False|
+|num_assignments|int|???|How many workers you want to do each assignment|None|True|
 |use_onboarding|bool|False|Whether onboarding should be required|None|False|
 |timeout_time|int|0|Whether acts in the run assignment should have a timeout|None|False|
 |is_concurrent|bool|True|Whether to run this mock task as a concurrent task or not|None|False|
@@ -54,14 +54,14 @@ Tasks launched from static blueprints need a source html file to display to work
 |dest|type|default|help|choices|required|
 | :--- | :--- | :--- | :--- | :--- | :--- |
 |block_qualification|str|???|Specify the name of a qualification used to soft block workers.|None|False|
-|tips_location|str|mephisto/scripts/local_db/gh_actions/assets/tips.csv|Path to csv file containing tips|None|False|
+|tips_location|str|path_to_task/assets/tips.csv|Path to csv file containing tips|None|False|
 |onboarding_qualification|str|???|Specify the name of a qualification used to block workers who fail onboarding, Empty will skip onboarding.|None|False|
 |units_per_assignment|int|1|How many workers you want to do each assignment|None|False|
 |extra_source_dir|str|???|Optional path to sources that the HTML may refer to (such as images/video/css/scripts)|None|False|
 |data_json|str|???|Path to JSON file containing task data|None|False|
 |data_jsonl|str|???|Path to JSON-L file containing task data|None|False|
 |data_csv|str|???|Path to csv file containing task data|None|False|
-|task_source|str|???|Path to source HTML file for the task being run|None|[b]True[/b]|
+|task_source|str|???|Path to source HTML file for the task being run|None|True|
 |preview_source|unknown|???|Optional path to source HTML file to preview the task|None|False|
 |onboarding_source|unknown|???|Optional path to source HTML file to onboarding the task|None|False|
 
@@ -76,9 +76,9 @@ Tasks launched from remote query blueprints need a
 |dest|type|default|help|choices|required|
 | :--- | :--- | :--- | :--- | :--- | :--- |
 |block_qualification|str|???|Specify the name of a qualification used to soft block workers.|None|False|
-|tips_location|str|mephisto/scripts/local_db/gh_actions/assets/tips.csv|Path to csv file containing tips|None|False|
+|tips_location|str|path_to_task/assets/tips.csv|Path to csv file containing tips|None|False|
 |onboarding_qualification|str|???|Specify the name of a qualification used to block workers who fail onboarding, Empty will skip onboarding.|None|False|
-|task_source|str|???|Path to file containing javascript bundle for the task|None|[b]True[/b]|
+|task_source|str|???|Path to file containing javascript bundle for the task|None|True|
 |link_task_source|bool|False|                Symlinks the task_source file in your development folder to the                one used for the server. Useful for local development so you can run                a watch-based build for your task_source, allowing the UI code to                update without having to restart the server each time.            |None|False|
 |units_per_assignment|int|1|How many workers you want to do each assignment|None|False|
 
@@ -92,12 +92,12 @@ Tasks launched from static blueprints need
 |dest|type|default|help|choices|required|
 | :--- | :--- | :--- | :--- | :--- | :--- |
 |block_qualification|str|???|Specify the name of a qualification used to soft block workers.|None|False|
-|tips_location|str|mephisto/scripts/local_db/gh_actions/assets/tips.csv|Path to csv file containing tips|None|False|
+|tips_location|str|path_to_task/assets/tips.csv|Path to csv file containing tips|None|False|
 |onboarding_qualification|str|???|Specify the name of a qualification used to block workers who fail onboarding, Empty will skip onboarding.|None|False|
 |units_per_assignment|int|1|How many workers you want to do each assignment|None|False|
 |extra_source_dir|str|???|Optional path to sources that the HTML may refer to (such as images/video/css/scripts)|None|False|
 |data_json|str|???|Path to JSON file containing task data|None|False|
 |data_jsonl|str|???|Path to JSON-L file containing task data|None|False|
 |data_csv|str|???|Path to csv file containing task data|None|False|
-|task_source|str|???|Path to file containing javascript bundle for the task|None|[b]True[/b]|
+|task_source|str|???|Path to file containing javascript bundle for the task|None|True|
 |link_task_source|bool|False|                Symlinks the task_source file in your development folder to the                one used for the server. Useful for local development so you can run                a watch-based build for your task_source, allowing the UI code to                update without having to restart the server each time.            |None|False|
