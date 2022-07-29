@@ -8,7 +8,3 @@ console = Console()
 
 def create_table(headers: List[str], title: str) -> Table:
     return Table(*headers, title=title, box=box.ROUNDED, expand=True, show_lines=True)
-
-
-def log(category, message):
-    return f"[dim]{category}[/dim] - {message}"
