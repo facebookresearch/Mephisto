@@ -154,8 +154,11 @@ def get_wut_arguments(args):
                 checking_args[arg]["required"] = "[b]{requiredVal}[/b]".format(
                     requiredVal=checking_args[arg]["required"]
                 )
+            if arg == "tips_location":
+                checking_args[arg]["default"] = "path_to_task/assets/tips.csv"
             arg_values = list(checking_args[arg].values())
             arg_values = [str(x) for x in arg_values]
+
             args_table.add_row(*arg_values)
         console.print(args_table)
         if abstraction != "blueprint":
