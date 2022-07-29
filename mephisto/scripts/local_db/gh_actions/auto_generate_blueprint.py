@@ -22,7 +22,6 @@ def create_blueprint_info(blueprint_file, arg_dict):
                 if isinstance(item_content, str)
                 else item_content
             )
-            print(item_to_append)
             extension_list.append(item_to_append)
         list_of_strings.extend(extension_list)
 
