@@ -2,6 +2,8 @@ from mephisto.client.cli_commands import get_wut_arguments
 from mdutils.mdutils import MdUtils
 from copy import deepcopy
 
+from mephisto.operations.registry import get_valid_blueprint_types
+
 
 def create_blueprint_info(blueprint_file, arg_dict):
     blueprint_file.new_paragraph(arg_dict["desc"].strip())
@@ -20,6 +22,14 @@ def create_blueprint_info(blueprint_file, arg_dict):
                 if isinstance(item_content, str)
                 else item_content
             )
+            if (
+                isinstance(item_to_append, str)
+                and item_to_append.find("mephisto/") != -1
+            ):
+                item_to_append = item_to_append[
+                    item_to_append.find("mephisto/") : len(item_to_append)
+                ]
+
             extension_list.append(item_to_append)
         list_of_strings.extend(extension_list)
 
@@ -39,33 +49,15 @@ def main():
         file_name="../../../../docs/web/docs/reference/Blueprints.md",
     )
     blueprint_file.new_header(level=1, title="Blueprints")
+    valid_blueprint_types = get_valid_blueprint_types()
+    for blueprint_type in valid_blueprint_types:
+        blueprint_file.new_header(level=2, title=blueprint_type.replace("_", " "))
+        args = get_wut_arguments(
+            ("blueprint={blueprint_name}".format(blueprint_name=blueprint_type),)
+        )
+        arg_dict = args[0]
+        create_blueprint_info(blueprint_file, arg_dict)
 
-    blueprint_file.new_header(level=2, title="Static React Task")
-    args = get_wut_arguments(("blueprint=static_react_task",))
-    arg_dict = args[0]
-    create_blueprint_info(blueprint_file, arg_dict)
-
-    blueprint_file.new_header(level=2, title="Static Task")
-    args = get_wut_arguments(("blueprint=static_task",))
-    arg_dict = args[0]
-    create_blueprint_info(blueprint_file, arg_dict)
-    blueprint_file.new_header(level=2, title="Remote Procedure")
-
-    args = get_wut_arguments(("blueprint=remote_procedure",))
-    arg_dict = args[0]
-    create_blueprint_info(blueprint_file, arg_dict)
-
-    blueprint_file.new_header(level=2, title="Parlai Chat")
-
-    args = get_wut_arguments(("blueprint=parlai_chat",))
-    arg_dict = args[0]
-    create_blueprint_info(blueprint_file, arg_dict)
-
-    blueprint_file.new_header(level=2, title="Mock")
-
-    args = get_wut_arguments(("blueprint=mock",))
-    arg_dict = args[0]
-    create_blueprint_info(blueprint_file, arg_dict)
     blueprint_file.create_md_file()
 
 
