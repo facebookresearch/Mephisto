@@ -4,6 +4,8 @@
 
 # Blueprints
 
+
+The blueprint determines the task content.
 ## parlai chat
 
 
