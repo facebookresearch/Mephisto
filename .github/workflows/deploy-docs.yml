@@ -21,7 +21,9 @@ jobs:
           node-version: 16.x
           cache: yarn
       - name: Auto Generate Blueprint Docs
-        run: python mephisto/scripts/local_db/gh_actions/auto_generate_blueprint.py
+        run: |
+          python mephisto/scripts/local_db/gh_actions/auto_generate_blueprint.py
+          python mephisto/scripts/local_db/gh_actions/auto_generate_architect.py
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Build website
