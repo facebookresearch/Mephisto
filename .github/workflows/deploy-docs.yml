@@ -25,6 +25,7 @@ jobs:
           python mephisto/scripts/local_db/gh_actions/auto_generate_blueprint.py
           python mephisto/scripts/local_db/gh_actions/auto_generate_architect.py
           python mephisto/scripts/local_db/gh_actions/auto_generate_requester.py
+          python mephisto/scripts/local_db/gh_actions/auto_generate_provider.py
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Build website
