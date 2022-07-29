@@ -5,7 +5,6 @@ from rich import print
 
 def get_wut_arguments(args):
     """Display information about hydra config properties"""
-    print(args)
     from mephisto.operations.registry import (
         get_blueprint_from_type,
         get_crowd_provider_from_type,
@@ -160,7 +159,7 @@ def get_wut_arguments(args):
             args_table.add_row(*arg_values)
         console.print(args_table)
         if abstraction != "blueprint":
-            return [args_table]
+            return [arg_dict]
     if abstraction == "blueprint":
         state_args = get_task_state_dicts(target_class)[0]["args"]
         if len(args) > 1:
@@ -182,4 +181,4 @@ def get_wut_arguments(args):
                 arg_values = [str(x) for x in arg_values]
                 state_args_table.add_row(*arg_values)
             console.print(state_args_table)
-            return [args_table, state_args]
+            return [arg_dict, state_args]
