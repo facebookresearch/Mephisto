@@ -8,7 +8,7 @@ from mephisto.scripts.local_db.gh_actions.auto_generate_blueprint import (
 
 def main():
     architect_file = MdUtils(
-        file_name="../../../../docs/web/docs/reference/Architects.md",
+        file_name="../../../../docs/web/docs/reference/architects.md",
     )
     architect_file.new_header(level=1, title="Architects")
     valid_architect_types = get_valid_architect_types()
