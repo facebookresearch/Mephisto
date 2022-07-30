@@ -124,6 +124,16 @@ class BaseTestLiveRuns:
         self.worker_pool.register_run(live_run)
         return live_run
 
+    def assert_server_subbed_in_time(self, server, timeout: int = 5) -> None:
+        start_time = time.time()
+        while (len(server.subs) == 0) and time.time() - start_time < timeout:
+            time.sleep(0.3)
+        self.assertEqual(
+            len(self.architect.server.subs),
+            1,
+            "MockServer doesn't see registered channel",
+        )
+
     def get_mock_assignment_data_array(self) -> List[InitializationData]:
         mock_data = MockTaskRunner.get_mock_assignment_data()
         return [mock_data, mock_data]
@@ -240,11 +250,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(channel)
         self.assertTrue(channel.is_alive())
         task_runner = live_run.task_runner
-        self.assertEqual(
-            len(self.architect.server.subs),
-            1,
-            "MockServer doesn't see registered channel",
-        )
+        self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
@@ -350,11 +356,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(channel)
         self.assertTrue(channel.is_alive())
         task_runner = live_run.task_runner
-        self.assertEqual(
-            len(self.architect.server.subs),
-            1,
-            "MockServer doesn't see registered channel",
-        )
+        self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
@@ -468,11 +470,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(channel)
         self.assertTrue(channel.is_alive())
         task_runner = live_run.task_runner
-        self.assertEqual(
-            len(self.architect.server.subs),
-            1,
-            "MockServer doesn't see registered channel",
-        )
+        self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
@@ -706,11 +704,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(channel)
         self.assertTrue(channel.is_alive())
         task_runner = live_run.task_runner
-        self.assertEqual(
-            len(self.architect.server.subs),
-            1,
-            "MockServer doesn't see registered channel",
-        )
+        self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
@@ -963,11 +957,7 @@ class BaseTestLiveRuns:
         self.assertIsNotNone(channel)
         self.assertTrue(channel.is_alive())
         task_runner = live_run.task_runner
-        self.assertEqual(
-            len(self.architect.server.subs),
-            1,
-            "MockServer doesn't see registered channel",
-        )
+        self.assert_server_subbed_in_time(self.architect.server)
         self.assertIsNotNone(
             self.architect.server.last_alive_packet,
             "No alive packet received by server",
