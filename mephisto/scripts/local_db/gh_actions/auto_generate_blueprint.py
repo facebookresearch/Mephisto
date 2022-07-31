@@ -45,7 +45,7 @@ def create_blueprint_info(blueprint_file, arg_dict):
 
 def main():
     blueprint_file = MdUtils(
-        file_name="../../../../docs/web/docs/reference/Blueprints.md",
+        file_name="../../../../docs/web/docs/reference/blueprints.md",
     )
     blueprint_file.new_header(level=1, title="Blueprints")
     blueprint_file.new_paragraph("The blueprint determines the task content.")
