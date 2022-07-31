@@ -46,7 +46,7 @@ def create_blueprint_info(blueprint_file, arg_dict):
 
 def main():
     blueprint_file = MdUtils(
-        file_name="../../../../docs/web/docs/reference/Blueprints.md",
+        file_name="../../../../docs/web/docs/reference/blueprints.md",
     )
     blueprint_file.new_header(level=1, title="Blueprints")
     valid_blueprint_types = get_valid_blueprint_types()
