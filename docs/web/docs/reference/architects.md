@@ -4,6 +4,8 @@
 
 # Architects
 
+
+Architects contain the logic surrounding deploying a server that workers will be able to access.
 ## mock
 
 

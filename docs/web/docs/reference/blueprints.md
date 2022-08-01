@@ -5,7 +5,7 @@
 # Blueprints
 
 
-The blueprint determines the task content.
+The blueprints contain all of the related code required to set up a task run.
 ## parlai chat
 
 
