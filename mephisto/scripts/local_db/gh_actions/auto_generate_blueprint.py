@@ -1,7 +1,6 @@
 from mephisto.client.cli_commands import get_wut_arguments
 from mdutils.mdutils import MdUtils
 from copy import deepcopy
-
 from mephisto.operations.registry import get_valid_blueprint_types
 
 
@@ -49,6 +48,9 @@ def main():
         file_name="../../../../docs/web/docs/reference/blueprints.md",
     )
     blueprint_file.new_header(level=1, title="Blueprints")
+    blueprint_file.new_paragraph(
+        "The blueprints contain all of the related code required to set up a task run."
+    )
     valid_blueprint_types = get_valid_blueprint_types()
     for blueprint_type in valid_blueprint_types:
         blueprint_file.new_header(level=2, title=blueprint_type.replace("_", " "))

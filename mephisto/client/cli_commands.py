@@ -134,7 +134,11 @@ def get_wut_arguments(args):
             return
 
     # These are values that do not convert to a string well or are incorrect, so they need to be hardcoded
-    argument_overrides = {"tips_location": ("default", "path_to_task/assets/tips.csv")}
+    argument_overrides = {
+        "tips_location": ("default", "path_to_task/assets/tips.csv"),
+        "heroku_config_args": ("default", "{}"),
+        "subdomain": ("default", "The task name defined in your task's hydra config"),
+    }
 
     arg_dict = get_extra_argument_dicts(target_class)[0]
     click.echo(arg_dict["desc"])
