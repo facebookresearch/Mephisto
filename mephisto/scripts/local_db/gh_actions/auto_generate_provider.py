@@ -12,9 +12,9 @@ def main():
     provider_file = MdUtils(
         file_name="../../../../docs/web/docs/reference/providers.md",
     )
-    provider_file.new_header(level=1, title="Provider")
+    provider_file.new_header(level=1, title="Providers")
     provider_file.new_paragraph(
-        "The crowd provider determines the source of the crowd workers."
+        "Crowd providers standardize access to external crowd workers, by wrapping external API communication through a standardized interface."
     )
     valid_provider_types = get_valid_provider_types()
     for provider_type in valid_provider_types:
