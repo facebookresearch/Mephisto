@@ -23,7 +23,7 @@ jobs:
 
       - name: Auto Generate Blueprint Docs
         run: |
-          cd mephisto/scripts/local_db/gh_actions
+          cd ../../mephisto/scripts/local_db/gh_actions
           python auto_generate_blueprint.py
           python auto_generate_architect.py
           python auto_generate_requester.py
