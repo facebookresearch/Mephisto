@@ -23,20 +23,20 @@ def get_wut_arguments(args):
         )
         abstractions_table.add_row(
             "blueprint",
-            f"The blueprint determines the task content. \nValid blueprints types are [b]{get_valid_blueprint_types()}[/b]",
+            f"The blueprint contains all of the related code required to set up a task run. \nValid blueprints types are [b]{get_valid_blueprint_types()}[/b]",
         )
         abstractions_table.add_row(
             "architect",
-            f"The architect determines the server where a task is hosted. \nValid architects types are [b]{get_valid_architect_types()}[/b]",
+            f"Architect's contain the logic surrounding deploying a server that workers will be able to access. \nValid architects types are [b]{get_valid_architect_types()}[/b]",
         )
         abstractions_table.add_row(
             "requester",
-            f"The requester is an account for a crowd provider. \nValid requester types types are [b]{get_valid_provider_types()}[/b]. \n"
+            f"The requester is an account for a crowd provider. Requesters are used as the identity that launches the task. \nValid requester types types are [b]{get_valid_provider_types()}[/b]. \n"
             "\nUse `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register.",
         )
         abstractions_table.add_row(
             "provider",
-            f"The crowd provider determines the source of the crowd workers. \nValid provider types are [b]{get_valid_provider_types()}[/b]",
+            f"The crowd provider is responsible for standardizing Mephisto's interaction with external crowds. \nValid provider types are [b]{get_valid_provider_types()}[/b]",
         )
         console.print(abstractions_table)
         return
