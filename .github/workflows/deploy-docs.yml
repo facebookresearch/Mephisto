@@ -20,8 +20,18 @@ jobs:
         with:
           node-version: 16.x
           cache: yarn
+      - uses: actions/setup-python@v2
 
-      - name: Auto Generate Blueprint Docs
+      - name: 🤖 Install Mephisto
+        run: pip install -e .
+
+      - name: 🖋 Create data directory
+        run: mkdir -p ~/mephisto/data
+
+      - name: 📂 Set the data directory
+        run: mephisto config core.main_data_directory ~/mephisto/data
+
+      - name: 📝 Auto Generate Blueprint Docs
         run: |
           cd ../../mephisto/scripts/local_db/gh_actions
           python auto_generate_blueprint.py
