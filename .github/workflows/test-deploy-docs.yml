@@ -25,7 +25,9 @@ jobs:
       - uses: actions/setup-python@v2
 
       - name: 🤖 Install Mephisto
-        run: pip install -e .
+        run: |
+          cd ../../
+          pip install -e .
 
       - name: 🖋 Create data directory
         run: mkdir -p ~/mephisto/data
