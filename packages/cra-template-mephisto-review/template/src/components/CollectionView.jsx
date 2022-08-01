@@ -12,7 +12,7 @@ import {
 } from "@blueprintjs/core";
 import { Tooltip } from "@blueprintjs/core";
 import { GridCollection, JSONItem } from "../renderers";
-import { Pagination } from "./pagination";
+import { Pagination } from "./Pagination";
 import { getHostname } from "../utils";
 import ErrorPane from "./ErrorPane";
 
