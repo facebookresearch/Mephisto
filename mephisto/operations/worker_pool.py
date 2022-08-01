@@ -266,8 +266,8 @@ class WorkerPool:
                 )
             else:
                 # See if the concurrent unit is ready to launch
-                logger.debug(f"Attempting to launch {assignment}.")
                 assignment = await loop.run_in_executor(None, unit.get_assignment)
+                logger.debug(f"Attempting to launch {assignment}.")
                 agents = await loop.run_in_executor(None, assignment.get_agents)
                 if None in agents:
                     agent.update_status(AgentState.STATUS_WAITING)
