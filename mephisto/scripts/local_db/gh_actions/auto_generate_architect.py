@@ -11,6 +11,9 @@ def main():
         file_name="../../../../docs/web/docs/reference/architects.md",
     )
     architect_file.new_header(level=1, title="Architects")
+    architect_file.new_paragraph(
+        "Architects contain the logic surrounding deploying a server that workers will be able to access."
+    )
     valid_architect_types = get_valid_architect_types()
     for architect_type in valid_architect_types:
         architect_file.new_header(level=2, title=architect_type.replace("_", " "))

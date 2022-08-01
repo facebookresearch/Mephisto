@@ -13,9 +13,11 @@ def main():
         file_name="../../../../docs/web/docs/reference/requesters.md",
     )
     requester_file.new_header(level=1, title="Requesters")
-    requester_file.new_paragraph("The requester is an account for a crowd provider.")
     requester_file.new_paragraph(
-        "Use `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register.     "
+        "Requesters are Mephisto's wrapper around an identity for a CrowdProvider, usually storing the credentials for an account to launch tasks from."
+    )
+    requester_file.new_paragraph(
+        "Use `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register."
     )
     valid_requester_types = get_valid_provider_types()
     for requester_type in valid_requester_types:
