@@ -10,7 +10,7 @@ from mephisto.scripts.local_db.gh_actions.auto_generate_blueprint import (
 
 def main():
     requester_file = MdUtils(
-        file_name="../../../../docs/web/docs/reference/Requester.md",
+        file_name="../../../../docs/web/docs/reference/requesters.md",
     )
     requester_file.new_header(level=1, title="Requesters")
     requester_file.new_paragraph(

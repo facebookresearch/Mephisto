@@ -27,7 +27,7 @@ jobs:
           python auto_generate_blueprint.py
           python auto_generate_architect.py
           python auto_generate_requester.py
-
+          python auto_generate_provider.py
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Build website
