@@ -17,12 +17,11 @@ from typing import List, Type, Dict, Any, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.architect import Architect
     from mephisto.abstractions.blueprint import Blueprint
 
 
 logger = get_logger(name=__name__)
-
+LOGGING_OVERRIDE = {"override /hydra/job_logging": "mephisto_default"}
 config = ConfigStoreWithProvider("mephisto")
 
 
@@ -46,6 +45,7 @@ class TaskConfig:
     mephisto: MephistoConfig = MephistoConfig()
     task_dir: str = get_run_file_dir()
     num_tasks: int = 5
+    defaults: List[Any] = field(default_factory=lambda: ["_self_", LOGGING_OVERRIDE])
 
 
 def register_abstraction_config(name: str, node: Any, abstraction_type: str):
@@ -57,7 +57,7 @@ def register_abstraction_config(name: str, node: Any, abstraction_type: str):
 
 
 def build_default_task_config(conf_name: str) -> Type[TaskConfig]:
-    default_list = ["_self_", {"conf": conf_name}]
+    default_list = ["_self_", {"conf": conf_name}, LOGGING_OVERRIDE]
 
     @dataclass
     class DefaultTaskConfig(TaskConfig):
