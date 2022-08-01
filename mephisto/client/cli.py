@@ -258,6 +258,7 @@ def register_provider(args):
 @cli.command("wut", cls=RichCommand, context_settings={"ignore_unknown_options": True})
 @click.argument("args", nargs=-1)
 def run_wut(args):
+    """Discover the configuration arguments for different abstractions"""
     get_wut_arguments(args)
 
 

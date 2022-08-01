@@ -47,7 +47,6 @@ class MockUnit(Unit):
 
         # TODO(OWN) get this link to the frontend
         port = task_url.split(":")[1].split("/")[0]
-        print(task_url)
         print(
             f"Mock task launched: http://localhost:{port} for preview, "
             f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
