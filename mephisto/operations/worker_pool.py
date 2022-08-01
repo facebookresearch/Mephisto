@@ -266,6 +266,7 @@ class WorkerPool:
                 )
             else:
                 # See if the concurrent unit is ready to launch
+                logger.debug(f"Attempting to launch {assignment}.")
                 assignment = await loop.run_in_executor(None, unit.get_assignment)
                 agents = await loop.run_in_executor(None, assignment.get_agents)
                 if None in agents:
@@ -275,10 +276,15 @@ class WorkerPool:
                 non_null_agents = [a for a in agents if a is not None]
                 # Launch the backend for this assignment
                 registered_agents = [
-                    self.agents[a.get_agent_id()]
+                    self.agents.get(a.get_agent_id())
                     for a in non_null_agents
                     if a is not None
                 ]
+                if None in registered_agents:
+                    # an Agent has been matched to the Assignment, but isn't yet watched
+                    # by the pool. Wait for that thread to catch up
+                    logger.debug(f"Delaying launch of {assignment}, should retry.")
+                    return
 
                 live_run.task_runner.execute_assignment(assignment, registered_agents)
 
@@ -687,3 +693,61 @@ class WorkerPool:
     def shutdown(self) -> None:
         """Mark shut down. Handle resource cleanup if necessary"""
         self.is_shutdown = True
+
+
+# [2022-07-29 08:51:15,808][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19267, None, created) for Assignment(6486).
+# [2022-07-29 08:51:17,200][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19268, None, created) for Assignment(6486).
+# [2022-07-29 08:51:18,606][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19269, None, created) for Assignment(6486).
+# [2022-07-29 08:51:21,137][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19270, None, created) for Assignment(6487).
+# [2022-07-29 08:51:22,615][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19271, None, created) for Assignment(6487).
+# [2022-07-29 08:51:24,009][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19272, None, created) for Assignment(6487).
+# [2022-07-29 08:51:26,389][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19273, None, created) for Assignment(6488).
+# [2022-07-29 08:51:27,785][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19274, None, created) for Assignment(6488).
+# [2022-07-29 08:51:29,183][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19275, None, created) for Assignment(6488).
+# [2022-07-29 08:51:31,519][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19276, None, created) for Assignment(6489).
+# [2022-07-29 08:51:33,094][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19277, None, created) for Assignment(6489).
+# [2022-07-29 08:51:34,705][mephisto.data_model.unit][DEBUG] - Registered new unit MTurkUnit(19278, None, created) for Assignment(6489).
+# [2022-07-29 09:00:08,359][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19267, None, created) from created to launched
+# [2022-07-29 09:00:10,582][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19268, None, created) from created to launched
+# [2022-07-29 09:00:12,443][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19269, None, created) from created to launched
+# [2022-07-29 09:00:14,176][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19270, None, created) from created to launched
+# [2022-07-29 09:00:16,236][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19271, None, created) from created to launched
+# [2022-07-29 09:00:18,109][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19272, None, created) from created to launched
+# [2022-07-29 09:00:20,207][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19273, None, created) from created to launched
+# [2022-07-29 09:00:22,189][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19274, None, created) from created to launched
+# [2022-07-29 09:00:24,387][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19275, None, created) from created to launched
+# [2022-07-29 09:00:26,250][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19276, None, created) from created to launched
+# [2022-07-29 09:00:28,040][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19277, None, created) from created to launched
+# [2022-07-29 09:00:30,070][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19278, None, created) from created to launched
+# [2022-07-29 09:00:30,879][mephisto.data_model.task_run][DEBUG] - Reserved MTurkUnit(19267, None, launched) with unit_res_19267
+# [2022-07-29 09:00:30,879][mephisto.abstractions.providers.mturk.mturk_datastore][DEBUG] - Attempting to assign HIT 37ZQELHEQ2ME875TBKK7AKI4PZJNMQ, Unit 19267, Assignment 38YMOXR>
+# [2022-07-29 09:00:33,328][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19279, None, created) from created to launched
+# [2022-07-29 09:00:36,464][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19280, None, created) from created to launched
+# [2022-07-29 09:00:37,019][mephisto.data_model.agent][DEBUG] - Registered new agent MTurkAgent(6092, none) for MTurkUnit(19267, 37ZQELHEQ2ME875TBKK7AKI4PZJNMQ, assigned).
+# [2022-07-29 09:00:38,965][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19281, None, created) from created to launched
+# [2022-07-29 09:00:50,151][mephisto.data_model.agent][DEBUG] - Updating MTurkAgent(6092, accepted) to waiting
+# [2022-07-29 09:00:51,509][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19271, 3BFF0DJK8Z0F1FNISD25VSN266NST8, launched) from launched to assigned
+# [2022-07-29 09:00:53,515][mephisto.data_model.agent][DEBUG] - Updating MTurkAgent(6093, accepted) to waiting
+# [2022-07-29 09:01:03,524][mephisto.data_model.agent][DEBUG] - Updating MTurkAgent(6094, accepted) to waiting
+# [2022-07-29 09:01:16,128][mephisto.data_model.agent][DEBUG] - Registered new agent MTurkAgent(6096, none) for MTurkUnit(19269, 36MUZ9VAE8Q7A7M35SIL17112TQEDA, assigned).
+# [2022-07-29 09:01:18,218][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19272, 3MWOYZD5WXC28AQ5O0ZK2O79KZYNO5, launched) from launched to assigned
+# [2022-07-29 09:00:48,754][mephisto.data_model.agent][DEBUG] - Registered new agent MTurkAgent(6094, none) for MTurkUnit(19270, 3UXQ63NLACAS1GYB8IEJJC3L85FLBX, assigned).
+# [2022-07-29 09:01:00,640][mephisto.data_model.agent][DEBUG] - Registered new agent MTurkAgent(6095, none) for MTurkUnit(19271, 3BFF0DJK8Z0F1FNISD25VSN266NST8, assigned).
+# [2022-07-29 09:01:20,480][mephisto.data_model.agent][DEBUG] - Registered new agent MTurkAgent(6097, none) for MTurkUnit(19272, 3MWOYZD5WXC28AQ5O0ZK2O79KZYNO5, assigned).
+# [2022-07-29 09:01:20,833][mephisto.data_model.unit][DEBUG] - Updating status for MTurkUnit(19273, 3PCPFX4U42ET5UQ45P8BJOT0X9UQF9, launched) from launched to assigned
+# [2022-07-29 09:01:24,016][mephisto.data_model.agent][DEBUG] - Registered new agent MTurkAgent(6098, none) for MTurkUnit(19273, 3PCPFX4U42ET5UQ45P8BJOT0X9UQF9, assigned).
+# [2022-07-29 09:01:28,847][mephisto.data_model.agent][DEBUG] - Registered new agent MTurkAgent(6099, none) for MTurkUnit(19274, 34ZTTGSNJZCDJQHA0FWBM95DDO7QH7, assigned).
+# [2022-07-29 09:01:30,305][mephisto.data_model.agent][DEBUG] - Registered new agent MTurkAgent(6100, none) for MTurkUnit(19275, 3R4QIDVOJR0C2D031NT57PJM25REE3, assigned).
+# [2022-07-29 09:01:33,392][ations.client_io_handler][DEBUG] - Found existing agent_registration_id 38YMOXR4MXN5TIR9679F6RUYVWPW6T-A1YPIJR0B4YDEW, reconnecting to 6092.
+# [2022-07-29 09:01:36,111][asyncio][ERROR] - Task exception was never retrieved
+# future: <Task finished name='Task-38' coro=<WorkerPool.register_worker() done, defined at /private/home/jimmywei/Mephisto/mephisto/operations/worker_pool.py:143> exception=KeyEr>
+# Traceback (most recent call last):
+#   File "/private/home/jimmywei/Mephisto/mephisto/operations/worker_pool.py", line 185, in register_worker
+#     await self.register_agent(crowd_data, worker, request_id)
+#   File "/private/home/jimmywei/Mephisto/mephisto/operations/worker_pool.py", line 625, in register_agent
+#     await self._assign_unit_to_agent(crowd_data, worker, request_id, units)
+#   File "/private/home/jimmywei/Mephisto/mephisto/operations/worker_pool.py", line 277, in _assign_unit_to_agent
+#     registered_agents = [
+#   File "/private/home/jimmywei/Mephisto/mephisto/operations/worker_pool.py", line 278, in <listcomp>
+#     self.agents[a.get_agent_id()]
+# KeyError: '6097'
