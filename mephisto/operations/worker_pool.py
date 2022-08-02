@@ -265,26 +265,30 @@ class WorkerPool:
                     agent,
                 )
             else:
-                # See if the concurrent unit is ready to launch
                 assignment = await loop.run_in_executor(None, unit.get_assignment)
+
+                # Set status to waiting
+                agent.update_status(AgentState.STATUS_WAITING)
+
+                # See if the concurrent assignment is ready to launch
                 logger.debug(f"Attempting to launch {assignment}.")
                 agents = await loop.run_in_executor(None, assignment.get_agents)
                 if None in agents:
-                    agent.update_status(AgentState.STATUS_WAITING)
                     return  # need to wait for all agents to be here to launch
 
+                for queried_agent in agents:
+                    if queried_agent.get_status() != AgentState.STATUS_WAITING:
+                        logger.debug(f"Delaying launch of {assignment}, should retry.")
+                        return  # Need to wait for all agents to be waiting to launch
+
+                # Mypy not-null cast
                 non_null_agents = [a for a in agents if a is not None]
                 # Launch the backend for this assignment
                 registered_agents = [
-                    self.agents.get(a.get_agent_id())
+                    self.agents[a.get_agent_id()]
                     for a in non_null_agents
                     if a is not None
                 ]
-                if None in registered_agents:
-                    # an Agent has been matched to the Assignment, but isn't yet watched
-                    # by the pool. Wait for that thread to catch up
-                    logger.debug(f"Delaying launch of {assignment}, should retry.")
-                    return
 
                 live_run.task_runner.execute_assignment(assignment, registered_agents)
 
