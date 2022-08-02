@@ -15,6 +15,22 @@ Returning None for the assignment_id means that the task is being
 previewed by the given worker.
 \------------------------------------------*/
 
+let eventEmitter = () => ({
+  events: {},
+  emit(event, ...args) {
+    let callbacks = this.events[event] || [];
+    for (let i = 0, length = callbacks.length; i < length; i++) {
+      callbacks[i](...args);
+    }
+  },
+  on(event, cb) {
+    this.events[event]?.push(cb) || (this.events[event] = [cb]);
+    return () => {
+      this.events[event] = this.events[event]?.filter((i) => cb !== i);
+    };
+  },
+});
+
 // MOCK IMPLEMENTATION
 function getWorkerName() {
   // Mock worker name is passed via url params
@@ -45,14 +61,29 @@ function handleSubmitToProvider(task_data) {
   return true;
 }
 
-window.HIDE_SUBMIT_BUTTON = (isHidden) => {
-  const submitButton = document.getElementById("html-task-submit-button");
-  if (isHidden) submitButton.style.display = "none";
-  else submitButton.style.display = "block";
+// window.HIDE_SUBMIT_BUTTON = (isHidden) => {
+//   const submitButton = document.getElementById("html-task-submit-button");
+//   if (isHidden) submitButton.style.display = "none";
+//   else submitButton.style.display = "block";
+// };
+
+const events = eventEmitter();
+
+window._MEPHISTO_CONFIG_ = window._MEPHISTO_CONFIG_ || {};
+window._MEPHISTO_CONFIG_.EVENT_EMITTER = events;
+
+window._MEPHISTO_CONFIG_.get = (property) => {
+  if (!(property in window._MEPHISTO_CONFIG_))
+    throw new Error(`${property} does not exist in window.MEPHISTO_CONFIG`);
+  else return window._MEPHISTO_CONFIG_[property];
+};
+
+window._MEPHISTO_CONFIG_.set = (property, value) => {
+  window._MEPHISTO_CONFIG_[property] = value;
+  events.emit(property, value);
 };
 
 /* === UI error handling code ======= */
-window._MEPHISTO_CONFIG_ = window._MEPHISTO_CONFIG_ || {};
 window._MEPHISTO_CONFIG_.AUTO_SUBMIT_ERRORS = false;
 window._MEPHISTO_CONFIG_.ADD_ERROR_HANDLING = false;
 window._MEPHISTO_CONFIG_.ERROR_REPORT_TO_EMAIL = null;

@@ -69,7 +69,6 @@ window.HIDE_SUBMIT_BUTTON = (isHidden) => {
   if (isHidden) submitButton.style.display = "none";
   else submitButton.style.display = "block";
 };
-
 /* === UI error handling code ======= */
 window._MEPHISTO_CONFIG_ = window._MEPHISTO_CONFIG_ || {};
 window._MEPHISTO_CONFIG_.AUTO_SUBMIT_ERRORS = false;

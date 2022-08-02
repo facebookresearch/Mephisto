@@ -98,11 +98,23 @@ function MainApp() {
 
 function SubmitFrame({ children, onSubmit, currentTask }) {
   const [submitting, setSubmitting] = React.useState(false);
+  const [isHidden, setIsHidden] = React.useState(false);
+
+  const handler = React.useCallback(
+    (hideValue) => {
+      if (typeof hideValue == "boolean") setIsHidden(hideValue);
+    },
+    [setIsHidden]
+  );
 
   React.useEffect(() => {
     // Reset submitting when switching from onboarding
     setSubmitting(false);
-  }, [currentTask]);
+  }, []);
+
+  React.useEffect(() => {
+    window._MEPHISTO_CONFIG_.EVENT_EMITTER.on("HIDE_SUBMIT_BUTTON", handler);
+  }, [setIsHidden]);
 
   function handleFormSubmit(event) {
     event.preventDefault();
@@ -121,17 +133,19 @@ function SubmitFrame({ children, onSubmit, currentTask }) {
         {children}
         <div>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              id="html-task-submit-button"
-              type="submit"
-              disabled={submitting}
-            >
-              <span
-                style={{ marginRight: 5 }}
-                className="glyphicon glyphicon-ok"
-              />
-              {submitting ? "Submitting..." : "Submit"}
-            </Button>
+            {!isHidden && (
+              <Button
+                id="html-task-submit-button"
+                type="submit"
+                disabled={submitting}
+              >
+                <span
+                  style={{ marginRight: 5 }}
+                  className="glyphicon glyphicon-ok"
+                />
+                {submitting ? "Submitting..." : "Submit"}
+              </Button>
+            )}
           </div>
         </div>
       </form>
