@@ -100,7 +100,7 @@ function SubmitFrame({ children, onSubmit, currentTask }) {
   const [submitting, setSubmitting] = React.useState(false);
   const [isHidden, setIsHidden] = React.useState(false);
 
-  const handler = React.useCallback(
+  const handleHideSubmitButtonEvent = React.useCallback(
     (hideValue) => {
       if (typeof hideValue == "boolean") setIsHidden(hideValue);
     },
@@ -113,7 +113,10 @@ function SubmitFrame({ children, onSubmit, currentTask }) {
   }, []);
 
   React.useEffect(() => {
-    window._MEPHISTO_CONFIG_.EVENT_EMITTER.on("HIDE_SUBMIT_BUTTON", handler);
+    window._MEPHISTO_CONFIG_.EVENT_EMITTER.on(
+      "HIDE_SUBMIT_BUTTON",
+      handleHideSubmitButtonEvent
+    );
   }, [setIsHidden]);
 
   function handleFormSubmit(event) {
