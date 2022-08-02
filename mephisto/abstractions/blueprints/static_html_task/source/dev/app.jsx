@@ -98,13 +98,13 @@ function MainApp() {
 
 function SubmitFrame({ children, onSubmit, currentTask }) {
   const [submitting, setSubmitting] = React.useState(false);
-  const [isHidden, setIsHidden] = React.useState(false);
+  const [isSubmitButtonHidden, setIsSubmitButtonHidden] = React.useState(false);
 
   const handleHideSubmitButtonEvent = React.useCallback(
     (hideValue) => {
-      if (typeof hideValue == "boolean") setIsHidden(hideValue);
+      if (typeof hideValue == "boolean") setIsSubmitButtonHidden(hideValue);
     },
-    [setIsHidden]
+    [setIsSubmitButtonHidden]
   );
 
   React.useEffect(() => {
@@ -117,7 +117,7 @@ function SubmitFrame({ children, onSubmit, currentTask }) {
       "HIDE_SUBMIT_BUTTON",
       handleHideSubmitButtonEvent
     );
-  }, [setIsHidden]);
+  }, [setIsSubmitButtonHidden]);
 
   function handleFormSubmit(event) {
     event.preventDefault();
@@ -136,7 +136,7 @@ function SubmitFrame({ children, onSubmit, currentTask }) {
         {children}
         <div>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            {!isHidden && (
+            {!isSubmitButtonHidden && (
               <Button
                 id="html-task-submit-button"
                 type="submit"
