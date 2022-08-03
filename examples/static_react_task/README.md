@@ -130,6 +130,6 @@ python run_task.py mephisto.task.post_install_script=link_mephisto_task.sh mephi
 ```
 This will run the task and make sure to link the `mephisto-task` package with the local one. 
 
-Also make sure that the baseUrl property in the cypress.config.js matches one of the urls that are outputted from the run_task.py script.
+Then you can run cypress by going into the webapp directory and running `npm run test`. This should open the cypress app. 
 
-Then you can run cypress by going into the webapp directory and running `npm run test`. This should open the cypress app. It should be self-explanatory from this point on.
+Click the Chrome browser and select a spec to run some tests.

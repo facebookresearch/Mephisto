@@ -18,10 +18,36 @@ Upon submit, the data in the form (as marked by the `name` fields of any inputs)
 
 #### Template Variables
 You can provide template variables when running your task, generally in the form of template variables that are given names. When you specify these (either via `.csv` or directly providing a parsed array of dicts for this data), any named variable `my_special_variable` will be filled into the frontend in all locations containing `${my_special_variable}`.
+
 #### Mephisto-specific Template Variables
 As of now, we also make available the following variables to the HTML via templating:
 - `${mephisto_agent_id}`: The agent ID that Mephisto has associated with the current worker and task.
 - `${provider_worker_id}`: The worker id that the provider uses locally to identify the worker.
+
+#### `useMephistoGlobalConfig` 
+This hook allows for a state to be updated when an event is consumed. An event is emitted for consumption whenever a window variable is set in `demo_task.html` using
+```html
+<script>
+window._MEPHISTO_CONFIG.set(eventName, valueThatStateWillBeUpdatedTo)
+</script>
+```
+
+**Example of the hook in use**
+```jsx
+const [isSubmitButtonHidden, setIsSubmitButtonHidden] =
+    useMephistoGlobalConfig(
+      "HIDE_SUBMIT_BUTTON",
+      false,
+      (valueThatStateWillBeUpdatedTo) => typeof valueThatStateWillBeUpdatedTo === "boolean"
+    );
+```
+This sets the isSubmitButtonHidden state to be equal to whatever it was set to in the html.
+
+In this case:
+* The first argument is the name of the event you are consuming.
+* The second argument(optional) is the default value for `isSubmitButtonHidden`
+* The third argument(optional) is a validation function.
+  * When defined, the validation function has to return true for the state to update to `valueThatStateWillBeUpdatedTo`
 
 ### `StaticHTMLBlueprint`
 The `Blueprint` here extends on the abstract `StaticBlueprint`, adding HTML-specific requirements to outline the task that ends up visualized. The added arguments are as follows:
