@@ -16,6 +16,10 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
+from mephisto.abstractions.blueprints.mixins.screen_task_required import (
+    ScreenTaskRequiredArgs,
+    ScreenTaskSharedState,
+)
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.abstract.static_task.static_agent_state import (
     StaticAgentState,
@@ -53,7 +57,9 @@ BLUEPRINT_TYPE_STATIC = "abstract_static"
 
 
 @dataclass
-class SharedStaticTaskState(OnboardingSharedState, SharedTaskState):
+class SharedStaticTaskState(
+    ScreenTaskSharedState, OnboardingSharedState, SharedTaskState
+):
     static_task_data: Iterable[Any] = field(
         default_factory=list,
         metadata={
@@ -69,7 +75,9 @@ class SharedStaticTaskState(OnboardingSharedState, SharedTaskState):
 
 
 @dataclass
-class StaticBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
+class StaticBlueprintArgs(
+    ScreenTaskRequiredArgs, OnboardingRequiredArgs, BlueprintArgs
+):
     _blueprint_type: str = BLUEPRINT_TYPE_STATIC
     _group: str = field(
         default="StaticBlueprint",
