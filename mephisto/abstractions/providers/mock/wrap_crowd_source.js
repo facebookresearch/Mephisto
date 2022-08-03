@@ -15,21 +15,10 @@ Returning None for the assignment_id means that the task is being
 previewed by the given worker.
 \------------------------------------------*/
 
-let eventEmitter = () => ({
-  events: {},
-  emit(event, ...args) {
-    let callbacks = this.events[event] || [];
-    for (let i = 0, length = callbacks.length; i < length; i++) {
-      callbacks[i](...args);
-    }
-  },
-  on(event, cb) {
-    this.events[event]?.push(cb) || (this.events[event] = [cb]);
-    return () => {
-      this.events[event] = this.events[event]?.filter((i) => cb !== i);
-    };
-  },
-});
+// The following is the nanoevents npm library (link) manually processed as such:
+// 1. transpiled to support more browser targets using the Babel transpiler (link), and
+// 2. minified using a JS minifier (link)
+var eventEmitter=function(){return{events:{},emit:function(f){for(var b=this.events[f]||[],c=arguments.length,e=new Array(c>1?c-1:0),a=1;a<c;a++)e[a-1]=arguments[a];for(var d=0,g=b.length;d<g;d++)b[d].apply(b,e)},on:function(b,c){var a,d=this;return(null===(a=this.events[b])|| void 0===a?void 0:a.push(c))||(this.events[b]=[c]),function(){var a;d.events[b]=null===(a=d.events[b])|| void 0===a?void 0:a.filter(function(a){return c!==a})}}}}
 
 // MOCK IMPLEMENTATION
 function getWorkerName() {
