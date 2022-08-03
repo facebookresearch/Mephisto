@@ -12,7 +12,9 @@ An example usage case is available [here](https://github.com/facebookresearch/Me
 At a high level, this is a deeper implementation of the abstract `StaticArchitect`, which contains all of the logic for deploying arbitrary tasks where the worker is given some content, and we ask for one response, as a complete `Unit`. This module adds the logic to ensure that the frontend where the worker is given content is able to render arbitrary HTML.
 
 ### `app.jsx`
-The `app.jsx` file contains most of the logic to ensure we can render HTML, including being able to attach and execute the arbitrary scripts that are included or linked in the given HTML file. It creates a react application using the `mephisto-task` package, and creates an empty form with a submit button. It then populates the inner form using two primary methods:
+The `app.jsx` file contains most of the logic to ensure we can render HTML, including being able to attach and execute the arbitrary scripts that are included or linked in the given HTML file. It creates a react application using the `mephisto-task` package, and creates an empty form with a submit button. 
+
+It then populates the inner form using two primary methods:
 - `handleUpdatingRemainingScripts`: This method walks through the list of scripts that are given in the attached HTML, either loading the external script and putting it into the head, or directly evaluating the content of local scripts. As the page has already loaded by the time we are loading in the remaining scripts, this all must be injected in an asynchronous manner. _Ultimately_ this isn't incredibly safe if you don't trust the attached scripts.
 - `interpolateHtml`: This method injects the values for the specific task into their template variable slots. These template variables are specified in the `InitializationData` for an assignment, and populate fields as noted in the **Template Variables** section below.
 
