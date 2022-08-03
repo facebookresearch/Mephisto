@@ -50,6 +50,19 @@ function MainApp() {
       handleSubmit(objData);
     } else {
       formData.append("USED_AGENT_ID", agentId);
+      console.log(objData);
+
+      objData.file1.size === 0
+        ? (objData.file1 = {})
+        : (objData.file1 = {
+            lastModified: objData.file1.lastModified
+              ? objData.file1.lastModified
+              : -1,
+            name: objData.file1.name ? objData.file1.name : "",
+            size: objData.file1.size ? objData.file1.size : -1,
+            type: objData.file1.type ? objData.file1.type : "",
+          });
+
       formData.append("final_string_data", JSON.stringify(objData));
       postData("/submit_task", formData)
         .then((data) => {

@@ -38,8 +38,11 @@ describe("Submits the html_static_task", () => {
   it("Submit the task", () => {
     cy.on("window:alert", (txt) => {
       expect(txt).to.contains(
-        'The task has been submitted! Data: {"rating":"bad","file1":{}}'
+        'The task has been submitted! Data: {"rating":"bad"'
       );
+      expect(txt).to.contains('"name":"bliss.png"');
+      expect(txt).to.contains('"size":146476');
+      expect(txt).to.contains('"type":"image/png"');
     });
     cy.intercept({ pathname: "/submit_task" }).as("submitTask");
     cy.get('[data-cy="submit-button"]').click();
@@ -48,3 +51,5 @@ describe("Submits the html_static_task", () => {
     });
   });
 });
+
+//'The task has been submitted! Data: {"rating":"bad","file1":{}}'
