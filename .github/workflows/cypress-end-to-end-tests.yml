@@ -1,6 +1,8 @@
 name: cypress-end-to-end-tests
 on:
   pull_request:
+    paths-ignore:
+      - "**.md"
   push:
     branches: [main]
     paths-ignore:
