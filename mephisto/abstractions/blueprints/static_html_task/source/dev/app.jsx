@@ -121,7 +121,7 @@ function SubmitFrame({ children, onSubmit, currentTask }) {
         {children}
         <div>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" disabled={submitting} data-cy="submit-button">
               <span
                 style={{ marginRight: 5 }}
                 className="glyphicon glyphicon-ok"
