@@ -31,7 +31,12 @@
       <div class="modal-body" id="modal">&nbsp;</div>
 
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-dismiss="modal" type="button">
+        <button
+          data-cy="close-modal-button"
+          class="btn btn-secondary"
+          data-dismiss="modal"
+          type="button"
+        >
           Close
         </button>
       </div>
@@ -54,11 +59,15 @@
   <div class="row col-xs-12 col-md-12">
     <!-- Instructions -->
     <div class="panel panel-primary">
-      <div class="panel-heading">
+      <div class="panel-heading" data-cy="instructions-panel-header">
         <strong> Instructions </strong>
       </div>
 
-      <div class="panel-body" id="instructions">
+      <div
+        class="panel-body"
+        id="instructions"
+        data-cy="instructions-panel-body"
+      >
         <p>
           Below you are given a character name and description for someone from
           a fantasy story. Please rate how well the character description
@@ -92,11 +101,11 @@
     <!-- Content Body -->
 
     <div class="input_location">
-      <p>
+      <p data-cy="character-name-paragraph">
         <strong> Character name: </strong>
         <span id="char"> ${character_name} </span>
       </p>
-      <p>
+      <p data-cy="character-description-paragraph">
         <strong> Description: </strong>
         <span id="persona"> ${character_description} </span>
       </p>
@@ -105,14 +114,26 @@
     <section>
       <fieldset>
         <div class="input-group">
-          <label>Rate the matching of character name to description</label>
-          <select class="form-control" name="rating">
+          <label for="character-dropdown"
+            >Rate the matching of character name to description</label
+          >
+          <select
+            id="character-dropdown"
+            class="form-control"
+            name="rating"
+            data-cy="character-dropdown"
+          >
             <option selected="selected" value="">(select one)</option>
             <option value="good">Good</option>
             <option value="passable">Passable</option>
             <option value="bad">Bad</option>
           </select>
-          <input type="file" name="file1" id="upload_files_1" />
+          <input
+            data-cy="character-file-input"
+            type="file"
+            name="file1"
+            id="upload_files_1"
+          />
         </div>
       </fieldset>
     </section>
