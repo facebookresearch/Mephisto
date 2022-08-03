@@ -123,7 +123,7 @@ function SubmitFrame({ children, onSubmit, currentTask }) {
   React.useEffect(() => {
     // Reset submitting when switching from onboarding
     setSubmitting(false);
-  }, []);
+  }, [currentTask]);
 
   function handleFormSubmit(event) {
     event.preventDefault();

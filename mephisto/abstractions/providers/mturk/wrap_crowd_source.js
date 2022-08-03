@@ -15,9 +15,9 @@ Returning None for the assignment_id means that the task is being
 previewed by the given worker.
 \------------------------------------------*/
 
-// The following is the nanoevents npm library (link) manually processed as such:
-// 1. transpiled to support more browser targets using the Babel transpiler (link), and
-// 2. minified using a JS minifier (link)
+// The following is the nanoevents npm library (https://github.com/ai/nanoevents/blob/main/index.js) manually processed as such:
+// 1. transpiled to support more browser targets using the Babel transpiler (https://babeljs.io/repl#?browsers=defaults&build=&builtIns=false&corejs=false&spec=false&loose=false), and
+// 2. minified using a JS minifier (https://www.toptal.com/developers/javascript-minifier)
 var eventEmitter=function(){return{events:{},emit:function(f){for(var b=this.events[f]||[],c=arguments.length,e=new Array(c>1?c-1:0),a=1;a<c;a++)e[a-1]=arguments[a];for(var d=0,g=b.length;d<g;d++)b[d].apply(b,e)},on:function(b,c){var a,d=this;return(null===(a=this.events[b])|| void 0===a?void 0:a.push(c))||(this.events[b]=[c]),function(){var a;d.events[b]=null===(a=d.events[b])|| void 0===a?void 0:a.filter(function(a){return c!==a})}}}}
 
 function getWorkerName() {

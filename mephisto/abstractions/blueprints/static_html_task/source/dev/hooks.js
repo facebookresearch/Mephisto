@@ -2,13 +2,13 @@ import { useState, useCallback, useEffect } from "react";
 
 /**
  * This hook is to be used with events that are supposed to update state when they are consumed.
- * @param {string} eventName
+ * @param {string} configName
  * @param {any} defaultValue
  * @param {function} validatorFunction
  * @returns [any any]
  */
 export function useMephistoGlobalConfig(
-  eventName,
+  configName,
   defaultValue,
   validatorFunction
 ) {
@@ -26,7 +26,7 @@ export function useMephistoGlobalConfig(
   );
 
   useEffect(() => {
-    window._MEPHISTO_CONFIG_.EVENT_EMITTER.on(eventName, handleEvent);
+    window._MEPHISTO_CONFIG_.EVENT_EMITTER.on(configName, handleEvent);
   }, [setConfigState]);
 
   return [configState, setConfigState];
