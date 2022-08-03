@@ -10,6 +10,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Button } from "react-bootstrap";
 import { useMephistoTask, postData } from "mephisto-task";
+import { useMephistoGlobalConfig } from "./hooks";
 const axios = require("axios");
 
 /* global
@@ -98,26 +99,19 @@ function MainApp() {
 
 function SubmitFrame({ children, onSubmit, currentTask }) {
   const [submitting, setSubmitting] = React.useState(false);
-  const [isSubmitButtonHidden, setIsSubmitButtonHidden] = React.useState(false);
-
-  const handleHideSubmitButtonEvent = React.useCallback(
-    (hideValue) => {
-      if (typeof hideValue == "boolean") setIsSubmitButtonHidden(hideValue);
-    },
-    [setIsSubmitButtonHidden]
+  const [
+    isSubmitButtonHidden,
+    setIsSubmitButtonHidden,
+  ] = useMephistoGlobalConfig(
+    "HIDE_SUBMIT_BUTTON",
+    false,
+    (val) => typeof val === "boolean"
   );
 
   React.useEffect(() => {
     // Reset submitting when switching from onboarding
     setSubmitting(false);
   }, []);
-
-  React.useEffect(() => {
-    window._MEPHISTO_CONFIG_.EVENT_EMITTER.on(
-      "HIDE_SUBMIT_BUTTON",
-      handleHideSubmitButtonEvent
-    );
-  }, [setIsSubmitButtonHidden]);
 
   function handleFormSubmit(event) {
     event.preventDefault();
