@@ -51,5 +51,3 @@ describe("Submits the html_static_task", () => {
     });
   });
 });
-
-//'The task has been submitted! Data: {"rating":"bad","file1":{}}'

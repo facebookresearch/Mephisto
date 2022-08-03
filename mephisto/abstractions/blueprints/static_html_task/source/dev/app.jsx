@@ -50,7 +50,6 @@ function MainApp() {
       handleSubmit(objData);
     } else {
       formData.append("USED_AGENT_ID", agentId);
-      console.log(objData);
 
       objData.file1.size === 0
         ? (objData.file1 = {})
