@@ -41,7 +41,7 @@ describe("Submits the html_static_task", () => {
         'The task has been submitted! Data: {"rating":"bad"'
       );
       expect(txt).to.contains('"name":"bliss.png"');
-      expect(txt).to.contains('"size":146476');
+      expect(txt).to.contains('"size":51824');
       expect(txt).to.contains('"type":"image/png"');
     });
     cy.intercept({ pathname: "/submit_task" }).as("submitTask");
