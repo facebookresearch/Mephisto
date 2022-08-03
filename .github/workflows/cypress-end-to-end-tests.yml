@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     # Set job outputs to values from filters step below
     outputs:
+      simple_static_task: ${{ steps.filter.outputs.simple_static_task }}
       static_react_task: ${{ steps.filter.outputs.static_react_task }}
       static_react_task_with_tips: ${{ steps.filter.outputs.static_react_task_with_tips }}
       mnist: ${{ steps.filter.outputs.mnist }}
@@ -29,6 +30,8 @@ jobs:
         id: filter
         with:
           filters: |
+            simple_static_task:
+              - 'examples/simple_static_task/**'
             static_react_task:
               - 'examples/static_react_task/**'
             static_react_task_with_tips:
@@ -51,6 +54,51 @@ jobs:
               - 'packages/mephisto-task/src/**'
             mephisto-worker-addons:
               - 'packages/mephisto-worker-addons/src/**'
+
+  # Learn more about this test here: https://github.com/facebookresearch/Mephisto/pull/881
+  simple_static_task:
+    needs: changes
+    if: ${{ (needs.changes.outputs.simple_static_task == 'true') || (needs.changes.outputs.mephisto-task == 'true') || (needs.changes.outputs.abstractions == 'true') || (needs.changes.outputs.data_model == 'true') || (needs.changes.outputs.operations == 'true') || (needs.changes.outputs.tools == 'true')}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔀 Checking out repo
+        uses: actions/checkout@v2
+
+      - name: 🐍 Installing python
+        uses: actions/setup-python@v2
+
+      - name: 🪨 Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+
+      - name: 🤖 Install Mephisto
+        run: pip install -e .
+
+      - name: 🖋 Create data directory
+        run: mkdir -p ~/mephisto/data
+
+      - name: 📂 Set the data directory
+        run: mephisto config core.main_data_directory ~/mephisto/data
+
+      - name: 📦 Setting up mephisto-task package
+        run: |
+          cd packages/mephisto-task
+          yarn install
+          yarn build
+          npm link
+
+      - name: ⌛️ Running cypress tests
+        uses: cypress-io/github-action@v3.1.0
+        with:
+          install: false
+          browser: chrome
+          project: ./mephisto/abstractions/blueprints/static_html_task/source
+          config-file: ./cypress.config.js
+          start: python ./examples/simple_static_task/static_test_script.py
+          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
+          command-prefix: yarn dlx
+          headless: true
 
   # Learn more about this test here: https://github.com/facebookresearch/Mephisto/pull/795
   static-react-task:
