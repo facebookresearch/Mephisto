@@ -25,7 +25,8 @@ As of now, we also make available the following variables to the HTML via templa
 - `${provider_worker_id}`: The worker id that the provider uses locally to identify the worker.
 
 #### `useMephistoGlobalConfig` 
-This hook allows for a state to be updated when an event is consumed. An event is emitted for consumption whenever a window variable is set in `demo_task.html` using
+This hook allows for a state to be updated when an event is consumed. An event is emitted for consumption whenever a window variable is set in `demo_task.html` using:
+
 ```html
 <script>
 window._MEPHISTO_CONFIG.set(eventName, valueThatStateWillBeUpdatedTo)
