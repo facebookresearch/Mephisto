@@ -10,6 +10,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Button } from "react-bootstrap";
 import { useMephistoTask, postData } from "mephisto-task";
+import { useMephistoGlobalConfig } from "./hooks";
 const axios = require("axios");
 
 /* global
@@ -110,6 +111,14 @@ function MainApp() {
 
 function SubmitFrame({ children, onSubmit, currentTask }) {
   const [submitting, setSubmitting] = React.useState(false);
+  const [
+    isSubmitButtonHidden,
+    setIsSubmitButtonHidden,
+  ] = useMephistoGlobalConfig(
+    "HIDE_SUBMIT_BUTTON",
+    false,
+    (val) => typeof val === "boolean"
+  );
 
   React.useEffect(() => {
     // Reset submitting when switching from onboarding
@@ -133,13 +142,20 @@ function SubmitFrame({ children, onSubmit, currentTask }) {
         {children}
         <div>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <Button type="submit" disabled={submitting} data-cy="submit-button">
-              <span
-                style={{ marginRight: 5 }}
-                className="glyphicon glyphicon-ok"
-              />
-              {submitting ? "Submitting..." : "Submit"}
-            </Button>
+            {!isSubmitButtonHidden && (
+              <Button
+                id="html-task-submit-button"
+                type="submit"
+                disabled={submitting}
+                data-cy="submit-button"
+              >
+                <span
+                  style={{ marginRight: 5 }}
+                  className="glyphicon glyphicon-ok"
+                />
+                {submitting ? "Submitting..." : "Submit"}
+              </Button>
+            )}
           </div>
         </div>
       </form>
