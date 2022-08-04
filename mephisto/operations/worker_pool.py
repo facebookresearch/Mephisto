@@ -561,6 +561,7 @@ class WorkerPool:
                     onboard_agent, cleanup_onboarding
                 )
                 return
+
         if isinstance(blueprint, ScreenTaskRequired) and blueprint.use_screening_task:
             if (
                 blueprint.worker_needs_screening(worker)
