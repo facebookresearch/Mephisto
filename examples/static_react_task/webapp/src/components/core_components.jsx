@@ -16,12 +16,21 @@ function OnboardingComponent({ onSubmit }) {
         qualification for your task. Click the button to move on to the main
         task.
       </Directions>
-      <button
-        className="button is-link"
-        onClick={() => onSubmit({ success: true })}
+      <div
+        style={{
+          width: "100%",
+          padding: "1.5rem 0",
+          display: "flex",
+          justifyContent: "center",
+        }}
       >
-        Move to main task.
-      </button>
+        <button
+          className="button is-link"
+          onClick={() => onSubmit({ success: true })}
+        >
+          Move to Main Task
+        </button>
+      </div>
     </div>
   );
 }
