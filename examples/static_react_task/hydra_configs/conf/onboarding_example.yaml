@@ -9,7 +9,7 @@ mephisto:
     extra_source_dir: ${task_dir}/webapp/src/static
     units_per_assignment: 1
     onboarding_qualification: test-react-static-qualification
-    use_onboarding: true
+  task:
     task_name: react-static-task-example
     task_title: "Rating a sentence as good or bad"
     task_description: "In this task, you'll be given a sentence. It is your job to rate it as either good or bad."
