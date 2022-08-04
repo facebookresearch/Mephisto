@@ -138,10 +138,13 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         found_qualifications = self.db.find_qualifications(qualification_name)
         if len(found_qualifications) == 0:
             return None
+        print([qual.qualification_name for qual in found_qualifications])
         qualification = found_qualifications[0]
         granted_qualifications = self.db.check_granted_qualifications(
             qualification.db_id, self.db_id
         )
+        print("granted-qualifications")
+        print([qual.qualification_name for qual in granted_qualifications])
         if len(granted_qualifications) == 0:
             return None
         return granted_qualifications[0]
