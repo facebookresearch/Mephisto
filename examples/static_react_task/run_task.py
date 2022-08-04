@@ -13,7 +13,7 @@ from mephisto.tools.scripts import task_script, build_custom_bundle
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
-
+from rich import print
 from omegaconf import DictConfig
 
 
@@ -22,13 +22,23 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     def onboarding_always_valid(onboarding_data):
         return True
 
+    def my_screening_unit_generator():
+        while True:
+            yield {"text": "Press the red button", "is_screen": True}
+
     def validate_screening_unit(unit: Unit):
         agent = unit.get_assigned_agent()
-        print(agent)
         if agent is not None:
             data = agent.state.get_data()
             print(data)
-        return True
+            if (
+                data["outputs"] is not None
+                and "rating" in data["outputs"]
+                and data["outputs"]["rating"] == "bad"
+            ):
+                # User pressed the red button
+                return True
+        return False
 
     shared_state = SharedStaticTaskState(
         static_task_data=[
@@ -40,7 +50,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
             cfg.mephisto,
             validate_screening_unit,
         ),
-        screening_data_factory=False,
+        screening_data_factory=my_screening_unit_generator(),
     )
 
     shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(

@@ -11,7 +11,7 @@ mephisto:
     passed_qualification_name: "test-react-static-passed_qualification"
     block_qualification: "test-react-static-blocked-qualification"
     use_screening_task: true
-    max_screening_units: 0
+    max_screening_units: 5
   task:
     task_name: react-static-task-example
     task_title: "Rating a sentence as good or bad"
