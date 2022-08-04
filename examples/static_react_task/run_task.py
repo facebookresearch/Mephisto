@@ -37,8 +37,10 @@ def main(operator: Operator, cfg: DictConfig) -> None:
         ],
         validate_onboarding=onboarding_always_valid,
         on_unit_submitted=ScreenTaskRequired.create_validation_function(
-            cfg.mephisto, validate_screening_unit
+            cfg.mephisto,
+            validate_screening_unit,
         ),
+        screening_data_factory=False,
     )
 
     shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
