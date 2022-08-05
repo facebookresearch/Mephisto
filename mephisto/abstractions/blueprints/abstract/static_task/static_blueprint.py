@@ -16,6 +16,11 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
+from mephisto.abstractions.blueprints.mixins.screen_task_required import (
+    ScreenTaskRequired,
+    ScreenTaskRequiredArgs,
+    ScreenTaskSharedState,
+)
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.abstract.static_task.static_agent_state import (
     StaticAgentState,
@@ -26,15 +31,13 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_task_runner im
 from mephisto.abstractions.blueprints.abstract.static_task.empty_task_builder import (
     EmptyStaticTaskBuilder,
 )
-from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
-import time
 import csv
 import json
 import types
 
-from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
+from typing import ClassVar, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
@@ -42,18 +45,16 @@ if TYPE_CHECKING:
         AgentState,
         TaskRunner,
         TaskBuilder,
-        OnboardingAgent,
     )
-    from mephisto.data_model.assignment import Assignment
-    from mephisto.data_model.worker import Worker
-    from mephisto.data_model.unit import Unit
 
 
 BLUEPRINT_TYPE_STATIC = "abstract_static"
 
 
 @dataclass
-class SharedStaticTaskState(OnboardingSharedState, SharedTaskState):
+class SharedStaticTaskState(
+    ScreenTaskSharedState, OnboardingSharedState, SharedTaskState
+):
     static_task_data: Iterable[Any] = field(
         default_factory=list,
         metadata={
@@ -69,7 +70,9 @@ class SharedStaticTaskState(OnboardingSharedState, SharedTaskState):
 
 
 @dataclass
-class StaticBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
+class StaticBlueprintArgs(
+    ScreenTaskRequiredArgs, OnboardingRequiredArgs, BlueprintArgs
+):
     _blueprint_type: str = BLUEPRINT_TYPE_STATIC
     _group: str = field(
         default="StaticBlueprint",
@@ -104,7 +107,7 @@ class StaticBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
     )
 
 
-class StaticBlueprint(OnboardingRequired, Blueprint):
+class StaticBlueprint(ScreenTaskRequired, OnboardingRequired, Blueprint):
     """
     Abstract blueprint for a task that runs without any extensive backend.
     These are generally one-off tasks sending data to the frontend and then

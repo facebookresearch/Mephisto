@@ -45,6 +45,7 @@ function RemoteProcedureApp() {
     remoteProcedure,
     isOnboarding,
     handleFatalError,
+    initialTaskData,
   } = mephistoProps;
 
   const classifyDigit = remoteProcedure("classify_digit");
@@ -65,7 +66,6 @@ function RemoteProcedureApp() {
   if (isPreview) {
     return <Instructions />;
   }
-
   return (
     <ErrorBoundary handleError={handleFatalError}>
       <MephistoContext.Provider value={mephistoProps}>
@@ -73,6 +73,7 @@ function RemoteProcedureApp() {
           <BaseFrontend
             classifyDigit={classifyDigit}
             handleSubmit={handleSubmit}
+            taskData={initialTaskData["task_data"]}
           />
         </div>
       </MephistoContext.Provider>

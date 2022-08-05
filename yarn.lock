@@ -22619,7 +22619,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-player@npm:^2.9.0":
+"react-player@npm:^2.10.1, react-player@npm:^2.9.0":
   version: 2.10.1
   resolution: "react-player@npm:2.10.1"
   dependencies:
@@ -27163,6 +27163,7 @@ __metadata:
     prism-react-renderer: ^1.2.1
     react: ^17.0.1
     react-dom: ^17.0.1
+    react-player: ^2.10.1
     url-loader: ^4.1.1
   languageName: unknown
   linkType: soft

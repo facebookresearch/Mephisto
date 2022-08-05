@@ -123,24 +123,26 @@ function AnnotationCanvas({ onUpdate, classifyDigit, index }) {
   );
 }
 
-function Instructions() {
+function Instructions({ taskData }) {
   return (
     <div>
       <h1>MNIST Model Evaluator</h1>
       <p>
-        To submit this task, you'll need to draw 3 (single) digits in the boxes
-        below. Our model will try to provide an annotation for each.
+        {taskData.isScreeningUnit
+          ? "Screening Unit:"
+          : "To submit this task, you'll need to draw 3 (single) digits in the boxes below. Our model will try to provide an annotation for each."}
       </p>
       <p>
-        You can confirm or reject each of the annotations. Provide a correction
-        if the annotation is wrong.
+        {taskData.isScreeningUnit
+          ? 'To submit this task you will have to correctly draw the number 3 in the box below and check the "Annotation Correct" checkbox'
+          : "You can confirm or reject each of the annotations. Provide a correction if the annotation is wrong."}
       </p>
     </div>
   );
 }
 
-function TaskFrontend({ classifyDigit, handleSubmit }) {
-  const NUM_ANNOTATIONS = 3;
+function TaskFrontend({ taskData, classifyDigit, handleSubmit }) {
+  const NUM_ANNOTATIONS = taskData.isScreeningUnit ? 1 : 3;
   const [annotations, updateAnnotations] = React.useReducer(
     (currentAnnotation, { updateIdx, updatedAnnotation }) => {
       return currentAnnotation.map((val, idx) =>
@@ -159,7 +161,7 @@ function TaskFrontend({ classifyDigit, handleSubmit }) {
 
   return (
     <div>
-      <Instructions />
+      <Instructions taskData={taskData} />
       <div>
         {annotations.map((_d, idx) => (
           <AnnotationCanvas

@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 import csv
 from genericpath import exists
 import os
+from rich import print
 from typing import (
     ClassVar,
     List,
@@ -148,14 +149,20 @@ class BlueprintMixin(ABC):
             for clazz in removed_locals
             if clazz != BlueprintMixin and clazz != target_class
         )
+
+        # Remaining "Blueprints" should be dropped at this point.
+        filtered_out_blueprints = set(
+            clazz for clazz in filtered_subclasses if not issubclass(clazz, Blueprint)
+        )
+
         # we also want to make sure that we don't double-count extensions of mixins, so remove classes that other classes are subclasses of
         def is_subclassed(clazz):
             return True in [
-                issubclass(x, clazz) and x != clazz for x in filtered_subclasses
+                issubclass(x, clazz) and x != clazz for x in filtered_out_blueprints
             ]
 
         unique_subclasses = [
-            clazz for clazz in filtered_subclasses if not is_subclassed(clazz)
+            clazz for clazz in filtered_out_blueprints if not is_subclassed(clazz)
         ]
         return unique_subclasses
 

@@ -470,6 +470,7 @@ class WorkerPool:
             function="get_valid_units_for_worker"
         ).time():
             units = task_run.get_valid_units_for_worker(worker)
+
         if len(units) == 0:
             AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()
             live_run.client_io.enqueue_agent_details(
@@ -483,7 +484,6 @@ class WorkerPool:
                 f"agent_registration_id {agent_registration_id}, had no valid units."
             )
             return
-
         with EXTERNAL_FUNCTION_LATENCY.labels(
             function="filter_units_for_worker"
         ).time():
@@ -491,7 +491,6 @@ class WorkerPool:
                 None,
                 partial(live_run.task_runner.filter_units_for_worker, units, worker),
             )
-
         # If there's onboarding, see if this worker has already been disqualified
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
@@ -561,6 +560,7 @@ class WorkerPool:
                     onboard_agent, cleanup_onboarding
                 )
                 return
+
         if isinstance(blueprint, ScreenTaskRequired) and blueprint.use_screening_task:
             if (
                 blueprint.worker_needs_screening(worker)

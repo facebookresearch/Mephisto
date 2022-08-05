@@ -1,0 +1,23 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+mephisto:
+  blueprint:
+    task_source: ${task_dir}/webapp/build/bundle.js
+    extra_source_dir: ${task_dir}/webapp/src/static
+    units_per_assignment: 1
+    passed_qualification_name: "test-react-static-passed_qualification"
+    block_qualification: "test-react-static-blocked-qualification"
+    use_screening_task: true
+    max_screening_units: 3
+  task:
+    task_name: react-static-task-example
+    task_title: "Rating a sentence as good or bad"
+    task_description: "In this task, you'll be given a sentence. It is your job to rate it as either good or bad."
+    task_reward: 0.05
+    task_tags: "test,simple,button"
+    # We expect to be able to handle 300 concurrent tasks without issue
+    max_num_concurrent_units: 300
+    allowed_concurrent: 1

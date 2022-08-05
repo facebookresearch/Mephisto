@@ -1,0 +1,106 @@
+---
+sidebar_position: 3
+---
+
+import ReactPlayer from "react-player";
+import Link from "@docusaurus/Link";
+
+# Check worker quality with Screening Units
+
+Screening units help filter out low-quality work, generally by hiding parts of the validation you're paying attention to behind the Mephisto server. To support this we provide the `ScreenTaskRequired` blueprint mixin.
+
+Screening units are a heuristic-based way to determine, on the first task completion, if a worker has understood the instructions of a task. They can be run either on real data you want annotated (for cases where your heuristics can be run whenever) or on specific 'test' data you believe it's easier to validate on.
+
+## Showcase
+
+<ReactPlayer
+  playing
+  controls
+  width="100%"
+  height="auto"
+  url="https://user-images.githubusercontent.com/55665282/183139879-d252d899-454c-4c15-afaa-474e6f02812b.mp4"
+/>
+
+### Things to note in the showcase:
+
+- The `remote_procedure/mnist` example is ran with the `screening_example` configuration enabled to ensure that screening units are generated.
+- When a worker goes to an assignment for the first time they see a screening unit.
+- Drawing a "3" gives the worker the passing qualification
+- Drawing any number other than "3" gives the worker the blocked qualification
+- Going to a different assignment when you have a blocked qualification shows you a not qualified screen.
+- Going to a different assignment when you have a passing qualification allows you to see the real unit
+
+## Basic configuration
+
+There are a few required configuration parts for using screening units:
+
+- Hydra args
+  - `blueprint.passed_qualification_name`: A string qualification to mark people who have passed screening.
+  - `blueprint.block_qualification`: A string qualification to mark people who have failed screening.
+  - `blueprint.use_screening_task`: Determines if the screening units feature will be enabled. Set to **true to enable screening units** and set to **false to disable screening units**.
+  - `blueprint.max_screening_units`: An int for the maximum number of screening tasks you're willing to launch with this batch. Used to limit how much you will pay out for units that aren't annotating your desired data.
+    - Must be set to 0 if `screening_data_factory` is set to False
+    - Must be greater than 0 if `screening_data_factory` is not False
+  - `task.allowed_concurrent:` An int for the number of allowed concurrent units at a time per worker. This value **must be set to 1**.
+    - Screening units can only run this task type with one allowed concurrent unit at a time per worker, to ensure screening before moving into real units.
+- `ScreenTaskSharedState`:
+  - `screening_data_factory`: `False` if you want to validate on real data. Otherwise, a factory that generates input data for a screening unit for a worker. Explained in-depth below.
+
+## Setting up SharedTaskState
+
+With the basic configuration done, you'll also need to provide additional arguments to your `SharedTaskState` to register the required qualifications and the screening validation function.
+
+A shortened version of the run script for the video above looks like:
+
+```python
+# run_task.py
+
+def my_screening_unit_generator():
+    """
+    The frontend react webapp reads in
+    isScreeningUnit using the initialTaskData
+    prop
+    """
+    while True:
+        yield {"isScreeningUnit": True}
+
+def validate_screening_unit(unit: Unit):
+    """Checking if the drawn number is 3"""
+    agent = unit.get_assigned_agent()
+    if agent is not None:
+        data = agent.state.get_data()
+        annotation = data["final_submission"]["annotations"][0]
+        if annotation["isCorrect"] and annotation["currentAnnotation"] == 3:
+            return True
+    return False
+
+@task_script(default_config_file="example.yaml")
+def main(operator: Operator, cfg: DictConfig) -> None:
+  is_using_screening_units = cfg.mephisto.blueprint["use_screening_task"]
+  tasks: List[Dict[str, Any]] = [{"isScreeningUnit": False}] * cfg.num_tasks
+  ...
+  shared_state = SharedRemoteProcedureTaskState(
+        static_task_data=tasks,
+        function_registry=function_registry,
+    )
+
+  if is_using_screening_units:
+      """You have to defined a few more properties to enable screening units"""
+      shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
+          cfg.mephisto,
+          validate_screening_unit,
+      )
+      shared_state.screening_data_factory = my_screening_unit_generator()
+      shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
+          cfg.mephisto, shared_state
+      )
+  ...
+```
+
+### See the full code [here](https://github.com/facebookresearch/Mephisto/blob/main/examples/remote_procedure/mnist/run_task.py)
+
+### See hydra configuration [here](https://github.com/facebookresearch/Mephisto/blob/main/examples/remote_procedure/mnist/hydra_configs/conf/screening_example.yaml)
+
+## Additional Questions?
+
+You can find more information on using screening units in the reference documentation for <Link target={null} to="pathname:///python_api/mephisto/abstractions/blueprints/mixins/screen_task_required.html">`ScreenTaskRequired`</Link>.
