@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
 
 from mephisto.utils.logger_core import get_logger
-from rich import print
 
 logger = get_logger(name=__name__)
 
