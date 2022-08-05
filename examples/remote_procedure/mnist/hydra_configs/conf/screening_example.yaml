@@ -1,0 +1,26 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: remote_procedure
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+mephisto:
+  blueprint:
+    task_source: ${task_dir}/webapp/build/bundle.js
+    link_task_source: false
+    units_per_assignment: 1
+    passed_qualification_name: "test-mnist-passed-qualification"
+    block_qualification: "test-mnist-blocked-qualification"
+    use_screening_task: true
+    max_screening_units: 3
+  task:
+    task_name: remote-procedure-test-task
+    task_title: "Provide feedback on our MNIST model"
+    # NOTE you'll want to update your task description
+    task_description: "You will draw digits. Try to fool our MNIST model, and provide us the correct label."
+    # NOTE set a reasonable reward
+    task_reward: 0.05
+    # NOTE will want real tags
+    task_tags: "mnist,drawing,models,correction"
+    # We expect to handle 25 people using the MNIST model at once
+    max_num_concurrent_units: 25
+    allowed_concurrent: 1

@@ -16,6 +16,10 @@ except ImportError:
 import os
 import base64
 from io import BytesIO
+from mephisto.abstractions.blueprints.mixins.screen_task_required import (
+    ScreenTaskRequired,
+)
+from mephisto.data_model.unit import Unit
 from model import mnist
 
 from mephisto.operations.operator import Operator
@@ -30,12 +34,29 @@ from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprin
 
 from omegaconf import DictConfig
 from typing import List, Any, Dict
+from rich import print
+
+
+def my_screening_unit_generator():
+    while True:
+        yield {"isScreeningUnit": True}
+
+
+def validate_screening_unit(unit: Unit):
+    agent = unit.get_assigned_agent()
+    if agent is not None:
+        data = agent.state.get_data()
+        annotation = data["final_submission"]["annotations"][0]
+        if annotation["isCorrect"] and annotation["currentAnnotation"] == 3:
+            return True
+    return False
 
 
 @task_script(default_config_file="launch_with_local")
 def main(operator: Operator, cfg: DictConfig) -> None:
-    tasks: List[Dict[str, Any]] = [{}] * cfg.num_tasks
+    tasks: List[Dict[str, Any]] = [{"isScreeningUnit": False}] * cfg.num_tasks
     mnist_model = mnist(pretrained=True)
+    is_using_screening_units = cfg.mephisto.blueprint["use_screening_task"]
 
     def handle_with_model(
         _request_id: str, args: Dict[str, Any], agent_state: RemoteProcedureAgentState
@@ -58,12 +79,24 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     function_registry = {
         "classify_digit": handle_with_model,
     }
-
-    shared_state = SharedRemoteProcedureTaskState(
-        static_task_data=tasks,
-        function_registry=function_registry,
-    )
-
+    if is_using_screening_units:
+        shared_state = SharedRemoteProcedureTaskState(
+            static_task_data=tasks,
+            function_registry=function_registry,
+            on_unit_submitted=ScreenTaskRequired.create_validation_function(
+                cfg.mephisto,
+                validate_screening_unit,
+            ),
+            screening_data_factory=my_screening_unit_generator(),
+        )
+        shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
+            cfg.mephisto, shared_state
+        )
+    else:
+        shared_state = SharedRemoteProcedureTaskState(
+            static_task_data=tasks,
+            function_registry=function_registry,
+        )
     task_dir = cfg.task_dir
 
     build_custom_bundle(
