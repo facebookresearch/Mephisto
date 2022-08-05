@@ -79,24 +79,21 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     function_registry = {
         "classify_digit": handle_with_model,
     }
+    shared_state = SharedRemoteProcedureTaskState(
+        static_task_data=tasks,
+        function_registry=function_registry,
+    )
+
     if is_using_screening_units:
-        shared_state = SharedRemoteProcedureTaskState(
-            static_task_data=tasks,
-            function_registry=function_registry,
-            on_unit_submitted=ScreenTaskRequired.create_validation_function(
-                cfg.mephisto,
-                validate_screening_unit,
-            ),
-            screening_data_factory=my_screening_unit_generator(),
+        shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
+            cfg.mephisto,
+            validate_screening_unit,
         )
+        shared_state.screening_data_factory = my_screening_unit_generator()
         shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
             cfg.mephisto, shared_state
         )
-    else:
-        shared_state = SharedRemoteProcedureTaskState(
-            static_task_data=tasks,
-            function_registry=function_registry,
-        )
+
     task_dir = cfg.task_dir
 
     build_custom_bundle(

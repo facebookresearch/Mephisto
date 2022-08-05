@@ -44,33 +44,24 @@ def onboarding_always_valid(onboarding_data):
 @task_script(default_config_file="example.yaml")
 def main(operator: Operator, cfg: DictConfig) -> None:
     is_using_screening_units = cfg.mephisto.blueprint["use_screening_task"]
-    shared_state = None
-    if not is_using_screening_units:
-        shared_state = SharedStaticTaskState(
-            static_task_data=[
-                {"text": "This text is good text!"},
-                {"text": "This text is bad text!"},
-            ],
-            validate_onboarding=onboarding_always_valid,
-        )
+    shared_state = SharedStaticTaskState(
+        static_task_data=[
+            {"text": "This text is good text!"},
+            {"text": "This text is bad text!"},
+        ],
+        validate_onboarding=onboarding_always_valid,
+    )
 
-    else:
+    if is_using_screening_units:
         """
         When using screening units there has to be a
         few more properties set on shared_state
         """
-        shared_state = SharedStaticTaskState(
-            static_task_data=[
-                {"text": "This text is good text!"},
-                {"text": "This text is bad text!"},
-            ],
-            validate_onboarding=onboarding_always_valid,
-            on_unit_submitted=ScreenTaskRequired.create_validation_function(
-                cfg.mephisto,
-                validate_screening_unit,
-            ),
-            screening_data_factory=my_screening_unit_generator(),
+        shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
+            cfg.mephisto,
+            validate_screening_unit,
         )
+        shared_state.screening_data_factory = my_screening_unit_generator()
         shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
             cfg.mephisto, shared_state
         )
