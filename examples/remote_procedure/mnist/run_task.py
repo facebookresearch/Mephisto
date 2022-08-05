@@ -38,11 +38,17 @@ from rich import print
 
 
 def my_screening_unit_generator():
+    """
+    The frontend react webapp reads in
+    isScreeningUnit using the initialTaskData
+    prop
+    """
     while True:
         yield {"isScreeningUnit": True}
 
 
 def validate_screening_unit(unit: Unit):
+    """Checking if the drawn number is 3"""
     agent = unit.get_assigned_agent()
     if agent is not None:
         data = agent.state.get_data()
@@ -85,6 +91,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     )
 
     if is_using_screening_units:
+        """You have to defined a few more properties to enable screening units"""
         shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
             cfg.mephisto,
             validate_screening_unit,

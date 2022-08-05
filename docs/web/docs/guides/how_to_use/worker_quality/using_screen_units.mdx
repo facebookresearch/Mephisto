@@ -18,15 +18,15 @@ Screening units are a heuristic-based way to determine, on the first task comple
   controls
   width="100%"
   height="auto"
-  url="https://user-images.githubusercontent.com/55665282/183100782-4c6610f5-85c8-44e2-b056-db9ec9a80fa5.mp4"
+  url="https://user-images.githubusercontent.com/55665282/183139879-d252d899-454c-4c15-afaa-474e6f02812b.mp4"
 />
 
 ### Things to note in the showcase:
 
-- The `static_react_task` example is ran with the `screening_example` configuration enabled to ensure that screening units are generated.
+- The `remote_procedure/mnist` example is ran with the `screening_example` configuration enabled to ensure that screening units are generated.
 - When a worker goes to an assignment for the first time they see a screening unit.
-- Pressing the red button gives the worker the passing qualification
-- Pressing the green button gives the worker the blocked qualification
+- Drawing a "3" gives the worker the passing qualification
+- Drawing any number other than "3" gives the worker the blocked qualification
 - Going to a different assignment when you have a blocked qualification shows you a not qualified screen.
 - Going to a different assignment when you have a passing qualification allows you to see the real unit
 
@@ -46,60 +46,60 @@ There are a few required configuration parts for using screening units:
 - `ScreenTaskSharedState`:
   - `screening_data_factory`: `False` if you want to validate on real data. Otherwise, a factory that generates input data for a screening unit for a worker. Explained in-depth below.
 
-## Setting up SharedStaticTaskState
+## Setting up SharedTaskState
 
-With the basic configuration done, you'll also need to provide additional arguments to your `SharedStaticTaskState` to register the required qualifications and the screening validation function.
+With the basic configuration done, you'll also need to provide additional arguments to your `SharedTaskState` to register the required qualifications and the screening validation function.
 
 A shortened version of the run script for the video above looks like:
 
 ```python
 # run_task.py
+
 def my_screening_unit_generator():
-  """Replacing the task text for the screening units"""
+    """
+    The frontend react webapp reads in
+    isScreeningUnit using the initialTaskData
+    prop
+    """
     while True:
-        yield {
-          "text": "SCREENING UNIT: Press the red button",
-          "is_screen": True
-        }
+        yield {"isScreeningUnit": True}
 
 def validate_screening_unit(unit: Unit):
+    """Checking if the drawn number is 3"""
     agent = unit.get_assigned_agent()
     if agent is not None:
         data = agent.state.get_data()
-        print(data)
-        if (
-            data["outputs"] is not None
-            and "rating" in data["outputs"]
-            and data["outputs"]["rating"] == "bad"
-        ):
-            # User pressed the red button
+        annotation = data["final_submission"]["annotations"][0]
+        if annotation["isCorrect"] and annotation["currentAnnotation"] == 3:
             return True
-    # User pressed the green button
     return False
 
 @task_script(default_config_file="example.yaml")
 def main(operator: Operator, cfg: DictConfig) -> None:
+  is_using_screening_units = cfg.mephisto.blueprint["use_screening_task"]
+  tasks: List[Dict[str, Any]] = [{"isScreeningUnit": False}] * cfg.num_tasks
   ...
-  shared_state = SharedStaticTaskState(
-      static_task_data=[
-          {"text": "This text is good text!"},
-          {"text": "This text is bad text!"},
-      ],
-      on_unit_submitted=ScreenTaskRequired.create_validation_function(
+  shared_state = SharedRemoteProcedureTaskState(
+        static_task_data=tasks,
+        function_registry=function_registry,
+    )
+
+  if is_using_screening_units:
+      """You have to defined a few more properties to enable screening units"""
+      shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(
           cfg.mephisto,
           validate_screening_unit,
-      ),
-      screening_data_factory=my_screening_unit_generator(),
-  )
-  shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
-      cfg.mephisto, shared_state
-  )
+      )
+      shared_state.screening_data_factory = my_screening_unit_generator()
+      shared_state.qualifications += ScreenTaskRequired.get_mixin_qualifications(
+          cfg.mephisto, shared_state
+      )
   ...
 ```
 
-### See the full code [here](https://github.com/facebookresearch/Mephisto/blob/add-screening-example/examples/static_react_task/run_task.py)
+### See the full code [here](https://github.com/facebookresearch/Mephisto/blob/main/examples/remote_procedure/mnist/run_task.py)
 
-### See hydra configuration [here](https://github.com/facebookresearch/Mephisto/blob/add-screening-example/examples/static_react_task/hydra_configs/conf/screening_example.yaml)
+### See hydra configuration [here](https://github.com/facebookresearch/Mephisto/blob/main/examples/remote_procedure/mnist/hydra_configs/conf/screening_example.yaml)
 
 ## Additional Questions?
 
