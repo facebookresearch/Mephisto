@@ -21,14 +21,23 @@ function OnboardingComponent({ onSubmit }) {
           width: "100%",
           padding: "1.5rem 0",
           display: "flex",
-          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
         }}
       >
         <button
-          className="button is-link"
+          className="button is-success"
+          style={{ width: "fit-content", marginBottom: "0.65rem" }}
           onClick={() => onSubmit({ success: true })}
         >
           Move to Main Task
+        </button>
+        <button
+          className="button is-danger"
+          style={{ width: "fit-content" }}
+          onClick={() => onSubmit({ success: false })}
+        >
+          Get Blocked
         </button>
       </div>
     </div>
