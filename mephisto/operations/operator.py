@@ -313,7 +313,7 @@ class Operator:
             raise e
 
         live_run.task_launcher.create_assignments()
-        live_run.task_launcher.launch_units(task_url)
+        live_run.task_launcher.launch_units(url=task_url, run_config=run_config)
 
         self._task_runs_tracked[task_run.db_id] = live_run
         task_run.update_completion_progress(status=False)

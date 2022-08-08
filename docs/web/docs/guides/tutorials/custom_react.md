@@ -57,7 +57,7 @@ This will launch a simple task where an annotator is supposed to note a sentence
 
 To establish a link where your changes will be propagated to the localhost server(when you reload) create a separate terminal window and run
 ```bash
-cd webapp && npm run dev
+cd webapp && npm run dev:watch
 ```
 
 Moving forward, we'll update this task so that workers are able to edit the text as well as rate the original sentence.

@@ -26,7 +26,7 @@ import enum
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB
-
+from omegaconf import DictConfig, OmegaConf
 import threading
 from mephisto.utils.logger_core import get_logger
 import types
@@ -180,7 +180,7 @@ class TaskLauncher:
             if not self.unlaunched_units:
                 break
 
-    def _launch_limited_units(self, url: str) -> None:
+    def _launch_limited_units(self, url: str, run_config: Optional[DictConfig]) -> None:
         """use units' generator to launch limited number of units according to (max_num_concurrent_units)"""
         # Continue launching if we haven't pulled the plug, so long as there are currently
         # units to launch, or more may come in the future.
@@ -191,15 +191,24 @@ class TaskLauncher:
                 if unit is None:
                     break
                 unit.launch(url)
+            if (
+                run_config is not None
+                and run_config.blueprint.link_task_source == False
+            ):
+                logger.info(
+                    "If you want your server to update on reload whenever you make changes to your webapp, then make sure to set \n\nlink_task_source: true\n\nin your task's hydra configuration.\n\nFor more information check out:\nhttps://mephisto.ai/docs/guides/tutorials/custom_react/#12-launching-the-task"
+                )
             if self.generator_type == GeneratorType.NONE:
                 break
         self.finished_generators = True
 
-    def launch_units(self, url: str) -> None:
+    def launch_units(self, url: str, run_config: Optional[DictConfig]) -> None:
         """launch any units registered by this TaskLauncher"""
         self.launch_url = url
         self.units_thread = threading.Thread(
-            target=self._launch_limited_units, args=(url,), name="unit-generator"
+            target=self._launch_limited_units,
+            args=(url, run_config),
+            name="unit-generator",
         )
         self.units_thread.start()
 
