@@ -18,6 +18,7 @@ import mephisto.scripts.local_db.review_tips_for_task as review_tips_local_db
 import mephisto.scripts.local_db.remove_accepted_tip as remove_accepted_tip_local_db
 import mephisto.scripts.local_db.review_feedback_for_task as review_feedback_local_db
 import mephisto.scripts.local_db.load_data_to_mephisto_db as load_data_local_db
+import mephisto.scripts.local_db.clear_worker_onboarding as clear_worker_onboarding_local_db
 import mephisto.scripts.heroku.initialize_heroku as initialize_heroku
 import mephisto.scripts.metrics.view_metrics as view_metrics
 import mephisto.scripts.metrics.shutdown_metrics as shutdown_metrics
@@ -289,6 +290,7 @@ def run_script(script_type, script_name):
         "remove_tip",
         "review_feedback",
         "load_data",
+        "clear_worker_onboarding",
     ]
     HEROKU_VALID_SCRIPTS_NAMES = ["initialize"]
     METRICS_VALID_SCRIPTS_NAMES = ["view", "shutdown"]
@@ -307,6 +309,7 @@ def run_script(script_type, script_name):
                 LOCAL_DB_VALID_SCRIPTS_NAMES[1]: remove_accepted_tip_local_db.main,
                 LOCAL_DB_VALID_SCRIPTS_NAMES[2]: review_feedback_local_db.main,
                 LOCAL_DB_VALID_SCRIPTS_NAMES[3]: load_data_local_db.main,
+                LOCAL_DB_VALID_SCRIPTS_NAMES[4]: clear_worker_onboarding_local_db.main,
             },
         },
         "heroku": {
