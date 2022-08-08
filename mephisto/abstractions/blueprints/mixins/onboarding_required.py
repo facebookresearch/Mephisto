@@ -147,6 +147,12 @@ class OnboardingRequired(BlueprintMixin):
             db, self.onboarding_failed_name
         )
 
+    @classmethod
+    def clear_onboarding(self, worker: "Worker", qualification_name: str):
+        worker.revoke_qualification(qualification_name)
+        if qualification_name is not None:
+            worker.revoke_crowd_qualification(self.get_failed_qual(qualification_name))
+
     def get_onboarding_data(self, worker_id: str) -> Dict[str, Any]:
         """
         If the onboarding task on the frontend requires any specialized data, the blueprint
