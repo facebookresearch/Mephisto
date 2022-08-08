@@ -33,7 +33,7 @@ This hook allows for a state to be updated when an event is consumed. An event i
 
 ```html
 <script>
-window._MEPHISTO_CONFIG.set(eventName, valueThatStateWillBeUpdatedTo)
+window._MEPHISTO_CONFIG.set(configName, valueThatStateWillBeUpdatedTo)
 </script>
 ```
 
@@ -46,7 +46,7 @@ const [isSubmitButtonHidden, setIsSubmitButtonHidden] =
       (valueThatStateWillBeUpdatedTo) => typeof valueThatStateWillBeUpdatedTo === "boolean"
     );
 ```
-This sets the isSubmitButtonHidden state to be equal to whatever it was set to in the html.
+This sets the isSubmitButtonHidden state to be equal to whatever it was set to in the html when the HIDE_SUBMIT_BUTTON config name is consumed.
 
 In this case:
 * The first argument is the name of the event you are consuming.
