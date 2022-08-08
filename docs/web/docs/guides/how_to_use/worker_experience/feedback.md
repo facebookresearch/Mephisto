@@ -12,19 +12,19 @@ To allow for greater communication between workers and researchers it is recomme
 
 ### Feedback Code Snippet:
 ```jsx
-  import { Feedback } from "mephisto-worker-addons";
+import { Feedback } from "mephisto-worker-addons";
 
-  return(
-    <div>
-      <SomeTaskCodeGoesHere />
-      <Feedback  
-        questions={[
-          "What is your favorite part of this task?",
-          "Were you satisfied with this task?",
-        ]}
-      />
-    </div>
-  )
+return(
+  <div>
+    <SomeTaskCodeGoesHere />
+    <Feedback  
+      questions={[
+        "What is your favorite part of this task?",
+        "Were you satisfied with this task?",
+      ]}
+    />
+  </div>
+)
 ```
 To learn more about the props in the Feedback component you can check out its [readme](https://github.com/facebookresearch/Mephisto/blob/main/packages/mephisto-worker-addons/README.md#documentation-1).
 

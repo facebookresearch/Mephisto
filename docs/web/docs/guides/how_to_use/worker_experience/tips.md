@@ -13,14 +13,14 @@ To allow for greater communication between workers and workers and it is recomme
 
 ### Tips Code Snippet:
 ```jsx
-  import { Tips } from "mephisto-worker-addons";
+import { Tips } from "mephisto-worker-addons";
 
-  return(
-    <div>
-      <SomeTaskCodeGoesHere />
-      <Tips />
-    </div>
-  )
+return(
+  <div>
+    <SomeTaskCodeGoesHere />
+    <Tips />
+  </div>
+)
 ```
 
 To learn more about the props in the Tips component you can check out its [readme](https://github.com/facebookresearch/Mephisto/blob/main/packages/mephisto-worker-addons/README.md#documentation).
