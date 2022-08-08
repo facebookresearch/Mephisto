@@ -196,7 +196,7 @@ class TaskLauncher:
                 and run_config.blueprint.link_task_source == False
             ):
                 logger.info(
-                    "If you want your server to update on reload whenever you make changes to your webapp, then make sure to set \n\nlink_task_source: true\n\nin your task's hydra configuration.\n\nFor more information check out:\nhttps://mephisto.ai/docs/guides/tutorials/custom_react/#12-launching-the-task"
+                    "If you want your server to update on reload whenever you make changes to your webapp, then make sure to set \n\nlink_task_source: true\n\nin your task's hydra configuration and run \n\ncd webapp && npm run dev:watch\n\nin a separate terminal window. For more information check out:\nhttps://mephisto.ai/docs/guides/tutorials/custom_react/#12-launching-the-task"
                 )
             if self.generator_type == GeneratorType.NONE:
                 break
