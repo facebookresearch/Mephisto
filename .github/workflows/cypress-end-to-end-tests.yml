@@ -1,9 +1,12 @@
 name: cypress-end-to-end-tests
 on:
   pull_request:
+    paths-ignore:
+      - "**.md"
   push:
     branches: [main]
-
+    paths-ignore:
+      - "**.md"
 jobs:
   # This job is made to setup path filtering, learn more about it here: https://github.com/facebookresearch/Mephisto/pull/857
   changes:
