@@ -55,7 +55,7 @@ python run_task.py mephisto.task.task_name=custom-react-tutorial-iterating mephi
 ```
 This will launch a simple task where an annotator is supposed to note a sentence as being good or bad. Clicking a button auto-submits the task. In the next sections we'll add other content. 
 
-To establish a link where your changes will be propagated to the localhost server(when you reload) create a separate terminal window and run
+To establish a link where your changes will be propagated to the localhost server(when you reload), create a separate terminal window and run
 ```bash
 cd webapp && npm run dev:watch
 ```
