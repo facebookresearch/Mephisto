@@ -37,8 +37,10 @@ def validate_screening_unit(unit: Unit):
     return False
 
 
-def onboarding_always_valid(onboarding_data):
-    return True
+def handle_onboarding(onboarding_data):
+    if onboarding_data["outputs"]["success"] == True:
+        return True
+    return False
 
 
 @task_script(default_config_file="example.yaml")
@@ -49,7 +51,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
             {"text": "This text is good text!"},
             {"text": "This text is bad text!"},
         ],
-        validate_onboarding=onboarding_always_valid,
+        validate_onboarding=handle_onboarding,
     )
 
     if is_using_screening_units:
