@@ -7,11 +7,24 @@
  */
 
 import React, { Fragment, useState } from "react";
+import { Feedback } from "mephisto-worker-addons";
 
 function LoadingScreen() {
-  return <Directions>Loading...</Directions>;
+  const [showFeedbackBox, setShowFeedbackBox] = useState(false);
+  useEffect(() => {
+    setTimeout(() => setShowFeedbackBox(true), 5000);
+  }, []);
+  return (
+    <Fragment>
+      <Directions>Loading...</Directions>
+      {showFeedbackBox && (
+        <div style={{ margin: "5rem 2rem", maxWidth: "32.5rem" }}>
+          <Feedback questions={["Is the task loading propertly?"]} />
+        </div>
+      )}
+    </Fragment>
+  );
 }
-
 function Directions({ children }) {
   return (
     <section className="hero is-light">

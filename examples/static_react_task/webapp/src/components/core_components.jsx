@@ -6,7 +6,8 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React from "react";
+import React, { Fragment, useEffect, useState } from "react";
+import { Feedback } from "mephisto-worker-addons";
 
 function OnboardingComponent({ onSubmit }) {
   return (
@@ -36,7 +37,20 @@ function OnboardingComponent({ onSubmit }) {
 }
 
 function LoadingScreen() {
-  return <Directions>Loading...</Directions>;
+  const [showFeedbackBox, setShowFeedbackBox] = useState(false);
+  useEffect(() => {
+    setTimeout(() => setShowFeedbackBox(true), 5000);
+  }, []);
+  return (
+    <Fragment>
+      <Directions>Loading...</Directions>
+      {showFeedbackBox && (
+        <div style={{ margin: "5rem 2rem", maxWidth: "32.5rem" }}>
+          <Feedback questions={["Is the task loading propertly?"]} />
+        </div>
+      )}
+    </Fragment>
+  );
 }
 
 function Directions({ children }) {
