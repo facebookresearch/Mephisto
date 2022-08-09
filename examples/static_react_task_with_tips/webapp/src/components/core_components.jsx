@@ -6,7 +6,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import React from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Tips, Feedback } from "mephisto-worker-addons";
 
 function OnboardingComponent({ onSubmit }) {
