@@ -22,6 +22,9 @@ from typing import ClassVar, Type, TYPE_CHECKING
 from mephisto.abstractions.blueprint import (
     SharedTaskState,
 )
+from mephisto.utils.logger_core import (
+    get_logger,
+)
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
@@ -31,6 +34,7 @@ if TYPE_CHECKING:
     from omegaconf import DictConfig
 
 BLUEPRINT_TYPE_STATIC_REACT = "static_react_task"
+logger = get_logger(name=__name__)
 
 
 @dataclass
@@ -120,3 +124,9 @@ class StaticReactBlueprint(StaticBlueprint):
         assert link_task_source == False or (
             link_task_source == True and current_architect in allowed_architects
         ), f"`link_task_source={link_task_source}` is not compatible with architect type: {args.architect._architect_type}. Please check your task configuration."
+
+        if link_task_source == False and current_architect in allowed_architects:
+            logger.info(
+                "If you want your server to update on reload whenever you make changes to your webapp, then make sure to set \n\nlink_task_source: [blue]true[/blue]\n\nin your task's hydra configuration and run \n\n[purple]cd[/purple] webapp [red]&&[/red] [green]npm[/green] run dev:watch\n\nin a separate terminal window. For more information check out:\nhttps://mephisto.ai/docs/guides/tutorials/custom_react/#12-launching-the-task\n",
+                extra={"markup": True},
+            )

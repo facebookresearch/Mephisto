@@ -29,7 +29,6 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 )
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import QUAL_NOT_EXIST
-from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.utils.qualifications import make_qualification_dict
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.operations.client_io_handler import ClientIOHandler
@@ -56,7 +55,7 @@ from omegaconf import DictConfig, OmegaConf
 logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.blueprint import Blueprint, TaskRunner
+    from mephisto.abstractions.blueprint import Blueprint
     from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.abstractions.architect import Architect
 
@@ -250,12 +249,6 @@ class Operator:
             logger.warning(
                 f"Task is using the default blueprint name {task_name} as a name, "
                 "as no task_name is provided"
-            )
-        link_task_source = run_config.blueprint.get("link_task_source")
-        if link_task_source == False:
-            logger.info(
-                "If you want your server to update on reload whenever you make changes to your webapp, then make sure to set \n\nlink_task_source: [blue]true[/blue]\n\nin your task's hydra configuration and run \n\n[purple]cd[/purple] webapp && [green]npm[/green] run dev:watch\n\nin a separate terminal window. For more information check out:\nhttps://mephisto.ai/docs/guides/tutorials/custom_react/#12-launching-the-task",
-                extra={"markup": True},
             )
 
         tasks = self.db.find_tasks(task_name=task_name)
