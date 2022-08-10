@@ -251,6 +251,12 @@ class Operator:
                 f"Task is using the default blueprint name {task_name} as a name, "
                 "as no task_name is provided"
             )
+        link_task_source = run_config.blueprint.get("link_task_source")
+        if link_task_source == False:
+            logger.info(
+                "If you want your server to update on reload whenever you make changes to your webapp, then make sure to set \n\nlink_task_source: [blue]true[/blue]\n\nin your task's hydra configuration and run \n\n[purple]cd[/purple] webapp && [green]npm[/green] run dev:watch\n\nin a separate terminal window. For more information check out:\nhttps://mephisto.ai/docs/guides/tutorials/custom_react/#12-launching-the-task",
+                extra={"markup": True},
+            )
 
         tasks = self.db.find_tasks(task_name=task_name)
 
@@ -313,7 +319,7 @@ class Operator:
             raise e
 
         live_run.task_launcher.create_assignments()
-        live_run.task_launcher.launch_units(url=task_url, run_config=run_config)
+        live_run.task_launcher.launch_units(url=task_url)
 
         self._task_runs_tracked[task_run.db_id] = live_run
         task_run.update_completion_progress(status=False)
