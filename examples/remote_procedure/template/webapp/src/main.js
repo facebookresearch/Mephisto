@@ -6,3 +6,5 @@
 import "./app.jsx";
 import "./css/style.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+
+export const feedbackBoxLoadingTimeout = 10000;

@@ -5,3 +5,4 @@
  */
 import "./app.jsx";
 import "./css/style.css";
+export const feedbackBoxLoadingTimeout = 10000;

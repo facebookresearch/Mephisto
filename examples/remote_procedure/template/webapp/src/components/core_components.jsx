@@ -8,17 +8,18 @@
 
 import React, { Fragment, useEffect, useState } from "react";
 import { Feedback } from "mephisto-worker-addons";
+import { feedbackBoxLoadingTimeout } from "../main";
 function LoadingScreen() {
   const [showFeedbackBox, setShowFeedbackBox] = useState(false);
   useEffect(() => {
-    setTimeout(() => setShowFeedbackBox(true), 5000);
+    setTimeout(() => setShowFeedbackBox(true), feedbackBoxLoadingTimeout);
   }, []);
   return (
     <Fragment>
       <Directions>Loading...</Directions>
       {showFeedbackBox && (
         <div style={{ margin: "5rem 2rem", maxWidth: "32.5rem" }}>
-          <Feedback questions={["Is the task loading propertly?"]} />
+          <Feedback questions={["Is the task loading properly?"]} />
         </div>
       )}
     </Fragment>

@@ -5,3 +5,9 @@
  */
 import "./app.jsx";
 import "./css/style.css";
+
+/*
+ Time in milliseconds before the feedback box
+ shows when in the loading screen
+*/
+export const feedbackBoxLoadingTimeout = 10000;
