@@ -36,14 +36,29 @@ mephisto:
     task_tags: "test,simple,button"
 ```
 
-The only change we'll make is to the `task_name` (as you should on any new tasks!), but we will update the other fields as we go. It's important to note the `task_source` and `extra_source_dir` arguments though, as this is where the `StaticReactBlueprint` class will be looking for the compiled React app's Javascript bundle as well as a folder for extra static resources for the page, respectively.
+It is important to give a new `task_name` as we are creating a custom task. For local development **only** it also makes sense to set `link_task_source` to true. This allows changes to propagate to your localhost server when you reload the page (otherwise you would have to shutdown and restart the server to see changes). 
+
+The `task_source` and `extra_source_dir` arguments are also of importance, as this is where the `StaticReactBlueprint` class will be looking for the compiled React app's Javascript bundle as well as a folder for extra static resources for the page, respectively.
 
 ### 1.2 Launching the task
 From the current directory, you should be able to execute the run script and get a job working. We're using a different `task_name` to prevent polluting our later task with data that won't share the same format. It is a good practice to do this with initial iterations, and to change the `task_name` any time you change input or output arguments.
+
+You can update the `task_name` and `link_task_source` values in your config and run the task like below
 ```bash
-python run_task.py mephisto.task.task_name=custom-react-tutorial-iterating
+python run_task.py
+```
+
+or you can set them when you run the task:
+
+```bash
+python run_task.py mephisto.task.task_name=custom-react-tutorial-iterating mephisto.blueprint.link_task_source=true
 ```
 This will launch a simple task where an annotator is supposed to note a sentence as being good or bad. Clicking a button auto-submits the task. In the next sections we'll add other content. 
+
+To establish a link where your changes will be propagated to the localhost server(when you reload), create a separate terminal window and run
+```bash
+cd webapp && npm run dev:watch
+```
 
 Moving forward, we'll update this task so that workers are able to edit the text as well as rate the original sentence.
 

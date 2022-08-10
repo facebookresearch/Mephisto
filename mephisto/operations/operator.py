@@ -29,7 +29,6 @@ from mephisto.abstractions.blueprints.mixins.onboarding_required import (
 )
 from mephisto.abstractions.database import MephistoDB, EntryDoesNotExistException
 from mephisto.data_model.qualification import QUAL_NOT_EXIST
-from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from mephisto.utils.qualifications import make_qualification_dict
 from mephisto.operations.task_launcher import TaskLauncher
 from mephisto.operations.client_io_handler import ClientIOHandler
@@ -56,7 +55,7 @@ from omegaconf import DictConfig, OmegaConf
 logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.blueprint import Blueprint, TaskRunner
+    from mephisto.abstractions.blueprint import Blueprint
     from mephisto.abstractions.crowd_provider import CrowdProvider
     from mephisto.abstractions.architect import Architect
 
@@ -313,7 +312,7 @@ class Operator:
             raise e
 
         live_run.task_launcher.create_assignments()
-        live_run.task_launcher.launch_units(task_url)
+        live_run.task_launcher.launch_units(url=task_url)
 
         self._task_runs_tracked[task_run.db_id] = live_run
         task_run.update_completion_progress(status=False)

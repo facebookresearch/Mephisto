@@ -26,7 +26,6 @@ import enum
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB
-
 import threading
 from mephisto.utils.logger_core import get_logger
 import types
@@ -199,7 +198,9 @@ class TaskLauncher:
         """launch any units registered by this TaskLauncher"""
         self.launch_url = url
         self.units_thread = threading.Thread(
-            target=self._launch_limited_units, args=(url,), name="unit-generator"
+            target=self._launch_limited_units,
+            args=(url,),
+            name="unit-generator",
         )
         self.units_thread.start()
 
