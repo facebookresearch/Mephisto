@@ -43,9 +43,7 @@ def direct_assign_qual_mturk_workers(
         requester = Requester.get(db, mturk_qual_details["requester_id"])
         qualification_id = mturk_qual_details["mturk_qualification_id"]
     else:
-        qualification_id = requester._create_new_mturk_qualification(
-            qual_name
-        )
+        qualification_id = requester._create_new_mturk_qualification(qual_name)
 
     assert isinstance(
         requester, MTurkRequester
@@ -57,9 +55,10 @@ def direct_assign_qual_mturk_workers(
                 mturk_client, worker_id, qualification_id, value=1
             )
         except Exception as e:
-            logger.exception(
+            logging.exception(
                 f'Failed to give worker with ID: "{worker_id}" qualification with error: {e}. Skipping.'
             )
+
 
 def direct_soft_block_mturk_workers(
     db: "MephistoDB",
@@ -73,10 +72,12 @@ def direct_soft_block_mturk_workers(
     in worker_list. If requester_name is not provided, it will use the
     most recently registered mturk requester in the database.
     """
-    direct_assign_qual_mturk_workers(db=db,
+    direct_assign_qual_mturk_workers(
+        db=db,
         worker_list=worker_list,
         qual_name=soft_block_qual_name,
-        requester_name=requester_name)
+        requester_name=requester_name,
+    )
 
 
 def get_mturk_ids_from_unit_id(db, unit_id: str) -> Dict[str, Optional[str]]:
