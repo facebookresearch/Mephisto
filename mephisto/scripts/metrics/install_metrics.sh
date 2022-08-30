@@ -1,8 +1,13 @@
+if [ -z "$OSTYPE" ]
+then
+  OSTYPE=$(uname)
+  echo "Checking OS type returned ${OSTYPE}"
+fi
 case "$OSTYPE" in
-  darwin*)
+  darwin* | Darwin*)
     platform='darwin'
     ;;
-  linux*)
+  linux* | Linux*)
     platform='linux'
     ;;
   *)
