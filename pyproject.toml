@@ -53,14 +53,20 @@ websockets = "^10.1"
 pyyaml = "^5.4.0"
 markupsafe = "2.0.1"
 
+[tool.poetry.group.worker_addons]
+optional=false
 [tool.poetry.group.worker_addons.dependencies]
 detoxify = "^0.5.0"
 
+[tool.poetry.group.aws]
+optional=false
 [tool.poetry.group.aws.dependencies]
 boto3 = "^1.17"
 botocore = "^1.20.95"
 xmltodict = "^0.12.0"
 
+[tool.poetry.group.cli]
+optional=false
 [tool.poetry.group.cli.dependencies]
 click = "^7.0"
 click_default_group = "^1.2"
@@ -68,14 +74,20 @@ tabulate = "^0.8.7"
 rich = "^12.5.1"
 rich-click = "^1.5.1"
 
+[tool.poetry.group.metrics]
+optional=false
 [tool.poetry.group.metrics.dependencies]
 prometheus-client = "^0.13.1"
 
+[tool.poetry.group.flask_architect]
+optional=false
 [tool.poetry.group.flask_architect.dependencies]
 flask = "^1.1"
 gevent-websocket = "^0.10.1"
 werkzeug = "^1.0.1"
 
+[tool.poetry.group.mock_architect]
+optional=false
 [tool.poetry.group.mock_architect.dependencies]
 tornado = "^6.0"
 
