@@ -54,7 +54,7 @@ class MockDatastore:
         """
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
             conn.row_factory = sqlite3.Row
             self.conn[curr_thread] = conn
         return self.conn[curr_thread]

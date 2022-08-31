@@ -254,7 +254,7 @@ class LocalMephistoDB(MephistoDB):
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
             try:
-                conn = sqlite3.connect(self.db_path)
+                conn = sqlite3.connect(self.db_path, check_same_thread=False)
                 conn.row_factory = StringIDRow
                 self.conn[curr_thread] = conn
             except sqlite3.Error as e:
