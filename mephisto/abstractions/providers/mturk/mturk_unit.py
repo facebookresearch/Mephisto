@@ -274,10 +274,12 @@ class MTurkUnit(Unit):
     def launch(self, task_url: str) -> None:
         """Create this HIT on MTurk (making it available) and register the ids in the local db"""
         task_run = self.get_assignment().get_task_run()
-        duration = task_run.get_task_args().assignment_duration_in_seconds
+        task_args = task_run.get_task_args()
+        duration = task_args.assignment_duration_in_seconds
+        max_assignments_per_hit = task_args.max_assignments_per_hit
         task_lifetime_in_seconds = (
-            task_run.get_task_args().task_lifetime_in_seconds
-            if task_run.get_task_args().task_lifetime_in_seconds
+           task_args.task_lifetime_in_seconds
+            if task_args.task_lifetime_in_seconds
             else 60 * 60 * 24 * 31
         )
         run_id = task_run.db_id
@@ -292,9 +294,10 @@ class MTurkUnit(Unit):
             task_url,
             hit_type_id,
             lifetime_in_seconds=task_lifetime_in_seconds,
+            num_assignments=max_assignments_per_hit
         )
         # TODO(OWN) get this link to the mephisto frontend
-        print(hit_link)
+        print(f'{hit_link} \tHITId:{hit_id}')
 
         # We create a hit for this unit, but note that this unit may not
         # necessarily match with the same HIT that was launched for it.

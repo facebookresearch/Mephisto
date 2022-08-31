@@ -98,12 +98,22 @@ class TaskRunArgs:
             )
         },
     )
+
     max_num_concurrent_units: int = field(
         default=0,
         metadata={
             "help": (
                 "Maximum units that will be released simultaneously, setting a limit "
                 "on concurrent connections to Mephisto overall. (0 is infinite)"
+            )
+        },
+    )
+    max_assignments_per_hit: int = field(
+        default=1,
+        metadata={
+            "help": (
+                "Maximum assignments per task. The number of times the task"
+                "can be accepted and completed"
             )
         },
     )
