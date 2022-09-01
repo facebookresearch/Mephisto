@@ -12,7 +12,7 @@ We actively welcome your pull requests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
 5. Make sure your code lints.
-    * This can be done by running `pre-commit install`. This will check the if your code is formatted correctly on each commit.
+    * This can be done by running `pip install pre-commit; pre-commit install`. This will check the if your code is formatted correctly on each commit.
     * Make sure that pre-commit is installed by following the steps in [this website](https://pre-commit.com/).
 6. If you haven't already, complete the Contributor License Agreement ("CLA").
 
