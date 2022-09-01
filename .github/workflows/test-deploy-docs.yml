@@ -27,7 +27,11 @@ jobs:
       - name: 🤖 Install Mephisto
         run: |
           cd ../../
-          pip install -e .
+          curl -fsS -o get-poetry.py https://install.python-poetry.org
+          python3 get-poetry.py -y
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.create false
+          poetry install
 
       - name: 🖋 Create data directory
         run: mkdir -p ~/mephisto/data
