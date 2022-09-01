@@ -253,7 +253,7 @@ jobs:
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 16.16.0
 
       - name: 🤖 Install Mephisto
         run: pip install -e .
