@@ -16,10 +16,10 @@ jobs:
         working-directory: docs/web
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
-          cache: yarn
+          cache: "yarn"
+          node-version: 16
       - uses: actions/setup-python@v2
 
       - name: 🤖 Install Mephisto
