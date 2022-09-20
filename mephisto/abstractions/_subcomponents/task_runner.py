@@ -298,7 +298,13 @@ class TaskRunner(ABC):
                 agent.update_status(AgentState.STATUS_COMPLETED)
                 agent.mark_done()
 
-            self.shared_state.on_unit_submitted(unit)
+            try:
+                self.shared_state.on_unit_submitted(unit)
+            except Exception as e:
+                logger.exception(
+                    f"Unhandled exception in on_unit_submitted for {unit}",
+                    exc_info=True,
+                )
             del self.running_units[unit.db_id]
 
             self._cleanup_special_units(unit, agent)
@@ -379,7 +385,13 @@ class TaskRunner(ABC):
                     agent.mark_done()
 
             for unit in assignment.get_units():
-                self.shared_state.on_unit_submitted(unit)
+                try:
+                    self.shared_state.on_unit_submitted(unit)
+                except Exception as e:
+                    logger.exception(
+                        f"Unhandled exception in on_unit_submitted for {unit}",
+                        exc_info=True,
+                    )
             del self.running_assignments[assignment.db_id]
 
             # Clear reservations
