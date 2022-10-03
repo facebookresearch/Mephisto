@@ -7,8 +7,6 @@ on:
     branches: [main]
     paths-ignore:
       - "**.md"
-env:
-  FORCE_COLOR: 0
 jobs:
   # This job is made to setup path filtering, learn more about it here: https://github.com/facebookresearch/Mephisto/pull/857
   changes:
@@ -83,8 +81,6 @@ jobs:
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
-        env:
-          FORCE_COLOR: 0
         with:
           node-version: 16.16.0
 
@@ -132,8 +128,6 @@ jobs:
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
-        env:
-          FORCE_COLOR: 0
         with:
           node-version: 16.16.0
 
@@ -181,8 +175,6 @@ jobs:
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
-        env:
-          FORCE_COLOR: 0
         with:
           node-version: 16.16.0
 
@@ -229,8 +221,6 @@ jobs:
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
-        env:
-          FORCE_COLOR: 0
         with:
           node-version: 16.16.0
 
@@ -279,8 +269,6 @@ jobs:
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
-        env:
-          FORCE_COLOR: 0
         with:
           node-version: 16.16.0
 
@@ -327,8 +315,6 @@ jobs:
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
-        env:
-          FORCE_COLOR: 0
         with:
           node-version: 16.16.0
 
