@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "devDependencies": {
-    "lerna": "^5.1.8"
+    "lerna": "^5.5.1"
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist='{react,react-dom}'",

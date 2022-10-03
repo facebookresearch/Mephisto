@@ -22,7 +22,7 @@
     "@annotated/dev-scripts": "workspace:packages/annotated/dev-scripts"
   },
   "devDependencies": {
-    "react-player": "^2.9.0"
+    "react-player": "^2.10.1"
   },
   "peerDependencies": {
     "global-context-store": "^1.0.1",
