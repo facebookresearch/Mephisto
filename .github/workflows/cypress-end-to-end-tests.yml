@@ -7,6 +7,8 @@ on:
     branches: [main]
     paths-ignore:
       - "**.md"
+env:
+  FORCE_COLOR: 0
 jobs:
   # This job is made to setup path filtering, learn more about it here: https://github.com/facebookresearch/Mephisto/pull/857
   changes:
@@ -30,8 +32,6 @@ jobs:
         with:
           fetch-depth: 2
       - uses: actions/setup-node@v3
-        env:
-          FORCE_COLOR: 2
         with:
           cache: "yarn"
           node-version: 16
