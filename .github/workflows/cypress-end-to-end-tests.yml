@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 2
       # Workaround to avoid Post Use step failures. See: https://github.com/actions/setup-node/issues/317
-      - run: mkdir -p /home/runner/.cache/yarn/v6
+      - run: mkdir -p /home/runner/work/Mephisto/Mephisto/.yarn/cache
         continue-on-error: true
       - uses: actions/setup-node@v3
         with:
