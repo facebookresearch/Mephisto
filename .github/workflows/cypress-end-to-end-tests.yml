@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 2
       - uses: actions/setup-node@v3
         env:
-          FORCE_COLOR: 0
+          FORCE_COLOR: 2
         with:
           cache: "yarn"
           node-version: 16
