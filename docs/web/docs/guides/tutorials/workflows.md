@@ -138,6 +138,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
             make_qualification_dict(
                 cfg.allowlist_qualification,
                 QUAL_NOT_EXIST,
+                None,
             ),
         ]
     else:
@@ -145,6 +146,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
             make_qualification_dict(
                 cfg.allowlist_qualification,
                 QUAL_EXISTS,
+                None,
             ),
         ]
 
