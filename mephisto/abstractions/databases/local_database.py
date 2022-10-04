@@ -252,6 +252,20 @@ class ConnectionWrapper(object):
                 logger.warn(f"\t{frame[1]}:{frame[2]} {frame[3]} {frame[4][0].strip()}")
         return getattr(self.obj, name)
 
+    def __enter__(self, *args, **kwargs):
+        if self.main_thread_id != curr_thread:
+            logger.warn(
+                f"Thread {curr_thread} requested `{name}` attribute from {self.obj}"
+            )
+            for frame in inspect.getouterframes(inspect.currentframe())[1:]:
+                if frame[1].endswith("threading.py"):
+                    continue
+                logger.warn(f"\t{frame[1]}:{frame[2]} {frame[3]} {frame[4][0].strip()}")
+        return self.obj.__enter__(*args, **kwargs)
+
+    def __exit__(self, *args, **kwargs):
+        return self.obj.__exit__(*args, **kwargs)
+
 
 class LocalMephistoDB(MephistoDB):
     """
