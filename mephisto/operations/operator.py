@@ -585,3 +585,82 @@ class Operator:
             )
         finally:
             self.shutdown()
+
+    def EXP_launch_from_incomplete_run(
+        self, task_run_id: str, shared_state: Optional[SharedTaskState] = None
+    ) -> str:
+        """
+        Attempt to resume a task run with incomplete assignments/units
+        """
+        task_run = TaskRun.get(db, task_run_id)
+        run_config = task_run.args
+
+        set_mephisto_log_level(level=run_config.get("log_level", "info"))
+
+        requester, provider_type = self._get_requester_and_provider_from_config(
+            run_config
+        )
+
+        # Next get the abstraction classes, and run validation
+        # before anything is actually created in the database
+        blueprint_type = run_config.blueprint._blueprint_type
+        architect_type = run_config.architect._architect_type
+        BlueprintClass = get_blueprint_from_type(blueprint_type)
+        ArchitectClass = get_architect_from_type(architect_type)
+        CrowdProviderClass = get_crowd_provider_from_type(provider_type)
+
+        if shared_state is None:
+            shared_state = BlueprintClass.SharedStateClass()
+
+        BlueprintClass.assert_task_args(run_config, shared_state)
+        ArchitectClass.assert_task_args(run_config, shared_state)
+        CrowdProviderClass.assert_task_args(run_config, shared_state)
+        # TODO special validation that _THIS TASK RUN_ can be resumed
+
+        # Make a new live run
+        live_run = self._create_live_task_run(
+            run_config,
+            shared_state,
+            task_run,
+            ArchitectClass,
+            BlueprintClass,
+            CrowdProviderClass,
+        )
+
+        try:
+            # If anything fails after here, we have to cleanup the architect
+            # Setup and deploy the server
+            built_dir = live_run.architect.prepare()
+            task_url = live_run.architect.deploy()
+
+            # TODO(#102) maybe the cleanup (destruction of the server configuration?) should only
+            # happen after everything has already been reviewed, this way it's possible to
+            # retrieve the exact build directory to review a task for real
+            live_run.architect.cleanup()
+
+            # Register the task with the provider
+            live_run.provider.setup_resources_for_task_run(
+                task_run, run_config, shared_state, task_url
+            )
+
+            live_run.client_io.launch_channels()
+        except (KeyboardInterrupt, Exception) as e:
+            logger.error(
+                "Encountered error while launching run, shutting down", exc_info=True
+            )
+            try:
+                live_run.architect.shutdown()
+            except (KeyboardInterrupt, Exception) as architect_exception:
+                logger.exception(
+                    f"Could not shut down architect: {architect_exception}",
+                    exc_info=True,
+                )
+            raise e
+
+        live_run.task_launcher.EXP_resume_assignments()
+        live_run.task_launcher.launch_units(url=task_url)
+
+        self._task_runs_tracked[task_run.db_id] = live_run
+        task_run.update_completion_progress(status=False)
+
+        return task_run.db_id

@@ -257,3 +257,30 @@ class TaskLauncher:
             self.assignments_thread.join()
         if self.units_thread is not None:
             self.units_thread.join()
+
+    def EXP_resume_assignments(self) -> None:
+        """
+        Experimental function to go through an resume expired (or incomplete) tasks from a specific
+        task run that may have been left incomplete.
+        """
+        assignments = self.task_run.get_assignments()
+        for assignment in assignments:
+            self.assignments.append(assignment)
+            for unit in assignment.get_units():
+                unit_status = unit.get_status()
+                if unit_status in [AssignmentState.LAUNCHED, AssignmentState.ASSIGNED]:
+                    raise AssertionError(
+                        f"Cannot launch job with units in status {unit_status}. Be sure this task run is properly cleaned up before relaunching"
+                    )
+                if unit.get_status() in [
+                    AssignmentState.EXPIRED,
+                    AssignmentState.REJECTED,
+                    AssignmentState.SOFT_REJECTED,
+                ]:
+                    if unit.get_assigned_agent() != None:
+                        # Dissociate the rejected agent
+                        unit.clear_assigned_agent()
+                    # Update these units to created, then prepare to launch them
+                    unit.set_db_status(AssignmentState.CREATED)
+                    self.units.append(unit)
+        return
