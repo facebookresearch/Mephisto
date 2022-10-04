@@ -16,7 +16,10 @@ from collections import defaultdict
 
 from botocore.exceptions import ClientError  # type: ignore
 from botocore.exceptions import ProfileNotFound  # type: ignore
-from mephisto.abstractions.databases.local_database import is_unique_failure
+from mephisto.abstractions.databases.local_database import (
+    is_unique_failure,
+    ConnectionWrapper,
+)
 
 from typing import Dict, Any, Optional
 
@@ -92,7 +95,9 @@ class MTurkDatastore:
         """
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
-            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn = ConnectionWrapper(
+                sqlite3.connect(self.db_path, check_same_thread=False)
+            )
             conn.row_factory = sqlite3.Row
             self.conn[curr_thread] = conn
         return self.conn[curr_thread]

@@ -25,6 +25,7 @@ from mephisto.data_model.qualification import Qualification, GrantedQualificatio
 
 import sqlite3
 from sqlite3 import Connection
+import inspect
 import threading
 import os
 import json
@@ -234,6 +235,24 @@ class StringIDRow(sqlite3.Row):
             return val
 
 
+class ConnectionWrapper(object):
+    def __init__(self, obj):
+        self.obj = obj
+        self.main_thread_id = threading.get_ident()
+
+    def __getattr__(self, name):
+        curr_thread = threading.get_ident()
+        if self.main_thread_id != curr_thread:
+            logger.warn(
+                f"Thread {curr_thread} requested `{name}` attribute from {self.obj}"
+            )
+            for frame in inspect.getouterframes(inspect.currentframe())[1:]:
+                if frame[1].endswith("threading.py"):
+                    continue
+                logger.warn(f"\t{frame[1]}:{frame[2]} {frame[3]} {frame[4][0].strip()}")
+        return getattr(self.obj, name)
+
+
 class LocalMephistoDB(MephistoDB):
     """
     Local database for core Mephisto data storage, the LocalMephistoDatabase handles
@@ -254,7 +273,9 @@ class LocalMephistoDB(MephistoDB):
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
             try:
-                conn = sqlite3.connect(self.db_path, check_same_thread=False)
+                conn = ConnectionWrapper(
+                    sqlite3.connect(self.db_path, check_same_thread=False)
+                )
                 conn.row_factory = StringIDRow
                 self.conn[curr_thread] = conn
             except sqlite3.Error as e:
