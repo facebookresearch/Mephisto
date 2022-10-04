@@ -253,6 +253,7 @@ class ConnectionWrapper(object):
         return getattr(self.obj, name)
 
     def __enter__(self, *args, **kwargs):
+        curr_thread = threading.get_ident()
         if self.main_thread_id != curr_thread:
             logger.warn(
                 f"Thread {curr_thread} requested `{name}` attribute from {self.obj}"
