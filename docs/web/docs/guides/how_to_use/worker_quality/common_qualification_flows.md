@@ -71,7 +71,7 @@ shared_state.qualifications = [
     ),
     make_qualification_dict(
         BLOCKLIST_QUALIFICATION,
-        QUAL_NOT_EXISTS,'
+        QUAL_NOT_EXISTS,
         None,
     ),
 ]
