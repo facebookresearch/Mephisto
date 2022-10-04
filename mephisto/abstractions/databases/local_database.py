@@ -237,35 +237,38 @@ class StringIDRow(sqlite3.Row):
 
 class ConnectionWrapper(object):
     def __init__(self, obj):
-        self.obj = obj
-        self.main_thread_id = threading.get_ident()
+        self._cr_obj = obj
+        self._cr_main_thread_id = threading.get_ident()
+
+    def _cr_check_thread(self, name):
+        curr_thread = threading.get_ident()
+        if self._cr_main_thread_id != curr_thread:
+            logger.warn(
+                f"Thread {curr_thread} requested `{name}` attribute from {self._cr_obj}"
+            )
+            for frame in inspect.getouterframes(inspect.currentframe())[1:]:
+                if frame[1].endswith("threading.py"):
+                    continue
+                logger.warn(f"\t{frame[1]}:{frame[2]} {frame[3]} {frame[4][0].strip()}")
 
     def __getattr__(self, name):
-        curr_thread = threading.get_ident()
-        if self.main_thread_id != curr_thread:
-            logger.warn(
-                f"Thread {curr_thread} requested `{name}` attribute from {self.obj}"
-            )
-            for frame in inspect.getouterframes(inspect.currentframe())[1:]:
-                if frame[1].endswith("threading.py"):
-                    continue
-                logger.warn(f"\t{frame[1]}:{frame[2]} {frame[3]} {frame[4][0].strip()}")
-        return getattr(self.obj, name)
+        if name in ["_cr_obj", "_cr_main_thread_id", "_cr_check_thread"]:
+            return object.__getattr__(self, name)
+        self._cr_check_thread(name)
+        return getattr(self._cr_obj, name)
+
+    def __setattr__(self, name, val):
+        if name in ["_cr_obj", "_cr_main_thread_id"]:
+            return object.__setattr__(self, name, val)
+        self._cr_check_thread(name)
+        return setattr(self._cr_obj, name, val)
 
     def __enter__(self, *args, **kwargs):
-        curr_thread = threading.get_ident()
-        if self.main_thread_id != curr_thread:
-            logger.warn(
-                f"Thread {curr_thread} requested `{name}` attribute from {self.obj}"
-            )
-            for frame in inspect.getouterframes(inspect.currentframe())[1:]:
-                if frame[1].endswith("threading.py"):
-                    continue
-                logger.warn(f"\t{frame[1]}:{frame[2]} {frame[3]} {frame[4][0].strip()}")
-        return self.obj.__enter__(*args, **kwargs)
+        self._cr_check_thread("__enter__")
+        return self._cr_obj.__enter__(*args, **kwargs)
 
     def __exit__(self, *args, **kwargs):
-        return self.obj.__exit__(*args, **kwargs)
+        return self._cr_obj.__exit__(*args, **kwargs)
 
 
 class LocalMephistoDB(MephistoDB):

@@ -97,7 +97,7 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
         assert qual_mapping is not None, "For typing, already asserted this isn't None"
 
         qualification_id = qual_mapping["mturk_qualification_id"]
-        requester = SandboxMTurkRequester(db, qual_mapping["requester_id"])
+        requester = SandboxMTurkRequester.get(db, qual_mapping["requester_id"])
         client = worker._get_client(requester._requester_name)
 
         def cleanup_qualification():
