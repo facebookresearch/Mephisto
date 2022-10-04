@@ -1,0 +1,16 @@
+.default-item-renderer {
+  margin: auto 0px;
+}
+
+.default-item-renderer-pre {
+  text-align: left;
+  white-space: pre-wrap;
+  max-width: 75vw;
+  max-height: 75vh;
+  overflow: auto;
+  color: #555555;
+}
+
+.default-item-renderer-pre.small {
+  height: 16vh;
+}

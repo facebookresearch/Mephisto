@@ -18,7 +18,7 @@ def format_for_printing_data(data):
     # Custom tasks can define methods for how to display their data in a relevant way
     worker_name = Worker.get(db, data["worker_id"]).worker_name
     contents = data["data"]
-    duration = contents["times"]["task_end"] - contents["times"]["task_start"]
+    duration = data["task_end"] - data["task_start"]
     metadata_string = (
         f"Worker: {worker_name}\nUnit: {data['unit_id']}\n"
         f"Duration: {int(duration)}\nStatus: {data['status']}\n"
