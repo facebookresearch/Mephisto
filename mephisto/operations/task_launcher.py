@@ -283,4 +283,5 @@ class TaskLauncher:
                     # Update these units to created, then prepare to launch them
                     unit.set_db_status(AssignmentState.CREATED)
                     self.units.append(unit)
+        assert len(self.units) > 0, "Cannot relaunch a job with no incomplete units!!"
         return
