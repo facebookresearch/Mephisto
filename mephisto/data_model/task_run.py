@@ -82,6 +82,15 @@ class TaskRunArgs:
         default=30 * 60,
         metadata={"help": "Time that workers have to work on your task once accepted."},
     )
+    no_submission_patience: int = field(
+        default=60 * 60 * 12,
+        metadata={
+            "help": (
+                "How long to wait between task submissions before shutting the run down "
+                "for a presumed issue. Value in seconds, default 12 hours. "
+            )
+        },
+    )
     allowed_concurrent: int = field(
         default=0,
         metadata={
