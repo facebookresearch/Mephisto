@@ -8,6 +8,7 @@ Utilities that are useful for Mephisto-related scripts.
 """
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.abstractions.providers.mturk.mturk_utils import try_prerun_cleanup
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.utils.logger_core import format_loud
@@ -206,6 +207,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
         provider_type = requester_provider_type
 
     if provider_type in ["mturk"]:
+        try_prerun_cleanup(db, cfg.provider.requester_name)
         input(
             f"This task is going to launch live on {provider_type}, press enter to continue: "
         )

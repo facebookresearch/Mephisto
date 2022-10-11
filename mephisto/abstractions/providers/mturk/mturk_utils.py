@@ -8,8 +8,10 @@ import boto3  # type: ignore
 import os
 import json
 import re
+import time
+from datetime import datetime
 from tqdm import tqdm  # type: ignore
-from typing import Dict, Optional, Tuple, List, Any
+from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 from datetime import datetime
 
 from botocore import client  # type: ignore
@@ -19,10 +21,14 @@ from omegaconf import DictConfig
 
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
 from mephisto.utils.logger_core import get_logger, format_loud
-from mephisto.operations.config_handler import get_config_arg
+from mephisto.operations.config_handler import get_config_arg, DEFAULT_CONFIG_FOLDER
+
+if TYPE_CHECKING:
+    from mephisto.abstractions.database import MephistoDB
 
 logger = get_logger(name=__name__)
 
+CLEANUP_CHECK_TIME = 24 * 60 * 60  # Check every day!
 MTURK_TASK_FEE = 0.2
 MTURK_BONUS_FEE = 0.2
 SANDBOX_ENDPOINT = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
@@ -738,3 +744,108 @@ def expire_and_dispose_hits(
             h["dispose_exception"] = e
             non_disposed_hits.append(h)
     return non_disposed_hits
+
+
+def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
+    """
+    Try to see if there are any outstanding HITS for the given requester, and LOUDLY WARN if
+    there are any, allowing the user to run a cleanup in-line.
+    """
+    cleanups_path = os.path.join(
+        DEFAULT_CONFIG_FOLDER, "mturk_requesters_last_cleanups.json"
+    )
+    last_cleanup_times = {}
+    if os.path.exists(cleanups_path):
+        with open(cleanups_path) as cleanups_file:
+            last_cleanup_times = json.load(cleanups_file)
+
+    last_cleanup = last_cleanup_times.get(requester_name, 0)
+
+    if time.time() - last_cleanup < CLEANUP_CHECK_TIME:
+        # Too recent, no cleanup needed
+        return
+
+    print(
+        f"It's been more than a day since you last ran a job "
+        f"with {requester_name}, checking for outstanding tasks"
+    )
+
+    requester = db.find_requesters(requester_name=requester_name)[0]
+    client = requester._get_client(requester._requester_name)
+
+    def hit_is_broken(hit: Dict[str, Any]) -> bool:
+        return (
+            hit["NumberOfAssignmentsCompleted"] == 0
+            and hit["HITStatus"] != "Reviewable"
+        )
+
+    outstanding_hit_types = get_outstanding_hits(client)
+    broken_hit_types = {
+        k: [h for h in v if hit_is_broken(h)]
+        for (k, v) in outstanding_hit_types.items()
+        if any([h for h in v if hit_is_broken(h)])
+    }
+    num_hit_types = len(broken_hit_types.keys())
+
+    sum_hits = sum([len(broken_hit_types[x]) for x in broken_hit_types.keys()])
+
+    last_cleanup_times[requester_name] = time.time()
+    if os.path.exists(cleanups_path):
+        with open(cleanups_path, "w+") as cleanups_file:
+            json.dump(last_cleanup_times, cleanups_file)
+
+    if len(broken_hits) == 0:
+        print(f"No broken HITs detected. Continuing!")
+        return
+
+    print(
+        f"The requester {requester_name} has {num_hit_types} outstanding HIT "
+        f"types, with {sum_hits} suspected active or broken HITs.\n"
+        "This may include tasks that are still in-flight, but also "
+        "tasks that have already expired but have not been disposed of yet. "
+        "Please review and dispose HITs below."
+    )
+
+    hits_to_dispose: Optional[List[Dict[str, Any]]] = []
+    confirm_string = "Enter anything to confirm removal of the following HITs:\n"
+    for hit_type in outstanding_hit_types.keys():
+        hit_count = len(outstanding_hit_types[hit_type])
+        cur_title = outstanding_hit_types[hit_type][0]["Title"]
+        creation_time = outstanding_hit_types[hit_type][0]["CreationTime"]
+        creation_time_str = datetime.fromtimestamp(creation_time).strftime(
+            "%m/%d/%Y, %H:%M:%S"
+        )
+        print(f"HIT TITLE: {cur_title}")
+        print(f"LAUNCH TIME: {creation_time_str}")
+        print(f"HIT COUNT: {hit_count}")
+        should_clear = ""
+        while not should_clear.startswith("y") or should_clear.startswith("n"):
+            should_clear = input(
+                "Should we cleanup this hit type? (y)es or (n)o: " "\n>> "
+            ).lower()
+        if should_clear.startswith("y"):
+            hits_to_dispose += outstanding_hit_types[hit_type]
+            confirm_string += (
+                f"{hit_count} hits from {creation_time_str} for HIT Type: {cur_title}\n"
+            )
+
+    if len(hits_to_dispose) == 0:
+        print("No HITs selected for disposal. Continuing")
+        return
+
+    input(confirm_string)
+
+    print(f"Disposing {len(hits_to_dispose)} HITs.")
+    remaining_hits = expire_and_dispose_hits(client, hits_to_dispose)
+
+    if len(remaining_hits) == 0:
+        print("Disposed!")
+    else:
+        print(
+            f"After disposing, {len(remaining_hits)} could not be disposed.\n"
+            f"These may not have been reviewed yet, or are being actively worked on.\n"
+            "They have been expired though, so please try to dispose later with"
+            "mephisto scripts mturk cleanup."
+            "The first 20 dispose errors are added below:"
+        )
+        print([h["dispose_exception"] for h in remaining_hits[:20]])
