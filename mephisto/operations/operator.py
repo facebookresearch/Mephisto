@@ -351,6 +351,7 @@ class Operator:
                 tracked_run.client_io.shutdown()
                 tracked_run.worker_pool.shutdown()
                 tracked_run.task_launcher.shutdown()
+                tracked_run.task_launcher.expire_units()
                 tracked_run.architect.shutdown()
                 del self._task_runs_tracked[task_run.db_id]
             await asyncio.sleep(RUN_STATUS_POLL_TIME)
