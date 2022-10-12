@@ -118,7 +118,9 @@ def task_script(
             os.path.join(get_run_file_dir(), config_path)
         )
         hydra_wrapper = hydra.main(
-            config_path=absolute_config_path, config_name="taskconfig"
+            config_path=absolute_config_path,
+            config_name="taskconfig",
+            version_base="1.1",
         )
         return cast(TaskFunction, hydra_wrapper(process_config_and_run_main))
 

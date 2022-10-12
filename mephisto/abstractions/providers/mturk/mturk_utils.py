@@ -9,7 +9,6 @@ import os
 import json
 import re
 import time
-from datetime import datetime
 from tqdm import tqdm  # type: ignore
 from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 from datetime import datetime
@@ -767,7 +766,7 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
 
     print(
         f"It's been more than a day since you last ran a job "
-        f"with {requester_name}, checking for outstanding tasks"
+        f"with {requester_name}, checking for outstanding tasks..."
     )
 
     requester = db.find_requesters(requester_name=requester_name)[0]
@@ -779,7 +778,13 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
             and hit["HITStatus"] != "Reviewable"
         )
 
+    query_time = time.time()
     outstanding_hit_types = get_outstanding_hits(client)
+    if time.time() - query_time > 60:
+        print(
+            "That took a while! You may want to run `mephisto scripts "
+            "cleanup mturk` later to clear out some of the older HIT types.\n"
+        )
     broken_hit_types = {
         k: [h for h in v if hit_is_broken(h)]
         for (k, v) in outstanding_hit_types.items()
@@ -790,11 +795,10 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
     sum_hits = sum([len(broken_hit_types[x]) for x in broken_hit_types.keys()])
 
     last_cleanup_times[requester_name] = time.time()
-    if os.path.exists(cleanups_path):
-        with open(cleanups_path, "w+") as cleanups_file:
-            json.dump(last_cleanup_times, cleanups_file)
+    with open(cleanups_path, "w+") as cleanups_file:
+        json.dump(last_cleanup_times, cleanups_file)
 
-    if len(broken_hits) == 0:
+    if sum_hits == 0:
         print(f"No broken HITs detected. Continuing!")
         return
 
@@ -802,29 +806,27 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
         f"The requester {requester_name} has {num_hit_types} outstanding HIT "
         f"types, with {sum_hits} suspected active or broken HITs.\n"
         "This may include tasks that are still in-flight, but also "
-        "tasks that have already expired but have not been disposed of yet. "
+        "tasks have been improperly shut down and need cleanup.\n "
         "Please review and dispose HITs below."
     )
 
     hits_to_dispose: Optional[List[Dict[str, Any]]] = []
     confirm_string = "Enter anything to confirm removal of the following HITs:\n"
-    for hit_type in outstanding_hit_types.keys():
-        hit_count = len(outstanding_hit_types[hit_type])
-        cur_title = outstanding_hit_types[hit_type][0]["Title"]
-        creation_time = outstanding_hit_types[hit_type][0]["CreationTime"]
-        creation_time_str = datetime.fromtimestamp(creation_time).strftime(
-            "%m/%d/%Y, %H:%M:%S"
-        )
+    for hit_type in broken_hit_types.keys():
+        hit_count = len(broken_hit_types[hit_type])
+        cur_title = broken_hit_types[hit_type][0]["Title"]
+        creation_time = broken_hit_types[hit_type][0]["CreationTime"]
+        creation_time_str = creation_time.strftime("%m/%d/%Y, %H:%M:%S")
         print(f"HIT TITLE: {cur_title}")
         print(f"LAUNCH TIME: {creation_time_str}")
         print(f"HIT COUNT: {hit_count}")
         should_clear = ""
-        while not should_clear.startswith("y") or should_clear.startswith("n"):
+        while not (should_clear.startswith("y") or should_clear.startswith("n")):
             should_clear = input(
                 "Should we cleanup this hit type? (y)es or (n)o: " "\n>> "
             ).lower()
         if should_clear.startswith("y"):
-            hits_to_dispose += outstanding_hit_types[hit_type]
+            hits_to_dispose += broken_hit_types[hit_type]
             confirm_string += (
                 f"{hit_count} hits from {creation_time_str} for HIT Type: {cur_title}\n"
             )
@@ -845,7 +847,7 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
             f"After disposing, {len(remaining_hits)} could not be disposed.\n"
             f"These may not have been reviewed yet, or are being actively worked on.\n"
             "They have been expired though, so please try to dispose later with"
-            "mephisto scripts mturk cleanup."
+            "`mephisto scripts mturk cleanup`."
             "The first 20 dispose errors are added below:"
         )
         print([h["dispose_exception"] for h in remaining_hits[:20]])
