@@ -263,7 +263,7 @@ class OperatorBaseTest(object):
 
     @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_patience_shutdown(self):
-        """Ensure that a job can be run that doesn't require connected workers"""
+        """Ensure that a job shuts down if patience is exceeded"""
         self.operator = Operator(self.db)
         config = MephistoConfig(
             blueprint=MockBlueprintArgs(num_assignments=1, is_concurrent=False),
