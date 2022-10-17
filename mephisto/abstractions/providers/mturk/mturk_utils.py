@@ -811,7 +811,7 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
     )
 
     hits_to_dispose: Optional[List[Dict[str, Any]]] = []
-    confirm_string = "Enter anything to confirm removal of the following HITs:\n"
+    confirm_string = "Confirm removal of the following HITs? (y)es/(n)o :\n"
     for hit_type in broken_hit_types.keys():
         hit_count = len(broken_hit_types[hit_type])
         cur_title = broken_hit_types[hit_type][0]["Title"]
@@ -835,13 +835,18 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
         print("No HITs selected for disposal. Continuing")
         return
 
-    input(confirm_string)
+    should_clear = ""
+    while not (should_clear.startswith("y") or should_clear.startswith("n")):
+        should_clear = input(confirm_string).lower()
+    if not should_clear.startswith("y"):
+        print("Disposal cancelled, continuing with launch")
+        return
 
     print(f"Disposing {len(hits_to_dispose)} HITs.")
     remaining_hits = expire_and_dispose_hits(client, hits_to_dispose)
 
     if len(remaining_hits) == 0:
-        print("Disposed!")
+        print("Disposed! Returning to launch")
     else:
         print(
             f"After disposing, {len(remaining_hits)} could not be disposed.\n"
