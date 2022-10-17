@@ -14,6 +14,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
 )
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
+from datetime import datetime, timedelta
 
 from typing import List, Dict, Any, Optional
 
@@ -64,7 +65,7 @@ def main():
     )
 
     run_type = input(
-        "Would you like to cleanup by (t)itle, or just clean up (a)ll?\n>> "
+        "Would you like to cleanup by (t)itle, clean up (o)ld tasks (> 2 weeks), or just clean up (a)ll?\n>> "
     )
     use_hits: Optional[List[Dict[str, Any]]] = None
 
@@ -73,7 +74,10 @@ def main():
             use_hits = []
             for hit_type in outstanding_hit_types.keys():
                 cur_title = outstanding_hit_types[hit_type][0]["Title"]
+                creation_time = outstanding_hit_types[hit_type][0]["CreationTime"]
+                creation_time_str = creation_time.strftime("%m/%d/%Y, %H:%M:%S")
                 print(f"HIT TITLE: {cur_title}")
+                print(f"LAUNCH TIME: {creation_time_str}")
                 print(f"HIT COUNT: {len(outstanding_hit_types[hit_type])}")
                 should_clear = input(
                     "Should we cleanup this hit type? (y)es for yes, anything else for no: "
@@ -83,8 +87,13 @@ def main():
                     use_hits += outstanding_hit_types[hit_type]
         elif run_type.lower().startswith("a"):
             use_hits = all_hits
+        elif run_type.lower().startswith("o"):
+            old_cutoff = datetime.now(all_hits[0]["CreationTime"].tzinfo) - timedelta(
+                days=14
+            )
+            use_hits = [h for h in all_hits if h["CreationTime"] < old_cutoff]
         else:
-            run_type = input("Options are (t)itle, or (a)ll:\n>> ")
+            run_type = input("Options are (t)itle, (o)ld, or (a)ll:\n>> ")
 
     print(f"Disposing {len(use_hits)} HITs.")
     remaining_hits = expire_and_dispose_hits(client, use_hits)
