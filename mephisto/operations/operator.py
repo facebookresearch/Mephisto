@@ -329,6 +329,13 @@ class Operator:
             runs_to_check = list(self._task_runs_tracked.values())
             for tracked_run in runs_to_check:
                 await asyncio.sleep(0.01)  # Low pri, allow to be interrupted
+                patience = tracked_run.task_run.get_task_args().no_submission_patience
+                if patience < time.time() - tracked_run.client_io.last_submission_time:
+                    logger.warn(
+                        f"It has been greater than the set no_submission_patience of {patience} "
+                        f"for {tracked_run.task_run} since the last submission, shutting this run down."
+                    )
+                    tracked_run.force_shutdown = True
                 if not tracked_run.force_shutdown:
                     task_run = tracked_run.task_run
                     if tracked_run.task_launcher.finished_generators is False:
@@ -344,6 +351,7 @@ class Operator:
                 tracked_run.client_io.shutdown()
                 tracked_run.worker_pool.shutdown()
                 tracked_run.task_launcher.shutdown()
+                tracked_run.task_launcher.expire_units()
                 tracked_run.architect.shutdown()
                 del self._task_runs_tracked[task_run.db_id]
             await asyncio.sleep(RUN_STATUS_POLL_TIME)

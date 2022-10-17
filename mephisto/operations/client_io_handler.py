@@ -96,6 +96,7 @@ class ClientIOHandler:
         self.request_id_to_packet: Dict[str, Packet] = {}  # For metrics purposes
 
         self.is_shutdown = False
+        self.last_submission_time = time.time()  # For patience tracking
 
         # Deferred initializiation
         self._live_run: Optional["LiveTaskRun"] = None
@@ -383,6 +384,7 @@ class ClientIOHandler:
             elif packet.type == PACKET_TYPE_SUBMIT_UNIT:
                 self._on_submit_unit(packet, channel_id)
                 self.log_metrics_for_packet(packet)
+                self.last_submission_time = time.time()
             elif packet.type == PACKET_TYPE_SUBMIT_METADATA:
                 self._on_submit_metadata(packet)
             elif packet.type == PACKET_TYPE_MEPHISTO_BOUND_LIVE_UPDATE:
