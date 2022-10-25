@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mephisto"
-version = "1.0.4"
+version = "1.1.0"
 description = "Crowdsourcing made simpler."
 license = "MIT"
 authors = [
@@ -53,7 +53,6 @@ websockets = "^10.1"
 pyyaml = "^5.4.0"
 markupsafe = "2.0.1"
 
-# pip install -e . isn't pulling group dependencies yet
 # [tool.poetry.group.worker_addons]
 # optional=false
 # [tool.poetry.group.worker_addons.dependencies]
