@@ -40,6 +40,7 @@ shared_state.qualifications = [
     make_qualification_dict(
         OnboardingRequired.get_failed_qual(ONBOARDING_QUALIFICATION_NAME),
         QUAL_NOT_EXIST,
+        None,
     )
 ]
 ```
@@ -66,10 +67,12 @@ shared_state.qualifications = [
     make_qualification_dict(
         ALLOWLIST_QUALIFICATION,
         QUAL_EXISTS,
+        None,
     ),
     make_qualification_dict(
         BLOCKLIST_QUALIFICATION,
         QUAL_NOT_EXISTS,
+        None,
     ),
 ]
 ```
