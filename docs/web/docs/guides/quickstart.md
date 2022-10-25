@@ -6,7 +6,7 @@ sidebar_position: 1
 
 First, clone this repo to your local system.
 
-Mephisto requires >= Python 3.7 and >= npm v6.
+Mephisto requires >= Python 3.8 and >= npm v6.
 
 ### Installation
 
