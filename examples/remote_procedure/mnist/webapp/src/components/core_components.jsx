@@ -128,12 +128,12 @@ function Instructions({ taskData }) {
     <div>
       <h1>MNIST Model Evaluator</h1>
       <p>
-        {taskData.isScreeningUnit
+        {taskData?.isScreeningUnit
           ? "Screening Unit:"
           : "To submit this task, you'll need to draw 3 (single) digits in the boxes below. Our model will try to provide an annotation for each."}
       </p>
       <p>
-        {taskData.isScreeningUnit
+        {taskData?.isScreeningUnit
           ? 'To submit this task you will have to correctly draw the number 3 in the box below and check the "Annotation Correct" checkbox'
           : "You can confirm or reject each of the annotations. Provide a correction if the annotation is wrong."}
       </p>

@@ -240,8 +240,8 @@ class _AgentBase(ABC):
         Blocking wait for this agent to submit their task
         If timeout is provided and exceeded, raises AgentTimeoutError
         """
-        if timeout is not None:
-            # Handle disconnect possibilities first
+
+        def _raise_if_disconnected():
             status = self.get_status()
             if status == AgentState.STATUS_DISCONNECT:
                 raise AgentDisconnectedError(self.db_id)
@@ -249,11 +249,17 @@ class _AgentBase(ABC):
                 raise AgentReturnedError(self.db_id)
             elif status == AgentState.STATUS_TIMEOUT:
                 raise AgentTimeoutError(timeout, self.db_id)
+
+        if timeout is not None:
+            # Handle disconnect possibilities first
+            _raise_if_disconnected()
             # Wait for the status change
             self.did_submit.wait(timeout=timeout)
             if not self.did_submit.is_set():
                 # If released without submit, raise timeout
                 raise AgentTimeoutError(timeout, self.db_id)
+            # Check disconnect possiblities again
+            _raise_if_disconnected()
         return self.did_submit.is_set()
 
     def handle_submit(self, submit_data: Dict[str, Any]) -> None:

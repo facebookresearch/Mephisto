@@ -262,6 +262,50 @@ class OperatorBaseTest(object):
         self.assertEqual(assignment.get_status(), AssignmentState.COMPLETED)
 
     @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
+    def test_patience_shutdown(self):
+        """Ensure that a job shuts down if patience is exceeded"""
+        self.operator = Operator(self.db)
+        config = MephistoConfig(
+            blueprint=MockBlueprintArgs(num_assignments=1, is_concurrent=False),
+            provider=MockProviderArgs(requester_name=self.requester_name),
+            architect=MockArchitectArgs(should_run_server=True),
+            task=TaskRunArgs(
+                task_title="title",
+                task_description="This is a description",
+                task_reward=0.3,
+                task_tags="1,2,3",
+                submission_timeout=5,
+                no_submission_patience=1,  # Expire in a second
+            ),
+        )
+
+        self.operator.launch_task_run(OmegaConf.structured(config))
+        tracked_runs = self.operator.get_running_task_runs()
+        self.assertEqual(len(tracked_runs), 1, "Run not launched")
+        task_run_id, tracked_run = list(tracked_runs.items())[0]
+
+        self.assertIsNotNone(tracked_run)
+        self.assertIsNotNone(tracked_run.task_launcher)
+        self.assertIsNotNone(tracked_run.task_runner)
+        self.assertIsNotNone(tracked_run.architect)
+        self.assertIsNotNone(tracked_run.task_run)
+        self.assertEqual(tracked_run.task_run.db_id, task_run_id)
+
+        # Give a few seconds for the operator to shutdown
+        start_time = time.time()
+        self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
+        self.assertLess(
+            time.time() - start_time, TIMEOUT_TIME, "Task shutdown not enacted in time"
+        )
+
+        # Ensure the task run was forced to shut down
+        task_run = tracked_run.task_run
+        self.assertTrue(tracked_run.force_shutdown)
+        assignment = task_run.get_assignments()[0]
+        unit = assignment.get_units()[0]
+        self.assertEqual(unit.get_status(), AssignmentState.EXPIRED)
+
+    @patch("mephisto.operations.operator.RUN_STATUS_POLL_TIME", 1.5)
     def test_run_jobs_with_restrictions(self):
         """Ensure allowed_concurrent and maximum_units_per_worker work"""
         self.operator = Operator(self.db)

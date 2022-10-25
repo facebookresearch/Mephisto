@@ -18094,7 +18094,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mephisto-task@2.0.2, mephisto-task@^2.0.1, mephisto-task@workspace:packages/mephisto-task":
+"mephisto-task@2.0.3, mephisto-task@^2.0.1, mephisto-task@workspace:packages/mephisto-task":
   version: 0.0.0-use.local
   resolution: "mephisto-task@workspace:packages/mephisto-task"
   dependencies:
@@ -18140,7 +18140,7 @@ __metadata:
     "@babel/preset-stage-0": ^7.8.3
     babel-loader: ^8.2.5
     css-loader: ^6.7.1
-    mephisto-task: 2.0.2
+    mephisto-task: 2.0.3
     prop-types: ^15.8.1
     raw-loader: ^4.0.2
     react: ^16.13.1

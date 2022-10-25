@@ -71,9 +71,9 @@ jobs:
         uses: actions/setup-python@v2
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 16.16.0
 
       - name: 🤖 Install Mephisto
         run: pip install -e .
@@ -116,9 +116,9 @@ jobs:
         uses: actions/setup-python@v2
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 16.16.0
 
       - name: 🤖 Install Mephisto
         run: pip install -e .
@@ -161,9 +161,9 @@ jobs:
         uses: actions/setup-python@v2
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 16.16.0
 
       - name: 🤖 Install Mephisto
         run: pip install -e .
@@ -205,9 +205,9 @@ jobs:
         uses: actions/setup-python@v2
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 16.16.0
 
       - name: 🤖 Install Mephisto
         run: |
@@ -251,9 +251,9 @@ jobs:
         uses: actions/setup-python@v2
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 16.16.0
 
       - name: 🤖 Install Mephisto
         run: pip install -e .
@@ -295,9 +295,9 @@ jobs:
         uses: actions/setup-python@v2
 
       - name: 🪨 Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 16.16.0
 
       - name: 🤖 Install Mephisto
         run: |
