@@ -5,7 +5,7 @@
 "use strict";
 
 const DEBUG = false;
-const CURR_MEPHISTO_TASK_VERSION = "2.0.2";
+const CURR_MEPHISTO_TASK_VERSION = "2.0.3";
 
 // TODO add some testing to launch this server and communicate with it
 

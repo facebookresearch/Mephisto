@@ -22,7 +22,7 @@ NODE_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "node")
 FLASK_SERVER_SOURCE_ROOT = os.path.join(ROUTER_ROOT_DIR, "flask")
 CROWD_SOURCE_PATH = "static/wrap_crowd_source.js"
 TASK_CONFIG_PATH = "static/task_config.json"
-CURR_MEPHISTO_TASK_VERSION = "2.0.2"
+CURR_MEPHISTO_TASK_VERSION = "2.0.3"
 
 
 def can_build(build_dir: str, task_run: "TaskRun") -> bool:

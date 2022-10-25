@@ -122,7 +122,6 @@ function useMephistoSocket({
     setting_socket: false, // Flag for socket setup being underway
     heartbeats_without_response: 0, // HBs to the router without a pong back
     last_mephisto_ping: Date.now(),
-    used_update_ids: [],
   };
 
   const [state, setState] = React.useReducer(
@@ -136,6 +135,7 @@ function useMephistoSocket({
   const socket = React.useRef();
   const queue = React.useRef(new PriorityQueue());
   const callbacks = React.useRef();
+  const used_update_ids = React.useRef([]);
 
   React.useEffect(() => {
     callbacks.current = {
@@ -330,15 +330,14 @@ function useMephistoSocket({
 
   function parseSocketMessage(packet) {
     if (packet.packet_type == PACKET_TYPE_CLIENT_BOUND_LIVE_UPDATE) {
-      let used_update_ids = state.used_update_ids;
+      let c_used_update_ids = used_update_ids.current;
 
-      if (used_update_ids.includes(packet.data.update_id)) {
+      if (c_used_update_ids.includes(packet.data.update_id)) {
         // Skip this message, it's a duplicate
         log("Skipping existing update_id " + packet.data.update_id, 3);
         return;
       } else {
-        let new_update_ids = [...used_update_ids, packet.data.update_id];
-        setState({ used_update_ids: new_update_ids });
+        used_update_ids.current = [...c_used_update_ids, packet.data.update_id];
       }
       onLiveUpdate(packet.data);
     } else if (packet.packet_type == PACKET_TYPE_UPDATE_STATUS) {
