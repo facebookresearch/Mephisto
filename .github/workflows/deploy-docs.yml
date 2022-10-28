@@ -21,11 +21,6 @@ jobs:
           node-version: 16.16.0
           cache: yarn
       - uses: actions/setup-python@v2
-      - name: Install Poetry
-        run: |
-
-      - name: Install dependencies
-        run: poetry install --no-interaction
       - name: 🤖 Install Mephisto
         run: |
           cd ../../

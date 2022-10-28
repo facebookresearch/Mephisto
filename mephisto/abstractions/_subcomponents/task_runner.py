@@ -186,6 +186,9 @@ class TaskRunner(ABC):
                 AgentDisconnectedError,
                 AgentShutdownError,
             ):
+                if onboarding_agent.get_status() not in AgentState.complete():
+                    # Absent agents at this stage should be disconnected
+                    onboarding_agent.update_status(AgentState.STATUS_DISCONNECT)
                 self.cleanup_onboarding(onboarding_agent)
             except Exception as e:
                 logger.exception(
