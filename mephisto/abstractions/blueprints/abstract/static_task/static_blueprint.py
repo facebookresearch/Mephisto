@@ -21,6 +21,11 @@ from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequiredArgs,
     ScreenTaskSharedState,
 )
+from mephisto.abstractions.blueprints.mixins.use_gold_unit import (
+    UseGoldUnit,
+    UseGoldUnitArgs,
+    GoldUnitSharedState,
+)
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.abstract.static_task.static_agent_state import (
     StaticAgentState,
@@ -53,7 +58,7 @@ BLUEPRINT_TYPE_STATIC = "abstract_static"
 
 @dataclass
 class SharedStaticTaskState(
-    ScreenTaskSharedState, OnboardingSharedState, SharedTaskState
+    ScreenTaskSharedState, OnboardingSharedState, GoldUnitSharedState, SharedTaskState
 ):
     static_task_data: Iterable[Any] = field(
         default_factory=list,
@@ -71,7 +76,7 @@ class SharedStaticTaskState(
 
 @dataclass
 class StaticBlueprintArgs(
-    ScreenTaskRequiredArgs, OnboardingRequiredArgs, BlueprintArgs
+    ScreenTaskRequiredArgs, OnboardingRequiredArgs, UseGoldUnitArgs, BlueprintArgs
 ):
     _blueprint_type: str = BLUEPRINT_TYPE_STATIC
     _group: str = field(
@@ -107,7 +112,7 @@ class StaticBlueprintArgs(
     )
 
 
-class StaticBlueprint(ScreenTaskRequired, OnboardingRequired, Blueprint):
+class StaticBlueprint(ScreenTaskRequired, OnboardingRequired, UseGoldUnit, Blueprint):
     """
     Abstract blueprint for a task that runs without any extensive backend.
     These are generally one-off tasks sending data to the frontend and then

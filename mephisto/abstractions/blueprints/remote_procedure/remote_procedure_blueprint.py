@@ -9,16 +9,21 @@ from mephisto.abstractions.blueprint import (
     BlueprintArgs,
     SharedTaskState,
 )
+from dataclasses import dataclass, field
 from mephisto.abstractions.blueprints.mixins.onboarding_required import (
     OnboardingRequired,
     OnboardingSharedState,
     OnboardingRequiredArgs,
 )
-from dataclasses import dataclass, field
 from mephisto.abstractions.blueprints.mixins.screen_task_required import (
     ScreenTaskRequired,
     ScreenTaskRequiredArgs,
     ScreenTaskSharedState,
+)
+from mephisto.abstractions.blueprints.mixins.use_gold_unit import (
+    UseGoldUnit,
+    UseGoldUnitArgs,
+    GoldUnitSharedState,
 )
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_agent_state import (
@@ -59,7 +64,7 @@ BLUEPRINT_TYPE_REMOTE_PROCEDURE = "remote_procedure"
 
 @dataclass
 class SharedRemoteProcedureTaskState(
-    ScreenTaskSharedState, OnboardingSharedState, SharedTaskState
+    ScreenTaskSharedState, OnboardingSharedState, GoldUnitSharedState, SharedTaskState
 ):
     function_registry: Optional[
         Mapping[
@@ -75,7 +80,7 @@ class SharedRemoteProcedureTaskState(
 
 @dataclass
 class RemoteProcedureBlueprintArgs(
-    ScreenTaskRequiredArgs, OnboardingRequiredArgs, BlueprintArgs
+    ScreenTaskRequiredArgs, OnboardingRequiredArgs, UseGoldUnitArgs, BlueprintArgs
 ):
     _blueprint_type: str = BLUEPRINT_TYPE_REMOTE_PROCEDURE
     _group: str = field(
@@ -114,7 +119,9 @@ class RemoteProcedureBlueprintArgs(
 
 
 @register_mephisto_abstraction()
-class RemoteProcedureBlueprint(ScreenTaskRequired, OnboardingRequired, Blueprint):
+class RemoteProcedureBlueprint(
+    ScreenTaskRequired, OnboardingRequired, UseGoldUnit, Blueprint
+):
     """Blueprint for a task that runs a parlai chat"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = RemoteProcedureAgentState

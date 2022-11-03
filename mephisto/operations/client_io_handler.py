@@ -371,6 +371,7 @@ class ClientIOHandler:
         )
         self.process_outgoing_queue(self.message_queue)
         self.log_metrics_for_packet(self.request_id_to_packet[request_id])
+        # TODO Sometimes this request ID is lost, and we don't quite know why
         del self.request_id_to_channel_id[request_id]
         del self.request_id_to_packet[request_id]
 
