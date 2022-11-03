@@ -73,6 +73,16 @@ class UseGoldUnitArgs:
             )
         },
     )
+    max_gold_units: int = field(
+        default=MISSING,
+        metadata={
+            "help": (
+                "The maximum number of gold units that can be launched "
+                "with this batch, specified to limit the number of golds "
+                "you may need to pay out for."
+            )
+        },
+    )
 
 
 GoldFactory = Callable[["Worker"], Dict[str, Any]]
