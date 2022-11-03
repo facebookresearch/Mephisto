@@ -53,6 +53,16 @@ class UseGoldUnitArgs:
             "help": ("Basename for a qualification that tracks gold completion rates")
         },
     )
+    max_gold_units: int = field(
+        default=MISSING,
+        metadata={
+            "help": (
+                "The maximum number of gold units that can be launched "
+                "with this batch, specified to limit the number of golds "
+                "you may need to pay out for."
+            )
+        },
+    )
     use_golds: bool = field(
         default=False,
         metadata={"help": ("Whether or not to use gold tasks in this run.")},
@@ -70,16 +80,6 @@ class UseGoldUnitArgs:
         metadata={
             "help": (
                 "Maximum number of golds a worker can get incorrect before being disqualified"
-            )
-        },
-    )
-    max_gold_units: int = field(
-        default=MISSING,
-        metadata={
-            "help": (
-                "The maximum number of gold units that can be launched "
-                "with this batch, specified to limit the number of golds "
-                "you may need to pay out for."
             )
         },
     )
