@@ -69,6 +69,8 @@ jobs:
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
@@ -114,6 +116,8 @@ jobs:
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
@@ -159,6 +163,8 @@ jobs:
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
@@ -203,6 +209,8 @@ jobs:
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
@@ -249,6 +257,8 @@ jobs:
 
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
@@ -293,6 +303,8 @@ jobs:
         uses: actions/checkout@v2
       - name: 🐍 Installing python
         uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
       - name: 🪨 Setup Node
         uses: actions/setup-node@v3
