@@ -21,7 +21,7 @@ jobs:
       fail-fast: false # Run all combos, don't skip on failures
       matrix:
         # from: https://hub.docker.com/r/nikolaik/python-nodejs
-        python-version: ["3.9", "3.8"]
+        python-version: ["3.9", "3.8", "3.9", "3.10", "3.11", "latest"]
         nodejs-version: ["15", "14", "12", "10"]
         image-suffix: ["", "-slim"]
 
