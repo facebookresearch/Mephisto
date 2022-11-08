@@ -53,6 +53,16 @@ class UseGoldUnitArgs:
             "help": ("Basename for a qualification that tracks gold completion rates")
         },
     )
+    max_gold_units: int = field(
+        default=MISSING,
+        metadata={
+            "help": (
+                "The maximum number of gold units that can be launched "
+                "with this batch, specified to limit the number of golds "
+                "you may need to pay out for."
+            )
+        },
+    )
     use_golds: bool = field(
         default=False,
         metadata={"help": ("Whether or not to use gold tasks in this run.")},
@@ -198,6 +208,8 @@ class UseGoldUnit(BlueprintMixin):
 
         self.min_golds = args.blueprint.min_golds
         self.max_incorrect_golds = args.blueprint.max_incorrect_golds
+        self.gold_units_launched = 0
+        self.gold_unit_cap = args.blueprint.max_gold_units
 
         find_or_create_qualification(task_run.db, self.golds_correct_qual_name)
         find_or_create_qualification(task_run.db, self.golds_failed_qual_name)
@@ -212,6 +224,15 @@ class UseGoldUnit(BlueprintMixin):
         assert args.task.allowed_concurrent == 1, (
             "Can only run this task type with one allowed concurrent unit at a time per worker, to ensure "
             "golds are completed in order."
+        )
+        assert (
+            args.blueprint.get("use_screening_task") is not True
+        ), "Gold units currently cannot be used with screening units"
+        max_gold_units = args.blueprint.max_gold_units
+        assert max_gold_units is not None, (
+            "You must supply a blueprint.max_gold_units argument to set the maximum number of "
+            "additional units you will pay out for evaluating on gold units. Note that you "
+            "do pay for gold units, they are just like any other units."
         )
         gold_qualification_base = args.blueprint.gold_qualification_base
         assert (
@@ -257,6 +278,9 @@ class UseGoldUnit(BlueprintMixin):
             completed_units, correct_units, incorrect_units, self.max_incorrect_golds
         ):
             return False
+        if correct_units >= self.min_golds:
+            if self.gold_units_launched >= self.gold_unit_cap:
+                return False  # they qualify, but we don't have golds to launch
         return self.worker_needs_gold(
             completed_units, correct_units, incorrect_units, self.min_golds
         )
@@ -278,7 +302,10 @@ class UseGoldUnit(BlueprintMixin):
     def get_gold_unit_data_for_worker(
         self, worker: "Worker"
     ) -> Optional[Dict[str, Any]]:
+        if self.gold_units_launched >= self.gold_unit_cap:
+            return None
         try:
+            self.gold_units_launched += 1
             return self.get_gold_for_worker(worker)
         except Exception as e:
             logger.warning(f"Could not generate gold for {worker} due to {e}")

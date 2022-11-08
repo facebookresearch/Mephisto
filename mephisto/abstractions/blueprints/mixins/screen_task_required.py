@@ -118,7 +118,9 @@ class ScreenTaskRequired(BlueprintMixin):
         self.use_screening_task = args.blueprint.get("use_screening_task", False)
         if not self.use_screening_task:
             return
-
+        assert (
+            args.blueprint.get("use_golds") is not True
+        ), "Gold units currently cannot be used with screening units"
         # Runs that are using a qualification task should be able to assign
         # a specially generated unit to unqualified workers
         self.passed_qualification_name = args.blueprint.passed_qualification_name
