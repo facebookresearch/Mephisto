@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mephisto"
-version = "1.1.0"
+version = "1.1.1"
 description = "Crowdsourcing made simpler."
 license = "MIT"
 authors = [
@@ -29,6 +29,7 @@ include = [
     "mephisto/scripts/metrics/view_metrics.py",
     "mephisto/scripts/metrics/README.md",
     "mephisto/scripts/metrics/resources/*",
+    "hydra_configs/*",
 ]
 exclude = [
     "**/__pycache__/**/*.*",
