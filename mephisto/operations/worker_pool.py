@@ -656,7 +656,7 @@ class WorkerPool:
                 )
                 return
 
-        await self._assign_unit_or_qa(...)
+        await self._assign_unit_or_qa(crowd_data, worker, request_id, units)
 
     async def push_status_update(
         self, agent: Union["Agent", "OnboardingAgent"]
