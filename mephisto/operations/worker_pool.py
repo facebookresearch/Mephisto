@@ -368,18 +368,26 @@ class WorkerPool:
         request_id = onboarding_info.request_id
 
         # Assign to a unit
-        if len(usable_units) == 0:
+        if len(usable_units) == 0 and not worker_passed:
             AGENT_DETAILS_COUNT.labels(response="not_qualified").inc()
             live_run.client_io.enqueue_agent_details(
                 request_id,
                 AgentDetails(
+                    worker_id=worker.db_id,
                     failure_reason=WorkerFailureReasons.NOT_QUALIFIED,
                 ).to_dict(),
             )
-        else:
-            await self._assign_unit_to_agent(
-                crowd_data, worker, request_id, usable_units
+        elif len(usable_units) == 0:
+            AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()
+            live_run.client_io.enqueue_agent_details(
+                request_id,
+                AgentDetails(
+                    worker_id=worker.db_id,
+                    failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
+                ).to_dict(),
             )
+        else:
+            await self._assign_unit_or_qa(crowd_data, worker, request_id, usable_units)
 
     async def reconnect_agent(self, agent_id: str, request_id: str):
         """When an agent reconnects, find and send the relevant data"""
@@ -453,6 +461,93 @@ class WorkerPool:
                     init_task_data=init_task_data,
                 ).to_dict(),
             )
+
+    async def _assign_unit_or_qa(
+        self,
+        crowd_data: Dict[str, Any],
+        worker: "Worker",
+        request_id: str,
+        units: List["Unit"],
+    ) -> None:
+        """Determine whether agent receives a QA unit (screening, gold) or regular"""
+        live_run = self.get_live_run()
+        blueprint = live_run.blueprint
+        loop = live_run.loop_wrap.loop
+
+        # Check screening
+        if isinstance(blueprint, ScreenTaskRequired) and blueprint.use_screening_task:
+            if (
+                blueprint.worker_needs_screening(worker)
+                and blueprint.should_generate_unit()
+            ):
+                with EXTERNAL_FUNCTION_LATENCY.labels(
+                    function="get_screening_unit_data"
+                ).time():
+                    screening_data = await loop.run_in_executor(
+                        None, blueprint.get_screening_unit_data
+                    )
+                if screening_data is not None:
+                    launcher = live_run.task_launcher
+                    assert (
+                        launcher is not None
+                    ), "LiveTaskRun must have launcher to use screening tasks"
+                    with EXTERNAL_FUNCTION_LATENCY.labels(
+                        function="launch_screening_unit"
+                    ).time():
+                        screen_unit = await loop.run_in_executor(
+                            None,
+                            partial(
+                                launcher.launch_screening_unit,
+                                screening_data,
+                            ),
+                        )
+                    units = [screen_unit]
+                else:
+                    AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()
+                    live_run.client_io.enqueue_agent_details(
+                        request_id,
+                        AgentDetails(
+                            worker_id=worker.db_id,
+                            failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
+                        ).to_dict(),
+                    )
+                    logger.debug(
+                        f"No screening units left for {agent_registration_id}."
+                    )
+                    return
+        # Check golds
+        if isinstance(blueprint, UseGoldUnit) and blueprint.use_golds:
+            if blueprint.should_produce_gold_for_worker(worker):
+                with EXTERNAL_FUNCTION_LATENCY.labels(
+                    function="get_gold_unit_data_for_worker"
+                ).time():
+                    gold_data = await loop.run_in_executor(
+                        None, partial(blueprint.get_gold_unit_data_for_worker, worker)
+                    )
+                if gold_data is not None:
+                    launcher = live_run.task_launcher
+                    gold_unit = await loop.run_in_executor(
+                        None,
+                        partial(
+                            launcher.launch_gold_unit,
+                            gold_data,
+                        ),
+                    )
+                    units = [gold_unit]
+                else:
+                    AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()
+                    live_run.client_io.enqueue_agent_details(
+                        request_id,
+                        AgentDetails(
+                            worker_id=worker.db_id,
+                            failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
+                        ).to_dict(),
+                    )
+                    logger.debug(f"No gold units left for {agent_registration_id}...")
+                    return
+
+        # Register the correct unit type
+        await self._assign_unit_to_agent(crowd_data, worker, request_id, units)
 
     async def register_agent(
         self, crowd_data: Dict[str, Any], worker: "Worker", request_id: str
@@ -561,78 +656,7 @@ class WorkerPool:
                 )
                 return
 
-        if isinstance(blueprint, ScreenTaskRequired) and blueprint.use_screening_task:
-            if (
-                blueprint.worker_needs_screening(worker)
-                and blueprint.should_generate_unit()
-            ):
-                with EXTERNAL_FUNCTION_LATENCY.labels(
-                    function="get_screening_unit_data"
-                ).time():
-                    screening_data = await loop.run_in_executor(
-                        None, blueprint.get_screening_unit_data
-                    )
-                if screening_data is not None:
-                    launcher = live_run.task_launcher
-                    assert (
-                        launcher is not None
-                    ), "LiveTaskRun must have launcher to use screening tasks"
-                    with EXTERNAL_FUNCTION_LATENCY.labels(
-                        function="launch_screening_unit"
-                    ).time():
-                        screen_unit = await loop.run_in_executor(
-                            None,
-                            partial(
-                                launcher.launch_screening_unit,
-                                screening_data,
-                            ),
-                        )
-                    units = [screen_unit]
-                else:
-                    AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()
-                    live_run.client_io.enqueue_agent_details(
-                        request_id,
-                        AgentDetails(
-                            worker_id=worker.db_id,
-                            failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
-                        ).to_dict(),
-                    )
-                    logger.debug(
-                        f"No screening units left for {agent_registration_id}."
-                    )
-                    return
-        if isinstance(blueprint, UseGoldUnit) and blueprint.use_golds:
-            if blueprint.should_produce_gold_for_worker(worker):
-                with EXTERNAL_FUNCTION_LATENCY.labels(
-                    function="get_gold_unit_data_for_worker"
-                ).time():
-                    gold_data = await loop.run_in_executor(
-                        None, partial(blueprint.get_gold_unit_data_for_worker, worker)
-                    )
-                if gold_data is not None:
-                    launcher = live_run.task_launcher
-                    gold_unit = await loop.run_in_executor(
-                        None,
-                        partial(
-                            launcher.launch_gold_unit,
-                            gold_data,
-                        ),
-                    )
-                    units = [gold_unit]
-                else:
-                    AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()
-                    live_run.client_io.enqueue_agent_details(
-                        request_id,
-                        AgentDetails(
-                            worker_id=worker.db_id,
-                            failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
-                        ).to_dict(),
-                    )
-                    logger.debug(f"No gold units left for {agent_registration_id}...")
-                    return
-
-        # Not onboarding, so just register directly
-        await self._assign_unit_to_agent(crowd_data, worker, request_id, units)
+        await self._assign_unit_or_qa(...)
 
     async def push_status_update(
         self, agent: Union["Agent", "OnboardingAgent"]
