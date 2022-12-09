@@ -20,9 +20,11 @@ module.exports = {
     react: "react",
     "react-dom": "react-dom",
   },
-  node: {
-    net: "empty",
-    dns: "empty",
+  resolve: {
+    fallback: {
+      net: false,
+      dns: false,
+    },
   },
   module: {
     rules: [
@@ -38,7 +40,14 @@ module.exports = {
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: "url-loader?limit=100000",
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 100000,
+            },
+          },
+        ],
       },
       {
         test: /\.jpg$/,

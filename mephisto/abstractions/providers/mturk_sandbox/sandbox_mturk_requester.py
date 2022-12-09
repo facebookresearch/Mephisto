@@ -22,9 +22,13 @@ class SandboxMTurkRequester(MTurkRequester):
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
-        super().__init__(db, db_id, row=row)
+        super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
@@ -41,7 +45,8 @@ class SandboxMTurkRequester(MTurkRequester):
         """
         return self.datastore.get_sandbox_client_for_requester(requester_name)
 
-    def is_sandbox(self) -> bool:
+    @classmethod
+    def is_sandbox(cls) -> bool:
         """
         Determine if this is a requester on sandbox
         """

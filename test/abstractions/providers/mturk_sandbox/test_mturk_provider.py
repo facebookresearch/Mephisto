@@ -11,8 +11,9 @@ import tempfile
 import time
 import pytest
 
+from mephisto.operations.config_handler import get_config_arg
 from typing import Type
-from mephisto.abstractions.test.utils import get_test_requester
+from mephisto.utils.testing import get_test_requester
 from mephisto.abstractions.test.crowd_provider_tester import CrowdProviderTests
 from mephisto.abstractions.crowd_provider import CrowdProvider
 from mephisto.abstractions.providers.mturk_sandbox.sandbox_mturk_provider import (
@@ -42,8 +43,12 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
 
     def get_test_worker_name(self) -> str:
         """Return a worker name that is usable for testing with this crowdprovider"""
-        # TODO(#97) get this from somewhere else!
-        return "ALNAP8V96IIO0"
+        worker_id = get_config_arg("test", "mturk_worker_id")
+        assert worker_id is not None, (
+            "Test worker_id must be set with "
+            "config_handler.add_config_arg('test', 'mturk_worker_id', '...')"
+        )
+        return worker_id
 
     def get_test_requester_name(self) -> str:
         """Return a requester name that is usable for testing with this crowdprovider"""

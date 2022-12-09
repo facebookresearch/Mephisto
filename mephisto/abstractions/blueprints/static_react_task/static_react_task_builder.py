@@ -33,7 +33,12 @@ class StaticReactTaskBuilder(TaskBuilder):
         # Copy the built core and the given task file to the target path
         use_bundle = os.path.expanduser(self.args.blueprint.task_source)
         target_path = os.path.join(target_resource_dir, "bundle.js")
-        shutil.copy2(use_bundle, target_path)
+
+        should_link_task_source = self.args.blueprint.get("link_task_source", False)
+        if should_link_task_source:
+            os.symlink(use_bundle, target_path)
+        else:
+            shutil.copy2(use_bundle, target_path)
 
         # Write a built file confirmation
         with open(os.path.join(build_dir, self.BUILT_FILE), "w+") as built_file:

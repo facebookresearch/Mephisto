@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import boto3
+import boto3  # type: ignore
 import sqlite3
 import os
 import threading
@@ -14,13 +14,13 @@ from datetime import datetime
 from collections import defaultdict
 
 
-from botocore.exceptions import ClientError
-from botocore.exceptions import ProfileNotFound
+from botocore.exceptions import ClientError  # type: ignore
+from botocore.exceptions import ProfileNotFound  # type: ignore
 from mephisto.abstractions.databases.local_database import is_unique_failure
 
 from typing import Dict, Any, Optional
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -47,8 +47,13 @@ CREATE_RUNS_TABLE = """CREATE TABLE IF NOT EXISTS runs (
     arn_id TEXT,
     hit_type_id TEXT NOT NULL,
     hit_config_path TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    frame_height INTEGER NOT NULL DEFAULT 650
 );
+"""
+
+UPDATE_RUNS_TABLE_1 = """ALTER TABLE runs
+    ADD COLUMN frame_height INTEGER NOT NULL DEFAULT 650;
 """
 
 CREATE_QUALIFICATIONS_TABLE = """CREATE TABLE IF NOT EXISTS qualifications (
@@ -85,11 +90,9 @@ class MTurkDatastore:
         """Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
-        # TODO(#101) is there a problem with having just one db connection?
-        # Will this cause bugs with failed commits?
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
             conn.row_factory = sqlite3.Row
             self.conn[curr_thread] = conn
         return self.conn[curr_thread]
@@ -114,6 +117,12 @@ class MTurkDatastore:
                 c.execute(CREATE_RUNS_TABLE)
                 c.execute(CREATE_RUN_MAP_TABLE)
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
+            with conn:
+                try:
+                    c = conn.cursor()
+                    c.execute(UPDATE_RUNS_TABLE_1)
+                except Exception as _e:
+                    pass  # extra column already exists
 
     def is_hit_mapping_in_sync(self, unit_id: str, compare_time: float):
         """
@@ -176,8 +185,26 @@ class MTurkDatastore:
         Register a specific assignment and hit to the given unit,
         or clear the assignment after a return
         """
+        logger.debug(
+            f"Attempting to assign HIT {hit_id}, Unit {unit_id}, Assignment {assignment_id}."
+        )
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from hits
+                WHERE hit_id = ?
+                """,
+                (hit_id,),
+            )
+            results = c.fetchall()
+            if len(results) > 0 and results[0]["unit_id"] is not None:
+                old_unit_id = results[0]["unit_id"]
+                self._mark_hit_mapping_update(old_unit_id)
+                logger.debug(
+                    f"Cleared HIT mapping cache for previous unit, {old_unit_id}"
+                )
+
             c.execute(
                 """UPDATE hits
                 SET assignment_id = ?, unit_id = ?
@@ -185,7 +212,6 @@ class MTurkDatastore:
                 """,
                 (assignment_id, unit_id, hit_id),
             )
-            conn.commit()
             if unit_id is not None:
                 self._mark_hit_mapping_update(unit_id)
 
@@ -194,8 +220,7 @@ class MTurkDatastore:
         Clear the hit mapping that maps the given unit,
         if such a unit-hit map exists
         """
-        with self.table_access_condition:
-            conn = self._get_connection()
+        with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 """
@@ -221,7 +246,6 @@ class MTurkDatastore:
                 """,
                 (None, None, result_hit_id),
             )
-            conn.commit()
             self._mark_hit_mapping_update(unit_id)
 
     def get_hit_mapping(self, unit_id: str) -> sqlite3.Row:
@@ -240,7 +264,11 @@ class MTurkDatastore:
             return results[0]
 
     def register_run(
-        self, run_id: str, arn_id: str, hit_type_id: str, hit_config_path: str
+        self,
+        run_id: str,
+        hit_type_id: str,
+        hit_config_path: str,
+        frame_height: int = 0,
     ) -> None:
         """Register a new task run in the mturk table"""
         with self.table_access_condition, self._get_connection() as conn:
@@ -250,9 +278,10 @@ class MTurkDatastore:
                     run_id,
                     arn_id,
                     hit_type_id,
-                    hit_config_path
-                ) VALUES (?, ?, ?, ?);""",
-                (run_id, arn_id, hit_type_id, hit_config_path),
+                    hit_config_path,
+                    frame_height
+                ) VALUES (?, ?, ?, ?, ?);""",
+                (run_id, "unused", hit_type_id, hit_config_path, frame_height),
             )
 
     def get_run(self, run_id: str) -> sqlite3.Row:
@@ -309,6 +338,9 @@ class MTurkDatastore:
                     f"Multiple mturk mapping creations for qualification {qualification_name}. "
                     f"Found existing one: {qual}. "
                 )
+                assert (
+                    qual is not None
+                ), "Cannot be none given is_unique_failure on insert"
                 cur_requester_id = qual["requester_id"]
                 cur_mturk_qualification_name = qual["mturk_qualification_name"]
                 cur_mturk_qualification_id = qual["mturk_qualification_id"]

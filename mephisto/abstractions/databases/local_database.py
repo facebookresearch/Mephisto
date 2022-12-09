@@ -10,8 +10,7 @@ from mephisto.abstractions.database import (
     EntryAlreadyExistsException,
     EntryDoesNotExistException,
 )
-from typing import Mapping, Optional, Any, List, Dict
-from mephisto.operations.utils import get_data_dir
+from typing import Mapping, Optional, Any, List, Dict, Tuple, Union
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.data_model.agent import Agent, AgentState, OnboardingAgent
 from mephisto.data_model.unit import Unit
@@ -25,10 +24,12 @@ from mephisto.data_model.worker import Worker
 from mephisto.data_model.qualification import Qualification, GrantedQualification
 
 import sqlite3
-from sqlite3 import Connection, Cursor
+from sqlite3 import Connection
 import threading
+import os
+import json
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -207,6 +208,22 @@ CREATE TABLE IF NOT EXISTS granted_qualifications (
 );
 """
 
+# Indices that are used by system-specific calls across Mephisto during live tasks
+# that improve the runtime of the system as a whole
+CREATE_CORE_INDEXES = """
+CREATE INDEX IF NOT EXISTS requesters_by_provider_index ON requesters(provider_type);
+CREATE INDEX IF NOT EXISTS unit_by_status_index ON units(status);
+CREATE INDEX IF NOT EXISTS unit_by_assignment_id_index ON units(assignment_id);
+CREATE INDEX IF NOT EXISTS unit_by_task_run_index ON units(task_run_id);
+CREATE INDEX IF NOT EXISTS unit_by_task_run_by_worker_by_status_index ON units(task_run_id, worker_id, status);
+CREATE INDEX IF NOT EXISTS unit_by_task_by_worker_index ON units(task_id, worker_id);
+CREATE INDEX IF NOT EXISTS agent_by_worker_by_status_index ON agents(worker_id, status);
+CREATE INDEX IF NOT EXISTS agent_by_task_run_index ON agents(task_run_id);
+CREATE INDEX IF NOT EXISTS assignment_by_task_run_index ON assignments(task_run_id);
+CREATE INDEX IF NOT EXISTS task_run_by_requester_index ON task_runs(requester_id);
+CREATE INDEX IF NOT EXISTS task_run_by_task_index ON task_runs(task_id);
+"""
+
 
 class StringIDRow(sqlite3.Row):
     def __getitem__(self, key: str) -> Any:
@@ -217,11 +234,6 @@ class StringIDRow(sqlite3.Row):
             return val
 
 
-# TODO(101) find_x queries are pretty slow right now, as we query the same table once to get
-# all of the rows, but only select the ids, then we later construct them individually,
-# making a second set of requests.
-# It would be better to expose an init param for DB Objects that takes in the full row
-# and inits with that if provided, and queries the database if not.
 class LocalMephistoDB(MephistoDB):
     """
     Local database for core Mephisto data storage, the LocalMephistoDatabase handles
@@ -239,12 +251,10 @@ class LocalMephistoDB(MephistoDB):
         """Returns a singular database connection to be shared amongst all
         calls for a given thread.
         """
-        # TODO(101) is there a problem with having just one db connection?
-        # Will this cause bugs with failed commits?
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
             try:
-                conn = sqlite3.connect(self.db_path)
+                conn = sqlite3.connect(self.db_path, check_same_thread=False)
                 conn.row_factory = StringIDRow
                 self.conn[curr_thread] = conn
             except sqlite3.Error as e:
@@ -262,10 +272,6 @@ class LocalMephistoDB(MephistoDB):
         """
         Run all the table creation SQL queries to ensure the expected tables exist
         """
-        # TODO(#93) maybe raise flag when the schema of existing tables isn't what we expect
-        # it to be?
-        # "How to know that schema changes?"
-        # logger.warning("some message")
         with self.table_access_condition:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
@@ -282,6 +288,7 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
+                c.executescript(CREATE_CORE_INDEXES)
 
     def __get_one_by_id(
         self, table_name: str, id_name: str, db_id: str
@@ -307,7 +314,36 @@ class LocalMephistoDB(MephistoDB):
                 )
             return results[0]
 
-    def new_project(self, project_name: str) -> str:
+    def __create_query_and_tuple(
+        self,
+        arg_list: List[str],
+        arg_vals: List[Optional[Union[str, int, bool]]],
+    ) -> Tuple[str, tuple]:
+        """
+        Given a list of the possible filtering args and valid values,
+        construct the WHERE part of a query with these and
+        a tuple containing the elements
+        """
+        fin_args = []
+        fin_vals = []
+        for arg, val in zip(arg_list, arg_vals):
+            if val is None:
+                continue
+            fin_args.append(arg)
+            fin_vals.append(val)
+        if len(fin_args) == 0:
+            return "", ()
+
+        query_lines = [
+            f"WHERE {arg_name} = ?{idx+1}\n"
+            if idx == 0
+            else f"AND {arg_name} = ?{idx+1}\n"
+            for idx, arg_name in enumerate(fin_args)
+        ]
+
+        return "".join(query_lines), tuple(fin_vals)
+
+    def _new_project(self, project_name: str) -> str:
         """
         Create a new project with the given project name. Raise EntryAlreadyExistsException if a project
         with this name has already been created.
@@ -331,7 +367,7 @@ class LocalMephistoDB(MephistoDB):
                     )
                 raise MephistoDBException(e)
 
-    def get_project(self, project_id: str) -> Mapping[str, Any]:
+    def _get_project(self, project_id: str) -> Mapping[str, Any]:
         """
         Return project's fields by the given project_id, raise EntryDoesNotExistException
         if no id exists in projects
@@ -340,7 +376,7 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("projects", "project_id", project_id)
 
-    def find_projects(self, project_name: Optional[str] = None) -> List[Project]:
+    def _find_projects(self, project_name: Optional[str] = None) -> List[Project]:
         """
         Try to find any project that matches the above. When called with no arguments,
         return all projects.
@@ -348,22 +384,27 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["project_name"], [project_name]
+            )
             c.execute(
                 """
                 SELECT * from projects
-                WHERE (?1 IS NULL OR project_name = ?1)
-                """,
-                (project_name,),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
-            return [Project(self, str(r["project_id"]), row=r) for r in rows]
+            return [
+                Project(self, str(r["project_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
-    def new_task(
+    def _new_task(
         self,
         task_name: str,
         task_type: str,
         project_id: Optional[str] = None,
-        parent_task_id: Optional[str] = None,
     ) -> str:
         """
         Create a new task with the given task name. Raise EntryAlreadyExistsException if a task
@@ -385,7 +426,7 @@ class LocalMephistoDB(MephistoDB):
                         task_name,
                         task_type,
                         nonesafe_int(project_id),
-                        nonesafe_int(parent_task_id),
+                        None,
                     ),
                 )
                 task_id = str(c.lastrowid)
@@ -397,7 +438,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException(e)
                 raise MephistoDBException(e)
 
-    def get_task(self, task_id: str) -> Mapping[str, Any]:
+    def _get_task(self, task_id: str) -> Mapping[str, Any]:
         """
         Return task's fields by task_id, raise EntryDoesNotExistException if no id exists
         in tasks
@@ -406,11 +447,10 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("tasks", "task_id", task_id)
 
-    def find_tasks(
+    def _find_tasks(
         self,
         task_name: Optional[str] = None,
         project_id: Optional[str] = None,
-        parent_task_id: Optional[str] = None,
     ) -> List[Task]:
         """
         Try to find any task that matches the above. When called with no arguments,
@@ -419,19 +459,23 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["task_name", "project_id", "parent_task_id"],
+                [task_name, nonesafe_int(project_id), None],
+            )
             c.execute(
                 """
                 SELECT * from tasks
-                WHERE (?1 IS NULL OR task_name = ?1)
-                AND (?2 IS NULL OR project_id = ?2)
-                AND (?3 IS NULL OR parent_task_id = ?3)
-                """,
-                (task_name, nonesafe_int(project_id), nonesafe_int(parent_task_id)),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
-            return [Task(self, str(r["task_id"]), row=r) for r in rows]
+            return [
+                Task(self, str(r["task_id"]), row=r, _used_new_call=True) for r in rows
+            ]
 
-    def update_task(
+    def _update_task(
         self,
         task_id: str,
         task_name: Optional[str] = None,
@@ -479,7 +523,7 @@ class LocalMephistoDB(MephistoDB):
                     )
                 raise MephistoDBException(e)
 
-    def new_task_run(
+    def _new_task_run(
         self,
         task_id: str,
         requester_id: str,
@@ -522,7 +566,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
-    def get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
+    def _get_task_run(self, task_run_id: str) -> Mapping[str, Any]:
         """
         Return the given task_run's fields by task_run_id, raise EntryDoesNotExistException if no id exists
         in task_runs.
@@ -531,7 +575,7 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("task_runs", "task_run_id", task_run_id)
 
-    def find_task_runs(
+    def _find_task_runs(
         self,
         task_id: Optional[str] = None,
         requester_id: Optional[str] = None,
@@ -544,19 +588,24 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["task_id", "requester_id", "is_completed"],
+                [nonesafe_int(task_id), nonesafe_int(requester_id), is_completed],
+            )
             c.execute(
                 """
                 SELECT * from task_runs
-                WHERE (?1 IS NULL OR task_id = ?1)
-                AND (?2 IS NULL OR requester_id = ?2)
-                AND (?3 IS NULL OR is_completed = ?3)
-                """,
-                (nonesafe_int(task_id), nonesafe_int(requester_id), is_completed),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
-            return [TaskRun(self, str(r["task_run_id"]), row=r) for r in rows]
+            return [
+                TaskRun(self, str(r["task_run_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
-    def update_task_run(self, task_run_id: str, is_completed: bool):
+    def _update_task_run(self, task_run_id: str, is_completed: bool):
         """
         Update a task run. At the moment, can only update completion status
         """
@@ -576,7 +625,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
-    def new_assignment(
+    def _new_assignment(
         self,
         task_id: str,
         task_run_id: str,
@@ -612,7 +661,7 @@ class LocalMephistoDB(MephistoDB):
             assignment_id = str(c.lastrowid)
             return assignment_id
 
-    def get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
+    def _get_assignment(self, assignment_id: str) -> Mapping[str, Any]:
         """
         Return assignment's fields by assignment_id, raise EntryDoesNotExistException
         if no id exists in tasks
@@ -621,7 +670,7 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("assignments", "assignment_id", assignment_id)
 
-    def find_assignments(
+    def _find_assignments(
         self,
         task_run_id: Optional[str] = None,
         task_id: Optional[str] = None,
@@ -637,29 +686,38 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                    SELECT * from assignments
-                    WHERE (?1 IS NULL OR task_run_id = ?1)
-                    AND (?2 IS NULL OR task_id = ?2)
-                    AND (?3 IS NULL OR requester_id = ?3)
-                    AND (?4 IS NULL OR task_type = ?4)
-                    AND (?5 IS NULL OR provider_type = ?5)
-                    AND (?6 IS NULL OR sandbox = ?6)
-                """,
-                (
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                [
+                    "task_run_id",
+                    "task_id",
+                    "requester_id",
+                    "task_type",
+                    "provider_type",
+                    "sandbox",
+                ],
+                [
                     nonesafe_int(task_run_id),
                     nonesafe_int(task_id),
                     nonesafe_int(requester_id),
                     task_type,
                     provider_type,
                     sandbox,
-                ),
+                ],
+            )
+            c.execute(
+                """
+                SELECT * from assignments
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
-            return [Assignment(self, str(r["assignment_id"]), row=r) for r in rows]
+            return [
+                Assignment(self, str(r["assignment_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
-    def new_unit(
+    def _new_unit(
         self,
         task_id: str,
         task_run_id: str,
@@ -713,7 +771,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException(e)
                 raise MephistoDBException(e)
 
-    def get_unit(self, unit_id: str) -> Mapping[str, Any]:
+    def _get_unit(self, unit_id: str) -> Mapping[str, Any]:
         """
         Return unit's fields by unit_id, raise EntryDoesNotExistException
         if no id exists in units
@@ -722,7 +780,7 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("units", "unit_id", unit_id)
 
-    def find_units(
+    def _find_units(
         self,
         task_id: Optional[str] = None,
         task_run_id: Optional[str] = None,
@@ -743,22 +801,21 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                SELECT * from units
-                WHERE (?1 IS NULL OR task_id = ?1)
-                AND (?2 IS NULL OR task_run_id = ?2)
-                AND (?3 IS NULL OR requester_id = ?3)
-                AND (?4 IS NULL OR assignment_id = ?4)
-                AND (?5 IS NULL OR unit_index = ?5)
-                AND (?6 IS NULL OR provider_type = ?6)
-                AND (?7 IS NULL OR task_type = ?7)
-                AND (?8 IS NULL OR agent_id = ?8)
-                AND (?9 IS NULL OR worker_id = ?9)
-                AND (?10 IS NULL OR sandbox = ?10)
-                AND (?11 IS NULL OR status = ?11)
-                """,
-                (
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                [
+                    "task_id",
+                    "task_run_id",
+                    "requester_id",
+                    "assignment_id",
+                    "unit_index",
+                    "provider_type",
+                    "task_type",
+                    "agent_id",
+                    "worker_id",
+                    "sandbox",
+                    "status",
+                ],
+                [
                     nonesafe_int(task_id),
                     nonesafe_int(task_run_id),
                     nonesafe_int(requester_id),
@@ -770,12 +827,21 @@ class LocalMephistoDB(MephistoDB):
                     nonesafe_int(worker_id),
                     sandbox,
                     status,
-                ),
+                ],
+            )
+            c.execute(
+                """
+                SELECT * from units
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
-            return [Unit(self, str(r["unit_id"]), row=r) for r in rows]
+            return [
+                Unit(self, str(r["unit_id"]), row=r, _used_new_call=True) for r in rows
+            ]
 
-    def clear_unit_agent_assignment(self, unit_id: str) -> None:
+    def _clear_unit_agent_assignment(self, unit_id: str) -> None:
         """
         Update the given unit by removing the agent that is assigned to it, thus updating
         the status to assignable.
@@ -798,7 +864,7 @@ class LocalMephistoDB(MephistoDB):
                     )
                 raise MephistoDBException(e)
 
-    def update_unit(
+    def _update_unit(
         self, unit_id: str, agent_id: Optional[str] = None, status: Optional[str] = None
     ) -> None:
         """
@@ -834,7 +900,7 @@ class LocalMephistoDB(MephistoDB):
                     )
                 raise MephistoDBException(e)
 
-    def new_requester(self, requester_name: str, provider_type: str) -> str:
+    def _new_requester(self, requester_name: str, provider_type: str) -> str:
         """
         Create a new requester with the given name and provider type.
         Raises EntryAlreadyExistsException
@@ -857,7 +923,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException()
                 raise MephistoDBException(e)
 
-    def get_requester(self, requester_id: str) -> Mapping[str, Any]:
+    def _get_requester(self, requester_id: str) -> Mapping[str, Any]:
         """
         Return requester's fields by requester_id, raise EntryDoesNotExistException
         if no id exists in requesters
@@ -866,7 +932,7 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("requesters", "requester_id", requester_id)
 
-    def find_requesters(
+    def _find_requesters(
         self, requester_name: Optional[str] = None, provider_type: Optional[str] = None
     ) -> List[Requester]:
         """
@@ -876,18 +942,23 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["requester_name", "provider_type"], [requester_name, provider_type]
+            )
             c.execute(
                 """
                 SELECT * from requesters
-                WHERE (?1 IS NULL OR requester_name = ?1)
-                AND (?2 IS NULL OR provider_type = ?2)
-                """,
-                (requester_name, provider_type),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
-            return [Requester(self, str(r["requester_id"]), row=r) for r in rows]
+            return [
+                Requester(self, str(r["requester_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
-    def new_worker(self, worker_name: str, provider_type: str) -> str:
+    def _new_worker(self, worker_name: str, provider_type: str) -> str:
         """
         Create a new worker with the given name and provider type.
         Raises EntryAlreadyExistsException
@@ -913,7 +984,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException()
                 raise MephistoDBException(e)
 
-    def get_worker(self, worker_id: str) -> Mapping[str, Any]:
+    def _get_worker(self, worker_id: str) -> Mapping[str, Any]:
         """
         Return worker's fields by worker_id, raise EntryDoesNotExistException
         if no id exists in workers
@@ -922,7 +993,7 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("workers", "worker_id", worker_id)
 
-    def find_workers(
+    def _find_workers(
         self, worker_name: Optional[str] = None, provider_type: Optional[str] = None
     ) -> List[Worker]:
         """
@@ -932,18 +1003,23 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["worker_name", "provider_type"], [worker_name, provider_type]
+            )
             c.execute(
                 """
                 SELECT * from workers
-                WHERE (?1 IS NULL OR worker_name = ?1)
-                AND (?2 IS NULL OR provider_type = ?2)
-                """,
-                (worker_name, provider_type),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
-            return [Worker(self, str(r["worker_id"]), row=r) for r in rows]
+            return [
+                Worker(self, str(r["worker_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
-    def new_agent(
+    def _new_agent(
         self,
         worker_id: str,
         unit_id: str,
@@ -1004,7 +1080,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
-    def get_agent(self, agent_id: str) -> Mapping[str, Any]:
+    def _get_agent(self, agent_id: str) -> Mapping[str, Any]:
         """
         Return agent's fields by agent_id, raise EntryDoesNotExistException
         if no id exists in agents
@@ -1013,7 +1089,7 @@ class LocalMephistoDB(MephistoDB):
         """
         return self.__get_one_by_id("agents", "agent_id", agent_id)
 
-    def update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
+    def _update_agent(self, agent_id: str, status: Optional[str] = None) -> None:
         """
         Update the given task with the given parameters if possible, raise appropriate exception otherwise.
         """
@@ -1031,7 +1107,7 @@ class LocalMephistoDB(MephistoDB):
                 (status, int(agent_id)),
             )
 
-    def find_agents(
+    def _find_agents(
         self,
         status: Optional[str] = None,
         unit_id: Optional[str] = None,
@@ -1049,19 +1125,18 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                SELECT * from agents
-                WHERE (?1 IS NULL OR status = ?1)
-                AND (?2 IS NULL OR unit_id = ?2)
-                AND (?3 IS NULL OR worker_id = ?3)
-                AND (?4 IS NULL OR task_id = ?4)
-                AND (?5 IS NULL OR task_run_id = ?5)
-                AND (?6 IS NULL OR assignment_id = ?6)
-                AND (?7 IS NULL OR task_type = ?7)
-                AND (?8 IS NULL OR provider_type = ?8)
-                """,
-                (
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                [
+                    "status",
+                    "unit_id",
+                    "worker_id",
+                    "task_id",
+                    "task_run_id",
+                    "assignment_id",
+                    "task_type",
+                    "provider_type",
+                ],
+                [
                     status,
                     nonesafe_int(unit_id),
                     nonesafe_int(worker_id),
@@ -1070,12 +1145,22 @@ class LocalMephistoDB(MephistoDB):
                     nonesafe_int(assignment_id),
                     task_type,
                     provider_type,
-                ),
+                ],
+            )
+            c.execute(
+                """
+                SELECT * from agents
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
-            return [Agent(self, str(r["agent_id"]), row=r) for r in rows]
+            return [
+                Agent(self, str(r["agent_id"]), row=r, _used_new_call=True)
+                for r in rows
+            ]
 
-    def make_qualification(self, qualification_name: str) -> str:
+    def _make_qualification(self, qualification_name: str) -> str:
         """
         Make a new qualification, throws an error if a qualification by the given name
         already exists. Return the id for the qualification.
@@ -1096,7 +1181,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException()
                 raise MephistoDBException(e)
 
-    def find_qualifications(
+    def _find_qualifications(
         self, qualification_name: Optional[str] = None
     ) -> List[Qualification]:
         """
@@ -1105,19 +1190,25 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["qualification_name"], [qualification_name]
+            )
             c.execute(
                 """
                 SELECT * from qualifications
-                WHERE (?1 IS NULL OR qualification_name = ?1)
-                """,
-                (qualification_name,),
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
-                Qualification(self, str(r["qualification_id"]), row=r) for r in rows
+                Qualification(
+                    self, str(r["qualification_id"]), row=r, _used_new_call=True
+                )
+                for r in rows
             ]
 
-    def get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
+    def _get_qualification(self, qualification_id: str) -> Mapping[str, Any]:
         """
         Return qualification's fields by qualification_id, raise
         EntryDoesNotExistException if no id exists in qualifications
@@ -1149,7 +1240,7 @@ class LocalMephistoDB(MephistoDB):
                 (qualification_name,),
             )
 
-    def grant_qualification(
+    def _grant_qualification(
         self, qualification_id: str, worker_id: str, value: int = 1
     ) -> None:
         """
@@ -1196,7 +1287,7 @@ class LocalMephistoDB(MephistoDB):
                         raise EntryAlreadyExistsException()
                     raise MephistoDBException(e)
 
-    def check_granted_qualifications(
+    def _check_granted_qualifications(
         self,
         qualification_id: Optional[str] = None,
         worker_id: Optional[str] = None,
@@ -1225,9 +1316,8 @@ class LocalMephistoDB(MephistoDB):
                 for r in rows
             ]
 
-    # TODO(101) these should not be optional
-    def get_granted_qualification(
-        self, qualification_id: Optional[str] = None, worker_id: Optional[str] = None
+    def _get_granted_qualification(
+        self, qualification_id: str, worker_id: str
     ) -> Mapping[str, Any]:
         """
         Return the granted qualification in the database between the given
@@ -1253,7 +1343,7 @@ class LocalMephistoDB(MephistoDB):
                 )
             return results[0]
 
-    def revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
+    def _revoke_qualification(self, qualification_id: str, worker_id: str) -> None:
         """
         Remove the given qualification from the given worker
         """
@@ -1267,7 +1357,7 @@ class LocalMephistoDB(MephistoDB):
                 (int(qualification_id), int(worker_id)),
             )
 
-    def new_onboarding_agent(
+    def _new_onboarding_agent(
         self, worker_id: str, task_id: str, task_run_id: str, task_type: str
     ) -> str:
         """
@@ -1299,7 +1389,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryDoesNotExistException(e)
                 raise MephistoDBException(e)
 
-    def get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
+    def _get_onboarding_agent(self, onboarding_agent_id: str) -> Mapping[str, Any]:
         """
         Return onboarding agent's fields by onboarding_agent_id, raise
         EntryDoesNotExistException if no id exists in onboarding_agents
@@ -1310,7 +1400,7 @@ class LocalMephistoDB(MephistoDB):
             "onboarding_agents", "onboarding_agent_id", onboarding_agent_id
         )
 
-    def update_onboarding_agent(
+    def _update_onboarding_agent(
         self, onboarding_agent_id: str, status: Optional[str] = None
     ) -> None:
         """
@@ -1331,7 +1421,7 @@ class LocalMephistoDB(MephistoDB):
                     (status, int(onboarding_agent_id)),
                 )
 
-    def find_onboarding_agents(
+    def _find_onboarding_agents(
         self,
         status: Optional[str] = None,
         worker_id: Optional[str] = None,
@@ -1346,25 +1436,72 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
-            c.execute(
-                """
-                SELECT * from onboarding_agents
-                WHERE (?1 IS NULL OR status = ?1)
-                AND (?2 IS NULL OR worker_id = ?2)
-                AND (?3 IS NULL OR task_id = ?3)
-                AND (?4 IS NULL OR task_run_id = ?4)
-                AND (?5 IS NULL OR task_type = ?5)
-                """,
-                (
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                [
+                    "status",
+                    "worker_id",
+                    "task_id",
+                    "task_run_id",
+                    "task_type",
+                ],
+                [
                     status,
                     nonesafe_int(worker_id),
                     nonesafe_int(task_id),
                     nonesafe_int(task_run_id),
                     task_type,
-                ),
+                ],
+            )
+            c.execute(
+                """
+                SELECT * from onboarding_agents
+                """
+                + additional_query,
+                arg_tuple,
             )
             rows = c.fetchall()
             return [
-                OnboardingAgent(self, str(r["onboarding_agent_id"]), row=r)
+                OnboardingAgent(
+                    self, str(r["onboarding_agent_id"]), row=r, _used_new_call=True
+                )
                 for r in rows
             ]
+
+    # File/blob manipulation methods
+
+    def _assert_path_in_domain(self, path_key: str) -> None:
+        """Helper method to ensure we only manage data we're supposed to"""
+        assert path_key.startswith(
+            self.db_root
+        ), f"Accessing invalid key {path_key} for root {self.db_root}"
+
+    def write_dict(self, path_key: str, target_dict: Dict[str, Any]):
+        """Write an object to the given key"""
+        self._assert_path_in_domain(path_key)
+        os.makedirs(os.path.dirname(path_key), exist_ok=True)
+        with open(path_key, "w+") as data_file:
+            json.dump(target_dict, data_file)
+
+    def read_dict(self, path_key: str) -> Dict[str, Any]:
+        """Return the dict loaded from the given path key"""
+        self._assert_path_in_domain(path_key)
+        with open(path_key, "r") as data_file:
+            return json.load(data_file)
+
+    def write_text(self, path_key: str, data_string: str):
+        """Write the given text to the given key"""
+        self._assert_path_in_domain(path_key)
+        os.makedirs(os.path.dirname(path_key), exist_ok=True)
+        with open(path_key, "w+") as data_file:
+            data_file.write(data_string)
+
+    def read_text(self, path_key: str) -> str:
+        """Get text data stored at the given key"""
+        self._assert_path_in_domain(path_key)
+        with open(path_key, "r") as data_file:
+            return data_file.read()
+
+    def key_exists(self, path_key: str) -> bool:
+        """See if the given path refers to a known file"""
+        self._assert_path_in_domain(path_key)
+        return os.path.exists(path_key)

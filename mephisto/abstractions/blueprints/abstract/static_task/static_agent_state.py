@@ -4,18 +4,16 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import time
 from typing import List, Dict, Optional, Any, TYPE_CHECKING
 from mephisto.abstractions.blueprint import AgentState
-import os
-import json
-import time
-import weakref
+import os.path
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
     from mephisto.data_model.packet import Packet
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -31,33 +29,14 @@ class StaticAgentState(AgentState):
         return {
             "inputs": None,
             "outputs": None,
-            "times": {"task_start": 0, "task_end": 0},
         }
 
-    def __init__(self, agent: "Agent"):
-        """
-        Static agent states should store
-        input dict -> output dict pairs to disc
-        """
-        self.agent = weakref.proxy(agent)
-        self.state: Dict[str, Optional[Dict[str, Any]]] = self._get_empty_state()
-        self.load_data()
-
-    def set_init_state(self, data: Any) -> bool:
+    def _set_init_state(self, data: Any):
         """Set the initial state for this agent"""
-        if self.get_init_state() is not None:
-            # Initial state is already set
-            return False
-        else:
-            self.state["inputs"] = data
-            times_dict = self.state["times"]
-            # TODO(#103) this typing may be better handled another way
-            assert isinstance(times_dict, dict)
-            times_dict["task_start"] = time.time()
-            self.save_data()
-            return True
+        self.state["inputs"] = data
 
     def get_init_state(self) -> Optional[Dict[str, Any]]:
+
         """
         Return the initial state for this agent,
         None if no such state exists
@@ -66,13 +45,17 @@ class StaticAgentState(AgentState):
             return None
         return self.state["inputs"].copy()
 
-    def load_data(self) -> None:
+    def _load_data(self) -> None:
         """Load data for this agent from disk"""
         data_dir = self.agent.get_data_dir()
         data_path = os.path.join(data_dir, DATA_FILE)
-        if os.path.exists(data_path):
-            with open(data_path, "r") as data_file:
-                self.state = json.load(data_file)
+        if self.agent.db.key_exists(data_path):
+            self.state = self.agent.db.read_dict(data_path)
+            # Old compatibility with saved times
+            if "times" in self.state:
+                assert isinstance(self.state["times"], dict)
+                self.metadata.task_start = self.state["times"]["task_start"]
+                self.metadata.task_end = self.state["times"]["task_end"]
         else:
             self.state = self._get_empty_state()
 
@@ -80,37 +63,27 @@ class StaticAgentState(AgentState):
         """Return dict of this agent's state"""
         return self.state.copy()
 
-    def save_data(self) -> None:
+    def _save_data(self) -> None:
         """Save static agent data to disk"""
         data_dir = self.agent.get_data_dir()
-        os.makedirs(data_dir, exist_ok=True)
         out_filename = os.path.join(data_dir, DATA_FILE)
-        with open(out_filename, "w+") as data_file:
-            json.dump(self.state, data_file)
+        self.agent.db.write_dict(out_filename, self.state)
         logger.info(f"SAVED_DATA_TO_DISC at {out_filename}")
 
-    def update_data(self, packet: "Packet") -> None:
+    def update_data(self, live_update: Dict[str, Any]) -> None:
         """
-        Process the incoming data packet, and handle
-        updating the state
+        Process the incoming data packet, and handle updating the state
         """
-        assert (
-            packet.data.get("MEPHISTO_is_submit") is True
-            or packet.data.get("onboarding_data") is not None
-        ), "Static tasks should only have final act"
+        raise Exception("Static tasks should only have final act, but got live update")
 
+    def _update_submit(self, submission_data: Dict[str, Any]) -> None:
+        """Move the submitted output to the local dict"""
         outputs: Dict[str, Any]
-
-        if packet.data.get("onboarding_data") is not None:
-            outputs = packet.data["onboarding_data"]
-        else:
-            outputs = packet.data["task_data"]
-        times_dict = self.state["times"]
-        # TODO(#013) this typing may be better handled another way
-        assert isinstance(times_dict, dict)
-        times_dict["task_end"] = time.time()
-        if packet.data.get("files") != None:
-            logger.info(f"Got files: {str(packet.data['files'])[:500]}")
-            outputs["files"] = [f["filename"] for f in packet.data["files"]]
-        self.state["outputs"] = outputs
-        self.save_data()
+        assert isinstance(submission_data, dict), (
+            "Static tasks must get dict results. Ensure you are passing an object to "
+            f"your frontend task's `handleSubmit` method. Got {submission_data}"
+        )
+        output_files = submission_data.get("files")
+        if output_files is not None:
+            submission_data["files"] = [f["filename"] for f in submission_data["files"]]
+        self.state["outputs"] = submission_data

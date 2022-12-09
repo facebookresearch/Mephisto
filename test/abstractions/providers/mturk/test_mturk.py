@@ -15,6 +15,8 @@ from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.providers.mturk.mturk_worker import MTurkWorker
 from mephisto.data_model.worker import Worker
 
+from typing import cast
+
 
 class TestMTurkComponents(unittest.TestCase):
     """
@@ -43,7 +45,7 @@ class TestMTurkComponents(unittest.TestCase):
         TEST_MTURK_WORKER_ID = "ABCDEFGHIJ"
 
         test_worker = MTurkWorker.new(db, TEST_MTURK_WORKER_ID)
-        test_worker_2 = Worker(db, test_worker.db_id)
+        test_worker_2 = Worker.get(db, test_worker.db_id)
         self.assertEqual(
             test_worker.worker_name,
             test_worker_2.worker_name,
@@ -51,6 +53,7 @@ class TestMTurkComponents(unittest.TestCase):
         )
 
         test_worker_3 = MTurkWorker.get_from_mturk_worker_id(db, TEST_MTURK_WORKER_ID)
+        assert test_worker_3 is not None
         self.assertEqual(
             test_worker.worker_name,
             test_worker_3.worker_name,
@@ -65,7 +68,8 @@ class TestMTurkComponents(unittest.TestCase):
         db = self.db
         TEST_MTURK_WORKER_ID = "ABCDEFGHIJ"
 
-        test_worker = MTurkWorker.new(db, TEST_MTURK_WORKER_ID)
+        test_worker = cast(MTurkWorker, MTurkWorker.new(db, TEST_MTURK_WORKER_ID))
+
         datastore = test_worker.datastore
         qualification_name = "test-qual-name"
         requester_id = "test-requester-id"
@@ -81,7 +85,7 @@ class TestMTurkComponents(unittest.TestCase):
         )
 
         stored_qual = datastore.get_qualification_mapping(qualification_name)
-
+        assert stored_qual is not None, "We just created this qualification!"
         self.assertEqual(
             stored_qual["qualification_name"],
             qualification_name,

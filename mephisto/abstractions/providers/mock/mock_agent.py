@@ -26,23 +26,39 @@ class MockAgent(Agent):
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
-        super().__init__(db, db_id, row=row)
+        super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: "MockDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
         if db_id not in self.datastore.agent_data:
             self.datastore.agent_data[db_id] = {
                 "observed": [],
                 "pending_acts": [],
                 "acts": [],
+                "pending_submit": None,
             }
 
-    def observe(self, packet: "Packet") -> None:
+    def observe(self, live_update: Dict[str, Any]) -> None:
         """Put observations into this mock agent's observation list"""
-        self.datastore.agent_data[self.db_id]["observed"].append(packet)
-        super().observe(packet)
+        self.datastore.agent_data[self.db_id]["observed"].append(live_update)
+        super().observe(live_update)
 
-    def act(self, timeout=None) -> Optional["Packet"]:
+    def enqueue_mock_live_update(self, data: Dict[str, Any]) -> None:
+        """Add a fake observation to pull off on the next act call"""
+        self.datastore.agent_data[self.db_id]["pending_acts"] = data
+
+    def enqueue_mock_submit_event(self, data: Dict[str, Any]) -> None:
+        """
+        Add a final submit event to put in the queue for this agent
+        to be called on completion
+        """
+        self.datastore.agent_data[self.db_id]["pending_submit"] = data
+
+    def get_live_update(self, timeout=None) -> Optional[Dict[str, Any]]:
         """
         Either take an act from this mock agent's act queue (for use
         by tests and other mock purposes) or request a regular act
@@ -51,7 +67,7 @@ class MockAgent(Agent):
         if len(self.datastore.agent_data[self.db_id]["pending_acts"]) > 0:
             act = self.datastore.agent_data[self.db_id]["pending_acts"].pop(0)
         else:
-            act = super().act(timeout=timeout)
+            act = super().get_live_update(timeout=timeout)
 
         if act is not None:
             self.datastore.agent_data[self.db_id]["acts"].append(act)
@@ -71,20 +87,26 @@ class MockAgent(Agent):
         """
         self.update_status(AgentState.STATUS_REJECTED)
 
-    def mark_done(self) -> None:
-        """
-        Take any required step with the crowd_provider to ensure that
-        the worker can submit their work and be marked as complete via
-        a call to get_status
-        """
-        if self.get_status() not in AgentState.complete():
-            self.db.update_agent(
-                agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
-            )
+    def mark_done(self):
+        """No need to tell mock crowd provider about doneness"""
+        pass
 
     def mark_disconnected(self) -> None:
         """Mark this mock agent as having disconnected"""
-        self.db.update_agent(agent_id=self.db_id, status=AgentState.STATUS_DISCONNECT)
+        self.update_status(AgentState.STATUS_DISCONNECT)
+
+    def await_submit(self, timeout: Optional[int] = None) -> bool:
+        """
+        Check the submission status of this agent, first popping off
+        and triggering a local submit if there is one on a timeout submit
+        """
+        if self.did_submit.is_set():
+            return True
+        if timeout is not None:
+            local_submit = self.datastore.agent_data[self.db_id]["pending_submit"]
+            if local_submit is not None:
+                self.handle_submit(local_submit)
+        return super().await_submit(timeout)
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":

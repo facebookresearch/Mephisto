@@ -6,11 +6,16 @@
 
 from mephisto.abstractions.blueprint import (
     Blueprint,
-    OnboardingRequired,
     BlueprintArgs,
     SharedTaskState,
 )
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
+    OnboardingRequired,
+    OnboardingSharedState,
+    OnboardingRequiredArgs,
+)
 from dataclasses import dataclass, field
+
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_agent_state import (
     ParlAIChatAgentState,
@@ -25,7 +30,6 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from omegaconf import DictConfig, MISSING
 
 import os
-import time
 import csv
 import sys
 import json
@@ -36,13 +40,12 @@ from typing import ClassVar, List, Type, Any, Dict, Iterable, Optional, TYPE_CHE
 
 if TYPE_CHECKING:
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.agent import Agent, OnboardingAgent
+    from mephisto.data_model.agent import OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
-    from mephisto.data_model.assignment import Assignment
-    from argparse import _ArgumentGroup as ArgumentGroup
 
-BLUEPRINT_TYPE = "parlai_chat"
+
+BLUEPRINT_TYPE_PARLAI_CHAT = "parlai_chat"
 
 
 MISSING_SOMETHING_TEXT = (
@@ -55,7 +58,7 @@ MISSING_SOMETHING_TEXT = (
 
 
 @dataclass
-class SharedParlAITaskState(SharedTaskState):
+class SharedParlAITaskState(OnboardingSharedState, SharedTaskState):
     frontend_task_opts: Dict[str, Any] = field(default_factory=dict)
     world_opt: Dict[str, Any] = field(default_factory=dict)
     onboarding_world_opt: Dict[str, Any] = field(default_factory=dict)
@@ -63,16 +66,15 @@ class SharedParlAITaskState(SharedTaskState):
 
 
 @dataclass
-class ParlAIChatBlueprintArgs(BlueprintArgs):
-    _blueprint_type: str = BLUEPRINT_TYPE
+class ParlAIChatBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
+    _blueprint_type: str = BLUEPRINT_TYPE_PARLAI_CHAT
     _group: str = field(
         default="ParlAIChatBlueprint",
         metadata={
             "help": """
-                Tasks launched from static blueprints need a
-                source html file to display to workers, as well as a csv
-                containing values that will be inserted into templates in
-                the html.
+                Tasks launched from ParlAI blueprints require the number of
+                conversations (either an int or task data for each convo), as
+                well as a world to initialize for connecting workers.
             """
         },
     )
@@ -127,8 +129,8 @@ class ParlAIChatBlueprintArgs(BlueprintArgs):
 
 
 @register_mephisto_abstraction()
-class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
-    """Blueprint for a task that runs a parlai chat """
+class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
+    """Blueprint for a task that runs a parlai chat"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = ParlAIChatAgentState
     OnboardingAgentStateClass: ClassVar[Type["AgentState"]] = ParlAIChatAgentState
@@ -136,20 +138,16 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = ParlAIChatTaskRunner
     ArgsClass = ParlAIChatBlueprintArgs
     SharedStateClass = SharedParlAITaskState
-    supported_architects: ClassVar[List[str]] = [
-        "mock",
-        "heroku",
-        "local",
-    ]  # TODO update?
-    BLUEPRINT_TYPE = BLUEPRINT_TYPE
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE_PARLAI_CHAT
 
     def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedParlAITaskState",
     ):
         super().__init__(task_run, args, shared_state)
         self._initialization_data_dicts: List[Dict[str, Any]] = []
-        self.init_onboarding_config(task_run, args, shared_state)
-
         if args.blueprint.get("context_csv", None) is not None:
             csv_file = os.path.expanduser(args.blueprint.context_csv)
             with open(csv_file, "r", encoding="utf-8-sig") as csv_fp:
@@ -171,7 +169,6 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         elif args.blueprint.get("num_conversations", None) is not None:
             self._initialization_data_dicts = [{}] * args.blueprint.num_conversations
         else:
-            # TODO(#95) handle JSON and python dicts directly
             raise NotImplementedError(
                 "Parsing parlai tasks directly from dicts or JSON is not supported yet"
             )
@@ -214,6 +211,9 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
     ) -> None:
         """Ensure that arguments are properly configured to launch this task"""
         # Find world module
+        assert isinstance(
+            shared_state, SharedParlAITaskState
+        ), "Must use SharedParlAITaskState with ParlAIChatBlueprint"
         world_module = shared_state.world_module
         if world_module is None:
             world_file_path = os.path.expanduser(args.blueprint.world_file)
@@ -285,17 +285,27 @@ class ParlAIChatBlueprint(Blueprint, OnboardingRequired):
         Specifies what options within a task_config should be fowarded
         to the client for use by the task's frontend
         """
-        # TODO move frontend args in
-        frontend_task_config = {
-            "task_description": self.full_task_description,
-            "preview_html": self.full_preview_description,
-            "frame_height": 650,
-            "chat_title": self.args.task.task_title,
-            "has_preview": self.args.blueprint.get("preview_source", None) is not None,
-            "block_mobile": True,
-            "frontend_task_opts": self.shared_state.frontend_task_opts,
-        }
-        frontend_task_config.update(super().get_frontend_args())
+        # Start with standard task configuration arguments
+        frontend_task_config = super().get_frontend_args()
+        shared_state = self.shared_state
+        assert isinstance(
+            shared_state, SharedParlAITaskState
+        ), "Must use SharedParlAITaskState with ParlAIChatBlueprint"
+        # Add ParlAI standards
+        frontend_task_config.update(
+            {
+                "task_description": self.full_task_description,
+                "preview_html": self.full_preview_description,
+                "frame_height": 650,
+                "chat_title": self.args.task.task_title,
+                "has_preview": self.args.blueprint.get("preview_source", None)
+                is not None,
+                "block_mobile": True,
+                "frontend_task_opts": shared_state.frontend_task_opts,
+            }
+        )
+        # Use overrides provided downstream
+        frontend_task_config.update(self.frontend_task_config)
         return frontend_task_config
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:

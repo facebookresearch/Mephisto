@@ -1,0 +1,15 @@
+#@package _global_
+defaults:
+  - base
+mephisto:
+  blueprint:
+    custom_source_dir: ${task_dir}/custom_simple
+  task:
+    task_name: parlai-chat-example
+    task_title: "Test ParlAI Simply Built Chat Task"
+    task_description: >
+      This is a simple chat between two people
+      used to demonstrate the functionalities around using Mephisto
+      for ParlAI tasks.
+    task_reward: 0.3
+    task_tags: "dynamic,chat,testing"

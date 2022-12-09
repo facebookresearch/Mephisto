@@ -1,0 +1,42 @@
+diff --git a/ModuleScopePlugin.js b/ModuleScopePlugin.js
+index e84d2b38aabbfc8e28515859417ae9652b711b57..8d450373ceebfd8ac747f6165f2d8822900d8b26 100644
+--- a/ModuleScopePlugin.js
++++ b/ModuleScopePlugin.js
+@@ -35,6 +35,12 @@ class ModuleScopePlugin {
+         ) {
+           return callback();
+         }
++        if (process.versions.pnp) {
++          const {findPackageLocator} = require('pnpapi');
++          if (findPackageLocator(request.__innerRequest_request) !== null) {
++            return callback();
++          }
++        }
+         // Resolve the issuer from our appSrc and make sure it's one of our files
+         // Maybe an indexOf === 0 would be better?
+         if (
+diff --git a/formatWebpackMessages.js b/formatWebpackMessages.js
+index f459ea98ccc4f572bd39d1bc94442335d27da797..7f7ec3bcdffb340cc4dc01c74fcd6e10323a8fea 100644
+--- a/formatWebpackMessages.js
++++ b/formatWebpackMessages.js
+@@ -15,7 +15,19 @@ function isLikelyASyntaxError(message) {
+ 
+ // Cleans up webpack error messages.
+ function formatMessage(message) {
+-  let lines = message.split('\n');
++  let lines = [];
++
++  if (typeof message === 'string') {
++    lines = message.split('\n');
++  } else if ('message' in message) {
++    lines = message['message'].split('\n');
++  } else if (Array.isArray(message)) {
++    message.forEach(message => {
++      if ('message' in message) {
++        lines = message['message'].split('\n');
++      }
++    });
++  }
+ 
+   // Strip webpack-added headers off errors/warnings
+   // https://github.com/webpack/webpack/blob/master/lib/ModuleError.js

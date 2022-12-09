@@ -1,2 +1,4 @@
 *.md
 **/build/*
+docs/web/static/python_api/*
+wrap_crowd_source.js

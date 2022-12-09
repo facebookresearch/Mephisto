@@ -4,51 +4,39 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.abstractions.blueprint import TaskRunner
+from mephisto.abstractions.blueprint import TaskRunner, SharedTaskState
 from mephisto.data_model.agent import Agent, OnboardingAgent
 import time
 
 try:
-    from parlai.core.agents import Agent as ParlAIAgent
-    from parlai.core.message import Message
-except:
-
-    class ParlAIAgent:
-        def __init__(self, *args, **kwargs):
-            raise NotImplementedError(
-                "You need to install ParlAI to use this blueprint"
-            )
-
-    class Message:
-        def __init__(self, *args, **kwargs):
-            raise NotImplementedError(
-                "You need to install ParlAI to use this blueprint"
-            )
+    from parlai.core.agents import Agent as ParlAIAgent  # type: ignore
+    from parlai.core.message import Message  # type: ignore
+except ImportError:
+    from mephisto.abstractions.blueprints.parlai_chat.parlai_not_installed import ParlAIAgent, Message  # type: ignore
 
     pass  # ParlAI is not installed. TODO remove when we move this blueprint to ParlAI
-
-from mephisto.data_model.packet import (
-    Packet,
-    PACKET_TYPE_AGENT_ACTION,
-    PACKET_TYPE_UPDATE_AGENT_STATUS,
-)
 
 from importlib import import_module
 
 import os
-import sh
+import sh  # type: ignore
 import shlex
 import shutil
 import subprocess
 import sys
+from mephisto.abstractions.blueprint import AgentState
 from uuid import uuid4
 
-from typing import ClassVar, List, Type, Any, Dict, Union, TYPE_CHECKING
+from typing import ClassVar, List, Type, Any, Dict, Union, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
+        SharedParlAITaskState,
+    )
     from mephisto.data_model.task_run import TaskRun
-    from mephisto.abstractions.blueprint import AgentState
     from mephisto.data_model.assignment import Assignment
+    from mephisto.data_model.unit import Unit
+    from omegaconf import DictConfig
 
 
 class MephistoAgentWrapper(ParlAIAgent):
@@ -61,6 +49,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         self.mephisto_agent = agent
         self.__agent_id = "unnamed agent"
         self.__mephisto_agent_id = agent.get_agent_id()
+        self.__act_requested = False
 
     @property
     def id(self):
@@ -82,42 +71,36 @@ class MephistoAgentWrapper(ParlAIAgent):
         frontend users, so when these are updated by a
         world we forward that to the frontend
         """
-        packaged_act = Packet(
-            packet_type=PACKET_TYPE_UPDATE_AGENT_STATUS,
-            sender_id="mephisto",
-            receiver_id=self.__mephisto_agent_id,
-            data={"state": {"agent_display_name": new_agent_id}},
+        self.mephisto_agent.observe(
+            {"task_data": {"agent_display_name": new_agent_id}},
         )
-        self.mephisto_agent.observe(packaged_act)
         self.__agent_id = new_agent_id
 
     def act(self, timeout=None):
         """
         ParlAI Agents send an act dict, we must convert this
         """
-        if timeout is None:
-            gotten_act = self.mephisto_agent.act()
-        else:
-            gotten_act = self.mephisto_agent.act(timeout=timeout)
+        gotten_act = self.mephisto_agent.get_live_update()
+        if gotten_act is None:
+            # No act received, see that one is requested:
+            if not self.__act_requested:
+                self.mephisto_agent.observe(
+                    {"task_data": {"live_update_requested": True}}
+                )
+                self.__act_requested = True
+            if timeout is not None:
+                gotten_act = self.mephisto_agent.get_live_update(timeout=timeout)
         if gotten_act is None:
             return None
-        parsed_act = gotten_act.data
-        parsed_act["id"] = self.__agent_id
-        return Message(parsed_act)
+        self.__act_requested = False
+        gotten_act["id"] = self.__agent_id
+        return Message(gotten_act)
 
     def observe(self, act):
-        """
-        ParlAI Agents observe a dict, we must convert these to  packets?
-        """
-        if act.get("message_id") is None:
-            act["message_id"] = str(uuid4())
-        packaged_act = Packet(
-            packet_type=PACKET_TYPE_AGENT_ACTION,
-            sender_id="mephisto",
-            receiver_id=self.__mephisto_agent_id,
-            data=act,
-        )
-        self.mephisto_agent.observe(packaged_act)
+        """We can simply add a message id if not already provided to these"""
+        if act.get("update_id") is None:
+            act["update_id"] = str(uuid4())
+        self.mephisto_agent.observe(dict(act))
 
 
 class ParlAIChatTaskRunner(TaskRunner):
@@ -129,6 +112,13 @@ class ParlAIChatTaskRunner(TaskRunner):
         self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
     ):
         super().__init__(task_run, args, shared_state)
+        from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
+            SharedParlAITaskState,
+        )
+
+        assert isinstance(
+            shared_state, SharedParlAITaskState
+        ), "Must use SharedParlAITaskState for parlai blueprints"
         if shared_state.world_module is None:
             world_file_path = os.path.expanduser(args.blueprint.world_file)
             world_module_dir = os.path.dirname(world_file_path)
@@ -138,7 +128,7 @@ class ParlAIChatTaskRunner(TaskRunner):
         else:
             world_module = shared_state.world_module
         self.parlai_world_module = world_module
-        world_params = self.parlai_world_module.get_world_params()
+        world_params = world_module.get_world_params()  # type: ignore
         self.is_concurrent = world_params["agent_count"] > 1
         self.id_to_worlds: Dict[str, Any] = {}
 
@@ -167,14 +157,22 @@ class ParlAIChatTaskRunner(TaskRunner):
         ParlAI Onboarding will initialize an onboarding
         world, then run it to completion if possible
         """
-        opt: Dict[str, Any] = self.shared_state.onboarding_world_opt
+        shared_state = self.shared_state
+        from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
+            SharedParlAITaskState,
+        )
+
+        assert isinstance(
+            shared_state, SharedParlAITaskState
+        ), "Must use SharedParlAITaskState for parlai blueprints"
+        opt: Dict[str, Any] = shared_state.onboarding_world_opt
         parlai_agent = MephistoAgentWrapper(agent)
         try:
-            world = self.parlai_world_module.make_onboarding_world(
+            world = self.parlai_world_module.make_onboarding_world(  # type: ignore
                 opt,
                 parlai_agent,
-                initialization_data=self.get_init_data_for_agent(agent),
-            )  # type: ignore
+                initialization_data=shared_state.onboarding_data,
+            )
         except TypeError:
             # make_world doesn't ask for initialization_data
             world = self.parlai_world_module.make_onboarding_world(opt, parlai_agent)  # type: ignore
@@ -186,26 +184,21 @@ class ParlAIChatTaskRunner(TaskRunner):
             and agent.get_agent_id() in self.running_onboardings
         ):
             world.parley()
+
+        # Ensure agent can submit after onboarding
+        agent.update_status(AgentState.STATUS_WAITING)
+
         world.shutdown()
-        if hasattr(world, "prep_save_data"):
-            agent.observe(
-                Packet(
-                    packet_type=PACKET_TYPE_AGENT_ACTION,
-                    sender_id="mephisto",
-                    receiver_id=agent.db_id,
-                    data={
-                        "id": "SUBMIT_WORLD_DATA",
-                        "WORLD_DATA": world.prep_save_data([parlai_agent]),
-                        "text": "",
-                    },
-                )
-            )
+        agent.state.update_data(
+            {
+                "id": "SUBMIT_WORLD_DATA",
+                "WORLD_DATA": world.prep_save_data([parlai_agent]),
+                "text": "",
+            }
+        )
+
         # Mark the agent as done, then wait for the incoming submit action
-        agent.mark_done()
-        while not agent.has_action.is_set():
-            done_act = agent.act()
-            if done_act is not None:
-                break
+        while not agent.await_submit(timeout=None):
             time.sleep(0.3)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
@@ -224,12 +217,12 @@ class ParlAIChatTaskRunner(TaskRunner):
         """
         for agent in agents:
             assert agent is not None, "task was not fully assigned"
-        opt: Dict[str, Any] = self.shared_state.world_opt
+        opt: Dict[str, Any] = cast("SharedParlAITaskState", self.shared_state).world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         try:
-            world = self.parlai_world_module.make_world(
+            world = self.parlai_world_module.make_world(  # type: ignore
                 opt, parlai_agents, initialization_data=assignment.get_assignment_data()
-            )  # type: ignore
+            )
         except TypeError:
             # make_world doesn't ask for initialization_data
             world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
@@ -239,25 +232,23 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not world.episode_done() and assignment.db_id in self.running_assignments:
             world.parley()
 
+        # Ensure agents can submit after completion
+        for idx in range(len(parlai_agents)):
+            agents[idx].observe({"task_data": {"task_done": True}})
+
         # TODO(WISH) it would be nice to have individual agents be able to submit their
         # final things without needing to wait for their partner, such
         # as if one needs to rate and the other doesn't
 
         world.shutdown()
-        if hasattr(world, "prep_save_data"):
-            for idx in range(len(parlai_agents)):
-                agents[idx].observe(
-                    Packet(
-                        packet_type=PACKET_TYPE_AGENT_ACTION,
-                        sender_id="mephisto",
-                        receiver_id=agents[idx].db_id,
-                        data={
-                            "id": "SUBMIT_WORLD_DATA",
-                            "WORLD_DATA": world.prep_save_data([parlai_agents[idx]]),
-                            "text": "",
-                        },
-                    )
-                )
+        for idx in range(len(parlai_agents)):
+            agents[idx].state.update_data(
+                {
+                    "id": "SUBMIT_WORLD_DATA",
+                    "WORLD_DATA": world.prep_save_data([parlai_agents[idx]]),
+                    "text": "",
+                }
+            )
 
     def cleanup_assignment(self, assignment: "Assignment") -> None:
         """Handle cleanup for a specific assignment"""
@@ -271,12 +262,12 @@ class ParlAIChatTaskRunner(TaskRunner):
         if possible
         """
         agents = [agent]
-        opt: Dict[str, Any] = self.shared_state.world_opt
+        opt: Dict[str, Any] = cast("SharedParlAITaskState", self.shared_state).world_opt
         parlai_agents = [MephistoAgentWrapper(a) for a in agents]
         try:
-            world = self.parlai_world_module.make_world(
+            world = self.parlai_world_module.make_world(  # type: ignore
                 opt, parlai_agents, initialization_data=unit.get_assignment_data()
-            )  # type: ignore
+            )
         except TypeError:
             # make_world doesn't ask for initialization_data
             world = self.parlai_world_module.make_world(opt, parlai_agents)  # type: ignore
@@ -286,23 +277,17 @@ class ParlAIChatTaskRunner(TaskRunner):
         while not world.episode_done() and unit.db_id in self.running_units:
             world.parley()
 
-        # TODO(WISH) it would be nice to have individual agents be able to submit their
-        # final things without needing to wait for their partner, such
-        # as if one needs to rate and the other doesn't
+        # Ensure agent can submit after completion
+        agent.observe({"task_data": {"task_done": True}})
 
         world.shutdown()
         if hasattr(world, "prep_save_data"):
             agent.observe(
-                Packet(
-                    packet_type=PACKET_TYPE_AGENT_ACTION,
-                    sender_id="mephisto",
-                    receiver_id=agent.db_id,
-                    data={
-                        "id": "SUBMIT_WORLD_DATA",
-                        "WORLD_DATA": world.prep_save_data(parlai_agents),
-                        "text": "",
-                    },
-                )
+                {
+                    "id": "SUBMIT_WORLD_DATA",
+                    "WORLD_DATA": world.prep_save_data(parlai_agents),
+                    "text": "",
+                }
             )
 
     def cleanup_unit(self, unit: "Unit") -> None:

@@ -5,15 +5,13 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List, Optional, Dict, Any, Tuple, TYPE_CHECKING
-from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.packet import (
-    PACKET_TYPE_AGENT_ACTION,
-    PACKET_TYPE_UPDATE_AGENT_STATUS,
+from mephisto.abstractions._subcomponents.agent_state import (
+    AgentState,
+    _AgentStateMetadata,
 )
-import os
-import json
+import os.path
 import time
-import weakref
+import dataclasses
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent
@@ -26,30 +24,9 @@ class ParlAIChatAgentState(AgentState):
     containing every act from the ParlAI world.
     """
 
-    def __init__(self, agent: "Agent"):
-        """
-        Create an AgentState to track the state of an agent's work on a Unit
-
-        Initialize with an existing file if it exists.
-        """
-        self.agent = weakref.proxy(agent)
-        data_file = self._get_expected_data_file()
-        if os.path.exists(data_file):
-            self.load_data()
-        else:
-            self.messages: List[Dict[str, Any]] = []
-            self.init_data = None
-            self.save_data()
-
-    def set_init_state(self, data: Any) -> bool:
+    def _set_init_state(self, data: Any):
         """Set the initial state for this agent"""
-        if self.init_data is not None:
-            # Initial state is already set
-            return False
-        else:
-            self.init_data = data
-            self.save_data()
-            return True
+        self.init_data: Optional[Any] = data
 
     def get_init_state(self) -> Optional[Dict[str, Any]]:
         """
@@ -58,65 +35,99 @@ class ParlAIChatAgentState(AgentState):
         """
         if self.init_data is None:
             return None
-        return {"task_data": self.init_data, "raw_messages": self.messages}
+        return {
+            "task_data": self.init_data,
+            "past_live_updates": self.messages,
+        }
 
     def _get_expected_data_file(self) -> str:
         """Return the place we would expect to find data for this agent state"""
         agent_dir = self.agent.get_data_dir()
-        os.makedirs(agent_dir, exist_ok=True)
         return os.path.join(agent_dir, "state.json")
 
-    def load_data(self) -> None:
+    def _load_data(self) -> None:
         """Load stored data from a file to this object"""
         agent_file = self._get_expected_data_file()
-        with open(agent_file, "r") as state_json:
-            state = json.load(state_json)
+        if not self.agent.db.key_exists(agent_file):
+            self.messages: List[Dict[str, Any]] = []
+            self.final_submission: Optional[Dict[str, Any]] = None
+            self.init_data = None
+        else:
+            state = self.agent.db.read_dict(agent_file)
             self.messages = state["outputs"]["messages"]
             self.init_data = state["inputs"]
+            self.final_submission = state["outputs"].get("final_submission")
+            if "metadata" in state:
+                self.metadata = _AgentStateMetadata(**state["metadata"])
+            elif "times" in state:
+                self.metadata = _AgentStateMetadata(
+                    start_time=state["times"]["start_time"],
+                    end_time=state["times"]["end_time"],
+                )
+            else:
+                self.metadata = _AgentStateMetadata()
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
-        return {"outputs": {"messages": self.messages}, "inputs": self.init_data}
+        return {
+            "outputs": {
+                "messages": self.messages,
+                "final_submission": self.final_submission,
+            },
+            "inputs": self.init_data,
+            "metadata": dataclasses.asdict(self.metadata),
+        }
 
     def get_parsed_data(self) -> Dict[str, Any]:
-        """Return the formatted input, conversations, and final data"""
+        """Return properly parsed data from this task"""
         init_data = self.init_data
         save_data = None
-        messages = [
-            m["data"]
-            for m in self.messages
-            if m["packet_type"] == PACKET_TYPE_AGENT_ACTION
-        ]
+
         agent_name = None
+        for m in self.messages:
+            if "agent_display_name" in m["task_data"]:
+                agent_name = m["task_data"]["agent_display_name"]
+                break
+
+        messages = self.messages
         if len(messages) > 0:
-            for m in self.messages:
-                if m["packet_type"] == PACKET_TYPE_UPDATE_AGENT_STATUS:
-                    if "agent_display_name" in m["data"]["state"]:
-                        agent_name = m["data"]["state"]["agent_display_name"]
-                        break
-            if "MEPHISTO_is_submit" in messages[-1]:
-                messages = messages[:-1]
             if "WORLD_DATA" in messages[-1]:
                 save_data = messages[-1]["WORLD_DATA"]
                 messages = messages[:-1]
+
         return {
             "agent_name": agent_name,
             "initial_data": init_data,
             "messages": messages,
             "save_data": save_data,
+            "final_submission": self.final_submission,
         }
 
-    def save_data(self) -> None:
-        """Save all messages from this agent to """
-        agent_file = self._get_expected_data_file()
-        with open(agent_file, "w+") as state_json:
-            json.dump(self.get_data(), state_json)
+    def get_task_start(self) -> float:
+        """
+        Return the start time for this task, the timestamp of the very first message.
+        """
+        return 0 if len(self.messages) == 0 else self.messages[0]["timestamp"]
 
-    def update_data(self, packet: "Packet") -> None:
+    def get_task_end(self) -> float:
         """
-        Append the incoming packet as well as who it came from
+        Return the end time for this task, the timestamp of the very final message.
         """
-        message_data = packet.to_sendable_dict()
-        message_data["timestamp"] = time.time()
-        self.messages.append(message_data)
+        return 0 if len(self.messages) == 0 else self.messages[-1]["timestamp"]
+
+    def _save_data(self) -> None:
+        """Save all messages from this agent to"""
+        agent_file = self._get_expected_data_file()
+        self.agent.db.write_dict(agent_file, self.get_data())
+
+    def update_data(self, live_update: Dict[str, Any]) -> None:
+        """
+        Append the incoming packet as well as its arrival time
+        """
+        live_update["timestamp"] = time.time()
+        self.messages.append(live_update)
         self.save_data()
+
+    def _update_submit(self, submitted_data: Dict[str, Any]) -> None:
+        """Append any final submission to this state"""
+        self.final_submission = submitted_data

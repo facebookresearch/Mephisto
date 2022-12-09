@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from mephisto import __version__
-from mephisto.operations.utils import get_root_dir
+from mephisto.utils.dirs import get_root_dir
 import os
 
 

@@ -35,10 +35,12 @@ function BaseFrontend({
   const { connectionStatus, agentStatus, taskConfig } = mephistoContext;
   const { appSettings } = appContext;
   const sidePaneSize = appSettings.isCoverPage ? "col-xs-12" : "col-xs-4";
+  const heightStyle =
+    taskConfig.frame_height == 0 ? {} : { height: taskConfig.frame_height };
 
   return (
     <ConnectionStatusBoundary status={connectionStatus}>
-      <div className="row" style={{ height: taskConfig.frame_height }}>
+      <div className="row" style={heightStyle}>
         <div className={"side-pane " + sidePaneSize}>
           {renderSidePane({ mephistoContext, appContext })}
         </div>
@@ -104,7 +106,6 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
   const appContext = React.useContext(AppContext);
   const mephistoContext = React.useContext(MephistoContext);
   const { taskContext, onTaskComplete } = appContext;
-  const { agentState = {} } = mephistoContext;
 
   let response_pane = null;
   switch (inputMode) {
@@ -114,8 +115,8 @@ function ResponsePane({ onMessageSend, inputMode, renderTextResponse }) {
         <DoneResponse
           onTaskComplete={onTaskComplete}
           onMessageSend={onMessageSend}
-          doneText={agentState.done_text || null}
-          isTaskDone={agentState.task_done || null}
+          doneText={taskContext.doneText || null}
+          isTaskDone={taskContext.task_done || null}
         />
       );
       break;

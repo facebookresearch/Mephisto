@@ -7,14 +7,17 @@
 
 import os
 import json
+from dataclasses import dataclass, field
 
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.constants.assignment_state import AssignmentState
-from mephisto.data_model.task_config import TaskConfig
-from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
-from mephisto.operations.utils import get_dir_for_run
+from mephisto.data_model._db_backed_meta import (
+    MephistoDBBackedMeta,
+    MephistoDataModelComponentMixin,
+)
+from mephisto.utils.dirs import get_dir_for_run
 
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, MISSING
 
 from typing import List, Optional, Dict, Mapping, TYPE_CHECKING, Any
 
@@ -28,43 +31,181 @@ if TYPE_CHECKING:
     from mephisto.data_model.task import Task
     from omegaconf import DictConfig
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
 
-class TaskRun(metaclass=MephistoDBBackedMeta):
+@dataclass
+class TaskRunArgs:
+    """Object for grouping the contents to configure a class"""
+
+    task_name: Optional[str] = field(
+        default=MISSING,
+        metadata={
+            "help": "Grouping to launch this task run under, none defaults to the blueprint type"
+        },
+    )
+    task_title: str = field(
+        default=MISSING,
+        metadata={
+            "help": "Display title for your task on the crowd provider.",
+            "required": True,
+        },
+    )
+    task_description: str = field(
+        default=MISSING,
+        metadata={
+            "help": "Longer form description for what your task entails.",
+            "required": True,
+        },
+    )
+    task_reward: float = field(
+        default=MISSING,
+        metadata={
+            "help": "Amount to pay per worker per unit, in dollars.",
+            "required": True,
+        },
+    )
+    task_tags: str = field(
+        default=MISSING,
+        metadata={
+            "help": "Comma seperated tags for workers to use to find your task.",
+            "required": True,
+        },
+    )
+    task_lifetime_in_seconds: int = field(
+        default=60 * 60 * 24 * 31,
+        metadata={"help": "The time that the task will last for before expiring"},
+    )
+    assignment_duration_in_seconds: int = field(
+        default=30 * 60,
+        metadata={"help": "Time that workers have to work on your task once accepted."},
+    )
+    no_submission_patience: int = field(
+        default=60 * 60 * 12,
+        metadata={
+            "help": (
+                "How long to wait between task submissions before shutting the run down "
+                "for a presumed issue. Value in seconds, default 12 hours. "
+            )
+        },
+    )
+    allowed_concurrent: int = field(
+        default=0,
+        metadata={
+            "help": "Maximum units a worker is allowed to work on at once. (0 is infinite)",
+            "required": True,
+        },
+    )
+    maximum_units_per_worker: int = field(
+        default=0,
+        metadata={
+            "help": (
+                "Maximum tasks of this task name that a worker can work on across all "
+                "tasks that share this task_name. (0 is infinite)"
+            )
+        },
+    )
+    max_num_concurrent_units: int = field(
+        default=0,
+        metadata={
+            "help": (
+                "Maximum units that will be released simultaneously, setting a limit "
+                "on concurrent connections to Mephisto overall. (0 is infinite)"
+            )
+        },
+    )
+    submission_timeout: int = field(
+        default=600,
+        metadata={
+            "help": (
+                "Time that mephisto will wait after marking a task done before abandoning "
+                "waiting for the worker to actually press submit."
+            )
+        },
+    )
+
+    post_install_script: str = field(
+        default="",
+        metadata={
+            "help": (
+                "The name of a shell script in your webapp directory that will run right after npm install and before npm build."
+                "This can be useful for local package development where you would want to link a package after installing dependencies from package.json"
+            )
+        },
+    )
+
+    force_rebuild: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Determines if npm build should be ran every time the task is ran."
+                "By default there is an optimization that only builds the webapp when there is a change in its contents."
+                "It would make sense to set this to true when doing local package development as you want to force a rebuild after running the post_install_script."
+            )
+        },
+    )
+
+    @classmethod
+    def get_mock_params(cls) -> str:
+        """Returns a param string with default / mock arguments to use for testing"""
+        from mephisto.operations.hydra_config import MephistoConfig
+
+        return OmegaConf.structured(
+            MephistoConfig(
+                task=TaskRunArgs(
+                    task_title="Mock Task Title",
+                    task_reward=0.3,
+                    task_tags="mock,task,tags",
+                    task_description="This is a test description",
+                )
+            )
+        )
+
+
+class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """
     This class tracks an individual run of a specific task, and handles state management
     for the set of assignments within
     """
 
+    ArgsClass = TaskRunArgs
+
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            raise AssertionError(
+                "Direct TaskRun and data model access via TaskRun(db, id) is "
+                "now deprecated in favor of calling TaskRun.get(db, id). "
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_task_run(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["task_run_id"]
-        self.task_id = row["task_id"]
-        self.requester_id = row["requester_id"]
-        self.param_string = row["init_params"]
+        self.task_id: str = row["task_id"]
+        self.requester_id: str = row["requester_id"]
+        self.param_string: str = row["init_params"]
         try:
             self.args: "DictConfig" = OmegaConf.create(json.loads(self.param_string))
         except Exception as e:
-            self.args = None
+            self.args = OmegaConf.create({})
             print(e)
         self.start_time = row["creation_date"]
-        self.provider_type = row["provider_type"]
-        self.task_type = row["task_type"]
-        self.sandbox = row["sandbox"]
-        self.assignments_generator_done: bool = None
+        self.provider_type: str = row["provider_type"]
+        self.task_type: str = row["task_type"]
+        self.sandbox: bool = row["sandbox"]
+        self.assignments_generator_done: bool = False
 
         # properties with deferred loading
         self.__is_completed = row["is_completed"]
         self.__has_assignments = False
-        self.__task_config: Optional["TaskConfig"] = None
         self.__task: Optional["Task"] = None
         self.__requester: Optional["Requester"] = None
         self.__run_dir: Optional[str] = None
@@ -82,8 +223,11 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
         Get any units that the given worker could work on in this
         task run
         """
-        config = self.get_task_config()
+        config = self.get_task_args()
 
+        # TODO(#773) handle with temporary local qualifications to allow
+        # pushing real exclusionary qualifications after exceeding
+        # maximum_units_per_worker
         if config.allowed_concurrent != 0 or config.maximum_units_per_worker:
             current_units = self.db.find_units(
                 task_run_id=self.db_id,
@@ -98,12 +242,13 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
                     )
                     return []  # currently at the maximum number of concurrent units
             if config.maximum_units_per_worker != 0:
+                completed_types = AssignmentState.completed()
+                related_units = self.db.find_units(
+                    task_id=self.task_id,
+                    worker_id=worker.db_id,
+                )
                 currently_completed = len(
-                    self.db.find_units(
-                        task_id=self.task_id,
-                        worker_id=worker.db_id,
-                        status=AssignmentState.COMPLETED,
-                    )
+                    [u for u in related_units if u.db_status in completed_types]
                 )
                 if (
                     currently_active + currently_completed
@@ -128,7 +273,16 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
             is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
             if not any(is_self_set):
                 units += unit_set
-        valid_units = [u for u in units if u.get_status() == AssignmentState.LAUNCHED]
+
+        # Valid units must be launched and must not be special units (negative indices)
+        # Can use db_status directly rather than polling in the critical path, as in
+        # the worst case we miss the transition from an active to launched unit
+        valid_units = [
+            u
+            for u in units
+            if u.db_status == AssignmentState.LAUNCHED and u.unit_index >= 0
+        ]
+        logger.debug(f"Found {len(valid_units)} available units")
 
         # Should load cached blueprint for SharedTaskState
         blueprint = self.get_blueprint()
@@ -138,6 +292,7 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
             if blueprint.shared_state.worker_can_do_unit(worker, u)
         ]
 
+        logger.debug(f"This worker is qualified for {len(ret_units)} unit.")
         logger.debug(f"Found {ret_units[:3]} for {worker}.")
         return ret_units
 
@@ -183,10 +338,10 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
                 args = self.args
             else:
                 cache = True
-            if shared_state is None:
-                shared_state = SharedTaskState()
 
             BlueprintClass = get_blueprint_from_type(self.task_type)
+            if shared_state is None:
+                shared_state = BlueprintClass.SharedStateClass()
             if not cache:
                 return BlueprintClass(self, args, shared_state)
             self.__blueprint = BlueprintClass(self, args, shared_state)
@@ -206,20 +361,18 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
         if self.__task is None:
             from mephisto.data_model.task import Task
 
-            self.__task = Task(self.db, self.task_id)
+            self.__task = Task.get(self.db, self.task_id)
         return self.__task
 
-    def get_task_config(self) -> "TaskConfig":
-        if self.__task_config is None:
-            self.__task_config = TaskConfig(self)
-        return self.__task_config
+    def get_task_args(self) -> "DictConfig":
+        return self.args.task
 
     def get_requester(self) -> Requester:
         """
         Return the requester that started this task.
         """
         if self.__requester is None:
-            self.__requester = Requester(self.db, self.requester_id)
+            self.__requester = Requester.get(self.db, self.requester_id)
         return self.__requester
 
     def get_has_assignments(self) -> bool:
@@ -256,7 +409,7 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
         }
 
     def update_completion_progress(self, task_launcher=None, status=None) -> None:
-        """ Flag the task run that the assignments' generator has finished """
+        """Flag the task run that the assignments' generator has finished"""
         if task_launcher:
             if task_launcher.get_assignments_are_all_created():
                 self.assignments_generator_done = True
@@ -274,7 +427,6 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
         of subassignments. If this task run has no subassignments yet, it
         is not complete
         """
-        # TODO(#99) revisit when/if it's possible to add tasks to a completed run
         if not self.__is_completed and self.get_has_assignments():
             statuses = self.get_assignment_statuses()
             has_incomplete = False
@@ -318,7 +470,7 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
             "task_name": self.get_task().task_name,
             "task_type": self.task_type,
             "start_time": self.start_time,
-            "params": self.get_task_config().args,
+            "params": OmegaConf.to_container(self.args),
             "param_string": self.param_string,
             "task_status": self.get_assignment_statuses(),
             "sandbox": self.get_requester().is_sandbox(),
@@ -341,6 +493,6 @@ class TaskRun(metaclass=MephistoDBBackedMeta):
             requester.provider_type,
             task.task_type,
         )
-        task_run = TaskRun(db, db_id)
+        task_run = TaskRun.get(db, db_id)
         logger.debug(f"Created new task run {task_run}")
         return task_run

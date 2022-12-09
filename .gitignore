@@ -2,18 +2,44 @@ mephisto/tasks/*
 **/.mypy_cache/*
 **/__pycache__/*
 data/*
+dist/*
 mephisto.egg-info/*
 .DS_Store
 tmp/*
 **/node_modules/*
 mephisto/server/**/package-lock.json
 mephisto/server/blueprints/**/build/*
-examples/**/build/*
+
 **/*.log
 **/build/*
 **/_generated/*
 **/outputs/*
+mephisto/scripts/metrics/*
+!mephisto/scripts/metrics/resources
+!mephisto/scripts/metrics/install_*.sh
+!mephisto/scripts/metrics/README.md
+!mephisto/scripts/metrics/view_metrics.py
+!mephisto/scripts/metrics/shutdown_metrics.py
 .coverage
+
+# Examples
+examples/simple_static_task/hydra_configs/conf/*
+!examples/simple_static_task/hydra_configs/conf/example.yaml
+!examples/simple_static_task/hydra_configs/conf/onboarding_example.yaml
+examples/**/build/*
 
 # PyCharm
 .idea
+
+
+# https://next.yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
+.yarn/*
+**/.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+docs/storybook/storybook-static/*

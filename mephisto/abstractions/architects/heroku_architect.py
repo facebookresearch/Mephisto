@@ -11,7 +11,7 @@ import hashlib
 import netrc
 import os
 import platform
-import sh
+import sh  # type: ignore
 import shlex
 import shutil
 import subprocess
@@ -21,7 +21,7 @@ import requests
 import re
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
-from mephisto.operations.utils import get_mephisto_tmp_dir
+from mephisto.utils.dirs import get_mephisto_tmp_dir
 from mephisto.abstractions.architect import Architect, ArchitectArgs
 from mephisto.abstractions.architects.router.build_router import build_router
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
@@ -29,14 +29,14 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from typing import Any, Tuple, List, Dict, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.channel import Channel
-    from mephsito.data_model.packet import Packet
+    from mephisto.abstractions._subcomponents.channel import Channel
+    from mephisto.data_model.packet import Packet
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB
     from mephisto.abstractions.blueprint import SharedTaskState
     from argparse import _ArgumentGroup as ArgumentGroup
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -106,7 +106,6 @@ class HerokuArchitect(Architect):
         # TODO(#102) put the expected info into the MephistoDB rather than storing here?
         # Servers will have a status which needs to be kept track of.
         self.args = args
-        # print(dict(args.architect.heroku_config_args), type(dict(args.architect.heroku_config_args)))
         self.task_run = task_run
         self.deploy_name = f"{task_run.get_task().task_name}_{task_run.db_id}"
         self.build_dir = build_dir_root
@@ -135,8 +134,8 @@ class HerokuArchitect(Architect):
         on_message: Callable[[str, "Packet"], None],
     ) -> List["Channel"]:
         """
-        Return a list of all relevant channels that the Supervisor will
-        need to register to in order to function
+        Return a list of all relevant channels that the ClientIOHandler
+        will need to register to in order to function
         """
         urls = self._get_socket_urls()
         return [
@@ -248,6 +247,36 @@ class HerokuArchitect(Architect):
         heroku_directory_path = os.path.join(HEROKU_TMP_DIR, heroku_directory_name)
         return os.path.join(heroku_directory_path, "bin", "heroku")
 
+    @staticmethod
+    def get_user_identifier() -> Tuple[str, str]:
+        """
+        Get heroku credentials for the current logged-in user
+        """
+        heroku_executable_path = HerokuArchitect.get_heroku_client_path()
+
+        # get heroku credentials
+        heroku_user_identifier = None
+        while not heroku_user_identifier:
+            try:
+                output = subprocess.check_output(
+                    shlex.split(heroku_executable_path + " auth:whoami")
+                )
+                output = subprocess.check_output(
+                    shlex.split(heroku_executable_path + " auth:token")
+                )
+                heroku_user_identifier = netrc.netrc(
+                    os.path.join(os.path.expanduser("~"), ".netrc")
+                ).hosts["api.heroku.com"][0]
+            except subprocess.CalledProcessError:
+                print(
+                    "A free Heroku account is required for launching Public tasks. "
+                    "Please register at https://signup.heroku.com/ and run `{} "
+                    "login -i` at the terminal to login to Heroku, and then run this "
+                    "program again.".format(heroku_executable_path)
+                )
+                raise Exception("Please login to heroku before trying again.")
+        return heroku_executable_path, heroku_user_identifier
+
     def __get_heroku_client(self) -> Tuple[str, str]:
         """
         Get an authorized heroku client path and authorization token
@@ -256,29 +285,10 @@ class HerokuArchitect(Architect):
             self.__heroku_executable_path is None
             or self.__heroku_user_identifier is None
         ):
-            heroku_executable_path = HerokuArchitect.get_heroku_client_path()
-
-            # get heroku credentials
-            heroku_user_identifier = None
-            while not heroku_user_identifier:
-                try:
-                    output = subprocess.check_output(
-                        shlex.split(heroku_executable_path + " auth:whoami")
-                    )
-                    output = subprocess.check_output(
-                        shlex.split(heroku_executable_path + " auth:token")
-                    )
-                    heroku_user_identifier = netrc.netrc(
-                        os.path.join(os.path.expanduser("~"), ".netrc")
-                    ).hosts["api.heroku.com"][0]
-                except subprocess.CalledProcessError:
-                    print(
-                        "A free Heroku account is required for launching MTurk tasks. "
-                        "Please register at https://signup.heroku.com/ and run `{} "
-                        "login -i` at the terminal to login to Heroku, and then run this "
-                        "program again.".format(heroku_executable_path)
-                    )
-                    raise Exception("Please login to heroku before trying again.")
+            (
+                heroku_executable_path,
+                heroku_user_identifier,
+            ) = HerokuArchitect.get_user_identifier()
             self.__heroku_executable_path = heroku_executable_path
             self.__heroku_user_identifier = heroku_user_identifier
         return self.__heroku_executable_path, self.__heroku_user_identifier
@@ -337,9 +347,9 @@ class HerokuArchitect(Architect):
         server_dir = self.__get_build_directory()
 
         print("Heroku: Starting server...")
-
+        branch = "main"
         heroku_server_directory_path = os.path.join(server_dir, "router")
-        sh.git(shlex.split(f"-C {heroku_server_directory_path} init"))
+        sh.git(shlex.split(f"-C {heroku_server_directory_path} init -b {branch}"))
 
         heroku_app_name = self.__get_app_name()
 
@@ -365,13 +375,17 @@ class HerokuArchitect(Architect):
                 )
                 self.created = True
         except subprocess.CalledProcessError as e:  # User has too many apps?
-            # TODO(#93) check response codes to determine what actually happened
             logger.exception(e, exc_info=True)
             sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
             raise Exception(
-                "You have hit your limit on concurrent apps with heroku, which are"
-                " required to run multiple concurrent tasks.\nPlease wait for some"
-                " of your existing tasks to complete. If you have no tasks "
+                "An exception has occurred when launching your heroku app. This "
+                "can commonly occur when you have hit your limit on concurrent "
+                "apps in heroku, especially if you are running multiple tasks "
+                "at once. It also may occur if the app-name generated for your "
+                "task is using illegal characters for heroku. Check the logs "
+                "above for confirmation.\n"
+                "If the issue is indeed the concurrent server cap, Please wait for"
+                " some of your existing tasks to complete. If you have no tasks "
                 "running, login to heroku and delete some of the running apps or "
                 "verify your account to allow more concurrent apps"
             )
@@ -405,7 +419,9 @@ class HerokuArchitect(Architect):
         # commit and push to the heroku server
         sh.git(shlex.split(f"-C {heroku_server_directory_path} add -A"))
         sh.git(shlex.split(f'-C {heroku_server_directory_path} commit -m "app"'))
-        sh.git(shlex.split(f"-C {heroku_server_directory_path} push -f heroku master"))
+        sh.git(
+            shlex.split(f"-C {heroku_server_directory_path} push -f heroku {branch}")
+        )
 
         os.chdir(heroku_server_directory_path)
         subprocess.check_output(

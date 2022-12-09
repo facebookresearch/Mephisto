@@ -6,6 +6,7 @@
 
 var path = require("path");
 var webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   entry: "./src/index.js",
@@ -23,10 +24,17 @@ module.exports = {
     "@blueprintjs/core": "@blueprintjs/core",
     "@blueprintjs/icons": "@blueprintjs/icons",
   },
-  node: {
-    net: "empty",
-    dns: "empty",
+  resolve: {
+    fallback: {
+      net: false,
+      dns: false,
+    },
   },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: "build/[name].css",
+    }),
+  ],
   module: {
     rules: [
       {
@@ -36,12 +44,19 @@ module.exports = {
         options: { presets: ["@babel/env"] },
       },
       {
-        test: /\.css$/,
-        loader: "style-loader!css-loader",
+        test: /\.*css$/,
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: "url-loader?limit=100000",
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 100000,
+            },
+          },
+        ],
       },
       {
         test: /\.jpg$/,

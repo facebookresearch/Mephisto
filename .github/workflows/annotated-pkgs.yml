@@ -1,0 +1,47 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Test Yarn Workspaces
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  yarn-monorepo-install:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+
+      - name: Install yarn 3
+        run: npm i -g yarn
+
+      - name: Install package dependencies
+        run: yarn install
+
+      - name: Build packages
+        run: yarn workspaces foreach -ptA run build
+
+      - name: Build packages with legacy setup
+        run: cd packages/global-context-store && npm install && npm run build
+
+      - name: Test that storybook compiles
+        run: yarn workspace sb build-storybook
+
+      - name: Test that docusarus compiles
+        run: yarn docs:build

@@ -85,7 +85,7 @@ A render prop that if implemented, overides the way a chat message is rendered.
 ```
 {
     'id', // the speaker id for the message
-    'message_id', // a unique id for the current message
+    'update_id', // a unique id for the current message, gotten from the liveUpdate it came from
     'text', // the actual message text, the message should not be displayed if this value is undefined or an empty string
     'task_data', // any additional data payload, also used to update the `taskContext`
 }
@@ -139,7 +139,7 @@ This optional prop lets you provide some initial app settings for the `ChatApp`,
 
 All render props will receive the `mephistoContext` argument.
 
-This object is basically the return value of calling the `useMephistoLiveTask` hooks. Further documentation on these properties can be found in the [documentation for the `mephisto-task` package](https://github.com/facebookresearch/Mephisto/blob/master/packages/mephisto-task/README.md) under the `useMephistoLiveTask` section.
+This object is basically the return value of calling the `useMephistoLiveTask` hooks. Further documentation on these properties can be found in the [documentation for the `mephisto-task` package](https://github.com/facebookresearch/Mephisto/blob/main/packages/mephisto-task/README.md) under the `useMephistoLiveTask` section.
 
 ### The `appContext` argument
 

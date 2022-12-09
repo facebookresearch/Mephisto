@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
     from mephisto.abstractions.providers.mock.mock_datastore import MockDatastore
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -32,32 +32,39 @@ class MockUnit(Unit):
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
-        super().__init__(db, db_id, row=row)
+        super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: "MockDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
 
     def launch(self, task_url: str) -> None:
         """Mock launches do nothing right now beyond updating state"""
-        self.db.update_unit(self.db_id, status=AssignmentState.LAUNCHED)
+        self.set_db_status(status=AssignmentState.LAUNCHED)
 
         # TODO(OWN) get this link to the frontend
         port = task_url.split(":")[1].split("/")[0]
-        print(task_url)
         print(
-            f"Mock task launched: localhost:{port} for preview, "
-            f"localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
+            f"Mock task launched: http://localhost:{port} for preview, "
+            f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
         )
         logger.info(
-            f"Mock task launched: localhost:{port} for preview, "
-            f"localhost:{port}/?worker_id=x&assignment_id={self.db_id} for assignment {self.assignment_id}"
+            f"Mock task launched: http://localhost:{port} for preview, "
+            f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id} for assignment {self.assignment_id}"
         )
 
         return None
 
     def expire(self) -> float:
         """Expiration is immediate on Mocks"""
-        self.db.update_unit(self.db_id, status=AssignmentState.EXPIRED)
+        if self.get_status() not in [
+            AssignmentState.EXPIRED,
+            AssignmentState.COMPLETED,
+        ]:
+            self.set_db_status(AssignmentState.EXPIRED)
         self.datastore.set_unit_expired(self.db_id, True)
         return 0.0
 

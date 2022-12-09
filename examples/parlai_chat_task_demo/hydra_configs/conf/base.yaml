@@ -1,0 +1,13 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: parlai_chat
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+mephisto:
+  blueprint:
+    world_file: ${task_dir}/demo_worlds.py
+    task_description_file: ${task_dir}/task_description.html
+    num_conversations: 1
+  task:
+    # We expect to be able to handle 25 concurrent conversations without issue
+    max_num_concurrent_units: 50 # 25 convos * 2 people per

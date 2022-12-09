@@ -22,7 +22,6 @@ class AssignmentState:
     @staticmethod
     def valid() -> List[str]:
         """Return all valid assignment statuses"""
-        # TODO(#97) write test to ensure all states are covered here
         return [
             AssignmentState.CREATED,
             AssignmentState.LAUNCHED,
@@ -75,6 +74,16 @@ class AssignmentState:
         return [
             AssignmentState.ACCEPTED,
             AssignmentState.EXPIRED,
+            AssignmentState.SOFT_REJECTED,
+        ]
+
+    @staticmethod
+    def completed() -> List[str]:
+        """Return all statuses that denote a unit having been completed"""
+        return [
+            AssignmentState.COMPLETED,
+            AssignmentState.ACCEPTED,
+            AssignmentState.REJECTED,
             AssignmentState.SOFT_REJECTED,
         ]
 

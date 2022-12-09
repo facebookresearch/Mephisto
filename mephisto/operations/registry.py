@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Union, Type, Dict, Any, List, TYPE_CHECKING
-from mephisto.operations.utils import get_root_dir, get_provider_dir
+from mephisto.utils.dirs import get_root_dir, get_provider_dir
 from mephisto.operations.hydra_config import register_abstraction_config
 import importlib
 import os
@@ -64,7 +64,7 @@ def uses_mephisto(module: Any):
     Register a module as having defined classes for special Mephisto abstractions.
     Should be put in the __init__.py of the base module.
     """
-    # TODO register the module and file path to the local mephisto registry file
+    # TODO(#653) register the module and file path to the local mephisto registry file
     pass
 
 
@@ -72,13 +72,13 @@ def fill_registries():
     """
     Ensure that all of the required modules are picked up by the mephisto server
     """
-    # TODO pick up on local file changes such that Mephisto won't need to be
+    # TODO(#653) pick up on local file changes such that Mephisto won't need to be
     # restarted to add new abstractions
 
-    # TODO pass through all of the use_mephisto modules in the local registry file
+    # TODO(#653) pass through all of the use_mephisto modules in the local registry file
     # to ensure that all of the modules are added
 
-    # TODO(WISH) these can be made recursive finds to pass through subfolders
+    # TODO(WISH) these can be made recursive finds with os.walk to pass through subfolders
     # Import Mephisto CrowdProviders
     provider_root = get_provider_dir()
     for dir_name in os.listdir(provider_root):
@@ -102,6 +102,8 @@ def fill_registries():
             importlib.import_module(
                 f"mephisto.abstractions.architects.{architect_name}"
             )
+    # After imports are recursive, manage this more cleanly
+    importlib.import_module("mephisto.abstractions.architects.ec2.ec2_architect")
 
     # Import Mephisto Blueprints
     blueprint_root = os.path.join(

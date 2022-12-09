@@ -4,7 +4,7 @@ This folder contains classes that generally represent the lowest levels of abstr
 ## Philosophy
 The mephisto data model consists of important classes to formalize some of the concepts that are required for interacting with tasks, crowdsourcing providers, workers, etc. These classes try to abstract away some of the underlying convenience of working with mephisto into a common location, and are designed both to be extended from (in the form of creating child classes for specialized cases, or for the purpose of testing) and behind (like eventually supporting a common database for organizational use). All of the classes are to be database-backed, in that creation of these objects should populate the database, and most content will be linked through there. In this way, the state is maintained by the database, and the objects are collections of convenience methods for interacting with the underlying data model.
 
-Note: This abstraction is broken specifically in the case of `Agent`s that are currently in a task, as their running task world relies on the specific `Agent` instance that is currently being tracked and updated by the `Supervisor`.
+Note: This abstraction is broken specifically in the case of `Agent`s that are currently in a task, as their running task world relies on the specific `Agent` instance that is currently being tracked and updated by the `WorkerPool`.
 
 ## Database-backed Base Classes
 The following classes are the units of Mephisto, in that they keep track of what mephisto is doing, where things are stored, history of workers, etc. The rest of the system in general should only be utilizing these classes to make any operations, allowing them to be a strong abstraction layer.
@@ -37,7 +37,7 @@ This class represents the role that an individual fills in completing an assignm
 This class represents an individual - namely a person. It maintains components of ongoing identity for a user. `Worker`s can be blocked, unblocked, and bonused. You can also get all of the `Agent`s associated with a worker. Ultimately, `Worker`s are tightly coupled with a `CrowdProvider`, as the identity of a person is tied to where we get them from.
 
 ### `Agent`
-This class encompasses a worker as they are working on an individual assignment. It maintains details for the current task at hand such as start and end time, connection status, etc. Generally this is an abstraction the worker operating at a frontend and the backend interactions. The `Supervisor` class is responsible for maintaining most of that abstraction, so this class mostly needs to implement ways to approve and reject work, as well as get a work's status or mark it as done when the final work is received.
+This class encompasses a worker as they are working on an individual assignment. It maintains details for the current task at hand such as start and end time, connection status, etc. Generally this is an abstraction the worker operating at a frontend and the backend interactions. The `WorkerPool` and `ClientIOHandler` classese are responsible for maintaining most of that abstraction, so this class mostly needs to implement ways to approve and reject work, as well as get a work's status or mark it as done when the final work is received.
 
 ### `Requester`
 This class encompasses your identity as it is known by a `CrowdProvider` you intend to launch tasks on. It keeps track of some metadata on your account (such as your budget) but also some Mephisto usage statistics (such as amount spent in total from that requester).
@@ -49,10 +49,7 @@ These classes act as a method for assigning Mephisto-backed qualifications to wo
 Some classes in the data model aren't backed by the data model because they are generally lightweight views of existing data or transient containers.
 
 ### `Packet`
-Encapsulates messages being sent from the `Supervisor` to any Mephisto server.
-
-### `TaskConfig`
-Keeps track of specific parameters that are necessary to launch a task on any crowd provider, like `title`, `description`, `tags`, `quantity`, `pay_amount`, etc. `TaskRuns` leverage the `TaskConfig` to know what they're doing.
+Encapsulates messages being sent from the `ClientIOhandler` to any Mephisto server.
 
 ## Constants
 Some Mephisto constants that are able to standardize values across multiple classes live in the data model within the contants folder.

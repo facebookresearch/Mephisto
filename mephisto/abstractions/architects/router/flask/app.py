@@ -4,25 +4,25 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from gevent import monkey
+from gevent import monkey  # type: ignore
 
 monkey.patch_all()
 
 try:
-    from mephisto.abstractions.architects.router.flask.mephisto_flask_blueprint import (
+    from mephisto.abstractions.architects.router.flask.mephisto_flask_blueprint import (  # type: ignore
         MephistoRouter,
         mephisto_router,
     )
 except:
-    from mephisto_flask_blueprint import (
+    from mephisto_flask_blueprint import (  # type: ignore
         MephistoRouter,
         mephisto_router,
     )
-from geventwebsocket import WebSocketServer, Resource
-from werkzeug.debug import DebuggedApplication
+from geventwebsocket import WebSocketServer, Resource  # type: ignore
+from werkzeug.debug import DebuggedApplication  # type: ignore
 
 
-from flask import Flask
+from flask import Flask  # type: ignore
 import os
 
 port = int(os.environ.get("PORT", 3000))

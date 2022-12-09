@@ -7,7 +7,7 @@
 import os
 import signal
 import subprocess
-import sh
+import sh  # type: ignore
 import shutil
 import shlex
 import time
@@ -19,8 +19,8 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from typing import Any, Optional, Dict, List, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.channel import Channel
-    from mephsito.data_model.packet import Packet
+    from mephisto.abstractions._subcomponents.channel import Channel
+    from mephisto.data_model.packet import Packet
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.database import MephistoDB
     from argparse import _ArgumentGroup as ArgumentGroup
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 from mephisto.abstractions.architects.router.build_router import build_router
 from mephisto.abstractions.architects.channels.websocket_channel import WebsocketChannel
-from mephisto.operations.utils import get_mephisto_tmp_dir
+from mephisto.utils.dirs import get_mephisto_tmp_dir
 
 ARCHITECT_TYPE = "local"
 
@@ -105,8 +105,8 @@ class LocalArchitect(Architect):
         on_message: Callable[[str, "Packet"], None],
     ) -> List["Channel"]:
         """
-        Return a list of all relevant channels that the Supervisor will
-        need to register to in order to function
+        Return a list of all relevant channels that the ClientIOHandler
+        will need to register to in order to function
         """
         urls = self._get_socket_urls()
         return [
@@ -145,8 +145,7 @@ class LocalArchitect(Architect):
         self.running_dir = os.path.join(
             get_mephisto_tmp_dir(), f"local_server_{self.task_run_id}", "server"
         )
-
-        shutil.copytree(self.server_dir, self.running_dir)
+        shutil.copytree(self.server_dir, self.running_dir, symlinks=True)
 
         return_dir = os.getcwd()
         os.chdir(self.running_dir)
@@ -162,7 +161,9 @@ class LocalArchitect(Architect):
                 preexec_fn=os.setpgrp,
                 env=dict(os.environ, PORT=f"{self.port}"),
             )
-        self.server_process_pid = self.server_process.pid
+        my_process = self.server_process
+        assert my_process is not None, "Cannot start without a process..."
+        self.server_process_pid = my_process.pid
         os.chdir(return_dir)
 
         time.sleep(1)

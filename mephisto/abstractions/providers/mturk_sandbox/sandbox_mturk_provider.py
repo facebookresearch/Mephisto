@@ -62,10 +62,6 @@ class SandboxMTurkProvider(MTurkProvider):
 
     ArgsClass = SandboxMTurkProviderArgs
 
-    SUPPORTED_TASK_TYPES: ClassVar[List[str]] = [
-        # TODO
-    ]
-
     def _get_client(self, requester_name: str) -> Any:
         """
         Get an mturk client for usage with mturk_utils

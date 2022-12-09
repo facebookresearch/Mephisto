@@ -8,7 +8,7 @@ import unittest
 import shutil
 import os
 import tempfile
-import sh
+import sh  # type: ignore
 import shlex
 
 from typing import Type, ClassVar, Optional
@@ -36,7 +36,7 @@ class LocalArchitectTests(ArchitectTests):
     still working properly, and that the tests are correctly operating.
     """
 
-    ArchitectClass: Type[Architect] = LocalArchitect
+    ArchitectClass: Type[LocalArchitect] = LocalArchitect
     db: MephistoDB
     data_dir: str
     build_dir: str

@@ -6,9 +6,18 @@
 
 from mephisto.abstractions.blueprint import (
     Blueprint,
-    OnboardingRequired,
     BlueprintArgs,
     SharedTaskState,
+)
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
+    OnboardingRequired,
+    OnboardingSharedState,
+    OnboardingRequiredArgs,
+)
+from mephisto.abstractions.blueprints.mixins.screen_task_required import (
+    ScreenTaskRequired,
+    ScreenTaskSharedState,
+    ScreenTaskRequiredArgs,
 )
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
@@ -24,19 +33,19 @@ import time
 from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from mephsito.data_model.agent import OnboardingAgent
+    from mephisto.data_model.agent import OnboardingAgent
     from mephisto.data_model.task_run import TaskRun
     from mephisto.abstractions.blueprint import AgentState, TaskRunner, TaskBuilder
     from mephisto.data_model.assignment import Assignment
     from mephisto.data_model.worker import Worker
-    from argparse import _ArgumentGroup as ArgumentGroup
+    from mephisto.data_model.unit import Unit
 
-BLUEPRINT_TYPE = "mock"
+BLUEPRINT_TYPE_MOCK = "mock"
 
 
 @dataclass
-class MockBlueprintArgs(BlueprintArgs):
-    _blueprint_type: str = BLUEPRINT_TYPE
+class MockBlueprintArgs(BlueprintArgs, OnboardingRequiredArgs, ScreenTaskRequiredArgs):
+    _blueprint_type: str = BLUEPRINT_TYPE_MOCK
     num_assignments: int = field(
         default=MISSING,
         metadata={
@@ -57,8 +66,15 @@ class MockBlueprintArgs(BlueprintArgs):
     )
 
 
+# Mock tasks right now inherit all mixins, this way we can test them.
+# In the future, we'll likely want to compose mock tasks for mixin testing
+@dataclass
+class MockSharedState(SharedTaskState, OnboardingSharedState, ScreenTaskSharedState):
+    pass
+
+
 @register_mephisto_abstraction()
-class MockBlueprint(Blueprint, OnboardingRequired):
+class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
     """Mock of a task type, for use in testing"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = MockAgentState
@@ -66,14 +82,17 @@ class MockBlueprint(Blueprint, OnboardingRequired):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = MockTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = MockTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = MockBlueprintArgs
-    supported_architects: ClassVar[List[str]] = ["mock"]
-    BLUEPRINT_TYPE = BLUEPRINT_TYPE
+    SharedStateClass: ClassVar[Type["SharedTaskState"]] = MockSharedState
+    BLUEPRINT_TYPE = BLUEPRINT_TYPE_MOCK
+
+    # making Mypy happy, these aren't used in a blueprint, only mixins
+    ArgsMixin: ClassVar[Any]
+    SharedStateMixin: ClassVar[Any]
 
     def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+        self, task_run: "TaskRun", args: "DictConfig", shared_state: "MockSharedState"
     ):
         super().__init__(task_run, args, shared_state)
-        self.init_onboarding_config(task_run, args, shared_state)
 
     def get_initialization_data(self) -> Iterable[InitializationData]:
         """

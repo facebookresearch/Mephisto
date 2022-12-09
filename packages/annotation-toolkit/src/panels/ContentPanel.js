@@ -1,15 +1,12 @@
 import React, { useContext } from "react";
 import { useStore } from "global-context-store";
+import { isFunction } from "../utils";
+import mapValues from "lodash.mapvalues";
 
-import { Menu, MenuDivider, Classes } from "@blueprintjs/core";
+import { Menu, MenuDivider, Classes, Card } from "@blueprintjs/core";
+import { LayerContext } from "../layers/Layer";
 
-function isFunction(functionToCheck) {
-  return (
-    functionToCheck && {}.toString.call(functionToCheck) === "[object Function]"
-  );
-}
-
-function ContentPanel() {
+function ContentPanel({ instructionPane: InstructionPane }) {
   const store = useStore();
   const { state, get } = store;
 
@@ -22,14 +19,22 @@ function ContentPanel() {
     return false;
   };
 
-  const layers = get(["layers"]);
+  let layers = get(["layers"]);
   if (!layers) return null;
-  const alwaysOnLayers = Object.values(layers).filter((layer) => {
-    return (
-      layer.alwaysOn === true ||
-      (isFunction(layer.alwaysOn) && layer.alwaysOn())
-    );
-  });
+  layers = mapValues(layers, (layer) => layer.config);
+  const alwaysOnLayers = Object.entries(layers)
+    .filter(([layerName, layer]) => {
+      if (!layer) {
+        throw new Error(
+          `Could not find any Layer registered with id: "${layerName}"`
+        );
+      }
+      return (
+        layer.alwaysOn === true ||
+        (isFunction(layer.alwaysOn) && layer.alwaysOn())
+      );
+    })
+    .map(([_, layer]) => layer);
   const groupedLayers = Object.values(layers).filter((layer) => {
     return (
       layer.onWithGroup === true &&
@@ -44,7 +49,7 @@ function ContentPanel() {
   let selectedLayer;
   if (selectedViewName) {
     const key = selectedViewName.join("|");
-    selectedLayer = get(["layers", key]);
+    selectedLayer = get(["layers", key, "config"]);
     if (
       selectedLayer?.component &&
       !selectedLayer.alwaysOn &&
@@ -55,14 +60,14 @@ function ContentPanel() {
   }
 
   function gatherActions() {
-    if (!state.selectedLayer) return { actions: [], path: [] };
+    if (!state.selectedLayer) return { actions: [], path: [], actionPaths: [] };
     return state.selectedLayer.reduce(
       (acc, value) => {
         const path = [...acc.path, value];
-        const component = get(["layers", path.join("|")]);
+        const component = get(["layers", path.join("|"), "config"]);
         if (!component) return acc;
         const actions = component.actions
-          ? [...acc.actions, component.actions]
+          ? [...acc.actions, component.actions()]
           : acc.actions;
         const actionPaths = component.actions
           ? [...acc.actionPaths, path.join(" / ")]
@@ -86,10 +91,12 @@ function ContentPanel() {
             pointerEvents: selectedLayer.noPointerEvents ? "none" : "auto",
           }}
         >
-          <SelectedViewComponent
-            id={selectedLayer.id}
-            {...selectedLayer.getData({ store })}
-          />
+          <LayerContext.Provider value={{ id: selectedLayer.id }}>
+            <SelectedViewComponent
+              id={selectedLayer.id}
+              {...selectedLayer.getData({ store })}
+            />
+          </LayerContext.Provider>
         </div>
       ) : null}
       {[...alwaysOnLayers, ...groupedLayers].map((layer) =>
@@ -102,11 +109,13 @@ function ContentPanel() {
               pointerEvents: layer.noPointerEvents ? "none" : "auto",
             }}
           >
-            <layer.component id={layer.id} {...layer.getData({ store })} />
+            <LayerContext.Provider value={{ id: layer.id }}>
+              <layer.component id={layer.id} {...layer.getData({ store })} />
+            </LayerContext.Provider>
           </div>
         )
       )}
-      {state.selectedLayer ? (
+      {alwaysOnLayers.length > 0 || gatheredActions.length > 0 ? (
         <div
           style={{
             marginRight: 10,
@@ -118,25 +127,54 @@ function ContentPanel() {
             minWidth: 200,
           }}
         >
+          {InstructionPane ? (
+            <Card className="bp3-dark" style={{ marginBottom: 5, padding: 10 }}>
+              <InstructionPane />
+            </Card>
+          ) : null}
           <Menu
             className={Classes.ELEVATION_1 + " pop"}
             key={gatheredActions.actionPaths.join("//")}
           >
-            {alwaysOnLayers.map((layer, idx) => (
-              <React.Fragment key={idx}>
-                <MenuDivider title={layer.id} />
-                {layer.actions}
-              </React.Fragment>
-            ))}
-            {gatheredActions.actions.length === 0 ? (
+            {alwaysOnLayers
+              .filter((layer) => {
+                if (layer.hideActionsIfUnselected) {
+                  return false;
+                }
+
+                // don't show actions that will be shown by virtue of layer selection
+                // to avoid duplications
+                const layerPath = layer.id.replace("|", " / ");
+                return gatheredActions.actionPaths.indexOf(layerPath) < 0;
+              })
+              .map((layer, idx) =>
+                layer.actions ? (
+                  <React.Fragment key={idx}>
+                    <MenuDivider title={layer.id} />
+                    {layer.actions()}
+                  </React.Fragment>
+                ) : null
+              )}
+            {/* If no gathered actions, just show the layer name: */}
+            {gatheredActions.actions.length === 0 && state.selectedLayer ? (
               <MenuDivider
                 icon={"layer"}
-                title={state.selectedLayer.join(" / ")}
+                title={
+                  state.selectedLayer.join(" / ") +
+                  " " +
+                  String.fromCharCode(11049)
+                }
               />
             ) : null}
             {gatheredActions.actions.map((action, idx) => (
               <React.Fragment key={idx}>
-                <MenuDivider title={gatheredActions.actionPaths[idx]} />
+                <MenuDivider
+                  title={
+                    gatheredActions.actionPaths[idx] +
+                    " " +
+                    String.fromCharCode(11049)
+                  }
+                />
                 {action}
               </React.Fragment>
             ))}

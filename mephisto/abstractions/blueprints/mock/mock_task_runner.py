@@ -31,7 +31,6 @@ class MockTaskRunner(TaskRunner):
         self.timeout = args.blueprint.timeout_time
         self.tracked_tasks: Dict[str, Union["Assignment", "Unit"]] = {}
         self.is_concurrent = args.blueprint.get("is_concurrent", True)
-        print(f"Blueprint is concurrent: {self.is_concurrent}, {args}")
 
     @staticmethod
     def get_mock_assignment_data() -> InitializationData:
@@ -56,9 +55,7 @@ class MockTaskRunner(TaskRunner):
         Mock runners simply wait for an act to come in with whether
         or not onboarding is complete
         """
-        packet = onboarding_agent.act(timeout=self.timeout)
-        onboarding_agent.did_submit.set()
-        onboarding_agent.mark_done()
+        onboarding_agent.await_submit(self.timeout)
 
     def run_unit(self, unit: "Unit", agent: "Agent"):
         """
@@ -72,11 +69,10 @@ class MockTaskRunner(TaskRunner):
         assert (
             assigned_agent.db_id == agent.db_id
         ), "Task was not given to assigned agent"
-        packet = agent.act(timeout=self.timeout)
+        packet = agent.get_live_update(timeout=self.timeout)
         if packet is not None:
             agent.observe(packet)
-        agent.did_submit.set()
-        agent.mark_done()
+        agent.await_submit(self.args.task.submission_timeout)
         del self.tracked_tasks[unit.db_id]
 
     def run_assignment(self, assignment: "Assignment", agents: List["Agent"]):
@@ -87,16 +83,19 @@ class MockTaskRunner(TaskRunner):
         self.tracked_tasks[assignment.db_id] = assignment
         agent_dict = {a.db_id: a for a in agents}
         time.sleep(0.3)
+        agents = []
         for unit in assignment.get_units():
             assigned_agent = unit.get_assigned_agent()
             assert assigned_agent is not None, "Task was not fully assigned"
             agent = agent_dict.get(assigned_agent.db_id)
             assert agent is not None, "Task was not launched with assigned agents"
-            packet = agent.act(timeout=self.timeout)
+            agents.append(agent)
+        for agent in agents:
+            packet = agent.get_live_update(timeout=self.timeout)
             if packet is not None:
                 agent.observe(packet)
-            agent.did_submit.set()
-            agent.mark_done()
+        for agent in agents:
+            agent.await_submit(self.args.task.submission_timeout)
         del self.tracked_tasks[assignment.db_id]
 
     def cleanup_assignment(self, assignment: "Assignment"):

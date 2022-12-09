@@ -11,7 +11,7 @@ import tempfile
 from typing import List, Iterable
 import time
 
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.abstractions.databases.local_singleton_database import MephistoSingletonDB
 from mephisto.operations.task_launcher import TaskLauncher
@@ -22,6 +22,11 @@ from mephisto.data_model.task_run import TaskRun
 from mephisto.abstractions.providers.mock.mock_provider import MockProvider
 from mephisto.abstractions.blueprints.mock.mock_blueprint import MockBlueprint
 from mephisto.abstractions.blueprints.mock.mock_task_runner import MockTaskRunner
+
+from typing import Type, ClassVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mephisto.abstractions.database import MephistoDB
 
 MAX_WAIT_TIME_UNIT_LAUNCH = 15
 NUM_GENERATED_ASSIGNMENTS = 10
@@ -46,7 +51,7 @@ class BaseTestTaskLauncher:
     Unit testing for the Mephisto TaskLauncher
     """
 
-    DB_CLASS = None
+    DB_CLASS: ClassVar[Type["MephistoDB"]]
 
     def setUp(self):
         self.data_dir = tempfile.mkdtemp()
@@ -54,7 +59,7 @@ class BaseTestTaskLauncher:
         assert self.DB_CLASS is not None, "Did not specify db to use"
         self.db = self.DB_CLASS(database_path)
         self.task_run_id = get_test_task_run(self.db)
-        self.task_run = TaskRun(self.db, self.task_run_id)
+        self.task_run = TaskRun.get(self.db, self.task_run_id)
 
     def tearDown(self):
         self.db.shutdown()

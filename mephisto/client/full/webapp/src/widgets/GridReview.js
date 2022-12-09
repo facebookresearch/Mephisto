@@ -11,10 +11,12 @@ import { ButtonGroup, Tooltip, Icon } from "@blueprintjs/core";
 import { Link } from "react-router-dom";
 import { reviewActions } from "../service";
 import { ObjectInspector } from "react-inspector";
+import { useParams } from "react-router-dom";
 
 const GridReviewAsync = createAsync();
 
-function GridReviewWithData({ id }) {
+function GridReviewWithData() {
+  const { id } = useParams();
   const gridReviewAsync = useAxios({
     url: "data/submitted_data?task_run_id=" + id,
   });
@@ -22,11 +24,7 @@ function GridReviewWithData({ id }) {
   return (
     <GridReviewAsync
       info={gridReviewAsync}
-      onData={({ data }) => (
-        <div>
-          <GridReview data={data} id={id} />
-        </div>
-      )}
+      onData={({ data }) => <GridReview data={data} id={id} />}
       onError={() => null}
       onLoading={() => null}
       onEmptyData={() => <div>There are no units to review...</div>}
@@ -150,34 +148,38 @@ function GridReview({ data, id }) {
         <Link to="/">&laquo; Return</Link>
       </div>
       <h3>Task Run #{id}</h3>
-      <table
-        className="bp3-html-table-striped bp3-html-table"
-        {...getTableProps()}
-      >
-        <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>{column.render("Header")}</th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row, i) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()}>
-                {row.cells.map((cell) => {
-                  return (
-                    <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
-                  );
-                })}
+      <div style={{ overflowX: "auto" }}>
+        <table
+          className="bp3-html-table-striped bp3-html-table"
+          {...getTableProps()}
+        >
+          <thead>
+            {headerGroups.map((headerGroup) => (
+              <tr {...headerGroup.getHeaderGroupProps()}>
+                {headerGroup.headers.map((column) => (
+                  <th {...column.getHeaderProps()}>
+                    {column.render("Header")}
+                  </th>
+                ))}
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            ))}
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            {rows.map((row, i) => {
+              prepareRow(row);
+              return (
+                <tr {...row.getRowProps()}>
+                  {row.cells.map((cell) => {
+                    return (
+                      <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

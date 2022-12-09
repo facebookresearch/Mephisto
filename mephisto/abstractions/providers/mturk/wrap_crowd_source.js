@@ -15,6 +15,11 @@ Returning None for the assignment_id means that the task is being
 previewed by the given worker.
 \------------------------------------------*/
 
+// The following is the nanoevents npm library (https://github.com/ai/nanoevents/blob/main/index.js) manually processed as such:
+// 1. transpiled to support more browser targets using the Babel transpiler (https://babeljs.io/repl#?browsers=defaults&build=&builtIns=false&corejs=false&spec=false&loose=false), and
+// 2. minified using a JS minifier (https://www.toptal.com/developers/javascript-minifier)
+var eventEmitter=function(){return{events:{},emit:function(f){for(var b=this.events[f]||[],c=arguments.length,e=new Array(c>1?c-1:0),a=1;a<c;a++)e[a-1]=arguments[a];for(var d=0,g=b.length;d<g;d++)b[d].apply(b,e)},on:function(b,c){var a,d=this;return(null===(a=this.events[b])|| void 0===a?void 0:a.push(c))||(this.events[b]=[c]),function(){var a;d.events[b]=null===(a=d.events[b])|| void 0===a?void 0:a.filter(function(a){return c!==a})}}}}
+
 function getWorkerName() {
   // MTurk worker name is passed via url params
   let urlParams = new URLSearchParams(window.location.search);
@@ -33,20 +38,12 @@ function getHITId() {
   return urlParams.get("hitId");
 }
 
-function getWorkerRegistrationInfo() {
-  // MTurk workers are registered by name only
-  return {
-    worker_name: getWorkerName(),
-    provider_type: "mturk",
-  };
-}
-
-function getAgentRegistration(mephisto_worker_id) {
+function getAgentRegistration() {
   // MTurk agents are created using the Mephisto worker_id
   // and the supplied assignment id
   return {
-    worker_id: mephisto_worker_id,
-    agent_registration_id: getAssignmentId() + "-" + mephisto_worker_id,
+    worker_name: getWorkerName(),
+    agent_registration_id: getAssignmentId() + "-" + getWorkerName(),
     assignment_id: getAssignmentId(),
     hit_id: getHITId(),
     provider_type: "mturk",
@@ -69,11 +66,24 @@ function handleSubmitToProvider(task_data) {
   }
   form.method = "POST";
   form.action = urlParams.get("turkSubmitTo") + "/mturk/externalSubmit";
-  form.submit();
+  HTMLFormElement.prototype.submit.call(form);
 }
 
-/* === UI error handling code ======= */
 window._MEPHISTO_CONFIG_ = window._MEPHISTO_CONFIG_ || {};
+window._MEPHISTO_CONFIG_.EVENT_EMITTER = events;
+
+window._MEPHISTO_CONFIG_.get = (property) => {
+  if (!(property in window._MEPHISTO_CONFIG_))
+    throw new Error(`${property} does not exist in window.MEPHISTO_CONFIG`);
+  else return window._MEPHISTO_CONFIG_[property];
+};
+
+window._MEPHISTO_CONFIG_.set = (property, value) => {
+  window._MEPHISTO_CONFIG_[property] = value;
+  events.emit(property, value);
+};
+
+/* === UI error handling code ======= */
 window._MEPHISTO_CONFIG_.AUTO_SUBMIT_ERRORS = false;
 window._MEPHISTO_CONFIG_.ADD_ERROR_HANDLING = false;
 window._MEPHISTO_CONFIG_.ERROR_REPORT_TO_EMAIL = null;
@@ -81,6 +91,7 @@ window._MEPHISTO_CONFIG_.ERROR_REPORT_TO_EMAIL = null;
 let numErrorsCaught = 0;
 let numErrorsReported = 0;
 let userDisabledErrorPrompts = false;
+
 // Adding event listener instead of using window.onerror prevents the error to be caught twice
 window.addEventListener("error", function (event) {
   if (event.error.hasBeenCaught === true) {

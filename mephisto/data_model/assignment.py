@@ -10,18 +10,22 @@ from mephisto.data_model.task import Task
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.requester import Requester
-from mephisto.data_model.db_backed_meta import MephistoDBBackedMeta
+from mephisto.data_model._db_backed_meta import (
+    MephistoDBBackedMeta,
+    MephistoDataModelComponentMixin,
+)
 from typing import List, Optional, Mapping, Dict, Any, TYPE_CHECKING, IO
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
+    from mephisto.data_model.unit import Unit
 
 import os
 import json
 from dataclasses import dataclass
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -44,26 +48,35 @@ class InitializationData:
         )
 
 
-class Assignment(metaclass=MephistoDBBackedMeta):
+class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
     """
     This class tracks an individual run of a specific task, and handles state management
     for the set of units within via abstracted database helpers
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            raise AssertionError(
+                "Direct Assignment and data model access via Assignment(db, id) is "
+                "now deprecated in favor of calling Assignment.get(db, id). "
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_assignment(db_id)
         assert row is not None, f"Given db_id {db_id} did not exist in given db"
         self.db_id: str = row["assignment_id"]
-        self.task_run_id = row["task_run_id"]
-        self.sandbox = row["sandbox"]
-        self.task_id = row["task_id"]
-        self.requester_id = row["requester_id"]
-        self.task_type = row["task_type"]
-        self.provider_type = row["provider_type"]
+        self.task_run_id: str = row["task_run_id"]
+        self.sandbox: bool = row["sandbox"]
+        self.task_id: str = row["task_id"]
+        self.requester_id: str = row["requester_id"]
+        self.task_type: str = row["task_type"]
+        self.provider_type: str = row["provider_type"]
 
         # Deferred loading of related entities
         self.__task_run: Optional["TaskRun"] = None
@@ -112,8 +125,6 @@ class Assignment(metaclass=MephistoDBBackedMeta):
             return AssignmentState.CREATED
 
         if AssignmentState.CREATED in statuses:
-            # TODO(#99) handle the case where new units are created after
-            # everything else is launched
             return AssignmentState.CREATED
 
         if any([s == AssignmentState.LAUNCHED for s in statuses]):
@@ -142,7 +153,7 @@ class Assignment(metaclass=MephistoDBBackedMeta):
         Return the task run that this assignment is part of
         """
         if self.__task_run is None:
-            self.__task_run = TaskRun(self.db, self.task_run_id)
+            self.__task_run = TaskRun.get(self.db, self.task_run_id)
         return self.__task_run
 
     def get_task(self) -> Task:
@@ -153,7 +164,7 @@ class Assignment(metaclass=MephistoDBBackedMeta):
             if self.__task_run is not None:
                 self.__task = self.__task_run.get_task()
             else:
-                self.__task = Task(self.db, self.task_id)
+                self.__task = Task.get(self.db, self.task_id)
         return self.__task
 
     def get_requester(self) -> Requester:
@@ -164,7 +175,7 @@ class Assignment(metaclass=MephistoDBBackedMeta):
             if self.__task_run is not None:
                 self.__requester = self.__task_run.get_requester()
             else:
-                self.__requester = Requester(self.db, self.requester_id)
+                self.__requester = Requester.get(self.db, self.requester_id)
         return self.__requester
 
     def get_units(self, status: Optional[str] = None) -> List["Unit"]:
@@ -204,8 +215,6 @@ class Assignment(metaclass=MephistoDBBackedMeta):
     def __repr__(self) -> str:
         return f"Assignment({self.db_id})"
 
-    # TODO(100) add helpers to manage retrieving results as well
-
     @staticmethod
     def new(
         db: "MephistoDB", task_run: TaskRun, assignment_data: Optional[Dict[str, Any]]
@@ -215,7 +224,7 @@ class Assignment(metaclass=MephistoDBBackedMeta):
         the results for this assignment. Can take assignment_data to save and
         load for this particular assignment.
         """
-        # TODO(101) consider offloading this state management to the MephistoDB
+        # TODO(#567) consider offloading this state management to the MephistoDB
         # as it is data handling and can theoretically be done differently
         # in different implementations
         db_id = db.new_assignment(
@@ -233,6 +242,6 @@ class Assignment(metaclass=MephistoDBBackedMeta):
                 os.path.join(assign_dir, ASSIGNMENT_DATA_FILE), "w+"
             ) as json_file:
                 json.dump(assignment_data, json_file)
-        assignment = Assignment(db, db_id)
+        assignment = Assignment.get(db, db_id)
         logger.debug(f"{assignment} created for {task_run}")
         return assignment

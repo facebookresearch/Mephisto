@@ -1,0 +1,29 @@
+{
+  "name": "EXAMPLE",
+  "version": "0.0.1",
+  "source": "src/index.js",
+  "main": "build/bundle.js",
+  "license": "MIT",
+  "homepage": "https://github.com/facebookresearch/Mephisto.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/facebookresearch/Mephisto.git"
+  },
+  "bugs": {
+    "url": "https://github.com/facebookresearch/Mephisto/issues"
+  },
+  "packageManager": "yarn@3.0.2",
+  "scripts": {
+    "build": "dev-scripts build",
+    "build:dev": "BUILD_ENV=development dev-scripts build",
+    "start": "dev-scripts start"
+  },
+  "dependencies": {
+    "@annotated/dev-scripts": "workspace:packages/annotated/dev-scripts"
+  },
+  "peerDependencies": {
+    "global-context-store": "^1.0.1",
+    "react": "^16.13.1 || 17 || 18",
+    "react-dom": "^16.13.1 || 17 || 18"
+  }
+}

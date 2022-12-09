@@ -7,9 +7,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model.db_backed_meta import MephistoDBBackedABCMeta
+from mephisto.data_model._db_backed_meta import (
+    MephistoDBBackedABCMeta,
+    MephistoDataModelComponentMixin,
+)
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -38,14 +41,23 @@ class WorkerArgs:
     )
 
 
-class Worker(metaclass=MephistoDBBackedABCMeta):
+class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
     """
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
+        if not _used_new_call:
+            raise AssertionError(
+                "Direct Worker and data model access via ...Worker(db, id) is "
+                "now deprecated in favor of calling Worker.get(db, id). "
+            )
         self.db: "MephistoDB" = db
         if row is None:
             row = db.get_worker(db_id)
@@ -53,10 +65,14 @@ class Worker(metaclass=MephistoDBBackedABCMeta):
         self.db_id: str = row["worker_id"]
         self.provider_type = row["provider_type"]
         self.worker_name = row["worker_name"]
-        # TODO(#101) Do we want any other attributes here?
+        # TODO(#568) Do we want any other attributes here?
 
     def __new__(
-        cls, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        cls,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ) -> "Worker":
         """
         The new method is overridden to be able to automatically generate
@@ -81,7 +97,7 @@ class Worker(metaclass=MephistoDBBackedABCMeta):
             # We are constructing another instance directly
             return super().__new__(cls)
 
-    # TODO(#101) make getters for helpful worker statistics
+    # TODO(#568) make getters for helpful worker statistics
 
     def get_agents(self, status: Optional[str] = None) -> List["Agent"]:
         """
@@ -99,7 +115,7 @@ class Worker(metaclass=MephistoDBBackedABCMeta):
         Create an entry for this worker in the database
         """
         db_id = db.new_worker(worker_name, provider_type)
-        worker = Worker(db, db_id)
+        worker = Worker.get(db, db_id)
         logger.debug(f"Registered new worker {worker}")
         return worker
 

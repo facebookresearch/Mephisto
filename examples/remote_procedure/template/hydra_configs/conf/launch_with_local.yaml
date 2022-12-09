@@ -1,0 +1,25 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: remote_procedure
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+mephisto:
+  blueprint:
+    task_source: ${task_dir}/webapp/build/bundle.js
+    link_task_source: false
+    # NOTE pick something based on your task
+    block_qualification: test_qual_block
+    units_per_assignment: 1
+  task:
+    allowed_concurrent: 1
+    task_name: remote-procedure-test-task
+    task_title: "Test a static task that also has access to live backend queries"
+    # NOTE you'll want to update your task description
+    task_description: "You will be shown a form that you can submit at any time, but can also toggle a backend query"
+    # NOTE set a reasonable reward
+    task_reward: 0.05
+    # NOTE will want real tags
+    task_tags: "test,task,fix-me"
+    # NOTE Model-in-the-loop tasks need to be careful to configure only as many concurrent
+    # connections as their model can handle at once
+    max_num_concurrent_units: 40

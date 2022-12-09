@@ -4,16 +4,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import boto3
 import sqlite3
 import os
 import threading
 
 from datetime import datetime
-
-
-from botocore.exceptions import ClientError
-from botocore.exceptions import ProfileNotFound
 
 from typing import Dict, Any, Optional
 
@@ -59,7 +54,7 @@ class MockDatastore:
         """
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
             conn.row_factory = sqlite3.Row
             self.conn[curr_thread] = conn
         return self.conn[curr_thread]

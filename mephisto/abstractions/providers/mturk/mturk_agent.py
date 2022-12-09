@@ -11,18 +11,25 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     approve_work,
     reject_work,
     get_assignment,
+    get_assignments_for_hit,
 )
 
-from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
+import xmltodict  # type: ignore
+import json
+
+from typing import List, Optional, Tuple, Dict, Mapping, Any, cast, TYPE_CHECKING
+
+from mephisto.utils.logger_core import get_logger
+
+logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.packet import Packet
-    from mephisto.abstractions.providers.mturk.requester import MTurkRequester
-    from mephisto.abstractions.providers.mturk.unit import MTurkUnit
-    from mephisto.abstractions.providers.mturk.datastore import MTurkDatastore
+    from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
+    from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
+    from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
 
 
 class MTurkAgent(Agent):
@@ -36,16 +43,18 @@ class MTurkAgent(Agent):
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
-        super().__init__(db, db_id, row=row)
+        super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
-        unit: "MTurkUnit" = self.get_unit()
+        unit: "MTurkUnit" = cast("MTurkUnit", self.get_unit())
         self.mturk_assignment_id = unit.get_mturk_assignment_id()
-        # TODO(#97) any additional init as is necessary once
-        # a mock DB exists
 
     def _get_mturk_assignment_id(self):
         if self.mturk_assignment_id is None:
@@ -57,7 +66,7 @@ class MTurkAgent(Agent):
         Get an mturk client for usage with mturk_utils for this agent
         """
         unit = self.get_unit()
-        requester: "MTurkRequester" = unit.get_requester()
+        requester: "MTurkRequester" = cast("MTurkRequester", unit.get_requester())
         return self.datastore.get_client_for_requester(requester._requester_name)
 
     @classmethod
@@ -72,21 +81,48 @@ class MTurkAgent(Agent):
         Wrapper around the new method that allows registering additional
         bookkeeping information from a crowd provider for this agent
         """
+        from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
+
+        assert isinstance(
+            unit, MTurkUnit
+        ), "Can only register mturk agents to mturk units"
         unit.register_from_provider_data(
             provider_data["hit_id"], provider_data["assignment_id"]
         )
         return super().new_from_provider_data(db, worker, unit, provider_data)
 
+    def attempt_to_reconcile_submitted_data(self, mturk_hit_id: str):
+        """
+        Hacky attempt to load the data directly from MTurk to handle
+        data submitted that we missed somehow. Chance of failure is
+        certainly non-zero.
+        """
+        client = self._get_client()
+        assignment = get_assignments_for_hit(client, mturk_hit_id)[0]
+        xml_data = xmltodict.parse(assignment["Answer"])
+        paired_data = json.loads(json.dumps(xml_data["QuestionFormAnswers"]["Answer"]))
+        parsed_data = {
+            entry["QuestionIdentifier"]: entry["FreeText"] for entry in paired_data
+        }
+        parsed_data["MEPHISTO_MTURK_RECONCILED"] = True
+        self.handle_submit(parsed_data)
+
     # Required functions for Agent Interface
 
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""
+        if self.get_status() == AgentState.STATUS_APPROVED:
+            logger.info(f"Approving already approved agent {self}, skipping")
+            return
         client = self._get_client()
         approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
         self.update_status(AgentState.STATUS_APPROVED)
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
+        if self.get_status() == AgentState.STATUS_APPROVED:
+            logger.warning(f"Cannot reject {self}, it is already approved")
+            return
         client = self._get_client()
         reject_work(client, self._get_mturk_assignment_id(), reason)
         self.update_status(AgentState.STATUS_REJECTED)

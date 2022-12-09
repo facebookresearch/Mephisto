@@ -13,8 +13,8 @@ const axios = require("axios");
   They are sideloaded and exposed as global import during the build process:
 */
 /* global
-  getWorkerName, getAssignmentId, getWorkerRegistrationInfo,
-  getAgentRegistration, handleSubmitToProvider, getProviderURLParams
+  getWorkerName, getAssignmentId, getAgentRegistration,
+  handleSubmitToProvider, getProviderURLParams
 */
 
 /* ================= Utility functions ================= */
@@ -85,31 +85,32 @@ export function doesSupportWebsockets() {
 
 // Sends a request to get the task_config
 export function getTaskConfig() {
-  return axiosInstance("/task_config.json").then((res) => res.data);
+  return axiosInstance("/task_config.json", {
+    params: { mephisto_task_version: libVersion },
+  }).then((res) => {
+    const taskConfig = res.data;
+    if (taskConfig.mephisto_task_version !== libVersion) {
+      console.warn(
+        "Version mismatch detected! Local `mephisto-task` package is " +
+          "on version " +
+          libVersion +
+          " but the server expected version " +
+          taskConfig.mephisto_task_version +
+          ". Please ensure you " +
+          "are using the package version expected by the Mephisto backend."
+      );
+    }
+    return res.data;
+  });
 }
 
 export function postProviderRequest(endpoint, data) {
   var url = new URL(window.location.origin + endpoint).toString();
-  return postData(url, { provider_data: data });
+  return postData(url, { provider_data: data, client_timestamp: pythonTime() });
 }
 
-export function requestAgent(mephisto_worker_id) {
-  return postProviderRequest(
-    "/request_agent",
-    getAgentRegistration(mephisto_worker_id)
-  );
-}
-
-export function registerWorker() {
-  return postProviderRequest("/register_worker", getWorkerRegistrationInfo());
-}
-
-// Sends a request to get the initial task data
-export function getInitTaskData(mephisto_worker_id, agent_id) {
-  return postProviderRequest("/initial_task_data", {
-    mephisto_worker_id: mephisto_worker_id,
-    agent_id: agent_id,
-  });
+export function requestAgent() {
+  return postProviderRequest("/request_agent", getAgentRegistration());
 }
 
 export function postCompleteOnboarding(agent_id, onboarding_data) {
@@ -123,6 +124,7 @@ export function postCompleteTask(agent_id, complete_data) {
   return postData("/submit_task", {
     USED_AGENT_ID: agent_id,
     final_data: complete_data,
+    client_timestamp: pythonTime(),
   })
     .then((data) => {
       handleSubmitToProvider(complete_data);
@@ -133,10 +135,21 @@ export function postCompleteTask(agent_id, complete_data) {
     });
 }
 
+export function postMetadata(agent_id, metadata) {
+  return postData("/submit_metadata", {
+    USED_AGENT_ID: agent_id,
+    metadata: metadata,
+    client_timestamp: pythonTime(),
+  }).then(function (data) {
+    return data;
+  });
+}
+
 export function postErrorLog(agent_id, complete_data) {
   return postData("/log_error", {
     USED_AGENT_ID: agent_id,
-    final_data: complete_data,
+    error_data: complete_data,
+    client_timestamp: pythonTime(),
   }).then(function (data) {
     // console.log("Error log sent to server");
   });
@@ -148,10 +161,6 @@ export function getBlockedExplanation(reason) {
       "Sorry, this task cannot be completed on mobile devices. Please use a computer.",
     no_websockets:
       "Sorry, your browser does not support the required version of websockets for this task. Please upgrade to a modern browser.",
-    null_agent_id:
-      "Sorry, you have already worked on the maximum number of these tasks available to you, or are no longer eligible to work on this task.",
-    null_worker_id:
-      "Sorry, you are not eligible to work on any available tasks.",
   };
 
   if (reason in explanations) {
@@ -192,4 +201,15 @@ export class ErrorBoundary extends React.Component {
     // Normally, just render children
     return this.props.children;
   }
+}
+
+export const libVersion = preval`
+  const fs = require('fs')
+  const file = fs.readFileSync(__dirname + '/../package.json', 'utf8')
+  const version = JSON.parse(file).version;
+  module.exports = version
+`;
+
+export function pythonTime() {
+  return Date.now() / 1000;
 }

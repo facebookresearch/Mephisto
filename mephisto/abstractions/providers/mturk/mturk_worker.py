@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
 
-from mephisto.operations.logger_core import get_logger
+from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -43,9 +43,13 @@ class MTurkWorker(Worker):
     PROVIDER_TYPE = PROVIDER_TYPE
 
     def __init__(
-        self, db: "MephistoDB", db_id: str, row: Optional[Mapping[str, Any]] = None
+        self,
+        db: "MephistoDB",
+        db_id: str,
+        row: Optional[Mapping[str, Any]] = None,
+        _used_new_call: bool = False,
     ):
-        super().__init__(db, db_id, row=row)
+        super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
             self.PROVIDER_TYPE
         )
@@ -62,9 +66,11 @@ class MTurkWorker(Worker):
             worker_name=mturk_worker_id, provider_type=cls.PROVIDER_TYPE
         )
         if len(workers) == 0:
-            # TODO warn?
+            logger.warning(
+                f"Could not find a Mephisto Worker for mturk_id {mturk_worker_id}"
+            )
             return None
-        return workers[0]
+        return cast("MTurkWorker", workers[0])
 
     def get_mturk_worker_id(self):
         return self._worker_name
@@ -91,13 +97,13 @@ class MTurkWorker(Worker):
             qualification_name
         )
         if mturk_qual_details is not None:
-            requester = Requester(self.db, mturk_qual_details["requester_id"])
+            requester = Requester.get(self.db, mturk_qual_details["requester_id"])
             qualification_id = mturk_qual_details["mturk_qualification_id"]
         else:
             target_type = (
                 "mturk_sandbox" if qualification_name.endswith("sandbox") else "mturk"
             )
-            requester = self.db.find_requesters(provider_type=target_type)[0]
+            requester = self.db.find_requesters(provider_type=target_type)[-1]
             assert isinstance(
                 requester, MTurkRequester
             ), "find_requesters must return mturk requester for given provider types"
@@ -128,7 +134,7 @@ class MTurkWorker(Worker):
             )
             return None
 
-        requester = Requester(self.db, mturk_qual_details["requester_id"])
+        requester = Requester.get(self.db, mturk_qual_details["requester_id"])
         assert isinstance(
             requester, MTurkRequester
         ), "Must be an MTurk requester from MTurk quals"
@@ -144,11 +150,14 @@ class MTurkWorker(Worker):
     ) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return tuple of success and failure message"""
         if unit is None:
-            # TODO(WISH) implement
+            # TODO(#652) implement. The content in scripts/mturk/launch_makeup_hits.py
+            # may prove useful for this.
             return False, "bonusing via compensation tasks not yet available"
 
         unit = cast("MTurkUnit", unit)
-        requester = unit.get_assignment().get_task_run().get_requester()
+        requester = cast(
+            "MTurkRequester", unit.get_assignment().get_task_run().get_requester()
+        )
         client = self._get_client(requester._requester_name)
         mturk_assignment_id = unit.get_mturk_assignment_id()
         assert mturk_assignment_id is not None, "Cannot bonus for a unit with no agent"
@@ -165,7 +174,7 @@ class MTurkWorker(Worker):
     ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         if unit is None and requester is None:
-            # TODO(WISH) soft block from all requesters? Maybe have the master
+            # TODO(WISH) soft block from all requesters? Maybe have the main
             # requester soft block?
             return (
                 False,

@@ -6,12 +6,26 @@
 
 from mephisto.abstractions.blueprint import (
     Blueprint,
-    OnboardingRequired,
     BlueprintArgs,
     SharedTaskState,
 )
+from mephisto.abstractions.blueprints.mixins.onboarding_required import (
+    OnboardingRequired,
+    OnboardingSharedState,
+    OnboardingRequiredArgs,
+)
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
+from mephisto.abstractions.blueprints.mixins.screen_task_required import (
+    ScreenTaskRequired,
+    ScreenTaskRequiredArgs,
+    ScreenTaskSharedState,
+)
+from mephisto.abstractions.blueprints.mixins.use_gold_unit import (
+    UseGoldUnit,
+    UseGoldUnitArgs,
+    GoldUnitSharedState,
+)
 from mephisto.data_model.assignment import InitializationData
 from mephisto.abstractions.blueprints.abstract.static_task.static_agent_state import (
     StaticAgentState,
@@ -22,14 +36,13 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_task_runner im
 from mephisto.abstractions.blueprints.abstract.static_task.empty_task_builder import (
     EmptyStaticTaskBuilder,
 )
-from mephisto.operations.registry import register_mephisto_abstraction
 
 import os
-import time
 import csv
 import json
+import types
 
-from typing import ClassVar, List, Type, Any, Dict, Iterable, TYPE_CHECKING
+from typing import ClassVar, Type, Any, Dict, Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mephisto.data_model.task_run import TaskRun
@@ -37,24 +50,35 @@ if TYPE_CHECKING:
         AgentState,
         TaskRunner,
         TaskBuilder,
-        OnboardingAgent,
     )
-    from mephisto.data_model.assignment import Assignment
-    from mephisto.data_model.worker import Worker
-    from argparse import _ArgumentGroup as ArgumentGroup
 
 
-BLUEPRINT_TYPE = "abstract_static"
+BLUEPRINT_TYPE_STATIC = "abstract_static"
 
 
 @dataclass
-class SharedStaticTaskState(SharedTaskState):
-    static_task_data: List[Any] = field(default_factory=list)
+class SharedStaticTaskState(
+    ScreenTaskSharedState, OnboardingSharedState, GoldUnitSharedState, SharedTaskState
+):
+    static_task_data: Iterable[Any] = field(
+        default_factory=list,
+        metadata={
+            "help": (
+                "List or generator that returns dicts of task data. Generators can be "
+                "used for tasks with lengths that aren't known at the start of a "
+                "run, or are otherwise determined during the run. "
+            ),
+            "type": "Iterable[Dict[str, Any]]",
+            "default": "[]",
+        },
+    )
 
 
 @dataclass
-class StaticBlueprintArgs(BlueprintArgs):
-    _blueprint_type: str = BLUEPRINT_TYPE
+class StaticBlueprintArgs(
+    ScreenTaskRequiredArgs, OnboardingRequiredArgs, UseGoldUnitArgs, BlueprintArgs
+):
+    _blueprint_type: str = BLUEPRINT_TYPE_STATIC
     _group: str = field(
         default="StaticBlueprint",
         metadata={
@@ -86,18 +110,9 @@ class StaticBlueprintArgs(BlueprintArgs):
     data_csv: str = field(
         default=MISSING, metadata={"help": "Path to csv file containing task data"}
     )
-    extra_source_dir: str = field(
-        default=MISSING,
-        metadata={
-            "help": (
-                "Optional path to sources that the HTML may "
-                "refer to (such as images/video/css/scripts)"
-            )
-        },
-    )
 
 
-class StaticBlueprint(Blueprint, OnboardingRequired):
+class StaticBlueprint(ScreenTaskRequired, OnboardingRequired, UseGoldUnit, Blueprint):
     """
     Abstract blueprint for a task that runs without any extensive backend.
     These are generally one-off tasks sending data to the frontend and then
@@ -109,15 +124,17 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
     TaskBuilderClass: ClassVar[Type["TaskBuilder"]] = EmptyStaticTaskBuilder
     TaskRunnerClass: ClassVar[Type["TaskRunner"]] = StaticTaskRunner
     ArgsClass: ClassVar[Type["BlueprintArgs"]] = StaticBlueprintArgs
-    supported_architects: ClassVar[List[str]] = ["mock"]  # TODO update
+    SharedStateClass = SharedStaticTaskState
 
     def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
+        self,
+        task_run: "TaskRun",
+        args: "DictConfig",
+        shared_state: "SharedStaticTaskState",
     ):
         super().__init__(task_run, args, shared_state)
-        self.init_onboarding_config(task_run, args, shared_state)
-
-        self._initialization_data_dicts: List[Dict[str, Any]] = []
+        # Originally just a list of dicts, but can also be a generator of dicts
+        self._initialization_data_dicts: Iterable[Dict[str, Any]] = []
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
@@ -132,7 +149,7 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
         elif blue_args.get("data_json", None) is not None:
             json_file = os.path.expanduser(blue_args.data_json)
             with open(json_file, "r", encoding="utf-8-sig") as json_fp:
-                json_data = json.loads(json_fp)
+                json_data = json.load(json_fp)
             for jd in json_data:
                 self._initialization_data_dicts.append(jd)
         elif blue_args.get("data_jsonl", None) is not None:
@@ -152,6 +169,11 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
     @classmethod
     def assert_task_args(cls, args: DictConfig, shared_state: "SharedTaskState"):
         """Ensure that the data can be properly loaded"""
+        super().assert_task_args(args, shared_state)
+
+        assert isinstance(
+            shared_state, SharedStaticTaskState
+        ), "Must use SharedStaticTaskState for static blueprints"
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
@@ -169,9 +191,14 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
                 jsonl_file
             ), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif shared_state.static_task_data is not None:
-            assert (
-                len(shared_state.static_task_data) > 0
-            ), "Length of data dict provided was 0"
+            if isinstance(shared_state.static_task_data, types.GeneratorType):
+                # TODO(#97) can we check something about this?
+                # Some discussion here: https://stackoverflow.com/questions/661603/how-do-i-know-if-a-generator-is-empty-from-the-start
+                pass
+            else:
+                assert (
+                    len([x for x in shared_state.static_task_data]) > 0
+                ), "Length of data dict provided was 0"
         else:
             raise AssertionError(
                 "Must provide one of a data csv, json, json-L, or a list of tasks"
@@ -181,22 +208,20 @@ class StaticBlueprint(Blueprint, OnboardingRequired):
         """
         Return the InitializationData retrieved from the specified stream
         """
-        return [
-            InitializationData(
-                shared=d, unit_data=[{}] * self.args.blueprint.units_per_assignment
-            )
-            for d in self._initialization_data_dicts
-        ]
+        if isinstance(self._initialization_data_dicts, types.GeneratorType):
 
-    def validate_onboarding(
-        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
-    ) -> bool:
-        """
-        Check the incoming onboarding data and evaluate if the worker
-        has passed the qualification or not. Return True if the worker
-        has qualified.
-        """
-        data = onboarding_agent.state.get_data()
-        return self.shared_state.validate_onboarding(
-            data
-        )  # data["outputs"].get("success", True)
+            def data_generator() -> Iterable["InitializationData"]:
+                for item in self._initialization_data_dicts:
+                    yield InitializationData(
+                        shared=item,
+                        unit_data=[{}] * self.args.blueprint.units_per_assignment,
+                    )
+
+            return data_generator()
+        else:
+            return [
+                InitializationData(
+                    shared=d, unit_data=[{}] * self.args.blueprint.units_per_assignment
+                )
+                for d in self._initialization_data_dicts
+            ]

@@ -5,8 +5,8 @@ This directory contains all of the Mephisto code regarding setting up and deploy
 This file contains code to be able to initialize the required build files for a server, assuming that they're set up properly. With the routers available in this directory, they should work out-of-the-box, but more configuration. If you want to specify your own build, you should start from the given servers, then provide the `architect.server_source_root` and `architect.server_type` arguments as appropriate with your server directory and the kind of server you're running.
 
 # Router Types
-## deploy
-This folder contains a node-based server that meets the specification for being a Mephisto Router. Additional files are served via `/static/` and uploaded files from the user are temporarily available from `/tmp/`. Currently retains the `deploy` name as it was our first server, but it is somewhat unwieldy.
+## node
+This folder contains a node-based server that meets the specification for being a Mephisto Router. Additional files are served via `/static/` and uploaded files from the user are temporarily available from `/tmp/`. 
 
 ## flask
 This folder contains a Flask Blueprint (not to be confused with a Mephisto Blueprint) in `mephisto_flask_blueprint.py`. It also has example usage of this within the `app.py` file. The `app.py` file is what we actually deploy by default, and the contents demonstrate some important usage requirements for deploying a Mephisto router within an arbitrary Flask app. 

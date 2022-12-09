@@ -4,29 +4,30 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import boto3
+import boto3  # type: ignore
 import os
 import json
 import re
-from tqdm import tqdm
+import time
+from tqdm import tqdm  # type: ignore
 from typing import Dict, Optional, Tuple, List, Any, TYPE_CHECKING
 from datetime import datetime
 
-from botocore import client
-from botocore.exceptions import ClientError
-from botocore.exceptions import ProfileNotFound
-from botocore.config import Config
+from botocore import client  # type: ignore
+from botocore.exceptions import ClientError, ProfileNotFound  # type: ignore
+from botocore.config import Config  # type: ignore
 from omegaconf import DictConfig
 
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
-from mephisto.operations.logger_core import get_logger
-from mephisto.operations.config_handler import get_config_arg
+from mephisto.utils.logger_core import get_logger, format_loud
+from mephisto.operations.config_handler import get_config_arg, DEFAULT_CONFIG_FOLDER
+
+if TYPE_CHECKING:
+    from mephisto.abstractions.database import MephistoDB
 
 logger = get_logger(name=__name__)
 
-if TYPE_CHECKING:
-    from mephisto.data_model.task_config import TaskConfig
-
+CLEANUP_CHECK_TIME = 24 * 60 * 60  # Check every day!
 MTURK_TASK_FEE = 0.2
 MTURK_BONUS_FEE = 0.2
 SANDBOX_ENDPOINT = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
@@ -36,6 +37,10 @@ MTurkClient = Any
 MTURK_LOCALE_REQUIREMENT = "00000000000000000071"
 
 botoconfig = Config(retries=dict(max_attempts=10))
+
+QUALIFICATION_TYPE_EXISTS_MESSAGE = (
+    "You have already created a QualificationType with this name."
+)
 
 
 def client_is_sandbox(client: MTurkClient) -> bool:
@@ -58,10 +63,46 @@ def check_aws_credentials(profile_name: str) -> bool:
 def setup_aws_credentials(
     profile_name: str, register_args: Optional[DictConfig] = None
 ) -> bool:
+    if not os.path.exists(os.path.expanduser("~/.aws/")):
+        os.makedirs(os.path.expanduser("~/.aws/"))
+    aws_credentials_file_path = "~/.aws/credentials"
+    expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
     try:
         # Check existing credentials
         boto3.Session(profile_name=profile_name)
+        if register_args is not None:
+            # Eventually we could manually re-parse the file and see
+            # if the credentials line up or not, then fix ourselves
+            aws_credentials_file_string = ""
+            with open(expanded_aws_file_path, "r") as aws_credentials_file:
+                aws_credentials_file_string = aws_credentials_file.read()
+            # accessing the aws_credentials_file
+            aws_credentials = aws_credentials_file_string.split("\n")
+            # iterating to get the profile
+
+            for credentialIndex in range(0, len(aws_credentials)):
+                if str(aws_credentials[credentialIndex]).startswith(
+                    "[{}]".format(profile_name)
+                ):
+                    aws_credentials[
+                        credentialIndex + 1
+                    ] = "aws_access_key_id={}".format(register_args.access_key_id)
+                    aws_credentials[
+                        credentialIndex + 2
+                    ] = "aws_secret_access_key={}".format(
+                        register_args.secret_access_key
+                    )
+                    break
+
+            with open(expanded_aws_file_path, "w") as aws_credentials_file:
+                # overWrite login details
+                aws_credentials_file.write("\n".join(aws_credentials))
+                logger.warning(
+                    f"We found an existing entry for {profile_name}. As new credentials have been provided, "
+                    f"we're updating the credentials, overwriting ones that already existed for the profile "
+                )
         return True
+
     except ProfileNotFound:
         # Setup new credentials
         if register_args is not None:
@@ -80,11 +121,7 @@ def setup_aws_credentials(
             )
             aws_access_key_id = input("Access Key ID: ")
             aws_secret_access_key = input("Secret Access Key: ")
-        if not os.path.exists(os.path.expanduser("~/.aws/")):
-            os.makedirs(os.path.expanduser("~/.aws/"))
-        aws_credentials_file_path = "~/.aws/credentials"
-        aws_credentials_file_string = None
-        expanded_aws_file_path = os.path.expanduser(aws_credentials_file_path)
+        aws_credentials_file_string = ""
         if os.path.exists(expanded_aws_file_path):
             with open(expanded_aws_file_path, "r") as aws_credentials_file:
                 aws_credentials_file_string = aws_credentials_file.read()
@@ -126,7 +163,7 @@ def calculate_mturk_bonus_fee(bonus_amount: float) -> float:
     MTurk Pricing: https://requester.mturk.com/pricing
     20% fee on the reward and bonus amount (if any) you pay Workers.
     """
-    return MTURK_TASK_FEE * bonus_amount
+    return MTURK_BONUS_FEE * bonus_amount
 
 
 def get_bonuses_for_assignment(client: MTurkClient, assignment_id: str) -> float:
@@ -194,7 +231,7 @@ def create_hit_config(
         "is_sandbox": is_sandbox,
         "mturk_submit_url": mturk_submit_url,
         "unique_worker": unique_worker,
-        "frame_height": opt.get("frame_height", 650),
+        "frame_height": opt.get("frame_height", 0),
         "allow_reviews": opt.get("allow_reviews", False),
         "block_mobile": opt.get("block_mobile", True),
         # Populate the chat pane title from chat_title, defaulting to the
@@ -255,22 +292,39 @@ def find_or_create_qualification(
     it exists and must_be_owned is true but we don't own it, this returns none.
     If it doesn't exist, the qualification is created
     """
-    qual_usable, qual_id = find_qualification(
-        client, qualification_name, must_be_owned=must_be_owned
-    )
 
-    if qual_usable is False:
-        return None
+    def _try_finding_qual_id():
+        qual_usable, qual_id = find_qualification(
+            client, qualification_name, must_be_owned=must_be_owned
+        )
+        if qual_id is None:
+            return False, None
+        elif qual_usable is False:
+            return True, None
+        else:
+            return True, qual_id
 
-    if qual_id is not None:
+    found_qual, qual_id = _try_finding_qual_id()
+    if found_qual:
         return qual_id
 
     # Create the qualification, as it doesn't exist yet
-    response = client.create_qualification_type(
-        Name=qualification_name,
-        Description=description,
-        QualificationTypeStatus="Active",
-    )
+    try:
+        response = client.create_qualification_type(
+            Name=qualification_name,
+            Description=description,
+            QualificationTypeStatus="Active",
+        )
+    except ClientError as e:
+        msg = e.response.get("Error", {}).get("Message")
+        if msg is not None and msg.startswith(QUALIFICATION_TYPE_EXISTS_MESSAGE):
+            # Created this qualification somewhere else - find instead
+            found_qual, qual_id = _try_finding_qual_id()
+            assert found_qual, "Qualification exists, but could not be found?"
+            return qual_id
+        else:
+            raise e
+
     return response["QualificationType"]["QualificationTypeId"]
 
 
@@ -335,9 +389,9 @@ def convert_mephisto_qualifications(
                 False,
             )
             if qual_id is None:
-                # TODO log more loudly that this qualification is being skipped?
-                print(
-                    f"Qualification name {qualification_name} can not be found or created on MTurk"
+                logger.warning(
+                    f"Qualification name {qualification_name} can not be found or created on MTurk. "
+                    f"{format_loud('SKIPPING THIS QUALIFICATION')} and continuing conversion."
                 )
             converted["QualificationTypeId"] = qual_id
 
@@ -377,22 +431,26 @@ def convert_mephisto_qualifications(
 
 def create_hit_type(
     client: MTurkClient,
-    task_config: "TaskConfig",
+    task_args: "DictConfig",  # MephistoConfig.task
     qualifications: List[Dict[str, Any]],
     auto_approve_delay: Optional[int] = 7 * 24 * 3600,  # default 1 week
+    skip_locale_qual=False,
 ) -> str:
     """Create a HIT type to be used to generate HITs of the requested params"""
-    hit_title = task_config.task_title
-    hit_description = task_config.task_description
-    hit_keywords = ",".join(task_config.task_tags)
-    hit_reward = task_config.task_reward
-    assignment_duration_in_seconds = task_config.assignment_duration_in_seconds
+    hit_title = task_args.task_title
+    hit_description = task_args.task_description
+    if isinstance(task_args.task_tags, str):
+        hit_keywords = task_args.task_tags
+    else:
+        hit_keywords = ",".join(task_args.task_tags)
+    hit_reward = task_args.task_reward
+    assignment_duration_in_seconds = task_args.assignment_duration_in_seconds
     existing_qualifications = convert_mephisto_qualifications(client, qualifications)
 
     # If the user hasn't specified a location qualification, we assume to
     # restrict the HIT to some english-speaking countries.
     locale_requirements: List[Any] = []
-    has_locale_qual = False
+    has_locale_qual = skip_locale_qual
     if existing_qualifications is not None:
         for q in existing_qualifications:
             if q["QualificationTypeId"] == MTURK_LOCALE_REQUIREMENT:
@@ -432,12 +490,69 @@ def create_hit_type(
     return hit_type_id
 
 
+def create_compensation_hit_with_hit_type(
+    client: MTurkClient,
+    reason: str,
+    hit_type_id: str,
+    num_assignments: int = 1,
+) -> Tuple[str, str, Dict[str, Any]]:
+    """Creates a simple compensation HIT to direct workers to submit"""
+    amazon_ext_url = (
+        "http://mechanicalturk.amazonaws.com/"
+        "AWSMechanicalTurkDataSchemas/2017-11-06/QuestionForm.xsd"
+    )
+    question_data_structure = (
+        f'<QuestionForm xmlns="{amazon_ext_url}">'
+        "<Question>"
+        "<QuestionIdentifier>workerid</QuestionIdentifier>"
+        "<DisplayName>Confirm Worker ID</DisplayName>"
+        "<IsRequired>true</IsRequired>"
+        "<QuestionContent>"
+        f"<Text>This compensation task was launched for the following reason: {reason}... Enter Worker ID to submit</Text>"
+        "</QuestionContent>"
+        "<AnswerSpecification>"
+        "<FreeTextAnswer>"
+        "<Constraints>"
+        '<Length minLength="2" />'
+        '<AnswerFormatRegex regex="\S" errorText="The content cannot be blank."/>'
+        "</Constraints>"
+        "</FreeTextAnswer>"
+        "</AnswerSpecification>"
+        "</Question>"
+        "</QuestionForm>"
+    )
+
+    is_sandbox = client_is_sandbox(client)
+
+    # Creates a compensation HIT to be completed in the next month
+    response = client.create_hit_with_hit_type(
+        HITTypeId=hit_type_id,
+        MaxAssignments=num_assignments,
+        LifetimeInSeconds=60 * 60 * 24 * 31,
+        Question=question_data_structure,
+    )
+
+    # The response included several fields that will be helpful later
+    hit_type_id = response["HIT"]["HITTypeId"]
+    hit_id = response["HIT"]["HITId"]
+
+    # Construct the hit URL
+    url_target = "workersandbox"
+    if not is_sandbox:
+        url_target = "www"
+    hit_link = "https://{}.mturk.com/mturk/preview?groupId={}".format(
+        url_target, hit_type_id
+    )
+    return hit_link, hit_id, response
+
+
 def create_hit_with_hit_type(
     client: MTurkClient,
     frame_height: int,
     page_url: str,
     hit_type_id: str,
     num_assignments: int = 1,
+    lifetime_in_seconds: int = 60 * 60 * 24 * 31,
 ) -> Tuple[str, str, Dict[str, Any]]:
     """Creates the actual HIT given the type and page to direct clients to"""
     page_url = page_url.replace("&", "&amp;")
@@ -445,12 +560,12 @@ def create_hit_with_hit_type(
         "http://mechanicalturk.amazonaws.com/"
         "AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"
     )
-    question_data_struture = (
+    question_data_structure = (
         '<ExternalQuestion xmlns="{}">'
         "<ExternalURL>{}</ExternalURL>"  # noqa: E131
         "<FrameHeight>{}</FrameHeight>"
         "</ExternalQuestion>"
-        "".format(amazon_ext_url, page_url, 650)
+        "".format(amazon_ext_url, page_url, frame_height)
     )
 
     is_sandbox = client_is_sandbox(client)
@@ -459,8 +574,8 @@ def create_hit_with_hit_type(
     response = client.create_hit_with_hit_type(
         HITTypeId=hit_type_id,
         MaxAssignments=num_assignments,
-        LifetimeInSeconds=60 * 60 * 24 * 31,
-        Question=question_data_struture,
+        LifetimeInSeconds=lifetime_in_seconds,
+        Question=question_data_structure,
     )
 
     # The response included several fields that will be helpful later
@@ -483,89 +598,16 @@ def expire_hit(client: MTurkClient, hit_id: str):
     client.update_expiration_for_hit(HITId=hit_id, ExpireAt=past_time)
 
 
-def setup_sns_topic(
-    session: boto3.Session, task_name: str, server_url: str, task_run_id: str
-) -> str:
-    """Create an sns topic and return the arn identifier"""
-    # Create the topic and subscribe to it so that our server receives notifs
-    client = session.client("sns", region_name="us-east-1", config=botoconfig)
-    pattern = re.compile("[^a-zA-Z0-9_-]+")
-    filtered_task_name = pattern.sub("", task_name)
-    response = client.create_topic(Name=filtered_task_name)
-    arn = response["TopicArn"]
-    topic_sub_url = "{}/sns_posts?task_run_id={}".format(server_url, task_run_id)
-    client.subscribe(TopicArn=arn, Protocol="https", Endpoint=topic_sub_url)
-    response = client.get_topic_attributes(TopicArn=arn)
-    policy_json = """{{
-    "Version": "2008-10-17",
-    "Id": "{}/MTurkOnlyPolicy",
-    "Statement": [
-        {{
-            "Sid": "MTurkOnlyPolicy",
-            "Effect": "Allow",
-            "Principal": {{
-                "Service": "mturk-requester.amazonaws.com"
-            }},
-            "Action": "SNS:Publish",
-            "Resource": "{}"
-        }}
-    ]}}""".format(
-        arn, arn
-    )
-    client.set_topic_attributes(
-        TopicArn=arn, AttributeName="Policy", AttributeValue=policy_json
-    )
-    return arn
-
-
-def subscribe_to_hits(client: MTurkClient, hit_type_id: str, sns_arn: str) -> None:
-    """Subscribe an sns channel to the specific hit type"""
-    # Get the mturk client and create notifications for our hits
-    client.update_notification_settings(
-        HITTypeId=hit_type_id,
-        Notification={
-            "Destination": sns_arn,
-            "Transport": "SNS",
-            "Version": "2006-05-05",
-            "EventTypes": [
-                "AssignmentAbandoned",
-                "AssignmentReturned",
-                "AssignmentSubmitted",
-            ],
-        },
-        Active=True,
-    )
-
-
-def send_test_notif(client: MTurkClient, topic_arn: str, event_type: str) -> None:
-    """
-    Send a test notification of the given event type to the sns
-    queue associated with the given arn
-    """
-    client.send_test_event_notification(
-        Notification={
-            "Destination": topic_arn,
-            "Transport": "SNS",
-            "Version": "2006-05-05",
-            "EventTypes": [
-                "AssignmentAbandoned",
-                "AssignmentReturned",
-                "AssignmentSubmitted",
-            ],
-        },
-        TestEventType=event_type,
-    )
-
-
-def delete_sns_topic(session: boto3.Session, topic_arn: str) -> None:
-    """Remove the sns queue of the given identifier"""
-    client = session.client("sns", region_name="us-east-1", config=botoconfig)
-    client.delete_topic(TopicArn=topic_arn)
-
-
 def get_hit(client: MTurkClient, hit_id: str) -> Dict[str, Any]:
     """Get hit from mturk by hit_id"""
-    return client.get_hit(HITId=hit_id)
+    hit = None
+    try:
+        return client.get_hit(HITId=hit_id)
+    except ClientError as er:
+        logger.warning(
+            f"Skipping HIT {hit_id}. Unable to retrieve due to ClientError: {er}."
+        )
+    return {}
 
 
 def get_assignment(client: MTurkClient, assignment_id: str) -> Dict[str, Any]:
@@ -590,8 +632,6 @@ def approve_work(
             AssignmentId=assignment_id, OverrideRejection=override_rejection
         )
     except Exception as e:
-        # TODO(#93) Break down this error to the many reasons why approve may fail,
-        # only silently pass on approving an already approved assignment
         logger.exception(
             f"Approving MTurk assignment failed, likely because it has auto-approved. Details: {e}",
             exc_info=True,
@@ -603,8 +643,6 @@ def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
     try:
         client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
     except Exception as e:
-        # TODO(#93) Break down this error to the many reasons why approve may fail,
-        # only silently pass on approving an already approved assignment
         logger.exception(
             f"Rejecting MTurk assignment failed, likely because it has auto-approved. Details:{e}",
             exc_info=True,
@@ -702,9 +740,7 @@ def get_outstanding_hits(client: MTurkClient) -> Dict[str, List[Dict[str, Any]]]
 
 
 def expire_and_dispose_hits(
-    client: MTurkClient,
-    hits: List[Dict[str, Any]],
-    quiet: bool = False,
+    client: MTurkClient, hits: List[Dict[str, Any]], quiet: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Loops over attempting to expire and dispose any hits in the hits list that can be disposed
@@ -721,3 +757,116 @@ def expire_and_dispose_hits(
             h["dispose_exception"] = e
             non_disposed_hits.append(h)
     return non_disposed_hits
+
+
+def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
+    """
+    Try to see if there are any outstanding HITS for the given requester, and LOUDLY WARN if
+    there are any, allowing the user to run a cleanup in-line.
+    """
+    cleanups_path = os.path.join(
+        DEFAULT_CONFIG_FOLDER, "mturk_requesters_last_cleanups.json"
+    )
+    last_cleanup_times = {}
+    if os.path.exists(cleanups_path):
+        with open(cleanups_path) as cleanups_file:
+            last_cleanup_times = json.load(cleanups_file)
+
+    last_cleanup = last_cleanup_times.get(requester_name, 0)
+
+    if time.time() - last_cleanup < CLEANUP_CHECK_TIME:
+        # Too recent, no cleanup needed
+        return
+
+    print(
+        f"It's been more than a day since you last ran a job "
+        f"with {requester_name}, checking for outstanding tasks..."
+    )
+
+    requester = db.find_requesters(requester_name=requester_name)[0]
+    client = requester._get_client(requester._requester_name)
+
+    def hit_is_broken(hit: Dict[str, Any]) -> bool:
+        return (
+            hit["NumberOfAssignmentsCompleted"] == 0
+            and hit["HITStatus"] != "Reviewable"
+        )
+
+    query_time = time.time()
+    outstanding_hit_types = get_outstanding_hits(client)
+    if time.time() - query_time > 60:
+        print(
+            "That took a while! You may want to run `mephisto scripts "
+            "cleanup mturk` later to clear out some of the older HIT types.\n"
+        )
+    broken_hit_types = {
+        k: [h for h in v if hit_is_broken(h)]
+        for (k, v) in outstanding_hit_types.items()
+        if any([h for h in v if hit_is_broken(h)])
+    }
+    num_hit_types = len(broken_hit_types.keys())
+
+    sum_hits = sum([len(broken_hit_types[x]) for x in broken_hit_types.keys()])
+
+    last_cleanup_times[requester_name] = time.time()
+    with open(cleanups_path, "w+") as cleanups_file:
+        json.dump(last_cleanup_times, cleanups_file)
+
+    if sum_hits == 0:
+        print(f"No broken HITs detected. Continuing!")
+        return
+
+    print(
+        f"The requester {requester_name} has {num_hit_types} outstanding HIT "
+        f"types, with {sum_hits} suspected active or broken HITs.\n"
+        "This may include tasks that are still in-flight, but also "
+        "tasks have been improperly shut down and need cleanup.\n "
+        "Please review and dispose HITs below."
+    )
+
+    hits_to_dispose: Optional[List[Dict[str, Any]]] = []
+    confirm_string = "Confirm removal of the following HITs? (y)es/(n)o :\n"
+    for hit_type in broken_hit_types.keys():
+        hit_count = len(broken_hit_types[hit_type])
+        cur_title = broken_hit_types[hit_type][0]["Title"]
+        creation_time = broken_hit_types[hit_type][0]["CreationTime"]
+        creation_time_str = creation_time.strftime("%m/%d/%Y, %H:%M:%S")
+        print(f"HIT TITLE: {cur_title}")
+        print(f"LAUNCH TIME: {creation_time_str}")
+        print(f"HIT COUNT: {hit_count}")
+        should_clear = ""
+        while not (should_clear.startswith("y") or should_clear.startswith("n")):
+            should_clear = input(
+                "Should we cleanup this hit type? (y)es or (n)o: " "\n>> "
+            ).lower()
+        if should_clear.startswith("y"):
+            hits_to_dispose += broken_hit_types[hit_type]
+            confirm_string += (
+                f"{hit_count} hits from {creation_time_str} for HIT Type: {cur_title}\n"
+            )
+
+    if len(hits_to_dispose) == 0:
+        print("No HITs selected for disposal. Continuing")
+        return
+
+    should_clear = ""
+    while not (should_clear.startswith("y") or should_clear.startswith("n")):
+        should_clear = input(confirm_string).lower()
+    if not should_clear.startswith("y"):
+        print("Disposal cancelled, continuing with launch")
+        return
+
+    print(f"Disposing {len(hits_to_dispose)} HITs.")
+    remaining_hits = expire_and_dispose_hits(client, hits_to_dispose)
+
+    if len(remaining_hits) == 0:
+        print("Disposed! Returning to launch")
+    else:
+        print(
+            f"After disposing, {len(remaining_hits)} could not be disposed.\n"
+            f"These may not have been reviewed yet, or are being actively worked on.\n"
+            "They have been expired though, so please try to dispose later with"
+            "`mephisto scripts mturk cleanup`."
+            "The first 20 dispose errors are added below:"
+        )
+        print([h["dispose_exception"] for h in remaining_hits[:20]])

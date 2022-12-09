@@ -6,22 +6,22 @@
 
 
 import unittest
-from typing import Optional, Tuple, Type
+from typing import Optional, Type
 import tempfile
 import os
 import shutil
 import requests
 from mephisto.abstractions.architect import Architect
 from mephisto.data_model.task_run import TaskRun
-from mephisto.abstractions.test.utils import get_test_task_run
+from mephisto.utils.testing import get_test_task_run
 from mephisto.abstractions.database import MephistoDB
-from mephisto.abstractions.blueprint import SharedTaskState
+from mephisto.abstractions.blueprints.mock.mock_blueprint import MockSharedState
 from mephisto.abstractions.blueprints.mock.mock_task_builder import MockTaskBuilder
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.operations.hydra_config import MephistoConfig
 from omegaconf import OmegaConf
 
-EMPTY_STATE = SharedTaskState()
+EMPTY_STATE = MockSharedState()
 
 
 class ArchitectTests(unittest.TestCase):
@@ -34,6 +34,7 @@ class ArchitectTests(unittest.TestCase):
     db: MephistoDB
     data_dir: str
     build_dir: str
+    curr_architect: Optional[Architect] = None
 
     warned_about_setup = False
 
@@ -91,8 +92,8 @@ class ArchitectTests(unittest.TestCase):
         database_path = os.path.join(self.data_dir, "mephisto.db")
         self.db = LocalMephistoDB(database_path)
         self.build_dir = tempfile.mkdtemp()
-        self.task_run = TaskRun(self.db, get_test_task_run(self.db))
-        builder = MockTaskBuilder(self.task_run, {})
+        self.task_run = TaskRun.get(self.db, get_test_task_run(self.db))
+        builder = MockTaskBuilder(self.task_run, OmegaConf.create({}))
         builder.build_in_dir(self.build_dir)
 
     def tearDown(self) -> None:
