@@ -13,6 +13,9 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     expire_hit,
     get_hit,
     create_hit_with_hit_type,
+    get_bonuses_for_assignment,
+    calculate_mturk_task_fee,
+    calculate_mturk_bonus_fee,
     get_assignments_for_hit,
 )
 from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
@@ -175,6 +178,22 @@ class MTurkUnit(Unit):
 
         if self.db_status == AssignmentState.ASSIGNED:
             self.set_db_status(AssignmentState.LAUNCHED)
+
+    def get_pay_amount(self) -> float:
+        """
+        Return the amount that this Unit is costing against the budget,
+        calculating additional fees as relevant
+        """
+        requester = self.get_requester()
+        client = self._get_client(requester._requester_name)
+        task_amount = self.pay_amount
+        task_fee = calculate_mturk_task_fee(self.pay_amount)
+        bonus_amount = get_bonuses_for_assignment(
+            client,
+            self.get_mturk_assignment_id(),
+        )
+        bonus_fee = calculate_mturk_bonus_fee(bonus_amount)
+        return task_amount + task_fee + bonus_amount + bonus_fee
 
     # Required Unit functions
 
