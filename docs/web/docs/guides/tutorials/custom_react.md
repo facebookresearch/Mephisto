@@ -208,8 +208,8 @@ function SimpleFrontend({ taskData, isOnboarding, onSubmit, onError }) {
     <div>
       <Directions>
         Directions: Please rate the below sentence as good or bad.
+        <TellTextIsEdited taskData={taskData} />
       </Directions>
-      <TellTextIsEdited taskData={taskData} />
       ...
 ```
 
