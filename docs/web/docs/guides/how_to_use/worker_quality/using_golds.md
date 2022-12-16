@@ -13,7 +13,7 @@ Gold labeling is commonly used for ensuring worker quality over the full duratio
 
 There are a few primary configuration parts for using gold units:
 - Hydra args
-  - `blueprint.gold_qualfification_base`: A string representing the base qualification that required qualifications keeping track of success will be built from.
+  - `blueprint.gold_qualification_base`: A string representing the base qualification that required qualifications keeping track of success will be built from.
   - `blueprint.use_golds`: Set to `True` to enable the feature.
   - `min_golds`: An int for the minimum number of golds a worker needs to complete for the first time before receiving real units.
   - `max_incorrect_golds`: An int for the number of golds a worker can get incorrect before being disqualified from this task.
