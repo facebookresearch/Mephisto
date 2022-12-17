@@ -231,7 +231,7 @@ mephisto:
 
 Save this configuration file, and you're ready to launch again:
 ```bash
-$ python static_test_script conf=my_config
+$ python static_test_script.py conf=my_config
 ```
 You'll note that Mephisto launches the task under your new task name:
 ```
