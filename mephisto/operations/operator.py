@@ -422,7 +422,7 @@ class Operator:
                     f"Skipping waiting for launcher threads to join on task run {run_id}."
                 )
 
-            def cant_cancel_expirations(self, sig, frame):
+            def cant_cancel_expirations(sig, frame):
                 logger.warn(
                     "Ignoring ^C during unit expirations. ^| if you NEED to exit and you will "
                     "have to clean up units that hadn't been expired afterwards."
