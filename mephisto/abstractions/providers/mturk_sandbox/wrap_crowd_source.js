@@ -69,6 +69,8 @@ function handleSubmitToProvider(task_data) {
   HTMLFormElement.prototype.submit.call(form);
 }
 
+const events = eventEmitter();
+
 window._MEPHISTO_CONFIG_ = window._MEPHISTO_CONFIG_ || {};
 window._MEPHISTO_CONFIG_.EVENT_EMITTER = events;
 
