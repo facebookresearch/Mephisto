@@ -17,14 +17,21 @@ You can find complete details about the project on our [docs website](https://me
 
 [Get started in 10 minutes](https://mephisto.ai/docs/guides/quickstart)
 
-## Changelog
-
 ## Want to help?
 
 Check out our [guidelines for contributing](https://github.com/facebookresearch/Mephisto/blob/main/CONTRIBUTING.md) and then take a look at some of our tagged issues: [good first issue](https://github.com/facebookresearch/Mephisto/labels/good%20first%20issue), [help wanted](https://github.com/facebookresearch/Mephisto/labels/help%20wanted).
 
 For library authors, you may also find the [how to contribute](https://mephisto.ai/docs/guides/how_to_contribute/getting_started) documentation helpful.
 
+## Citing
+
+```
+@inproceedings{Urbanek2023MephistoAF,
+  title={Mephisto: A Framework for Portable, Reproducible, and Iterative Crowdsourcing},
+  author={Jack Urbanek and Pratik Ringshia},
+  year={2023}
+}
+```
 
 ## License
 Mephisto is MIT licensed. See the LICENSE file for details.
