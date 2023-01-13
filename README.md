@@ -17,8 +17,6 @@ You can find complete details about the project on our [docs website](https://me
 
 [Get started in 10 minutes](https://mephisto.ai/docs/guides/quickstart)
 
-## Changelog
-
 ## Want to help?
 
 Check out our [guidelines for contributing](https://github.com/facebookresearch/Mephisto/blob/main/CONTRIBUTING.md) and then take a look at some of our tagged issues: [good first issue](https://github.com/facebookresearch/Mephisto/labels/good%20first%20issue), [help wanted](https://github.com/facebookresearch/Mephisto/labels/help%20wanted).
@@ -28,3 +26,18 @@ For library authors, you may also find the [how to contribute](https://mephisto.
 
 ## License
 Mephisto is MIT licensed. See the LICENSE file for details.
+
+## Citation
+If you use Mephisto in your work, please consider citing the project. It helps us prioritize features based on our users, and helps others discover implementations that may be relevant to their projects.
+```bibtex
+@misc{mephisto,
+  doi = {10.48550/ARXIV.2301.05154},
+  url = {https://arxiv.org/abs/2301.05154},
+  author = {Urbanek, Jack and Ringshia, Pratik},
+  keywords = {Artificial Intelligence (cs.AI), Human-Computer Interaction (cs.HC), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Mephisto: A Framework for Portable, Reproducible, and Iterative Crowdsourcing},
+  publisher = {arXiv},
+  year = {2023},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+```
