@@ -9,6 +9,9 @@ function from the hook.
 The actions will be keep at browser's local storage and will be sent to mephisto server by using (`handleMetadataSubmit` of 
 `useMephistoTask`) as a batch every 5000ms (default value - changeable).
 
+It als provides `ActivityTrackerDisclousre` component which is an instruction for the worker to let them know that their
+actions are being tracked.
+
 **Default tracked actions**
 - IP address
 - Screen size
@@ -42,8 +45,6 @@ npm link annotator-tracker
 
 ## Usage (`useAnnotatorTracker`)
 
-To integrate Mephisto with a front-end task interface, the easiest way is to use the provided React hook:
-
 ```jsx
 import { useMephistoTask } from "mephisto-task";
 import { useAnnotatorTracker } from "annotator-tracker";
@@ -56,6 +57,27 @@ function MyApp() {
     } = useMephistoTask();
     
     logCustomAction = useAnnotatorTracker(handleMetadataSubmit, isLoading, 5000);
+}
+```
+
+## Usage (`ActivityTrackerDisclosure`)
+
+```jsx
+import { ActivityTrackerDisclosure } from "@annotated/annotator-tracker";
+
+function MyApp() {
+    
+    return (
+        <div>
+          <ActivityTrackerDisclosure title={"Warning"}>
+            <strong>Lorem ipsum dolor</strong> sit amet, consectetur adipiscing
+            elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+            ut aliquip ex ea commodo consequat.
+          </ActivityTrackerDisclosure>
+          <MyTaskComponent />
+        </div>
+    )
 }
 ```
 
