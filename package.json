@@ -15,12 +15,10 @@
     "build-all": "yarn workspaces foreach -ptAv run build"
   },
   "workspaces": [
-    "packages/annotated/*",
     "packages/mephisto-task",
     "packages/mephisto-worker-addons",
     "packages/bootstrap-chat",
     "packages/global-context-store",
-    "docs/storybook",
     "docs/web"
   ],
   "packageManager": "yarn@3.2.4",
