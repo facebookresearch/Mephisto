@@ -6,7 +6,7 @@
 
 import path from "path";
 import webpack from "webpack";
-import { merge } from "webpack-merge");
+import { merge } from "webpack-merge";
 import paths from "./paths";
 import PnpWebpackPlugin from "pnp-webpack-plugin";
 
