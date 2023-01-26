@@ -49,6 +49,6 @@
     "bowser": "^2.11.0",
     "jquery": "3.6.1",
     "rc-slider": "^10.0.1",
-    "react-bootstrap": "2.5.0"
+    "react-bootstrap": "^0.32.4"
   }
 }
