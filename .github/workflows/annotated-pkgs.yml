@@ -37,7 +37,8 @@ jobs:
         run: yarn install
 
       - name: Test that docusarus compiles
-        run:
+        run: |
+          echo "Test"
           yarn workspaces list
           yarn workspace web build
 
