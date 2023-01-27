@@ -24,9 +24,11 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
+        env:
+          FORCE_COLOR: 0
         with:
-          node-version: "14"
+          node-version: 16
 
       - name: Install yarn 3
         run: npm i -g yarn
@@ -34,14 +36,20 @@ jobs:
       - name: Install package dependencies
         run: yarn install
 
+      - name: Test that docusarus compiles
+        run: |
+          yarn workspaces list
+          yarn docs:build
+
       - name: Build packages
         run: yarn workspaces foreach -ptA run build
 
       - name: Build packages with legacy setup
-        run: cd packages/global-context-store && npm install && npm run build
+        run:
+          cd packages/global-context-store && npm install && npm run build
 
-      - name: Test that storybook compiles
-        run: yarn workspace sb build-storybook
-
-      - name: Test that docusarus compiles
-        run: yarn docs:build
+          # Disabling storybook / components for now. Will re-evaluate
+          # and move to separate repo if needed - Jan 26, 2023
+          #
+          # - name: Test that storybook compiles
+          # run: yarn workspace sb build-storybook

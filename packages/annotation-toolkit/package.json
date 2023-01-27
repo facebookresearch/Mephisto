@@ -36,8 +36,8 @@
     "global-context-store": "^1.0.1",
     "lodash.mapvalues": "^4.6.0",
     "mini-css-extract-plugin": "^1.4.1",
-    "react": "16.13.1",
-    "react-dom": "16.13.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-json-inspector": "^7.1.1",
     "react-player": "^2.9.0",
     "style-loader": "^1.1.3",
@@ -49,8 +49,8 @@
     "@blueprintjs/core": "^3.42.0",
     "@blueprintjs/icons": "^3.26.0",
     "global-context-store": "^1.0.1",
-    "react": "^16.13.1 || 17 || 18",
-    "react-dom": "^16.13.1 || 17 || 18",
+    "react": "^16.8 || 17 || 18",
+    "react-dom": "^16.8 || 17 || 18",
     "react-player": "^2.9.0"
   },
   "dependencies": {

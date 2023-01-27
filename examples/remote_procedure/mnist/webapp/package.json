@@ -11,12 +11,12 @@
   "author": "",
   "dependencies": {
     "bootstrap": "^4.6.0",
-    "mephisto-task": "2.0.3",
+    "mephisto-task": "2.0.4",
     "rc-slider": "^8.6.3",
-    "react": "16.13.1",
+    "react": "^16",
     "react-bootstrap": "^1.6.0",
     "react-canvas-draw": "^1.2.1",
-    "react-dom": "16.13.1",
+    "react-dom": "^16",
     "react-table": "^6.8.6"
   },
   "devDependencies": {

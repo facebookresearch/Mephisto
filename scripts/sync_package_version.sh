@@ -45,6 +45,16 @@ do
         shift
         ;;
 
+	react)
+        sync_package_version $1 $2
+        shift
+        ;;
+
+	react-dom)
+        sync_package_version $1 $2
+        shift
+        ;;
+
 	*) echo "Package $1 version sync is not supported yet" ;;
 
 	esac

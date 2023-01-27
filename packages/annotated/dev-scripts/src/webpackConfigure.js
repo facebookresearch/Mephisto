@@ -4,13 +4,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var path = require("path");
-var webpack = require("webpack");
-const merge = require("webpack-merge").merge;
-const paths = require("./paths");
-const PnpWebpackPlugin = require(`pnp-webpack-plugin`);
+import path from "path";
+import webpack from "webpack";
+import { merge } from "webpack-merge";
+import paths from "./paths";
+import PnpWebpackPlugin from "pnp-webpack-plugin";
 
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
 
 const baseConfig = {
   entry: "./src/index.js",
