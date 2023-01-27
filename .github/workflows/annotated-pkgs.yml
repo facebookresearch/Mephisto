@@ -40,7 +40,8 @@ jobs:
         run: yarn workspaces foreach -ptA run build
 
       - name: Build packages with legacy setup
-        run: cd packages/global-context-store && npm install && npm run build
+        run:
+          cd packages/global-context-store && npm install && npm run build
 
           # Disabling storybook / components for now. Will re-evaluate
           # and move to separate repo if needed - Jan 26, 2023
