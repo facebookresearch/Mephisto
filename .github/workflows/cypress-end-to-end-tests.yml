@@ -32,7 +32,6 @@ jobs:
       # Workaround to avoid Post Use step failures. See: https://github.com/actions/setup-node/issues/317
       - run: mkdir -p /home/runner/work/Mephisto/Mephisto/.yarn/cache
         continue-on-error: true
-      - run: npm i -g cypress@11
       - uses: actions/setup-node@v3
         with:
           cache: "yarn"
@@ -87,6 +86,9 @@ jobs:
 
       - name: 🤖 Install Mephisto
         run: pip install -e .
+
+      - name: 🤖 Install Cypress globally
+        run: npm i -g cypress@11
 
       - name: 🖋 Create data directory
         run: mkdir -p ~/mephisto/data
