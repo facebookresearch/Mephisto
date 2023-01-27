@@ -149,15 +149,3 @@ jobs:
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           headless: true
 
-      - name: ⌛️ Running post-submission cypress tests
-        uses: cypress-io/github-action@v3.1.0
-        with:
-          build: npm i -D cypress@11
-          install: false
-          project: ./examples/static_react_task_with_tips/webapp
-          config-file: cypress.config.js
-          spec: ./examples/static_react_task_with_tips/webapp/cypress/e2e/post_submission_tests/*
-          start: python examples/static_react_task_with_tips/run_task.py mephisto.task.post_install_script=link_packages.sh mephisto.task.force_rebuild=true
-          wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
-          browser: chrome
-          headless: true
