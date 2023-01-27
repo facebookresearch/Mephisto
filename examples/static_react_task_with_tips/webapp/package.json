@@ -12,7 +12,7 @@
   "author": "",
   "dependencies": {
     "mephisto-task": "2.0.4",
-    "mephisto-worker-addons": "1.0.0",
+    "mephisto-worker-addons": "^1.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
