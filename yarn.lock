@@ -5709,7 +5709,7 @@ __metadata:
     eslint-plugin-react: ^7.31.8
     eslint-plugin-react-hooks: ^4.6.0
     jquery: 3.6.1
-    mephisto-task: ^2.0.1
+    mephisto-task: 2.0.4
     rc-slider: ^10.0.1
     react: ^18.2.0
     react-bootstrap: ^0.32.4
@@ -5719,7 +5719,7 @@ __metadata:
     webpack: ^5.74.0
     webpack-cli: ^4.10.0
   peerDependencies:
-    mephisto-task: ^2.0.1
+    mephisto-task: 2.0.4
     react: ^18.2.0
     react-dom: 16.13.1
   languageName: unknown
@@ -11555,7 +11555,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mephisto-task@2.0.3, mephisto-task@^2.0.1, mephisto-task@workspace:packages/mephisto-task":
+"mephisto-task@2.0.4, mephisto-task@workspace:packages/mephisto-task":
   version: 0.0.0-use.local
   resolution: "mephisto-task@workspace:packages/mephisto-task"
   dependencies:
@@ -11601,7 +11601,7 @@ __metadata:
     "@babel/preset-stage-0": ^7.8.3
     babel-loader: ^8.2.5
     css-loader: ^6.7.1
-    mephisto-task: 2.0.3
+    mephisto-task: 2.0.4
     prop-types: ^15.8.1
     raw-loader: ^4.0.2
     react: ^18.2.0
