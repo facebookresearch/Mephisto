@@ -1,6 +1,6 @@
 {
   "name": "bootstrap-chat",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
   "main": "build/bundle.js",
   "scripts": {
@@ -39,8 +39,8 @@
   },
   "peerDependencies": {
     "mephisto-task": "2.0.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^16.8 || 17 || 18",
+    "react-dom": "^16.8 || 17 || 18"
   },
   "dependencies": {
     "axios": "^0.27.2",
