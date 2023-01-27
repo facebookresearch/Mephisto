@@ -57,7 +57,6 @@ markupsafe = "2.0.1"
 # [tool.poetry.group.worker_addons]
 # optional=false
 # [tool.poetry.group.worker_addons.dependencies]
-detoxify = "^0.5.0"
 
 # [tool.poetry.group.aws]
 # optional=false
@@ -95,8 +94,6 @@ tornado = "^6.0"
 # [tool.poetry.group.parlai]
 # optional=true
 # [tool.poetry.group.parlai.dependencies]
-parlai = "^1.7.0"
-torch = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 docutils = "^0.15"
