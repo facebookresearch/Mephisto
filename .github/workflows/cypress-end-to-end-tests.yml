@@ -103,7 +103,7 @@ jobs:
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
-          build: npm i -g cypress@11
+          build: npm i -D cypress@11
           install: false
           browser: chrome
           project: ./mephisto/abstractions/blueprints/static_html_task/source
@@ -150,7 +150,7 @@ jobs:
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
-          build: npm i -g cypress@11
+          build: npm i -D cypress@11
           install: false
           browser: chrome
           project: ./examples/static_react_task/webapp
@@ -197,7 +197,7 @@ jobs:
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
-          build: npm i -g cypress@11
+          build: npm i -D cypress@11
           install: false
           browser: chrome
           project: ./examples/remote_procedure/template/webapp
@@ -245,7 +245,7 @@ jobs:
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
-          build: npm i -g cypress@11
+          build: npm i -D cypress@11
           install: false
           browser: chrome
           project: ./examples/remote_procedure/mnist/webapp
@@ -291,7 +291,7 @@ jobs:
       - name: ⌛️ Running cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
-          build: npm i -g cypress@11
+          build: npm i -D cypress@11
           install: false
           browser: chrome
           project: ./examples/remote_procedure/toxicity_detection/webapp
@@ -346,7 +346,7 @@ jobs:
       - name: ⌛️ Running pre-submission cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
-          build: npm i -g cypress@11
+          build: npm i -D cypress@11
           install: false
           browser: chrome
           project: ./examples/static_react_task_with_tips/webapp
@@ -420,7 +420,7 @@ jobs:
       - name: ⌛️ Running post-submission cypress tests
         uses: cypress-io/github-action@v3.1.0
         with:
-          build: npm i -g cypress@11
+          build: npm i -D cypress@11
           install: false
           project: ./examples/static_react_task_with_tips/webapp
           config-file: cypress.config.js
