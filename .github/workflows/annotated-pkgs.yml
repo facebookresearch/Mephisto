@@ -35,7 +35,7 @@ jobs:
 
       - name: Install package dependencies
         run: yarn install
-      
+
       - name: Test that docusarus compiles
         run: |
           yarn workspaces list
@@ -53,4 +53,3 @@ jobs:
           #
           # - name: Test that storybook compiles
           # run: yarn workspace sb build-storybook
-
