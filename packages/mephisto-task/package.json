@@ -38,8 +38,8 @@
     "webpack-cli": "^4.10.0"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "16.13.1"
+    "react": "^16.8 || 17 || 18",
+    "react-dom": "^16.8 || 17 || 18"
   },
   "dependencies": {
     "axios": "^0.27.2",
