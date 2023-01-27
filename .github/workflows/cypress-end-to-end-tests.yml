@@ -88,7 +88,9 @@ jobs:
         run: pip install -e .
 
       - name: 🤖 Install Cypress globally
-        run: npm i -g cypress@11
+        run: |
+          npm i -g cypress@11
+          cypress --version
 
       - name: 🖋 Create data directory
         run: mkdir -p ~/mephisto/data
