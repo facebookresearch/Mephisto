@@ -50,4 +50,4 @@ jobs:
           # run: yarn workspace sb build-storybook
 
       - name: Test that docusarus compiles
-        run: yarn docs:build
+        run: yarn run docs:build
