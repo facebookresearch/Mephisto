@@ -5727,8 +5727,8 @@ __metadata:
     webpack-cli: ^4.10.0
   peerDependencies:
     mephisto-task: 2.0.4
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^16.8 || 17 || 18
+    react-dom: ^16.8 || 17 || 18
   languageName: unknown
   linkType: soft
 
