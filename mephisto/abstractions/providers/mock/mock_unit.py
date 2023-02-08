@@ -53,7 +53,7 @@ class MockUnit(Unit):
             assignment_url = f"{task_url}/?worker_id=x&assignment_id={self.db_id}"
         print(
             f"Mock task launched: http://localhost:{port} for preview, "
-            assignment_url
+            f"{assignment_url}"
         )
         logger.info(
             f"Mock task launched: http://localhost:{port} for preview, "
