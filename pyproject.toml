@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mephisto"
-version = "1.1.1"
+version = "1.1.2"
 description = "Crowdsourcing made simpler."
 license = "MIT"
 authors = [
@@ -54,49 +54,47 @@ websockets = "^10.1"
 pyyaml = "^5.4.0"
 markupsafe = "2.0.1"
 
-# [tool.poetry.group.worker_addons]
-# optional=false
-# [tool.poetry.group.worker_addons.dependencies]
-detoxify = "^0.5.0"
+# worker_addons
+detoxify = { version = "^0.5.0", optional = true }
 
-# [tool.poetry.group.aws]
-# optional=false
-# [tool.poetry.group.aws.dependencies]
-boto3 = "^1.17"
-botocore = "^1.20.95"
-xmltodict = "^0.12.0"
+# aws
+boto3 = { version = "^1.17", optional = false }
+botocore = { version = "^1.20.95", optional = false }
+xmltodict = { version = "^0.12.0", optional = false }
 
-# [tool.poetry.group.cli]
-# optional=false
-# [tool.poetry.group.cli.dependencies]
-click = "^7.0"
-click_default_group = "^1.2"
-tabulate = "^0.8.7"
-rich = "^12.5.1"
-rich-click = "^1.5.1"
+# cli
+click = { version = "^7.0", optional = false }
+click_default_group = { version = "^1.2", optional = false }
+tabulate = { version = "^0.8.7", optional = false }
+rich = { version = "^12.5.1", optional = false }
+rich-click = { version = "^1.5.1", optional = false }
 
-# [tool.poetry.group.metrics]
-# optional=false
-# [tool.poetry.group.metrics.dependencies]
-prometheus-client = "^0.13.1"
+# metrics
+prometheus-client = { version = "^0.13.1", optional = false }
 
-# [tool.poetry.group.flask_architect]
-# optional=false
-# [tool.poetry.group.flask_architect.dependencies]
-flask = "^1.1"
-gevent-websocket = "^0.10.1"
-werkzeug = "^1.0.1"
+# flask_architect
+flask = { version = "^1.1", optional = false }
+gevent-websocket = { version = "^0.10.1", optional = false }
+werkzeug = { version = "^1.0.1", optional = false }
 
-# [tool.poetry.group.mock_architect]
-# optional=false
-# [tool.poetry.group.mock_architect.dependencies]
-tornado = "^6.0"
+# mock_architect
+tornado = { version = "^6.0", optional = false }
 
-# [tool.poetry.group.parlai]
-# optional=true
-# [tool.poetry.group.parlai.dependencies]
-parlai = "^1.7.0"
-torch = "^1.4.0"
+# parlai
+parlai = { version = "^1.7.0", optional = true }
+torch = { version = "^1.4.0", optional = true }
+
+
+[tool.poetry.extras]
+# Commented are currently non-optional
+worker_addons = ["detoxify"]
+# aws = ["boto3", "botocore", "xmltodict"]
+# cli = ["click", "click_default_group", "tabulate", "rich", "rich-click"]
+# metrics = ["prometheus-client"]
+# flask_architect = ["flask", "gevent-websocket", "werkzeug"]
+# mock_architect = ["tornado"]
+parlai = ["parlai", "torch"]
+
 
 [tool.poetry.group.dev.dependencies]
 docutils = "^0.15"
@@ -110,9 +108,6 @@ mypy = "^0.971.0"
 
 [tool.poetry.scripts]
 'mephisto' = 'mephisto.client.cli:cli'
-
-[tool.poetry.extras]
-parlai = ["parlai", "torch", "pyyaml"]
 
 [build-system]
 requires = [
