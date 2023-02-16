@@ -182,7 +182,7 @@ class EC2Architect(Architect):
 
         assert cls.check_domain_unused_locally(
             subdomain=subdomain
-        ), "Given subdomain does exist"
+        ), "Given subdomain does exist. Run `python3 -m mephisto.abstractions.architects.ec2.cleanup_ec2_server_by_name`"
 
         # VALID_INSTANCES = []
         # assert args.architect.instance_type in VALID_INSTANCES
