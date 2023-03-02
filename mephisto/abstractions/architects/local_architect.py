@@ -145,7 +145,12 @@ class LocalArchitect(Architect):
         self.running_dir = os.path.join(
             get_mephisto_tmp_dir(), f"local_server_{self.task_run_id}", "server"
         )
-        shutil.copytree(self.server_dir, self.running_dir, symlinks=True)
+
+        # TODO: Not sure that this is correct, but added `dirs_exist_ok=True`
+        #  as this line raised an exception that all these files already exist.
+        #  Maybe we need to remove it and recopy all the time.
+        #  Deployment should cleanup all directories it needs or use previous files
+        shutil.copytree(self.server_dir, self.running_dir, symlinks=True, dirs_exist_ok=True)
 
         return_dir = os.getcwd()
         os.chdir(self.running_dir)

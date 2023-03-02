@@ -9,6 +9,7 @@ tmp/*
 **/node_modules/*
 mephisto/server/**/package-lock.json
 mephisto/server/blueprints/**/build/*
+docker/
 
 **/*.log
 **/build/*
