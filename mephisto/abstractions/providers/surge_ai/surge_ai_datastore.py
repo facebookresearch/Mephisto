@@ -9,10 +9,14 @@ import sqlite3
 import threading
 from typing import Any
 from typing import Dict
+from typing import Optional
 
+import surge
+
+from mephisto.abstractions.databases.local_database import is_unique_failure
 from mephisto.abstractions.providers.surge_ai.provider_type import PROVIDER_TYPE
-
-SURGE_AI_REGION_NAME = "us-east-1"
+from mephisto.abstractions.providers.surge_ai.surge_ai_utils import get_surge_ai_api_key
+from mephisto.utils.logger_core import get_logger
 
 CREATE_REQUESTERS_TABLE = """
 CREATE TABLE IF NOT EXISTS requesters (
@@ -35,10 +39,34 @@ CREATE TABLE IF NOT EXISTS workers (
 );
 """
 
+CREATE_QUALIFICATIONS_TABLE = """
+CREATE TABLE IF NOT EXISTS qualifications (
+    qualification_name TEXT PRIMARY KEY UNIQUE,
+    requester_id TEXT,
+    surge_ai_qualification_name TEXT,
+    surge_ai_qualification_id TEXT,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RUNS_TABLE = """
+CREATE TABLE IF NOT EXISTS runs (
+    run_id TEXT PRIMARY KEY UNIQUE,
+    arn_id TEXT,
+    project_id TEXT NOT NULL,
+    project_config_path TEXT NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    frame_height INTEGER NOT NULL DEFAULT 650
+);
+"""
+
+logger = get_logger(name=__name__)
+
 
 class SurgeAIDatastore:
     def __init__(self, datastore_root: str):
         """Initialize local storage of active agents, connect to the database"""
+        self.session_storage: Dict[str, surge] = {}
         self.agent_data: Dict[str, Dict[str, Any]] = {}
         self.table_access_condition = threading.Condition()
         self.conn: Dict[int, sqlite3.Connection] = {}
@@ -68,6 +96,8 @@ class SurgeAIDatastore:
             c.execute(CREATE_REQUESTERS_TABLE)
             c.execute(CREATE_UNITS_TABLE)
             c.execute(CREATE_WORKERS_TABLE)
+            c.execute(CREATE_QUALIFICATIONS_TABLE)
+            c.execute(CREATE_RUNS_TABLE)
             conn.commit()
 
     def ensure_requester_exists(self, requester_id: str) -> None:
@@ -210,3 +240,130 @@ class SurgeAIDatastore:
             )
             results = c.fetchall()
             return bool(results[0]["is_expired"])
+
+    def get_session_for_requester(self, requester_name: str) -> surge:
+        """
+        Either create a new session for the given requester or return
+        the existing one if it has already been created
+        """
+        if requester_name not in self.session_storage:
+            session = surge
+            session.api_key = os.environ.get('SURGE_API_KEY', None) or get_surge_ai_api_key()
+            self.session_storage[requester_name] = session
+
+        return self.session_storage[requester_name]
+
+    def get_client_for_requester(self, requester_name: str) -> Any:
+        """
+        Return the client for the given requester, which should allow
+        direct calls to the Surge AI surface
+        """
+        return self.get_session_for_requester(requester_name)
+
+    def get_qualification_mapping(self, qualification_name: str) -> Optional[sqlite3.Row]:
+        """
+        Get the mapping between Mephisto qualifications and Surge AI qualifications
+        (Surger Teams https://app.surgehq.ai/docs/api#surger-teams)
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from qualifications
+                WHERE qualification_name = ?
+                """,
+                (qualification_name,),
+            )
+            results = c.fetchall()
+            if len(results) == 0:
+                return None
+            return results[0]
+
+    def create_qualification_mapping(
+        self,
+        qualification_name: str,
+        requester_id: str,
+        surge_ai_qualification_name: str,
+        surge_ai_qualification_id: str,
+    ) -> None:
+        """
+        Create a mapping between mephisto qualification name and Surge AI
+        qualification details in the local datastore.
+
+        Repeat entries with the same `qualification_name` will be idempotent
+        """
+        try:
+            with self.table_access_condition, self._get_connection() as conn:
+                c = conn.cursor()
+                c.execute(
+                    """
+                    INSERT INTO qualifications(
+                        qualification_name,
+                        requester_id,
+                        surge_ai_qualification_name,
+                        surge_ai_qualification_id
+                    ) VALUES (?, ?, ?, ?);
+                    """,
+                    (
+                        qualification_name,
+                        requester_id,
+                        surge_ai_qualification_name,
+                        surge_ai_qualification_id,
+                    ),
+                )
+                return None
+
+        except sqlite3.IntegrityError as e:
+            if is_unique_failure(e):
+                # Ignore attempt to add another mapping for an existing key
+                qual = self.get_qualification_mapping(qualification_name)
+
+                logger.debug(
+                    f'Multiple Surge AI mapping creations for qualification {qualification_name}. '
+                    f'Found existing one: {qual}. '
+                )
+                assert (qual is not None), 'Cannot be none given is_unique_failure on insert'
+
+                cur_requester_id = qual['requester_id']
+                cur_surge_ai_qualification_name = qual['surge_ai_qualification_name']
+
+                if cur_requester_id != requester_id:
+                    logger.warning(
+                        f'Surge AI Qualification mapping create for {qualification_name} '
+                        f'under requester {requester_id}, already exists under {cur_requester_id}.'
+                    )
+
+                if cur_surge_ai_qualification_name != surge_ai_qualification_name:
+                    logger.warning(
+                        f'Surge AI Qualification mapping create for {qualification_name} '
+                        f'with Surge AI name {surge_ai_qualification_name}, '
+                        f'already exists under {cur_surge_ai_qualification_name}.'
+                    )
+
+                return None
+            else:
+                raise e
+
+    def register_run(
+        self,
+        run_id: str,
+        project_id: str,
+        project_config_path: str,
+        frame_height: int = 0,
+    ) -> None:
+        """Register a new task run in the mturk table"""
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                """
+                INSERT INTO runs(
+                    run_id,
+                    arn_id,
+                    project_id,
+                    project_config_path,
+                    frame_height
+                ) VALUES (?, ?, ?, ?, ?);
+                """,
+                (run_id, "unused", project_id, project_config_path, frame_height),
+            )
