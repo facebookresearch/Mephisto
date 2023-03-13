@@ -84,6 +84,8 @@ tornado = { version = "^6.0", optional = false }
 parlai = { version = "^1.7.0", optional = true }
 torch = { version = "^1.4.0", optional = true }
 
+# jsonschema
+jsonschema = { version = "^4.17.3", optional = false }
 
 [tool.poetry.extras]
 # Commented are currently non-optional
