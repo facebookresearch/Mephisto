@@ -4,18 +4,25 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from decimal import Decimal
 from typing import Dict
 from typing import List
+from typing import Optional
+from typing import Union
 
 from .base_model import BaseModel
+from .user import User
 
 
-class ParticipantGroup(BaseModel):
+class Workspace(BaseModel):
     id: str
-    name: str
-    project_id: str
-    participant_count: int
-    feeder_studies: List[Dict]
+    title: str
+    description: str
+    owner: str
+    users: List[Dict]
+    projects: List[Dict]
+    wallet: str
+    naivety_distribution_rate: Optional[Union[Decimal, float]]
 
     schema = {
         'type' : 'object',
@@ -23,16 +30,20 @@ class ParticipantGroup(BaseModel):
             'id' : {
                 'type' : 'string',
             },
-            'project_id' : {
+            'title' : {
                 'type' : 'string',
             },
-            'name' : {
+            'description' : {
                 'type' : 'string',
             },
-            'participant_count' : {
-                'type' : 'number',
+            'owner' : {
+                'type' : 'string',
             },
-            'feeder_studies' : {
+            'users' : {
+                'type' : 'array',
+                'items': User.relation_user_schema,
+            },
+            'projects' : {
                 'type' : 'array',
                 'items': {
                     'type': 'object',
@@ -40,28 +51,33 @@ class ParticipantGroup(BaseModel):
                         'id': {
                             'type': 'string',
                         },
-                        'name': {
+                        'title': {
                             'type': 'string',
                         },
-                        'internal_name': {
+                        'description': {
                             'type': 'string',
                         },
-                        'status': {
+                        'owner': {
                             'type': 'string',
                         },
-                        'completion_codes' : {
+                        'users' : {
                             'type' : 'array',
+                            'items': User.relation_user_schema,
+                        },
+                        'naivety_distribution_rate' : {
+                            'type' : ['number', 'null'],
                         },
                     },
                 },
             },
+            'wallet' : {
+                'type' : 'string',
+            },
+            'naivety_distribution_rate' : {
+                'type' : ['number', 'null'],
+            },
         },
     }
 
-    required_schema_fields = [
-        'project_id',
-        'name',
-    ]
-
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.id} {self.name}'
+        return f'{self.__class__.__name__} {self.id} {self.title}'

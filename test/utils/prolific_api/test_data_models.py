@@ -12,7 +12,7 @@ from jsonschema.exceptions import ValidationError
 from mephisto.utils.prolific_api.data_models import Study
 
 
-@pytest.mark.surge_ai
+@pytest.mark.prolific
 class TestDataModelsUtils(unittest.TestCase):
     def test_study_validation_passed(self, *args):
         data = {

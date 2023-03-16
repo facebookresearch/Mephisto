@@ -13,7 +13,6 @@ from typing import Optional
 
 from mephisto.abstractions.databases.local_database import is_unique_failure
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
-from mephisto.abstractions.providers.prolific.prolific_utils import get_prolific_api_key
 from mephisto.utils.logger_core import get_logger
 
 CREATE_REQUESTERS_TABLE = """
@@ -246,7 +245,6 @@ class ProlificDatastore:
         """
         if requester_name not in self.session_storage:
             session = None  # TODO (FB-3): Implement client
-            session.api_key = os.environ.get('PROLIFIC_API_KEY', None) or get_prolific_api_key()
             self.session_storage[requester_name] = session
 
         return self.session_storage[requester_name]
@@ -261,7 +259,7 @@ class ProlificDatastore:
     def get_qualification_mapping(self, qualification_name: str) -> Optional[sqlite3.Row]:
         """
         Get the mapping between Mephisto qualifications and Prolific qualifications
-        (Surger Teams https://app.surgehq.ai/docs/api#surger-teams) # TODO (FB-3): Change doc
+        # TODO (FB-3): Change doc
         """
         with self.table_access_condition:
             conn = self._get_connection()

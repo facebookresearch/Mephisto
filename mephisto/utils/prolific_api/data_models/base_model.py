@@ -10,7 +10,7 @@ from jsonschema import validate
 class BaseModel:
     id: str
 
-    _schema = {
+    schema = {
         'type' : 'object',
         'properties' : {
             'id' : {
@@ -19,9 +19,24 @@ class BaseModel:
         },
     }
 
+    required_schema_fields = []
+    id_field_name = 'id'
+
     def __init__(self, **data):
-        validate(instance=data, schema=self._schema)
+        schema = dict(self.schema)
+
+        # Validate on required fields if object is intended to be created
+        if self.id_field_name not in data:
+            schema['required'] = self.required_schema_fields
+
+        validate(instance=data, schema=schema)
         self.__dict__ = data
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__} {getattr(self, "id", "")}'
+
+    def __repr__(self) -> str:
+        return f'<{self.__str__()}>'
 
     def to_dict(self) -> dict:
         return self.__dict__

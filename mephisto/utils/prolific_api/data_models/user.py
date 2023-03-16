@@ -5,13 +5,14 @@
 # LICENSE file in the root directory of this source tree.
 
 from .base_model import BaseModel
+from ..constants import EMAIL_FORMAT
 
 
 class User(BaseModel):
     id: str
     email: str
 
-    _schema = {
+    schema = {
         'type' : 'object',
         'properties' : {
             'id' : {
@@ -19,7 +20,32 @@ class User(BaseModel):
             },
             'email' : {
                 'type' : 'string',
-                'pattern': '^\\S+@\\S+\\.\\S+$',  # Simple checking
+                'pattern': EMAIL_FORMAT,
             },
         },
     }
+
+    relation_user_schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+            },
+            'name': {
+                'type': 'string',
+            },
+            'email': {
+                'type': 'string',
+                'pattern': EMAIL_FORMAT,
+            },
+            'roles': {
+                'type': 'array',
+            },
+        },
+        'required': [
+            'id',
+        ]
+    }
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__} {self.id} {self.email}'

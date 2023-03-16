@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+
+# Copyright (c) Facebook, Inc. and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+from typing import List
+
+from .base_api_resource import BaseAPIResource
+from .data_models import Workspace
+
+
+class Workspaces(BaseAPIResource):
+    list_api_endpoint = 'workspaces/'
+    retrieve_api_endpoint = 'workspaces/{id}/'
+
+    @classmethod
+    def list(cls) -> List[Workspace]:
+        response_json = cls.get(cls.list_api_endpoint)
+        workspaces = [Workspace(**s) for s in response_json['results']]
+        return workspaces
+
+    @classmethod
+    def retrieve(cls, id: str) -> Workspace:
+        endpoint = cls.retrieve_api_endpoint.format(id=id)
+        response_json = cls.get(endpoint)
+        return Workspace(**response_json)
+
+    @classmethod
+    def create(cls, **data) -> Workspace:
+        workspace = Workspace(**data)
+        response_json = cls.post(cls.list_api_endpoint, params=workspace.to_dict())
+        return Workspace(**response_json)

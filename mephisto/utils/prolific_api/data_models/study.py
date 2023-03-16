@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List
+from typing import Optional
 
 from .base_model import BaseModel
 
@@ -15,16 +16,19 @@ class Study(BaseModel):
     internal_name: str
     description: str
     external_study_url: str
-    prolific_id_option: str
-    completion_codes: List[dict]
+    prolific_id_option: Optional[str]
+    completion_codes: Optional[List[dict]]
     total_available_places: int
     estimated_completion_time: int
     reward: int
     device_compatibility: List[str]
     peripheral_requirements: List
     eligibility_requirements: List
+    project: str
+    submissions_config: dict
+    metadata: Optional[str]
 
-    _schema = {
+    schema = {
         'type' : 'object',
         'properties' : {
             'id' : {
@@ -43,13 +47,13 @@ class Study(BaseModel):
                 'type' : 'string',
             },
             'prolific_id_option' : {
-                'type' : 'string',
+                'type' : ['string', 'null'],
                 'items': {
                     'enum': ['question', 'url_parameters', 'not_required'],
                 },
             },
             'completion_option' : {
-                'type' : 'string',
+                'type' : ['string', 'null'],
                 'items': {
                     'enum': ['url', 'code'],
                 },
@@ -72,8 +76,8 @@ class Study(BaseModel):
                     'required': [
                         'code',
                         'code_type',
-                    ]
-                }
+                    ],
+                },
             },
             'total_available_places' : {
                 'type' : 'number',
@@ -96,17 +100,30 @@ class Study(BaseModel):
             'eligibility_requirements' : {
                 'type' : 'array',
             },
+            'project' : {
+                'type' : 'string',
+            },
+            'submissions_config': {
+                'type': 'object',
+            },
+            'metadata' : {
+                'type' : ['string', 'null'],
+            },
         },
-        'required': [
-            'name',
-            'description',
-            'external_study_url',
-            'prolific_id_option',
-            'completion_option',
-            'completion_codes',
-            'total_available_places',
-            'estimated_completion_time',
-            'reward',
-            'eligibility_requirements',
-        ]
     }
+
+    required_schema_fields = [
+        'name',
+        'description',
+        'external_study_url',
+        'prolific_id_option',
+        'completion_option',
+        'completion_codes',
+        'total_available_places',
+        'estimated_completion_time',
+        'reward',
+        'eligibility_requirements',
+    ]
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__} {self.id} {self.name}'

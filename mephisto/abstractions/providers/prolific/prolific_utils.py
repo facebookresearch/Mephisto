@@ -16,24 +16,13 @@ from omegaconf import DictConfig
 
 from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.utils.logger_core import get_logger
+from mephisto.utils.prolific_api.base_api_resource import CREDENTIALS_CONFIG_DIR
+from mephisto.utils.prolific_api.base_api_resource import CREDENTIALS_CONFIG_PATH
+from mephisto.utils import prolific_api
 
 PROLIFIC_BUDGET = 100000.0
-PROLIFIC_CONFIG_DIR = '~/.prolific/'
-PROLIFIC_CONFIG_PATH = os.path.join(PROLIFIC_CONFIG_DIR, 'credentials')
 
 logger = get_logger(name=__name__)
-
-
-def get_prolific_api_key() -> Union[str, None]:
-    credentials_path = os.path.expanduser(PROLIFIC_CONFIG_PATH)
-    if os.path.exists(credentials_path):
-        with open(credentials_path, 'r') as f:
-            api_key = f.read().strip()
-            return api_key
-    return None
-
-
-PROLIFIC_API_KEY = os.environ.get('PROLIFIC_API_KEY', None) or get_prolific_api_key()
 
 
 def check_credentials(*args, **kwargs) -> bool:
@@ -45,10 +34,10 @@ def check_credentials(*args, **kwargs) -> bool:
 def setup_credentials(
     profile_name: str, register_args: Optional[ProviderArgs],
 ) -> bool:
-    if not os.path.exists(os.path.expanduser(PROLIFIC_CONFIG_DIR)):
-        os.mkdir(os.path.expanduser(PROLIFIC_CONFIG_DIR))
+    if not os.path.exists(os.path.expanduser(CREDENTIALS_CONFIG_DIR)):
+        os.mkdir(os.path.expanduser(CREDENTIALS_CONFIG_DIR))
 
-    with open(os.path.expanduser(PROLIFIC_CONFIG_PATH), 'w') as f:
+    with open(os.path.expanduser(CREDENTIALS_CONFIG_PATH), 'w') as f:
         f.write(register_args.api_key)
 
     return True
@@ -65,15 +54,15 @@ def check_balance(*args, **kwargs) -> Union[float, int]:
 
 
 def delete_qualification(
-    client: Any, # TODO (FB-3): Implement
+    client: prolific_api,  # TODO (FB-3): Implement
     qualification_id: str,
 ) -> None:
     """Deletes a qualification by id"""
-    client.Team.delete(qualification_id)
+    client.ParticipantGroups.delete(qualification_id)
 
 
 def find_qualification(
-    client: Any,  # TODO (FB-3): Implement
+    client: prolific_api,  # TODO (FB-3): Implement
     qualification_name: str,
 ) -> Tuple[bool, Optional[str]]:
     try:
@@ -90,7 +79,7 @@ def find_qualification(
 
 
 def find_or_create_qualification(
-    client: Any,  # TODO (FB-3): Implement
+    client: prolific_api,  # TODO (FB-3): Implement
     qualification_name: str,
     description: str,
 ) -> Optional[str]:
@@ -113,7 +102,7 @@ def find_or_create_qualification(
 
 
 def create_study(
-    client: Any,  # TODO (FB-3): Implement
+    client: prolific_api,  # TODO (FB-3): Implement
     task_args: "DictConfig",
     qualifications: List[Dict[str, Any]],
 ) -> str:

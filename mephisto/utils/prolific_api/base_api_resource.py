@@ -6,6 +6,7 @@
 
 import os
 from typing import Optional
+from typing import Union
 from urllib.parse import urljoin
 
 import requests
@@ -17,10 +18,23 @@ from .exceptions import ProlificAuthenticationError
 from .exceptions import ProlificException
 from .exceptions import ProlificRequestError
 
-API_KEY = os.environ.get('PROLIFIC_API_KEY', '')
 BASE_URL = os.environ.get('PROLIFIC_BASE_URL', 'https://api.prolific.co/api/v1/')
+CREDENTIALS_CONFIG_DIR = '~/.surge_ai/'
+CREDENTIALS_CONFIG_PATH = os.path.join(CREDENTIALS_CONFIG_DIR, 'credentials')
 
 logger = get_logger(name=__name__)
+
+
+def get_surge_ai_api_key() -> Union[str, None]:
+    credentials_path = os.path.expanduser(CREDENTIALS_CONFIG_PATH)
+    if os.path.exists(credentials_path):
+        with open(credentials_path, 'r') as f:
+            api_key = f.read().strip()
+            return api_key
+    return None
+
+
+API_KEY = os.environ.get('PROLIFIC_API_KEY', '') or get_surge_ai_api_key()
 
 
 class HTTPMethod:
@@ -69,7 +83,9 @@ class BaseAPIResource(object):
                 raise ProlificException('Invalid HTTP method.')
 
             response.raise_for_status()
-            return response.json()
+            json = response.json()
+            logger.debug(f'Response: {json}')
+            return json
 
         except requests.exceptions.HTTPError as err:
             logger.error(f'Request error: {str(err)}')
