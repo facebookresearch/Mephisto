@@ -12,14 +12,10 @@ class Participant(BaseModel):
     datetime_created: str
 
     schema = {
-        'type' : 'object',
-        'properties' : {
-            'participant_id' : {
-                'type' : 'string',
-            },
-            'datetime_created' : {
-                'type' : 'string',
-            },
+        'type': 'object',
+        'properties': {
+            'participant_id': {'type': 'string'},
+            'datetime_created': {'type': 'string'},
         },
     }
 

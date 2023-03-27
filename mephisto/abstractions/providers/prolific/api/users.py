@@ -9,10 +9,10 @@ from .data_models import User
 
 
 class Users(BaseAPIResource):
-    retrieve_api_endpoint = 'users/me/'
+    me_api_endpoint = 'users/me/'
 
     @classmethod
     def me(cls) -> User:
-        endpoint = cls.retrieve_api_endpoint
+        endpoint = cls.me_api_endpoint
         response_json = cls.get(endpoint)
         return User(**response_json)

@@ -9,7 +9,7 @@ import unittest
 import pytest
 from jsonschema.exceptions import ValidationError
 
-from mephisto.utils.prolific_api.data_models import Study
+from mephisto.abstractions.providers.prolific.prolific_api import Study
 
 
 @pytest.mark.prolific

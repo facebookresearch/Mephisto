@@ -44,7 +44,7 @@ class ProlificUnit(Unit):
         self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
 
     def launch(self, task_url: str) -> None:
-        """Mock launches do nothing right now beyond updating state"""  # TODO(#1009)
+        """Mock launches do nothing right now beyond updating state"""  # TODO (#1008)
         self.set_db_status(status=AssignmentState.LAUNCHED)
 
         # TODO(OWN) get this link to the frontend
@@ -56,18 +56,18 @@ class ProlificUnit(Unit):
         else:
             assignment_url = f"{task_url}/?worker_id=x&assignment_id={self.db_id}"
         logger.info(
-            f"Mock task launched: http://localhost:{port} for preview, "  # TODO(#1009)
+            f"Mock task launched: http://localhost:{port} for preview, "  # TODO (#1008)
             f"{assignment_url}"
         )
         logger.info(
-            f"Mock task launched: http://localhost:{port} for preview, "  # TODO(#1009)
+            f"Mock task launched: http://localhost:{port} for preview, "  # TODO (#1008)
             f"{assignment_url} for assignment {self.assignment_id}"
         )
 
         return None
 
     def expire(self) -> float:
-        """Expiration is immediate on Mocks"""  # TODO(#1009)
+        """Expiration is immediate on Mocks"""  # TODO (#1008)
         if self.get_status() not in [
             AssignmentState.EXPIRED,
             AssignmentState.COMPLETED,

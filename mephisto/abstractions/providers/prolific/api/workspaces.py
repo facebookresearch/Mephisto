@@ -29,5 +29,6 @@ class Workspaces(BaseAPIResource):
     @classmethod
     def create(cls, **data) -> Workspace:
         workspace = Workspace(**data)
+        workspace.validate()
         response_json = cls.post(cls.list_api_endpoint, params=workspace.to_dict())
         return Workspace(**response_json)

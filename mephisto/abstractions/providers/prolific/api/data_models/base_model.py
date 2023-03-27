@@ -11,11 +11,9 @@ class BaseModel:
     id: str
 
     schema = {
-        'type' : 'object',
-        'properties' : {
-            'id' : {
-                'type' : 'string',
-            },
+        'type': 'object',
+        'properties': {
+            'id': {'type': 'string'},
         },
     }
 
@@ -23,13 +21,6 @@ class BaseModel:
     id_field_name = 'id'
 
     def __init__(self, **data):
-        schema = dict(self.schema)
-
-        # Validate on required fields if object is intended to be created
-        if self.id_field_name not in data:
-            schema['required'] = self.required_schema_fields
-
-        validate(instance=data, schema=schema)
         self.__dict__ = data
 
     def __str__(self) -> str:
@@ -37,6 +28,15 @@ class BaseModel:
 
     def __repr__(self) -> str:
         return f'<{self.__str__()}>'
+
+    def validate(self):
+        schema = dict(self.schema)
+
+        # Validate on required fields if object is intended to be created
+        if self.id_field_name not in self.__dict__:
+            schema['required'] = self.required_schema_fields
+
+        validate(instance=self.__dict__, schema=schema)
 
     def to_dict(self) -> dict:
         return self.__dict__

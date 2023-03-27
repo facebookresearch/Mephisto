@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Any
+from typing import cast
 from typing import Dict
 from typing import Mapping
 from typing import Optional
@@ -12,10 +13,12 @@ from typing import TYPE_CHECKING
 
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
-from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
 from mephisto.data_model.agent import Agent
+from . import api as prolific_api
 
 if TYPE_CHECKING:
+    from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
+    from mephisto.abstractions.providers.prolific.prolific_requester import ProlificRequester
     from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
@@ -28,6 +31,9 @@ class ProlificAgent(Agent):
     connection status, etc.
     """
 
+    # Ensure inherited methods use this level's provider type
+    PROVIDER_TYPE = PROVIDER_TYPE
+
     def __init__(
         self,
         db: "MephistoDB",
@@ -36,7 +42,7 @@ class ProlificAgent(Agent):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
+        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(self.PROVIDER_TYPE)
         if db_id not in self.datastore.agent_data:
             self.datastore.agent_data[db_id] = {
                 "observed": [],
@@ -44,6 +50,12 @@ class ProlificAgent(Agent):
                 "acts": [],
                 "pending_submit": None,
             }
+
+    def _get_client(self) -> prolific_api:
+        """Get a Prolific client"""
+        unit = self.get_unit()
+        requester: "ProlificRequester" = cast('ProlificRequester', unit.get_requester())
+        return self.datastore.get_client_for_requester(requester.requester_name)
 
     def observe(self, live_update: Dict[str, Any]) -> None:
         """Put observations into this Prolific agent's observation list"""
@@ -55,7 +67,7 @@ class ProlificAgent(Agent):
         Either take an act from this mock agent's act queue (for use
         by tests and other mock purposes) or request a regular act
         (for use in manual testing).
-        """  # TODO(#1009)
+        """  # TODO (#1008)
         if len(self.datastore.agent_data[self.db_id]["pending_acts"]) > 0:
             act = self.datastore.agent_data[self.db_id]["pending_acts"].pop(0)
         else:

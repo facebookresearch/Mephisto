@@ -15,6 +15,10 @@ from .user import User
 
 
 class Project(BaseModel):
+    """
+    More about Projects:
+        https://docs.prolific.co/docs/api-docs/public/#tag/Projects
+    """
     id: str
     title: str
     description: str
@@ -27,47 +31,30 @@ class Project(BaseModel):
     schema = {
         'type': 'object',
         'properties': {
-            'id': {
-                'type': 'string',
-            },
-            'title': {
-                'type': 'string',
-            },
-            'description': {
-                'type': 'string',
-            },
-            'owner': {
-                'type': 'string',
-            },
-            'users' : {
-                'type' : 'array',
+            'id': {'type': 'string'},
+            'title': {'type': 'string'},
+            'description': {'type': 'string'},
+            'owner': {'type': 'string'},
+            'users': {
+                'type': 'array',
                 'items': User.relation_user_schema,
             },
-            'studies' : {
-                'type' : 'array',
+            'studies': {
+                'type': 'array',
                 'items': {
                     'type': 'object',
                     'properties': {
-                        'id': {
-                            'type': 'string',
-                        },
-                        'name': {
-                            'type': 'string',
-                        },
+                        'id': {'type': 'string'},
+                        'name': {'type': 'string'},
                     },
                 }
             },
-            'workspace': {
-                'type': 'string',
-            },
-            'naivety_distribution_rate' : {
-                'type' : ['number', 'null'],
-            },
+            'workspace': {'type': 'string'},
+            'naivety_distribution_rate': {'type': ['number', 'null']},
         },
     }
 
     required_schema_fields = [
-        'id',
         'title',
     ]
 

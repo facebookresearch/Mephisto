@@ -19,13 +19,13 @@ from .exceptions import ProlificException
 from .exceptions import ProlificRequestError
 
 BASE_URL = os.environ.get('PROLIFIC_BASE_URL', 'https://api.prolific.co/api/v1/')
-CREDENTIALS_CONFIG_DIR = '~/.surge_ai/'
+CREDENTIALS_CONFIG_DIR = '~/.prolific/'
 CREDENTIALS_CONFIG_PATH = os.path.join(CREDENTIALS_CONFIG_DIR, 'credentials')
 
 logger = get_logger(name=__name__)
 
 
-def get_surge_ai_api_key() -> Union[str, None]:
+def get_prolific_api_key() -> Union[str, None]:
     credentials_path = os.path.expanduser(CREDENTIALS_CONFIG_PATH)
     if os.path.exists(credentials_path):
         with open(credentials_path, 'r') as f:
@@ -34,7 +34,7 @@ def get_surge_ai_api_key() -> Union[str, None]:
     return None
 
 
-API_KEY = os.environ.get('PROLIFIC_API_KEY', '') or get_surge_ai_api_key()
+API_KEY = os.environ.get('PROLIFIC_API_KEY', '') or get_prolific_api_key()
 
 
 class HTTPMethod:

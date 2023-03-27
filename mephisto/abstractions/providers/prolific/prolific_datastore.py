@@ -14,6 +14,7 @@ from typing import Optional
 from mephisto.abstractions.databases.local_database import is_unique_failure
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.utils.logger_core import get_logger
+from . import api as prolific_api
 
 CREATE_REQUESTERS_TABLE = """
 CREATE TABLE IF NOT EXISTS requesters (
@@ -40,8 +41,9 @@ CREATE_QUALIFICATIONS_TABLE = """
 CREATE TABLE IF NOT EXISTS qualifications (
     qualification_name TEXT PRIMARY KEY UNIQUE,
     requester_id TEXT,
-    prolific_qualification_name TEXT,
-    prolific_qualification_id TEXT,
+    prolific_project_id TEXT,
+    prolific_participant_group_name TEXT,
+    prolific_participant_group_id TEXT,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 """
@@ -50,8 +52,9 @@ CREATE_RUNS_TABLE = """
 CREATE TABLE IF NOT EXISTS runs (
     run_id TEXT PRIMARY KEY UNIQUE,
     arn_id TEXT,
-    project_id TEXT NOT NULL,
-    project_config_path TEXT NOT NULL,
+    prolific_project_id TEXT NOT NULL,
+    prolific_study_id TEXT NOT NULL,
+    prolific_study_config_path TEXT NOT NULL,
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     frame_height INTEGER NOT NULL DEFAULT 650
 );
@@ -63,7 +66,7 @@ logger = get_logger(name=__name__)
 class ProlificDatastore:
     def __init__(self, datastore_root: str):
         """Initialize local storage of active agents, connect to the database"""
-        self.session_storage: Dict[str, Any] = {}  # TODO (FB-3): Implement type
+        self.session_storage: Dict[str, Any] = {}  # TODO (#1008): Implement type
         self.agent_data: Dict[str, Dict[str, Any]] = {}
         self.table_access_condition = threading.Condition()
         self.conn: Dict[int, sqlite3.Connection] = {}
@@ -72,8 +75,8 @@ class ProlificDatastore:
         self.datastore_root = datastore_root
 
     def _get_connection(self) -> sqlite3.Connection:
-        """Returns a singular database connection to be shared amongst all
-        calls for a given thread.
+        """
+        Returns a singular database connection to be shared amongst all calls for a given thread.
         """
         curr_thread = threading.get_ident()
         if curr_thread not in self.conn or self.conn[curr_thread] is None:
@@ -83,9 +86,7 @@ class ProlificDatastore:
         return self.conn[curr_thread]
 
     def init_tables(self) -> None:
-        """
-        Run all the table creation SQL queries to ensure the expected tables exist
-        """
+        """Run all the table creation SQL queries to ensure the expected tables exist"""
         with self.table_access_condition:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
@@ -103,10 +104,12 @@ class ProlificDatastore:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                """INSERT OR IGNORE INTO requesters(
+                """
+                INSERT OR IGNORE INTO requesters(
                     requester_id,
                     is_registered
-                ) VALUES (?, ?);""",
+                ) VALUES (?, ?);
+                """,
                 (requester_id, False),
             )
             conn.commit()
@@ -119,7 +122,8 @@ class ProlificDatastore:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                """UPDATE requesters
+                """
+                UPDATE requesters
                 SET is_registered = ?
                 WHERE requester_id = ?
                 """,
@@ -150,10 +154,12 @@ class ProlificDatastore:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                """INSERT OR IGNORE INTO workers(
+                """
+                INSERT OR IGNORE INTO workers(
                     worker_id,
                     is_blocked
-                ) VALUES (?, ?);""",
+                ) VALUES (?, ?);
+                """,
                 (worker_id, False),
             )
             conn.commit()
@@ -166,7 +172,8 @@ class ProlificDatastore:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                """UPDATE workers
+                """
+                UPDATE workers
                 SET is_blocked = ?
                 WHERE worker_id = ?
                 """,
@@ -197,10 +204,12 @@ class ProlificDatastore:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                """INSERT OR IGNORE INTO units(
+                """
+                INSERT OR IGNORE INTO units(
                     unit_id,
                     is_expired
-                ) VALUES (?, ?);""",
+                ) VALUES (?, ?);
+                """,
                 (unit_id, False),
             )
             conn.commit()
@@ -213,7 +222,8 @@ class ProlificDatastore:
             conn = self._get_connection()
             c = conn.cursor()
             c.execute(
-                """UPDATE units
+                """
+                UPDATE units
                 SET is_expired = ?
                 WHERE unit_id = ?
                 """,
@@ -238,18 +248,18 @@ class ProlificDatastore:
             results = c.fetchall()
             return bool(results[0]["is_expired"])
 
-    def get_session_for_requester(self, requester_name: str) -> Any:  # TODO (FB-3): Implement type
+    def get_session_for_requester(self, requester_name: str) -> prolific_api:
         """
         Either create a new session for the given requester or return
         the existing one if it has already been created
         """
         if requester_name not in self.session_storage:
-            session = None  # TODO (FB-3): Implement client
+            session = prolific_api
             self.session_storage[requester_name] = session
 
         return self.session_storage[requester_name]
 
-    def get_client_for_requester(self, requester_name: str) -> Any:
+    def get_client_for_requester(self, requester_name: str) -> prolific_api:
         """
         Return the client for the given requester, which should allow
         direct calls to the Prolific surface
@@ -257,10 +267,7 @@ class ProlificDatastore:
         return self.get_session_for_requester(requester_name)
 
     def get_qualification_mapping(self, qualification_name: str) -> Optional[sqlite3.Row]:
-        """
-        Get the mapping between Mephisto qualifications and Prolific qualifications
-        # TODO (FB-3): Change doc
-        """
+        """Get the mapping between Mephisto qualifications and Prolific Participant Group"""
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
@@ -280,12 +287,13 @@ class ProlificDatastore:
         self,
         qualification_name: str,
         requester_id: str,
-        prolific_qualification_name: str,
-        prolific_qualification_id: str,
+        prolific_project_id: str,
+        prolific_participant_group_name: str,
+        prolific_participant_group_id: str,
     ) -> None:
         """
         Create a mapping between mephisto qualification name and Prolific
-        qualification details in the local datastore.
+        Participant Group details in the local datastore.
 
         Repeat entries with the same `qualification_name` will be idempotent
         """
@@ -297,15 +305,17 @@ class ProlificDatastore:
                     INSERT INTO qualifications(
                         qualification_name,
                         requester_id,
-                        prolific_qualification_name,
-                        prolific_qualification_id
+                        prolific_project_id,
+                        prolific_participant_group_name,
+                        prolific_participant_group_id
                     ) VALUES (?, ?, ?, ?);
                     """,
                     (
                         qualification_name,
                         requester_id,
-                        prolific_qualification_name,
-                        prolific_qualification_id,
+                        prolific_project_id,
+                        prolific_participant_group_name,
+                        prolific_participant_group_id,
                     ),
                 )
                 return None
@@ -313,28 +323,32 @@ class ProlificDatastore:
         except sqlite3.IntegrityError as e:
             if is_unique_failure(e):
                 # Ignore attempt to add another mapping for an existing key
-                qual = self.get_qualification_mapping(qualification_name)
+                db_qualification = self.get_qualification_mapping(qualification_name)
 
                 logger.debug(
-                    f'Multiple Prolific mapping creations for qualification {qualification_name}. '
-                    f'Found existing one: {qual}. '
+                    f'Multiple Prolific mapping creations '
+                    f'for qualification "{qualification_name}". '
+                    f'Found existing one: {db_qualification}. '
                 )
-                assert (qual is not None), 'Cannot be none given is_unique_failure on insert'
+                assert (
+                    (db_qualification is not None),
+                    'Cannot be none given is_unique_failure on insert'
+                )
 
-                cur_requester_id = qual['requester_id']
-                cur_prolific_qualification_name = qual['prolific_qualification_name']
+                db_requester_id = db_qualification['requester_id']
+                db_prolific_qualification_name = db_qualification['prolific_participant_group_name']
 
-                if cur_requester_id != requester_id:
+                if db_requester_id != requester_id:
                     logger.warning(
                         f'Prolific Qualification mapping create for {qualification_name} '
-                        f'under requester {requester_id}, already exists under {cur_requester_id}.'
+                        f'under requester {requester_id}, already exists under {db_requester_id}.'
                     )
 
-                if cur_prolific_qualification_name != prolific_qualification_name:
+                if db_prolific_qualification_name != prolific_participant_group_name:
                     logger.warning(
                         f'Prolific Qualification mapping create for {qualification_name} '
-                        f'with Prolific name {prolific_qualification_name}, '
-                        f'already exists under {cur_prolific_qualification_name}.'
+                        f'with Prolific name {prolific_participant_group_name}, '
+                        f'already exists under {db_prolific_qualification_name}.'
                     )
 
                 return None
@@ -344,11 +358,13 @@ class ProlificDatastore:
     def register_run(
         self,
         run_id: str,
-        project_id: str,
-        project_config_path: str,
+        prolific_workspace_id: str,
+        prolific_project_id: str,
+        prolific_study_id: str,
+        prolific_study_config_path: str,
         frame_height: int = 0,
     ) -> None:
-        """Register a new task run in the mturk table"""
+        """Register a new task run in the Task Runs table"""
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
@@ -356,10 +372,20 @@ class ProlificDatastore:
                 INSERT INTO runs(
                     run_id,
                     arn_id,
-                    project_id,
-                    project_config_path,
+                    prolific_workspace_id,
+                    prolific_project_id,
+                    prolific_study_id,
+                    prolific_study_config_path,
                     frame_height
                 ) VALUES (?, ?, ?, ?, ?);
                 """,
-                (run_id, "unused", project_id, project_config_path, frame_height),
+                (
+                    run_id,
+                    "unused",
+                    prolific_workspace_id,
+                    prolific_project_id,
+                    prolific_study_id,
+                    prolific_study_config_path,
+                    frame_height,
+                ),
             )

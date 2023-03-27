@@ -30,8 +30,9 @@ class Projects(BaseAPIResource):
         return Project(**response_json)
 
     @classmethod
-    def create(cls, workspace_id: str,  **data) -> Project:
+    def create_for_workspace(cls, workspace_id: str, **data) -> Project:
         project = Project(**data)
+        project.validate()
         endpoint = cls.list_for_workspace_api_endpoint.format(workspace_id=workspace_id)
         response_json = cls.post(endpoint, params=project.to_dict())
         return Project(**response_json)

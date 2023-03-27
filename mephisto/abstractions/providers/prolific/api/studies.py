@@ -38,10 +38,6 @@ class Studies(BaseAPIResource):
     @classmethod
     def create(cls, **data) -> Study:
         study = Study(**data)
+        study.validate()
         response_json = cls.post(cls.list_api_endpoint, params=study.to_dict())
         return Study(**response_json)
-
-    @classmethod
-    def remove(cls, id: str):
-        endpoint = cls.retrieve_api_endpoint.format(id=id)
-        cls.delete(endpoint)
