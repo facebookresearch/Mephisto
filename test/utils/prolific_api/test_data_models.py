@@ -9,7 +9,7 @@ import unittest
 import pytest
 from jsonschema.exceptions import ValidationError
 
-from mephisto.abstractions.providers.prolific.prolific_api import Study
+from mephisto.abstractions.providers.prolific.api.data_models import Study
 
 
 @pytest.mark.prolific
@@ -40,7 +40,7 @@ class TestDataModelsUtils(unittest.TestCase):
         }
 
         with self.assertRaises(ValidationError) as cm:
-            Study(**data)
+            Study(**data).validate()
 
         self.assertEqual(cm.exception.validator, 'required')
         self.assertEqual(cm.exception.message, "'description' is a required property")

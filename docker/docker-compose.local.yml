@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  fb_mephisto:
+    container_name: fb_mephisto
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - '8081:8000'
+      - '3001:3000'
+    volumes:
+      - ..:/mephisto
+      - ./entrypoints/server.sh:/entrypoint.sh
+      - ./aws_credentials:/root/.aws/credentials
+      - ./ssh_known_hosts:/root/.ssh/known_hosts
+    entrypoint: /entrypoint.sh
+    env_file: envs/env.local
+    command: tail -f /dev/null
+

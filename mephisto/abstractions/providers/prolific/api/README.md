@@ -19,7 +19,7 @@ $ cat ~/.prolific/credentials
 API Key
 ```
 
-or run existing mephisto registration command to create this file for you:
+or mephisto registration will create this file from the previous way:
 
 ```shell
 $ mephisto register prolific name=prolific api_key="API Key"
@@ -30,8 +30,8 @@ $ mephisto register prolific name=prolific api_key="API Key"
 -------------------------------------------------------------------------------
 ### Users
 
-To view a sample `User` object,
-instantiate `mephisto.abstractions.providers.prolific.api.data_models.User`
+To see fields of `User` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.User`
 
 #### Retrieve user account info
 
@@ -47,8 +47,8 @@ user: User = prolific_api.Users.me()
 -------------------------------------------------------------------------------
 ### Workspaces
 
-To view a sample `Workspace` object,
-instantiate `mephisto.abstractions.providers.prolific.api.data_models.Workspace`
+To see fields of `Workspace` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.Workspace`
 
 #### List
 
@@ -85,8 +85,8 @@ workspace: Workspace = prolific_api.Workspaces.create(
 -------------------------------------------------------------------------------
 ### Projects
 
-To view a sample `Project` object,
-instantiate `mephisto.abstractions.providers.prolific.api.data_models.Project`
+To see fields of `Project` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.Project`
 
 #### List for Workspace
 
@@ -128,8 +128,8 @@ project: Project = prolific_api.Projects.create_for_workspace(
 -------------------------------------------------------------------------------
 ### Studies
 
-To view a sample `Study` object,
-instantiate `mephisto.abstractions.providers.prolific.api.data_models.Study`
+To see fields of `Study` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.Study`
 
 #### List
 
@@ -193,8 +193,8 @@ study: Study = prolific_api.Studies.create(
 -------------------------------------------------------------------------------
 ### Participant Groups
 
-To view a sample `ParticipantGroup` object,
-instantiate `mephisto.abstractions.providers.prolific.api.data_models.ParticipantGroup`
+To see fields of `ParticipantGroup` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.ParticipantGroup`
 
 #### List
 
@@ -237,8 +237,8 @@ participant_list: List[Participant] = prolific_api.ParticipantGroups.list_pertic
 -------------------------------------------------------------------------------
 ### Bonuses
 
-To view a sample `BonusPayments` object,
-instantiate `mephisto.abstractions.providers.prolific.api.data_models.BonusPayments`
+To see fields of `BonusPayments` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.BonusPayments`
 
 #### Set Up Bonus Payments
 
@@ -267,8 +267,8 @@ prolific_api.Bonuses.pay(id=bonus_payments.id)
 -------------------------------------------------------------------------------
 ### Messages
 
-To view a sample `Message` object,
-instantiate `mephisto.abstractions.providers.prolific.api.data_models.Message`
+To see fields of `Message` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.Message`
 
 #### List
 
@@ -311,8 +311,8 @@ message: Message = prolific_api.Messages.send(
 -------------------------------------------------------------------------------
 ### Submissions
 
-To view a sample `Submission` object,
-instantiate `mephisto.abstractions.providers.prolific.api.data_models.Submission`
+To see fields of `Submission` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.Submission`
 
 #### List
 
@@ -337,15 +337,13 @@ submission: Submission = prolific_api.Submissions.retrieve(id='XXXXXXXXXXXXXXXXX
 -------------------------------------------------------------------------------
 ### Exceptions
 
-List of exceptions that the API SDK raises:
-
 ```python
 from mephisto.abstractions.providers.prolific.api import exceptions
 
 """
  - exceptions.ProlificException - Base Prolific exception
  - exceptions.ProlificAPIKeyError - API Key was not set
- - exceptions.ProlificRequestError - Any non-auth errors during requests
- - exceptions.ProlificAuthenticationError - Auth Request errors (with status code 401)
+ - exceptions.ProlificRequestError - All errors during requests
+ - exceptions.ProlificAuthenticationError - Request errors with status code 401
 """
 ```

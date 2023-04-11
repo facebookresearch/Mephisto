@@ -10,8 +10,6 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-from omegaconf import DictConfig
-
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
 from .api.base_api_resource import CREDENTIALS_CONFIG_DIR
@@ -26,6 +24,7 @@ from .api.data_models import Study
 from .api.data_models import Workspace
 from .api.exceptions import ProlificException
 from .prolific_requester import ProlificRequesterArgs
+from .prolific_task_run_args import ProlificTaskRunArgs
 
 DEFAULT_PROLIFIC_BUDGET = 100000.0
 DEFAULT_PROLIFIC_WORKSPACE_NAME = 'My Workspace'
@@ -225,18 +224,24 @@ def find_or_create_qualification(
 
 
 def create_task(
-    client: prolific_api, task_args: "DictConfig", prolific_project_id: str, *args, **kwargs,
+    client: prolific_api, task_args: ProlificTaskRunArgs, prolific_project_id: str, *args, **kwargs,
 ) -> str:
     """Create a task (Prolific Study)"""
     name = task_args.task_title
     description = task_args.task_description
-    # How many participants are you looking to recruit
-    total_available_places = 1  # TODO (#1008): Change value
-    # Estimated duration in minutes of the experiment or survey
-    estimated_completion_time = task_args.task_lifetime_in_seconds * 60
+    total_available_places = task_args.prolific_total_available_places
+    estimated_completion_time_in_minutes = task_args.prolific_estimated_completion_time_in_minutes
+    external_study_url = task_args.prolific_external_study_url
     # How much are you going to pay the participants in cents. We use the currency of your account.
     reward = task_args.task_reward
-    eligibility_requirements = []
+    eligibility_requirements = []  # TODO (#1008): Change value
+    completion_codes = dict(
+        code='ABC123',  # TODO (#1008): Change value
+        code_type=StudyCodeType.OTHER,  # TODO (#1008): Change value
+        actions=[dict(
+            action=StudyAction.AUTOMATICALLY_APPROVE,  # TODO (#1008): Change value
+        )],
+    )
 
     try:
         # TODO (#1008): Make sure that all parameters are correct
@@ -245,20 +250,14 @@ def create_task(
             name=name,
             internal_name=name,
             description=description,
-            external_study_url='https://mephisto.com/temp',  # TODO (#1008): Change value
+            external_study_url=external_study_url,
             prolific_id_option=ProlificIDOption.NOT_REQUIRED,
             completion_option=StudyCompletionOption.CODE,
-            completion_codes=dict(
-                code='ABC123',  # TODO (#1008): Change value
-                code_type=StudyCodeType.OTHER,  # TODO (#1008): Change value
-                actions=[dict(
-                    action=StudyAction.AUTOMATICALLY_APPROVE,  # TODO (#1008): Change value
-                )],
-            ),
+            completion_codes=completion_codes,
             total_available_places=total_available_places,
-            estimated_completion_time=estimated_completion_time,
+            estimated_completion_time=estimated_completion_time_in_minutes,
             reward=reward,
-            eligibility_requirements=eligibility_requirements,  # TODO (#1008): Change value
+            eligibility_requirements=eligibility_requirements,
         )
     except ProlificException:
         logger.exception(

@@ -5,6 +5,13 @@ ARG BASE_IMAGE=nikolaik/python-nodejs:$BASE_TAG
 
 FROM $BASE_IMAGE
 
+# ec2 architect requires `ssh-keygen` util, so we need to install it.
+# Firstly, remove `yarn` repo as it causes error that stops building a container. Error:
+# (Error: The repository 'https://dl.yarnpkg.com/debian stable InRelease' is not signed)
+RUN rm /etc/apt/sources.list.d/yarn.list
+RUN apt update
+RUN apt install keychain -y
+
 COPY . /mephisto
 RUN mkdir ~/.mephisto
 

@@ -330,10 +330,9 @@ class ProlificDatastore:
                     f'for qualification "{qualification_name}". '
                     f'Found existing one: {db_qualification}. '
                 )
-                assert (
-                    (db_qualification is not None),
+                assert \
+                    db_qualification is not None, \
                     'Cannot be none given is_unique_failure on insert'
-                )
 
                 db_requester_id = db_qualification['requester_id']
                 db_prolific_qualification_name = db_qualification['prolific_participant_group_name']

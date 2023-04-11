@@ -31,6 +31,8 @@ examples/**/build/*
 # PyCharm
 .idea
 
+# VSCode
+.vscode
 
 # https://next.yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 .yarn/*
@@ -43,3 +45,10 @@ examples/**/build/*
 .pnp.*
 
 docs/storybook/storybook-static/*
+
+# local deploy
+hydra_configs/profile/*.yaml
+!hydra_configs/profile/local_dev.yaml
+# docker/*
+aws_credentials
+env.local
