@@ -152,7 +152,9 @@ def launch_prometheus_server(args: Optional["DictConfig"] = None) -> bool:
                 logger.warning(
                     "Prometheus server appears to be running though! exiting as unsure what to do..."
                 )
-                raise InaccessiblePrometheusServer("Prometheus server running but inaccessible")
+                raise InaccessiblePrometheusServer(
+                    "Prometheus server running but inaccessible"
+                )
             else:
                 logger.warning(
                     "Clearing prometheus pid as the server isn't running. "
