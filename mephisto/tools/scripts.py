@@ -81,7 +81,6 @@ def task_script(
     config: Optional[Type[TaskConfig]] = None,
     default_config_file: Optional[str] = None,
     config_path: str = "hydra_configs",  # Override if using a different dir
-    **kwargs,
 ) -> Callable[[TaskFunction], Any]:
     """
     Create a decorator for the main of a Mephisto task script
@@ -99,7 +98,7 @@ def task_script(
         assert (
             default_config_file is not None
         ), "Must provide one of config or default_config_file"
-        used_config = build_default_task_config(default_config_file, **kwargs)
+        used_config = build_default_task_config(default_config_file)
     register_script_config(name="taskconfig", module=used_config)
 
     def task_script_wrapper(script_func: TaskFunction) -> TaskFunction:

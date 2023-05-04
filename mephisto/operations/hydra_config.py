@@ -13,7 +13,7 @@ from mephisto.utils.logger_core import get_logger, warn_once
 from mephisto.utils.dirs import get_run_file_dir
 from dataclasses import dataclass, field, fields, Field
 from omegaconf import OmegaConf, MISSING, DictConfig
-from typing import List, Type, Dict, Any, TYPE_CHECKING, Optional
+from typing import List, Type, Dict, Any, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
@@ -48,34 +48,6 @@ class TaskConfig:
     defaults: List[Any] = field(default_factory=lambda: ["_self_", LOGGING_OVERRIDE])
 
 
-def get_mephisto_config_cls(task_run_args_cls: Optional = None, database_args_cls: Optional = None):
-    if task_run_args_cls is not None or database_args_cls is not None:
-        task_run_args_cls = task_run_args_cls or TaskRunArgs
-        database_args_cls = database_args_cls or DatabaseArgs
-
-        @dataclass
-        class _MephistoConfig(MephistoConfig):
-            task: TaskRunArgs = task_run_args_cls()
-            database: DatabaseArgs = database_args_cls()
-
-        return _MephistoConfig
-
-    return MephistoConfig
-
-
-def get_task_config(task_run_args_cls: Optional = None, database_args_cls: Optional = None):
-    if task_run_args_cls is not None or database_args_cls is not None:
-        mephisto_config_cls = get_mephisto_config_cls(task_run_args_cls, database_args_cls)
-
-        @dataclass
-        class _TaskConfig(TaskConfig):
-            mephisto: MephistoConfig = mephisto_config_cls()
-
-        return _TaskConfig
-
-    return TaskConfig
-
-
 def register_abstraction_config(name: str, node: Any, abstraction_type: str):
     config.store(
         name=name,
@@ -84,18 +56,18 @@ def register_abstraction_config(name: str, node: Any, abstraction_type: str):
     )
 
 
-def build_default_task_config(conf_name: str, **kwargs) -> Type[TaskConfig]:
+def build_default_task_config(conf_name: str) -> Type[TaskConfig]:
     default_list = ["_self_", {"conf": conf_name}, LOGGING_OVERRIDE]
 
     @dataclass
-    class DefaultTaskConfig(get_task_config(**kwargs)):
+    class DefaultTaskConfig(TaskConfig):
         defaults: List[Any] = field(default_factory=lambda: default_list)
 
     return DefaultTaskConfig
 
 
 @dataclass
-class RunScriptConfig(get_task_config()):
+class RunScriptConfig(TaskConfig):
     def __post_init__(self):
         warn_once(
             "RunScriptConfig has been deprecated in Mephisto 1.0 in favor "

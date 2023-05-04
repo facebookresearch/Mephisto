@@ -8,6 +8,7 @@ mephisto.egg-info/*
 tmp/*
 **/node_modules/*
 mephisto/server/**/package-lock.json
+mephisto/abstractions/**/package-lock.json
 mephisto/server/blueprints/**/build/*
 
 **/*.log
@@ -49,6 +50,6 @@ docs/storybook/storybook-static/*
 # local deploy
 hydra_configs/profile/*.yaml
 !hydra_configs/profile/local_dev.yaml
-# docker/*
 aws_credentials
+docker-compose.local.yml
 env.local

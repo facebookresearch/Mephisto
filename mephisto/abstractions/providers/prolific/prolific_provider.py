@@ -6,6 +6,7 @@
 
 import os
 from dataclasses import dataclass
+from dataclasses import field
 from typing import Any
 from typing import cast
 from typing import ClassVar
@@ -46,6 +47,50 @@ logger = get_logger(name=__name__)
 class ProlificProviderArgs(ProviderArgs):
     """Base class for arguments to configure Crowd Providers"""
     _provider_type: str = PROVIDER_TYPE
+    requester_name: str = PROVIDER_TYPE
+    prolific_external_study_url: str = field(
+        default='',
+        metadata={
+            'help': (
+                'The external study URL of your study that you want participants to be direct to. '
+                'The URL can be customized to add information to match participants '
+                'in your survey. '
+                'You can add query parameters with the following placeholders. '
+                'Example of a link with params: '
+                'https://example.com?'
+                'prolific_pid={{%PROLIFIC_PID%}}'
+                '&study_id={{%STUDY_ID%}}'
+                '&session_id={{%SESSION_ID%}}'
+                'where `prolific_pid`, `study_id`, `session_id` are params we use on our side, and '
+                '`{{%PROLIFIC_PID%}}`, `{{%STUDY_ID%}}`, `{{%SESSION_ID%}}` are their '
+                'format of template variables they use to replace with their IDs'
+            ),
+        },
+    )
+    prolific_estimated_completion_time_in_minutes: int = field(
+        default=5,
+        metadata={
+            'help': (
+                'Estimated duration in minutes of the experiment or survey '
+                '(`estimated_completion_time` in Prolific).'
+            ),
+        },
+    )
+    prolific_total_available_places: int = field(
+        default=1,
+        metadata={
+            'help': 'How many participants are you looking to recruit.',
+        },
+    )
+    prolific_eligibility_requirements: list = field(
+        default=(),
+        metadata={
+            'help': (
+                'Eligibility requirements allows you to define '
+                'participants criteria such as age, gender and country. '
+            ),
+        },
+    )
 
 
 @register_mephisto_abstraction()
@@ -94,7 +139,6 @@ class ProlificProvider(CrowdProvider):
 
         # Set up Task Run config
         config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
-        task_args = args.task
 
         # Find or create relevant qualifications
         qualifications = []
@@ -116,7 +160,7 @@ class ProlificProvider(CrowdProvider):
             qualifications += shared_state.prolific_specific_qualifications
 
         # Set up Task Run (Prolific Study)
-        task_id = prolific_utils.create_task(client, task_args, prolific_project_id)
+        task_id = prolific_utils.create_task(client, args, prolific_project_id)
         frame_height = task_run.get_blueprint().get_frontend_args().get(
             'frame_height', DEFAULT_FRAME_HEIGHT,
         )

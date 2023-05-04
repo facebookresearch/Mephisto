@@ -11,10 +11,10 @@ services:
       - '3001:3000'
     volumes:
       - ..:/mephisto
-      - ./entrypoints/server.sh:/entrypoint.sh
+      - ./entrypoints/server.prolific.sh:/entrypoint.sh
       - ./aws_credentials:/root/.aws/credentials
       - ./ssh_known_hosts:/root/.ssh/known_hosts
     entrypoint: /entrypoint.sh
-    env_file: envs/env.local
+    env_file: envs/env.dev
     command: tail -f /dev/null
 

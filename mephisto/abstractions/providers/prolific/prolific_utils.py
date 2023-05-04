@@ -10,8 +10,11 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+from omegaconf import DictConfig
+
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
+from .api import eligibility_requirement_classes
 from .api.base_api_resource import CREDENTIALS_CONFIG_DIR
 from .api.base_api_resource import CREDENTIALS_CONFIG_PATH
 from .api.constants import ProlificIDOption
@@ -24,7 +27,6 @@ from .api.data_models import Study
 from .api.data_models import Workspace
 from .api.exceptions import ProlificException
 from .prolific_requester import ProlificRequesterArgs
-from .prolific_task_run_args import ProlificTaskRunArgs
 
 DEFAULT_PROLIFIC_BUDGET = 100000.0
 DEFAULT_PROLIFIC_WORKSPACE_NAME = 'My Workspace'
@@ -53,6 +55,22 @@ def setup_credentials(
         f.write(register_args.api_key)
 
     return True
+
+
+def _get_eligibility_requirements(run_config_value: List[dict]) -> List[dict]:
+    eligibility_requirements = []
+
+    for conf_eligibility_requirement in run_config_value:
+        name = conf_eligibility_requirement.get('name')
+
+        if cls := getattr(eligibility_requirement_classes, name, None):
+            cls_kwargs = {}
+            for param_name in cls.params():
+                if param_name in conf_eligibility_requirement:
+                    cls_kwargs[param_name] = conf_eligibility_requirement[param_name]
+            eligibility_requirements.append(cls(**cls_kwargs).to_prolific_dict())
+
+    return eligibility_requirements
 
 
 def check_balance(*args, **kwargs) -> Union[float, int]:
@@ -121,7 +139,7 @@ def _find_prolific_project(
     client: prolific_api,
     workspace_id: str,
     id: Optional[str] = None,
-    title: str = DEFAULT_PROLIFIC_WORKSPACE_NAME,
+    title: str = DEFAULT_PROLIFIC_PROJECT_NAME,
 ) -> Tuple[bool, Optional[str]]:
     """Find a Prolific Project by title or ID"""
     try:
@@ -136,14 +154,14 @@ def _find_prolific_project(
         if project.title == title:
             return True, project.id
 
-    return True, None
+    return False, None
 
 
 def find_or_create_prolific_project(
     client: prolific_api,
     workspace_id: str,
     id: Optional[str] = None,
-    title: str = DEFAULT_PROLIFIC_WORKSPACE_NAME,
+    title: str = DEFAULT_PROLIFIC_PROJECT_NAME,
 ) -> Optional[str]:
     """Find or create a Prolific Workspace by title or ID"""
     found_project, project_id = _find_prolific_project(client, workspace_id, id, title)
@@ -224,17 +242,24 @@ def find_or_create_qualification(
 
 
 def create_task(
-    client: prolific_api, task_args: ProlificTaskRunArgs, prolific_project_id: str, *args, **kwargs,
+    client: prolific_api, run_config: "DictConfig", prolific_project_id: str, *args, **kwargs,
 ) -> str:
     """Create a task (Prolific Study)"""
-    name = task_args.task_title
-    description = task_args.task_description
-    total_available_places = task_args.prolific_total_available_places
-    estimated_completion_time_in_minutes = task_args.prolific_estimated_completion_time_in_minutes
-    external_study_url = task_args.prolific_external_study_url
+    # Task info
+    name = run_config.task.task_title
+    description = run_config.task.task_description
     # How much are you going to pay the participants in cents. We use the currency of your account.
-    reward = task_args.task_reward
-    eligibility_requirements = []  # TODO (#1008): Change value
+    reward = run_config.task.task_reward
+
+    # Provider-specific info
+    total_available_places = run_config.provider.prolific_total_available_places
+    estimated_completion_time_in_minutes = (
+        run_config.provider.prolific_estimated_completion_time_in_minutes
+    )
+    external_study_url = run_config.provider.prolific_external_study_url
+    eligibility_requirements = _get_eligibility_requirements(
+        run_config.provider.prolific_eligibility_requirements,
+    )
     completion_codes = dict(
         code='ABC123',  # TODO (#1008): Change value
         code_type=StudyCodeType.OTHER,  # TODO (#1008): Change value

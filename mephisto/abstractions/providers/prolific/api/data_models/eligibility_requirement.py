@@ -68,5 +68,9 @@ class EligibilityRequirement(BaseModel):
         },
     }
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        setattr(self, 'id', data.get('query', {}).get('id'))
+
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.id}'
+        return f'{self.__class__.__name__} {self._cls} {self.id}'

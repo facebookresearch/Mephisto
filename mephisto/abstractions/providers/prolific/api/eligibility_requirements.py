@@ -21,6 +21,6 @@ class EligibilityRequirements(BaseAPIResource):
         return eligibility_requirements
 
     @classmethod
-    def count(cls) -> int:
-        response_json = cls.get(cls.count_api_endpoint)
+    def count_participants(cls) -> int:
+        response_json = cls.post(cls.count_api_endpoint)
         return response_json['count']
