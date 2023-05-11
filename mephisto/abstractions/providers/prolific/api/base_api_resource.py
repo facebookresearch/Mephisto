@@ -56,6 +56,8 @@ class BaseAPIResource(object):
         params: Optional[dict] = None,
         headers: Optional[dict] = None,
     ) -> dict:
+        log_prefix = f'[{cls.__name__}]'
+
         if API_KEY is None:
             raise ProlificAPIKeyError
 
@@ -66,6 +68,8 @@ class BaseAPIResource(object):
             headers.update({
                 'Authorization': f'Token {API_KEY}',
             })
+
+            logger.debug(f'{log_prefix} {method} {url}. Params: {params}')
 
             if method == HTTPMethod.GET:
                 response = requests.get(url, headers=headers, json=params)
@@ -84,11 +88,11 @@ class BaseAPIResource(object):
 
             response.raise_for_status()
             json = response.json()
-            logger.debug(f'Response: {json}')
+            logger.debug(f'{log_prefix} Response: {json}')
             return json
 
         except requests.exceptions.HTTPError as err:
-            logger.error(f'Request error: {str(err)}')
+            logger.error(f'{log_prefix} Request error: {str(err)}')
             if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
                 raise ProlificAuthenticationError
 
@@ -97,7 +101,7 @@ class BaseAPIResource(object):
             raise ProlificRequestError(message, status_code=err.response.status_code)
 
         except Exception:
-            logger.exception('Unexpected error')
+            logger.exception(f'{log_prefix} Unexpected error')
             raise ProlificException
 
     @classmethod
@@ -116,6 +120,6 @@ class BaseAPIResource(object):
         return cls._base_request(method, api_endpoint, params=params)
 
     @classmethod
-    def delete(cls, api_endpoint: str) -> dict:
+    def delete(cls, api_endpoint: str, params: Optional[dict] = None) -> dict:
         method = HTTPMethod.DELETE
-        return cls._base_request(method, api_endpoint)
+        return cls._base_request(method, api_endpoint, params=params)

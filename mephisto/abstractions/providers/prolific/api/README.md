@@ -172,15 +172,15 @@ study: Study = prolific_api.Studies.create(
     internal_name='Internal name',
     description='Description',
     external_study_url='https://mephisto.com/temp',
-    prolific_id_option=ProlificIDOption.NOT_REQUIRED,
+    prolific_id_option=ProlificIDOption.URL_PARAMETERS,
     completion_option=StudyCompletionOption.CODE,
-    completion_codes=dict(
+    completion_codes=[dict(
         code='ABC123',
         code_type=StudyCodeType.OTHER,
         actions=[dict(
             action=StudyAction.AUTOMATICALLY_APPROVE,
         )],
-    ),
+    )],
     total_available_places=1,
     estimated_completion_time=10,
     reward=100,

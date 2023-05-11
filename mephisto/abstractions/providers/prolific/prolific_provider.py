@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from mephisto.abstractions.crowd_provider import CrowdProvider
 from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.abstractions.providers.prolific import prolific_utils
+from mephisto.abstractions.providers.prolific.api.constants import ProlificIDOption
 from mephisto.abstractions.providers.prolific.prolific_agent import ProlificAgent
 from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
 from mephisto.abstractions.providers.prolific.prolific_requester import ProlificRequester
@@ -64,6 +65,19 @@ class ProlificProviderArgs(ProviderArgs):
                 'where `prolific_pid`, `study_id`, `session_id` are params we use on our side, and '
                 '`{{%PROLIFIC_PID%}}`, `{{%STUDY_ID%}}`, `{{%SESSION_ID%}}` are their '
                 'format of template variables they use to replace with their IDs'
+            ),
+        },
+    )
+    prolific_id_option: str = field(
+        default=ProlificIDOption.URL_PARAMETERS,
+        metadata={
+            'help': (
+                'Enum: "question" "url_parameters" "not_required". '
+                'Use \'question\' if you will add a question in your survey or '
+                'experiment asking the participant ID. '
+                'Recommended Use \'url_parameters\' if your survey or experiment can retrieve and '
+                'store those parameters for your analysis.'
+                'Use \'not_required\' if you don\'t need to record them'
             ),
         },
     )

@@ -257,16 +257,17 @@ def create_task(
         run_config.provider.prolific_estimated_completion_time_in_minutes
     )
     external_study_url = run_config.provider.prolific_external_study_url
+    prolific_id_option = run_config.provider.prolific_id_option
     eligibility_requirements = _get_eligibility_requirements(
         run_config.provider.prolific_eligibility_requirements,
     )
-    completion_codes = dict(
+    completion_codes = [dict(
         code='ABC123',  # TODO (#1008): Change value
         code_type=StudyCodeType.OTHER,  # TODO (#1008): Change value
         actions=[dict(
             action=StudyAction.AUTOMATICALLY_APPROVE,  # TODO (#1008): Change value
         )],
-    )
+    )]
 
     try:
         # TODO (#1008): Make sure that all parameters are correct
@@ -276,7 +277,7 @@ def create_task(
             internal_name=name,
             description=description,
             external_study_url=external_study_url,
-            prolific_id_option=ProlificIDOption.NOT_REQUIRED,
+            prolific_id_option=prolific_id_option,
             completion_option=StudyCompletionOption.CODE,
             completion_codes=completion_codes,
             total_available_places=total_available_places,
@@ -292,4 +293,34 @@ def create_task(
 
     study_id = study.id
     return study_id
+
+
+def give_worker_qualification(
+    client: prolific_api, worker_id: str, qualification_id: str, *args, **kwargs,
+) -> None:
+    """Give a qualification to the given worker"""
+    try:
+        client.ParticipantGroups.add_perticipants_to_group(
+            id=qualification_id, participant_ids=[worker_id],
+        )
+    except ProlificException:
+        logger.exception(
+            f'Could not add worker {worker_id} to a qualification "{qualification_id}"'
+        )
+        raise
+
+
+def remove_worker_qualification(
+    client: prolific_api, worker_id: str, qualification_id: str, *args, **kwargs,
+) -> None:
+    """Remove a qualification for the given worker"""
+    try:
+        client.ParticipantGroups.remove_perticipants_from_group(
+            id=qualification_id, participant_ids=[worker_id],
+        )
+    except ProlificException:
+        logger.exception(
+            f'Could not remove worker {worker_id} from a qualification "{qualification_id}"'
+        )
+        raise
 

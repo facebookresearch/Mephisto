@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-pip install pytest
+pip install pytest black
 cd /mephisto
 mkdir -p "data" && chmod 777 "data"
 

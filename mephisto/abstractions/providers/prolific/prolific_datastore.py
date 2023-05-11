@@ -140,7 +140,7 @@ class ProlificDatastore:
             c = conn.cursor()
             c.execute(
                 """
-                SELECT is_registered from requesters
+                SELECT is_registered FROM requesters
                 WHERE requester_id = ?
                 """,
                 (requester_id,),
@@ -190,7 +190,7 @@ class ProlificDatastore:
             c = conn.cursor()
             c.execute(
                 """
-                SELECT is_blocked from workers
+                SELECT is_blocked FROM workers
                 WHERE worker_id = ?
                 """,
                 (worker_id,),
@@ -240,7 +240,7 @@ class ProlificDatastore:
             c = conn.cursor()
             c.execute(
                 """
-                SELECT is_expired from units
+                SELECT is_expired FROM units
                 WHERE unit_id = ?
                 """,
                 (unit_id,),
@@ -273,7 +273,7 @@ class ProlificDatastore:
             c = conn.cursor()
             c.execute(
                 """
-                SELECT * from qualifications
+                SELECT * FROM qualifications
                 WHERE qualification_name = ?
                 """,
                 (qualification_name,),

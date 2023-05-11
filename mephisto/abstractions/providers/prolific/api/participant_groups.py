@@ -18,6 +18,11 @@ class ParticipantGroups(BaseAPIResource):
 
     @classmethod
     def list(cls, project_id: Optional[str] = None) -> List[ParticipantGroup]:
+        """
+        API docs for this endpoint:
+        https://docs.prolific.co/docs/api-docs/public/#tag/
+            Participant-Groups/paths/~1api~1v1~1participant-groups~1/get
+        """
         endpoint = cls.list_api_endpoint
         if project_id:
             endpoint = f'{endpoint}?project_id={project_id}'
@@ -28,12 +33,50 @@ class ParticipantGroups(BaseAPIResource):
 
     @classmethod
     def create(cls, **data) -> ParticipantGroup:
+        """
+        API docs for this endpoint:
+        https://docs.prolific.co/docs/api-docs/public/#tag/
+            Participant-Groups/paths/~1api~1v1~1participant-groups~1/post
+        """
         participant_group = ParticipantGroup(**data)
         response_json = cls.post(cls.list_api_endpoint, params=participant_group.to_dict())
         return ParticipantGroup(**response_json)
 
     @classmethod
     def list_perticipants_for_group(cls, id: str) -> List[Participant]:
+        """
+        API docs for this endpoint:
+        https://docs.prolific.co/docs/api-docs/public/#tag/
+            Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/get
+        """
         response_json = cls.get(cls.list_perticipants_for_group_api_endpoint.format(id=id))
+        participants = [Participant(**s) for s in response_json['results']]
+        return participants
+
+    @classmethod
+    def add_perticipants_to_group(cls, id: str, participant_ids: List[str]) -> List[Participant]:
+        """
+        API docs for this endpoint:
+        https://docs.prolific.co/docs/api-docs/public/#tag/
+            Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/post
+        """
+        endpoint = cls.list_perticipants_for_group_api_endpoint.format(id=id)
+        params = dict(participant_ids=participant_ids)
+        response_json = cls.post(endpoint, params=params)
+        participants = [Participant(**s) for s in response_json['results']]
+        return participants
+
+    @classmethod
+    def remove_perticipants_from_group(
+        cls, id: str, participant_ids: List[str],
+    ) -> List[Participant]:
+        """
+        API docs for this endpoint:
+        https://docs.prolific.co/docs/api-docs/public/#tag/
+            Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/delete
+        """
+        endpoint = cls.list_perticipants_for_group_api_endpoint.format(id=id)
+        params = dict(participant_ids=participant_ids)
+        response_json = cls.delete(endpoint, params=params)
         participants = [Participant(**s) for s in response_json['results']]
         return participants
