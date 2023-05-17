@@ -335,6 +335,31 @@ submission: Submission = prolific_api.Submissions.retrieve(id='XXXXXXXXXXXXXXXXX
 
 
 -------------------------------------------------------------------------------
+### Eligibility Requirements
+
+To see fields of `EligibilityRequirement` object,
+look at `mephisto.abstractions.providers.prolific.api.data_models.EligibilityRequirement`
+
+#### List
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.api.data_models import EligibilityRequirement
+
+submission_list: List[EligibilityRequirement] = prolific_api.EligibilityRequirements.list()
+```
+
+#### Count participants
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+
+count: int = prolific_api.EligibilityRequirements.count_participants()
+```
+
+
+
+-------------------------------------------------------------------------------
 ### Exceptions
 
 ```python

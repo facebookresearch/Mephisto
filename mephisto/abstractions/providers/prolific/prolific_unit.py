@@ -43,6 +43,14 @@ class ProlificUnit(Unit):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
 
+    def get_prolific_assignment_id(self) -> Optional[str]:
+        """
+        Return the MTurk assignment id associated with this unit
+        """
+        # TODO
+        # self._sync_hit_mapping()
+        # return self.prolific_assignment_id
+
     def launch(self, task_url: str) -> None:
         """Mock launches do nothing right now beyond updating state"""  # TODO (#1008)
         self.set_db_status(status=AssignmentState.LAUNCHED)

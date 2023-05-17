@@ -17,10 +17,11 @@ from . import api as prolific_api
 from .api import eligibility_requirement_classes
 from .api.base_api_resource import CREDENTIALS_CONFIG_DIR
 from .api.base_api_resource import CREDENTIALS_CONFIG_PATH
-from .api.constants import ProlificIDOption
 from .api.constants import StudyAction
 from .api.constants import StudyCodeType
 from .api.constants import StudyCompletionOption
+from .api.data_models import BonusPayments
+from .api.data_models import Participant
 from .api.data_models import ParticipantGroup
 from .api.data_models import Project
 from .api.data_models import Study
@@ -29,8 +30,6 @@ from .api.exceptions import ProlificException
 from .prolific_requester import ProlificRequesterArgs
 
 DEFAULT_PROLIFIC_BUDGET = 100000.0
-DEFAULT_PROLIFIC_WORKSPACE_NAME = 'My Workspace'
-DEFAULT_PROLIFIC_PROJECT_NAME = 'Project'
 
 logger = get_logger(name=__name__)
 
@@ -78,6 +77,9 @@ def check_balance(*args, **kwargs) -> Union[float, int]:
     Checks to see if there is at least balance_needed amount in the
     requester account, returns True if the balance is greater than
     balance_needed
+
+    NOTE! You can only check your balance on our web application.
+    (https://docs.prolific.co/docs/api-docs/public/#tag/Introduction/Account-balance)
     """
     try:
         user = prolific_api.Users.me()
@@ -85,13 +87,12 @@ def check_balance(*args, **kwargs) -> Union[float, int]:
         logger.exception(f'Could not receive a User Accound data')
         raise
 
+    # For now, we always return some default value as Prolific cannot do this (see docstring)
     return user.available_balance or DEFAULT_PROLIFIC_BUDGET
 
 
 def _find_prolific_workspace(
-    client: prolific_api,
-    id: Optional[str] = None,
-    title: str = DEFAULT_PROLIFIC_WORKSPACE_NAME,
+    client: prolific_api, title: str, id: Optional[str] = None,
 ) -> Tuple[bool, Optional[str]]:
     """Find a Prolific Workspace by title or ID"""
     if id:
@@ -116,12 +117,10 @@ def _find_prolific_workspace(
 
 
 def find_or_create_prolific_workspace(
-    client: prolific_api,
-    id: Optional[str] = None,
-    title: str = DEFAULT_PROLIFIC_WORKSPACE_NAME,
+    client: prolific_api, title: str, id: Optional[str] = None,
 ) -> Optional[str]:
     """Find or create a Prolific Workspace by title or ID"""
-    found_workspace, workspace_id = _find_prolific_workspace(client, id, title)
+    found_workspace, workspace_id = _find_prolific_workspace(client, title, id)
 
     if found_workspace:
         return workspace_id
@@ -136,10 +135,7 @@ def find_or_create_prolific_workspace(
 
 
 def _find_prolific_project(
-    client: prolific_api,
-    workspace_id: str,
-    id: Optional[str] = None,
-    title: str = DEFAULT_PROLIFIC_PROJECT_NAME,
+    client: prolific_api, workspace_id: str, title: str, id: Optional[str] = None,
 ) -> Tuple[bool, Optional[str]]:
     """Find a Prolific Project by title or ID"""
     try:
@@ -158,13 +154,10 @@ def _find_prolific_project(
 
 
 def find_or_create_prolific_project(
-    client: prolific_api,
-    workspace_id: str,
-    id: Optional[str] = None,
-    title: str = DEFAULT_PROLIFIC_PROJECT_NAME,
+    client: prolific_api, workspace_id: str, title: str, id: Optional[str] = None,
 ) -> Optional[str]:
     """Find or create a Prolific Workspace by title or ID"""
-    found_project, project_id = _find_prolific_project(client, workspace_id, id, title)
+    found_project, project_id = _find_prolific_project(client, workspace_id, title, id)
 
     if found_project:
         return project_id
@@ -324,3 +317,99 @@ def remove_worker_qualification(
         )
         raise
 
+
+def pay_bonus(
+    client: prolific_api,
+    run_config: 'DictConfig',
+    worker_id: str,
+    bonus_amount: float,
+    study_id: str,
+    *args,
+    **kwargs,
+) -> bool:
+    """
+    Handles paying bonus to a worker, fails for insufficient funds.
+    Returns True on success and False on failure
+    """
+    if not check_balance():
+        # Just in case if Prolific adds showing an available balance for an account
+        logger.debug('Cannot pay bonus. Reason: Insufficient funds in your Prolific account.')
+        return False
+
+    csv_bonuses = f'{worker_id},{bonus_amount}'
+
+    try:
+        bonus_obj: BonusPayments = client.Bonuses.set_up(study_id, csv_bonuses)
+    except ProlificException:
+        logger.exception(f'Could set up bonuses for Study "{study_id}"')
+        raise
+
+    try:
+        result: str = client.Bonuses.pay(bonus_obj.id)
+        logger.debug(result)
+    except ProlificException:
+        logger.exception(f'Could pay bonuses for Study "{study_id}"')
+        raise
+
+    return True
+
+
+def _get_block_list_qualification(client: prolific_api, run_config: 'DictConfig') -> str:
+    workspace_id = find_or_create_prolific_workspace(
+        client, title=run_config.provider.prolific_workspace_name,
+    )
+    project_id = find_or_create_prolific_project(
+        client, workspace_id, title=run_config.provider.prolific_project_name,
+    )
+    block_list_qualification_id = find_or_create_qualification(
+        client, project_id, run_config.provider.prolific_block_list_group_name,
+    )
+    return block_list_qualification_id
+
+
+def block_worker(
+    client: prolific_api, run_config: 'DictConfig', worker_id: str, reason: str,
+) -> None:
+    """Block a worker by id using the Prolific client, passes reason along"""
+    block_list_qualification_id = _get_block_list_qualification(client, run_config)
+    give_worker_qualification(client, worker_id, block_list_qualification_id)
+
+
+def unblock_worker(
+    client: prolific_api, run_config: 'DictConfig', worker_id: str, reason: str,
+) -> None:
+    """Remove a block on the given worker"""
+    block_list_qualification_id = _get_block_list_qualification(client, run_config)
+    remove_worker_qualification(client, worker_id, block_list_qualification_id)
+
+
+def is_worker_blocked(client: prolific_api, run_config: 'DictConfig', worker_id: str) -> bool:
+    """Determine if the given worker is blocked by this client"""
+    workspace_id = find_or_create_prolific_workspace(
+        client, title=run_config.provider.prolific_workspace_name,
+    )
+    project_id = find_or_create_prolific_project(
+        client, workspace_id, title=run_config.provider.prolific_project_name,
+    )
+    block_list_qualification_id = _find_qualification(
+        client, project_id, run_config.provider.prolific_block_list_group_name,
+    )
+
+    if not block_list_qualification_id:
+        return False
+
+    try:
+        participants: List[Participant] = client.ParticipantGroups.list_perticipants_for_group(
+            block_list_qualification_id,
+        )
+    except ProlificException:
+        logger.exception(
+            f'Could not receive a list of participants for group "{block_list_qualification_id}"'
+        )
+        raise
+
+    participants_ids = [p.participant_id for p in participants]
+    if worker_id in participants_ids:
+        return True
+
+    return False

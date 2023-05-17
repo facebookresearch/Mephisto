@@ -39,6 +39,10 @@ if TYPE_CHECKING:
 
 
 DEFAULT_FRAME_HEIGHT = 0
+DEFAULT_ALLOW_LIST_GROUP_NAME = 'Allow list'
+DEFAULT_BLOCK_LIST_GROUP_NAME = 'Block list'
+DEFAULT_PROLIFIC_WORKSPACE_NAME = 'My Workspace'
+DEFAULT_PROLIFIC_PROJECT_NAME = 'Project'
 
 
 logger = get_logger(name=__name__)
@@ -105,6 +109,18 @@ class ProlificProviderArgs(ProviderArgs):
             ),
         },
     )
+    prolific_workspace_name: str = field(
+        default=DEFAULT_PROLIFIC_WORKSPACE_NAME,
+    )
+    prolific_project_name: str = field(
+        default=DEFAULT_PROLIFIC_PROJECT_NAME,
+    )
+    prolific_allow_list_group_name: str = field(
+        default=DEFAULT_ALLOW_LIST_GROUP_NAME,
+    )
+    prolific_block_list_group_name: str = field(
+        default=DEFAULT_BLOCK_LIST_GROUP_NAME,
+    )
 
 
 @register_mephisto_abstraction()
@@ -146,9 +162,11 @@ class ProlificProvider(CrowdProvider):
         task_run_id = task_run.db_id
 
         # Get Prolific specific data to create a task
-        prolific_workspace_id = prolific_utils.find_or_create_prolific_workspace(client)
+        prolific_workspace_id = prolific_utils.find_or_create_prolific_workspace(
+            client, title=args.provider.prolific_workspace_name,
+        )
         prolific_project_id = prolific_utils.find_or_create_prolific_project(
-            client, prolific_workspace_id,
+            client, prolific_workspace_id, title=args.provider.prolific_project_name,
         )
 
         # Set up Task Run config

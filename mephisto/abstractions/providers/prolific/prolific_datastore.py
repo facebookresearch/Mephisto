@@ -52,6 +52,7 @@ CREATE_RUNS_TABLE = """
 CREATE TABLE IF NOT EXISTS runs (
     run_id TEXT PRIMARY KEY UNIQUE,
     arn_id TEXT,
+    prolific_workspace_id TEXT NOT NULL,
     prolific_project_id TEXT NOT NULL,
     prolific_study_id TEXT NOT NULL,
     prolific_study_config_path TEXT NOT NULL,
@@ -376,7 +377,7 @@ class ProlificDatastore:
                     prolific_study_id,
                     prolific_study_config_path,
                     frame_height
-                ) VALUES (?, ?, ?, ?, ?);
+                ) VALUES (?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     run_id,

@@ -1,0 +1,37 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: local
+  - /mephisto/provider: prolific
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/data.csv
+    task_source: ${task_dir}/server_files/demo_task.html
+    preview_source: ${task_dir}/server_files/demo_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 2
+  task:
+    task_name: 'html-static-task-example'
+    task_title: 'Test static Prolific task'
+    task_description: 'This is a simple test of static Prolific tasks.'
+    task_reward: 14
+    task_tags: 'static,task,testing'
+  provider:
+    prolific_external_study_url: 'https://example.com?prolific_pid={{%PROLIFIC_PID%}}&study_id={{%STUDY_ID%}}&session_id={{%SESSION_ID%}}'
+    prolific_id_option: 'url_parameters'
+    prolific_workspace_name: 'My Workspace'
+    prolific_project_name: 'Project'
+    prolific_allow_list_group_name: 'Allow list'
+    prolific_block_list_group_name: 'Block list'
+    prolific_eligibility_requirements:
+      - name: 'AgeRangeEligibilityRequirement'
+        min_age: 10
+        max_age: 20
+      - name: 'ApprovalNumbersEligibilityRequirement'
+        minimum_approvals: 100
+        maximum_approvals: 200
+      - name: 'ApprovalRateEligibilityRequirement'
+        minimum_approval_rate: 10
+        maximum_approval_rate: 20
+      - name: 'JoinedBeforeEligibilityRequirement'
+        joined_before: ''

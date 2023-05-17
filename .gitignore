@@ -26,6 +26,7 @@ mephisto/scripts/metrics/*
 # Examples
 examples/simple_static_task/hydra_configs/conf/*
 !examples/simple_static_task/hydra_configs/conf/example.yaml
+!examples/simple_static_task/hydra_configs/conf/prolific_example.yaml
 !examples/simple_static_task/hydra_configs/conf/onboarding_example.yaml
 examples/**/build/*
 

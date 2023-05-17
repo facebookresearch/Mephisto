@@ -55,7 +55,7 @@ class BaseAPIResource(object):
         api_endpoint: str,
         params: Optional[dict] = None,
         headers: Optional[dict] = None,
-    ) -> dict:
+    ) -> Union[dict, str]:
         log_prefix = f'[{cls.__name__}]'
 
         if API_KEY is None:
