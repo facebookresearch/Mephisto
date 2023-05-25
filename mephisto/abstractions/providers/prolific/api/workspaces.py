@@ -8,13 +8,11 @@ from typing import List
 
 from .base_api_resource import BaseAPIResource
 from .data_models import Workspace
-from .data_models import WorkspaceBalance
 
 
 class Workspaces(BaseAPIResource):
     list_api_endpoint = 'workspaces/'
     retrieve_api_endpoint = 'workspaces/{id}/'
-    get_balance_api_endpoint = 'workspaces/{id}/balance/'
 
     @classmethod
     def list(cls) -> List[Workspace]:
@@ -34,9 +32,3 @@ class Workspaces(BaseAPIResource):
         workspace.validate()
         response_json = cls.post(cls.list_api_endpoint, params=workspace.to_dict())
         return Workspace(**response_json)
-
-    @classmethod
-    def get_balance(cls, id: str) -> WorkspaceBalance:
-        endpoint = cls.get_balance_api_endpoint.format(id=id)
-        response_json = cls.get(endpoint)
-        return WorkspaceBalance(**response_json)

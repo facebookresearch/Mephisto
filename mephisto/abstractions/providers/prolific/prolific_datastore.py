@@ -7,6 +7,8 @@
 import os
 import sqlite3
 import threading
+import time
+from collections import defaultdict
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -15,6 +17,24 @@ from mephisto.abstractions.databases.local_database import is_unique_failure
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
+
+CREATE_STUDIES_TABLE = """
+CREATE TABLE IF NOT EXISTS studies (
+    study_id TEXT PRIMARY KEY UNIQUE,
+    unit_id TEXT,
+    assignment_id TEXT,
+    link TEXT,
+    assignment_time_in_seconds INTEGER NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RUN_MAP_TABLE = """
+CREATE TABLE IF NOT EXISTS run_mappings (
+    study_id TEXT,
+    run_id TEXT
+);
+"""
 
 CREATE_REQUESTERS_TABLE = """
 CREATE TABLE IF NOT EXISTS requesters (
@@ -74,6 +94,9 @@ class ProlificDatastore:
         self.db_path = os.path.join(datastore_root, f"{PROVIDER_TYPE}.db")
         self.init_tables()
         self.datastore_root = datastore_root
+        self._last_hit_mapping_update_times: Dict[str, float] = defaultdict(
+            lambda: time.monotonic()
+        )
 
     def _get_connection(self) -> sqlite3.Connection:
         """
@@ -92,12 +115,41 @@ class ProlificDatastore:
             conn = self._get_connection()
             conn.execute("PRAGMA foreign_keys = 1")
             c = conn.cursor()
+            c.execute(CREATE_STUDIES_TABLE)
             c.execute(CREATE_REQUESTERS_TABLE)
             c.execute(CREATE_UNITS_TABLE)
             c.execute(CREATE_WORKERS_TABLE)
-            c.execute(CREATE_QUALIFICATIONS_TABLE)
             c.execute(CREATE_RUNS_TABLE)
+            c.execute(CREATE_RUN_MAP_TABLE)
+            c.execute(CREATE_QUALIFICATIONS_TABLE)
             conn.commit()
+
+    def is_study_mapping_in_sync(self, unit_id: str, compare_time: float):
+        """Determine if a cached value from the given compare time is still valid"""
+        return compare_time > self._last_hit_mapping_update_times[unit_id]
+
+    def get_unassigned_study_ids(self, run_id: str):
+        """Return a list of all Study ids that haven't been assigned"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT
+                    study_id,
+                    unit_id,
+                    run_id
+                FROM
+                    studies
+                INNER JOIN run_mappings
+                    USING  (study_id)
+                WHERE unit_id IS NULL
+                AND run_id = ?;
+                """,
+                (run_id,),
+            )
+            results = c.fetchall()
+            return [r['study_id'] for r in results]
 
     def ensure_requester_exists(self, requester_id: str) -> None:
         """Create a record of this requester if it doesn't exist"""
@@ -354,6 +406,21 @@ class ProlificDatastore:
                 return None
             else:
                 raise e
+
+    def get_study_mapping(self, unit_id: str) -> sqlite3.Row:
+        """Get the mapping between Mephisto IDs and Prolific IDs"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from studies
+                WHERE unit_id = ?
+                """,
+                (unit_id,),
+            )
+            results = c.fetchall()
+            return results[0]
 
     def register_run(
         self,

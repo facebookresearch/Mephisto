@@ -14,4 +14,3 @@ from .study import Study
 from .submission import Submission
 from .user import User
 from .workspace import Workspace
-from .workspace_balance import WorkspaceBalance

@@ -10,6 +10,10 @@ class ProlificIDOption:
 class StudyAction:
     AUTOMATICALLY_APPROVE = 'AUTOMATICALLY_APPROVE'
     MANUALLY_REVIEW = 'MANUALLY_REVIEW'
+    PUBLISH = 'PUBLISH'
+    START = 'START'
+    STOP = 'STOP'
+    UNPUBLISHED = 'UNPUBLISHED'
 
 
 class StudyCompletionOption:

@@ -1,7 +1,5 @@
 import inspect
 
-from omegaconf import ListConfig
-
 
 class BaseEligibilityRequirement:
     """
@@ -40,10 +38,6 @@ class BaseEligibilityRequirement:
         )
         for param_name in self.params():
             param_value = getattr(self, param_name, None)
-
-            if isinstance(param_value, ListConfig):
-                param_value = list(param_value)
-
             if param_value:
                 prolific_dict['attributes'].append(dict(
                     name=param_name,

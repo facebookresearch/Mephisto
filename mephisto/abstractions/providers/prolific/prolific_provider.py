@@ -189,10 +189,14 @@ class ProlificProvider(CrowdProvider):
 
         if hasattr(shared_state, 'prolific_specific_qualifications'):
             # TODO(OWN) standardize provider-specific qualifications
+            #  For now we don't use them.
+            #  See `ProlificProviderArgs.prolific_eligibility_requirements`
             qualifications += shared_state.prolific_specific_qualifications
 
         # Set up Task Run (Prolific Study)
-        task_id = prolific_utils.create_task(client, args, prolific_project_id)
+        study_id = prolific_utils.create_study(client, args, prolific_project_id)
+        # We publish studies right away
+        prolific_utils.publish_study(client, study_id)
         frame_height = task_run.get_blueprint().get_frontend_args().get(
             'frame_height', DEFAULT_FRAME_HEIGHT,
         )
@@ -200,7 +204,7 @@ class ProlificProvider(CrowdProvider):
             run_id=task_run_id,
             prolific_workspace_id=prolific_workspace_id,
             prolific_project_id=prolific_project_id,
-            prolific_study_id=task_id,
+            prolific_study_id=study_id,
             prolific_study_config_path=config_dir,
             frame_height=frame_height,
         )

@@ -26,9 +26,10 @@ from .api.data_models import ParticipantGroup
 from .api.data_models import Project
 from .api.data_models import Study
 from .api.data_models import Workspace
-from .api.data_models import WorkspaceBalance
 from .api.exceptions import ProlificException
 from .prolific_requester import ProlificRequesterArgs
+
+DEFAULT_PROLIFIC_BUDGET = 100000.0
 
 logger = get_logger(name=__name__)
 
@@ -71,25 +72,23 @@ def _get_eligibility_requirements(run_config_value: List[dict]) -> List[dict]:
     return eligibility_requirements
 
 
-def check_balance(*args, **kwargs) -> Union[float, int, None]:
-    """Checks to see if there is at least available_balance amount in the workspace"""
-    workspace_name = kwargs.get('workspace_name')
-    if not workspace_name:
-        return None
+def check_balance(*args, **kwargs) -> Union[float, int]:
+    """
+    Checks to see if there is at least balance_needed amount in the
+    requester account, returns True if the balance is greater than
+    balance_needed
 
-    found_workspace, workspace_id = _find_prolific_workspace(prolific_api, title=workspace_name)
-
-    if not found_workspace:
-        logger.error(f'Could not find a workspace with name {workspace_name}')
-        return None
-
+    NOTE! You can only check your balance on our web application.
+    (https://docs.prolific.co/docs/api-docs/public/#tag/Introduction/Account-balance)
+    """
     try:
-        workspace_ballance: WorkspaceBalance = prolific_api.Workspaces.get_balance(id=workspace_id)
+        user = prolific_api.Users.me()
     except ProlificException:
-        logger.exception(f'Could not receive a workspace balance with {workspace_id=}')
+        logger.exception(f'Could not receive a User Accound data')
         raise
 
-    return workspace_ballance.available_balance
+    # For now, we always return some default value as Prolific cannot do this (see docstring)
+    return user.available_balance or DEFAULT_PROLIFIC_BUDGET
 
 
 def _find_prolific_workspace(
@@ -235,7 +234,7 @@ def find_or_create_qualification(
     return qualification.id if qualification else None
 
 
-def create_task(
+def create_study(
     client: prolific_api, run_config: "DictConfig", prolific_project_id: str, *args, **kwargs,
 ) -> str:
     """Create a task (Prolific Study)"""
@@ -289,10 +288,25 @@ def create_task(
     return study_id
 
 
+def publish_study(client: prolific_api, study_id: str) -> str:
+    try:
+        client.Studies.publish(id=study_id)
+    except ProlificException:
+        logger.exception(f'Could not publish a Study  "{study_id}"')
+        raise
+    return study_id
+
+
+def expire_study(client: prolific_api, study_id: str):
+    # TODO
+    #  https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
+    pass
+
+
 def give_worker_qualification(
     client: prolific_api, worker_id: str, qualification_id: str, *args, **kwargs,
 ) -> None:
-    """Give a qualification to the given worker"""
+    """Give a qualification to the given worker (add a worker to a Participant Group)"""
     try:
         client.ParticipantGroups.add_perticipants_to_group(
             id=qualification_id, participant_ids=[worker_id],
@@ -307,7 +321,7 @@ def give_worker_qualification(
 def remove_worker_qualification(
     client: prolific_api, worker_id: str, qualification_id: str, *args, **kwargs,
 ) -> None:
-    """Remove a qualification for the given worker"""
+    """Remove a qualification for the given worker (remove a worker from a Participant Group)"""
     try:
         client.ParticipantGroups.remove_perticipants_from_group(
             id=qualification_id, participant_ids=[worker_id],
@@ -332,7 +346,7 @@ def pay_bonus(
     Handles paying bonus to a worker, fails for insufficient funds.
     Returns True on success and False on failure
     """
-    if not check_balance(workspace_name=run_config.provider.prolific_workspace_name):
+    if not check_balance():
         # Just in case if Prolific adds showing an available balance for an account
         logger.debug('Cannot pay bonus. Reason: Insufficient funds in your Prolific account.')
         return False
@@ -414,3 +428,16 @@ def is_worker_blocked(client: prolific_api, run_config: 'DictConfig', worker_id:
         return True
 
     return False
+
+
+def calculate_pay_amount(
+    client, task_amount: Union[int, float], total_available_places: int,
+) -> Union[int, float]:
+    try:
+        total_cost: Union[int, float] = client.Studies.calculate_cost(
+            reward=task_amount, total_available_places=total_available_places,
+        )
+    except ProlificException:
+        logger.exception('Could not calculate total cost for a study')
+        raise
+    return total_cost

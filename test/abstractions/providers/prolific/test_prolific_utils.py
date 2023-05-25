@@ -20,7 +20,7 @@ from mephisto.abstractions.providers.prolific.api.data_models import User
 from mephisto.abstractions.providers.prolific.api.exceptions import ProlificRequestError
 from mephisto.abstractions.providers.prolific.prolific_utils import _find_qualification
 from mephisto.abstractions.providers.prolific.prolific_utils import check_credentials
-from mephisto.abstractions.providers.prolific.prolific_utils import create_task
+from mephisto.abstractions.providers.prolific.prolific_utils import create_study
 from mephisto.abstractions.providers.prolific.prolific_utils import find_or_create_qualification
 from mephisto.abstractions.providers.prolific.prolific_utils import setup_credentials
 from mephisto.data_model.requester import RequesterArgs
@@ -171,7 +171,7 @@ class TestProlificUtils(unittest.TestCase):
         self.assertEqual(cm.exception.message, exception_message)
 
     @patch('mephisto.abstractions.providers.prolific.api.studies.Studies.create')
-    def test_create_task_success(self, mock_study_create, *args):
+    def test_create_study_success(self, mock_study_create, *args):
         project_id = uuid4().hex[:24]
         expected_task_id = uuid4().hex[:24]
         mock_study_create.return_value = Study(
@@ -179,23 +179,23 @@ class TestProlificUtils(unittest.TestCase):
             id=expected_task_id,
             name='test',
         )
-        result = create_task(
-            prolific_project_id=project_id,
+        result = create_study(
             client=prolific_api,
-            task_args=mock_task_run_args,
+            run_config=mock_task_run_args,
+            prolific_project_id=project_id,
         )
         self.assertEqual(result, expected_task_id)
 
     @patch('mephisto.abstractions.providers.prolific.api.studies.Studies.create')
-    def test_create_task_error(self, mock_study_create, *args):
+    def test_create_study_error(self, mock_study_create, *args):
         project_id = uuid4().hex[:24]
         exception_message = 'Error'
         mock_study_create.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
-            create_task(
-                prolific_project_id=project_id,
+            create_study(
                 client=prolific_api,
-                task_args=mock_task_run_args,
+                run_config=mock_task_run_args,
+                prolific_project_id=project_id,
             )
         self.assertEqual(cm.exception.message, exception_message)
 
