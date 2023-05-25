@@ -86,7 +86,7 @@ class ProlificWorker(Worker):
         return True, ''
 
     @staticmethod
-    def _get_first_task_run_args(requester: Requester) -> 'DictConfig':
+    def _get_first_task_run_args(requester: 'Requester') -> 'DictConfig':
         task_runs: List[TaskRun] = requester.get_task_runs()
         return task_runs[0].args
 

@@ -11,8 +11,7 @@ from typing import Mapping
 from typing import Optional
 from typing import TYPE_CHECKING
 
-from mephisto.abstractions.providers.prolific.prolific_utils import calculate_pay_amount
-from mephisto.abstractions.providers.prolific.prolific_utils import expire_study
+from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
@@ -60,12 +59,12 @@ class ProlificUnit(Unit):
             return
         try:
             mapping = dict(self.datastore.get_study_mapping(self.db_id))
-            self.study_id = mapping['study_id']
+            self.prolific_study_id = mapping['study_id']
             self.prolific_assignment_id = mapping.get('assignment_id')  # TODO
             self.assignment_time_in_seconds = mapping.get('assignment_time_in_seconds')
         except IndexError:
             # HIT does not appear to exist
-            self.study_id = None
+            self.prolific_study_id = None
             self.prolific_assignment_id = None  # TODO
             self.assignment_time_in_seconds = -1
         # We update to a time slightly earlier than now, in order
@@ -78,7 +77,7 @@ class ProlificUnit(Unit):
         Return the Porlific Study ID associated with this unit
         """
         self._sync_study_mapping()
-        return self.study_id
+        return self.prolific_study_id
 
     def get_requester(self) -> 'ProlificRequester':
         """Wrapper around regular Requester as this will be ProlificRequester"""
@@ -95,28 +94,32 @@ class ProlificUnit(Unit):
         # return self.prolific_assignment_id
         return None
 
-    def launch(self, task_url: str) -> None:
-        """Mock launches do nothing right now beyond updating state"""  # TODO (#1008)
-        self.set_db_status(status=AssignmentState.LAUNCHED)
-
-        # TODO(OWN) get this link to the frontend
-        port = task_url.split(":")[1].split("/")[0]
-        if port:
-            assignment_url = (
-                f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
+    def clear_assigned_agent(self) -> None:
+        """
+        Additionally to clearing the agent, we also need to dissociate the
+        study_id from this unit in the ProlificDatastore
+        """
+        if self.db_status == AssignmentState.COMPLETED:
+            logger.warning(
+                f"Clearing an agent when COMPLETED, it's likely a submit happened "
+                f"but could not be received by the Mephisto backend. This "
+                f"assignment clear is thus being ignored, but this message "
+                f"is indicative of some data loss."
             )
-        else:
-            assignment_url = f"{task_url}/?worker_id=x&assignment_id={self.db_id}"
-        logger.info(
-            f"Mock task launched: http://localhost:{port} for preview, "  # TODO (#1008)
-            f"{assignment_url}"
-        )
-        logger.info(
-            f"Mock task launched: http://localhost:{port} for preview, "  # TODO (#1008)
-            f"{assignment_url} for assignment {self.assignment_id}"
-        )
+            # TODO(OWN) how can we reconcile missing data here? Marking this agent as
+            #  COMPLETED will pollute the data, but not marking it means that
+            #  it will have to be the auto-approve deadline.
+            return
 
-        return None
+        super().clear_assigned_agent()
+
+        prolific_study_id = self.get_prolific_study_id()
+        if prolific_study_id is not None:
+            self.datastore.clear_study_from_unit(unit_id=self.db_id)
+            self._sync_study_mapping()
+
+        if self.db_status == AssignmentState.ASSIGNED:
+            self.set_db_status(AssignmentState.LAUNCHED)
 
     def get_pay_amount(self) -> float:
         """
@@ -126,12 +129,21 @@ class ProlificUnit(Unit):
         requester = self.get_requester()
         client = self._get_client(requester.requester_name)
         run_args = self.get_task_run().args
-        total_amount = calculate_pay_amount(
+        total_amount = prolific_utils.calculate_pay_amount(
             client,
             task_amount=run_args.task.task_reward,
             total_available_places=run_args.provider.prolific_total_available_places,
         )
         return total_amount
+
+    def launch(self, task_url: str) -> None:
+        """Publish this Study on Prolific (making it available)"""
+        requester = self.get_requester()
+        client = self._get_client(requester.requester_name)
+        prolific_study_id = self.get_prolific_study_id()
+        prolific_utils.publish_study(client, prolific_study_id)
+        self.set_db_status(AssignmentState.LAUNCHED)
+        return None
 
     def expire(self) -> float:
         """Send a request to expire the study"""
@@ -153,7 +165,7 @@ class ProlificUnit(Unit):
         requester = self.get_requester()
         client = self._get_client(requester.requester_name)
         if prolific_study_id is not None:
-            expire_study(client, prolific_study_id)
+            prolific_utils.expire_study(client, prolific_study_id)
             return delay
         else:
             unassigned_study_ids = self.datastore.get_unassigned_study_ids(self.task_run_id)
@@ -162,8 +174,8 @@ class ProlificUnit(Unit):
                 self.set_db_status(AssignmentState.EXPIRED)
                 return delay
 
-            study_id = unassigned_study_ids[0]
-            expire_study(client, study_id)
+            prolific_study_id = unassigned_study_ids[0]
+            prolific_utils.expire_study(client, prolific_study_id)
             # TODO: We do not need that if we don't have assignments in Prolific (???)
             # self.datastore.register_assignment_to_hit(study_id, self.db_id)
             self.set_db_status(AssignmentState.EXPIRED)

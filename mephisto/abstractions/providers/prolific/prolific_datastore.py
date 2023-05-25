@@ -17,69 +17,7 @@ from mephisto.abstractions.databases.local_database import is_unique_failure
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
-
-CREATE_STUDIES_TABLE = """
-CREATE TABLE IF NOT EXISTS studies (
-    study_id TEXT PRIMARY KEY UNIQUE,
-    unit_id TEXT,
-    assignment_id TEXT,
-    link TEXT,
-    assignment_time_in_seconds INTEGER NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-CREATE_RUN_MAP_TABLE = """
-CREATE TABLE IF NOT EXISTS run_mappings (
-    study_id TEXT,
-    run_id TEXT
-);
-"""
-
-CREATE_REQUESTERS_TABLE = """
-CREATE TABLE IF NOT EXISTS requesters (
-    requester_id TEXT PRIMARY KEY UNIQUE,
-    is_registered BOOLEAN
-);
-"""
-
-CREATE_UNITS_TABLE = """
-CREATE TABLE IF NOT EXISTS units (
-    unit_id TEXT PRIMARY KEY UNIQUE,
-    is_expired BOOLEAN
-);
-"""
-
-CREATE_WORKERS_TABLE = """
-CREATE TABLE IF NOT EXISTS workers (
-    worker_id TEXT PRIMARY KEY UNIQUE,
-    is_blocked BOOLEAN
-);
-"""
-
-CREATE_QUALIFICATIONS_TABLE = """
-CREATE TABLE IF NOT EXISTS qualifications (
-    qualification_name TEXT PRIMARY KEY UNIQUE,
-    requester_id TEXT,
-    prolific_project_id TEXT,
-    prolific_participant_group_name TEXT,
-    prolific_participant_group_id TEXT,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-CREATE_RUNS_TABLE = """
-CREATE TABLE IF NOT EXISTS runs (
-    run_id TEXT PRIMARY KEY UNIQUE,
-    arn_id TEXT,
-    prolific_workspace_id TEXT NOT NULL,
-    prolific_project_id TEXT NOT NULL,
-    prolific_study_id TEXT NOT NULL,
-    prolific_study_config_path TEXT NOT NULL,
-    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    frame_height INTEGER NOT NULL DEFAULT 650
-);
-"""
+from . import prolific_datastore_tables as tables
 
 logger = get_logger(name=__name__)
 
@@ -94,7 +32,7 @@ class ProlificDatastore:
         self.db_path = os.path.join(datastore_root, f"{PROVIDER_TYPE}.db")
         self.init_tables()
         self.datastore_root = datastore_root
-        self._last_hit_mapping_update_times: Dict[str, float] = defaultdict(
+        self._last_study_mapping_update_times: Dict[str, float] = defaultdict(
             lambda: time.monotonic()
         )
 
@@ -109,24 +47,57 @@ class ProlificDatastore:
             self.conn[curr_thread] = conn
         return self.conn[curr_thread]
 
+    def _mark_study_mapping_update(self, unit_id: str) -> None:
+        """
+        Update the last Study mapping time to mark a change to the Study
+        mappings table and allow dependents to invalidate caches
+        """
+        self._last_study_mapping_update_times[unit_id] = time.monotonic()
+
     def init_tables(self) -> None:
         """Run all the table creation SQL queries to ensure the expected tables exist"""
         with self.table_access_condition:
             conn = self._get_connection()
-            conn.execute("PRAGMA foreign_keys = 1")
+            conn.execute('PRAGMA foreign_keys = 1')
             c = conn.cursor()
-            c.execute(CREATE_STUDIES_TABLE)
-            c.execute(CREATE_REQUESTERS_TABLE)
-            c.execute(CREATE_UNITS_TABLE)
-            c.execute(CREATE_WORKERS_TABLE)
-            c.execute(CREATE_RUNS_TABLE)
-            c.execute(CREATE_RUN_MAP_TABLE)
-            c.execute(CREATE_QUALIFICATIONS_TABLE)
+            c.execute(tables.CREATE_STUDIES_TABLE)
+            c.execute(tables.CREATE_REQUESTERS_TABLE)
+            c.execute(tables.CREATE_UNITS_TABLE)
+            c.execute(tables.CREATE_WORKERS_TABLE)
+            c.execute(tables.CREATE_RUNS_TABLE)
+            c.execute(tables.CREATE_RUN_MAP_TABLE)
+            c.execute(tables.CREATE_QUALIFICATIONS_TABLE)
             conn.commit()
 
     def is_study_mapping_in_sync(self, unit_id: str, compare_time: float):
         """Determine if a cached value from the given compare time is still valid"""
-        return compare_time > self._last_hit_mapping_update_times[unit_id]
+        return compare_time > self._last_study_mapping_update_times[unit_id]
+
+    def new_study(
+        self, study_id: str, study_link: str, duration_in_seconds: int, run_id: str,
+    ) -> None:
+        """Register a new Study mapping in the table"""
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                """
+                INSERT INTO studies(
+                    study_id,
+                    link,
+                    assignment_time_in_seconds
+                ) VALUES (?, ?, ?);
+                """,
+                (study_id, study_link, duration_in_seconds),
+            )
+            c.execute(
+                """
+                INSERT INTO run_mappings(
+                    study_id,
+                    run_id
+                ) VALUES (?, ?);
+                """,
+                (study_id, run_id),
+            )
 
     def get_unassigned_study_ids(self, run_id: str):
         """Return a list of all Study ids that haven't been assigned"""
@@ -407,6 +378,40 @@ class ProlificDatastore:
             else:
                 raise e
 
+    def clear_study_from_unit(self, unit_id: str) -> None:
+        """
+        Clear the Study mapping that maps the given unit,
+        if such a unit-study map exists
+        """
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * FROM studies
+                WHERE unit_id = ?
+                """,
+                (unit_id,),
+            )
+            results = c.fetchall()
+            if len(results) == 0:
+                return
+            if len(results) > 1:
+                logger.warning(
+                    'WARNING - UNIT HAD MORE THAN ONE STUDY MAPPED TO IT!',
+                    unit_id,
+                    [dict(r) for r in results],
+                )
+            result_study_id = results[0]['study_id']
+            c.execute(
+                """
+                UPDATE studies
+                SET assignment_id = ?, unit_id = ?
+                WHERE srudy_id = ?
+                """,
+                (None, None, result_study_id),
+            )
+            self._mark_study_mapping_update(unit_id)
+
     def get_study_mapping(self, unit_id: str) -> sqlite3.Row:
         """Get the mapping between Mephisto IDs and Prolific IDs"""
         with self.table_access_condition:
@@ -456,3 +461,18 @@ class ProlificDatastore:
                     frame_height,
                 ),
             )
+
+    def get_run(self, run_id: str) -> sqlite3.Row:
+        """Get the details for a run by task_run_id"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from runs
+                WHERE run_id = ?
+                """,
+                (run_id,),
+            )
+            results = c.fetchall()
+            return results[0]

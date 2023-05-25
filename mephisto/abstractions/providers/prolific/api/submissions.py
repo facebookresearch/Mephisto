@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List
+from typing import Optional
 
 from .base_api_resource import BaseAPIResource
 from .data_models import Submission
@@ -15,8 +16,11 @@ class Submissions(BaseAPIResource):
     retrieve_api_endpoint = 'submissions/{id}/'
 
     @classmethod
-    def list(cls) -> List[Submission]:
-        response_json = cls.get(cls.list_api_endpoint)
+    def list(cls, study_id: Optional[str] = None) -> List[Submission]:
+        endpoint = cls.list_api_endpoint
+        if study_id:
+            endpoint = f'{endpoint}?study={study_id}'
+        response_json = cls.get(endpoint)
         submissions = [Submission(**s) for s in response_json['results']]
         return submissions
 

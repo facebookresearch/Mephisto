@@ -188,6 +188,45 @@ study: Study = prolific_api.Studies.create(
 )
 ```
 
+#### Update
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.api.data_models import Study
+
+study: Study = prolific_api.Studies.update(
+    id='XXXXXXXXXXXXXXXXXXXXXXXX',
+    name='Name',
+    internal_name='Internal name',
+    description='Description',
+)
+```
+
+#### Remove
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+
+study = prolific_api.Studies.remove(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+```
+
+#### Publish
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.api.data_models import Study
+
+study: Study = prolific_api.Studies.publish(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+```
+
+#### Calculate Cost
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+
+study: Union[int, float] = prolific_api.Studies.calculate_cost(reward=100, total_available_places=2)
+```
+
 
 
 -------------------------------------------------------------------------------
@@ -232,6 +271,29 @@ participant_list: List[Participant] = prolific_api.ParticipantGroups.list_pertic
 )
 ```
 
+#### Add Perticipants to Participant Group
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.api.data_models import Participant
+
+participant_list: List[Participant] = prolific_api.ParticipantGroups.add_perticipants_to_group(
+    id='PPPPPPPPPPPPPPPPPPPPPPPPP', 
+    participant_ids=['pppppppppppppppppppppppp1', 'pppppppppppppppppppppppp2'],
+)
+```
+
+#### Remove Perticipants from Participant Group
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.api.data_models import Participant
+
+participant_list: List[Participant] = prolific_api.ParticipantGroups.remove_perticipants_from_group(
+    id='PPPPPPPPPPPPPPPPPPPPPPPPP', 
+    participant_ids=['pppppppppppppppppppppppp1', 'pppppppppppppppppppppppp2'],
+)
+
 
 
 -------------------------------------------------------------------------------
@@ -258,7 +320,10 @@ bonus_payments: BonusPayments = prolific_api.Bonuses.set_up(
 from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import BonusPayments
 
-bonus_payments: BonusPayments = prolific_api.Bonuses.set_up(...)
+bonus_payments: BonusPayments = prolific_api.Bonuses.set_up(
+    study_id='XXXXXXXXXXXXXXXXXXXXXXXXX',
+    csv_bonuses='60ffe5c8371090c7041d43f8,4.25\n60ff44a1d00991f1dfe405d9,4.25',
+)
 prolific_api.Bonuses.pay(id=bonus_payments.id)
 ```
 
@@ -321,6 +386,10 @@ from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Submission
 
 submission_list: List[Submission] = prolific_api.Submissions.list()
+# or
+submission_list: List[Submission] = prolific_api.Submissions.list(
+    study_id='XXXXXXXXXXXXXXXXXXXXXXXX',
+)
 ```
 
 #### Retrieve

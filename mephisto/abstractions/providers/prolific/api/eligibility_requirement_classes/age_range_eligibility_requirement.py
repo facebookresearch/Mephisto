@@ -10,3 +10,8 @@ class AgeRangeEligibilityRequirement(BaseEligibilityRequirement):
     def __init__(self, min_age: int, max_age: int):
         self.min_age = min_age
         self.max_age = max_age
+
+    def to_prolific_dict(self) -> dict:
+        prolific_dict = super().to_prolific_dict()
+        prolific_dict['query'] = dict(id=None)
+        return prolific_dict

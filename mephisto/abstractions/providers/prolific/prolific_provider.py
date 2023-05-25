@@ -194,9 +194,14 @@ class ProlificProvider(CrowdProvider):
             qualifications += shared_state.prolific_specific_qualifications
 
         # Set up Task Run (Prolific Study)
-        study_id = prolific_utils.create_study(client, args, prolific_project_id)
-        # We publish studies right away
-        prolific_utils.publish_study(client, study_id)
+        prolific_study_id = prolific_utils.create_study(client, args, prolific_project_id)
+
+        self.datastore.new_study(
+            study_id=prolific_study_id,
+            study_link='',
+            duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
+            run_id=task_run_id,
+        )
         frame_height = task_run.get_blueprint().get_frontend_args().get(
             'frame_height', DEFAULT_FRAME_HEIGHT,
         )
@@ -204,7 +209,7 @@ class ProlificProvider(CrowdProvider):
             run_id=task_run_id,
             prolific_workspace_id=prolific_workspace_id,
             prolific_project_id=prolific_project_id,
-            prolific_study_id=study_id,
+            prolific_study_id=prolific_study_id,
             prolific_study_config_path=config_dir,
             frame_height=frame_height,
         )

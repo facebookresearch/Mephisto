@@ -66,7 +66,7 @@ class Studies(BaseAPIResource):
         return Study(**response_json)
 
     @classmethod
-    def update(cls, **data) -> Study:
+    def update(cls, id: str, **data) -> Study:
         """
         API docs for this endpoint:
         https://docs.prolific.co/docs/api-docs/public/#tag/

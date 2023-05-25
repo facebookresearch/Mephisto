@@ -77,7 +77,13 @@ class ProlificRequester(Requester):
         return prolific_utils.check_credentials(self.requester_name)
 
     def get_available_budget(self) -> float:
-        return prolific_utils.check_balance()
+        unit = self.db.find_units(requester_id=self.db_id)[0]
+        task_run = unit.get_task_run()
+        task_run_args = task_run.args
+        balance = prolific_utils.check_balance(
+            workspace_name=task_run_args.provider.prolific_workspace_name,
+        )
+        return balance
 
     def create_new_qualification(self, prolific_project_id: str, qualification_name: str) -> str:
         """
