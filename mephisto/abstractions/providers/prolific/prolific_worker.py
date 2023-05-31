@@ -12,8 +12,6 @@ from typing import Optional
 from typing import Tuple
 from typing import TYPE_CHECKING
 
-from omegaconf import DictConfig
-
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.worker import Worker
@@ -23,6 +21,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
     from mephisto.abstractions.providers.prolific.prolific_requester import ProlificRequester
+    from mephisto.abstractions.providers.prolific.prolific_unit import ProlificUnit
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.unit import Unit
@@ -61,34 +60,34 @@ class ProlificWorker(Worker):
         if unit is None:
             return False, 'bonusing via compensation tasks not yet available'
 
-        unit = cast('ProlificUnit', unit)
-        prolific_assignment_id = unit.get_prolific_assignment_id()
-        assert prolific_assignment_id is not None, 'Cannot bonus for a unit with no agent'
-
+        unit: 'ProlificUnit' = cast('ProlificUnit', unit)
         if unit is None:
-            # TODO(WISH) soft block from all requesters? Maybe have the main
-            # requester soft block?
+            # TODO(WISH) soft block from all requesters? Maybe have the main requester soft block?
             return (
                 False,
                 'Paying bonuses without a unit not yet supported for ProlificWorkers',
             )
 
-        task_run: TaskRun = unit.get_assignment().get_task_run()
+        task_run: TaskRun = unit.get_task_run()
         requester = task_run.get_requester()
 
         client = self._get_client(requester.requester_name)
         task_run_args = task_run.args
 
         prolific_utils.pay_bonus(
-            client, task_run_args, self.worker_name, amount, prolific_assignment_id, reason,
+            client,
+            run_config=task_run_args,
+            worker_id=self.get_prolific_worker_id(),
+            bonus_amount=amount,
+            study_id=unit.get_prolific_study_id(),
         )
 
         return True, ''
 
     @staticmethod
-    def _get_first_task_run_args(requester: 'Requester') -> 'DictConfig':
+    def _get_first_task_run(requester: 'Requester') -> 'TaskRun':
         task_runs: List[TaskRun] = requester.get_task_runs()
-        return task_runs[0].args
+        return task_runs[0]
 
     def block_worker(
         self,
@@ -98,27 +97,27 @@ class ProlificWorker(Worker):
     ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
         if unit is None and requester is None:
-            # TODO(WISH) soft block from all requesters? Maybe have the main
-            # requester soft block?
+            # TODO(WISH) soft block from all requesters? Maybe have the main requester soft block?
             return (
                 False,
                 'Blocking without a unit or requester not yet supported for ProlificWorkers',
             )
         elif unit is not None and requester is None:
             task_run = unit.get_assignment().get_task_run()
-            requester = task_run.get_requester()
+
+            requester: 'ProlificRequester' = cast('ProlificRequester', task_run.get_requester())
         else:
-            task_run = self._get_first_task_run_args(requester)
+            task_run = self._get_first_task_run(requester)
 
         task_run_args = task_run.args
-        requester = cast('ProlificRequester', requester)
+        requester: 'ProlificRequester' = cast('ProlificRequester', requester)
         client = self._get_client(requester.requester_name)
         prolific_utils.block_worker(client, task_run_args, self.worker_name, reason)
         return True, ''
 
     def unblock_worker(self, reason: str, requester: 'Requester') -> Tuple[bool, str]:
         """Unblock a blocked worker for the specified reason. Return success of unblock"""
-        task_run = self._get_first_task_run_args(requester)
+        task_run = self._get_first_task_run(requester)
         task_run_args = task_run.args
         requester = cast('ProlificRequester', requester)
         client = self._get_client(requester.requester_name)
@@ -127,7 +126,7 @@ class ProlificWorker(Worker):
 
     def is_blocked(self, requester: 'Requester') -> bool:
         """Determine if a worker is blocked"""
-        task_run = self._get_first_task_run_args(requester)
+        task_run = self._get_first_task_run(requester)
         task_run_args = task_run.args
         requester = cast('ProlificRequester', requester)
         client = self._get_client(requester.requester_name)
@@ -161,7 +160,7 @@ class ProlificWorker(Worker):
                 requester, ProlificRequester
             ), '`find_requesters` must return Prolific requester for given provider types'
 
-            task_run = self._get_first_task_run_args(requester)
+            task_run = self._get_first_task_run(requester)
             provider_args = task_run.args.provider
 
             client = self._get_client(requester.requester_name)

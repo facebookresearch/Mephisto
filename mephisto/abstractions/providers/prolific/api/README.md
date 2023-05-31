@@ -401,6 +401,24 @@ from mephisto.abstractions.providers.prolific.api.data_models import Submission
 submission: Submission = prolific_api.Submissions.retrieve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
 ```
 
+#### Approve
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.api.data_models import Submission
+
+submission: Submission = prolific_api.Submissions.approve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+```
+
+#### Reject
+
+```python
+from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.api.data_models import Submission
+
+submission: Submission = prolific_api.Submissions.reject(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+```
+
 
 
 -------------------------------------------------------------------------------

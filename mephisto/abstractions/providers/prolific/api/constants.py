@@ -29,3 +29,20 @@ class StudyCodeType:
     INCOMPATIBLE_DEVICE = 'INCOMPATIBLE_DEVICE'
     NO_CONSENT = 'NO_CONSENT'
     OTHER = 'OTHER'
+
+
+class SubmissionStatus:
+    """
+    Submission statuses explained
+    https://researcher-help.prolific.co/hc/en-gb/articles/360009094114-Submission-statuses-explained
+    """
+    RESERVED = 'RESERVED'
+    ACTIVE = 'ACTIVE'
+    TIMED_OUT = 'TIMED-OUT'
+    AWAITING_REVIEW = 'AWAITING REVIEW'
+    APPROVED = 'APPROVED'
+    RETURNED = 'RETURNED'
+    REJECTED = 'REJECTED'
+    # After you approve or reject a submission, it may have the ‘Processing’ status
+    # for a short time before showing as ‘Approved’ or ‘Rejected’.
+    PROCESSING = 'PROCESSING'

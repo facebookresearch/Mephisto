@@ -60,17 +60,29 @@ class ProlificUnit(Unit):
         try:
             mapping = dict(self.datastore.get_study_mapping(self.db_id))
             self.prolific_study_id = mapping['study_id']
-            self.prolific_assignment_id = mapping.get('assignment_id')  # TODO
+            self.prolific_submission_id = mapping.get('assignment_id')  # TODO (#1008)
             self.assignment_time_in_seconds = mapping.get('assignment_time_in_seconds')
         except IndexError:
             # HIT does not appear to exist
             self.prolific_study_id = None
-            self.prolific_assignment_id = None  # TODO
+            self.prolific_submission_id = None  # TODO (#1008)
             self.assignment_time_in_seconds = -1
         # We update to a time slightly earlier than now, in order
         # to reduce the risk of a race condition caching an old
         # value the moment it's registered
         self._last_sync_time = time.monotonic() - 1
+
+    def register_from_provider_data(self, hit_id: str, mturk_assignment_id: str) -> None:
+        """Update the datastore and local information from this registration"""
+        # TODO (#1008): I'm not sure whether we need this for Prolific
+        return None
+
+    def get_prolific_submission_id(self) -> Optional[str]:
+        """
+        Return the Prolific assignment id associated with this unit
+        """
+        # TODO (#1008): I'm not sure whether we need this for Prolific
+        return None
 
     def get_prolific_study_id(self) -> Optional[str]:
         """
@@ -84,15 +96,6 @@ class ProlificUnit(Unit):
         if self.__requester is None:
             self.__requester = cast('ProlificRequester', super().get_requester())
         return self.__requester
-
-    def get_prolific_assignment_id(self) -> Optional[str]:
-        """
-        Return the Prolific assignment id associated with this unit
-        """
-        # TODO
-        # self._sync_hit_mapping()
-        # return self.prolific_assignment_id
-        return None
 
     def clear_assigned_agent(self) -> None:
         """
@@ -176,7 +179,7 @@ class ProlificUnit(Unit):
 
             prolific_study_id = unassigned_study_ids[0]
             prolific_utils.expire_study(client, prolific_study_id)
-            # TODO: We do not need that if we don't have assignments in Prolific (???)
+            # TODO (#1008): We do not need that if we don't have assignments in Prolific (???)
             # self.datastore.register_assignment_to_hit(study_id, self.db_id)
             self.set_db_status(AssignmentState.EXPIRED)
             return delay

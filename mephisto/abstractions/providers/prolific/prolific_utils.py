@@ -14,17 +14,16 @@ from omegaconf import DictConfig
 
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
+from .api import constants
 from .api import eligibility_requirement_classes
 from .api.base_api_resource import CREDENTIALS_CONFIG_DIR
 from .api.base_api_resource import CREDENTIALS_CONFIG_PATH
-from .api.constants import StudyAction
-from .api.constants import StudyCodeType
-from .api.constants import StudyCompletionOption
 from .api.data_models import BonusPayments
 from .api.data_models import Participant
 from .api.data_models import ParticipantGroup
 from .api.data_models import Project
 from .api.data_models import Study
+from .api.data_models import Submission
 from .api.data_models import Workspace
 from .api.data_models import WorkspaceBalance
 from .api.exceptions import ProlificException
@@ -257,9 +256,9 @@ def create_study(
     )
     completion_codes = [dict(
         code='ABC123',  # TODO (#1008): Change value
-        code_type=StudyCodeType.OTHER,  # TODO (#1008): Change value
+        code_type=constants.StudyCodeType.OTHER,  # TODO (#1008): Change value
         actions=[dict(
-            action=StudyAction.AUTOMATICALLY_APPROVE,  # TODO (#1008): Change value
+            action=constants.StudyAction.AUTOMATICALLY_APPROVE,  # TODO (#1008): Change value
         )],
     )]
 
@@ -272,7 +271,7 @@ def create_study(
             description=description,
             external_study_url=external_study_url,
             prolific_id_option=prolific_id_option,
-            completion_option=StudyCompletionOption.CODE,
+            completion_option=constants.StudyCompletionOption.CODE,
             completion_codes=completion_codes,
             total_available_places=total_available_places,
             estimated_completion_time=estimated_completion_time_in_minutes,
@@ -432,7 +431,7 @@ def is_worker_blocked(client: prolific_api, run_config: 'DictConfig', worker_id:
 
 
 def calculate_pay_amount(
-    client, task_amount: Union[int, float], total_available_places: int,
+    client: prolific_api, task_amount: Union[int, float], total_available_places: int,
 ) -> Union[int, float]:
     try:
         total_cost: Union[int, float] = client.Studies.calculate_cost(
@@ -442,3 +441,68 @@ def calculate_pay_amount(
         logger.exception('Could not calculate total cost for a study')
         raise
     return total_cost
+
+
+def _find_submission(client: prolific_api, study_id: str, worker_id: str) -> Optional[Submission]:
+    """Find a Submission by Study and Worker"""
+    try:
+        submissions: List[Submission] = client.Submissions.list(study_id=study_id)
+    except ProlificException:
+        logger.exception(f'Could not receive submissions for study "{study_id}"')
+        raise
+
+    for submission in submissions:
+        if submission.study_id == study_id and submission.participant == worker_id:
+            return submission
+
+    return None
+
+
+def approve_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Submission, None]:
+    submission = _find_submission(client, study_id, worker_id)
+
+    if not submission:
+        logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
+        return None
+
+    # TODO (#1008): Maybe we need to expand handling submission statuses
+    if submission.status == constants.SubmissionStatus.AWAITING_REVIEW:
+        try:
+            submission: Submission = client.Submissions.approve(submission.id)
+            return submission
+        except ProlificException:
+            logger.exception(
+                f'Could not approve submission for study "{study_id}" and participant "{worker_id}"'
+            )
+            raise
+    else:
+        logger.warning(
+            f'Cannot approve submission "{submission.id}" with status "{submission.status}"'
+        )
+
+    return None
+
+
+def reject_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Submission, None]:
+    submission = _find_submission(client, study_id, worker_id)
+
+    if not submission:
+        logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
+        return None
+
+    # TODO (#1008): Maybe we need to expand handling submission statuses
+    if submission.status == constants.SubmissionStatus.AWAITING_REVIEW:
+        try:
+            submission: Submission = client.Submissions.reject(submission.id)
+            return submission
+        except ProlificException:
+            logger.exception(
+                f'Could not reject submission for study "{study_id}" and participant "{worker_id}"'
+            )
+            raise
+    else:
+        logger.warning(
+            f'Cannot reject submission "{submission.id}" with status "{submission.status}"'
+        )
+
+    return None
