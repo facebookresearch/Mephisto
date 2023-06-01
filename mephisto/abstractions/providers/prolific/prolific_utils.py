@@ -76,16 +76,16 @@ def check_balance(*args, **kwargs) -> Union[float, int, None]:
     if not workspace_name:
         return None
 
-    found_workspace, workspace_id = _find_prolific_workspace(prolific_api, title=workspace_name)
+    found_workspace, workspace = _find_prolific_workspace(prolific_api, title=workspace_name)
 
     if not found_workspace:
         logger.error(f'Could not find a workspace with name {workspace_name}')
         return None
 
     try:
-        workspace_ballance: WorkspaceBalance = prolific_api.Workspaces.get_balance(id=workspace_id)
+        workspace_ballance: WorkspaceBalance = prolific_api.Workspaces.get_balance(id=workspace.id)
     except ProlificException:
-        logger.exception(f'Could not receive a workspace balance with {workspace_id=}')
+        logger.exception(f'Could not receive a workspace balance with {workspace.id=}')
         raise
 
     return workspace_ballance.available_balance
@@ -93,12 +93,12 @@ def check_balance(*args, **kwargs) -> Union[float, int, None]:
 
 def _find_prolific_workspace(
     client: prolific_api, title: str, id: Optional[str] = None,
-) -> Tuple[bool, Optional[str]]:
+) -> Tuple[bool, Optional[Workspace]]:
     """Find a Prolific Workspace by title or ID"""
     if id:
         try:
             workspace: Workspace = client.Workspaces.retrieve(id)
-            return True, workspace.id
+            return True, workspace
         except ProlificException:
             logger.exception(f'Could not find a workspace by id {id}')
             raise
@@ -111,19 +111,19 @@ def _find_prolific_workspace(
 
     for workspace in workspaces:
         if workspace.title == title:
-            return True, workspace.id
+            return True, workspace
 
     return True, None
 
 
 def find_or_create_prolific_workspace(
     client: prolific_api, title: str, id: Optional[str] = None,
-) -> Optional[str]:
+) -> Optional[Workspace]:
     """Find or create a Prolific Workspace by title or ID"""
-    found_workspace, workspace_id = _find_prolific_workspace(client, title, id)
+    found_workspace, workspace = _find_prolific_workspace(client, title, id)
 
     if found_workspace:
-        return workspace_id
+        return workspace
 
     try:
         workspace: Workspace = client.Workspaces.create(title=title)
@@ -131,12 +131,12 @@ def find_or_create_prolific_workspace(
         logger.exception(f'Could not create a workspace with title "{title}"')
         raise
 
-    return workspace.id if workspace else None
+    return workspace
 
 
 def _find_prolific_project(
     client: prolific_api, workspace_id: str, title: str, id: Optional[str] = None,
-) -> Tuple[bool, Optional[str]]:
+) -> Tuple[bool, Optional[Project]]:
     """Find a Prolific Project by title or ID"""
     try:
         projects: List[Project] = client.Projects.list_for_workspace(workspace_id)
@@ -146,21 +146,21 @@ def _find_prolific_project(
 
     for project in projects:
         if id and project.id == id:
-            return True, project.id
+            return True, project
         if project.title == title:
-            return True, project.id
+            return True, project
 
     return False, None
 
 
 def find_or_create_prolific_project(
     client: prolific_api, workspace_id: str, title: str, id: Optional[str] = None,
-) -> Optional[str]:
+) -> Optional[Project]:
     """Find or create a Prolific Workspace by title or ID"""
-    found_project, project_id = _find_prolific_project(client, workspace_id, title, id)
+    found_project, project = _find_prolific_project(client, workspace_id, title, id)
 
     if found_project:
-        return project_id
+        return project
 
     try:
         project: Project = client.Projects.create_for_workspace(
@@ -171,7 +171,7 @@ def find_or_create_prolific_project(
         logger.exception(f'Could not create a project with title "{title}"')
         raise
 
-    return project.id if project else None
+    return project
 
 
 def delete_qualification(client: prolific_api, id: str) -> bool:
@@ -187,7 +187,7 @@ def _find_qualification(
     client: prolific_api,
     prolific_project_id: str,
     qualification_name: str,
-) -> Tuple[bool, Optional[str]]:
+) -> Tuple[bool, Optional[ParticipantGroup]]:
     """Find a qualification (Prolific Participant Group) by name"""
     try:
         qualifications: List[ParticipantGroup] = client.ParticipantGroups.list(
@@ -199,7 +199,7 @@ def _find_qualification(
 
     for qualification in qualifications:
         if qualification.name == qualification_name:
-            return True, qualification.id
+            return True, qualification
 
     return True, None
 
@@ -210,14 +210,14 @@ def find_or_create_qualification(
     qualification_name: str,
     *args,
     **kwargs,
-) -> Optional[str]:
+) -> Optional[ParticipantGroup]:
     """Find or create a qualification (Prolific Participant Group) by name"""
-    found_qualification, qualification_id = _find_qualification(
+    found_qualification, qualification = _find_qualification(
         client, prolific_project_id, qualification_name,
     )
 
     if found_qualification:
-        return qualification_id
+        return qualification
 
     try:
         qualification: ParticipantGroup = client.ParticipantGroups.create(
@@ -231,12 +231,12 @@ def find_or_create_qualification(
         )
         raise
 
-    return qualification.id if qualification else None
+    return qualification
 
 
 def create_study(
-    client: prolific_api, run_config: "DictConfig", prolific_project_id: str, *args, **kwargs,
-) -> str:
+    client: prolific_api, run_config: 'DictConfig', prolific_project_id: str, *args, **kwargs,
+) -> Study:
     """Create a task (Prolific Study)"""
     # Task info
     name = run_config.task.task_title
@@ -284,15 +284,23 @@ def create_study(
         )
         raise
 
-    study_id = study.id
-    return study_id
+    return study
+
+
+def get_study(client: prolific_api, study_id: str) -> Study:
+    try:
+        study: Study = client.Studies.retrieve(id=study_id)
+    except ProlificException:
+        logger.exception(f'Could not retreive a Study "{study_id}"')
+        raise
+    return study
 
 
 def publish_study(client: prolific_api, study_id: str) -> str:
     try:
         client.Studies.publish(id=study_id)
     except ProlificException:
-        logger.exception(f'Could not publish a Study  "{study_id}"')
+        logger.exception(f'Could not publish a Study "{study_id}"')
         raise
     return study_id
 
@@ -369,57 +377,59 @@ def pay_bonus(
     return True
 
 
-def _get_block_list_qualification(client: prolific_api, run_config: 'DictConfig') -> str:
-    workspace_id = find_or_create_prolific_workspace(
+def _get_block_list_qualification(
+    client: prolific_api, run_config: 'DictConfig',
+) -> ParticipantGroup:
+    workspace = find_or_create_prolific_workspace(
         client, title=run_config.provider.prolific_workspace_name,
     )
-    project_id = find_or_create_prolific_project(
-        client, workspace_id, title=run_config.provider.prolific_project_name,
+    project = find_or_create_prolific_project(
+        client, workspace.id, title=run_config.provider.prolific_project_name,
     )
-    block_list_qualification_id = find_or_create_qualification(
-        client, project_id, run_config.provider.prolific_block_list_group_name,
+    block_list_qualification = find_or_create_qualification(
+        client, project.id, run_config.provider.prolific_block_list_group_name,
     )
-    return block_list_qualification_id
+    return block_list_qualification
 
 
 def block_worker(
-    client: prolific_api, run_config: 'DictConfig', worker_id: str, reason: str,
+    client: prolific_api, run_config: 'DictConfig', worker_id: str, *args, **kwargs,
 ) -> None:
     """Block a worker by id using the Prolific client, passes reason along"""
-    block_list_qualification_id = _get_block_list_qualification(client, run_config)
-    give_worker_qualification(client, worker_id, block_list_qualification_id)
+    block_list_qualification = _get_block_list_qualification(client, run_config)
+    give_worker_qualification(client, worker_id, block_list_qualification.id)
 
 
 def unblock_worker(
-    client: prolific_api, run_config: 'DictConfig', worker_id: str, reason: str,
+    client: prolific_api, run_config: 'DictConfig', worker_id: str, *args, **kwargs,
 ) -> None:
     """Remove a block on the given worker"""
-    block_list_qualification_id = _get_block_list_qualification(client, run_config)
-    remove_worker_qualification(client, worker_id, block_list_qualification_id)
+    block_list_qualification = _get_block_list_qualification(client, run_config)
+    remove_worker_qualification(client, worker_id, block_list_qualification.id)
 
 
 def is_worker_blocked(client: prolific_api, run_config: 'DictConfig', worker_id: str) -> bool:
     """Determine if the given worker is blocked by this client"""
-    workspace_id = find_or_create_prolific_workspace(
+    workspace = find_or_create_prolific_workspace(
         client, title=run_config.provider.prolific_workspace_name,
     )
-    project_id = find_or_create_prolific_project(
-        client, workspace_id, title=run_config.provider.prolific_project_name,
+    project = find_or_create_prolific_project(
+        client, workspace.id, title=run_config.provider.prolific_project_name,
     )
-    block_list_qualification_id = _find_qualification(
-        client, project_id, run_config.provider.prolific_block_list_group_name,
+    _, block_list_qualification = _find_qualification(
+        client, project.id, run_config.provider.prolific_block_list_group_name,
     )
 
-    if not block_list_qualification_id:
+    if not block_list_qualification:
         return False
 
     try:
         participants: List[Participant] = client.ParticipantGroups.list_perticipants_for_group(
-            block_list_qualification_id,
+            block_list_qualification.id,
         )
     except ProlificException:
         logger.exception(
-            f'Could not receive a list of participants for group "{block_list_qualification_id}"'
+            f'Could not receive a list of participants for group "{block_list_qualification.id}"'
         )
         raise
 

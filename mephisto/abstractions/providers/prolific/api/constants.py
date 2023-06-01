@@ -16,6 +16,15 @@ class StudyAction:
     UNPUBLISHED = 'UNPUBLISHED'
 
 
+class StudyStatus:
+    UNPUBLISHED = 'UNPUBLISHED'
+    ACTIVE = 'ACTIVE'
+    SCHEDULED = 'SCHEDULED'
+    PAUSED = 'PAUSED'
+    AWAITING_REVIEW = 'AWAITING REVIEW'
+    COMPLETED = 'COMPLETED'
+
+
 class StudyCompletionOption:
     CODE = 'code'
     URL = 'url'

@@ -92,22 +92,22 @@ class ProlificRequester(Requester):
         """
         client = self._get_client(self.requester_name)
         _qualification_name = qualification_name
-        qualification_id = prolific_utils.find_or_create_qualification(
+        qualification = prolific_utils.find_or_create_qualification(
             client, prolific_project_id, qualification_name,
         )
 
-        if qualification_id is None:
+        if qualification is None:
             # Try to append time to make the qualification unique
             _qualification_name = f"{qualification_name}_{time.time()}"
-            qualification_id = prolific_utils.find_or_create_qualification(
+            qualification = prolific_utils.find_or_create_qualification(
                 client, prolific_project_id, _qualification_name,
             )
 
             attempts = 0
-            while qualification_id is None:
+            while qualification is None:
                 # Append something somewhat random
                 _qualification_name = f"{qualification_name}_{str(uuid4())}"
-                qualification_id = prolific_utils.find_or_create_qualification(
+                qualification = prolific_utils.find_or_create_qualification(
                     client, prolific_project_id, _qualification_name,
                 )
                 attempts += 1
@@ -123,9 +123,9 @@ class ProlificRequester(Requester):
             requester_id=self.db_id,
             prolific_project_id=prolific_project_id,
             prolific_participant_group_name=_qualification_name,
-            prolific_participant_group_id=qualification_id,
+            prolific_participant_group_id=qualification.id,
         )
-        return qualification_id
+        return qualification.id
 
     @staticmethod
     def new(db: "MephistoDB", requester_name: str) -> "Requester":

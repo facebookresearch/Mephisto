@@ -99,8 +99,8 @@ class TestProlificUtils(unittest.TestCase):
                 description=qualification_description,
             )
         ]
-        result = _find_qualification(prolific_api, prolific_project_id, qualification_name)
-        self.assertEqual(result, (True, expected_qualification_id))
+        _, q = _find_qualification(prolific_api, prolific_project_id, qualification_name)
+        self.assertEqual(q.id, expected_qualification_id)
 
     @patch('mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.list')
     def test_find_qualification_no_qualification(self, mock_participant_groups_list, *args):
@@ -129,7 +129,7 @@ class TestProlificUtils(unittest.TestCase):
         result = find_or_create_qualification(
             prolific_api, prolific_project_id, qualification_name,
         )
-        self.assertEqual(result, expected_qualification_id)
+        self.assertEqual(result.id, expected_qualification_id)
 
     @patch(
         'mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.create'
@@ -150,7 +150,7 @@ class TestProlificUtils(unittest.TestCase):
         result = find_or_create_qualification(
             prolific_api, qualification_name, qualification_description,
         )
-        self.assertEqual(result, expected_qualification_id)
+        self.assertEqual(result.id, expected_qualification_id)
 
     @patch(
         'mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.create'
@@ -179,12 +179,12 @@ class TestProlificUtils(unittest.TestCase):
             id=expected_task_id,
             name='test',
         )
-        result = create_study(
+        study = create_study(
             client=prolific_api,
             run_config=mock_task_run_args,
             prolific_project_id=project_id,
         )
-        self.assertEqual(result, expected_task_id)
+        self.assertEqual(study.id, expected_task_id)
 
     @patch('mephisto.abstractions.providers.prolific.api.studies.Studies.create')
     def test_create_study_error(self, mock_study_create, *args):

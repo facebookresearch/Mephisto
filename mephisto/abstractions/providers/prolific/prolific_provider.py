@@ -26,6 +26,7 @@ from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.operations.registry import register_mephisto_abstraction
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
+from .api.data_models import Study
 from .api.exceptions import ProlificException
 
 if TYPE_CHECKING:
@@ -162,11 +163,11 @@ class ProlificProvider(CrowdProvider):
         task_run_id = task_run.db_id
 
         # Get Prolific specific data to create a task
-        prolific_workspace_id = prolific_utils.find_or_create_prolific_workspace(
+        prolific_workspace = prolific_utils.find_or_create_prolific_workspace(
             client, title=args.provider.prolific_workspace_name,
         )
-        prolific_project_id = prolific_utils.find_or_create_prolific_project(
-            client, prolific_workspace_id, title=args.provider.prolific_project_name,
+        prolific_project = prolific_utils.find_or_create_prolific_project(
+            client, prolific_workspace.id, title=args.provider.prolific_project_name,
         )
 
         # Set up Task Run config
@@ -185,7 +186,7 @@ class ProlificProvider(CrowdProvider):
 
             db_qualification = self.datastore.get_qualification_mapping(qualification_name)
             if db_qualification is None:
-                requester.create_new_qualification(prolific_project_id, qualification_name)
+                requester.create_new_qualification(prolific_project.id, qualification_name)
 
         if hasattr(shared_state, 'prolific_specific_qualifications'):
             # TODO(OWN) standardize provider-specific qualifications
@@ -194,10 +195,10 @@ class ProlificProvider(CrowdProvider):
             qualifications += shared_state.prolific_specific_qualifications
 
         # Set up Task Run (Prolific Study)
-        prolific_study_id = prolific_utils.create_study(client, args, prolific_project_id)
+        prolific_study: Study = prolific_utils.create_study(client, args, prolific_project.id)
 
         self.datastore.new_study(
-            study_id=prolific_study_id,
+            study_id=prolific_study.id,
             study_link='',
             duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
             run_id=task_run_id,
@@ -207,9 +208,9 @@ class ProlificProvider(CrowdProvider):
         )
         self.datastore.register_run(
             run_id=task_run_id,
-            prolific_workspace_id=prolific_workspace_id,
-            prolific_project_id=prolific_project_id,
-            prolific_study_id=prolific_study_id,
+            prolific_workspace_id=prolific_workspace.id,
+            prolific_project_id=prolific_project.id,
+            prolific_study_id=prolific_study.id,
             prolific_study_config_path=config_dir,
             frame_height=frame_height,
         )

@@ -164,14 +164,14 @@ class ProlificWorker(Worker):
             provider_args = task_run.args.provider
 
             client = self._get_client(requester.requester_name)
-            p_workspace_id = prolific_utils.find_or_create_prolific_workspace(
+            p_workspace = prolific_utils.find_or_create_prolific_workspace(
                 client, title=provider_args.prolific_workspace_name,
             )
-            p_project_id = prolific_utils.find_or_create_prolific_project(
-                client, p_workspace_id, title=provider_args.prolific_project_name,
+            p_project = prolific_utils.find_or_create_prolific_project(
+                client, p_workspace.id, title=provider_args.prolific_project_name,
             )
             p_qualification_id = requester.create_new_qualification(
-                p_project_id, qualification_name,
+                p_project.id, qualification_name,
             )
 
         p_worker_id = self.get_prolific_worker_id()

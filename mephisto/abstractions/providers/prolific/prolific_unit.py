@@ -11,7 +11,9 @@ from typing import Mapping
 from typing import Optional
 from typing import TYPE_CHECKING
 
+from mephisto.abstractions._subcomponents.agent_state import AgentState
 from mephisto.abstractions.providers.prolific import prolific_utils
+from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
@@ -96,6 +98,113 @@ class ProlificUnit(Unit):
         if self.__requester is None:
             self.__requester = cast('ProlificRequester', super().get_requester())
         return self.__requester
+
+    def get_status(self) -> str:
+        """Get status for this unit directly from Prolific, fall back on local info"""
+
+        # -------------------------------------------------------------------------
+        # TODO (#1008): Fix this logic. It looked abstract and unclear in Mturk code.
+        if self.db_status == AssignmentState.CREATED:
+            return super().get_status()
+        elif self.db_status in [
+            AssignmentState.ACCEPTED,
+            AssignmentState.EXPIRED,
+            AssignmentState.SOFT_REJECTED,
+        ]:
+            # These statuses don't change with a get_status call
+            return self.db_status
+
+        # -------------------------------------------------------------------------
+        # TODO (#1008): Fix this logic. It looked abstract and unclear in Mturk code.
+        if self.db_status in [AssignmentState.COMPLETED, AssignmentState.REJECTED]:
+            # These statuses only change on agent dependent changes
+            agent = self.get_assigned_agent()
+            found_status = self.db_status
+
+            if agent is not None:
+                agent_status = agent.get_status()
+                if agent_status == AgentState.STATUS_APPROVED:
+                    found_status = AssignmentState.ACCEPTED
+                elif agent_status == AgentState.STATUS_REJECTED:
+                    found_status = AssignmentState.REJECTED
+                elif agent_status == AgentState.STATUS_SOFT_REJECTED:
+                    found_status = AssignmentState.SOFT_REJECTED
+            else:
+                logger.warning(f'Agent for unit {self} is None')
+
+            if found_status != self.db_status:
+                self.set_db_status(found_status)
+
+            return self.db_status
+
+        # Remaining statuses are tracking a live Study
+        prolific_study_id = self.get_prolific_study_id()
+        if prolific_study_id is None:
+            # If the study_id is None and there's an agent still assigned,
+            # then that agent has timed out, and we should expire
+            agent = self.get_assigned_agent()
+            if agent is not None:
+                if agent.get_status() != AgentState.STATUS_EXPIRED:
+                    agent.update_status(AgentState.STATUS_EXPIRED)
+
+            # Can't determine anything else if there is no Study on this unit
+            return self.db_status
+
+        requester: 'ProlificRequester' = self.get_requester()
+        client = self._get_client(requester.requester_name)
+        study = prolific_utils.get_study(client, prolific_study_id)
+
+        if study is None:
+            return AssignmentState.EXPIRED
+
+        local_status = self.db_status
+        external_status = self.db_status
+
+        if study.status == StudyStatus.UNPUBLISHED:
+            external_status = AssignmentState.ASSIGNED
+        elif study.status == StudyStatus.ACTIVE:
+            external_status = AssignmentState.LAUNCHED
+        elif study.status == StudyStatus.SCHEDULED:
+            # TODO (#1008): Choose correct mapping
+            pass
+        elif study.status == StudyStatus.PAUSED:
+            # TODO (#1008): Choose correct mapping
+            pass
+        elif study.status == StudyStatus.AWAITING_REVIEW:
+            # TODO (#1008): Choose correct mapping
+            # external_status = AssignmentState.COMPLETED
+            pass
+        elif study.status == StudyStatus.COMPLETED:
+            external_status = AssignmentState.COMPLETED
+        else:
+            raise Exception(f'Unexpected Study status {study.status}')
+
+        # -------------------------------------------------------------------------
+        # TODO (#1008): Fix this logic. It looked abstract and unclear in Mturk code.
+        if external_status != local_status:
+            if local_status == AssignmentState.ASSIGNED and external_status in [
+                AssignmentState.LAUNCHED,
+                AssignmentState.EXPIRED,
+            ]:
+                # Treat this as a return event, this Study may be doable by someone else
+                agent = self.get_assigned_agent()
+                if agent is not None and agent.get_status() in [
+                    AgentState.STATUS_ACCEPTED,
+                    AgentState.STATUS_IN_TASK,
+                    AgentState.STATUS_ONBOARDING,
+                    AgentState.STATUS_WAITING,
+                    AgentState.STATUS_PARTNER_DISCONNECT,
+                ]:
+                    # mark the in-task agent as having returned the Study, to
+                    # free any running tasks and have Blueprint decide on cleanup.
+                    agent.update_status(AgentState.STATUS_RETURNED)
+                if external_status == AssignmentState.EXPIRED:
+                    # If we're expired, then it won't be doable, and we should update
+                    self.set_db_status(external_status)
+            else:
+                self.set_db_status(external_status)
+
+        return self.db_status
 
     def clear_assigned_agent(self) -> None:
         """
