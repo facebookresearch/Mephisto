@@ -6,6 +6,7 @@
 
 from typing import Any
 from typing import cast
+from typing import Dict
 from typing import Mapping
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -55,6 +56,30 @@ class ProlificAgent(Agent):
         """Get a Prolific client"""
         requester: 'ProlificRequester' = cast('ProlificRequester', self.unit.get_requester())
         return self.datastore.get_client_for_requester(requester.requester_name)
+
+    @classmethod
+    def new_from_provider_data(
+        cls,
+        db: 'MephistoDB',
+        worker: 'Worker',
+        unit: 'Unit',
+        provider_data: Dict[str, Any],
+    ) -> 'Agent':
+        """
+        Wrapper around the new method that allows registering additional
+        bookkeeping information from a crowd provider for this agent
+        """
+        from mephisto.abstractions.providers.prolific.prolific_unit import ProlificUnit
+
+        assert isinstance(
+            unit, ProlificUnit
+        ), 'Can only register Prolific agents to Prolific units'
+
+        prolific_study_id = provider_data['prolific_study_id']
+        prolific_submission_id = provider_data['assignment_id']
+        unit.register_from_provider_data(prolific_study_id, prolific_submission_id)
+
+        return super().new_from_provider_data(db, worker, unit, provider_data)
 
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""

@@ -74,7 +74,7 @@ class ProlificDatastore:
         return compare_time > self._last_study_mapping_update_times[unit_id]
 
     def new_study(
-        self, study_id: str, study_link: str, duration_in_seconds: int, run_id: str,
+        self, prolific_study_id: str, study_link: str, duration_in_seconds: int, run_id: str,
     ) -> None:
         """Register a new Study mapping in the table"""
         with self.table_access_condition, self._get_connection() as conn:
@@ -82,21 +82,21 @@ class ProlificDatastore:
             c.execute(
                 """
                 INSERT INTO studies(
-                    study_id,
+                    prolific_study_id,
                     link,
                     assignment_time_in_seconds
                 ) VALUES (?, ?, ?);
                 """,
-                (study_id, study_link, duration_in_seconds),
+                (prolific_study_id, study_link, duration_in_seconds),
             )
             c.execute(
                 """
                 INSERT INTO run_mappings(
-                    study_id,
+                    prolific_study_id,
                     run_id
                 ) VALUES (?, ?);
                 """,
-                (study_id, run_id),
+                (prolific_study_id, run_id),
             )
 
     def get_unassigned_study_ids(self, run_id: str):
@@ -107,20 +107,63 @@ class ProlificDatastore:
             c.execute(
                 """
                 SELECT
-                    study_id,
+                    prolific_study_id,
                     unit_id,
                     run_id
                 FROM
                     studies
                 INNER JOIN run_mappings
-                    USING  (study_id)
+                    USING  (prolific_study_id)
                 WHERE unit_id IS NULL
                 AND run_id = ?;
                 """,
                 (run_id,),
             )
             results = c.fetchall()
-            return [r['study_id'] for r in results]
+            return [r['prolific_study_id'] for r in results]
+
+    def register_submission_to_study(
+        self,
+        prolific_study_id: str,
+        unit_id: Optional[str] = None,
+        prolific_submission_id: Optional[str] = None,
+    ) -> None:
+        """
+        Register a specific Submission and Study to the given unit,
+        or clear the assignment after a return
+        """
+        logger.debug(
+            f'Attempting to assign Study {prolific_study_id}, '
+            f'Unit {unit_id}, '
+            f'Submission {prolific_submission_id}.'
+        )
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from studies
+                WHERE prolific_study_id = ?
+                """,
+                (prolific_study_id,),
+            )
+            results = c.fetchall()
+            if len(results) > 0 and results[0]['unit_id'] is not None:
+                old_unit_id = results[0]['unit_id']
+                self._mark_study_mapping_update(old_unit_id)
+                logger.debug(
+                    f'Cleared Study mapping cache for previous unit, {old_unit_id}'
+                )
+
+            c.execute(
+                """
+                UPDATE studies
+                SET prolific_submission_id = ?, unit_id = ?
+                WHERE prolific_study_id = ?
+                """,
+                (prolific_submission_id, unit_id, prolific_study_id),
+            )
+            if unit_id is not None:
+                self._mark_study_mapping_update(unit_id)
 
     def ensure_requester_exists(self, requester_id: str) -> None:
         """Create a record of this requester if it doesn't exist"""
@@ -401,12 +444,12 @@ class ProlificDatastore:
                     unit_id,
                     [dict(r) for r in results],
                 )
-            result_study_id = results[0]['study_id']
+            result_study_id = results[0]['prolific_study_id']
             c.execute(
                 """
                 UPDATE studies
-                SET assignment_id = ?, unit_id = ?
-                WHERE srudy_id = ?
+                SET prolific_submission_id = ?, unit_id = ?
+                WHERE prolific_study_id = ?
                 """,
                 (None, None, result_study_id),
             )

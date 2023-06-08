@@ -12,6 +12,7 @@ from typing import Union
 
 from omegaconf import DictConfig
 
+from mephisto.abstractions.architects.ec2 import ec2_architect
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
 from .api import constants
@@ -201,7 +202,7 @@ def _find_qualification(
         if qualification.name == qualification_name:
             return True, qualification
 
-    return True, None
+    return False, None
 
 
 def find_or_create_qualification(
@@ -234,6 +235,30 @@ def find_or_create_qualification(
     return qualification
 
 
+def _ec2_external_url(run_config: 'DictConfig') -> str:
+    c = constants
+    url = ec2_architect.get_full_domain(args=run_config)
+    url_with_args = (
+        f'{url}?'
+        f'{c.STUDY_URL_PARTICIPANT_ID_PARAM}={c.STUDY_URL_PARTICIPANT_ID_PARAM_PROLIFIC_VAR}'
+        f'&{c.STUDY_URL_STUDY_ID_PARAM}={c.STUDY_URL_STUDY_ID_PARAM_PROLIFIC_VAR}'
+        f'&{c.STUDY_URL_SUBMISSION_ID_PARAM}={c.STUDY_URL_SUBMISSION_ID_PARAM_PROLIFIC_VAR}'
+    )
+    return url_with_args
+
+
+def _is_ec2_architect(run_config: 'DictConfig') -> bool:
+    return run_config.architect._architect_type == ec2_architect.ARCHITECT_TYPE
+
+
+def _get_external_study_url(run_config: 'DictConfig') -> str:
+    if _is_ec2_architect(run_config):
+        external_study_url = _ec2_external_url(run_config)
+    else:
+        external_study_url = run_config.provider.prolific_external_study_url
+    return external_study_url
+
+
 def create_study(
     client: prolific_api, run_config: 'DictConfig', prolific_project_id: str, *args, **kwargs,
 ) -> Study:
@@ -249,7 +274,7 @@ def create_study(
     estimated_completion_time_in_minutes = (
         run_config.provider.prolific_estimated_completion_time_in_minutes
     )
-    external_study_url = run_config.provider.prolific_external_study_url
+    external_study_url = _get_external_study_url(run_config)
     prolific_id_option = run_config.provider.prolific_id_option
     eligibility_requirements = _get_eligibility_requirements(
         run_config.provider.prolific_eligibility_requirements,

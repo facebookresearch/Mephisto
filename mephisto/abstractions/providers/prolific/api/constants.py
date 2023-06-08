@@ -1,6 +1,21 @@
 EMAIL_FORMAT = '^\\S+@\\S+\\.\\S+$'  # Simple email format checking
 
 
+# https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
+# `external_study_url` field
+STUDY_URL_PARTICIPANT_ID_PARAM = 'participant_id'
+STUDY_URL_PARTICIPANT_ID_PARAM_PROLIFIC_VAR = '{{%PROLIFIC_PID%}}'
+STUDY_URL_STUDY_ID_PARAM = 'study_id'
+STUDY_URL_STUDY_ID_PARAM_PROLIFIC_VAR = '{{%STUDY_ID%}}'
+STUDY_URL_SUBMISSION_ID_PARAM = 'submission_id'
+STUDY_URL_SUBMISSION_ID_PARAM_PROLIFIC_VAR = '{{%SESSION_ID%}}'
+
+
+# HACK: Hardcoded Question IDs (Prolific doesn't have a better way for now)
+# TODO (#1008): Make this dynamic as soon as possible
+ER_AGE_RANGE_QUESTION_ID = '54ac6ea9fdf99b2204feb893'
+
+
 class ProlificIDOption:
     NOT_REQUIRED = 'not_required'
     QUESTION = 'question'

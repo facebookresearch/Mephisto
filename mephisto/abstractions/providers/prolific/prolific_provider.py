@@ -54,6 +54,7 @@ class ProlificProviderArgs(ProviderArgs):
     """Base class for arguments to configure Crowd Providers"""
     _provider_type: str = PROVIDER_TYPE
     requester_name: str = PROVIDER_TYPE
+    # This link is being collected automatically for EC2 archidect.
     prolific_external_study_url: str = field(
         default='',
         metadata={
@@ -64,11 +65,11 @@ class ProlificProviderArgs(ProviderArgs):
                 'You can add query parameters with the following placeholders. '
                 'Example of a link with params: '
                 'https://example.com?'
-                'prolific_pid={{%PROLIFIC_PID%}}'
+                'participant_id={{%PROLIFIC_PID%}}'
                 '&study_id={{%STUDY_ID%}}'
-                '&session_id={{%SESSION_ID%}}'
-                'where `prolific_pid`, `study_id`, `session_id` are params we use on our side, and '
-                '`{{%PROLIFIC_PID%}}`, `{{%STUDY_ID%}}`, `{{%SESSION_ID%}}` are their '
+                '&submission_id={{%SESSION_ID%}}'
+                'where `prolific_pid`, `study_id`, `submission_id` are params we use on our side, '
+                'and `{{%PROLIFIC_PID%}}`, `{{%STUDY_ID%}}`, `{{%SESSION_ID%}}` are their '
                 'format of template variables they use to replace with their IDs'
             ),
         },
@@ -195,10 +196,10 @@ class ProlificProvider(CrowdProvider):
             qualifications += shared_state.prolific_specific_qualifications
 
         # Set up Task Run (Prolific Study)
-        prolific_study: Study = prolific_utils.create_study(client, args, prolific_project.id)
+        prolific_study: Study = prolific_utils.create_study(client, args, prolific_project.id, architect=self)
 
         self.datastore.new_study(
-            study_id=prolific_study.id,
+            prolific_study_id=prolific_study.id,
             study_link='',
             duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
             run_id=task_run_id,

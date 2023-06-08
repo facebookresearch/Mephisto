@@ -62,34 +62,36 @@ class ProlificUnit(Unit):
         try:
             mapping = dict(self.datastore.get_study_mapping(self.db_id))
             self.prolific_study_id = mapping['study_id']
-            self.prolific_submission_id = mapping.get('assignment_id')  # TODO (#1008)
+            self.prolific_submission_id = mapping.get('prolific_submission_id')
             self.assignment_time_in_seconds = mapping.get('assignment_time_in_seconds')
         except IndexError:
             # HIT does not appear to exist
             self.prolific_study_id = None
-            self.prolific_submission_id = None  # TODO (#1008)
+            self.prolific_submission_id = None
             self.assignment_time_in_seconds = -1
         # We update to a time slightly earlier than now, in order
         # to reduce the risk of a race condition caching an old
         # value the moment it's registered
         self._last_sync_time = time.monotonic() - 1
 
-    def register_from_provider_data(self, hit_id: str, mturk_assignment_id: str) -> None:
+    def register_from_provider_data(
+        self, prolific_study_id: str, prolific_submission_id: str,
+    ) -> None:
         """Update the datastore and local information from this registration"""
-        # TODO (#1008): I'm not sure whether we need this for Prolific
-        return None
+        self.datastore.register_submission_to_study(
+            prolific_study_id=prolific_study_id,
+            unit_id=self.db_id,
+            prolific_submission_id=prolific_submission_id,
+        )
+        self._sync_study_mapping()
 
     def get_prolific_submission_id(self) -> Optional[str]:
-        """
-        Return the Prolific assignment id associated with this unit
-        """
-        # TODO (#1008): I'm not sure whether we need this for Prolific
-        return None
+        """Return the Prolific Submission ID (assignment ID) associated with this unit"""
+        self._sync_study_mapping()
+        return self.prolific_submission_id
 
     def get_prolific_study_id(self) -> Optional[str]:
-        """
-        Return the Porlific Study ID associated with this unit
-        """
+        """Return the Porlific Study ID associated with this unit"""
         self._sync_study_mapping()
         return self.prolific_study_id
 
@@ -258,7 +260,7 @@ class ProlificUnit(Unit):
         return None
 
     def expire(self) -> float:
-        """Send a request to expire the study"""
+        """Send a request to expire the Study"""
         delay = 0
         status = self.get_status()
 
@@ -288,8 +290,7 @@ class ProlificUnit(Unit):
 
             prolific_study_id = unassigned_study_ids[0]
             prolific_utils.expire_study(client, prolific_study_id)
-            # TODO (#1008): We do not need that if we don't have assignments in Prolific (???)
-            # self.datastore.register_assignment_to_hit(study_id, self.db_id)
+            self.datastore.register_submission_to_study(prolific_study_id, self.db_id)
             self.set_db_status(AssignmentState.EXPIRED)
             return delay
 

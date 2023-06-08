@@ -6,9 +6,9 @@
 
 CREATE_STUDIES_TABLE = """
     CREATE TABLE IF NOT EXISTS studies (
-        study_id TEXT PRIMARY KEY UNIQUE,
+        prolific_study_id TEXT PRIMARY KEY UNIQUE,
         unit_id TEXT,
-        assignment_id TEXT,
+        prolific_submission_id TEXT,
         link TEXT,
         assignment_time_in_seconds INTEGER NOT NULL,
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -17,7 +17,7 @@ CREATE_STUDIES_TABLE = """
 
 CREATE_RUN_MAP_TABLE = """
     CREATE TABLE IF NOT EXISTS run_mappings (
-        study_id TEXT,
+        prolific_study_id TEXT,
         run_id TEXT
     );
 """

@@ -52,6 +52,16 @@ def url_safe_string(in_string: str) -> str:
     return re.sub("[^0-9a-zA-Z-]+", "", hyphenated)
 
 
+def get_full_domain(args: DictConfig) -> str:
+    with open(DEFAULT_FALLBACK_FILE, "r") as fallback_detail_file:
+        fallback_details = json.load(fallback_detail_file)
+
+    subdomain = url_safe_string(args.architect.subdomain)
+    root_domain = fallback_details["domain"]
+    full_domain = f"{subdomain}.{root_domain}"
+    return full_domain
+
+
 @dataclass
 class EC2ArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a heroku architect"""

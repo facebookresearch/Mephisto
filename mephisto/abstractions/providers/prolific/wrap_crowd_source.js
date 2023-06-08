@@ -19,37 +19,41 @@ var eventEmitter=function(){return{events:{},emit:function(f){for(var b=this.eve
 
 
 const PROVIDER_TYPE = 'prolific';
-// These URL params must be the same as were used in the URL in mephisto config under
-// `mephisto.provider.prolific_external_study_url`
-const STUDY_ID_URL_PARAM_NAME = 'study_id';
-const WORKER_NAME_URL_PARAM_NAME = 'prolific_pid';
+// These URL params must be the same as were used in the URL that is used in
+// `mephisto.abstractions.providers.prolific.prolific_utils._ec2_external_url`
+const STUDY_URL_PARTICIPANT_ID_PARAM = 'participant_id';
+const STUDY_URL_STUDY_ID_PARAM = 'study_id';
+const STUDY_URL_SUBMISSION_ID_PARAM = 'submission_id';
+
 
 // Prolific IMPLEMENTATION
 function getWorkerName() {
-  // Prolific worker name is passed via url params as WORKER_NAME_URL_PARAM_NAME
+  // Prolific worker name is passed via url params as STUDY_URL_PARTICIPANT_ID_PARAM
   // (Prolific Participant ID)
   let urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(WORKER_NAME_URL_PARAM_NAME);
+  return urlParams.get(STUDY_URL_PARTICIPANT_ID_PARAM);
 }
 
 
 function getAssignmentId() {
-  // NOTE: Prolific doesn't have assignment on that stage
-  return null;
+  // Prolific assignment ID is passed via url params as STUDY_URL_SUBMISSION_ID_PARAM
+  // (Prolific Submission ID)
+  let urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(STUDY_URL_SUBMISSION_ID_PARAM);
 }
 
 
 function getProlificStudyId() {
   let urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(STUDY_ID_URL_PARAM_NAME);
+  return urlParams.get(STUDY_URL_STUDY_ID_PARAM);
 }
 
 
 function getAgentRegistration() {
-  // Prolific agents are created using the Mephisto `worker_id` and Prolific `study_id`
+  // Prolific agents are created using the Mephisto `worker_id` and Prolific `submission_id`
   return {
     worker_name: getWorkerName(),
-    agent_registration_id: getProlificStudyId() + "-" + getWorkerName(),
+    agent_registration_id: getAssignmentId() + "-" + getWorkerName(),
     prolific_study_id: getProlificStudyId(),
     assignment_id: getAssignmentId(),
     provider_type: PROVIDER_TYPE,
@@ -58,9 +62,28 @@ function getAgentRegistration() {
 
 
 function handleSubmitToProvider(task_data) {
-  // Prolific agents won't ever submit to a real provider
-  alert("The task has been submitted! Data: " + JSON.stringify(task_data));
-  return true;
+  // TODO (#1008): Not sure that we need this function
+  let urlParams = new URLSearchParams(window.location.search);
+
+  task_data["assignmentId"] = getAssignmentId();
+  task_data["workerId"] = getWorkerName();
+
+  let form = document.createElement("form");
+
+  document.body.appendChild(form);
+
+  for (let name in task_data) {
+    let input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = task_data[name];
+    form.appendChild(input);
+  }
+
+  form.method = "POST";
+  form.action = urlParams.get("prolificSubmitTo") + "/prolific/externalSubmit";
+
+  HTMLFormElement.prototype.submit.call(form);
 }
 
 

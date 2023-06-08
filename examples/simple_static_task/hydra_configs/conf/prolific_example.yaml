@@ -17,7 +17,7 @@ mephisto:
     task_reward: 14
     task_tags: 'static,task,testing'
   provider:
-    prolific_external_study_url: 'https://example.com?prolific_pid={{%PROLIFIC_PID%}}&study_id={{%STUDY_ID%}}&session_id={{%SESSION_ID%}}'
+    prolific_external_study_url: 'https://example.com?participant_id={{%PROLIFIC_PID%}}&study_id={{%STUDY_ID%}}&submission_id={{%SESSION_ID%}}'
     prolific_id_option: 'url_parameters'
     prolific_workspace_name: 'My Workspace'
     prolific_project_name: 'Project'

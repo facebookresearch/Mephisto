@@ -1,3 +1,4 @@
+from mephisto.abstractions.providers.prolific.api.constants import ER_AGE_RANGE_QUESTION_ID
 from .base_eligibility_requirement import BaseEligibilityRequirement
 
 
@@ -13,5 +14,5 @@ class AgeRangeEligibilityRequirement(BaseEligibilityRequirement):
 
     def to_prolific_dict(self) -> dict:
         prolific_dict = super().to_prolific_dict()
-        prolific_dict['query'] = dict(id=None)
+        prolific_dict['query'] = dict(id=ER_AGE_RANGE_QUESTION_ID)
         return prolific_dict
