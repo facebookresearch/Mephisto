@@ -6,6 +6,7 @@
 
 from flask import Flask, Blueprint, send_file, jsonify, request  # type: ignore
 from datetime import datetime
+from typing import Optional
 import os
 import atexit
 import signal
@@ -28,6 +29,7 @@ def run(
     all_data=False,
     debug=False,
     assets_dir=None,
+    host: Optional[str] = None,
 ):
     global index_file, app
     global ready_for_next, current_data, finished, index_file
@@ -376,6 +378,8 @@ def run(
     else:
         thread = threading.Thread(target=consume_data, name="review-server-thread")
         thread.start()
-    print("Running on http://127.0.0.1:{}/ (Press CTRL+C to quit)".format(port))
+
+    host = host or '127.0.0.1'
+    print(f"Running on http://{host}:{port}/ (Press CTRL+C to quit)")
     sys.stdout.flush()
-    app.run(debug=False, port=port)
+    app.run(debug=False, port=port, host=host)

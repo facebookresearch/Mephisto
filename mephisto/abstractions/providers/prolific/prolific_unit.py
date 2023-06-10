@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
 import time
 from typing import Any
 from typing import cast
@@ -14,6 +15,9 @@ from typing import TYPE_CHECKING
 from mephisto.abstractions._subcomponents.agent_state import AgentState
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
+from mephisto.abstractions.providers.prolific.api.data_models import Project
+from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.api.data_models import Workspace
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
@@ -25,6 +29,8 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 from mephisto.utils.logger_core import get_logger
+
+DEFAULT_FRAME_HEIGHT = 0
 
 logger = get_logger(name=__name__)
 
@@ -50,6 +56,7 @@ class ProlificUnit(Unit):
         self.datastore: 'ProlificDatastore' = db.get_datastore_for_provider(PROVIDER_TYPE)
         self._last_sync_time = 0.0
         self._sync_study_mapping()
+        self.__requester: Optional['ProlificRequester'] = None
 
     def _get_client(self, requester_name: str) -> Any:
         """Get a Prolific client for usage with `prolific_utils`"""
@@ -65,7 +72,7 @@ class ProlificUnit(Unit):
             self.prolific_submission_id = mapping.get('prolific_submission_id')
             self.assignment_time_in_seconds = mapping.get('assignment_time_in_seconds')
         except IndexError:
-            # HIT does not appear to exist
+            # Study does not appear to exist
             self.prolific_study_id = None
             self.prolific_submission_id = None
             self.assignment_time_in_seconds = -1
@@ -254,9 +261,52 @@ class ProlificUnit(Unit):
         """Publish this Study on Prolific (making it available)"""
         requester = self.get_requester()
         client = self._get_client(requester.requester_name)
-        prolific_study_id = self.get_prolific_study_id()
-        prolific_utils.publish_study(client, prolific_study_id)
+
+        task_run = self.get_task_run()
+        task_run_id = task_run.db_id
+        args = task_run.args
+
+        # Get Prolific specific data to create a task
+        prolific_workspace: Workspace = prolific_utils.find_or_create_prolific_workspace(
+            client, title=args.provider.prolific_workspace_name,
+        )
+        prolific_project: Project = prolific_utils.find_or_create_prolific_project(
+            client, prolific_workspace.id, title=args.provider.prolific_project_name,
+        )
+
+        # Set up Task Run (Prolific Study)
+        prolific_study: Study = prolific_utils.create_study(
+            client, args, prolific_project.id, architect=self,
+        )
+
+        # Publish Study
+        prolific_utils.publish_study(client, prolific_study.id)
+
+        # Set up Task Run config
+        config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
+
+        # Save Study in datastore
+        self.datastore.new_study(
+            prolific_study_id=prolific_study.id,
+            study_link='',
+            duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
+            run_id=task_run_id,
+        )
+        frame_height = task_run.get_blueprint().get_frontend_args().get(
+            'frame_height', DEFAULT_FRAME_HEIGHT,
+        )
+        self.datastore.register_run(
+            run_id=task_run_id,
+            prolific_workspace_id=prolific_workspace.id,
+            prolific_project_id=prolific_project.id,
+            prolific_study_id=prolific_study.id,
+            prolific_study_config_path=config_dir,
+            frame_height=frame_height,
+        )
+
+        # Change DB status
         self.set_db_status(AssignmentState.LAUNCHED)
+
         return None
 
     def expire(self) -> float:

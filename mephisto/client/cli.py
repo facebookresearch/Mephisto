@@ -105,6 +105,7 @@ def config(identifier, value):
 @click.option("--db", "database_task_name", type=(str), default=None)
 @click.option("--all/--one-by-one", "all_data", default=False)
 @click.option("-d", "--debug", type=(bool), default=False)
+@click.option("-h", "--host", type=(str), default='127.0.0.1')
 def review(
     review_app_dir,
     port,
@@ -116,13 +117,18 @@ def review(
     all_data,
     debug,
     assets_dir,
+    host,
 ):
-    """Launch a local review UI server. Reads in rows froms stdin and outputs to either a file or stdout."""
+    """
+    Launch a local review UI server.
+    Reads in rows froms stdin and outputs to either a file or stdout.
+    """
     from mephisto.client.review.review_server import run
 
     if output == "" and output_method == "file":
         raise click.UsageError(
-            "You must specify an output file via --output=<filename>, unless the --stdout flag is set."
+            "You must specify an output file via --output=<filename>, "
+            "unless the --stdout flag is set."
         )
     if database_task_name is not None:
         from mephisto.abstractions.databases.local_database import LocalMephistoDB
@@ -133,7 +139,9 @@ def review(
         name_list = mephisto_data_browser.get_task_name_list()
         if database_task_name not in name_list:
             raise click.BadParameter(
-                f'The task name "{database_task_name}" did not exist in MephistoDB.\n\nPerhaps you meant one of these? {", ".join(name_list)}\n\nFlag usage: mephisto review --db [task_name]\n'
+                f'The task name "{database_task_name}" did not exist in MephistoDB.\n\n'
+                f'Perhaps you meant one of these? {", ".join(name_list)}\n\n'
+                f'Flag usage: mephisto review --db [task_name]\n'
             )
 
     run(
@@ -146,6 +154,7 @@ def review(
         all_data,
         debug,
         assets_dir,
+        host,
     )
 
 

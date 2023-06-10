@@ -267,7 +267,7 @@ def create_study(
     name = run_config.task.task_title
     description = run_config.task.task_description
     # How much are you going to pay the participants in cents. We use the currency of your account.
-    reward = run_config.task.task_reward
+    reward_in_cents = run_config.task.task_reward
 
     # Provider-specific info
     total_available_places = run_config.provider.prolific_total_available_places
@@ -298,9 +298,9 @@ def create_study(
             prolific_id_option=prolific_id_option,
             completion_option=constants.StudyCompletionOption.CODE,
             completion_codes=completion_codes,
-            total_available_places=total_available_places,
-            estimated_completion_time=estimated_completion_time_in_minutes,
-            reward=reward,
+            total_available_places=int(total_available_places),
+            estimated_completion_time=int(estimated_completion_time_in_minutes),
+            reward=int(reward_in_cents),
             eligibility_requirements=eligibility_requirements,
         )
     except ProlificException:
