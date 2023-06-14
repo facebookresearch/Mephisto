@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
 import time
 from typing import Any
 from typing import cast
@@ -29,8 +28,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.assignment import Assignment
 
 from mephisto.utils.logger_core import get_logger
-
-DEFAULT_FRAME_HEIGHT = 0
 
 logger = get_logger(name=__name__)
 
@@ -282,26 +279,12 @@ class ProlificUnit(Unit):
         # Publish Study
         prolific_utils.publish_study(client, prolific_study.id)
 
-        # Set up Task Run config
-        config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
-
         # Save Study in datastore
         self.datastore.new_study(
             prolific_study_id=prolific_study.id,
             study_link='',
             duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
             run_id=task_run_id,
-        )
-        frame_height = task_run.get_blueprint().get_frontend_args().get(
-            'frame_height', DEFAULT_FRAME_HEIGHT,
-        )
-        self.datastore.register_run(
-            run_id=task_run_id,
-            prolific_workspace_id=prolific_workspace.id,
-            prolific_project_id=prolific_project.id,
-            prolific_study_id=prolific_study.id,
-            prolific_study_config_path=config_dir,
-            frame_height=frame_height,
         )
 
         # Change DB status

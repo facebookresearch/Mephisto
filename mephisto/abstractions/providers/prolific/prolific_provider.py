@@ -8,6 +8,7 @@ import os
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
+from typing import cast
 from typing import ClassVar
 from typing import Type
 from typing import TYPE_CHECKING
@@ -25,6 +26,8 @@ from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.operations.registry import register_mephisto_abstraction
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
+from .api.data_models import Project
+from .api.data_models import Workspace
 from .api.exceptions import ProlificException
 
 if TYPE_CHECKING:
@@ -37,10 +40,11 @@ if TYPE_CHECKING:
     from omegaconf import DictConfig
 
 
-DEFAULT_ALLOW_LIST_GROUP_NAME = 'Allow list'
-DEFAULT_BLOCK_LIST_GROUP_NAME = 'Block list'
-DEFAULT_PROLIFIC_WORKSPACE_NAME = 'My Workspace'
+DEFAULT_FRAME_HEIGHT = 0
+DEFAULT_PROLIFIC_GROUP_NAME_ALLOW_LIST = 'Allow list'
+DEFAULT_PROLIFIC_GROUP_NAME_BLOCK_LIST = 'Block list'
 DEFAULT_PROLIFIC_PROJECT_NAME = 'Project'
+DEFAULT_PROLIFIC_WORKSPACE_NAME = 'My Workspace'
 
 
 logger = get_logger(name=__name__)
@@ -115,10 +119,10 @@ class ProlificProviderArgs(ProviderArgs):
         default=DEFAULT_PROLIFIC_PROJECT_NAME,
     )
     prolific_allow_list_group_name: str = field(
-        default=DEFAULT_ALLOW_LIST_GROUP_NAME,
+        default=DEFAULT_PROLIFIC_GROUP_NAME_ALLOW_LIST,
     )
     prolific_block_list_group_name: str = field(
-        default=DEFAULT_BLOCK_LIST_GROUP_NAME,
+        default=DEFAULT_PROLIFIC_GROUP_NAME_BLOCK_LIST,
     )
 
 
@@ -151,13 +155,39 @@ class ProlificProvider(CrowdProvider):
 
     def setup_resources_for_task_run(
         self,
-        task_run: "TaskRun",
-        args: "DictConfig",
-        shared_state: "SharedTaskState",
+        task_run: 'TaskRun',
+        args: 'DictConfig',
+        shared_state: 'SharedTaskState',
         server_url: str,
     ) -> None:
-        # Leave this method empty as mephisto code requires this, but Prolific code doesn't
-        pass
+        requester = cast('ProlificRequester', task_run.get_requester())
+        client = self._get_client(requester.requester_name)
+        task_run_id = task_run.db_id
+
+        # Set up Task Run config
+        config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
+
+        frame_height = task_run.get_blueprint().get_frontend_args().get(
+            'frame_height', DEFAULT_FRAME_HEIGHT,
+        )
+
+        # Get Prolific specific data to create a task
+        prolific_workspace: Workspace = prolific_utils.find_or_create_prolific_workspace(
+            client, title=args.provider.prolific_workspace_name,
+        )
+        prolific_project: Project = prolific_utils.find_or_create_prolific_project(
+            client, prolific_workspace.id, title=args.provider.prolific_project_name,
+        )
+
+        # Register TaskRun in Datastore
+        self.datastore.register_run(
+            run_id=task_run_id,
+            prolific_workspace_id=prolific_workspace.id,
+            prolific_project_id=prolific_project.id,
+            prolific_study_config_path=config_dir,
+            frame_height=frame_height,
+            prolific_study_id=None,
+        )
 
     def cleanup_resources_from_task_run(self, task_run: 'TaskRun', server_url: str) -> None:
         """No cleanup necessary for task type"""

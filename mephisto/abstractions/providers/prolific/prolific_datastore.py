@@ -475,9 +475,9 @@ class ProlificDatastore:
         run_id: str,
         prolific_workspace_id: str,
         prolific_project_id: str,
-        prolific_study_id: str,
         prolific_study_config_path: str,
         frame_height: int = 0,
+        prolific_study_id: Optional[str] = None,  # TODO (#1008): Remove it. Leave this just in case
     ) -> None:
         """Register a new task run in the Task Runs table"""
         with self.table_access_condition, self._get_connection() as conn:

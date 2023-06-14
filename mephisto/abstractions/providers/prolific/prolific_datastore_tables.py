@@ -60,7 +60,7 @@ CREATE_RUNS_TABLE = """
         arn_id TEXT,
         prolific_workspace_id TEXT NOT NULL,
         prolific_project_id TEXT NOT NULL,
-        prolific_study_id TEXT NOT NULL,
+        prolific_study_id TEXT,
         prolific_study_config_path TEXT NOT NULL,
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
         frame_height INTEGER NOT NULL DEFAULT 650
