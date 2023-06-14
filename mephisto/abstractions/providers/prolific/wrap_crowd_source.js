@@ -63,27 +63,7 @@ function getAgentRegistration() {
 
 function handleSubmitToProvider(task_data) {
   // TODO (#1008): Not sure that we need this function
-  let urlParams = new URLSearchParams(window.location.search);
-
-  task_data["assignmentId"] = getAssignmentId();
-  task_data["workerId"] = getWorkerName();
-
-  let form = document.createElement("form");
-
-  document.body.appendChild(form);
-
-  for (let name in task_data) {
-    let input = document.createElement("input");
-    input.type = "hidden";
-    input.name = name;
-    input.value = task_data[name];
-    form.appendChild(input);
-  }
-
-  form.method = "POST";
-  form.action = urlParams.get("prolificSubmitTo") + "/prolific/externalSubmit";
-
-  HTMLFormElement.prototype.submit.call(form);
+  return null;
 }
 
 

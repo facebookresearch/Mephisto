@@ -52,5 +52,5 @@ docs/storybook/storybook-static/*
 hydra_configs/profile/*.yaml
 !hydra_configs/profile/local_dev.yaml
 aws_credentials
-docker-compose.local.yml
+docker-compose.local.*
 env.local

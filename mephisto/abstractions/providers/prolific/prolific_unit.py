@@ -65,7 +65,7 @@ class ProlificUnit(Unit):
             return
         try:
             mapping = dict(self.datastore.get_study_mapping(self.db_id))
-            self.prolific_study_id = mapping['study_id']
+            self.prolific_study_id = mapping['prolific_study_id']
             self.prolific_submission_id = mapping.get('prolific_submission_id')
             self.assignment_time_in_seconds = mapping.get('assignment_time_in_seconds')
         except IndexError:
