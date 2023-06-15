@@ -14,9 +14,7 @@ from typing import TYPE_CHECKING
 from mephisto.abstractions._subcomponents.agent_state import AgentState
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
-from mephisto.abstractions.providers.prolific.api.data_models import Project
 from mephisto.abstractions.providers.prolific.api.data_models import Study
-from mephisto.abstractions.providers.prolific.api.data_models import Workspace
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
@@ -58,6 +56,10 @@ class ProlificUnit(Unit):
     def _get_client(self, requester_name: str) -> Any:
         """Get a Prolific client for usage with `prolific_utils`"""
         return self.datastore.get_client_for_requester(requester_name)
+
+    @property
+    def log_prefix(self) -> str:
+        return f'[Unit {self.db_id}] '
 
     def _sync_study_mapping(self) -> None:
         """Sync with the datastore to see if any mappings have updated"""
@@ -244,6 +246,8 @@ class ProlificUnit(Unit):
         Return the amount that this Unit is costing against the budget,
         calculating additional fees as relevant
         """
+        logger.debug(f'{self.log_prefix}Getting pay amount')
+
         requester = self.get_requester()
         client = self._get_client(requester.requester_name)
         run_args = self.get_task_run().args
@@ -252,6 +256,8 @@ class ProlificUnit(Unit):
             task_amount=run_args.task.task_reward,
             total_available_places=run_args.provider.prolific_total_available_places,
         )
+        logger.debug(f'{self.log_prefix}Pay amount: {total_amount}')
+
         return total_amount
 
     def launch(self, task_url: str) -> None:
@@ -263,28 +269,41 @@ class ProlificUnit(Unit):
         task_run_id = task_run.db_id
         args = task_run.args
 
-        # Get Prolific specific data to create a task
-        prolific_workspace: Workspace = prolific_utils.find_or_create_prolific_workspace(
-            client, title=args.provider.prolific_workspace_name,
-        )
-        prolific_project: Project = prolific_utils.find_or_create_prolific_project(
-            client, prolific_workspace.id, title=args.provider.prolific_project_name,
-        )
+        logger.debug(f'{self.log_prefix}Launching Task Run {task_run_id} with data: {args}')
+
+        # As Task Run was registered in datastore before, we can get its details from it
+        task_run_details = self.datastore.get_run(task_run_id)
+        logger.debug(f'{self.log_prefix}Task Run datastore details: {task_run_details}')
 
         # Set up Task Run (Prolific Study)
+        logger.debug(f'{self.log_prefix}Creating Prolific Study')
         prolific_study: Study = prolific_utils.create_study(
-            client, args, prolific_project.id, architect=self,
+            client,
+            task_run_config=args,
+            prolific_project_id=task_run_details['prolific_project_id'],
+        )
+        logger.debug(
+            f'{self.log_prefix}'
+            f'Prolific Study has been created successfully with ID: {prolific_study.id}'
         )
 
-        # Publish Study
+        # Publish Prolific Study
+        logger.debug(f'{self.log_prefix}Publishing Prolific Study')
         prolific_utils.publish_study(client, prolific_study.id)
+        logger.debug(
+            f'{self.log_prefix}'
+            f'Prolific Study "{prolific_study.id}" has been published successfully with ID'
+        )
 
-        # Save Study in datastore
+        # Save Study into provider-specific datastore
         self.datastore.new_study(
             prolific_study_id=prolific_study.id,
             study_link='',
             duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
             run_id=task_run_id,
+        )
+        logger.debug(
+            f'{self.log_prefix}Prolific Study "{prolific_study.id}" has been saved into datastore'
         )
 
         # Change DB status

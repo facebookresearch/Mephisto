@@ -55,10 +55,10 @@ def setup_credentials(
     return True
 
 
-def _get_eligibility_requirements(run_config_value: List[dict]) -> List[dict]:
+def _get_eligibility_requirements(task_run_config_value: List[dict]) -> List[dict]:
     eligibility_requirements = []
 
-    for conf_eligibility_requirement in run_config_value:
+    for conf_eligibility_requirement in task_run_config_value:
         name = conf_eligibility_requirement.get('name')
 
         if cls := getattr(eligibility_requirement_classes, name, None):
@@ -235,9 +235,9 @@ def find_or_create_qualification(
     return qualification
 
 
-def _ec2_external_url(run_config: 'DictConfig') -> str:
+def _ec2_external_url(task_run_config: 'DictConfig') -> str:
     c = constants
-    url = ec2_architect.get_full_domain(args=run_config)
+    url = ec2_architect.get_full_domain(args=task_run_config)
     url_with_args = (
         f'{url}?'
         f'{c.STUDY_URL_PARTICIPANT_ID_PARAM}={c.STUDY_URL_PARTICIPANT_ID_PARAM_PROLIFIC_VAR}'
@@ -247,37 +247,37 @@ def _ec2_external_url(run_config: 'DictConfig') -> str:
     return url_with_args
 
 
-def _is_ec2_architect(run_config: 'DictConfig') -> bool:
-    return run_config.architect._architect_type == ec2_architect.ARCHITECT_TYPE
+def _is_ec2_architect(task_run_config: 'DictConfig') -> bool:
+    return task_run_config.architect._architect_type == ec2_architect.ARCHITECT_TYPE
 
 
-def _get_external_study_url(run_config: 'DictConfig') -> str:
-    if _is_ec2_architect(run_config):
-        external_study_url = _ec2_external_url(run_config)
+def _get_external_study_url(task_run_config: 'DictConfig') -> str:
+    if _is_ec2_architect(task_run_config):
+        external_study_url = _ec2_external_url(task_run_config)
     else:
-        external_study_url = run_config.provider.prolific_external_study_url
+        external_study_url = task_run_config.provider.prolific_external_study_url
     return external_study_url
 
 
 def create_study(
-    client: prolific_api, run_config: 'DictConfig', prolific_project_id: str, *args, **kwargs,
+    client: prolific_api, task_run_config: 'DictConfig', prolific_project_id: str, *args, **kwargs,
 ) -> Study:
     """Create a task (Prolific Study)"""
     # Task info
-    name = run_config.task.task_title
-    description = run_config.task.task_description
+    name = task_run_config.task.task_title
+    description = task_run_config.task.task_description
     # How much are you going to pay the participants in cents. We use the currency of your account.
-    reward_in_cents = run_config.task.task_reward
+    reward_in_cents = task_run_config.task.task_reward
 
     # Provider-specific info
-    total_available_places = run_config.provider.prolific_total_available_places
+    total_available_places = task_run_config.provider.prolific_total_available_places
     estimated_completion_time_in_minutes = (
-        run_config.provider.prolific_estimated_completion_time_in_minutes
+        task_run_config.provider.prolific_estimated_completion_time_in_minutes
     )
-    external_study_url = _get_external_study_url(run_config)
-    prolific_id_option = run_config.provider.prolific_id_option
+    external_study_url = _get_external_study_url(task_run_config)
+    prolific_id_option = task_run_config.provider.prolific_id_option
     eligibility_requirements = _get_eligibility_requirements(
-        run_config.provider.prolific_eligibility_requirements,
+        task_run_config.provider.prolific_eligibility_requirements,
     )
     completion_codes = [dict(
         code='ABC123',  # TODO (#1008): Change value
@@ -368,7 +368,7 @@ def remove_worker_qualification(
 
 def pay_bonus(
     client: prolific_api,
-    run_config: 'DictConfig',
+    task_run_config: 'DictConfig',
     worker_id: str,
     bonus_amount: float,
     study_id: str,
@@ -379,7 +379,7 @@ def pay_bonus(
     Handles paying bonus to a worker, fails for insufficient funds.
     Returns True on success and False on failure
     """
-    if not check_balance(workspace_name=run_config.provider.prolific_workspace_name):
+    if not check_balance(workspace_name=task_run_config.provider.prolific_workspace_name):
         # Just in case if Prolific adds showing an available balance for an account
         logger.debug('Cannot pay bonus. Reason: Insufficient funds in your Prolific account.')
         return False
@@ -403,46 +403,46 @@ def pay_bonus(
 
 
 def _get_block_list_qualification(
-    client: prolific_api, run_config: 'DictConfig',
+    client: prolific_api, task_run_config: 'DictConfig',
 ) -> ParticipantGroup:
     workspace = find_or_create_prolific_workspace(
-        client, title=run_config.provider.prolific_workspace_name,
+        client, title=task_run_config.provider.prolific_workspace_name,
     )
     project = find_or_create_prolific_project(
-        client, workspace.id, title=run_config.provider.prolific_project_name,
+        client, workspace.id, title=task_run_config.provider.prolific_project_name,
     )
     block_list_qualification = find_or_create_qualification(
-        client, project.id, run_config.provider.prolific_block_list_group_name,
+        client, project.id, task_run_config.provider.prolific_block_list_group_name,
     )
     return block_list_qualification
 
 
 def block_worker(
-    client: prolific_api, run_config: 'DictConfig', worker_id: str, *args, **kwargs,
+    client: prolific_api, task_run_config: 'DictConfig', worker_id: str, *args, **kwargs,
 ) -> None:
     """Block a worker by id using the Prolific client, passes reason along"""
-    block_list_qualification = _get_block_list_qualification(client, run_config)
+    block_list_qualification = _get_block_list_qualification(client, task_run_config)
     give_worker_qualification(client, worker_id, block_list_qualification.id)
 
 
 def unblock_worker(
-    client: prolific_api, run_config: 'DictConfig', worker_id: str, *args, **kwargs,
+    client: prolific_api, task_run_config: 'DictConfig', worker_id: str, *args, **kwargs,
 ) -> None:
     """Remove a block on the given worker"""
-    block_list_qualification = _get_block_list_qualification(client, run_config)
+    block_list_qualification = _get_block_list_qualification(client, task_run_config)
     remove_worker_qualification(client, worker_id, block_list_qualification.id)
 
 
-def is_worker_blocked(client: prolific_api, run_config: 'DictConfig', worker_id: str) -> bool:
+def is_worker_blocked(client: prolific_api, task_run_config: 'DictConfig', worker_id: str) -> bool:
     """Determine if the given worker is blocked by this client"""
     workspace = find_or_create_prolific_workspace(
-        client, title=run_config.provider.prolific_workspace_name,
+        client, title=task_run_config.provider.prolific_workspace_name,
     )
     project = find_or_create_prolific_project(
-        client, workspace.id, title=run_config.provider.prolific_project_name,
+        client, workspace.id, title=task_run_config.provider.prolific_project_name,
     )
     _, block_list_qualification = _find_qualification(
-        client, project.id, run_config.provider.prolific_block_list_group_name,
+        client, project.id, task_run_config.provider.prolific_block_list_group_name,
     )
 
     if not block_list_qualification:

@@ -181,7 +181,7 @@ class TestProlificUtils(unittest.TestCase):
         )
         study = create_study(
             client=prolific_api,
-            run_config=mock_task_run_args,
+            task_run_config=mock_task_run_args,
             prolific_project_id=project_id,
         )
         self.assertEqual(study.id, expected_task_id)
@@ -194,7 +194,7 @@ class TestProlificUtils(unittest.TestCase):
         with self.assertRaises(ProlificRequestError) as cm:
             create_study(
                 client=prolific_api,
-                run_config=mock_task_run_args,
+                task_run_config=mock_task_run_args,
                 prolific_project_id=project_id,
             )
         self.assertEqual(cm.exception.message, exception_message)

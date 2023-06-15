@@ -57,6 +57,10 @@ class ProlificAgent(Agent):
         requester: 'ProlificRequester' = cast('ProlificRequester', self.unit.get_requester())
         return self.datastore.get_client_for_requester(requester.requester_name)
 
+    @property
+    def log_prefix(self) -> str:
+        return f'[Agent {self.db_id}] '
+
     @classmethod
     def new_from_provider_data(
         cls,
@@ -71,6 +75,10 @@ class ProlificAgent(Agent):
         """
         from mephisto.abstractions.providers.prolific.prolific_unit import ProlificUnit
 
+        logger.debug(
+            f'Registering Prolific Submission in datastore from Prolific. Data: {provider_data}'
+        )
+
         assert isinstance(
             unit, ProlificUnit
         ), 'Can only register Prolific agents to Prolific units'
@@ -79,30 +87,50 @@ class ProlificAgent(Agent):
         prolific_submission_id = provider_data['assignment_id']
         unit.register_from_provider_data(prolific_study_id, prolific_submission_id)
 
+        logger.debug('Prolific Submission has been registered successfully')
+
         return super().new_from_provider_data(db, worker, unit, provider_data)
 
     def approve_work(self) -> None:
         """Approve the work done on this specific Unit"""
+        logger.debug(f'{self.log_prefix}Approving work')
+
         if self.get_status() == AgentState.STATUS_APPROVED:
-            logger.info(f'Approving already approved agent {self}, skipping')
+            logger.info(f'{self.log_prefix}Approving already approved agent {self}, skipping')
             return
 
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_worker_id()
         prolific_utils.approve_work(client, study_id=prolific_study_id, worker_id=worker_id)
+
+        logger.debug(
+            f'{self.log_prefix}'
+            f'Work for Study "{prolific_study_id}" completed by worker "{worker_id}" '
+            f'has been approved'
+        )
+
         self.update_status(AgentState.STATUS_APPROVED)
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
+        logger.debug(f'{self.log_prefix}Rejecting work')
+
         if self.get_status() == AgentState.STATUS_APPROVED:
-            logger.warning(f'Cannot reject {self}, it is already approved')
+            logger.warning(f'{self.log_prefix}Cannot reject {self}, it is already approved')
             return
 
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_worker_id()
         prolific_utils.reject_work(client, study_id=prolific_study_id, worker_id=worker_id)
+
+        logger.debug(
+            f'{self.log_prefix}'
+            f'Work for Study "{prolific_study_id}" completed by worker "{worker_id}" '
+            f'has been rejected. Reason: {reason}'
+        )
+
         self.update_status(AgentState.STATUS_REJECTED)
 
     def mark_done(self) -> None:
@@ -111,6 +139,8 @@ class ProlificAgent(Agent):
         is marked as done there's nothing else we need to do as the task has been
         submitted.
         """
+        logger.debug(f'{self.log_prefix}Work has been marked as Done')
+
         if self.get_status() != AgentState.STATUS_DISCONNECT:
             self.db.update_agent(agent_id=self.db_id, status=AgentState.STATUS_COMPLETED)
 

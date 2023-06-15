@@ -46,17 +46,23 @@ class ProlificWorker(Worker):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
         self.datastore: 'ProlificDatastore' = db.get_datastore_for_provider(PROVIDER_TYPE)
 
-    def get_prolific_worker_id(self):
-        return self.worker_name
-
     def _get_client(self, requester_name: str) -> Any:
         """Get a Prolific client for usage with `prolific_utils`"""
         return self.datastore.get_client_for_requester(requester_name)
+
+    @property
+    def log_prefix(self) -> str:
+        return f'[Worker {self.db_id}] '
+
+    def get_prolific_worker_id(self):
+        return self.worker_name
 
     def bonus_worker(
         self, amount: float, reason: str, unit: Optional['Unit'] = None
     ) -> Tuple[bool, str]:
         """Bonus a worker for work any reason. Return success of bonus"""
+        logger.debug(f'{self.log_prefix}Paying bonuses')
+
         if unit is None:
             return False, 'bonusing via compensation tasks not yet available'
 
@@ -73,14 +79,22 @@ class ProlificWorker(Worker):
 
         client = self._get_client(requester.requester_name)
         task_run_args = task_run.args
+        worker_id = self.get_prolific_worker_id()
+        study_id = unit.get_prolific_study_id()
 
+        logger.debug(
+            f'{self.log_prefix}'
+            f'Trying to pay bonuses to worker {worker_id} for Study {study_id}. Amount: {amount}'
+        )
         prolific_utils.pay_bonus(
             client,
-            run_config=task_run_args,
-            worker_id=self.get_prolific_worker_id(),
+            task_run_config=task_run_args,
+            worker_id=worker_id,
             bonus_amount=amount,
-            study_id=unit.get_prolific_study_id(),
+            study_id=study_id,
         )
+
+        logger.debug(f'{self.log_prefix}Bonuses have been paid successfully')
 
         return True, ''
 
@@ -96,6 +110,8 @@ class ProlificWorker(Worker):
         requester: Optional['Requester'] = None,
     ) -> Tuple[bool, str]:
         """Block this worker for a specified reason. Return success of block"""
+        logger.debug(f'{self.log_prefix}Blocking worker {self.worker_name}')
+
         if unit is None and requester is None:
             # TODO(WISH) soft block from all requesters? Maybe have the main requester soft block?
             return (
@@ -109,19 +125,32 @@ class ProlificWorker(Worker):
         else:
             task_run = self._get_first_task_run(requester)
 
+        logger.debug(f'{self.log_prefix}Task Run: {task_run}')
+
         task_run_args = task_run.args
         requester: 'ProlificRequester' = cast('ProlificRequester', requester)
         client = self._get_client(requester.requester_name)
         prolific_utils.block_worker(client, task_run_args, self.worker_name, reason)
+
+        logger.debug(f'{self.log_prefix}Worker {self.worker_name} blocked')
+
         return True, ''
 
     def unblock_worker(self, reason: str, requester: 'Requester') -> Tuple[bool, str]:
         """Unblock a blocked worker for the specified reason. Return success of unblock"""
+        logger.debug(f'{self.log_prefix}Unlocking worker {self.worker_name}')
+
         task_run = self._get_first_task_run(requester)
+
+        logger.debug(f'{self.log_prefix}Task Run: {task_run}')
+
         task_run_args = task_run.args
         requester = cast('ProlificRequester', requester)
         client = self._get_client(requester.requester_name)
         prolific_utils.unblock_worker(client, task_run_args, self.worker_name, reason)
+
+        logger.debug(f'{self.log_prefix}Worker {self.worker_name} unblocked')
+
         return True, ''
 
     def is_blocked(self, requester: 'Requester') -> bool:
@@ -131,6 +160,12 @@ class ProlificWorker(Worker):
         requester = cast('ProlificRequester', requester)
         client = self._get_client(requester.requester_name)
         is_blocked = prolific_utils.is_worker_blocked(client, task_run_args, self.worker_name)
+
+        logger.debug(
+            f'{self.log_prefix}'
+            f'Worker "{self.worker_name}" {is_blocked=} for Task Run "{task_run.db_id}"'
+        )
+
         return is_blocked
 
     def is_eligible(self, task_run: 'TaskRun') -> bool:
@@ -139,6 +174,8 @@ class ProlificWorker(Worker):
 
     def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
         """Grant a qualification by the given name to this worker"""
+        logger.debug(f'{self.log_prefix}Granting crowd qualification: {qualification_name}')
+
         p_qualification_details = self.datastore.get_qualification_mapping(qualification_name)
 
         if p_qualification_details is not None:
@@ -177,15 +214,22 @@ class ProlificWorker(Worker):
         p_worker_id = self.get_prolific_worker_id()
         prolific_utils.give_worker_qualification(client, p_worker_id, p_qualification_id)
 
+        logger.debug(
+            f'{self.log_prefix}Crowd qualification {qualification_name} has been granted '
+            f'for Prolific Participant "{p_worker_id}"'
+        )
+
         return None
 
     def revoke_crowd_qualification(self, qualification_name: str) -> None:
         """Revoke the qualification by the given name from this worker"""
+        logger.debug(f'{self.log_prefix}Revoking crowd qualification: {qualification_name}')
+
         p_qualification_details = self.datastore.get_qualification_mapping(qualification_name)
 
         if p_qualification_details is None:
             logger.error(
-                f'No locally stored Prolific qualification (participat groups) '
+                f'{self.log_prefix}No locally stored Prolific qualification (participat groups) '
                 f'to revoke for name {qualification_name}'
             )
             return None
@@ -200,6 +244,11 @@ class ProlificWorker(Worker):
         p_worker_id = self.get_prolific_worker_id()
         p_qualification_id = p_qualification_details['prolific_participant_group_id']
         prolific_utils.remove_worker_qualification(client, p_worker_id, p_qualification_id)
+
+        logger.debug(
+            f'{self.log_prefix}Crowd qualification {qualification_name} has been revoked '
+            f'for Prolific Participant "{p_worker_id}"'
+        )
 
         return None
 
