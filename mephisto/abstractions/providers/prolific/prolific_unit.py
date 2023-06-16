@@ -169,7 +169,7 @@ class ProlificUnit(Unit):
         external_status = self.db_status
 
         if study.status == StudyStatus.UNPUBLISHED:
-            external_status = AssignmentState.ASSIGNED
+            external_status = AssignmentState.COMPLETED
         elif study.status == StudyStatus.ACTIVE:
             external_status = AssignmentState.LAUNCHED
         elif study.status == StudyStatus.SCHEDULED:
@@ -180,7 +180,7 @@ class ProlificUnit(Unit):
             pass
         elif study.status == StudyStatus.AWAITING_REVIEW:
             # TODO (#1008): Choose correct mapping
-            # external_status = AssignmentState.COMPLETED
+            external_status = AssignmentState.COMPLETED
             pass
         elif study.status == StudyStatus.COMPLETED:
             external_status = AssignmentState.COMPLETED
@@ -196,7 +196,8 @@ class ProlificUnit(Unit):
             ]:
                 # Treat this as a return event, this Study may be doable by someone else
                 agent = self.get_assigned_agent()
-                if agent is not None and agent.get_status() in [
+                agent_status = agent.get_status() if agent else None
+                if agent_status in [
                     AgentState.STATUS_ACCEPTED,
                     AgentState.STATUS_IN_TASK,
                     AgentState.STATUS_ONBOARDING,

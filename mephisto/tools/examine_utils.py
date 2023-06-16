@@ -61,6 +61,7 @@ def print_results(
     if start is None:
         start = 0
     units.reverse()
+
     for unit in units[start:end]:
         print(_get_and_format_data(data_browser, format_data_for_printing, unit))
 

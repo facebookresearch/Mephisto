@@ -7,7 +7,7 @@ mephisto:
   architect:
     _architect_type: ec2
     profile_name: mephisto-router-iam
-    subdomain: 'QA June 15.1'
+    subdomain: '0616.11'
   blueprint:
     data_csv: ${task_dir}/data_prolific.csv
     task_source: ${task_dir}/server_files/demo_task.html
@@ -16,8 +16,8 @@ mephisto:
     units_per_assignment: 1
   log_level: 'debug'
   task:
-    task_name: 'QA June 15'
-    task_title: 'QA June 15 Task'
+    task_name: '0616'
+    task_title: '0616 Task'
     task_description: 'This is a simple test of static Prolific tasks.'
     task_reward: 70
     task_tags: 'static,task,testing'
