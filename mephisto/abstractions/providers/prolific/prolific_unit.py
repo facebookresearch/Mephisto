@@ -301,6 +301,7 @@ class ProlificUnit(Unit):
             study_link='',
             duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
             run_id=task_run_id,
+            unit_id=self.db_id,
         )
         logger.debug(
             f'{self.log_prefix}Prolific Study "{prolific_study.id}" has been saved into datastore'

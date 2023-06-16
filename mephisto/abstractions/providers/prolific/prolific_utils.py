@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import uuid
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -280,10 +281,10 @@ def create_study(
         task_run_config.provider.prolific_eligibility_requirements,
     )
     completion_codes = [dict(
-        code='ABC123',  # TODO (#1008): Change value
-        code_type=constants.StudyCodeType.OTHER,  # TODO (#1008): Change value
+        code=f'{constants.StudyCodeType.COMPLETED}_{uuid.uuid4().hex[:5]}',
+        code_type=constants.StudyCodeType.COMPLETED,
         actions=[dict(
-            action=constants.StudyAction.AUTOMATICALLY_APPROVE,  # TODO (#1008): Change value
+            action=constants.StudyAction.MANUALLY_REVIEW,
         )],
     )]
 

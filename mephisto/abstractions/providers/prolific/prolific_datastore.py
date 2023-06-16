@@ -74,7 +74,12 @@ class ProlificDatastore:
         return compare_time > self._last_study_mapping_update_times[unit_id]
 
     def new_study(
-        self, prolific_study_id: str, study_link: str, duration_in_seconds: int, run_id: str,
+        self,
+        prolific_study_id: str,
+        study_link: str,
+        duration_in_seconds: int,
+        run_id: str,
+        unit_id: int,
     ) -> None:
         """Register a new Study mapping in the table"""
         with self.table_access_condition, self._get_connection() as conn:
@@ -83,11 +88,12 @@ class ProlificDatastore:
                 """
                 INSERT INTO studies(
                     prolific_study_id,
+                    unit_id,
                     link,
                     assignment_time_in_seconds
-                ) VALUES (?, ?, ?);
+                ) VALUES (?, ?, ?, ?);
                 """,
-                (prolific_study_id, study_link, duration_in_seconds),
+                (prolific_study_id, unit_id, study_link, duration_in_seconds),
             )
             c.execute(
                 """
