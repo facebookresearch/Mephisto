@@ -117,6 +117,7 @@ class HerokuArchitect(Architect):
         self.__heroku_app_name: Optional[str] = args.architect.get(
             "heroku_app_name", None
         )
+        self.__heroku_app_url: Optional[str] = None
         self.__heroku_executable_path: Optional[str] = None
         self.__heroku_user_identifier: Optional[str] = None
 
@@ -124,8 +125,7 @@ class HerokuArchitect(Architect):
 
     def _get_socket_urls(self) -> List[str]:
         """Returns the path to the heroku app socket"""
-        heroku_app_name = self.__get_app_name()
-        return ["wss://{}.herokuapp.com/".format(heroku_app_name)]
+        return ["wss://{}".format(self.__heroku_app_url)]
 
     def get_channels(
         self,
@@ -444,7 +444,11 @@ class HerokuArchitect(Architect):
 
         time.sleep(HEROKU_WAIT_TIME)
 
-        return "https://{}.herokuapp.com".format(heroku_app_name)
+        domains = subprocess.check_output(
+            shlex.split(f"{heroku_executable_path} domains -a {heroku_app_name}")
+        ).decode()
+        self.__heroku_app_url = domains.split("\n")[1]
+        return "https://{}".format(self.__heroku_app_url)
 
     def __delete_heroku_server(self):
         """
