@@ -28,6 +28,7 @@ from .api.data_models import Study
 from .api.data_models import Submission
 from .api.data_models import Workspace
 from .api.data_models import WorkspaceBalance
+from .api.data_models.submission import SubmissionList
 from .api.exceptions import ProlificException
 from .prolific_requester import ProlificRequesterArgs
 
@@ -479,23 +480,25 @@ def calculate_pay_amount(
     return total_cost
 
 
-def _find_submission(client: prolific_api, study_id: str, worker_id: str) -> Optional[Submission]:
+def _find_submission(
+    client: prolific_api, study_id: str, worker_id: str,
+) -> Optional[SubmissionList]:
     """Find a Submission by Study and Worker"""
     try:
-        submissions: List[Submission] = client.Submissions.list(study_id=study_id)
+        submissions: List[SubmissionList] = client.Submissions.list(study_id=study_id)
     except ProlificException:
         logger.exception(f'Could not receive submissions for study "{study_id}"')
         raise
 
     for submission in submissions:
-        if submission.study_id == study_id and submission.participant == worker_id:
+        if submission.participant_id == worker_id:
             return submission
 
     return None
 
 
 def approve_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Submission, None]:
-    submission = _find_submission(client, study_id, worker_id)
+    submission: SubmissionList = _find_submission(client, study_id, worker_id)
 
     if not submission:
         logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
@@ -520,7 +523,7 @@ def approve_work(client: prolific_api, study_id: str, worker_id: str) -> Union[S
 
 
 def reject_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Submission, None]:
-    submission = _find_submission(client, study_id, worker_id)
+    submission: SubmissionList = _find_submission(client, study_id, worker_id)
 
     if not submission:
         logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')

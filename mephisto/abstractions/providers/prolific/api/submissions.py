@@ -10,6 +10,7 @@ from typing import Optional
 from . import constants
 from .base_api_resource import BaseAPIResource
 from .data_models import Submission
+from .data_models import SubmissionList
 
 
 class Submissions(BaseAPIResource):
@@ -18,7 +19,7 @@ class Submissions(BaseAPIResource):
     change_status_api_endpoint = 'submissions/{id}/transition/'
 
     @classmethod
-    def list(cls, study_id: Optional[str] = None) -> List[Submission]:
+    def list(cls, study_id: Optional[str] = None) -> List[SubmissionList]:
         """
         API docs for this endpoint:
         https://docs.prolific.co/docs/api-docs/public/#tag/
@@ -28,7 +29,7 @@ class Submissions(BaseAPIResource):
         if study_id:
             endpoint = f'{endpoint}?study={study_id}'
         response_json = cls.get(endpoint)
-        submissions = [Submission(**s) for s in response_json['results']]
+        submissions = [SubmissionList(**s) for s in response_json['results']]
         return submissions
 
     @classmethod
