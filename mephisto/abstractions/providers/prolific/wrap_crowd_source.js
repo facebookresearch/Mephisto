@@ -19,6 +19,8 @@ var eventEmitter=function(){return{events:{},emit:function(f){for(var b=this.eve
 
 
 const PROVIDER_TYPE = 'prolific';
+// As for back-end (see `mephisto.abstractions.providers.prolific.api.constants.StudyCodeType`)
+const STUDY_CODE_TYPE_COMPLETED = 'COMPLETED';
 // These URL params must be the same as were used in the URL that is used in
 // `mephisto.abstractions.providers.prolific.prolific_utils._ec2_external_url`
 const STUDY_URL_PARTICIPANT_ID_PARAM = 'participant_id';
@@ -62,10 +64,11 @@ function getAgentRegistration() {
 
 
 function handleSubmitToProvider(task_data) {
-  // TODO (#1008): Not sure that we need this function
-  return null;
+  // Redirecting a worker to the Prolific Study page back.
+  // Otherwise, this worker will stay at our project's page without ability to finish his job
+  var completionCode = STUDY_CODE_TYPE_COMPLETED + '_' + getProlificStudyId();
+  window.location.href='https://app.prolific.co/submissions/complete?cc=' + completionCode;
 }
-
 
 const events = eventEmitter();
 

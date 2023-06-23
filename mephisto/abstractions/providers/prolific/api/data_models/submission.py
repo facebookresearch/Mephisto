@@ -39,7 +39,7 @@ class Submission(BaseModel):
         return f'{self.__class__.__name__} {self.id}'
 
 
-class SubmissionList(BaseModel):
+class ListSubmission(BaseModel):
     """
     Somehow Prolific returns completely different fields for one object and list of objects
 

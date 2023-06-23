@@ -61,6 +61,7 @@ class ProlificDatastore:
             conn.execute('PRAGMA foreign_keys = 1')
             c = conn.cursor()
             c.execute(tables.CREATE_STUDIES_TABLE)
+            c.execute(tables.CREATE_SUBMISSIONS_TABLE)
             c.execute(tables.CREATE_REQUESTERS_TABLE)
             c.execute(tables.CREATE_UNITS_TABLE)
             c.execute(tables.CREATE_WORKERS_TABLE)
@@ -162,12 +163,23 @@ class ProlificDatastore:
 
             c.execute(
                 """
+                INSERT INTO submissions(
+                    prolific_study_id,
+                    prolific_submission_id
+                ) VALUES (?, ?);
+                """,
+                (prolific_study_id, prolific_submission_id),
+            )
+
+            c.execute(
+                """
                 UPDATE studies
-                SET prolific_submission_id = ?, unit_id = ?
+                SET unit_id = ?
                 WHERE prolific_study_id = ?
                 """,
-                (prolific_submission_id, unit_id, prolific_study_id),
+                (unit_id, prolific_study_id),
             )
+
             if unit_id is not None:
                 self._mark_study_mapping_update(unit_id)
 
@@ -238,7 +250,7 @@ class ProlificDatastore:
             conn.commit()
             return None
 
-    def set_worker_blocked(self, worker_id: str, val: bool) -> None:
+    def set_worker_blocked(self, worker_id: str, is_blocked: bool) -> None:
         """Set the worker registration status for the given id"""
         self.ensure_worker_exists(worker_id)
         with self.table_access_condition:
@@ -250,7 +262,7 @@ class ProlificDatastore:
                 SET is_blocked = ?
                 WHERE worker_id = ?
                 """,
-                (val, worker_id),
+                (is_blocked, worker_id),
             )
             conn.commit()
             return None

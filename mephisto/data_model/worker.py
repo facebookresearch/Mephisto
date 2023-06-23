@@ -177,6 +177,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         Returns True if removal happens locally and externally, False if an exception
         happens with the crowd provider
         """
+        breakpoint()
         granted_qualification = self.get_granted_qualification(qualification_name)
         if granted_qualification is None:
             return False
@@ -203,6 +204,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         Returns True if granting happens locally and externally, False if an exception
         happens with the crowd provider
         """
+        breakpoint()
         found_qualifications = self.db.find_qualifications(qualification_name)
         if len(found_qualifications) == 0:
             raise Exception(

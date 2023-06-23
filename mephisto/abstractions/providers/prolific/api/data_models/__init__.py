@@ -11,8 +11,8 @@ from .participant import Participant
 from .participant_group import ParticipantGroup
 from .project import Project
 from .study import Study
+from .submission import ListSubmission
 from .submission import Submission
-from .submission import SubmissionList
 from .user import User
 from .workspace import Workspace
 from .workspace_balance import WorkspaceBalance

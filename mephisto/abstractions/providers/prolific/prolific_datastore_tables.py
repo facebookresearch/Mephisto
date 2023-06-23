@@ -6,17 +6,27 @@
 
 CREATE_STUDIES_TABLE = """
     CREATE TABLE IF NOT EXISTS studies (
-        prolific_study_id TEXT PRIMARY KEY UNIQUE,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        prolific_study_id TEXT UNIQUE,
         unit_id TEXT,
-        prolific_submission_id TEXT,
         link TEXT,
         assignment_time_in_seconds INTEGER NOT NULL,
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 """
 
+CREATE_SUBMISSIONS_TABLE = """
+    CREATE TABLE IF NOT EXISTS submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        prolific_submission_id TEXT UNIQUE,
+        prolific_study_id TEXT,
+        creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+"""
+
 CREATE_RUN_MAP_TABLE = """
     CREATE TABLE IF NOT EXISTS run_mappings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         prolific_study_id TEXT,
         run_id TEXT
     );
@@ -24,28 +34,32 @@ CREATE_RUN_MAP_TABLE = """
 
 CREATE_REQUESTERS_TABLE = """
     CREATE TABLE IF NOT EXISTS requesters (
-        requester_id TEXT PRIMARY KEY UNIQUE,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        requester_id TEXT UNIQUE,
         is_registered BOOLEAN
     );
 """
 
 CREATE_UNITS_TABLE = """
     CREATE TABLE IF NOT EXISTS units (
-        unit_id TEXT PRIMARY KEY UNIQUE,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        unit_id TEXT UNIQUE,
         is_expired BOOLEAN
     );
 """
 
 CREATE_WORKERS_TABLE = """
     CREATE TABLE IF NOT EXISTS workers (
-        worker_id TEXT PRIMARY KEY UNIQUE,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        worker_id TEXT UNIQUE,
         is_blocked BOOLEAN
     );
 """
 
 CREATE_QUALIFICATIONS_TABLE = """
     CREATE TABLE IF NOT EXISTS qualifications (
-        qualification_name TEXT PRIMARY KEY UNIQUE,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        qualification_name TEXT UNIQUE,
         requester_id TEXT,
         prolific_project_id TEXT,
         prolific_participant_group_name TEXT,
@@ -56,7 +70,8 @@ CREATE_QUALIFICATIONS_TABLE = """
 
 CREATE_RUNS_TABLE = """
     CREATE TABLE IF NOT EXISTS runs (
-        run_id TEXT PRIMARY KEY UNIQUE,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_id TEXT UNIQUE,
         arn_id TEXT,
         prolific_workspace_id TEXT NOT NULL,
         prolific_project_id TEXT NOT NULL,

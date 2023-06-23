@@ -72,8 +72,8 @@ class Studies(BaseAPIResource):
         https://docs.prolific.co/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1studies~1%7Bid%7D~1/patch
         """
-        study = Study(**data)
-        study.validate()
+        study = Study(id=id, **data)
+        study.validate(check_required_fields=False)
         response_json = cls.patch(cls.update_api_endpoint.format(id=id), params=study.to_dict())
         return Study(**response_json)
 

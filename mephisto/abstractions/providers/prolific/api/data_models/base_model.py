@@ -29,11 +29,12 @@ class BaseModel:
     def __repr__(self) -> str:
         return f'<{self.__str__()}>'
 
-    def validate(self):
+    def validate(self, check_required_fields: bool = True):
         schema = dict(self.schema)
+        is_updating = self.id_field_name in self.__dict__
 
-        # Validate on required fields if object is intended to be created
-        if self.id_field_name not in self.__dict__:
+        # Validate presence of required fields if we're creating an object
+        if check_required_fields or not is_updating:
             schema['required'] = self.required_schema_fields
 
         validate(instance=self.__dict__, schema=schema)

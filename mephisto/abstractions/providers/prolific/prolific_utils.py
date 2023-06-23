@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from jsonschema.exceptions import ValidationError
 import os
 import uuid
 from typing import List
@@ -21,6 +22,7 @@ from .api import eligibility_requirement_classes
 from .api.base_api_resource import CREDENTIALS_CONFIG_DIR
 from .api.base_api_resource import CREDENTIALS_CONFIG_PATH
 from .api.data_models import BonusPayments
+from .api.data_models import ListSubmission
 from .api.data_models import Participant
 from .api.data_models import ParticipantGroup
 from .api.data_models import Project
@@ -28,7 +30,6 @@ from .api.data_models import Study
 from .api.data_models import Submission
 from .api.data_models import Workspace
 from .api.data_models import WorkspaceBalance
-from .api.data_models.submission import SubmissionList
 from .api.exceptions import ProlificException
 from .prolific_requester import ProlificRequesterArgs
 
@@ -41,7 +42,7 @@ def check_credentials(*args, **kwargs) -> bool:
         # Make a simple request to the API
         prolific_api.Users.me()
         return True
-    except ProlificException:
+    except (ProlificException, ValidationError):
         return False
 
 
@@ -87,7 +88,7 @@ def check_balance(*args, **kwargs) -> Union[float, int, None]:
 
     try:
         workspace_ballance: WorkspaceBalance = prolific_api.Workspaces.get_balance(id=workspace.id)
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not receive a workspace balance with {workspace.id=}')
         raise
 
@@ -102,13 +103,13 @@ def _find_prolific_workspace(
         try:
             workspace: Workspace = client.Workspaces.retrieve(id)
             return True, workspace
-        except ProlificException:
+        except (ProlificException, ValidationError):
             logger.exception(f'Could not find a workspace by id {id}')
             raise
 
     try:
         workspaces: List[Workspace] = client.Workspaces.list()
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not find a workspace by title {title}')
         raise
 
@@ -130,7 +131,7 @@ def find_or_create_prolific_workspace(
 
     try:
         workspace: Workspace = client.Workspaces.create(title=title)
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not create a workspace with title "{title}"')
         raise
 
@@ -143,7 +144,7 @@ def _find_prolific_project(
     """Find a Prolific Project by title or ID"""
     try:
         projects: List[Project] = client.Projects.list_for_workspace(workspace_id)
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not get projects for worspace "{workspace_id}"')
         raise
 
@@ -170,7 +171,7 @@ def find_or_create_prolific_project(
             workspace_id=workspace_id,
             title=title,
         )
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not create a project with title "{title}"')
         raise
 
@@ -196,7 +197,7 @@ def _find_qualification(
         qualifications: List[ParticipantGroup] = client.ParticipantGroups.list(
             project_id=prolific_project_id,
         )
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not receive a qualifications for project "{prolific_project_id}"')
         raise
 
@@ -227,7 +228,7 @@ def find_or_create_qualification(
             project_id=prolific_project_id,
             name=qualification_name,
         )
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(
             f'Could not create a qualification '
             f'for project "{prolific_project_id}" with name "{qualification_name}"'
@@ -289,6 +290,8 @@ def create_study(
         )],
     )]
 
+    logger.debug(f'Completion code for creating Study: {completion_codes}')
+
     try:
         # TODO (#1008): Make sure that all parameters are correct
         study: Study = client.Studies.create(
@@ -305,7 +308,26 @@ def create_study(
             reward=int(reward_in_cents),
             eligibility_requirements=eligibility_requirements,
         )
-    except ProlificException:
+
+        # TODO (#1008): Maybe we need to change this logic.
+        #  Here we imidiatelly update just created Study to change `completion_codes`
+        #  with just recieved Study's ID.
+        #  We need this to redirect worker to Prolific's Study page back after completion his job
+        #  (see `mephisto.abstractions.providers.prolific.wrap_crowd_source.handleSubmitToProvider`)
+        completion_codes_with_study_id = [dict(
+            code=f'{constants.StudyCodeType.COMPLETED}_{study.id}',
+            code_type=constants.StudyCodeType.COMPLETED,
+            actions=[dict(
+                action=constants.StudyAction.MANUALLY_REVIEW,
+            )],
+        )]
+        logger.debug(f'Completion code for updating Study: {completion_codes_with_study_id}')
+        study: Study = client.Studies.update(
+            id=study.id,
+            completion_codes=completion_codes_with_study_id,
+        )
+        logger.debug(f'Study was updated successfully! {study.completion_codes=}')
+    except (ProlificException, ValidationError):
         logger.exception(
             f'Could not create a Study with name "{name}" and instructions "{description}"'
         )
@@ -317,7 +339,7 @@ def create_study(
 def get_study(client: prolific_api, study_id: str) -> Study:
     try:
         study: Study = client.Studies.retrieve(id=study_id)
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not retreive a Study "{study_id}"')
         raise
     return study
@@ -326,7 +348,7 @@ def get_study(client: prolific_api, study_id: str) -> Study:
 def publish_study(client: prolific_api, study_id: str) -> str:
     try:
         client.Studies.publish(id=study_id)
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not publish a Study "{study_id}"')
         raise
     return study_id
@@ -346,7 +368,7 @@ def give_worker_qualification(
         client.ParticipantGroups.add_perticipants_to_group(
             id=qualification_id, participant_ids=[worker_id],
         )
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(
             f'Could not add worker {worker_id} to a qualification "{qualification_id}"'
         )
@@ -361,7 +383,7 @@ def remove_worker_qualification(
         client.ParticipantGroups.remove_perticipants_from_group(
             id=qualification_id, participant_ids=[worker_id],
         )
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(
             f'Could not remove worker {worker_id} from a qualification "{qualification_id}"'
         )
@@ -390,14 +412,14 @@ def pay_bonus(
 
     try:
         bonus_obj: BonusPayments = client.Bonuses.set_up(study_id, csv_bonuses)
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could set up bonuses for Study "{study_id}"')
         raise
 
     try:
         result: str = client.Bonuses.pay(bonus_obj.id)
         logger.debug(result)
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(f'Could pay bonuses for Study "{study_id}"')
         raise
 
@@ -454,7 +476,7 @@ def is_worker_blocked(client: prolific_api, task_run_config: 'DictConfig', worke
         participants: List[Participant] = client.ParticipantGroups.list_perticipants_for_group(
             block_list_qualification.id,
         )
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception(
             f'Could not receive a list of participants for group "{block_list_qualification.id}"'
         )
@@ -474,7 +496,7 @@ def calculate_pay_amount(
         total_cost: Union[int, float] = client.Studies.calculate_cost(
             reward=task_amount, total_available_places=total_available_places,
         )
-    except ProlificException:
+    except (ProlificException, ValidationError):
         logger.exception('Could not calculate total cost for a study')
         raise
     return total_cost
@@ -482,11 +504,11 @@ def calculate_pay_amount(
 
 def _find_submission(
     client: prolific_api, study_id: str, worker_id: str,
-) -> Optional[SubmissionList]:
+) -> Optional[ListSubmission]:
     """Find a Submission by Study and Worker"""
     try:
-        submissions: List[SubmissionList] = client.Submissions.list(study_id=study_id)
-    except ProlificException:
+        submissions: List[ListSubmission] = client.Submissions.list(study_id=study_id)
+    except (ProlificException, ValidationError):
         logger.exception(f'Could not receive submissions for study "{study_id}"')
         raise
 
@@ -498,7 +520,7 @@ def _find_submission(
 
 
 def approve_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Submission, None]:
-    submission: SubmissionList = _find_submission(client, study_id, worker_id)
+    submission: ListSubmission = _find_submission(client, study_id, worker_id)
 
     if not submission:
         logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
@@ -509,7 +531,7 @@ def approve_work(client: prolific_api, study_id: str, worker_id: str) -> Union[S
         try:
             submission: Submission = client.Submissions.approve(submission.id)
             return submission
-        except ProlificException:
+        except (ProlificException, ValidationError):
             logger.exception(
                 f'Could not approve submission for study "{study_id}" and participant "{worker_id}"'
             )
@@ -523,7 +545,7 @@ def approve_work(client: prolific_api, study_id: str, worker_id: str) -> Union[S
 
 
 def reject_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Submission, None]:
-    submission: SubmissionList = _find_submission(client, study_id, worker_id)
+    submission: ListSubmission = _find_submission(client, study_id, worker_id)
 
     if not submission:
         logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
@@ -534,7 +556,7 @@ def reject_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Su
         try:
             submission: Submission = client.Submissions.reject(submission.id)
             return submission
-        except ProlificException:
+        except (ProlificException, ValidationError):
             logger.exception(
                 f'Could not reject submission for study "{study_id}" and participant "{worker_id}"'
             )

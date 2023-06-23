@@ -9,8 +9,8 @@ from typing import Optional
 
 from . import constants
 from .base_api_resource import BaseAPIResource
+from .data_models import ListSubmission
 from .data_models import Submission
-from .data_models import SubmissionList
 
 
 class Submissions(BaseAPIResource):
@@ -19,7 +19,7 @@ class Submissions(BaseAPIResource):
     change_status_api_endpoint = 'submissions/{id}/transition/'
 
     @classmethod
-    def list(cls, study_id: Optional[str] = None) -> List[SubmissionList]:
+    def list(cls, study_id: Optional[str] = None) -> List[ListSubmission]:
         """
         API docs for this endpoint:
         https://docs.prolific.co/docs/api-docs/public/#tag/
@@ -29,7 +29,7 @@ class Submissions(BaseAPIResource):
         if study_id:
             endpoint = f'{endpoint}?study={study_id}'
         response_json = cls.get(endpoint)
-        submissions = [SubmissionList(**s) for s in response_json['results']]
+        submissions = [ListSubmission(**s) for s in response_json['results']]
         return submissions
 
     @classmethod
@@ -44,7 +44,13 @@ class Submissions(BaseAPIResource):
         return Submission(**response_json)
 
     @classmethod
-    def _change_status(cls, id: str, action: str) -> Submission:
+    def _change_status(
+        cls,
+        id: str,
+        action: str,
+        reason_message: Optional[str] = None,
+        rejection_category: Optional[str] = None,
+    ) -> Submission:
         """
         API docs for this endpoint:
         https://docs.prolific.co/docs/api-docs/public/#tag/
@@ -53,6 +59,10 @@ class Submissions(BaseAPIResource):
         params = dict(
             action=action,
         )
+        if reason_message:
+            params['message'] = reason_message
+            params['rejection_category'] = rejection_category,
+
         endpoint = cls.change_status_api_endpoint.format(id=id)
         response_json = cls.post(endpoint, params=params)
         return Submission(**response_json)
@@ -60,9 +70,14 @@ class Submissions(BaseAPIResource):
     @classmethod
     def approve(cls, id: str) -> Submission:
         """API docs for this endpoint: see `Submissions.change_status`"""
-        return cls._change_status(id, action=constants.SubmissionStatus.APPROVED)
+        return cls._change_status(id, action=constants.SubmissionAction.APPROVE)
 
     @classmethod
     def reject(cls, id: str) -> Submission:
         """API docs for this endpoint: see `Submissions.change_status`"""
-        return cls._change_status(id, action=constants.SubmissionStatus.REJECTED)
+        return cls._change_status(
+            id,
+            action=constants.SubmissionAction.REJECT,
+            reason_message=constants.DEFAULT_REJECTION_CATEGORY_MESSAGE,
+            rejection_category=constants.SubmissionRejectionCategory.OTHER,
+        )

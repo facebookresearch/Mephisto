@@ -131,6 +131,7 @@ class ProlificWorker(Worker):
         requester: 'ProlificRequester' = cast('ProlificRequester', requester)
         client = self._get_client(requester.requester_name)
         prolific_utils.block_worker(client, task_run_args, self.worker_name, reason)
+        self.datastore.set_worker_blocked(self.worker_name, is_blocked=True)
 
         logger.debug(f'{self.log_prefix}Worker {self.worker_name} blocked')
 
@@ -148,6 +149,7 @@ class ProlificWorker(Worker):
         requester = cast('ProlificRequester', requester)
         client = self._get_client(requester.requester_name)
         prolific_utils.unblock_worker(client, task_run_args, self.worker_name, reason)
+        self.datastore.set_worker_blocked(self.worker_name, is_blocked=False)
 
         logger.debug(f'{self.log_prefix}Worker {self.worker_name} unblocked')
 
@@ -175,6 +177,7 @@ class ProlificWorker(Worker):
     def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
         """Grant a qualification by the given name to this worker"""
         logger.debug(f'{self.log_prefix}Granting crowd qualification: {qualification_name}')
+        breakpoint()
 
         p_qualification_details = self.datastore.get_qualification_mapping(qualification_name)
 
@@ -224,6 +227,7 @@ class ProlificWorker(Worker):
     def revoke_crowd_qualification(self, qualification_name: str) -> None:
         """Revoke the qualification by the given name from this worker"""
         logger.debug(f'{self.log_prefix}Revoking crowd qualification: {qualification_name}')
+        breakpoint()
 
         p_qualification_details = self.datastore.get_qualification_mapping(qualification_name)
 
@@ -254,4 +258,8 @@ class ProlificWorker(Worker):
 
     @staticmethod
     def new(db: 'MephistoDB', worker_id: str) -> 'Worker':
-        return ProlificWorker._register_worker(db, worker_id, PROVIDER_TYPE)
+        new_worker = ProlificWorker._register_worker(db, worker_id, PROVIDER_TYPE)
+        # Save worker in provider-specific datastore
+        datastore: 'ProlificDatastore' = db.get_datastore_for_provider(PROVIDER_TYPE)
+        datastore.ensure_worker_exists(worker_id)
+        return new_worker

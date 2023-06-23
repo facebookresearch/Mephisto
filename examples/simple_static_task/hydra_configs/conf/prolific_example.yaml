@@ -7,7 +7,7 @@ mephisto:
   architect:
     _architect_type: ec2
     profile_name: mephisto-router-iam
-    subdomain: '0616.11'
+    subdomain: '0623.1'
   blueprint:
     data_csv: ${task_dir}/data_prolific.csv
     task_source: ${task_dir}/server_files/demo_task.html
@@ -16,8 +16,8 @@ mephisto:
     units_per_assignment: 1
   log_level: 'debug'
   task:
-    task_name: '0616'
-    task_title: '0616 Task'
+    task_name: '0623'
+    task_title: '0623 Task'
     task_description: 'This is a simple test of static Prolific tasks.'
     task_reward: 70
     task_tags: 'static,task,testing'
@@ -28,10 +28,13 @@ mephisto:
     prolific_project_name: 'Project'
     prolific_allow_list_group_name: 'Allow list'
     prolific_block_list_group_name: 'Block list'
+    prolific_total_available_places: 1
     prolific_eligibility_requirements:
       - name: 'CustomWhitelistEligibilityRequirement'
         white_list:
           - '6463d16eb92a24a0c3fdc8d5'
+#          - '6463d32f50a18041930b71be'
+#          - '6463d3922d7d99360896228f'
 #      - name: 'AgeRangeEligibilityRequirement'
 #        min_age: 10
 #        max_age: 20
