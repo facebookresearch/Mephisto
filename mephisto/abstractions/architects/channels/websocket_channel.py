@@ -149,18 +149,6 @@ class WebsocketChannel(Channel):
                                 pass
                             else:
                                 await on_error(e)
-                        except websockets.exceptions.InvalidStatusCode as e:
-                            if self._retries == 0:
-                                raise ConnectionRefusedError(
-                                    "Could not connect after retries"
-                                ) from e
-                            curr_retry = MAX_RETRIES - self._retries
-                            logger.exception(
-                                f"Status code error {repr(e)}, attempting retry {curr_retry}",
-                                exc_info=True,
-                            )
-                            await asyncio.sleep(1 + curr_retry)
-                            self._retries += 1
                         except Exception as e:
                             logger.exception(
                                 f"Socket error {repr(e)}, attempting restart",
@@ -176,6 +164,18 @@ class WebsocketChannel(Channel):
                         f"Unhandled OSError exception in socket {e}, attempting restart"
                     )
                     await asyncio.sleep(0.2)
+                except websockets.exceptions.InvalidStatusCode as e:
+                    if self._retries == 0:
+                        raise ConnectionRefusedError(
+                            "Could not connect after retries"
+                        ) from e
+                    curr_retry = MAX_RETRIES - self._retries
+                    logger.exception(
+                        f"Status code error {repr(e)}, attempting retry {curr_retry}",
+                        exc_info=True,
+                    )
+                    await asyncio.sleep(1 + curr_retry)
+                    self._retries += 1
                 except Exception as e:
                     logger.exception(f"Unhandled exception in socket {e}, {repr(e)}")
                     if self._is_closed:
