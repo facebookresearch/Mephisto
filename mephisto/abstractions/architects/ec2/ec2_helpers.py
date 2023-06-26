@@ -13,6 +13,7 @@ import subprocess
 import json
 import getpass
 import hashlib
+import signal
 from mephisto.abstractions.providers.mturk.mturk_utils import setup_aws_credentials
 from mephisto.abstractions.architects.router import build_router
 
@@ -43,6 +44,13 @@ DEFAULT_FALLBACK_FILE = os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, "fallback.j
 FALLBACK_SERVER_LOC = os.path.join(MY_DIR, "fallback_server")
 KNOWN_HOST_PATH = os.path.expanduser("~/.ssh/known_hosts")
 MAX_RETRIES = 10
+
+
+def cant_cancel_shutdown(sig, frame):
+    logger.warn(
+        "Ignoring ^C during ec2 cleanup. ^| if you NEED to exit and you will "
+        "have to clean up resources yourself from AWS."
+    )
 
 
 def get_owner_tag() -> Dict[str, str]:
@@ -962,7 +970,9 @@ def deploy_fallback_server(
         )
         detete_instance_address(session, allocation_id, association_id)
     except Exception as e:
+        old_handler = signal.signal(signal.SIGINT, cant_cancel_shutdown)
         detete_instance_address(session, allocation_id, association_id)
+        signal.signal(signal.SIGINT, old_handler)
         raise e
 
     return True
@@ -1011,7 +1021,9 @@ def deploy_to_routing_server(
         detete_instance_address(session, allocation_id, association_id)
         print("Server setup complete!")
     except Exception as e:
+        old_handler = signal.signal(signal.SIGINT, cant_cancel_shutdown)
         detete_instance_address(session, allocation_id, association_id)
+        signal.signal(signal.SIGINT, old_handler)
         raise e
 
     return True
