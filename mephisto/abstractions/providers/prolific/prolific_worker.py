@@ -112,15 +112,14 @@ class ProlificWorker(Worker):
         """Block this worker for a specified reason. Return success of block"""
         logger.debug(f'{self.log_prefix}Blocking worker {self.worker_name}')
 
-        if unit is None and requester is None:
+        if not unit and not requester:
             # TODO(WISH) soft block from all requesters? Maybe have the main requester soft block?
             return (
                 False,
                 'Blocking without a unit or requester not yet supported for ProlificWorkers',
             )
-        elif unit is not None and requester is None:
+        elif unit and not requester:
             task_run = unit.get_assignment().get_task_run()
-
             requester: 'ProlificRequester' = cast('ProlificRequester', task_run.get_requester())
         else:
             task_run = self._get_first_task_run(requester)
@@ -177,7 +176,6 @@ class ProlificWorker(Worker):
     def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
         """Grant a qualification by the given name to this worker"""
         logger.debug(f'{self.log_prefix}Granting crowd qualification: {qualification_name}')
-        breakpoint()
 
         p_qualification_details = self.datastore.get_qualification_mapping(qualification_name)
 
@@ -227,7 +225,6 @@ class ProlificWorker(Worker):
     def revoke_crowd_qualification(self, qualification_name: str) -> None:
         """Revoke the qualification by the given name from this worker"""
         logger.debug(f'{self.log_prefix}Revoking crowd qualification: {qualification_name}')
-        breakpoint()
 
         p_qualification_details = self.datastore.get_qualification_mapping(qualification_name)
 

@@ -365,7 +365,7 @@ def give_worker_qualification(
 ) -> None:
     """Give a qualification to the given worker (add a worker to a Participant Group)"""
     try:
-        client.ParticipantGroups.add_perticipants_to_group(
+        client.ParticipantGroups.add_participants_to_group(
             id=qualification_id, participant_ids=[worker_id],
         )
     except (ProlificException, ValidationError):
@@ -380,7 +380,7 @@ def remove_worker_qualification(
 ) -> None:
     """Remove a qualification for the given worker (remove a worker from a Participant Group)"""
     try:
-        client.ParticipantGroups.remove_perticipants_from_group(
+        client.ParticipantGroups.remove_participants_from_group(
             id=qualification_id, participant_ids=[worker_id],
         )
     except (ProlificException, ValidationError):
@@ -473,7 +473,7 @@ def is_worker_blocked(client: prolific_api, task_run_config: 'DictConfig', worke
         return False
 
     try:
-        participants: List[Participant] = client.ParticipantGroups.list_perticipants_for_group(
+        participants: List[Participant] = client.ParticipantGroups.list_participants_for_group(
             block_list_qualification.id,
         )
     except (ProlificException, ValidationError):

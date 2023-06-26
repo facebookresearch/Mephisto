@@ -55,7 +55,7 @@ class BaseAPIResource(object):
         api_endpoint: str,
         params: Optional[dict] = None,
         headers: Optional[dict] = None,
-    ) -> Union[dict, str]:
+    ) -> Union[dict, str, None]:
         log_prefix = f'[{cls.__name__}]'
 
         if API_KEY is None:
@@ -82,14 +82,18 @@ class BaseAPIResource(object):
 
             elif method == HTTPMethod.DELETE:
                 response = requests.delete(url, headers=headers)
-
             else:
                 raise ProlificException('Invalid HTTP method.')
 
             response.raise_for_status()
-            json = response.json()
-            logger.debug(f'{log_prefix} Response: {json}')
-            return json
+            if response.status_code == status.HTTP_204_NO_CONTENT and not response.content:
+                result = None
+            else:
+                result = response.json()
+
+            logger.debug(f'{log_prefix} Response: {result}')
+
+            return result
 
         except requests.exceptions.HTTPError as err:
             logger.error(f'{log_prefix} Request error: {str(err)}')

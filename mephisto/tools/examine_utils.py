@@ -261,7 +261,7 @@ def run_examine_by_worker(
                     )
                     if should_block.lower() in ["y", "yes"]:
                         block_reason = input("Why permanently block this worker? ")
-                        worker.block_worker(block_reason)
+                        worker.block_worker(block_reason, unit=unit)
                 agent.reject_work(reason)
 
             if decision.lower() != decision:

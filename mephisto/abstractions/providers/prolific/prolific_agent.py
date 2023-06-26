@@ -123,7 +123,16 @@ class ProlificAgent(Agent):
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_worker_id()
-        prolific_utils.reject_work(client, study_id=prolific_study_id, worker_id=worker_id)
+
+        # TODO (#1008): remove this suppression of exception when Prolific fixes their API
+        from .api.exceptions import ProlificException
+        try:
+            prolific_utils.reject_work(client, study_id=prolific_study_id, worker_id=worker_id)
+        except ProlificException:
+            logger.info(
+                "NOTE: ignore the above error - "
+                "Prolific API always returns error here, even when it works"
+            )
 
         logger.debug(
             f'{self.log_prefix}'

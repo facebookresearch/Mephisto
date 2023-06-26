@@ -14,7 +14,9 @@ from .data_models import ParticipantGroup
 
 class ParticipantGroups(BaseAPIResource):
     list_api_endpoint = 'participant-groups/'
-    list_perticipants_for_group_api_endpoint = 'participant-groups/{id}/participants/'
+    retrieve_api_endpoint = 'participant-groups/{id}/'
+    remove_api_endpoint = 'participant-groups/{id}/'
+    list_participants_for_group_api_endpoint = 'participant-groups/{id}/participants/'
 
     @classmethod
     def list(cls, project_id: Optional[str] = None) -> List[ParticipantGroup]:
@@ -32,6 +34,17 @@ class ParticipantGroups(BaseAPIResource):
         return participant_groups
 
     @classmethod
+    def retrieve(cls, id: str) -> ParticipantGroup:
+        """
+        API docs for this endpoint:
+        https://docs.prolific.co/docs/api-docs/public/#tag/
+            Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1/get
+        """
+        endpoint = cls.retrieve_api_endpoint.format(id=id)
+        response_json = cls.get(endpoint)
+        return ParticipantGroup(**response_json)
+
+    @classmethod
     def create(cls, **data) -> ParticipantGroup:
         """
         API docs for this endpoint:
@@ -43,31 +56,41 @@ class ParticipantGroups(BaseAPIResource):
         return ParticipantGroup(**response_json)
 
     @classmethod
-    def list_perticipants_for_group(cls, id: str) -> List[Participant]:
+    def remove(cls, id: str) -> None:
+        """
+        API docs for this endpoint:
+        https://docs.prolific.co/docs/api-docs/public/#tag/
+            Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1/delete
+        """
+        cls.delete(cls.remove_api_endpoint.format(id=id))
+        return None
+
+    @classmethod
+    def list_participants_for_group(cls, id: str) -> List[Participant]:
         """
         API docs for this endpoint:
         https://docs.prolific.co/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/get
         """
-        response_json = cls.get(cls.list_perticipants_for_group_api_endpoint.format(id=id))
+        response_json = cls.get(cls.list_participants_for_group_api_endpoint.format(id=id))
         participants = [Participant(**s) for s in response_json['results']]
         return participants
 
     @classmethod
-    def add_perticipants_to_group(cls, id: str, participant_ids: List[str]) -> List[Participant]:
+    def add_participants_to_group(cls, id: str, participant_ids: List[str]) -> List[Participant]:
         """
         API docs for this endpoint:
         https://docs.prolific.co/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/post
         """
-        endpoint = cls.list_perticipants_for_group_api_endpoint.format(id=id)
+        endpoint = cls.list_participants_for_group_api_endpoint.format(id=id)
         params = dict(participant_ids=participant_ids)
         response_json = cls.post(endpoint, params=params)
         participants = [Participant(**s) for s in response_json['results']]
         return participants
 
     @classmethod
-    def remove_perticipants_from_group(
+    def remove_participants_from_group(
         cls, id: str, participant_ids: List[str],
     ) -> List[Participant]:
         """
@@ -75,7 +98,7 @@ class ParticipantGroups(BaseAPIResource):
         https://docs.prolific.co/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/delete
         """
-        endpoint = cls.list_perticipants_for_group_api_endpoint.format(id=id)
+        endpoint = cls.list_participants_for_group_api_endpoint.format(id=id)
         params = dict(participant_ids=participant_ids)
         response_json = cls.delete(endpoint, params=params)
         participants = [Participant(**s) for s in response_json['results']]
