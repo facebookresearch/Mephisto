@@ -306,7 +306,13 @@ class EC2Architect(Architect):
             server_dir,
         )
 
-        return f"https://{self.full_domain}"
+        # TODO: Remove this kack to address sporadic ConnectionRefusedError
+        print("EC2: Waiting to establish connection...")
+        time.sleep(10)
+
+        url = f"https://{self.full_domain}"
+        print(f"EC2: Deployed server at {url}")
+        return url
 
     def __delete_ec2_server(self):
         """
