@@ -1,7 +1,8 @@
 #!/bin/bash
 
 echo "Installing basic requirements..."
-sudo yum update -y >> /home/ec2-user/routing_server/setup/setup_log.txt 2>&1
+# Following is commented out until the aws linux2 repo is no longer lagging
+# sudo yum update -y >> /home/ec2-user/routing_server/setup/setup_log.txt 2>&1
 sudo yum install -y httpd >> /home/ec2-user/routing_server/setup/setup_log.txt 2>&1
 
 echo "Downloading Node..."

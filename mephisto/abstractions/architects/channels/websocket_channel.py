@@ -23,6 +23,8 @@ from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
+MAX_RETRIES = 3
+
 
 class WebsocketChannel(Channel):
     """
@@ -55,6 +57,7 @@ class WebsocketChannel(Channel):
         self._is_alive = False
         self._is_closed = False
         self._socket_task: Optional[asyncio.Task] = None
+        self._retries = MAX_RETRIES
 
     def is_closed(self):
         """
@@ -146,6 +149,18 @@ class WebsocketChannel(Channel):
                                 pass
                             else:
                                 await on_error(e)
+                        except websockets.exceptions.InvalidStatusCode as e:
+                            if self._retries == 0:
+                                raise ConnectionRefusedError(
+                                    "Could not connect after retries"
+                                ) from e
+                            curr_retry = MAX_RETRIES - self._retries
+                            logger.exception(
+                                f"Status code error {repr(e)}, attempting retry {curr_retry}",
+                                exc_info=True,
+                            )
+                            await asyncio.sleep(1 + curr_retry)
+                            self._retries += 1
                         except Exception as e:
                             logger.exception(
                                 f"Socket error {repr(e)}, attempting restart",
