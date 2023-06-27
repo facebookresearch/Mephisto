@@ -168,7 +168,9 @@ class ProlificUnit(Unit):
         local_status = self.db_status
         external_status = self.db_status
 
-        if study.status == StudyStatus.UNPUBLISHED:
+        if prolific_utils.is_study_expired(study):
+            external_status = AssignmentState.EXPIRED
+        elif study.status == StudyStatus.UNPUBLISHED:
             external_status = AssignmentState.COMPLETED
         elif study.status == StudyStatus.ACTIVE:
             external_status = AssignmentState.LAUNCHED
@@ -314,7 +316,10 @@ class ProlificUnit(Unit):
         return None
 
     def expire(self) -> float:
-        """Send a request to expire the Study"""
+        """
+        Send a request to expire the Prolific Study, and if it's not assigned return 0,
+        otherwise just return the maximum assignment duration
+        """
         delay = 0
         status = self.get_status()
 

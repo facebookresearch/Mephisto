@@ -48,7 +48,7 @@ class Study(BaseModel):
     is_underpaying: Optional[bool]
     last_email_update_sent_datetime: Optional[str]
     maximum_allowed_time: int
-    metadata: Optional[str]
+    metadata: Optional[Union[str, dict, int]]
     minimum_reward_per_hour: Union[int, float]
     naivety_distribution_rate: Optional[Union[int, float]]
     name: str
@@ -137,7 +137,7 @@ class Study(BaseModel):
             'is_underpaying': {'type': ['boolean', 'null']},
             'last_email_update_sent_datetime': {'type': ['string', 'null']},
             'maximum_allowed_time': {'type': 'number'},
-            'metadata': {'type': ['string', 'null']},
+            'metadata': {'type': ['string', 'object', 'number', 'null']},
             'minimum_reward_per_hour': {'type': 'number'},
             'naivety_distribution_rate': {'type': ['number', 'null']},
             'name': {'type': 'string'},

@@ -31,10 +31,8 @@ class BaseModel:
 
     def validate(self, check_required_fields: bool = True):
         schema = dict(self.schema)
-        is_updating = self.id_field_name in self.__dict__
 
-        # Validate presence of required fields if we're creating an object
-        if check_required_fields or not is_updating:
+        if check_required_fields:
             schema['required'] = self.required_schema_fields
 
         validate(instance=self.__dict__, schema=schema)

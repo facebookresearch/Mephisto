@@ -19,6 +19,7 @@ class Studies(BaseAPIResource):
     update_api_endpoint = 'studies/{id}/'
     remove_api_endpoint = 'studies/{id}/'
     publish_cost_api_endpoint = 'studies/{id}/transition/'
+    stop_cost_api_endpoint = 'studies/{id}/transition/'
     calculate_cost_api_endpoint = 'study-cost-calculator/'
 
     @classmethod
@@ -72,7 +73,7 @@ class Studies(BaseAPIResource):
         https://docs.prolific.co/docs/api-docs/public/#tag/
             Studies/paths/~1api~1v1~1studies~1%7Bid%7D~1/patch
         """
-        study = Study(id=id, **data)
+        study = Study(**data)
         study.validate(check_required_fields=False)
         response_json = cls.patch(cls.update_api_endpoint.format(id=id), params=study.to_dict())
         return Study(**response_json)
@@ -98,6 +99,19 @@ class Studies(BaseAPIResource):
             action=StudyAction.PUBLISH,
         )
         response_json = cls.post(cls.publish_cost_api_endpoint.format(id=id), params=params)
+        return Study(**response_json)
+
+    @classmethod
+    def stop(cls, id: str) -> Study:
+        """
+        API docs for this endpoint:
+        https://docs.prolific.co/docs/api-docs/public/#tag/
+            Studies/paths/~1api~1v1~1studies~1%7Bid%7D~1transition~1/post
+        """
+        params = dict(
+            action=StudyAction.STOP,
+        )
+        response_json = cls.post(cls.stop_cost_api_endpoint.format(id=id), params=params)
         return Study(**response_json)
 
     @classmethod

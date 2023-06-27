@@ -39,6 +39,7 @@ class StudyStatus:
     PAUSED = 'PAUSED'
     AWAITING_REVIEW = 'AWAITING REVIEW'
     COMPLETED = 'COMPLETED'
+    _EXPIRED = 'EXPIRED'  # Pseudo status that we will use in `Study.internal_name` as a hack
 
 
 class StudyCompletionOption:

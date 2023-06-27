@@ -323,7 +323,7 @@ class MTurkUnit(Unit):
 
     def expire(self) -> float:
         """
-        Send a request to expire the HIT, and if it's not assigned return,
+        Send a request to expire the HIT, and if it's not assigned return 0,
         otherwise just return the maximum assignment duration
         """
         delay = 0

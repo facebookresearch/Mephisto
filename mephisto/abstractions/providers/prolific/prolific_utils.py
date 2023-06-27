@@ -266,6 +266,16 @@ def create_study(
     client: prolific_api, task_run_config: 'DictConfig', prolific_project_id: str, *args, **kwargs,
 ) -> Study:
     """Create a task (Prolific Study)"""
+
+    def compose_completion_codes(code_suffix: str) -> List[dict]:
+        return [dict(
+            code=f'{constants.StudyCodeType.COMPLETED}_{code_suffix}',
+            code_type=constants.StudyCodeType.COMPLETED,
+            actions=[dict(
+                action=constants.StudyAction.MANUALLY_REVIEW,
+            )],
+        )]
+
     # Task info
     name = task_run_config.task.task_title
     description = task_run_config.task.task_description
@@ -282,15 +292,10 @@ def create_study(
     eligibility_requirements = _get_eligibility_requirements(
         task_run_config.provider.prolific_eligibility_requirements,
     )
-    completion_codes = [dict(
-        code=f'{constants.StudyCodeType.COMPLETED}_{uuid.uuid4().hex[:5]}',
-        code_type=constants.StudyCodeType.COMPLETED,
-        actions=[dict(
-            action=constants.StudyAction.MANUALLY_REVIEW,
-        )],
-    )]
+    # Initially provide a random completion code during study
+    completion_codes_random = compose_completion_codes(uuid.uuid4().hex[:5])
 
-    logger.debug(f'Completion code for creating Study: {completion_codes}')
+    logger.debug(f'Initial completion codes for creating Study: {completion_codes_random}')
 
     try:
         # TODO (#1008): Make sure that all parameters are correct
@@ -302,26 +307,18 @@ def create_study(
             external_study_url=external_study_url,
             prolific_id_option=prolific_id_option,
             completion_option=constants.StudyCompletionOption.CODE,
-            completion_codes=completion_codes,
+            completion_codes=completion_codes_random,
             total_available_places=int(total_available_places),
             estimated_completion_time=int(estimated_completion_time_in_minutes),
             reward=int(reward_in_cents),
             eligibility_requirements=eligibility_requirements,
         )
 
-        # TODO (#1008): Maybe we need to change this logic.
-        #  Here we imidiatelly update just created Study to change `completion_codes`
-        #  with just recieved Study's ID.
-        #  We need this to redirect worker to Prolific's Study page back after completion his job
+        #  Immediately update `completion_codes` in created Study, with just received Study ID.
+        #  This code will be used to redirect worker to Prolific's "Submission Completed" page
         #  (see `mephisto.abstractions.providers.prolific.wrap_crowd_source.handleSubmitToProvider`)
-        completion_codes_with_study_id = [dict(
-            code=f'{constants.StudyCodeType.COMPLETED}_{study.id}',
-            code_type=constants.StudyCodeType.COMPLETED,
-            actions=[dict(
-                action=constants.StudyAction.MANUALLY_REVIEW,
-            )],
-        )]
-        logger.debug(f'Completion code for updating Study: {completion_codes_with_study_id}')
+        completion_codes_with_study_id = compose_completion_codes(study.id)
+        logger.debug(f'Final completion codes for updating Study: {completion_codes_with_study_id}')
         study: Study = client.Studies.update(
             id=study.id,
             completion_codes=completion_codes_with_study_id,
@@ -354,10 +351,37 @@ def publish_study(client: prolific_api, study_id: str) -> str:
     return study_id
 
 
-def expire_study(client: prolific_api, study_id: str):
-    # TODO
-    #  https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
-    pass
+def expire_study(client: prolific_api, study_id: str) -> Study:
+    """
+    Prolific Studies don't have EXPIRED status,
+    so we mark it as COMPLETED and add `_EXPIRED` to the end of `Study.internal_name` field.
+    Statuses: https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
+    """
+    try:
+        study: Study = get_study(client, study_id)
+        client.Studies.update(
+            id=study_id,
+            internal_name=f'{study.internal_name}_{constants.StudyStatus._EXPIRED}'
+        )
+        study: Study = client.Studies.stop(id=study_id)
+        logger.debug(f'Study "{study_id}" was expired successfully!')
+    except (ProlificException, ValidationError):
+        logger.exception(f'Could not expire a Study "{study_id}"')
+        raise
+
+    return study
+
+
+def is_study_expired(study: Study) -> bool:
+    """
+    Emulating "expired" status via internal_name of a completed Study,
+    because Prolific Study object doesn't have "expired" status
+    """
+    Status = constants.StudyStatus
+    return (
+        study.status in [Status.COMPLETED, Status.AWAITING_REVIEW] and
+        study.internal_name.endswith(Status._EXPIRED)
+    )
 
 
 def give_worker_qualification(
@@ -394,33 +418,35 @@ def pay_bonus(
     client: prolific_api,
     task_run_config: 'DictConfig',
     worker_id: str,
-    bonus_amount: float,
+    bonus_amount: int,  # in cents
     study_id: str,
     *args,
     **kwargs,
 ) -> bool:
     """
-    Handles paying bonus to a worker, fails for insufficient funds.
-    Returns True on success and False on failure
+    Handles paying bonus to a worker.
+    Returns True on success and False on failure (e.g. insufficient funds)
     """
     if not check_balance(workspace_name=task_run_config.provider.prolific_workspace_name):
         # Just in case if Prolific adds showing an available balance for an account
         logger.debug('Cannot pay bonus. Reason: Insufficient funds in your Prolific account.')
         return False
 
-    csv_bonuses = f'{worker_id},{bonus_amount}'
+    # Unlike all other Prolific endpoints working with cents, this one requires dollars
+    bonus_amount_in_dollars = bonus_amount / 100
+    csv_bonuses = f'{worker_id},{bonus_amount_in_dollars}'
 
     try:
         bonus_obj: BonusPayments = client.Bonuses.set_up(study_id, csv_bonuses)
     except (ProlificException, ValidationError):
-        logger.exception(f'Could set up bonuses for Study "{study_id}"')
+        logger.exception(f'Could not set up bonuses for Study "{study_id}"')
         raise
 
     try:
         result: str = client.Bonuses.pay(bonus_obj.id)
         logger.debug(result)
     except (ProlificException, ValidationError):
-        logger.exception(f'Could pay bonuses for Study "{study_id}"')
+        logger.exception(f'Could not pay bonuses for Study "{study_id}"')
         raise
 
     return True
