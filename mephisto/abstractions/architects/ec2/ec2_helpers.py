@@ -969,7 +969,7 @@ def deploy_fallback_server(
             env=dict(os.environ, SSH_AUTH_SOCK=""),
         )
         detete_instance_address(session, allocation_id, association_id)
-    except Exception as e:
+    except (Exception, KeyboardInterrupt) as e:
         old_handler = signal.signal(signal.SIGINT, cant_cancel_shutdown)
         detete_instance_address(session, allocation_id, association_id)
         signal.signal(signal.SIGINT, old_handler)
@@ -1020,7 +1020,7 @@ def deploy_to_routing_server(
         )
         detete_instance_address(session, allocation_id, association_id)
         print("Server setup complete!")
-    except Exception as e:
+    except (Exception, KeyboardInterrupt) as e:
         old_handler = signal.signal(signal.SIGINT, cant_cancel_shutdown)
         detete_instance_address(session, allocation_id, association_id)
         signal.signal(signal.SIGINT, old_handler)
