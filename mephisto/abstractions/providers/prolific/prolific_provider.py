@@ -27,6 +27,7 @@ from mephisto.operations.registry import register_mephisto_abstraction
 from mephisto.utils.logger_core import get_logger
 from . import api as prolific_api
 from .api.data_models import Project
+from .api.data_models import Study
 from .api.data_models import Workspace
 from .api.exceptions import ProlificException
 
@@ -149,6 +150,10 @@ class ProlificProvider(CrowdProvider):
     def initialize_provider_datastore(self, storage_path: str) -> Any:
         return ProlificDatastore(datastore_root=storage_path)
 
+    @property
+    def log_prefix(self) -> str:
+        return '[Prolific Provider] '
+
     def _get_client(self, requester_name: str) -> prolific_api:
         """Get a Prolific client"""
         return self.datastore.get_client_for_requester(requester_name)
@@ -179,6 +184,26 @@ class ProlificProvider(CrowdProvider):
             client, prolific_workspace.id, title=args.provider.prolific_project_name,
         )
 
+        # Create Study
+        logger.debug(f'{self.log_prefix}Creating Prolific Study')
+        prolific_study: Study = prolific_utils.create_study(
+            client,
+            task_run_config=args,
+            prolific_project_id=prolific_project.id,
+        )
+        logger.debug(
+            f'{self.log_prefix}'
+            f'Prolific Study has been created successfully with ID: {prolific_study.id}'
+        )
+
+        # Publish Prolific Study
+        logger.debug(f'{self.log_prefix}Publishing Prolific Study')
+        prolific_utils.publish_study(client, prolific_study.id)
+        logger.debug(
+            f'{self.log_prefix}'
+            f'Prolific Study "{prolific_study.id}" has been published successfully with ID'
+        )
+
         # Register TaskRun in Datastore
         self.datastore.register_run(
             run_id=task_run_id,
@@ -186,7 +211,18 @@ class ProlificProvider(CrowdProvider):
             prolific_project_id=prolific_project.id,
             prolific_study_config_path=config_dir,
             frame_height=frame_height,
-            prolific_study_id=None,
+            prolific_study_id=prolific_study.id,
+        )
+
+        # Save Study into provider-specific datastore
+        self.datastore.new_study(
+            prolific_study_id=prolific_study.id,
+            study_link=prolific_study.external_study_url,
+            duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
+            run_id=task_run_id,
+        )
+        logger.debug(
+            f'{self.log_prefix}Prolific Study "{prolific_study.id}" has been saved into datastore'
         )
 
     def cleanup_resources_from_task_run(self, task_run: 'TaskRun', server_url: str) -> None:

@@ -183,7 +183,6 @@ class ProlificUnit(Unit):
         elif study.status == StudyStatus.AWAITING_REVIEW:
             # TODO (#1008): Choose correct mapping
             external_status = AssignmentState.COMPLETED
-            pass
         elif study.status == StudyStatus.COMPLETED:
             external_status = AssignmentState.COMPLETED
         else:
@@ -265,54 +264,8 @@ class ProlificUnit(Unit):
 
     def launch(self, task_url: str) -> None:
         """Publish this Study on Prolific (making it available)"""
-        requester = self.get_requester()
-        client = self._get_client(requester.requester_name)
-
-        task_run = self.get_task_run()
-        task_run_id = task_run.db_id
-        args = task_run.args
-
-        logger.debug(f'{self.log_prefix}Launching Task Run {task_run_id} with data: {args}')
-
-        # As Task Run was registered in datastore before, we can get its details from it
-        task_run_details = self.datastore.get_run(task_run_id)
-        logger.debug(f'{self.log_prefix}Task Run datastore details: {task_run_details}')
-
-        # Set up Task Run (Prolific Study)
-        logger.debug(f'{self.log_prefix}Creating Prolific Study')
-        prolific_study: Study = prolific_utils.create_study(
-            client,
-            task_run_config=args,
-            prolific_project_id=task_run_details['prolific_project_id'],
-        )
-        logger.debug(
-            f'{self.log_prefix}'
-            f'Prolific Study has been created successfully with ID: {prolific_study.id}'
-        )
-
-        # Publish Prolific Study
-        logger.debug(f'{self.log_prefix}Publishing Prolific Study')
-        prolific_utils.publish_study(client, prolific_study.id)
-        logger.debug(
-            f'{self.log_prefix}'
-            f'Prolific Study "{prolific_study.id}" has been published successfully with ID'
-        )
-
-        # Save Study into provider-specific datastore
-        self.datastore.new_study(
-            prolific_study_id=prolific_study.id,
-            study_link='',
-            duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes * 60,
-            run_id=task_run_id,
-            unit_id=self.db_id,
-        )
-        logger.debug(
-            f'{self.log_prefix}Prolific Study "{prolific_study.id}" has been saved into datastore'
-        )
-
         # Change DB status
         self.set_db_status(AssignmentState.LAUNCHED)
-
         return None
 
     def expire(self) -> float:
@@ -337,6 +290,7 @@ class ProlificUnit(Unit):
         prolific_study_id = self.get_prolific_study_id()
         requester = self.get_requester()
         client = self._get_client(requester.requester_name)
+        self.datastore.set_unit_expired(self.db_id, True)
         if prolific_study_id is not None:
             prolific_utils.expire_study(client, prolific_study_id)
             return delay
@@ -367,4 +321,20 @@ class ProlificUnit(Unit):
         db: 'MephistoDB', assignment: 'Assignment', index: int, pay_amount: float
     ) -> 'Unit':
         """Create a Unit for the given assignment"""
-        return ProlificUnit._register_unit(db, assignment, index, pay_amount, PROVIDER_TYPE)
+        unit = ProlificUnit._register_unit(db, assignment, index, pay_amount, PROVIDER_TYPE)
+
+        # Write unit in provider-specific datastore
+        datastore: 'ProlificDatastore' = db.get_datastore_for_provider(PROVIDER_TYPE)
+        task_run_details = dict(datastore.get_run(assignment.task_run_id))
+        logger.debug(
+            f'{ProlificUnit.log_prefix}Create Unit "{unit.db_id}". '
+            f'Task Run datastore details: {task_run_details}'
+        )
+        datastore.create_unit(
+            unit_id=unit.db_id,
+            run_id=assignment.task_run_id,
+            prolific_study_id=task_run_details['prolific_study_id'],
+        )
+        logger.debug(f'{ProlificUnit.log_prefix}Unit was created in datastore successfully!')
+
+        return unit

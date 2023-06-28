@@ -8,7 +8,6 @@ CREATE_STUDIES_TABLE = """
     CREATE TABLE IF NOT EXISTS studies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         prolific_study_id TEXT UNIQUE,
-        unit_id TEXT,
         link TEXT,
         assignment_time_in_seconds INTEGER NOT NULL,
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -44,7 +43,9 @@ CREATE_UNITS_TABLE = """
     CREATE TABLE IF NOT EXISTS units (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         unit_id TEXT UNIQUE,
-        is_expired BOOLEAN
+        run_id TEXT,
+        prolific_study_id TEXT,
+        is_expired BOOLEAN DEFAULT false
     );
 """
 
@@ -52,7 +53,7 @@ CREATE_WORKERS_TABLE = """
     CREATE TABLE IF NOT EXISTS workers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         worker_id TEXT UNIQUE,
-        is_blocked BOOLEAN
+        is_blocked BOOLEAN default false
     );
 """
 

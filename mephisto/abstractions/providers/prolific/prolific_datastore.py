@@ -80,7 +80,6 @@ class ProlificDatastore:
         study_link: str,
         duration_in_seconds: int,
         run_id: str,
-        unit_id: int,
     ) -> None:
         """Register a new Study mapping in the table"""
         with self.table_access_condition, self._get_connection() as conn:
@@ -89,12 +88,11 @@ class ProlificDatastore:
                 """
                 INSERT INTO studies(
                     prolific_study_id,
-                    unit_id,
                     link,
                     assignment_time_in_seconds
-                ) VALUES (?, ?, ?, ?);
+                ) VALUES (?, ?, ?);
                 """,
-                (prolific_study_id, unit_id, study_link, duration_in_seconds),
+                (prolific_study_id, study_link, duration_in_seconds),
             )
             c.execute(
                 """
@@ -115,14 +113,16 @@ class ProlificDatastore:
                 """
                 SELECT
                     prolific_study_id,
-                    unit_id,
-                    run_id
-                FROM
-                    studies
-                INNER JOIN run_mappings
-                    USING  (prolific_study_id)
-                WHERE unit_id IS NULL
-                AND run_id = ?;
+                    (
+                        SELECT
+                            count(units.unit_id)
+                        FROM units
+                        WHERE units.prolific_study_id = studies.prolific_study_id
+                    ) AS units_count
+                FROM studies
+                INNER JOIN run_mappings USING (prolific_study_id)
+                WHERE run_mappings.run_id = ? AND units_count == 0
+                GROUP BY prolific_study_id;
                 """,
                 (run_id,),
             )
@@ -173,9 +173,10 @@ class ProlificDatastore:
 
             c.execute(
                 """
-                UPDATE studies
-                SET unit_id = ?
-                WHERE prolific_study_id = ?
+                INSERT OR IGNORE INTO units(
+                    unit_id,
+                    prolific_study_id
+                ) VALUES (?, ?);
                 """,
                 (unit_id, prolific_study_id),
             )
@@ -296,6 +297,25 @@ class ProlificDatastore:
                 ) VALUES (?, ?);
                 """,
                 (unit_id, False),
+            )
+            conn.commit()
+            return None
+
+    def create_unit(self, unit_id: str, run_id: str, prolific_study_id: str) -> None:
+        """Create the unit if not exists"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                INSERT OR IGNORE INTO units(
+                    unit_id,
+                    run_id,
+                    prolific_study_id,
+                    is_expired
+                ) VALUES (?, ?, ?, ?);
+                """,
+                (unit_id, run_id, prolific_study_id, False),
             )
             conn.commit()
             return None
@@ -449,7 +469,8 @@ class ProlificDatastore:
             c.execute(
                 """
                 SELECT * FROM studies
-                WHERE unit_id = ?
+                INNER JOIN units USING (prolific_study_id)
+                WHERE units.unit_id = ?;
                 """,
                 (unit_id,),
             )
@@ -465,11 +486,11 @@ class ProlificDatastore:
             result_study_id = results[0]['prolific_study_id']
             c.execute(
                 """
-                UPDATE studies
-                SET prolific_submission_id = ?, unit_id = ?
-                WHERE prolific_study_id = ?
+                UPDATE units
+                SET prolific_study_id = ?
+                WHERE unit_id = ? AND prolific_study_id = ?;
                 """,
-                (None, None, result_study_id),
+                (None, unit_id, result_study_id),
             )
             self._mark_study_mapping_update(unit_id)
 
@@ -481,7 +502,8 @@ class ProlificDatastore:
             c.execute(
                 """
                 SELECT * from studies
-                WHERE unit_id = ?
+                INNER JOIN units USING (prolific_study_id)
+                WHERE units.unit_id = ?;
                 """,
                 (unit_id,),
             )
@@ -531,7 +553,7 @@ class ProlificDatastore:
             c.execute(
                 """
                 SELECT * from runs
-                WHERE run_id = ?
+                WHERE run_id = ?;
                 """,
                 (run_id,),
             )
