@@ -235,11 +235,6 @@ class ProlificUnit(Unit):
 
         super().clear_assigned_agent()
 
-        prolific_study_id = self.get_prolific_study_id()
-        if prolific_study_id is not None:
-            self.datastore.clear_study_from_unit(unit_id=self.db_id)
-            self._sync_study_mapping()
-
         if self.db_status == AssignmentState.ASSIGNED:
             self.set_db_status(AssignmentState.LAUNCHED)
 
@@ -303,7 +298,6 @@ class ProlificUnit(Unit):
 
             prolific_study_id = unassigned_study_ids[0]
             prolific_utils.expire_study(client, prolific_study_id)
-            self.datastore.register_submission_to_study(prolific_study_id, self.db_id)
             self.set_db_status(AssignmentState.EXPIRED)
             return delay
 

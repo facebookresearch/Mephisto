@@ -146,39 +146,15 @@ class ProlificDatastore:
         )
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
-            c.execute(
-                """
-                SELECT * from studies
-                WHERE prolific_study_id = ?
-                """,
-                (prolific_study_id,),
-            )
-            results = c.fetchall()
-            if len(results) > 0 and results[0]['unit_id'] is not None:
-                old_unit_id = results[0]['unit_id']
-                self._mark_study_mapping_update(old_unit_id)
-                logger.debug(
-                    f'Cleared Study mapping cache for previous unit, {old_unit_id}'
-                )
 
             c.execute(
                 """
-                INSERT INTO submissions(
+                INSERT OR IGNORE INTO submissions(
                     prolific_study_id,
                     prolific_submission_id
                 ) VALUES (?, ?);
                 """,
                 (prolific_study_id, prolific_submission_id),
-            )
-
-            c.execute(
-                """
-                INSERT OR IGNORE INTO units(
-                    unit_id,
-                    prolific_study_id
-                ) VALUES (?, ?);
-                """,
-                (unit_id, prolific_study_id),
             )
 
             if unit_id is not None:
