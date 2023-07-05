@@ -81,7 +81,7 @@ class BaseAPIResource(object):
                 response = requests.patch(url, headers=headers, json=params)
 
             elif method == HTTPMethod.DELETE:
-                response = requests.delete(url, headers=headers)
+                response = requests.delete(url, headers=headers, json=params)
             else:
                 raise ProlificException('Invalid HTTP method.')
 
@@ -96,7 +96,9 @@ class BaseAPIResource(object):
             return result
 
         except requests.exceptions.HTTPError as err:
-            logger.error(f'{log_prefix} Request error: {str(err)}')
+            logger.error(
+                f'{log_prefix} Request error: {err}. Response text: `{err.response.text}`'
+            )
             if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
                 raise ProlificAuthenticationError
 
