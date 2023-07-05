@@ -160,6 +160,8 @@ class ProlificUnit(Unit):
 
         requester: 'ProlificRequester' = self.get_requester()
         client = self._get_client(requester.requester_name)
+
+        # time.sleep(2)  # Prolific servers may take time to bring their data up-to-date
         study = prolific_utils.get_study(client, prolific_study_id)
 
         if study is None:
@@ -173,7 +175,14 @@ class ProlificUnit(Unit):
         elif study.status == StudyStatus.UNPUBLISHED:
             external_status = AssignmentState.COMPLETED
         elif study.status == StudyStatus.ACTIVE:
-            external_status = AssignmentState.LAUNCHED
+            if self.worker_id is None:
+                # Check for NULL worker_id to prevent accidental reversal of unit's progress
+                if external_status != AssignmentState.LAUNCHED:
+                    logger.debug(
+                        f'Moving Unit {self.id} status from '
+                        f'`{external_status}` to `{AssignmentState.LAUNCHED}`'
+                    )
+                external_status = AssignmentState.LAUNCHED
         elif study.status == StudyStatus.SCHEDULED:
             # TODO (#1008): Choose correct mapping
             pass

@@ -306,7 +306,7 @@ class EC2Architect(Architect):
             server_dir,
         )
 
-        # TODO: Remove this kack to address sporadic ConnectionRefusedError
+        # TODO: Remove this hack to address sporadic ConnectionRefusedError
         print("EC2: Waiting to establish connection...")
         time.sleep(10)
 
