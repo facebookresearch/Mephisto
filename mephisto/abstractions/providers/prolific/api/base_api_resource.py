@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import json
 import os
 from typing import Optional
 from typing import Union
@@ -18,30 +19,32 @@ from .exceptions import ProlificAuthenticationError
 from .exceptions import ProlificException
 from .exceptions import ProlificRequestError
 
-BASE_URL = os.environ.get('PROLIFIC_BASE_URL', 'https://api.prolific.co/api/v1/')
-CREDENTIALS_CONFIG_DIR = '~/.prolific/'
-CREDENTIALS_CONFIG_PATH = os.path.join(CREDENTIALS_CONFIG_DIR, 'credentials')
+BASE_URL = os.environ.get("PROLIFIC_BASE_URL", "https://api.prolific.co/api/v1/")
+CREDENTIALS_CONFIG_DIR = "~/.prolific/"
+CREDENTIALS_CONFIG_PATH = os.path.join(CREDENTIALS_CONFIG_DIR, "credentials")
 
 logger = get_logger(name=__name__)
 
 
 def get_prolific_api_key() -> Union[str, None]:
     credentials_path = os.path.expanduser(CREDENTIALS_CONFIG_PATH)
+    prolific_user = os.environ.get("PROLIFIC_API_USER", "")
     if os.path.exists(credentials_path):
-        with open(credentials_path, 'r') as f:
-            api_key = f.read().strip()
+        with open(credentials_path, "r") as f:
+            all_keys = json.load(f)
+            api_key = all_keys.get(prolific_user, None)
             return api_key
     return None
 
 
-API_KEY = os.environ.get('PROLIFIC_API_KEY', '') or get_prolific_api_key()
+API_KEY = os.environ.get("PROLIFIC_API_KEY", "") or get_prolific_api_key()
 
 
 class HTTPMethod:
-    GET = 'get'
-    POST = 'post'
-    PATCH = 'patch'
-    DELETE = 'delete'
+    GET = "get"
+    POST = "post"
+    PATCH = "patch"
+    DELETE = "delete"
 
 
 class BaseAPIResource(object):
@@ -55,21 +58,26 @@ class BaseAPIResource(object):
         api_endpoint: str,
         params: Optional[dict] = None,
         headers: Optional[dict] = None,
+        api_key: Optional[str] = None,
     ) -> Union[dict, str, None]:
-        log_prefix = f'[{cls.__name__}]'
+        log_prefix = f"[{cls.__name__}]"
 
-        if API_KEY is None:
-            raise ProlificAPIKeyError
+        if api_key is None:
+            if API_KEY is None:
+                raise ProlificAPIKeyError
+            api_key = API_KEY
 
         try:
             url = urljoin(BASE_URL, api_endpoint)
 
             headers = headers or {}
-            headers.update({
-                'Authorization': f'Token {API_KEY}',
-            })
+            headers.update(
+                {
+                    "Authorization": f"Token {api_key}",
+                }
+            )
 
-            logger.debug(f'{log_prefix} {method} {url}. Params: {params}')
+            logger.debug(f"{log_prefix} {method} {url}. Params: {params}")
 
             if method == HTTPMethod.GET:
                 response = requests.get(url, headers=headers, json=params)
@@ -83,31 +91,34 @@ class BaseAPIResource(object):
             elif method == HTTPMethod.DELETE:
                 response = requests.delete(url, headers=headers, json=params)
             else:
-                raise ProlificException('Invalid HTTP method.')
+                raise ProlificException("Invalid HTTP method.")
 
             response.raise_for_status()
-            if response.status_code == status.HTTP_204_NO_CONTENT and not response.content:
+            if (
+                response.status_code == status.HTTP_204_NO_CONTENT
+                and not response.content
+            ):
                 result = None
             else:
                 result = response.json()
 
-            logger.debug(f'{log_prefix} Response: {result}')
+            logger.debug(f"{log_prefix} Response: {result}")
 
             return result
 
         except requests.exceptions.HTTPError as err:
             logger.error(
-                f'{log_prefix} Request error: {err}. Response text: `{err.response.text}`'
+                f"{log_prefix} Request error: {err}. Response text: `{err.response.text}`"
             )
             if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
                 raise ProlificAuthenticationError
 
             message = err.args[0]
-            message = f'{message}. {err.response.text}'
+            message = f"{message}. {err.response.text}"
             raise ProlificRequestError(message, status_code=err.response.status_code)
 
         except Exception:
-            logger.exception(f'{log_prefix} Unexpected error')
+            logger.exception(f"{log_prefix} Unexpected error")
             raise ProlificException
 
     @classmethod
