@@ -196,7 +196,7 @@ def run_examine_by_worker(
     previous_work_by_worker = get_worker_stats(others)
 
     # Determine allowed options
-    options = ["a", "p", "r"]
+    options = ["a", "p", "r", "v"]
     options_string = "Do you want to accept this work? (a)ccept, (r)eject, (p)ass:"
 
     units_by_worker: Dict[str, List["Unit"]] = {}
@@ -253,6 +253,15 @@ def run_examine_by_worker(
                     )
                     if should_soft_block.lower() in ["y", "yes"]:
                         worker.grant_qualification(block_qualification, 1)
+            elif decision.lower() == "v":
+                # Same as "a", except we can specify exact qualification value being assigned
+                agent.approve_work()
+                if decision.isupper() and approve_qualification:
+                    qualification_value = input(
+                        f"Assign integer value for `{approve_qualification}` (hit Enter to skip): "
+                    )
+                    if qualification_value:
+                        worker.grant_qualification(approve_qualification, int(qualification_value))
             else:  # decision = 'r'
                 if apply_all_decision is None:
                     reason = input("Why are you rejecting this work? ")
