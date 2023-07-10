@@ -5,8 +5,10 @@
 # LICENSE file in the root directory of this source tree.
 
 from jsonschema.exceptions import ValidationError
+import json
 import os
 import uuid
+from typing import cast
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -21,6 +23,7 @@ from .api import constants
 from .api import eligibility_requirement_classes
 from .api.base_api_resource import CREDENTIALS_CONFIG_DIR
 from .api.base_api_resource import CREDENTIALS_CONFIG_PATH
+from .api.client import ProlificClient
 from .api.data_models import BonusPayments
 from .api.data_models import ListSubmission
 from .api.data_models import Participant
@@ -35,25 +38,55 @@ from .prolific_requester import ProlificRequesterArgs
 
 logger = get_logger(name=__name__)
 
+DEFAULT_CLIENT = cast(ProlificClient, prolific_api)
 
-def check_credentials(*args, **kwargs) -> bool:
+
+def check_credentials(client: ProlificClient = DEFAULT_CLIENT) -> bool:
     """Check whether API KEY is correct"""
     try:
         # Make a simple request to the API
-        prolific_api.Users.me()
+        client.Users.me()
         return True
     except (ProlificException, ValidationError):
         return False
 
 
+def get_authenticated_client(profile_name: str) -> ProlificClient:
+    """Get a client for the given profile"""
+    cred_path = os.path.expanduser(CREDENTIALS_CONFIG_PATH)
+    assert os.path.exists(cred_path), f"No credentials file at {cred_path}"
+    with open(cred_path) as cred_file:
+        curr_creds = json.load(cred_file)
+        assert profile_name in curr_creds, f"No stored credentials for {profile_name}"
+        key = curr_creds[profile_name]
+
+    return ProlificClient(api_key=key)
+
+
 def setup_credentials(
-    profile_name: str, register_args: Optional[ProlificRequesterArgs],
+    profile_name: str,
+    register_args: Optional[ProlificRequesterArgs],
 ) -> bool:
+    if register_args is None:
+        api_key = input(f"Provide api key for {profile_name}: ")
+    else:
+        api_key = register_args.api_key
+
     if not os.path.exists(os.path.expanduser(CREDENTIALS_CONFIG_DIR)):
         os.mkdir(os.path.expanduser(CREDENTIALS_CONFIG_DIR))
 
-    with open(os.path.expanduser(CREDENTIALS_CONFIG_PATH), 'w') as f:
-        f.write(register_args.api_key)
+    cred_path = os.path.expanduser(CREDENTIALS_CONFIG_PATH)
+
+    if os.path.exists(cred_path):
+        with open(cred_path) as cred_file:
+            curr_creds = json.load(cred_file)
+    else:
+        curr_creds = {}
+
+    curr_creds[profile_name] = api_key
+
+    with open(os.path.expanduser(CREDENTIALS_CONFIG_PATH), "w") as cred_file:
+        json.dump(curr_creds, cred_file)
 
     return True
 
@@ -62,7 +95,7 @@ def _get_eligibility_requirements(task_run_config_value: List[dict]) -> List[dic
     eligibility_requirements = []
 
     for conf_eligibility_requirement in task_run_config_value:
-        name = conf_eligibility_requirement.get('name')
+        name = conf_eligibility_requirement.get("name")
 
         if cls := getattr(eligibility_requirement_classes, name, None):
             cls_kwargs = {}
@@ -74,29 +107,33 @@ def _get_eligibility_requirements(task_run_config_value: List[dict]) -> List[dic
     return eligibility_requirements
 
 
-def check_balance(*args, **kwargs) -> Union[float, int, None]:
+def check_balance(client: ProlificClient, **kwargs) -> Union[float, int, None]:
     """Checks to see if there is at least available_balance amount in the workspace"""
-    workspace_name = kwargs.get('workspace_name')
+    workspace_name = kwargs.get("workspace_name")
     if not workspace_name:
         return None
 
-    found_workspace, workspace = _find_prolific_workspace(prolific_api, title=workspace_name)
+    found_workspace, workspace = _find_prolific_workspace(client, title=workspace_name)
 
     if not found_workspace:
-        logger.error(f'Could not find a workspace with name {workspace_name}')
+        logger.error(f"Could not find a workspace with name {workspace_name}")
         return None
 
     try:
-        workspace_ballance: WorkspaceBalance = prolific_api.Workspaces.get_balance(id=workspace.id)
+        workspace_balance: WorkspaceBalance = client.Workspaces.get_balance(
+            id=workspace.id
+        )
     except (ProlificException, ValidationError):
-        logger.exception(f'Could not receive a workspace balance with {workspace.id=}')
+        logger.exception(f"Could not receive a workspace balance with {workspace.id=}")
         raise
 
-    return workspace_ballance.available_balance
+    return workspace_balance.available_balance
 
 
 def _find_prolific_workspace(
-    client: prolific_api, title: str, id: Optional[str] = None,
+    client: ProlificClient,
+    title: str,
+    id: Optional[str] = None,
 ) -> Tuple[bool, Optional[Workspace]]:
     """Find a Prolific Workspace by title or ID"""
     if id:
@@ -104,25 +141,27 @@ def _find_prolific_workspace(
             workspace: Workspace = client.Workspaces.retrieve(id)
             return True, workspace
         except (ProlificException, ValidationError):
-            logger.exception(f'Could not find a workspace by id {id}')
+            logger.exception(f"Could not find a workspace by id {id}")
             raise
 
     try:
         workspaces: List[Workspace] = client.Workspaces.list()
     except (ProlificException, ValidationError):
-        logger.exception(f'Could not find a workspace by title {title}')
+        logger.exception(f"Could not find a workspace by title {title}")
         raise
 
     for workspace in workspaces:
         if workspace.title == title:
             return True, workspace
 
-    return True, None
+    return False, None
 
 
 def find_or_create_prolific_workspace(
-    client: prolific_api, title: str, id: Optional[str] = None,
-) -> Optional[Workspace]:
+    client: ProlificClient,
+    title: str,
+    id: Optional[str] = None,
+) -> Workspace:
     """Find or create a Prolific Workspace by title or ID"""
     found_workspace, workspace = _find_prolific_workspace(client, title, id)
 
@@ -139,7 +178,10 @@ def find_or_create_prolific_workspace(
 
 
 def _find_prolific_project(
-    client: prolific_api, workspace_id: str, title: str, id: Optional[str] = None,
+    client: ProlificClient,
+    workspace_id: str,
+    title: str,
+    id: Optional[str] = None,
 ) -> Tuple[bool, Optional[Project]]:
     """Find a Prolific Project by title or ID"""
     try:
@@ -158,7 +200,10 @@ def _find_prolific_project(
 
 
 def find_or_create_prolific_project(
-    client: prolific_api, workspace_id: str, title: str, id: Optional[str] = None,
+    client: ProlificClient,
+    workspace_id: str,
+    title: str,
+    id: Optional[str] = None,
 ) -> Optional[Project]:
     """Find or create a Prolific Workspace by title or ID"""
     found_project, project = _find_prolific_project(client, workspace_id, title, id)
@@ -178,7 +223,7 @@ def find_or_create_prolific_project(
     return project
 
 
-def delete_qualification(client: prolific_api, id: str) -> bool:
+def delete_qualification(client: ProlificClient, id: str) -> bool:
     """
     Delete a qualification (Prolific Participant Group) by ID
     :param id: Prolific Participant Group's ID
@@ -188,7 +233,7 @@ def delete_qualification(client: prolific_api, id: str) -> bool:
 
 
 def _find_qualification(
-    client: prolific_api,
+    client: ProlificClient,
     prolific_project_id: str,
     qualification_name: str,
 ) -> Tuple[bool, Optional[ParticipantGroup]]:
@@ -198,7 +243,9 @@ def _find_qualification(
             project_id=prolific_project_id,
         )
     except (ProlificException, ValidationError):
-        logger.exception(f'Could not receive a qualifications for project "{prolific_project_id}"')
+        logger.exception(
+            f'Could not receive a qualifications for project "{prolific_project_id}"'
+        )
         raise
 
     for qualification in qualifications:
@@ -209,7 +256,7 @@ def _find_qualification(
 
 
 def find_or_create_qualification(
-    client: prolific_api,
+    client: ProlificClient,
     prolific_project_id: str,
     qualification_name: str,
     *args,
@@ -217,7 +264,9 @@ def find_or_create_qualification(
 ) -> Optional[ParticipantGroup]:
     """Find or create a qualification (Prolific Participant Group) by name"""
     found_qualification, qualification = _find_qualification(
-        client, prolific_project_id, qualification_name,
+        client,
+        prolific_project_id,
+        qualification_name,
     )
 
     if found_qualification:
@@ -230,7 +279,7 @@ def find_or_create_qualification(
         )
     except (ProlificException, ValidationError):
         logger.exception(
-            f'Could not create a qualification '
+            f"Could not create a qualification "
             f'for project "{prolific_project_id}" with name "{qualification_name}"'
         )
         raise
@@ -238,23 +287,23 @@ def find_or_create_qualification(
     return qualification
 
 
-def _ec2_external_url(task_run_config: 'DictConfig') -> str:
+def _ec2_external_url(task_run_config: "DictConfig") -> str:
     c = constants
     url = ec2_architect.get_full_domain(args=task_run_config)
     url_with_args = (
-        f'{url}?'
-        f'{c.STUDY_URL_PARTICIPANT_ID_PARAM}={c.STUDY_URL_PARTICIPANT_ID_PARAM_PROLIFIC_VAR}'
-        f'&{c.STUDY_URL_STUDY_ID_PARAM}={c.STUDY_URL_STUDY_ID_PARAM_PROLIFIC_VAR}'
-        f'&{c.STUDY_URL_SUBMISSION_ID_PARAM}={c.STUDY_URL_SUBMISSION_ID_PARAM_PROLIFIC_VAR}'
+        f"{url}?"
+        f"{c.STUDY_URL_PARTICIPANT_ID_PARAM}={c.STUDY_URL_PARTICIPANT_ID_PARAM_PROLIFIC_VAR}"
+        f"&{c.STUDY_URL_STUDY_ID_PARAM}={c.STUDY_URL_STUDY_ID_PARAM_PROLIFIC_VAR}"
+        f"&{c.STUDY_URL_SUBMISSION_ID_PARAM}={c.STUDY_URL_SUBMISSION_ID_PARAM_PROLIFIC_VAR}"
     )
     return url_with_args
 
 
-def _is_ec2_architect(task_run_config: 'DictConfig') -> bool:
+def _is_ec2_architect(task_run_config: "DictConfig") -> bool:
     return task_run_config.architect._architect_type == ec2_architect.ARCHITECT_TYPE
 
 
-def _get_external_study_url(task_run_config: 'DictConfig') -> str:
+def _get_external_study_url(task_run_config: "DictConfig") -> str:
     if _is_ec2_architect(task_run_config):
         external_study_url = _ec2_external_url(task_run_config)
     else:
@@ -263,18 +312,26 @@ def _get_external_study_url(task_run_config: 'DictConfig') -> str:
 
 
 def create_study(
-    client: prolific_api, task_run_config: 'DictConfig', prolific_project_id: str, *args, **kwargs,
+    client: ProlificClient,
+    task_run_config: "DictConfig",
+    prolific_project_id: str,
+    *args,
+    **kwargs,
 ) -> Study:
     """Create a task (Prolific Study)"""
 
     def compose_completion_codes(code_suffix: str) -> List[dict]:
-        return [dict(
-            code=f'{constants.StudyCodeType.COMPLETED}_{code_suffix}',
-            code_type=constants.StudyCodeType.COMPLETED,
-            actions=[dict(
-                action=constants.StudyAction.MANUALLY_REVIEW,
-            )],
-        )]
+        return [
+            dict(
+                code=f"{constants.StudyCodeType.COMPLETED}_{code_suffix}",
+                code_type=constants.StudyCodeType.COMPLETED,
+                actions=[
+                    dict(
+                        action=constants.StudyAction.MANUALLY_REVIEW,
+                    )
+                ],
+            )
+        ]
 
     # Task info
     name = task_run_config.task.task_title
@@ -295,7 +352,9 @@ def create_study(
     # Initially provide a random completion code during study
     completion_codes_random = compose_completion_codes(uuid.uuid4().hex[:5])
 
-    logger.debug(f'Initial completion codes for creating Study: {completion_codes_random}')
+    logger.debug(
+        f"Initial completion codes for creating Study: {completion_codes_random}"
+    )
 
     try:
         # TODO (#1008): Make sure that all parameters are correct
@@ -321,12 +380,14 @@ def create_study(
         #  This code will be used to redirect worker to Prolific's "Submission Completed" page
         #  (see `mephisto.abstractions.providers.prolific.wrap_crowd_source.handleSubmitToProvider`)
         completion_codes_with_study_id = compose_completion_codes(study.id)
-        logger.debug(f'Final completion codes for updating Study: {completion_codes_with_study_id}')
+        logger.debug(
+            f"Final completion codes for updating Study: {completion_codes_with_study_id}"
+        )
         study: Study = client.Studies.update(
             id=study.id,
             completion_codes=completion_codes_with_study_id,
         )
-        logger.debug(f'Study was updated successfully! {study.completion_codes=}')
+        logger.debug(f"Study was updated successfully! {study.completion_codes=}")
     except (ProlificException, ValidationError):
         logger.exception(
             f'Could not create a Study with name "{name}" and instructions "{description}"'
@@ -336,7 +397,7 @@ def create_study(
     return study
 
 
-def get_study(client: prolific_api, study_id: str) -> Study:
+def get_study(client: ProlificClient, study_id: str) -> Study:
     try:
         study: Study = client.Studies.retrieve(id=study_id)
     except (ProlificException, ValidationError):
@@ -345,7 +406,7 @@ def get_study(client: prolific_api, study_id: str) -> Study:
     return study
 
 
-def publish_study(client: prolific_api, study_id: str) -> str:
+def publish_study(client: ProlificClient, study_id: str) -> str:
     try:
         client.Studies.publish(id=study_id)
     except (ProlificException, ValidationError):
@@ -354,7 +415,7 @@ def publish_study(client: prolific_api, study_id: str) -> str:
     return study_id
 
 
-def expire_study(client: prolific_api, study_id: str) -> Study:
+def expire_study(client: ProlificClient, study_id: str) -> Study:
     """
     Prolific Studies don't have EXPIRED status,
     so we mark it as COMPLETED and add `_EXPIRED` to the end of `Study.internal_name` field.
@@ -364,7 +425,7 @@ def expire_study(client: prolific_api, study_id: str) -> Study:
         study: Study = get_study(client, study_id)
         client.Studies.update(
             id=study_id,
-            internal_name=f'{study.internal_name}_{constants.StudyStatus._EXPIRED}'
+            internal_name=f"{study.internal_name}_{constants.StudyStatus._EXPIRED}",
         )
         study: Study = client.Studies.stop(id=study_id)
         logger.debug(f'Study "{study_id}" was expired successfully!')
@@ -381,19 +442,24 @@ def is_study_expired(study: Study) -> bool:
     because Prolific Study object doesn't have "expired" status
     """
     Status = constants.StudyStatus
-    return (
-        study.status in [Status.COMPLETED, Status.AWAITING_REVIEW] and
-        study.internal_name.endswith(Status._EXPIRED)
-    )
+    return study.status in [
+        Status.COMPLETED,
+        Status.AWAITING_REVIEW,
+    ] and study.internal_name.endswith(Status._EXPIRED)
 
 
 def give_worker_qualification(
-    client: prolific_api, worker_id: str, qualification_id: str, *args, **kwargs,
+    client: ProlificClient,
+    worker_id: str,
+    qualification_id: str,
+    *args,
+    **kwargs,
 ) -> None:
     """Give a qualification to the given worker (add a worker to a Participant Group)"""
     try:
         client.ParticipantGroups.add_participants_to_group(
-            id=qualification_id, participant_ids=[worker_id],
+            id=qualification_id,
+            participant_ids=[worker_id],
         )
     except (ProlificException, ValidationError):
         logger.exception(
@@ -403,12 +469,17 @@ def give_worker_qualification(
 
 
 def remove_worker_qualification(
-    client: prolific_api, worker_id: str, qualification_id: str, *args, **kwargs,
+    client: ProlificClient,
+    worker_id: str,
+    qualification_id: str,
+    *args,
+    **kwargs,
 ) -> None:
     """Remove a qualification for the given worker (remove a worker from a Participant Group)"""
     try:
         client.ParticipantGroups.remove_participants_from_group(
-            id=qualification_id, participant_ids=[worker_id],
+            id=qualification_id,
+            participant_ids=[worker_id],
         )
     except (ProlificException, ValidationError):
         logger.exception(
@@ -418,8 +489,8 @@ def remove_worker_qualification(
 
 
 def pay_bonus(
-    client: prolific_api,
-    task_run_config: 'DictConfig',
+    client: ProlificClient,
+    task_run_config: "DictConfig",
     worker_id: str,
     bonus_amount: int,  # in cents
     study_id: str,
@@ -430,14 +501,18 @@ def pay_bonus(
     Handles paying bonus to a worker.
     Returns True on success and False on failure (e.g. insufficient funds)
     """
-    if not check_balance(workspace_name=task_run_config.provider.prolific_workspace_name):
+    if not check_balance(
+        workspace_name=task_run_config.provider.prolific_workspace_name
+    ):
         # Just in case if Prolific adds showing an available balance for an account
-        logger.debug('Cannot pay bonus. Reason: Insufficient funds in your Prolific account.')
+        logger.debug(
+            "Cannot pay bonus. Reason: Insufficient funds in your Prolific account."
+        )
         return False
 
     # Unlike all other Prolific endpoints working with cents, this one requires dollars
     bonus_amount_in_dollars = bonus_amount / 100
-    csv_bonuses = f'{worker_id},{bonus_amount_in_dollars}'
+    csv_bonuses = f"{worker_id},{bonus_amount_in_dollars}"
 
     try:
         bonus_obj: BonusPayments = client.Bonuses.set_up(study_id, csv_bonuses)
@@ -456,22 +531,32 @@ def pay_bonus(
 
 
 def _get_block_list_qualification(
-    client: prolific_api, task_run_config: 'DictConfig',
+    client: ProlificClient,
+    task_run_config: "DictConfig",
 ) -> ParticipantGroup:
     workspace = find_or_create_prolific_workspace(
-        client, title=task_run_config.provider.prolific_workspace_name,
+        client,
+        title=task_run_config.provider.prolific_workspace_name,
     )
     project = find_or_create_prolific_project(
-        client, workspace.id, title=task_run_config.provider.prolific_project_name,
+        client,
+        workspace.id,
+        title=task_run_config.provider.prolific_project_name,
     )
     block_list_qualification = find_or_create_qualification(
-        client, project.id, task_run_config.provider.prolific_block_list_group_name,
+        client,
+        project.id,
+        task_run_config.provider.prolific_block_list_group_name,
     )
     return block_list_qualification
 
 
 def block_worker(
-    client: prolific_api, task_run_config: 'DictConfig', worker_id: str, *args, **kwargs,
+    client: ProlificClient,
+    task_run_config: "DictConfig",
+    worker_id: str,
+    *args,
+    **kwargs,
 ) -> None:
     """Block a worker by id using the Prolific client, passes reason along"""
     block_list_qualification = _get_block_list_qualification(client, task_run_config)
@@ -479,30 +564,43 @@ def block_worker(
 
 
 def unblock_worker(
-    client: prolific_api, task_run_config: 'DictConfig', worker_id: str, *args, **kwargs,
+    client: ProlificClient,
+    task_run_config: "DictConfig",
+    worker_id: str,
+    *args,
+    **kwargs,
 ) -> None:
     """Remove a block on the given worker"""
     block_list_qualification = _get_block_list_qualification(client, task_run_config)
     remove_worker_qualification(client, worker_id, block_list_qualification.id)
 
 
-def is_worker_blocked(client: prolific_api, task_run_config: 'DictConfig', worker_id: str) -> bool:
+def is_worker_blocked(
+    client: ProlificClient, task_run_config: "DictConfig", worker_id: str
+) -> bool:
     """Determine if the given worker is blocked by this client"""
     workspace = find_or_create_prolific_workspace(
-        client, title=task_run_config.provider.prolific_workspace_name,
+        client,
+        title=task_run_config.provider.prolific_workspace_name,
     )
     project = find_or_create_prolific_project(
-        client, workspace.id, title=task_run_config.provider.prolific_project_name,
+        client,
+        workspace.id,
+        title=task_run_config.provider.prolific_project_name,
     )
     _, block_list_qualification = _find_qualification(
-        client, project.id, task_run_config.provider.prolific_block_list_group_name,
+        client,
+        project.id,
+        task_run_config.provider.prolific_block_list_group_name,
     )
 
     if not block_list_qualification:
         return False
 
     try:
-        participants: List[Participant] = client.ParticipantGroups.list_participants_for_group(
+        participants: List[
+            Participant
+        ] = client.ParticipantGroups.list_participants_for_group(
             block_list_qualification.id,
         )
     except (ProlificException, ValidationError):
@@ -519,20 +617,25 @@ def is_worker_blocked(client: prolific_api, task_run_config: 'DictConfig', worke
 
 
 def calculate_pay_amount(
-    client: prolific_api, task_amount: Union[int, float], total_available_places: int,
+    client: ProlificClient,
+    task_amount: Union[int, float],
+    total_available_places: int,
 ) -> Union[int, float]:
     try:
         total_cost: Union[int, float] = client.Studies.calculate_cost(
-            reward=task_amount, total_available_places=total_available_places,
+            reward=task_amount,
+            total_available_places=total_available_places,
         )
     except (ProlificException, ValidationError):
-        logger.exception('Could not calculate total cost for a study')
+        logger.exception("Could not calculate total cost for a study")
         raise
     return total_cost
 
 
 def _find_submission(
-    client: prolific_api, study_id: str, worker_id: str,
+    client: ProlificClient,
+    study_id: str,
+    worker_id: str,
 ) -> Optional[ListSubmission]:
     """Find a Submission by Study and Worker"""
     try:
@@ -548,11 +651,15 @@ def _find_submission(
     return None
 
 
-def approve_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Submission, None]:
+def approve_work(
+    client: ProlificClient, study_id: str, worker_id: str
+) -> Union[Submission, None]:
     submission: ListSubmission = _find_submission(client, study_id, worker_id)
 
     if not submission:
-        logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
+        logger.warning(
+            f'No submission found for study "{study_id}" and participant "{worker_id}"'
+        )
         return None
 
     # TODO (#1008): Maybe we need to expand handling submission statuses
@@ -573,11 +680,15 @@ def approve_work(client: prolific_api, study_id: str, worker_id: str) -> Union[S
     return None
 
 
-def reject_work(client: prolific_api, study_id: str, worker_id: str) -> Union[Submission, None]:
+def reject_work(
+    client: ProlificClient, study_id: str, worker_id: str
+) -> Union[Submission, None]:
     submission: ListSubmission = _find_submission(client, study_id, worker_id)
 
     if not submission:
-        logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
+        logger.warning(
+            f'No submission found for study "{study_id}" and participant "{worker_id}"'
+        )
         return None
 
     # TODO (#1008): Maybe we need to expand handling submission statuses

@@ -16,8 +16,9 @@ from typing import Optional
 from mephisto.abstractions.databases.local_database import is_unique_failure
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.utils.logger_core import get_logger
-from . import api as prolific_api
 from . import prolific_datastore_tables as tables
+from .api.client import ProlificClient
+from .prolific_utils import get_authenticated_client
 
 logger = get_logger(name=__name__)
 
@@ -25,7 +26,7 @@ logger = get_logger(name=__name__)
 class ProlificDatastore:
     def __init__(self, datastore_root: str):
         """Initialize local storage of active agents, connect to the database"""
-        self.session_storage: Dict[str, Any] = {}  # TODO (#1008): Implement type
+        self.session_storage: Dict[str, ProlificClient] = {}
         self.agent_data: Dict[str, Dict[str, Any]] = {}
         self.table_access_condition = threading.Condition()
         self.conn: Dict[int, sqlite3.Connection] = {}
@@ -58,7 +59,7 @@ class ProlificDatastore:
         """Run all the table creation SQL queries to ensure the expected tables exist"""
         with self.table_access_condition:
             conn = self._get_connection()
-            conn.execute('PRAGMA foreign_keys = 1')
+            conn.execute("PRAGMA foreign_keys = 1")
             c = conn.cursor()
             c.execute(tables.CREATE_STUDIES_TABLE)
             c.execute(tables.CREATE_SUBMISSIONS_TABLE)
@@ -127,7 +128,7 @@ class ProlificDatastore:
                 (run_id,),
             )
             results = c.fetchall()
-            return [r['prolific_study_id'] for r in results]
+            return [r["prolific_study_id"] for r in results]
 
     def register_submission_to_study(
         self,
@@ -140,9 +141,9 @@ class ProlificDatastore:
         or clear the assignment after a return
         """
         logger.debug(
-            f'Attempting to assign Study {prolific_study_id}, '
-            f'Unit {unit_id}, '
-            f'Submission {prolific_submission_id}.'
+            f"Attempting to assign Study {prolific_study_id}, "
+            f"Unit {unit_id}, "
+            f"Submission {prolific_submission_id}."
         )
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
@@ -329,25 +330,27 @@ class ProlificDatastore:
             results = c.fetchall()
             return bool(results[0]["is_expired"])
 
-    def get_session_for_requester(self, requester_name: str) -> prolific_api:
+    def get_session_for_requester(self, requester_name: str) -> ProlificClient:
         """
         Either create a new session for the given requester or return
         the existing one if it has already been created
         """
         if requester_name not in self.session_storage:
-            session = prolific_api
+            session = get_authenticated_client(requester_name)
             self.session_storage[requester_name] = session
 
         return self.session_storage[requester_name]
 
-    def get_client_for_requester(self, requester_name: str) -> prolific_api:
+    def get_client_for_requester(self, requester_name: str) -> ProlificClient:
         """
         Return the client for the given requester, which should allow
         direct calls to the Prolific surface
         """
         return self.get_session_for_requester(requester_name)
 
-    def get_qualification_mapping(self, qualification_name: str) -> Optional[sqlite3.Row]:
+    def get_qualification_mapping(
+        self, qualification_name: str
+    ) -> Optional[sqlite3.Row]:
         """Get the mapping between Mephisto qualifications and Prolific Participant Group"""
         with self.table_access_condition:
             conn = self._get_connection()
@@ -407,28 +410,30 @@ class ProlificDatastore:
                 db_qualification = self.get_qualification_mapping(qualification_name)
 
                 logger.debug(
-                    f'Multiple Prolific mapping creations '
+                    f"Multiple Prolific mapping creations "
                     f'for qualification "{qualification_name}". '
-                    f'Found existing one: {db_qualification}. '
+                    f"Found existing one: {db_qualification}. "
                 )
-                assert \
-                    db_qualification is not None, \
-                    'Cannot be none given is_unique_failure on insert'
+                assert (
+                    db_qualification is not None
+                ), "Cannot be none given is_unique_failure on insert"
 
-                db_requester_id = db_qualification['requester_id']
-                db_prolific_qualification_name = db_qualification['prolific_participant_group_name']
+                db_requester_id = db_qualification["requester_id"]
+                db_prolific_qualification_name = db_qualification[
+                    "prolific_participant_group_name"
+                ]
 
                 if db_requester_id != requester_id:
                     logger.warning(
-                        f'Prolific Qualification mapping create for {qualification_name} '
-                        f'under requester {requester_id}, already exists under {db_requester_id}.'
+                        f"Prolific Qualification mapping create for {qualification_name} "
+                        f"under requester {requester_id}, already exists under {db_requester_id}."
                     )
 
                 if db_prolific_qualification_name != prolific_participant_group_name:
                     logger.warning(
-                        f'Prolific Qualification mapping create for {qualification_name} '
-                        f'with Prolific name {prolific_participant_group_name}, '
-                        f'already exists under {db_prolific_qualification_name}.'
+                        f"Prolific Qualification mapping create for {qualification_name} "
+                        f"with Prolific name {prolific_participant_group_name}, "
+                        f"already exists under {db_prolific_qualification_name}."
                     )
 
                 return None
@@ -455,11 +460,11 @@ class ProlificDatastore:
                 return
             if len(results) > 1:
                 logger.warning(
-                    'WARNING - UNIT HAD MORE THAN ONE STUDY MAPPED TO IT!',
+                    "WARNING - UNIT HAD MORE THAN ONE STUDY MAPPED TO IT!",
                     unit_id,
                     [dict(r) for r in results],
                 )
-            result_study_id = results[0]['prolific_study_id']
+            result_study_id = results[0]["prolific_study_id"]
             c.execute(
                 """
                 UPDATE units
@@ -493,7 +498,9 @@ class ProlificDatastore:
         prolific_project_id: str,
         prolific_study_config_path: str,
         frame_height: int = 0,
-        prolific_study_id: Optional[str] = None,  # TODO (#1008): Remove it. Leave this just in case
+        prolific_study_id: Optional[
+            str
+        ] = None,  # TODO (#1008): Remove it. Leave this just in case
     ) -> None:
         """Register a new task run in the Task Runs table"""
         with self.table_access_condition, self._get_connection() as conn:
