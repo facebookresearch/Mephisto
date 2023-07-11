@@ -134,9 +134,7 @@ class MTurkAgent(Agent):
         submitted.
         """
         if self.get_status() != AgentState.STATUS_DISCONNECT:
-            self.db.update_agent(
-                agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
-            )
+            self.db.update_agent(agent_id=self.db_id, status=AgentState.STATUS_COMPLETED)
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":

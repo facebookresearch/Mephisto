@@ -19,12 +19,8 @@ from mephisto.utils.logger_core import get_logger
 from .api.client import ProlificClient
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.providers.prolific.prolific_datastore import (
-        ProlificDatastore,
-    )
-    from mephisto.abstractions.providers.prolific.prolific_requester import (
-        ProlificRequester,
-    )
+    from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
+    from mephisto.abstractions.providers.prolific.prolific_requester import ProlificRequester
     from mephisto.abstractions.providers.prolific.prolific_unit import ProlificUnit
     from mephisto.abstractions.providers.prolific.prolific_worker import ProlificWorker
     from mephisto.data_model.unit import Unit
@@ -52,9 +48,7 @@ class ProlificAgent(Agent):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(
-            self.PROVIDER_TYPE
-        )
+        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(self.PROVIDER_TYPE)
         self.unit: "ProlificUnit" = cast("ProlificUnit", self.get_unit())
         self.worker: "ProlificWorker" = cast("ProlificWorker", self.get_worker())
 
@@ -129,9 +123,7 @@ class ProlificAgent(Agent):
         logger.debug(f"{self.log_prefix}Rejecting work")
 
         if self.get_status() == AgentState.STATUS_APPROVED:
-            logger.warning(
-                f"{self.log_prefix}Cannot reject {self}, it is already approved"
-            )
+            logger.warning(f"{self.log_prefix}Cannot reject {self}, it is already approved")
             return
 
         client = self._get_client()
@@ -143,7 +135,7 @@ class ProlificAgent(Agent):
 
         try:
             prolific_utils.reject_work(
-                client, study_id=prolific_study_id, worker_id=worker_id
+                client, study_id=prolific_study_id, worker_id=worker_id,
             )
         except ProlificException:
             logger.info(
@@ -169,7 +161,8 @@ class ProlificAgent(Agent):
 
         if self.get_status() != AgentState.STATUS_DISCONNECT:
             self.db.update_agent(
-                agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
+                agent_id=self.db_id,
+                status=AgentState.STATUS_COMPLETED,
             )
 
     @staticmethod

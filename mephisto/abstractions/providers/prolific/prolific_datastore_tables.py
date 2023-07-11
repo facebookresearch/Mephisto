@@ -57,18 +57,6 @@ CREATE_WORKERS_TABLE = """
     );
 """
 
-CREATE_QUALIFICATIONS_TABLE = """
-    CREATE TABLE IF NOT EXISTS qualifications (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        qualification_name TEXT UNIQUE,
-        requester_id TEXT,
-        prolific_project_id TEXT,
-        prolific_participant_group_name TEXT,
-        prolific_participant_group_id TEXT,
-        creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-"""
-
 CREATE_RUNS_TABLE = """
     CREATE TABLE IF NOT EXISTS runs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,5 +68,28 @@ CREATE_RUNS_TABLE = """
         prolific_study_config_path TEXT NOT NULL,
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
         frame_height INTEGER NOT NULL DEFAULT 650
+    );
+"""
+
+CREATE_PARTICIPANT_GROUPS_TABLE = """
+    CREATE TABLE IF NOT EXISTS participant_groups (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        qualification_name TEXT UNIQUE,
+        requester_id TEXT,
+        prolific_project_id TEXT,
+        prolific_participant_group_name TEXT,
+        prolific_participant_group_id TEXT,
+        creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+"""
+
+CREATE_PARTICIPANT_GROUP_QUALIFICATIONS_MAPPING_TABLE = """
+    CREATE TABLE IF NOT EXISTS qualifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        prolific_participant_group_id TEXT,
+        task_run_id TEXT,
+        json_qual_logic TEXT,
+        qualification_ids TEXT,
+        creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 """

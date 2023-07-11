@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import json
 import os
 import sqlite3
 import threading
@@ -11,11 +12,13 @@ import time
 from collections import defaultdict
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
 
 from mephisto.abstractions.databases.local_database import is_unique_failure
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.utils.logger_core import get_logger
+from mephisto.utils.qualifications import QualificationType
 from . import prolific_datastore_tables as tables
 from .api.client import ProlificClient
 from .prolific_utils import get_authenticated_client
@@ -68,7 +71,8 @@ class ProlificDatastore:
             c.execute(tables.CREATE_WORKERS_TABLE)
             c.execute(tables.CREATE_RUNS_TABLE)
             c.execute(tables.CREATE_RUN_MAP_TABLE)
-            c.execute(tables.CREATE_QUALIFICATIONS_TABLE)
+            c.execute(tables.CREATE_PARTICIPANT_GROUPS_TABLE)
+            c.execute(tables.CREATE_PARTICIPANT_GROUP_QUALIFICATIONS_MAPPING_TABLE)
             conn.commit()
 
     def is_study_mapping_in_sync(self, unit_id: str, compare_time: float):
@@ -246,7 +250,7 @@ class ProlificDatastore:
             return None
 
     def get_worker_blocked(self, worker_id: str) -> bool:
-        """Get the registration status of a worker"""
+        """Get the blocked status of a worker"""
         self.ensure_worker_exists(worker_id)
         with self.table_access_condition:
             conn = self._get_connection()
@@ -260,6 +264,21 @@ class ProlificDatastore:
             )
             results = c.fetchall()
             return bool(results[0]["is_blocked"])
+
+    def get_blocked_workers(self) -> List[dict]:
+        """Get all workers with blocked status"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT worker_id FROM workers
+                WHERE is_blocked = ?
+                """,
+                (True,),
+            )
+            results = c.fetchall()
+            return results
 
     def ensure_unit_exists(self, unit_id: str) -> None:
         """Create a record of this unit if it doesn't exist"""
@@ -357,7 +376,7 @@ class ProlificDatastore:
             c = conn.cursor()
             c.execute(
                 """
-                SELECT * FROM qualifications
+                SELECT * FROM participant_groups
                 WHERE qualification_name = ?
                 """,
                 (qualification_name,),
@@ -367,7 +386,7 @@ class ProlificDatastore:
                 return None
             return results[0]
 
-    def create_qualification_mapping(
+    def create_participant_proup_mapping(
         self,
         qualification_name: str,
         requester_id: str,
@@ -386,13 +405,13 @@ class ProlificDatastore:
                 c = conn.cursor()
                 c.execute(
                     """
-                    INSERT INTO qualifications(
+                    INSERT INTO participant_groups(
                         qualification_name,
                         requester_id,
                         prolific_project_id,
                         prolific_participant_group_name,
                         prolific_participant_group_id
-                    ) VALUES (?, ?, ?, ?);
+                    ) VALUES (?, ?, ?, ?, ?);
                     """,
                     (
                         qualification_name,
@@ -439,6 +458,36 @@ class ProlificDatastore:
                 return None
             else:
                 raise e
+
+    def create_quailfication_mapping(
+        self,
+        run_id: str,
+        prolific_participant_group_id: str,
+        qualifications: List[QualificationType],
+        qualification_ids: List[int],
+    ) -> None:
+        """Register a new participant group mapping with qualifications"""
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            qualifications_json = json.dumps(qualifications)
+            qualification_ids_json = json.dumps(qualification_ids)
+            logger.debug(f'')
+            c.execute(
+                """
+                INSERT INTO qualifications(
+                    prolific_participant_group_id,
+                    task_run_id,
+                    json_qual_logic,
+                    qualification_ids
+                ) VALUES (?, ?, ?, ?);
+                """,
+                (
+                    prolific_participant_group_id,
+                    run_id,
+                    qualifications_json,
+                    qualification_ids_json,
+                ),
+            )
 
     def clear_study_from_unit(self, unit_id: str) -> None:
         """
@@ -498,9 +547,7 @@ class ProlificDatastore:
         prolific_project_id: str,
         prolific_study_config_path: str,
         frame_height: int = 0,
-        prolific_study_id: Optional[
-            str
-        ] = None,  # TODO (#1008): Remove it. Leave this just in case
+        prolific_study_id: Optional[str] = None,  # TODO (#1008): Remove this, left it just in case
     ) -> None:
         """Register a new task run in the Task Runs table"""
         with self.table_access_condition, self._get_connection() as conn:

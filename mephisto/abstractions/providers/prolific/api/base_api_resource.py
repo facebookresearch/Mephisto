@@ -37,7 +37,7 @@ def get_prolific_api_key() -> Union[str, None]:
     return None
 
 
-API_KEY = os.environ.get("PROLIFIC_API_KEY", "") or get_prolific_api_key()
+PROLIFIC_API_KEY = os.environ.get("PROLIFIC_API_KEY", "") or get_prolific_api_key()
 
 
 class HTTPMethod:
@@ -62,20 +62,17 @@ class BaseAPIResource(object):
     ) -> Union[dict, str, None]:
         log_prefix = f"[{cls.__name__}]"
 
-        if api_key is None:
-            if API_KEY is None:
-                raise ProlificAPIKeyError
-            api_key = API_KEY
+        api_key = api_key or PROLIFIC_API_KEY
+        if not api_key:
+            raise ProlificAPIKeyError
 
         try:
             url = urljoin(BASE_URL, api_endpoint)
 
             headers = headers or {}
-            headers.update(
-                {
-                    "Authorization": f"Token {api_key}",
-                }
-            )
+            headers.update({
+                "Authorization": f"Token {api_key}",
+            })
 
             logger.debug(f"{log_prefix} {method} {url}. Params: {params}")
 
@@ -95,8 +92,8 @@ class BaseAPIResource(object):
 
             response.raise_for_status()
             if (
-                response.status_code == status.HTTP_204_NO_CONTENT
-                and not response.content
+                response.status_code == status.HTTP_204_NO_CONTENT and
+                not response.content
             ):
                 result = None
             else:

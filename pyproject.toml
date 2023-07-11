@@ -111,6 +111,11 @@ mypy = "^0.971.0"
 [tool.poetry.scripts]
 'mephisto' = 'mephisto.client.cli:cli'
 
+
+[tool.black]
+line-length = 100
+
+
 [build-system]
 requires = [
     "poetry>=1.2.0",

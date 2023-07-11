@@ -4,13 +4,37 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.tools.scripts import task_script
 from omegaconf import DictConfig
+
+from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
+    SharedStaticTaskState,
+)
+from mephisto.data_model.qualification import QUAL_GREATER_EQUAL
+from mephisto.tools.scripts import task_script
+from mephisto.utils.qualifications import make_qualification_dict
 
 
 @task_script(default_config_file='prolific_example')
 def main(operator, cfg: DictConfig) -> None:
-    operator.launch_task_run(cfg.mephisto)
+    shared_state = SharedStaticTaskState()
+
+    # Mephisto qualifications
+    shared_state.qualifications = [
+        make_qualification_dict('Best workers', QUAL_GREATER_EQUAL, 1),
+    ]
+
+    # Prolific qualifications
+    shared_state.prolific_specific_qualifications = [
+        {
+            # Without `web.eligibility.models.` as API requires. We will add it in the code
+            'name': 'AgeRangeEligibilityRequirement',
+            # Prolific Eligibility Requirement attributes and its values
+            'min_age': 18,
+            'max_age': 100,
+        },
+    ]
+
+    operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 

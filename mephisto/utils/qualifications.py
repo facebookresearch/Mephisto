@@ -24,10 +24,11 @@ if TYPE_CHECKING:
 
 from mephisto.utils.logger_core import get_logger
 
+QualificationType = Dict[str, Any]
 logger = get_logger(name=__name__)
 
 
-def worker_is_qualified(worker: "Worker", qualifications: List[Dict[str, Any]]):
+def worker_is_qualified(worker: "Worker", qualifications: List[QualificationType]):
     db = worker.db
     for qualification in qualifications:
         qual_name = qualification["qualification_name"]

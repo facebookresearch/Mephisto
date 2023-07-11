@@ -7,9 +7,12 @@
 import os
 from dataclasses import dataclass
 from dataclasses import field
+from datetime import datetime
+from datetime import timezone
 from typing import Any
 from typing import cast
 from typing import ClassVar
+from typing import List
 from typing import Type
 from typing import TYPE_CHECKING
 
@@ -18,21 +21,23 @@ from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.api.constants import ProlificIDOption
 from mephisto.abstractions.providers.prolific.prolific_agent import ProlificAgent
-from mephisto.abstractions.providers.prolific.prolific_datastore import (
-    ProlificDatastore,
-)
-from mephisto.abstractions.providers.prolific.prolific_requester import (
-    ProlificRequester,
-)
+from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
+from mephisto.abstractions.providers.prolific.prolific_requester import ProlificRequester
 from mephisto.abstractions.providers.prolific.prolific_unit import ProlificUnit
 from mephisto.abstractions.providers.prolific.prolific_worker import ProlificWorker
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.operations.registry import register_mephisto_abstraction
 from mephisto.utils.logger_core import get_logger
+from mephisto.utils.qualifications import QualificationType
+from mephisto.utils.qualifications import worker_is_qualified
 from .api.client import ProlificClient
+from .api.data_models import ParticipantGroup
 from .api.data_models import Project
 from .api.data_models import Study
 from .api.data_models import Workspace
+from .api.eligibility_requirement_classes.participant_group_eligibility_requirement import (
+    PARTICIPANT_GROUP_ELIGIBILITY_REQUIREMENT
+)
 from .api.exceptions import ProlificException
 
 if TYPE_CHECKING:
@@ -50,7 +55,6 @@ DEFAULT_PROLIFIC_GROUP_NAME_ALLOW_LIST = "Allow list"
 DEFAULT_PROLIFIC_GROUP_NAME_BLOCK_LIST = "Block list"
 DEFAULT_PROLIFIC_PROJECT_NAME = "Project"
 DEFAULT_PROLIFIC_WORKSPACE_NAME = "My Workspace"
-
 
 logger = get_logger(name=__name__)
 
@@ -164,6 +168,49 @@ class ProlificProvider(CrowdProvider):
         """Get a Prolific client"""
         return self.datastore.get_client_for_requester(requester_name)
 
+    def _get_quailified_workers(self, qualifications: List[QualificationType]) -> List["Worker"]:
+        qualified_workers = []
+        prolific_workers: List[Worker] = self.db.find_workers(provider_type='prolific')
+        blocked_workers = self.datastore.get_blocked_workers()
+        # `worker_name` is `worker_id` in provider-specific datastore
+        blocked_workers_names = [w['worker_id'] for w in blocked_workers]
+
+        for worker in prolific_workers:
+            not_blocked = worker.worker_name not in blocked_workers_names
+            is_qualified = worker_is_qualified(worker, qualifications)
+
+            if not_blocked and is_qualified:
+                qualified_workers.append(worker)
+
+        return qualified_workers
+
+    def _create_participant_group_with_qualified_workers(
+        self,
+        client: ProlificClient,
+        requester: ProlificRequester,
+        workers_ids: List[str],
+        prolific_project_id: str,
+    ) -> ParticipantGroup:
+        participant_proup_name = f'PG {datetime.now(timezone.utc).isoformat()}'
+        prolific_participant_group = prolific_utils.create_qualification(
+            client,
+            prolific_project_id,
+            participant_proup_name,
+        )
+        prolific_utils.add_workers_to_qualification(
+            client,
+            workers_ids,
+            prolific_participant_group.id,
+        )
+        self.datastore.create_participant_proup_mapping(
+            qualification_name=participant_proup_name,
+            requester_id=requester.db_id,
+            prolific_project_id=prolific_project_id,
+            prolific_participant_group_name=participant_proup_name,
+            prolific_participant_group_id=prolific_participant_group.id,
+        )
+        return prolific_participant_group
+
     def setup_resources_for_task_run(
         self,
         task_run: "TaskRun",
@@ -181,11 +228,21 @@ class ProlificProvider(CrowdProvider):
         frame_height = (
             task_run.get_blueprint()
             .get_frontend_args()
-            .get(
-                "frame_height",
-                DEFAULT_FRAME_HEIGHT,
-            )
+            .get("frame_height", DEFAULT_FRAME_HEIGHT)
         )
+
+        # Mephisto qualifications
+        qualifications = shared_state.qualifications
+
+        # Get provider-specific qualification from SharedState
+        prolific_specific_qualifications = getattr(
+            shared_state, 'prolific_specific_qualifications', [],
+        )
+
+        if not qualifications and not prolific_specific_qualifications:
+            raise AssertionError(
+                '"qualifications" or "prolific_specific_qualifications" must be provided'
+            )
 
         # Get Prolific specific data to create a task
         prolific_workspace: Workspace = (
@@ -200,12 +257,46 @@ class ProlificProvider(CrowdProvider):
             title=args.provider.prolific_project_name,
         )
 
+        if qualifications:
+            qualified_workers = self._get_quailified_workers(qualifications)
+
+            if qualified_workers:
+                prolific_workers_ids = [w.worker_name for w in qualified_workers]
+                # Create a new Participant Group
+                prolific_participant_group = (
+                    self._create_participant_group_with_qualified_workers(
+                        client,
+                        requester,
+                        prolific_workers_ids,
+                        prolific_project.id,
+                    )
+                )
+                # Add this Participant Group to Prolific-specific requirements
+                prolific_specific_qualifications.append({
+                    'name': PARTICIPANT_GROUP_ELIGIBILITY_REQUIREMENT,
+                    'id': prolific_participant_group.id,
+                })
+
+                qualification_names = [q['qualification_name'] for q in qualifications]
+                qualification_objs = self.db.find_qualifications()
+                qualifications_ids = [
+                    q.db_id for q in qualification_objs
+                    if q.qualification_name in qualification_names
+                ]
+                self.datastore.create_quailfication_mapping(
+                    run_id=task_run_id,
+                    prolific_participant_group_id=prolific_participant_group.id,
+                    qualifications=qualifications,
+                    qualification_ids=qualifications_ids,
+                )
+
         # Create Study
         logger.debug(f"{self.log_prefix}Creating Prolific Study")
         prolific_study: Study = prolific_utils.create_study(
             client,
             task_run_config=args,
             prolific_project_id=prolific_project.id,
+            eligibility_requirements=prolific_specific_qualifications,
         )
         logger.debug(
             f"{self.log_prefix}"
@@ -234,8 +325,9 @@ class ProlificProvider(CrowdProvider):
         self.datastore.new_study(
             prolific_study_id=prolific_study.id,
             study_link=prolific_study.external_study_url,
-            duration_in_seconds=args.provider.prolific_estimated_completion_time_in_minutes
-            * 60,
+            duration_in_seconds=(
+                args.provider.prolific_estimated_completion_time_in_minutes * 60
+            ),
             run_id=task_run_id,
         )
         logger.debug(
@@ -243,7 +335,7 @@ class ProlificProvider(CrowdProvider):
         )
 
     def cleanup_resources_from_task_run(
-        self, task_run: "TaskRun", server_url: str
+        self, task_run: "TaskRun", server_url: str,
     ) -> None:
         """No cleanup necessary for task type"""
         pass
@@ -268,7 +360,7 @@ class ProlificProvider(CrowdProvider):
         client = requester._get_client(requester.requester_name)
         try:
             prolific_utils.delete_qualification(
-                client, mapping["prolific_participant_group_id"]
+                client, mapping["prolific_participant_group_id"],
             )
         except ProlificException:
             logger.exception("Could not delete qualification on Prolific")
