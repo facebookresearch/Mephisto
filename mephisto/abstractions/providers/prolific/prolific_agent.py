@@ -139,8 +139,8 @@ class ProlificAgent(Agent):
             )
         except ProlificException:
             logger.info(
-                "NOTE: ignore the above error - "
-                "Prolific API always returns error here, even when it works"
+                "IGNORE ABOVE ERROR - it's a bug of Prolific API. "
+                "It always returns error here, even when the request works."
             )
 
         logger.debug(

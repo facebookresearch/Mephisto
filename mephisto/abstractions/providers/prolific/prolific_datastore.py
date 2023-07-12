@@ -459,7 +459,7 @@ class ProlificDatastore:
             else:
                 raise e
 
-    def create_quailfication_mapping(
+    def create_qualification_mapping(
         self,
         run_id: str,
         prolific_participant_group_id: str,

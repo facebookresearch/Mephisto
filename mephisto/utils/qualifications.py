@@ -33,7 +33,7 @@ def worker_is_qualified(worker: "Worker", qualifications: List[QualificationType
     for qualification in qualifications:
         qual_name = qualification["qualification_name"]
         qual_objs = db.find_qualifications(qual_name)
-        if len(qual_objs) == 0:
+        if not qual_objs:
             logger.warning(
                 f"Expected to create qualification for {qual_name}, but none found... skipping."
             )
@@ -44,13 +44,15 @@ def worker_is_qualified(worker: "Worker", qualifications: List[QualificationType
         )
         comp = qualification["comparator"]
         compare_value = qualification["value"]
-        if comp == QUAL_EXISTS and len(granted_quals) == 0:
+        if comp == QUAL_EXISTS and not granted_quals:
             return False
-        elif comp == QUAL_NOT_EXIST and len(granted_quals) != 0:
+        elif comp == QUAL_NOT_EXIST and granted_quals:
             return False
         elif comp in [QUAL_EXISTS, QUAL_NOT_EXIST]:
             continue
         else:
+            if not granted_quals:
+                return False
             granted_qual = granted_quals[0]
             if not COMPARATOR_OPERATIONS[comp](granted_qual.value, compare_value):
                 return False

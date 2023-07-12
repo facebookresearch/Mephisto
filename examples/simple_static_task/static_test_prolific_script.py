@@ -20,19 +20,19 @@ def main(operator, cfg: DictConfig) -> None:
 
     # Mephisto qualifications
     shared_state.qualifications = [
-        make_qualification_dict('Best workers', QUAL_GREATER_EQUAL, 1),
+        make_qualification_dict('ok', QUAL_GREATER_EQUAL, 1),
     ]
 
     # Prolific qualifications
-    shared_state.prolific_specific_qualifications = [
-        {
-            # Without `web.eligibility.models.` as API requires. We will add it in the code
-            'name': 'AgeRangeEligibilityRequirement',
-            # Prolific Eligibility Requirement attributes and its values
-            'min_age': 18,
-            'max_age': 100,
-        },
-    ]
+    # shared_state.prolific_specific_qualifications = [
+    #     {
+    #         # Without `web.eligibility.models.` as API requires. We will add it in the code
+    #         'name': 'AgeRangeEligibilityRequirement',
+    #         # Prolific Eligibility Requirement attributes and its values
+    #         'min_age': 20,
+    #         'max_age': 100,
+    #     },
+    # ]
 
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)

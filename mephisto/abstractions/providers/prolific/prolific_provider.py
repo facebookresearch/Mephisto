@@ -168,18 +168,16 @@ class ProlificProvider(CrowdProvider):
         """Get a Prolific client"""
         return self.datastore.get_client_for_requester(requester_name)
 
-    def _get_quailified_workers(self, qualifications: List[QualificationType]) -> List["Worker"]:
+    def _get_qualified_workers(self, qualifications: List[QualificationType]) -> List["Worker"]:
         qualified_workers = []
-        prolific_workers: List[Worker] = self.db.find_workers(provider_type='prolific')
+        workers: List[Worker] = self.db.find_workers(provider_type='prolific')
         blocked_workers = self.datastore.get_blocked_workers()
         # `worker_name` is `worker_id` in provider-specific datastore
         blocked_workers_names = [w['worker_id'] for w in blocked_workers]
+        available_workers = [w for w in workers if w.worker_name not in blocked_workers_names]
 
-        for worker in prolific_workers:
-            not_blocked = worker.worker_name not in blocked_workers_names
-            is_qualified = worker_is_qualified(worker, qualifications)
-
-            if not_blocked and is_qualified:
+        for worker in available_workers:
+            if worker_is_qualified(worker, qualifications):
                 qualified_workers.append(worker)
 
         return qualified_workers
@@ -258,7 +256,7 @@ class ProlificProvider(CrowdProvider):
         )
 
         if qualifications:
-            qualified_workers = self._get_quailified_workers(qualifications)
+            qualified_workers = self._get_qualified_workers(qualifications)
 
             if qualified_workers:
                 prolific_workers_ids = [w.worker_name for w in qualified_workers]
@@ -283,7 +281,7 @@ class ProlificProvider(CrowdProvider):
                     q.db_id for q in qualification_objs
                     if q.qualification_name in qualification_names
                 ]
-                self.datastore.create_quailfication_mapping(
+                self.datastore.create_qualification_mapping(
                     run_id=task_run_id,
                     prolific_participant_group_id=prolific_participant_group.id,
                     qualifications=qualifications,
