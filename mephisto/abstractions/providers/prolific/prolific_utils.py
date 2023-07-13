@@ -395,11 +395,7 @@ def create_study(
     external_study_url = _get_external_study_url(task_run_config)
     prolific_id_option = task_run_config.provider.prolific_id_option
 
-    erequirements = task_run_config.provider.prolific_eligibility_requirements  # From config
-    if eligibility_requirements:
-        # From SharedState
-        erequirements += eligibility_requirements
-    prolific_eligibility_requirements = _convert_eligibility_requirements(erequirements)
+    prolific_eligibility_requirements = _convert_eligibility_requirements(eligibility_requirements)
 
     # Initially provide a random completion code during study
     completion_codes_random = compose_completion_codes(uuid.uuid4().hex[:5])

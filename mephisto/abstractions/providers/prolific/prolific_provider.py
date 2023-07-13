@@ -16,6 +16,8 @@ from typing import List
 from typing import Type
 from typing import TYPE_CHECKING
 
+from omegaconf import DictConfig
+
 from mephisto.abstractions.crowd_provider import CrowdProvider
 from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.abstractions.providers.prolific import prolific_utils
@@ -35,6 +37,12 @@ from .api.data_models import ParticipantGroup
 from .api.data_models import Project
 from .api.data_models import Study
 from .api.data_models import Workspace
+from .api.eligibility_requirement_classes.custom_black_list_eligibility_requirement import (
+    CUSTOM_BLACKLIST_ELIGIBILITY_REQUIREMENT
+)
+from .api.eligibility_requirement_classes.custom_white_list_eligibility_requirement import (
+    CUSTOM_WHITE_ELIGIBILITY_REQUIREMENT
+)
 from .api.eligibility_requirement_classes.participant_group_eligibility_requirement import (
     PARTICIPANT_GROUP_ELIGIBILITY_REQUIREMENT
 )
@@ -47,7 +55,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.agent import Agent
     from mephisto.abstractions.blueprint import SharedTaskState
-    from omegaconf import DictConfig
 
 
 DEFAULT_FRAME_HEIGHT = 0
@@ -168,10 +175,11 @@ class ProlificProvider(CrowdProvider):
         """Get a Prolific client"""
         return self.datastore.get_client_for_requester(requester_name)
 
-    def _get_qualified_workers(self, qualifications: List[QualificationType]) -> List["Worker"]:
+    def _get_qualified_workers(
+        self, qualifications: List[QualificationType], blocked_workers: List[dict],
+    ) -> List["Worker"]:
         qualified_workers = []
         workers: List[Worker] = self.db.find_workers(provider_type='prolific')
-        blocked_workers = self.datastore.get_blocked_workers()
         # `worker_name` is `worker_id` in provider-specific datastore
         blocked_workers_names = [w['worker_id'] for w in blocked_workers]
         available_workers = [w for w in workers if w.worker_name not in blocked_workers_names]
@@ -236,6 +244,10 @@ class ProlificProvider(CrowdProvider):
         prolific_specific_qualifications = getattr(
             shared_state, 'prolific_specific_qualifications', [],
         )
+        # Update with ones from YAML config under `provider` title
+        yaml_prolific_specific_qualifications = args.provider.prolific_eligibility_requirements
+        if yaml_prolific_specific_qualifications:
+            prolific_specific_qualifications += yaml_prolific_specific_qualifications
 
         if not qualifications and not prolific_specific_qualifications:
             raise AssertionError(
@@ -255,8 +267,41 @@ class ProlificProvider(CrowdProvider):
             title=args.provider.prolific_project_name,
         )
 
+        blocked_workers = self.datastore.get_blocked_workers()
+
+        # If no Mephisto qualifications found,
+        # we need to block Mephisto workers on Prolific as well
+        new_prolific_specific_qualifications = []
+        if not qualifications and blocked_workers:
+            blocked_participant_ids = [w['worker_id'] for w in blocked_workers]
+
+            blacklist_name = CUSTOM_BLACKLIST_ELIGIBILITY_REQUIREMENT
+            whitelist_name = CUSTOM_WHITE_ELIGIBILITY_REQUIREMENT
+
+            # Add empty blacklist in case if there is not in state or config
+            blacklist_qualification = DictConfig(dict(name=blacklist_name, black_list=[]))
+
+            for prolific_specific_qualification in prolific_specific_qualifications:
+                name = prolific_specific_qualification['name']
+
+                if name == blacklist_name:
+                    blacklist_qualification = prolific_specific_qualification
+                elif name == whitelist_name:
+                    # Remove blocked Participat IDs from white list Eligibility Requirement
+                    whitelist_qualification = prolific_specific_qualification
+                    prev_value = whitelist_qualification['white_list']
+                    whitelist_qualification['white_list'] = [
+                        p  for p in prev_value if p not in blocked_participant_ids
+                    ]
+                    new_prolific_specific_qualifications.append(whitelist_qualification)
+
+            # Set black list Eligibility Requirement
+            prev_value = blacklist_qualification['black_list']
+            blacklist_qualification['black_list'] = list(set(prev_value + blocked_participant_ids))
+            new_prolific_specific_qualifications.append(blacklist_qualification)
+
         if qualifications:
-            qualified_workers = self._get_qualified_workers(qualifications)
+            qualified_workers = self._get_qualified_workers(qualifications, blocked_workers)
 
             if qualified_workers:
                 prolific_workers_ids = [w.worker_name for w in qualified_workers]
@@ -294,7 +339,7 @@ class ProlificProvider(CrowdProvider):
             client,
             task_run_config=args,
             prolific_project_id=prolific_project.id,
-            eligibility_requirements=prolific_specific_qualifications,
+            eligibility_requirements=new_prolific_specific_qualifications,
         )
         logger.debug(
             f"{self.log_prefix}"
@@ -324,7 +369,7 @@ class ProlificProvider(CrowdProvider):
             prolific_study_id=prolific_study.id,
             study_link=prolific_study.external_study_url,
             duration_in_seconds=(
-                args.provider.prolific_estimated_completion_time_in_minutes * 60
+                    args.provider.prolific_estimated_completion_time_in_minutes * 60
             ),
             run_id=task_run_id,
         )
