@@ -1240,6 +1240,34 @@ class LocalMephistoDB(MephistoDB):
                 (qualification_name,),
             )
 
+    def _find_granted_qualifications(
+        self, worker_id: Optional[str] = None,
+    ) -> List[GrantedQualification]:
+        """
+        Find granted qualifications.
+        If `worker_id` is not supplied, returns all granted qualifications.
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            additional_query, arg_tuple = self.__create_query_and_tuple(
+                ["worker_id"], [worker_id]
+            )
+            c.execute(
+                """
+                SELECT * from granted_qualifications
+                """
+                + additional_query,
+                arg_tuple,
+            )
+            rows = c.fetchall()
+            return [
+                GrantedQualification(
+                    self, str(r["granted_qualification_id"]), worker_id=str(r["worker_id"]), row=r,
+                )
+                for r in rows
+            ]
+
     def _grant_qualification(
         self, qualification_id: str, worker_id: str, value: int = 1
     ) -> None:

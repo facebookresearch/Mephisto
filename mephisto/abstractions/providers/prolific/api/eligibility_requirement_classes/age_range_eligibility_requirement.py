@@ -6,7 +6,8 @@ class AgeRangeEligibilityRequirement(BaseEligibilityRequirement):
     """
     Details https://docs.prolific.co/docs/api-docs/public/#tag/Requirements/Requirements-object
     """
-    prolific_cls_name = 'web.eligibility.models.AgeRangeEligibilityRequirement'
+    name = 'AgeRangeEligibilityRequirement'
+    prolific_cls_name = f'web.eligibility.models.{name}'
 
     def __init__(self, min_age: int, max_age: int):
         self.min_age = min_age

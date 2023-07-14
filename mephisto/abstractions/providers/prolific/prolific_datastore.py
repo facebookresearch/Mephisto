@@ -280,6 +280,9 @@ class ProlificDatastore:
             results = c.fetchall()
             return results
 
+    def get_bloked_participant_ids(self) -> List[str]:
+        return [w['worker_id'] for w in self.get_blocked_workers()]
+
     def ensure_unit_exists(self, unit_id: str) -> None:
         """Create a record of this unit if it doesn't exist"""
         with self.table_access_condition:
@@ -471,7 +474,6 @@ class ProlificDatastore:
             c = conn.cursor()
             qualifications_json = json.dumps(qualifications)
             qualification_ids_json = json.dumps(qualification_ids)
-            logger.debug(f'')
             c.execute(
                 """
                 INSERT INTO qualifications(
@@ -488,6 +490,27 @@ class ProlificDatastore:
                     qualification_ids_json,
                 ),
             )
+
+    def find_qualifications_by_qualification_ids(
+        self, qualification_ids: List[str],
+    ) -> List[dict]:
+        """Register a new participant group mapping with qualifications"""
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+
+            # Prepare query for multiple IDs.
+            # REMINDER: `qualification_ids` is JSON-array (e.g. ["1", "3"])
+            query = """SELECT * FROM qualifications WHERE"""
+            qualification_ids_num = len(qualification_ids)
+            for i, _id in enumerate(qualification_ids):
+                query += ' qualification_ids LIKE \'%"' + str(_id) + '"%\''
+                if i + 1 != qualification_ids_num:
+                    query += ' OR '
+            query += ';'
+
+            c.execute(query)
+            results = c.fetchall()
+            return results
 
     def clear_study_from_unit(self, unit_id: str) -> None:
         """

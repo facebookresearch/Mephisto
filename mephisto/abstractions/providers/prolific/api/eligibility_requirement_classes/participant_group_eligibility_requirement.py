@@ -1,13 +1,12 @@
 from .base_eligibility_requirement import BaseEligibilityRequirement
 
-PARTICIPANT_GROUP_ELIGIBILITY_REQUIREMENT = 'ParticipantGroupEligibilityRequirement'
-
 
 class ParticipantGroupEligibilityRequirement(BaseEligibilityRequirement):
     """
     Details https://docs.prolific.co/docs/api-docs/public/#tag/Requirements/Requirements-object
     """
-    prolific_cls_name = f'web.eligibility.models.{PARTICIPANT_GROUP_ELIGIBILITY_REQUIREMENT}'
+    name = 'ParticipantGroupEligibilityRequirement'
+    prolific_cls_name = f'web.eligibility.models.{name}'
 
     def __init__(self, id: str):
         self.id = id

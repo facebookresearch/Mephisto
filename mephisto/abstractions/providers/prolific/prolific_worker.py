@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import json
 # Copyright (c) Facebook, Inc. and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -12,10 +12,14 @@ from typing import Optional
 from typing import Tuple
 from typing import TYPE_CHECKING
 
+from omegaconf import DictConfig
+
 from mephisto.abstractions.providers.prolific import prolific_utils
+from mephisto.abstractions.providers.prolific.api.client import ProlificClient
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.worker import Worker
 from mephisto.utils.logger_core import get_logger
+from mephisto.utils.qualifications import worker_is_qualified
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -54,7 +58,7 @@ class ProlificWorker(Worker):
     def log_prefix(self) -> str:
         return f'[Worker {self.db_id}] '
 
-    def get_prolific_worker_id(self):
+    def get_prolific_participant_id(self):
         return self.worker_name
 
     def bonus_worker(
@@ -79,17 +83,18 @@ class ProlificWorker(Worker):
 
         client = self._get_client(requester.requester_name)
         task_run_args = task_run.args
-        worker_id = self.get_prolific_worker_id()
+        participant_id = self.get_prolific_participant_id()
         study_id = unit.get_prolific_study_id()
 
         logger.debug(
             f'{self.log_prefix}'
-            f'Trying to pay bonuses to worker {worker_id} for Study {study_id}. Amount: {amount}'
+            f'Trying to pay bonuses to worker {participant_id} for Study {study_id}. '
+            f'Amount: {amount}'
         )
         prolific_utils.pay_bonus(
             client,
             task_run_config=task_run_args,
-            worker_id=worker_id,
+            worker_id=participant_id,
             bonus_amount=amount,
             study_id=study_id,
         )
@@ -132,6 +137,21 @@ class ProlificWorker(Worker):
         prolific_utils.block_worker(client, task_run_args, self.worker_name, reason)
         self.datastore.set_worker_blocked(self.worker_name, is_blocked=True)
 
+        # Find all granted qualifications for this worker before and
+        # remove it from all related Prolific Participant Groups
+        db_granted_qualifications = self.db.find_granted_qualifications(worker_id=self.db_id)
+        db_qualification_ids = [q.qualification_id for q in db_granted_qualifications]
+        prolific_qualifications = self.datastore.find_qualifications_by_qualification_ids(
+            db_qualification_ids,
+        )
+        prolific_participant_group_ids = [
+            p['prolific_participant_group_id'] for p in prolific_qualifications
+        ]
+        for prolific_participant_group_id in prolific_participant_group_ids:
+            prolific_utils.remove_worker_qualification(
+                client, self.worker_name, prolific_participant_group_id,
+            )
+
         logger.debug(f'{self.log_prefix}Worker {self.worker_name} blocked')
 
         return True, ''
@@ -173,53 +193,81 @@ class ProlificWorker(Worker):
         """Determine if this worker is eligible for the given task run"""
         return True
 
+    def _grant_crowd_qualification(
+        self,
+        client: ProlificClient,
+        requester: 'ProlificRequester',
+        args: 'DictConfig',
+        qualification_name: str,
+    ) -> None:
+        is_blocked = self.datastore.get_worker_blocked(self.db_id)
+        if is_blocked:
+            logger.debug(
+                f'{self.log_prefix}'
+                f'Worker is blocked. Cannot grant qualification "{qualification_name}"'
+            )
+            return None
+
+        prolific_participant_id = self.get_prolific_participant_id()
+        db_qualifications = self.db.find_qualifications(qualification_name)
+
+        if db_qualifications:
+            # If we found already created qualifications in Mephisto
+            db_qualification_ids = [q.db_id for q in db_qualifications]
+            prolific_qualifications = self.datastore.find_qualifications_by_qualification_ids(
+                db_qualification_ids,
+            )
+            qualifications_groups = [
+                (json.loads(i['json_qual_logic']), i['prolific_participant_group_id'])
+                for i in prolific_qualifications
+            ]
+
+            for qualifications, prolific_participant_group_id in qualifications_groups:
+                if worker_is_qualified(self, qualifications):
+                    # Worker is still qualified or was upgraded and being suitable to it from now
+                    prolific_utils.give_worker_qualification(
+                        client, self.worker_name, prolific_participant_group_id,
+                    )
+                else:
+                    # New value threw it out from this qualification
+                    prolific_utils.remove_worker_qualification(
+                        client, self.worker_name, prolific_participant_group_id,
+                    )
+        else:
+            # If there is no quialification in Mephosto
+            # we need to create a new one on Prolific and add this worker in it
+            prolific_workspace = prolific_utils.find_or_create_prolific_workspace(
+                client, title=args.prolific_workspace_name,
+            )
+            prolific_project = prolific_utils.find_or_create_prolific_project(
+                client, prolific_workspace.id, title=args.prolific_project_name,
+            )
+            prolific_participant_group = requester.create_new_qualification(
+                prolific_project.id, qualification_name,
+            )
+            logger.debug(f'Created new Participant Group "{prolific_participant_group.id}"')
+            prolific_utils.give_worker_qualification(
+                client, prolific_participant_id, prolific_participant_group.id,
+            )
+
+        logger.debug(
+            f'{self.log_prefix}Crowd qualification {qualification_name} has been granted '
+            f'for Prolific Participant "{prolific_participant_id}"'
+        )
+
     def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
         """Grant a qualification by the given name to this worker"""
         logger.debug(f'{self.log_prefix}Granting crowd qualification: {qualification_name}')
 
-        p_qualification_details = self.datastore.get_qualification_mapping(qualification_name)
-
-        if p_qualification_details is not None:
-            # Use a qualification from DB
-            requester = Requester.get(self.db, p_qualification_details['requester_id'])
-
-            assert isinstance(
-                requester, ProlificRequester
-            ), 'Must be an Prolific requester for Prolific qualifications (participant groups)'
-
-            client = self._get_client(requester.requester_name)
-            p_qualification_id = p_qualification_details['prolific_participant_group_id']
-        else:
-            # Create a new qualification
-            target_type = 'prolific'
-            requester = self.db.find_requesters(provider_type=target_type)[-1]
-
-            assert isinstance(
-                requester, ProlificRequester
-            ), '`find_requesters` must return Prolific requester for given provider types'
-
-            task_run = self._get_first_task_run(requester)
-            provider_args = task_run.args.provider
-
-            client = self._get_client(requester.requester_name)
-            p_workspace = prolific_utils.find_or_create_prolific_workspace(
-                client, title=provider_args.prolific_workspace_name,
-            )
-            p_project = prolific_utils.find_or_create_prolific_project(
-                client, p_workspace.id, title=provider_args.prolific_project_name,
-            )
-            p_qualification_id = requester.create_new_qualification(
-                p_project.id, qualification_name,
-            )
-
-        p_worker_id = self.get_prolific_worker_id()
-        prolific_utils.give_worker_qualification(client, p_worker_id, p_qualification_id)
-
-        logger.debug(
-            f'{self.log_prefix}Crowd qualification {qualification_name} has been granted '
-            f'for Prolific Participant "{p_worker_id}"'
+        requester = cast(
+            'ProlificRequester',
+            self.db.find_requesters(provider_type=self.provider_type)[-1],
         )
+        task_run = self._get_first_task_run(requester)
+        provider_args = task_run.args.provider
+        client = self._get_client(requester.requester_name)
 
+        self._grant_crowd_qualification(client, requester, provider_args, qualification_name)
         return None
 
     def revoke_crowd_qualification(self, qualification_name: str) -> None:
@@ -242,7 +290,7 @@ class ProlificWorker(Worker):
         ), 'Must be an Prolific requester from Prolific qualifications'
 
         client = self._get_client(requester.requester_name)
-        p_worker_id = self.get_prolific_worker_id()
+        p_worker_id = self.get_prolific_participant_id()
         p_qualification_id = p_qualification_details['prolific_participant_group_id']
         prolific_utils.remove_worker_qualification(client, p_worker_id, p_qualification_id)
 

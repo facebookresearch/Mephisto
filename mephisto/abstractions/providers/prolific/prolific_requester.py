@@ -18,6 +18,7 @@ from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.requester import RequesterArgs
 from .api.client import ProlificClient
+from .api.data_models import ParticipantGroup
 from .provider_type import PROVIDER_TYPE
 
 if TYPE_CHECKING:
@@ -87,7 +88,9 @@ class ProlificRequester(Requester):
         )
         return balance
 
-    def create_new_qualification(self, prolific_project_id: str, qualification_name: str) -> str:
+    def create_new_qualification(
+        self, prolific_project_id: str, qualification_name: str,
+    ) -> ParticipantGroup:
         """
         Create a new qualification (Prolific Participant Group) on Prolific
         owned by the requester provided
@@ -127,7 +130,7 @@ class ProlificRequester(Requester):
             prolific_participant_group_name=_qualification_name,
             prolific_participant_group_id=qualification.id,
         )
-        return qualification.id
+        return qualification
 
     @staticmethod
     def new(db: "MephistoDB", requester_name: str) -> "Requester":

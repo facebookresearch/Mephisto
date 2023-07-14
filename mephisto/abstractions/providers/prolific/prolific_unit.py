@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 from mephisto.abstractions._subcomponents.agent_state import AgentState
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
-from mephisto.abstractions.providers.prolific.api.data_models import Study
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit

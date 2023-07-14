@@ -37,15 +37,9 @@ from .api.data_models import ParticipantGroup
 from .api.data_models import Project
 from .api.data_models import Study
 from .api.data_models import Workspace
-from .api.eligibility_requirement_classes.custom_black_list_eligibility_requirement import (
-    CUSTOM_BLACKLIST_ELIGIBILITY_REQUIREMENT
-)
-from .api.eligibility_requirement_classes.custom_white_list_eligibility_requirement import (
-    CUSTOM_WHITE_ELIGIBILITY_REQUIREMENT
-)
-from .api.eligibility_requirement_classes.participant_group_eligibility_requirement import (
-    PARTICIPANT_GROUP_ELIGIBILITY_REQUIREMENT
-)
+from .api.eligibility_requirement_classes import CustomBlacklistEligibilityRequirement
+from .api.eligibility_requirement_classes import CustomWhitelistEligibilityRequirement
+from .api.eligibility_requirement_classes import ParticipantGroupEligibilityRequirement
 from .api.exceptions import ProlificException
 
 if TYPE_CHECKING:
@@ -176,13 +170,12 @@ class ProlificProvider(CrowdProvider):
         return self.datastore.get_client_for_requester(requester_name)
 
     def _get_qualified_workers(
-        self, qualifications: List[QualificationType], blocked_workers: List[dict],
+        self, qualifications: List[QualificationType], bloked_participant_ids: List[str],
     ) -> List["Worker"]:
         qualified_workers = []
         workers: List[Worker] = self.db.find_workers(provider_type='prolific')
-        # `worker_name` is `worker_id` in provider-specific datastore
-        blocked_workers_names = [w['worker_id'] for w in blocked_workers]
-        available_workers = [w for w in workers if w.worker_name not in blocked_workers_names]
+        # `worker_name` is Prolific Participant ID in provider-specific datastore
+        available_workers = [w for w in workers if w.worker_name not in bloked_participant_ids]
 
         for worker in available_workers:
             if worker_is_qualified(worker, qualifications):
@@ -267,41 +260,45 @@ class ProlificProvider(CrowdProvider):
             title=args.provider.prolific_project_name,
         )
 
-        blocked_workers = self.datastore.get_blocked_workers()
+        blocked_participant_ids = self.datastore.get_bloked_participant_ids()
 
         # If no Mephisto qualifications found,
         # we need to block Mephisto workers on Prolific as well
         new_prolific_specific_qualifications = []
-        if not qualifications and blocked_workers:
-            blocked_participant_ids = [w['worker_id'] for w in blocked_workers]
-
-            blacklist_name = CUSTOM_BLACKLIST_ELIGIBILITY_REQUIREMENT
-            whitelist_name = CUSTOM_WHITE_ELIGIBILITY_REQUIREMENT
-
-            # Add empty blacklist in case if there is not in state or config
-            blacklist_qualification = DictConfig(dict(name=blacklist_name, black_list=[]))
+        if not qualifications and blocked_participant_ids:
+            # Add empty Blacklist in case if there is not in state or config
+            blacklist_qualification = DictConfig(dict(
+                name=CustomBlacklistEligibilityRequirement.name,
+                black_list=[],
+            ))
 
             for prolific_specific_qualification in prolific_specific_qualifications:
                 name = prolific_specific_qualification['name']
 
-                if name == blacklist_name:
+                if name == CustomBlacklistEligibilityRequirement.name:
                     blacklist_qualification = prolific_specific_qualification
-                elif name == whitelist_name:
-                    # Remove blocked Participat IDs from white list Eligibility Requirement
+                elif name == CustomWhitelistEligibilityRequirement.name:
+                    # Remove blocked Participat IDs from Whitelist Eligibility Requirement
                     whitelist_qualification = prolific_specific_qualification
                     prev_value = whitelist_qualification['white_list']
                     whitelist_qualification['white_list'] = [
                         p  for p in prev_value if p not in blocked_participant_ids
                     ]
                     new_prolific_specific_qualifications.append(whitelist_qualification)
+                elif name == ParticipantGroupEligibilityRequirement.name:
+                    # Remove blocked Participat IDs from Participant Group Eligibility Requirement
+                    client.ParticipantGroups.remove_participants_from_group(
+                        id=prolific_specific_qualification['id'],
+                        participant_ids=blocked_participant_ids,
+                    )
 
-            # Set black list Eligibility Requirement
+            # Set Blacklist Eligibility Requirement
             prev_value = blacklist_qualification['black_list']
             blacklist_qualification['black_list'] = list(set(prev_value + blocked_participant_ids))
             new_prolific_specific_qualifications.append(blacklist_qualification)
 
         if qualifications:
-            qualified_workers = self._get_qualified_workers(qualifications, blocked_workers)
+            qualified_workers = self._get_qualified_workers(qualifications, blocked_participant_ids)
 
             if qualified_workers:
                 prolific_workers_ids = [w.worker_name for w in qualified_workers]
@@ -316,7 +313,7 @@ class ProlificProvider(CrowdProvider):
                 )
                 # Add this Participant Group to Prolific-specific requirements
                 prolific_specific_qualifications.append({
-                    'name': PARTICIPANT_GROUP_ELIGIBILITY_REQUIREMENT,
+                    'name': ParticipantGroupEligibilityRequirement.name,
                     'id': prolific_participant_group.id,
                 })
 
