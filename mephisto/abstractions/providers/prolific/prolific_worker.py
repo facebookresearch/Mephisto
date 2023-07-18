@@ -140,17 +140,18 @@ class ProlificWorker(Worker):
         # Find all previously granted qualifications for this worker,
         # and remove the worker from all related Prolific Participant Groups
         db_granted_qualifications = self.db.find_granted_qualifications(worker_id=self.db_id)
-        db_qualification_ids = [q.qualification_id for q in db_granted_qualifications]
-        prolific_qualifications = self.datastore.find_qualifications_for_running_studies(
-            db_qualification_ids,
-        )
-        prolific_participant_group_ids = [
-            p['prolific_participant_group_id'] for p in prolific_qualifications
-        ]
-        for prolific_participant_group_id in prolific_participant_group_ids:
-            prolific_utils.remove_worker_qualification(
-                client, self.worker_name, prolific_participant_group_id,
+        if db_granted_qualifications:
+            db_qualification_ids = [q.qualification_id for q in db_granted_qualifications]
+            prolific_qualifications = self.datastore.find_qualifications_for_running_studies(
+                db_qualification_ids,
             )
+            prolific_participant_group_ids = [
+                p['prolific_participant_group_id'] for p in prolific_qualifications
+            ]
+            for prolific_participant_group_id in prolific_participant_group_ids:
+                prolific_utils.remove_worker_qualification(
+                    client, self.worker_name, prolific_participant_group_id,
+                )
 
         logger.debug(f'{self.log_prefix}Worker {self.worker_name} blocked')
 
@@ -210,7 +211,6 @@ class ProlificWorker(Worker):
             return None
 
         db_qualifications = self.db.find_qualifications(qualification_name)
-        breakpoint()  ##@@
 
         if db_qualifications:
             # If we found already created qualifications in Mephisto
@@ -218,7 +218,6 @@ class ProlificWorker(Worker):
             prolific_qualifications = self.datastore.find_qualifications_for_running_studies(
                 db_qualification_ids,
             )
-            breakpoint()  ##@@
             qualifications_groups = [
                 (json.loads(i['json_qual_logic']), i['prolific_participant_group_id'])
                 for i in prolific_qualifications
@@ -227,20 +226,17 @@ class ProlificWorker(Worker):
             for qualifications, prolific_participant_group_id in qualifications_groups:
                 if worker_is_qualified(self, qualifications):
                     # Worker is still qualified or was upgraded, and so is eligible now
-                    breakpoint()  ##@@
                     prolific_utils.give_worker_qualification(
                         client, self.worker_name, prolific_participant_group_id,
                     )
                 else:
                     # Worker is now not eligible for this Participant Group anymore
-                    breakpoint()  ##@@
                     prolific_utils.remove_worker_qualification(
                         client, self.worker_name, prolific_participant_group_id,
                     )
         else:
             # If there is no qualification in Mephisto
             # we need to create a new qualified Group on Prolific, and add the worker to it
-            breakpoint()  ##@@
             prolific_workspace = prolific_utils.find_or_create_prolific_workspace(
                 client, title=args.prolific_workspace_name,
             )

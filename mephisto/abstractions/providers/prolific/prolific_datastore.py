@@ -122,13 +122,12 @@ class ProlificDatastore:
                 """
                 UPDATE studies
                 SET status = ?
-                WHERE study_id = ?
+                WHERE prolific_study_id = ?
                 """,
                 (status, study_id),
             )
             conn.commit()
             return None
-
 
     def get_unassigned_study_ids(self, run_id: str):
         """Return a list of all Study ids that haven't been assigned"""
@@ -516,14 +515,18 @@ class ProlificDatastore:
         self, statuses: List[str], exclude: bool = False
     ) -> List[dict]:
         """Find all studies having or excluding certain statuses"""
+        if not statuses:
+            return []
+
         logic_str = 'NOT' if exclude else ''
+        statuses_str = ",".join([f'"{s}"' for s in statuses])
 
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             c.execute(
                 f"""
                 SELECT * from studies
-                WHERE status {logic_str} IN ({",".join(statuses)});
+                WHERE status {logic_str} IN ({statuses_str});
                 """
             )
             results = c.fetchall()
@@ -533,9 +536,11 @@ class ProlificDatastore:
         self, qualification_ids: List[str],
     ) -> List[dict]:
         """Find qualifications by Mephisto ids of qualifications for all incomplete studies"""
-        breakpoint()  ##@@
+        if not qualification_ids:
+            return []
+
         running_studies = self.find_studies_by_status(
-            statuses=[StudyStatus.COMPLETED], exclude=True
+            statuses=[StudyStatus.COMPLETED, StudyStatus.AWAITING_REVIEW], exclude=True,
         )
         task_run_ids = [s['task_run_id'] for s in running_studies]
         return self.find_qualifications_by_ids(
@@ -546,6 +551,9 @@ class ProlificDatastore:
         self, qualification_ids: List[str], task_run_ids: Optional[List[str]] = None,
     ) -> List[dict]:
         """Find qualifications by Mephisto ids of qualifications and task runs"""
+        if not qualification_ids:
+            return []
+
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
 
@@ -557,7 +565,8 @@ class ProlificDatastore:
 
             task_run_ids_block = ''
             if task_run_ids:
-                task_run_ids_block = f'AND task_run_id IN {",".join(task_run_ids)}'
+                task_run_ids_str = ",".join([f'"{tid}"' for tid in task_run_ids])
+                task_run_ids_block = f'AND task_run_id IN ({task_run_ids_str})'
 
             c.execute(
                 f"""

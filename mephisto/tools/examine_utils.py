@@ -7,17 +7,20 @@
 Utilities specifically for running examine scripts. Example usage can be
 seen in the examine results scripts in the examples directory.
 """
+import traceback
 
 from mephisto.tools.data_browser import DataBrowser
 from mephisto.data_model.worker import Worker
 from mephisto.utils.qualifications import find_or_create_qualification
-import traceback
+from mephisto.utils.logger_core import get_logger
 
 from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any, List
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.unit import Unit
+
+logger = get_logger(name=__name__)
 
 
 def _get_and_format_data(
@@ -35,12 +38,9 @@ def _get_and_format_data(
         try:
             formatted = format_data_for_printing(data)
         except Exception as e:
-            print(f"Unexpected error formatting data for {unit}: {e}")
-            # Print the full exception, as this could be user error on the
-            # formatting function
-            traceback.print_exc()
+            logger.exception(f"Unexpected error formatting data for {unit}")
     except Exception as e:
-        print(f"Unexpected error getting data for {unit}: {e}")
+        logger.exception(f"Unexpected error getting data for {unit}")
     return formatted
 
 

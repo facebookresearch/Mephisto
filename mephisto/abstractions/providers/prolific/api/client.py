@@ -38,6 +38,9 @@ def wrap_class(target_cls: Type[T], api_key: str) -> Type[T]:
                 new_args["api_key"] = api_key
             return super()._base_request(*args, **new_args)
 
+    # Name wrapper after wrapped class (for logging)
+    Wrapper.__name__ = target_cls.__name__
+
     return cast(Type[T], Wrapper)
 
 

@@ -302,7 +302,6 @@ class ProlificProvider(CrowdProvider):
             new_prolific_specific_qualifications.append(blacklist_qualification)
             prolific_specific_qualifications = new_prolific_specific_qualifications
 
-        breakpoint()  ##@@
         if qualifications:
             qualified_workers = self._get_qualified_workers(qualifications, blocked_participant_ids)
 
