@@ -641,7 +641,11 @@ def unblock_worker(
 def is_worker_blocked(
     client: ProlificClient, task_run_config: "DictConfig", worker_id: str,
 ) -> bool:
-    """Determine if the given worker is blocked by this client"""
+    """ Determine if the given worker is blocked by this client
+
+        TODO (#1008): do we even need to check with Prolific "Blocked Participants" group
+            (as opposed to out datastore)? Because it doesn't reflect Prolific's internal banning
+    """
     workspace = find_or_create_prolific_workspace(
         client,
         title=task_run_config.provider.prolific_workspace_name,

@@ -166,6 +166,9 @@ class ProlificUnit(Unit):
         if study is None:
             return AssignmentState.EXPIRED
 
+        # Record latest study status from Prolific
+        self.datastore.update_study_status(study.id, study.status)
+
         local_status = self.db_status
         external_status = self.db_status
 

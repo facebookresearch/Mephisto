@@ -22,6 +22,7 @@ from mephisto.abstractions.crowd_provider import CrowdProvider
 from mephisto.abstractions.crowd_provider import ProviderArgs
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.api.constants import ProlificIDOption
+from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
 from mephisto.abstractions.providers.prolific.prolific_agent import ProlificAgent
 from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
 from mephisto.abstractions.providers.prolific.prolific_requester import ProlificRequester
@@ -264,8 +265,8 @@ class ProlificProvider(CrowdProvider):
 
         # If no Mephisto qualifications found,
         # we need to block Mephisto workers on Prolific as well
-        new_prolific_specific_qualifications = []
-        if not qualifications and blocked_participant_ids:
+        if blocked_participant_ids:
+            new_prolific_specific_qualifications = []
             # Add empty Blacklist in case if there is not in state or config
             blacklist_qualification = DictConfig(dict(
                 name=CustomBlacklistEligibilityRequirement.name,
@@ -282,7 +283,7 @@ class ProlificProvider(CrowdProvider):
                     whitelist_qualification = prolific_specific_qualification
                     prev_value = whitelist_qualification['white_list']
                     whitelist_qualification['white_list'] = [
-                        p  for p in prev_value if p not in blocked_participant_ids
+                        p for p in prev_value if p not in blocked_participant_ids
                     ]
                     new_prolific_specific_qualifications.append(whitelist_qualification)
                 elif name == ParticipantGroupEligibilityRequirement.name:
@@ -291,12 +292,17 @@ class ProlificProvider(CrowdProvider):
                         id=prolific_specific_qualification['id'],
                         participant_ids=blocked_participant_ids,
                     )
+                else:
+                    new_prolific_specific_qualifications.append(prolific_specific_qualification)
 
             # Set Blacklist Eligibility Requirement
-            prev_value = blacklist_qualification['black_list']
-            blacklist_qualification['black_list'] = list(set(prev_value + blocked_participant_ids))
+            blacklist_qualification['black_list'] = list(set(
+                blacklist_qualification['black_list'] + blocked_participant_ids
+            ))
             new_prolific_specific_qualifications.append(blacklist_qualification)
+            prolific_specific_qualifications = new_prolific_specific_qualifications
 
+        breakpoint()  ##@@
         if qualifications:
             qualified_workers = self._get_qualified_workers(qualifications, blocked_participant_ids)
 
@@ -336,7 +342,7 @@ class ProlificProvider(CrowdProvider):
             client,
             task_run_config=args,
             prolific_project_id=prolific_project.id,
-            eligibility_requirements=new_prolific_specific_qualifications,
+            eligibility_requirements=prolific_specific_qualifications,
         )
         logger.debug(
             f"{self.log_prefix}"
@@ -366,9 +372,10 @@ class ProlificProvider(CrowdProvider):
             prolific_study_id=prolific_study.id,
             study_link=prolific_study.external_study_url,
             duration_in_seconds=(
-                    args.provider.prolific_estimated_completion_time_in_minutes * 60
+                args.provider.prolific_estimated_completion_time_in_minutes * 60
             ),
-            run_id=task_run_id,
+            task_run_id=task_run_id,
+            status=StudyStatus.ACTIVE,
         )
         logger.debug(
             f'{self.log_prefix}Prolific Study "{prolific_study.id}" has been saved into datastore'

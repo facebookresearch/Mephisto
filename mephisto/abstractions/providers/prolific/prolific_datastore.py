@@ -16,6 +16,7 @@ from typing import List
 from typing import Optional
 
 from mephisto.abstractions.databases.local_database import is_unique_failure
+from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.utils.logger_core import get_logger
 from mephisto.utils.qualifications import QualificationType
@@ -84,7 +85,8 @@ class ProlificDatastore:
         prolific_study_id: str,
         study_link: str,
         duration_in_seconds: int,
-        run_id: str,
+        task_run_id: str,
+        status: str = StudyStatus.UNPUBLISHED,
     ) -> None:
         """Register a new Study mapping in the table"""
         with self.table_access_condition, self._get_connection() as conn:
@@ -93,11 +95,13 @@ class ProlificDatastore:
                 """
                 INSERT INTO studies(
                     prolific_study_id,
+                    task_run_id,
                     link,
-                    assignment_time_in_seconds
-                ) VALUES (?, ?, ?);
+                    assignment_time_in_seconds,
+                    status
+                ) VALUES (?, ?, ?, ?, ?);
                 """,
-                (prolific_study_id, study_link, duration_in_seconds),
+                (prolific_study_id, task_run_id, study_link, duration_in_seconds, status),
             )
             c.execute(
                 """
@@ -106,8 +110,25 @@ class ProlificDatastore:
                     run_id
                 ) VALUES (?, ?);
                 """,
-                (prolific_study_id, run_id),
+                (prolific_study_id, task_run_id),
             )
+
+    def update_study_status(self, study_id: str, status: str) -> None:
+        """Set the study status in datastore"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                UPDATE studies
+                SET status = ?
+                WHERE study_id = ?
+                """,
+                (status, study_id),
+            )
+            conn.commit()
+            return None
+
 
     def get_unassigned_study_ids(self, run_id: str):
         """Return a list of all Study ids that haven't been assigned"""
@@ -491,24 +512,59 @@ class ProlificDatastore:
                 ),
             )
 
-    def find_qualifications_by_qualification_ids(
+    def find_studies_by_status(
+        self, statuses: List[str], exclude: bool = False
+    ) -> List[dict]:
+        """Find all studies having or excluding certain statuses"""
+        logic_str = 'NOT' if exclude else ''
+
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                f"""
+                SELECT * from studies
+                WHERE status {logic_str} IN ({",".join(statuses)});
+                """
+            )
+            results = c.fetchall()
+            return results
+
+    def find_qualifications_for_running_studies(
         self, qualification_ids: List[str],
     ) -> List[dict]:
-        """Register a new participant group mapping with qualifications"""
+        """Find qualifications by Mephisto ids of qualifications for all incomplete studies"""
+        breakpoint()  ##@@
+        running_studies = self.find_studies_by_status(
+            statuses=[StudyStatus.COMPLETED], exclude=True
+        )
+        task_run_ids = [s['task_run_id'] for s in running_studies]
+        return self.find_qualifications_by_ids(
+            qualification_ids=qualification_ids, task_run_ids=task_run_ids,
+        )
+
+    def find_qualifications_by_ids(
+        self, qualification_ids: List[str], task_run_ids: Optional[List[str]] = None,
+    ) -> List[dict]:
+        """Find qualifications by Mephisto ids of qualifications and task runs"""
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
 
-            # Prepare query for multiple IDs.
-            # REMINDER: `qualification_ids` is JSON-array (e.g. ["1", "3"])
-            query = """SELECT * FROM qualifications WHERE"""
-            qualification_ids_num = len(qualification_ids)
-            for i, _id in enumerate(qualification_ids):
-                query += ' qualification_ids LIKE \'%"' + str(_id) + '"%\''
-                if i + 1 != qualification_ids_num:
-                    query += ' OR '
-            query += ';'
+            qualification_ids_block = ' OR '.join(
+                'qualification_ids LIKE \'%"' + str(_id) + '"%\''
+                for _id in qualification_ids
+            )
+            qualification_ids_block = f'({qualification_ids_block})'
 
-            c.execute(query)
+            task_run_ids_block = ''
+            if task_run_ids:
+                task_run_ids_block = f'AND task_run_id IN {",".join(task_run_ids)}'
+
+            c.execute(
+                f"""
+                SELECT * FROM qualifications
+                WHERE {qualification_ids_block} {task_run_ids_block};
+                """
+            )
             results = c.fetchall()
             return results
 

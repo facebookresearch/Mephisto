@@ -137,11 +137,11 @@ class ProlificWorker(Worker):
         prolific_utils.block_worker(client, task_run_args, self.worker_name, reason)
         self.datastore.set_worker_blocked(self.worker_name, is_blocked=True)
 
-        # Find all granted qualifications for this worker before and
-        # remove it from all related Prolific Participant Groups
+        # Find all previously granted qualifications for this worker,
+        # and remove the worker from all related Prolific Participant Groups
         db_granted_qualifications = self.db.find_granted_qualifications(worker_id=self.db_id)
         db_qualification_ids = [q.qualification_id for q in db_granted_qualifications]
-        prolific_qualifications = self.datastore.find_qualifications_by_qualification_ids(
+        prolific_qualifications = self.datastore.find_qualifications_for_running_studies(
             db_qualification_ids,
         )
         prolific_participant_group_ids = [
@@ -170,6 +170,8 @@ class ProlificWorker(Worker):
         prolific_utils.unblock_worker(client, task_run_args, self.worker_name, reason)
         self.datastore.set_worker_blocked(self.worker_name, is_blocked=False)
 
+        # Include unblocked worker into all currently running studies, if qualified
+        self._grant_crowd_qualification(client, requester, task_run_args.provider)
         logger.debug(f'{self.log_prefix}Worker {self.worker_name} unblocked')
 
         return True, ''
@@ -177,10 +179,8 @@ class ProlificWorker(Worker):
     def is_blocked(self, requester: 'Requester') -> bool:
         """Determine if a worker is blocked"""
         task_run = self._get_first_task_run(requester)
-        task_run_args = task_run.args
         requester = cast('ProlificRequester', requester)
-        client = self._get_client(requester.requester_name)
-        is_blocked = prolific_utils.is_worker_blocked(client, task_run_args, self.worker_name)
+        is_blocked = self.datastore.get_worker_blocked(self.get_prolific_participant_id())
 
         logger.debug(
             f'{self.log_prefix}'
@@ -198,9 +198,10 @@ class ProlificWorker(Worker):
         client: ProlificClient,
         requester: 'ProlificRequester',
         args: 'DictConfig',
-        qualification_name: str,
+        qualification_name: Optional[str] = None,
     ) -> None:
-        is_blocked = self.datastore.get_worker_blocked(self.db_id)
+        prolific_participant_id = self.get_prolific_participant_id()
+        is_blocked = self.datastore.get_worker_blocked(prolific_participant_id)
         if is_blocked:
             logger.debug(
                 f'{self.log_prefix}'
@@ -208,15 +209,16 @@ class ProlificWorker(Worker):
             )
             return None
 
-        prolific_participant_id = self.get_prolific_participant_id()
         db_qualifications = self.db.find_qualifications(qualification_name)
+        breakpoint()  ##@@
 
         if db_qualifications:
             # If we found already created qualifications in Mephisto
             db_qualification_ids = [q.db_id for q in db_qualifications]
-            prolific_qualifications = self.datastore.find_qualifications_by_qualification_ids(
+            prolific_qualifications = self.datastore.find_qualifications_for_running_studies(
                 db_qualification_ids,
             )
+            breakpoint()  ##@@
             qualifications_groups = [
                 (json.loads(i['json_qual_logic']), i['prolific_participant_group_id'])
                 for i in prolific_qualifications
@@ -224,18 +226,21 @@ class ProlificWorker(Worker):
 
             for qualifications, prolific_participant_group_id in qualifications_groups:
                 if worker_is_qualified(self, qualifications):
-                    # Worker is still qualified or was upgraded and being suitable to it from now
+                    # Worker is still qualified or was upgraded, and so is eligible now
+                    breakpoint()  ##@@
                     prolific_utils.give_worker_qualification(
                         client, self.worker_name, prolific_participant_group_id,
                     )
                 else:
-                    # New value threw it out from this qualification
+                    # Worker is now not eligible for this Participant Group anymore
+                    breakpoint()  ##@@
                     prolific_utils.remove_worker_qualification(
                         client, self.worker_name, prolific_participant_group_id,
                     )
         else:
-            # If there is no quialification in Mephosto
-            # we need to create a new one on Prolific and add this worker in it
+            # If there is no qualification in Mephisto
+            # we need to create a new qualified Group on Prolific, and add the worker to it
+            breakpoint()  ##@@
             prolific_workspace = prolific_utils.find_or_create_prolific_workspace(
                 client, title=args.prolific_workspace_name,
             )
@@ -255,8 +260,12 @@ class ProlificWorker(Worker):
             f'for Prolific Participant "{prolific_participant_id}"'
         )
 
-    def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
-        """Grant a qualification by the given name to this worker"""
+    def grant_crowd_qualification(
+        self,
+        qualification_name: Optional[str] = None,
+        value: int = 1,
+    ) -> None:
+        """Grant qualification by the given name to this worker"""
         logger.debug(f'{self.log_prefix}Granting crowd qualification: {qualification_name}')
 
         requester = cast(
@@ -271,14 +280,14 @@ class ProlificWorker(Worker):
         return None
 
     def revoke_crowd_qualification(self, qualification_name: str) -> None:
-        """Revoke the qualification by the given name from this worker"""
+        """Revoke qualification by given name from this worker"""
         logger.debug(f'{self.log_prefix}Revoking crowd qualification: {qualification_name}')
 
         p_qualification_details = self.datastore.get_qualification_mapping(qualification_name)
 
         if p_qualification_details is None:
             logger.error(
-                f'{self.log_prefix}No locally stored Prolific qualification (participat groups) '
+                f'{self.log_prefix}No locally stored Prolific qualification (Participant Groups) '
                 f'to revoke for name {qualification_name}'
             )
             return None

@@ -8,7 +8,9 @@ CREATE_STUDIES_TABLE = """
     CREATE TABLE IF NOT EXISTS studies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         prolific_study_id TEXT UNIQUE,
+        status TEXT,
         link TEXT,
+        task_run_id TEXT UNIQUE,
         assignment_time_in_seconds INTEGER NOT NULL,
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
     );

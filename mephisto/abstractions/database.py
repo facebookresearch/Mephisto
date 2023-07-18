@@ -93,6 +93,7 @@ GET_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="get_qualification")
 FIND_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(method="find_qualifications")
 DELETE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="delete_qualification")
 GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="grant_qualification")
+FIND_GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="find_granted_qualification")
 CHECK_GRANTED_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(
     method="check_granted_qualifications"
 )
@@ -990,7 +991,7 @@ class MephistoDB(ABC):
         """find_granted_qualifications implementation"""
         raise NotImplementedError()
 
-    @FIND_QUALIFICATIONS_LATENCY.time()
+    @FIND_GRANT_QUALIFICATION_LATENCY.time()
     def find_granted_qualifications(
         self, worker_id: Optional[str] = None,
     ) -> List[GrantedQualification]:
