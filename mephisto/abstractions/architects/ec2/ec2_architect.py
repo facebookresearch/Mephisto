@@ -7,7 +7,7 @@
 import os
 import sh  # type: ignore
 import shutil
-import time
+import signal
 import requests
 import re
 import json
@@ -376,4 +376,13 @@ class EC2Architect(Architect):
         in the db.
         """
         if self.created:  # only delete the server if it's created by us
+
+            def cant_cancel_shutdown(sig, frame):
+                logger.warn(
+                    "Ignoring ^C during ec2 cleanup. ^| if you NEED to exit and you will "
+                    "have to clean up this server with cleanup_ec2_server_by_name.py after."
+                )
+
+            old_handler = signal.signal(signal.SIGINT, cant_cancel_shutdown)
             self.__delete_ec2_server()
+            signal.signal(signal.SIGINT, old_handler)

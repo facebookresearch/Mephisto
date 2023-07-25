@@ -276,7 +276,7 @@ mephisto:
 ```
 Save this configuration file, and you're ready to see your task live:
 ```bash
-$ python static_test_script conf=my_config
+$ python static_test_script.py conf=my_config
 ```
 Mephisto should print out a link to view your task on the mturk sandbox, like `https://workersandbox.mturk.com/mturk/preview?groupId=XXXXXXXXXXXXXXXX`. Navigate here and you're working on the same task, available on MTurk (on the sandbox at least)!
 
