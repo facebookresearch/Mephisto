@@ -1,4 +1,6 @@
-from mephisto.abstractions.providers.prolific.api.constants import ER_AGE_RANGE_QUESTION_ID
+from mephisto.abstractions.providers.prolific.api.constants import (
+    ELIGIBILITY_REQUIREMENT_AGE_RANGE_QUESTION_ID
+)
 from .base_eligibility_requirement import BaseEligibilityRequirement
 
 
@@ -15,5 +17,9 @@ class AgeRangeEligibilityRequirement(BaseEligibilityRequirement):
 
     def to_prolific_dict(self) -> dict:
         prolific_dict = super().to_prolific_dict()
-        prolific_dict['query'] = dict(id=ER_AGE_RANGE_QUESTION_ID)
+
+        # HACK: Hardcoded Question IDs (Prolific doesn't have a better way for now)
+        # TODO (#1008): Make this dynamic as soon as possible
+        prolific_dict['query'] = dict(id=ELIGIBILITY_REQUIREMENT_AGE_RANGE_QUESTION_ID)
+
         return prolific_dict

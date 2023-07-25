@@ -409,7 +409,7 @@ class ProlificDatastore:
                 return None
             return results[0]
 
-    def create_participant_proup_mapping(
+    def create_participant_group_mapping(
         self,
         qualification_name: str,
         requester_id: str,
@@ -482,6 +482,31 @@ class ProlificDatastore:
             else:
                 raise e
 
+    def delete_participant_groups_by_participant_group_ids(
+        self, participant_group_ids: List[str] = None,
+    ) -> None:
+        """Delete participant_groups by Participant Group IDs"""
+        if not participant_group_ids:
+            return None
+
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+
+            participant_group_ids_block = ''
+            if participant_group_ids:
+                task_run_ids_str = ",".join([f'"{pgi}"' for pgi in participant_group_ids])
+                participant_group_ids_block = (
+                    f'AND prolific_participant_group_id IN ({task_run_ids_str})'
+                )
+
+            c.execute(
+                f"""
+                DELETE FROM participant_groups
+                WHERE {participant_group_ids_block};
+                """
+            )
+            return None
+
     def create_qualification_mapping(
         self,
         run_id: str,
@@ -548,7 +573,9 @@ class ProlificDatastore:
         )
 
     def find_qualifications_by_ids(
-        self, qualification_ids: List[str], task_run_ids: Optional[List[str]] = None,
+        self,
+        qualification_ids: List[str] = None,
+        task_run_ids: Optional[List[str]] = None,
     ) -> List[dict]:
         """Find qualifications by Mephisto ids of qualifications and task runs"""
         if not qualification_ids:
@@ -557,11 +584,13 @@ class ProlificDatastore:
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
 
-            qualification_ids_block = ' OR '.join(
-                'qualification_ids LIKE \'%"' + str(_id) + '"%\''
-                for _id in qualification_ids
-            )
-            qualification_ids_block = f'({qualification_ids_block})'
+            qualification_ids_block = ''
+            if qualification_ids:
+                qualification_ids_block = ' OR '.join(
+                    'qualification_ids LIKE \'%"' + str(_id) + '"%\''
+                    for _id in qualification_ids
+                )
+                qualification_ids_block = f'({qualification_ids_block})'
 
             task_run_ids_block = ''
             if task_run_ids:
@@ -576,6 +605,31 @@ class ProlificDatastore:
             )
             results = c.fetchall()
             return results
+
+    def delete_qualifications_by_participant_group_ids(
+        self, participant_group_ids: List[str] = None,
+    ) -> None:
+        """Delete qualifications by Participant Group IDs"""
+        if not participant_group_ids:
+            return None
+
+        with self.table_access_condition, self._get_connection() as conn:
+            c = conn.cursor()
+
+            participant_group_ids_block = ''
+            if participant_group_ids:
+                task_run_ids_str = ",".join([f'"{pgi}"' for pgi in participant_group_ids])
+                participant_group_ids_block = (
+                    f'AND prolific_participant_group_id IN ({task_run_ids_str})'
+                )
+
+            c.execute(
+                f"""
+                DELETE FROM qualifications
+                WHERE {participant_group_ids_block};
+                """
+            )
+            return None
 
     def clear_study_from_unit(self, unit_id: str) -> None:
         """

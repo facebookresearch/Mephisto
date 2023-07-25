@@ -19,7 +19,7 @@ class Bonuses(BaseAPIResource):
         Set up bonus payments to one or more participants/submissions in a study.
         :param study_id: Study ID
         :param csv_bonuses: String with CSV file text (not a file)
-        :return: SetUpBonuses object
+        :return: BonusPayments object
         """
         response_json = cls.post(
             cls.set_up_api_endpoint,

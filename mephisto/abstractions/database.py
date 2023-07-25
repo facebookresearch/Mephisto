@@ -7,6 +7,7 @@
 
 import os
 import sqlite3
+import warnings
 from prometheus_client import Histogram  # type: ignore
 
 from abc import ABC, abstractmethod
@@ -999,7 +1000,7 @@ class MephistoDB(ABC):
         Find granted qualifications.
         If `worker_id` is not supplied, returns all granted qualifications.
         """
-        return self._find_granted_qualifications(worker_id=worker_id)
+        return self._check_granted_qualifications(worker_id=worker_id)
 
     @abstractmethod
     def _grant_qualification(
@@ -1040,6 +1041,7 @@ class MephistoDB(ABC):
         """
         Find granted qualifications that match the given specifications
         """
+        warnings.warn("Use 'find_granted_qualifications' instead.", DeprecationWarning)
         return self._check_granted_qualifications(
             qualification_id=qualification_id, worker_id=worker_id, value=value
         )

@@ -171,8 +171,9 @@ class ProlificWorker(Worker):
         prolific_utils.unblock_worker(client, task_run_args, self.worker_name, reason)
         self.datastore.set_worker_blocked(self.worker_name, is_blocked=False)
 
-        # Include unblocked worker into all currently running studies, if qualified
-        self._grant_crowd_qualification(client, requester, task_run_args.provider)
+        # Include unblocked Worker into all Participant Groups for currently running Studies,
+        # if he is qualified at the moment
+        self._grant_crowd_qualifications(client)
         logger.debug(f'{self.log_prefix}Worker {self.worker_name} unblocked')
 
         return True, ''
@@ -194,13 +195,13 @@ class ProlificWorker(Worker):
         """Determine if this worker is eligible for the given task run"""
         return True
 
-    def _grant_crowd_qualification(
-        self,
-        client: ProlificClient,
-        requester: 'ProlificRequester',
-        args: 'DictConfig',
-        qualification_name: Optional[str] = None,
+    def _grant_crowd_qualifications(
+        self, client: ProlificClient, qualification_name: Optional[str] = None,
     ) -> None:
+        """
+        Grant specified qualification if `qualification_name` is passed or
+        all previously granted to the current Worker, and he is qualified at the moment
+        """
         prolific_participant_id = self.get_prolific_participant_id()
         is_blocked = self.datastore.get_worker_blocked(prolific_participant_id)
         if is_blocked:
@@ -234,22 +235,6 @@ class ProlificWorker(Worker):
                     prolific_utils.remove_worker_qualification(
                         client, self.worker_name, prolific_participant_group_id,
                     )
-        else:
-            # If there is no qualification in Mephisto
-            # we need to create a new qualified Group on Prolific, and add the worker to it
-            prolific_workspace = prolific_utils.find_or_create_prolific_workspace(
-                client, title=args.prolific_workspace_name,
-            )
-            prolific_project = prolific_utils.find_or_create_prolific_project(
-                client, prolific_workspace.id, title=args.prolific_project_name,
-            )
-            prolific_participant_group = requester.create_new_qualification(
-                prolific_project.id, qualification_name,
-            )
-            logger.debug(f'Created new Participant Group "{prolific_participant_group.id}"')
-            prolific_utils.give_worker_qualification(
-                client, prolific_participant_id, prolific_participant_group.id,
-            )
 
         logger.debug(
             f'{self.log_prefix}Crowd qualification {qualification_name} has been granted '
@@ -257,9 +242,7 @@ class ProlificWorker(Worker):
         )
 
     def grant_crowd_qualification(
-        self,
-        qualification_name: Optional[str] = None,
-        value: int = 1,
+        self, qualification_name: Optional[str] = None, value: int = 1,
     ) -> None:
         """Grant qualification by the given name to this worker"""
         logger.debug(f'{self.log_prefix}Granting crowd qualification: {qualification_name}')
@@ -268,11 +251,9 @@ class ProlificWorker(Worker):
             'ProlificRequester',
             self.db.find_requesters(provider_type=self.provider_type)[-1],
         )
-        task_run = self._get_first_task_run(requester)
-        provider_args = task_run.args.provider
         client = self._get_client(requester.requester_name)
 
-        self._grant_crowd_qualification(client, requester, provider_args, qualification_name)
+        self._grant_crowd_qualifications(client, qualification_name)
         return None
 
     def revoke_crowd_qualification(self, qualification_name: str) -> None:

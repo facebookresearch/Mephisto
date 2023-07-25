@@ -65,9 +65,15 @@ logger = get_logger(name=__name__)
 class ProlificProviderArgs(ProviderArgs):
     """Base class for arguments to configure Crowd Providers"""
 
+    # `_provider_type` cannot be `OmegaConf.MISSING`,
+    # because `dataclasses` does not allow defining non-default properties before optional
+    # in Python 3.9
     _provider_type: str = PROVIDER_TYPE
-    requester_name: str = PROVIDER_TYPE
+
     # This link is being collected automatically for EC2 archidect.
+    # But we leave the ability to pass any other URL for other architects,
+    # especially, for those that weren't specified in
+    # `mephisto.abstractions.providers.prolific.prolific_utils._get_external_study_url`
     prolific_external_study_url: str = field(
         default="",
         metadata={
@@ -202,7 +208,7 @@ class ProlificProvider(CrowdProvider):
             workers_ids,
             prolific_participant_group.id,
         )
-        self.datastore.create_participant_proup_mapping(
+        self.datastore.create_participant_group_mapping(
             qualification_name=participant_proup_name,
             requester_id=requester.db_id,
             prolific_project_id=prolific_project_id,
@@ -380,11 +386,35 @@ class ProlificProvider(CrowdProvider):
             f'{self.log_prefix}Prolific Study "{prolific_study.id}" has been saved into datastore'
         )
 
-    def cleanup_resources_from_task_run(
-        self, task_run: "TaskRun", server_url: str,
-    ) -> None:
-        """No cleanup necessary for task type"""
-        pass
+    def cleanup_resources_from_task_run(self, task_run: "TaskRun", server_url: str) -> None:
+        """
+        Cleanup all temporary data for this TaskRun
+            1. Remove one-time Participant Groups from datastore and Prolific
+        """
+        requester = cast("ProlificRequester", task_run.get_requester())
+        client = self._get_client(requester.requester_name)
+
+        # 1. Remove one-time Participant Groups
+        datastore_qualifications = self.datastore.find_qualifications_by_ids(
+            task_run_ids=[task_run.db_id],
+        )
+
+        # Remove from Provider-specific datastore
+        participant_group_ids = [
+            i['prolific_participant_group_id'] for i in datastore_qualifications
+        ]
+        self.datastore.delete_qualifications_by_participant_group_ids(
+            participant_group_ids=participant_group_ids,
+        )
+        self.datastore.delete_participant_groups_by_participant_group_ids(
+            participant_group_ids=participant_group_ids,
+        )
+
+        # Remove from Prolific
+        for qualification in datastore_qualifications:
+            prolific_utils.delete_qualification(
+                client, qualification['prolific_participant_group_id'],
+            )
 
     @classmethod
     def get_wrapper_js_path(cls):

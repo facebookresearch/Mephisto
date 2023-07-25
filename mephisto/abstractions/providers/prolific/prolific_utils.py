@@ -260,7 +260,11 @@ def delete_qualification(client: ProlificClient, id: str) -> bool:
     Delete a qualification (Prolific Participant Group) by ID
     :param id: Prolific Participant Group's ID
     """
-    # TODO (#1008): Implement later. There's no DELETE method for Prolific Participant Groups
+    try:
+        client.ParticipantGroups.remove(id)
+    except (ProlificException, ValidationError):
+        logger.exception(f'Could not remove a qualification with ID "{id}"')
+        raise
     return True
 
 

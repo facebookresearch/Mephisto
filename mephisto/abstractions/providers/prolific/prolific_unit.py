@@ -181,7 +181,7 @@ class ProlificUnit(Unit):
                 # Check for NULL worker_id to prevent accidental reversal of unit's progress
                 if external_status != AssignmentState.LAUNCHED:
                     logger.debug(
-                        f'Moving Unit {self.id} status from '
+                        f'Moving Unit {self.db_id} status from '
                         f'`{external_status}` to `{AssignmentState.LAUNCHED}`'
                     )
                 external_status = AssignmentState.LAUNCHED
@@ -192,7 +192,6 @@ class ProlificUnit(Unit):
             # TODO (#1008): Choose correct mapping
             pass
         elif study.status == StudyStatus.AWAITING_REVIEW:
-            # TODO (#1008): Choose correct mapping
             external_status = AssignmentState.COMPLETED
         elif study.status == StudyStatus.COMPLETED:
             external_status = AssignmentState.COMPLETED

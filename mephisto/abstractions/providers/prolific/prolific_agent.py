@@ -107,7 +107,7 @@ class ProlificAgent(Agent):
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_participant_id()
         prolific_utils.approve_work(
-            client, study_id=prolific_study_id, worker_id=worker_id
+            client, study_id=prolific_study_id, worker_id=worker_id,
         )
 
         logger.debug(
@@ -117,6 +117,23 @@ class ProlificAgent(Agent):
         )
 
         self.update_status(AgentState.STATUS_APPROVED)
+
+    def soft_reject_work(self) -> None:
+        """Mark as soft rejected on Mephisto and approve Worker on Prolific"""
+        super().soft_reject_work()
+
+        client = self._get_client()
+        prolific_study_id = self.unit.get_prolific_study_id()
+        worker_id = self.worker.get_prolific_participant_id()
+        prolific_utils.approve_work(
+            client, study_id=prolific_study_id, worker_id=worker_id,
+        )
+
+        logger.debug(
+            f"{self.log_prefix}"
+            f'Work for Study "{prolific_study_id}" completed by worker "{worker_id}" '
+            f"has been soft rejected"
+        )
 
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""

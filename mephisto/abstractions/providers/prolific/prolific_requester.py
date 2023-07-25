@@ -123,7 +123,7 @@ class ProlificRequester(Requester):
                     )
 
         # Store the new qualification in the datastore
-        self.datastore.create_participant_proup_mapping(
+        self.datastore.create_participant_group_mapping(
             qualification_name=qualification_name,
             requester_id=self.db_id,
             prolific_project_id=prolific_project_id,
