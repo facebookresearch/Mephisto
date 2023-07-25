@@ -985,13 +985,6 @@ class MephistoDB(ABC):
             provider = ProviderClass(self)
             provider.cleanup_qualification(qualification_name)
 
-    @abstractmethod
-    def _find_granted_qualifications(
-        self, worker_id: Optional[str] = None,
-    ) -> List[GrantedQualification]:
-        """find_granted_qualifications implementation"""
-        raise NotImplementedError()
-
     @FIND_GRANT_QUALIFICATION_LATENCY.time()
     def find_granted_qualifications(
         self, worker_id: Optional[str] = None,
