@@ -306,10 +306,6 @@ class EC2Architect(Architect):
             server_dir,
         )
 
-        # TODO: Remove this hack to address sporadic ConnectionRefusedError
-        print("EC2: Waiting to establish connection...")
-        time.sleep(10)
-
         url = f"https://{self.full_domain}"
         print(f"EC2: Deployed server at {url}")
         return url
