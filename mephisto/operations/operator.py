@@ -296,6 +296,7 @@ class Operator:
             live_run.provider.setup_resources_for_task_run(
                 task_run, run_config, shared_state, task_url
             )
+            print(provider.print_banner_on_start(task_run))
 
             live_run.client_io.launch_channels()
         except (KeyboardInterrupt, Exception) as e:

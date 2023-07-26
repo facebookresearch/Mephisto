@@ -17,6 +17,7 @@ from mephisto.abstractions.providers.mturk.mturk_utils import (
     create_hit_type,
     create_hit_config,
     delete_qualification,
+    get_requester_balance,
 )
 from mephisto.operations.registry import register_mephisto_abstraction
 from dataclasses import dataclass, field
@@ -119,6 +120,12 @@ class MTurkProvider(CrowdProvider):
             task_run.get_blueprint().get_frontend_args().get("frame_height", 0)
         )
         self.datastore.register_run(task_run_id, hit_type_id, config_dir, frame_height)
+
+    def print_banner_on_start(self, task_run: "TaskRun") -> str:
+        requester = cast("MTurkRequester", task_run.get_requester())
+        client = self._get_client(requester._requester_name)
+        balance = get_requester_balance(client)
+        return f"============================\nBalance: {balance}\n============================\n"
 
     def cleanup_resources_from_task_run(
         self, task_run: "TaskRun", server_url: str

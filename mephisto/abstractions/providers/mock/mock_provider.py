@@ -71,6 +71,9 @@ class MockProvider(CrowdProvider):
         """Mocks don't do any initialization"""
         return None
 
+    def print_banner_on_start(self):
+        return f"============================\nStarting mock provider\n============================\n"
+
     def cleanup_resources_from_task_run(
         self, task_run: "TaskRun", server_url: str
     ) -> None:
