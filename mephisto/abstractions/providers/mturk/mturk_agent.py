@@ -10,6 +10,7 @@ from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
 from mephisto.abstractions.providers.mturk.mturk_utils import (
     approve_work,
     reject_work,
+    get_hit,
     get_assignment,
     get_assignments_for_hit,
 )
@@ -54,12 +55,12 @@ class MTurkAgent(Agent):
             self.PROVIDER_TYPE
         )
         unit: "MTurkUnit" = cast("MTurkUnit", self.get_unit())
-        self.mturk_assignment_id = unit.get_mturk_assignment_id()
-
-    def _get_mturk_assignment_id(self):
-        if self.mturk_assignment_id is None:
-            self.mturk_assignment_id = self.get_unit().get_mturk_assignment_id()
-        return self.mturk_assignment_id
+        assignment_id = unit.get_mturk_assignment_id()
+        assert assignment_id is not None, "Must have existing assignment"
+        hit_id = unit.get_mturk_hit_id()
+        assert hit_id is not None, "Must have existing HIT"
+        self.mturk_assignment_id = assignment_id
+        self.mturk_hit_id = hit_id
 
     def _get_client(self) -> Any:
         """
@@ -115,7 +116,7 @@ class MTurkAgent(Agent):
             logger.info(f"Approving already approved agent {self}, skipping")
             return
         client = self._get_client()
-        approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
+        approve_work(client, self.mturk_assignment_id, override_rejection=True)
         self.update_status(AgentState.STATUS_APPROVED)
 
     def reject_work(self, reason) -> None:
@@ -124,7 +125,7 @@ class MTurkAgent(Agent):
             logger.warning(f"Cannot reject {self}, it is already approved")
             return
         client = self._get_client()
-        reject_work(client, self._get_mturk_assignment_id(), reason)
+        reject_work(client, self.mturk_assignment_id, reason)
         self.update_status(AgentState.STATUS_REJECTED)
 
     def mark_done(self) -> None:
@@ -137,6 +138,46 @@ class MTurkAgent(Agent):
             self.db.update_agent(
                 agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
             )
+
+    def get_status(self) -> str:
+        """Query for this agent's status relative to MTurk"""
+        db_status = super().get_status()
+        if db_status in AgentState.immutable():
+            return db_status
+
+        # Check for unseen disconnect/return
+        unit_agent_pairing = self.get_unit().get_assigned_agent()
+        if unit_agent_pairing is None or unit_agent_pairing.db_id != self.db_id:
+            self.update_status(AgentState.STATUS_EXPIRED)
+            return self.db_status
+
+        client = self._get_client()
+        hit = get_hit(client, self.mturk_hit_id)
+        if hit is None:
+            self.update_status(AgentState.STATUS_EXPIRED)
+            return self.db_status
+
+        # Poll for status changes from the provider
+        hit_data = hit["HIT"]
+        local_status = self.db_status
+
+        if hit_data["HITStatus"] == "Assignable":
+            provider_status = AgentState.STATUS_RETURNED
+        elif hit_data["HITStatus"] == "Unassignable":
+            # we rely on db_status when MTurk thinks assigned
+            provider_status = local_status
+        elif hit_data["HITStatus"] in ["Reviewable", "Reviewing"]:
+            provider_status = AgentState.STATUS_COMPLETED
+            if hit_data["NumberOfAssignmentsAvailable"] != 0:
+                provider_status = AgentState.STATUS_EXPIRED
+        elif hit_data["HITStatus"] == "Disposed":
+            # The HIT was deleted, must rely on what we have
+            provider_status = local_status
+        else:
+            raise Exception(f"Unexpected HIT status {hit_data['HITStatus']}")
+
+        self.update_status(provider_status)
+        return self.db_status
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":
