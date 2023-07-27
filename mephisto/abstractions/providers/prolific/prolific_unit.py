@@ -144,19 +144,7 @@ class ProlificUnit(Unit):
 
             return self.db_status
 
-        # Remaining statuses are tracking a live Study
         prolific_study_id = self.get_prolific_study_id()
-        if prolific_study_id is None:
-            # If the study_id is None and there's an agent still assigned,
-            # then that agent has timed out, and we should expire
-            agent = self.get_assigned_agent()
-            if agent is not None:
-                if agent.get_status() != AgentState.STATUS_EXPIRED:
-                    agent.update_status(AgentState.STATUS_EXPIRED)
-
-            # Can't determine anything else if there is no Study on this unit
-            return self.db_status
-
         requester: 'ProlificRequester' = self.get_requester()
         client = self._get_client(requester.requester_name)
 
@@ -168,7 +156,6 @@ class ProlificUnit(Unit):
 
         # Record latest study status from Prolific
         self.datastore.update_study_status(study.id, study.status)
-
         local_status = self.db_status
         external_status = self.db_status
 
@@ -192,7 +179,12 @@ class ProlificUnit(Unit):
             # TODO (#1008): Choose correct mapping
             pass
         elif study.status == StudyStatus.AWAITING_REVIEW:
-            external_status = AssignmentState.COMPLETED
+            # Check for `worker_id` to avoid labeling not-yet-worked-on units as "COMPLETED"
+            # TODO (#1008): need to rely on status of Submissions, not Study
+            if self.worker_id:
+                external_status = AssignmentState.COMPLETED
+            else:
+                external_status = AssignmentState.EXPIRED
         elif study.status == StudyStatus.COMPLETED:
             external_status = AssignmentState.COMPLETED
         else:

@@ -55,7 +55,7 @@ def main():
     skipped_names = []
     for i, server_name in enumerate(all_server_names):
         _name = f'"{server_name}"'
-        logger.debug(f'{i+1}/{n_names} Removing {_name}...')
+        logger.info(f'{i+1}/{n_names} Removing {_name}...')
 
         session = boto3.Session(profile_name=iam_role_name, region_name='us-east-2')
         try:
