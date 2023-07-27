@@ -211,7 +211,7 @@ class MTurkUnit(Unit):
         agent = self.get_assigned_agent()
         if agent is None:
             if self.db_status in AssignmentState.completed():
-                logger.warning(f"Agent for unit {self} is None")
+                logger.warning(f"Agent for completed unit {self} is None")
                 return self.db_status
             else:
                 # Note, we _may_ be able to query the overall HIT Type to see
