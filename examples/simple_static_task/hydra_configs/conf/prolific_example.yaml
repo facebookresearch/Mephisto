@@ -7,17 +7,17 @@ mephisto:
   architect:
     _architect_type: ec2
     profile_name: mephisto-router-iam
-    subdomain: '0623.1'
+    subdomain: '0727.1'
   blueprint:
     data_csv: ${task_dir}/data_prolific.csv
     task_source: ${task_dir}/server_files/demo_task.html
     preview_source: ${task_dir}/server_files/demo_preview.html
     extra_source_dir: ${task_dir}/server_files/extra_refs
-    units_per_assignment: 1
+    units_per_assignment: 2
   log_level: 'debug'
   task:
-    task_name: '0623'
-    task_title: '0623 Task'
+    task_name: '0727'
+    task_title: '0727 Task'
     task_description: 'This is a simple test of static Prolific tasks.'
     task_reward: 70
     task_tags: 'static,task,testing'
@@ -28,21 +28,21 @@ mephisto:
     prolific_project_name: 'Project'
     prolific_allow_list_group_name: 'Allow list'
     prolific_block_list_group_name: 'Block list'
-    prolific_total_available_places: 1
+    prolific_total_available_places: 2
     prolific_eligibility_requirements:
       - name: 'CustomWhitelistEligibilityRequirement'
         white_list:
-          - '6463d16eb92a24a0c3fdc8d5'
-#          - '6463d32f50a18041930b71be'
-#          - '6463d3922d7d99360896228f'
-#      - name: 'AgeRangeEligibilityRequirement'
-#        min_age: 10
-#        max_age: 20
-#      - name: 'ApprovalNumbersEligibilityRequirement'
-#        minimum_approvals: 100
-#        maximum_approvals: 200
-#      - name: 'ApprovalRateEligibilityRequirement'
-#        minimum_approval_rate: 10
-#        maximum_approval_rate: 20
-#      - name: 'JoinedBeforeEligibilityRequirement'
-#        joined_before: ''
+          - 6463d32f50a18041930b71be
+          - 6463d3922d7d99360896228f
+          - 6463d40e8d5d2f0cce2b3b23
+          - 6463d44ed1b61a8fb4e0765a
+          - 6463d488c2f2821eaa2fa13f
+      - name: 'AgeRangeEligibilityRequirement'
+        min_age: 10
+        max_age: 20
+      - name: 'ApprovalNumbersEligibilityRequirement'
+        minimum_approvals: 0
+        maximum_approvals: 10000
+      - name: 'ApprovalRateEligibilityRequirement'
+        minimum_approval_rate: 0
+        maximum_approval_rate: 100
