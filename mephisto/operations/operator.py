@@ -338,14 +338,14 @@ class Operator:
                     tracked_run.force_shutdown = True
                 if not tracked_run.force_shutdown:
                     task_run = tracked_run.task_run
-                    if tracked_run.task_launcher.finished_generators is False:
-                        # If the run can still generate assignments, it's
-                        # definitely not done
-                        continue
                     task_run.update_completion_progress(
                         task_launcher=tracked_run.task_launcher
                     )
                     if not task_run.get_is_completed():
+                        continue
+                    if tracked_run.task_launcher.finished_generators is False:
+                        # If the run can still generate assignments, it's
+                        # definitely not done
                         continue
 
                 tracked_run.client_io.shutdown()
