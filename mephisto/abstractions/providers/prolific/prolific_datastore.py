@@ -688,6 +688,8 @@ class ProlificDatastore:
         prolific_workspace_id: str,
         prolific_project_id: str,
         prolific_study_config_path: str,
+        actual_available_places: int,
+        listed_available_places: int,
         frame_height: int = 0,
         prolific_study_id: Optional[str] = None,  # TODO (#1008): Remove this, left it just in case
     ) -> None:
@@ -703,8 +705,10 @@ class ProlificDatastore:
                     prolific_project_id,
                     prolific_study_id,
                     prolific_study_config_path,
-                    frame_height
-                ) VALUES (?, ?, ?, ?, ?, ?, ?);
+                    frame_height,
+                    actual_available_places,
+                    listed_available_places
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     run_id,
@@ -714,6 +718,8 @@ class ProlificDatastore:
                     prolific_study_id,
                     prolific_study_config_path,
                     frame_height,
+                    actual_available_places,
+                    listed_available_places,
                 ),
             )
 
@@ -731,3 +737,28 @@ class ProlificDatastore:
             )
             results = c.fetchall()
             return results[0]
+
+    def set_available_places_for_run(
+        self,
+        run_id: str,
+        actual_available_places: int,
+        listed_available_places: int,
+    ) -> None:
+        """Set available places for a run by task_run_id"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                UPDATE runs
+                SET actual_available_places = ?, listed_available_places = ?
+                WHERE run_id = ?
+                """,
+                (
+                    actual_available_places,
+                    listed_available_places,
+                    run_id,
+                ),
+            )
+            conn.commit()
+            return None

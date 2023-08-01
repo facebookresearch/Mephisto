@@ -28,7 +28,6 @@ mephisto:
     prolific_project_name: 'Project'
     prolific_allow_list_group_name: 'Allow list'
     prolific_block_list_group_name: 'Block list'
-    prolific_total_available_places: 2
     prolific_eligibility_requirements:
       - name: 'CustomWhitelistEligibilityRequirement'
         white_list:

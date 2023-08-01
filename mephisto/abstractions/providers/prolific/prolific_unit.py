@@ -218,6 +218,22 @@ class ProlificUnit(Unit):
 
         return self.db_status
 
+    def set_db_status(self, status: str) -> None:
+        super().set_db_status(status)
+
+        if status == self.db_status:
+            return
+
+        if status in AssignmentState.completed():
+            # Decrement available places in datastore if status is in completed statuses
+            task_run_id = self.get_task_run().db_id
+            datastore_task_run = self.datastore.get_run(task_run_id)
+            self.datastore.set_available_places_for_run(
+                run_id=task_run_id,
+                actual_available_places=datastore_task_run['actual_available_places'] - 1,
+                listed_available_places=datastore_task_run['listed_available_places'] - 1,
+            )
+
     def clear_assigned_agent(self) -> None:
         """
         Additionally to clearing the agent, we also need to dissociate the
@@ -253,7 +269,8 @@ class ProlificUnit(Unit):
         total_amount = prolific_utils.calculate_pay_amount(
             client,
             task_amount=run_args.task.task_reward,
-            total_available_places=run_args.provider.prolific_total_available_places,
+            # TODO: what value should go in here when we auto-increment `total_available_places`?
+            total_available_places=1,
         )
         logger.debug(f'{self.log_prefix}Pay amount: {total_amount}')
 
@@ -261,8 +278,45 @@ class ProlificUnit(Unit):
 
     def launch(self, task_url: str) -> None:
         """Publish this Study on Prolific (making it available)"""
+        # Update available places in provider-specific datastore
+        task_run_id = self.get_task_run().db_id
+        datastore_task_run = self.datastore.get_run(task_run_id)
+
+        actual_available_places = datastore_task_run['actual_available_places']
+        listed_available_places = datastore_task_run['listed_available_places']
+        provider_increment_needed = False
+
+        if actual_available_places == 0:
+            # Special case - it's the first unit of our Study.
+            # No need to increment `listed_available_places` in datastore, and
+            # `total_available_places` in Prolific
+            actual_available_places += 1
+            listed_available_places = listed_available_places
+        elif actual_available_places == listed_available_places:
+            actual_available_places += 1
+            listed_available_places += 1
+            provider_increment_needed = True
+        else:
+            actual_available_places += 1
+            listed_available_places = listed_available_places
+
+        self.datastore.set_available_places_for_run(
+            run_id=task_run_id,
+            actual_available_places=actual_available_places,
+            listed_available_places=listed_available_places,
+        )
+
+        # Update `total_available_places` on Prolific
+        if provider_increment_needed:
+            requester = self.get_requester()
+            client = self._get_client(requester.requester_name)
+            prolific_utils.increase_total_available_places_for_study(
+                client, datastore_task_run['prolific_study_id'],
+            )
+
         # Change DB status
         self.set_db_status(AssignmentState.LAUNCHED)
+
         return None
 
     def expire(self) -> float:
@@ -273,6 +327,27 @@ class ProlificUnit(Unit):
         delay = 0
         status = self.get_status()
 
+        # Decrement `actual_available_places`` in datastore
+        if status == AssignmentState.EXPIRED:
+            task_run_id = self.get_task_run().db_id
+            datastore_task_run = self.datastore.get_run(task_run_id)
+
+            actual_available_places = datastore_task_run['actual_available_places']
+            listed_available_places = datastore_task_run['listed_available_places']
+
+            self.datastore.set_available_places_for_run(
+                run_id=task_run_id,
+                actual_available_places=actual_available_places - 1,
+                listed_available_places=listed_available_places,
+            )
+
+            if actual_available_places == 0:
+                # If Mephisto has expired all its units, we force-stop Prolific Study
+                requester = self.get_requester()
+                client = self._get_client(requester.requester_name)
+                prolific_utils.stop_study(client, datastore_task_run['prolific_study_id'])
+
+        # Update status
         if status in [AssignmentState.EXPIRED, AssignmentState.COMPLETED]:
             return delay
 

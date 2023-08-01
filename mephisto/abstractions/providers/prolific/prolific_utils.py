@@ -392,7 +392,9 @@ def create_study(
     reward_in_cents = task_run_config.task.task_reward
 
     # Provider-specific info
-    total_available_places = task_run_config.provider.prolific_total_available_places
+
+    # Default minimum value to create a Study (will be auto-incremented later when launching Units)
+    total_available_places = 1
     estimated_completion_time_in_minutes = (
         task_run_config.provider.prolific_estimated_completion_time_in_minutes
     )
@@ -449,6 +451,20 @@ def create_study(
     return study
 
 
+def increase_total_available_places_for_study(client: ProlificClient, study_id: str) -> str:
+    study: Study = get_study(client, study_id)
+
+    try:
+        client.Studies.update(
+            id=study.id,
+            total_available_places=study.total_available_places + 1,
+        )
+    except (ProlificException, ValidationError):
+        logger.exception(f'Could not increase `total_available_places` for a Study "{study_id}"')
+        raise
+    return study_id
+
+
 def get_study(client: ProlificClient, study_id: str) -> Study:
     try:
         study: Study = client.Studies.retrieve(id=study_id)
@@ -465,6 +481,17 @@ def publish_study(client: ProlificClient, study_id: str) -> str:
         logger.exception(f'Could not publish a Study "{study_id}"')
         raise
     return study_id
+
+
+def stop_study(client: ProlificClient, study_id: str) -> Study:
+    try:
+        study: Study = client.Studies.stop(id=study_id)
+        logger.debug(f'Study "{study_id}" was stopped successfully!')
+    except (ProlificException, ValidationError):
+        logger.exception(f'Could not stop a Study "{study_id}"')
+        raise
+
+    return study
 
 
 def expire_study(client: ProlificClient, study_id: str) -> Study:
