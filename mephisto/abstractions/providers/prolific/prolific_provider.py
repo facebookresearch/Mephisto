@@ -362,8 +362,6 @@ class ProlificProvider(CrowdProvider):
             prolific_workspace_id=prolific_workspace.id,
             prolific_project_id=prolific_project.id,
             prolific_study_config_path=config_dir,
-            actual_available_places=0,
-            listed_available_places=1,
             frame_height=frame_height,
             prolific_study_id=prolific_study.id,
         )

@@ -19,9 +19,9 @@ def main(operator, cfg: DictConfig) -> None:
     shared_state = SharedStaticTaskState()
 
     # Mephisto qualifications
-    shared_state.qualifications = [
-        make_qualification_dict('sample_qual_name', QUAL_GREATER_EQUAL, 1),
-    ]
+    # shared_state.qualifications = [
+    #     make_qualification_dict('sample_qual_name', QUAL_GREATER_EQUAL, 1),
+    # ]
 
     # Prolific qualifications
     # Note that we'll prefix names with a customary `web.eligibility.models.` later in the code

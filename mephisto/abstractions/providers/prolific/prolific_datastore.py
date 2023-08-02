@@ -688,9 +688,9 @@ class ProlificDatastore:
         prolific_workspace_id: str,
         prolific_project_id: str,
         prolific_study_config_path: str,
-        actual_available_places: int,
-        listed_available_places: int,
         frame_height: int = 0,
+        actual_available_places: Optional[int] = None,
+        listed_available_places: Optional[int] = None,
         prolific_study_id: Optional[str] = None,  # TODO (#1008): Remove this, left it just in case
     ) -> None:
         """Register a new task run in the Task Runs table"""

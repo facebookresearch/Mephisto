@@ -7,7 +7,7 @@ mephisto:
   architect:
     _architect_type: ec2
     profile_name: mephisto-router-iam
-    subdomain: '0727.1'
+    subdomain: '0802.1'
   blueprint:
     data_csv: ${task_dir}/data_prolific.csv
     task_source: ${task_dir}/server_files/demo_task.html
@@ -16,11 +16,12 @@ mephisto:
     units_per_assignment: 2
   log_level: 'debug'
   task:
-    task_name: '0727'
-    task_title: '0727 Task'
+    task_name: '0802'
+    task_title: '0802 Task'
     task_description: 'This is a simple test of static Prolific tasks.'
     task_reward: 70
     task_tags: 'static,task,testing'
+    max_num_concurrent_units: 1
   provider:
     prolific_external_study_url: 'https://example.com?participant_id={{%PROLIFIC_PID%}}&study_id={{%STUDY_ID%}}&submission_id={{%SESSION_ID%}}'
     prolific_id_option: 'url_parameters'
@@ -36,12 +37,6 @@ mephisto:
           - 6463d40e8d5d2f0cce2b3b23
           - 6463d44ed1b61a8fb4e0765a
           - 6463d488c2f2821eaa2fa13f
-      - name: 'AgeRangeEligibilityRequirement'
-        min_age: 10
-        max_age: 20
-      - name: 'ApprovalNumbersEligibilityRequirement'
-        minimum_approvals: 0
-        maximum_approvals: 10000
       - name: 'ApprovalRateEligibilityRequirement'
         minimum_approval_rate: 0
         maximum_approval_rate: 100

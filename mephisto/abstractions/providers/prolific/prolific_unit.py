@@ -221,11 +221,12 @@ class ProlificUnit(Unit):
     def set_db_status(self, status: str) -> None:
         super().set_db_status(status)
 
-        if status == self.db_status:
-            return
-
         if status in AssignmentState.completed():
             # Decrement available places in datastore if status is in completed statuses
+            logger.debug(
+                f"Decrementing `actual_available_places` and `listed_available_places`"
+                f"because unit `{self.db_id}` is completed"
+            )
             task_run_id = self.get_task_run().db_id
             datastore_task_run = self.datastore.get_run(task_run_id)
             self.datastore.set_available_places_for_run(
@@ -286,19 +287,17 @@ class ProlificUnit(Unit):
         listed_available_places = datastore_task_run['listed_available_places']
         provider_increment_needed = False
 
-        if actual_available_places == 0:
-            # Special case - it's the first unit of our Study.
-            # No need to increment `listed_available_places` in datastore, and
-            # `total_available_places` in Prolific
-            actual_available_places += 1
-            listed_available_places = listed_available_places
+        if actual_available_places is None:
+            # It's the first unit in our Study. Here we only make
+            # available places match Prolific Study setup (which was created with 1 place)
+            actual_available_places = 1
+            listed_available_places = 1
         elif actual_available_places == listed_available_places:
             actual_available_places += 1
             listed_available_places += 1
             provider_increment_needed = True
         else:
             actual_available_places += 1
-            listed_available_places = listed_available_places
 
         self.datastore.set_available_places_for_run(
             run_id=task_run_id,
@@ -327,18 +326,19 @@ class ProlificUnit(Unit):
         delay = 0
         status = self.get_status()
 
-        # Decrement `actual_available_places`` in datastore
+        # Decrement `actual_available_places` in datastore
         if status == AssignmentState.EXPIRED:
-            task_run_id = self.get_task_run().db_id
-            datastore_task_run = self.datastore.get_run(task_run_id)
+            task_run = self.get_task_run()
+            datastore_task_run = self.datastore.get_run(task_run.db_id)
 
             actual_available_places = datastore_task_run['actual_available_places']
             listed_available_places = datastore_task_run['listed_available_places']
 
+            listed_places_decrement = 1 if task_run.get_is_completed() else 0
             self.datastore.set_available_places_for_run(
-                run_id=task_run_id,
+                run_id=task_run.db_id,
                 actual_available_places=actual_available_places - 1,
-                listed_available_places=listed_available_places,
+                listed_available_places=listed_available_places - listed_places_decrement,
             )
 
             if actual_available_places == 0:

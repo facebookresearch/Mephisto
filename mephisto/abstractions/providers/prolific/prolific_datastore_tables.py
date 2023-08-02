@@ -70,8 +70,8 @@ CREATE_RUNS_TABLE = """
         prolific_study_config_path TEXT NOT NULL,
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
         frame_height INTEGER NOT NULL DEFAULT 650,
-        actual_available_places INTEGER NOT NULL DEFAULT 0,
-        listed_available_places INTEGER NOT NULL DEFAULT 0
+        actual_available_places INTEGER DEFAULT NULL,
+        listed_available_places INTEGER DEFAULT NULL
     );
 """
 
