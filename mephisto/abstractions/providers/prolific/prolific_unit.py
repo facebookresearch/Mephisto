@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from mephisto.abstractions._subcomponents.agent_state import AgentState
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.api.constants import SubmissionStatus
+from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
@@ -159,7 +160,10 @@ class ProlificUnit(Unit):
         if study is None:
             return AssignmentState.EXPIRED
         self.datastore.update_study_status(study.id, study.status)
-        study_is_expired = prolific_utils.is_study_expired(study)
+        study_is_expired = study.status in [
+            StudyStatus.COMPLETED,
+            StudyStatus.AWAITING_REVIEW,
+        ]
 
         # Get Submission from Prolific, records status
         datastore_unit = self.datastore.get_unit(self.db_id)
@@ -385,20 +389,12 @@ class ProlificUnit(Unit):
         requester = self.get_requester()
         client = self._get_client(requester.requester_name)
         self.datastore.set_unit_expired(self.db_id, True)
-        if prolific_study_id is not None:
-            prolific_utils.expire_study(client, prolific_study_id)
-            return delay
-        else:
-            unassigned_study_ids = self.datastore.get_unassigned_study_ids(self.task_run_id)
 
-            if len(unassigned_study_ids) == 0:
-                self.set_db_status(AssignmentState.EXPIRED)
-                return delay
-
-            prolific_study_id = unassigned_study_ids[0]
+        # Operator expires only units (not studies), so we expire study when no active units left
+        if self.datastore.all_study_units_are_expired(self.task_run_id):
             prolific_utils.expire_study(client, prolific_study_id)
-            self.set_db_status(AssignmentState.EXPIRED)
-            return delay
+
+        return delay
 
     def is_expired(self) -> bool:
         """

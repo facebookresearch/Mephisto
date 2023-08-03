@@ -129,11 +129,12 @@ class ProlificDatastore:
             conn.commit()
             return None
 
-    def get_unassigned_study_ids(self, run_id: str):
+    def all_study_units_are_expired(self, run_id: str) -> bool:
         """Return a list of all Study ids that haven't been assigned"""
         with self.table_access_condition:
             conn = self._get_connection()
             c = conn.cursor()
+
             c.execute(
                 """
                 SELECT
@@ -142,17 +143,21 @@ class ProlificDatastore:
                         SELECT
                             count(units.unit_id)
                         FROM units
-                        WHERE units.prolific_study_id = studies.prolific_study_id
-                    ) AS units_count
+                        WHERE
+                            units.prolific_study_id = studies.prolific_study_id AND
+                            units.is_expired = 0
+                    ) AS unexpired_units_count
                 FROM studies
                 INNER JOIN run_mappings USING (prolific_study_id)
-                WHERE run_mappings.run_id = ? AND units_count == 0
+                WHERE
+                    run_mappings.run_id = ? AND
+                    unexpired_units_count == 0
                 GROUP BY prolific_study_id;
                 """,
                 (run_id,),
             )
             results = c.fetchall()
-            return [r["prolific_study_id"] for r in results]
+            return bool(results)
 
     def register_submission_to_study(
         self,
