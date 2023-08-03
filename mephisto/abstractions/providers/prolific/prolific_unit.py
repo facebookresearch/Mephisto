@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from mephisto.abstractions._subcomponents.agent_state import AgentState
 from mephisto.abstractions.providers.prolific import prolific_utils
-from mephisto.abstractions.providers.prolific.api.constants import StudyStatus
+from mephisto.abstractions.providers.prolific.api.constants import SubmissionStatus
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
@@ -83,6 +83,10 @@ class ProlificUnit(Unit):
         self, prolific_study_id: str, prolific_submission_id: str,
     ) -> None:
         """Update the datastore and local information from this registration"""
+        self.datastore.set_submission_for_unit(
+            unit_id=self.db_id,
+            prolific_submission_id=prolific_submission_id,
+        )
         self.datastore.register_submission_to_study(
             prolific_study_id=prolific_study_id,
             unit_id=self.db_id,
@@ -149,46 +153,64 @@ class ProlificUnit(Unit):
         client = self._get_client(requester.requester_name)
 
         # time.sleep(2)  # Prolific servers may take time to bring their data up-to-date
-        study = prolific_utils.get_study(client, prolific_study_id)
 
+        # Get Study from Prolific, record status
+        study = prolific_utils.get_study(client, prolific_study_id)
         if study is None:
             return AssignmentState.EXPIRED
-
-        # Record latest study status from Prolific
         self.datastore.update_study_status(study.id, study.status)
+        study_is_expired = prolific_utils.is_study_expired(study)
+
+        # Get Submission from Prolific, records status
+        datastore_unit = self.datastore.get_unit(self.db_id)
+        prolific_submission_id = datastore_unit['prolific_submission_id']
+        prolific_submission = None
+        if prolific_submission_id:
+            prolific_submission = prolific_utils.get_submission(client, prolific_submission_id)
+            self.datastore.update_submission_status(
+                prolific_submission_id, prolific_submission.status,
+            )
+
+        # Check Unit status
         local_status = self.db_status
         external_status = self.db_status
 
-        if prolific_utils.is_study_expired(study):
-            external_status = AssignmentState.EXPIRED
-        elif study.status == StudyStatus.UNPUBLISHED:
-            external_status = AssignmentState.COMPLETED
-        elif study.status == StudyStatus.ACTIVE:
+        if study_is_expired:
+            # Note that Prolific cannot expire a study while there are incomplete Submissions
+            # so we always expire the unit here (without checking for Submissions status)
+            # Check for NULL worker_id to avoid labeling not-yet-worked-on units as "COMPLETED"
             if self.worker_id is None:
-                # Check for NULL worker_id to prevent accidental reversal of unit's progress
-                if external_status != AssignmentState.LAUNCHED:
-                    logger.debug(
-                        f'Moving Unit {self.db_id} status from '
-                        f'`{external_status}` to `{AssignmentState.LAUNCHED}`'
-                    )
-                external_status = AssignmentState.LAUNCHED
-        elif study.status == StudyStatus.SCHEDULED:
-            # TODO (#1008): Choose correct mapping
-            pass
-        elif study.status == StudyStatus.PAUSED:
-            # TODO (#1008): Choose correct mapping
-            pass
-        elif study.status == StudyStatus.AWAITING_REVIEW:
-            # Check for `worker_id` to avoid labeling not-yet-worked-on units as "COMPLETED"
-            # TODO (#1008): need to rely on status of Submissions, not Study
-            if self.worker_id:
-                external_status = AssignmentState.COMPLETED
-            else:
                 external_status = AssignmentState.EXPIRED
-        elif study.status == StudyStatus.COMPLETED:
-            external_status = AssignmentState.COMPLETED
-        else:
-            raise Exception(f'Unexpected Study status {study.status}')
+            else:
+                external_status = AssignmentState.COMPLETED
+
+        if not study_is_expired and prolific_submission:
+            if prolific_submission.status == SubmissionStatus.RESERVED:
+                external_status = AssignmentState.CREATED
+            elif prolific_submission.status == SubmissionStatus.TIMED_OUT:
+                external_status = AssignmentState.EXPIRED
+            elif prolific_submission.status == SubmissionStatus.ACTIVE:
+                if self.worker_id is None:
+                    # Check for NULL worker_id to prevent accidental reversal of unit's progress
+                    if external_status != AssignmentState.LAUNCHED:
+                        logger.debug(
+                            f'Moving Unit {self.db_id} status from '
+                            f'`{external_status}` to `{AssignmentState.LAUNCHED}`'
+                        )
+                    external_status = AssignmentState.LAUNCHED
+            elif prolific_submission.status in [
+                SubmissionStatus.AWAITING_REVIEW,
+                SubmissionStatus.APPROVED,
+                SubmissionStatus.RETURNED,
+            ]:
+                external_status = AssignmentState.COMPLETED
+            elif prolific_submission.status == SubmissionStatus.REJECTED:
+                external_status = AssignmentState.REJECTED
+            elif prolific_submission.status == SubmissionStatus.PROCESSING:
+                # This is just Prolific's transient status to move Submission between 2 statuses
+                pass
+            else:
+                raise Exception(f'Unexpected Submission status {prolific_submission.status}')
 
         # -------------------------------------------------------------------------
         # TODO (#1008): Fix this logic. It looked abstract and unclear in Mturk code.

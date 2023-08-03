@@ -749,6 +749,15 @@ def _find_submission(
     return None
 
 
+def get_submission(client: ProlificClient, submission_id: str) -> Submission:
+    try:
+        submission: Submission = client.Submissions.retrieve(id=submission_id)
+    except (ProlificException, ValidationError):
+        logger.exception(f'Could not retreive a Submission "{submission_id}"')
+        raise
+    return submission
+
+
 def approve_work(
     client: ProlificClient, study_id: str, worker_id: str,
 ) -> Union[Submission, None]:

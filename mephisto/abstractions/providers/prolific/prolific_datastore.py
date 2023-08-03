@@ -185,6 +185,22 @@ class ProlificDatastore:
             if unit_id is not None:
                 self._mark_study_mapping_update(unit_id)
 
+    def update_submission_status(self, prolific_submission_id: str, status: str) -> None:
+        """Set prolific_submission_id to unit"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                UPDATE submissions
+                SET status = ?
+                WHERE prolific_submission_id = ?
+                """,
+                (status, prolific_submission_id),
+            )
+            conn.commit()
+            return None
+
     def ensure_requester_exists(self, requester_id: str) -> None:
         """Create a record of this requester if it doesn't exist"""
         with self.table_access_condition:
@@ -339,6 +355,21 @@ class ProlificDatastore:
             conn.commit()
             return None
 
+    def get_unit(self, unit_id: str) -> sqlite3.Row:
+        """Get the details for a unit by unit_id"""
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                SELECT * from units
+                WHERE unit_id = ?;
+                """,
+                (unit_id,),
+            )
+            results = c.fetchall()
+            return results[0]
+
     def set_unit_expired(self, unit_id: str, val: bool) -> None:
         """Set the unit registration status for the given id"""
         self.ensure_unit_exists(unit_id)
@@ -371,6 +402,23 @@ class ProlificDatastore:
             )
             results = c.fetchall()
             return bool(results[0]["is_expired"])
+
+    def set_submission_for_unit(self, unit_id: str, prolific_submission_id: str) -> None:
+        """Set prolific_submission_id to unit"""
+        self.ensure_unit_exists(unit_id)
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                UPDATE units
+                SET prolific_submission_id = ?
+                WHERE unit_id = ?
+                """,
+                (prolific_submission_id, unit_id),
+            )
+            conn.commit()
+            return None
 
     def get_session_for_requester(self, requester_name: str) -> ProlificClient:
         """

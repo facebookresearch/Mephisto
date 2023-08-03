@@ -21,6 +21,7 @@ CREATE_SUBMISSIONS_TABLE = """
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         prolific_submission_id TEXT UNIQUE,
         prolific_study_id TEXT,
+        status TEXT DEFAULT NULL,
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 """
@@ -47,6 +48,7 @@ CREATE_UNITS_TABLE = """
         unit_id TEXT UNIQUE,
         run_id TEXT,
         prolific_study_id TEXT,
+        prolific_submission_id TEXT,
         is_expired BOOLEAN DEFAULT false
     );
 """
