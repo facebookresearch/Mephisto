@@ -46,9 +46,7 @@ def init_config() -> None:
         with open(OLD_DATA_CONFIG_LOC, "r") as data_dir_file:
             loaded_data_dir = data_dir_file.read().strip()
         with open(DEFAULT_CONFIG_FILE, "w") as config_file:
-            config_file.write(
-                yaml.dump({CORE_SECTION: {DATA_STORAGE_KEY: loaded_data_dir}})
-            )
+            config_file.write(yaml.dump({CORE_SECTION: {DATA_STORAGE_KEY: loaded_data_dir}}))
         print(f"Removing DATA_LOC configuration file from {OLD_DATA_CONFIG_LOC}")
         os.unlink(OLD_DATA_CONFIG_LOC)
     elif not os.path.exists(DEFAULT_CONFIG_FILE):

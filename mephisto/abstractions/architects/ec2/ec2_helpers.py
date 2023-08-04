@@ -28,9 +28,7 @@ logger = get_logger(name=__name__)
 if TYPE_CHECKING:
     from omegaconf import DictConfig  # type: ignore
 
-botoconfig = Config(
-    region_name="us-east-2", retries={"max_attempts": 10, "mode": "standard"}
-)
+botoconfig = Config(region_name="us-east-2", retries={"max_attempts": 10, "mode": "standard"})
 
 DEFAULT_AMI_ID = "ami-0f19d220602031aed"
 AMI_DEFAULT_USER = "ec2-user"
@@ -70,9 +68,7 @@ def check_aws_credentials(profile_name: str) -> bool:
         return False
 
 
-def setup_ec2_credentials(
-    profile_name: str, register_args: Optional["DictConfig"] = None
-) -> bool:
+def setup_ec2_credentials(profile_name: str, register_args: Optional["DictConfig"] = None) -> bool:
     return setup_aws_credentials(profile_name, register_args)
 
 
@@ -204,9 +200,7 @@ def get_certificate(session: boto3.Session, domain_name: str) -> Dict[str, str]:
             details = client.describe_certificate(
                 CertificateArn=certificate_arn,
             )
-            return_data = details["Certificate"]["DomainValidationOptions"][0][
-                "ResourceRecord"
-            ]
+            return_data = details["Certificate"]["DomainValidationOptions"][0]["ResourceRecord"]
             return_data["arn"] = certificate_arn
             return return_data
         except KeyError:
@@ -234,9 +228,9 @@ def register_zone_records(
     """
     # Get details about the load balancer
     ec2_client = session.client("elbv2")
-    balancer = ec2_client.describe_load_balancers(
-        LoadBalancerArns=[load_balancer_arn],
-    )["LoadBalancers"][0]
+    balancer = ec2_client.describe_load_balancers(LoadBalancerArns=[load_balancer_arn],)[
+        "LoadBalancers"
+    ][0]
     load_balancer_dns = balancer["DNSName"]
     load_balancer_zone = balancer["CanonicalHostedZoneId"]
 
@@ -905,20 +899,14 @@ def try_server_push(subprocess_args: List[str], retries=5, sleep_time=10.0):
     """
     while retries > 0:
         try:
-            subprocess.check_call(
-                subprocess_args, env=dict(os.environ, SSH_AUTH_SOCK="")
-            )
+            subprocess.check_call(subprocess_args, env=dict(os.environ, SSH_AUTH_SOCK=""))
             return
         except subprocess.CalledProcessError:
             retries -= 1
             sleep_time *= 1.5
-            logger.info(
-                f"Timed out trying to push to server. Retries remaining: {retries}"
-            )
+            logger.info(f"Timed out trying to push to server. Retries remaining: {retries}")
             time.sleep(sleep_time)
-    raise Exception(
-        "Could not successfully push to the ec2 instance. See log for errors."
-    )
+    raise Exception("Could not successfully push to the ec2 instance. See log for errors.")
 
 
 def deploy_fallback_server(
@@ -932,9 +920,7 @@ def deploy_fallback_server(
     return True if successful
     """
     client = session.client("ec2")
-    server_host, allocation_id, association_id = get_instance_address(
-        session, instance_id
-    )
+    server_host, allocation_id, association_id = get_instance_address(session, instance_id)
     try:
         keypair_file = os.path.join(DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
         password_file_name = os.path.join(FALLBACK_SERVER_LOC, f"access_key.txt")
@@ -985,9 +971,7 @@ def deploy_to_routing_server(
     push_directory: str,
 ) -> bool:
     client = session.client("ec2")
-    server_host, allocation_id, association_id = get_instance_address(
-        session, instance_id
-    )
+    server_host, allocation_id, association_id = get_instance_address(session, instance_id)
     keypair_file = os.path.join(DEFAULT_KEY_PAIR_DIRECTORY, f"{key_pair}.pem")
 
     print("Uploading files to server, then attempting to run")
@@ -1066,9 +1050,7 @@ def remove_instance_and_cleanup(
     Cleanup for a launched server, removing the redirect rule
     clearing the target group, and then shutting down the instance.
     """
-    server_detail_path = os.path.join(
-        DEFAULT_SERVER_DETAIL_LOCATION, f"{server_name}.json"
-    )
+    server_detail_path = os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, f"{server_name}.json")
 
     with open(server_detail_path, "r") as detail_file:
         details = json.load(detail_file)

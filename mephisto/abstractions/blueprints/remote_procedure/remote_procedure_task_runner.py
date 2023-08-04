@@ -68,9 +68,7 @@ class RemoteProcedureTaskRunner(TaskRunner):
             assert new_state is not None, "Recently initialized state still None"
             return new_state
 
-    def _agent_in_onboarding_or_live(
-        self, agent: Union["Agent", "OnboardingAgent"]
-    ) -> bool:
+    def _agent_in_onboarding_or_live(self, agent: Union["Agent", "OnboardingAgent"]) -> bool:
         """Determine if an agent server should still be maintained"""
         return (
             agent.get_agent_id() in self.running_units
@@ -123,9 +121,7 @@ class RemoteProcedureTaskRunner(TaskRunner):
         ):
             self._run_server_timestep_for_agent(agent)
 
-        remaining_time = self.assignment_duration_in_seconds - (
-            time.time() - start_time
-        )
+        remaining_time = self.assignment_duration_in_seconds - (time.time() - start_time)
         agent.await_submit(timeout=remaining_time)
 
     def cleanup_onboarding(self, agent: "OnboardingAgent") -> None:
@@ -144,9 +140,7 @@ class RemoteProcedureTaskRunner(TaskRunner):
         ):
             self._run_server_timestep_for_agent(agent)
 
-        remaining_time = self.assignment_duration_in_seconds - (
-            time.time() - start_time
-        )
+        remaining_time = self.assignment_duration_in_seconds - (time.time() - start_time)
         agent.await_submit(timeout=remaining_time)
 
     def cleanup_unit(self, unit: "Unit") -> None:

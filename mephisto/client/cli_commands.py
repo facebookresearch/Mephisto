@@ -15,12 +15,8 @@ def get_wut_arguments(args):
     )
 
     if len(args) == 0:
-        print(
-            "\n[red]Usage: mephisto wut <abstraction>[=<type>] [...specific args to check][/red]"
-        )
-        abstractions_table = create_table(
-            ["Abstraction", "Description"], "\n\n[b]Abstractions[/b]"
-        )
+        print("\n[red]Usage: mephisto wut <abstraction>[=<type>] [...specific args to check][/red]")
+        abstractions_table = create_table(["Abstraction", "Description"], "\n\n[b]Abstractions[/b]")
         abstractions_table.add_row(
             "blueprint",
             f"The blueprint contains all of the related code required to set up a task run. \nValid blueprints types are [b]{get_valid_blueprint_types()}[/b]",
@@ -69,18 +65,12 @@ def get_wut_arguments(args):
             if abstraction == "blueprint":
                 click.echo("The blueprint determines the task content.\n")
                 valid_blueprints_text = """**Valid blueprints are:**"""
-                print_out_valid_options(
-                    valid_blueprints_text, get_valid_blueprint_types()
-                )
+                print_out_valid_options(valid_blueprints_text, get_valid_blueprint_types())
                 return
             elif abstraction == "architect":
-                click.echo(
-                    "The architect determines the server where a task is hosted.\n"
-                )
+                click.echo("The architect determines the server where a task is hosted.\n")
                 valid_architect_text = """**Valid architects are:**"""
-                print_out_valid_options(
-                    valid_architect_text, get_valid_architect_types()
-                )
+                print_out_valid_options(valid_architect_text, get_valid_architect_types())
                 return
             elif abstraction == "requester":
                 click.echo(
@@ -88,14 +78,10 @@ def get_wut_arguments(args):
                     "Use `mephisto requesters` to see registered requesters, and `mephisto register <requester type>` to register.\n"
                 )
                 valid_requester_text = """**Valid requesters are:**"""
-                print_out_valid_options(
-                    valid_requester_text, get_valid_provider_types()
-                )
+                print_out_valid_options(valid_requester_text, get_valid_provider_types())
                 return
             elif abstraction == "provider":
-                click.echo(
-                    "The crowd provider determines the source of the crowd workers.\n"
-                )
+                click.echo("The crowd provider determines the source of the crowd workers.\n")
                 valid_provider_text = """**Valid providers are:**"""
                 print_out_valid_options(valid_provider_text, get_valid_provider_types())
                 return
@@ -121,9 +107,7 @@ def get_wut_arguments(args):
                 valid = get_valid_provider_types()
         elif abstraction == "requester":
             try:
-                target_class = get_crowd_provider_from_type(
-                    abstract_value
-                ).RequesterClass
+                target_class = get_crowd_provider_from_type(abstract_value).RequesterClass
             except:
                 valid = get_valid_provider_types()
         if valid is not None:
@@ -151,15 +135,11 @@ def get_wut_arguments(args):
         first_arg_keys = list(checking_args[first_arg].keys())
         args_table = create_table(
             first_arg_keys,
-            "\n[b]{abstraction} Arguments[/b]".format(
-                abstraction=abstraction.capitalize()
-            ),
+            "\n[b]{abstraction} Arguments[/b]".format(abstraction=abstraction.capitalize()),
         )
         for arg in checking_args:
             if arg in argument_overrides:
-                checking_args[arg][argument_overrides[arg][0]] = argument_overrides[
-                    arg
-                ][1]
+                checking_args[arg][argument_overrides[arg][0]] = argument_overrides[arg][1]
             arg_values = list(checking_args[arg].values())
             arg_values = [str(x) for x in arg_values]
             args_table.add_row(*arg_values)

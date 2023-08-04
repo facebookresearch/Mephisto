@@ -46,17 +46,13 @@ class DataBrowser:
         Return a list of all Units in a terminal completed state from all
         the provided TaskRuns.
         """
-        return self.collect_matching_units_from_task_runs(
-            task_runs, AssignmentState.completed()
-        )
+        return self.collect_matching_units_from_task_runs(task_runs, AssignmentState.completed())
 
     def _get_all_units_for_task_runs(self, task_runs: List[TaskRun]) -> List[Unit]:
         """
         Does the same as _get_units_for_task_runs except that it includes the EXPIRED state
         """
-        return self.collect_matching_units_from_task_runs(
-            task_runs, AssignmentState.final_agent()
-        )
+        return self.collect_matching_units_from_task_runs(task_runs, AssignmentState.final_agent())
 
     def get_task_name_list(self) -> List[str]:
         return [task.task_name for task in self.db.find_tasks()]
@@ -94,9 +90,7 @@ class DataBrowser:
         relevant assignment this unit was a part of.
         """
         agent = unit.get_assigned_agent()
-        assert (
-            agent is not None
-        ), f"Trying to get completed data from unassigned unit {unit}"
+        assert agent is not None, f"Trying to get completed data from unassigned unit {unit}"
         return {
             "worker_id": agent.worker_id,
             "unit_id": unit.db_id,
@@ -121,9 +115,7 @@ class DataBrowser:
         )
         return [Worker.get(self.db, qual.worker_id) for qual in qualifieds]
 
-    def get_metadata_property_from_task_name(
-        self, task_name: str, property_name: str
-    ) -> List[Any]:
+    def get_metadata_property_from_task_name(self, task_name: str, property_name: str) -> List[Any]:
         """Returns all metadata for a task by going through its agents"""
 
         units = self.get_all_units_for_task_name(task_name=task_name)

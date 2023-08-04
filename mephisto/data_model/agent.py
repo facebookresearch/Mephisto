@@ -132,9 +132,7 @@ class _AgentBase(ABC):
     def get_live_run(self) -> "LiveTaskRun":
         """Return the associated live run for this agent. Throw if not set"""
         if self._associated_live_run is None:
-            raise AssertionError(
-                "Should not be getting the live run, not set for given agent"
-            )
+            raise AssertionError("Should not be getting the live run, not set for given agent")
         return self._associated_live_run
 
     def agent_in_active_run(self) -> bool:
@@ -188,9 +186,7 @@ class _AgentBase(ABC):
             live_run = self.get_live_run()
             live_run.client_io.send_live_update(self.get_agent_id(), live_update)
 
-    def get_live_update(
-        self, timeout: Optional[int] = None
-    ) -> Optional[Dict[str, Any]]:
+    def get_live_update(self, timeout: Optional[int] = None) -> Optional[Dict[str, Any]]:
         """
         Request information from the Agent's frontend. If non-blocking,
         (timeout is None) should return None if no actions are ready
@@ -213,9 +209,7 @@ class _AgentBase(ABC):
                 raise AgentReturnedError(self.db_id)
             self.update_status(AgentState.STATUS_TIMEOUT)
             raise AgentTimeoutError(timeout, self.db_id)
-        assert (
-            not self.pending_actions.empty()
-        ), "has_live_update released without an action!"
+        assert not self.pending_actions.empty(), "has_live_update released without an action!"
 
         act = self.pending_actions.get()
 
@@ -289,15 +283,11 @@ class _AgentBase(ABC):
                 "accepted": False,
             }
             if self.state.metadata.tips is None:
-                self.state.update_metadata(
-                    property_name="tips", property_value=[tip_to_add]
-                )
+                self.state.update_metadata(property_name="tips", property_value=[tip_to_add])
             else:
                 copy_of_tips = self.state.metadata.tips.copy()
                 copy_of_tips.append(tip_to_add)
-                self.state.update_metadata(
-                    property_name="tips", property_value=copy_of_tips
-                )
+                self.state.update_metadata(property_name="tips", property_value=copy_of_tips)
 
         elif "feedback" in data:
             questions_and_answers = data["feedback"]["data"]
@@ -370,9 +360,7 @@ class _AgentBase(ABC):
         raise NotImplementedError
 
 
-class Agent(
-    _AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta
-):
+class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
     """
     This class encompasses a worker as they are working on an individual assignment.
     It maintains details for the current task at hand such as start and end time,
@@ -431,9 +419,7 @@ class Agent(
             if row is None:
                 row = db.get_agent(db_id)
             assert row is not None, f"Given db_id {db_id} did not exist in given db"
-            correct_class = get_crowd_provider_from_type(
-                row["provider_type"]
-            ).AgentClass
+            correct_class = get_crowd_provider_from_type(row["provider_type"]).AgentClass
             return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
@@ -487,9 +473,7 @@ class Agent(
         self.db_status = new_status
         if self.agent_in_active_run():
             live_run = self.get_live_run()
-            live_run.loop_wrap.execute_coro(
-                live_run.worker_pool.push_status_update(self)
-            )
+            live_run.loop_wrap.execute_coro(live_run.worker_pool.push_status_update(self))
         if new_status in [
             AgentState.STATUS_RETURNED,
             AgentState.STATUS_DISCONNECT,
@@ -508,10 +492,7 @@ class Agent(
         # Metrics changes
         ACTIVE_AGENT_STATUSES.labels(status=old_status, agent_type="main").dec()
         ACTIVE_AGENT_STATUSES.labels(status=new_status, agent_type="main").inc()
-        if (
-            old_status not in AgentState.complete()
-            and new_status in AgentState.complete()
-        ):
+        if old_status not in AgentState.complete() and new_status in AgentState.complete():
             ACTIVE_WORKERS.labels(worker_id=self.worker_id, agent_type="main").dec()
 
     @staticmethod
@@ -532,9 +513,7 @@ class Agent(
             provider_type,
         )
         a = Agent.get(db, db_id)
-        ACTIVE_AGENT_STATUSES.labels(
-            status=AgentState.STATUS_NONE, agent_type="main"
-        ).inc()
+        ACTIVE_AGENT_STATUSES.labels(status=AgentState.STATUS_NONE, agent_type="main").inc()
         ACTIVE_WORKERS.labels(worker_id=worker.db_id, agent_type="main").inc()
         logger.debug(f"Registered new agent {a} for {unit}.")
         a.update_status(AgentState.STATUS_ACCEPTED)
@@ -572,9 +551,7 @@ class Agent(
                     self.has_live_update.set()
                 if self.agent_in_active_run():
                     live_run = self.get_live_run()
-                    live_run.loop_wrap.execute_coro(
-                        live_run.worker_pool.push_status_update(self)
-                    )
+                    live_run.loop_wrap.execute_coro(live_run.worker_pool.push_status_update(self))
             self.db_status = row["status"]
         return self.db_status
 
@@ -699,9 +676,7 @@ class OnboardingAgent(
                 AgentState.STATUS_REJECTED,
             ]:
                 live_run = self.get_live_run()
-                live_run.loop_wrap.execute_coro(
-                    live_run.worker_pool.push_status_update(self)
-                )
+                live_run.loop_wrap.execute_coro(live_run.worker_pool.push_status_update(self))
         if new_status in [AgentState.STATUS_RETURNED, AgentState.STATUS_DISCONNECT]:
             # Disconnect statuses should free any pending acts
             self.has_live_update.set()
@@ -710,13 +685,8 @@ class OnboardingAgent(
         # Metrics changes
         ACTIVE_AGENT_STATUSES.labels(status=old_status, agent_type="onboarding").dec()
         ACTIVE_AGENT_STATUSES.labels(status=new_status, agent_type="onboarding").inc()
-        if (
-            old_status not in AgentState.complete()
-            and new_status in AgentState.complete()
-        ):
-            ACTIVE_WORKERS.labels(
-                worker_id=self.worker_id, agent_type="onboarding"
-            ).dec()
+        if old_status not in AgentState.complete() and new_status in AgentState.complete():
+            ACTIVE_WORKERS.labels(worker_id=self.worker_id, agent_type="onboarding").dec()
 
     def get_status(self) -> str:
         """Get the status of this agent in their work on their unit"""
@@ -750,9 +720,7 @@ class OnboardingAgent(
             worker.db_id, task_run.task_id, task_run.db_id, task_run.task_type
         )
         a = OnboardingAgent.get(db, db_id)
-        ACTIVE_AGENT_STATUSES.labels(
-            status=AgentState.STATUS_NONE, agent_type="onboarding"
-        ).inc()
+        ACTIVE_AGENT_STATUSES.labels(status=AgentState.STATUS_NONE, agent_type="onboarding").inc()
         ACTIVE_WORKERS.labels(worker_id=worker.db_id, agent_type="onboarding").inc()
         logger.debug(f"Registered new {a} for worker {worker}.")
         return a

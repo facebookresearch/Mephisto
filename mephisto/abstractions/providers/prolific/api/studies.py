@@ -13,14 +13,14 @@ from .data_models import Study
 
 
 class Studies(BaseAPIResource):
-    list_api_endpoint = 'studies/'
-    list_for_project_api_endpoint = 'projects/{project_id}/studies/'
-    retrieve_api_endpoint = 'studies/{id}/'
-    update_api_endpoint = 'studies/{id}/'
-    remove_api_endpoint = 'studies/{id}/'
-    publish_cost_api_endpoint = 'studies/{id}/transition/'
-    stop_cost_api_endpoint = 'studies/{id}/transition/'
-    calculate_cost_api_endpoint = 'study-cost-calculator/'
+    list_api_endpoint = "studies/"
+    list_for_project_api_endpoint = "projects/{project_id}/studies/"
+    retrieve_api_endpoint = "studies/{id}/"
+    update_api_endpoint = "studies/{id}/"
+    remove_api_endpoint = "studies/{id}/"
+    publish_cost_api_endpoint = "studies/{id}/transition/"
+    stop_cost_api_endpoint = "studies/{id}/transition/"
+    calculate_cost_api_endpoint = "study-cost-calculator/"
 
     @classmethod
     def list(cls) -> List[Study]:
@@ -29,7 +29,7 @@ class Studies(BaseAPIResource):
         https://docs.prolific.co/docs/api-docs/public/#tag/Studies/paths/~1api~1v1~1studies~1/get
         """
         response_json = cls.get(cls.list_api_endpoint)
-        studies = [Study(**s) for s in response_json['results']]
+        studies = [Study(**s) for s in response_json["results"]]
         return studies
 
     @classmethod
@@ -41,7 +41,7 @@ class Studies(BaseAPIResource):
         """
         endpoint = cls.list_for_project_api_endpoint.format(project_id=project_id)
         response_json = cls.get(endpoint)
-        studies = [Study(**s) for s in response_json['results']]
+        studies = [Study(**s) for s in response_json["results"]]
         return studies
 
     @classmethod
@@ -116,7 +116,9 @@ class Studies(BaseAPIResource):
 
     @classmethod
     def calculate_cost(
-        cls, reward: Union[int, float], total_available_places: int,
+        cls,
+        reward: Union[int, float],
+        total_available_places: int,
     ) -> Union[int, float]:
         """
         API docs for this endpoint:
@@ -128,4 +130,4 @@ class Studies(BaseAPIResource):
             total_available_places=total_available_places,
         )
         response_json = cls.post(cls.calculate_cost_api_endpoint, params=params)
-        return response_json['total_cost']
+        return response_json["total_cost"]

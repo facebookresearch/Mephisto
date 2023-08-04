@@ -110,9 +110,7 @@ class TaskRunner(ABC):
     passing agents through a task.
     """
 
-    def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
-    ):
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
         self.args = args
         self.shared_state = shared_state
         self.task_run = task_run
@@ -172,9 +170,7 @@ class TaskRunner(ABC):
         """Supervise the completion of an onboarding"""
         with ONGOING_THREAD_COUNT.labels(
             thread_type="onboarding"
-        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(
-            thread_type="onboarding"
-        ).time():
+        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(thread_type="onboarding").time():
             live_run = onboarding_agent.get_live_run()
             onboarding_id = onboarding_agent.get_agent_id()
             logger.debug(f"Launching onboarding for {onboarding_agent}")
@@ -202,9 +198,7 @@ class TaskRunner(ABC):
             if onboarding_agent.get_status() == AgentState.STATUS_WAITING:
                 # The agent completed the onboarding task
                 async def register_then_cleanup():
-                    await live_run.worker_pool.register_agent_from_onboarding(
-                        onboarding_agent
-                    )
+                    await live_run.worker_pool.register_agent_from_onboarding(onboarding_agent)
                     await cleanup_after()
 
                 live_run.loop_wrap.execute_coro(register_then_cleanup())
@@ -267,9 +261,7 @@ class TaskRunner(ABC):
         """Supervise the completion of a unit thread"""
         with ONGOING_THREAD_COUNT.labels(
             thread_type="unit"
-        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(
-            thread_type="unit"
-        ).time():
+        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(thread_type="unit").time():
             try:
                 self.run_unit(unit, agent)
             except (
@@ -348,9 +340,7 @@ class TaskRunner(ABC):
         """Supervise the completion of an assignment thread"""
         with ONGOING_THREAD_COUNT.labels(
             thread_type="assignment"
-        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(
-            thread_type="assignment"
-        ).time():
+        ).track_inprogress(), EXECUTION_DURATION_SECONDS.labels(thread_type="assignment").time():
             try:
                 self.run_assignment(assignment, agents)
             except (

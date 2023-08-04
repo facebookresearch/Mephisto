@@ -71,9 +71,7 @@ class MockProvider(CrowdProvider):
         """Mocks don't do any initialization"""
         return None
 
-    def cleanup_resources_from_task_run(
-        self, task_run: "TaskRun", server_url: str
-    ) -> None:
+    def cleanup_resources_from_task_run(self, task_run: "TaskRun", server_url: str) -> None:
         """Mocks don't do any initialization"""
         return None
 

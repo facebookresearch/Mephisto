@@ -104,9 +104,7 @@ class TaskLauncher:
         self.assignments.append(assignment)
         unit_count = len(assignment_data.unit_data)
         for unit_idx in range(unit_count):
-            unit = self.UnitClass.new(
-                self.db, assignment, unit_idx, task_args.task_reward
-            )
+            unit = self.UnitClass.new(self.db, assignment, unit_idx, task_args.task_reward)
             self.units.append(unit)
             with self.unlaunched_units_access_condition:
                 self.unlaunched_units[unit.db_id] = unit
@@ -147,10 +145,7 @@ class TaskLauncher:
             units_id_to_remove = []
             for db_id, unit in self.launched_units.items():
                 status = unit.get_status()
-                if (
-                    status != AssignmentState.LAUNCHED
-                    and status != AssignmentState.ASSIGNED
-                ):
+                if status != AssignmentState.LAUNCHED and status != AssignmentState.ASSIGNED:
                     units_id_to_remove.append(db_id)
             for db_id in units_id_to_remove:
                 self.launched_units.pop(db_id)
@@ -204,9 +199,7 @@ class TaskLauncher:
         )
         self.units_thread.start()
 
-    def launch_evaluation_unit(
-        self, unit_data: Dict[str, Any], unit_type_index: int
-    ) -> "Unit":
+    def launch_evaluation_unit(self, unit_data: Dict[str, Any], unit_type_index: int) -> "Unit":
         """Launch a specific evaluation unit, used for quality control"""
         assert (
             self.launch_url is not None

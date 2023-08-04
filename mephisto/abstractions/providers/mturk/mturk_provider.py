@@ -94,19 +94,16 @@ class MTurkProvider(CrowdProvider):
         qualifications = []
         for qualification in shared_state.qualifications:
             applicable_providers = qualification["applicable_providers"]
-            if (
-                applicable_providers is None
-                or self.PROVIDER_TYPE in applicable_providers
-            ):
+            if applicable_providers is None or self.PROVIDER_TYPE in applicable_providers:
                 qualifications.append(qualification)
         for qualification in qualifications:
             qualification_name = qualification["qualification_name"]
             if requester.PROVIDER_TYPE == "mturk_sandbox":
                 qualification_name += "_sandbox"
             if self.datastore.get_qualification_mapping(qualification_name) is None:
-                qualification[
-                    "QualificationTypeId"
-                ] = requester._create_new_mturk_qualification(qualification_name)
+                qualification["QualificationTypeId"] = requester._create_new_mturk_qualification(
+                    qualification_name
+                )
 
         if hasattr(shared_state, "mturk_specific_qualifications"):
             # TODO(OWN) standardize provider-specific qualifications
@@ -115,14 +112,10 @@ class MTurkProvider(CrowdProvider):
         # Set up HIT type
         client = self._get_client(requester._requester_name)
         hit_type_id = create_hit_type(client, task_args, qualifications)
-        frame_height = (
-            task_run.get_blueprint().get_frontend_args().get("frame_height", 0)
-        )
+        frame_height = task_run.get_blueprint().get_frontend_args().get("frame_height", 0)
         self.datastore.register_run(task_run_id, hit_type_id, config_dir, frame_height)
 
-    def cleanup_resources_from_task_run(
-        self, task_run: "TaskRun", server_url: str
-    ) -> None:
+    def cleanup_resources_from_task_run(self, task_run: "TaskRun", server_url: str) -> None:
         """No cleanup necessary for task type"""
         pass
 

@@ -21,10 +21,7 @@ def create_blueprint_info(blueprint_file, arg_dict):
                 if isinstance(item_content, str)
                 else item_content
             )
-            if (
-                isinstance(item_to_append, str)
-                and item_to_append.rfind("mephisto/") != -1
-            ):
+            if isinstance(item_to_append, str) and item_to_append.rfind("mephisto/") != -1:
                 item_to_append = item_to_append[
                     item_to_append.rfind("mephisto/") : len(item_to_append)
                 ]

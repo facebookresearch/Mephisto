@@ -25,12 +25,13 @@ class BaseEligibilityRequirement:
         3. In the code all these requirements will be converted to the Prolific format
         (see mephisto.abstractions.providers.prolific.prolific_utils._get_eligibility_requirements)
     """
+
     prolific_cls_name = None
 
     @classmethod
     def params(cls):
         params = list(inspect.signature(cls.__init__).parameters.keys())
-        params.remove('self')
+        params.remove("self")
         return params
 
     def to_prolific_dict(self) -> dict:
@@ -45,16 +46,18 @@ class BaseEligibilityRequirement:
                 param_value = list(param_value)
 
             if param_value:
-                prolific_dict['attributes'].append(dict(
-                    name=param_name,
-                    value=param_value,
-                ))
+                prolific_dict["attributes"].append(
+                    dict(
+                        name=param_name,
+                        value=param_value,
+                    )
+                )
         return prolific_dict
 
     def __str__(self) -> str:
         _str = self.__class__.__name__
         for param_name in self.params():
-            _str += f' {param_name}={getattr(self, param_name, None)}'
+            _str += f" {param_name}={getattr(self, param_name, None)}"
         return _str
 
     def __repr__(self) -> str:

@@ -11,16 +11,16 @@ from .data_models import EligibilityRequirement
 
 
 class EligibilityRequirements(BaseAPIResource):
-    list_api_endpoint = 'eligibility-requirements/'
-    count_api_endpoint = 'eligibility-count/'
+    list_api_endpoint = "eligibility-requirements/"
+    count_api_endpoint = "eligibility-count/"
 
     @classmethod
     def list(cls) -> List[EligibilityRequirement]:
         response_json = cls.get(cls.list_api_endpoint)
-        eligibility_requirements = [EligibilityRequirement(**s) for s in response_json['results']]
+        eligibility_requirements = [EligibilityRequirement(**s) for s in response_json["results"]]
         return eligibility_requirements
 
     @classmethod
     def count_participants(cls) -> int:
         response_json = cls.post(cls.count_api_endpoint)
-        return response_json['count']
+        return response_json["count"]

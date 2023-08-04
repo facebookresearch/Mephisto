@@ -202,9 +202,7 @@ class ScreenTaskRequired(BlueprintMixin):
             return None  # No screening units left...
 
     @classmethod
-    def create_validation_function(
-        cls, args: "DictConfig", screen_unit: Callable[["Unit"], bool]
-    ):
+    def create_validation_function(cls, args: "DictConfig", screen_unit: Callable[["Unit"], bool]):
         """
         Takes in a validator function to determine if validation units are
         passable, and returns a `on_unit_submitted` function to be used
@@ -219,9 +217,8 @@ class ScreenTaskRequired(BlueprintMixin):
             agent = unit.get_assigned_agent()
             if agent is None:
                 return  # Cannot validate a unit with no agent
-            if (
-                args.blueprint.max_screening_units == 0
-                and agent.get_worker().is_qualified(passed_qualification_name)
+            if args.blueprint.max_screening_units == 0 and agent.get_worker().is_qualified(
+                passed_qualification_name
             ):
                 return  # Do not run validation if screening with regular tasks and worker is already qualified
             validation_result = screen_unit(unit)
@@ -233,9 +230,7 @@ class ScreenTaskRequired(BlueprintMixin):
         return _wrapped_validate
 
     @classmethod
-    def get_mixin_qualifications(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ):
+    def get_mixin_qualifications(cls, args: "DictConfig", shared_state: "SharedTaskState"):
         """Creates the relevant task qualifications for this task"""
         passed_qualification_name = args.blueprint.passed_qualification_name
         failed_qualification_name = args.blueprint.block_qualification

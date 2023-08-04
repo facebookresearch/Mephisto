@@ -29,9 +29,7 @@ class TestDataModel(unittest.TestCase):
         found_keys = [k for k in dir(a_state) if k.upper() == k]
         found_vals = [getattr(a_state, k) for k in found_keys]
         for v in found_vals:
-            self.assertIn(
-                v, found_valid, f"Expected to find {v} in valid list {found_valid}"
-            )
+            self.assertIn(v, found_valid, f"Expected to find {v} in valid list {found_valid}")
         for sublist, found_array in SUBARRAYS.items():
             for v in found_array:
                 self.assertIn(

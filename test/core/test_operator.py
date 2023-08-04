@@ -69,15 +69,11 @@ class OperatorBaseTest(object):
         shutil.rmtree(self.data_dir, ignore_errors=True)
         SHUTDOWN_TIMEOUT = 10
         threads = threading.enumerate()
-        target_threads = [
-            t for t in threads if not isinstance(t, TMonitor) and not t.daemon
-        ]
+        target_threads = [t for t in threads if not isinstance(t, TMonitor) and not t.daemon]
         start_time = time.time()
         while len(target_threads) > 1 and time.time() - start_time < SHUTDOWN_TIMEOUT:
             threads = threading.enumerate()
-            target_threads = [
-                t for t in threads if not isinstance(t, TMonitor) and not t.daemon
-            ]
+            target_threads = [t for t in threads if not isinstance(t, TMonitor) and not t.daemon]
             time.sleep(0.3)
         self.assertTrue(
             time.time() - start_time < SHUTDOWN_TIMEOUT,
@@ -110,8 +106,7 @@ class OperatorBaseTest(object):
     def assert_sandbox_worker_created(self, worker_name, timeout=2) -> None:
         self.assertTrue(  # type: ignore
             self.operator._run_loop_until(
-                lambda: len(self.db.find_workers(worker_name=worker_name + "_sandbox"))
-                > 0,
+                lambda: len(self.db.find_workers(worker_name=worker_name + "_sandbox")) > 0,
                 timeout,
             ),
             f"Worker {worker_name} not created in time!",
@@ -190,9 +185,7 @@ class OperatorBaseTest(object):
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
         self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
-        )
+        self.assertLess(time.time() - start_time, TIMEOUT_TIME, "Task not completed in time")
 
         # Ensure the assignment is completed
         task_run = tracked_run.task_run
@@ -252,9 +245,7 @@ class OperatorBaseTest(object):
         # Give up to 5 seconds for both tasks to complete
         start_time = time.time()
         self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
-        )
+        self.assertLess(time.time() - start_time, TIMEOUT_TIME, "Task not completed in time")
 
         # Ensure the assignment is completed
         task_run = tracked_run.task_run
@@ -294,9 +285,7 @@ class OperatorBaseTest(object):
         # Give a few seconds for the operator to shutdown
         start_time = time.time()
         self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Task shutdown not enacted in time"
-        )
+        self.assertLess(time.time() - start_time, TIMEOUT_TIME, "Task shutdown not enacted in time")
 
         # Ensure the task run was forced to shut down
         task_run = tracked_run.task_run
@@ -439,9 +428,7 @@ class OperatorBaseTest(object):
         # Give up to 5 seconds for whole mock task to complete
         start_time = time.time()
         self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
-        )
+        self.assertLess(time.time() - start_time, TIMEOUT_TIME, "Task not completed in time")
 
         self.operator.shutdown()
         # Create a new operator, shutdown is a one-time thing
@@ -512,9 +499,7 @@ class OperatorBaseTest(object):
         # Ensure the task run completed and that all assignments are done
         start_time = time.time()
         self.operator._wait_for_runs_in_testing(TIMEOUT_TIME)
-        self.assertLess(
-            time.time() - start_time, TIMEOUT_TIME, "Task not completed in time"
-        )
+        self.assertLess(time.time() - start_time, TIMEOUT_TIME, "Task not completed in time")
         task_run = tracked_run.task_run
         assignments = task_run.get_assignments()
         for assignment in assignments:

@@ -51,9 +51,7 @@ def register_mephisto_abstraction():
                 f"Provided class {base_class} not a child of one of the mephisto "
                 "abstractions, expected one of Blueprint, Architect, or CrowdProvider."
             )
-        register_abstraction_config(
-            name=name, node=base_class.ArgsClass, abstraction_type=type_key
-        )
+        register_abstraction_config(name=name, node=base_class.ArgsClass, abstraction_type=type_key)
         return base_class
 
     return register_cls
@@ -93,22 +91,16 @@ def fill_registries():
                 )
 
     # Import Mephisto Architects
-    architect_root = os.path.join(
-        get_root_dir(), "mephisto", "abstractions", "architects"
-    )
+    architect_root = os.path.join(get_root_dir(), "mephisto", "abstractions", "architects")
     for filename in os.listdir(architect_root):
         if filename.endswith("architect.py"):
             architect_name = filename[: filename.find(".py")]
-            importlib.import_module(
-                f"mephisto.abstractions.architects.{architect_name}"
-            )
+            importlib.import_module(f"mephisto.abstractions.architects.{architect_name}")
     # After imports are recursive, manage this more cleanly
     importlib.import_module("mephisto.abstractions.architects.ec2.ec2_architect")
 
     # Import Mephisto Blueprints
-    blueprint_root = os.path.join(
-        get_root_dir(), "mephisto", "abstractions", "blueprints"
-    )
+    blueprint_root = os.path.join(get_root_dir(), "mephisto", "abstractions", "blueprints")
     for dir_name in os.listdir(blueprint_root):
         blueprint_dir = os.path.join(blueprint_root, dir_name)
         if not os.path.isdir(blueprint_dir):
@@ -126,9 +118,7 @@ def get_crowd_provider_from_type(provider_type: str) -> Type["CrowdProvider"]:
     if provider_type in PROVIDERS:
         return PROVIDERS[provider_type]
     else:
-        raise NotImplementedError(
-            f"Missing provider type {provider_type}, is it registered?"
-        )
+        raise NotImplementedError(f"Missing provider type {provider_type}, is it registered?")
 
 
 def get_blueprint_from_type(task_type: str) -> Type["Blueprint"]:
@@ -136,9 +126,7 @@ def get_blueprint_from_type(task_type: str) -> Type["Blueprint"]:
     if task_type in BLUEPRINTS:
         return BLUEPRINTS[task_type]
     else:
-        raise NotImplementedError(
-            f"Missing blueprint type {task_type}, is it registered?"
-        )
+        raise NotImplementedError(f"Missing blueprint type {task_type}, is it registered?")
 
 
 def get_architect_from_type(architect_type: str) -> Type["Architect"]:
@@ -146,9 +134,7 @@ def get_architect_from_type(architect_type: str) -> Type["Architect"]:
     if architect_type in ARCHITECTS:
         return ARCHITECTS[architect_type]
     else:
-        raise NotImplementedError(
-            f"Missing architect type {architect_type}, is it registered?"
-        )
+        raise NotImplementedError(f"Missing architect type {architect_type}, is it registered?")
 
 
 def get_valid_provider_types() -> List[str]:

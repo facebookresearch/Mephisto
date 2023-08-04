@@ -48,15 +48,10 @@ class MockUnit(Unit):
         # TODO(OWN) get this link to the frontend
         port = task_url.split(":")[1].split("/")[0]
         if port:
-            assignment_url = (
-                f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
-            )
+            assignment_url = f"http://localhost:{port}/?worker_id=x&assignment_id={self.db_id}"
         else:
             assignment_url = f"{task_url}/?worker_id=x&assignment_id={self.db_id}"
-        print(
-            f"Mock task launched: http://localhost:{port} for preview, "
-            f"{assignment_url}"
-        )
+        print(f"Mock task launched: http://localhost:{port} for preview, " f"{assignment_url}")
         logger.info(
             f"Mock task launched: http://localhost:{port} for preview, "
             f"{assignment_url} for assignment {self.assignment_id}"
@@ -79,8 +74,6 @@ class MockUnit(Unit):
         return self.datastore.get_unit_expired(self.db_id)
 
     @staticmethod
-    def new(
-        db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float
-    ) -> "Unit":
+    def new(db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float) -> "Unit":
         """Create a Unit for the given assignment"""
         return MockUnit._register_unit(db, assignment, index, pay_amount, PROVIDER_TYPE)

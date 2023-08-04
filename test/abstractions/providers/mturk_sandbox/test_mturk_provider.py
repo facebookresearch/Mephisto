@@ -78,21 +78,15 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
         qualification_name = f"mephisto_test_qualification_{int(time.time())}"
         extended_qualification_name = f"{qualification_name}_sandbox"
 
-        qual_mapping = worker.datastore.get_qualification_mapping(
-            extended_qualification_name
-        )
+        qual_mapping = worker.datastore.get_qualification_mapping(extended_qualification_name)
         self.assertIsNone(qual_mapping)
 
         mephisto_qual_id = db.make_qualification(qualification_name)
 
-        self.assertTrue(
-            worker.grant_qualification(qualification_name), "Qualification not granted"
-        )
+        self.assertTrue(worker.grant_qualification(qualification_name), "Qualification not granted")
 
         # ensure the qualification exists
-        qual_mapping = worker.datastore.get_qualification_mapping(
-            extended_qualification_name
-        )
+        qual_mapping = worker.datastore.get_qualification_mapping(extended_qualification_name)
         self.assertIsNotNone(qual_mapping)
         assert qual_mapping is not None, "For typing, already asserted this isn't None"
 
@@ -112,15 +106,11 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
             worker.revoke_qualification(qualification_name), "Qualification not revoked"
         )
 
-        owned, found_qual = find_qualification(
-            client, qual_mapping["mturk_qualification_name"]
-        )
+        owned, found_qual = find_qualification(client, qual_mapping["mturk_qualification_name"])
         start_time = time.time()
         while found_qual is None:
             time.sleep(1)
-            owned, found_qual = find_qualification(
-                client, qual_mapping["mturk_qualification_name"]
-            )
+            owned, found_qual = find_qualification(client, qual_mapping["mturk_qualification_name"])
             self.assertFalse(
                 time.time() - start_time > 20,
                 "MTurk did not register qualification creation",
@@ -132,9 +122,7 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
 
         # TODO(#97) assert the worker does not have the qualification
 
-        self.assertTrue(
-            worker.grant_qualification(qualification_name), "Qualification not granted"
-        )
+        self.assertTrue(worker.grant_qualification(qualification_name), "Qualification not granted")
 
         # TODO(#97) assert that the worker has the qualification
 
@@ -144,21 +132,15 @@ class TestSandboxMTurkCrowdProvider(CrowdProviderTests):
 
         # TODO(#97) assert the worker no longer has the qualification again
 
-        self.assertFalse(
-            worker.revoke_qualification(qualification_name), "Can't revoke qual twice"
-        )
+        self.assertFalse(worker.revoke_qualification(qualification_name), "Can't revoke qual twice")
 
         db.delete_qualification(qualification_name)
 
-        owned, found_qual = find_qualification(
-            client, qual_mapping["mturk_qualification_name"]
-        )
+        owned, found_qual = find_qualification(client, qual_mapping["mturk_qualification_name"])
         start_time = time.time()
         while found_qual is not None:
             time.sleep(1)
-            owned, found_qual = find_qualification(
-                client, qual_mapping["mturk_qualification_name"]
-            )
+            owned, found_qual = find_qualification(client, qual_mapping["mturk_qualification_name"])
             self.assertFalse(
                 time.time() - start_time > 20,
                 "MTurk did not register qualification deletion",

@@ -122,9 +122,7 @@ class ParlAIChatBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
     )
     num_conversations: int = field(
         default=MISSING,
-        metadata={
-            "help": "Optional count of conversations to have if no context provided"
-        },
+        metadata={"help": "Optional count of conversations to have if no context provided"},
     )
 
 
@@ -184,9 +182,7 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
         self.world_module = world_module
         assert hasattr(world_module, "make_world")
         assert hasattr(world_module, "get_world_params")
-        self.agent_count = world_module.get_world_params()[  # type: ignore
-            "agent_count"
-        ]
+        self.agent_count = world_module.get_world_params()["agent_count"]  # type: ignore
 
         self.full_task_description = MISSING_SOMETHING_TEXT
         if args.blueprint.get("task_description_file", None) is not None:
@@ -206,9 +202,7 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
                 self.full_preview_description = description_fp.read()
 
     @classmethod
-    def assert_task_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         """Ensure that arguments are properly configured to launch this task"""
         # Find world module
         assert isinstance(
@@ -225,9 +219,7 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
             world_module_name = os.path.basename(world_file_path)[:-3]
             world_module = import_module(world_module_name)
         # assert world file is valid
-        assert hasattr(
-            world_module, "make_world"
-        ), "Provided world file has no `make_world` method"
+        assert hasattr(world_module, "make_world"), "Provided world file has no `make_world` method"
         assert hasattr(
             world_module, "get_world_params"
         ), "Provided world file has no `get_world_params` method"
@@ -235,35 +227,27 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
         # assert some method for determining quantity of conversations
         if args.blueprint.get("context_csv", None) is not None:
             csv_file = os.path.expanduser(args.blueprint.context_csv)
-            assert os.path.exists(
-                csv_file
-            ), f"Target context_csv path {csv_file} doesn't exist"
+            assert os.path.exists(csv_file), f"Target context_csv path {csv_file} doesn't exist"
         elif args.blueprint.get("context_jsonl", None) is not None:
             jsonl_file = os.path.expanduser(args.blueprint.context_jsonl)
             assert os.path.exists(
                 jsonl_file
             ), f"Target context_jsonl path {jsonl_file} doesn't exist"
         elif args.blueprint.get("num_conversations", None) is not None:
-            assert (
-                args.blueprint.num_conversations > 0
-            ), "Must have at least one conversation"
+            assert args.blueprint.num_conversations > 0, "Must have at least one conversation"
         else:
             raise AssertionError(
                 "Must specify one of --context-csv, --context-jsonl or --num-conversations"
             )
 
         if args.blueprint.get("custom_source_bundle", None) is not None:
-            custom_source_file_path = os.path.expanduser(
-                args.blueprint.custom_source_bundle
-            )
+            custom_source_file_path = os.path.expanduser(args.blueprint.custom_source_bundle)
             assert os.path.exists(
                 custom_source_file_path
             ), f"Provided custom bundle doesn't exist at {custom_source_file_path}"
 
         if args.blueprint.get("custom_source_dir", None) is not None:
-            custom_source_dir_path = os.path.expanduser(
-                args.blueprint.custom_source_dir
-            )
+            custom_source_dir_path = os.path.expanduser(args.blueprint.custom_source_dir)
             assert os.path.exists(
                 custom_source_dir_path
             ), f"Provided custom source dir doesn't exist at {custom_source_dir_path}"
@@ -298,8 +282,7 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
                 "preview_html": self.full_preview_description,
                 "frame_height": 650,
                 "chat_title": self.args.task.task_title,
-                "has_preview": self.args.blueprint.get("preview_source", None)
-                is not None,
+                "has_preview": self.args.blueprint.get("preview_source", None) is not None,
                 "block_mobile": True,
                 "frontend_task_opts": shared_state.frontend_task_opts,
             }
@@ -317,9 +300,7 @@ class ParlAIChatBlueprint(OnboardingRequired, Blueprint):
             for d in self._initialization_data_dicts
         ]
 
-    def validate_onboarding(
-        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
-    ) -> bool:
+    def validate_onboarding(self, worker: "Worker", onboarding_agent: "OnboardingAgent") -> bool:
         if hasattr(self.world_module, "validate_onboarding"):
             return self.world_module.validate_onboarding(  # type: ignore
                 onboarding_agent.state.get_data()

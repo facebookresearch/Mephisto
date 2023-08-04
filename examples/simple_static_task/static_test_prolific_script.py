@@ -14,7 +14,7 @@ from mephisto.tools.scripts import task_script
 from mephisto.utils.qualifications import make_qualification_dict
 
 
-@task_script(default_config_file='prolific_example')
+@task_script(default_config_file="prolific_example")
 def main(operator, cfg: DictConfig) -> None:
     shared_state = SharedStaticTaskState()
 
@@ -27,9 +27,9 @@ def main(operator, cfg: DictConfig) -> None:
     # Note that we'll prefix names with a customary `web.eligibility.models.` later in the code
     shared_state.prolific_specific_qualifications = [
         {
-            'name': 'AgeRangeEligibilityRequirement',
-            'min_age': 18,
-            'max_age': 100,
+            "name": "AgeRangeEligibilityRequirement",
+            "min_age": 18,
+            "max_age": 100,
         },
     ]
 
@@ -37,5 +37,5 @@ def main(operator, cfg: DictConfig) -> None:
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

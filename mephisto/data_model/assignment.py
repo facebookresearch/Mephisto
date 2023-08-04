@@ -43,9 +43,7 @@ class InitializationData:
     @staticmethod
     def loadFromJSON(fp: IO[str]):
         as_dict = json.load(fp)
-        return InitializationData(
-            shared=as_dict["shared"], unit_data=as_dict["unit_data"]
-        )
+        return InitializationData(shared=as_dict["shared"], unit_data=as_dict["unit_data"])
 
 
 class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
@@ -135,12 +133,7 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
             # If any are still assigned, consider the whole thing assigned
             return AssignmentState.ASSIGNED
 
-        if all(
-            [
-                s in [AssignmentState.ACCEPTED, AssignmentState.REJECTED]
-                for s in statuses
-            ]
-        ):
+        if all([s in [AssignmentState.ACCEPTED, AssignmentState.REJECTED] for s in statuses]):
             return AssignmentState.MIXED
 
         if all([s in AssignmentState.final_agent() for s in statuses]):
@@ -183,9 +176,7 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
         Get units for this assignment, optionally
         constrained by the specific status.
         """
-        assert (
-            status is None or status in AssignmentState.valid_unit()
-        ), "Invalid assignment status"
+        assert status is None or status in AssignmentState.valid_unit(), "Invalid assignment status"
         units = self.db.find_units(assignment_id=self.db_id)
         if status is not None:
             units = [u for u in units if u.get_status() == status]
@@ -238,9 +229,7 @@ class Assignment(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta
         assign_dir = os.path.join(run_dir, db_id)
         os.makedirs(assign_dir)
         if assignment_data is not None:
-            with open(
-                os.path.join(assign_dir, ASSIGNMENT_DATA_FILE), "w+"
-            ) as json_file:
+            with open(os.path.join(assign_dir, ASSIGNMENT_DATA_FILE), "w+") as json_file:
                 json.dump(assignment_data, json_file)
         assignment = Assignment.get(db, db_id)
         logger.debug(f"{assignment} created for {task_run}")

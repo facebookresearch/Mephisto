@@ -85,9 +85,7 @@ class AgentState(ABC):
             if isinstance(agent, Agent):
                 correct_class = get_blueprint_from_type(agent.task_type).AgentStateClass
             else:
-                correct_class = get_blueprint_from_type(
-                    agent.task_type
-                ).OnboardingAgentStateClass
+                correct_class = get_blueprint_from_type(agent.task_type).OnboardingAgentStateClass
             return super().__new__(correct_class)
         else:
             # We are constructing another instance directly

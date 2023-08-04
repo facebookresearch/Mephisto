@@ -62,9 +62,7 @@ class LocalArchitectTests(ArchitectTests):
     def server_is_shutdown(self) -> bool:
         """Ensure process is no longer running"""
         assert self.curr_architect is not None, "No architect to check"
-        assert (
-            self.curr_architect.server_process is not None
-        ), "architect has no server process"
+        assert self.curr_architect.server_process is not None, "architect has no server process"
         return self.curr_architect.server_process.returncode is not None
 
     # TODO(#102) maybe a test where we need to re-instance an architect?
@@ -75,10 +73,7 @@ class LocalArchitectTests(ArchitectTests):
         if self.curr_architect is not None:
             if self.curr_architect.running_dir is not None:
                 sh.rm(shlex.split("-rf " + self.curr_architect.running_dir))
-            if (
-                self.curr_architect.server_process is not None
-                and not self.server_is_shutdown()
-            ):
+            if self.curr_architect.server_process is not None and not self.server_is_shutdown():
                 self.curr_architect.server_process.terminate()
                 self.curr_architect.server_process.wait()
 

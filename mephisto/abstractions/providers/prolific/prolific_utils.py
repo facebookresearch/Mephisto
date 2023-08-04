@@ -120,19 +120,19 @@ def _convert_eligibility_requirements(value: List[dict]) -> List[dict]:
                         cls_kwargs[param_name] = conf_eligibility_requirement[param_name]
                 eligibility_requirements.append(cls(**cls_kwargs).to_prolific_dict())
     except Exception:
-        logger.exception('Could not convert passed Eligibility Requirements')
+        logger.exception("Could not convert passed Eligibility Requirements")
         # Generate human-readable log what Eligibility Requirements and with what parameters
         # are available.
         available_classes = inspect.getmembers(
-            sys.modules[eligibility_requirement_classes.__name__], inspect.isclass,
+            sys.modules[eligibility_requirement_classes.__name__],
+            inspect.isclass,
         )
-        log_classes_dicts = [{
-            'name': c[0],
-            **{p: '<value>' for p in c[1].params()}
-        } for c in available_classes]
+        log_classes_dicts = [
+            {"name": c[0], **{p: "<value>" for p in c[1].params()}} for c in available_classes
+        ]
         logger.info(
-            f'Available Eligibility Requirements in short form for config:\n' +
-            '\n'.join([str(i) for i in log_classes_dicts])
+            f"Available Eligibility Requirements in short form for config:\n"
+            + "\n".join([str(i) for i in log_classes_dicts])
         )
         raise
 
@@ -152,9 +152,7 @@ def check_balance(client: ProlificClient, **kwargs) -> Union[float, int, None]:
         return None
 
     try:
-        workspace_balance: WorkspaceBalance = client.Workspaces.get_balance(
-            id=workspace.id
-        )
+        workspace_balance: WorkspaceBalance = client.Workspaces.get_balance(id=workspace.id)
     except (ProlificException, ValidationError):
         logger.exception(f"Could not receive a workspace balance with {workspace.id=}")
         raise
@@ -279,9 +277,7 @@ def _find_qualification(
             project_id=prolific_project_id,
         )
     except (ProlificException, ValidationError):
-        logger.exception(
-            f'Could not receive a qualifications for project "{prolific_project_id}"'
-        )
+        logger.exception(f'Could not receive a qualifications for project "{prolific_project_id}"')
         raise
 
     for qualification in qualifications:
@@ -406,9 +402,7 @@ def create_study(
     # Initially provide a random completion code during study
     completion_codes_random = compose_completion_codes(uuid.uuid4().hex[:5])
 
-    logger.debug(
-        f"Initial completion codes for creating Study: {completion_codes_random}"
-    )
+    logger.debug(f"Initial completion codes for creating Study: {completion_codes_random}")
 
     try:
         # TODO (#1008): Make sure that all parameters are correct
@@ -434,9 +428,7 @@ def create_study(
         #  This code will be used to redirect worker to Prolific's "Submission Completed" page
         #  (see `mephisto.abstractions.providers.prolific.wrap_crowd_source.handleSubmitToProvider`)
         completion_codes_with_study_id = compose_completion_codes(study.id)
-        logger.debug(
-            f"Final completion codes for updating Study: {completion_codes_with_study_id}"
-        )
+        logger.debug(f"Final completion codes for updating Study: {completion_codes_with_study_id}")
         study: Study = client.Studies.update(
             id=study.id,
             completion_codes=completion_codes_with_study_id,
@@ -599,9 +591,7 @@ def pay_bonus(
         workspace_name=task_run_config.provider.prolific_workspace_name,
     ):
         # Just in case if Prolific adds showing an available balance for an account
-        logger.debug(
-            "Cannot pay bonus. Reason: Insufficient funds in your Prolific account."
-        )
+        logger.debug("Cannot pay bonus. Reason: Insufficient funds in your Prolific account.")
         return False
 
     # Unlike all other Prolific endpoints working with cents, this one requires dollars
@@ -670,12 +660,14 @@ def unblock_worker(
 
 
 def is_worker_blocked(
-    client: ProlificClient, task_run_config: "DictConfig", worker_id: str,
+    client: ProlificClient,
+    task_run_config: "DictConfig",
+    worker_id: str,
 ) -> bool:
-    """ Determine if the given worker is blocked by this client
+    """Determine if the given worker is blocked by this client
 
-        TODO (#1008): do we even need to check with Prolific "Blocked Participants" group
-            (as opposed to out datastore)? Because it doesn't reflect Prolific's internal banning
+    TODO (#1008): do we even need to check with Prolific "Blocked Participants" group
+        (as opposed to out datastore)? Because it doesn't reflect Prolific's internal banning
     """
     workspace = find_or_create_prolific_workspace(
         client,
@@ -696,9 +688,7 @@ def is_worker_blocked(
         return False
 
     try:
-        participants: List[
-            Participant
-        ] = client.ParticipantGroups.list_participants_for_group(
+        participants: List[Participant] = client.ParticipantGroups.list_participants_for_group(
             block_list_qualification.id,
         )
     except (ProlificException, ValidationError):
@@ -759,14 +749,14 @@ def get_submission(client: ProlificClient, submission_id: str) -> Submission:
 
 
 def approve_work(
-    client: ProlificClient, study_id: str, worker_id: str,
+    client: ProlificClient,
+    study_id: str,
+    worker_id: str,
 ) -> Union[Submission, None]:
     submission: ListSubmission = _find_submission(client, study_id, worker_id)
 
     if not submission:
-        logger.warning(
-            f'No submission found for study "{study_id}" and participant "{worker_id}"'
-        )
+        logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
         return None
 
     # TODO (#1008): Maybe we need to expand handling submission statuses
@@ -788,14 +778,14 @@ def approve_work(
 
 
 def reject_work(
-    client: ProlificClient, study_id: str, worker_id: str,
+    client: ProlificClient,
+    study_id: str,
+    worker_id: str,
 ) -> Union[Submission, None]:
     submission: ListSubmission = _find_submission(client, study_id, worker_id)
 
     if not submission:
-        logger.warning(
-            f'No submission found for study "{study_id}" and participant "{worker_id}"'
-        )
+        logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
         return None
 
     # TODO (#1008): Maybe we need to expand handling submission statuses

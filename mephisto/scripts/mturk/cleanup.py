@@ -43,9 +43,7 @@ def main():
 
     outstanding_hit_types = get_outstanding_hits(client)
     num_hit_types = len(outstanding_hit_types.keys())
-    sum_hits = sum(
-        [len(outstanding_hit_types[x]) for x in outstanding_hit_types.keys()]
-    )
+    sum_hits = sum([len(outstanding_hit_types[x]) for x in outstanding_hit_types.keys()])
 
     all_hits: List[Dict[str, Any]] = []
     for hit_type in outstanding_hit_types.keys():
@@ -80,17 +78,14 @@ def main():
                 print(f"LAUNCH TIME: {creation_time_str}")
                 print(f"HIT COUNT: {len(outstanding_hit_types[hit_type])}")
                 should_clear = input(
-                    "Should we cleanup this hit type? (y)es for yes, anything else for no: "
-                    "\n>> "
+                    "Should we cleanup this hit type? (y)es for yes, anything else for no: " "\n>> "
                 )
                 if should_clear.lower().startswith("y"):
                     use_hits += outstanding_hit_types[hit_type]
         elif run_type.lower().startswith("a"):
             use_hits = all_hits
         elif run_type.lower().startswith("o"):
-            old_cutoff = datetime.now(all_hits[0]["CreationTime"].tzinfo) - timedelta(
-                days=14
-            )
+            old_cutoff = datetime.now(all_hits[0]["CreationTime"].tzinfo) - timedelta(days=14)
             use_hits = [h for h in all_hits if h["CreationTime"] < old_cutoff]
         else:
             run_type = input("Options are (t)itle, (o)ld, or (a)ll:\n>> ")

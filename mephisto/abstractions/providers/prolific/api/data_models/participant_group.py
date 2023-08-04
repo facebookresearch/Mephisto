@@ -15,6 +15,7 @@ class ParticipantGroup(BaseModel):
     More about Participant Groups:
         https://docs.prolific.co/docs/api-docs/public/#tag/Participant-Groups
     """
+
     id: str
     name: str
     project_id: str
@@ -22,22 +23,22 @@ class ParticipantGroup(BaseModel):
     feeder_studies: List[Dict]
 
     schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'project_id': {'type': 'string'},
-            'name': {'type': 'string'},
-            'participant_count': {'type': 'number'},
-            'feeder_studies': {
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {'type': 'string'},
-                        'name': {'type': 'string'},
-                        'internal_name': {'type': 'string'},
-                        'status': {'type': 'string'},
-                        'completion_codes': {'type': 'array'},
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "project_id": {"type": "string"},
+            "name": {"type": "string"},
+            "participant_count": {"type": "number"},
+            "feeder_studies": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "name": {"type": "string"},
+                        "internal_name": {"type": "string"},
+                        "status": {"type": "string"},
+                        "completion_codes": {"type": "array"},
                     },
                 },
             },
@@ -45,9 +46,9 @@ class ParticipantGroup(BaseModel):
     }
 
     required_schema_fields = [
-        'project_id',
-        'name',
+        "project_id",
+        "name",
     ]
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.id} {self.name}'
+        return f"{self.__class__.__name__} {self.id} {self.name}"

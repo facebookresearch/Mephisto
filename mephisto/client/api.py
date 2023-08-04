@@ -78,8 +78,7 @@ def launch_options():
             "architect_types": architect_types,
             "provider_types": provider_types,
             "blueprint_types": [
-                {"name": bp, "rank": idx + 1}
-                for (idx, bp) in enumerate(blueprint_types)
+                {"name": bp, "rank": idx + 1} for (idx, bp) in enumerate(blueprint_types)
             ],
         }
     )
@@ -110,9 +109,7 @@ def view_unit(task_id):
     # TODO
 
     # MOCK
-    return jsonify(
-        {"id": task_id, "view_path": "https://google.com", "data": {"name": "me"}}
-    )
+    return jsonify({"id": task_id, "view_path": "https://google.com", "data": {"name": "me"}})
 
 
 @api.route("/task_runs/options")
@@ -139,13 +136,9 @@ def requester_register(requester_type):
         parsed_options = parse_arg_dict(RequesterClass, options)
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
-        return jsonify(
-            {"success": False, "msg": f"error in parsing arguments: {str(e)}"}
-        )
+        return jsonify({"success": False, "msg": f"error in parsing arguments: {str(e)}"})
     if "name" not in parsed_options:
-        return jsonify(
-            {"success": False, "msg": "No name was specified for the requester."}
-        )
+        return jsonify({"success": False, "msg": "No name was specified for the requester."})
 
     db = app.extensions["db"]
     requesters = db.find_requesters(requester_name=parsed_options["name"])
@@ -179,9 +172,7 @@ def get_submitted_data():
         for task_run in task_runs:
             assignments += task_run.get_assignments()
 
-        assignments += [
-            Assignment.get(db, assignment_id) for assignment_id in assignment_ids
-        ]
+        assignments += [Assignment.get(db, assignment_id) for assignment_id in assignment_ids]
 
         if len(statuses) == 0:
             statuses = [

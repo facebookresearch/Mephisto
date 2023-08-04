@@ -171,10 +171,12 @@ class ProlificProvider(CrowdProvider):
         return self.datastore.get_client_for_requester(requester_name)
 
     def _get_qualified_workers(
-        self, qualifications: List[QualificationType], bloked_participant_ids: List[str],
+        self,
+        qualifications: List[QualificationType],
+        bloked_participant_ids: List[str],
     ) -> List["Worker"]:
         qualified_workers = []
-        workers: List[Worker] = self.db.find_workers(provider_type='prolific')
+        workers: List[Worker] = self.db.find_workers(provider_type="prolific")
         # `worker_name` is Prolific Participant ID in provider-specific datastore
         available_workers = [w for w in workers if w.worker_name not in bloked_participant_ids]
 
@@ -191,7 +193,7 @@ class ProlificProvider(CrowdProvider):
         workers_ids: List[str],
         prolific_project_id: str,
     ) -> ParticipantGroup:
-        participant_proup_name = f'PG {datetime.now(timezone.utc).isoformat()}'
+        participant_proup_name = f"PG {datetime.now(timezone.utc).isoformat()}"
         prolific_participant_group = prolific_utils.create_qualification(
             client,
             prolific_project_id,
@@ -226,9 +228,7 @@ class ProlificProvider(CrowdProvider):
         config_dir = os.path.join(self.datastore.datastore_root, task_run_id)
 
         frame_height = (
-            task_run.get_blueprint()
-            .get_frontend_args()
-            .get("frame_height", DEFAULT_FRAME_HEIGHT)
+            task_run.get_blueprint().get_frontend_args().get("frame_height", DEFAULT_FRAME_HEIGHT)
         )
 
         # Mephisto qualifications
@@ -236,7 +236,9 @@ class ProlificProvider(CrowdProvider):
 
         # Get provider-specific qualification from SharedState
         prolific_specific_qualifications = getattr(
-            shared_state, 'prolific_specific_qualifications', [],
+            shared_state,
+            "prolific_specific_qualifications",
+            [],
         )
         # Update with ones from YAML config under `provider` title
         yaml_prolific_specific_qualifications = args.provider.prolific_eligibility_requirements
@@ -249,11 +251,9 @@ class ProlificProvider(CrowdProvider):
             )
 
         # Get Prolific specific data to create a task
-        prolific_workspace: Workspace = (
-            prolific_utils.find_or_create_prolific_workspace(
-                client,
-                title=args.provider.prolific_workspace_name,
-            )
+        prolific_workspace: Workspace = prolific_utils.find_or_create_prolific_workspace(
+            client,
+            title=args.provider.prolific_workspace_name,
         )
         prolific_project: Project = prolific_utils.find_or_create_prolific_project(
             client,
@@ -268,37 +268,39 @@ class ProlificProvider(CrowdProvider):
         if blocked_participant_ids:
             new_prolific_specific_qualifications = []
             # Add empty Blacklist in case if there is not in state or config
-            blacklist_qualification = DictConfig(dict(
-                name=CustomBlacklistEligibilityRequirement.name,
-                black_list=[],
-            ))
+            blacklist_qualification = DictConfig(
+                dict(
+                    name=CustomBlacklistEligibilityRequirement.name,
+                    black_list=[],
+                )
+            )
 
             for prolific_specific_qualification in prolific_specific_qualifications:
-                name = prolific_specific_qualification['name']
+                name = prolific_specific_qualification["name"]
 
                 if name == CustomBlacklistEligibilityRequirement.name:
                     blacklist_qualification = prolific_specific_qualification
                 elif name == CustomWhitelistEligibilityRequirement.name:
                     # Remove blocked Participat IDs from Whitelist Eligibility Requirement
                     whitelist_qualification = prolific_specific_qualification
-                    prev_value = whitelist_qualification['white_list']
-                    whitelist_qualification['white_list'] = [
+                    prev_value = whitelist_qualification["white_list"]
+                    whitelist_qualification["white_list"] = [
                         p for p in prev_value if p not in blocked_participant_ids
                     ]
                     new_prolific_specific_qualifications.append(whitelist_qualification)
                 elif name == ParticipantGroupEligibilityRequirement.name:
                     # Remove blocked Participat IDs from Participant Group Eligibility Requirement
                     client.ParticipantGroups.remove_participants_from_group(
-                        id=prolific_specific_qualification['id'],
+                        id=prolific_specific_qualification["id"],
                         participant_ids=blocked_participant_ids,
                     )
                 else:
                     new_prolific_specific_qualifications.append(prolific_specific_qualification)
 
             # Set Blacklist Eligibility Requirement
-            blacklist_qualification['black_list'] = list(set(
-                blacklist_qualification['black_list'] + blocked_participant_ids
-            ))
+            blacklist_qualification["black_list"] = list(
+                set(blacklist_qualification["black_list"] + blocked_participant_ids)
+            )
             new_prolific_specific_qualifications.append(blacklist_qualification)
             prolific_specific_qualifications = new_prolific_specific_qualifications
 
@@ -308,24 +310,25 @@ class ProlificProvider(CrowdProvider):
             if qualified_workers:
                 prolific_workers_ids = [w.worker_name for w in qualified_workers]
                 # Create a new Participant Group
-                prolific_participant_group = (
-                    self._create_participant_group_with_qualified_workers(
-                        client,
-                        requester,
-                        prolific_workers_ids,
-                        prolific_project.id,
-                    )
+                prolific_participant_group = self._create_participant_group_with_qualified_workers(
+                    client,
+                    requester,
+                    prolific_workers_ids,
+                    prolific_project.id,
                 )
                 # Add this Participant Group to Prolific-specific requirements
-                prolific_specific_qualifications.append({
-                    'name': ParticipantGroupEligibilityRequirement.name,
-                    'id': prolific_participant_group.id,
-                })
+                prolific_specific_qualifications.append(
+                    {
+                        "name": ParticipantGroupEligibilityRequirement.name,
+                        "id": prolific_participant_group.id,
+                    }
+                )
 
-                qualification_names = [q['qualification_name'] for q in qualifications]
+                qualification_names = [q["qualification_name"] for q in qualifications]
                 qualification_objs = self.db.find_qualifications()
                 qualifications_ids = [
-                    q.db_id for q in qualification_objs
+                    q.db_id
+                    for q in qualification_objs
                     if q.qualification_name in qualification_names
                 ]
                 self.datastore.create_qualification_mapping(
@@ -370,9 +373,7 @@ class ProlificProvider(CrowdProvider):
         self.datastore.new_study(
             prolific_study_id=prolific_study.id,
             study_link=prolific_study.external_study_url,
-            duration_in_seconds=(
-                args.provider.prolific_estimated_completion_time_in_minutes * 60
-            ),
+            duration_in_seconds=(args.provider.prolific_estimated_completion_time_in_minutes * 60),
             task_run_id=task_run_id,
             status=StudyStatus.ACTIVE,
         )
@@ -395,7 +396,7 @@ class ProlificProvider(CrowdProvider):
 
         # Remove from Provider-specific datastore
         participant_group_ids = [
-            i['prolific_participant_group_id'] for i in datastore_qualifications
+            i["prolific_participant_group_id"] for i in datastore_qualifications
         ]
         self.datastore.delete_qualifications_by_participant_group_ids(
             participant_group_ids=participant_group_ids,
@@ -407,7 +408,8 @@ class ProlificProvider(CrowdProvider):
         # Remove from Prolific
         for qualification in datastore_qualifications:
             prolific_utils.delete_qualification(
-                client, qualification['prolific_participant_group_id'],
+                client,
+                qualification["prolific_participant_group_id"],
             )
 
     @classmethod
@@ -430,7 +432,8 @@ class ProlificProvider(CrowdProvider):
         client = requester._get_client(requester.requester_name)
         try:
             prolific_utils.delete_qualification(
-                client, mapping["prolific_participant_group_id"],
+                client,
+                mapping["prolific_participant_group_id"],
             )
         except ProlificException:
             logger.exception("Could not delete qualification on Prolific")

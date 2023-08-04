@@ -74,9 +74,7 @@ class MTurkRequester(Requester):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            self.PROVIDER_TYPE
-        )
+        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(self.PROVIDER_TYPE)
         # Use _requester_name to preserve sandbox behavior which
         # utilizes a different requester_name
         self._requester_name = self.requester_name
@@ -97,9 +95,7 @@ class MTurkRequester(Requester):
         """
         for req_field in ["access_key_id", "secret_access_key"]:
             if args is not None and req_field not in args:
-                raise Exception(
-                    f'Missing IAM "{req_field}" in requester registration args'
-                )
+                raise Exception(f'Missing IAM "{req_field}" in requester registration args')
         setup_aws_credentials(self._requester_name, args)
 
     def is_registered(self) -> bool:

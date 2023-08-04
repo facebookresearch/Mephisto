@@ -34,10 +34,6 @@ class SandboxMTurkUnit(MTurkUnit):
         return self.datastore.get_sandbox_client_for_requester(requester_name)
 
     @staticmethod
-    def new(
-        db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float
-    ) -> "Unit":
+    def new(db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float) -> "Unit":
         """Create a Unit for the given assignment"""
-        return SandboxMTurkUnit._register_unit(
-            db, assignment, index, pay_amount, PROVIDER_TYPE
-        )
+        return SandboxMTurkUnit._register_unit(db, assignment, index, pay_amount, PROVIDER_TYPE)

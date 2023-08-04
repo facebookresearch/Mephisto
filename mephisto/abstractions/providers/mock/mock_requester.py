@@ -29,9 +29,7 @@ class MockRequesterArgs(RequesterArgs):
             "required": True,
         },
     )
-    force_fail: bool = field(
-        default=False, metadata={"help": "Trigger a failed registration"}
-    )
+    force_fail: bool = field(default=False, metadata={"help": "Trigger a failed registration"})
 
 
 class MockRequester(Requester):

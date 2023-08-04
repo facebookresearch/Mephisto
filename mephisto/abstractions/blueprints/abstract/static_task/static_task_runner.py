@@ -29,9 +29,7 @@ class StaticTaskRunner(TaskRunner):
     as only one person can work on them at a time
     """
 
-    def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
-    ):
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
         super().__init__(task_run, args, shared_state)
         self.is_concurrent = False
         self.assignment_duration_in_seconds = (

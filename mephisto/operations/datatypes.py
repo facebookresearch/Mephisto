@@ -80,9 +80,7 @@ class LiveTaskRun:
 
 class WorkerFailureReasons:
     NOT_QUALIFIED = "You are not currently qualified to work on this task..."
-    NO_AVAILABLE_UNITS = (
-        "There is currently no available work, please try again later..."
-    )
+    NO_AVAILABLE_UNITS = "There is currently no available work, please try again later..."
     TOO_MANY_CONCURRENT = "You are currently working on too many tasks concurrently to accept another, please finish your current work."
     MAX_FOR_TASK = "You have already completed the maximum amount of tasks the requester has set for this task."
     TASK_MISSING = "You appear to have already completed this task, or have disconnected long enough for your session to clear..."

@@ -53,9 +53,7 @@ class MTurkUnit(Unit):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            self.PROVIDER_TYPE
-        )
+        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(self.PROVIDER_TYPE)
         self.hit_id: Optional[str] = None
         self._last_sync_time = 0.0
         self._sync_hit_mapping()
@@ -86,13 +84,9 @@ class MTurkUnit(Unit):
         # value the moment it's registered
         self._last_sync_time = time.monotonic() - 1
 
-    def register_from_provider_data(
-        self, hit_id: str, mturk_assignment_id: str
-    ) -> None:
+    def register_from_provider_data(self, hit_id: str, mturk_assignment_id: str) -> None:
         """Update the datastore and local information from this registration"""
-        self.datastore.register_assignment_to_hit(
-            hit_id, self.db_id, mturk_assignment_id
-        )
+        self.datastore.register_assignment_to_hit(hit_id, self.db_id, mturk_assignment_id)
         self._sync_hit_mapping()
 
     def get_mturk_assignment_id(self) -> Optional[str]:
@@ -133,9 +127,7 @@ class MTurkUnit(Unit):
                     )
                     try:
                         hit_id = self.get_mturk_hit_id()
-                        assert (
-                            hit_id is not None
-                        ), f"This unit does not have an ID! {self}"
+                        assert hit_id is not None, f"This unit does not have an ID! {self}"
 
                         agent.attempt_to_reconcile_submitted_data(hit_id)
                     except Exception as e:
@@ -365,13 +357,11 @@ class MTurkUnit(Unit):
         return self.get_status() == AssignmentState.EXPIRED
 
     @staticmethod
-    def new(
-        db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float
-    ) -> "Unit":
+    def new(db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float) -> "Unit":
         """Create a Unit for the given assignment"""
-        return MTurkUnit._register_unit(
-            db, assignment, index, pay_amount, PROVIDER_TYPE
-        )
+        return MTurkUnit._register_unit(db, assignment, index, pay_amount, PROVIDER_TYPE)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.db_id}, {self.get_mturk_hit_id()}, {self.db_status})"
+        return (
+            f"{self.__class__.__name__}({self.db_id}, {self.get_mturk_hit_id()}, {self.db_status})"
+        )

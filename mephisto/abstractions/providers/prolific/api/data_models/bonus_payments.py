@@ -13,6 +13,7 @@ class BonusPayments(BaseModel):
     More about Bonuses:
         https://docs.prolific.co/docs/api-docs/public/#tag/Bonuses
     """
+
     amount: Union[int, float]
     fees: Union[int, float]
     id: str
@@ -21,11 +22,11 @@ class BonusPayments(BaseModel):
     vat: Union[int, float]
 
     schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
         },
     }
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.id}'
+        return f"{self.__class__.__name__} {self.id}"

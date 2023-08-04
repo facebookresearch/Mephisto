@@ -171,9 +171,7 @@ class LocalArchitect(Architect):
         host = self.hostname
         port = self.port
         if host is None:
-            host = input(
-                "Please enter the public server address, like https://hostname.com: "
-            )
+            host = input("Please enter the public server address, like https://hostname.com: ")
             self.hostname = host
         if port is None:
             port = input("Please enter the port given above, likely 3000: ")

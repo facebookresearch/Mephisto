@@ -38,9 +38,7 @@ def cli():
 
 click.rich_click.USE_RICH_MARKUP = True
 click.rich_click.SHOW_ARGUMENTS = True
-click.rich_click.ERRORS_SUGGESTION = (
-    "\nTry running the '--help' flag for more information."
-)
+click.rich_click.ERRORS_SUGGESTION = "\nTry running the '--help' flag for more information."
 click.rich_click.ERRORS_EPILOGUE = (
     "To find out more, visit https://mephisto.ai/docs/guides/quickstart/\n"
 )
@@ -105,7 +103,7 @@ def config(identifier, value):
 @click.option("--db", "database_task_name", type=(str), default=None)
 @click.option("--all/--one-by-one", "all_data", default=False)
 @click.option("-d", "--debug", type=(bool), default=False)
-@click.option("-h", "--host", type=(str), default='127.0.0.1')
+@click.option("-h", "--host", type=(str), default="127.0.0.1")
 def review(
     review_app_dir,
     port,
@@ -141,7 +139,7 @@ def review(
             raise click.BadParameter(
                 f'The task name "{database_task_name}" did not exist in MephistoDB.\n\n'
                 f'Perhaps you meant one of these? {", ".join(name_list)}\n\n'
-                f'Flag usage: mephisto review --db [task_name]\n'
+                f"Flag usage: mephisto review --db [task_name]\n"
             )
 
     run(
@@ -194,16 +192,12 @@ def list_requesters():
         print("[red]No requesters found[/red]")
 
 
-@cli.command(
-    "register", cls=RichCommand, context_settings={"ignore_unknown_options": True}
-)
+@cli.command("register", cls=RichCommand, context_settings={"ignore_unknown_options": True})
 @click.argument("args", nargs=-1)
 def register_provider(args):
     """Register a requester with a crowd provider"""
     if len(args) == 0:
-        print(
-            "\n[red]Usage: mephisto register <provider_type> arg1=value arg2=value[/red]"
-        )
+        print("\n[red]Usage: mephisto register <provider_type> arg1=value arg2=value[/red]")
         print("\n[b]Valid Providers[/b]")
         provider_text = """"""
         for provider in get_valid_provider_types():
@@ -272,9 +266,7 @@ def run_wut(args):
     get_wut_arguments(args)
 
 
-@cli.command(
-    "scripts", cls=RichCommand, context_settings={"ignore_unknown_options": True}
-)
+@cli.command("scripts", cls=RichCommand, context_settings={"ignore_unknown_options": True})
 @click.argument("script_type", required=False, nargs=1)
 @click.argument("script_name", required=False, nargs=1)
 def run_script(script_type, script_name):
@@ -345,8 +337,7 @@ def run_script(script_type, script_name):
     }
 
     if script_name is None or (
-        script_name
-        not in script_type_to_scripts_data[script_type]["valid_script_names"]
+        script_name not in script_type_to_scripts_data[script_type]["valid_script_names"]
     ):
         print("")
         raise click.UsageError(
@@ -359,9 +350,7 @@ def run_script(script_type, script_name):
     script_type_to_scripts_data[script_type]["scripts"][script_name]()
 
 
-@cli.command(
-    "metrics", cls=RichCommand, context_settings={"ignore_unknown_options": True}
-)
+@cli.command("metrics", cls=RichCommand, context_settings={"ignore_unknown_options": True})
 @click.argument("args", nargs=-1)
 def metrics_cli(args):
     from mephisto.utils.metrics import (
@@ -376,9 +365,7 @@ def metrics_cli(args):
     if len(args) == 0 or args[0] not in ["install", "view", "cleanup"]:
         print("\n[red]Usage: mephisto metrics <install|view|cleanup>[/red]")
         metrics_table = create_table(["Property", "Value"], "Metrics Arguments")
-        metrics_table.add_row(
-            "install", f"Installs Prometheus and Grafana to {METRICS_DIR}"
-        )
+        metrics_table.add_row("install", f"Installs Prometheus and Grafana to {METRICS_DIR}")
         metrics_table.add_row(
             "view",
             "Launches a Prometheus and Grafana server, and shuts down on exit",
@@ -397,17 +384,13 @@ def metrics_cli(args):
         run_install_script()
     elif command == "view":
         if not metrics_are_installed():
-            click.echo(
-                f"Metrics aren't installed! Use `mephisto metrics install` first."
-            )
+            click.echo(f"Metrics aren't installed! Use `mephisto metrics install` first.")
             return
         click.echo(f"Servers launching - use ctrl-C to shutdown")
         launch_servers_and_wait()
     else:  # command == 'cleanup':
         if not metrics_are_installed():
-            click.echo(
-                f"Metrics aren't installed! Use `mephisto metrics install` first."
-            )
+            click.echo(f"Metrics aren't installed! Use `mephisto metrics install` first.")
             return
         click.echo(f"Cleaning up existing servers if they exist")
         shutdown_prometheus_server()

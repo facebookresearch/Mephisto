@@ -51,9 +51,7 @@ def direct_assign_qual_mturk_workers(
     mturk_client = requester._get_client(requester._requester_name)
     for worker_id in tqdm(worker_list):
         try:
-            give_worker_qualification(
-                mturk_client, worker_id, qualification_id, value=1
-            )
+            give_worker_qualification(mturk_client, worker_id, qualification_id, value=1)
         except Exception as e:
             logging.exception(
                 f'Failed to give worker with ID: "{worker_id}" qualification with error: {e}. Skipping.'

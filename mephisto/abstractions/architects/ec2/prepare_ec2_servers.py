@@ -194,9 +194,7 @@ def launch_ec2_fallback(
             print(f"Using existing listener {listener_arn}")
 
         # Finally, deploy the fallback server contents:
-        ec2_helpers.deploy_fallback_server(
-            session, instance_id, key_pair_name, access_logs_key
-        )
+        ec2_helpers.deploy_fallback_server(session, instance_id, key_pair_name, access_logs_key)
         existing_details["access_logs_key"] = access_logs_key
         update_details(saved_details_file, existing_details)
 
@@ -210,9 +208,7 @@ def main():
 
     domain_name = input("Please provide the domain name you will be using\n>> ")
     ssh_ip_block = input("Provide the CIDR IP block for ssh access\n>> ")
-    access_logs_key = input(
-        "Please provide a key password to use for accessing server logs\n>> "
-    )
+    access_logs_key = input("Please provide a key password to use for accessing server logs\n>> ")
     launch_ec2_fallback(iam_role_name, domain_name, ssh_ip_block, access_logs_key)
 
 
