@@ -7,6 +7,7 @@
 
 import os
 import sqlite3
+import warnings
 from prometheus_client import Histogram  # type: ignore
 
 from abc import ABC, abstractmethod
@@ -93,6 +94,7 @@ GET_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="get_qualification")
 FIND_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(method="find_qualifications")
 DELETE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="delete_qualification")
 GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="grant_qualification")
+FIND_GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="find_granted_qualification")
 CHECK_GRANTED_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(
     method="check_granted_qualifications"
 )
@@ -983,6 +985,16 @@ class MephistoDB(ABC):
             provider = ProviderClass(self)
             provider.cleanup_qualification(qualification_name)
 
+    @FIND_GRANT_QUALIFICATION_LATENCY.time()
+    def find_granted_qualifications(
+        self, worker_id: Optional[str] = None,
+    ) -> List[GrantedQualification]:
+        """
+        Find granted qualifications.
+        If `worker_id` is not supplied, returns all granted qualifications.
+        """
+        return self._check_granted_qualifications(worker_id=worker_id)
+
     @abstractmethod
     def _grant_qualification(
         self, qualification_id: str, worker_id: str, value: int = 1
@@ -1022,6 +1034,7 @@ class MephistoDB(ABC):
         """
         Find granted qualifications that match the given specifications
         """
+        warnings.warn("Use 'find_granted_qualifications' instead.", DeprecationWarning)
         return self._check_granted_qualifications(
             qualification_id=qualification_id, worker_id=worker_id, value=value
         )

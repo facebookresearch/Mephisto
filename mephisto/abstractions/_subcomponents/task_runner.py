@@ -279,6 +279,7 @@ class TaskRunner(ABC):
                 AgentShutdownError,
             ) as e:
                 # A returned Unit can be worked on again by someone else.
+                logger.exception(f"Handled exception in unit {unit}")
                 if unit.get_status() != AssignmentState.EXPIRED:
                     unit_agent = unit.get_assigned_agent()
                     if unit_agent is not None and unit_agent.db_id == agent.db_id:

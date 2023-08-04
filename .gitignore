@@ -8,6 +8,7 @@ mephisto.egg-info/*
 tmp/*
 **/node_modules/*
 mephisto/server/**/package-lock.json
+mephisto/abstractions/**/package-lock.json
 mephisto/server/blueprints/**/build/*
 
 **/*.log
@@ -25,12 +26,15 @@ mephisto/scripts/metrics/*
 # Examples
 examples/simple_static_task/hydra_configs/conf/*
 !examples/simple_static_task/hydra_configs/conf/example.yaml
+!examples/simple_static_task/hydra_configs/conf/prolific_example.yaml
 !examples/simple_static_task/hydra_configs/conf/onboarding_example.yaml
 examples/**/build/*
 
 # PyCharm
 .idea
 
+# VSCode
+.vscode
 
 # https://next.yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 .yarn/*
@@ -43,3 +47,11 @@ examples/**/build/*
 .pnp.*
 
 docs/storybook/storybook-static/*
+
+# local deploy
+hydra_configs/profile/*.yaml
+!hydra_configs/profile/local_dev.yaml
+aws_credentials
+docker-compose.local.*
+env.local
+my-review-interface

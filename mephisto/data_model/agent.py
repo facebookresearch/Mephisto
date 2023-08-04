@@ -206,6 +206,7 @@ class _AgentBase(ABC):
                 raise AgentShutdownError(self.db_id)
             # various disconnect cases
             status = self.get_status()
+            logger.debug(f"Handling Agent status (get_live_update) - have `{status}`")
             if status == AgentState.STATUS_DISCONNECT:
                 raise AgentDisconnectedError(self.db_id)
             elif status == AgentState.STATUS_RETURNED:
@@ -243,6 +244,7 @@ class _AgentBase(ABC):
 
         def _raise_if_disconnected():
             status = self.get_status()
+            logger.debug(f"Handling Agent status (await_submit) - have `{status}`")
             if status == AgentState.STATUS_DISCONNECT:
                 raise AgentDisconnectedError(self.db_id)
             elif status == AgentState.STATUS_RETURNED:

@@ -1,6 +1,7 @@
 {
   "typescript.tsdk": "mephisto/mephisto/webapp/node_modules/typescript/lib",
   "python.linting.pylintEnabled": false,
-  "python.linting.mypyEnabled": true,
-  "python.linting.enabled": true
+  "python.linting.mypyEnabled": false,
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true
 }

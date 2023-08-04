@@ -1311,7 +1311,7 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [
                 GrantedQualification(
-                    self, str(r["qualification_id"]), str(r["worker_id"])
+                    self, str(r["qualification_id"]), str(r["worker_id"]), row=r,
                 )
                 for r in rows
             ]

@@ -7,17 +7,20 @@
 Utilities specifically for running examine scripts. Example usage can be
 seen in the examine results scripts in the examples directory.
 """
+import traceback
 
 from mephisto.tools.data_browser import DataBrowser
 from mephisto.data_model.worker import Worker
 from mephisto.utils.qualifications import find_or_create_qualification
-import traceback
+from mephisto.utils.logger_core import get_logger
 
 from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any, List
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.unit import Unit
+
+logger = get_logger(name=__name__)
 
 
 def _get_and_format_data(
@@ -35,12 +38,9 @@ def _get_and_format_data(
         try:
             formatted = format_data_for_printing(data)
         except Exception as e:
-            print(f"Unexpected error formatting data for {unit}: {e}")
-            # Print the full exception, as this could be user error on the
-            # formatting function
-            traceback.print_exc()
+            logger.exception(f"Unexpected error formatting data for {unit}")
     except Exception as e:
-        print(f"Unexpected error getting data for {unit}: {e}")
+        logger.exception(f"Unexpected error getting data for {unit}")
     return formatted
 
 
@@ -61,6 +61,7 @@ def print_results(
     if start is None:
         start = 0
     units.reverse()
+
     for unit in units[start:end]:
         print(_get_and_format_data(data_browser, format_data_for_printing, unit))
 
@@ -195,7 +196,7 @@ def run_examine_by_worker(
     previous_work_by_worker = get_worker_stats(others)
 
     # Determine allowed options
-    options = ["a", "p", "r"]
+    options = ["a", "p", "r", "v"]
     options_string = "Do you want to accept this work? (a)ccept, (r)eject, (p)ass:"
 
     units_by_worker: Dict[str, List["Unit"]] = {}
@@ -252,6 +253,15 @@ def run_examine_by_worker(
                     )
                     if should_soft_block.lower() in ["y", "yes"]:
                         worker.grant_qualification(block_qualification, 1)
+            elif decision.lower() == "v":
+                # Same as "a", except we can specify exact qualification value being assigned
+                agent.approve_work()
+                if decision.isupper() and approve_qualification:
+                    qualification_value = input(
+                        f"Assign integer value for `{approve_qualification}` (hit Enter to skip): "
+                    )
+                    if qualification_value:
+                        worker.grant_qualification(approve_qualification, int(qualification_value))
             else:  # decision = 'r'
                 if apply_all_decision is None:
                     reason = input("Why are you rejecting this work? ")
@@ -260,7 +270,7 @@ def run_examine_by_worker(
                     )
                     if should_block.lower() in ["y", "yes"]:
                         block_reason = input("Why permanently block this worker? ")
-                        worker.block_worker(block_reason)
+                        worker.block_worker(block_reason, unit=unit)
                 agent.reject_work(reason)
 
             if decision.lower() != decision:

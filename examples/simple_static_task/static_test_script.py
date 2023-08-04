@@ -4,9 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
-    BLUEPRINT_TYPE_STATIC_HTML,
-)
 from mephisto.tools.scripts import task_script
 from omegaconf import DictConfig
 
