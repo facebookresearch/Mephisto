@@ -6,6 +6,7 @@
 
 from .bonuses import Bonuses
 from .eligibility_requirements import EligibilityRequirements
+from .invitations import Invitations
 from .messages import Messages
 from .participant_groups import ParticipantGroups
 from .projects import Projects

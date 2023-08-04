@@ -450,11 +450,7 @@ class Operator:
                     time.sleep(30)
                 remaining_runs = next_runs
         except Exception as e:
-            logger.exception(
-                f"Encountered problem during shutting down {e}", exc_info=True
-            )
-
-            traceback.print_exc()
+            logger.exception(f"Encountered problem during shutting down {e}")
         except (KeyboardInterrupt, SystemExit) as e:
             logger.warning(
                 "Skipping waiting for outstanding task completions, shutting down servers now!"
@@ -594,7 +590,7 @@ class Operator:
         try:
             self._event_loop.run_forever()
         except Exception as e:
-            traceback.print_exc()
+            logger.exception('Encountered error during task run')
         except (KeyboardInterrupt, SystemExit) as e:
             logger.exception(
                 "Cleaning up after keyboard interrupt, please "

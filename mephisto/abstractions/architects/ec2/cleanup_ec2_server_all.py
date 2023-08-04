@@ -3,7 +3,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
 import os
 import json
 
@@ -33,27 +32,50 @@ def main():
     n_names = len(all_server_names)
 
     if not n_names:
-        logger.warning('No server to clean up!')
+        logger.info('No servers found to clean up')
         return
 
     logger.info(f'Found {n_names} server names: {", ".join(all_server_names)}')
 
-    # Get EC2 user role
-    iam_role_name = input('Please enter local profile name for IAM role\n>> ')
+    confirm = input(
+        f'Are you sure you want to remove the {n_names} found servers? [y/N]\n'
+        f'>> '
+    )
+    if confirm != 'y':
+        return
 
-    # Clean directory with server JSON files (DEFAULT_SERVER_DETAIL_LOCATION)
+    # Get EC2 user role
+    iam_role_name = input(
+        'Please enter local profile name for IAM role\n'
+        '>> '
+    )
+    logger.info(f'Removing {n_names} servers...')
+
+    # Cleanup local server JSON files, and remove related EC2 infra
+    skipped_names = []
     for i, server_name in enumerate(all_server_names):
-        logger.info(f'Removing {i+1}/{n_names} server "{server_name}"...')
+        _name = f'"{server_name}"'
+        logger.info(f'{i+1}/{n_names} Removing {_name}...')
+
         session = boto3.Session(profile_name=iam_role_name, region_name='us-east-2')
         try:
+            skipped_names.append(_name)
             ec2_helpers.remove_instance_and_cleanup(session, server_name)
-            logger.info(f'..."{server_name}" was removed!')
+            logger.debug(f'...{_name} - successfully removed')
+            skipped_names.remove(_name)
         except botocore.exceptions.ClientError as e:
-            logger.info(f'..."{server_name}" could not be removed - {e}')
+            logger.warning(f'...{_name} - could not be removed: {e}')
         except json.decoder.JSONDecodeError as e:
-            logger.info(f'..."{server_name}" could not read JSON config - {e}')
+            logger.warning(f'...{_name} - could not read JSON config: {e}')
         except Exception as e:
-            logger.info(f'..."{server_name}" encountered error - {e}')
+            logger.warning(f'...{_name} - encountered error: {e}')
+
+    if skipped_names:
+        logger.info(
+            f'Could not remove {len(skipped_names)}/{n_names} servers: {", ".join(skipped_names)}'
+        )
+    else:
+        logger.info(f'Successfully removed {n_names} servers')
 
 
 if __name__ == '__main__':

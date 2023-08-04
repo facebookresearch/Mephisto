@@ -12,14 +12,14 @@ from .data_models import WorkspaceBalance
 
 
 class Workspaces(BaseAPIResource):
-    list_api_endpoint = 'workspaces/'
-    retrieve_api_endpoint = 'workspaces/{id}/'
-    get_balance_api_endpoint = 'workspaces/{id}/balance/'
+    list_api_endpoint = "workspaces/"
+    retrieve_api_endpoint = "workspaces/{id}/"
+    get_balance_api_endpoint = "workspaces/{id}/balance/"
 
     @classmethod
     def list(cls) -> List[Workspace]:
         response_json = cls.get(cls.list_api_endpoint)
-        workspaces = [Workspace(**s) for s in response_json['results']]
+        workspaces = [Workspace(**s) for s in response_json["results"]]
         return workspaces
 
     @classmethod
@@ -33,6 +33,18 @@ class Workspaces(BaseAPIResource):
         workspace = Workspace(**data)
         workspace.validate()
         response_json = cls.post(cls.list_api_endpoint, params=workspace.to_dict())
+        return Workspace(**response_json)
+
+    @classmethod
+    def update(cls, id: str, **data) -> Workspace:
+        endpoint = cls.retrieve_api_endpoint.format(id=id)
+        workspace = Workspace(**data)
+        workspace.validate(check_required_fields=False)
+        params = workspace.to_dict()
+        if params["description"] == "":
+            params.pop("description", None)
+        params.pop("product", None)  # TODO: What is this? Don't see this field in API docs
+        response_json = cls.patch(endpoint, params=params)
         return Workspace(**response_json)
 
     @classmethod

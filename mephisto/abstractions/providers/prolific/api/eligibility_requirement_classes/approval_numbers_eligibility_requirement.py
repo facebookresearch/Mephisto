@@ -7,7 +7,8 @@ class ApprovalNumbersEligibilityRequirement(BaseEligibilityRequirement):
     """
     Details https://docs.prolific.co/docs/api-docs/public/#tag/Requirements/Requirements-object
     """
-    prolific_cls_name = 'web.eligibility.models.ApprovalNumbersEligibilityRequirement'
+    name = 'ApprovalNumbersEligibilityRequirement'
+    prolific_cls_name = f'web.eligibility.models.{name}'
 
     def __init__(
         self,

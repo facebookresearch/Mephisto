@@ -6,6 +6,7 @@
 
 from typing import List
 from typing import Optional
+import urllib.parse
 
 from .base_api_resource import BaseAPIResource
 from .data_models import Participant
@@ -19,15 +20,23 @@ class ParticipantGroups(BaseAPIResource):
     list_participants_for_group_api_endpoint = 'participant-groups/{id}/participants/'
 
     @classmethod
-    def list(cls, project_id: Optional[str] = None) -> List[ParticipantGroup]:
+    def list(
+        cls, project_id: Optional[str] = None, is_active: bool = True,
+    ) -> List[ParticipantGroup]:
         """
         API docs for this endpoint:
         https://docs.prolific.co/docs/api-docs/public/#tag/
             Participant-Groups/paths/~1api~1v1~1participant-groups~1/get
         """
-        endpoint = cls.list_api_endpoint
+        params = {}
         if project_id:
-            endpoint = f'{endpoint}?project_id={project_id}'
+            params['project_id'] = project_id
+        if is_active:
+            params['is_active'] = is_active
+
+        endpoint = cls.list_api_endpoint
+        if params:
+            endpoint += '?' + urllib.parse.urlencode(params)
 
         response_json = cls.get(endpoint)
         participant_groups = [ParticipantGroup(**s) for s in response_json['results']]

@@ -27,7 +27,7 @@ jobs:
         run: |
           python -m pytest -v -m "not req_creds and not prolific" --cov --cov-report=xml
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
