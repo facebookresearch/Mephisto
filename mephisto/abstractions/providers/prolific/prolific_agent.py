@@ -16,7 +16,8 @@ from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.agent import Agent
 from mephisto.utils.logger_core import get_logger
-from .api.client import ProlificClient
+from mephisto.abstractions.providers.prolific.api.client import ProlificClient
+from mephisto.abstractions.providers.prolific.api.constants import SubmissionStatus
 
 if TYPE_CHECKING:
     from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
@@ -26,6 +27,16 @@ if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
+
+
+SUBMISSION_STATUS_TO_AGENT_STATE_MAP = {
+    SubmissionStatus.RESERVED: AgentState.STATUS_WAITING,
+    SubmissionStatus.TIMED_OUT: AgentState.STATUS_TIMEOUT,
+    SubmissionStatus.AWAITING_REVIEW: AgentState.STATUS_COMPLETED,
+    SubmissionStatus.APPROVED: AgentState.STATUS_COMPLETED,
+    SubmissionStatus.RETURNED: AgentState.STATUS_RETURNED,
+    SubmissionStatus.REJECTED: AgentState.STATUS_REJECTED,
+}
 
 logger = get_logger(name=__name__)
 
@@ -181,6 +192,48 @@ class ProlificAgent(Agent):
                 agent_id=self.db_id,
                 status=AgentState.STATUS_COMPLETED,
             )
+
+    def get_status(self) -> str:
+        """Query for this agent's status relative to Prolific"""
+        db_status = super().get_status()
+        if db_status in AgentState.immutable():
+            return db_status
+
+        # Check for unseen disconnect/return
+        unit_agent_pairing = self.get_unit().get_assigned_agent()
+        if unit_agent_pairing is None or unit_agent_pairing.db_id != self.db_id:
+            self.update_status(AgentState.STATUS_EXPIRED)
+            return self.db_status
+
+        client = self._get_client()
+
+        # Get Submission from Prolific, records status
+        datastore_unit = self.datastore.get_unit(unit_agent_pairing.db_id)
+        prolific_submission_id = datastore_unit['prolific_submission_id']
+        prolific_submission = None
+        if prolific_submission_id:
+            prolific_submission = prolific_utils.get_submission(client, prolific_submission_id)
+        else:
+            # TODO: Not sure about this
+            self.update_status(AgentState.STATUS_EXPIRED)
+            return self.db_status
+
+        # Poll for status changes from the provider
+        if prolific_submission:
+            local_status = self.db_status
+
+            if prolific_submission.status == SubmissionStatus.RESERVED:
+                provider_status = local_status
+            else:
+                provider_status = SUBMISSION_STATUS_TO_AGENT_STATE_MAP.get(
+                    prolific_submission.status,
+                )
+                if not provider_status:
+                    raise Exception(f'Unexpected Submission status {prolific_submission.status}')
+
+            self.update_status(provider_status)
+
+        return self.db_status
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":

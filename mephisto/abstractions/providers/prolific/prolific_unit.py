@@ -27,6 +27,15 @@ if TYPE_CHECKING:
 
 from mephisto.utils.logger_core import get_logger
 
+SUBMISSION_STATUS_TO_ASSIGNMENT_STATE_MAP = {
+    SubmissionStatus.RESERVED: AssignmentState.CREATED,
+    SubmissionStatus.TIMED_OUT: AssignmentState.EXPIRED,
+    SubmissionStatus.AWAITING_REVIEW: AssignmentState.COMPLETED,
+    SubmissionStatus.APPROVED: AssignmentState.COMPLETED,
+    SubmissionStatus.RETURNED: AssignmentState.COMPLETED,
+    SubmissionStatus.REJECTED: AssignmentState.REJECTED,
+}
+
 logger = get_logger(name=__name__)
 
 
@@ -114,58 +123,37 @@ class ProlificUnit(Unit):
     def get_status(self) -> str:
         """Get status for this unit directly from Prolific, fall back on local info"""
 
-        # -------------------------------------------------------------------------
-        # TODO (#1008): Fix this logic. It looked abstract and unclear in Mturk code.
         if self.db_status == AssignmentState.CREATED:
             return super().get_status()
-        elif self.db_status in [
-            AssignmentState.ACCEPTED,
-            AssignmentState.EXPIRED,
-            AssignmentState.SOFT_REJECTED,
-        ]:
+        elif self.db_status in AssignmentState.final_unit():
             # These statuses don't change with a get_status call
             return self.db_status
 
-        # -------------------------------------------------------------------------
-        # TODO (#1008): Fix this logic. It looked abstract and unclear in Mturk code.
-        if self.db_status in [AssignmentState.COMPLETED, AssignmentState.REJECTED]:
-            # These statuses only change on agent dependent changes
-            agent = self.get_assigned_agent()
-            found_status = self.db_status
-
-            if agent is not None:
-                agent_status = agent.get_status()
-                if agent_status == AgentState.STATUS_APPROVED:
-                    found_status = AssignmentState.ACCEPTED
-                elif agent_status == AgentState.STATUS_REJECTED:
-                    found_status = AssignmentState.REJECTED
-                elif agent_status == AgentState.STATUS_SOFT_REJECTED:
-                    found_status = AssignmentState.SOFT_REJECTED
-            else:
-                logger.warning(f'Agent for unit {self} is None')
-
-            if found_status != self.db_status:
-                self.set_db_status(found_status)
+        # These statuses change when we change an existing agent
+        agent = self.get_assigned_agent()
+        if agent is None:
+            if self.db_status in AssignmentState.completed():
+                logger.warning(f"Agent for completed unit {self} is None")
 
             return self.db_status
 
-        prolific_study_id = self.get_prolific_study_id()
+        # Get API client
         requester: 'ProlificRequester' = self.get_requester()
         client = self._get_client(requester.requester_name)
 
         # time.sleep(2)  # Prolific servers may take time to bring their data up-to-date
 
         # Get Study from Prolific, record status
-        study = prolific_utils.get_study(client, prolific_study_id)
+        study = prolific_utils.get_study(client, self.get_prolific_study_id())
         if study is None:
             return AssignmentState.EXPIRED
         self.datastore.update_study_status(study.id, study.status)
-        study_is_expired = study.status in [
+        study_is_completed = study.status in [
             StudyStatus.COMPLETED,
             StudyStatus.AWAITING_REVIEW,
         ]
 
-        # Get Submission from Prolific, records status
+        # Get Submission from Prolific, record status
         datastore_unit = self.datastore.get_unit(self.db_id)
         prolific_submission_id = datastore_unit['prolific_submission_id']
         prolific_submission = None
@@ -179,68 +167,38 @@ class ProlificUnit(Unit):
         local_status = self.db_status
         external_status = self.db_status
 
-        if study_is_expired:
-            # Note that Prolific cannot expire a study while there are incomplete Submissions
-            # so we always expire the unit here (without checking for Submissions status)
-            # Check for NULL worker_id to avoid labeling not-yet-worked-on units as "COMPLETED"
+        if study_is_completed:
+            # Note: Prolific cannot expire a study while there are incomplete Submissions
+            # so we always expire the unit here (without checking for Submissions status).
+
+            # Checking for NULL worker_id to avoid labeling not-yet-worked-on units as "COMPLETED"
             if self.worker_id is None:
                 external_status = AssignmentState.EXPIRED
             else:
                 external_status = AssignmentState.COMPLETED
 
-        if not study_is_expired and prolific_submission:
-            if prolific_submission.status == SubmissionStatus.RESERVED:
-                external_status = AssignmentState.CREATED
-            elif prolific_submission.status == SubmissionStatus.TIMED_OUT:
-                external_status = AssignmentState.EXPIRED
-            elif prolific_submission.status == SubmissionStatus.ACTIVE:
+        if not study_is_completed and prolific_submission:
+            if prolific_submission.status == SubmissionStatus.ACTIVE:
                 if self.worker_id is None:
                     # Check for NULL worker_id to prevent accidental reversal of unit's progress
                     if external_status != AssignmentState.LAUNCHED:
                         logger.debug(
-                            f'Moving Unit {self.db_id} status from '
+                            f'{self.log_prefix}Moving Unit {self.db_id} status from '
                             f'`{external_status}` to `{AssignmentState.LAUNCHED}`'
                         )
                     external_status = AssignmentState.LAUNCHED
-            elif prolific_submission.status in [
-                SubmissionStatus.AWAITING_REVIEW,
-                SubmissionStatus.APPROVED,
-                SubmissionStatus.RETURNED,
-            ]:
-                external_status = AssignmentState.COMPLETED
-            elif prolific_submission.status == SubmissionStatus.REJECTED:
-                external_status = AssignmentState.REJECTED
             elif prolific_submission.status == SubmissionStatus.PROCESSING:
                 # This is just Prolific's transient status to move Submission between 2 statuses
                 pass
             else:
-                raise Exception(f'Unexpected Submission status {prolific_submission.status}')
+                external_status = SUBMISSION_STATUS_TO_ASSIGNMENT_STATE_MAP.get(
+                    prolific_submission.status,
+                )
+                if not external_status:
+                    raise Exception(f'Unexpected Submission status {prolific_submission.status}')
 
-        # -------------------------------------------------------------------------
-        # TODO (#1008): Fix this logic. It looked abstract and unclear in Mturk code.
         if external_status != local_status:
-            if local_status == AssignmentState.ASSIGNED and external_status in [
-                AssignmentState.LAUNCHED,
-                AssignmentState.EXPIRED,
-            ]:
-                # Treat this as a return event, this Study may be doable by someone else
-                agent = self.get_assigned_agent()
-                agent_status = agent.get_status() if agent else None
-                if agent_status in [
-                    AgentState.STATUS_ACCEPTED,
-                    AgentState.STATUS_IN_TASK,
-                    AgentState.STATUS_ONBOARDING,
-                    AgentState.STATUS_WAITING,
-                    AgentState.STATUS_PARTNER_DISCONNECT,
-                ]:
-                    # mark the in-task agent as having returned the Study, to
-                    # free any running tasks and have Blueprint decide on cleanup.
-                    agent.update_status(AgentState.STATUS_RETURNED)
-                if external_status == AssignmentState.EXPIRED:
-                    # If we're expired, then it won't be doable, and we should update
-                    self.set_db_status(external_status)
-            else:
-                self.set_db_status(external_status)
+            self.set_db_status(external_status)
 
         return self.db_status
 
@@ -250,8 +208,8 @@ class ProlificUnit(Unit):
         if status in AssignmentState.completed():
             # Decrement available places in datastore if status is in completed statuses
             logger.debug(
-                f"Decrementing `actual_available_places` and `listed_available_places`"
-                f"because unit `{self.db_id}` is completed"
+                f"{self.log_prefix}Decrementing `actual_available_places` and "
+                f"`listed_available_places`, because unit `{self.db_id}` is completed."
             )
             task_run_id = self.get_task_run().db_id
             datastore_task_run = self.datastore.get_run(task_run_id)
@@ -304,7 +262,16 @@ class ProlificUnit(Unit):
         return total_amount
 
     def launch(self, task_url: str) -> None:
-        """Publish this Study on Prolific (making it available)"""
+        """Publish this Unit on Prolific (making it available)"""
+
+        # TODO (#1008): if we have `max_num_concurrent_units` specified,
+        # the Study cannot be stopped from Prolific UI.
+        # That's beceause Mephisto waits until "completed" (not "assigned") status of previous
+        # units before launching new ones. So if Prolific temporarily runs out of available Units
+        # (and `listed_available_places` drops to zero), Prolific will automatically set Study
+        # to "AWAITING_REVIEW" status. Therefore, when we receive "AWAITING_REVIEW" status we
+        # don't know if it's this situation, or someone just clicked "Stop Study" in Prolific UI.
+
         # Update available places in provider-specific datastore
         task_run_id = self.get_task_run().db_id
         datastore_task_run = self.datastore.get_run(task_run_id)
@@ -314,8 +281,8 @@ class ProlificUnit(Unit):
         provider_increment_needed = False
 
         if actual_available_places is None:
-            # It's the first unit in our Study. Here we only make
-            # available places match Prolific Study setup (which was created with 1 place)
+            # It's the first unit in our Study. So we set available places
+            # to match the setup of Prolific Study (which was created with 1 place)
             actual_available_places = 1
             listed_available_places = 1
         elif actual_available_places == listed_available_places:
@@ -383,7 +350,7 @@ class ProlificUnit(Unit):
             # amount of time we granted for working on this assignment
             if self.assignment_time_in_seconds is not None:
                 delay = self.assignment_time_in_seconds
-            logger.debug(f'Expiring a unit that is ASSIGNED after delay {delay}')
+            logger.debug(f'{self.log_prefix}Expiring a unit that is ASSIGNED after delay {delay}')
 
         prolific_study_id = self.get_prolific_study_id()
         requester = self.get_requester()
