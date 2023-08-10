@@ -7,14 +7,19 @@
 Utilities specifically for running examine scripts. Example usage can be
 seen in the examine results scripts in the examples directory.
 """
-import traceback
 
-from mephisto.tools.data_browser import DataBrowser
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
+
 from mephisto.data_model.worker import Worker
-from mephisto.utils.qualifications import find_or_create_qualification
+from mephisto.tools.data_browser import DataBrowser
 from mephisto.utils.logger_core import get_logger
-
-from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any, List
+from mephisto.utils.qualifications import find_or_create_qualification
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
@@ -63,7 +68,7 @@ def print_results(
     units.reverse()
 
     for unit in units[start:end]:
-        print(_get_and_format_data(data_browser, format_data_for_printing, unit))
+        logger.info(_get_and_format_data(data_browser, format_data_for_printing, unit))
 
 
 def prompt_for_options(
@@ -133,7 +138,11 @@ def format_worker_stats(
     accepted_work = len(prev_work["accepted"])
     soft_rejected_work = len(prev_work["soft_rejected"])
     rejected_work = len(prev_work["rejected"])
-    return f"({accepted_work} | {rejected_work + soft_rejected_work}({soft_rejected_work}) / {accepted_work + soft_rejected_work + rejected_work})"
+    return (
+        f"({accepted_work} | "
+        f"{rejected_work + soft_rejected_work}({soft_rejected_work}) / "
+        f"{accepted_work + soft_rejected_work + rejected_work})"
+    )
 
 
 def run_examine_by_worker(
@@ -167,16 +176,17 @@ def run_examine_by_worker(
     if block_qualification is not None:
         created_block_qual = find_or_create_qualification(db, block_qualification)
         print(
-            "When you pass or reject a task, the script gives you an option to disqualify the worker "
-            "from future tasks by assigning a qualification. If provided, this worker will no "
-            "longer be able to work on tasks where the set --block-qualification shares the same name "
-            f"you provided above: {block_qualification}\n"
+            "When you pass or reject a task, the script gives you an option to disqualify the "
+            "worker from future tasks by assigning a qualification. "
+            "If provided, this worker will no longer be able to work on tasks where the set "
+            "--block-qualification shares the same name you provided above: {block_qualification}\n"
         )
     if approve_qualification is not None:
         created_approve_qual = find_or_create_qualification(db, approve_qualification)
         print(
             "You may use this script to establish a qualified worker pool by granting the provided "
-            f"approve qualification {approve_qualification} to workers you think understand the task "
+            f"approve qualification {approve_qualification} "
+            f"to workers you think understand the task "
             "well. This will be provided as an option for workers you (A)pprove all on. "
             "Future tasks can use this qual as a required qualification, as described in the "
             "common qualification flows document."
@@ -226,11 +236,13 @@ def run_examine_by_worker(
                 decision = apply_all_decision
             else:
                 decision = input(
-                    "Do you want to accept this work? (a)ccept, (r)eject, (p)ass: "
+                    "Do you want to accept this work? "
+                    "(a)ccept, (r)eject, (p)ass: "
                 )
             while decision.lower() not in options:
                 decision = input(
-                    "Decision must be one of a, p, r. Use CAPS to apply to all remaining for worker: "
+                    "Decision must be one of a, p, r. "
+                    "Use CAPS to apply to all remaining for worker: "
                 )
 
             agent = unit.get_assigned_agent()
@@ -288,6 +300,8 @@ def run_examine_or_review(
     )
 
     if do_review.lower().startswith("r"):
+        logger.info('Start reviewing results')
+
         run_examine_by_worker(db, format_data_for_printing)
     else:
         start = 0
@@ -299,4 +313,9 @@ def run_examine_or_review(
             start = int(opts[1])
             end = int(opts[2])
         task_name = input("Input task name: ")
+
+        logger.info(f'Start examining results for task "{task_name}"')
+
         print_results(db, task_name, format_data_for_printing, start=start, end=end)
+
+    logger.info('End examining results')
