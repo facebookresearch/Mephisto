@@ -16,9 +16,13 @@ import pytest
 from omegaconf import DictConfig
 
 from mephisto.abstractions.providers.prolific.api import constants
+from mephisto.abstractions.providers.prolific.api.data_models import BonusPayments
+from mephisto.abstractions.providers.prolific.api.data_models import ListSubmission
+from mephisto.abstractions.providers.prolific.api.data_models import Participant
 from mephisto.abstractions.providers.prolific.api.data_models import ParticipantGroup
 from mephisto.abstractions.providers.prolific.api.data_models import Project
 from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.api.data_models import Submission
 from mephisto.abstractions.providers.prolific.api.data_models import User
 from mephisto.abstractions.providers.prolific.api.data_models import Workspace
 from mephisto.abstractions.providers.prolific.api.data_models import WorkspaceBalance
@@ -30,8 +34,14 @@ from mephisto.abstractions.providers.prolific.prolific_utils import _ec2_externa
 from mephisto.abstractions.providers.prolific.prolific_utils import _find_prolific_project
 from mephisto.abstractions.providers.prolific.prolific_utils import _find_prolific_workspace
 from mephisto.abstractions.providers.prolific.prolific_utils import _find_qualification
+from mephisto.abstractions.providers.prolific.prolific_utils import _find_submission
+from mephisto.abstractions.providers.prolific.prolific_utils import _get_block_list_qualification
 from mephisto.abstractions.providers.prolific.prolific_utils import _get_external_study_url
 from mephisto.abstractions.providers.prolific.prolific_utils import _is_ec2_architect
+from mephisto.abstractions.providers.prolific.prolific_utils import add_workers_to_qualification
+from mephisto.abstractions.providers.prolific.prolific_utils import approve_work
+from mephisto.abstractions.providers.prolific.prolific_utils import block_worker
+from mephisto.abstractions.providers.prolific.prolific_utils import calculate_pay_amount
 from mephisto.abstractions.providers.prolific.prolific_utils import check_balance
 from mephisto.abstractions.providers.prolific.prolific_utils import check_credentials
 from mephisto.abstractions.providers.prolific.prolific_utils import create_qualification
@@ -45,13 +55,20 @@ from mephisto.abstractions.providers.prolific.prolific_utils import (
 from mephisto.abstractions.providers.prolific.prolific_utils import find_or_create_qualification
 from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 from mephisto.abstractions.providers.prolific.prolific_utils import get_study
+from mephisto.abstractions.providers.prolific.prolific_utils import get_submission
+from mephisto.abstractions.providers.prolific.prolific_utils import give_worker_qualification
 from mephisto.abstractions.providers.prolific.prolific_utils import (
     increase_total_available_places_for_study,
 )
 from mephisto.abstractions.providers.prolific.prolific_utils import is_study_expired
+from mephisto.abstractions.providers.prolific.prolific_utils import is_worker_blocked
+from mephisto.abstractions.providers.prolific.prolific_utils import pay_bonus
 from mephisto.abstractions.providers.prolific.prolific_utils import publish_study
+from mephisto.abstractions.providers.prolific.prolific_utils import reject_work
+from mephisto.abstractions.providers.prolific.prolific_utils import remove_worker_qualification
 from mephisto.abstractions.providers.prolific.prolific_utils import setup_credentials
 from mephisto.abstractions.providers.prolific.prolific_utils import stop_study
+from mephisto.abstractions.providers.prolific.prolific_utils import unblock_worker
 from mephisto.data_model.requester import RequesterArgs
 
 MOCK_PROLIFIC_CONFIG_DIR = "/tmp/"
@@ -941,6 +958,590 @@ class TestProlificUtils(unittest.TestCase):
         self.assertFalse(result_with_any_other_status)
         self.assertFalse(result_just_with_awaiting_review_status)
         self.assertTrue(result_with_completed_status_and_internal_name)
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.add_participants_to_group'
+    )
+    def test_add_workers_to_qualification_success(self, *args):
+        worker_ids = ['test', 'test2']
+        participant_group_id = 'test3'
+
+        result = add_workers_to_qualification(self.client, worker_ids, participant_group_id)
+
+        self.assertIsNone(result)
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.add_participants_to_group'
+    )
+    def test_add_workers_to_qualification_exception(self, mock_add_participants_to_group, *args):
+        worker_ids = ['test', 'test2']
+        participant_group_id = 'test3'
+
+        exception_message = 'Error'
+        mock_add_participants_to_group.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            add_workers_to_qualification(self.client, worker_ids, participant_group_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.add_participants_to_group'
+    )
+    def test_give_worker_qualification_success(self, mock_add_participants_to_group, *args):
+        worker_id = 'test'
+        participant_group_id = 'test3'
+
+        result = give_worker_qualification(self.client, worker_id, participant_group_id)
+
+        mock_add_participants_to_group.assert_called_once_with(
+            id=participant_group_id, participant_ids=[worker_id],
+        )
+        self.assertIsNone(result)
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.remove_participants_from_group'
+    )
+    def test_remove_worker_qualification_success(self, *args):
+        worker_id = 'test'
+        participant_group_id = 'test2'
+
+        result = remove_worker_qualification(self.client, worker_id, participant_group_id)
+
+        self.assertIsNone(result)
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.remove_participants_from_group'
+    )
+    def test_remove_worker_qualification_exception(
+        self, mock_remove_participants_from_group, *args,
+    ):
+        worker_id = 'test'
+        participant_group_id = 'test2'
+
+        exception_message = 'Error'
+        mock_remove_participants_from_group.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            remove_worker_qualification(self.client, worker_id, participant_group_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    def test_pay_bonus_empty_balance(self, mock_check_balance, mock_set_up, mock_pay, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+        bonus_amount = 1000
+
+        mock_check_balance.return_value = False
+
+        result = pay_bonus(self.client, mock_task_run_args, worker_id, bonus_amount, study_id)
+
+        mock_set_up.assert_not_called()
+        mock_pay.assert_not_called()
+        self.assertFalse(result)
+
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    def test_pay_bonus_empty_balance(self, mock_check_balance, mock_set_up, mock_pay, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+        bonus_amount = 1000
+
+        mock_check_balance.return_value = False
+
+        result = pay_bonus(self.client, mock_task_run_args, worker_id, bonus_amount, study_id)
+
+        mock_set_up.assert_not_called()
+        mock_pay.assert_not_called()
+        self.assertFalse(result)
+
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    def test_pay_bonus_success(self, mock_check_balance, mock_set_up, mock_pay, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+        bonus_payments_id = 'test3'
+        bonus_amount = 1000
+
+        mock_bonus_payments = BonusPayments()
+        mock_bonus_payments.id = bonus_payments_id
+        mock_check_balance.return_value = True
+        mock_set_up.return_value = mock_bonus_payments
+
+        result = pay_bonus(self.client, mock_task_run_args, worker_id, bonus_amount, study_id)
+
+        mock_set_up.assert_called_once_with(study_id, f'{worker_id},{bonus_amount / 100}')
+        mock_pay.assert_called_once_with(mock_bonus_payments.id)
+        self.assertTrue(result)
+
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    def test_pay_bonus_set_up_exception(self, mock_check_balance, mock_set_up, mock_pay, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+        bonus_amount = 1000
+
+        mock_check_balance.return_value = True
+
+        exception_message = 'Error'
+        mock_set_up.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            pay_bonus(self.client, mock_task_run_args, worker_id, bonus_amount, study_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+        mock_set_up.assert_called_once_with(study_id, f'{worker_id},{bonus_amount / 100}')
+        mock_pay.assert_not_called()
+
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
+    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    def test_pay_bonus_pay_exception(self, mock_check_balance, mock_set_up, mock_pay, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+        bonus_payments_id = 'test3'
+        bonus_amount = 1000
+
+        mock_bonus_payments = BonusPayments()
+        mock_bonus_payments.id = bonus_payments_id
+        mock_check_balance.return_value = True
+        mock_set_up.return_value = mock_bonus_payments
+
+        exception_message = 'Error'
+        mock_pay.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            pay_bonus(self.client, mock_task_run_args, worker_id, bonus_amount, study_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+        mock_set_up.assert_called_once_with(study_id, f'{worker_id},{bonus_amount / 100}')
+        mock_pay.assert_called_once_with(mock_bonus_payments.id)
+
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_qualification')
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
+    )
+    def test__get_block_list_qualification(
+        self,
+        mock_find_or_create_prolific_workspace,
+        mock_find_or_create_prolific_project,
+        mock_find_or_create_qualification,
+        *args,
+    ):
+        mock_workspace = Workspace()
+        mock_workspace.id = 'test'
+        mock_project = Project()
+        mock_project.id = 'test2'
+        mock_project.title = 'test2_title'
+        mock_participant_group = ParticipantGroup()
+        mock_participant_group.id = 'test3'
+        mock_participant_group.name = 'test3_name'
+
+        mock_find_or_create_prolific_workspace.return_value = mock_workspace
+        mock_find_or_create_prolific_project.return_value = mock_project
+        mock_find_or_create_qualification.return_value = mock_participant_group
+
+        result = _get_block_list_qualification(self.client, mock_task_run_args)
+
+        self.assertEqual(mock_participant_group, result)
+
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils.add_workers_to_qualification')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._get_block_list_qualification')
+    def test_block_worker_success(
+        self, mock__get_block_list_qualification, mock_add_workers_to_qualification, *args,
+    ):
+        worker_id = 'test'
+
+        mock_participant_group = ParticipantGroup()
+        mock_participant_group.id = 'test2'
+
+        mock__get_block_list_qualification.return_value = mock_participant_group
+
+        result = block_worker(self.client, mock_task_run_args, worker_id)
+
+        self.assertIsNone(result)
+        mock_add_workers_to_qualification.called_once_with(
+            self.client, workers_ids=[worker_id], qualification_id=mock_participant_group.id,
+        )
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.remove_participants_from_group'
+    )
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._get_block_list_qualification')
+    def test_unblock_worker_success(
+        self, mock__get_block_list_qualification, mock_remove_participants_from_group, *args,
+    ):
+        worker_id = 'test'
+
+        mock_participant_group = ParticipantGroup()
+        mock_participant_group.id = 'test2'
+
+        mock__get_block_list_qualification.return_value = mock_participant_group
+
+        result = unblock_worker(self.client, mock_task_run_args, worker_id)
+
+        self.assertIsNone(result)
+        mock_remove_participants_from_group.called_once_with(
+            id=mock_participant_group.id, participant_ids=[worker_id],
+        )
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.list_participants_for_group'
+    )
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_qualification')
+    def test_is_worker_blocked_no_block_list_qualification(
+        self, mock__find_qualification, mock_list_participants_for_group, *args,
+    ):
+        worker_id = 'test'
+
+        mock__find_qualification.return_value = (False, None)
+
+        result = is_worker_blocked(self.client, mock_task_run_args, worker_id)
+
+        self.assertFalse(result)
+        mock_list_participants_for_group.assert_not_called()
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.list_participants_for_group'
+    )
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_qualification')
+    def test_is_worker_blocked_success_true(
+        self, mock__find_qualification, mock_list_participants_for_group, *args,
+    ):
+        worker_id = 'test'
+
+        mock_participant_group = ParticipantGroup()
+        mock_participant_group.id = 'test2'
+        mock_participant = Participant()
+        mock_participant.participant_id = worker_id
+
+        mock__find_qualification.return_value = (True, mock_participant_group)
+        mock_list_participants_for_group.return_value = [mock_participant]
+
+        result = is_worker_blocked(self.client, mock_task_run_args, worker_id)
+
+        self.assertTrue(result)
+        mock_list_participants_for_group.assert_called_once()
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.list_participants_for_group'
+    )
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_qualification')
+    def test_is_worker_blocked_success_false(
+        self, mock__find_qualification, mock_list_participants_for_group, *args,
+    ):
+        worker_id = 'test'
+
+        mock_participant_group = ParticipantGroup()
+        mock_participant_group.id = 'test2'
+        mock_participant = Participant()
+        mock_participant.participant_id = 'test3'
+
+        mock__find_qualification.return_value = (True, mock_participant_group)
+        mock_list_participants_for_group.return_value = [mock_participant]
+
+        result = is_worker_blocked(self.client, mock_task_run_args, worker_id)
+
+        self.assertFalse(result)
+        mock_list_participants_for_group.assert_called_once()
+
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
+    )
+    @patch(
+        'mephisto.abstractions.providers.prolific.api.'
+        'participant_groups.ParticipantGroups.list_participants_for_group'
+    )
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_qualification')
+    def test_is_worker_blocked_exception(
+        self, mock__find_qualification, mock_list_participants_for_group, *args,
+    ):
+        worker_id = 'test'
+
+        mock_participant_group = ParticipantGroup()
+        mock_participant_group.id = 'test2'
+        mock_participant = Participant()
+        mock_participant.participant_id = worker_id
+
+        mock__find_qualification.return_value = (True, mock_participant_group)
+
+        exception_message = 'Error'
+        mock_list_participants_for_group.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            is_worker_blocked(self.client, mock_task_run_args, worker_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+        mock_list_participants_for_group.assert_called_once()
+
+    @patch('mephisto.abstractions.providers.prolific.api.studies.Studies.calculate_cost')
+    def test_calculate_pay_amount_success(self, mock_calculate_cost, *args):
+        task_amount = 1000
+        total_available_places = 2
+
+        mock_calculate_cost.return_value = task_amount * total_available_places
+
+        result = calculate_pay_amount(self.client, task_amount, total_available_places)
+
+        self.assertEqual(task_amount * total_available_places, result)
+
+    @patch('mephisto.abstractions.providers.prolific.api.studies.Studies.calculate_cost')
+    def test_calculate_pay_amount_exception(self, mock_calculate_cost, *args):
+        task_amount = 1000
+        total_available_places = 2
+
+        exception_message = 'Error'
+        mock_calculate_cost.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            calculate_pay_amount(self.client, task_amount, total_available_places)
+
+        self.assertEqual(cm.exception.message, exception_message)
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.list')
+    def test__find_submission_success_found(self, mock_list, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock_list_submission = ListSubmission()
+        mock_list_submission.id = 'test3'
+        mock_list_submission.participant_id = worker_id
+
+        mock_list.return_value = [mock_list_submission]
+
+        result = _find_submission(self.client, study_id, worker_id)
+
+        self.assertEqual(mock_list_submission, result)
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.list')
+    def test__find_submission_success_not_found(self, mock_list, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock_list_submission = ListSubmission()
+        mock_list_submission.id = 'test3'
+        mock_list_submission.participant_id = 'test4'
+
+        mock_list.return_value = [mock_list_submission]
+
+        result = _find_submission(self.client, study_id, worker_id)
+
+        self.assertEqual(None, result)
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.list')
+    def test__find_submission_exception(self, mock_list, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        exception_message = 'Error'
+        mock_list.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            _find_submission(self.client, study_id, worker_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.retrieve')
+    def test_get_submission_success(self, mock_retrieve, *args):
+        submission_id = 'test'
+
+        mock_submission = Submission()
+        mock_submission.id = 'test2'
+
+        mock_retrieve.return_value = mock_submission
+
+        result = get_submission(self.client, submission_id)
+
+        self.assertEqual(mock_submission, result)
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.retrieve')
+    def test_get_submission_exception(self, mock_retrieve, *args):
+        submission_id = 'test'
+
+        exception_message = 'Error'
+        mock_retrieve.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            get_submission(self.client, submission_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.approve')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    def test_approve_work_submission_not_found(self, mock__find_submission, mock_approve, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock__find_submission.return_value = False
+
+        result = approve_work(self.client, study_id, worker_id)
+
+        self.assertIsNone(result)
+        mock_approve.assert_not_called()
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.approve')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    def test_approve_work_success(self, mock__find_submission, mock_approve, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock_submission = Submission()
+        mock_submission.id = 'test3'
+        mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
+
+        mock_submission_approved = Submission()
+        mock_submission_approved.id = 'test4'
+        mock_submission_approved.status = constants.SubmissionStatus.APPROVED
+
+        mock__find_submission.return_value = mock_submission
+        mock_approve.return_value = mock_submission_approved
+
+        result = approve_work(self.client, study_id, worker_id)
+
+        self.assertEqual(mock_submission_approved, result)
+        mock_approve.assert_called_once()
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.approve')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    def test_approve_work_incorrect_submission_status(
+        self, mock__find_submission, mock_approve, *args,
+    ):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock_submission = Submission()
+        mock_submission.id = 'test3'
+        mock_submission.status = constants.SubmissionStatus.ACTIVE
+
+        mock__find_submission.return_value = mock_submission
+
+        result = approve_work(self.client, study_id, worker_id)
+
+        self.assertIsNone(result)
+        mock_approve.assert_not_called()
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.approve')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    def test_approve_work_exception(self, mock__find_submission, mock_approve, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock_submission = Submission()
+        mock_submission.id = 'test3'
+        mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
+
+        mock__find_submission.return_value = mock_submission
+
+        exception_message = 'Error'
+        mock_approve.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            approve_work(self.client, study_id, worker_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.reject')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    def test_reject_work_submission_not_found(self, mock__find_submission, mock_reject, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock__find_submission.return_value = False
+
+        result = reject_work(self.client, study_id, worker_id)
+
+        self.assertIsNone(result)
+        mock_reject.assert_not_called()
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.reject')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    def test_reject_work_success(self, mock__find_submission, mock_reject, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock_submission = Submission()
+        mock_submission.id = 'test3'
+        mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
+
+        mock_submission_rejected = Submission()
+        mock_submission_rejected.id = 'test4'
+        mock_submission_rejected.status = constants.SubmissionStatus.REJECTED
+
+        mock__find_submission.return_value = mock_submission
+        mock_reject.return_value = mock_submission_rejected
+
+        result = reject_work(self.client, study_id, worker_id)
+
+        self.assertEqual(mock_submission_rejected, result)
+        mock_reject.assert_called_once()
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.reject')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    def test_reject_work_incorrect_submission_status(
+        self, mock__find_submission, mock_reject, *args,
+    ):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock_submission = Submission()
+        mock_submission.id = 'test3'
+        mock_submission.status = constants.SubmissionStatus.ACTIVE
+
+        mock__find_submission.return_value = mock_submission
+
+        result = reject_work(self.client, study_id, worker_id)
+
+        self.assertIsNone(result)
+        mock_reject.assert_not_called()
+
+    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.reject')
+    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    def test_reject_work_exception(self, mock__find_submission, mock_reject, *args):
+        worker_id = 'test'
+        study_id = 'test2'
+
+        mock_submission = Submission()
+        mock_submission.id = 'test3'
+        mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
+
+        mock__find_submission.return_value = mock_submission
+
+        exception_message = 'Error'
+        mock_reject.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            reject_work(self.client, study_id, worker_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
 
 
 if __name__ == "__main__":

@@ -541,6 +541,8 @@ def add_workers_to_qualification(
         )
         raise
 
+    return None
+
 
 def give_worker_qualification(
     client: ProlificClient,
