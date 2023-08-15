@@ -50,9 +50,7 @@ class MTurkWorker(Worker):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            self.PROVIDER_TYPE
-        )
+        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(self.PROVIDER_TYPE)
         self._worker_name = self.worker_name  # sandbox workers use a different name
 
     @classmethod
@@ -62,13 +60,9 @@ class MTurkWorker(Worker):
         """Get the MTurkWorker from the given worker_id"""
         if cls.PROVIDER_TYPE != PROVIDER_TYPE:
             mturk_worker_id += "_sandbox"
-        workers = db.find_workers(
-            worker_name=mturk_worker_id, provider_type=cls.PROVIDER_TYPE
-        )
+        workers = db.find_workers(worker_name=mturk_worker_id, provider_type=cls.PROVIDER_TYPE)
         if len(workers) == 0:
-            logger.warning(
-                f"Could not find a Mephisto Worker for mturk_id {mturk_worker_id}"
-            )
+            logger.warning(f"Could not find a Mephisto Worker for mturk_id {mturk_worker_id}")
             return None
         return cast("MTurkWorker", workers[0])
 
@@ -81,9 +75,7 @@ class MTurkWorker(Worker):
         """
         return self.datastore.get_client_for_requester(requester_name)
 
-    def grant_crowd_qualification(
-        self, qualification_name: str, value: int = 1
-    ) -> None:
+    def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
         """
         Grant a qualification by the given name to this worker. Check the local
         MTurk db to find the matching MTurk qualification to grant, and pass
@@ -93,30 +85,20 @@ class MTurkWorker(Worker):
         requester to associate that qualification with by using the FIRST requester
         of the given account type (either `mturk` or `mturk_sandbox`)
         """
-        mturk_qual_details = self.datastore.get_qualification_mapping(
-            qualification_name
-        )
+        mturk_qual_details = self.datastore.get_qualification_mapping(qualification_name)
         if mturk_qual_details is not None:
             requester = Requester.get(self.db, mturk_qual_details["requester_id"])
             qualification_id = mturk_qual_details["mturk_qualification_id"]
         else:
-            target_type = (
-                "mturk_sandbox" if qualification_name.endswith("sandbox") else "mturk"
-            )
+            target_type = "mturk_sandbox" if qualification_name.endswith("sandbox") else "mturk"
             requester = self.db.find_requesters(provider_type=target_type)[-1]
             assert isinstance(
                 requester, MTurkRequester
             ), "find_requesters must return mturk requester for given provider types"
-            qualification_id = requester._create_new_mturk_qualification(
-                qualification_name
-            )
-        assert isinstance(
-            requester, MTurkRequester
-        ), "Must be an MTurk requester for MTurk quals"
+            qualification_id = requester._create_new_mturk_qualification(qualification_name)
+        assert isinstance(requester, MTurkRequester), "Must be an MTurk requester for MTurk quals"
         client = self._get_client(requester._requester_name)
-        give_worker_qualification(
-            client, self.get_mturk_worker_id(), qualification_id, value
-        )
+        give_worker_qualification(client, self.get_mturk_worker_id(), qualification_id, value)
         return None
 
     def revoke_crowd_qualification(self, qualification_name: str) -> None:
@@ -125,9 +107,7 @@ class MTurkWorker(Worker):
         MTurk db to find the matching MTurk qualification to revoke, pass if
         no such qualification exists.
         """
-        mturk_qual_details = self.datastore.get_qualification_mapping(
-            qualification_name
-        )
+        mturk_qual_details = self.datastore.get_qualification_mapping(qualification_name)
         if mturk_qual_details is None:
             logger.error(
                 f"No locally stored MTurk qualification to revoke for name {qualification_name}"
@@ -135,14 +115,10 @@ class MTurkWorker(Worker):
             return None
 
         requester = Requester.get(self.db, mturk_qual_details["requester_id"])
-        assert isinstance(
-            requester, MTurkRequester
-        ), "Must be an MTurk requester from MTurk quals"
+        assert isinstance(requester, MTurkRequester), "Must be an MTurk requester from MTurk quals"
         client = self._get_client(requester._requester_name)
         qualification_id = mturk_qual_details["mturk_qualification_id"]
-        remove_worker_qualification(
-            client, self.get_mturk_worker_id(), qualification_id
-        )
+        remove_worker_qualification(client, self.get_mturk_worker_id(), qualification_id)
         return None
 
     def bonus_worker(
@@ -155,15 +131,11 @@ class MTurkWorker(Worker):
             return False, "bonusing via compensation tasks not yet available"
 
         unit = cast("MTurkUnit", unit)
-        requester = cast(
-            "MTurkRequester", unit.get_assignment().get_task_run().get_requester()
-        )
+        requester = cast("MTurkRequester", unit.get_assignment().get_task_run().get_requester())
         client = self._get_client(requester._requester_name)
         mturk_assignment_id = unit.get_mturk_assignment_id()
         assert mturk_assignment_id is not None, "Cannot bonus for a unit with no agent"
-        pay_bonus(
-            client, self._worker_name, amount, mturk_assignment_id, reason, str(uuid4())
-        )
+        pay_bonus(client, self._worker_name, amount, mturk_assignment_id, reason, str(uuid4()))
         return True, ""
 
     def block_worker(

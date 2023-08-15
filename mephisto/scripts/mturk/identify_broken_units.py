@@ -36,9 +36,7 @@ def main():
         and u.get_assigned_agent() is not None
     ]
     completed_timeout_units = [
-        u
-        for u in completed_agented_units
-        if u.get_assigned_agent().get_status() == "timeout"
+        u for u in completed_agented_units if u.get_assigned_agent().get_status() == "timeout"
     ]
 
     if len(completed_agentless_units) == 0 and len(completed_timeout_units) == 0:
@@ -52,9 +50,7 @@ def main():
     )
     print(completed_timeout_units[-5:])
 
-    agents = db.find_agents(task_run_id=TASK_RUN) + db.find_agents(
-        task_run_id=TASK_RUN - 1
-    )
+    agents = db.find_agents(task_run_id=TASK_RUN) + db.find_agents(task_run_id=TASK_RUN - 1)
     requester = units[0].get_requester()
     client = requester._get_client(requester._requester_name)
 
@@ -72,9 +68,7 @@ def main():
 
     print(f"Querying assignments for the {len(hits)} tasks.")
 
-    task_assignments_uf = [
-        get_assignments_for_hit(client, h["HITId"]) for h in task_hits
-    ]
+    task_assignments_uf = [get_assignments_for_hit(client, h["HITId"]) for h in task_hits]
     task_assignments = [t[0] for t in task_assignments_uf if len(t) != 0]
 
     print(f"Found {len(task_assignments)} assignments to map.")
@@ -88,13 +82,9 @@ def main():
         worker_id_to_agents[worker_id].append(a)
 
     print("Constructing hit-id to unit mapping for completed...")
-    hit_ids_to_unit = {
-        u.get_mturk_hit_id(): u for u in units if u.get_mturk_hit_id() is not None
-    }
+    hit_ids_to_unit = {u.get_mturk_hit_id(): u for u in units if u.get_mturk_hit_id() is not None}
 
-    unattributed_assignments = [
-        t for t in task_assignments if t["HITId"] not in hit_ids_to_unit
-    ]
+    unattributed_assignments = [t for t in task_assignments if t["HITId"] not in hit_ids_to_unit]
 
     print(f"Found {len(unattributed_assignments)} assignments with no mapping!")
 
@@ -113,9 +103,7 @@ def main():
                 if units_agent is None or units_agent.db_id != agent.db_id:
                     continue
 
-                print(
-                    f"Agent {agent} would be a good candidate to reconcile {assignment['HITId']}"
-                )
+                print(f"Agent {agent} would be a good candidate to reconcile {assignment['HITId']}")
                 # TODO(WISH) automate the below
                 print(
                     "You can do this manually by selecting the best candidate, then "

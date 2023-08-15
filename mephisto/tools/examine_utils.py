@@ -235,10 +235,7 @@ def run_examine_by_worker(
             if apply_all_decision is not None:
                 decision = apply_all_decision
             else:
-                decision = input(
-                    "Do you want to accept this work? "
-                    "(a)ccept, (r)eject, (p)ass: "
-                )
+                decision = input("Do you want to accept this work? (a)ccept, (r)eject, (p)ass: ")
             while decision.lower() not in options:
                 decision = input(
                     "Decision must be one of a, p, r. "
@@ -246,9 +243,7 @@ def run_examine_by_worker(
                 )
 
             agent = unit.get_assigned_agent()
-            assert (
-                agent is not None
-            ), f"Can't make decision on None agent... issue with {unit}"
+            assert agent is not None, f"Can't make decision on None agent... issue with {unit}"
             if decision.lower() == "a":
                 agent.approve_work()
                 if decision == "A" and approve_qualification is not None:
@@ -260,9 +255,7 @@ def run_examine_by_worker(
             elif decision.lower() == "p":
                 agent.soft_reject_work()
                 if apply_all_decision is None and block_qualification is not None:
-                    should_soft_block = input(
-                        "Do you want to soft block this worker? (y)es/(n)o: "
-                    )
+                    should_soft_block = input("Do you want to soft block this worker? (y)es/(n)o: ")
                     if should_soft_block.lower() in ["y", "yes"]:
                         worker.grant_qualification(block_qualification, 1)
             elif decision.lower() == "v":
@@ -277,9 +270,7 @@ def run_examine_by_worker(
             else:  # decision = 'r'
                 if apply_all_decision is None:
                     reason = input("Why are you rejecting this work? ")
-                    should_block = input(
-                        "Do you want to hard block this worker? (y)es/(n)o: "
-                    )
+                    should_block = input("Do you want to hard block this worker? (y)es/(n)o: ")
                     if should_block.lower() in ["y", "yes"]:
                         block_reason = input("Why permanently block this worker? ")
                         worker.block_worker(block_reason, unit=unit)
@@ -300,7 +291,7 @@ def run_examine_or_review(
     )
 
     if do_review.lower().startswith("r"):
-        logger.info('Start reviewing results')
+        logger.info("Start reviewing results")
 
         run_examine_by_worker(db, format_data_for_printing)
     else:
@@ -318,4 +309,4 @@ def run_examine_or_review(
 
         print_results(db, task_name, format_data_for_printing, start=start, end=end)
 
-    logger.info('End examining results')
+    logger.info("End examining results")

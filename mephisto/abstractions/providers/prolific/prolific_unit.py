@@ -51,16 +51,16 @@ class ProlificUnit(Unit):
 
     def __init__(
         self,
-        db: 'MephistoDB',
+        db: "MephistoDB",
         db_id: str,
         row: Optional[Mapping[str, Any]] = None,
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: 'ProlificDatastore' = db.get_datastore_for_provider(PROVIDER_TYPE)
+        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
         self._last_sync_time = 0.0
         self._sync_study_mapping()
-        self.__requester: Optional['ProlificRequester'] = None
+        self.__requester: Optional["ProlificRequester"] = None
 
     def _get_client(self, requester_name: str) -> Any:
         """Get a Prolific client for usage with `prolific_utils`"""
@@ -68,7 +68,7 @@ class ProlificUnit(Unit):
 
     @property
     def log_prefix(self) -> str:
-        return f'[Unit {self.db_id}] '
+        return f"[Unit {self.db_id}] "
 
     def _sync_study_mapping(self) -> None:
         """Sync with the datastore to see if any mappings have updated"""
@@ -76,9 +76,9 @@ class ProlificUnit(Unit):
             return
         try:
             mapping = dict(self.datastore.get_study_mapping(self.db_id))
-            self.prolific_study_id = mapping['prolific_study_id']
-            self.prolific_submission_id = mapping.get('prolific_submission_id')
-            self.assignment_time_in_seconds = mapping.get('assignment_time_in_seconds')
+            self.prolific_study_id = mapping["prolific_study_id"]
+            self.prolific_submission_id = mapping.get("prolific_submission_id")
+            self.assignment_time_in_seconds = mapping.get("assignment_time_in_seconds")
         except IndexError:
             # Study does not appear to exist
             self.prolific_study_id = None
@@ -90,7 +90,9 @@ class ProlificUnit(Unit):
         self._last_sync_time = time.monotonic() - 1
 
     def register_from_provider_data(
-        self, prolific_study_id: str, prolific_submission_id: str,
+        self,
+        prolific_study_id: str,
+        prolific_submission_id: str,
     ) -> None:
         """Update the datastore and local information from this registration"""
         self.datastore.set_submission_for_unit(
@@ -114,10 +116,10 @@ class ProlificUnit(Unit):
         self._sync_study_mapping()
         return self.prolific_study_id
 
-    def get_requester(self) -> 'ProlificRequester':
+    def get_requester(self) -> "ProlificRequester":
         """Wrapper around regular Requester as this will be ProlificRequester"""
         if self.__requester is None:
-            self.__requester = cast('ProlificRequester', super().get_requester())
+            self.__requester = cast("ProlificRequester", super().get_requester())
         return self.__requester
 
     def get_status(self) -> str:
@@ -138,7 +140,7 @@ class ProlificUnit(Unit):
             return self.db_status
 
         # Get API client
-        requester: 'ProlificRequester' = self.get_requester()
+        requester: "ProlificRequester" = self.get_requester()
         client = self._get_client(requester.requester_name)
 
         # time.sleep(2)  # Prolific servers may take time to bring their data up-to-date
@@ -155,12 +157,13 @@ class ProlificUnit(Unit):
 
         # Get Submission from Prolific, record status
         datastore_unit = self.datastore.get_unit(self.db_id)
-        prolific_submission_id = datastore_unit['prolific_submission_id']
+        prolific_submission_id = datastore_unit["prolific_submission_id"]
         prolific_submission = None
         if prolific_submission_id:
             prolific_submission = prolific_utils.get_submission(client, prolific_submission_id)
             self.datastore.update_submission_status(
-                prolific_submission_id, prolific_submission.status,
+                prolific_submission_id,
+                prolific_submission.status,
             )
 
         # Check Unit status
@@ -183,8 +186,8 @@ class ProlificUnit(Unit):
                     # Check for NULL worker_id to prevent accidental reversal of unit's progress
                     if external_status != AssignmentState.LAUNCHED:
                         logger.debug(
-                            f'{self.log_prefix}Moving Unit {self.db_id} status from '
-                            f'`{external_status}` to `{AssignmentState.LAUNCHED}`'
+                            f"{self.log_prefix}Moving Unit {self.db_id} status from "
+                            f"`{external_status}` to `{AssignmentState.LAUNCHED}`"
                         )
                     external_status = AssignmentState.LAUNCHED
             elif prolific_submission.status == SubmissionStatus.PROCESSING:
@@ -195,7 +198,7 @@ class ProlificUnit(Unit):
                     prolific_submission.status,
                 )
                 if not external_status:
-                    raise Exception(f'Unexpected Submission status {prolific_submission.status}')
+                    raise Exception(f"Unexpected Submission status {prolific_submission.status}")
 
         if external_status != local_status:
             self.set_db_status(external_status)
@@ -215,8 +218,8 @@ class ProlificUnit(Unit):
             datastore_task_run = self.datastore.get_run(task_run_id)
             self.datastore.set_available_places_for_run(
                 run_id=task_run_id,
-                actual_available_places=datastore_task_run['actual_available_places'] - 1,
-                listed_available_places=datastore_task_run['listed_available_places'] - 1,
+                actual_available_places=datastore_task_run["actual_available_places"] - 1,
+                listed_available_places=datastore_task_run["listed_available_places"] - 1,
             )
 
     def clear_assigned_agent(self) -> None:
@@ -246,7 +249,7 @@ class ProlificUnit(Unit):
         Return the amount that this Unit is costing against the budget,
         calculating additional fees as relevant
         """
-        logger.debug(f'{self.log_prefix}Getting pay amount')
+        logger.debug(f"{self.log_prefix}Getting pay amount")
 
         requester = self.get_requester()
         client = self._get_client(requester.requester_name)
@@ -257,7 +260,7 @@ class ProlificUnit(Unit):
             # TODO: what value should go in here when we auto-increment `total_available_places`?
             total_available_places=1,
         )
-        logger.debug(f'{self.log_prefix}Pay amount: {total_amount}')
+        logger.debug(f"{self.log_prefix}Pay amount: {total_amount}")
 
         return total_amount
 
@@ -276,8 +279,8 @@ class ProlificUnit(Unit):
         task_run_id = self.get_task_run().db_id
         datastore_task_run = self.datastore.get_run(task_run_id)
 
-        actual_available_places = datastore_task_run['actual_available_places']
-        listed_available_places = datastore_task_run['listed_available_places']
+        actual_available_places = datastore_task_run["actual_available_places"]
+        listed_available_places = datastore_task_run["listed_available_places"]
         provider_increment_needed = False
 
         if actual_available_places is None:
@@ -303,7 +306,8 @@ class ProlificUnit(Unit):
             requester = self.get_requester()
             client = self._get_client(requester.requester_name)
             prolific_utils.increase_total_available_places_for_study(
-                client, datastore_task_run['prolific_study_id'],
+                client,
+                datastore_task_run["prolific_study_id"],
             )
 
         # Change DB status
@@ -324,8 +328,8 @@ class ProlificUnit(Unit):
             task_run = self.get_task_run()
             datastore_task_run = self.datastore.get_run(task_run.db_id)
 
-            actual_available_places = datastore_task_run['actual_available_places']
-            listed_available_places = datastore_task_run['listed_available_places']
+            actual_available_places = datastore_task_run["actual_available_places"]
+            listed_available_places = datastore_task_run["listed_available_places"]
 
             listed_places_decrement = 1 if task_run.get_is_completed() else 0
             self.datastore.set_available_places_for_run(
@@ -338,7 +342,7 @@ class ProlificUnit(Unit):
                 # If Mephisto has expired all its units, we force-stop Prolific Study
                 requester = self.get_requester()
                 client = self._get_client(requester.requester_name)
-                prolific_utils.stop_study(client, datastore_task_run['prolific_study_id'])
+                prolific_utils.stop_study(client, datastore_task_run["prolific_study_id"])
 
         # Update status
         if status in [AssignmentState.EXPIRED, AssignmentState.COMPLETED]:
@@ -350,7 +354,7 @@ class ProlificUnit(Unit):
             # amount of time we granted for working on this assignment
             if self.assignment_time_in_seconds is not None:
                 delay = self.assignment_time_in_seconds
-            logger.debug(f'{self.log_prefix}Expiring a unit that is ASSIGNED after delay {delay}')
+            logger.debug(f"{self.log_prefix}Expiring a unit that is ASSIGNED after delay {delay}")
 
         prolific_study_id = self.get_prolific_study_id()
         requester = self.get_requester()
@@ -373,24 +377,22 @@ class ProlificUnit(Unit):
         return self.get_status() == AssignmentState.EXPIRED
 
     @staticmethod
-    def new(
-        db: 'MephistoDB', assignment: 'Assignment', index: int, pay_amount: float
-    ) -> 'Unit':
+    def new(db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float) -> "Unit":
         """Create a Unit for the given assignment"""
         unit = ProlificUnit._register_unit(db, assignment, index, pay_amount, PROVIDER_TYPE)
 
         # Write unit in provider-specific datastore
-        datastore: 'ProlificDatastore' = db.get_datastore_for_provider(PROVIDER_TYPE)
+        datastore: "ProlificDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
         task_run_details = dict(datastore.get_run(assignment.task_run_id))
         logger.debug(
             f'{ProlificUnit.log_prefix}Create Unit "{unit.db_id}". '
-            f'Task Run datastore details: {task_run_details}'
+            f"Task Run datastore details: {task_run_details}"
         )
         datastore.create_unit(
             unit_id=unit.db_id,
             run_id=assignment.task_run_id,
-            prolific_study_id=task_run_details['prolific_study_id'],
+            prolific_study_id=task_run_details["prolific_study_id"],
         )
-        logger.debug(f'{ProlificUnit.log_prefix}Unit was created in datastore successfully!')
+        logger.debug(f"{ProlificUnit.log_prefix}Unit was created in datastore successfully!")
 
         return unit

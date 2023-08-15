@@ -25,7 +25,9 @@ def format_for_printing_data(data):
     )
 
     inputs = contents["inputs"]
-    inputs_string = f"Character: {inputs['character_name']}\nDescription: {inputs['character_description']}\n"
+    inputs_string = (
+        f"Character: {inputs['character_name']}\nDescription: {inputs['character_description']}\n"
+    )
 
     outputs = contents["outputs"]
     output_string = f"   Rating: {outputs['rating']}\n"

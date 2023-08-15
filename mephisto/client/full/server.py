@@ -16,9 +16,7 @@ import signal
 
 
 def get_app():
-    app = Flask(
-        __name__, static_url_path="/static", static_folder="webapp/build/static"
-    )
+    app = Flask(__name__, static_url_path="/static", static_folder="webapp/build/static")
     app.config.from_object(Config)
 
     app.register_blueprint(api, url_prefix="/api/v1")
@@ -39,12 +37,8 @@ def get_app():
     @app.after_request
     def after_request(response):
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add(
-            "Access-Control-Allow-Headers", "Content-Type,Authorization"
-        )
-        response.headers.add(
-            "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS"
-        )
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
         response.headers.add("Cache-Control", "no-store")
         return response
 

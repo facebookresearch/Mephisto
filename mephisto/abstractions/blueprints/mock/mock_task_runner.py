@@ -24,9 +24,7 @@ if TYPE_CHECKING:
 class MockTaskRunner(TaskRunner):
     """Mock of a task runner, for use in testing"""
 
-    def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
-    ):
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
         super().__init__(task_run, args, shared_state)
         self.timeout = args.blueprint.timeout_time
         self.tracked_tasks: Dict[str, Union["Assignment", "Unit"]] = {}
@@ -66,9 +64,7 @@ class MockTaskRunner(TaskRunner):
         time.sleep(0.3)
         assigned_agent = unit.get_assigned_agent()
         assert assigned_agent is not None, "No agent was assigned"
-        assert (
-            assigned_agent.db_id == agent.db_id
-        ), "Task was not given to assigned agent"
+        assert assigned_agent.db_id == agent.db_id, "Task was not given to assigned agent"
         packet = agent.get_live_update(timeout=self.timeout)
         if packet is not None:
             agent.observe(packet)

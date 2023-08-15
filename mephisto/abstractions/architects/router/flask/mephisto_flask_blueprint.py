@@ -230,9 +230,7 @@ class MephistoRouter(WebSocketApplication):
             "subject_id": SYSTEM_CHANNEL_ID,
             "data": agent_statuses,
             "client_timestamp": agent_status_packet["server_timestamp"],
-            "router_incoming_timestamp": agent_status_packet[
-                "router_incoming_timestamp"
-            ],
+            "router_incoming_timestamp": agent_status_packet["router_incoming_timestamp"],
         }
         self._handle_forward(packet)
 
@@ -354,9 +352,7 @@ class MephistoRouter(WebSocketApplication):
         agent.is_alive = False
         agent.disconnect_time = time.time()
 
-    def make_agent_request(
-        self, request_packet: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def make_agent_request(self, request_packet: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Make a request to the core Mephisto server, and then await the response"""
         request_id = request_packet["data"]["request_id"]
 

@@ -40,9 +40,7 @@ def run_replace():
 
     print(f"Detected mephisto-task version '{version}' at '{MEPHISTO_TASK_PACKAGE}'")
     if is_check_mode:
-        print(
-            f"Checking all dependent files are using mephisto-task version '{version}'...\n"
-        )
+        print(f"Checking all dependent files are using mephisto-task version '{version}'...\n")
     else:
         print(f"Syncing all dependent files to mephisto-task version '{version}'...\n")
     output = f'CURR_MEPHISTO_TASK_VERSION = "{version}"'

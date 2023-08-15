@@ -48,8 +48,7 @@ def install_router_files() -> None:
     packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
-            "please make sure node is installed, otherwise view "
-            "the above error for more info."
+            "please make sure node is installed, otherwise view " "the above error for more info."
         )
     os.chdir(return_dir)
 
@@ -93,9 +92,7 @@ def build_router(
     shutil.copytree(server_source_directory_path, local_server_directory_path)
 
     # Copy the required wrap crowd source path
-    local_crowd_source_path = os.path.join(
-        local_server_directory_path, CROWD_SOURCE_PATH
-    )
+    local_crowd_source_path = os.path.join(local_server_directory_path, CROWD_SOURCE_PATH)
     crowd_provider = task_run.get_provider()
     shutil.copy2(crowd_provider.get_wrapper_js_path(), local_crowd_source_path)
 

@@ -43,9 +43,7 @@ def run(
     RESULT_SUCCESS = "SUCCESS"
     RESULT_ERROR = "ERROR"
 
-    DataQueryResult = collections.namedtuple(
-        "DataQueryResult", ["data_list", "total_pages"]
-    )
+    DataQueryResult = collections.namedtuple("DataQueryResult", ["data_list", "total_pages"])
 
     if not debug or output == "":
         # disable noisy logging of flask, https://stackoverflow.com/a/18379764
@@ -138,10 +136,7 @@ def run(
             # If differnce in time since the last update to the data list is over 5 minutes, update list again
             # This can only be done for usage with mephistoDB as standard input is exhausted when originally creating the list
             now = datetime.now()
-            if (
-                USE_TIMEOUT
-                and (now - datalist_update_time).total_seconds() > TIMEOUT_IN_SECONDS
-            ):
+            if USE_TIMEOUT and (now - datalist_update_time).total_seconds() > TIMEOUT_IN_SECONDS:
                 refresh_all_list_data()
 
         filtered_data_list = all_data_list
@@ -158,9 +153,7 @@ def run(
             if first_index > list_len - 1:
                 filtered_data_list = []
             else:
-                results_per_page = (
-                    min(first_index + results_per_page, list_len) - first_index
-                )
+                results_per_page = min(first_index + results_per_page, list_len) - first_index
                 if results_per_page < 0:
                     filtered_data_list = []
                 else:
@@ -202,9 +195,7 @@ def run(
                 raise RuntimeError("Not running with the Werkzeug Server")
             func()
 
-        return jsonify(
-            {"finished": finished, "data": current_data if not finished else None}
-        )
+        return jsonify({"finished": finished, "data": current_data if not finished else None})
 
     @app.route("/submit_current_task", methods=["GET", "POST"])
     def next_task():
@@ -223,9 +214,7 @@ def run(
                 }
             )
         result = (
-            request.get_json(force=True)
-            if request.method == "POST"
-            else request.args.get("result")
+            request.get_json(force=True) if request.method == "POST" else request.args.get("result")
         )
 
         if output == "":
@@ -255,9 +244,7 @@ def run(
             if all_data:
                 list_len = len(all_data_list)
                 if id is None or id < 0 or id >= list_len:
-                    return jsonify(
-                        {"error": f"Data with ID: {id} does not exist", "mode": MODE}
-                    )
+                    return jsonify({"error": f"Data with ID: {id} does not exist", "mode": MODE})
                 return jsonify({"data": all_data_list[id], "mode": MODE})
             else:
                 if id is None or id != counter - 1:
@@ -294,9 +281,7 @@ def run(
             if not all_data:
                 ready_for_next.set()
                 time.sleep(0)
-            return jsonify(
-                {"result": RESULT_SUCCESS, "finished": finished, "mode": MODE}
-            )
+            return jsonify({"result": RESULT_SUCCESS, "finished": finished, "mode": MODE})
 
     @app.route("/data")
     def all_task_data():
@@ -348,12 +333,8 @@ def run(
     @app.after_request
     def after_request(response):
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add(
-            "Access-Control-Allow-Headers", "Content-Type,Authorization"
-        )
-        response.headers.add(
-            "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS"
-        )
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
         response.headers.add("Cache-Control", "no-store")
         return response
 
@@ -379,7 +360,7 @@ def run(
         thread = threading.Thread(target=consume_data, name="review-server-thread")
         thread.start()
 
-    host = host or '127.0.0.1'
+    host = host or "127.0.0.1"
     print(f"Running on http://{host}:{port}/ (Press CTRL+C to quit)")
     sys.stdout.flush()
     app.run(debug=False, port=port, host=host)

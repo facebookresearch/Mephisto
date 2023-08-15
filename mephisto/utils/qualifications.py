@@ -72,15 +72,11 @@ def as_valid_qualification_dict(qual_dict: Dict[str, Any]) -> Dict[str, Any]:
     ]
     for key in required_keys:
         if key not in qual_dict:
-            raise AssertionError(
-                f"Required key {key} not in qualification dict {qual_dict}"
-            )
+            raise AssertionError(f"Required key {key} not in qualification dict {qual_dict}")
 
     qual_name = qual_dict["qualification_name"]
     if type(qual_name) is not str or len(qual_name) == 0:
-        raise AssertionError(
-            f"Qualification name '{qual_name}' is not a string with length > 0"
-        )
+        raise AssertionError(f"Qualification name '{qual_name}' is not a string with length > 0")
 
     comparator = qual_dict["comparator"]
     if comparator not in SUPPORTED_COMPARATORS:

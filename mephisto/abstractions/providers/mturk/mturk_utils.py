@@ -38,9 +38,7 @@ MTURK_LOCALE_REQUIREMENT = "00000000000000000071"
 
 botoconfig = Config(retries=dict(max_attempts=10))
 
-QUALIFICATION_TYPE_EXISTS_MESSAGE = (
-    "You have already created a QualificationType with this name."
-)
+QUALIFICATION_TYPE_EXISTS_MESSAGE = "You have already created a QualificationType with this name."
 
 
 def client_is_sandbox(client: MTurkClient) -> bool:
@@ -60,9 +58,7 @@ def check_aws_credentials(profile_name: str) -> bool:
         return False
 
 
-def setup_aws_credentials(
-    profile_name: str, register_args: Optional[DictConfig] = None
-) -> bool:
+def setup_aws_credentials(profile_name: str, register_args: Optional[DictConfig] = None) -> bool:
     if not os.path.exists(os.path.expanduser("~/.aws/")):
         os.makedirs(os.path.expanduser("~/.aws/"))
     aws_credentials_file_path = "~/.aws/credentials"
@@ -81,15 +77,11 @@ def setup_aws_credentials(
             # iterating to get the profile
 
             for credentialIndex in range(0, len(aws_credentials)):
-                if str(aws_credentials[credentialIndex]).startswith(
-                    "[{}]".format(profile_name)
-                ):
-                    aws_credentials[
-                        credentialIndex + 1
-                    ] = "aws_access_key_id={}".format(register_args.access_key_id)
-                    aws_credentials[
-                        credentialIndex + 2
-                    ] = "aws_secret_access_key={}".format(
+                if str(aws_credentials[credentialIndex]).startswith("[{}]".format(profile_name)):
+                    aws_credentials[credentialIndex + 1] = "aws_access_key_id={}".format(
+                        register_args.access_key_id
+                    )
+                    aws_credentials[credentialIndex + 2] = "aws_secret_access_key={}".format(
                         register_args.secret_access_key
                     )
                     break
@@ -136,17 +128,9 @@ def setup_aws_credentials(
                     aws_credentials_file.write("\n\n")
             # Write login details
             aws_credentials_file.write("[{}]\n".format(profile_name))
-            aws_credentials_file.write(
-                "aws_access_key_id={}\n".format(aws_access_key_id)
-            )
-            aws_credentials_file.write(
-                "aws_secret_access_key={}\n".format(aws_secret_access_key)
-            )
-        print(
-            "AWS credentials successfully saved in {} file.\n".format(
-                aws_credentials_file_path
-            )
-        )
+            aws_credentials_file.write("aws_access_key_id={}\n".format(aws_access_key_id))
+            aws_credentials_file.write("aws_secret_access_key={}\n".format(aws_secret_access_key))
+        print("AWS credentials successfully saved in {} file.\n".format(aws_credentials_file_path))
         return True
 
 
@@ -360,9 +344,7 @@ def remove_worker_qualification(
     )
 
 
-def convert_mephisto_qualifications(
-    client: MTurkClient, qualifications: List[Dict[str, Any]]
-):
+def convert_mephisto_qualifications(client: MTurkClient, qualifications: List[Dict[str, Any]]):
     """Convert qualifications from mephisto's format to MTurk's"""
     converted_qualifications = []
     for qualification in qualifications:
@@ -540,9 +522,7 @@ def create_compensation_hit_with_hit_type(
     url_target = "workersandbox"
     if not is_sandbox:
         url_target = "www"
-    hit_link = "https://{}.mturk.com/mturk/preview?groupId={}".format(
-        url_target, hit_type_id
-    )
+    hit_link = "https://{}.mturk.com/mturk/preview?groupId={}".format(url_target, hit_type_id)
     return hit_link, hit_id, response
 
 
@@ -586,9 +566,7 @@ def create_hit_with_hit_type(
     url_target = "workersandbox"
     if not is_sandbox:
         url_target = "www"
-    hit_link = "https://{}.mturk.com/mturk/preview?groupId={}".format(
-        url_target, hit_type_id
-    )
+    hit_link = "https://{}.mturk.com/mturk/preview?groupId={}".format(url_target, hit_type_id)
     return hit_link, hit_id, response
 
 
@@ -604,9 +582,7 @@ def get_hit(client: MTurkClient, hit_id: str) -> Dict[str, Any]:
     try:
         return client.get_hit(HITId=hit_id)
     except ClientError as er:
-        logger.warning(
-            f"Skipping HIT {hit_id}. Unable to retrieve due to ClientError: {er}."
-        )
+        logger.warning(f"Skipping HIT {hit_id}. Unable to retrieve due to ClientError: {er}.")
     return {}
 
 
@@ -623,14 +599,10 @@ def get_assignments_for_hit(client: MTurkClient, hit_id: str) -> List[Dict[str, 
     return assignments_info.get("Assignments", [])
 
 
-def approve_work(
-    client: MTurkClient, assignment_id: str, override_rejection: bool = False
-) -> None:
+def approve_work(client: MTurkClient, assignment_id: str, override_rejection: bool = False) -> None:
     """approve work for a given assignment through the mturk client"""
     try:
-        client.approve_assignment(
-            AssignmentId=assignment_id, OverrideRejection=override_rejection
-        )
+        client.approve_assignment(AssignmentId=assignment_id, OverrideRejection=override_rejection)
     except Exception as e:
         logger.exception(
             f"Approving MTurk assignment failed, likely because it has auto-approved. Details: {e}",
@@ -649,18 +621,14 @@ def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
         )
 
 
-def approve_assignments_for_hit(
-    client: MTurkClient, hit_id: str, override_rejection: bool = False
-):
+def approve_assignments_for_hit(client: MTurkClient, hit_id: str, override_rejection: bool = False):
     """Approve work for assignments associated with a given hit, through
     mturk client
     """
     assignments = get_assignments_for_hit(client, hit_id)
     for assignment in assignments:
         assignment_id = assignment["AssignmentId"]
-        client.approve_assignment(
-            AssignmentId=assignment_id, OverrideRejection=override_rejection
-        )
+        client.approve_assignment(AssignmentId=assignment_id, OverrideRejection=override_rejection)
 
 
 def block_worker(client: MTurkClient, worker_id: str, reason: str) -> None:
@@ -751,9 +719,7 @@ def expire_and_dispose_hits(
         try:
             client.delete_hit(HITId=h["HITId"])
         except Exception as e:
-            client.update_expiration_for_hit(
-                HITId=h["HITId"], ExpireAt=datetime(2015, 1, 1)
-            )
+            client.update_expiration_for_hit(HITId=h["HITId"], ExpireAt=datetime(2015, 1, 1))
             h["dispose_exception"] = e
             non_disposed_hits.append(h)
     return non_disposed_hits
@@ -764,9 +730,7 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
     Try to see if there are any outstanding HITS for the given requester, and LOUDLY WARN if
     there are any, allowing the user to run a cleanup in-line.
     """
-    cleanups_path = os.path.join(
-        DEFAULT_CONFIG_FOLDER, "mturk_requesters_last_cleanups.json"
-    )
+    cleanups_path = os.path.join(DEFAULT_CONFIG_FOLDER, "mturk_requesters_last_cleanups.json")
     last_cleanup_times = {}
     if os.path.exists(cleanups_path):
         with open(cleanups_path) as cleanups_file:
@@ -787,10 +751,7 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
     client = requester._get_client(requester._requester_name)
 
     def hit_is_broken(hit: Dict[str, Any]) -> bool:
-        return (
-            hit["NumberOfAssignmentsCompleted"] == 0
-            and hit["HITStatus"] != "Reviewable"
-        )
+        return hit["NumberOfAssignmentsCompleted"] == 0 and hit["HITStatus"] != "Reviewable"
 
     query_time = time.time()
     outstanding_hit_types = get_outstanding_hits(client)
@@ -836,9 +797,7 @@ def try_prerun_cleanup(db: "MephistoDB", requester_name: str) -> None:
         print(f"HIT COUNT: {hit_count}")
         should_clear = ""
         while not (should_clear.startswith("y") or should_clear.startswith("n")):
-            should_clear = input(
-                "Should we cleanup this hit type? (y)es or (n)o: " "\n>> "
-            ).lower()
+            should_clear = input("Should we cleanup this hit type? (y)es or (n)o: " "\n>> ").lower()
         if should_clear.startswith("y"):
             hits_to_dispose += broken_hit_types[hit_type]
             confirm_string += (

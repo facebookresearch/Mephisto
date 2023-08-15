@@ -37,6 +37,7 @@ class StudyStatus:
     Study statuses explained
     https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
     """
+
     UNPUBLISHED = "UNPUBLISHED"
     ACTIVE = "ACTIVE"
     SCHEDULED = "SCHEDULED"

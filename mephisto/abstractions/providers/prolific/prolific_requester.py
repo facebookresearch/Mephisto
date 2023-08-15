@@ -89,7 +89,9 @@ class ProlificRequester(Requester):
         return balance
 
     def create_new_qualification(
-        self, prolific_project_id: str, qualification_name: str,
+        self,
+        prolific_project_id: str,
+        qualification_name: str,
     ) -> ParticipantGroup:
         """
         Create a new qualification (Prolific Participant Group) on Prolific
@@ -98,14 +100,18 @@ class ProlificRequester(Requester):
         client = self._get_client(self.requester_name)
         _qualification_name = qualification_name
         qualification = prolific_utils.find_or_create_qualification(
-            client, prolific_project_id, qualification_name,
+            client,
+            prolific_project_id,
+            qualification_name,
         )
 
         if qualification is None:
             # Try to append time to make the qualification unique
             _qualification_name = f"{qualification_name}_{time.time()}"
             qualification = prolific_utils.find_or_create_qualification(
-                client, prolific_project_id, _qualification_name,
+                client,
+                prolific_project_id,
+                _qualification_name,
             )
 
             attempts = 0
@@ -113,7 +119,9 @@ class ProlificRequester(Requester):
                 # Append something somewhat random
                 _qualification_name = f"{qualification_name}_{str(uuid4())}"
                 qualification = prolific_utils.find_or_create_qualification(
-                    client, prolific_project_id, _qualification_name,
+                    client,
+                    prolific_project_id,
+                    _qualification_name,
                 )
                 attempts += 1
                 if attempts > MAX_QUALIFICATION_ATTEMPTS:

@@ -9,7 +9,7 @@ from .data_models import User
 
 
 class Users(BaseAPIResource):
-    me_api_endpoint = 'users/me/'
+    me_api_endpoint = "users/me/"
 
     @classmethod
     def me(cls) -> User:

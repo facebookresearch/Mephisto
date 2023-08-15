@@ -11,9 +11,7 @@ import torch.nn as nn
 from collections import OrderedDict
 import torch.utils.model_zoo as model_zoo
 
-model_urls = {
-    "mnist": "http://ml.cs.tsinghua.edu.cn/~chenxi/pytorch-models/mnist-b07bb66b.pth"
-}
+model_urls = {"mnist": "http://ml.cs.tsinghua.edu.cn/~chenxi/pytorch-models/mnist-b07bb66b.pth"}
 
 
 class MLP(nn.Module):

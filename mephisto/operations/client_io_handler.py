@@ -119,27 +119,23 @@ class ClientIOHandler:
         if client_timestamp is None:
             client_timestamp = router_incoming_timestamp
         client_to_router = max(0, router_incoming_timestamp - client_timestamp)
-        router_processing = max(
-            0, router_outgoing_timestamp - router_incoming_timestamp
-        )
+        router_processing = max(0, router_outgoing_timestamp - router_incoming_timestamp)
         router_to_server = max(0, server_timestamp - router_outgoing_timestamp)
         server_processing = max(0, response_timestamp - server_timestamp)
         e2e_time = max(0, response_timestamp - client_timestamp)
-        E2E_PACKET_LATENCY.labels(
-            packet_type=packet.type, stage="client_to_router"
-        ).observe(client_to_router)
-        E2E_PACKET_LATENCY.labels(
-            packet_type=packet.type, stage="router_processing"
-        ).observe(router_processing)
-        E2E_PACKET_LATENCY.labels(
-            packet_type=packet.type, stage="router_to_server"
-        ).observe(router_to_server)
-        E2E_PACKET_LATENCY.labels(
-            packet_type=packet.type, stage="server_processing"
-        ).observe(server_processing)
-        E2E_PACKET_LATENCY.labels(packet_type=packet.type, stage="e2e_time").observe(
-            e2e_time
+        E2E_PACKET_LATENCY.labels(packet_type=packet.type, stage="client_to_router").observe(
+            client_to_router
         )
+        E2E_PACKET_LATENCY.labels(packet_type=packet.type, stage="router_processing").observe(
+            router_processing
+        )
+        E2E_PACKET_LATENCY.labels(packet_type=packet.type, stage="router_to_server").observe(
+            router_to_server
+        )
+        E2E_PACKET_LATENCY.labels(packet_type=packet.type, stage="server_processing").observe(
+            server_processing
+        )
+        E2E_PACKET_LATENCY.labels(packet_type=packet.type, stage="e2e_time").observe(e2e_time)
 
     def register_run(self, live_run: "LiveTaskRun") -> None:
         """Register a live run for this io handler"""
@@ -165,9 +161,7 @@ class ClientIOHandler:
         live_run = self.get_live_run()
         live_run.force_shutdown = True
 
-    async def __on_channel_message_internal(
-        self, channel_id: str, packet: Packet
-    ) -> None:
+    async def __on_channel_message_internal(self, channel_id: str, packet: Packet) -> None:
         """Incoming message handler defers to the internal handler"""
         try:
             self._on_message(packet, channel_id)
@@ -308,9 +302,7 @@ class ClientIOHandler:
             # On resubmit, ensure that the client has the same status
             agent = live_run.worker_pool.final_onboardings.get(onboarding_id)
             if agent is not None:
-                live_run.loop_wrap.execute_coro(
-                    live_run.worker_pool.push_status_update(agent)
-                )
+                live_run.loop_wrap.execute_coro(live_run.worker_pool.push_status_update(agent))
             return
         agent = live_run.worker_pool.get_agent_for_id(onboarding_id)
         assert agent is not None, f"Could not find given agent by id {onboarding_id}"

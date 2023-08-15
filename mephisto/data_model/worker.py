@@ -108,9 +108,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         return self.db.find_agents(worker_id=self.db_id, status=status)
 
     @staticmethod
-    def _register_worker(
-        db: "MephistoDB", worker_name: str, provider_type: str
-    ) -> "Worker":
+    def _register_worker(db: "MephistoDB", worker_name: str, provider_type: str) -> "Worker":
         """
         Create an entry for this worker in the database
         """
@@ -120,9 +118,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         return worker
 
     @classmethod
-    def new_from_provider_data(
-        cls, db: "MephistoDB", creation_data: Dict[str, Any]
-    ) -> "Worker":
+    def new_from_provider_data(cls, db: "MephistoDB", creation_data: Dict[str, Any]) -> "Worker":
         """
         Given the parameters passed through wrap_crowd_source.js, construct
         a new worker
@@ -194,9 +190,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
             return False
         return True
 
-    def grant_qualification(
-        self, qualification_name: str, value: int = 1, skip_crowd=False
-    ):
+    def grant_qualification(self, qualification_name: str, value: int = 1, skip_crowd=False):
         """
         Grant a positive or negative qualification to this worker
 
@@ -205,13 +199,9 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         """
         found_qualifications = self.db.find_qualifications(qualification_name)
         if len(found_qualifications) == 0:
-            raise Exception(
-                f"No qualification by the name {qualification_name} found in the db"
-            )
+            raise Exception(f"No qualification by the name {qualification_name} found in the db")
 
-        logger.debug(
-            f"Granting worker {self} qualification {qualification_name}: {value}"
-        )
+        logger.debug(f"Granting worker {self} qualification {qualification_name}: {value}")
         qualification = found_qualifications[0]
         self.db.grant_qualification(qualification.db_id, self.db_id, value=value)
         if not skip_crowd:
@@ -230,9 +220,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
 
     # Children classes can implement the following methods
 
-    def grant_crowd_qualification(
-        self, qualification_name: str, value: int = 1
-    ) -> None:
+    def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
         """
         Grant a qualification by the given name to this worker
 

@@ -84,9 +84,7 @@ class MephistoAgentWrapper(ParlAIAgent):
         if gotten_act is None:
             # No act received, see that one is requested:
             if not self.__act_requested:
-                self.mephisto_agent.observe(
-                    {"task_data": {"live_update_requested": True}}
-                )
+                self.mephisto_agent.observe({"task_data": {"live_update_requested": True}})
                 self.__act_requested = True
             if timeout is not None:
                 gotten_act = self.mephisto_agent.get_live_update(timeout=timeout)
@@ -108,9 +106,7 @@ class ParlAIChatTaskRunner(TaskRunner):
     Task runner for a parlai chat task
     """
 
-    def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
-    ):
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
         super().__init__(task_run, args, shared_state)
         from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
             SharedParlAITaskState,
@@ -179,10 +175,7 @@ class ParlAIChatTaskRunner(TaskRunner):
 
         world_id = self.get_world_id("onboard", agent.get_agent_id())
         self.id_to_worlds[world_id] = world
-        while (
-            not world.episode_done()
-            and agent.get_agent_id() in self.running_onboardings
-        ):
+        while not world.episode_done() and agent.get_agent_id() in self.running_onboardings:
             world.parley()
 
         # Ensure agent can submit after onboarding

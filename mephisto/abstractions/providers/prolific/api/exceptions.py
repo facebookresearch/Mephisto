@@ -10,19 +10,20 @@ from . import status
 
 
 class ProlificException(Exception):
-    """ Main Prolific exception. All other exceptions should be inherited from it """
-    default_message: str = 'Prolific error'
+    """Main Prolific exception. All other exceptions should be inherited from it"""
+
+    default_message: str = "Prolific error"
 
     def __init__(self, message: Optional[str] = None):
         self.message = message or self.default_message
 
 
 class ProlificAPIKeyError(ProlificException):
-    default_message = 'API key is missing.'
+    default_message = "API key is missing."
 
 
 class ProlificRequestError(ProlificException):
-    default_message = 'Request error.'
+    default_message = "Request error."
     status_code = status.HTTP_400_BAD_REQUEST
 
     def __init__(self, message: Optional[str] = None, status_code: Optional[int] = None):
@@ -31,5 +32,5 @@ class ProlificRequestError(ProlificException):
 
 
 class ProlificAuthenticationError(ProlificRequestError):
-    default_message = 'Authentication was failed.'
+    default_message = "Authentication was failed."
     status_code = status.HTTP_401_UNAUTHORIZED

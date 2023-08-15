@@ -85,9 +85,7 @@ class StaticReactBlueprint(StaticBlueprint):
     ArgsClass = StaticReactBlueprintArgs
     BLUEPRINT_TYPE = BLUEPRINT_TYPE_STATIC_REACT
 
-    def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
-    ):
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
         assert isinstance(
             shared_state, SharedStaticTaskState
         ), "Cannot initialize with a non-static state"
@@ -99,9 +97,7 @@ class StaticReactBlueprint(StaticBlueprint):
             )
 
     @classmethod
-    def assert_task_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         """Ensure that static requirements are fulfilled, and source file exists"""
         assert isinstance(
             shared_state, SharedStaticTaskState

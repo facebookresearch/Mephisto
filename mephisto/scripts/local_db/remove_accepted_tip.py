@@ -41,9 +41,7 @@ def remove_tip_from_tips_file(
         tips_location = blueprint_task_run_args["tips_location"]
         does_file_exist = exists(tips_location)
         if does_file_exist == False:
-            print(
-                "\n[red]You do not have a tips.csv file in your task's output directory[/red]"
-            )
+            print("\n[red]You do not have a tips.csv file in your task's output directory[/red]")
             quit()
 
         lines_to_write = []
@@ -110,12 +108,8 @@ def main():
                     print("")
 
                     if removal_response == TipsRemovalType.REMOVE.value:
-                        remove_tip_from_tips_file(
-                            accepted_tips_copy, i, unit.get_task_run()
-                        )
-                        remove_tip_from_metadata(
-                            accepted_tips, accepted_tips_copy, i, unit
-                        )
+                        remove_tip_from_tips_file(accepted_tips_copy, i, unit.get_task_run())
+                        remove_tip_from_metadata(accepted_tips, accepted_tips_copy, i, unit)
                         print("Removed tip\n")
                     elif removal_response == TipsRemovalType.KEEP.value:
                         print("Did not remove tip\n")

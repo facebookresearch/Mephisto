@@ -19,6 +19,7 @@ class Workspace(BaseModel):
     More about Workspaces:
         https://docs.prolific.co/docs/api-docs/public/#tag/Workspaces
     """
+
     description: str
     id: str
     naivety_distribution_rate: Optional[Union[Decimal, float]]
@@ -29,41 +30,41 @@ class Workspace(BaseModel):
     wallet: str
 
     schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'title': {'type': 'string'},
-            'description': {'type': 'string'},
-            'owner': {'type': 'string'},
-            'users': {
-                'type': 'array',
-                'items': User.relation_user_schema,
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "title": {"type": "string"},
+            "description": {"type": "string"},
+            "owner": {"type": "string"},
+            "users": {
+                "type": "array",
+                "items": User.relation_user_schema,
             },
-            'projects': {
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {'type': 'string'},
-                        'title': {'type': 'string'},
-                        'description': {'type': 'string'},
-                        'owner': {'type': 'string'},
-                        'users': {
-                            'type': 'array',
-                            'items': User.relation_user_schema,
+            "projects": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "title": {"type": "string"},
+                        "description": {"type": "string"},
+                        "owner": {"type": "string"},
+                        "users": {
+                            "type": "array",
+                            "items": User.relation_user_schema,
                         },
-                        'naivety_distribution_rate': {'type': ['number', 'null']},
+                        "naivety_distribution_rate": {"type": ["number", "null"]},
                     },
                 },
             },
-            'wallet': {'type': 'string'},
-            'naivety_distribution_rate': {'type': ['number', 'null']},
+            "wallet": {"type": "string"},
+            "naivety_distribution_rate": {"type": ["number", "null"]},
         },
     }
 
     required_schema_fields = [
-        'title',
+        "title",
     ]
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.id} {self.title}'
+        return f"{self.__class__.__name__} {self.id} {self.title}"

@@ -145,16 +145,12 @@ def launch_prometheus_server(args: Optional["DictConfig"] = None) -> bool:
         except requests.exceptions.ConnectionError:
             is_ok = False
         if not is_ok:
-            logger.warning(
-                "Prometheus PID existed, but server doesn't appear to be up."
-            )
+            logger.warning("Prometheus PID existed, but server doesn't appear to be up.")
             if _server_process_running(_get_pid_from_file(PROMETHEUS_PID_FILE)):
                 logger.warning(
                     "Prometheus server appears to be running though! exiting as unsure what to do..."
                 )
-                raise InaccessiblePrometheusServer(
-                    "Prometheus server running but inaccessible"
-                )
+                raise InaccessiblePrometheusServer("Prometheus server running but inaccessible")
             else:
                 logger.warning(
                     "Clearing prometheus pid as the server isn't running. "
@@ -245,9 +241,7 @@ def get_dash_url(args: Optional["DictConfig"] = None):
     return f"localhost:3032{output[0]['url']}"
 
 
-def shutdown_prometheus_server(
-    args: Optional["DictConfig"] = None, expect_exists=False
-):
+def shutdown_prometheus_server(args: Optional["DictConfig"] = None, expect_exists=False):
     """
     Shutdown the prometheus server
     """

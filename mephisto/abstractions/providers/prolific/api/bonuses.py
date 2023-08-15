@@ -10,8 +10,8 @@ from .data_models import BonusPayments
 
 
 class Bonuses(BaseAPIResource):
-    set_up_api_endpoint = 'submissions/bonus-payments/'
-    pay_api_endpoint = 'bulk-bonus-payments/{id}/pay/'
+    set_up_api_endpoint = "submissions/bonus-payments/"
+    pay_api_endpoint = "bulk-bonus-payments/{id}/pay/"
 
     @classmethod
     def set_up(cls, study_id: str, csv_bonuses: str) -> BonusPayments:

@@ -33,8 +33,7 @@ def main():
         f"Please enter server name you want to clean up (existing servers: {all_server_names})\n>> "
     )
     assert (
-        os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, f"{server_name}.json")
-        != DEFAULT_FALLBACK_FILE
+        os.path.join(DEFAULT_SERVER_DETAIL_LOCATION, f"{server_name}.json") != DEFAULT_FALLBACK_FILE
     ), "This is going to completely delete the fallback server for your EC2 architect."
     assert server_name in all_server_names, f"{server_name} does not exist"
 

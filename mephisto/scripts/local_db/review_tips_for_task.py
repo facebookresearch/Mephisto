@@ -56,9 +56,7 @@ def add_row_to_tips_file(task_run: TaskRun, item_to_add: Dict[str, Any]):
             try:
                 create_tips_file.touch(exist_ok=True)
             except FileNotFoundError:
-                print(
-                    "\n[red]Your task folder must have an assets folder in it.[/red]\n"
-                )
+                print("\n[red]Your task folder must have an assets folder in it.[/red]\n")
                 quit()
 
         with open(tips_location, "r") as inp, open(tips_location, "a+") as tips_file:
@@ -81,9 +79,7 @@ def remove_tip_from_metadata(
 
     if assigned_agent is not None:
         tips_copy.pop(index_to_remove)
-        assigned_agent.state.update_metadata(
-            property_name="tips", property_value=tips_copy
-        )
+        assigned_agent.state.update_metadata(property_name="tips", property_value=tips_copy)
     else:
         print("[red]An assigned agent was not able to be found for this tip[/red]")
         quit()
@@ -99,9 +95,7 @@ def accept_tip(tips: List, tips_copy: List, i: int, unit: Unit) -> None:
     if assigned_agent is not None:
         tips_copy[index_to_update]["accepted"] = True
         add_row_to_tips_file(unit.get_task_run(), tips_copy[index_to_update])
-        assigned_agent.state.update_metadata(
-            property_name="tips", property_value=tips_copy
-        )
+        assigned_agent.state.update_metadata(property_name="tips", property_value=tips_copy)
 
 
 def main():
@@ -176,9 +170,7 @@ def main():
                                         bonus, reason, unit
                                     )
                                     if bonus_successfully_paid:
-                                        print(
-                                            "\n[green]Bonus Successfully Paid![/green]\n"
-                                        )
+                                        print("\n[green]Bonus Successfully Paid![/green]\n")
                                     else:
                                         print(
                                             "\n[red]There was an error when paying out your bonus[/red]\n"

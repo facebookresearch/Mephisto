@@ -322,7 +322,7 @@ class ProlificDatastore:
             return results
 
     def get_bloked_participant_ids(self) -> List[str]:
-        return [w['worker_id'] for w in self.get_blocked_workers()]
+        return [w["worker_id"] for w in self.get_blocked_workers()]
 
     def ensure_unit_exists(self, unit_id: str) -> None:
         """Create a record of this unit if it doesn't exist"""
@@ -443,9 +443,7 @@ class ProlificDatastore:
         """
         return self.get_session_for_requester(requester_name)
 
-    def get_qualification_mapping(
-        self, qualification_name: str
-    ) -> Optional[sqlite3.Row]:
+    def get_qualification_mapping(self, qualification_name: str) -> Optional[sqlite3.Row]:
         """Get the mapping between Mephisto qualifications and Prolific Participant Group"""
         with self.table_access_condition:
             conn = self._get_connection()
@@ -514,9 +512,7 @@ class ProlificDatastore:
                 ), "Cannot be none given is_unique_failure on insert"
 
                 db_requester_id = db_qualification["requester_id"]
-                db_prolific_qualification_name = db_qualification[
-                    "prolific_participant_group_name"
-                ]
+                db_prolific_qualification_name = db_qualification["prolific_participant_group_name"]
 
                 if db_requester_id != requester_id:
                     logger.warning(
@@ -536,7 +532,8 @@ class ProlificDatastore:
                 raise e
 
     def delete_participant_groups_by_participant_group_ids(
-        self, participant_group_ids: List[str] = None,
+        self,
+        participant_group_ids: List[str] = None,
     ) -> None:
         """Delete participant_groups by Participant Group IDs"""
         if not participant_group_ids:
@@ -545,11 +542,11 @@ class ProlificDatastore:
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
 
-            participant_group_ids_block = ''
+            participant_group_ids_block = ""
             if participant_group_ids:
                 task_run_ids_str = ",".join([f'"{pgi}"' for pgi in participant_group_ids])
                 participant_group_ids_block = (
-                    f'AND prolific_participant_group_id IN ({task_run_ids_str})'
+                    f"AND prolific_participant_group_id IN ({task_run_ids_str})"
                 )
 
             c.execute(
@@ -589,14 +586,12 @@ class ProlificDatastore:
                 ),
             )
 
-    def find_studies_by_status(
-        self, statuses: List[str], exclude: bool = False
-    ) -> List[dict]:
+    def find_studies_by_status(self, statuses: List[str], exclude: bool = False) -> List[dict]:
         """Find all studies having or excluding certain statuses"""
         if not statuses:
             return []
 
-        logic_str = 'NOT' if exclude else ''
+        logic_str = "NOT" if exclude else ""
         statuses_str = ",".join([f'"{s}"' for s in statuses])
 
         with self.table_access_condition, self._get_connection() as conn:
@@ -611,18 +606,21 @@ class ProlificDatastore:
             return results
 
     def find_qualifications_for_running_studies(
-        self, qualification_ids: List[str],
+        self,
+        qualification_ids: List[str],
     ) -> List[dict]:
         """Find qualifications by Mephisto ids of qualifications for all incomplete studies"""
         if not qualification_ids:
             return []
 
         running_studies = self.find_studies_by_status(
-            statuses=[StudyStatus.COMPLETED, StudyStatus.AWAITING_REVIEW], exclude=True,
+            statuses=[StudyStatus.COMPLETED, StudyStatus.AWAITING_REVIEW],
+            exclude=True,
         )
-        task_run_ids = [s['task_run_id'] for s in running_studies]
+        task_run_ids = [s["task_run_id"] for s in running_studies]
         return self.find_qualifications_by_ids(
-            qualification_ids=qualification_ids, task_run_ids=task_run_ids,
+            qualification_ids=qualification_ids,
+            task_run_ids=task_run_ids,
         )
 
     def find_qualifications_by_ids(
@@ -637,18 +635,17 @@ class ProlificDatastore:
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
 
-            qualification_ids_block = ''
+            qualification_ids_block = ""
             if qualification_ids:
-                qualification_ids_block = ' OR '.join(
-                    'qualification_ids LIKE \'%"' + str(_id) + '"%\''
-                    for _id in qualification_ids
+                qualification_ids_block = " OR ".join(
+                    "qualification_ids LIKE '%\"" + str(_id) + "\"%'" for _id in qualification_ids
                 )
-                qualification_ids_block = f'({qualification_ids_block})'
+                qualification_ids_block = f"({qualification_ids_block})"
 
-            task_run_ids_block = ''
+            task_run_ids_block = ""
             if task_run_ids:
                 task_run_ids_str = ",".join([f'"{tid}"' for tid in task_run_ids])
-                task_run_ids_block = f'AND task_run_id IN ({task_run_ids_str})'
+                task_run_ids_block = f"AND task_run_id IN ({task_run_ids_str})"
 
             c.execute(
                 f"""
@@ -660,7 +657,8 @@ class ProlificDatastore:
             return results
 
     def delete_qualifications_by_participant_group_ids(
-        self, participant_group_ids: List[str] = None,
+        self,
+        participant_group_ids: List[str] = None,
     ) -> None:
         """Delete qualifications by Participant Group IDs"""
         if not participant_group_ids:
@@ -669,11 +667,11 @@ class ProlificDatastore:
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
 
-            participant_group_ids_block = ''
+            participant_group_ids_block = ""
             if participant_group_ids:
                 task_run_ids_str = ",".join([f'"{pgi}"' for pgi in participant_group_ids])
                 participant_group_ids_block = (
-                    f'AND prolific_participant_group_id IN ({task_run_ids_str})'
+                    f"AND prolific_participant_group_id IN ({task_run_ids_str})"
                 )
 
             c.execute(

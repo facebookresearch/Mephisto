@@ -19,6 +19,7 @@ class Project(BaseModel):
     More about Projects:
         https://docs.prolific.co/docs/api-docs/public/#tag/Projects
     """
+
     id: str
     title: str
     description: str
@@ -29,34 +30,34 @@ class Project(BaseModel):
     naivety_distribution_rate: Optional[Union[Decimal, float]]
 
     schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'title': {'type': 'string'},
-            'description': {'type': 'string'},
-            'owner': {'type': 'string'},
-            'users': {
-                'type': 'array',
-                'items': User.relation_user_schema,
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "title": {"type": "string"},
+            "description": {"type": "string"},
+            "owner": {"type": "string"},
+            "users": {
+                "type": "array",
+                "items": User.relation_user_schema,
             },
-            'studies': {
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {'type': 'string'},
-                        'name': {'type': 'string'},
+            "studies": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "name": {"type": "string"},
                     },
-                }
+                },
             },
-            'workspace': {'type': 'string'},
-            'naivety_distribution_rate': {'type': ['number', 'null']},
+            "workspace": {"type": "string"},
+            "naivety_distribution_rate": {"type": ["number", "null"]},
         },
     }
 
     required_schema_fields = [
-        'title',
+        "title",
     ]
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.id} {self.title}'
+        return f"{self.__class__.__name__} {self.id} {self.title}"

@@ -44,9 +44,7 @@ ARCHITECT_TYPE = "heroku"
 
 USER_NAME = getpass.getuser()
 HEROKU_SERVER_BUILD_DIRECTORY = "heroku_server"
-HEROKU_CLIENT_URL = (
-    "https://cli-assets.heroku.com/heroku-cli/channels/stable/heroku-cli"
-)
+HEROKU_CLIENT_URL = "https://cli-assets.heroku.com/heroku-cli/channels/stable/heroku-cli"
 
 HEROKU_WAIT_TIME = 3
 
@@ -59,9 +57,7 @@ class HerokuArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a heroku architect"""
 
     _architect_type: str = ARCHITECT_TYPE
-    use_hobby: bool = field(
-        default=False, metadata={"help": "Launch on the Heroku Hobby tier"}
-    )
+    use_hobby: bool = field(default=False, metadata={"help": "Launch on the Heroku Hobby tier"})
     heroku_team: Optional[str] = field(
         default=MISSING, metadata={"help": "Heroku team to use for this launch"}
     )
@@ -70,9 +66,7 @@ class HerokuArchitectArgs(ArchitectArgs):
     )
     heroku_config_args: Dict[str, str] = field(
         default_factory=dict,
-        metadata={
-            "help": "str:str dict containing all heroku config variables to set for the app"
-        },
+        metadata={"help": "str:str dict containing all heroku config variables to set for the app"},
     )
 
 
@@ -114,9 +108,7 @@ class HerokuArchitect(Architect):
         self.heroku_config_args = dict(args.architect.heroku_config_args)
 
         # Cache-able parameters
-        self.__heroku_app_name: Optional[str] = args.architect.get(
-            "heroku_app_name", None
-        )
+        self.__heroku_app_name: Optional[str] = args.architect.get("heroku_app_name", None)
         self.__heroku_app_url: Optional[str] = None
         self.__heroku_executable_path: Optional[str] = None
         self.__heroku_user_identifier: Optional[str] = None
@@ -154,9 +146,7 @@ class HerokuArchitect(Architect):
         Heroku architects need to download the file
         """
         heroku_app_name = self.__get_app_name()
-        target_url = (
-            f"https://{heroku_app_name}.herokuapp.com/download_file/{target_filename}"
-        )
+        target_url = f"https://{heroku_app_name}.herokuapp.com/download_file/{target_filename}"
         dest_path = os.path.join(save_dir, target_filename)
         r = requests.get(target_url, stream=True)
 
@@ -178,9 +168,7 @@ class HerokuArchitect(Architect):
         """
         heroku_executable_path = HerokuArchitect.get_heroku_client_path()
         try:
-            output = subprocess.check_output(
-                shlex.split(heroku_executable_path + " auth:whoami")
-            )
+            output = subprocess.check_output(shlex.split(heroku_executable_path + " auth:whoami"))
         except subprocess.CalledProcessError:
             raise Exception(
                 "A free Heroku account is required for launching tasks via "
@@ -218,9 +206,7 @@ class HerokuArchitect(Architect):
             bit_architecture = "x86"
 
         # Find existing heroku files to use
-        existing_heroku_directory_names = glob.glob(
-            os.path.join(HEROKU_TMP_DIR, "heroku-cli-*")
-        )
+        existing_heroku_directory_names = glob.glob(os.path.join(HEROKU_TMP_DIR, "heroku-cli-*"))
         if len(existing_heroku_directory_names) == 0:
             print("Getting heroku")
             if os.path.exists(os.path.join(HEROKU_TMP_DIR, "heroku.tar.gz")):
@@ -281,10 +267,7 @@ class HerokuArchitect(Architect):
         """
         Get an authorized heroku client path and authorization token
         """
-        if (
-            self.__heroku_executable_path is None
-            or self.__heroku_user_identifier is None
-        ):
+        if self.__heroku_executable_path is None or self.__heroku_user_identifier is None:
             (
                 heroku_executable_path,
                 heroku_user_identifier,
@@ -369,9 +352,7 @@ class HerokuArchitect(Architect):
                 )
             else:
                 subprocess.check_output(
-                    shlex.split(
-                        "{} create {}".format(heroku_executable_path, heroku_app_name)
-                    )
+                    shlex.split("{} create {}".format(heroku_executable_path, heroku_app_name))
                 )
                 self.created = True
         except subprocess.CalledProcessError as e:  # User has too many apps?
@@ -394,9 +375,7 @@ class HerokuArchitect(Architect):
         try:
             subprocess.check_output(
                 shlex.split(
-                    "{} features:enable http-session-affinity".format(
-                        heroku_executable_path
-                    )
+                    "{} features:enable http-session-affinity".format(heroku_executable_path)
                 )
             )
         except subprocess.CalledProcessError:  # Already enabled WebSockets
@@ -419,14 +398,10 @@ class HerokuArchitect(Architect):
         # commit and push to the heroku server
         sh.git(shlex.split(f"-C {heroku_server_directory_path} add -A"))
         sh.git(shlex.split(f'-C {heroku_server_directory_path} commit -m "app"'))
-        sh.git(
-            shlex.split(f"-C {heroku_server_directory_path} push -f heroku {branch}")
-        )
+        sh.git(shlex.split(f"-C {heroku_server_directory_path} push -f heroku {branch}"))
 
         os.chdir(heroku_server_directory_path)
-        subprocess.check_output(
-            shlex.split("{} ps:scale web=1".format(heroku_executable_path))
-        )
+        subprocess.check_output(shlex.split("{} ps:scale web=1".format(heroku_executable_path)))
 
         if self.args.architect.use_hobby is True:
             try:
@@ -437,8 +412,7 @@ class HerokuArchitect(Architect):
                 self.__delete_heroku_server()
                 sh.rm(shlex.split("-rf {}".format(heroku_server_directory_path)))
                 raise Exception(
-                    "Server launched with hobby flag but account cannot create "
-                    "hobby servers."
+                    "Server launched with hobby flag but account cannot create " "hobby servers."
                 )
         os.chdir(return_dir)
 

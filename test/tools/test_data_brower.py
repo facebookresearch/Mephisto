@@ -79,9 +79,7 @@ class TestMTurkComponents(unittest.TestCase):
             qualified_ids,
             f"Worker 3 not in qualified list, found {qualified_ids}",
         )
-        self.assertNotIn(
-            worker_2.db_id, qualified_ids, "Worker 2 should not be in qualified list"
-        )
+        self.assertNotIn(worker_2.db_id, qualified_ids, "Worker 2 should not be in qualified list")
 
 
 if __name__ == "__main__":

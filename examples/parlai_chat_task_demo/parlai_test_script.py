@@ -27,8 +27,7 @@ class ParlAITaskConfig(build_default_task_config("example")):  # type: ignore
     turn_timeout: int = field(
         default=300,
         metadata={
-            "help": "Maximum response time before kicking "
-            "a worker out, default 300 seconds"
+            "help": "Maximum response time before kicking " "a worker out, default 300 seconds"
         },
     )
 
@@ -46,9 +45,7 @@ def main(operator: "Operator", cfg: DictConfig) -> None:
         )
         world_opt["send_task_data"] = True
 
-    shared_state = SharedParlAITaskState(
-        world_opt=world_opt, onboarding_world_opt=world_opt
-    )
+    shared_state = SharedParlAITaskState(world_opt=world_opt, onboarding_world_opt=world_opt)
 
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)

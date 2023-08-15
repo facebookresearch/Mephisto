@@ -44,9 +44,7 @@ def set_feedback_as_reviewed(feedback: List, id: str, unit: Unit) -> None:
     index_to_modify = get_index_of_value(feedback_ids, id)
     if assigned_agent is not None:
         feedback[index_to_modify]["reviewed"] = True
-        assigned_agent.state.update_metadata(
-            property_name="feedback", property_value=feedback
-        )
+        assigned_agent.state.update_metadata(property_name="feedback", property_value=feedback)
 
 
 def print_out_reviewed_feedback_elements(

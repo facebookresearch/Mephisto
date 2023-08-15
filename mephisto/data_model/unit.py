@@ -181,9 +181,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
 
     def _mark_agent_assignment(self) -> None:
         """Special helper to mark the transition from LAUNCHED to ASSIGNED"""
-        assert (
-            self.db_status == AssignmentState.LAUNCHED
-        ), "can only mark LAUNCHED units"
+        assert self.db_status == AssignmentState.LAUNCHED, "can only mark LAUNCHED units"
         ACTIVE_UNIT_STATUSES.labels(
             status=AssignmentState.LAUNCHED,
             unit_type=INDEX_TO_TYPE_MAP[self.unit_index],
@@ -394,9 +392,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         raise NotImplementedError()
 
     @staticmethod
-    def new(
-        db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float
-    ) -> "Unit":
+    def new(db: "MephistoDB", assignment: "Assignment", index: int, pay_amount: float) -> "Unit":
         """
         Create a Unit for the given assignment
 

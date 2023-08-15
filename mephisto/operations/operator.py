@@ -115,9 +115,7 @@ class Operator:
             if run_config.provider.requester_name == "MOCK_REQUESTER":
                 requesters = [get_mock_requester(self.db)]
             else:
-                raise EntryDoesNotExistException(
-                    f"No requester found with name {requester_name}"
-                )
+                raise EntryDoesNotExistException(f"No requester found with name {requester_name}")
         requester = requesters[0]
         requester_id = requester.db_id
         provider_type = requester.provider_type
@@ -146,13 +144,9 @@ class Operator:
         # prepare the architect
         build_dir = os.path.join(task_run.get_run_dir(), "build")
         os.makedirs(build_dir, exist_ok=True)
-        architect = architect_class(
-            self.db, run_config, shared_state, task_run, build_dir
-        )
+        architect = architect_class(self.db, run_config, shared_state, task_run, build_dir)
         # Create the backend runner
-        task_runner = blueprint_class.TaskRunnerClass(
-            task_run, run_config, shared_state
-        )
+        task_runner = blueprint_class.TaskRunnerClass(task_run, run_config, shared_state)
 
         # Small hack for auto appending block qualification
         # TODO(OWN) we can use blueprint.mro() to discover BlueprintMixins and extract from there
@@ -223,9 +217,7 @@ class Operator:
         """
         set_mephisto_log_level(level=run_config.get("log_level", "info"))
 
-        requester, provider_type = self._get_requester_and_provider_from_config(
-            run_config
-        )
+        requester, provider_type = self._get_requester_and_provider_from_config(run_config)
 
         # Next get the abstraction classes, and run validation
         # before anything is actually created in the database
@@ -299,9 +291,7 @@ class Operator:
 
             live_run.client_io.launch_channels()
         except (KeyboardInterrupt, Exception) as e:
-            logger.error(
-                "Encountered error while launching run, shutting down", exc_info=True
-            )
+            logger.error("Encountered error while launching run, shutting down", exc_info=True)
             try:
                 live_run.architect.shutdown()
             except (KeyboardInterrupt, Exception) as architect_exception:
@@ -338,9 +328,7 @@ class Operator:
                     tracked_run.force_shutdown = True
                 if not tracked_run.force_shutdown:
                     task_run = tracked_run.task_run
-                    task_run.update_completion_progress(
-                        task_launcher=tracked_run.task_launcher
-                    )
+                    task_run.update_completion_progress(task_launcher=tracked_run.task_launcher)
                     if not task_run.get_is_completed():
                         continue
                     if tracked_run.task_launcher.finished_generators is False:
@@ -418,9 +406,7 @@ class Operator:
             try:
                 tracked_run.task_launcher.shutdown()
             except (KeyboardInterrupt, SystemExit) as e:
-                logger.info(
-                    f"Skipping waiting for launcher threads to join on task run {run_id}."
-                )
+                logger.info(f"Skipping waiting for launcher threads to join on task run {run_id}.")
 
             def cant_cancel_expirations(sig, frame):
                 logger.warn(
@@ -507,13 +493,9 @@ class Operator:
         Wrapper around validate_and_run_config_or_die that prints errors on
         failure, rather than throwing. Generally for use in scripts.
         """
-        assert (
-            not self.is_shutdown
-        ), "Cannot run a config on a shutdown operator. Create a new one."
+        assert not self.is_shutdown, "Cannot run a config on a shutdown operator. Create a new one."
         try:
-            return self.launch_task_run_or_die(
-                run_config=run_config, shared_state=shared_state
-            )
+            return self.launch_task_run_or_die(run_config=run_config, shared_state=shared_state)
         except (KeyboardInterrupt, Exception) as e:
             logger.error("Ran into error while launching run: ", exc_info=True)
             return None
@@ -574,9 +556,7 @@ class Operator:
         self._event_loop.call_later(timeout_time, trigger_shutdown)
         self._event_loop.run_forever()
 
-    def wait_for_runs_then_shutdown(
-        self, skip_input=False, log_rate: Optional[int] = None
-    ) -> None:
+    def wait_for_runs_then_shutdown(self, skip_input=False, log_rate: Optional[int] = None) -> None:
         """
         Wait for task_runs to complete, and then shutdown.
 
@@ -590,7 +570,7 @@ class Operator:
         try:
             self._event_loop.run_forever()
         except Exception as e:
-            logger.exception('Encountered error during task run')
+            logger.exception("Encountered error during task run")
         except (KeyboardInterrupt, SystemExit) as e:
             logger.exception(
                 "Cleaning up after keyboard interrupt, please "

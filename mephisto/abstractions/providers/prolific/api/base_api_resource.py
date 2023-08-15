@@ -70,9 +70,11 @@ class BaseAPIResource(object):
             url = urljoin(BASE_URL, api_endpoint)
 
             headers = headers or {}
-            headers.update({
-                "Authorization": f"Token {api_key}",
-            })
+            headers.update(
+                {
+                    "Authorization": f"Token {api_key}",
+                }
+            )
 
             logger.debug(f"{log_prefix} {method} {url}. Params: {params}")
 
@@ -91,10 +93,7 @@ class BaseAPIResource(object):
                 raise ProlificException("Invalid HTTP method.")
 
             response.raise_for_status()
-            if (
-                response.status_code == status.HTTP_204_NO_CONTENT and
-                not response.content
-            ):
+            if response.status_code == status.HTTP_204_NO_CONTENT and not response.content:
                 result = None
             else:
                 result = response.json()
@@ -104,9 +103,7 @@ class BaseAPIResource(object):
             return result
 
         except requests.exceptions.HTTPError as err:
-            logger.error(
-                f"{log_prefix} Request error: {err}. Response text: `{err.response.text}`"
-            )
+            logger.error(f"{log_prefix} Request error: {err}. Response text: `{err.response.text}`")
             if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
                 raise ProlificAuthenticationError
 

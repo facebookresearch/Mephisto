@@ -97,9 +97,7 @@ class MockBlueprintTests(BlueprintTests):
         Agent = MockAgent.get(self.db, agent_id)
         return assign
 
-    def assignment_is_tracked(
-        self, task_runner: TaskRunner, assignment: Assignment
-    ) -> bool:
+    def assignment_is_tracked(self, task_runner: TaskRunner, assignment: Assignment) -> bool:
         """
         Return whether or not this task is currently being tracked (run)
         by the given task runner. This should be false unless

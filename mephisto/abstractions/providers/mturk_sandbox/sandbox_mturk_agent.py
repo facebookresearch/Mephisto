@@ -32,12 +32,8 @@ class SandboxMTurkAgent(MTurkAgent):
         Get an mturk client for usage with mturk_utils for this agent
         """
         unit = self.get_unit()
-        requester: "SandboxMTurkRequester" = cast(
-            "SandboxMTurkRequester", unit.get_requester()
-        )
-        return self.datastore.get_sandbox_client_for_requester(
-            requester._requester_name
-        )
+        requester: "SandboxMTurkRequester" = cast("SandboxMTurkRequester", unit.get_requester())
+        return self.datastore.get_sandbox_client_for_requester(requester._requester_name)
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":
