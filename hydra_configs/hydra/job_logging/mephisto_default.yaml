@@ -4,6 +4,9 @@ formatters:
   simple:
     format: "[%(asctime)s][%(name)s][%(levelname)s] - %(message)s"
 handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: simple
   file:
     class: logging.FileHandler
     formatter: simple
@@ -11,6 +14,6 @@ handlers:
     filename: ${hydra.runtime.output_dir}/${hydra.job.name}.log
 root:
   level: INFO
-  handlers: [file]
+  handlers: [console, file]
 
 disable_existing_loggers: false

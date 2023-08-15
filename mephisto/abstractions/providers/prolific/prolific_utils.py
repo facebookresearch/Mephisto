@@ -397,6 +397,7 @@ def create_study(
     external_study_url = _get_external_study_url(task_run_config)
     prolific_id_option = task_run_config.provider.prolific_id_option
 
+    eligibility_requirements = eligibility_requirements or []
     prolific_eligibility_requirements = _convert_eligibility_requirements(eligibility_requirements)
 
     # Initially provide a random completion code during study
@@ -443,7 +444,7 @@ def create_study(
     return study
 
 
-def increase_total_available_places_for_study(client: ProlificClient, study_id: str) -> str:
+def increase_total_available_places_for_study(client: ProlificClient, study_id: str) -> Study:
     study: Study = get_study(client, study_id)
 
     try:
@@ -454,7 +455,8 @@ def increase_total_available_places_for_study(client: ProlificClient, study_id: 
     except (ProlificException, ValidationError):
         logger.exception(f'Could not increase `total_available_places` for a Study "{study_id}"')
         raise
-    return study_id
+
+    return study
 
 
 def get_study(client: ProlificClient, study_id: str) -> Study:
