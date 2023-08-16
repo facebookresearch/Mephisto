@@ -74,6 +74,9 @@ from mephisto.data_model.requester import RequesterArgs
 MOCK_PROLIFIC_CONFIG_DIR = "/tmp/"
 MOCK_PROLIFIC_CONFIG_PATH = "/tmp/test_conf_credentials"
 
+API_PATH = "mephisto.abstractions.providers.prolific.api"
+UTILS_PATH = "mephisto.abstractions.providers.prolific.prolific_utils"
+
 
 @dataclass
 class MockProlificRequesterArgs(RequesterArgs):
@@ -135,26 +138,20 @@ class TestProlificUtils(unittest.TestCase):
         if os.path.exists(MOCK_PROLIFIC_CONFIG_PATH):
             os.remove(MOCK_PROLIFIC_CONFIG_PATH)
 
-    @patch("mephisto.abstractions.providers.prolific.api.users.Users.me")
+    @patch(f"{API_PATH}.users.Users.me")
     def test_check_credentials_true(self, mock_prolific_users_me, *args):
         mock_prolific_users_me.return_value = User(id="test")
         result = check_credentials()
         self.assertTrue(result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.users.Users.me")
+    @patch(f"{API_PATH}.users.Users.me")
     def test_check_credentials_false(self, mock_prolific_users_me, *args):
         mock_prolific_users_me.side_effect = ProlificRequestError()
         result = check_credentials()
         self.assertFalse(result)
 
-    @patch(
-        "mephisto.abstractions.providers.prolific.prolific_utils.CREDENTIALS_CONFIG_DIR",
-        MOCK_PROLIFIC_CONFIG_DIR,
-    )
-    @patch(
-        "mephisto.abstractions.providers.prolific.prolific_utils.CREDENTIALS_CONFIG_PATH",
-        MOCK_PROLIFIC_CONFIG_PATH,
-    )
+    @patch(f"{UTILS_PATH}.CREDENTIALS_CONFIG_DIR", MOCK_PROLIFIC_CONFIG_DIR)
+    @patch(f"{UTILS_PATH}.CREDENTIALS_CONFIG_PATH", MOCK_PROLIFIC_CONFIG_PATH)
     def test_setup_credentials(self, *args):
         self.remove_credentials_file()
         self.assertFalse(os.path.exists(MOCK_PROLIFIC_CONFIG_PATH))
@@ -250,8 +247,8 @@ class TestProlificUtils(unittest.TestCase):
             ],
         )
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.get_balance")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_workspace")
+    @patch(f"{API_PATH}.workspaces.Workspaces.get_balance")
+    @patch(f"{UTILS_PATH}._find_prolific_workspace")
     def test_check_balance_success(self, mock__find_prolific_workspace, mock_get_balance, *args):
         expected_value = 9999
 
@@ -265,14 +262,14 @@ class TestProlificUtils(unittest.TestCase):
         balance = check_balance(self.client, workspace_name="test")
         self.assertEqual(expected_value, balance)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.get_balance")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_workspace")
+    @patch(f"{API_PATH}.workspaces.Workspaces.get_balance")
+    @patch(f"{UTILS_PATH}._find_prolific_workspace")
     def test_check_balance_no_workspace_name(self, *args):
         balance = check_balance(self.client)
         self.assertEqual(None, balance)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.get_balance")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_workspace")
+    @patch(f"{API_PATH}.workspaces.Workspaces.get_balance")
+    @patch(f"{UTILS_PATH}._find_prolific_workspace")
     def test_check_balance_found_no_workspace(self, mock__find_prolific_workspace, *args):
         mock_workspace = Workspace()
         mock_workspace.id = "test"
@@ -281,8 +278,8 @@ class TestProlificUtils(unittest.TestCase):
         balance = check_balance(self.client, workspace_name="test")
         self.assertEqual(None, balance)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.get_balance")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_workspace")
+    @patch(f"{API_PATH}.workspaces.Workspaces.get_balance")
+    @patch(f"{UTILS_PATH}._find_prolific_workspace")
     def test_check_balance_get_balance_exception(
         self,
         mock__find_prolific_workspace,
@@ -305,7 +302,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.retrieve")
+    @patch(f"{API_PATH}.workspaces.Workspaces.retrieve")
     def test__find_prolific_workspace_with_id_success(self, mock_retrieve, *args):
         expected_id = "test"
         expected_title = "test"
@@ -319,7 +316,7 @@ class TestProlificUtils(unittest.TestCase):
         result = _find_prolific_workspace(self.client, title="", id=expected_id)
         self.assertEqual((True, mock_workspace), result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.retrieve")
+    @patch(f"{API_PATH}.workspaces.Workspaces.retrieve")
     def test__find_prolific_workspace_with_id_exception(self, mock_retrieve, *args):
         expected_id = "test"
 
@@ -330,7 +327,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.list")
+    @patch(f"{API_PATH}.workspaces.Workspaces.list")
     def test__find_prolific_workspace_with_title_success(self, mock_list, *args):
         expected_title = "test"
 
@@ -342,7 +339,7 @@ class TestProlificUtils(unittest.TestCase):
         result = _find_prolific_workspace(self.client, title=expected_title)
         self.assertEqual((True, mock_workspace), result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.list")
+    @patch(f"{API_PATH}.workspaces.Workspaces.list")
     def test__find_prolific_workspace_with_title_success_no_result(self, mock_list, *args):
         expected_title = "test"
 
@@ -354,7 +351,7 @@ class TestProlificUtils(unittest.TestCase):
         result = _find_prolific_workspace(self.client, title=expected_title)
         self.assertEqual((False, None), result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.list")
+    @patch(f"{API_PATH}.workspaces.Workspaces.list")
     def test__find_prolific_workspace_with_title_exception(self, mock_list, *args):
         expected_title = "test"
 
@@ -365,7 +362,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_workspace")
+    @patch(f"{UTILS_PATH}._find_prolific_workspace")
     def test_find_or_create_prolific_workspace_success_find(
         self,
         mock__find_prolific_workspace,
@@ -382,8 +379,8 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_workspace, result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.create")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_workspace")
+    @patch(f"{API_PATH}.workspaces.Workspaces.create")
+    @patch(f"{UTILS_PATH}._find_prolific_workspace")
     def test_find_or_create_prolific_workspace_success_create(
         self,
         mock__find_prolific_workspace,
@@ -402,8 +399,8 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_workspace, result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.workspaces.Workspaces.create")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_workspace")
+    @patch(f"{API_PATH}.workspaces.Workspaces.create")
+    @patch(f"{UTILS_PATH}._find_prolific_workspace")
     def test_find_or_create_prolific_workspace_create_exception(
         self,
         mock__find_prolific_workspace,
@@ -424,7 +421,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.projects.Projects.list_for_workspace")
+    @patch(f"{API_PATH}.projects.Projects.list_for_workspace")
     def test__find_prolific_project_success_with_title(self, mock_list_for_workspace, *args):
         workspace_id = "test"
         project_title = "test2"
@@ -439,7 +436,7 @@ class TestProlificUtils(unittest.TestCase):
         self.assertEqual((True, mock_project), result)
         self.assertFalse(hasattr(mock_project, "id"))
 
-    @patch("mephisto.abstractions.providers.prolific.api.projects.Projects.list_for_workspace")
+    @patch(f"{API_PATH}.projects.Projects.list_for_workspace")
     def test__find_prolific_project_success_with_id(self, mock_list_for_workspace, *args):
         workspace_id = "test"
         project_title = "test2"
@@ -456,7 +453,7 @@ class TestProlificUtils(unittest.TestCase):
         self.assertEqual((True, mock_project), result)
         self.assertTrue(hasattr(mock_project, "id"))
 
-    @patch("mephisto.abstractions.providers.prolific.api.projects.Projects.list_for_workspace")
+    @patch(f"{API_PATH}.projects.Projects.list_for_workspace")
     def test__find_prolific_project_success_no_result(self, mock_list_for_workspace, *args):
         workspace_id = "test"
         project_title = "test2"
@@ -470,7 +467,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual((False, None), result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.projects.Projects.list_for_workspace")
+    @patch(f"{API_PATH}.projects.Projects.list_for_workspace")
     def test__find_prolific_project_exception(self, mock_list_for_workspace, *args):
         workspace_id = "test"
         project_title = "test2"
@@ -482,7 +479,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_project")
+    @patch(f"{UTILS_PATH}._find_prolific_project")
     def test_find_or_create_prolific_project_success_find(self, mock__find_prolific_project, *args):
         workspace_id = "test"
         project_title = "test2"
@@ -496,8 +493,8 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_project, result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.projects.Projects.create_for_workspace")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_project")
+    @patch(f"{API_PATH}.projects.Projects.create_for_workspace")
+    @patch(f"{UTILS_PATH}._find_prolific_project")
     def test_find_or_create_prolific_project_success_create(
         self,
         mock__find_prolific_project,
@@ -517,8 +514,8 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_project, result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.projects.Projects.create_for_workspace")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_prolific_project")
+    @patch(f"{API_PATH}.projects.Projects.create_for_workspace")
+    @patch(f"{UTILS_PATH}._find_prolific_project")
     def test_find_or_create_prolific_project_create_exception(
         self,
         mock__find_prolific_project,
@@ -537,9 +534,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch(
-        "mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.remove"
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.remove")
     def test_delete_qualification_success(self, mock_remove, *args):
         prolific_participant_group_id = "test"
 
@@ -549,9 +544,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertTrue(result)
 
-    @patch(
-        "mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.remove"
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.remove")
     def test_delete_qualification_exception(self, mock_remove, *args):
         prolific_participant_group_id = "test"
 
@@ -562,7 +555,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.list")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.list")
     def test__find_qualification_success(self, mock_participant_groups_list, *args):
         prolific_project_id = uuid4().hex[:24]
         qualification_name = "test"
@@ -579,7 +572,7 @@ class TestProlificUtils(unittest.TestCase):
         _, q = _find_qualification(self.client, prolific_project_id, qualification_name)
         self.assertEqual(q.id, expected_qualification_id)
 
-    @patch("mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.list")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.list")
     def test__find_qualification_no_qualification(self, mock_participant_groups_list, *args):
         prolific_project_id = uuid4().hex[:24]
         qualification_name = "test"
@@ -587,7 +580,7 @@ class TestProlificUtils(unittest.TestCase):
         result = _find_qualification(self.client, prolific_project_id, qualification_name)
         self.assertEqual(result, (False, None))
 
-    @patch("mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.list")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.list")
     def test__find_qualification_error(self, mock_participant_groups_list, *args):
         prolific_project_id = uuid4().hex[:24]
         qualification_name = "test"
@@ -597,9 +590,7 @@ class TestProlificUtils(unittest.TestCase):
             _find_qualification(self.client, prolific_project_id, qualification_name)
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch(
-        "mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.create"
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.create")
     def test_create_qualification_success(self, mock_create, *args):
         prolific_project_id = "test"
         qualification_name = "test2"
@@ -615,9 +606,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_participant_group, result)
 
-    @patch(
-        "mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.create"
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.create")
     def test_create_qualification_exception(self, mock_create, *args):
         prolific_project_id = "test"
         qualification_name = "test2"
@@ -629,7 +618,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_qualification")
+    @patch(f"{UTILS_PATH}._find_qualification")
     def test_find_or_create_qualification_found_one(self, mock_find_qualification, *args):
         prolific_project_id = uuid4().hex[:24]
         qualification_name = "test"
@@ -644,10 +633,8 @@ class TestProlificUtils(unittest.TestCase):
         )
         self.assertEqual(result.id, expected_qualification_id)
 
-    @patch(
-        "mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.create"
-    )
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_qualification")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.create")
+    @patch(f"{UTILS_PATH}._find_qualification")
     def test_find_or_create_qualification_created_new(
         self,
         mock_find_qualification,
@@ -670,10 +657,8 @@ class TestProlificUtils(unittest.TestCase):
         )
         self.assertEqual(result.id, expected_qualification_id)
 
-    @patch(
-        "mephisto.abstractions.providers.prolific.api.participant_groups.ParticipantGroups.create"
-    )
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils._find_qualification")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.create")
+    @patch(f"{UTILS_PATH}._find_qualification")
     def test_find_or_create_qualification_error(
         self,
         mock_find_qualification,
@@ -739,8 +724,8 @@ class TestProlificUtils(unittest.TestCase):
             result_ec2_architect,
         )
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.update")
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.create")
+    @patch(f"{API_PATH}.studies.Studies.update")
+    @patch(f"{API_PATH}.studies.Studies.create")
     def test_create_study_success(self, mock_study_create, mock_study_update, *args):
         project_id = uuid4().hex[:24]
         expected_study_id = uuid4().hex[:24]
@@ -769,8 +754,8 @@ class TestProlificUtils(unittest.TestCase):
         )
         self.assertEqual(study.id, expected_study_id)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.update")
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.create")
+    @patch(f"{API_PATH}.studies.Studies.update")
+    @patch(f"{API_PATH}.studies.Studies.create")
     def test_create_study_error(self, mock_study_create, *args):
         project_id = uuid4().hex[:24]
         exception_message = "Error"
@@ -783,8 +768,8 @@ class TestProlificUtils(unittest.TestCase):
             )
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.update")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils.get_study")
+    @patch(f"{API_PATH}.studies.Studies.update")
+    @patch(f"{UTILS_PATH}.get_study")
     def test_increase_total_available_places_for_study_success(self, mock_get_study, *args):
         study_id = "test"
 
@@ -798,8 +783,8 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_study, result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.update")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils.get_study")
+    @patch(f"{API_PATH}.studies.Studies.update")
+    @patch(f"{UTILS_PATH}.get_study")
     def test_increase_total_available_places_for_study_exception(
         self,
         mock_get_study,
@@ -821,7 +806,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.retrieve")
+    @patch(f"{API_PATH}.studies.Studies.retrieve")
     def test_get_study_success(self, mock_retrieve, *args):
         study_id = "test"
 
@@ -834,7 +819,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_study, result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.retrieve")
+    @patch(f"{API_PATH}.studies.Studies.retrieve")
     def test_get_study_exception(self, mock_retrieve, *args):
         study_id = "test"
 
@@ -848,7 +833,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.publish")
+    @patch(f"{API_PATH}.studies.Studies.publish")
     def test_publish_study_success(self, mock_publish, *args):
         study_id = "test"
 
@@ -861,7 +846,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(study_id, result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.publish")
+    @patch(f"{API_PATH}.studies.Studies.publish")
     def test_publish_study_exception(self, mock_publish, *args):
         study_id = "test"
 
@@ -875,7 +860,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.stop")
+    @patch(f"{API_PATH}.studies.Studies.stop")
     def test_stop_study_success(self, mock_stop, *args):
         study_id = "test"
 
@@ -888,7 +873,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_study, result)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.stop")
+    @patch(f"{API_PATH}.studies.Studies.stop")
     def test_stop_study_exception(self, mock_stop, *args):
         study_id = "test"
 
@@ -902,9 +887,9 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.update")
-    @patch("mephisto.abstractions.providers.prolific.api.studies.Studies.stop")
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils.get_study")
+    @patch(f"{API_PATH}.studies.Studies.update")
+    @patch(f"{API_PATH}.studies.Studies.stop")
+    @patch(f"{UTILS_PATH}.get_study")
     def test_expire_study_success(self, mock_get_study, mock_stop, *args):
         study_id = "test"
 
@@ -919,7 +904,7 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_study, result)
 
-    @patch("mephisto.abstractions.providers.prolific.prolific_utils.get_study")
+    @patch(f"{UTILS_PATH}.get_study")
     def test_expire_study_exception(self, mock_get_study, *args):
         study_id = "test"
 
@@ -959,83 +944,71 @@ class TestProlificUtils(unittest.TestCase):
         self.assertFalse(result_just_with_awaiting_review_status)
         self.assertTrue(result_with_completed_status_and_internal_name)
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.add_participants_to_group'
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.add_participants_to_group")
     def test_add_workers_to_qualification_success(self, *args):
-        worker_ids = ['test', 'test2']
-        participant_group_id = 'test3'
+        worker_ids = ["test", "test2"]
+        participant_group_id = "test3"
 
         result = add_workers_to_qualification(self.client, worker_ids, participant_group_id)
 
         self.assertIsNone(result)
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.add_participants_to_group'
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.add_participants_to_group")
     def test_add_workers_to_qualification_exception(self, mock_add_participants_to_group, *args):
-        worker_ids = ['test', 'test2']
-        participant_group_id = 'test3'
+        worker_ids = ["test", "test2"]
+        participant_group_id = "test3"
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_add_participants_to_group.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             add_workers_to_qualification(self.client, worker_ids, participant_group_id)
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.add_participants_to_group'
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.add_participants_to_group")
     def test_give_worker_qualification_success(self, mock_add_participants_to_group, *args):
-        worker_id = 'test'
-        participant_group_id = 'test3'
+        worker_id = "test"
+        participant_group_id = "test3"
 
         result = give_worker_qualification(self.client, worker_id, participant_group_id)
 
         mock_add_participants_to_group.assert_called_once_with(
-            id=participant_group_id, participant_ids=[worker_id],
+            id=participant_group_id,
+            participant_ids=[worker_id],
         )
         self.assertIsNone(result)
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.remove_participants_from_group'
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.remove_participants_from_group")
     def test_remove_worker_qualification_success(self, *args):
-        worker_id = 'test'
-        participant_group_id = 'test2'
+        worker_id = "test"
+        participant_group_id = "test2"
 
         result = remove_worker_qualification(self.client, worker_id, participant_group_id)
 
         self.assertIsNone(result)
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.remove_participants_from_group'
-    )
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.remove_participants_from_group")
     def test_remove_worker_qualification_exception(
-        self, mock_remove_participants_from_group, *args,
+        self,
+        mock_remove_participants_from_group,
+        *args,
     ):
-        worker_id = 'test'
-        participant_group_id = 'test2'
+        worker_id = "test"
+        participant_group_id = "test2"
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_remove_participants_from_group.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             remove_worker_qualification(self.client, worker_id, participant_group_id)
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    @patch(f"{API_PATH}.bonuses.Bonuses.pay")
+    @patch(f"{API_PATH}.bonuses.Bonuses.set_up")
+    @patch(f"{UTILS_PATH}.check_balance")
     def test_pay_bonus_empty_balance(self, mock_check_balance, mock_set_up, mock_pay, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
         bonus_amount = 1000
 
         mock_check_balance.return_value = False
@@ -1046,12 +1019,12 @@ class TestProlificUtils(unittest.TestCase):
         mock_pay.assert_not_called()
         self.assertFalse(result)
 
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    @patch(f"{API_PATH}.bonuses.Bonuses.pay")
+    @patch(f"{API_PATH}.bonuses.Bonuses.set_up")
+    @patch(f"{UTILS_PATH}.check_balance")
     def test_pay_bonus_empty_balance(self, mock_check_balance, mock_set_up, mock_pay, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
         bonus_amount = 1000
 
         mock_check_balance.return_value = False
@@ -1062,13 +1035,13 @@ class TestProlificUtils(unittest.TestCase):
         mock_pay.assert_not_called()
         self.assertFalse(result)
 
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    @patch(f"{API_PATH}.bonuses.Bonuses.pay")
+    @patch(f"{API_PATH}.bonuses.Bonuses.set_up")
+    @patch(f"{UTILS_PATH}.check_balance")
     def test_pay_bonus_success(self, mock_check_balance, mock_set_up, mock_pay, *args):
-        worker_id = 'test'
-        study_id = 'test2'
-        bonus_payments_id = 'test3'
+        worker_id = "test"
+        study_id = "test2"
+        bonus_payments_id = "test3"
         bonus_amount = 1000
 
         mock_bonus_payments = BonusPayments()
@@ -1078,36 +1051,36 @@ class TestProlificUtils(unittest.TestCase):
 
         result = pay_bonus(self.client, mock_task_run_args, worker_id, bonus_amount, study_id)
 
-        mock_set_up.assert_called_once_with(study_id, f'{worker_id},{bonus_amount / 100}')
+        mock_set_up.assert_called_once_with(study_id, f"{worker_id},{bonus_amount / 100}")
         mock_pay.assert_called_once_with(mock_bonus_payments.id)
         self.assertTrue(result)
 
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    @patch(f"{API_PATH}.bonuses.Bonuses.pay")
+    @patch(f"{API_PATH}.bonuses.Bonuses.set_up")
+    @patch(f"{UTILS_PATH}.check_balance")
     def test_pay_bonus_set_up_exception(self, mock_check_balance, mock_set_up, mock_pay, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
         bonus_amount = 1000
 
         mock_check_balance.return_value = True
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_set_up.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             pay_bonus(self.client, mock_task_run_args, worker_id, bonus_amount, study_id)
 
         self.assertEqual(cm.exception.message, exception_message)
-        mock_set_up.assert_called_once_with(study_id, f'{worker_id},{bonus_amount / 100}')
+        mock_set_up.assert_called_once_with(study_id, f"{worker_id},{bonus_amount / 100}")
         mock_pay.assert_not_called()
 
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.pay')
-    @patch('mephisto.abstractions.providers.prolific.api.bonuses.Bonuses.set_up')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils.check_balance')
+    @patch(f"{API_PATH}.bonuses.Bonuses.pay")
+    @patch(f"{API_PATH}.bonuses.Bonuses.set_up")
+    @patch(f"{UTILS_PATH}.check_balance")
     def test_pay_bonus_pay_exception(self, mock_check_balance, mock_set_up, mock_pay, *args):
-        worker_id = 'test'
-        study_id = 'test2'
-        bonus_payments_id = 'test3'
+        worker_id = "test"
+        study_id = "test2"
+        bonus_payments_id = "test3"
         bonus_amount = 1000
 
         mock_bonus_payments = BonusPayments()
@@ -1115,22 +1088,18 @@ class TestProlificUtils(unittest.TestCase):
         mock_check_balance.return_value = True
         mock_set_up.return_value = mock_bonus_payments
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_pay.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             pay_bonus(self.client, mock_task_run_args, worker_id, bonus_amount, study_id)
 
         self.assertEqual(cm.exception.message, exception_message)
-        mock_set_up.assert_called_once_with(study_id, f'{worker_id},{bonus_amount / 100}')
+        mock_set_up.assert_called_once_with(study_id, f"{worker_id},{bonus_amount / 100}")
         mock_pay.assert_called_once_with(mock_bonus_payments.id)
 
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_qualification')
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
-    )
+    @patch(f"{UTILS_PATH}.find_or_create_qualification")
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_project")
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_workspace")
     def test__get_block_list_qualification(
         self,
         mock_find_or_create_prolific_workspace,
@@ -1139,13 +1108,13 @@ class TestProlificUtils(unittest.TestCase):
         *args,
     ):
         mock_workspace = Workspace()
-        mock_workspace.id = 'test'
+        mock_workspace.id = "test"
         mock_project = Project()
-        mock_project.id = 'test2'
-        mock_project.title = 'test2_title'
+        mock_project.id = "test2"
+        mock_project.title = "test2_title"
         mock_participant_group = ParticipantGroup()
-        mock_participant_group.id = 'test3'
-        mock_participant_group.name = 'test3_name'
+        mock_participant_group.id = "test3"
+        mock_participant_group.name = "test3_name"
 
         mock_find_or_create_prolific_workspace.return_value = mock_workspace
         mock_find_or_create_prolific_project.return_value = mock_project
@@ -1155,15 +1124,18 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_participant_group, result)
 
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils.add_workers_to_qualification')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._get_block_list_qualification')
+    @patch(f"{UTILS_PATH}.add_workers_to_qualification")
+    @patch(f"{UTILS_PATH}._get_block_list_qualification")
     def test_block_worker_success(
-        self, mock__get_block_list_qualification, mock_add_workers_to_qualification, *args,
+        self,
+        mock__get_block_list_qualification,
+        mock_add_workers_to_qualification,
+        *args,
     ):
-        worker_id = 'test'
+        worker_id = "test"
 
         mock_participant_group = ParticipantGroup()
-        mock_participant_group.id = 'test2'
+        mock_participant_group.id = "test2"
 
         mock__get_block_list_qualification.return_value = mock_participant_group
 
@@ -1171,21 +1143,23 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertIsNone(result)
         mock_add_workers_to_qualification.called_once_with(
-            self.client, workers_ids=[worker_id], qualification_id=mock_participant_group.id,
+            self.client,
+            workers_ids=[worker_id],
+            qualification_id=mock_participant_group.id,
         )
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.remove_participants_from_group'
-    )
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._get_block_list_qualification')
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.remove_participants_from_group")
+    @patch(f"{UTILS_PATH}._get_block_list_qualification")
     def test_unblock_worker_success(
-        self, mock__get_block_list_qualification, mock_remove_participants_from_group, *args,
+        self,
+        mock__get_block_list_qualification,
+        mock_remove_participants_from_group,
+        *args,
     ):
-        worker_id = 'test'
+        worker_id = "test"
 
         mock_participant_group = ParticipantGroup()
-        mock_participant_group.id = 'test2'
+        mock_participant_group.id = "test2"
 
         mock__get_block_list_qualification.return_value = mock_participant_group
 
@@ -1193,24 +1167,21 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertIsNone(result)
         mock_remove_participants_from_group.called_once_with(
-            id=mock_participant_group.id, participant_ids=[worker_id],
+            id=mock_participant_group.id,
+            participant_ids=[worker_id],
         )
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.list_participants_for_group'
-    )
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_qualification')
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_project")
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_workspace")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.list_participants_for_group")
+    @patch(f"{UTILS_PATH}._find_qualification")
     def test_is_worker_blocked_no_block_list_qualification(
-        self, mock__find_qualification, mock_list_participants_for_group, *args,
+        self,
+        mock__find_qualification,
+        mock_list_participants_for_group,
+        *args,
     ):
-        worker_id = 'test'
+        worker_id = "test"
 
         mock__find_qualification.return_value = (False, None)
 
@@ -1219,24 +1190,20 @@ class TestProlificUtils(unittest.TestCase):
         self.assertFalse(result)
         mock_list_participants_for_group.assert_not_called()
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.list_participants_for_group'
-    )
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_qualification')
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_project")
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_workspace")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.list_participants_for_group")
+    @patch(f"{UTILS_PATH}._find_qualification")
     def test_is_worker_blocked_success_true(
-        self, mock__find_qualification, mock_list_participants_for_group, *args,
+        self,
+        mock__find_qualification,
+        mock_list_participants_for_group,
+        *args,
     ):
-        worker_id = 'test'
+        worker_id = "test"
 
         mock_participant_group = ParticipantGroup()
-        mock_participant_group.id = 'test2'
+        mock_participant_group.id = "test2"
         mock_participant = Participant()
         mock_participant.participant_id = worker_id
 
@@ -1248,26 +1215,22 @@ class TestProlificUtils(unittest.TestCase):
         self.assertTrue(result)
         mock_list_participants_for_group.assert_called_once()
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.list_participants_for_group'
-    )
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_qualification')
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_project")
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_workspace")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.list_participants_for_group")
+    @patch(f"{UTILS_PATH}._find_qualification")
     def test_is_worker_blocked_success_false(
-        self, mock__find_qualification, mock_list_participants_for_group, *args,
+        self,
+        mock__find_qualification,
+        mock_list_participants_for_group,
+        *args,
     ):
-        worker_id = 'test'
+        worker_id = "test"
 
         mock_participant_group = ParticipantGroup()
-        mock_participant_group.id = 'test2'
+        mock_participant_group.id = "test2"
         mock_participant = Participant()
-        mock_participant.participant_id = 'test3'
+        mock_participant.participant_id = "test3"
 
         mock__find_qualification.return_value = (True, mock_participant_group)
         mock_list_participants_for_group.return_value = [mock_participant]
@@ -1277,30 +1240,26 @@ class TestProlificUtils(unittest.TestCase):
         self.assertFalse(result)
         mock_list_participants_for_group.assert_called_once()
 
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_project'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.prolific_utils.find_or_create_prolific_workspace'
-    )
-    @patch(
-        'mephisto.abstractions.providers.prolific.api.'
-        'participant_groups.ParticipantGroups.list_participants_for_group'
-    )
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_qualification')
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_project")
+    @patch(f"{UTILS_PATH}.find_or_create_prolific_workspace")
+    @patch(f"{API_PATH}.participant_groups.ParticipantGroups.list_participants_for_group")
+    @patch(f"{UTILS_PATH}._find_qualification")
     def test_is_worker_blocked_exception(
-        self, mock__find_qualification, mock_list_participants_for_group, *args,
+        self,
+        mock__find_qualification,
+        mock_list_participants_for_group,
+        *args,
     ):
-        worker_id = 'test'
+        worker_id = "test"
 
         mock_participant_group = ParticipantGroup()
-        mock_participant_group.id = 'test2'
+        mock_participant_group.id = "test2"
         mock_participant = Participant()
         mock_participant.participant_id = worker_id
 
         mock__find_qualification.return_value = (True, mock_participant_group)
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_list_participants_for_group.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             is_worker_blocked(self.client, mock_task_run_args, worker_id)
@@ -1308,7 +1267,7 @@ class TestProlificUtils(unittest.TestCase):
         self.assertEqual(cm.exception.message, exception_message)
         mock_list_participants_for_group.assert_called_once()
 
-    @patch('mephisto.abstractions.providers.prolific.api.studies.Studies.calculate_cost')
+    @patch(f"{API_PATH}.studies.Studies.calculate_cost")
     def test_calculate_pay_amount_success(self, mock_calculate_cost, *args):
         task_amount = 1000
         total_available_places = 2
@@ -1319,25 +1278,25 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(task_amount * total_available_places, result)
 
-    @patch('mephisto.abstractions.providers.prolific.api.studies.Studies.calculate_cost')
+    @patch(f"{API_PATH}.studies.Studies.calculate_cost")
     def test_calculate_pay_amount_exception(self, mock_calculate_cost, *args):
         task_amount = 1000
         total_available_places = 2
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_calculate_cost.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             calculate_pay_amount(self.client, task_amount, total_available_places)
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.list')
+    @patch(f"{API_PATH}.submissions.Submissions.list")
     def test__find_submission_success_found(self, mock_list, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock_list_submission = ListSubmission()
-        mock_list_submission.id = 'test3'
+        mock_list_submission.id = "test3"
         mock_list_submission.participant_id = worker_id
 
         mock_list.return_value = [mock_list_submission]
@@ -1346,14 +1305,14 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_list_submission, result)
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.list')
+    @patch(f"{API_PATH}.submissions.Submissions.list")
     def test__find_submission_success_not_found(self, mock_list, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock_list_submission = ListSubmission()
-        mock_list_submission.id = 'test3'
-        mock_list_submission.participant_id = 'test4'
+        mock_list_submission.id = "test3"
+        mock_list_submission.participant_id = "test4"
 
         mock_list.return_value = [mock_list_submission]
 
@@ -1361,24 +1320,24 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(None, result)
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.list')
+    @patch(f"{API_PATH}.submissions.Submissions.list")
     def test__find_submission_exception(self, mock_list, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_list.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             _find_submission(self.client, study_id, worker_id)
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.retrieve')
+    @patch(f"{API_PATH}.submissions.Submissions.retrieve")
     def test_get_submission_success(self, mock_retrieve, *args):
-        submission_id = 'test'
+        submission_id = "test"
 
         mock_submission = Submission()
-        mock_submission.id = 'test2'
+        mock_submission.id = "test2"
 
         mock_retrieve.return_value = mock_submission
 
@@ -1386,22 +1345,22 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(mock_submission, result)
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.retrieve')
+    @patch(f"{API_PATH}.submissions.Submissions.retrieve")
     def test_get_submission_exception(self, mock_retrieve, *args):
-        submission_id = 'test'
+        submission_id = "test"
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_retrieve.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             get_submission(self.client, submission_id)
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.approve')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    @patch(f"{API_PATH}.submissions.Submissions.approve")
+    @patch(f"{UTILS_PATH}._find_submission")
     def test_approve_work_submission_not_found(self, mock__find_submission, mock_approve, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock__find_submission.return_value = False
 
@@ -1410,18 +1369,18 @@ class TestProlificUtils(unittest.TestCase):
         self.assertIsNone(result)
         mock_approve.assert_not_called()
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.approve')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    @patch(f"{API_PATH}.submissions.Submissions.approve")
+    @patch(f"{UTILS_PATH}._find_submission")
     def test_approve_work_success(self, mock__find_submission, mock_approve, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock_submission = Submission()
-        mock_submission.id = 'test3'
+        mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
 
         mock_submission_approved = Submission()
-        mock_submission_approved.id = 'test4'
+        mock_submission_approved.id = "test4"
         mock_submission_approved.status = constants.SubmissionStatus.APPROVED
 
         mock__find_submission.return_value = mock_submission
@@ -1432,16 +1391,19 @@ class TestProlificUtils(unittest.TestCase):
         self.assertEqual(mock_submission_approved, result)
         mock_approve.assert_called_once()
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.approve')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    @patch(f"{API_PATH}.submissions.Submissions.approve")
+    @patch(f"{UTILS_PATH}._find_submission")
     def test_approve_work_incorrect_submission_status(
-        self, mock__find_submission, mock_approve, *args,
+        self,
+        mock__find_submission,
+        mock_approve,
+        *args,
     ):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock_submission = Submission()
-        mock_submission.id = 'test3'
+        mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.ACTIVE
 
         mock__find_submission.return_value = mock_submission
@@ -1451,30 +1413,30 @@ class TestProlificUtils(unittest.TestCase):
         self.assertIsNone(result)
         mock_approve.assert_not_called()
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.approve')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    @patch(f"{API_PATH}.submissions.Submissions.approve")
+    @patch(f"{UTILS_PATH}._find_submission")
     def test_approve_work_exception(self, mock__find_submission, mock_approve, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock_submission = Submission()
-        mock_submission.id = 'test3'
+        mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
 
         mock__find_submission.return_value = mock_submission
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_approve.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             approve_work(self.client, study_id, worker_id)
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.reject')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    @patch(f"{API_PATH}.submissions.Submissions.reject")
+    @patch(f"{UTILS_PATH}._find_submission")
     def test_reject_work_submission_not_found(self, mock__find_submission, mock_reject, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock__find_submission.return_value = False
 
@@ -1483,18 +1445,18 @@ class TestProlificUtils(unittest.TestCase):
         self.assertIsNone(result)
         mock_reject.assert_not_called()
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.reject')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    @patch(f"{API_PATH}.submissions.Submissions.reject")
+    @patch(f"{UTILS_PATH}._find_submission")
     def test_reject_work_success(self, mock__find_submission, mock_reject, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock_submission = Submission()
-        mock_submission.id = 'test3'
+        mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
 
         mock_submission_rejected = Submission()
-        mock_submission_rejected.id = 'test4'
+        mock_submission_rejected.id = "test4"
         mock_submission_rejected.status = constants.SubmissionStatus.REJECTED
 
         mock__find_submission.return_value = mock_submission
@@ -1505,16 +1467,19 @@ class TestProlificUtils(unittest.TestCase):
         self.assertEqual(mock_submission_rejected, result)
         mock_reject.assert_called_once()
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.reject')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    @patch(f"{API_PATH}.submissions.Submissions.reject")
+    @patch(f"{UTILS_PATH}._find_submission")
     def test_reject_work_incorrect_submission_status(
-        self, mock__find_submission, mock_reject, *args,
+        self,
+        mock__find_submission,
+        mock_reject,
+        *args,
     ):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock_submission = Submission()
-        mock_submission.id = 'test3'
+        mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.ACTIVE
 
         mock__find_submission.return_value = mock_submission
@@ -1524,19 +1489,19 @@ class TestProlificUtils(unittest.TestCase):
         self.assertIsNone(result)
         mock_reject.assert_not_called()
 
-    @patch('mephisto.abstractions.providers.prolific.api.submissions.Submissions.reject')
-    @patch('mephisto.abstractions.providers.prolific.prolific_utils._find_submission')
+    @patch(f"{API_PATH}.submissions.Submissions.reject")
+    @patch(f"{UTILS_PATH}._find_submission")
     def test_reject_work_exception(self, mock__find_submission, mock_reject, *args):
-        worker_id = 'test'
-        study_id = 'test2'
+        worker_id = "test"
+        study_id = "test2"
 
         mock_submission = Submission()
-        mock_submission.id = 'test3'
+        mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
 
         mock__find_submission.return_value = mock_submission
 
-        exception_message = 'Error'
+        exception_message = "Error"
         mock_reject.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             reject_work(self.client, study_id, worker_id)
