@@ -89,6 +89,7 @@ class BaseAPIResource(object):
 
             elif method == HTTPMethod.DELETE:
                 response = requests.delete(url, headers=headers, json=params)
+
             else:
                 raise ProlificException("Invalid HTTP method.")
 
@@ -101,6 +102,10 @@ class BaseAPIResource(object):
             logger.debug(f"{log_prefix} Response: {result}")
 
             return result
+
+        except ProlificException:
+            # Reraise these errors further to avoid catching them in the latest `except` condition
+            raise
 
         except requests.exceptions.HTTPError as err:
             logger.error(f"{log_prefix} Request error: {err}. Response text: `{err.response.text}`")
