@@ -44,6 +44,7 @@ DEFAULT_CLIENT = cast(ProlificClient, prolific_api)
 logger = get_logger(name=__name__)
 
 
+# --- Credentials ---
 def check_credentials(client: ProlificClient = DEFAULT_CLIENT) -> bool:
     """Check whether API KEY is correct"""
     try:
@@ -94,51 +95,6 @@ def setup_credentials(
     return True
 
 
-def _convert_eligibility_requirements(value: List[dict]) -> List[dict]:
-    """
-    Convert short format of Eligibility Requirements to Prolific format
-    :param value: list of dicts such as
-        [{
-            # Without `web.eligibility.models.` as API requires. We will add it in the code
-            'name': 'AgeRangeEligibilityRequirement',
-            # Prolific Eligibility Requirement attributes and its values
-            'min_age': 18,
-            'max_age': 100,
-        }, ...]
-    :return: reformatted Prolific value, prepared for API request
-    """
-    eligibility_requirements = []
-
-    try:
-        for conf_eligibility_requirement in value:
-            name = conf_eligibility_requirement.get("name")
-
-            if cls := getattr(eligibility_requirement_classes, name, None):
-                cls_kwargs = {}
-                for param_name in cls.params():
-                    if param_name in conf_eligibility_requirement:
-                        cls_kwargs[param_name] = conf_eligibility_requirement[param_name]
-                eligibility_requirements.append(cls(**cls_kwargs).to_prolific_dict())
-    except Exception:
-        logger.exception("Could not convert passed Eligibility Requirements")
-        # Generate human-readable log what Eligibility Requirements and with what parameters
-        # are available.
-        available_classes = inspect.getmembers(
-            sys.modules[eligibility_requirement_classes.__name__],
-            inspect.isclass,
-        )
-        log_classes_dicts = [
-            {"name": c[0], **{p: "<value>" for p in c[1].params()}} for c in available_classes
-        ]
-        logger.info(
-            f"Available Eligibility Requirements in short form for config:\n"
-            + "\n".join([str(i) for i in log_classes_dicts])
-        )
-        raise
-
-    return eligibility_requirements
-
-
 def check_balance(client: ProlificClient, **kwargs) -> Union[float, int, None]:
     """Checks to see if there is at least available_balance amount in the workspace"""
     workspace_name = kwargs.get("workspace_name")
@@ -160,6 +116,7 @@ def check_balance(client: ProlificClient, **kwargs) -> Union[float, int, None]:
     return workspace_balance.available_balance
 
 
+# --- Workspaces ---
 def _find_prolific_workspace(
     client: ProlificClient,
     title: str,
@@ -207,6 +164,7 @@ def find_or_create_prolific_workspace(
     return workspace
 
 
+# --- Projects ---
 def _find_prolific_project(
     client: ProlificClient,
     workspace_id: str,
@@ -251,6 +209,61 @@ def find_or_create_prolific_project(
         raise
 
     return project
+
+
+# --- Eligibility Requirements ---
+def _convert_eligibility_requirements(value: List[dict]) -> List[dict]:
+    """
+    Convert short format of Eligibility Requirements to Prolific format
+    :param value: list of dicts such as
+        [{
+            # Without `web.eligibility.models.` as API requires. We will add it in the code
+            'name': 'AgeRangeEligibilityRequirement',
+            # Prolific Eligibility Requirement attributes and its values
+            'min_age': 18,
+            'max_age': 100,
+        }, ...]
+    :return: reformatted Prolific value, prepared for API request
+    """
+    eligibility_requirements = []
+
+    try:
+        for conf_eligibility_requirement in value:
+            name = conf_eligibility_requirement.get("name")
+
+            if cls := getattr(eligibility_requirement_classes, name, None):
+                cls_kwargs = {}
+                for param_name in cls.params():
+                    if param_name in conf_eligibility_requirement:
+                        cls_kwargs[param_name] = conf_eligibility_requirement[param_name]
+                eligibility_requirements.append(cls(**cls_kwargs).to_prolific_dict())
+    except Exception:
+        logger.exception("Could not convert passed Eligibility Requirements")
+        _output_available_eligibility_requirements()
+        raise
+
+    return eligibility_requirements
+
+
+def _output_available_eligibility_requirements():
+    """
+    Output a human-readable log message saying
+    what Eligibility Requirements and with what parameters are available.
+    """
+    available_classes = inspect.getmembers(
+        sys.modules[eligibility_requirement_classes.__name__],
+        inspect.isclass,
+    )
+    # fmt: off
+    log_classes_dicts = [{
+        "name": c[0],
+        **{p: "<value>" for p in c[1].params()}
+    } for c in available_classes]
+    logger.info(
+        f"Available Eligibility Requirements in short form for config:\n" +
+        "\n".join([str(i) for i in log_classes_dicts])
+    )
+    # fmt: on
 
 
 def delete_qualification(client: ProlificClient, id: str) -> bool:
@@ -334,6 +347,7 @@ def find_or_create_qualification(
     return qualification
 
 
+# --- Studies ---
 def _ec2_external_url(task_run_config: "DictConfig") -> str:
     c = constants
     url = ec2_architect.get_full_domain(args=task_run_config)
@@ -524,6 +538,7 @@ def is_study_expired(study: Study) -> bool:
     return is_completed and name_with_expired_mark
 
 
+# --- Workers/Participants ---
 def add_workers_to_qualification(
     client: ProlificClient,
     workers_ids: List[str],
@@ -724,6 +739,7 @@ def calculate_pay_amount(
     return total_cost
 
 
+# --- Submissions ---
 def _find_submission(
     client: ProlificClient,
     study_id: str,
