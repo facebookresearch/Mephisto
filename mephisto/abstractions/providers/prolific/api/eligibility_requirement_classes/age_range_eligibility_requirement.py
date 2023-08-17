@@ -20,7 +20,7 @@ class AgeRangeEligibilityRequirement(BaseEligibilityRequirement):
         prolific_dict = super().to_prolific_dict()
 
         # HACK: Hardcoded Question IDs (Prolific doesn't have a better way for now)
-        # TODO (#1008): Make this dynamic as soon as possible
+        # [Depends on Prolific] Make this dynamic as soon as possible
         prolific_dict["query"] = dict(id=ELIGIBILITY_REQUIREMENT_AGE_RANGE_QUESTION_ID)
 
         return prolific_dict

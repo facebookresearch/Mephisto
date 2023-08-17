@@ -156,7 +156,7 @@ class ProlificAgent(Agent):
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_participant_id()
 
-        # TODO (#1008): remove this suppression of exception when Prolific fixes their API
+        # [Depends on Prolific] remove this suppression of exception when Prolific fixes their API
         from .api.exceptions import ProlificException
 
         try:

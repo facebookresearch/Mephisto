@@ -420,7 +420,6 @@ def create_study(
     logger.debug(f"Initial completion codes for creating Study: {completion_codes_random}")
 
     try:
-        # TODO (#1008): Make sure that all parameters are correct
         study: Study = client.Studies.create(
             project=prolific_project_id,
             name=name,
@@ -685,8 +684,8 @@ def is_worker_blocked(
 ) -> bool:
     """Determine if the given worker is blocked by this client
 
-    TODO (#1008): do we even need to check with Prolific "Blocked Participants" group
-        (as opposed to out datastore)? Because it doesn't reflect Prolific's internal banning
+    Note that we're currently not using this check against Prolific "Blocked Participants" group
+    and simply looked at `is_blocked` column in our datastore.
     """
     workspace = find_or_create_prolific_workspace(
         client,
@@ -779,7 +778,7 @@ def approve_work(
         logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
         return None
 
-    # TODO (#1008): Maybe we need to expand handling submission statuses
+    # TODO (#1008): Handle other statuses later (when Submission was reviewed in Prolific UI)
     if submission.status == constants.SubmissionStatus.AWAITING_REVIEW:
         try:
             submission: Submission = client.Submissions.approve(submission.id)
@@ -808,7 +807,7 @@ def reject_work(
         logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
         return None
 
-    # TODO (#1008): Maybe we need to expand handling submission statuses
+    # TODO (#1008): Handle other statuses later (when Submission was reviewed in Prolific UI)
     if submission.status == constants.SubmissionStatus.AWAITING_REVIEW:
         try:
             submission: Submission = client.Submissions.reject(submission.id)

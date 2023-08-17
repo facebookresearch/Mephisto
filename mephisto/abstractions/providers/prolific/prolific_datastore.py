@@ -742,7 +742,7 @@ class ProlificDatastore:
         frame_height: int = 0,
         actual_available_places: Optional[int] = None,
         listed_available_places: Optional[int] = None,
-        prolific_study_id: Optional[str] = None,  # TODO (#1008): Remove this, left it just in case
+        prolific_study_id: Optional[str] = None,
     ) -> None:
         """Register a new task run in the Task Runs table"""
         with self.table_access_condition, self._get_connection() as conn:
