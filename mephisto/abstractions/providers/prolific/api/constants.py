@@ -4,7 +4,7 @@ EMAIL_FORMAT = "^\\S+@\\S+\\.\\S+$"  # Simple email format checking
 # --- Studies ---
 
 # HACK: Hardcoded Question IDs (Prolific doesn't have a better way for now)
-# TODO (#1008): Make this dynamic as soon as possible
+# [Depends on Prolific] Make this dynamic as soon as possible
 ELIGIBILITY_REQUIREMENT_AGE_RANGE_QUESTION_ID = "54ac6ea9fdf99b2204feb893"
 
 # https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object

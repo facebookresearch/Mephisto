@@ -267,7 +267,7 @@ class ProlificUnit(Unit):
     def launch(self, task_url: str) -> None:
         """Publish this Unit on Prolific (making it available)"""
 
-        # TODO (#1008): if we have `max_num_concurrent_units` specified,
+        # [Depends on Prolific] if we have `max_num_concurrent_units` specified,
         # the Study cannot be stopped from Prolific UI.
         # That's beceause Mephisto waits until "completed" (not "assigned") status of previous
         # units before launching new ones. So if Prolific temporarily runs out of available Units
