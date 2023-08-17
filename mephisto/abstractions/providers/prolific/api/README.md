@@ -1,9 +1,8 @@
 ## Prolific Python SDK
 
+
+
 -------------------------------------------------------------------------------
-
-
-
 ### Usage
 
 Set the API key as an environment variable:
@@ -36,10 +35,11 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.User`
 #### Retrieve user account info
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import User
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-user: User = prolific_api.Users.me()
+client = get_authenticated_client("prolific")
+user: User = client.Users.me()
 ```
 
 
@@ -53,33 +53,58 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.Workspace`
 #### List
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Workspace
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-workspace_list: List[Workspace] = prolific_api.Workspaces.list()
+client = get_authenticated_client("prolific")
+workspace_list: List[Workspace] = client.Workspaces.list()
 ```
 
 #### Retrieve
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Workspace
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-workspace: Workspace = prolific_api.Workspaces.retrieve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+client = get_authenticated_client("prolific")
+workspace: Workspace = client.Workspaces.retrieve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
 ```
 
 #### Create
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Workspace
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-workspace: Workspace = prolific_api.Workspaces.create(
+client = get_authenticated_client("prolific")
+workspace: Workspace = client.Workspaces.create(
     title='Title',
     description='Description',
 )
 ```
 
+#### Update
+
+```python
+from mephisto.abstractions.providers.prolific.api.data_models import Workspace
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
+
+client = get_authenticated_client("prolific")
+workspace: Workspace = client.Workspaces.update(
+    id='XXXXXXXXXXXXXXXXXXXXXXXX',
+    description='Description',
+)
+```
+
+#### Get balance
+
+```python
+from mephisto.abstractions.providers.prolific.api.data_models import WorkspaceBalance
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
+
+client = get_authenticated_client("prolific")
+workspace: WorkspaceBalance = client.Workspaces.get_balance(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+```
 
 
 -------------------------------------------------------------------------------
@@ -91,10 +116,11 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.Project`
 #### List for Workspace
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Project
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-project_list: List[Project] = prolific_api.Projects.list_for_workspace(
+client = get_authenticated_client("prolific")
+project_list: List[Project] = client.Projects.list_for_workspace(
     workspace_id='XXXXXXXXXXXXXXXXXXXXXXXX',
 )
 ```
@@ -102,10 +128,11 @@ project_list: List[Project] = prolific_api.Projects.list_for_workspace(
 #### Retrieve for Workspace
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Project
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-project: Project = prolific_api.Projects.retrieve_for_workspace(
+client = get_authenticated_client("prolific")
+project: Project = client.Projects.retrieve_for_workspace(
     workspace_id='XXXXXXXXXXXXXXXXXXXXXXXX',
     project_id='YYYYYYYYYYYYYYYYYYYYYYYYY',
 )
@@ -114,10 +141,11 @@ project: Project = prolific_api.Projects.retrieve_for_workspace(
 #### Create for Workspace
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Project
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-project: Project = prolific_api.Projects.create_for_workspace(
+client = get_authenticated_client("prolific")
+project: Project = client.Projects.create_for_workspace(
     workspace_id='XXXXXXXXXXXXXXXXXXXXXXXX',
     title='Title',
 )
@@ -134,19 +162,21 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.Study`
 #### List
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-study_list: List[Study] = prolific_api.Studies.list()
+client = get_authenticated_client("prolific")
+study_list: List[Study] = client.Studies.list()
 ```
 
 #### List for Project
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-study_list: List[Study] = prolific_api.Studies.list_for_project(
+client = get_authenticated_client("prolific")
+study_list: List[Study] = client.Studies.list_for_project(
     project_id='YYYYYYYYYYYYYYYYYYYYYYYYY',
 )
 ```
@@ -154,19 +184,21 @@ study_list: List[Study] = prolific_api.Studies.list_for_project(
 #### Retrieve
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-study: Study = prolific_api.Studies.retrieve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+client = get_authenticated_client("prolific")
+study: Study = client.Studies.retrieve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
 ```
 
 #### Create
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-study: Study = prolific_api.Studies.create(
+client = get_authenticated_client("prolific")
+study: Study = client.Studies.create(
     project='YYYYYYYYYYYYYYYYYYYYYYYYY',
     name='Name',
     internal_name='Internal name',
@@ -191,10 +223,11 @@ study: Study = prolific_api.Studies.create(
 #### Update
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-study: Study = prolific_api.Studies.update(
+client = get_authenticated_client("prolific")
+study: Study = client.Studies.update(
     id='XXXXXXXXXXXXXXXXXXXXXXXX',
     name='Name',
     internal_name='Internal name',
@@ -205,26 +238,39 @@ study: Study = prolific_api.Studies.update(
 #### Remove
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-study = prolific_api.Studies.remove(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+client = get_authenticated_client("prolific")
+study = client.Studies.remove(id='XXXXXXXXXXXXXXXXXXXXXXXX')
 ```
 
 #### Publish
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-study: Study = prolific_api.Studies.publish(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+client = get_authenticated_client("prolific")
+study: Study = client.Studies.publish(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+```
+
+#### Stop
+
+```python
+from mephisto.abstractions.providers.prolific.api.data_models import Study
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
+
+client = get_authenticated_client("prolific")
+study: Study = client.Studies.stop(id='XXXXXXXXXXXXXXXXXXXXXXXX')
 ```
 
 #### Calculate Cost
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-study: Union[int, float] = prolific_api.Studies.calculate_cost(reward=100, total_available_places=2)
+client = get_authenticated_client("prolific")
+study: Union[int, float] = client.Studies.calculate_cost(reward=100, total_available_places=2)
 ```
 
 
@@ -238,35 +284,59 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.ParticipantGro
 #### List
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import ParticipantGroup
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-participan_group_list: List[ParticipantGroup] = prolific_api.ParticipantGroups.list()
+client = get_authenticated_client("prolific")
+participan_group_list: List[ParticipantGroup] = client.ParticipantGroups.list()
 # Or for Project
-participan_group_list: List[ParticipantGroup] = prolific_api.ParticipantGroups.list(
+participan_group_list: List[ParticipantGroup] = client.ParticipantGroups.list(
     project_id='YYYYYYYYYYYYYYYYYYYYYYYYY',
+)
+```
+
+#### Retrieve
+
+```python
+from mephisto.abstractions.providers.prolific.api.data_models import ParticipantGroup
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
+
+client = get_authenticated_client("prolific")
+participan_group: ParticipantGroup = client.ParticipantGroups.retrieve(
+    id='PPPPPPPPPPPPPPPPPPPPPPPPP',
 )
 ```
 
 #### Create
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import ParticipantGroup
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-participan_group: ParticipantGroup = prolific_api.ParticipantGroups.create(
+client = get_authenticated_client("prolific")
+participan_group: ParticipantGroup = client.ParticipantGroups.create(
     project_id='YYYYYYYYYYYYYYYYYYYYYYYYY',
     name='Name',
 )
 ```
 
+#### Remove
+
+```python
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
+
+client = get_authenticated_client("prolific")
+client.ParticipantGroups.remove(id='PPPPPPPPPPPPPPPPPPPPPPPPP')
+```
+
 #### List of Perticipants for Participant Group
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Participant
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-participant_list: List[Participant] = prolific_api.ParticipantGroups.list_perticipants_for_group(
+client = get_authenticated_client("prolific")
+participant_list: List[Participant] = client.ParticipantGroups.list_perticipants_for_group(
     id='PPPPPPPPPPPPPPPPPPPPPPPPP',
 )
 ```
@@ -274,11 +344,12 @@ participant_list: List[Participant] = prolific_api.ParticipantGroups.list_pertic
 #### Add Perticipants to Participant Group
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Participant
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-participant_list: List[Participant] = prolific_api.ParticipantGroups.add_perticipants_to_group(
-    id='PPPPPPPPPPPPPPPPPPPPPPPPP', 
+client = get_authenticated_client("prolific")
+participant_list: List[Participant] = client.ParticipantGroups.add_perticipants_to_group(
+    id='PPPPPPPPPPPPPPPPPPPPPPPPP',
     participant_ids=['pppppppppppppppppppppppp1', 'pppppppppppppppppppppppp2'],
 )
 ```
@@ -286,13 +357,15 @@ participant_list: List[Participant] = prolific_api.ParticipantGroups.add_pertici
 #### Remove Perticipants from Participant Group
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Participant
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-participant_list: List[Participant] = prolific_api.ParticipantGroups.remove_perticipants_from_group(
-    id='PPPPPPPPPPPPPPPPPPPPPPPPP', 
+client = get_authenticated_client("prolific")
+participant_list: List[Participant] = client.ParticipantGroups.remove_perticipants_from_group(
+    id='PPPPPPPPPPPPPPPPPPPPPPPPP',
     participant_ids=['pppppppppppppppppppppppp1', 'pppppppppppppppppppppppp2'],
 )
+```
 
 
 
@@ -305,10 +378,11 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.BonusPayments`
 #### Set Up Bonus Payments
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import BonusPayments
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-bonus_payments: BonusPayments = prolific_api.Bonuses.set_up(
+client = get_authenticated_client("prolific")
+bonus_payments: BonusPayments = client.Bonuses.set_up(
     study_id='XXXXXXXXXXXXXXXXXXXXXXXXX',
     csv_bonuses='60ffe5c8371090c7041d43f8,4.25\n60ff44a1d00991f1dfe405d9,4.25',
 )
@@ -317,14 +391,15 @@ bonus_payments: BonusPayments = prolific_api.Bonuses.set_up(
 #### Pay
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import BonusPayments
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-bonus_payments: BonusPayments = prolific_api.Bonuses.set_up(
+client = get_authenticated_client("prolific")
+bonus_payments: BonusPayments = client.Bonuses.set_up(
     study_id='XXXXXXXXXXXXXXXXXXXXXXXXX',
     csv_bonuses='60ffe5c8371090c7041d43f8,4.25\n60ff44a1d00991f1dfe405d9,4.25',
 )
-prolific_api.Bonuses.pay(id=bonus_payments.id)
+client.Bonuses.pay(id=bonus_payments.id)
 ```
 
 
@@ -339,12 +414,13 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.Message`
 
 ```python
 from datetime import datetime, timedelta
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Message
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-message_list: List[Message] = prolific_api.Messages.list(user_id='XXXXXXXXXXXXXXXXXXXXXXXXX')
+client = get_authenticated_client("prolific")
+message_list: List[Message] = client.Messages.list(user_id='XXXXXXXXXXXXXXXXXXXXXXXXX')
 # Or
-message_list: List[Message] = prolific_api.Messages.list(
+message_list: List[Message] = client.Messages.list(
     created_after=(datetime.now() - timedelta(days=10)),
 )
 ```
@@ -352,19 +428,21 @@ message_list: List[Message] = prolific_api.Messages.list(
 #### List Unread
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Message
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-message_list: List[Message] = prolific_api.Messages.list_unread()
+client = get_authenticated_client("prolific")
+message_list: List[Message] = client.Messages.list_unread()
 ```
 
 #### Send
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Message
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-message: Message = prolific_api.Messages.send(
+client = get_authenticated_client("prolific")
+message: Message = client.Messages.send(
     body='Message body',
     recipient_id='XXXXXXXXXXXXXXXXXXXXXXXXX',
     study_id='YYYYYYYYYYYYYYYYYYYYYYYYY',
@@ -382,12 +460,13 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.Submission`
 #### List
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Submission
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-submission_list: List[Submission] = prolific_api.Submissions.list()
+client = get_authenticated_client("prolific")
+submission_list: List[Submission] = client.Submissions.list()
 # or
-submission_list: List[Submission] = prolific_api.Submissions.list(
+submission_list: List[Submission] = client.Submissions.list(
     study_id='XXXXXXXXXXXXXXXXXXXXXXXX',
 )
 ```
@@ -395,28 +474,31 @@ submission_list: List[Submission] = prolific_api.Submissions.list(
 #### Retrieve
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Submission
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-submission: Submission = prolific_api.Submissions.retrieve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+client = get_authenticated_client("prolific")
+submission: Submission = client.Submissions.retrieve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
 ```
 
 #### Approve
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Submission
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-submission: Submission = prolific_api.Submissions.approve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+client = get_authenticated_client("prolific")
+submission: Submission = client.Submissions.approve(id='XXXXXXXXXXXXXXXXXXXXXXXX')
 ```
 
 #### Reject
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import Submission
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-submission: Submission = prolific_api.Submissions.reject(id='XXXXXXXXXXXXXXXXXXXXXXXX')
+client = get_authenticated_client("prolific")
+submission: Submission = client.Submissions.reject(id='XXXXXXXXXXXXXXXXXXXXXXXX')
 ```
 
 
@@ -430,18 +512,20 @@ look at `mephisto.abstractions.providers.prolific.api.data_models.EligibilityReq
 #### List
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
 from mephisto.abstractions.providers.prolific.api.data_models import EligibilityRequirement
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-submission_list: List[EligibilityRequirement] = prolific_api.EligibilityRequirements.list()
+client = get_authenticated_client("prolific")
+submission_list: List[EligibilityRequirement] = client.EligibilityRequirements.list()
 ```
 
 #### Count participants
 
 ```python
-from mephisto.abstractions.providers.prolific import api as prolific_api
+from mephisto.abstractions.providers.prolific.prolific_utils import get_authenticated_client
 
-count: int = prolific_api.EligibilityRequirements.count_participants()
+client = get_authenticated_client("prolific")
+count: int = client.EligibilityRequirements.count_participants()
 ```
 
 
