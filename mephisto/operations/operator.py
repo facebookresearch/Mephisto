@@ -338,12 +338,13 @@ class Operator:
 
                 tracked_run.client_io.shutdown()
                 tracked_run.worker_pool.shutdown()
+                tracked_run.task_runner.shutdown()
                 tracked_run.task_launcher.shutdown()
                 tracked_run.task_launcher.expire_units()
                 tracked_run.architect.shutdown()
                 del self._task_runs_tracked[task_run.db_id]
             await asyncio.sleep(RUN_STATUS_POLL_TIME)
-            if self._using_prometheus:
+            if self._using_prometheus and not self.is_shutdown:
                 launch_prometheus_server()
 
     def force_shutdown(self, timeout=5):
@@ -389,16 +390,19 @@ class Operator:
         if not self._event_loop.is_running():
             self._event_loop.run_until_complete(self.shutdown_async())
         else:
-            asyncio.ensure_future(self.shutdown_async(), loop=self._event_loop)
+            self._event_loop.create_task(self.shutdown_async())
 
     async def shutdown_async(self):
         """Shut down the asyncio parts of the Operator"""
-
         if self._stop_task is not None:
             await self._stop_task
         await self._run_tracker_task
+        self._event_loop.stop()
 
     def shutdown(self, skip_input=True):
+        if self.is_shutdown:
+            logger.info("Already shut down, ignoring repeated call")
+            return
         logger.info("operator shutting down")
         self.is_shutdown = True
         runs_to_check = list(self._task_runs_tracked.items())
@@ -472,9 +476,10 @@ class Operator:
             runs_to_close = list(self._task_runs_tracked.keys())
             for run_id in runs_to_close:
                 self._task_runs_tracked[run_id].shutdown()
-            if self._event_loop.is_running():
-                self._event_loop.stop()
-            self._event_loop.run_until_complete(self.shutdown_async())
+            if not self._event_loop.is_running():
+                self._event_loop.run_until_complete(self.shutdown_async())
+            else:
+                self._event_loop.create_task(self.shutdown_async())
             if self._using_prometheus:
                 shutdown_prometheus_server()
 
