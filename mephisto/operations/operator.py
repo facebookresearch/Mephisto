@@ -386,9 +386,10 @@ class Operator:
             if not shutdown_thread.is_alive():
                 # Only join if the shutdown fully completed
                 shutdown_thread.join()
-        if self._event_loop.is_running():
-            self._event_loop.stop()
-        self._event_loop.run_until_complete(self.shutdown_async())
+        if not self._event_loop.is_running():
+            self._event_loop.run_until_complete(self.shutdown_async())
+        else:
+            asyncio.ensure_future(self.shutdown_async(), loop=self._event_loop)
 
     async def shutdown_async(self):
         """Shut down the asyncio parts of the Operator"""
@@ -517,7 +518,8 @@ class Operator:
                     last_log = time.time()
                     self.print_run_details()
             await asyncio.sleep(RUN_STATUS_POLL_TIME)
-        self._event_loop.stop()
+        if not self.is_shutdown:
+            self.shutdown()
 
     def _run_loop_until(self, condition_met: Callable[[], bool], timeout) -> bool:
         """

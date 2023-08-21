@@ -101,6 +101,15 @@ class RemoteProcedureBlueprintArgs(
             "required": True,
         },
     )
+    extra_source_dir: str = field(
+        default=MISSING,
+        metadata={
+            "help": (
+                "Optional path to sources that the HTML may "
+                "refer to (such as images/video/css/scripts)"
+            ),
+        },
+    )
     link_task_source: bool = field(
         default=False,
         metadata={

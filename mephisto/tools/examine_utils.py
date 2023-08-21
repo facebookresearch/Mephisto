@@ -121,7 +121,10 @@ def get_worker_stats(units: List["Unit"]) -> Dict[str, Dict[str, List["Unit"]]]:
                 "soft_rejected": [],
                 "rejected": [],
             }
-        previous_work_by_worker[w_id][unit.get_status()].append(unit)
+        status = unit.get_status()
+        if status not in previous_work_by_worker[w_id]:
+            continue
+        previous_work_by_worker[w_id][status].append(unit)
     return previous_work_by_worker
 
 
@@ -250,13 +253,13 @@ def run_examine_by_worker(
                     should_special_qualify = input(
                         "Do you want to approve qualify this worker? (y)es/(n)o: "
                     )
-                    if should_special_qualify.lower() in ["y", "yes"]:
+                    if should_special_qualify.lower().startswith("y"):
                         worker.grant_qualification(approve_qualification, 1)
             elif decision.lower() == "p":
                 agent.soft_reject_work()
                 if apply_all_decision is None and block_qualification is not None:
                     should_soft_block = input("Do you want to soft block this worker? (y)es/(n)o: ")
-                    if should_soft_block.lower() in ["y", "yes"]:
+                    if should_soft_block.lower().startswith("y"):
                         worker.grant_qualification(block_qualification, 1)
             elif decision.lower() == "v":
                 # Same as "a", except we can specify exact qualification value being assigned
@@ -271,7 +274,7 @@ def run_examine_by_worker(
                 if apply_all_decision is None:
                     reason = input("Why are you rejecting this work? ")
                     should_block = input("Do you want to hard block this worker? (y)es/(n)o: ")
-                    if should_block.lower() in ["y", "yes"]:
+                    if should_block.lower().startswith("y"):
                         block_reason = input("Why permanently block this worker? ")
                         worker.block_worker(block_reason, unit=unit)
                 agent.reject_work(reason)

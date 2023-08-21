@@ -904,7 +904,10 @@ def try_server_push(subprocess_args: List[str], retries=5, sleep_time=10.0):
         except subprocess.CalledProcessError:
             retries -= 1
             sleep_time *= 1.5
-            logger.info(f"Timed out trying to push to server. Retries remaining: {retries}")
+            logger.info(
+                f"Timed out trying to push to server. CMD: {subprocess_args}. "
+                f"Retries remaining: {retries}"
+            )
             time.sleep(sleep_time)
     raise Exception("Could not successfully push to the ec2 instance. See log for errors.")
 
