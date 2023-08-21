@@ -254,7 +254,7 @@ class _AgentBase(ABC):
             if not self.did_submit.is_set():
                 # If released without submit, raise timeout
                 raise AgentTimeoutError(timeout, self.db_id)
-            # Check disconnect possiblities again
+            # Check disconnect possibilities again
             _raise_if_disconnected()
         return self.did_submit.is_set()
 
@@ -456,7 +456,7 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
         this agent into
         """
         assignment_dir = self.get_assignment().get_data_dir()
-        return os.path.join(assignment_dir, self.db_id)
+        return os.path.join(assignment_dir, str(self.db_id))
 
     def update_status(self, new_status: str) -> None:
         """Update the database status of this agent, and

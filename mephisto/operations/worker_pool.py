@@ -608,6 +608,8 @@ class WorkerPool:
         Force a status update for a specific agent, pushing the db status to
         the frontend client
         """
+        if self.is_shutdown:
+            return  # We don't push when shutdown
         status = agent.db_status
         if isinstance(agent, OnboardingAgent):
             if status in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:
