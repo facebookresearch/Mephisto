@@ -6,7 +6,13 @@
 
 
 from typing import List
+
+from flask.cli import pass_script_info
 from rich import print
+
+from mephisto.abstractions.providers.prolific.provider_type import (
+    PROVIDER_TYPE as PROLIFIC_PROVIDER_TYPE,
+)
 from mephisto.client.cli_commands import get_wut_arguments
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.utils.rich import console, create_table
@@ -395,6 +401,53 @@ def metrics_cli(args):
         click.echo(f"Cleaning up existing servers if they exist")
         shutdown_prometheus_server()
         shutdown_grafana_server()
+
+
+@cli.command(
+    "review_app",
+    cls=RichCommand,
+)
+@click.option("-h", "--host", type=(str), default="127.0.0.1")
+@click.option("-p", "--port", type=(int), default=5000)
+@click.option("-d", "--debug", type=(bool), default=None)
+@click.option("-P", "--provider", type=(str), default=PROLIFIC_PROVIDER_TYPE)
+@pass_script_info
+def review_app(
+    info,
+    host,
+    port,
+    debug,
+    provider,
+):
+    """
+    Launch a local review server.
+    Custom implementation of `flask run <app_name>` command (`flask.cli.run_command`)
+    """
+    from flask.cli import show_server_banner
+    from flask.helpers import get_debug_flag
+    from flask.helpers import get_env
+    from werkzeug.serving import run_simple
+    from mephisto.client.review_app.server import create_app
+
+    debug = debug if debug is not None else get_debug_flag()
+    reload = debug
+    debugger = debug
+    eager_loading = not reload
+
+    # Flask banner
+    show_server_banner(get_env(), debug, info.app_import_path, eager_loading)
+
+    # Init App
+    app = create_app(provider=provider)
+
+    # Run Flask server
+    run_simple(
+        host,
+        port,
+        app,
+        use_reloader=reload,
+        use_debugger=debugger,
+    )
 
 
 if __name__ == "__main__":

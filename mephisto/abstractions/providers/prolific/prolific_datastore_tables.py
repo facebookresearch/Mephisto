@@ -99,3 +99,22 @@ CREATE_PARTICIPANT_GROUP_QUALIFICATIONS_MAPPING_TABLE = """
         creation_date DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 """
+
+CREATE_UNIT_REVIEW_TABLE = """
+    CREATE TABLE IF NOT EXISTS unit_review (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        unit_id TEXT NOT NULL,
+        worker_id INTEGER NOT NULL,
+        task_id INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        feedback TEXT,
+        tips INTEGER,
+        blocked_worker BOOLEAN DEFAULT false,
+        /* ID of `db.qualifications` (not `db.granted_qualifications`) */
+        updated_qualification_id INTEGER,  
+        updated_qualification_value INTEGER,
+        /* ID of `db.qualifications` (not `db.granted_qualifications`) */
+        revoked_qualification_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+"""
