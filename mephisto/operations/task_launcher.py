@@ -158,15 +158,15 @@ class TaskLauncher:
             )
 
             units_id_to_remove = []
-            for i, item in enumerate(self.unlaunched_units.items()):
-                db_id, unit = item
-                if i < num_avail_units:
-                    self.launched_units[unit.db_id] = unit
-                    units_id_to_remove.append(db_id)
-                    yield unit
-                else:
-                    break
             with self.unlaunched_units_access_condition:
+                for i, item in enumerate(self.unlaunched_units.items()):
+                    db_id, unit = item
+                    if i < num_avail_units:
+                        self.launched_units[unit.db_id] = unit
+                        units_id_to_remove.append(db_id)
+                        yield unit
+                    else:
+                        break
                 for db_id in units_id_to_remove:
                     self.unlaunched_units.pop(db_id)
 
