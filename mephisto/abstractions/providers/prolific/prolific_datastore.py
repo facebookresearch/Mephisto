@@ -74,7 +74,6 @@ class ProlificDatastore:
             c.execute(tables.CREATE_RUN_MAP_TABLE)
             c.execute(tables.CREATE_PARTICIPANT_GROUPS_TABLE)
             c.execute(tables.CREATE_PARTICIPANT_GROUP_QUALIFICATIONS_MAPPING_TABLE)
-            c.execute(tables.CREATE_UNIT_REVIEW_TABLE)
             conn.commit()
 
     def is_study_mapping_in_sync(self, unit_id: str, compare_time: float):

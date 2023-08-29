@@ -48,5 +48,5 @@ class TasksView(MethodView):
         app.logger.debug(f"Tasks: {tasks}")
 
         return {
-            'tasks': tasks,
+            "tasks": tasks,
         }

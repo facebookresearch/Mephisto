@@ -26,7 +26,7 @@ class UnitsDetailsView(MethodView):
         # Parse `unit_ids`
         if unit_ids:
             try:
-                unit_ids: List[int] = [int(i.strip()) for i in unit_ids.split(',')]
+                unit_ids: List[int] = [int(i.strip()) for i in unit_ids.split(",")]
             except ValueError:
                 raise BadRequest("`unit_ids` must be a comma-separated list of integers.")
 
@@ -43,11 +43,17 @@ class UnitsDetailsView(MethodView):
             if unit_ids and int(unit.db_id) not in unit_ids:
                 continue
 
+            try:
+                unit_data = app.data_browser.get_data_from_unit(unit)
+            except AssertionError:
+                # In case if this is Expired Unit. It raises and axceptions
+                unit_data = {}
+
             units.append(
                 {
                     "id": int(unit.db_id),
-                    # "input": <json str>,  # instructions for worker TODO [Review APP]
-                    # "output": <json str>,  # resposne from worker TODO [Review APP]
+                    "inputs": unit_data.get("data", {}).get("inputs"),  # instructions for worker
+                    "outputs": unit_data.get("data", {}).get("outputs"),  # resposne from worker
                 }
             )
 

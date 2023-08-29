@@ -9,94 +9,123 @@ from typing import Optional
 from flask import current_app as app
 from flask import request
 from flask.views import MethodView
+from werkzeug.exceptions import BadRequest
 from werkzeug.exceptions import NotFound
 
+from mephisto.abstractions.database import EntryDoesNotExistException
 from mephisto.abstractions.databases.local_database import StringIDRow
+from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 
 
-def _create_unit_review(
-    datastore,
+def _update_unit_review(
+    db,
+    unit_id: int,
     qualification_id: int,
     worker_id: int,
     value: Optional[int] = None,
     revoke: bool = False,
 ) -> None:
     """
-    Create unit review in the datastore by the given Qualification ID, Worker ID and Value
+    Update unit review in the db with the given Qualification ID, Worker ID and Value
     """
 
-    with datastore.table_access_condition:
-        conn = datastore._get_connection()
+    with db.table_access_condition:
+        conn = db._get_connection()
         c = conn.cursor()
+
         c.execute(
             """
-            INSERT INTO unit_review (
-                unit_id,
-                worker_id,
-                task_id,
-                updated_qualification_id,
-                updated_qualification_value,
-                revoked_qualification_id
-            ) VALUES (?, ?, ?, ?, ?, ?);
+            SELECT * FROM unit_review
+            WHERE (unit_id = ?) AND (worker_id = ?)
+            ORDER BY created_at ASC;
+            """,
+            (unit_id, worker_id),
+        )
+        results = c.fetchall()
+        if not results:
+            raise EntryDoesNotExistException(
+                f"`unit_review` was not created for this `unit_id={unit_id}`"
+            )
+
+        latest_unit_review_id = results[-1]["id"]
+
+        c.execute(
+            """
+            UPDATE unit_review
+            SET 
+                updated_qualification_id = ?, 
+                updated_qualification_value = ?, 
+                revoked_qualification_id = ?
+            WHERE id = ?;
             """,
             (
-                None,
-                worker_id,
-                None,
                 qualification_id if not revoke else None,
                 value,
                 qualification_id if revoke else None,
+                latest_unit_review_id,
             ),
         )
         conn.commit()
 
 
-def _create_grant_unit_review(
-    datastore, qualification_id: int, worker_id: int, value: Optional[int] = None,
+def _write_grant_unit_review(
+    db, unit_id: int, qualification_id: int, worker_id: int, value: Optional[int] = None,
 ):
-    _create_unit_review(datastore, qualification_id, worker_id, value)
+    _update_unit_review(db, unit_id, qualification_id, worker_id, value)
 
 
-def _create_revoke_unit_review(
-    datastore, qualification_id: int, worker_id: int, value: Optional[int] = None,
+def _write_revoke_unit_review(
+    db, unit_id: int, qualification_id: int, worker_id: int, value: Optional[int] = None,
 ):
-    _create_unit_review(datastore, qualification_id, worker_id, value, revoke=True)
+    _update_unit_review(db, unit_id, qualification_id, worker_id, value, revoke=True)
 
 
 class QualifyWorkerView(MethodView):
     @staticmethod
-    def _grant_worker_qualification(qualification: StringIDRow, worker: Worker, value: int):
+    def _grant_worker_qualification(
+        qualification: StringIDRow, unit: Unit, worker: Worker, value: int,
+    ):
         worker.grant_qualification(qualification["qualification_name"], value)
 
-        # TODO [Review APP]: `unit_id` and `task_id` are mandatory fields, need to find them here
-        # _create_grant_unit_review(
-        #     app.datastore, qualification["qualification_id"], int(worker.db_id), value,
-        # )
+        _write_grant_unit_review(
+            app.db,
+            int(unit.db_id),
+            qualification["qualification_id"],
+            int(worker.db_id),
+            value,
+        )
 
     @staticmethod
-    def _revoke_worker_qualification(qualification: StringIDRow, worker: Worker):
+    def _revoke_worker_qualification(qualification: StringIDRow, unit: Unit, worker: Worker):
         worker.revoke_qualification(qualification["qualification_name"])
 
-        # TODO [Review APP]: `unit_id` and `task_id` are mandatory fields, need to find them here
-        # _create_revoke_unit_review(
-        #     app.datastore, qualification["qualification_id"], int(worker.db_id),
-        # )
+        _write_revoke_unit_review(
+            app.db,
+            int(unit.db_id),
+            qualification["qualification_id"],
+            int(worker.db_id),
+        )
 
     def post(self, qualification_id: int, worker_id: int, action: str) -> dict:
         """ Grant/Revoke qualification to a worker """
 
         data: dict = request.json
+        unit_id = data and data.get("unit_id")
         value = data and data.get("value")
 
+        if not unit_id:
+            raise BadRequest("Field \"unit_id\" is required.")
+
         db_qualification: StringIDRow = app.db.get_qualification(qualification_id)
+        unit: Unit = Unit.get(app.db, str(unit_id))
         worker: Worker = Worker.get(app.db, str(worker_id))
 
         if action == "grant":
-            self._grant_worker_qualification(db_qualification, worker, value or 1)
+            self._grant_worker_qualification(db_qualification, unit, worker, value or 1)
             return {}
         elif action == "revoke":
-            self._revoke_worker_qualification(db_qualification, worker)
+            self._revoke_worker_qualification(db_qualification, unit, worker)
             return {}
         else:
             raise NotFound()

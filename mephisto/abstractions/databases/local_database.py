@@ -208,6 +208,29 @@ CREATE TABLE IF NOT EXISTS granted_qualifications (
 );
 """
 
+CREATE_UNIT_REVIEW_TABLE = """
+    CREATE TABLE IF NOT EXISTS unit_review (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        unit_id INTEGER NOT NULL,
+        worker_id INTEGER NOT NULL,
+        task_id INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        feedback TEXT,
+        tips INTEGER,
+        blocked_worker BOOLEAN DEFAULT false,
+        /* ID of `db.qualifications` (not `db.granted_qualifications`) */
+        updated_qualification_id INTEGER,  
+        updated_qualification_value INTEGER,
+        /* ID of `db.qualifications` (not `db.granted_qualifications`) */
+        revoked_qualification_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        
+        FOREIGN KEY (unit_id) REFERENCES units (unit_id),
+        FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
+        FOREIGN KEY (task_id) REFERENCES tasks (task_id)
+    );
+"""
+
 # Indices that are used by system-specific calls across Mephisto during live tasks
 # that improve the runtime of the system as a whole
 CREATE_CORE_INDEXES = """
@@ -222,6 +245,7 @@ CREATE INDEX IF NOT EXISTS agent_by_task_run_index ON agents(task_run_id);
 CREATE INDEX IF NOT EXISTS assignment_by_task_run_index ON assignments(task_run_id);
 CREATE INDEX IF NOT EXISTS task_run_by_requester_index ON task_runs(requester_id);
 CREATE INDEX IF NOT EXISTS task_run_by_task_index ON task_runs(task_id);
+CREATE INDEX IF NOT EXISTS unit_review_by_unit_index ON unit_review(unit_id);
 """
 
 
@@ -288,6 +312,7 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
+                c.execute(CREATE_UNIT_REVIEW_TABLE)
                 c.executescript(CREATE_CORE_INDEXES)
 
     def __get_one_by_id(self, table_name: str, id_name: str, db_id: str) -> Mapping[str, Any]:

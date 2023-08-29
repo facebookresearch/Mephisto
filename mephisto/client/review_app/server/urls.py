@@ -54,3 +54,7 @@ def init_urls(app: Flask):
         "/workers/<int:worker_id>/block",
         view_func=api_views.WorkerBlockView.as_view("worker_block"),
     )
+    app.add_url_rule(
+        "/workers/<int:worker_id>/stats",
+        view_func=api_views.WorkerStatsView.as_view("worker_stats"),
+    )

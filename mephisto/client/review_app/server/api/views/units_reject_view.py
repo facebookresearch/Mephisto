@@ -12,6 +12,7 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
+from mephisto.client.review_app.server import db_queries
 from mephisto.data_model.unit import Unit
 
 
@@ -41,6 +42,13 @@ class UnitsRejectView(MethodView):
 
             agent.reject_work(feedback)
 
-            # TODO [Review APP]: Check saving `feedback` field
+            db_queries.create_unit_review(
+                datastore=app.db,
+                unit_id=int(unit.db_id),
+                task_id=int(unit.task_id),
+                worker_id=int(unit.worker_id),
+                status=unit.db_status,
+                feedback=feedback,
+            )
 
         return {}

@@ -35,13 +35,13 @@ def _find_granted_qualifications(db: LocalMephistoDB, qualification_id: str) -> 
 
 
 def _find_unit_reviews(
-    datastore,
+    db,
     qualification_id: str,
     worker_id: str,
     task_id: Optional[str] = None,
 ) -> List[StringIDRow]:
     """
-    Return unit reviews in the datastore by the given Qualification ID, Worker ID and Task ID
+    Return unit reviews in the db by the given Qualification ID, Worker ID and Task ID
     """
 
     params = [nonesafe_int(qualification_id), nonesafe_int(worker_id)]
@@ -49,9 +49,8 @@ def _find_unit_reviews(
     if task_id:
         params.append(nonesafe_int(task_id))
 
-    with datastore.table_access_condition:
-        conn = datastore._get_connection()
-        conn.set_trace_callback(print)
+    with db.table_access_condition:
+        conn = db._get_connection()
         c = conn.cursor()
         c.execute(
             f"""
@@ -70,7 +69,7 @@ class QualificationWorkersView(MethodView):
     def get(self, qualification_id) -> dict:
         """ Get list of all bearers of a qualification. """
 
-        task_id = request.args.get('task_id')
+        task_id = request.args.get("task_id")
 
         db_qualification: StringIDRow = app.db.get_qualification(qualification_id)
         app.logger.debug(f"Found qualification in DB: {dict(db_qualification)}")
@@ -85,9 +84,7 @@ class QualificationWorkersView(MethodView):
         workers = []
 
         for gq in db_granted_qualifications:
-            unit_reviews = _find_unit_reviews(
-                app.datastore, qualification_id, gq["worker_id"], task_id,
-            )
+            unit_reviews = _find_unit_reviews(app.db, qualification_id, gq["worker_id"], task_id)
 
             if unit_reviews:
                 latest_unit_review = unit_reviews[-1]

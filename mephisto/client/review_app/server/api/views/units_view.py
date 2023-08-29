@@ -32,7 +32,7 @@ class UnitsView(MethodView):
         # Parse `unit_ids`
         if unit_ids:
             try:
-                unit_ids: List[int] = [int(i.strip()) for i in unit_ids.split(',')]
+                unit_ids: List[int] = [int(i.strip()) for i in unit_ids.split(",")]
             except ValueError:
                 raise BadRequest("`unit_ids` must be a comma-separated list of integers.")
 

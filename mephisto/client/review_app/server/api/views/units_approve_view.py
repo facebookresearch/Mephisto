@@ -12,6 +12,7 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
+from mephisto.client.review_app.server import db_queries
 from mephisto.data_model.unit import Unit
 
 
@@ -22,7 +23,7 @@ class UnitsApproveView(MethodView):
         data: dict = request.json
         unit_ids: Optional[str] = data and data.get("unit_ids")
         feedback = data and data.get("feedback")  # Optional
-        tip = data and data.get("tip")  # Optional
+        tips = data and data.get("tips")  # Optional
 
         # Validate params
         if not unit_ids:
@@ -42,6 +43,14 @@ class UnitsApproveView(MethodView):
 
             agent.approve_work()
 
-            # TODO [Review APP]: Add saving `feedback` and `tips` fields
+            db_queries.create_unit_review(
+                datastore=app.db,
+                unit_id=int(unit.db_id),
+                task_id=int(unit.task_id),
+                worker_id=int(unit.worker_id),
+                status=unit.db_status,
+                feedback=feedback,
+                tips=tips,
+            )
 
         return {}
