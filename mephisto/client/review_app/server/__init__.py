@@ -11,6 +11,7 @@ from logging.config import dictConfig
 from typing import Tuple
 
 from flask import Flask
+from flask_cors import CORS
 from werkzeug import Response
 from werkzeug.exceptions import HTTPException as WerkzeugHTTPException
 from werkzeug.utils import import_string
@@ -38,6 +39,7 @@ def create_app(provider: str) -> Flask:
 
     # Create and configure the app
     app = Flask(__name__)
+    CORS(app)
 
     # Logger
     app.logger = flask_logger
@@ -74,6 +76,7 @@ def create_app(provider: str) -> Flask:
             return e
 
         elif isinstance(e, ProlificException):
+            logger.exception('Prolific error')
             return {
                 'error': e.message,
             }, status.HTTP_400_BAD_REQUEST

@@ -74,6 +74,7 @@ prometheus-client = { version = "^0.13.1", optional = false }
 
 # flask_architect
 flask = { version = "^1.1", optional = false }
+flask-cors = { version = "^4.0.0", optional = false }
 gevent-websocket = { version = "^0.10.1", optional = false }
 werkzeug = { version = "^1.0.1", optional = false }
 

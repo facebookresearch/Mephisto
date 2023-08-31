@@ -11,6 +11,7 @@ from flask.views import MethodView
 
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.task import Task
+from mephisto.data_model.unit import Unit
 
 
 class TasksView(MethodView):
@@ -22,7 +23,7 @@ class TasksView(MethodView):
 
         tasks = []
         for t in db_tasks:
-            units = app.data_browser.get_units_for_task_name(t.task_name)
+            units: List[Unit] = app.data_browser.get_units_for_task_name(t.task_name)
 
             app.logger.debug(f"All units: {units}")
 
