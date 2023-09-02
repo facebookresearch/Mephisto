@@ -4,63 +4,86 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
+import cloneDeep from 'lodash/cloneDeep';
 import * as React from 'react';
-import { Button, Col, Container, Form, Row, Table } from 'react-bootstrap';
+import { useEffect } from 'react';
+import { Button } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
+import { getUnits } from 'requests/units';
+import Header from './Header/Header';
+import {
+  APPROVE_MODAL_DATA_STATE,
+  REJECT_MODAL_DATA_STATE,
+  SOFT_REJECT_MODAL_DATA_STATE,
+} from './modalData';
+import ReviewModal from './ReviewModal/ReviewModal';
 import './TaskPage.css';
-import logo from 'static/images/logo.svg';
+
+
+type ParamsType = {
+  id: string;
+};
 
 
 function TaskPage() {
+  const params = useParams<ParamsType>();
+
+  const [units, setUnits] = React.useState<Array<Unit>>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [errors, setErrors] = React.useState<ErrorResponse>(null);
+
+  const [modalShow, setModalShow] = React.useState<boolean>(false);
+  const [modalData, setModalData] = React.useState<ModalDataType>(
+    cloneDeep(APPROVE_MODAL_DATA_STATE)
+  );
+
+  const onApproveClick = () => {
+    setModalShow(true);
+    setModalData(cloneDeep(APPROVE_MODAL_DATA_STATE));
+  };
+
+  const onSoftRejectClick = () => {
+    setModalShow(true);
+    setModalData(cloneDeep(SOFT_REJECT_MODAL_DATA_STATE));
+  };
+
+  const onRejectClick = () => {
+    setModalShow(true);
+    setModalData(cloneDeep(REJECT_MODAL_DATA_STATE));
+  };
+
+  const onModalSubmit = () => {
+    setModalShow(false);
+    console.log('Data:', modalData);
+  };
+
+  // Effects
+  useEffect(() => {
+    if (units === null) {
+      getUnits(setUnits, setLoading, setErrors, {task_id: params.id});
+    }
+  }, []);
+
+  if (units === null) {
+    return null;
+  }
+
   return <div className={'task'}>
-    <Container className={'header'}>
-      <Row>
-        <Col className={"logo"} sm={3}>
-          <img src={logo} alt="logo" />
-        </Col>
-        <Col>
-          <Table className={'table'} responsive="sm" bordered={false}>
-            <thead>
-              <tr>
-                <th></th>
-                <th className={"title text-secondary"}><b>Reviewed</b></th>
-                <th className={"title text-success"}><b>Approved</b></th>
-                <th className={"title text-warning"}><b>Soft-Rejected</b></th>
-                <th className={"title text-danger"}><b>Rejected</b></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>worker</td>
-                <td><b>15</b>/25</td>
-                <td><b>16</b> (80%)</td>
-                <td><b>1</b> (5%)</td>
-                <td><b>3</b> (15%)</td>
-              </tr>
-              <tr className={"total"}>
-                <td>Total</td>
-                <td><b>64</b>/256</td>
-                <td><b>186</b> (78%)</td>
-                <td><b>23</b> (7%)</td>
-                <td><b>56</b> (17%)</td>
-              </tr>
-            </tbody>
-          </Table>
-        </Col>
-      </Row>
-    </Container>
+    <Header />
+
     <div className={"buttons"}>
-      <Button variant={"success"} size="sm">Approve</Button>
-      <Button variant={"warning"} size="sm">Soft-Reject</Button>
-      <Button variant={"danger"} size="sm">Reject</Button>
-      <Form>
-        <Form.Check
-            type={"checkbox"}
-            label={"Apply to all N remaining items from worker"}
-            id={'saveState'}
-          />
-      </Form>
+      <Button variant={"success"} size={"sm"} onClick={onApproveClick}>Approve</Button>
+      <Button variant={"warning"} size={"sm"} onClick={onSoftRejectClick}>Soft-Reject</Button>
+      <Button variant={"danger"} size={"sm"} onClick={onRejectClick}>Reject</Button>
     </div>
+
+    <ReviewModal
+      show={modalShow}
+      setShow={setModalShow}
+      data={modalData}
+      setData={setModalData}
+      onSubmit={onModalSubmit}
+    />
   </div>;
 }
 

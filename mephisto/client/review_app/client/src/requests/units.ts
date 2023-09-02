@@ -10,59 +10,58 @@ import generateURL from './generateURL';
 import makeRequest from './makeRequest';
 
 
-export function getQualifications(
+export function getUnits(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   getParams: { [key: string]: string | number } = null,
   abortController?: AbortController,
 ) {
-  const url = generateURL(urls.server.qualifications, null, getParams);
+  const url = generateURL(urls.server.units, null, getParams);
 
   makeRequest(
     'GET',
     url,
     null,
-    (data) => setDataAction(data.qualifications),
+    (data) => setDataAction(data.units),
     setLoadingAction,
     setErrorsAction,
-    'getTasks error:',
+    'getUnits error:',
     abortController,
   );
 }
 
 
-export function getQualificationWorkers(
-  id: number,
+export function getUnitsDetails(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   getParams: { [key: string]: string | number } = null,
   abortController?: AbortController,
 ) {
-  const url = generateURL(urls.server.qualificationWorkers(id), null, getParams);
+  const url = generateURL(urls.server.unitsDetails, null, getParams);
 
   makeRequest(
     'GET',
     url,
     null,
-    (data) => setDataAction(data.workers),
+    (data) => setDataAction(data.units),
     setLoadingAction,
     setErrorsAction,
-    'getQualificationWorkers error:',
+    'getUnitsDetails error:',
     abortController,
   );
 }
 
 
-export function postQualification(
+export function postUnitsApprove(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: string | number },
   abortController?: AbortController,
 ) {
-  const url = generateURL(urls.server.qualifications, null, null);
+  const url = generateURL(urls.server.unitsApprove, null, null);
 
   makeRequest(
     'POST',
@@ -71,22 +70,20 @@ export function postQualification(
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postQualification error:',
+    'postUnitsApprove error:',
     abortController,
   );
 }
 
 
-export function postQualificationGrantWorker(
-  id: number,
-  workerId: number,
+export function postUnitsReject(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: string | number },
   abortController?: AbortController,
 ) {
-  const url = generateURL(urls.server.qualificationGrantWorker(id, workerId), null, null);
+  const url = generateURL(urls.server.unitsReject, null, null);
 
   makeRequest(
     'POST',
@@ -95,22 +92,20 @@ export function postQualificationGrantWorker(
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postQualificationGrantWorker error:',
+    'postUnitsReject error:',
     abortController,
   );
 }
 
 
-export function postQualificationRevokeWorker(
-  id: number,
-  workerId: number,
+export function postUnitsSoftReject(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: string | number },
   abortController?: AbortController,
 ) {
-  const url = generateURL(urls.server.qualificationRevokeWorker(id, workerId), null, null);
+  const url = generateURL(urls.server.unitsSoftReject, null, null);
 
   makeRequest(
     'POST',
@@ -119,7 +114,7 @@ export function postQualificationRevokeWorker(
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postQualificationRevokeWorker error:',
+    'postUnitsSoftReject error:',
     abortController,
   );
 }

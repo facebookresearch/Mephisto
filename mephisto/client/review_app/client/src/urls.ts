@@ -11,13 +11,27 @@ const API_URL = 'http://localhost:5001';
 const urls = {
   client: {
     home: '/',
-    qualifications: '/qualifications',
     task: (id) => `/tasks/${id}`,
     tasks: '/tasks',
   },
   server: {
-    qualifications: API_URL + '/qualifications/',
-    tasks: API_URL + '/tasks/',
+    qualifications: API_URL + '/qualifications',
+    qualificationWorkers: (id) => API_URL + `/qualifications/${id}/workers`,
+    qualificationGrantWorker: (id, workerId) => (
+      API_URL + `/qualifications/${id}/workers/${workerId}/grant`
+    ),
+    qualificationRevokeWorker: (id, workerId) => (
+      API_URL + `/qualifications/${id}/workers/${workerId}/revoke`
+    ),
+    stats: API_URL + '/stats',
+    tasks: API_URL + '/tasks',
+    tasksWorkerUnitsIds: (id) => API_URL + `/tasks/${id}/worker-units-ids`,
+    units: API_URL + '/units',
+    unitsApprove: API_URL + '/units/approve',
+    unitsDetails: API_URL + '/units/details',
+    unitsReject: API_URL + '/units/reject',
+    unitsSoftReject: API_URL + '/units/soft-reject',
+    workersBlock: (id) => API_URL + `/workers/${id}/block`,
   },
 };
 

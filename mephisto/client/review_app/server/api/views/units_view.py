@@ -82,7 +82,7 @@ class UnitsView(MethodView):
                     },
                     "review": {
                         "tips": int(tips) if tips else None,
-                        "feedback": int(feedback) if feedback else None,
+                        "feedback": feedback if feedback else None,
                     }
                 }
             )

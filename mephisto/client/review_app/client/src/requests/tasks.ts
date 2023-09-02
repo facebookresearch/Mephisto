@@ -30,3 +30,26 @@ export function getTasks(
     abortController,
   );
 }
+
+
+export function getTaskWorkerUnitsIds(
+  id: number,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  getParams: { [key: string]: string | number } = null,
+  abortController?: AbortController,
+) {
+  const url = generateURL(urls.server.tasksWorkerUnitsIds(id), null, getParams);
+
+  makeRequest(
+    'GET',
+    url,
+    null,
+    (data) => setDataAction(data.worker_units_ids),
+    setLoadingAction,
+    setErrorsAction,
+    'getTaskWorkerUnitsIds error:',
+    abortController,
+  );
+}

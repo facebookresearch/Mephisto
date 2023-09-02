@@ -7,6 +7,7 @@
 from .qualification_workers_view import QualificationWorkersView
 from .qualifications_view import QualificationsView
 from .qualify_worker_view import QualifyWorkerView
+from .stats_view import StatsView
 from .tasks_view import TasksView
 from .tasks_worker_units_view import TasksWorkerUnitsView
 from .units_approve_view import UnitsApproveView
@@ -15,4 +16,3 @@ from .units_reject_view import UnitsRejectView
 from .units_soft_reject_view import UnitsSoftRejectView
 from .units_view import UnitsView
 from .worker_block_view import WorkerBlockView
-from .worker_stats_view import WorkerStatsView

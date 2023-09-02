@@ -17,30 +17,39 @@ from werkzeug.exceptions import BadRequest
 from mephisto.abstractions.databases.local_database import nonesafe_int
 from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.constants.assignment_state import AssignmentState
-from mephisto.data_model.worker import Worker
 
 
 def _find_unit_reviews(
     db,
-    worker_id: str,
+    worker_id: Optional[str] = None,
     task_id: Optional[str] = None,
     status: Optional[str] = None,
     since: Optional[str] = None,
     limit: Optional[int] = None,
 ) -> List[StringIDRow]:
-    params = [nonesafe_int(worker_id)]
+    params = []
 
-    task_query = "AND (task_id = ?)" if task_id else ""
+    worker_query = "worker_id = ?" if worker_id else ""
+    if worker_id:
+        params.append(nonesafe_int(worker_id))
+
+    task_query = "task_id = ?" if task_id else ""
     if task_id:
         params.append(nonesafe_int(task_id))
 
-    status_query = "AND (status = ?)" if status else ""
+    status_query = "status = ?" if status else ""
     if status:
         params.append(status)
 
-    since_query = "AND (created_at >= ?)" if since else ""
+    since_query = "created_at >= ?" if since else ""
     if since:
         params.append(since)
+
+    joined_queries = ' AND '.join(list(filter(bool, [
+        worker_query, task_query, status_query, since_query,
+    ])))
+
+    where_query = f"WHERE {joined_queries}" if joined_queries else ""
 
     limit_query = "LIMIT ?" if limit else ""
     if limit:
@@ -53,7 +62,7 @@ def _find_unit_reviews(
         c.execute(
             f"""
             SELECT * FROM unit_review
-            WHERE (worker_id = ?) {task_query} {status_query} {since_query}
+            {where_query}
             ORDER BY created_at ASC {limit_query};
             """,
             params,
@@ -63,13 +72,11 @@ def _find_unit_reviews(
         return results
 
 
-class WorkerStatsView(MethodView):
-    def get(self, worker_id: int) -> dict:
-        """ Get stats of recent approvals for the worker """
+class StatsView(MethodView):
+    def get(self) -> dict:
+        """ Get stats of recent approvals for the worker or task """
 
-        # Check if exists. Raises exceptions in case if not
-        worker: Worker = Worker.get(app.db, str(worker_id))
-
+        worker_id = request.args.get("worker_id")
         task_id = request.args.get("task_id")
         limit = request.args.get("limit")
         since = request.args.get("since")
@@ -83,7 +90,7 @@ class WorkerStatsView(MethodView):
 
         approved_unit_reviews = _find_unit_reviews(
             db=app.db,
-            worker_id=worker.db_id,
+            worker_id=worker_id,
             task_id=task_id,
             status=AssignmentState.ACCEPTED,
             since=since,
@@ -91,7 +98,7 @@ class WorkerStatsView(MethodView):
         )
         rejected_unit_reviews = _find_unit_reviews(
             db=app.db,
-            worker_id=worker.db_id,
+            worker_id=worker_id,
             task_id=task_id,
             status=AssignmentState.REJECTED,
             since=since,
@@ -99,18 +106,31 @@ class WorkerStatsView(MethodView):
         )
         soft_rejected_unit_reviews = _find_unit_reviews(
             db=app.db,
-            worker_id=worker.db_id,
+            worker_id=worker_id,
             task_id=task_id,
             status=AssignmentState.SOFT_REJECTED,
             since=since,
             limit=limit,
         )
-        all_unit_reviews = _find_unit_reviews(db=app.db, worker_id=worker.db_id)
+        all_unit_reviews = _find_unit_reviews(
+            db=app.db,
+            worker_id=worker_id,
+            task_id=task_id,
+            since=since,
+            limit=limit,
+        )
+
+        rewied_statuses = [
+            AssignmentState.ACCEPTED,
+            AssignmentState.REJECTED,
+            AssignmentState.SOFT_REJECTED,
+        ]
+        reviewed_reviews = [ur for ur in all_unit_reviews if ur["status"] in rewied_statuses]
 
         return {
-            "worker_id": worker.db_id,
             "stats": {
                 "total_count": len(all_unit_reviews),  # within the scope of the filters
+                "reviewed_count": len(reviewed_reviews),
                 "approved_count": len(approved_unit_reviews),
                 "rejected_count": len(rejected_unit_reviews),
                 "soft_rejected_count": len(soft_rejected_unit_reviews),

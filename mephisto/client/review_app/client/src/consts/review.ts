@@ -5,6 +5,8 @@
  */
 
 
-.qualifications {
-
-}
+export const ReviewType = {
+  APPROVE: "approve",
+  REJECT: "reject",
+  SOFT_REJECT: "soft-reject",
+};

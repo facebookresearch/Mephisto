@@ -19,16 +19,16 @@ def init_urls(app: Flask):
         defaults={"action": "revoke"},
     )
     app.add_url_rule(
-        "/qualifications/",
+        "/qualifications",
         view_func=api_views.QualificationsView.as_view("qualifications"),
-    )
-    app.add_url_rule(
-        "/tasks/",
-        view_func=api_views.TasksView.as_view("tasks"),
     )
     app.add_url_rule(
         "/tasks/<int:task_id>/worker-units-ids",
         view_func=api_views.TasksWorkerUnitsView.as_view("worker-units-ids"),
+    )
+    app.add_url_rule(
+        "/tasks",
+        view_func=api_views.TasksView.as_view("tasks"),
     )
     app.add_url_rule(
         "/units",
@@ -55,6 +55,6 @@ def init_urls(app: Flask):
         view_func=api_views.WorkerBlockView.as_view("worker_block"),
     )
     app.add_url_rule(
-        "/workers/<int:worker_id>/stats",
-        view_func=api_views.WorkerStatsView.as_view("worker_stats"),
+        "/stats",
+        view_func=api_views.StatsView.as_view("stats"),
     )

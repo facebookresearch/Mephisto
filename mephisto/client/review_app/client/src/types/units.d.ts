@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+declare type Unit = {
+  id: number;
+  worker_id: number | null;
+  task_id: number | null;
+  pay_amount: number;
+  status: string;
+  creation_date: string;
+  results: {
+    start: number;
+    end: number;
+    input_preview: null;
+    output_preview: null;
+  };
+  review: {
+    tips: number | null;
+    feedback: number | null;
+  };
+};

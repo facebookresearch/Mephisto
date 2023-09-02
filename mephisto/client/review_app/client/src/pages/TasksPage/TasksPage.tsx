@@ -26,7 +26,7 @@ function TasksPage() {
 
   const onTaskClick = (id: number) => {
     localStorage.setItem(STORAGE_TASK_ID_KEY, String(id));
-    navigate(urls.client.qualifications);
+    navigate(urls.client.task(id));
   }
 
   useEffect(() => {

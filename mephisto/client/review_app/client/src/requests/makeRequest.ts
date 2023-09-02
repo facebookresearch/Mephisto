@@ -4,32 +4,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
 import { Status } from 'consts/http';
-import urls from 'urls';
+import { MOCK_RESPONSES_DATA } from './mockResponses';
 
 
 const MOCK_RESPONSES = process.env.REACT_APP__MOCK_RESPONSES;
-const MOCK_RESPONSES_DATA = {
-  [urls.server.tasks]: {
-    "tasks": [
-      {
-        "id": 1,
-        "name": 'task1',
-        "is_reviewed": false,
-        "unit_count": 3,
-        "created_at": '2023-08-28T12:00:56',
-      },
-      {
-        "id": 2,
-        "name": 'task2',
-        "is_reviewed": true,
-        "unit_count": 10,
-        "created_at": '2023-08-28T12:00:56',
-      }
-    ],
-  }
-}
 
 
 function makeRequest(
@@ -44,7 +23,7 @@ function makeRequest(
   setNotFoundErrorsAction?: SetRequestErrorsActionType,
 ) {
   if (MOCK_RESPONSES === 'true') {
-    const mockData = MOCK_RESPONSES_DATA[url]
+    const mockData = MOCK_RESPONSES_DATA[url];
     if (mockData !== undefined) {
       setDataAction(mockData);
       return

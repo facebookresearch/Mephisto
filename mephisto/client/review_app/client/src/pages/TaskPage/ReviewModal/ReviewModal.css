@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.review-modal .modal-dialog .modal-header {
+  background-color: #ecdadf;
+  display: flex;
+  justify-content: center;
+  padding: 5px;
+}
+
+.review-modal .modal-dialog .modal-header .modal-title {
+  font-size: 26px;
+}
+
+/* Body */
+.review-modal .modal-dialog .modal-content {
+  border-radius: initial;
+}
+
+/* Footer */
+.review-modal .modal-dialog .modal-content .modal-footer .review-buttons {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.review-modal .modal-dialog .modal-content .modal-footer .review-buttons .btn-cancel-button {
+  text-decoration: none;
+  color: grey;
+  border: none;
+}
+
+.review-modal .modal-dialog .modal-content .modal-footer .apply-all-checkbox > label {
+  font-style: italic;
+  color: grey;
+  font-size: 14px;
+}
+
+.review-modal .modal-dialog .modal-content .modal-footer .apply-all-checkbox > input {
+  border: 1px solid black;
+}
