@@ -5,7 +5,10 @@
  */
 
 
-declare type QualificationType = {
-  id: number;
-  name: string;
+declare type WorkerStatsType = {
+  total_count: number;
+  reviewed_count: number;
+  approved_count: number;
+  rejected_count: number;
+  soft_rejected_count: number;
 };

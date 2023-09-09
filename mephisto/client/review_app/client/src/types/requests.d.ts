@@ -5,10 +5,14 @@
  */
 
 
-type ErrorResponse = {
+type ErrorResponseType = {
   error: string;
 };
 
 type SetRequestDataActionType = (data) => void;
-type SetRequestErrorsActionType = (errors: ErrorResponse) => void;
+
+
+type SetRequestErrorsActionType = (errors: ErrorResponseType) => void;
+
+
 type SetRequestLoadingActionType = (loading: boolean) => void;

@@ -21,9 +21,9 @@ type ModalFormProps = {
 
 
 function ModalForm(props: ModalFormProps) {
-  const [qualifications, setQualifications] = React.useState<Array<Qualification>>(null);
+  const [qualifications, setQualifications] = React.useState<Array<QualificationType>>(null);
   const [loading, setLoading] = React.useState(false);
-  const [errors, setErrors] = React.useState<ErrorResponse>(null);
+  const [errors, setErrors] = React.useState<ErrorResponseType>(null);
 
   const onChangeAssign = (value: boolean) => {
     let prevFormData: FormType = Object(props.data.form);
@@ -99,7 +99,7 @@ function ModalForm(props: ModalFormProps) {
             onChange={(e) => onChangeAssignQualification(e.target.value)}
           >
             <option value={''}>---</option>
-            {qualifications && qualifications.map((q: Qualification) => {
+            {qualifications && qualifications.map((q: QualificationType) => {
               return <option key={"qual" + q.id} value={q.id}>{q.name}</option>;
             })}
           </Form.Select>

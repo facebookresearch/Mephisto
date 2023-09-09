@@ -10,7 +10,21 @@ import logo from 'static/images/logo.svg';
 import './Header.css';
 
 
-function Header() {
+interface PropsType {
+  taskStats: TaskStatsType;
+  workerId?: number;
+  workerStats: WorkerStatsType;
+}
+
+
+function Header(props: PropsType) {
+  const wStats = props.workerStats;
+  const tStats = props.taskStats;
+
+  const toPercent = (total: number, value: number): number => {
+    return total !== 0 ? Math.round(value * 100 / total) : 0;
+  };
+
   return <Container className={'task-header'}>
     <Row>
       <Col className={"logo"} sm={3}>
@@ -28,19 +42,76 @@ function Header() {
             </tr>
           </thead>
           <tbody>
+            {/* Worker line */}
             <tr>
-              <td>worker</td>
-              <td><b>15</b>/25</td>
-              <td><b>16</b> (80%)</td>
-              <td><b>1</b> (5%)</td>
-              <td><b>3</b> (15%)</td>
+              <td>Worker {props.workerId}</td>
+              <td>
+                {wStats.total_count ? (<>
+                  <b>{wStats.reviewed_count}</b>/{wStats.total_count}
+                </>) : (<>
+                  <b>--</b>/--
+                </>)}  
+              </td>
+              <td>
+                {wStats.total_count ? (<>
+                  <b>{wStats.approved_count}</b>{' '}
+                  ({toPercent(wStats.total_count, wStats.approved_count)}%)
+                </>) : (<>
+                  <b>--</b>
+                </>)}
+              </td>
+              <td>
+                {wStats.total_count ? (<>
+                  <b>{wStats.soft_rejected_count}</b>{' '}
+                  ({toPercent(wStats.total_count, wStats.soft_rejected_count)}%)
+                </>) : (<>
+                  <b>--</b>
+                </>)}
+              </td>
+              <td>
+                {wStats.total_count ? (<>
+                  <b>{wStats.rejected_count}</b>{' '}
+                  ({toPercent(wStats.total_count, wStats.rejected_count)}%)
+                </>) : (<>
+                  <b>--</b>
+                </>)}
+              </td>
             </tr>
+
+            {/* Total line */}
             <tr className={"total"}>
               <td>Total</td>
-              <td><b>64</b>/256</td>
-              <td><b>186</b> (78%)</td>
-              <td><b>23</b> (7%)</td>
-              <td><b>56</b> (17%)</td>
+              <td>
+                {tStats.total_count ? (<>
+                  <b>{tStats.reviewed_count}</b>/{tStats.total_count}
+                </>) : (<>
+                  <b>--</b>/--
+                </>)}
+              </td>
+              <td>
+                {tStats.total_count ? (<>
+                  <b>{tStats.approved_count}</b>{' '}
+                  ({toPercent(tStats.total_count, tStats.approved_count)}%)
+                </>) : (<>
+                  <b>--</b>
+                </>)}
+              </td>
+              <td>
+                {tStats.total_count ? (<>
+                  <b>{tStats.soft_rejected_count}</b>{' '}
+                  ({toPercent(tStats.total_count, tStats.soft_rejected_count)}%)
+                </>) : (<>
+                  <b>--</b>
+                </>)}
+              </td>
+              <td>
+                {tStats.total_count ? (<>
+                  <b>{tStats.rejected_count}</b>{' '}
+                  ({toPercent(tStats.total_count, tStats.rejected_count)}%)
+                </>) : (<>
+                  <b>--</b>
+                </>)}
+              </td>
             </tr>
           </tbody>
         </Table>

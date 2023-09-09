@@ -5,7 +5,7 @@
  */
 
 
-declare type Unit = {
+declare type UnitType = {
   id: number;
   worker_id: number | null;
   task_id: number | null;
@@ -22,4 +22,17 @@ declare type Unit = {
     tips: number | null;
     feedback: number | null;
   };
+};
+
+
+declare type WorkerUnitIdType = {
+  unit_id: number;
+  worker_id: number;
+};
+
+
+declare type UnitDetailsType = {
+  id: number;
+  input: object;
+  output: object;
 };

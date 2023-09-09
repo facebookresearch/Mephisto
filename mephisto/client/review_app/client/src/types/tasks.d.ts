@@ -5,10 +5,19 @@
  */
 
 
-declare type Task = {
+declare type TaskType = {
   id: number;
   name: string;
   is_reviewed: boolean;
   unit_count: number;
   created_at: string;
+};
+
+
+declare type TaskStatsType = {
+  total_count: number;
+  reviewed_count: number;
+  approved_count: number;
+  rejected_count: number;
+  soft_rejected_count: number;
 };

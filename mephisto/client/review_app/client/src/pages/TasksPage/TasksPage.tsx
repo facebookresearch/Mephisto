@@ -20,9 +20,9 @@ function TasksPage() {
   const navigate = useNavigate();
   const { localStorage } = window;
 
-  const [tasks, setTasks] = React.useState<Array<Task>>(null);
+  const [tasks, setTasks] = React.useState<Array<TaskType>>(null);
   const [loading, setLoading] = React.useState(false);
-  const [errors, setErrors] = React.useState<ErrorResponse>(null);
+  const [errors, setErrors] = React.useState<ErrorResponseType>(null);
 
   const onTaskClick = (id: number) => {
     localStorage.setItem(STORAGE_TASK_ID_KEY, String(id));
@@ -42,7 +42,7 @@ function TasksPage() {
       <div>{errors.error}</div>
     )}
 
-    {tasks && tasks.map((task: Task, index) => {
+    {tasks && tasks.map((task: TaskType, index) => {
       return <div key={'task' + index}>
         <Button
           variant={task.is_reviewed ? "secondary" : "primary"}
