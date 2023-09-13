@@ -59,3 +59,19 @@ export const REJECT_MODAL_DATA_STATE: ModalDataType = {
     tips: null,
   }
 };
+
+
+export const DEFAULT_MODAL_STATE_VALUE: ModalStateType = {
+  approve: {
+    applyToNext: false,
+    form: APPROVE_MODAL_DATA_STATE.form,
+  },
+  softReject: {
+    applyToNext: false,
+    form: SOFT_REJECT_MODAL_DATA_STATE.form,
+  },
+  reject: {
+    applyToNext: false,
+    form: REJECT_MODAL_DATA_STATE.form,
+  },
+};

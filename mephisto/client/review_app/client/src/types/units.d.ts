@@ -33,6 +33,7 @@ declare type WorkerUnitIdType = {
 
 declare type UnitDetailsType = {
   id: number;
-  input: object;
-  output: object;
+  inputs: object;
+  outputs: object;
+  data: object;
 };

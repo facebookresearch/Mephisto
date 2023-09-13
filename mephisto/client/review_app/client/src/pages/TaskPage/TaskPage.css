@@ -62,3 +62,47 @@
   display: flex;
   gap: 10px;
 }
+
+/* Content */
+.task .content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.task .content pre {
+  white-space: normal;
+}
+
+.task .content .info {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.task .content .question {
+  position: relative;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+  cursor: default;
+}
+
+.task .content .question .images {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  bottom: 29px;
+  left: 0;
+  background: none;
+  z-index: 999;
+  height: 393px;
+}
+
+.task .content .question .images img {
+  float: left;
+  padding: 6px;
+  width: 262px;
+  height: 262px;
+  cursor: default;
+}

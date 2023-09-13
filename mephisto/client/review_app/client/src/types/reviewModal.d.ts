@@ -24,3 +24,19 @@ type ModalDataType = {
   title: string;
   type: string;
 };
+
+
+type ModalStateType = {
+  approve: {
+    applyToNext: boolean;
+    form: FormType;
+  };
+  softReject: {
+    applyToNext: boolean;
+    form: FormType;
+  };
+  reject: {
+    applyToNext: boolean;
+    form: FormType;
+  };
+};

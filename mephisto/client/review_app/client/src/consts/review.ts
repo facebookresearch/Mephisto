@@ -8,5 +8,5 @@
 export const ReviewType = {
   APPROVE: "approve",
   REJECT: "reject",
-  SOFT_REJECT: "soft-reject",
+  SOFT_REJECT: "softReject",
 };
