@@ -438,7 +438,7 @@ def review_app(
     show_server_banner(get_env(), debug, info.app_import_path, eager_loading)
 
     # Init App
-    app = create_app(provider=provider)
+    app = create_app(provider=provider, debug=debug)
 
     # Run Flask server
     run_simple(

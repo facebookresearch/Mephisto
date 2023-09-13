@@ -4,54 +4,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
-.task {
-
-}
-
-/* Header */
-.task .header {
-  max-width: 100%;
-  margin: 0;
-  background-color: rgba(236, 218, 223, 0.3);
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
-
-.task .header .logo {
-  display: flex;
-  align-items: center;
-  padding-bottom: 10px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
-
-.task .header .logo img {
-  max-width: 100%;
-}
-
-.task .header .table tr {
-  border: transparent;
-}
-
-.task .header .table tr.total td {
-  color: #a6a6a6;
-}
-
-.task .header .table th, .task .header .table td {
-  background: transparent;
-  line-height: 0.8;
-}
-
-.task .header .table .title b {
-  display: inline-block;
-  line-height: 2;
-  border-bottom: 1px solid grey;
-}
-
-
 /* Buttons  */
 .task .buttons {
   box-sizing: border-box;
@@ -78,9 +30,11 @@
   display: flex;
   flex-direction: row;
   gap: 20px;
+  font-size: 14px;
 }
 
 .task .content .question {
+  margin-top: 20px;
   position: relative;
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
@@ -105,4 +59,19 @@
   width: 262px;
   height: 262px;
   cursor: default;
+}
+
+.task .content .results {
+  margin-top: 20px;
+}
+
+.task .content .results .results-table {
+  max-width: 1000px;
+}
+
+.task .content .results .results-table .results-row .current-annotation,
+.task .content .results .results-table .results-row .is-correct {
+  width: 185px;
+  max-width: 185px;
+  text-align: center;
 }

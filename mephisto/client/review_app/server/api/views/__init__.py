@@ -8,6 +8,7 @@ from .qualification_workers_view import QualificationWorkersView
 from .qualifications_view import QualificationsView
 from .qualify_worker_view import QualifyWorkerView
 from .stats_view import StatsView
+from .task_view import TaskView
 from .tasks_view import TasksView
 from .tasks_worker_units_view import TasksWorkerUnitsView
 from .units_approve_view import UnitsApproveView

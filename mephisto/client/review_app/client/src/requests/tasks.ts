@@ -32,6 +32,28 @@ export function getTasks(
 }
 
 
+export function getTask(
+  id: number,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController,
+) {
+  const url = generateURL(urls.server.task, [id], null);
+
+  makeRequest(
+    'GET',
+    url,
+    null,
+    (data) => setDataAction(data.task),
+    setLoadingAction,
+    setErrorsAction,
+    'getTask error:',
+    abortController,
+  );
+}
+
+
 export function getTaskWorkerUnitsIds(
   id: number,
   setDataAction: SetRequestDataActionType,
@@ -40,7 +62,7 @@ export function getTaskWorkerUnitsIds(
   getParams: { [key: string]: string | number } = null,
   abortController?: AbortController,
 ) {
-  const url = generateURL(urls.server.tasksWorkerUnitsIds(id), null, getParams);
+  const url = generateURL(urls.server.tasksWorkerUnitsIds, [id], getParams);
 
   makeRequest(
     'GET',

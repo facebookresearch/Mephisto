@@ -4,13 +4,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import Header from 'components/Header/Header';
+import * as moment from 'moment/moment';
 import * as React from 'react';
 import { useEffect } from 'react';
-import { Button } from 'react-bootstrap';
+import { Spinner, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { getTasks } from 'requests/tasks';
 import urls from 'urls';
-import css from './TasksPage.css';
+import './TasksPage.css';
 
 
 const STORAGE_TASK_ID_KEY: string = 'selectedTaskID';
@@ -30,31 +32,61 @@ function TasksPage() {
   }
 
   useEffect(() => {
+    document.title = "Mephisto - Task Review - All Tasks";
+
     if (tasks === null) {
       getTasks(setTasks, setLoading, setErrors, null);
     }
   }, []);
 
-  return <div className={css.tasks}>
-    Tasks:
+  return <div className={"tasks"}>
+    {/* Header */}
+    <Header />
 
+    {/* Request errors */}
     {errors && (
       <div>{errors.error}</div>
     )}
 
-    {tasks && tasks.map((task: TaskType, index) => {
-      return <div key={'task' + index}>
-        <Button
-          variant={task.is_reviewed ? "secondary" : "primary"}
-          size="sm"
-          title={task.created_at}
-          onClick={() => !task.is_reviewed && onTaskClick(task.id)}
-          disabled={task.is_reviewed}
-        >
-          Name "{task.name}". Units: {task.unit_count} {task.is_reviewed ? ". Reviewed" : ""}
-        </Button>
-      </div>;
-    })}
+    {/* Tasks table */}
+    <Table className={"tasks-table"} responsive={"sm"} bordered={false}>
+      <thead>
+        <tr className={"titles-row"}>
+          <th className={"title task"}><b>Task</b></th>
+          <th className={"title reviewed"}><b>Reviewed?</b></th>
+          <th className={"title units"}><b>#&nbsp;Units</b></th>
+          <th className={"title date"}><b>Date</b></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {tasks && tasks.map((task: TaskType, index) => {
+          const date = moment(task.created_at).format("MMM D, YYYY");
+
+          return <tr className={"task-row"} key={"task-row" + index}>
+            <td
+              className={"task" + (task.is_reviewed ? " text-muted" : " text-primary")}
+              onClick={() => !task.is_reviewed && onTaskClick(task.id)}
+            >
+              {task.name}
+            </td>
+            <td className={"reviewed"}>{task.is_reviewed ? <span>&#x2611;</span> : ""}</td>
+            <td className={"units"}>{task.unit_count}</td>
+            <td className={"date"}>{date}</td>
+            <td></td>
+          </tr>;
+        })}
+      </tbody>
+    </Table>
+
+    {/* Preloader when we request tasks */}
+    {loading && (
+      <div className={"loading"}>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    )}
   </div>;
 }
 

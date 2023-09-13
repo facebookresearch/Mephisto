@@ -9,6 +9,7 @@
   display: flex;
   justify-content: center;
   padding: 5px;
+  border-radius: 0;
 }
 
 .review-modal .modal-dialog .modal-header .modal-title {

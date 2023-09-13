@@ -15,3 +15,9 @@ export const updateModalState = (
     return stateValue;
   });
 };
+
+
+export function setPageTitle(title: string) {
+  const titleElement = document.querySelector('title');
+  titleElement.innerText = title;
+}

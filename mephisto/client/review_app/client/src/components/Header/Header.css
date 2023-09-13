@@ -16,6 +16,7 @@
 .task-header .logo {
   display: flex;
   align-items: center;
+  min-height: 120px;
   padding-bottom: 10px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -32,6 +33,11 @@
 
 .task-header .table tr.total td {
   color: #a6a6a6;
+}
+
+.task-header .table tr th.center,
+.task-header .table tr td.center {
+  text-align: center;
 }
 
 .task-header .table th, .task-header .table td {

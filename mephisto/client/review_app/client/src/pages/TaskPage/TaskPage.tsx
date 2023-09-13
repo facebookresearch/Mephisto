@@ -4,16 +4,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import Header from 'components/Header/Header';
 // TODO: Find the way to import it dynamically
 import { TaskFrontend } from 'components/mnist_core_components_copied';
 import { ReviewType } from 'consts/review';
 import cloneDeep from 'lodash/cloneDeep';
 import * as React from 'react';
 import { useEffect } from 'react';
-import { Button } from 'react-bootstrap';
+import { Button, Table } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { getStats } from 'requests/stats';
-import { getTaskWorkerUnitsIds } from 'requests/tasks';
+import { getTask, getTaskWorkerUnitsIds } from 'requests/tasks';
 import {
   getUnits,
   getUnitsDetails,
@@ -21,8 +22,7 @@ import {
   postUnitsReject,
   postUnitsSoftReject,
 } from 'requests/units';
-import Header from './Header/Header';
-import { updateModalState } from './helpers';
+import { setPageTitle, updateModalState } from './helpers';
 import {
   APPROVE_MODAL_DATA_STATE,
   DEFAULT_MODAL_STATE_VALUE,
@@ -34,7 +34,7 @@ import './TaskPage.css';
 
 
 const defaultStats = {
-  total_count: 0,
+  total_count: null,
   reviewed_count: 0,
   approved_count: 0,
   rejected_count: 0,
@@ -53,6 +53,7 @@ type ParamsType = {
 function TaskPage() {
   const params = useParams<ParamsType>();
 
+  const [task, setTask] = React.useState<TaskType>(null);
   const [units, setUnits] = React.useState<Array<UnitType>>(null);
   const [loading, setLoading] = React.useState(false);
   const [errors, setErrors] = React.useState<ErrorResponseType>(null);
@@ -165,12 +166,26 @@ function TaskPage() {
 
   // Effects
   useEffect(() => {
+    // Set default title
+    setPageTitle("Mephisto - Task Review - Task");
+
+    if (task === null) {
+      getTask(Number(params.id), setTask, setLoading, setErrors, null);
+    }
+
     if (units === null) {
       getTaskWorkerUnitsIds(
         Number(params.id), onGetTaskWorkerUnitsIdsSuccess, setLoading, setErrors,
       );
     }
   }, []);
+
+  useEffect(() => {
+    if (task) {
+      // Update title with current task
+      setPageTitle(`Mephisto - Task Review - ${task.name}`);
+    }
+  }, [task]);
 
   useEffect(() => {
     if (Object.keys(workerUnits).length) {
@@ -238,47 +253,75 @@ function TaskPage() {
     </div>
 
     <div className={"content"}>
+      {/* Unit info */}
       {unitDetails && currentUnitOnReview && (
         <div className={"info"}>
           {currentUnitDetails && (<>
-            <div><b>ID</b>: {currentUnitDetails.id}</div>
-            <div><b>Task ID</b>: {currentUnitDetails.task_id}</div>
-            <div><b>Worker ID</b>:{currentUnitDetails.worker_id}</div>
-            <div><b>Status</b>:{currentUnitDetails.status}</div>
+            <div>Unit ID: {currentUnitDetails.id}</div>
+            <div>Task ID: {currentUnitDetails.task_id}</div>
+            <div>Worker ID: {currentUnitDetails.worker_id}</div>
+            <div>Status: {currentUnitDetails.status}</div>
           </>)}
         </div>
       )}
 
       {currentUnitDetails?.data && (<>
+        {/* Task info */}
         <div className={'question'} onClick={(e) => e.preventDefault()}>
           <h1><b>Task:</b></h1>
-          <div className={'images'}>
-            {(currentUnitDetails.data['final_submission']['annotations'] || []).map(
-              (item: {[key: string]: any}, i: number) => {
-                return <img src={item['imgData']} key={'img' + i} alt={'img' + i} />;
-              }
-            )}
-          </div>
-          <TaskFrontend
-            classifyDigit={(_) => null}
-            handleSubmit={(e) => console.log('handleSubmit', e)}
-            taskData={currentUnitDetails.data['init_data']}
-          />
+          {currentUnitDetails.inputs ? (
+            <div>{JSON.stringify(currentUnitDetails.inputs)}</div>
+          ) : (<>
+             <div className={'images'}>
+              {(currentUnitDetails.data['final_submission']['annotations'] || []).map(
+                (item: {[key: string]: any}, i: number) => {
+                  return <img src={item['imgData']} key={'img' + i} alt={'img' + i} />;
+                }
+              )}
+            </div>
+            <TaskFrontend
+              classifyDigit={(_) => null}
+              handleSubmit={(e) => console.log('handleSubmit', e)}
+              taskData={currentUnitDetails.data['init_data']}
+            />
+          </>)}
+
         </div>
 
+        {/* Results table */}
         <div className={"results"}>
           <h1><b>Results:</b></h1>
-          <div className={'answers'}>
-            {(currentUnitDetails.data['final_submission']['annotations'] || []).map(
-              (item: {[key: string]: any}, i: number) => {
-                return <div>
-                  Predicted number: {item["currentAnnotation"]}.{' '}
-                  Correct: {item["isCorrect"] ? 'Yes': 'No'}.{' '}
-                  Worker's annotation: "{item["trueAnnotation"]}"
-                </div>;
-              }
-            )}
-          </div>
+
+          {currentUnitDetails.outputs ? (
+            <div>{JSON.stringify(currentUnitDetails.outputs)}</div>
+          ) : (
+            <Table className={"results-table"} responsive={"sm"} bordered={false}>
+              <thead>
+                <tr className={"titles-row"}>
+                  <th className={"title"}><b>Predicted Number</b></th>
+                  <th className={"title"}><b>Annotation Correct?</b></th>
+                  <th className={"title"}><b>Corrected Annotation</b></th>
+                </tr>
+              </thead>
+              <tbody>
+                {(currentUnitDetails.data['final_submission']['annotations'] || []).map(
+                  (item: {[key: string]: any}, i: number) => {
+                    return <tr className={"results-row"} key={"results-row" + i}>
+                      <td className={"current-annotation"}>
+                        <b>{item["currentAnnotation"]}</b>
+                      </td>
+                      <td className={"is-correct"}>
+                        <b>{item["isCorrect"] ? 'Yes': 'No'}</b>
+                      </td>
+                      <td>
+                        <b>{item["trueAnnotation"]}</b>
+                      </td>
+                    </tr>;
+                  }
+                )}
+              </tbody>
+            </Table>
+          )}
         </div>
       </>)}
     </div>

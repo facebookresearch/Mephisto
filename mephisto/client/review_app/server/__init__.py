@@ -30,7 +30,7 @@ FLASK_SETTINGS_MODULE = os.environ.get(
 )
 
 
-def create_app(provider: str) -> Flask:
+def create_app(provider: str, debug: bool) -> Flask:
     # Logging
     # TODO [Review APP]: Fix logging (it works in views only with `app.logger` somehow)
     flask_logger = get_logger('')
@@ -40,6 +40,9 @@ def create_app(provider: str) -> Flask:
     # Create and configure the app
     app = Flask(__name__)
     CORS(app)
+
+    # Debug
+    app.debug = debug
 
     # Logger
     app.logger = flask_logger

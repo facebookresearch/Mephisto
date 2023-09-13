@@ -72,6 +72,58 @@ def _find_unit_reviews(
         return results
 
 
+def _find_units_for_worker(
+    db,
+    worker_id: Optional[str] = None,
+    task_id: Optional[str] = None,
+    statuses: Optional[List[str]] = None,
+    since: Optional[str] = None,
+    limit: Optional[int] = None,
+) -> List[StringIDRow]:
+    params = []
+
+    worker_query = "worker_id = ?" if worker_id else ""
+    if worker_id:
+        params.append(nonesafe_int(worker_id))
+
+    task_query = "task_id = ?" if task_id else ""
+    if task_id:
+        params.append(nonesafe_int(task_id))
+
+    statuses_string = ','.join([f"'{s}'" for s in statuses])
+    status_query = f"status IN ({statuses_string})" if statuses else ""
+
+    since_query = "creation_date >= ?" if since else ""
+    if since:
+        params.append(since)
+
+    joined_queries = ' AND '.join(list(filter(bool, [
+        worker_query, task_query, status_query, since_query,
+    ])))
+
+    where_query = f"WHERE {joined_queries}" if joined_queries else ""
+
+    limit_query = "LIMIT ?" if limit else ""
+    if limit:
+        params.append(nonesafe_int(limit))
+
+    with db.table_access_condition:
+        conn = db._get_connection()
+        conn.set_trace_callback(print)
+        c = conn.cursor()
+        c.execute(
+            f"""
+            SELECT * FROM units
+            {where_query}
+            ORDER BY creation_date ASC {limit_query};
+            """,
+            params,
+        )
+
+        results = c.fetchall()
+        return results
+
+
 class StatsView(MethodView):
     def get(self) -> dict:
         """ Get stats of recent approvals for the worker or task """
@@ -112,10 +164,11 @@ class StatsView(MethodView):
             since=since,
             limit=limit,
         )
-        all_unit_reviews = _find_unit_reviews(
+        all_unit_reviews = _find_units_for_worker(
             db=app.db,
             worker_id=worker_id,
             task_id=task_id,
+            statuses=AssignmentState.completed(),
             since=since,
             limit=limit,
         )
