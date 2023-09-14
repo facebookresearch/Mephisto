@@ -31,6 +31,11 @@
   flex-direction: row;
   gap: 20px;
   font-size: 14px;
+  color: #ccc;
+}
+
+.task .content .info .info-title {
+  color: #ccc;
 }
 
 .task .content .question {
@@ -63,10 +68,17 @@
 
 .task .content .results {
   margin-top: 20px;
+  background-color: #f5f5f5;
 }
 
 .task .content .results .results-table {
   max-width: 1000px;
+}
+
+.task .content .results .results-table th,
+.task .content .results .results-table td {
+  max-width: 1000px;
+  background-color: #f5f5f5;
 }
 
 .task .content .results .results-table .results-row .current-annotation,

@@ -45,7 +45,7 @@ export function getTask(
     'GET',
     url,
     null,
-    (data) => setDataAction(data.task),
+    (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
     'getTask error:',

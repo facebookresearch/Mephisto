@@ -4,7 +4,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import Header from 'components/Header/Header';
 // TODO: Find the way to import it dynamically
 import { TaskFrontend } from 'components/mnist_core_components_copied';
 import { ReviewType } from 'consts/review';
@@ -12,7 +11,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import * as React from 'react';
 import { useEffect } from 'react';
 import { Button, Table } from 'react-bootstrap';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getStats } from 'requests/stats';
 import { getTask, getTaskWorkerUnitsIds } from 'requests/tasks';
 import {
@@ -22,6 +21,7 @@ import {
   postUnitsReject,
   postUnitsSoftReject,
 } from 'requests/units';
+import urls from '../../urls';
 import { setPageTitle, updateModalState } from './helpers';
 import {
   APPROVE_MODAL_DATA_STATE,
@@ -30,6 +30,7 @@ import {
   SOFT_REJECT_MODAL_DATA_STATE,
 } from './modalData';
 import ReviewModal from './ReviewModal/ReviewModal';
+import TaskHeader from './TaskHeader/TaskHeader';
 import './TaskPage.css';
 
 
@@ -52,6 +53,7 @@ type ParamsType = {
 
 function TaskPage() {
   const params = useParams<ParamsType>();
+  const navigate = useNavigate();
 
   const [task, setTask] = React.useState<TaskType>(null);
   const [units, setUnits] = React.useState<Array<UnitType>>(null);
@@ -101,43 +103,71 @@ function TaskPage() {
   };
 
   const onApproveClick = () => {
-    const defaultValue = cloneDeep(APPROVE_MODAL_DATA_STATE);
-    defaultValue.applyToNext = modalState.approve.applyToNext;
+    const _modalData = cloneDeep(modalData);
+    _modalData.applyToNext = modalState.approve.applyToNext;
 
-    if (defaultValue.applyToNext) {
-      defaultValue.form = modalState.approve.form;
+    if (_modalData.applyToNext) {
+      _modalData.form = modalState.approve.form;
     }
 
+    _modalData.applyToNextUnitsCount = unitsOnReview[1].length;
+
     setModalShow(true);
-    setModalData(defaultValue);
+    setModalData(_modalData);
   };
 
   const onSoftRejectClick = () => {
-    const defaultValue = cloneDeep(SOFT_REJECT_MODAL_DATA_STATE);
-    defaultValue.applyToNext = modalState.softReject.applyToNext;
+    const _modalData = cloneDeep(modalData);
+    _modalData.applyToNext = modalState.softReject.applyToNext;
 
-    if (defaultValue.applyToNext) {
-      defaultValue.form = modalState.softReject.form;
+    if (_modalData.applyToNext) {
+      _modalData.form = modalState.softReject.form;
     }
 
+    _modalData.applyToNextUnitsCount = unitsOnReview[1].length;
+
     setModalShow(true);
-    setModalData(defaultValue);
+    setModalData(_modalData);
   };
 
   const onRejectClick = () => {
-    const defaultValue = cloneDeep(REJECT_MODAL_DATA_STATE);
-    defaultValue.applyToNext = modalState.reject.applyToNext;
+    const _modalData = cloneDeep(modalData);
+    _modalData.applyToNext = modalState.reject.applyToNext;
 
-    if (defaultValue.applyToNext) {
-      defaultValue.form = modalState.reject.form;
+    if (_modalData.applyToNext) {
+      _modalData.form = modalState.reject.form;
     }
 
+    _modalData.applyToNextUnitsCount = unitsOnReview[1].length;
+
     setModalShow(true);
-    setModalData(defaultValue);
+    setModalData(_modalData);
+  };
+
+  const setNextUnit = () => {
+    let firstWrokerUnits = workerUnits[0];
+    debugger
+
+    if (firstWrokerUnits[1].length === 0) {
+      workerUnits.shift();
+
+      if (workerUnits.length === 0) {
+        navigate(urls.client.tasks);
+        return;
+      }
+      firstWrokerUnits = workerUnits[0];
+    }
+
+    const firstUnit = firstWrokerUnits[1].shift();
+
+    setUnitsOnReview(firstWrokerUnits);
+    setcurrentWorkerOnReview(firstWrokerUnits[0]);
+    setCurrentUnitOnReview(firstUnit);
+    setModalData({...modalData, applyToNextUnitsCount: firstWrokerUnits[1].length});
   };
 
   const onModalSubmitSuccess = () => {
-
+    setNextUnit();
   };
 
   const onModalSubmit = () => {
@@ -189,10 +219,7 @@ function TaskPage() {
 
   useEffect(() => {
     if (Object.keys(workerUnits).length) {
-      const firstWrokerUnits = workerUnits[0];
-      setUnitsOnReview(firstWrokerUnits);
-      setcurrentWorkerOnReview(firstWrokerUnits[0]);
-      setCurrentUnitOnReview(firstWrokerUnits[1][0]);
+      setNextUnit();
     }
   }, [workerUnits]);
 
@@ -240,7 +267,7 @@ function TaskPage() {
   const currentUnitDetails = unitDetailsMap[String(currentUnitOnReview)];
 
   return <div className={'task'}>
-    <Header
+    <TaskHeader
       taskStats={taskStats}
       workerStats={workerStats}
       workerId={unitsOnReview ? currentWorkerOnReview : null}
@@ -260,7 +287,6 @@ function TaskPage() {
             <div>Unit ID: {currentUnitDetails.id}</div>
             <div>Task ID: {currentUnitDetails.task_id}</div>
             <div>Worker ID: {currentUnitDetails.worker_id}</div>
-            <div>Status: {currentUnitDetails.status}</div>
           </>)}
         </div>
       )}
@@ -268,7 +294,6 @@ function TaskPage() {
       {currentUnitDetails?.data && (<>
         {/* Task info */}
         <div className={'question'} onClick={(e) => e.preventDefault()}>
-          <h1><b>Task:</b></h1>
           {currentUnitDetails.inputs ? (
             <div>{JSON.stringify(currentUnitDetails.inputs)}</div>
           ) : (<>

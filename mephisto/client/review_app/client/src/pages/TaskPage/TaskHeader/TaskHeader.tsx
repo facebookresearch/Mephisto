@@ -6,8 +6,10 @@
 
 import * as React from 'react';
 import { Col, Container, Row, Table } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import logo from 'static/images/logo.svg';
-import './Header.css';
+import urls from 'urls';
+import './TaskHeader.css';
 
 
 interface PropsType {
@@ -17,7 +19,7 @@ interface PropsType {
 }
 
 
-function Header(props: PropsType) {
+function TaskHeader(props: PropsType) {
   const wStats = props.workerStats;
   const tStats = props.taskStats;
 
@@ -28,7 +30,9 @@ function Header(props: PropsType) {
   return <Container className={'task-header'}>
     <Row>
       <Col className={"logo"} sm={3}>
-        <img src={logo} alt="logo" />
+        <Link to={urls.client.tasks}>
+          <img src={logo} alt="logo" />
+        </Link>
       </Col>
       <Col />
       {wStats && tStats && (
@@ -124,4 +128,4 @@ function Header(props: PropsType) {
 }
 
 
-export default Header;
+export default TaskHeader;

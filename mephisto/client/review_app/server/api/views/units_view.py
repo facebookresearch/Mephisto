@@ -10,6 +10,7 @@ from typing import Optional
 from flask import current_app as app
 from flask import request
 from flask.views import MethodView
+from mephisto.data_model.constants.assignment_state import AssignmentState
 from werkzeug.exceptions import BadRequest
 
 from mephisto.abstractions.databases.local_database import StringIDRow
@@ -55,6 +56,9 @@ class UnitsView(MethodView):
         units = []
         for unit in db_units:
             if unit_ids and int(unit.db_id) not in unit_ids:
+                continue
+
+            if unit.db_status != AssignmentState.COMPLETED:
                 continue
 
             try:

@@ -18,6 +18,7 @@ type FormType = {
 
 type ModalDataType = {
   applyToNext: boolean;
+  applyToNextUnitsCount: number;
   buttonCancel: string;
   buttonSubmit: string;
   form: FormType;

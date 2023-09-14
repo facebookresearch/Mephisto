@@ -9,6 +9,7 @@ import { ReviewType } from 'consts/review';
 
 export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
   applyToNext: false,
+  applyToNextUnitsCount: 0,
   buttonCancel: "Cancel",
   buttonSubmit: "Approve",
   form: {
@@ -20,34 +21,35 @@ export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
     qualificationValue: 1,
     tips: null,
   },
-  title: "Approve Item",
+  title: "Approve Unit",
   type: ReviewType.APPROVE,
 };
 
 
 export const SOFT_REJECT_MODAL_DATA_STATE: ModalDataType = {
   applyToNext: false,
+  applyToNextUnitsCount: 0,
   buttonCancel: "Cancel",
   buttonSubmit: "Soft-Reject",
   form: {
     checkboxAssign: false,
     checkboxComment: false,
-    checkboxGiveTips: false,
     comment: '',
     qualification: null,
     qualificationValue: 1,
     tips: null,
   },
-  title: "Soft-Reject Item",
+  title: "Soft-Reject Unit",
   type: ReviewType.SOFT_REJECT,
 };
 
 
 export const REJECT_MODAL_DATA_STATE: ModalDataType = {
   applyToNext: false,
+  applyToNextUnitsCount: 0,
   buttonCancel: "Cancel",
   buttonSubmit: "Reject",
-  title: "Reject Item",
+  title: "Reject Unit",
   type: ReviewType.REJECT,
   form: {
     checkboxAssign: false,

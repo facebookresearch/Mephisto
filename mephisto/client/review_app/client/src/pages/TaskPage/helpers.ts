@@ -18,6 +18,6 @@ export const updateModalState = (
 
 
 export function setPageTitle(title: string) {
-  const titleElement = document.querySelector('title');
+  const titleElement = document.querySelector("title");
   titleElement.innerText = title;
 }

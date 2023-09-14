@@ -59,15 +59,17 @@ function ReviewModal(props: ReviewModalProps) {
         </Button>
       </div>
       <Form>
-        <Form.Check
-          className={"apply-all-checkbox"}
-          type={"checkbox"}
-          label={"Apply to N remaining worker's items"}
-          id={'saveState'}
-          reverse={true}
-          checked={props.data.applyToNext}
-          onChange={() => onChangeApplyToNext(!props.data.applyToNext)}
-        />
+        {props.data.applyToNextUnitsCount > 1 && (
+          <Form.Check
+            className={"apply-all-checkbox"}
+            type={"checkbox"}
+            label={`Apply to all ${props.data.applyToNextUnitsCount} remaining worker's units`}
+            id={'saveState'}
+            reverse={true}
+            checked={props.data.applyToNext}
+            onChange={() => onChangeApplyToNext(!props.data.applyToNext)}
+          />
+        )}
       </Form>
     </Modal.Footer>
   </Modal>;

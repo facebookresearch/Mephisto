@@ -12,6 +12,7 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.client.review_app.server import db_queries
 from mephisto.data_model.unit import Unit
 
@@ -34,7 +35,7 @@ class UnitsApproveView(MethodView):
 
         # Approve units
         for unit in db_units:
-            if unit_ids and int(unit.db_id) not in unit_ids:
+            if unit_ids and str(unit.db_id) not in unit_ids:
                 continue
 
             agent = unit.get_assigned_agent()
@@ -44,11 +45,11 @@ class UnitsApproveView(MethodView):
             agent.approve_work()
 
             db_queries.create_unit_review(
-                datastore=app.db,
+                db=app.db,
                 unit_id=int(unit.db_id),
                 task_id=int(unit.task_id),
                 worker_id=int(unit.worker_id),
-                status=unit.db_status,
+                status=AgentState.STATUS_APPROVED,
                 feedback=feedback,
                 tips=tips,
             )

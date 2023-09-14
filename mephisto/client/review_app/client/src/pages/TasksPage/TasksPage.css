@@ -32,7 +32,11 @@
   text-align: center;
 }
 
-.tasks .tasks-table .task-row:hover td {
+.tasks .tasks-table .task-row:not(.no-hover) {
+  cursor: pointer;
+}
+
+.tasks .tasks-table .task-row:not(.no-hover):hover td {
   background-color: rgba(236, 218, 223, 0.3);
 }
 

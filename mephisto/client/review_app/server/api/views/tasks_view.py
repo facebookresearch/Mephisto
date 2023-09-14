@@ -73,7 +73,7 @@ class TasksView(MethodView):
             app.logger.debug(f"All units: {db_units}")
 
             waiting_for_review_units = [
-                u for u in db_units if u["status"] in AssignmentState.completed()
+                u for u in db_units if u["status"] in AssignmentState.COMPLETED
             ]
 
             app.logger.debug(f"Waiting for review units: {waiting_for_review_units}")

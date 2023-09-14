@@ -18,9 +18,8 @@ class TaskView(MethodView):
         app.logger.debug(f"Found Task in DB: {db_task}")
 
         return {
-            "task": {
-                "id": db_task["task_id"],
-                "name": db_task["task_name"],
-                "type": db_task["task_type"],
-            },
+            "created_at": db_task["creation_date"],
+            "id": db_task["task_id"],
+            "name": db_task["task_name"],
+            "type": db_task["task_type"],
         }
