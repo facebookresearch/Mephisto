@@ -42,7 +42,10 @@ class MockAgentState(AgentState):
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict of this agent's state"""
-        return self.state
+        return {
+            "inputs": self.init_state,
+            "outputs": self.state,
+        }
 
     def _save_data(self) -> None:
         """Mock agents don't save data (yet)"""
