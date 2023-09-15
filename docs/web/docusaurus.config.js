@@ -134,6 +134,14 @@ const config = {
                 label: "GitHub",
                 href: "https://github.com/facebookresearch/Mephisto",
               },
+              {
+                label: "Terms of Use",
+                href: "https://opensource.fb.com/legal/terms/",
+              },
+              {
+                label: "Privacy",
+                href: "https://opensource.fb.com/legal/privacy/",
+              },
             ],
           },
         ],
