@@ -24,6 +24,7 @@ from mephisto.operations.task_launcher import (
     GOLD_UNIT_INDEX,
 )
 from mephisto.operations.datatypes import LiveTaskRun, WorkerFailureReasons
+from mephisto.operations.unit_scheduler import FIFOUnitScheduler
 
 from typing import Sequence, Dict, Union, Optional, List, Any, TYPE_CHECKING
 
@@ -118,6 +119,7 @@ class WorkerPool:
             self._live_run is None
         ), "Cannot associate more than one live run to a worker pool at a time"
         self._live_run = live_run
+        self.unit_scheduler = FIFOUnitScheduler(live_run.task_run)
 
     def get_live_run(self) -> "LiveTaskRun":
         """Get the associated live run for this worker pool, asserting it's set"""
@@ -191,10 +193,14 @@ class WorkerPool:
 
         logger.debug(f"Worker {worker.db_id} is being assigned one of {len(units)} units.")
 
-        reserved_unit = None
-        while len(units) > 0 and reserved_unit is None:
-            unit = units.pop(0)
-            reserved_unit = task_run.reserve_unit(unit)
+        ## replace this block of code
+        #reserved_unit = None
+        #while len(units) > 0 and reserved_unit is None:
+        #    unit = units.pop(0)
+        #    reserved_unit = task_run.reserve_unit(unit)
+        ## block end
+        reserved_unit = self.unit_scheduler.reserve_unit(units)
+
         if reserved_unit is None:
             AGENT_DETAILS_COUNT.labels(response="no_available_units").inc()
             live_run.client_io.enqueue_agent_details(
@@ -211,7 +217,7 @@ class WorkerPool:
                     crowd_provider.AgentClass.new_from_provider_data,
                     self.db,
                     worker,
-                    unit,
+                    reserved_unit,
                     crowd_data,
                 ),
             )
@@ -246,14 +252,14 @@ class WorkerPool:
             self.agents[agent.get_agent_id()] = agent
 
             # Launch individual tasks
-            if unit.unit_index < 0 or not live_run.task_runner.is_concurrent:
+            if reserved_unit.unit_index < 0 or not live_run.task_runner.is_concurrent:
                 # Run the unit
                 live_run.task_runner.execute_unit(
-                    unit,
+                    reserved_unit,
                     agent,
                 )
             else:
-                assignment = await loop.run_in_executor(None, unit.get_assignment)
+                assignment = await loop.run_in_executor(None, reserved_unit.get_assignment)
 
                 # Set status to waiting
                 agent.update_status(AgentState.STATUS_WAITING)
