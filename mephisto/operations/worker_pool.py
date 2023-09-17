@@ -119,7 +119,7 @@ class WorkerPool:
             self._live_run is None
         ), "Cannot associate more than one live run to a worker pool at a time"
         self._live_run = live_run
-        self.unit_scheduler = FIFOUnitScheduler(live_run.task_run)
+        self.unit_scheduler = FIFOUnitScheduler(live_run.task_run, prefer_assigned_assignments=True)
 
     def get_live_run(self) -> "LiveTaskRun":
         """Get the associated live run for this worker pool, asserting it's set"""
