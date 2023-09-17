@@ -24,7 +24,7 @@ from mephisto.operations.task_launcher import (
     GOLD_UNIT_INDEX,
 )
 from mephisto.operations.datatypes import LiveTaskRun, WorkerFailureReasons
-from mephisto.operations.unit_scheduler import FIFOUnitScheduler
+from mephisto.operations.unit_scheduler import FIFOUnitScheduler, LIFOUnitScheduler, RandomUnitScheduler
 
 from typing import Sequence, Dict, Union, Optional, List, Any, TYPE_CHECKING
 
@@ -119,7 +119,18 @@ class WorkerPool:
             self._live_run is None
         ), "Cannot associate more than one live run to a worker pool at a time"
         self._live_run = live_run
-        self.unit_scheduler = FIFOUnitScheduler(live_run.task_run, prefer_assigned_assignments=True)
+        scheduling_strategy = live_run.task_run.args.task.unit_scheduling_strategy
+        prefer_assigned_assignments = live_run.task_run.args.task.scheduler_prefer_assigned_assignments
+
+        if(scheduling_strategy == "FIFO"):
+            self.unit_scheduler = FIFOUnitScheduler(live_run.task_run, prefer_assigned_assignments)
+        elif(scheduling_strategy == "LIFO"):
+            self.unit_scheduler = LIFOUnitScheduler(live_run.task_run, prefer_assigned_assignments)
+        elif(scheduling_strategy == "Random"):
+            self.unit_scheduler = RandomUnitScheduler(live_run.task_run, prefer_assigned_assignments)
+        else:
+            raise "Unknown scheduling strategy"
+
 
     def get_live_run(self) -> "LiveTaskRun":
         """Get the associated live run for this worker pool, asserting it's set"""
