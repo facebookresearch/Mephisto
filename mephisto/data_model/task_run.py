@@ -125,6 +125,26 @@ class TaskRunArgs:
             )
         },
     )
+    unit_scheduling_strategy: str = field(
+        default="FIFO",
+        metadata={
+            "help": (
+                "Strategy that determines the scheduling strategy for units."
+                "Can be 'FIFO', 'LIFO' or 'Random'."
+            )
+        }
+    )
+    scheduler_prefer_assigned_assignments: bool = field(
+        default=True,
+        metadata={
+            "help": (
+                "Determines if units in assignments with at least one already"
+                "assigned unit are preferred over all other units. This is"
+                "usefull for concurrent tasks as this leads to shorter wait"
+                "times."
+            )
+        }
+    )
 
     post_install_script: str = field(
         default="",
