@@ -132,7 +132,7 @@ class TaskRunArgs:
                 "Strategy that determines the scheduling strategy for units."
                 "Can be 'FIFO', 'LIFO' or 'Random'."
             )
-        }
+        },
     )
     scheduler_prefer_assigned_assignments: bool = field(
         default=True,
@@ -143,7 +143,7 @@ class TaskRunArgs:
                 "usefull for concurrent tasks as this leads to shorter wait"
                 "times."
             )
-        }
+        },
     )
 
     post_install_script: str = field(

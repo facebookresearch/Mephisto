@@ -3,6 +3,7 @@ from mephisto.data_model.task_run import TaskRun
 from random import shuffle
 from mephisto.data_model.constants.assignment_state import AssignmentState
 
+
 class UnitScheduler(ABC):
     def __init__(self, task_run: "TaskRun", prefer_assigned_assignments: bool):
         self.task_run = task_run
@@ -19,7 +20,7 @@ class UnitScheduler(ABC):
         assignments with assigned units over unassigned assignments. This is
         usefull when dealing with concurrent assignments.
         """
-        if( not self.prefer_assigned_assignments):
+        if not self.prefer_assigned_assignments:
             return self.reserve_unit(available_units)
         else:
             assignments = self.task_run.get_assignments()
@@ -35,9 +36,20 @@ class UnitScheduler(ABC):
                 statuses = set(unit.get_status() for unit in units)
                 return any([s == AssignmentState.ASSIGNED for s in statuses])
 
-            ids_of_assigned_assignments = [assignment.db_id for assignment in assignments if hasAssignedUnit(assignment)]
-            units_in_assigned_assignments = list(filter(lambda unit: unit.assignment_id in ids_of_assigned_assignments, available_units))
-            other_units = list(filter(lambda unit: (not (unit.assignment_id in ids_of_assigned_assignments)), available_units))
+            ids_of_assigned_assignments = [
+                assignment.db_id for assignment in assignments if hasAssignedUnit(assignment)
+            ]
+            units_in_assigned_assignments = list(
+                filter(
+                    lambda unit: unit.assignment_id in ids_of_assigned_assignments, available_units
+                )
+            )
+            other_units = list(
+                filter(
+                    lambda unit: (not (unit.assignment_id in ids_of_assigned_assignments)),
+                    available_units,
+                )
+            )
 
             res = self._reserve_unit(units_in_assigned_assignments)
             if res != None:
@@ -46,13 +58,14 @@ class UnitScheduler(ABC):
                 return self._reserve_unit(other_units)
 
     @abstractmethod
-    def _reserve_unit(self,available_units):
+    def _reserve_unit(self, available_units):
         """
         Implementations of this method should choose one of 'available_units'
         according to their scheduling strategy, reserve it in the task run and return it.
         If there are no available_units left or none of them can succesfully be reserved
         this method returns 'None'.
         """
+
 
 class FIFOUnitScheduler(UnitScheduler):
     def _reserve_unit(self, available_units):
@@ -63,6 +76,7 @@ class FIFOUnitScheduler(UnitScheduler):
             reserved_unit = self.task_run.reserve_unit(unit)
 
         return reserved_unit
+
 
 class LIFOUnitScheduler(UnitScheduler):
     def _reserve_unit(self, available_units):
