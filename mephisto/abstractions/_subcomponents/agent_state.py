@@ -241,6 +241,10 @@ class AgentState(ABC):
     def get_data(self) -> Dict[str, Any]:
         """
         Return the currently stored data for this task
+
+        Data should however always follow the format of having an "inputs" and "outputs"
+        format, wherein "inputs" are whatever data was passed through to initialTaskData
+        and outputs can be whatever the results were.
         """
         raise NotImplementedError()
 
