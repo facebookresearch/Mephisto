@@ -79,6 +79,10 @@ function makeRequest(
             setErrorsAction(data);
           }
         });
+      } else if (response.status === Status.HTTP_500_INTERNAL_SERVER_ERROR) {
+        response.json().then((data) => {
+            setErrorsAction(data);
+        });
       }
     })
     .catch((error) => {

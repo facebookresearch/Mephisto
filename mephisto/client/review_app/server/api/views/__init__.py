@@ -10,7 +10,7 @@ from .qualify_worker_view import QualifyWorkerView
 from .stats_view import StatsView
 from .task_view import TaskView
 from .tasks_view import TasksView
-from .tasks_worker_units_view import TasksWorkerUnitsView
+from .tasks_worker_units_view import TaskUnitIdsView
 from .units_approve_view import UnitsApproveView
 from .units_details_view import UnitsDetailsView
 from .units_reject_view import UnitsRejectView

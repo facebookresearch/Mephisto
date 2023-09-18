@@ -10,7 +10,7 @@ import { ReviewType } from 'consts/review';
 import cloneDeep from 'lodash/cloneDeep';
 import * as React from 'react';
 import { useEffect } from 'react';
-import { Button, Table } from 'react-bootstrap';
+import { Button, Spinner, Table } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getStats } from 'requests/stats';
 import { getTask, getTaskWorkerUnitsIds } from 'requests/tasks';
@@ -21,7 +21,7 @@ import {
   postUnitsReject,
   postUnitsSoftReject,
 } from 'requests/units';
-import urls from '../../urls';
+import urls from 'urls';
 import { setPageTitle, updateModalState } from './helpers';
 import {
   APPROVE_MODAL_DATA_STATE,
@@ -71,12 +71,14 @@ function TaskPage() {
 
   const [taskStats, setTaskStats] = React.useState<TaskStatsType>(defaultStats);
   const [workerStats, setWorkerStats] = React.useState<WorkerStatsType>(defaultStats);
-  const [workerUnits, setWorkerUnits] = React.useState<Array<[number, number[]]>>([]);
+  const [workerUnits, setWorkerUnits] = React.useState<Array<[number, number[]]>>(null);
   const [unitsOnReview, setUnitsOnReview] = React.useState<[number, number[]]>(null);
-  const [currentWorkerOnReview, setcurrentWorkerOnReview] = React.useState<number>(null);
+  const [currentWorkerOnReview, setCurrentWorkerOnReview] = React.useState<number>(null);
   const [currentUnitOnReview, setCurrentUnitOnReview] = React.useState<number>(null);
   const [unitDetails, setUnitDetails] = React.useState<UnitDetailsType[]>(null);
   const [unitDetailsMap, setUnitDetailsMap] = React.useState<UnitDetailsMapType>({});
+
+  const [finishedWorker, setFinishedWorker] = React.useState<boolean>(false);
 
   const onGetTaskWorkerUnitsIdsSuccess = (workerUnitsIds: WorkerUnitIdType[]) => {
     setWorkerUnits(() => {
@@ -103,67 +105,66 @@ function TaskPage() {
   };
 
   const onApproveClick = () => {
-    const _modalData = cloneDeep(modalData);
-    _modalData.applyToNext = modalState.approve.applyToNext;
+    const defaultValue = cloneDeep(APPROVE_MODAL_DATA_STATE);
+    defaultValue.applyToNext = modalState.approve.applyToNext;
 
-    if (_modalData.applyToNext) {
-      _modalData.form = modalState.approve.form;
+    if (defaultValue.applyToNext) {
+      defaultValue.form = modalState.approve.form;
     }
 
-    _modalData.applyToNextUnitsCount = unitsOnReview[1].length;
+    defaultValue.applyToNextUnitsCount = unitsOnReview[1].length;
 
     setModalShow(true);
-    setModalData(_modalData);
+    setModalData(defaultValue);
   };
 
   const onSoftRejectClick = () => {
-    const _modalData = cloneDeep(modalData);
-    _modalData.applyToNext = modalState.softReject.applyToNext;
+    const defaultValue = cloneDeep(SOFT_REJECT_MODAL_DATA_STATE);
+    defaultValue.applyToNext = modalState.softReject.applyToNext;
 
-    if (_modalData.applyToNext) {
-      _modalData.form = modalState.softReject.form;
+    if (defaultValue.applyToNext) {
+      defaultValue.form = modalState.softReject.form;
     }
 
-    _modalData.applyToNextUnitsCount = unitsOnReview[1].length;
+    defaultValue.applyToNextUnitsCount = unitsOnReview[1].length;
 
     setModalShow(true);
-    setModalData(_modalData);
-  };
-
-  const onRejectClick = () => {
-    const _modalData = cloneDeep(modalData);
-    _modalData.applyToNext = modalState.reject.applyToNext;
-
-    if (_modalData.applyToNext) {
-      _modalData.form = modalState.reject.form;
-    }
-
-    _modalData.applyToNextUnitsCount = unitsOnReview[1].length;
-
-    setModalShow(true);
-    setModalData(_modalData);
+    setModalData(defaultValue);
   };
 
   const setNextUnit = () => {
     let firstWrokerUnits = workerUnits[0];
-    debugger
 
     if (firstWrokerUnits[1].length === 0) {
       workerUnits.shift();
 
       if (workerUnits.length === 0) {
-        navigate(urls.client.tasks);
+        setFinishedWorker(true);
         return;
       }
       firstWrokerUnits = workerUnits[0];
     }
 
-    const firstUnit = firstWrokerUnits[1].shift();
+    setUnitsOnReview([firstWrokerUnits[0], [...firstWrokerUnits[1]]]);
+    setCurrentWorkerOnReview(firstWrokerUnits[0]);
+    setModalData({...modalData, applyToNextUnitsCount: [...firstWrokerUnits[1]].length});
 
-    setUnitsOnReview(firstWrokerUnits);
-    setcurrentWorkerOnReview(firstWrokerUnits[0]);
+    const firstUnit = firstWrokerUnits[1].shift();
     setCurrentUnitOnReview(firstUnit);
-    setModalData({...modalData, applyToNextUnitsCount: firstWrokerUnits[1].length});
+  };
+
+  const onRejectClick = () => {
+    const defaultValue = cloneDeep(REJECT_MODAL_DATA_STATE);
+    defaultValue.applyToNext = modalState.reject.applyToNext;
+
+    if (defaultValue.applyToNext) {
+      defaultValue.form = modalState.reject.form;
+    }
+
+    defaultValue.applyToNextUnitsCount = unitsOnReview[1].length;
+
+    setModalShow(true);
+    setModalData(defaultValue);
   };
 
   const onModalSubmitSuccess = () => {
@@ -198,6 +199,7 @@ function TaskPage() {
   useEffect(() => {
     // Set default title
     setPageTitle("Mephisto - Task Review - Task");
+    setFinishedWorker(false);
 
     if (task === null) {
       getTask(Number(params.id), setTask, setLoading, setErrors, null);
@@ -218,8 +220,13 @@ function TaskPage() {
   }, [task]);
 
   useEffect(() => {
-    if (Object.keys(workerUnits).length) {
+    if (workerUnits && Object.keys(workerUnits).length) {
       setNextUnit();
+    }
+
+    // Redirect back to the tasks page if there's no units to review
+    if (workerUnits && Object.keys(workerUnits).length === 0) {
+      navigate(urls.client.tasks);
     }
   }, [workerUnits]);
 
@@ -242,10 +249,31 @@ function TaskPage() {
       });
 
       getStats(setTaskStats, setLoading, setErrors, {task_id: params.id});
-      getStats(setWorkerStats, setLoading, setErrors, {worker_id: currentWorkerOnReview});
+      getStats(
+        setWorkerStats,
+        setLoading,
+        setErrors,
+        {task_id: params.id, worker_id: currentWorkerOnReview},
+      );
       getUnitsDetails(setUnitDetails, setLoading, setErrors, {unit_ids: currentUnitOnReview});
     }
   }, [units, currentUnitOnReview]);
+
+  useEffect(() => {
+    if (finishedWorker === true) {
+      getStats(setTaskStats, setLoading, setErrors, {task_id: params.id});
+      getStats(
+        setWorkerStats,
+        setLoading,
+        setErrors,
+        {task_id: params.id, worker_id: currentWorkerOnReview},
+      );
+
+      setTimeout(() => {
+        navigate(urls.client.tasks);
+      }, 5000);
+    }
+  }, [finishedWorker]);
 
   useEffect(() => {
     if (unitDetails) {
@@ -260,7 +288,7 @@ function TaskPage() {
     }
   }, [unitDetails]);
 
-  if (units === null) {
+  if (task === null) {
     return null;
   }
 
@@ -274,12 +302,30 @@ function TaskPage() {
     />
 
     <div className={"buttons"}>
-      <Button variant={"success"} size={"sm"} onClick={onApproveClick}>Approve</Button>
-      <Button variant={"warning"} size={"sm"} onClick={onSoftRejectClick}>Soft-Reject</Button>
-      <Button variant={"danger"} size={"sm"} onClick={onRejectClick}>Reject</Button>
+      {!finishedWorker ? (<>
+        <Button variant={"success"} size={"sm"} onClick={onApproveClick}>Approve</Button>
+        <Button variant={"warning"} size={"sm"} onClick={onSoftRejectClick}>Soft-Reject</Button>
+        <Button variant={"danger"} size={"sm"} onClick={onRejectClick}>Reject</Button>
+      </>) : (
+        <div>No units left for this task. Redirecting to the list of tasks.</div>
+      )}
     </div>
 
     <div className={"content"}>
+      {/* Request errors */}
+      {errors && (
+        <div>Request errors: {errors.error}</div>
+      )}
+
+      {/* Preloader when we request tasks */}
+      {loading && (
+        <div className={"loading"}>
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      )}
+
       {/* Unit info */}
       {unitDetails && currentUnitOnReview && (
         <div className={"info"}>

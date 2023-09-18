@@ -42,6 +42,7 @@ class UnitsRejectView(MethodView):
                 raise BadRequest(f"Cound not reject Unit \"{unit.db_id}\".")
 
             agent.reject_work(feedback)
+            unit.get_status()  # Update status immediately for other EPs
 
             db_queries.create_unit_review(
                 db=app.db,

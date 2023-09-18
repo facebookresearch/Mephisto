@@ -48,7 +48,7 @@ function TasksPage() {
 
     {/* Request errors */}
     {errors && (
-      <div>{errors.error}</div>
+      <div>Request errors: {errors.error}</div>
     )}
 
     {/* Tasks table */}

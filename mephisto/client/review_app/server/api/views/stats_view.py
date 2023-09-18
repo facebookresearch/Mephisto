@@ -14,6 +14,7 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
+from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.databases.local_database import nonesafe_int
 from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -144,7 +145,7 @@ class StatsView(MethodView):
             db=app.db,
             worker_id=worker_id,
             task_id=task_id,
-            status=AssignmentState.ACCEPTED,
+            status=AgentState.STATUS_APPROVED,
             since=since,
             limit=limit,
         )
@@ -152,7 +153,7 @@ class StatsView(MethodView):
             db=app.db,
             worker_id=worker_id,
             task_id=task_id,
-            status=AssignmentState.REJECTED,
+            status=AgentState.STATUS_REJECTED,
             since=since,
             limit=limit,
         )
@@ -160,11 +161,11 @@ class StatsView(MethodView):
             db=app.db,
             worker_id=worker_id,
             task_id=task_id,
-            status=AssignmentState.SOFT_REJECTED,
+            status=AgentState.STATUS_SOFT_REJECTED,
             since=since,
             limit=limit,
         )
-        all_unit_reviews = _find_units_for_worker(
+        all_units_for_worker = _find_units_for_worker(
             db=app.db,
             worker_id=worker_id,
             task_id=task_id,
@@ -173,16 +174,13 @@ class StatsView(MethodView):
             limit=limit,
         )
 
-        rewied_statuses = [
-            AssignmentState.ACCEPTED,
-            AssignmentState.REJECTED,
-            AssignmentState.SOFT_REJECTED,
-        ]
-        reviewed_reviews = [ur for ur in all_unit_reviews if ur["status"] in rewied_statuses]
+        reviewed_reviews = (
+            approved_unit_reviews + rejected_unit_reviews + soft_rejected_unit_reviews
+        )
 
         return {
             "stats": {
-                "total_count": len(all_unit_reviews),  # within the scope of the filters
+                "total_count": len(all_units_for_worker),  # within the scope of the filters
                 "reviewed_count": len(reviewed_reviews),
                 "approved_count": len(approved_unit_reviews),
                 "rejected_count": len(rejected_unit_reviews),

@@ -43,6 +43,7 @@ class UnitsApproveView(MethodView):
                 raise BadRequest(f"Cound not approve Unit \"{unit.db_id}\".")
 
             agent.approve_work()
+            unit.get_status()  # Update status immediately for other EPs
 
             db_queries.create_unit_review(
                 db=app.db,

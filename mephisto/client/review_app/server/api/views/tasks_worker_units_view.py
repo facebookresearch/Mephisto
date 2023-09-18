@@ -8,12 +8,13 @@ from typing import List
 
 from flask import current_app as app
 from flask.views import MethodView
+from mephisto.data_model.constants.assignment_state import AssignmentState
 
 from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.unit import Unit
 
 
-class TasksWorkerUnitsView(MethodView):
+class TaskUnitIdsView(MethodView):
     def get(self, task_id) -> dict:
         """
         Get full, unpaginated list of unit IDs within a task
@@ -27,6 +28,9 @@ class TasksWorkerUnitsView(MethodView):
 
         worker_units_ids = []
         for u in units:
+            if u.db_status != AssignmentState.COMPLETED:
+                continue
+
             app.logger.debug(f"All units: {units}")
 
             worker_units_ids.append(

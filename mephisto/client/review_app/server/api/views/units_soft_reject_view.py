@@ -42,6 +42,7 @@ class UnitsSoftRejectView(MethodView):
                 raise BadRequest(f"Cound not reject softly Unit \"{unit.db_id}\".")
 
             agent.soft_reject_work()
+            unit.get_status()  # Update status immediately for other EPs
 
             db_queries.create_unit_review(
                 db=app.db,
