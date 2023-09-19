@@ -71,9 +71,7 @@ def main(args: NewProjectArgs):
     collaborators = args.collaborators
     if collaborators is None:
         collaborators = []
-        COLLAB_INPUT = (
-            "Provide an email for a collaborator. Leave, blank when done.\n>> "
-        )
+        COLLAB_INPUT = "Provide an email for a collaborator. Leave, blank when done.\n>> "
         while len(next_collaborator := input(COLLAB_INPUT).strip()) > 0:
             collaborators.append(next_collaborator)
 
@@ -83,9 +81,7 @@ def main(args: NewProjectArgs):
 
     print(f"Created workspace for this research group: {workspace.id}")
     print(f"Adding Collaborators")
-    res = client.Invitations.create(
-        workspace_id=workspace.id, collaborators=collaborators
-    )
+    res = client.Invitations.create(workspace_id=workspace.id, collaborators=collaborators)
     print(f"Create result: {res}")
 
 
