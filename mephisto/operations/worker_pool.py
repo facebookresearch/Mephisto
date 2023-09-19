@@ -125,24 +125,18 @@ class WorkerPool:
         assert live_run is not None, "Live run must be registered to use this"
         return live_run
 
-    def get_agent_for_id(
-        self, agent_id: str
-    ) -> Optional[Union["Agent", "OnboardingAgent"]]:
+    def get_agent_for_id(self, agent_id: str) -> Optional[Union["Agent", "OnboardingAgent"]]:
         """Temporary method to get an agent, while API is figured out"""
         if agent_id in self.agents:
             return self.agents[agent_id]
         elif agent_id in self.onboarding_agents:
             return self.onboarding_agents[agent_id]
         elif agent_id in self.final_onboardings:
-            logger.debug(
-                f"Found agent id {agent_id} in final_onboardings for get_agent_for_id"
-            )
+            logger.debug(f"Found agent id {agent_id} in final_onboardings for get_agent_for_id")
             return self.final_onboardings[agent_id]
         return None
 
-    async def register_worker(
-        self, crowd_data: Dict[str, Any], request_id: str
-    ) -> None:
+    async def register_worker(self, crowd_data: Dict[str, Any], request_id: str) -> None:
         """
         First process the worker registration, then hand off for
         registering an agent
@@ -177,9 +171,7 @@ class WorkerPool:
             AGENT_DETAILS_COUNT.labels(response="not_qualified").inc()
             live_run.client_io.enqueue_agent_details(
                 request_id,
-                AgentDetails(
-                    failure_reason=WorkerFailureReasons.NOT_QUALIFIED
-                ).to_dict(),
+                AgentDetails(failure_reason=WorkerFailureReasons.NOT_QUALIFIED).to_dict(),
             )
         else:
             await self.register_agent(crowd_data, worker, request_id)
@@ -197,9 +189,7 @@ class WorkerPool:
         task_runner = live_run.task_runner
         crowd_provider = live_run.provider
 
-        logger.debug(
-            f"Worker {worker.db_id} is being assigned one of {len(units)} units."
-        )
+        logger.debug(f"Worker {worker.db_id} is being assigned one of {len(units)} units.")
 
         reserved_unit = None
         while len(units) > 0 and reserved_unit is None:
@@ -234,9 +224,7 @@ class WorkerPool:
             logger.debug(f"Created agent {agent}, {agent.db_id}.")
 
             # TODO(#649) this is IO bound
-            with EXTERNAL_FUNCTION_LATENCY.labels(
-                function="get_init_data_for_agent"
-            ).time():
+            with EXTERNAL_FUNCTION_LATENCY.labels(function="get_init_data_for_agent").time():
                 init_task_data = await loop.run_in_executor(
                     None,
                     partial(
@@ -285,9 +273,7 @@ class WorkerPool:
                 non_null_agents = [a for a in agents if a is not None]
                 # Launch the backend for this assignment
                 registered_agents = [
-                    self.agents[a.get_agent_id()]
-                    for a in non_null_agents
-                    if a is not None
+                    self.agents[a.get_agent_id()] for a in non_null_agents if a is not None
                 ]
 
                 live_run.task_runner.execute_assignment(assignment, registered_agents)
@@ -323,33 +309,23 @@ class WorkerPool:
             )
 
         assert blueprint.onboarding_qualification_name is not None
-        worker.grant_qualification(
-            blueprint.onboarding_qualification_name, int(worker_passed)
-        )
+        worker.grant_qualification(blueprint.onboarding_qualification_name, int(worker_passed))
         if not worker_passed:
             ONBOARDING_OUTCOMES.labels(outcome="failed").inc()
-            worker.grant_qualification(
-                blueprint.onboarding_failed_name, int(worker_passed)
-            )
+            worker.grant_qualification(blueprint.onboarding_failed_name, int(worker_passed))
             onboarding_agent.update_status(AgentState.STATUS_REJECTED)
             logger.info(f"Onboarding agent {onboarding_id} failed onboarding")
         else:
             ONBOARDING_OUTCOMES.labels(outcome="passed").inc()
             onboarding_agent.update_status(AgentState.STATUS_APPROVED)
-            logger.info(
-                f"Onboarding agent {onboarding_id} registered out from onboarding"
-            )
+            logger.info(f"Onboarding agent {onboarding_id} registered out from onboarding")
 
         # get the list of tentatively valid units
-        with EXTERNAL_FUNCTION_LATENCY.labels(
-            function="get_valid_units_for_worker"
-        ).time():
+        with EXTERNAL_FUNCTION_LATENCY.labels(function="get_valid_units_for_worker").time():
             units = await loop.run_in_executor(
                 None, partial(live_run.task_run.get_valid_units_for_worker, worker)
             )
-        with EXTERNAL_FUNCTION_LATENCY.labels(
-            function="filter_units_for_worker"
-        ).time():
+        with EXTERNAL_FUNCTION_LATENCY.labels(function="filter_units_for_worker").time():
             usable_units = await loop.run_in_executor(
                 None,
                 partial(live_run.task_runner.filter_units_for_worker, units, worker),
@@ -396,9 +372,7 @@ class WorkerPool:
         task_runner = live_run.task_runner
         agent = self.get_agent_for_id(agent_id)
         if agent is None:
-            logger.info(
-                f"Looking for reconnecting agent {agent_id} but none found locally"
-            )
+            logger.info(f"Looking for reconnecting agent {agent_id} but none found locally")
             AGENT_DETAILS_COUNT.labels(response="agent_missing").inc()
             live_run.client_io.enqueue_agent_details(
                 request_id,
@@ -414,9 +388,7 @@ class WorkerPool:
                 # Rejected agent should get failed response
                 live_run.client_io.enqueue_agent_details(
                     request_id,
-                    AgentDetails(
-                        failure_reason=WorkerFailureReasons.NOT_QUALIFIED
-                    ).to_dict(),
+                    AgentDetails(failure_reason=WorkerFailureReasons.NOT_QUALIFIED).to_dict(),
                 )
             elif agent.get_status() == AgentState.STATUS_DISCONNECT:
                 # Disconnected agent should get missing response
@@ -428,10 +400,7 @@ class WorkerPool:
                 )
             else:
                 blueprint = live_run.blueprint
-                assert (
-                    isinstance(blueprint, OnboardingRequired)
-                    and blueprint.use_onboarding
-                )
+                assert isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding
                 onboard_data = blueprint.get_onboarding_data(worker.db_id)
                 live_run.client_io.enqueue_agent_details(
                     request_id,
@@ -443,9 +412,7 @@ class WorkerPool:
                 )
         else:
             # TODO(#649) this is IO bound
-            with EXTERNAL_FUNCTION_LATENCY.labels(
-                function="get_init_data_for_agent"
-            ).time():
+            with EXTERNAL_FUNCTION_LATENCY.labels(function="get_init_data_for_agent").time():
                 init_task_data = await loop.run_in_executor(
                     None,
                     partial(
@@ -476,13 +443,8 @@ class WorkerPool:
 
         # Check screening
         if isinstance(blueprint, ScreenTaskRequired) and blueprint.use_screening_task:
-            if (
-                blueprint.worker_needs_screening(worker)
-                and blueprint.should_generate_unit()
-            ):
-                with EXTERNAL_FUNCTION_LATENCY.labels(
-                    function="get_screening_unit_data"
-                ).time():
+            if blueprint.worker_needs_screening(worker) and blueprint.should_generate_unit():
+                with EXTERNAL_FUNCTION_LATENCY.labels(function="get_screening_unit_data").time():
                     screening_data = await loop.run_in_executor(
                         None, blueprint.get_screening_unit_data
                     )
@@ -491,9 +453,7 @@ class WorkerPool:
                     assert (
                         launcher is not None
                     ), "LiveTaskRun must have launcher to use screening tasks"
-                    with EXTERNAL_FUNCTION_LATENCY.labels(
-                        function="launch_screening_unit"
-                    ).time():
+                    with EXTERNAL_FUNCTION_LATENCY.labels(function="launch_screening_unit").time():
                         screen_unit = await loop.run_in_executor(
                             None,
                             partial(
@@ -511,9 +471,7 @@ class WorkerPool:
                             failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
                         ).to_dict(),
                     )
-                    logger.debug(
-                        f"No screening units left for {agent_registration_id}."
-                    )
+                    logger.debug(f"No screening units left for {agent_registration_id}.")
                     return
         # Check golds
         if isinstance(blueprint, UseGoldUnit) and blueprint.use_golds:
@@ -549,9 +507,7 @@ class WorkerPool:
         # Register the correct unit type
         await self._assign_unit_to_agent(crowd_data, worker, request_id, units)
 
-    async def register_agent(
-        self, crowd_data: Dict[str, Any], worker: "Worker", request_id: str
-    ):
+    async def register_agent(self, crowd_data: Dict[str, Any], worker: "Worker", request_id: str):
         """Process an agent registration packet to register an agent, returning the agent_id"""
         # Process a new agent
         logger.debug(f"Registering agent {crowd_data}, {request_id}")
@@ -561,9 +517,7 @@ class WorkerPool:
         agent_registration_id = crowd_data["agent_registration_id"]
 
         # get the list of tentatively valid units
-        with EXTERNAL_FUNCTION_LATENCY.labels(
-            function="get_valid_units_for_worker"
-        ).time():
+        with EXTERNAL_FUNCTION_LATENCY.labels(function="get_valid_units_for_worker").time():
             units = task_run.get_valid_units_for_worker(worker)
 
         if len(units) == 0:
@@ -575,13 +529,9 @@ class WorkerPool:
                     failure_reason=WorkerFailureReasons.NO_AVAILABLE_UNITS,
                 ).to_dict(),
             )
-            logger.debug(
-                f"agent_registration_id {agent_registration_id}, had no valid units."
-            )
+            logger.debug(f"agent_registration_id {agent_registration_id}, had no valid units.")
             return
-        with EXTERNAL_FUNCTION_LATENCY.labels(
-            function="filter_units_for_worker"
-        ).time():
+        with EXTERNAL_FUNCTION_LATENCY.labels(function="filter_units_for_worker").time():
             units = await loop.run_in_executor(
                 None,
                 partial(live_run.task_runner.filter_units_for_worker, units, worker),
@@ -590,9 +540,7 @@ class WorkerPool:
         blueprint = live_run.blueprint
         if isinstance(blueprint, OnboardingRequired) and blueprint.use_onboarding:
             qual_name = blueprint.onboarding_qualification_name
-            assert (
-                qual_name is not None
-            ), "Cannot be using onboarding and have a null qual"
+            assert qual_name is not None, "Cannot be using onboarding and have a null qual"
             if worker.is_disqualified(qual_name):
                 AGENT_DETAILS_COUNT.labels(response="not_qualified").inc()
                 live_run.client_io.enqueue_agent_details(
@@ -639,8 +587,7 @@ class WorkerPool:
                     ).to_dict(),
                 )
                 logger.info(
-                    f"{worker} is starting onboarding thread with "
-                    f"onboarding {onboard_agent}."
+                    f"{worker} is starting onboarding thread with " f"onboarding {onboard_agent}."
                 )
 
                 async def cleanup_onboarding():
@@ -651,20 +598,18 @@ class WorkerPool:
                     ACTIVE_ONBOARDINGS.dec()
 
                 # Run the onboarding
-                live_run.task_runner.execute_onboarding(
-                    onboard_agent, cleanup_onboarding
-                )
+                live_run.task_runner.execute_onboarding(onboard_agent, cleanup_onboarding)
                 return
 
         await self._assign_unit_or_qa(crowd_data, worker, request_id, units)
 
-    async def push_status_update(
-        self, agent: Union["Agent", "OnboardingAgent"]
-    ) -> None:
+    async def push_status_update(self, agent: Union["Agent", "OnboardingAgent"]) -> None:
         """
         Force a status update for a specific agent, pushing the db status to
         the frontend client
         """
+        if self.is_shutdown:
+            return  # We don't push when shutdown
         status = agent.db_status
         if isinstance(agent, OnboardingAgent):
             if status in [AgentState.STATUS_APPROVED, AgentState.STATUS_REJECTED]:

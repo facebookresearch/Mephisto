@@ -19,6 +19,4 @@ class MephistoSearchPathPlugin(SearchPathPlugin):
         profile_path_user = os.path.join(DEFAULT_CONFIG_FOLDER, "hydra_configs")
 
         search_path.append(provider="mephisto-profiles", path=f"file://{profile_path}")
-        search_path.append(
-            provider="mephisto-profiles-user", path=f"file://{profile_path_user}"
-        )
+        search_path.append(provider="mephisto-profiles-user", path=f"file://{profile_path_user}")

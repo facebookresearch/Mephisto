@@ -37,7 +37,7 @@ def get_prolific_api_key() -> Union[str, None]:
     return None
 
 
-API_KEY = os.environ.get("PROLIFIC_API_KEY", "") or get_prolific_api_key()
+PROLIFIC_API_KEY = os.environ.get("PROLIFIC_API_KEY", "") or get_prolific_api_key()
 
 
 class HTTPMethod:
@@ -62,10 +62,9 @@ class BaseAPIResource(object):
     ) -> Union[dict, str, None]:
         log_prefix = f"[{cls.__name__}]"
 
-        if api_key is None:
-            if API_KEY is None:
-                raise ProlificAPIKeyError
-            api_key = API_KEY
+        api_key = api_key or PROLIFIC_API_KEY
+        if not api_key:
+            raise ProlificAPIKeyError
 
         try:
             url = urljoin(BASE_URL, api_endpoint)
@@ -90,14 +89,12 @@ class BaseAPIResource(object):
 
             elif method == HTTPMethod.DELETE:
                 response = requests.delete(url, headers=headers, json=params)
+
             else:
                 raise ProlificException("Invalid HTTP method.")
 
             response.raise_for_status()
-            if (
-                response.status_code == status.HTTP_204_NO_CONTENT
-                and not response.content
-            ):
+            if response.status_code == status.HTTP_204_NO_CONTENT and not response.content:
                 result = None
             else:
                 result = response.json()
@@ -106,10 +103,12 @@ class BaseAPIResource(object):
 
             return result
 
+        except ProlificException:
+            # Reraise these errors further to avoid catching them in the latest `except` condition
+            raise
+
         except requests.exceptions.HTTPError as err:
-            logger.error(
-                f"{log_prefix} Request error: {err}. Response text: `{err.response.text}`"
-            )
+            logger.error(f"{log_prefix} Request error: {err}. Response text: `{err.response.text}`")
             if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
                 raise ProlificAuthenticationError
 

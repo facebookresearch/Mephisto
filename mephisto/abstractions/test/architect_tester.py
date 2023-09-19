@@ -116,14 +116,10 @@ class ArchitectTests(unittest.TestCase):
             issubclass(self.ArchitectClass, Architect),
             "Implemented ArchitectClass does not extend Architect",
         )
-        self.assertNotEqual(
-            self.ArchitectClass, Architect, "Can not use base Architect"
-        )
+        self.assertNotEqual(self.ArchitectClass, Architect, "Can not use base Architect")
         arch_args = self.ArchitectClass.ArgsClass()
         args = OmegaConf.structured(MephistoConfig(architect=arch_args))
-        architect = self.ArchitectClass(
-            self.db, args, EMPTY_STATE, self.task_run, self.build_dir
-        )
+        architect = self.ArchitectClass(self.db, args, EMPTY_STATE, self.task_run, self.build_dir)
 
     def get_architect(self) -> Architect:
         """

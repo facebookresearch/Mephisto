@@ -8,16 +8,24 @@ Utilities specifically for running examine scripts. Example usage can be
 seen in the examine results scripts in the examples directory.
 """
 
-from mephisto.tools.data_browser import DataBrowser
-from mephisto.data_model.worker import Worker
-from mephisto.utils.qualifications import find_or_create_qualification
-import traceback
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
 
-from typing import TYPE_CHECKING, Optional, Tuple, Callable, Dict, Any, List
+from mephisto.data_model.worker import Worker
+from mephisto.tools.data_browser import DataBrowser
+from mephisto.utils.logger_core import get_logger
+from mephisto.utils.qualifications import find_or_create_qualification
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.unit import Unit
+
+logger = get_logger(name=__name__)
 
 
 def _get_and_format_data(
@@ -35,12 +43,9 @@ def _get_and_format_data(
         try:
             formatted = format_data_for_printing(data)
         except Exception as e:
-            print(f"Unexpected error formatting data for {unit}: {e}")
-            # Print the full exception, as this could be user error on the
-            # formatting function
-            traceback.print_exc()
+            logger.exception(f"Unexpected error formatting data for {unit}")
     except Exception as e:
-        print(f"Unexpected error getting data for {unit}: {e}")
+        logger.exception(f"Unexpected error getting data for {unit}")
     return formatted
 
 
@@ -63,7 +68,7 @@ def print_results(
     units.reverse()
 
     for unit in units[start:end]:
-        print(_get_and_format_data(data_browser, format_data_for_printing, unit))
+        logger.info(_get_and_format_data(data_browser, format_data_for_printing, unit))
 
 
 def prompt_for_options(
@@ -116,7 +121,10 @@ def get_worker_stats(units: List["Unit"]) -> Dict[str, Dict[str, List["Unit"]]]:
                 "soft_rejected": [],
                 "rejected": [],
             }
-        previous_work_by_worker[w_id][unit.get_status()].append(unit)
+        status = unit.get_status()
+        if status not in previous_work_by_worker[w_id]:
+            continue
+        previous_work_by_worker[w_id][status].append(unit)
     return previous_work_by_worker
 
 
@@ -133,7 +141,11 @@ def format_worker_stats(
     accepted_work = len(prev_work["accepted"])
     soft_rejected_work = len(prev_work["soft_rejected"])
     rejected_work = len(prev_work["rejected"])
-    return f"({accepted_work} | {rejected_work + soft_rejected_work}({soft_rejected_work}) / {accepted_work + soft_rejected_work + rejected_work})"
+    return (
+        f"({accepted_work} | "
+        f"{rejected_work + soft_rejected_work}({soft_rejected_work}) / "
+        f"{accepted_work + soft_rejected_work + rejected_work})"
+    )
 
 
 def run_examine_by_worker(
@@ -167,16 +179,17 @@ def run_examine_by_worker(
     if block_qualification is not None:
         created_block_qual = find_or_create_qualification(db, block_qualification)
         print(
-            "When you pass or reject a task, the script gives you an option to disqualify the worker "
-            "from future tasks by assigning a qualification. If provided, this worker will no "
-            "longer be able to work on tasks where the set --block-qualification shares the same name "
-            f"you provided above: {block_qualification}\n"
+            "When you pass or reject a task, the script gives you an option to disqualify the "
+            "worker from future tasks by assigning a qualification. "
+            "If provided, this worker will no longer be able to work on tasks where the set "
+            "--block-qualification shares the same name you provided above: {block_qualification}\n"
         )
     if approve_qualification is not None:
         created_approve_qual = find_or_create_qualification(db, approve_qualification)
         print(
             "You may use this script to establish a qualified worker pool by granting the provided "
-            f"approve qualification {approve_qualification} to workers you think understand the task "
+            f"approve qualification {approve_qualification} "
+            f"to workers you think understand the task "
             "well. This will be provided as an option for workers you (A)pprove all on. "
             "Future tasks can use this qual as a required qualification, as described in the "
             "common qualification flows document."
@@ -196,7 +209,7 @@ def run_examine_by_worker(
     previous_work_by_worker = get_worker_stats(others)
 
     # Determine allowed options
-    options = ["a", "p", "r"]
+    options = ["a", "p", "r", "v"]
     options_string = "Do you want to accept this work? (a)ccept, (r)eject, (p)ass:"
 
     units_by_worker: Dict[str, List["Unit"]] = {}
@@ -225,41 +238,43 @@ def run_examine_by_worker(
             if apply_all_decision is not None:
                 decision = apply_all_decision
             else:
-                decision = input(
-                    "Do you want to accept this work? (a)ccept, (r)eject, (p)ass: "
-                )
+                decision = input("Do you want to accept this work? (a)ccept, (r)eject, (p)ass: ")
             while decision.lower() not in options:
                 decision = input(
-                    "Decision must be one of a, p, r. Use CAPS to apply to all remaining for worker: "
+                    "Decision must be one of a, p, r. "
+                    "Use CAPS to apply to all remaining for worker: "
                 )
 
             agent = unit.get_assigned_agent()
-            assert (
-                agent is not None
-            ), f"Can't make decision on None agent... issue with {unit}"
+            assert agent is not None, f"Can't make decision on None agent... issue with {unit}"
             if decision.lower() == "a":
                 agent.approve_work()
                 if decision == "A" and approve_qualification is not None:
                     should_special_qualify = input(
                         "Do you want to approve qualify this worker? (y)es/(n)o: "
                     )
-                    if should_special_qualify.lower() in ["y", "yes"]:
+                    if should_special_qualify.lower().startswith("y"):
                         worker.grant_qualification(approve_qualification, 1)
             elif decision.lower() == "p":
                 agent.soft_reject_work()
                 if apply_all_decision is None and block_qualification is not None:
-                    should_soft_block = input(
-                        "Do you want to soft block this worker? (y)es/(n)o: "
-                    )
-                    if should_soft_block.lower() in ["y", "yes"]:
+                    should_soft_block = input("Do you want to soft block this worker? (y)es/(n)o: ")
+                    if should_soft_block.lower().startswith("y"):
                         worker.grant_qualification(block_qualification, 1)
+            elif decision.lower() == "v":
+                # Same as "a", except we can specify exact qualification value being assigned
+                agent.approve_work()
+                if decision.isupper() and approve_qualification:
+                    qualification_value = input(
+                        f"Assign integer value for `{approve_qualification}` (hit Enter to skip): "
+                    )
+                    if qualification_value:
+                        worker.grant_qualification(approve_qualification, int(qualification_value))
             else:  # decision = 'r'
                 if apply_all_decision is None:
                     reason = input("Why are you rejecting this work? ")
-                    should_block = input(
-                        "Do you want to hard block this worker? (y)es/(n)o: "
-                    )
-                    if should_block.lower() in ["y", "yes"]:
+                    should_block = input("Do you want to hard block this worker? (y)es/(n)o: ")
+                    if should_block.lower().startswith("y"):
                         block_reason = input("Why permanently block this worker? ")
                         worker.block_worker(block_reason, unit=unit)
                 agent.reject_work(reason)
@@ -279,6 +294,8 @@ def run_examine_or_review(
     )
 
     if do_review.lower().startswith("r"):
+        logger.info("Start reviewing results")
+
         run_examine_by_worker(db, format_data_for_printing)
     else:
         start = 0
@@ -290,4 +307,9 @@ def run_examine_or_review(
             start = int(opts[1])
             end = int(opts[2])
         task_name = input("Input task name: ")
+
+        logger.info(f'Start examining results for task "{task_name}"')
+
         print_results(db, task_name, format_data_for_printing, start=start, end=end)
+
+    logger.info("End examining results")

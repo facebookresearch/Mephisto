@@ -21,7 +21,7 @@ do
   if [ $DRY_RUN = 1 ]; then
     (cd "$d" && echo "Checking directory $d" && npm audit)
   else
-    (cd "$d" && echo ">>>>> Updating packages for directory $d" && npm i --package-lock-only && npm audit fix)
+    (cd "$d" && echo ">> Updating packages for directory $d" && npm i --package-lock-only && npm audit fix)
   fi
 done
 

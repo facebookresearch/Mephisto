@@ -31,15 +31,11 @@ class SandboxMTurkWorker(MTurkWorker):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            self.PROVIDER_TYPE
-        )
+        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(self.PROVIDER_TYPE)
         # sandbox workers use a different name
         self._worker_name = self.worker_name[:-8]
 
-    def grant_crowd_qualification(
-        self, qualification_name: str, value: int = 1
-    ) -> None:
+    def grant_crowd_qualification(self, qualification_name: str, value: int = 1) -> None:
         """
         Grant a qualification by the given name to this worker. Check the local
         MTurk db to find the matching MTurk qualification to grant, and pass

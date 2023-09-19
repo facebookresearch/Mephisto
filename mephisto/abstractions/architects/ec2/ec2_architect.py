@@ -7,7 +7,7 @@
 import os
 import sh  # type: ignore
 import shutil
-import time
+import signal
 import requests
 import re
 import json
@@ -67,15 +67,19 @@ class EC2ArchitectArgs(ArchitectArgs):
     """Additional arguments for configuring a heroku architect"""
 
     _architect_type: str = ARCHITECT_TYPE
-    instance_type: str = field(
-        default="t2.micro", metadata={"help": "Instance type to run router"}
-    )
+    instance_type: str = field(default="t2.micro", metadata={"help": "Instance type to run router"})
     subdomain: str = field(
         default="${mephisto.task.task_name}",
         metadata={"help": "Subdomain name for routing"},
     )
     profile_name: str = field(
         default=MISSING, metadata={"help": "Profile name for deploying an ec2 instance"}
+    )
+    _deploy_type: str = field(
+        default="standard",
+        metadata={
+            "help": "Type of deploy, default is [standard] debug options are [retain|use_existing]",
+        },
     )
 
 
@@ -101,6 +105,7 @@ class EC2Architect(Architect):
         """
         self.args = args
         self.task_run = task_run
+        self._deploy_type = args.architect._deploy_type
         with open(DEFAULT_FALLBACK_FILE, "r") as fallback_detail_file:
             self.fallback_details = json.load(fallback_detail_file)
 
@@ -115,9 +120,7 @@ class EC2Architect(Architect):
         self.build_dir = build_dir_root
         self.server_detail_path = self._get_detail_path(self.subdomain)
 
-        self.session = boto3.Session(
-            profile_name=self.profile_name, region_name="us-east-2"
-        )
+        self.session = boto3.Session(profile_name=self.profile_name, region_name="us-east-2")
 
         self.server_dir: Optional[str] = None
         self.server_id: Optional[str] = None
@@ -190,9 +193,23 @@ class EC2Architect(Architect):
         #   in ec2 resources
         subdomain = url_safe_string(args.architect.subdomain)
 
-        assert cls.check_domain_unused_locally(
-            subdomain=subdomain
-        ), "Given subdomain does exist. Run `python3 -m mephisto.abstractions.architects.ec2.cleanup_ec2_server_by_name`"
+        if args.architect._deploy_type in ["retain", "use_existing"]:
+            assert (
+                args.architect.subdomain != args.task.task_name
+            ), "Must use unique mephisto.architect.subdomain for non-standard launch"
+        unused_locally = cls.check_domain_unused_locally(subdomain=subdomain)
+        if args.architect._deploy_type in ["retain", "standard"]:
+            assert (
+                unused_locally
+            ), "Given subdomain does exist. Run `python3 -m mephisto.abstractions.architects.ec2.cleanup_ec2_server_by_name`"
+        else:
+            assert (
+                not unused_locally
+            ), "Must have existing subdomain setup to use it. Try deploying with retain first"
+        if args.architect._deploy_type == "retain":
+            logger.warn(
+                f"Launching architect with domain {subdomain} with retain deploy, will need MANUAL shutdown"
+            )
 
         # VALID_INSTANCES = []
         # assert args.architect.instance_type in VALID_INSTANCES
@@ -214,9 +231,13 @@ class EC2Architect(Architect):
             assert key in fallback_details, f"Fallback file missing required key {key}"
 
         session = boto3.Session(profile_name=profile_name, region_name="us-east-2")
-        assert ec2_helpers.rule_is_new(
-            session, subdomain, fallback_details["listener_arn"]
-        ), "Rule was not new, existing subdomain found registered to the listener. Check on AWS."
+        is_new_rule = ec2_helpers.rule_is_new(session, subdomain, fallback_details["listener_arn"])
+        if args.architect._deploy_type in ["retain", "standard"]:
+            assert (
+                is_new_rule
+            ), "Rule was not new, existing subdomain found registered to the listener. Check on AWS."
+        else:
+            assert not is_new_rule, "Rule did not exist, Clean up and redeploy a new retain server."
 
     def __get_build_directory(self) -> str:
         """
@@ -245,9 +266,7 @@ class EC2Architect(Architect):
         setup_path = os.path.join(SCRIPTS_DIRECTORY, self.server_type)
         setup_dest = os.path.join(server_build_root, "setup")
         shutil.copytree(setup_path, setup_dest)
-        possible_node_modules = os.path.join(
-            server_build_root, "router", "node_modules"
-        )
+        possible_node_modules = os.path.join(server_build_root, "router", "node_modules")
         if os.path.exists(possible_node_modules):
             shutil.rmtree(possible_node_modules)
         return server_dir
@@ -256,59 +275,56 @@ class EC2Architect(Architect):
         """
         Deploy the server using the setup server directory, return the URL
         """
-        server_dir = os.path.abspath(self.__get_build_directory())
+        if self._deploy_type != "use_existing":
+            server_dir = os.path.abspath(self.__get_build_directory())
 
-        print("EC2: Starting instance...")
+            print("EC2: Starting instance...")
 
-        # Launch server
-        server_id = ec2_helpers.create_instance(
-            self.session,
-            self.fallback_details["key_pair_name"],
-            self.fallback_details["security_group_id"],
-            self.fallback_details["vpc_details"]["subnet_1_id"],
-            self.router_name,
-            instance_type=self.instance_type,
-        )
-        self.server_id = server_id
+            # Launch server
+            server_id = ec2_helpers.create_instance(
+                self.session,
+                self.fallback_details["key_pair_name"],
+                self.fallback_details["security_group_id"],
+                self.fallback_details["vpc_details"]["subnet_1_id"],
+                self.router_name,
+                instance_type=self.instance_type,
+            )
+            self.server_id = server_id
 
-        self.created = True
+            self.created = True
 
-        print("EC2: Configuring routing table...")
-        # Configure router
-        (
-            self.target_group_arn,
-            self.router_rule_arn,
-        ) = ec2_helpers.register_instance_to_listener(
-            self.session,
-            server_id,
-            self.fallback_details["vpc_details"]["vpc_id"],
-            self.fallback_details["listener_arn"],
-            self.full_domain,
-        )
+            print("EC2: Configuring routing table...")
+            # Configure router
+            (
+                self.target_group_arn,
+                self.router_rule_arn,
+            ) = ec2_helpers.register_instance_to_listener(
+                self.session,
+                server_id,
+                self.fallback_details["vpc_details"]["vpc_id"],
+                self.fallback_details["listener_arn"],
+                self.full_domain,
+            )
 
-        # Write out details
-        server_details = {
-            "balancer_rule_arn": self.router_rule_arn,
-            "instance_id": self.server_id,
-            "subdomain": self.subdomain,
-            "target_group_arn": self.target_group_arn,
-        }
+            # Write out details
+            server_details = {
+                "balancer_rule_arn": self.router_rule_arn,
+                "instance_id": self.server_id,
+                "subdomain": self.subdomain,
+                "target_group_arn": self.target_group_arn,
+            }
 
-        with open(self.server_detail_path, "w+") as detail_file:
-            json.dump(server_details, detail_file)
+            with open(self.server_detail_path, "w+") as detail_file:
+                json.dump(server_details, detail_file)
 
-        print("EC2: Deploying server...")
-        # Push server files and execute launch
-        ec2_helpers.deploy_to_routing_server(
-            self.session,
-            server_id,
-            self.fallback_details["key_pair_name"],
-            server_dir,
-        )
-
-        # TODO: Remove this hack to address sporadic ConnectionRefusedError
-        print("EC2: Waiting to establish connection...")
-        time.sleep(10)
+            print("EC2: Deploying server...")
+            # Push server files and execute launch
+            ec2_helpers.deploy_to_routing_server(
+                self.session,
+                server_id,
+                self.fallback_details["key_pair_name"],
+                server_dir,
+            )
 
         url = f"https://{self.full_domain}"
         print(f"EC2: Deployed server at {url}")
@@ -318,21 +334,25 @@ class EC2Architect(Architect):
         """
         Remove the heroku server associated with this task run
         """
-        server_id = self.server_id
-        assert server_id is not None, "Cannot shutdown a non-existent server"
-        print(f"Ec2: Deleting server: {self.server_id}")
-        if self.router_rule_arn is not None:
-            ec2_helpers.delete_rule(
-                self.session,
-                self.router_rule_arn,
-                self.target_group_arn,
-            )
+        if self._deploy_type == "standard":
+            server_id = self.server_id
+            assert server_id is not None, "Cannot shutdown a non-existent server"
+            assert (
+                self.target_group_arn is not None
+            ), "Target group always exists on standard server"
+            print(f"Ec2: Deleting server: {self.server_id}")
+            if self.router_rule_arn is not None:
+                ec2_helpers.delete_rule(
+                    self.session,
+                    self.router_rule_arn,
+                    self.target_group_arn,
+                )
 
-        ec2_helpers.delete_instance(
-            self.session,
-            server_id,
-        )
-        os.unlink(self.server_detail_path)
+            ec2_helpers.delete_instance(
+                self.session,
+                server_id,
+            )
+            os.unlink(self.server_detail_path)
 
     def server_is_running(self) -> bool:
         """
@@ -376,4 +396,13 @@ class EC2Architect(Architect):
         in the db.
         """
         if self.created:  # only delete the server if it's created by us
+
+            def cant_cancel_shutdown(sig, frame):
+                logger.warn(
+                    "Ignoring ^C during ec2 cleanup. ^| if you NEED to exit and you will "
+                    "have to clean up this server with cleanup_ec2_server_by_name.py after."
+                )
+
+            old_handler = signal.signal(signal.SIGINT, cant_cancel_shutdown)
             self.__delete_ec2_server()
+            signal.signal(signal.SIGINT, old_handler)

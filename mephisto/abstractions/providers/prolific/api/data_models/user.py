@@ -17,6 +17,7 @@ class User(BaseModel):
     More about Users:
         https://docs.prolific.co/docs/api-docs/public/#tag/Users
     """
+
     address: Optional[str]
     available_balance: Optional[Union[int, float]]
     balance: Optional[Union[int, float]]
@@ -70,80 +71,80 @@ class User(BaseModel):
     vat_percentage: Optional[Union[int, float]]
 
     schema = {
-        'type': 'object',
-        'properties': {
-            'address': {'type': ['string', 'null']},
-            'available_balance': {'type': ['number', 'null']},
-            'balance': {'type': ['number', 'null']},
-            'balance_breakdown': {'type': ['object', 'null']},
-            'beta_tester': {'type': 'boolean'},
-            'billing_address': {'type': ['string', 'null']},
-            'can_cashout_enabled': {'type': 'boolean'},
-            'can_contact_support_enabled': {'type': 'boolean'},
-            'can_instant_cashout_enabled': {'type': 'boolean'},
-            'can_oidc_login': {'type': 'boolean'},
-            'can_oidc_login_enabled': {'type': 'boolean'},
-            'can_run_pilot_study_enabled': {'type': 'boolean'},
-            'can_topup_3d': {'type': 'boolean'},
-            'country': {'type': ['string', 'null']},
-            'currency_code': {'type': 'string'},
-            'current_project_id': {'type': ['string', 'null']},
-            'date_joined': {'type': 'string'},
-            'datetime_created': {'type': 'string'},
-            'email': {
-                'type': 'string',
-                'pattern': EMAIL_FORMAT,
+        "type": "object",
+        "properties": {
+            "address": {"type": ["string", "null"]},
+            "available_balance": {"type": ["number", "null"]},
+            "balance": {"type": ["number", "null"]},
+            "balance_breakdown": {"type": ["object", "null"]},
+            "beta_tester": {"type": "boolean"},
+            "billing_address": {"type": ["string", "null"]},
+            "can_cashout_enabled": {"type": "boolean"},
+            "can_contact_support_enabled": {"type": "boolean"},
+            "can_instant_cashout_enabled": {"type": "boolean"},
+            "can_oidc_login": {"type": "boolean"},
+            "can_oidc_login_enabled": {"type": "boolean"},
+            "can_run_pilot_study_enabled": {"type": "boolean"},
+            "can_topup_3d": {"type": "boolean"},
+            "country": {"type": ["string", "null"]},
+            "currency_code": {"type": "string"},
+            "current_project_id": {"type": ["string", "null"]},
+            "date_joined": {"type": "string"},
+            "datetime_created": {"type": "string"},
+            "email": {
+                "type": "string",
+                "pattern": EMAIL_FORMAT,
             },
-            'email_preferences': {'type': 'object'},
-            'experimental_group': {'type': ['number', 'null']},
-            'fees_per_submission': {'type': ['number', 'null']},
-            'fees_percentage': {'type': ['number', 'null']},
-            'first_name': {'type': 'string'},
-            'has_accepted_survey_builder_terms': {'type': 'boolean'},
-            'has_answered_vat_number': {'type': 'boolean'},
-            'has_password': {'type': 'boolean'},
-            'id': {'type': 'string'},
-            'invoice_usage_enabled': {'type': 'boolean'},
-            'is_email_verified': {'type': 'boolean'},
-            'is_staff': {'type': 'boolean'},
-            'last_login': {'type': ['string', 'null']},
-            'last_name': {'type': 'string'},
-            'minimum_reward_per_hour': {'type': ['number', 'null']},
-            'name': {'type': 'string'},
-            'needs_to_confirm_US_state': {'type': 'boolean'},
-            'on_hold': {'type': 'boolean'},
-            'privacy_policy': {'type': 'boolean'},
-            'redeemable_referral_coupon': {'type': ['string', 'null']},
-            'referral_incentive': {'type': 'object'},
-            'referral_url': {'type': ['string', 'null']},
-            'representative_sample_credits': {'type': ['number', 'null']},
-            'roles': {'type': 'array'},
-            'service_margin_percentage': {'type': ['number', 'null']},
-            'status': {'type': 'string'},
-            'terms_and_conditions': {'type': 'boolean'},
-            'topups_over_referral_threshold': {'type': 'boolean'},
-            'user_type': {'type': 'string'},
-            'username': {'type': 'string'},
-            'vat_number': {'type': ['number', 'null']},
-            'vat_percentage': {'type': ['number', 'null']},
+            "email_preferences": {"type": "object"},
+            "experimental_group": {"type": ["number", "null"]},
+            "fees_per_submission": {"type": ["number", "null"]},
+            "fees_percentage": {"type": ["number", "null"]},
+            "first_name": {"type": "string"},
+            "has_accepted_survey_builder_terms": {"type": "boolean"},
+            "has_answered_vat_number": {"type": "boolean"},
+            "has_password": {"type": "boolean"},
+            "id": {"type": "string"},
+            "invoice_usage_enabled": {"type": "boolean"},
+            "is_email_verified": {"type": "boolean"},
+            "is_staff": {"type": "boolean"},
+            "last_login": {"type": ["string", "null"]},
+            "last_name": {"type": "string"},
+            "minimum_reward_per_hour": {"type": ["number", "null"]},
+            "name": {"type": "string"},
+            "needs_to_confirm_US_state": {"type": "boolean"},
+            "on_hold": {"type": "boolean"},
+            "privacy_policy": {"type": "boolean"},
+            "redeemable_referral_coupon": {"type": ["string", "null"]},
+            "referral_incentive": {"type": "object"},
+            "referral_url": {"type": ["string", "null"]},
+            "representative_sample_credits": {"type": ["number", "null"]},
+            "roles": {"type": "array"},
+            "service_margin_percentage": {"type": ["number", "null"]},
+            "status": {"type": "string"},
+            "terms_and_conditions": {"type": "boolean"},
+            "topups_over_referral_threshold": {"type": "boolean"},
+            "user_type": {"type": "string"},
+            "username": {"type": "string"},
+            "vat_number": {"type": ["number", "null"]},
+            "vat_percentage": {"type": ["number", "null"]},
         },
     }
 
     relation_user_schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
-            'name': {'type': 'string'},
-            'email': {
-                'type': 'string',
-                'pattern': EMAIL_FORMAT,
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "name": {"type": "string"},
+            "email": {
+                "type": "string",
+                "pattern": EMAIL_FORMAT,
             },
-            'roles': {'type': 'array'},
+            "roles": {"type": "array"},
         },
-        'required': [
-            'id',
-        ]
+        "required": [
+            "id",
+        ],
     }
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.id} {self.email}'
+        return f"{self.__class__.__name__} {self.id} {self.email}"

@@ -7,6 +7,7 @@
 
 import os
 import sqlite3
+import warnings
 from prometheus_client import Histogram  # type: ignore
 
 from abc import ABC, abstractmethod
@@ -44,9 +45,7 @@ class EntryDoesNotExistException(MephistoDBException):
 
 
 # Initialize histogram for database latency
-DATABASE_LATENCY = Histogram(
-    "database_latency_seconds", "Logging for db requests", ["method"]
-)
+DATABASE_LATENCY = Histogram("database_latency_seconds", "Logging for db requests", ["method"])
 # Need all the specific decorators b/c cascading is not allowed in decorators
 # thanks to https://mail.python.org/pipermail/python-dev/2004-August/046711.html
 NEW_PROJECT_LATENCY = DATABASE_LATENCY.labels(method="new_project")
@@ -77,28 +76,21 @@ NEW_AGENT_LATENCY = DATABASE_LATENCY.labels(method="new_agent")
 GET_AGENT_LATENCY = DATABASE_LATENCY.labels(method="get_agent")
 FIND_AGENTS_LATENCY = DATABASE_LATENCY.labels(method="find_agents")
 UPDATE_AGENT_LATENCY = DATABASE_LATENCY.labels(method="update_agent")
-CLEAR_UNIT_AGENT_ASSIGNMENT_LATENCY = DATABASE_LATENCY.labels(
-    method="clear_unit_agent_assignment"
-)
+CLEAR_UNIT_AGENT_ASSIGNMENT_LATENCY = DATABASE_LATENCY.labels(method="clear_unit_agent_assignment")
 NEW_ONBOARDING_AGENT_LATENCY = DATABASE_LATENCY.labels(method="new_onboarding_agent")
 GET_ONBOARDING_AGENT_LATENCY = DATABASE_LATENCY.labels(method="get_onboarding_agent")
-FIND_ONBOARDING_AGENTS_LATENCY = DATABASE_LATENCY.labels(
-    method="find_onboarding_agents"
-)
-UPDATE_ONBOARDING_AGENT_LATENCY = DATABASE_LATENCY.labels(
-    method="update_onboarding_agent"
-)
+FIND_ONBOARDING_AGENTS_LATENCY = DATABASE_LATENCY.labels(method="find_onboarding_agents")
+UPDATE_ONBOARDING_AGENT_LATENCY = DATABASE_LATENCY.labels(method="update_onboarding_agent")
 MAKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="make_qualification")
 GET_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="get_qualification")
 FIND_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(method="find_qualifications")
 DELETE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="delete_qualification")
 GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="grant_qualification")
+FIND_GRANT_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="find_granted_qualification")
 CHECK_GRANTED_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(
     method="check_granted_qualifications"
 )
-GET_GRANTED_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(
-    method="get_granted_qualification"
-)
+GET_GRANTED_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="get_granted_qualification")
 REVOKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="revoke_qualification")
 
 
@@ -236,9 +228,7 @@ class MephistoDB(ABC):
         Create a new task with the given task name. Raise EntryAlreadyExistsException if a task
         with this name has already been created.
         """
-        return self._new_task(
-            task_name=task_name, task_type=task_type, project_id=project_id
-        )
+        return self._new_task(task_name=task_name, task_type=task_type, project_id=project_id)
 
     @abstractmethod
     def _get_task(self, task_id: str) -> Mapping[str, Any]:
@@ -631,9 +621,7 @@ class MephistoDB(ABC):
         Raises EntryAlreadyExistsException
         if there is already a requester with this name
         """
-        return self._new_requester(
-            requester_name=requester_name, provider_type=provider_type
-        )
+        return self._new_requester(requester_name=requester_name, provider_type=provider_type)
 
     @abstractmethod
     def _get_requester(self, requester_id: str) -> Mapping[str, Any]:
@@ -665,9 +653,7 @@ class MephistoDB(ABC):
         Try to find any requester that matches the above. When called with no arguments,
         return all requesters.
         """
-        return self._find_requesters(
-            requester_name=requester_name, provider_type=provider_type
-        )
+        return self._find_requesters(requester_name=requester_name, provider_type=provider_type)
 
     @abstractmethod
     def _new_worker(self, worker_name: str, provider_type: str) -> str:
@@ -884,9 +870,7 @@ class MephistoDB(ABC):
         Update the given onboarding agent with the given parameters if possible,
         raise appropriate exception otherwise.
         """
-        return self._update_onboarding_agent(
-            onboarding_agent_id=onboarding_agent_id, status=status
-        )
+        return self._update_onboarding_agent(onboarding_agent_id=onboarding_agent_id, status=status)
 
     @abstractmethod
     def _find_onboarding_agents(
@@ -935,16 +919,12 @@ class MephistoDB(ABC):
         return self._make_qualification(qualification_name=qualification_name)
 
     @abstractmethod
-    def _find_qualifications(
-        self, qualification_name: Optional[str] = None
-    ) -> List[Qualification]:
+    def _find_qualifications(self, qualification_name: Optional[str] = None) -> List[Qualification]:
         """find_qualifications implementation"""
         raise NotImplementedError()
 
     @FIND_QUALIFICATIONS_LATENCY.time()
-    def find_qualifications(
-        self, qualification_name: Optional[str] = None
-    ) -> List[Qualification]:
+    def find_qualifications(self, qualification_name: Optional[str] = None) -> List[Qualification]:
         """
         Find a qualification. If no name is supplied, returns all qualifications.
         """
@@ -983,17 +963,24 @@ class MephistoDB(ABC):
             provider = ProviderClass(self)
             provider.cleanup_qualification(qualification_name)
 
+    @FIND_GRANT_QUALIFICATION_LATENCY.time()
+    def find_granted_qualifications(
+        self,
+        worker_id: Optional[str] = None,
+    ) -> List[GrantedQualification]:
+        """
+        Find granted qualifications.
+        If `worker_id` is not supplied, returns all granted qualifications.
+        """
+        return self._check_granted_qualifications(worker_id=worker_id)
+
     @abstractmethod
-    def _grant_qualification(
-        self, qualification_id: str, worker_id: str, value: int = 1
-    ) -> None:
+    def _grant_qualification(self, qualification_id: str, worker_id: str, value: int = 1) -> None:
         """grant_qualification implementation"""
         raise NotImplementedError()
 
     @GRANT_QUALIFICATION_LATENCY.time()
-    def grant_qualification(
-        self, qualification_id: str, worker_id: str, value: int = 1
-    ) -> None:
+    def grant_qualification(self, qualification_id: str, worker_id: str, value: int = 1) -> None:
         """
         Grant a worker the given qualification. Update the qualification value if it
         already exists
@@ -1022,6 +1009,7 @@ class MephistoDB(ABC):
         """
         Find granted qualifications that match the given specifications
         """
+        warnings.warn("Use 'find_granted_qualifications' instead.", DeprecationWarning)
         return self._check_granted_qualifications(
             qualification_id=qualification_id, worker_id=worker_id, value=value
         )
@@ -1034,9 +1022,7 @@ class MephistoDB(ABC):
         raise NotImplementedError()
 
     @GET_GRANTED_QUALIFICATION_LATENCY.time()
-    def get_granted_qualification(
-        self, qualification_id: str, worker_id: str
-    ) -> Mapping[str, Any]:
+    def get_granted_qualification(self, qualification_id: str, worker_id: str) -> Mapping[str, Any]:
         """
         Return the granted qualification in the database between the given
         worker and qualification id
@@ -1057,9 +1043,7 @@ class MephistoDB(ABC):
         """
         Remove the given qualification from the given worker
         """
-        return self._revoke_qualification(
-            qualification_id=qualification_id, worker_id=worker_id
-        )
+        return self._revoke_qualification(qualification_id=qualification_id, worker_id=worker_id)
 
     # File/blob manipulation methods
 

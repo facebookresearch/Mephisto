@@ -13,12 +13,14 @@ from .data_models import Message
 
 
 class Messages(BaseAPIResource):
-    list_api_endpoint = 'messages/'
-    retrieve_api_endpoint = 'messages/unread/'
+    list_api_endpoint = "messages/"
+    retrieve_api_endpoint = "messages/unread/"
 
     @classmethod
     def list(
-        cls, user_id: Optional[str] = None, created_after: Optional[datetime] = None,
+        cls,
+        user_id: Optional[str] = None,
+        created_after: Optional[datetime] = None,
     ) -> List[Message]:
         """
         Get messages between you and another user or your messages with all users
@@ -30,12 +32,12 @@ class Messages(BaseAPIResource):
         """
         endpoint = cls.list_api_endpoint
         if user_id:
-            endpoint += f'?user_id={user_id}'
+            endpoint += f"?user_id={user_id}"
         elif created_after:
-            endpoint += f'?created_after={created_after.isoformat()}'
+            endpoint += f"?created_after={created_after.isoformat()}"
 
         response_json = cls.get(endpoint)
-        messages = [Message(**s) for s in response_json['results']]
+        messages = [Message(**s) for s in response_json["results"]]
         return messages
 
     @classmethod
@@ -46,7 +48,7 @@ class Messages(BaseAPIResource):
         It does not mark those messages as read
         """
         response_json = cls.get(cls.list_api_endpoint)
-        messages = [Message(**s) for s in response_json['results']]
+        messages = [Message(**s) for s in response_json["results"]]
         return messages
 
     @classmethod

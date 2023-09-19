@@ -14,9 +14,9 @@ from .data_models import Submission
 
 
 class Submissions(BaseAPIResource):
-    list_api_endpoint = 'submissions/'
-    retrieve_api_endpoint = 'submissions/{id}/'
-    change_status_api_endpoint = 'submissions/{id}/transition/'
+    list_api_endpoint = "submissions/"
+    retrieve_api_endpoint = "submissions/{id}/"
+    change_status_api_endpoint = "submissions/{id}/transition/"
 
     @classmethod
     def list(cls, study_id: Optional[str] = None) -> List[ListSubmission]:
@@ -27,9 +27,9 @@ class Submissions(BaseAPIResource):
         """
         endpoint = cls.list_api_endpoint
         if study_id:
-            endpoint = f'{endpoint}?study={study_id}'
+            endpoint = f"{endpoint}?study={study_id}"
         response_json = cls.get(endpoint)
-        submissions = [ListSubmission(**s) for s in response_json['results']]
+        submissions = [ListSubmission(**s) for s in response_json["results"]]
         return submissions
 
     @classmethod
@@ -60,8 +60,8 @@ class Submissions(BaseAPIResource):
             action=action,
         )
         if reason_message:
-            params['message'] = reason_message
-            params['rejection_category'] = rejection_category,
+            params["message"] = reason_message
+            params["rejection_category"] = (rejection_category,)
 
         endpoint = cls.change_status_api_endpoint.format(id=id)
         response_json = cls.post(endpoint, params=params)

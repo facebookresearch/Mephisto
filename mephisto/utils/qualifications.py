@@ -24,15 +24,16 @@ if TYPE_CHECKING:
 
 from mephisto.utils.logger_core import get_logger
 
+QualificationType = Dict[str, Any]
 logger = get_logger(name=__name__)
 
 
-def worker_is_qualified(worker: "Worker", qualifications: List[Dict[str, Any]]):
+def worker_is_qualified(worker: "Worker", qualifications: List[QualificationType]):
     db = worker.db
     for qualification in qualifications:
         qual_name = qualification["qualification_name"]
         qual_objs = db.find_qualifications(qual_name)
-        if len(qual_objs) == 0:
+        if not qual_objs:
             logger.warning(
                 f"Expected to create qualification for {qual_name}, but none found... skipping."
             )
@@ -43,13 +44,15 @@ def worker_is_qualified(worker: "Worker", qualifications: List[Dict[str, Any]]):
         )
         comp = qualification["comparator"]
         compare_value = qualification["value"]
-        if comp == QUAL_EXISTS and len(granted_quals) == 0:
+        if comp == QUAL_EXISTS and not granted_quals:
             return False
-        elif comp == QUAL_NOT_EXIST and len(granted_quals) != 0:
+        elif comp == QUAL_NOT_EXIST and granted_quals:
             return False
         elif comp in [QUAL_EXISTS, QUAL_NOT_EXIST]:
             continue
         else:
+            if not granted_quals:
+                return False
             granted_qual = granted_quals[0]
             if not COMPARATOR_OPERATIONS[comp](granted_qual.value, compare_value):
                 return False
@@ -69,15 +72,11 @@ def as_valid_qualification_dict(qual_dict: Dict[str, Any]) -> Dict[str, Any]:
     ]
     for key in required_keys:
         if key not in qual_dict:
-            raise AssertionError(
-                f"Required key {key} not in qualification dict {qual_dict}"
-            )
+            raise AssertionError(f"Required key {key} not in qualification dict {qual_dict}")
 
     qual_name = qual_dict["qualification_name"]
     if type(qual_name) is not str or len(qual_name) == 0:
-        raise AssertionError(
-            f"Qualification name '{qual_name}' is not a string with length > 0"
-        )
+        raise AssertionError(f"Qualification name '{qual_name}' is not a string with length > 0")
 
     comparator = qual_dict["comparator"]
     if comparator not in SUPPORTED_COMPARATORS:

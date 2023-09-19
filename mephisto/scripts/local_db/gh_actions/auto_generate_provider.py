@@ -19,9 +19,7 @@ def main():
     valid_provider_types = get_valid_provider_types()
     for provider_type in valid_provider_types:
         provider_file.new_header(level=2, title=provider_type.replace("_", " "))
-        args = get_wut_arguments(
-            ("provider={provider_name}".format(provider_name=provider_type),)
-        )
+        args = get_wut_arguments(("provider={provider_name}".format(provider_name=provider_type),))
         arg_dict = args[0]
         create_blueprint_info(provider_file, arg_dict)
 

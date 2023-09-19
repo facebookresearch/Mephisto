@@ -126,9 +126,7 @@ class CrowdProvider(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def cleanup_resources_from_task_run(
-        self, task_run: "TaskRun", server_url: str
-    ) -> None:
+    def cleanup_resources_from_task_run(self, task_run: "TaskRun", server_url: str) -> None:
         """
         Destroy any resources set up specifically for this task run
         """

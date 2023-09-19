@@ -88,9 +88,7 @@ class Requester(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMe
             if row is None:
                 row = db.get_requester(db_id)
             assert row is not None, f"Given db_id {db_id} did not exist in given db"
-            correct_class = get_crowd_provider_from_type(
-                row["provider_type"]
-            ).RequesterClass
+            correct_class = get_crowd_provider_from_type(row["provider_type"]).RequesterClass
             return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
@@ -124,9 +122,7 @@ class Requester(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMe
         return f"{self.__class__.__name__}({self.db_id})"
 
     @staticmethod
-    def _register_requester(
-        db: "MephistoDB", requester_id: str, provider_type: str
-    ) -> "Requester":
+    def _register_requester(db: "MephistoDB", requester_id: str, provider_type: str) -> "Requester":
         """
         Create an entry for this requester in the database
         """

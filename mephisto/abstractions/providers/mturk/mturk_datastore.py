@@ -201,9 +201,7 @@ class MTurkDatastore:
             if len(results) > 0 and results[0]["unit_id"] is not None:
                 old_unit_id = results[0]["unit_id"]
                 self._mark_hit_mapping_update(old_unit_id)
-                logger.debug(
-                    f"Cleared HIT mapping cache for previous unit, {old_unit_id}"
-                )
+                logger.debug(f"Cleared HIT mapping cache for previous unit, {old_unit_id}")
 
             c.execute(
                 """UPDATE hits
@@ -338,9 +336,7 @@ class MTurkDatastore:
                     f"Multiple mturk mapping creations for qualification {qualification_name}. "
                     f"Found existing one: {qual}. "
                 )
-                assert (
-                    qual is not None
-                ), "Cannot be none given is_unique_failure on insert"
+                assert qual is not None, "Cannot be none given is_unique_failure on insert"
                 cur_requester_id = qual["requester_id"]
                 cur_mturk_qualification_name = qual["mturk_qualification_name"]
                 cur_mturk_qualification_id = qual["mturk_qualification_id"]
@@ -358,9 +354,7 @@ class MTurkDatastore:
             else:
                 raise e
 
-    def get_qualification_mapping(
-        self, qualification_name: str
-    ) -> Optional[sqlite3.Row]:
+    def get_qualification_mapping(self, qualification_name: str) -> Optional[sqlite3.Row]:
         """Get the mapping between Mephisto qualifications and MTurk qualifications"""
         with self.table_access_condition:
             conn = self._get_connection()
@@ -383,9 +377,7 @@ class MTurkDatastore:
         the existing one if it has already been created
         """
         if requester_name not in self.session_storage:
-            session = boto3.Session(
-                profile_name=requester_name, region_name=MTURK_REGION_NAME
-            )
+            session = boto3.Session(profile_name=requester_name, region_name=MTURK_REGION_NAME)
             self.session_storage[requester_name] = session
 
         return self.session_storage[requester_name]

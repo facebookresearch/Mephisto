@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   fb_mephisto:
@@ -7,8 +7,8 @@ services:
       context: ..
       dockerfile: Dockerfile
     ports:
-      - '8081:8000'
-      - '3001:3000'
+      - "8081:8000"
+      - "3001:3000"
     volumes:
       - ..:/mephisto
       - ./entrypoints/server.prolific.sh:/entrypoint.sh
@@ -17,4 +17,3 @@ services:
     entrypoint: /entrypoint.sh
     env_file: envs/env.dev
     command: tail -f /dev/null
-

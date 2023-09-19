@@ -95,9 +95,7 @@ def task_script(
     if config is not None:
         used_config = config
     else:
-        assert (
-            default_config_file is not None
-        ), "Must provide one of config or default_config_file"
+        assert default_config_file is not None, "Must provide one of config or default_config_file"
         used_config = build_default_task_config(default_config_file)
     register_script_config(name="taskconfig", module=used_config)
 
@@ -114,9 +112,7 @@ def task_script(
                     operator.shutdown()
             return ret_val
 
-        absolute_config_path = os.path.abspath(
-            os.path.join(get_run_file_dir(), config_path)
-        )
+        absolute_config_path = os.path.abspath(os.path.join(get_run_file_dir(), config_path))
         hydra_wrapper = hydra.main(
             config_path=absolute_config_path,
             config_name="taskconfig",
@@ -179,9 +175,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
             elif len(reqs) == 1:
                 req = reqs[0]
                 requester_name = req.requester_name
-                print(
-                    f"Found one `{provider_type}` requester to launch with: {requester_name}"
-                )
+                print(f"Found one `{provider_type}` requester to launch with: {requester_name}")
             else:
                 req = reqs[-1]
                 requester_name = req.requester_name
@@ -210,9 +204,7 @@ def augment_config_from_db(script_cfg: DictConfig, db: "MephistoDB") -> DictConf
 
     if provider_type in ["mturk"]:
         try_prerun_cleanup(db, cfg.provider.requester_name)
-        input(
-            f"This task is going to launch live on {provider_type}, press enter to continue: "
-        )
+        input(f"This task is going to launch live on {provider_type}, press enter to continue: ")
     if provider_type in ["mturk_sandbox", "mturk"] and architect_type not in [
         "heroku",
         "ec2",
@@ -282,8 +274,7 @@ def build_custom_bundle(
     packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
-            "please make sure npm is installed, otherwise view "
-            "the above error for more info."
+            "please make sure npm is installed, otherwise view " "the above error for more info."
         )
 
     if post_install_script is not None and len(post_install_script) > 0:

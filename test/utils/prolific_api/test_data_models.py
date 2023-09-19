@@ -16,31 +16,31 @@ from mephisto.abstractions.providers.prolific.api.data_models import Study
 class TestDataModelsUtils(unittest.TestCase):
     def test_study_validation_passed(self, *args):
         data = {
-            'name': 'Name',
-            'internal_name': 'internal_name',
-            'description': 'Description',
-            'external_study_url': 'https://url',
-            'prolific_id_option': 'url_parameters',
-            'completion_option': 'url',
-            'completion_codes': [],
-            'total_available_places': 100,
-            'estimated_completion_time': 5,
-            'reward': 999,
-            'device_compatibility': ['desktop'],
-            'peripheral_requirements': [],
-            'eligibility_requirements': [],
+            "name": "Name",
+            "internal_name": "internal_name",
+            "description": "Description",
+            "external_study_url": "https://url",
+            "prolific_id_option": "url_parameters",
+            "completion_option": "url",
+            "completion_codes": [],
+            "total_available_places": 100,
+            "estimated_completion_time": 5,
+            "reward": 999,
+            "device_compatibility": ["desktop"],
+            "peripheral_requirements": [],
+            "eligibility_requirements": [],
         }
 
         study = Study(**data)
-        self.assertEqual(study.name, data['name'])
+        self.assertEqual(study.name, data["name"])
 
     def test_study_validation_error(self, *args):
         data = {
-            'name': 'Name',
+            "name": "Name",
         }
 
         with self.assertRaises(ValidationError) as cm:
             Study(**data).validate()
 
-        self.assertEqual(cm.exception.validator, 'required')
+        self.assertEqual(cm.exception.validator, "required")
         self.assertEqual(cm.exception.message, "'description' is a required property")

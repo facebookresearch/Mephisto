@@ -23,6 +23,8 @@ from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
+MAX_RETRIES = 3
+
 
 class WebsocketChannel(Channel):
     """
@@ -55,6 +57,7 @@ class WebsocketChannel(Channel):
         self._is_alive = False
         self._is_closed = False
         self._socket_task: Optional[asyncio.Task] = None
+        self._retries = MAX_RETRIES
 
     def is_closed(self):
         """
@@ -95,9 +98,7 @@ class WebsocketChannel(Channel):
             if hasattr(error, "errno"):
                 if error.errno == errno.ECONNREFUSED:
                     # TODO(CLEAN) replace with channel exception
-                    raise Exception(
-                        f"Socket {self.socket_url} refused connection, cancelling"
-                    )
+                    raise Exception(f"Socket {self.socket_url} refused connection, cancelling")
             else:
                 logger.info(f"Socket logged error: {error}")
 
@@ -129,9 +130,7 @@ class WebsocketChannel(Channel):
             # Outer loop allows reconnects
             while not self._is_closed:
                 try:
-                    async with websockets.connect(
-                        self.socket_url, open_timeout=30
-                    ) as websocket:
+                    async with websockets.connect(self.socket_url, open_timeout=30) as websocket:
                         # Inner loop recieves messages until closed
                         self.socket = websocket
                         on_socket_open()
@@ -157,10 +156,18 @@ class WebsocketChannel(Channel):
                     self.on_catastrophic_disconnect(self.channel_id)
                     return
                 except OSError as e:
-                    logger.error(
-                        f"Unhandled OSError exception in socket {e}, attempting restart"
-                    )
+                    logger.error(f"Unhandled OSError exception in socket {e}, attempting restart")
                     await asyncio.sleep(0.2)
+                except websockets.exceptions.InvalidStatusCode as e:
+                    if self._retries == 0:
+                        raise ConnectionRefusedError("Could not connect after retries") from e
+                    curr_retry = MAX_RETRIES - self._retries
+                    logger.exception(
+                        f"Status code error {repr(e)}, attempting retry {curr_retry}",
+                        exc_info=True,
+                    )
+                    await asyncio.sleep(1 + curr_retry)
+                    self._retries += 1
                 except Exception as e:
                     logger.exception(f"Unhandled exception in socket {e}, {repr(e)}")
                     if self._is_closed:

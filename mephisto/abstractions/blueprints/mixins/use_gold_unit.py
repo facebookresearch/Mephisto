@@ -49,9 +49,7 @@ logger = get_logger(name=__name__)
 class UseGoldUnitArgs:
     gold_qualification_base: str = field(
         default=MISSING,
-        metadata={
-            "help": ("Basename for a qualification that tracks gold completion rates")
-        },
+        metadata={"help": ("Basename for a qualification that tracks gold completion rates")},
     )
     max_gold_units: int = field(
         default=MISSING,
@@ -69,18 +67,12 @@ class UseGoldUnitArgs:
     )
     min_golds: int = field(
         default=1,
-        metadata={
-            "help": (
-                "Minimum golds a worker needs to complete before getting real units."
-            )
-        },
+        metadata={"help": ("Minimum golds a worker needs to complete before getting real units.")},
     )
     max_incorrect_golds: int = field(
         default=0,
         metadata={
-            "help": (
-                "Maximum number of golds a worker can get incorrect before being disqualified"
-            )
+            "help": ("Maximum number of golds a worker can get incorrect before being disqualified")
         },
     )
 
@@ -99,10 +91,7 @@ def get_gold_factory(golds: List[Dict[str, Any]]) -> GoldFactory:
     assert num_golds != 0, "Must provide at least one gold to get_gold_factory"
 
     def get_gold_for_worker(worker: "Worker"):
-        if (
-            worker.db_id not in worker_gold_maps
-            or len(worker_gold_maps[worker.db_id]) == 0
-        ):
+        if worker.db_id not in worker_gold_maps or len(worker_gold_maps[worker.db_id]) == 0:
             # create a list of gold indices a worker hasn't done
             worker_gold_maps[worker.db_id] = [x for x in range(num_golds)]
         # select a random gold index from what remains
@@ -151,9 +140,7 @@ def worker_qualifies(
 
 @dataclass
 class GoldUnitSharedState:
-    get_gold_for_worker: GoldFactory = field(
-        default_factory=lambda: get_gold_factory([{}])
-    )
+    get_gold_for_worker: GoldFactory = field(default_factory=lambda: get_gold_factory([{}]))
     worker_needs_gold: Callable[[int, int, int, int], bool] = field(
         default_factory=lambda: worker_needs_gold,
     )
@@ -247,18 +234,14 @@ class UseGoldUnit(BlueprintMixin):
         # given a worker
 
     @staticmethod
-    def get_current_qual_or_default(
-        worker: "Worker", qual_name: str, default_val: Any = 0
-    ) -> Any:
+    def get_current_qual_or_default(worker: "Worker", qual_name: str, default_val: Any = 0) -> Any:
         """Return the qualification of this name for the worker, or the default value"""
         found_qual = worker.get_granted_qualification(qual_name)
         return default_val if found_qual is None else found_qual.value
 
     def get_completion_stats_for_worker(self, worker: "Worker") -> Tuple[int, int, int]:
         """Return the correct and incorrect gold counts, as well as the total count for a worker"""
-        completed_units = UseGoldUnit.get_current_qual_or_default(
-            worker, self.task_count_qual_name
-        )
+        completed_units = UseGoldUnit.get_current_qual_or_default(worker, self.task_count_qual_name)
         correct_golds = UseGoldUnit.get_current_qual_or_default(
             worker, self.golds_correct_qual_name
         )
@@ -299,9 +282,7 @@ class UseGoldUnit(BlueprintMixin):
             return True
         return False
 
-    def get_gold_unit_data_for_worker(
-        self, worker: "Worker"
-    ) -> Optional[Dict[str, Any]]:
+    def get_gold_unit_data_for_worker(self, worker: "Worker") -> Optional[Dict[str, Any]]:
         if self.gold_units_launched >= self.gold_unit_cap:
             return None
         try:
@@ -313,9 +294,7 @@ class UseGoldUnit(BlueprintMixin):
             return None
 
     @classmethod
-    def create_validation_function(
-        cls, args: "DictConfig", screen_unit: Callable[["Unit"], bool]
-    ):
+    def create_validation_function(cls, args: "DictConfig", screen_unit: Callable[["Unit"], bool]):
         """
         Takes in a validator function to determine if validation units are
         passable, and returns a `on_unit_submitted` function to be used
@@ -330,10 +309,7 @@ class UseGoldUnit(BlueprintMixin):
         def _wrapped_validate(unit):
             agent = unit.get_assigned_agent()
             if unit.unit_index != GOLD_UNIT_INDEX:
-                if (
-                    agent is not None
-                    and agent.get_status() == AgentState.STATUS_COMPLETED
-                ):
+                if agent is not None and agent.get_status() == AgentState.STATUS_COMPLETED:
                     worker = agent.get_worker()
                     completed_units = UseGoldUnit.get_current_qual_or_default(
                         worker, task_count_qual_name
@@ -370,9 +346,7 @@ class UseGoldUnit(BlueprintMixin):
         return _wrapped_validate
 
     @classmethod
-    def get_mixin_qualifications(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ):
+    def get_mixin_qualifications(cls, args: "DictConfig", shared_state: "SharedTaskState"):
         """Creates the relevant task qualifications for this task"""
         base_qual_name = args.blueprint.gold_qualification_base
         golds_failed_qual_name = f"{base_qual_name}-wrong-golds"

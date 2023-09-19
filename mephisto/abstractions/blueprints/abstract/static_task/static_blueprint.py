@@ -177,19 +177,13 @@ class StaticBlueprint(ScreenTaskRequired, OnboardingRequired, UseGoldUnit, Bluep
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
-            assert os.path.exists(
-                csv_file
-            ), f"Provided csv file {csv_file} doesn't exist"
+            assert os.path.exists(csv_file), f"Provided csv file {csv_file} doesn't exist"
         elif blue_args.get("data_json", None) is not None:
             json_file = os.path.expanduser(blue_args.data_json)
-            assert os.path.exists(
-                json_file
-            ), f"Provided JSON file {json_file} doesn't exist"
+            assert os.path.exists(json_file), f"Provided JSON file {json_file} doesn't exist"
         elif blue_args.get("data_jsonl", None) is not None:
             jsonl_file = os.path.expanduser(blue_args.data_jsonl)
-            assert os.path.exists(
-                jsonl_file
-            ), f"Provided JSON-L file {jsonl_file} doesn't exist"
+            assert os.path.exists(jsonl_file), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif shared_state.static_task_data is not None:
             if isinstance(shared_state.static_task_data, types.GeneratorType):
                 # TODO(#97) can we check something about this?
@@ -200,9 +194,7 @@ class StaticBlueprint(ScreenTaskRequired, OnboardingRequired, UseGoldUnit, Bluep
                     len([x for x in shared_state.static_task_data]) > 0
                 ), "Length of data dict provided was 0"
         else:
-            raise AssertionError(
-                "Must provide one of a data csv, json, json-L, or a list of tasks"
-            )
+            raise AssertionError("Must provide one of a data csv, json, json-L, or a list of tasks")
 
     def get_initialization_data(self) -> Iterable["InitializationData"]:
         """

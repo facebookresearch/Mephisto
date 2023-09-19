@@ -45,9 +45,7 @@ class BlueprintArgs:
     _blueprint_type: str = MISSING
     block_qualification: str = field(
         default=MISSING,
-        metadata={
-            "help": ("Specify the name of a qualification used to soft block workers.")
-        },
+        metadata={"help": ("Specify the name of a qualification used to soft block workers.")},
     )
     tips_location: str = field(
         default=os.path.join(get_run_file_dir(), "assets/tips.csv"),
@@ -68,9 +66,7 @@ class SharedTaskState:
     task_config: Dict[str, Any] = field(
         default_factory=dict,
         metadata={
-            "help": (
-                "Values to be included in the frontend MephistoTask.task_config object"
-            ),
+            "help": ("Values to be included in the frontend MephistoTask.task_config object"),
             "type": "Dict[str, Any]",
             "default": "{}",
         },
@@ -131,23 +127,17 @@ class BlueprintMixin(ABC):
     def extract_unique_mixins(blueprint_class: Type["Blueprint"]):
         """Return the unique mixin classes that are used in the given blueprint class"""
         mixin_subclasses = [
-            clazz
-            for clazz in blueprint_class.mro()
-            if issubclass(clazz, BlueprintMixin)
+            clazz for clazz in blueprint_class.mro() if issubclass(clazz, BlueprintMixin)
         ]
         target_class: Union[Type["Blueprint"], Type["BlueprintMixin"]] = blueprint_class
         # Remove magic created with `mixin_args_and_state`
         while target_class.__name__ == "MixedInBlueprint":
             target_class = mixin_subclasses.pop(0)
         removed_locals = [
-            clazz
-            for clazz in mixin_subclasses
-            if "MixedInBlueprint" not in clazz.__name__
+            clazz for clazz in mixin_subclasses if "MixedInBlueprint" not in clazz.__name__
         ]
         filtered_subclasses = set(
-            clazz
-            for clazz in removed_locals
-            if clazz != BlueprintMixin and clazz != target_class
+            clazz for clazz in removed_locals if clazz != BlueprintMixin and clazz != target_class
         )
 
         # Remaining "Blueprints" should be dropped at this point.
@@ -157,13 +147,9 @@ class BlueprintMixin(ABC):
 
         # we also want to make sure that we don't double-count extensions of mixins, so remove classes that other classes are subclasses of
         def is_subclassed(clazz):
-            return True in [
-                issubclass(x, clazz) and x != clazz for x in filtered_out_blueprints
-            ]
+            return True in [issubclass(x, clazz) and x != clazz for x in filtered_out_blueprints]
 
-        unique_subclasses = [
-            clazz for clazz in filtered_out_blueprints if not is_subclassed(clazz)
-        ]
+        unique_subclasses = [clazz for clazz in filtered_out_blueprints if not is_subclassed(clazz)]
         return unique_subclasses
 
     @abstractmethod
@@ -175,9 +161,7 @@ class BlueprintMixin(ABC):
 
     @classmethod
     @abstractmethod
-    def assert_mixin_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         """Method to validate the incoming args and throw if something won't work"""
         raise NotImplementedError()
 
@@ -190,9 +174,7 @@ class BlueprintMixin(ABC):
         raise NotImplementedError()
 
     @classmethod
-    def mixin_args_and_state(
-        mixin_cls: Type["BlueprintMixin"], target_cls: Type["Blueprint"]
-    ):
+    def mixin_args_and_state(mixin_cls: Type["BlueprintMixin"], target_cls: Type["Blueprint"]):
         """
         Magic utility decorator that can be used to inject mixin configurations
         (BlueprintArgs and SharedTaskState) without the user needing to define new
@@ -240,9 +222,7 @@ class Blueprint(ABC):
     SharedStateClass: ClassVar[Type["SharedTaskState"]] = SharedTaskState
     BLUEPRINT_TYPE: str
 
-    def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"
-    ):
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "SharedTaskState"):
         self.args = args
         self.shared_state = shared_state
         self.frontend_task_config = shared_state.task_config
@@ -252,9 +232,7 @@ class Blueprint(ABC):
             clazz.init_mixin_config(self, task_run, args, shared_state)
 
     @classmethod
-    def get_required_qualifications(
-        cls, args: DictConfig, shared_state: "SharedTaskState"
-    ):
+    def get_required_qualifications(cls, args: DictConfig, shared_state: "SharedTaskState"):
         quals = []
         for clazz in BlueprintMixin.extract_unique_mixins(cls):
             quals += clazz.get_mixin_qualifications(args, shared_state)

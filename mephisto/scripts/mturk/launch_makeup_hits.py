@@ -134,14 +134,12 @@ def main():
         qualification = make_qualification_dict(qual_name, QUAL_EXISTS, None)
         qual_map = requester.datastore.get_qualification_mapping(qual_name)
         if qual_map is None:
-            qualification[
-                "QualificationTypeId"
-            ] = requester._create_new_mturk_qualification(qual_name)
+            qualification["QualificationTypeId"] = requester._create_new_mturk_qualification(
+                qual_name
+            )
         else:
             qualification["QualificationTypeId"] = qual_map["mturk_qualification_id"]
-        give_worker_qualification(
-            client, worker_id, qualification["QualificationTypeId"]
-        )
+        give_worker_qualification(client, worker_id, qualification["QualificationTypeId"])
 
         # Create the task run for this HIT
         print(f"Creating task run and data model components for this HIT")

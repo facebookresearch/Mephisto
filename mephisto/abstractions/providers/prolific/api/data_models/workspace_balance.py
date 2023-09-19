@@ -16,6 +16,7 @@ class WorkspaceBalance(BaseModel):
     More about Workspaces:
         https://docs.prolific.co/docs/api-docs/public/#tag/Workspaces
     """
+
     currency_code: str
     total_balance: Union[Decimal, float, int]
     balance_breakdown: Dict[str, Union[Decimal, float, int]]
@@ -23,29 +24,29 @@ class WorkspaceBalance(BaseModel):
     available_balance_breakdown: Dict[str, Union[Decimal, float, int]]
 
     schema = {
-        'type': 'object',
-        'properties': {
-            'currency_code': {'type': 'string'},
-            'total_balance': {'type': 'number'},
-            'balance_breakdown': {
-                'type': 'object',
-                'properties': {
-                    'rewards': {'type': 'number'},
-                    'fees': {'type': 'number'},
-                    'vat': {'type': 'number'},
+        "type": "object",
+        "properties": {
+            "currency_code": {"type": "string"},
+            "total_balance": {"type": "number"},
+            "balance_breakdown": {
+                "type": "object",
+                "properties": {
+                    "rewards": {"type": "number"},
+                    "fees": {"type": "number"},
+                    "vat": {"type": "number"},
                 },
             },
-            'available_balance': {'type': 'number'},
-            'available_balance_breakdown': {
-                'type': 'object',
-                'properties': {
-                    'rewards': {'type': 'number'},
-                    'fees': {'type': 'number'},
-                    'vat': {'type': 'number'},
+            "available_balance": {"type": "number"},
+            "available_balance_breakdown": {
+                "type": "object",
+                "properties": {
+                    "rewards": {"type": "number"},
+                    "fees": {"type": "number"},
+                    "vat": {"type": "number"},
                 },
             },
         },
     }
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.total_balance} {self.currency_code}'
+        return f"{self.__class__.__name__} {self.total_balance} {self.currency_code}"

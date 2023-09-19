@@ -36,15 +36,15 @@ class Workspaces(BaseAPIResource):
         return Workspace(**response_json)
 
     @classmethod
-    def update(cls, new_workspace: Workspace) -> Workspace:
-        endpoint = cls.retrieve_api_endpoint.format(id=new_workspace.id)
-        new_workspace.validate()
-        print(new_workspace.users)
-        params = new_workspace.to_dict()
+    def update(cls, id: str, **data) -> Workspace:
+        endpoint = cls.retrieve_api_endpoint.format(id=id)
+        workspace = Workspace(**data)
+        workspace.validate(check_required_fields=False)
+        params = workspace.to_dict()
         if params["description"] == "":
-            del params["description"]
-        del params["product"]
-        response_json = cls.patch(endpoint, params=new_workspace.to_dict())
+            params.pop("description", None)
+        params.pop("product", None)  # TODO: What is this? Don't see this field in API docs
+        response_json = cls.patch(endpoint, params=params)
         return Workspace(**response_json)
 
     @classmethod

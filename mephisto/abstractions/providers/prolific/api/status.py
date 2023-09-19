@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 # 2xx
+HTTP_200_OK = 200
 HTTP_204_NO_CONTENT = 204
 
 # 4xx

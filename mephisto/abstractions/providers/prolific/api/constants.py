@@ -4,8 +4,8 @@ EMAIL_FORMAT = "^\\S+@\\S+\\.\\S+$"  # Simple email format checking
 # --- Studies ---
 
 # HACK: Hardcoded Question IDs (Prolific doesn't have a better way for now)
-# TODO (#1008): Make this dynamic as soon as possible
-ER_AGE_RANGE_QUESTION_ID = "54ac6ea9fdf99b2204feb893"
+# [Depends on Prolific] Make this dynamic as soon as possible
+ELIGIBILITY_REQUIREMENT_AGE_RANGE_QUESTION_ID = "54ac6ea9fdf99b2204feb893"
 
 # https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
 # `external_study_url` field
@@ -33,15 +33,19 @@ class StudyAction:
 
 
 class StudyStatus:
+    """
+    Study statuses explained
+    https://docs.prolific.co/docs/api-docs/public/#tag/Studies/The-study-object
+    """
+
     UNPUBLISHED = "UNPUBLISHED"
     ACTIVE = "ACTIVE"
     SCHEDULED = "SCHEDULED"
     PAUSED = "PAUSED"
     AWAITING_REVIEW = "AWAITING REVIEW"
     COMPLETED = "COMPLETED"
-    _EXPIRED = (
-        "EXPIRED"  # Pseudo status that we will use in `Study.internal_name` as a hack
-    )
+    # Pseudo status that we will use in `Study.internal_name` as a hack
+    _EXPIRED = "EXPIRED"
 
 
 class StudyCompletionOption:

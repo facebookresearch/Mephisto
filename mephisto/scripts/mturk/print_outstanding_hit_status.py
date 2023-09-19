@@ -23,9 +23,7 @@ def main():
     task_run = TaskRun.get(db, task_run_id)
     requester = task_run.get_requester()
     if not isinstance(requester, MTurkRequester):
-        print(
-            "Must be checking a task launched on MTurk, this one uses the following requester:"
-        )
+        print("Must be checking a task launched on MTurk, this one uses the following requester:")
         print(requester)
         exit(0)
 

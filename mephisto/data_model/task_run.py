@@ -237,9 +237,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
             currently_active = len(current_units)
             if config.allowed_concurrent != 0:
                 if currently_active >= config.allowed_concurrent:
-                    logger.debug(
-                        f"{worker} at maximum concurrent units {currently_active}"
-                    )
+                    logger.debug(f"{worker} at maximum concurrent units {currently_active}")
                     return []  # currently at the maximum number of concurrent units
             if config.maximum_units_per_worker != 0:
                 completed_types = AssignmentState.completed()
@@ -250,10 +248,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
                 currently_completed = len(
                     [u for u in related_units if u.db_status in completed_types]
                 )
-                if (
-                    currently_active + currently_completed
-                    >= config.maximum_units_per_worker
-                ):
+                if currently_active + currently_completed >= config.maximum_units_per_worker:
                     logger.debug(
                         f"{worker} at maximum units {currently_active}, {currently_completed}"
                     )
@@ -278,19 +273,13 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         # Can use db_status directly rather than polling in the critical path, as in
         # the worst case we miss the transition from an active to launched unit
         valid_units = [
-            u
-            for u in units
-            if u.db_status == AssignmentState.LAUNCHED and u.unit_index >= 0
+            u for u in units if u.db_status == AssignmentState.LAUNCHED and u.unit_index >= 0
         ]
         logger.debug(f"Found {len(valid_units)} available units")
 
         # Should load cached blueprint for SharedTaskState
         blueprint = self.get_blueprint()
-        ret_units = [
-            u
-            for u in valid_units
-            if blueprint.shared_state.worker_can_do_unit(worker, u)
-        ]
+        ret_units = [u for u in valid_units if blueprint.shared_state.worker_can_do_unit(worker, u)]
 
         logger.debug(f"This worker is qualified for {len(ret_units)} unit.")
         logger.debug(f"Found {ret_units[:3]} for {worker}.")
@@ -387,9 +376,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         Get assignments for this run, optionally filtering by their
         current status
         """
-        assert (
-            status is None or status in AssignmentState.valid()
-        ), "Invalid assignment status"
+        assert status is None or status in AssignmentState.valid(), "Invalid assignment status"
         assignments = self.db.find_assignments(task_run_id=self.db_id)
         if status is not None:
             assignments = [a for a in assignments if a.get_status() == status]
@@ -402,9 +389,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         assigns = self.get_assignments()
         assigns_with_status = [(x, x.get_status()) for x in assigns]
         return {
-            status: len(
-                [x for x, had_status in assigns_with_status if had_status == status]
-            )
+            status: len([x for x, had_status in assigns_with_status if had_status == status])
             for status in AssignmentState.valid()
         }
 
@@ -480,9 +465,7 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         return f"TaskRun({self.db_id})"
 
     @staticmethod
-    def new(
-        db: "MephistoDB", task: "Task", requester: Requester, param_string: str
-    ) -> "TaskRun":
+    def new(db: "MephistoDB", task: "Task", requester: Requester, param_string: str) -> "TaskRun":
         """
         Create a new run for the given task with the given params
         """

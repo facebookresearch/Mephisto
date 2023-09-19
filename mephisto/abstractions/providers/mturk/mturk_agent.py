@@ -50,9 +50,7 @@ class MTurkAgent(Agent):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            self.PROVIDER_TYPE
-        )
+        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(self.PROVIDER_TYPE)
         unit: "MTurkUnit" = cast("MTurkUnit", self.get_unit())
         self.mturk_assignment_id = unit.get_mturk_assignment_id()
 
@@ -83,12 +81,8 @@ class MTurkAgent(Agent):
         """
         from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
 
-        assert isinstance(
-            unit, MTurkUnit
-        ), "Can only register mturk agents to mturk units"
-        unit.register_from_provider_data(
-            provider_data["hit_id"], provider_data["assignment_id"]
-        )
+        assert isinstance(unit, MTurkUnit), "Can only register mturk agents to mturk units"
+        unit.register_from_provider_data(provider_data["hit_id"], provider_data["assignment_id"])
         return super().new_from_provider_data(db, worker, unit, provider_data)
 
     def attempt_to_reconcile_submitted_data(self, mturk_hit_id: str):
@@ -101,9 +95,7 @@ class MTurkAgent(Agent):
         assignment = get_assignments_for_hit(client, mturk_hit_id)[0]
         xml_data = xmltodict.parse(assignment["Answer"])
         paired_data = json.loads(json.dumps(xml_data["QuestionFormAnswers"]["Answer"]))
-        parsed_data = {
-            entry["QuestionIdentifier"]: entry["FreeText"] for entry in paired_data
-        }
+        parsed_data = {entry["QuestionIdentifier"]: entry["FreeText"] for entry in paired_data}
         parsed_data["MEPHISTO_MTURK_RECONCILED"] = True
         self.handle_submit(parsed_data)
 
@@ -134,9 +126,7 @@ class MTurkAgent(Agent):
         submitted.
         """
         if self.get_status() != AgentState.STATUS_DISCONNECT:
-            self.db.update_agent(
-                agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
-            )
+            self.db.update_agent(agent_id=self.db_id, status=AgentState.STATUS_COMPLETED)
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":

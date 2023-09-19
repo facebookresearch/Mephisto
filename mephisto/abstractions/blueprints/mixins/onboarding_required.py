@@ -84,9 +84,7 @@ class OnboardingRequired(BlueprintMixin):
         self.init_onboarding_config(task_run, args, shared_state)
 
     @classmethod
-    def assert_mixin_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         """Method to validate the incoming args and throw if something won't work"""
         # Is there any validation that should be done on the onboarding qualification name?
         return
@@ -140,12 +138,8 @@ class OnboardingRequired(BlueprintMixin):
             db,
             onboarding_qualification_name,
         )
-        self.onboarding_failed_name = self.get_failed_qual(
-            onboarding_qualification_name
-        )
-        self.onboarding_failed_id = find_or_create_qualification(
-            db, self.onboarding_failed_name
-        )
+        self.onboarding_failed_name = self.get_failed_qual(onboarding_qualification_name)
+        self.onboarding_failed_id = find_or_create_qualification(db, self.onboarding_failed_name)
 
     @classmethod
     def clear_onboarding(self, worker: "Worker", qualification_name: str):
@@ -163,9 +157,7 @@ class OnboardingRequired(BlueprintMixin):
         """
         return self.onboarding_data
 
-    def validate_onboarding(
-        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
-    ) -> bool:
+    def validate_onboarding(self, worker: "Worker", onboarding_agent: "OnboardingAgent") -> bool:
         """
         Check the incoming onboarding data and evaluate if the worker
         has passed the qualification or not. Return True if the worker

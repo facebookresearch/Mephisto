@@ -89,9 +89,7 @@ class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
     ArgsMixin: ClassVar[Any]
     SharedStateMixin: ClassVar[Any]
 
-    def __init__(
-        self, task_run: "TaskRun", args: "DictConfig", shared_state: "MockSharedState"
-    ):
+    def __init__(self, task_run: "TaskRun", args: "DictConfig", shared_state: "MockSharedState"):
         super().__init__(task_run, args, shared_state)
 
     def get_initialization_data(self) -> Iterable[InitializationData]:
@@ -103,9 +101,7 @@ class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
             for i in range(self.args.blueprint.num_assignments)
         ]
 
-    def validate_onboarding(
-        self, worker: "Worker", onboarding_agent: "OnboardingAgent"
-    ) -> bool:
+    def validate_onboarding(self, worker: "Worker", onboarding_agent: "OnboardingAgent") -> bool:
         """
         Onboarding validation for MockBlueprints just returns the 'should_pass' field
         """

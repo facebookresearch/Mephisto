@@ -101,6 +101,15 @@ class RemoteProcedureBlueprintArgs(
             "required": True,
         },
     )
+    extra_source_dir: str = field(
+        default=MISSING,
+        metadata={
+            "help": (
+                "Optional path to sources that the HTML may "
+                "refer to (such as images/video/css/scripts)"
+            ),
+        },
+    )
     link_task_source: bool = field(
         default=False,
         metadata={
@@ -119,9 +128,7 @@ class RemoteProcedureBlueprintArgs(
 
 
 @register_mephisto_abstraction()
-class RemoteProcedureBlueprint(
-    ScreenTaskRequired, OnboardingRequired, UseGoldUnit, Blueprint
-):
+class RemoteProcedureBlueprint(ScreenTaskRequired, OnboardingRequired, UseGoldUnit, Blueprint):
     """Blueprint for a task that runs a parlai chat"""
 
     AgentStateClass: ClassVar[Type["AgentState"]] = RemoteProcedureAgentState
@@ -172,9 +179,7 @@ class RemoteProcedureBlueprint(
             pass
 
     @classmethod
-    def assert_task_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_task_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         """Ensure that arguments are properly configured to launch this task"""
         assert isinstance(
             shared_state, SharedRemoteProcedureTaskState
@@ -182,19 +187,13 @@ class RemoteProcedureBlueprint(
         blue_args = args.blueprint
         if blue_args.get("data_csv", None) is not None:
             csv_file = os.path.expanduser(blue_args.data_csv)
-            assert os.path.exists(
-                csv_file
-            ), f"Provided csv file {csv_file} doesn't exist"
+            assert os.path.exists(csv_file), f"Provided csv file {csv_file} doesn't exist"
         elif blue_args.get("data_json", None) is not None:
             json_file = os.path.expanduser(blue_args.data_json)
-            assert os.path.exists(
-                json_file
-            ), f"Provided JSON file {json_file} doesn't exist"
+            assert os.path.exists(json_file), f"Provided JSON file {json_file} doesn't exist"
         elif blue_args.get("data_jsonl", None) is not None:
             jsonl_file = os.path.expanduser(blue_args.data_jsonl)
-            assert os.path.exists(
-                jsonl_file
-            ), f"Provided JSON-L file {jsonl_file} doesn't exist"
+            assert os.path.exists(jsonl_file), f"Provided JSON-L file {jsonl_file} doesn't exist"
         elif shared_state.static_task_data is not None:
             if isinstance(shared_state.static_task_data, types.GeneratorType):
                 # TODO can we check something about this?
@@ -204,9 +203,7 @@ class RemoteProcedureBlueprint(
                     len([x for x in shared_state.static_task_data]) > 0
                 ), "Length of data dict provided was 0"
         else:
-            raise AssertionError(
-                "Must provide one of a data csv, json, json-L, or a list of tasks"
-            )
+            raise AssertionError("Must provide one of a data csv, json, json-L, or a list of tasks")
         assert shared_state.function_registry is not None, (
             "Must provide a valid function registry to use with the task, a mapping "
             "of function names to functions that take as input a string and an agent "

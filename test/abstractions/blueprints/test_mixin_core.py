@@ -44,9 +44,7 @@ class BrokenMixin(BlueprintMixin):
         return
 
     @classmethod
-    def assert_mixin_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         return
 
     @classmethod
@@ -81,9 +79,7 @@ class MockBlueprintMixin1(BlueprintMixin):
             self.mixin_init_calls = 1
 
     @classmethod
-    def assert_mixin_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         assert args.blueprint.arg1 == 0, "Was not the default value of arg1"
 
     @classmethod
@@ -118,9 +114,7 @@ class MockBlueprintMixin2(BlueprintMixin):
             self.mixin_init_calls = 1
 
     @classmethod
-    def assert_mixin_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         assert args.blueprint.arg2 == 0, "Was not the default value of arg2"
 
     @classmethod
@@ -147,9 +141,7 @@ class ComposedMixin(MockBlueprintMixin1, MockBlueprintMixin2):
     mixin_init_calls: int
 
     @classmethod
-    def assert_mixin_args(
-        cls, args: "DictConfig", shared_state: "SharedTaskState"
-    ) -> None:
+    def assert_mixin_args(cls, args: "DictConfig", shared_state: "SharedTaskState") -> None:
         MockBlueprintMixin1.assert_mixin_args(args, shared_state)
         MockBlueprintMixin2.assert_mixin_args(args, shared_state)
 
@@ -193,9 +185,7 @@ class TestBlueprintMixinCore(unittest.TestCase):
         shared_state = TestBlueprint.SharedStateClass()
         cfg = self.get_structured_config(args)
 
-        with self.assertRaises(
-            AttributeError, msg="Undefined mixin classes should fail here"
-        ):
+        with self.assertRaises(AttributeError, msg="Undefined mixin classes should fail here"):
 
             @BrokenMixin.mixin_args_and_state
             class TestBlueprint(BrokenMixin, Blueprint):
@@ -234,9 +224,7 @@ class TestBlueprintMixinCore(unittest.TestCase):
         cfg = self.get_structured_config(args)
         TestBlueprint.assert_task_args(cfg, shared_state)
         blueprint = TestBlueprint(self.task_run, cfg, shared_state)
-        self.assertEqual(
-            blueprint.mixin_init_calls, 1, "More than one mixin init call!"
-        )
+        self.assertEqual(blueprint.mixin_init_calls, 1, "More than one mixin init call!")
 
         # Working mixin using the decorator
         @MockBlueprintMixin1.mixin_args_and_state
@@ -249,9 +237,7 @@ class TestBlueprintMixinCore(unittest.TestCase):
         cfg = self.get_structured_config(args)
         TestBlueprint.assert_task_args(cfg, shared_state)
         blueprint = TestBlueprint(self.task_run, cfg, shared_state)
-        self.assertEqual(
-            blueprint.mixin_init_calls, 1, "More than one mixin init call!"
-        )
+        self.assertEqual(blueprint.mixin_init_calls, 1, "More than one mixin init call!")
 
     def test_mixin_multi_inheritence(self):
         @MockBlueprintMixin1.mixin_args_and_state
@@ -268,20 +254,14 @@ class TestBlueprintMixinCore(unittest.TestCase):
         self.assertEqual(blueprint.mixin_init_calls, 2, "Should have 2 mixin calls")
 
         # Ensure qualifications are correct
-        required_quals = DoubleMixinBlueprint.get_required_qualifications(
-            args, shared_state
-        )
-        self.assertEqual(
-            len(BlueprintMixin.extract_unique_mixins(DoubleMixinBlueprint)), 2
-        )
+        required_quals = DoubleMixinBlueprint.get_required_qualifications(args, shared_state)
+        self.assertEqual(len(BlueprintMixin.extract_unique_mixins(DoubleMixinBlueprint)), 2)
         qual_names = [q["qual_name"] for q in required_quals]
         self.assertIn(MockBlueprintMixin1.MOCK_QUAL_NAME, qual_names)
         self.assertIn(MockBlueprintMixin2.MOCK_QUAL_NAME, qual_names)
 
         # Check functionality of important helpers
-        self.assertEqual(
-            len(BlueprintMixin.extract_unique_mixins(DoubleMixinBlueprint)), 2
-        )
+        self.assertEqual(len(BlueprintMixin.extract_unique_mixins(DoubleMixinBlueprint)), 2)
 
         # Ensure failures work for each of the arg failures
         shared_state = DoubleMixinBlueprint.SharedStateClass()
@@ -309,19 +289,13 @@ class TestBlueprintMixinCore(unittest.TestCase):
         self.assertEqual(blueprint.mixin_init_calls, 1, "Should have 1 mixin call")
 
         # Ensure qualifications are correct
-        required_quals = ComposedBlueprint.get_required_qualifications(
-            args, shared_state
-        )
-        self.assertEqual(
-            len(BlueprintMixin.extract_unique_mixins(ComposedBlueprint)), 1
-        )
+        required_quals = ComposedBlueprint.get_required_qualifications(args, shared_state)
+        self.assertEqual(len(BlueprintMixin.extract_unique_mixins(ComposedBlueprint)), 1)
         qual_names = [q["qual_name"] for q in required_quals]
         self.assertIn(ComposedBlueprint.MOCK_QUAL_NAME, qual_names)
 
         # Check functionality of important helpers
-        self.assertEqual(
-            len(BlueprintMixin.extract_unique_mixins(ComposedBlueprint)), 1
-        )
+        self.assertEqual(len(BlueprintMixin.extract_unique_mixins(ComposedBlueprint)), 1)
 
         # Ensure failures work for each of the arg failures
         shared_state = ComposedBlueprint.SharedStateClass()

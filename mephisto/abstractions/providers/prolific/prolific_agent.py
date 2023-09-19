@@ -16,20 +16,27 @@ from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.agent import Agent
 from mephisto.utils.logger_core import get_logger
-from .api.client import ProlificClient
+from mephisto.abstractions.providers.prolific.api.client import ProlificClient
+from mephisto.abstractions.providers.prolific.api.constants import SubmissionStatus
 
 if TYPE_CHECKING:
-    from mephisto.abstractions.providers.prolific.prolific_datastore import (
-        ProlificDatastore,
-    )
-    from mephisto.abstractions.providers.prolific.prolific_requester import (
-        ProlificRequester,
-    )
+    from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
+    from mephisto.abstractions.providers.prolific.prolific_requester import ProlificRequester
     from mephisto.abstractions.providers.prolific.prolific_unit import ProlificUnit
     from mephisto.abstractions.providers.prolific.prolific_worker import ProlificWorker
     from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
+
+
+SUBMISSION_STATUS_TO_AGENT_STATE_MAP = {
+    SubmissionStatus.RESERVED: AgentState.STATUS_WAITING,
+    SubmissionStatus.TIMED_OUT: AgentState.STATUS_TIMEOUT,
+    SubmissionStatus.AWAITING_REVIEW: AgentState.STATUS_COMPLETED,
+    SubmissionStatus.APPROVED: AgentState.STATUS_COMPLETED,
+    SubmissionStatus.RETURNED: AgentState.STATUS_RETURNED,
+    SubmissionStatus.REJECTED: AgentState.STATUS_REJECTED,
+}
 
 logger = get_logger(name=__name__)
 
@@ -52,17 +59,13 @@ class ProlificAgent(Agent):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(
-            self.PROVIDER_TYPE
-        )
+        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(self.PROVIDER_TYPE)
         self.unit: "ProlificUnit" = cast("ProlificUnit", self.get_unit())
         self.worker: "ProlificWorker" = cast("ProlificWorker", self.get_worker())
 
     def _get_client(self) -> ProlificClient:
         """Get a Prolific client"""
-        requester: "ProlificRequester" = cast(
-            "ProlificRequester", self.unit.get_requester()
-        )
+        requester: "ProlificRequester" = cast("ProlificRequester", self.unit.get_requester())
         return self.datastore.get_client_for_requester(requester.requester_name)
 
     @property
@@ -87,9 +90,7 @@ class ProlificAgent(Agent):
             f"Registering Prolific Submission in datastore from Prolific. Data: {provider_data}"
         )
 
-        assert isinstance(
-            unit, ProlificUnit
-        ), "Can only register Prolific agents to Prolific units"
+        assert isinstance(unit, ProlificUnit), "Can only register Prolific agents to Prolific units"
 
         prolific_study_id = provider_data["prolific_study_id"]
         prolific_submission_id = provider_data["assignment_id"]
@@ -104,16 +105,16 @@ class ProlificAgent(Agent):
         logger.debug(f"{self.log_prefix}Approving work")
 
         if self.get_status() == AgentState.STATUS_APPROVED:
-            logger.info(
-                f"{self.log_prefix}Approving already approved agent {self}, skipping"
-            )
+            logger.info(f"{self.log_prefix}Approving already approved agent {self}, skipping")
             return
 
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
-        worker_id = self.worker.get_prolific_worker_id()
+        worker_id = self.worker.get_prolific_participant_id()
         prolific_utils.approve_work(
-            client, study_id=prolific_study_id, worker_id=worker_id
+            client,
+            study_id=prolific_study_id,
+            worker_id=worker_id,
         )
 
         logger.debug(
@@ -124,31 +125,50 @@ class ProlificAgent(Agent):
 
         self.update_status(AgentState.STATUS_APPROVED)
 
+    def soft_reject_work(self) -> None:
+        """Mark as soft rejected on Mephisto and approve Worker on Prolific"""
+        super().soft_reject_work()
+
+        client = self._get_client()
+        prolific_study_id = self.unit.get_prolific_study_id()
+        worker_id = self.worker.get_prolific_participant_id()
+        prolific_utils.approve_work(
+            client,
+            study_id=prolific_study_id,
+            worker_id=worker_id,
+        )
+
+        logger.debug(
+            f"{self.log_prefix}"
+            f'Work for Study "{prolific_study_id}" completed by worker "{worker_id}" '
+            f"has been soft rejected"
+        )
+
     def reject_work(self, reason) -> None:
         """Reject the work done on this specific Unit"""
         logger.debug(f"{self.log_prefix}Rejecting work")
 
         if self.get_status() == AgentState.STATUS_APPROVED:
-            logger.warning(
-                f"{self.log_prefix}Cannot reject {self}, it is already approved"
-            )
+            logger.warning(f"{self.log_prefix}Cannot reject {self}, it is already approved")
             return
 
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
-        worker_id = self.worker.get_prolific_worker_id()
+        worker_id = self.worker.get_prolific_participant_id()
 
-        # TODO (#1008): remove this suppression of exception when Prolific fixes their API
+        # [Depends on Prolific] remove this suppression of exception when Prolific fixes their API
         from .api.exceptions import ProlificException
 
         try:
             prolific_utils.reject_work(
-                client, study_id=prolific_study_id, worker_id=worker_id
+                client,
+                study_id=prolific_study_id,
+                worker_id=worker_id,
             )
         except ProlificException:
             logger.info(
-                "NOTE: ignore the above error - "
-                "Prolific API always returns error here, even when it works"
+                "IGNORE ABOVE ERROR - it's a bug of Prolific API. "
+                "It always returns error here, even when the request works."
             )
 
         logger.debug(
@@ -169,8 +189,51 @@ class ProlificAgent(Agent):
 
         if self.get_status() != AgentState.STATUS_DISCONNECT:
             self.db.update_agent(
-                agent_id=self.db_id, status=AgentState.STATUS_COMPLETED
+                agent_id=self.db_id,
+                status=AgentState.STATUS_COMPLETED,
             )
+
+    def get_status(self) -> str:
+        """Query for this agent's status relative to Prolific"""
+        db_status = super().get_status()
+        if db_status in AgentState.immutable():
+            return db_status
+
+        # Check for unseen disconnect/return
+        unit_agent_pairing = self.get_unit().get_assigned_agent()
+        if unit_agent_pairing is None or unit_agent_pairing.db_id != self.db_id:
+            self.update_status(AgentState.STATUS_EXPIRED)
+            return self.db_status
+
+        client = self._get_client()
+
+        # Get Submission from Prolific, records status
+        datastore_unit = self.datastore.get_unit(unit_agent_pairing.db_id)
+        prolific_submission_id = datastore_unit["prolific_submission_id"]
+        prolific_submission = None
+        if prolific_submission_id:
+            prolific_submission = prolific_utils.get_submission(client, prolific_submission_id)
+        else:
+            # TODO: Not sure about this
+            self.update_status(AgentState.STATUS_EXPIRED)
+            return self.db_status
+
+        # Poll for status changes from the provider
+        if prolific_submission:
+            local_status = self.db_status
+
+            if prolific_submission.status == SubmissionStatus.RESERVED:
+                provider_status = local_status
+            else:
+                provider_status = SUBMISSION_STATUS_TO_AGENT_STATE_MAP.get(
+                    prolific_submission.status,
+                )
+                if not provider_status:
+                    raise Exception(f"Unexpected Submission status {prolific_submission.status}")
+
+            self.update_status(provider_status)
+
+        return self.db_status
 
     @staticmethod
     def new(db: "MephistoDB", worker: "Worker", unit: "Unit") -> "Agent":

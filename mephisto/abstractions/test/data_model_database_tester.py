@@ -316,9 +316,7 @@ class BaseDatabaseTests(unittest.TestCase):
         # But not after we've created a task run
         requester_name, requester_id = get_test_requester(db)
         init_params = json.dumps(OmegaConf.to_yaml(TaskRunArgs.get_mock_params()))
-        task_run_id = db.new_task_run(
-            task_id_2, requester_id, init_params, "mock", "mock"
-        )
+        task_run_id = db.new_task_run(task_id_2, requester_id, init_params, "mock", "mock")
         with self.assertRaises(MephistoDBException):
             db.update_task(task_id_2, task_name=task_name_2)
 
@@ -450,9 +448,7 @@ class BaseDatabaseTests(unittest.TestCase):
 
         # Check creation and retrieval of a task_run
         init_params = json.dumps(OmegaConf.to_yaml(TaskRunArgs.get_mock_params()))
-        task_run_id = db.new_task_run(
-            task_id, requester_id, init_params, "mock", "mock"
-        )
+        task_run_id = db.new_task_run(task_id, requester_id, init_params, "mock", "mock")
         self.assertIsNotNone(task_run_id)
         self.assertTrue(isinstance(task_run_id, str))
         task_run_row = db.get_task_run(task_run_id)
@@ -889,9 +885,7 @@ class BaseDatabaseTests(unittest.TestCase):
         qualifications = db.find_qualifications(qualification_name)
         self.assertEqual(len(qualifications), 0, "Qualification not remove")
         granted_quals = db.check_granted_qualifications()
-        self.assertEqual(
-            len(granted_quals), 0, "Cascade granted qualification not removed"
-        )
+        self.assertEqual(len(granted_quals), 0, "Cascade granted qualification not removed")
 
         # cant retrieve the qualification directly anymore
         with self.assertRaises(EntryDoesNotExistException):
@@ -907,9 +901,7 @@ class BaseDatabaseTests(unittest.TestCase):
         task = task_run.get_task()
         worker_name, worker_id = get_test_worker(db)
 
-        onboarding_agent_id = db.new_onboarding_agent(
-            worker_id, task.db_id, task_run_id, "mock"
-        )
+        onboarding_agent_id = db.new_onboarding_agent(worker_id, task.db_id, task_run_id, "mock")
         self.assertIsNotNone(onboarding_agent_id)
 
         onboarding_agent = OnboardingAgent.get(db, onboarding_agent_id)

@@ -81,9 +81,7 @@ def main():
 
     # Get or create a task run for this
     tasks = db.find_tasks()
-    task_names = [
-        t.task_name for t in tasks if t.task_type == BLUEPRINT_TYPE_STATIC_REACT
-    ]
+    task_names = [t.task_name for t in tasks if t.task_type == BLUEPRINT_TYPE_STATIC_REACT]
     print(f"Use an existing run? ")
 
     print(f"You have the following existing mock runs:")

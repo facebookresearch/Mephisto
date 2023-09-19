@@ -332,9 +332,7 @@ class MockArchitect(Architect):
     def prepare(self) -> str:
         """Mark the preparation call"""
         self.prepared = True
-        built_dir = os.path.join(
-            self.build_dir, "mock_build_{}".format(self.task_run_id)
-        )
+        built_dir = os.path.join(self.build_dir, "mock_build_{}".format(self.task_run_id))
         os.makedirs(built_dir)
         return built_dir
 

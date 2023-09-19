@@ -77,9 +77,7 @@ class BaseTestTaskLauncher:
 
     def test_init_on_task_run(self):
         """Initialize a launcher on a task_run"""
-        launcher = TaskLauncher(
-            self.db, self.task_run, self.get_mock_assignment_data_array()
-        )
+        launcher = TaskLauncher(self.db, self.task_run, self.get_mock_assignment_data_array())
         self.assertEqual(self.db, launcher.db)
         self.assertEqual(self.task_run, launcher.task_run)
         self.assertEqual(len(launcher.assignments), 0)
@@ -139,9 +137,7 @@ class BaseTestTaskLauncher:
             launcher.launch_units("dummy-url:3000")
 
             start_time = time.time()
-            while set([u.get_status() for u in launcher.units]) != {
-                AssignmentState.COMPLETED
-            }:
+            while set([u.get_status() for u in launcher.units]) != {AssignmentState.COMPLETED}:
                 for unit in launcher.units:
                     if unit.get_status() == AssignmentState.LAUNCHED:
                         unit.set_db_status(AssignmentState.COMPLETED)

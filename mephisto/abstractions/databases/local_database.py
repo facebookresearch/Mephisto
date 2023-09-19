@@ -290,9 +290,7 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
                 c.executescript(CREATE_CORE_INDEXES)
 
-    def __get_one_by_id(
-        self, table_name: str, id_name: str, db_id: str
-    ) -> Mapping[str, Any]:
+    def __get_one_by_id(self, table_name: str, id_name: str, db_id: str) -> Mapping[str, Any]:
         """
         Try to request the row for the given table and entry,
         raise EntryDoesNotExistException if it isn't present
@@ -309,9 +307,7 @@ class LocalMephistoDB(MephistoDB):
             )
             results = c.fetchall()
             if len(results) != 1:
-                raise EntryDoesNotExistException(
-                    f"Table {table_name} has no {id_name} {db_id}"
-                )
+                raise EntryDoesNotExistException(f"Table {table_name} has no {id_name} {db_id}")
             return results[0]
 
     def __create_query_and_tuple(
@@ -335,9 +331,7 @@ class LocalMephistoDB(MephistoDB):
             return "", ()
 
         query_lines = [
-            f"WHERE {arg_name} = ?{idx+1}\n"
-            if idx == 0
-            else f"AND {arg_name} = ?{idx+1}\n"
+            f"WHERE {arg_name} = ?{idx+1}\n" if idx == 0 else f"AND {arg_name} = ?{idx+1}\n"
             for idx, arg_name in enumerate(fin_args)
         ]
 
@@ -353,18 +347,14 @@ class LocalMephistoDB(MephistoDB):
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
             try:
-                c.execute(
-                    "INSERT INTO projects(project_name) VALUES (?);", (project_name,)
-                )
+                c.execute("INSERT INTO projects(project_name) VALUES (?);", (project_name,))
                 project_id = str(c.lastrowid)
                 return project_id
             except sqlite3.IntegrityError as e:
                 if is_key_failure(e):
                     raise EntryDoesNotExistException()
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException(
-                        f"Project {project_name} already exists"
-                    )
+                    raise EntryAlreadyExistsException(f"Project {project_name} already exists")
                 raise MephistoDBException(e)
 
     def _get_project(self, project_id: str) -> Mapping[str, Any]:
@@ -395,10 +385,7 @@ class LocalMephistoDB(MephistoDB):
                 arg_tuple,
             )
             rows = c.fetchall()
-            return [
-                Project(self, str(r["project_id"]), row=r, _used_new_call=True)
-                for r in rows
-            ]
+            return [Project(self, str(r["project_id"]), row=r, _used_new_call=True) for r in rows]
 
     def _new_task(
         self,
@@ -471,9 +458,7 @@ class LocalMephistoDB(MephistoDB):
                 arg_tuple,
             )
             rows = c.fetchall()
-            return [
-                Task(self, str(r["task_id"]), row=r, _used_new_call=True) for r in rows
-            ]
+            return [Task(self, str(r["task_id"]), row=r, _used_new_call=True) for r in rows]
 
     def _update_task(
         self,
@@ -518,9 +503,7 @@ class LocalMephistoDB(MephistoDB):
                 if is_key_failure(e):
                     raise EntryDoesNotExistException(e)
                 elif is_unique_failure(e):
-                    raise EntryAlreadyExistsException(
-                        f"Task name {task_name} is already in use"
-                    )
+                    raise EntryAlreadyExistsException(f"Task name {task_name} is already in use")
                 raise MephistoDBException(e)
 
     def _new_task_run(
@@ -600,10 +583,7 @@ class LocalMephistoDB(MephistoDB):
                 arg_tuple,
             )
             rows = c.fetchall()
-            return [
-                TaskRun(self, str(r["task_run_id"]), row=r, _used_new_call=True)
-                for r in rows
-            ]
+            return [TaskRun(self, str(r["task_run_id"]), row=r, _used_new_call=True) for r in rows]
 
     def _update_task_run(self, task_run_id: str, is_completed: bool):
         """
@@ -713,8 +693,7 @@ class LocalMephistoDB(MephistoDB):
             )
             rows = c.fetchall()
             return [
-                Assignment(self, str(r["assignment_id"]), row=r, _used_new_call=True)
-                for r in rows
+                Assignment(self, str(r["assignment_id"]), row=r, _used_new_call=True) for r in rows
             ]
 
     def _new_unit(
@@ -837,9 +816,7 @@ class LocalMephistoDB(MephistoDB):
                 arg_tuple,
             )
             rows = c.fetchall()
-            return [
-                Unit(self, str(r["unit_id"]), row=r, _used_new_call=True) for r in rows
-            ]
+            return [Unit(self, str(r["unit_id"]), row=r, _used_new_call=True) for r in rows]
 
     def _clear_unit_agent_assignment(self, unit_id: str) -> None:
         """
@@ -954,8 +931,7 @@ class LocalMephistoDB(MephistoDB):
             )
             rows = c.fetchall()
             return [
-                Requester(self, str(r["requester_id"]), row=r, _used_new_call=True)
-                for r in rows
+                Requester(self, str(r["requester_id"]), row=r, _used_new_call=True) for r in rows
             ]
 
     def _new_worker(self, worker_name: str, provider_type: str) -> str:
@@ -1014,10 +990,7 @@ class LocalMephistoDB(MephistoDB):
                 arg_tuple,
             )
             rows = c.fetchall()
-            return [
-                Worker(self, str(r["worker_id"]), row=r, _used_new_call=True)
-                for r in rows
-            ]
+            return [Worker(self, str(r["worker_id"]), row=r, _used_new_call=True) for r in rows]
 
     def _new_agent(
         self,
@@ -1155,10 +1128,7 @@ class LocalMephistoDB(MephistoDB):
                 arg_tuple,
             )
             rows = c.fetchall()
-            return [
-                Agent(self, str(r["agent_id"]), row=r, _used_new_call=True)
-                for r in rows
-            ]
+            return [Agent(self, str(r["agent_id"]), row=r, _used_new_call=True) for r in rows]
 
     def _make_qualification(self, qualification_name: str) -> str:
         """
@@ -1181,9 +1151,7 @@ class LocalMephistoDB(MephistoDB):
                     raise EntryAlreadyExistsException()
                 raise MephistoDBException(e)
 
-    def _find_qualifications(
-        self, qualification_name: Optional[str] = None
-    ) -> List[Qualification]:
+    def _find_qualifications(self, qualification_name: Optional[str] = None) -> List[Qualification]:
         """
         Find a qualification. If no name is supplied, returns all qualifications.
         """
@@ -1202,9 +1170,7 @@ class LocalMephistoDB(MephistoDB):
             )
             rows = c.fetchall()
             return [
-                Qualification(
-                    self, str(r["qualification_id"]), row=r, _used_new_call=True
-                )
+                Qualification(self, str(r["qualification_id"]), row=r, _used_new_call=True)
                 for r in rows
             ]
 
@@ -1215,9 +1181,7 @@ class LocalMephistoDB(MephistoDB):
 
         See Qualification for the expected fields for the returned mapping
         """
-        return self.__get_one_by_id(
-            "qualifications", "qualification_id", qualification_id
-        )
+        return self.__get_one_by_id("qualifications", "qualification_id", qualification_id)
 
     def _delete_qualification(self, qualification_name: str) -> None:
         """
@@ -1225,9 +1189,7 @@ class LocalMephistoDB(MephistoDB):
         """
         qualifications = self.find_qualifications(qualification_name=qualification_name)
         if len(qualifications) == 0:
-            raise EntryDoesNotExistException(
-                f"No qualification found by name {qualification_name}"
-            )
+            raise EntryDoesNotExistException(f"No qualification found by name {qualification_name}")
         qualification = qualifications[0]
         with self.table_access_condition, self._get_connection() as conn:
             c = conn.cursor()
@@ -1240,9 +1202,7 @@ class LocalMephistoDB(MephistoDB):
                 (qualification_name,),
             )
 
-    def _grant_qualification(
-        self, qualification_id: str, worker_id: str, value: int = 1
-    ) -> None:
+    def _grant_qualification(self, qualification_id: str, worker_id: str, value: int = 1) -> None:
         """
         Grant a worker the given qualification. Update the qualification value if it
         already exists
@@ -1311,7 +1271,10 @@ class LocalMephistoDB(MephistoDB):
             rows = c.fetchall()
             return [
                 GrantedQualification(
-                    self, str(r["qualification_id"]), str(r["worker_id"])
+                    self,
+                    str(r["qualification_id"]),
+                    str(r["worker_id"]),
+                    row=r,
                 )
                 for r in rows
             ]
@@ -1396,9 +1359,7 @@ class LocalMephistoDB(MephistoDB):
 
         Returns a SQLite Row object with the expected fields
         """
-        return self.__get_one_by_id(
-            "onboarding_agents", "onboarding_agent_id", onboarding_agent_id
-        )
+        return self.__get_one_by_id("onboarding_agents", "onboarding_agent_id", onboarding_agent_id)
 
     def _update_onboarding_agent(
         self, onboarding_agent_id: str, status: Optional[str] = None
@@ -1461,9 +1422,7 @@ class LocalMephistoDB(MephistoDB):
             )
             rows = c.fetchall()
             return [
-                OnboardingAgent(
-                    self, str(r["onboarding_agent_id"]), row=r, _used_new_call=True
-                )
+                OnboardingAgent(self, str(r["onboarding_agent_id"]), row=r, _used_new_call=True)
                 for r in rows
             ]
 

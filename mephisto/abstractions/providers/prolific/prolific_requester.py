@@ -18,13 +18,12 @@ from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.data_model.requester import Requester
 from mephisto.data_model.requester import RequesterArgs
 from .api.client import ProlificClient
+from .api.data_models import ParticipantGroup
 from .provider_type import PROVIDER_TYPE
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
-    from mephisto.abstractions.providers.prolific.prolific_datastore import (
-        ProlificDatastore,
-    )
+    from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
 
 MAX_QUALIFICATION_ATTEMPTS = 300
 
@@ -64,9 +63,7 @@ class ProlificRequester(Requester):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(
-            PROVIDER_TYPE
-        )
+        self.datastore: "ProlificDatastore" = db.get_datastore_for_provider(PROVIDER_TYPE)
 
     def _get_client(self, requester_name: str) -> ProlificClient:
         """Get a Prolific client"""
@@ -92,8 +89,10 @@ class ProlificRequester(Requester):
         return balance
 
     def create_new_qualification(
-        self, prolific_project_id: str, qualification_name: str
-    ) -> str:
+        self,
+        prolific_project_id: str,
+        qualification_name: str,
+    ) -> ParticipantGroup:
         """
         Create a new qualification (Prolific Participant Group) on Prolific
         owned by the requester provided
@@ -132,14 +131,14 @@ class ProlificRequester(Requester):
                     )
 
         # Store the new qualification in the datastore
-        self.datastore.create_qualification_mapping(
+        self.datastore.create_participant_group_mapping(
             qualification_name=qualification_name,
             requester_id=self.db_id,
             prolific_project_id=prolific_project_id,
             prolific_participant_group_name=_qualification_name,
             prolific_participant_group_id=qualification.id,
         )
-        return qualification.id
+        return qualification
 
     @staticmethod
     def new(db: "MephistoDB", requester_name: str) -> "Requester":

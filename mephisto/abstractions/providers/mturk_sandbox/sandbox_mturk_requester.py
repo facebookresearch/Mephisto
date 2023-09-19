@@ -29,9 +29,7 @@ class SandboxMTurkRequester(MTurkRequester):
         _used_new_call: bool = False,
     ):
         super().__init__(db, db_id, row=row, _used_new_call=_used_new_call)
-        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(
-            self.PROVIDER_TYPE
-        )
+        self.datastore: "MTurkDatastore" = self.db.get_datastore_for_provider(self.PROVIDER_TYPE)
         # Use _requester_name to preserve sandbox behavior which
         # utilizes a different requester_name
         assert self.requester_name.endswith(
@@ -58,6 +56,4 @@ class SandboxMTurkRequester(MTurkRequester):
     def new(db: "MephistoDB", requester_name: str) -> "Requester":
         if not requester_name.endswith("_sandbox"):
             requester_name += "_sandbox"
-        return SandboxMTurkRequester._register_requester(
-            db, requester_name, PROVIDER_TYPE
-        )
+        return SandboxMTurkRequester._register_requester(db, requester_name, PROVIDER_TYPE)

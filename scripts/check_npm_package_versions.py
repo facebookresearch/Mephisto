@@ -25,9 +25,7 @@ def run_check():
     all_success = True
     for pkg in CHECK_PACKAGES:
         package_location = os.path.join(ROOT_DIR, "packages", pkg, "package.json")
-        assert os.path.exists(
-            package_location
-        ), f"Can't find package {pkg} at {package_location}"
+        assert os.path.exists(package_location), f"Can't find package {pkg} at {package_location}"
         with open(package_location) as package_json:
             version = json.load(package_json)["version"]
 

@@ -17,6 +17,7 @@ from dataclasses import dataclass, replace
 import time
 import weakref
 import os.path
+from mephisto.data_model.constants.assignment_state import AssignmentState
 
 if TYPE_CHECKING:
     from mephisto.data_model.agent import Agent, OnboardingAgent
@@ -84,13 +85,23 @@ class AgentState(ABC):
             if isinstance(agent, Agent):
                 correct_class = get_blueprint_from_type(agent.task_type).AgentStateClass
             else:
-                correct_class = get_blueprint_from_type(
-                    agent.task_type
-                ).OnboardingAgentStateClass
+                correct_class = get_blueprint_from_type(agent.task_type).OnboardingAgentStateClass
             return super().__new__(correct_class)
         else:
             # We are constructing another instance directly
             return super().__new__(cls)
+
+    @staticmethod
+    def immutable() -> List[str]:
+        """Return all agent statuses that cannot be changed under normal operation"""
+        return [
+            AgentState.STATUS_DISCONNECT,
+            AgentState.STATUS_TIMEOUT,
+            AgentState.STATUS_EXPIRED,
+            AgentState.STATUS_RETURNED,
+            AgentState.STATUS_SOFT_REJECTED,
+            AgentState.STATUS_APPROVED,
+        ]
 
     @staticmethod
     def complete() -> List[str]:
@@ -125,6 +136,30 @@ class AgentState(ABC):
             AgentState.STATUS_APPROVED,
             AgentState.STATUS_REJECTED,
         ]
+
+    @staticmethod
+    def to_assignment_state(agent_state: str) -> str:
+        """Return corresponding AssignmentState for an AgentState"""
+        AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP = {
+            AgentState.STATUS_NONE: AssignmentState.CREATED,
+            AgentState.STATUS_ACCEPTED: AssignmentState.ASSIGNED,
+            AgentState.STATUS_ONBOARDING: AssignmentState.ASSIGNED,
+            AgentState.STATUS_WAITING: AssignmentState.ASSIGNED,
+            AgentState.STATUS_IN_TASK: AssignmentState.ASSIGNED,
+            AgentState.STATUS_COMPLETED: AssignmentState.COMPLETED,
+            AgentState.STATUS_DISCONNECT: AssignmentState.CREATED,
+            AgentState.STATUS_TIMEOUT: AssignmentState.CREATED,
+            AgentState.STATUS_PARTNER_DISCONNECT: AssignmentState.COMPLETED,
+            AgentState.STATUS_EXPIRED: AssignmentState.EXPIRED,
+            AgentState.STATUS_RETURNED: AssignmentState.CREATED,
+            AgentState.STATUS_SOFT_REJECTED: AssignmentState.SOFT_REJECTED,
+            AgentState.STATUS_APPROVED: AssignmentState.ACCEPTED,
+            AgentState.STATUS_REJECTED: AssignmentState.REJECTED,
+        }
+        assert (
+            agent_state in AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP
+        ), f"Invalid agent state {agent_state} provided, valid: {AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP.keys()}"
+        return AGENT_STATE_TO_ASSIGNMENTS_STATE_MAP[agent_state]
 
     # Implementations of an AgentState must implement the following:
 

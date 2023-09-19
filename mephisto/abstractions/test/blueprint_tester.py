@@ -67,9 +67,7 @@ class BlueprintTests(unittest.TestCase):
         """Create a test assignment for self.task_run using mock agents"""
         raise NotImplementedError()
 
-    def assignment_is_tracked(
-        self, task_runner: TaskRunner, assignment: Assignment
-    ) -> bool:
+    def assignment_is_tracked(self, task_runner: TaskRunner, assignment: Assignment) -> bool:
         """
         Return whether or not this task is currently being tracked (run)
         by the given task runner. This should be false unless
@@ -136,9 +134,7 @@ class BlueprintTests(unittest.TestCase):
         found_keys = [k for k in dir(a_state) if k.startswith("STATUS_")]
         found_vals = [getattr(a_state, k) for k in found_keys]
         for v in found_vals:
-            self.assertIn(
-                v, found_valid, f"Expected to find {v} in valid list {found_valid}"
-            )
+            self.assertIn(v, found_valid, f"Expected to find {v} in valid list {found_valid}")
         for v in found_complete:
             self.assertIn(
                 v,

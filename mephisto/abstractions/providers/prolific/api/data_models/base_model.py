@@ -11,14 +11,14 @@ class BaseModel:
     id: str
 
     schema = {
-        'type': 'object',
-        'properties': {
-            'id': {'type': 'string'},
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
         },
     }
 
     required_schema_fields = []
-    id_field_name = 'id'
+    id_field_name = "id"
 
     def __init__(self, **data):
         self.__dict__ = data
@@ -27,13 +27,13 @@ class BaseModel:
         return f'{self.__class__.__name__} {getattr(self, "id", "")}'
 
     def __repr__(self) -> str:
-        return f'<{self.__str__()}>'
+        return f"<{self.__str__()}>"
 
     def validate(self, check_required_fields: bool = True):
         schema = dict(self.schema)
 
         if check_required_fields:
-            schema['required'] = self.required_schema_fields
+            schema["required"] = self.required_schema_fields
 
         validate(instance=self.__dict__, schema=schema)
 
