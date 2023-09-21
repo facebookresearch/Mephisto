@@ -52,7 +52,7 @@ def validate_screening_unit(unit: Unit):
     agent = unit.get_assigned_agent()
     if agent is not None:
         data = agent.state.get_data()
-        annotation = data["final_submission"]["annotations"][0]
+        annotation = data["outputs"]["final_submission"]["annotations"][0]
         if annotation["isCorrect"] and annotation["currentAnnotation"] == 3:
             return True
     return False
