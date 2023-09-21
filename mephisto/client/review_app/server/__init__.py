@@ -92,7 +92,7 @@ def create_app(provider: str, debug: bool) -> Flask:
         # Other uncaught exceptions
         logger.error(''.join(traceback.format_tb(e.__traceback__)))
         return {
-            'error': str(e),
+            'error': f'Server error: {e}',
         }, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     return app

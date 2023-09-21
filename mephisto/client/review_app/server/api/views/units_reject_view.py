@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List
 from typing import Optional
 
 from flask import current_app as app
@@ -29,19 +28,19 @@ class UnitsRejectView(MethodView):
         if not unit_ids:
             raise BadRequest("`unit_ids` parameter must be specified.")
 
-        # Get units
-        db_units: List[Unit] = app.db.find_units()
-
         # Reject units
-        for unit in db_units:
-            if unit_ids and str(unit.db_id) not in unit_ids:
-                continue
+        for unit_id in unit_ids:
+            unit: Unit = Unit.get(app.db, str(unit_id))
 
             agent = unit.get_assigned_agent()
             if not agent:
-                raise BadRequest(f"Cound not reject Unit \"{unit.db_id}\".")
+                raise BadRequest(f"Cound not reject Unit \"{unit_id}\".")
 
-            agent.reject_work(feedback)
+            try:
+                agent.reject_work(feedback)
+            except Exception as e:
+                raise BadRequest(f"Could not reject unit \"{unit_id}\". Reason: {e}")
+
             unit.get_status()  # Update status immediately for other EPs
 
             db_queries.create_unit_review(

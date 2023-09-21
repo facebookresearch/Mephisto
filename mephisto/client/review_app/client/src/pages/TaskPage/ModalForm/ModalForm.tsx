@@ -17,17 +17,17 @@ const range = (start, end) => Array.from(Array(end + 1).keys()).slice(start);
 type ModalFormProps = {
   data: ModalDataType;
   setData: React.Dispatch<React.SetStateAction<ModalDataType>>;
+  setErrors: Function;
 };
 
 
 function ModalForm(props: ModalFormProps) {
   const [qualifications, setQualifications] = React.useState<Array<QualificationType>>(null);
   const [loading, setLoading] = React.useState(false);
-  const [errors, setErrors] = React.useState<ErrorResponseType>(null);
 
   const onChangeAssign = (value: boolean) => {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.checkboxAssign = value;
+    prevFormData.checkboxAssignQualification = value;
     props.setData({...props.data, form: prevFormData})
   };
 
@@ -73,23 +73,33 @@ function ModalForm(props: ModalFormProps) {
     props.setData({...props.data, form: prevFormData});
   };
 
+  const onError = (errorResponse: ErrorResponseType | null) => {
+    if (errorResponse) {
+      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
+    }
+  };
+
   // Effiects
   useEffect(() => {
     if (qualifications === null) {
-      getQualifications(setQualifications, setLoading, setErrors, null);
+      getQualifications(setQualifications, setLoading, onError, null);
     }
   }, []);
+
+  if (loading) {
+    return;
+  }
 
   return <Form className={"review-form"} method={"POST"} onSubmit={(e) => {e.preventDefault();}}>
     <Form.Check
       type={"checkbox"}
       label={"Assign Qualification"}
       id={'assign'}
-      checked={props.data.form.checkboxAssign}
-      onChange={() => onChangeAssign(!props.data.form.checkboxAssign)}
+      checked={props.data.form.checkboxAssignQualification}
+      onChange={() => onChangeAssign(!props.data.form.checkboxAssignQualification)}
     />
 
-    {props.data.form.checkboxAssign && (
+    {props.data.form.checkboxAssignQualification && (
       <Row className={"second-line"}>
         <Col xs={9}>
           <Form.Select
@@ -111,7 +121,7 @@ function ModalForm(props: ModalFormProps) {
             value={props.data.form.qualificationValue}
             onChange={(e) => onChangeAssignQualificationValue(e.target.value)}
           >
-            {range(1, 20).map((i) => {
+            {range(1, 10).map((i) => {
               return <option key={"qualVal" + i}>{i}</option>;
             })}
           </Form.Select>

@@ -10,10 +10,10 @@ from typing import Optional
 from flask import current_app as app
 from flask import request
 from flask.views import MethodView
-from mephisto.data_model.constants.assignment_state import AssignmentState
 from werkzeug.exceptions import BadRequest
 
-from mephisto.abstractions.databases.local_database import StringIDRow
+from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.data_model.task import Task
 from mephisto.data_model.unit import Unit
 
 
@@ -43,19 +43,16 @@ class UnitsView(MethodView):
                 "At least one of `task_id` or `unit_ids` parameters must be specified."
             )
 
-        # Get units according to params
+        # Check if task with past `task_id` exists
         if task_id:
-            db_task: StringIDRow = app.db.get_task(task_id)
-            db_units: List[Unit] = app.data_browser.get_all_units_for_task_name(
-                db_task["task_name"],
-            )
-        else:
-            db_units: List[Unit] = app.db.find_units()
+            Task.get(app.db, str(task_id))
 
         # Prepare response
         units = []
-        for unit in db_units:
-            if unit_ids and int(unit.db_id) not in unit_ids:
+        for unit_id in unit_ids:
+            unit: Unit = Unit.get(app.db, str(unit_id))
+
+            if task_id and unit.task_id != task_id:
                 continue
 
             if unit.db_status != AssignmentState.COMPLETED:

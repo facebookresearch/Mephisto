@@ -8,10 +8,10 @@ from typing import List
 
 from flask import current_app as app
 from flask.views import MethodView
-from mephisto.data_model.constants.assignment_state import AssignmentState
 
 from mephisto.abstractions.databases.local_database import StringIDRow
-from mephisto.data_model.unit import Unit
+from mephisto.client.review_app.server.db_queries import find_units
+from mephisto.data_model.constants.assignment_state import AssignmentState
 
 
 class TaskUnitIdsView(MethodView):
@@ -24,19 +24,21 @@ class TaskUnitIdsView(MethodView):
         db_task: StringIDRow = app.db.get_task(task_id)
         app.logger.debug(f"Found task in DB: {dict(db_task)}")
 
-        units: List[Unit] = app.data_browser.get_units_for_task_name(db_task["task_name"])
+        db_units: List[StringIDRow] = find_units(
+            app.db, int(db_task["task_id"]), statuses=AssignmentState.completed(), debug=app.debug,
+        )
+
+        app.logger.debug(f"All units: {[u['unit_id'] for u in db_units]}")
 
         worker_units_ids = []
-        for u in units:
-            if u.db_status != AssignmentState.COMPLETED:
+        for db_unit in db_units:
+            if db_unit["status"] != AssignmentState.COMPLETED:
                 continue
-
-            app.logger.debug(f"All units: {units}")
 
             worker_units_ids.append(
                 {
-                    "worker_id": u.worker_id,
-                    "unit_id": u.db_id,
+                    "worker_id": db_unit["worker_id"],
+                    "unit_id": db_unit["unit_id"],
                 }
             )
 

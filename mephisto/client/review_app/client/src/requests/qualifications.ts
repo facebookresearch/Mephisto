@@ -83,7 +83,7 @@ export function postQualificationGrantWorker(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: string | number },
+  data: { [key: string]: string[] | number[] | number | string },
   abortController?: AbortController,
 ) {
   const url = generateURL(urls.server.qualificationGrantWorker(id, workerId), null, null);
@@ -107,7 +107,7 @@ export function postQualificationRevokeWorker(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: string | number },
+  data: { [key: string]: string[] | number[] | number | string },
   abortController?: AbortController,
 ) {
   const url = generateURL(urls.server.qualificationRevokeWorker(id, workerId), null, null);

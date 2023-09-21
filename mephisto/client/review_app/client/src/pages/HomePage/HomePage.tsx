@@ -12,7 +12,12 @@ import urls from 'urls';
 import './HomePage.css';
 
 
-function HomePage() {
+interface PropsType {
+  setErrors: Function;
+}
+
+
+function HomePage(props: PropsType) {
   const navigate = useNavigate();
   const { localStorage } = window;
 

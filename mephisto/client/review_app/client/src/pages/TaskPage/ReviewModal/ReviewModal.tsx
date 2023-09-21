@@ -24,6 +24,7 @@ type ReviewModalProps = {
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
   onSubmit: Function;
+  setErrors: Function;
 };
 
 
@@ -42,7 +43,7 @@ function ReviewModal(props: ReviewModalProps) {
     </Modal.Header>
 
     <Modal.Body>
-      <ModalForm data={props.data} setData={props.setData} />
+      <ModalForm data={props.data} setData={props.setData} setErrors={props.setErrors} />
     </Modal.Body>
 
     <Modal.Footer>

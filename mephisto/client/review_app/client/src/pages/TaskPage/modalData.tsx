@@ -13,7 +13,7 @@ export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
   buttonCancel: "Cancel",
   buttonSubmit: "Approve",
   form: {
-    checkboxAssign: false,
+    checkboxAssignQualification: false,
     checkboxComment: false,
     checkboxGiveTips: false,
     comment: '',
@@ -32,7 +32,7 @@ export const SOFT_REJECT_MODAL_DATA_STATE: ModalDataType = {
   buttonCancel: "Cancel",
   buttonSubmit: "Soft-Reject",
   form: {
-    checkboxAssign: false,
+    checkboxAssignQualification: false,
     checkboxComment: false,
     comment: '',
     qualification: null,
@@ -52,7 +52,7 @@ export const REJECT_MODAL_DATA_STATE: ModalDataType = {
   title: "Reject Unit",
   type: ReviewType.REJECT,
   form: {
-    checkboxAssign: false,
+    checkboxAssignQualification: false,
     checkboxComment: false,
     checkboxBanWorker: false,
     comment: '',

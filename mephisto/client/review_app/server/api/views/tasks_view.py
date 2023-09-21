@@ -5,14 +5,13 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import List
-from typing import Optional
 
 from dateutil.parser import parse
 from flask import current_app as app
 from flask.views import MethodView
 
-from mephisto.abstractions.databases.local_database import nonesafe_int
 from mephisto.abstractions.databases.local_database import StringIDRow
+from mephisto.client.review_app.server.db_queries import find_units
 from mephisto.data_model.constants.assignment_state import AssignmentState
 
 
@@ -37,44 +36,6 @@ def _find_tasks(db, debug: bool = False) -> List[StringIDRow]:
         return rows
 
 
-def _find_units(
-    db, task_id: int, statuses: Optional[List[str]] = None, debug: bool = False,
-) -> List[StringIDRow]:
-    with db.table_access_condition:
-        conn = db._get_connection()
-
-        if debug:
-            conn.set_trace_callback(print)
-
-        params = []
-
-        task_query = "task_id = ?" if task_id else ""
-        if task_id:
-            params.append(nonesafe_int(task_id))
-
-        statuses_string = ",".join([f"'{s}'" for s in statuses])
-        status_query = f"status IN ({statuses_string})" if statuses else ""
-
-        joined_queries = ' AND '.join(list(filter(bool, [task_query, status_query])))
-
-        where_query = f"WHERE {joined_queries}" if joined_queries else ""
-
-        c = conn.cursor()
-        c.execute(
-            f"""
-            SELECT * from units
-            {where_query};
-            """,
-            params,
-        )
-        rows = c.fetchall()
-
-        if debug:
-            conn.set_trace_callback(None)
-
-        return rows
-
-
 class TasksView(MethodView):
     def get(self) -> dict:
         """ Get all available tasks (to select one for review) """
@@ -84,12 +45,9 @@ class TasksView(MethodView):
 
         tasks = []
         for t in db_tasks:
-            db_units: List[StringIDRow] = _find_units(
+            db_units: List[StringIDRow] = find_units(
                 app.db, int(t["task_id"]), statuses=AssignmentState.completed(), debug=app.debug,
             )
-
-            for u in db_units:
-                print(f'{u["unit_id"]=}, {u["status"]=}')
 
             app.logger.debug(f"All finished units: {[u['unit_id'] for u in db_units]}")
 

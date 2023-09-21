@@ -5,7 +5,7 @@
  */
 
 type FormType = {
-  checkboxAssign: boolean;
+  checkboxAssignQualification: boolean;
   checkboxBanWorker?: boolean;
   checkboxComment: boolean;
   checkboxGiveTips?: boolean;

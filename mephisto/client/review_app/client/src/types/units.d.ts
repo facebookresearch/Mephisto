@@ -35,5 +35,4 @@ declare type UnitDetailsType = {
   id: number;
   inputs: object;
   outputs: object;
-  data: object;
 };

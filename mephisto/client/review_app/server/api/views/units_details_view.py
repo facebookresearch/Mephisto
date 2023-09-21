@@ -54,7 +54,6 @@ class UnitsDetailsView(MethodView):
                     "id": int(unit.db_id),
                     "inputs": unit_data.get("data", {}).get("inputs"),  # instructions for worker
                     "outputs": unit_data.get("data", {}).get("outputs"),  # resposne from worker
-                    "data": unit_data.get("data", {}),
                 }
             )
 

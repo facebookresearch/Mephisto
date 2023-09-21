@@ -17,12 +17,16 @@ import './TasksPage.css';
 const STORAGE_TASK_ID_KEY: string = 'selectedTaskID';
 
 
-function TasksPage() {
+interface PropsType {
+  setErrors: Function;
+}
+
+
+function TasksPage(props: PropsType) {
   const { localStorage } = window;
 
   const [tasks, setTasks] = React.useState<Array<TaskType>>(null);
   const [loading, setLoading] = React.useState(false);
-  const [errors, setErrors] = React.useState<ErrorResponseType>(null);
 
   const onTaskRowClick = (id: number) => {
     localStorage.setItem(STORAGE_TASK_ID_KEY, String(id));
@@ -34,22 +38,23 @@ function TasksPage() {
     pseudoLink.click();
   }
 
+  const onError = (errorResponse: ErrorResponseType | null) => {
+    if (errorResponse) {
+      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
+    }
+  };
+
   useEffect(() => {
     document.title = "Mephisto - Task Review - All Tasks";
 
     if (tasks === null) {
-      getTasks(setTasks, setLoading, setErrors, null);
+      getTasks(setTasks, setLoading, onError, null);
     }
   }, []);
 
   return <div className={"tasks"}>
     {/* Header */}
     <TasksHeader />
-
-    {/* Request errors */}
-    {errors && (
-      <div>Request errors: {errors.error}</div>
-    )}
 
     {/* Tasks table */}
     <Table className={"tasks-table"} responsive={"sm"} bordered={false}>

@@ -141,7 +141,13 @@ function Instructions({ taskData }) {
   );
 }
 
-function TaskFrontend({ taskData, classifyDigit, handleSubmit }) {
+function TaskFrontend({
+  taskData,
+  finalResults = null,
+  classifyDigit,
+  handleSubmit,
+}) {
+  // TODO Update this file such that, if finalResults contains data we render in review mode with that data
   const NUM_ANNOTATIONS = taskData.isScreeningUnit ? 1 : 3;
   const [annotations, updateAnnotations] = React.useReducer(
     (currentAnnotation, { updateIdx, updatedAnnotation }) => {

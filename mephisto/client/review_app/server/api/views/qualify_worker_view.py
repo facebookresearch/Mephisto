@@ -111,21 +111,27 @@ class QualifyWorkerView(MethodView):
         """ Grant/Revoke qualification to a worker """
 
         data: dict = request.json
-        unit_id = data and data.get("unit_id")
+        unit_ids: Optional[str] = data and data.get("unit_ids")
         value = data and data.get("value")
 
-        if not unit_id:
-            raise BadRequest("Field \"unit_id\" is required.")
+        if not unit_ids:
+            raise BadRequest("Field \"unit_ids\" is required.")
 
         db_qualification: StringIDRow = app.db.get_qualification(qualification_id)
-        unit: Unit = Unit.get(app.db, str(unit_id))
-        worker: Worker = Worker.get(app.db, str(worker_id))
 
-        if action == "grant":
-            self._grant_worker_qualification(db_qualification, unit, worker, value or 1)
-            return {}
-        elif action == "revoke":
-            self._revoke_worker_qualification(db_qualification, unit, worker)
-            return {}
-        else:
+        if not db_qualification:
             raise NotFound()
+
+        for unit_id in unit_ids:
+            unit: Unit = Unit.get(app.db, str(unit_id))
+            worker: Worker = Worker.get(app.db, str(worker_id))
+
+            try:
+                if action == "grant":
+                    self._grant_worker_qualification(db_qualification, unit, worker, value or 1)
+                elif action == "revoke":
+                    self._revoke_worker_qualification(db_qualification, unit, worker)
+            except Exception as e:
+                raise BadRequest(f"Could not {action} qualification. Reason: {e}")
+
+        return {}

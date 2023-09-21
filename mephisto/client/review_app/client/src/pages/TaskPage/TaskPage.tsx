@@ -5,13 +5,17 @@
  */
 
 // TODO: Find the way to import it dynamically
-import { TaskFrontend } from 'components/mnist_core_components_copied';
+// import { TaskFrontend } from 'components/mnist_core_components_copied';
 import { ReviewType } from 'consts/review';
 import cloneDeep from 'lodash/cloneDeep';
 import * as React from 'react';
 import { useEffect } from 'react';
 import { Button, Spinner, Table } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
+import {
+  postQualificationGrantWorker,
+  postQualificationRevokeWorker,
+} from 'requests/qualifications';
 import { getStats } from 'requests/stats';
 import { getTask, getTaskWorkerUnitsIds } from 'requests/tasks';
 import {
@@ -21,6 +25,7 @@ import {
   postUnitsReject,
   postUnitsSoftReject,
 } from 'requests/units';
+import { postWorkerBlock } from 'requests/workers';
 import urls from 'urls';
 import { setPageTitle, updateModalState } from './helpers';
 import {
@@ -32,6 +37,9 @@ import {
 import ReviewModal from './ReviewModal/ReviewModal';
 import TaskHeader from './TaskHeader/TaskHeader';
 import './TaskPage.css';
+
+
+const MNIST_URL = process.env.REACT_APP__MNIST_URL || 'http://localhost:3000';
 
 
 const defaultStats = {
@@ -51,14 +59,21 @@ type ParamsType = {
 };
 
 
-function TaskPage() {
+interface PropsType {
+  setErrors: Function;
+}
+
+
+function TaskPage(props: PropsType) {
   const params = useParams<ParamsType>();
   const navigate = useNavigate();
 
+  const iframeRef = React.useRef(null);
+
+  const [iframeLoaded, setIframeLoaded] = React.useState<boolean>(false);
   const [task, setTask] = React.useState<TaskType>(null);
   const [units, setUnits] = React.useState<Array<UnitType>>(null);
   const [loading, setLoading] = React.useState(false);
-  const [errors, setErrors] = React.useState<ErrorResponseType>(null);
 
   const [modalShow, setModalShow] = React.useState<boolean>(false);
   const [modalData, setModalData] = React.useState<ModalDataType>(
@@ -105,31 +120,36 @@ function TaskPage() {
   };
 
   const onApproveClick = () => {
-    const defaultValue = cloneDeep(APPROVE_MODAL_DATA_STATE);
-    defaultValue.applyToNext = modalState.approve.applyToNext;
+    const initData = cloneDeep(APPROVE_MODAL_DATA_STATE);
 
-    if (defaultValue.applyToNext) {
-      defaultValue.form = modalState.approve.form;
-    }
-
-    defaultValue.applyToNextUnitsCount = unitsOnReview[1].length;
+    initData.applyToNext = false;
+    initData.form = modalState.approve.form;
+    initData.applyToNextUnitsCount = unitsOnReview[1].length;
 
     setModalShow(true);
-    setModalData(defaultValue);
+    setModalData(initData);
   };
 
   const onSoftRejectClick = () => {
-    const defaultValue = cloneDeep(SOFT_REJECT_MODAL_DATA_STATE);
-    defaultValue.applyToNext = modalState.softReject.applyToNext;
+    const initData = cloneDeep(SOFT_REJECT_MODAL_DATA_STATE);
 
-    if (defaultValue.applyToNext) {
-      defaultValue.form = modalState.softReject.form;
-    }
-
-    defaultValue.applyToNextUnitsCount = unitsOnReview[1].length;
+    initData.applyToNext = false;
+    initData.form = modalState.softReject.form;
+    initData.applyToNextUnitsCount = unitsOnReview[1].length;
 
     setModalShow(true);
-    setModalData(defaultValue);
+    setModalData(initData);
+  };
+
+  const onRejectClick = () => {
+    const initData = cloneDeep(REJECT_MODAL_DATA_STATE);
+
+    initData.applyToNext = false;
+    initData.form = modalState.reject.form;
+    initData.applyToNextUnitsCount = unitsOnReview[1].length;
+
+    setModalShow(true);
+    setModalData(initData);
   };
 
   const setNextUnit = () => {
@@ -153,47 +173,110 @@ function TaskPage() {
     setCurrentUnitOnReview(firstUnit);
   };
 
-  const onRejectClick = () => {
-    const defaultValue = cloneDeep(REJECT_MODAL_DATA_STATE);
-    defaultValue.applyToNext = modalState.reject.applyToNext;
-
-    if (defaultValue.applyToNext) {
-      defaultValue.form = modalState.reject.form;
+  const onReviewSuccess = (_modalData: ModalDataType, unitIds: number[]) => {
+    if (_modalData.type === ReviewType.APPROVE) {
+      if (_modalData.form.checkboxAssignQualification && _modalData.form.qualification) {
+        postQualificationGrantWorker(
+          _modalData.form.qualification,
+          currentWorkerOnReview,
+          () => null,
+          setLoading,
+          onError,
+          {
+            feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
+            tips: _modalData.form.checkboxGiveTips ? _modalData.form.tips : null,
+            unit_ids: unitIds,
+            value: _modalData.form.qualificationValue,
+          },
+        )
+      }
+    }
+    else if (_modalData.type === ReviewType.SOFT_REJECT) {
+      if (_modalData.form.checkboxAssignQualification && _modalData.form.qualification) {
+        postQualificationRevokeWorker(
+          _modalData.form.qualification,
+          currentWorkerOnReview,
+          () => null,
+          setLoading,
+          onError,
+          {
+            feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
+            unit_ids: unitIds,
+            value: _modalData.form.qualificationValue,
+          },
+        )
+      }
+    }
+    else if (_modalData.type === ReviewType.REJECT) {
+      if (_modalData.form.checkboxBanWorker) {
+        postWorkerBlock(
+          currentWorkerOnReview,
+          () => null,
+          setLoading,
+          onError,
+          {
+            feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
+          },
+        )
+      }
     }
 
-    defaultValue.applyToNextUnitsCount = unitsOnReview[1].length;
-
-    setModalShow(true);
-    setModalData(defaultValue);
+    setNextUnit();
   };
 
-  const onModalSubmitSuccess = () => {
-    setNextUnit();
+  const getUnitsIdsByApplyToNext = (applyToNext: boolean): number[] => {
+    let unitIds = [currentUnitOnReview];
+
+    if (applyToNext) {
+      unitIds = [...unitIds, ...workerUnits.shift()[1]];
+    }
+
+    return unitIds;
   };
 
   const onModalSubmit = () => {
     setModalShow(false);
-    console.log('Data:', modalData);
+
+    const unitIds = getUnitsIdsByApplyToNext(modalData.applyToNext);
 
     if (modalData.type === ReviewType.APPROVE) {
       postUnitsApprove(
-        onModalSubmitSuccess, setLoading, setErrors, {unit_ids: [currentUnitOnReview]},
+        () => onReviewSuccess(modalData, unitIds), setLoading, onError, {unit_ids: unitIds},
       );
     }
     else if (modalData.type === ReviewType.SOFT_REJECT) {
       postUnitsSoftReject(
-        onModalSubmitSuccess, setLoading, setErrors, {unit_ids: [currentUnitOnReview]},
+        () => onReviewSuccess(modalData, unitIds), setLoading, onError, {unit_ids: unitIds},
       );
     }
     else if (modalData.type === ReviewType.REJECT) {
       postUnitsReject(
-        onModalSubmitSuccess, setLoading, setErrors, {unit_ids: [currentUnitOnReview]},
+        () => onReviewSuccess(modalData, unitIds), setLoading, onError, {unit_ids: unitIds},
       );
     }
 
     // Save current state of the modal data
     updateModalState(setModalState, modalData.type, modalData);
   };
+
+  const onError = (errorResponse: ErrorResponseType | null) => {
+    if (errorResponse) {
+      props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
+    }
+  };
+
+  // [RECEIVING WIDGET DATA]
+  // ---
+  const sendDataToTaskIframe = (data: object) => {
+    const reviewData = {
+      REVIEW_DATA: data,
+    }
+    const taskIframe =  iframeRef.current;
+    taskIframe.contentWindow.postMessage(JSON.stringify(reviewData), '*');
+  };
+  // ---
+
+  const currentUnitDetails = unitDetailsMap[String(currentUnitOnReview)];
 
   // Effects
   useEffect(() => {
@@ -202,12 +285,12 @@ function TaskPage() {
     setFinishedWorker(false);
 
     if (task === null) {
-      getTask(Number(params.id), setTask, setLoading, setErrors, null);
+      getTask(Number(params.id), setTask, setLoading, onError, null);
     }
 
     if (units === null) {
       getTaskWorkerUnitsIds(
-        Number(params.id), onGetTaskWorkerUnitsIdsSuccess, setLoading, setErrors,
+        Number(params.id), onGetTaskWorkerUnitsIdsSuccess, setLoading, onError,
       );
     }
   }, []);
@@ -233,7 +316,7 @@ function TaskPage() {
   useEffect(() => {
     if (unitsOnReview && unitsOnReview[1].length) {
       getUnits(
-        setUnits, setLoading, setErrors, {task_id: params.id, unit_ids: unitsOnReview[1].join(',')},
+        setUnits, setLoading, onError, {task_id: params.id, unit_ids: unitsOnReview[1].join(',')},
       );
     }
   }, [unitsOnReview]);
@@ -248,24 +331,24 @@ function TaskPage() {
         return map;
       });
 
-      getStats(setTaskStats, setLoading, setErrors, {task_id: params.id});
+      getStats(setTaskStats, setLoading, onError, {task_id: params.id});
       getStats(
         setWorkerStats,
         setLoading,
-        setErrors,
+        onError,
         {task_id: params.id, worker_id: currentWorkerOnReview},
       );
-      getUnitsDetails(setUnitDetails, setLoading, setErrors, {unit_ids: currentUnitOnReview});
+      getUnitsDetails(setUnitDetails, setLoading, onError, {unit_ids: currentUnitOnReview});
     }
   }, [units, currentUnitOnReview]);
 
   useEffect(() => {
     if (finishedWorker === true) {
-      getStats(setTaskStats, setLoading, setErrors, {task_id: params.id});
+      getStats(setTaskStats, setLoading, onError, {task_id: params.id});
       getStats(
         setWorkerStats,
         setLoading,
-        setErrors,
+        onError,
         {task_id: params.id, worker_id: currentWorkerOnReview},
       );
 
@@ -288,11 +371,22 @@ function TaskPage() {
     }
   }, [unitDetails]);
 
+  // [RECEIVING WIDGET DATA]
+  // ---
+  useEffect(() => {
+    if (
+      iframeLoaded &&
+      currentUnitDetails?.outputs &&
+      'final_submission' in currentUnitDetails.outputs
+    ) {
+      sendDataToTaskIframe(currentUnitDetails.outputs);
+    }
+  }, [currentUnitDetails, iframeLoaded]);
+  // ---
+
   if (task === null) {
     return null;
   }
-
-  const currentUnitDetails = unitDetailsMap[String(currentUnitOnReview)];
 
   return <div className={'task'}>
     <TaskHeader
@@ -312,11 +406,6 @@ function TaskPage() {
     </div>
 
     <div className={"content"}>
-      {/* Request errors */}
-      {errors && (
-        <div>Request errors: {errors.error}</div>
-      )}
-
       {/* Preloader when we request tasks */}
       {loading && (
         <div className={"loading"}>
@@ -337,35 +426,49 @@ function TaskPage() {
         </div>
       )}
 
-      {currentUnitDetails?.data && (<>
+      {currentUnitDetails?.outputs && (<>
         {/* Task info */}
         <div className={'question'} onClick={(e) => e.preventDefault()}>
-          {currentUnitDetails.inputs ? (
-            <div>{JSON.stringify(currentUnitDetails.inputs)}</div>
-          ) : (<>
-             <div className={'images'}>
-              {(currentUnitDetails.data['final_submission']['annotations'] || []).map(
-                (item: {[key: string]: any}, i: number) => {
-                  return <img src={item['imgData']} key={'img' + i} alt={'img' + i} />;
-                }
-              )}
-            </div>
-            <TaskFrontend
-              classifyDigit={(_) => null}
-              handleSubmit={(e) => console.log('handleSubmit', e)}
-              taskData={currentUnitDetails.data['init_data']}
-            />
-          </>)}
+          {'final_submission' in currentUnitDetails.outputs ? (<>
+            {/* TODO [RECEIVING WIDGET DATA]: Remove this later if `iframe` is OK */}
+            {/*<div className={'images'}>*/}
+            {/*  {(currentUnitDetails.outputs['final_submission']['annotations'] || []).map(*/}
+            {/*    (item: {[key: string]: any}, i: number) => {*/}
+            {/*      return <img src={item['imgData']} key={'img' + i} alt={'img' + i} />;*/}
+            {/*    }*/}
+            {/*  )}*/}
+            {/*</div>*/}
+            {/*<TaskFrontend*/}
+            {/*  classifyDigit={(_) => null}*/}
+            {/*  handleSubmit={(e) => console.log('handleSubmit', e)}*/}
+            {/*  taskData={currentUnitDetails.outputs['init_data'] || {isScreeningUnit: false}}*/}
+            {/*/>*/}
 
+            {/* [RECEIVING WIDGET DATA] */}
+            {/* --- */}
+            {/*
+              NOTE: We need to pass `review_mode=true` to tell MNIST app
+                    not to show default view and make any requests to server
+            */}
+            <iframe
+              src={`${MNIST_URL}/?review_mode=true`}
+              id={'task-preview'}
+              width={1000}
+              height={610}
+              onLoad={() => setIframeLoaded(true)}
+              ref={iframeRef}
+            />
+            {/* --- */}
+          </>) : (
+            <div>{JSON.stringify(currentUnitDetails.inputs)}</div>
+          )}
         </div>
 
         {/* Results table */}
         <div className={"results"}>
           <h1><b>Results:</b></h1>
 
-          {currentUnitDetails.outputs ? (
-            <div>{JSON.stringify(currentUnitDetails.outputs)}</div>
-          ) : (
+          {'final_submission' in currentUnitDetails.outputs ? (
             <Table className={"results-table"} responsive={"sm"} bordered={false}>
               <thead>
                 <tr className={"titles-row"}>
@@ -375,7 +478,7 @@ function TaskPage() {
                 </tr>
               </thead>
               <tbody>
-                {(currentUnitDetails.data['final_submission']['annotations'] || []).map(
+                {(currentUnitDetails.outputs['final_submission']['annotations'] || []).map(
                   (item: {[key: string]: any}, i: number) => {
                     return <tr className={"results-row"} key={"results-row" + i}>
                       <td className={"current-annotation"}>
@@ -392,6 +495,8 @@ function TaskPage() {
                 )}
               </tbody>
             </Table>
+          ) : (
+            <div>{JSON.stringify(currentUnitDetails.outputs)}</div>
           )}
         </div>
       </>)}
@@ -403,6 +508,7 @@ function TaskPage() {
       data={modalData}
       setData={setModalData}
       onSubmit={onModalSubmit}
+      setErrors={props.setErrors}
     />
   </div>;
 }
