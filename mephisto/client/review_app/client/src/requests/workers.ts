@@ -15,7 +15,7 @@ export function postWorkerBlock(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: string | number },
+  data: { [key: string]: string | number | number[] },
   abortController?: AbortController,
 ) {
   const url = generateURL(urls.server.workersBlock(id), null, null);

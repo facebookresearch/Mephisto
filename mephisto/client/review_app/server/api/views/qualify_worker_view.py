@@ -18,7 +18,7 @@ from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
 
 
-def _update_unit_review(
+def _update_quailification_in_unit_review(
     db,
     unit_id: int,
     qualification_id: int,
@@ -72,13 +72,13 @@ def _update_unit_review(
 def _write_grant_unit_review(
     db, unit_id: int, qualification_id: int, worker_id: int, value: Optional[int] = None,
 ):
-    _update_unit_review(db, unit_id, qualification_id, worker_id, value)
+    _update_quailification_in_unit_review(db, unit_id, qualification_id, worker_id, value)
 
 
 def _write_revoke_unit_review(
     db, unit_id: int, qualification_id: int, worker_id: int, value: Optional[int] = None,
 ):
-    _update_unit_review(db, unit_id, qualification_id, worker_id, value, revoke=True)
+    _update_quailification_in_unit_review(db, unit_id, qualification_id, worker_id, value, revoke=True)
 
 
 class QualifyWorkerView(MethodView):

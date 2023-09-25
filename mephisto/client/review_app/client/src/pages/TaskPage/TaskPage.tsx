@@ -11,6 +11,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import * as React from 'react';
 import { useEffect } from 'react';
 import { Button, Spinner, Table } from 'react-bootstrap';
+import JSONPretty from 'react-json-pretty';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   postQualificationGrantWorker,
@@ -93,7 +94,7 @@ function TaskPage(props: PropsType) {
   const [unitDetails, setUnitDetails] = React.useState<UnitDetailsType[]>(null);
   const [unitDetailsMap, setUnitDetailsMap] = React.useState<UnitDetailsMapType>({});
 
-  const [finishedWorker, setFinishedWorker] = React.useState<boolean>(false);
+  const [finishedTask, setFinishedTask] = React.useState<boolean>(false);
 
   const onGetTaskWorkerUnitsIdsSuccess = (workerUnitsIds: WorkerUnitIdType[]) => {
     setWorkerUnits(() => {
@@ -155,11 +156,18 @@ function TaskPage(props: PropsType) {
   const setNextUnit = () => {
     let firstWrokerUnits = workerUnits[0];
 
+    // If no Workers left (in case if we review multiple Units)
+    if (!firstWrokerUnits) {
+      setFinishedTask(true);
+      return;
+    }
+
     if (firstWrokerUnits[1].length === 0) {
       workerUnits.shift();
 
+      // If no Worker Units left (in case if we review Units one by one)
       if (workerUnits.length === 0) {
-        setFinishedWorker(true);
+        setFinishedTask(true);
         return;
       }
       firstWrokerUnits = workerUnits[0];
@@ -175,6 +183,7 @@ function TaskPage(props: PropsType) {
 
   const onReviewSuccess = (_modalData: ModalDataType, unitIds: number[]) => {
     if (_modalData.type === ReviewType.APPROVE) {
+      // Grant Qualification
       if (_modalData.form.checkboxAssignQualification && _modalData.form.qualification) {
         postQualificationGrantWorker(
           _modalData.form.qualification,
@@ -192,6 +201,7 @@ function TaskPage(props: PropsType) {
       }
     }
     else if (_modalData.type === ReviewType.SOFT_REJECT) {
+      // Revoke Qualification
       if (_modalData.form.checkboxAssignQualification && _modalData.form.qualification) {
         postQualificationRevokeWorker(
           _modalData.form.qualification,
@@ -208,6 +218,22 @@ function TaskPage(props: PropsType) {
       }
     }
     else if (_modalData.type === ReviewType.REJECT) {
+      // Revoke Qualification
+      if (_modalData.form.checkboxAssignQualification && _modalData.form.qualification) {
+        postQualificationRevokeWorker(
+          _modalData.form.qualification,
+          currentWorkerOnReview,
+          () => null,
+          setLoading,
+          onError,
+          {
+            feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
+            unit_ids: unitIds,
+            value: _modalData.form.qualificationValue,
+          },
+        )
+      }
+      // Block Worker
       if (_modalData.form.checkboxBanWorker) {
         postWorkerBlock(
           currentWorkerOnReview,
@@ -216,11 +242,13 @@ function TaskPage(props: PropsType) {
           onError,
           {
             feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
+            unit_ids: unitIds,
           },
         )
       }
     }
 
+    // Try to get next Unit
     setNextUnit();
   };
 
@@ -282,7 +310,7 @@ function TaskPage(props: PropsType) {
   useEffect(() => {
     // Set default title
     setPageTitle("Mephisto - Task Review - Task");
-    setFinishedWorker(false);
+    setFinishedTask(false);
 
     if (task === null) {
       getTask(Number(params.id), setTask, setLoading, onError, null);
@@ -343,7 +371,7 @@ function TaskPage(props: PropsType) {
   }, [units, currentUnitOnReview]);
 
   useEffect(() => {
-    if (finishedWorker === true) {
+    if (finishedTask === true) {
       getStats(setTaskStats, setLoading, onError, {task_id: params.id});
       getStats(
         setWorkerStats,
@@ -356,7 +384,7 @@ function TaskPage(props: PropsType) {
         navigate(urls.client.tasks);
       }, 5000);
     }
-  }, [finishedWorker]);
+  }, [finishedTask]);
 
   useEffect(() => {
     if (unitDetails) {
@@ -396,7 +424,7 @@ function TaskPage(props: PropsType) {
     />
 
     <div className={"buttons"}>
-      {!finishedWorker ? (<>
+      {!finishedTask ? (<>
         <Button variant={"success"} size={"sm"} onClick={onApproveClick}>Approve</Button>
         <Button variant={"warning"} size={"sm"} onClick={onSoftRejectClick}>Soft-Reject</Button>
         <Button variant={"danger"} size={"sm"} onClick={onRejectClick}>Reject</Button>
@@ -460,7 +488,7 @@ function TaskPage(props: PropsType) {
             />
             {/* --- */}
           </>) : (
-            <div>{JSON.stringify(currentUnitDetails.inputs)}</div>
+            <JSONPretty className={"json-pretty"} data={currentUnitDetails.inputs} space={4} />
           )}
         </div>
 
@@ -496,7 +524,7 @@ function TaskPage(props: PropsType) {
               </tbody>
             </Table>
           ) : (
-            <div>{JSON.stringify(currentUnitDetails.outputs)}</div>
+            <JSONPretty className={"json-pretty"} data={currentUnitDetails.outputs} space={4} />
           )}
         </div>
       </>)}

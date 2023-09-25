@@ -95,3 +95,11 @@
   align-items: center;
   justify-content: center;
 }
+
+.json-pretty .__json-pretty__ {
+  white-space: pre !important;
+}
+
+.json-pretty .__json-pretty__ .__json-key__ {
+  font-weight: bold;
+}
