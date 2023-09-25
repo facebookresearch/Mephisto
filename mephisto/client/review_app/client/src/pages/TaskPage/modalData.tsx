@@ -52,7 +52,7 @@ export const REJECT_MODAL_DATA_STATE: ModalDataType = {
   title: "Reject Unit",
   type: ReviewType.REJECT,
   form: {
-    checkboxAssignQualification: false,
+    checkboxUnassignQualification: false,
     checkboxComment: false,
     checkboxBanWorker: false,
     comment: '',

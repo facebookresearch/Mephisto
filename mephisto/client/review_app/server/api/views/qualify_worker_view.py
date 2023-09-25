@@ -53,9 +53,9 @@ def _update_quailification_in_unit_review(
         c.execute(
             """
             UPDATE unit_review
-            SET 
-                updated_qualification_id = ?, 
-                updated_qualification_value = ?, 
+            SET
+                updated_qualification_id = ?,
+                updated_qualification_value = ?,
                 revoked_qualification_id = ?
             WHERE id = ?;
             """,
@@ -117,8 +117,11 @@ class QualifyWorkerView(MethodView):
         if not unit_ids:
             raise BadRequest("Field \"unit_ids\" is required.")
 
-        db_qualification: StringIDRow = app.db.get_qualification(qualification_id)
+        if not qualification_id:
+            # Front-end could send us an enpty value - don't raise exception, just ignore
+            return {}
 
+        db_qualification: StringIDRow = app.db.get_qualification(qualification_id)
         if not db_qualification:
             raise NotFound()
 

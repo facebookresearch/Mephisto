@@ -219,7 +219,7 @@ function TaskPage(props: PropsType) {
     }
     else if (_modalData.type === ReviewType.REJECT) {
       // Revoke Qualification
-      if (_modalData.form.checkboxAssignQualification && _modalData.form.qualification) {
+      if (_modalData.form.checkboxUnassignQualification && _modalData.form.qualification) {
         postQualificationRevokeWorker(
           _modalData.form.qualification,
           currentWorkerOnReview,
@@ -229,7 +229,6 @@ function TaskPage(props: PropsType) {
           {
             feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
             unit_ids: unitIds,
-            value: _modalData.form.qualificationValue,
           },
         )
       }
@@ -537,6 +536,7 @@ function TaskPage(props: PropsType) {
       setData={setModalData}
       onSubmit={onModalSubmit}
       setErrors={props.setErrors}
+      workerId={currentWorkerOnReview}
     />
   </div>;
 }

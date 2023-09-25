@@ -25,6 +25,7 @@ type ReviewModalProps = {
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
   onSubmit: Function;
   setErrors: Function;
+  workerId: number | null;
 };
 
 
@@ -43,7 +44,12 @@ function ReviewModal(props: ReviewModalProps) {
     </Modal.Header>
 
     <Modal.Body>
-      <ModalForm data={props.data} setData={props.setData} setErrors={props.setErrors} />
+      <ModalForm
+        data={props.data}
+        setData={props.setData}
+        setErrors={props.setErrors}
+        workerId={props.workerId}
+      />
     </Modal.Body>
 
     <Modal.Footer>

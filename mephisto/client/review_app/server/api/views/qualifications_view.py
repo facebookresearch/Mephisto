@@ -12,15 +12,66 @@ from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
 from mephisto.abstractions.databases.local_database import StringIDRow
+from mephisto.data_model.qualification import GrantedQualification
 from mephisto.data_model.qualification import Qualification
+
+
+def _find_qualifications_by_ids(
+    db, qualification_ids: List[str], debug: bool = False,
+) -> List[Qualification]:
+    with db.table_access_condition:
+        conn = db._get_connection()
+
+        if debug:
+            conn.set_trace_callback(print)
+
+        c = conn.cursor()
+
+        qualifications_string = ','.join([f"{s}" for s in qualification_ids])
+        qualification_query = (
+            f"qualification_id IN ({qualifications_string})" if qualification_ids else ""
+        )
+
+        where_query = f"WHERE {qualification_query}" if qualification_query else ""
+
+        c.execute(
+            f"""
+            SELECT * from qualifications
+            {where_query}
+            """
+        )
+        rows = c.fetchall()
+
+        if debug:
+            conn.set_trace_callback(None)
+
+        return [
+            Qualification(db, str(r["qualification_id"]), row=r, _used_new_call=True)
+            for r in rows
+        ]
 
 
 class QualificationsView(MethodView):
     def get(self) -> dict:
         """ Get all available qualifications (to select "approve" and "reject" qualifications) """
 
-        db_qualifications: List[Qualification] = app.db.find_qualifications()
-        app.logger.debug(f"Found qualifications in DB: {db_qualifications}")
+        worker_id = request.args.get("worker_id")
+
+        db_qualifications: List[Qualification] = []
+        if not worker_id:
+            db_qualifications = app.db.find_qualifications()
+            app.logger.debug(f"Found all existing qualifications: {db_qualifications}")
+        else:
+            db_granted_qualifications: List[GrantedQualification] = (
+                app.db.find_granted_qualifications(worker_id)
+            )
+            if db_granted_qualifications:
+                db_qualifications = _find_qualifications_by_ids(
+                    app.db,
+                    qualification_ids=[gq.qualification_id for gq in db_granted_qualifications],
+                    debug=True,
+                )
+            app.logger.debug(f"Found qualifications for worker {worker_id}: {db_qualifications}")
 
         qualifications = [
             {
@@ -29,8 +80,6 @@ class QualificationsView(MethodView):
             }
             for q in db_qualifications
         ]
-
-        app.logger.debug(f"Qualifications: {qualifications}")
 
         return {
             "qualifications": qualifications,
