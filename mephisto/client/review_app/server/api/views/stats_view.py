@@ -46,9 +46,19 @@ def _find_unit_reviews(
     if since:
         params.append(since)
 
-    joined_queries = ' AND '.join(list(filter(bool, [
-        worker_query, task_query, status_query, since_query,
-    ])))
+    joined_queries = " AND ".join(
+        list(
+            filter(
+                bool,
+                [
+                    worker_query,
+                    task_query,
+                    status_query,
+                    since_query,
+                ],
+            )
+        )
+    )
 
     where_query = f"WHERE {joined_queries}" if joined_queries else ""
 
@@ -91,16 +101,26 @@ def _find_units_for_worker(
     if task_id:
         params.append(nonesafe_int(task_id))
 
-    statuses_string = ','.join([f"'{s}'" for s in statuses])
+    statuses_string = ",".join([f"'{s}'" for s in statuses])
     status_query = f"status IN ({statuses_string})" if statuses else ""
 
     since_query = "creation_date >= ?" if since else ""
     if since:
         params.append(since)
 
-    joined_queries = ' AND '.join(list(filter(bool, [
-        worker_query, task_query, status_query, since_query,
-    ])))
+    joined_queries = " AND ".join(
+        list(
+            filter(
+                bool,
+                [
+                    worker_query,
+                    task_query,
+                    status_query,
+                    since_query,
+                ],
+            )
+        )
+    )
 
     where_query = f"WHERE {joined_queries}" if joined_queries else ""
 
@@ -127,7 +147,7 @@ def _find_units_for_worker(
 
 class StatsView(MethodView):
     def get(self) -> dict:
-        """ Get stats of recent approvals for the worker or task """
+        """Get stats of recent approvals for the worker or task"""
 
         worker_id = request.args.get("worker_id")
         task_id = request.args.get("task_id")

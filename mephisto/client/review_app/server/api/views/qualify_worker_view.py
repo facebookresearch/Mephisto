@@ -10,7 +10,6 @@ from flask import current_app as app
 from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
-from werkzeug.exceptions import NotFound
 
 from mephisto.abstractions.database import EntryDoesNotExistException
 from mephisto.abstractions.databases.local_database import StringIDRow
@@ -70,21 +69,34 @@ def _update_quailification_in_unit_review(
 
 
 def _write_grant_unit_review(
-    db, unit_id: int, qualification_id: int, worker_id: int, value: Optional[int] = None,
+    db,
+    unit_id: int,
+    qualification_id: int,
+    worker_id: int,
+    value: Optional[int] = None,
 ):
     _update_quailification_in_unit_review(db, unit_id, qualification_id, worker_id, value)
 
 
 def _write_revoke_unit_review(
-    db, unit_id: int, qualification_id: int, worker_id: int, value: Optional[int] = None,
+    db,
+    unit_id: int,
+    qualification_id: int,
+    worker_id: int,
+    value: Optional[int] = None,
 ):
-    _update_quailification_in_unit_review(db, unit_id, qualification_id, worker_id, value, revoke=True)
+    _update_quailification_in_unit_review(
+        db, unit_id, qualification_id, worker_id, value, revoke=True
+    )
 
 
 class QualifyWorkerView(MethodView):
     @staticmethod
     def _grant_worker_qualification(
-        qualification: StringIDRow, unit: Unit, worker: Worker, value: int,
+        qualification: StringIDRow,
+        unit: Unit,
+        worker: Worker,
+        value: int,
     ):
         worker.grant_qualification(qualification["qualification_name"], value)
 
@@ -108,22 +120,21 @@ class QualifyWorkerView(MethodView):
         )
 
     def post(self, qualification_id: int, worker_id: int, action: str) -> dict:
-        """ Grant/Revoke qualification to a worker """
+        """Grant/Revoke qualification to a worker"""
 
         data: dict = request.json
         unit_ids: Optional[str] = data and data.get("unit_ids")
         value = data and data.get("value")
 
         if not unit_ids:
-            raise BadRequest("Field \"unit_ids\" is required.")
-
-        if not qualification_id:
-            # Front-end could send us an enpty value - don't raise exception, just ignore
-            return {}
+            raise BadRequest('Field "unit_ids" is required.')
 
         db_qualification: StringIDRow = app.db.get_qualification(qualification_id)
+
         if not db_qualification:
-            raise NotFound()
+            app.logger.debug(f"Could not found qualification with ID={qualification_id}")
+            # Do not raise any error, just ignore it
+            return {}
 
         for unit_id in unit_ids:
             unit: Unit = Unit.get(app.db, str(unit_id))

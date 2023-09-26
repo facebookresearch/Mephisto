@@ -4,7 +4,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
 export const Status = {
   HTTP_200_OK: 200,
   HTTP_201_CREATED: 201,
@@ -12,4 +11,4 @@ export const Status = {
   HTTP_403_FORBIDDEN: 403,
   HTTP_404_NOT_FOUND: 404,
   HTTP_500_INTERNAL_SERVER_ERROR: 500,
-}
+};

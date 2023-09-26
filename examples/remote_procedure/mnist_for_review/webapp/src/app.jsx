@@ -34,15 +34,15 @@ function uuidv4() {
 
 function RemoteProcedureApp() {
   const searchParams = new URLSearchParams(window.location.search);
-  const reviewMode = searchParams.get('review_mode');
+  const reviewMode = searchParams.get("review_mode");
 
   const [reviewData, setReviewData] = React.useState(null);
 
   // [RECEIVING WIDGET DATA]
   // ---
-  window.onmessage = function(e) {
+  window.onmessage = function (e) {
     const data = JSON.parse(e.data);
-    setReviewData(data['REVIEW_DATA']);
+    setReviewData(data["REVIEW_DATA"]);
   };
   // ---
 
@@ -52,13 +52,9 @@ function RemoteProcedureApp() {
   // ---
   // Return review before other code that contains any request to server
   if (reviewMode) {
-    return <div>
-      {reviewData && (
-        <ReviewFrontend
-          reviewData={reviewData}
-        />
-      )}
-    </div>;
+    return (
+      <div>{reviewData && <ReviewFrontend reviewData={reviewData} />}</div>
+    );
   }
   // ---
 

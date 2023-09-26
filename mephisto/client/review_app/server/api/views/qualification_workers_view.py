@@ -17,7 +17,7 @@ from mephisto.abstractions.databases.local_database import StringIDRow
 
 
 def _find_granted_qualifications(db: LocalMephistoDB, qualification_id: str) -> List[StringIDRow]:
-    """ Return the granted qualifications in the database by the given qualification id """
+    """Return the granted qualifications in the database by the given qualification id"""
 
     with db.table_access_condition:
         conn = db._get_connection()
@@ -67,7 +67,7 @@ def _find_unit_reviews(
 
 class QualificationWorkersView(MethodView):
     def get(self, qualification_id) -> dict:
-        """ Get list of all bearers of a qualification. """
+        """Get list of all bearers of a qualification."""
 
         task_id = request.args.get("task_id")
 

@@ -9,6 +9,7 @@
     "lodash": "^4.17.21",
     "mephisto-task": "^2.0.4",
     "moment": "^2.29.4",
+    "prettier": "^3.0.3",
     "react": "^18.2.0",
     "react-bootstrap": "^2.8.0",
     "react-canvas-draw": "^1.2.1",
@@ -21,7 +22,8 @@
   },
   "scripts": {
     "start": "REACT_APP__MOCK_RESPONSES=false react-scripts start",
-    "build": "react-scripts build"
+    "build": "react-scripts build",
+    "lint": "prettier --write '{src,test}/**/*.{css,html,js,jsx,json,ts,tsx,yaml,yml}'"
   },
   "eslintConfig": {
     "extends": [

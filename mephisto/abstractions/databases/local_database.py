@@ -219,12 +219,12 @@ CREATE_UNIT_REVIEW_TABLE = """
         tips INTEGER,
         blocked_worker BOOLEAN DEFAULT false,
         /* ID of `db.qualifications` (not `db.granted_qualifications`) */
-        updated_qualification_id INTEGER,  
+        updated_qualification_id INTEGER,
         updated_qualification_value INTEGER,
         /* ID of `db.qualifications` (not `db.granted_qualifications`) */
         revoked_qualification_id INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        
+
         FOREIGN KEY (unit_id) REFERENCES units (unit_id),
         FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
         FOREIGN KEY (task_id) REFERENCES tasks (task_id)

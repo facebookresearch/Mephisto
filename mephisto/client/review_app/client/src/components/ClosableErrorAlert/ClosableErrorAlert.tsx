@@ -4,16 +4,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import * as React from 'react';
-import { useState } from 'react';
-import { Alert } from 'react-bootstrap';
-import './ClosableErrorAlert.css';
-
+import * as React from "react";
+import { useState } from "react";
+import { Alert } from "react-bootstrap";
+import "./ClosableErrorAlert.css";
 
 interface PropsType {
   children: any;
 }
-
 
 function ClosableErrorAlert(props: PropsType) {
   const [show, setShow] = useState<boolean>(true);
@@ -32,6 +30,5 @@ function ClosableErrorAlert(props: PropsType) {
     );
   }
 }
-
 
 export default ClosableErrorAlert;

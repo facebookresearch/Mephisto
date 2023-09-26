@@ -28,18 +28,33 @@
   justify-content: space-between;
 }
 
-.review-modal .modal-dialog .modal-content .modal-footer .review-buttons .btn-cancel-button {
+.review-modal
+  .modal-dialog
+  .modal-content
+  .modal-footer
+  .review-buttons
+  .btn-cancel-button {
   text-decoration: none;
   color: grey;
   border: none;
 }
 
-.review-modal .modal-dialog .modal-content .modal-footer .apply-all-checkbox > label {
+.review-modal
+  .modal-dialog
+  .modal-content
+  .modal-footer
+  .apply-all-checkbox
+  > label {
   font-style: italic;
   color: grey;
   font-size: 14px;
 }
 
-.review-modal .modal-dialog .modal-content .modal-footer .apply-all-checkbox > input {
+.review-modal
+  .modal-dialog
+  .modal-content
+  .modal-footer
+  .apply-all-checkbox
+  > input {
   border: 1px solid black;
 }

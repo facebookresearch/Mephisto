@@ -4,11 +4,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
-import urls from 'urls';
-import generateURL from './generateURL';
-import makeRequest from './makeRequest';
-
+import urls from "urls";
+import generateURL from "./generateURL";
+import makeRequest from "./makeRequest";
 
 export function postWorkerBlock(
   id: number,
@@ -16,18 +14,18 @@ export function postWorkerBlock(
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: string | number | number[] },
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.workersBlock(id), null, null);
 
   makeRequest(
-    'POST',
+    "POST",
     url,
     JSON.stringify(data),
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postWorkerBlock error:',
-    abortController,
+    "postWorkerBlock error:",
+    abortController
   );
 }

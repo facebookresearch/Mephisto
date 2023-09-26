@@ -22,7 +22,7 @@ def _update_blocked_worker_in_unit_review(
     worker_id: int,
     block: bool = False,
 ) -> None:
-    """ Update unit review in the db with blocking Worker value """
+    """Update unit review in the db with blocking Worker value"""
 
     with db.table_access_condition:
         conn = db._get_connection()
@@ -47,7 +47,7 @@ def _update_blocked_worker_in_unit_review(
         c.execute(
             """
             UPDATE unit_review
-            SET 
+            SET
                 blocked_worker = ?
             WHERE id = ?;
             """,
@@ -61,7 +61,7 @@ def _update_blocked_worker_in_unit_review(
 
 class WorkerBlockView(MethodView):
     def post(self, worker_id: int) -> dict:
-        """ Permanently block a worker """
+        """Permanently block a worker"""
 
         data: dict = request.json
         unit_ids: Optional[str] = data and data.get("unit_ids")

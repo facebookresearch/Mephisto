@@ -25,15 +25,15 @@ from mephisto.utils.logger_core import get_logger
 from .urls import init_urls
 
 FLASK_SETTINGS_MODULE = os.environ.get(
-    'FLASK_SETTINGS_MODULE',
-    'mephisto.client.review_app.server.settings.base',
+    "FLASK_SETTINGS_MODULE",
+    "mephisto.client.review_app.server.settings.base",
 )
 
 
 def create_app(provider: str, debug: bool) -> Flask:
     # Logging
     # TODO [Review APP]: Fix logging (it works in views only with `app.logger` somehow)
-    flask_logger = get_logger('')
+    flask_logger = get_logger("")
     settings = import_string(FLASK_SETTINGS_MODULE)
     dictConfig(settings.LOGGING)
 
@@ -64,12 +64,14 @@ def create_app(provider: str, debug: bool) -> Flask:
     # Exceptions handlers
     @app.errorhandler(WerkzeugHTTPException)
     def handle_flask_exception(e: WerkzeugHTTPException) -> Response:
-        logger.error(''.join(traceback.format_tb(e.__traceback__)))
+        logger.error("".join(traceback.format_tb(e.__traceback__)))
         response = e.get_response()
-        response.data = json.dumps({
-            'error': e.description,
-        })
-        response.content_type = 'application/json'
+        response.data = json.dumps(
+            {
+                "error": e.description,
+            }
+        )
+        response.content_type = "application/json"
         return response
 
     @app.errorhandler(Exception)
@@ -79,20 +81,20 @@ def create_app(provider: str, debug: bool) -> Flask:
             return e
 
         elif isinstance(e, ProlificException):
-            logger.exception('Prolific error')
+            logger.exception("Prolific error")
             return {
-                'error': e.message,
+                "error": e.message,
             }, status.HTTP_400_BAD_REQUEST
 
         elif isinstance(e, EntryDoesNotExistException):
             return {
-                'error': 'Not found',
+                "error": "Not found",
             }, status.HTTP_404_NOT_FOUND
 
         # Other uncaught exceptions
-        logger.error(''.join(traceback.format_tb(e.__traceback__)))
+        logger.error("".join(traceback.format_tb(e.__traceback__)))
         return {
-            'error': f'Server error: {e}',
+            "error": f"Server error: {e}",
         }, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     return app

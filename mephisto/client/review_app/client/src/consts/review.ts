@@ -4,7 +4,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
 export const ReviewType = {
   APPROVE: "approve",
   REJECT: "reject",

@@ -4,9 +4,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-.review-form >* input,
-.review-form >* select,
-.review-form >* textarea {
+.review-form > * input,
+.review-form > * select,
+.review-form > * textarea {
   border: 1px solid black;
 }
 

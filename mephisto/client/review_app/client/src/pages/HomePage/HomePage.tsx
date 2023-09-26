@@ -4,18 +4,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
-import { useEffect } from 'react';
-import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
-import urls from 'urls';
-import './HomePage.css';
-
+import * as React from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import urls from "urls";
+import "./HomePage.css";
 
 interface PropsType {
   setErrors: Function;
 }
-
 
 function HomePage(props: PropsType) {
   const navigate = useNavigate();
@@ -28,6 +25,5 @@ function HomePage(props: PropsType) {
 
   return null;
 }
-
 
 export default HomePage;

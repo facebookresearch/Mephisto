@@ -25,7 +25,10 @@ class TaskUnitIdsView(MethodView):
         app.logger.debug(f"Found task in DB: {dict(db_task)}")
 
         db_units: List[StringIDRow] = find_units(
-            app.db, int(db_task["task_id"]), statuses=AssignmentState.completed(), debug=app.debug,
+            app.db,
+            int(db_task["task_id"]),
+            statuses=AssignmentState.completed(),
+            debug=app.debug,
         )
 
         app.logger.debug(f"All units: {[u['unit_id'] for u in db_units]}")

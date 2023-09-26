@@ -4,29 +4,27 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
-import urls from 'urls';
-import generateURL from './generateURL';
-import makeRequest from './makeRequest';
-
+import urls from "urls";
+import generateURL from "./generateURL";
+import makeRequest from "./makeRequest";
 
 export function getStats(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   getParams: { [key: string]: string | number } = null,
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.stats, null, getParams);
 
   makeRequest(
-    'GET',
+    "GET",
     url,
     null,
     (data) => setDataAction(data.stats),
     setLoadingAction,
     setErrorsAction,
-    'getStats error:',
-    abortController,
+    "getStats error:",
+    abortController
   );
 }

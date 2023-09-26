@@ -20,7 +20,7 @@ def create_unit_review(
     feedback: Optional[str] = None,
     tips: Optional[str] = None,
 ) -> None:
-    """ Create unit review in the db """
+    """Create unit review in the db"""
 
     with db.table_access_condition:
         conn = db._get_connection()
@@ -49,7 +49,10 @@ def create_unit_review(
 
 
 def find_units(
-    db, task_id: int, statuses: Optional[List[str]] = None, debug: bool = False,
+    db,
+    task_id: int,
+    statuses: Optional[List[str]] = None,
+    debug: bool = False,
 ) -> List[StringIDRow]:
     with db.table_access_condition:
         conn = db._get_connection()
@@ -66,7 +69,7 @@ def find_units(
         statuses_string = ",".join([f"'{s}'" for s in statuses])
         status_query = f"status IN ({statuses_string})" if statuses else ""
 
-        joined_queries = ' AND '.join(list(filter(bool, [task_query, status_query])))
+        joined_queries = " AND ".join(list(filter(bool, [task_query, status_query])))
 
         where_query = f"WHERE {joined_queries}" if joined_queries else ""
 

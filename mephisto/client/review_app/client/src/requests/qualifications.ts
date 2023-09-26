@@ -4,33 +4,30 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
-import urls from 'urls';
-import generateURL from './generateURL';
-import makeRequest from './makeRequest';
-
+import urls from "urls";
+import generateURL from "./generateURL";
+import makeRequest from "./makeRequest";
 
 export function getQualifications(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   getParams: { [key: string]: string | number } = null,
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.qualifications, null, getParams);
 
   makeRequest(
-    'GET',
+    "GET",
     url,
     null,
     (data) => setDataAction(data.qualifications),
     setLoadingAction,
     setErrorsAction,
-    'getTasks error:',
-    abortController,
+    "getTasks error:",
+    abortController
   );
 }
-
 
 export function getQualificationWorkers(
   id: number,
@@ -38,44 +35,46 @@ export function getQualificationWorkers(
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   getParams: { [key: string]: string | number } = null,
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
-  const url = generateURL(urls.server.qualificationWorkers(id), null, getParams);
+  const url = generateURL(
+    urls.server.qualificationWorkers(id),
+    null,
+    getParams
+  );
 
   makeRequest(
-    'GET',
+    "GET",
     url,
     null,
     (data) => setDataAction(data.workers),
     setLoadingAction,
     setErrorsAction,
-    'getQualificationWorkers error:',
-    abortController,
+    "getQualificationWorkers error:",
+    abortController
   );
 }
-
 
 export function postQualification(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: string | number },
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.qualifications, null, null);
 
   makeRequest(
-    'POST',
+    "POST",
     url,
     JSON.stringify(data),
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postQualification error:',
-    abortController,
+    "postQualification error:",
+    abortController
   );
 }
-
 
 export function postQualificationGrantWorker(
   id: number,
@@ -84,22 +83,25 @@ export function postQualificationGrantWorker(
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: string[] | number[] | number | string },
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
-  const url = generateURL(urls.server.qualificationGrantWorker(id, workerId), null, null);
+  const url = generateURL(
+    urls.server.qualificationGrantWorker(id, workerId),
+    null,
+    null
+  );
 
   makeRequest(
-    'POST',
+    "POST",
     url,
     JSON.stringify(data),
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postQualificationGrantWorker error:',
-    abortController,
+    "postQualificationGrantWorker error:",
+    abortController
   );
 }
-
 
 export function postQualificationRevokeWorker(
   id: number,
@@ -108,18 +110,22 @@ export function postQualificationRevokeWorker(
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: string[] | number[] | number | string },
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
-  const url = generateURL(urls.server.qualificationRevokeWorker(id, workerId), null, null);
+  const url = generateURL(
+    urls.server.qualificationRevokeWorker(id, workerId),
+    null,
+    null
+  );
 
   makeRequest(
-    'POST',
+    "POST",
     url,
     JSON.stringify(data),
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postQualificationRevokeWorker error:',
-    abortController,
+    "postQualificationRevokeWorker error:",
+    abortController
   );
 }

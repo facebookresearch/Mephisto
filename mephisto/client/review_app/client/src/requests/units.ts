@@ -4,117 +4,110 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
-import urls from 'urls';
-import generateURL from './generateURL';
-import makeRequest from './makeRequest';
-
+import urls from "urls";
+import generateURL from "./generateURL";
+import makeRequest from "./makeRequest";
 
 export function getUnits(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  getParams: { [key: string]: string | number } = null,
-  abortController?: AbortController,
+  getParams: { [key: string]: string | number } = null
 ) {
   const url = generateURL(urls.server.units, null, getParams);
 
   makeRequest(
-    'GET',
+    "GET",
     url,
     null,
     (data) => setDataAction(data.units),
     setLoadingAction,
     setErrorsAction,
-    'getUnits error:',
-    abortController,
+    "getUnits error:",
+    abortController
   );
 }
-
 
 export function getUnitsDetails(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   getParams: { [key: string]: string | number } = null,
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsDetails, null, getParams);
 
   makeRequest(
-    'GET',
+    "GET",
     url,
     null,
     (data) => setDataAction(data.units),
     setLoadingAction,
     setErrorsAction,
-    'getUnitsDetails error:',
-    abortController,
+    "getUnitsDetails error:",
+    abortController
   );
 }
-
 
 export function postUnitsApprove(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: number[] },
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsApprove, null, null);
 
   makeRequest(
-    'POST',
+    "POST",
     url,
     JSON.stringify(data),
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postUnitsApprove error:',
-    abortController,
+    "postUnitsApprove error:",
+    abortController
   );
 }
-
 
 export function postUnitsReject(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: number[] },
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsReject, null, null);
 
   makeRequest(
-    'POST',
+    "POST",
     url,
     JSON.stringify(data),
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postUnitsReject error:',
-    abortController,
+    "postUnitsReject error:",
+    abortController
   );
 }
-
 
 export function postUnitsSoftReject(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
   data: { [key: string]: number[] },
-  abortController?: AbortController,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsSoftReject, null, null);
 
   makeRequest(
-    'POST',
+    "POST",
     url,
     JSON.stringify(data),
     (data) => setDataAction(data),
     setLoadingAction,
     setErrorsAction,
-    'postUnitsSoftReject error:',
-    abortController,
+    "postUnitsSoftReject error:",
+    abortController
   );
 }

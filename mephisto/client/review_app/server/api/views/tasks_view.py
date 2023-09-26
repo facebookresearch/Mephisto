@@ -38,7 +38,7 @@ def _find_tasks(db, debug: bool = False) -> List[StringIDRow]:
 
 class TasksView(MethodView):
     def get(self) -> dict:
-        """ Get all available tasks (to select one for review) """
+        """Get all available tasks (to select one for review)"""
 
         db_tasks: List[StringIDRow] = _find_tasks(app.db, debug=app.debug)
         app.logger.debug(f"Found tasks in DB: {[t['task_id'] for t in db_tasks]}")
@@ -46,7 +46,10 @@ class TasksView(MethodView):
         tasks = []
         for t in db_tasks:
             db_units: List[StringIDRow] = find_units(
-                app.db, int(t["task_id"]), statuses=AssignmentState.completed(), debug=app.debug,
+                app.db,
+                int(t["task_id"]),
+                statuses=AssignmentState.completed(),
+                debug=app.debug,
             )
 
             app.logger.debug(f"All finished units: {[u['unit_id'] for u in db_units]}")

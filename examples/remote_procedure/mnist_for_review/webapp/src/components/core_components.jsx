@@ -210,7 +210,7 @@ function ReviewAnnotationCanvas({ index, value }) {
       style={{ float: "left", padding: "3px", borderStyle: "solid" }}
     >
       <div data-cy={`canvas-mouse-down-container-${index}`}>
-        <img src={value['imgData']} key={'img' + index} alt={'img' + index} />
+        <img src={value["imgData"]} key={"img" + index} alt={"img" + index} />
       </div>
       <button
         data-cy={`clear-button-${index}`}
@@ -222,7 +222,7 @@ function ReviewAnnotationCanvas({ index, value }) {
       </button>
       <br />
       <span data-cy={`current-annotation-${index}`}>
-        Current Annotation: {value['currentAnnotation']}
+        Current Annotation: {value["currentAnnotation"]}
       </span>
       <br />
       Annotation Correct?{" "}
@@ -230,7 +230,7 @@ function ReviewAnnotationCanvas({ index, value }) {
         type="checkbox"
         data-cy={`correct-checkbox-${index}`}
         disabled={true}
-        checked={!!value['isCorrect']}
+        checked={!!value["isCorrect"]}
       />
       <Fragment>
         <br />
@@ -239,7 +239,7 @@ function ReviewAnnotationCanvas({ index, value }) {
         <input
           type="text"
           disabled={true}
-          value={value['trueAnnotation']}
+          value={value["trueAnnotation"]}
           data-cy={`correct-text-input-${index}`}
         />
       </Fragment>
@@ -250,14 +250,12 @@ function ReviewAnnotationCanvas({ index, value }) {
 
 // [RECEIVING WIDGET DATA]
 // ---
-function ReviewFrontend({
-  reviewData,
-}) {
+function ReviewFrontend({ reviewData }) {
   return (
     <div>
       <Instructions taskData={{}} />
       <div>
-        {reviewData['final_submission']['annotations'].map((_d, idx) => (
+        {reviewData["final_submission"]["annotations"].map((_d, idx) => (
           <ReviewAnnotationCanvas
             index={idx}
             key={"Annotation-" + String(idx)}
@@ -281,4 +279,9 @@ function ReviewFrontend({
 }
 // ---
 
-export { LoadingScreen, TaskFrontend as BaseFrontend, ReviewFrontend,Instructions };
+export {
+  LoadingScreen,
+  TaskFrontend as BaseFrontend,
+  ReviewFrontend,
+  Instructions,
+};

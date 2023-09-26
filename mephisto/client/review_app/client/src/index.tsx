@@ -4,16 +4,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import App from "App/App";
+import * as React from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import "./default.css";
 
-import App from 'App/App';
-import * as React from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import './default.css';
-
-
-const root = createRoot(document.getElementById('root'));
-
+const root = createRoot(document.getElementById("root"));
 
 root.render(
   <BrowserRouter>

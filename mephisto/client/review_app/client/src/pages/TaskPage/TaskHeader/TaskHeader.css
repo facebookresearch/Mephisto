@@ -40,7 +40,8 @@
   text-align: center;
 }
 
-.task-header .table th, .task-header .table td {
+.task-header .table th,
+.task-header .table td {
   background: transparent;
   line-height: 0.8;
 }

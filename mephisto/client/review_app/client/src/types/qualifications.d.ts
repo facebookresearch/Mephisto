@@ -4,7 +4,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
 declare type QualificationType = {
   id: number;
   name: string;

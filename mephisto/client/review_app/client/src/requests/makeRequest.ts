@@ -4,12 +4,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { Status } from 'consts/http';
-import { MOCK_RESPONSES_DATA } from './mockResponses';
-
+import { Status } from "consts/http";
+import { MOCK_RESPONSES_DATA } from "./mockResponses";
 
 const MOCK_RESPONSES = process.env.REACT_APP__MOCK_RESPONSES;
-
 
 function makeRequest(
   method: string,
@@ -18,15 +16,15 @@ function makeRequest(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  log_error_message = '',
+  log_error_message = "",
   abortController?: AbortController,
-  setNotFoundErrorsAction?: SetRequestErrorsActionType,
+  setNotFoundErrorsAction?: SetRequestErrorsActionType
 ) {
-  if (MOCK_RESPONSES === 'true') {
+  if (MOCK_RESPONSES === "true") {
     const mockData = MOCK_RESPONSES_DATA[url];
     if (mockData !== undefined) {
       setDataAction(mockData);
-      return
+      return;
     }
     // Otherwise we make a real request
   }
@@ -41,8 +39,8 @@ function makeRequest(
   fetch(url, {
     method: method,
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
     body: data,
     signal: abortController.signal,
@@ -61,8 +59,8 @@ function makeRequest(
             }
           })
           .catch((error) => {
-            if (response.headers.get('Content-Type') === 'application/json') {
-              console.log('Failed to JSON.parse response', error, response);
+            if (response.headers.get("Content-Type") === "application/json") {
+              console.log("Failed to JSON.parse response", error, response);
             } else {
               setDataAction(null);
             }
@@ -81,16 +79,15 @@ function makeRequest(
         });
       } else if (response.status === Status.HTTP_500_INTERNAL_SERVER_ERROR) {
         response.json().then((data) => {
-            setErrorsAction(data);
+          setErrorsAction(data);
         });
       }
     })
     .catch((error) => {
-      setErrorsAction({error: 'Server error'});
+      setErrorsAction({ error: "Server error" });
       console.error(log_error_message, error);
       setLoadingAction(false);
     });
 }
-
 
 export default makeRequest;

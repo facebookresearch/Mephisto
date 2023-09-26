@@ -16,7 +16,6 @@ type FormType = {
   tips: number | null;
 };
 
-
 type ModalDataType = {
   applyToNext: boolean;
   applyToNextUnitsCount: number;
@@ -26,7 +25,6 @@ type ModalDataType = {
   title: string;
   type: string;
 };
-
 
 type ModalStateType = {
   approve: {

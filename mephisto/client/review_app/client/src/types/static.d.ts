@@ -4,26 +4,23 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
-declare module '*.css' {
+declare module "*.css" {
   const content: { [className: string]: string };
   export default content;
 }
 
+declare module "*.svg" {
+  import * as React from "react";
 
-declare module '*.svg' {
-  import * as React from 'react';
-
-  export const ReactComponent: React.FunctionComponent<React.SVGProps<
-      SVGSVGElement
-  > & { title?: string }>;
+  export const ReactComponent: React.FunctionComponent<
+    React.SVGProps<SVGSVGElement> & { title?: string }
+  >;
 
   const src: string;
   export default src;
 }
 
-
-declare module '*.jsx' {
-    let _: React.Component<any, any>;
-    export default _;
+declare module "*.jsx" {
+  let _: React.Component<any, any>;
+  export default _;
 }

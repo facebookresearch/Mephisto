@@ -6,42 +6,40 @@
 
 // TODO: Find the way to import it dynamically
 // import { TaskFrontend } from 'components/mnist_core_components_copied';
-import { ReviewType } from 'consts/review';
-import cloneDeep from 'lodash/cloneDeep';
-import * as React from 'react';
-import { useEffect } from 'react';
-import { Button, Spinner, Table } from 'react-bootstrap';
-import JSONPretty from 'react-json-pretty';
-import { useNavigate, useParams } from 'react-router-dom';
+import { ReviewType } from "consts/review";
+import cloneDeep from "lodash/cloneDeep";
+import * as React from "react";
+import { useEffect } from "react";
+import { Button, Spinner, Table } from "react-bootstrap";
+import JSONPretty from "react-json-pretty";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   postQualificationGrantWorker,
   postQualificationRevokeWorker,
-} from 'requests/qualifications';
-import { getStats } from 'requests/stats';
-import { getTask, getTaskWorkerUnitsIds } from 'requests/tasks';
+} from "requests/qualifications";
+import { getStats } from "requests/stats";
+import { getTask, getTaskWorkerUnitsIds } from "requests/tasks";
 import {
   getUnits,
   getUnitsDetails,
   postUnitsApprove,
   postUnitsReject,
   postUnitsSoftReject,
-} from 'requests/units';
-import { postWorkerBlock } from 'requests/workers';
-import urls from 'urls';
-import { setPageTitle, updateModalState } from './helpers';
+} from "requests/units";
+import { postWorkerBlock } from "requests/workers";
+import urls from "urls";
+import { setPageTitle, updateModalState } from "./helpers";
 import {
   APPROVE_MODAL_DATA_STATE,
   DEFAULT_MODAL_STATE_VALUE,
   REJECT_MODAL_DATA_STATE,
   SOFT_REJECT_MODAL_DATA_STATE,
-} from './modalData';
-import ReviewModal from './ReviewModal/ReviewModal';
-import TaskHeader from './TaskHeader/TaskHeader';
-import './TaskPage.css';
+} from "./modalData";
+import ReviewModal from "./ReviewModal/ReviewModal";
+import TaskHeader from "./TaskHeader/TaskHeader";
+import "./TaskPage.css";
 
-
-const MNIST_URL = process.env.REACT_APP__MNIST_URL || 'http://localhost:3000';
-
+const MNIST_URL = process.env.REACT_APP__MNIST_URL || "http://localhost:3000";
 
 const defaultStats = {
   total_count: null,
@@ -49,21 +47,17 @@ const defaultStats = {
   approved_count: 0,
   rejected_count: 0,
   soft_rejected_count: 0,
-}
+};
 
-
-type UnitDetailsMapType = {[key: string]: UnitType & UnitDetailsType};
-
+type UnitDetailsMapType = { [key: string]: UnitType & UnitDetailsType };
 
 type ParamsType = {
   id: string;
 };
 
-
 interface PropsType {
   setErrors: Function;
 }
-
 
 function TaskPage(props: PropsType) {
   const params = useParams<ParamsType>();
@@ -86,17 +80,31 @@ function TaskPage(props: PropsType) {
   );
 
   const [taskStats, setTaskStats] = React.useState<TaskStatsType>(defaultStats);
-  const [workerStats, setWorkerStats] = React.useState<WorkerStatsType>(defaultStats);
-  const [workerUnits, setWorkerUnits] = React.useState<Array<[number, number[]]>>(null);
-  const [unitsOnReview, setUnitsOnReview] = React.useState<[number, number[]]>(null);
-  const [currentWorkerOnReview, setCurrentWorkerOnReview] = React.useState<number>(null);
-  const [currentUnitOnReview, setCurrentUnitOnReview] = React.useState<number>(null);
+  const [workerStats, setWorkerStats] = React.useState<WorkerStatsType>(
+    defaultStats
+  );
+  const [workerUnits, setWorkerUnits] = React.useState<
+    Array<[number, number[]]>
+  >(null);
+  const [unitsOnReview, setUnitsOnReview] = React.useState<[number, number[]]>(
+    null
+  );
+  const [currentWorkerOnReview, setCurrentWorkerOnReview] = React.useState<
+    number
+  >(null);
+  const [currentUnitOnReview, setCurrentUnitOnReview] = React.useState<number>(
+    null
+  );
   const [unitDetails, setUnitDetails] = React.useState<UnitDetailsType[]>(null);
-  const [unitDetailsMap, setUnitDetailsMap] = React.useState<UnitDetailsMapType>({});
+  const [unitDetailsMap, setUnitDetailsMap] = React.useState<
+    UnitDetailsMapType
+  >({});
 
   const [finishedTask, setFinishedTask] = React.useState<boolean>(false);
 
-  const onGetTaskWorkerUnitsIdsSuccess = (workerUnitsIds: WorkerUnitIdType[]) => {
+  const onGetTaskWorkerUnitsIdsSuccess = (
+    workerUnitsIds: WorkerUnitIdType[]
+  ) => {
     setWorkerUnits(() => {
       const workerUnitsMap = {};
 
@@ -108,7 +116,7 @@ function TaskPage(props: PropsType) {
 
       let sortedValue = [];
       for (let i in workerUnitsMap) {
-          sortedValue.push([Number(i), workerUnitsMap[i]]);
+        sortedValue.push([Number(i), workerUnitsMap[i]]);
       }
 
       // Sort workers by number of their units
@@ -175,7 +183,10 @@ function TaskPage(props: PropsType) {
 
     setUnitsOnReview([firstWrokerUnits[0], [...firstWrokerUnits[1]]]);
     setCurrentWorkerOnReview(firstWrokerUnits[0]);
-    setModalData({...modalData, applyToNextUnitsCount: [...firstWrokerUnits[1]].length});
+    setModalData({
+      ...modalData,
+      applyToNextUnitsCount: [...firstWrokerUnits[1]].length,
+    });
 
     const firstUnit = firstWrokerUnits[1].shift();
     setCurrentUnitOnReview(firstUnit);
@@ -184,7 +195,10 @@ function TaskPage(props: PropsType) {
   const onReviewSuccess = (_modalData: ModalDataType, unitIds: number[]) => {
     if (_modalData.type === ReviewType.APPROVE) {
       // Grant Qualification
-      if (_modalData.form.checkboxAssignQualification && _modalData.form.qualification) {
+      if (
+        _modalData.form.checkboxAssignQualification &&
+        _modalData.form.qualification
+      ) {
         postQualificationGrantWorker(
           _modalData.form.qualification,
           currentWorkerOnReview,
@@ -192,17 +206,23 @@ function TaskPage(props: PropsType) {
           setLoading,
           onError,
           {
-            feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
-            tips: _modalData.form.checkboxGiveTips ? _modalData.form.tips : null,
+            feedback: _modalData.form.checkboxComment
+              ? _modalData.form.comment
+              : null,
+            tips: _modalData.form.checkboxGiveTips
+              ? _modalData.form.tips
+              : null,
             unit_ids: unitIds,
             value: _modalData.form.qualificationValue,
-          },
-        )
+          }
+        );
       }
-    }
-    else if (_modalData.type === ReviewType.SOFT_REJECT) {
+    } else if (_modalData.type === ReviewType.SOFT_REJECT) {
       // Revoke Qualification
-      if (_modalData.form.checkboxAssignQualification && _modalData.form.qualification) {
+      if (
+        _modalData.form.checkboxAssignQualification &&
+        _modalData.form.qualification
+      ) {
         postQualificationRevokeWorker(
           _modalData.form.qualification,
           currentWorkerOnReview,
@@ -210,16 +230,20 @@ function TaskPage(props: PropsType) {
           setLoading,
           onError,
           {
-            feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
+            feedback: _modalData.form.checkboxComment
+              ? _modalData.form.comment
+              : null,
             unit_ids: unitIds,
             value: _modalData.form.qualificationValue,
-          },
-        )
+          }
+        );
       }
-    }
-    else if (_modalData.type === ReviewType.REJECT) {
+    } else if (_modalData.type === ReviewType.REJECT) {
       // Revoke Qualification
-      if (_modalData.form.checkboxUnassignQualification && _modalData.form.qualification) {
+      if (
+        _modalData.form.checkboxUnassignQualification &&
+        _modalData.form.qualification
+      ) {
         postQualificationRevokeWorker(
           _modalData.form.qualification,
           currentWorkerOnReview,
@@ -227,10 +251,12 @@ function TaskPage(props: PropsType) {
           setLoading,
           onError,
           {
-            feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
+            feedback: _modalData.form.checkboxComment
+              ? _modalData.form.comment
+              : null,
             unit_ids: unitIds,
-          },
-        )
+          }
+        );
       }
       // Block Worker
       if (_modalData.form.checkboxBanWorker) {
@@ -240,10 +266,12 @@ function TaskPage(props: PropsType) {
           setLoading,
           onError,
           {
-            feedback: _modalData.form.checkboxComment ? _modalData.form.comment : null,
+            feedback: _modalData.form.checkboxComment
+              ? _modalData.form.comment
+              : null,
             unit_ids: unitIds,
-          },
-        )
+          }
+        );
       }
     }
 
@@ -268,17 +296,24 @@ function TaskPage(props: PropsType) {
 
     if (modalData.type === ReviewType.APPROVE) {
       postUnitsApprove(
-        () => onReviewSuccess(modalData, unitIds), setLoading, onError, {unit_ids: unitIds},
+        () => onReviewSuccess(modalData, unitIds),
+        setLoading,
+        onError,
+        { unit_ids: unitIds }
       );
-    }
-    else if (modalData.type === ReviewType.SOFT_REJECT) {
+    } else if (modalData.type === ReviewType.SOFT_REJECT) {
       postUnitsSoftReject(
-        () => onReviewSuccess(modalData, unitIds), setLoading, onError, {unit_ids: unitIds},
+        () => onReviewSuccess(modalData, unitIds),
+        setLoading,
+        onError,
+        { unit_ids: unitIds }
       );
-    }
-    else if (modalData.type === ReviewType.REJECT) {
+    } else if (modalData.type === ReviewType.REJECT) {
       postUnitsReject(
-        () => onReviewSuccess(modalData, unitIds), setLoading, onError, {unit_ids: unitIds},
+        () => onReviewSuccess(modalData, unitIds),
+        setLoading,
+        onError,
+        { unit_ids: unitIds }
       );
     }
 
@@ -297,9 +332,9 @@ function TaskPage(props: PropsType) {
   const sendDataToTaskIframe = (data: object) => {
     const reviewData = {
       REVIEW_DATA: data,
-    }
-    const taskIframe =  iframeRef.current;
-    taskIframe.contentWindow.postMessage(JSON.stringify(reviewData), '*');
+    };
+    const taskIframe = iframeRef.current;
+    taskIframe.contentWindow.postMessage(JSON.stringify(reviewData), "*");
   };
   // ---
 
@@ -317,7 +352,10 @@ function TaskPage(props: PropsType) {
 
     if (units === null) {
       getTaskWorkerUnitsIds(
-        Number(params.id), onGetTaskWorkerUnitsIdsSuccess, setLoading, onError,
+        Number(params.id),
+        onGetTaskWorkerUnitsIdsSuccess,
+        setLoading,
+        onError
       );
     }
   }, []);
@@ -342,9 +380,10 @@ function TaskPage(props: PropsType) {
 
   useEffect(() => {
     if (unitsOnReview && unitsOnReview[1].length) {
-      getUnits(
-        setUnits, setLoading, onError, {task_id: params.id, unit_ids: unitsOnReview[1].join(',')},
-      );
+      getUnits(setUnits, setLoading, onError, {
+        task_id: params.id,
+        unit_ids: unitsOnReview[1].join(","),
+      });
     }
   }, [unitsOnReview]);
 
@@ -358,26 +397,24 @@ function TaskPage(props: PropsType) {
         return map;
       });
 
-      getStats(setTaskStats, setLoading, onError, {task_id: params.id});
-      getStats(
-        setWorkerStats,
-        setLoading,
-        onError,
-        {task_id: params.id, worker_id: currentWorkerOnReview},
-      );
-      getUnitsDetails(setUnitDetails, setLoading, onError, {unit_ids: currentUnitOnReview});
+      getStats(setTaskStats, setLoading, onError, { task_id: params.id });
+      getStats(setWorkerStats, setLoading, onError, {
+        task_id: params.id,
+        worker_id: currentWorkerOnReview,
+      });
+      getUnitsDetails(setUnitDetails, setLoading, onError, {
+        unit_ids: currentUnitOnReview,
+      });
     }
   }, [units, currentUnitOnReview]);
 
   useEffect(() => {
     if (finishedTask === true) {
-      getStats(setTaskStats, setLoading, onError, {task_id: params.id});
-      getStats(
-        setWorkerStats,
-        setLoading,
-        onError,
-        {task_id: params.id, worker_id: currentWorkerOnReview},
-      );
+      getStats(setTaskStats, setLoading, onError, { task_id: params.id });
+      getStats(setWorkerStats, setLoading, onError, {
+        task_id: params.id,
+        worker_id: currentWorkerOnReview,
+      });
 
       setTimeout(() => {
         navigate(urls.client.tasks);
@@ -391,7 +428,7 @@ function TaskPage(props: PropsType) {
         const map = cloneDeep(oldValue);
         unitDetails.forEach((item: UnitDetailsType) => {
           const prev = map[item.id];
-          map[item.id] = {...prev, ...item};
+          map[item.id] = { ...prev, ...item };
         });
         return map;
       });
@@ -404,7 +441,7 @@ function TaskPage(props: PropsType) {
     if (
       iframeLoaded &&
       currentUnitDetails?.outputs &&
-      'final_submission' in currentUnitDetails.outputs
+      "final_submission" in currentUnitDetails.outputs
     ) {
       sendDataToTaskIframe(currentUnitDetails.outputs);
     }
@@ -415,131 +452,172 @@ function TaskPage(props: PropsType) {
     return null;
   }
 
-  return <div className={'task'}>
-    <TaskHeader
-      taskStats={taskStats}
-      workerStats={workerStats}
-      workerId={unitsOnReview ? currentWorkerOnReview : null}
-    />
+  return (
+    <div className={"task"}>
+      <TaskHeader
+        taskStats={taskStats}
+        workerStats={workerStats}
+        workerId={unitsOnReview ? currentWorkerOnReview : null}
+      />
 
-    <div className={"buttons"}>
-      {!finishedTask ? (<>
-        <Button variant={"success"} size={"sm"} onClick={onApproveClick}>Approve</Button>
-        <Button variant={"warning"} size={"sm"} onClick={onSoftRejectClick}>Soft-Reject</Button>
-        <Button variant={"danger"} size={"sm"} onClick={onRejectClick}>Reject</Button>
-      </>) : (
-        <div>No units left for this task. Redirecting to the list of tasks.</div>
-      )}
-    </div>
+      <div className={"buttons"}>
+        {!finishedTask ? (
+          <>
+            <Button variant={"success"} size={"sm"} onClick={onApproveClick}>
+              Approve
+            </Button>
+            <Button variant={"warning"} size={"sm"} onClick={onSoftRejectClick}>
+              Soft-Reject
+            </Button>
+            <Button variant={"danger"} size={"sm"} onClick={onRejectClick}>
+              Reject
+            </Button>
+          </>
+        ) : (
+          <div>
+            No units left for this task. Redirecting to the list of tasks.
+          </div>
+        )}
+      </div>
 
-    <div className={"content"}>
-      {/* Preloader when we request tasks */}
-      {loading && (
-        <div className={"loading"}>
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      )}
+      <div className={"content"}>
+        {/* Preloader when we request tasks */}
+        {loading && (
+          <div className={"loading"}>
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </div>
+        )}
 
-      {/* Unit info */}
-      {unitDetails && currentUnitOnReview && (
-        <div className={"info"}>
-          {currentUnitDetails && (<>
-            <div>Unit ID: {currentUnitDetails.id}</div>
-            <div>Task ID: {currentUnitDetails.task_id}</div>
-            <div>Worker ID: {currentUnitDetails.worker_id}</div>
-          </>)}
-        </div>
-      )}
+        {/* Unit info */}
+        {unitDetails && currentUnitOnReview && (
+          <div className={"info"}>
+            {currentUnitDetails && (
+              <>
+                <div>Unit ID: {currentUnitDetails.id}</div>
+                <div>Task ID: {currentUnitDetails.task_id}</div>
+                <div>Worker ID: {currentUnitDetails.worker_id}</div>
+              </>
+            )}
+          </div>
+        )}
 
-      {currentUnitDetails?.outputs && (<>
-        {/* Task info */}
-        <div className={'question'} onClick={(e) => e.preventDefault()}>
-          {'final_submission' in currentUnitDetails.outputs ? (<>
-            {/* TODO [RECEIVING WIDGET DATA]: Remove this later if `iframe` is OK */}
-            {/*<div className={'images'}>*/}
-            {/*  {(currentUnitDetails.outputs['final_submission']['annotations'] || []).map(*/}
-            {/*    (item: {[key: string]: any}, i: number) => {*/}
-            {/*      return <img src={item['imgData']} key={'img' + i} alt={'img' + i} />;*/}
-            {/*    }*/}
-            {/*  )}*/}
-            {/*</div>*/}
-            {/*<TaskFrontend*/}
-            {/*  classifyDigit={(_) => null}*/}
-            {/*  handleSubmit={(e) => console.log('handleSubmit', e)}*/}
-            {/*  taskData={currentUnitDetails.outputs['init_data'] || {isScreeningUnit: false}}*/}
-            {/*/>*/}
+        {currentUnitDetails?.outputs && (
+          <>
+            {/* Task info */}
+            <div className={"question"} onClick={(e) => e.preventDefault()}>
+              {"final_submission" in currentUnitDetails.outputs ? (
+                <>
+                  {/* TODO [RECEIVING WIDGET DATA]: Remove this later if `iframe` is OK */}
+                  {/*<div className={'images'}>*/}
+                  {/*  {(currentUnitDetails.outputs['final_submission']['annotations'] || []).map(*/}
+                  {/*    (item: {[key: string]: any}, i: number) => {*/}
+                  {/*      return <img src={item['imgData']} key={'img' + i} alt={'img' + i} />;*/}
+                  {/*    }*/}
+                  {/*  )}*/}
+                  {/*</div>*/}
+                  {/*<TaskFrontend*/}
+                  {/*  classifyDigit={(_) => null}*/}
+                  {/*  handleSubmit={(e) => console.log('handleSubmit', e)}*/}
+                  {/*  taskData={currentUnitDetails.outputs['init_data'] || {isScreeningUnit: false}}*/}
+                  {/*/>*/}
 
-            {/* [RECEIVING WIDGET DATA] */}
-            {/* --- */}
-            {/*
+                  {/* [RECEIVING WIDGET DATA] */}
+                  {/* --- */}
+                  {/*
               NOTE: We need to pass `review_mode=true` to tell MNIST app
                     not to show default view and make any requests to server
             */}
-            <iframe
-              src={`${MNIST_URL}/?review_mode=true`}
-              id={'task-preview'}
-              width={1000}
-              height={610}
-              onLoad={() => setIframeLoaded(true)}
-              ref={iframeRef}
-            />
-            {/* --- */}
-          </>) : (
-            <JSONPretty className={"json-pretty"} data={currentUnitDetails.inputs} space={4} />
-          )}
-        </div>
+                  <iframe
+                    src={`${MNIST_URL}/?review_mode=true`}
+                    id={"task-preview"}
+                    width={1000}
+                    height={610}
+                    onLoad={() => setIframeLoaded(true)}
+                    ref={iframeRef}
+                  />
+                  {/* --- */}
+                </>
+              ) : (
+                <JSONPretty
+                  className={"json-pretty"}
+                  data={currentUnitDetails.inputs}
+                  space={4}
+                />
+              )}
+            </div>
 
-        {/* Results table */}
-        <div className={"results"}>
-          <h1><b>Results:</b></h1>
+            {/* Results table */}
+            <div className={"results"}>
+              <h1>
+                <b>Results:</b>
+              </h1>
 
-          {'final_submission' in currentUnitDetails.outputs ? (
-            <Table className={"results-table"} responsive={"sm"} bordered={false}>
-              <thead>
-                <tr className={"titles-row"}>
-                  <th className={"title"}><b>Predicted Number</b></th>
-                  <th className={"title"}><b>Annotation Correct?</b></th>
-                  <th className={"title"}><b>Corrected Annotation</b></th>
-                </tr>
-              </thead>
-              <tbody>
-                {(currentUnitDetails.outputs['final_submission']['annotations'] || []).map(
-                  (item: {[key: string]: any}, i: number) => {
-                    return <tr className={"results-row"} key={"results-row" + i}>
-                      <td className={"current-annotation"}>
-                        <b>{item["currentAnnotation"]}</b>
-                      </td>
-                      <td className={"is-correct"}>
-                        <b>{item["isCorrect"] ? 'Yes': 'No'}</b>
-                      </td>
-                      <td>
-                        <b>{item["trueAnnotation"]}</b>
-                      </td>
-                    </tr>;
-                  }
-                )}
-              </tbody>
-            </Table>
-          ) : (
-            <JSONPretty className={"json-pretty"} data={currentUnitDetails.outputs} space={4} />
-          )}
-        </div>
-      </>)}
+              {"final_submission" in currentUnitDetails.outputs ? (
+                <Table
+                  className={"results-table"}
+                  responsive={"sm"}
+                  bordered={false}
+                >
+                  <thead>
+                    <tr className={"titles-row"}>
+                      <th className={"title"}>
+                        <b>Predicted Number</b>
+                      </th>
+                      <th className={"title"}>
+                        <b>Annotation Correct?</b>
+                      </th>
+                      <th className={"title"}>
+                        <b>Corrected Annotation</b>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(
+                      currentUnitDetails.outputs["final_submission"][
+                        "annotations"
+                      ] || []
+                    ).map((item: { [key: string]: any }, i: number) => {
+                      return (
+                        <tr className={"results-row"} key={"results-row" + i}>
+                          <td className={"current-annotation"}>
+                            <b>{item["currentAnnotation"]}</b>
+                          </td>
+                          <td className={"is-correct"}>
+                            <b>{item["isCorrect"] ? "Yes" : "No"}</b>
+                          </td>
+                          <td>
+                            <b>{item["trueAnnotation"]}</b>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              ) : (
+                <JSONPretty
+                  className={"json-pretty"}
+                  data={currentUnitDetails.outputs}
+                  space={4}
+                />
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      <ReviewModal
+        show={modalShow}
+        setShow={setModalShow}
+        data={modalData}
+        setData={setModalData}
+        onSubmit={onModalSubmit}
+        setErrors={props.setErrors}
+        workerId={currentWorkerOnReview}
+      />
     </div>
-
-    <ReviewModal
-      show={modalShow}
-      setShow={setModalShow}
-      data={modalData}
-      setData={setModalData}
-      onSubmit={onModalSubmit}
-      setErrors={props.setErrors}
-      workerId={currentWorkerOnReview}
-    />
-  </div>;
+  );
 }
-
 
 export default TaskPage;

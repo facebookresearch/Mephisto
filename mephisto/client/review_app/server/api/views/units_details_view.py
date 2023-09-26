@@ -17,7 +17,7 @@ from mephisto.data_model.unit import Unit
 
 class UnitsDetailsView(MethodView):
     def get(self) -> dict:
-        """ Get full input for specified workers results (`unit_ids` is mandatory) """
+        """Get full input for specified workers results (`unit_ids` is mandatory)"""
 
         unit_ids: Optional[str] = request.args.get("unit_ids")
 

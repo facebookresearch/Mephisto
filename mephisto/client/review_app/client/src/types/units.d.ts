@@ -4,7 +4,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
 declare type UnitType = {
   id: number;
   worker_id: number | null;
@@ -24,12 +23,10 @@ declare type UnitType = {
   };
 };
 
-
 declare type WorkerUnitIdType = {
   unit_id: number;
   worker_id: number;
 };
-
 
 declare type UnitDetailsType = {
   id: number;

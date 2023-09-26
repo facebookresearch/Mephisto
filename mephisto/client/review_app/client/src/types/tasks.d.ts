@@ -4,7 +4,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
 declare type TaskType = {
   id: number;
   name: string;
@@ -12,7 +11,6 @@ declare type TaskType = {
   unit_count: number;
   created_at: string;
 };
-
 
 declare type TaskStatsType = {
   total_count: number;

@@ -1,8 +1,9 @@
-import cloneDeep from 'lodash/cloneDeep';
-
+import cloneDeep from "lodash/cloneDeep";
 
 export const updateModalState = (
-  setStateFunc: Function, type: string, formData: ModalDataType,
+  setStateFunc: Function,
+  type: string,
+  formData: ModalDataType
 ) => {
   setStateFunc((stateValue: ModalStateType) => {
     const newValue = cloneDeep(stateValue[type]);
@@ -15,7 +16,6 @@ export const updateModalState = (
     return stateValue;
   });
 };
-
 
 export function setPageTitle(title: string) {
   const titleElement = document.querySelector("title");

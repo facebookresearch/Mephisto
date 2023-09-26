@@ -4,8 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { ReviewType } from 'consts/review';
-
+import { ReviewType } from "consts/review";
 
 export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
   applyToNext: false,
@@ -16,7 +15,7 @@ export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
     checkboxAssignQualification: false,
     checkboxComment: false,
     checkboxGiveTips: false,
-    comment: '',
+    comment: "",
     qualification: null,
     qualificationValue: 1,
     tips: null,
@@ -24,7 +23,6 @@ export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
   title: "Approve Unit",
   type: ReviewType.APPROVE,
 };
-
 
 export const SOFT_REJECT_MODAL_DATA_STATE: ModalDataType = {
   applyToNext: false,
@@ -34,7 +32,7 @@ export const SOFT_REJECT_MODAL_DATA_STATE: ModalDataType = {
   form: {
     checkboxAssignQualification: false,
     checkboxComment: false,
-    comment: '',
+    comment: "",
     qualification: null,
     qualificationValue: 1,
     tips: null,
@@ -42,7 +40,6 @@ export const SOFT_REJECT_MODAL_DATA_STATE: ModalDataType = {
   title: "Soft-Reject Unit",
   type: ReviewType.SOFT_REJECT,
 };
-
 
 export const REJECT_MODAL_DATA_STATE: ModalDataType = {
   applyToNext: false,
@@ -55,13 +52,12 @@ export const REJECT_MODAL_DATA_STATE: ModalDataType = {
     checkboxUnassignQualification: false,
     checkboxComment: false,
     checkboxBanWorker: false,
-    comment: '',
+    comment: "",
     qualification: null,
     qualificationValue: 1,
     tips: null,
-  }
+  },
 };
-
 
 export const DEFAULT_MODAL_STATE_VALUE: ModalStateType = {
   approve: {

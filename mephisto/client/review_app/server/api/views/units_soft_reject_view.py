@@ -18,7 +18,7 @@ from mephisto.data_model.unit import Unit
 
 class UnitsSoftRejectView(MethodView):
     def post(self) -> dict:
-        """ Soft-reject worker's result """
+        """Soft-reject worker's result"""
 
         data: dict = request.json
         unit_ids: Optional[str] = data and data.get("unit_ids")
@@ -34,12 +34,12 @@ class UnitsSoftRejectView(MethodView):
 
             agent = unit.get_assigned_agent()
             if not agent:
-                raise BadRequest(f"Cound not reject softly Unit \"{unit_id}\".")
+                raise BadRequest(f'Cound not reject softly Unit "{unit_id}".')
 
             try:
                 agent.soft_reject_work()
             except Exception as e:
-                raise BadRequest(f"Could not reject softly unit \"{unit_id}\". Reason: {e}")
+                raise BadRequest(f'Could not reject softly unit "{unit_id}". Reason: {e}')
 
             unit.get_status()  # Update status immediately for other EPs
 
