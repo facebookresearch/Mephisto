@@ -138,7 +138,7 @@ class MockServer(tornado.web.Application):
         Main loop for the application
         """
         self.running_instance = tornado.ioloop.IOLoop()
-        http_server = tornado.httpserver.HTTPServer(self, max_buffer_size=1024**3)
+        http_server = tornado.httpserver.HTTPServer(self, max_buffer_size=1024 ** 3)
         http_server.listen(self.port)
         self.running_instance.start()
         http_server.stop()
