@@ -119,9 +119,9 @@ function TaskPage(props: PropsType) {
         sortedValue.push([Number(i), workerUnitsMap[i]]);
       }
 
-      // Sort workers by number of their units
+      // Sort workers by number of their units (the fewest number of units goes first)
       sortedValue.sort((a: [number, number[]], b: [number, number[]]) => {
-        return a[1].length < b[1].length ? 1 : -1;
+        return a[1].length > b[1].length ? 1 : -1;
       });
 
       return sortedValue;

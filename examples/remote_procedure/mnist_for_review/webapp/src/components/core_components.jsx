@@ -152,14 +152,14 @@ function TaskFrontend({
   const [annotations, updateAnnotations] = React.useReducer(
     (currentAnnotation, { updateIdx, updatedAnnotation }) => {
       return currentAnnotation.map((val, idx) =>
-        idx == updateIdx ? updatedAnnotation : val
+        idx == updateIdx ? updatedAnnotation : val,
       );
     },
     Array(NUM_ANNOTATIONS).fill({
       currentAnnotation: null,
       trueAnnotation: null,
       isCorrect: null,
-    })
+    }),
   );
   let canSubmit =
     annotations.filter((a) => a.isCorrect === true || a.trueAnnotation !== "")

@@ -12,7 +12,8 @@ export function getUnits(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  getParams: { [key: string]: string | number } = null
+  getParams: { [key: string]: string | number } = null,
+  abortController?: AbortController
 ) {
   const url = generateURL(urls.server.units, null, getParams);
 

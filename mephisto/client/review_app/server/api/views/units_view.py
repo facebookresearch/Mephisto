@@ -78,8 +78,8 @@ class UnitsView(MethodView):
                     "results": {
                         "start": unit_data.get("task_start"),
                         "end": unit_data.get("task_end"),
-                        "input_preview": None,  # optional TODO [Review APP]
-                        "output_preview": None,  # optional TODO [Review APP]
+                        "inputs_preview": None,  # optional TODO [Review APP]
+                        "outputs_preview": None,  # optional TODO [Review APP]
                     },
                     "review": {
                         "tips": int(tips) if tips else None,
