@@ -11,8 +11,6 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
-from mephisto.abstractions.blueprint import AgentState
-from mephisto.client.review_app.server import db_queries
 from mephisto.data_model.unit import Unit
 
 
@@ -38,20 +36,10 @@ class UnitsApproveView(MethodView):
                 raise BadRequest(f'Cound not approve Unit "{unit_id}".')
 
             try:
-                agent.approve_work()
+                agent.approve_work(feedback=feedback, tips=tips)
             except Exception as e:
                 raise BadRequest(f'Could not approve unit "{unit_id}". Reason: {e}')
 
-            unit.get_status()  # Update status immediately for other EPs
-
-            db_queries.create_unit_review(
-                db=app.db,
-                unit_id=int(unit.db_id),
-                task_id=int(unit.task_id),
-                worker_id=int(unit.worker_id),
-                status=AgentState.STATUS_APPROVED,
-                feedback=feedback,
-                tips=tips,
-            )
+            unit.get_status()  # Update status immediately for other EPs as this method affects DB
 
         return {}

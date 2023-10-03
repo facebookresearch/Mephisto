@@ -410,14 +410,12 @@ def metrics_cli(args):
 @click.option("-h", "--host", type=(str), default="127.0.0.1")
 @click.option("-p", "--port", type=(int), default=5000)
 @click.option("-d", "--debug", type=(bool), default=None)
-@click.option("-P", "--provider", type=(str), default=PROLIFIC_PROVIDER_TYPE)
 @pass_script_info
 def review_app(
     info,
     host,
     port,
     debug,
-    provider,
 ):
     """
     Launch a local review server.
@@ -438,7 +436,7 @@ def review_app(
     show_server_banner(get_env(), debug, info.app_import_path, eager_loading)
 
     # Init App
-    app = create_app(provider=provider, debug=debug)
+    app = create_app(debug=debug)
 
     # Run Flask server
     run_simple(

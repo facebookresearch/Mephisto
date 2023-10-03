@@ -255,7 +255,7 @@ function ReviewFrontend({ reviewData }) {
     <div>
       <Instructions taskData={{}} />
       <div>
-        {reviewData["final_submission"]["annotations"].map((_d, idx) => (
+        {reviewData["outputs"]["final_submission"]["annotations"].map((_d, idx) => (
           <ReviewAnnotationCanvas
             index={idx}
             key={"Annotation-" + String(idx)}

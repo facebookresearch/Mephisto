@@ -206,12 +206,6 @@ function TaskPage(props: PropsType) {
           setLoading,
           onError,
           {
-            feedback: _modalData.form.checkboxComment
-              ? _modalData.form.comment
-              : null,
-            tips: _modalData.form.checkboxGiveTips
-              ? _modalData.form.tips
-              : null,
             unit_ids: unitIds,
             value: _modalData.form.qualificationValue,
           }
@@ -230,9 +224,6 @@ function TaskPage(props: PropsType) {
           setLoading,
           onError,
           {
-            feedback: _modalData.form.checkboxComment
-              ? _modalData.form.comment
-              : null,
             unit_ids: unitIds,
             value: _modalData.form.qualificationValue,
           }
@@ -251,9 +242,6 @@ function TaskPage(props: PropsType) {
           setLoading,
           onError,
           {
-            feedback: _modalData.form.checkboxComment
-              ? _modalData.form.comment
-              : null,
             unit_ids: unitIds,
           }
         );
@@ -299,21 +287,39 @@ function TaskPage(props: PropsType) {
         () => onReviewSuccess(modalData, unitIds),
         setLoading,
         onError,
-        { unit_ids: unitIds }
+        {
+          feedback: modalData.form.checkboxComment
+            ? modalData.form.comment
+            : null,
+          tips: modalData.form.checkboxGiveTips
+            ? modalData.form.tips
+            : null,
+          unit_ids: unitIds
+        }
       );
     } else if (modalData.type === ReviewType.SOFT_REJECT) {
       postUnitsSoftReject(
         () => onReviewSuccess(modalData, unitIds),
         setLoading,
         onError,
-        { unit_ids: unitIds }
+        {
+          feedback: modalData.form.checkboxComment
+            ? modalData.form.comment
+            : null,
+          unit_ids: unitIds
+        }
       );
     } else if (modalData.type === ReviewType.REJECT) {
       postUnitsReject(
         () => onReviewSuccess(modalData, unitIds),
         setLoading,
         onError,
-        { unit_ids: unitIds }
+        {
+          feedback: modalData.form.checkboxComment
+            ? modalData.form.comment
+            : null,
+          unit_ids: unitIds
+        }
       );
     }
 
@@ -331,7 +337,10 @@ function TaskPage(props: PropsType) {
   // ---
   const sendDataToTaskIframe = (data: object) => {
     const reviewData = {
-      REVIEW_DATA: data,
+      REVIEW_DATA: {
+        "inputs": data["inputs"],
+        "outputs": data["outputs"],
+      },
     };
     const taskIframe = iframeRef.current;
     taskIframe.contentWindow.postMessage(JSON.stringify(reviewData), "*");
@@ -438,12 +447,8 @@ function TaskPage(props: PropsType) {
   // [RECEIVING WIDGET DATA]
   // ---
   useEffect(() => {
-    if (
-      iframeLoaded &&
-      currentUnitDetails?.outputs &&
-      "final_submission" in currentUnitDetails.outputs
-    ) {
-      sendDataToTaskIframe(currentUnitDetails.outputs);
+    if (iframeLoaded && currentUnitDetails) {
+      sendDataToTaskIframe(currentUnitDetails);
     }
   }, [currentUnitDetails, iframeLoaded]);
   // ---

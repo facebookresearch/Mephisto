@@ -11,61 +11,9 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
-from mephisto.abstractions.database import EntryDoesNotExistException
 from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.unit import Unit
 from mephisto.data_model.worker import Worker
-
-
-def _update_quailification_in_unit_review(
-    db,
-    unit_id: int,
-    qualification_id: int,
-    worker_id: int,
-    value: Optional[int] = None,
-    revoke: bool = False,
-) -> None:
-    """
-    Update unit review in the db with the given Qualification ID, Worker ID and Value
-    """
-
-    with db.table_access_condition:
-        conn = db._get_connection()
-        c = conn.cursor()
-
-        c.execute(
-            """
-            SELECT * FROM unit_review
-            WHERE (unit_id = ?) AND (worker_id = ?)
-            ORDER BY created_at ASC;
-            """,
-            (unit_id, worker_id),
-        )
-        results = c.fetchall()
-        if not results:
-            raise EntryDoesNotExistException(
-                f"`unit_review` was not created for this `unit_id={unit_id}`"
-            )
-
-        latest_unit_review_id = results[-1]["id"]
-
-        c.execute(
-            """
-            UPDATE unit_review
-            SET
-                updated_qualification_id = ?,
-                updated_qualification_value = ?,
-                revoked_qualification_id = ?
-            WHERE id = ?;
-            """,
-            (
-                qualification_id if not revoke else None,
-                value,
-                qualification_id if revoke else None,
-                latest_unit_review_id,
-            ),
-        )
-        conn.commit()
 
 
 def _write_grant_unit_review(
@@ -75,7 +23,7 @@ def _write_grant_unit_review(
     worker_id: int,
     value: Optional[int] = None,
 ):
-    _update_quailification_in_unit_review(db, unit_id, qualification_id, worker_id, value)
+    db.update_unit_review(unit_id, qualification_id, worker_id, value, revoke=False)
 
 
 def _write_revoke_unit_review(
@@ -85,9 +33,7 @@ def _write_revoke_unit_review(
     worker_id: int,
     value: Optional[int] = None,
 ):
-    _update_quailification_in_unit_review(
-        db, unit_id, qualification_id, worker_id, value, revoke=True
-    )
+    db.update_unit_review(unit_id, qualification_id, worker_id, value, revoke=True)
 
 
 class QualifyWorkerView(MethodView):

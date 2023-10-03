@@ -73,7 +73,12 @@ class MockAgent(Agent):
             self.datastore.agent_data[self.db_id]["acts"].append(act)
         return act
 
-    def approve_work(self) -> None:
+    def approve_work(
+        self,
+        feedback: Optional[str] = None,
+        tips: Optional[str] = None,
+        skip_unit_review: bool = False,
+    ) -> None:
         """
         Approve the work done on this specific Unit
 
@@ -81,11 +86,31 @@ class MockAgent(Agent):
         """
         self.update_status(AgentState.STATUS_APPROVED)
 
-    def reject_work(self, reason) -> None:
+        if not skip_unit_review:
+            unit = self.get_unit()
+            self.db.new_unit_review(
+                unit_id=int(unit.db_id),
+                task_id=int(unit.task_id),
+                worker_id=int(unit.worker_id),
+                status=AgentState.STATUS_APPROVED,
+                feedback=feedback,
+                tips=tips,
+            )
+
+    def reject_work(self, feedback: Optional[str] = None) -> None:
         """
         Reject the work done on this specific Unit
         """
         self.update_status(AgentState.STATUS_REJECTED)
+
+        unit = self.get_unit()
+        self.db.new_unit_review(
+            unit_id=int(unit.db_id),
+            task_id=int(unit.task_id),
+            worker_id=int(unit.worker_id),
+            status=AgentState.STATUS_REJECTED,
+            feedback=feedback,
+        )
 
     def mark_done(self):
         """No need to tell mock crowd provider about doneness"""

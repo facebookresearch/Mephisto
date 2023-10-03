@@ -1451,6 +1451,92 @@ class LocalMephistoDB(MephistoDB):
                 for r in rows
             ]
 
+    def _new_unit_review(
+        self,
+        unit_id: int,
+        task_id: int,
+        worker_id: int,
+        status: str,
+        feedback: Optional[str] = None,
+        tips: Optional[str] = None,
+    ) -> None:
+        """Create unit review"""
+
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                INSERT INTO unit_review (
+                    unit_id,
+                    worker_id,
+                    task_id,
+                    status,
+                    feedback,
+                    tips
+                ) VALUES (?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    unit_id,
+                    worker_id,
+                    task_id,
+                    status,
+                    feedback,
+                    tips,
+                ),
+            )
+            conn.commit()
+
+    def _update_unit_review(
+        self,
+        unit_id: int,
+        qualification_id: int,
+        worker_id: int,
+        value: Optional[int] = None,
+        revoke: bool = False,
+    ) -> None:
+        """
+        Update the given unit review with the given parameters if possible,
+        raise appropriate exception otherwise.
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+
+            c.execute(
+                """
+                SELECT * FROM unit_review
+                WHERE (unit_id = ?) AND (worker_id = ?)
+                ORDER BY created_at ASC;
+                """,
+                (unit_id, worker_id),
+            )
+            results = c.fetchall()
+            if not results:
+                raise EntryDoesNotExistException(
+                    f"`unit_review` was not created for this `unit_id={unit_id}`"
+                )
+
+            latest_unit_review_id = results[-1]["id"]
+
+            c.execute(
+                """
+                UPDATE unit_review
+                SET
+                    updated_qualification_id = ?,
+                    updated_qualification_value = ?,
+                    revoked_qualification_id = ?
+                WHERE id = ?;
+                """,
+                (
+                    qualification_id if not revoke else None,
+                    value,
+                    qualification_id if revoke else None,
+                    latest_unit_review_id,
+                ),
+            )
+            conn.commit()
+
     # File/blob manipulation methods
 
     def _assert_path_in_domain(self, path_key: str) -> None:

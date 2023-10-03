@@ -557,11 +557,16 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
 
     # Children classes should implement the following methods
 
-    def approve_work(self) -> None:
+    def approve_work(
+        self,
+        feedback: Optional[str] = None,
+        tips: Optional[str] = None,
+        skip_unit_review: bool = False,
+    ) -> None:
         """Approve the work done on this agent's specific Unit"""
         raise NotImplementedError()
 
-    def soft_reject_work(self) -> None:
+    def soft_reject_work(self, feedback: Optional[str] = None) -> None:
         """
         Pay a worker for attempted work, but mark it as below the
         quality bar for this assignment
@@ -570,10 +575,19 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
         # qualification automatically if a threshold of
         # soft rejects as a proportion of total accepts
         # is exceeded
-        self.approve_work()
+        self.approve_work(feedback=feedback, skip_unit_review=True)
         self.update_status(AgentState.STATUS_SOFT_REJECTED)
 
-    def reject_work(self, reason) -> None:
+        unit = self.get_unit()
+        self.db.new_unit_review(
+            unit_id=int(unit.db_id),
+            task_id=int(unit.task_id),
+            worker_id=int(unit.worker_id),
+            status=AgentState.STATUS_SOFT_REJECTED,
+            feedback=feedback,
+        )
+
+    def reject_work(self, feedback: Optional[str] = None) -> None:
         """Reject the work done on this agent's specific Unit"""
         raise NotImplementedError()
 

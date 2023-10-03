@@ -101,7 +101,12 @@ class MTurkAgent(Agent):
 
     # Required functions for Agent Interface
 
-    def approve_work(self) -> None:
+    def approve_work(
+        self,
+        feedback: Optional[str] = None,
+        tips: Optional[str] = None,
+        skip_unit_review: bool = False,
+    ) -> None:
         """Approve the work done on this specific Unit"""
         if self.get_status() == AgentState.STATUS_APPROVED:
             logger.info(f"Approving already approved agent {self}, skipping")
@@ -110,14 +115,34 @@ class MTurkAgent(Agent):
         approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
         self.update_status(AgentState.STATUS_APPROVED)
 
-    def reject_work(self, reason) -> None:
+        if not skip_unit_review:
+            unit = self.get_unit()
+            self.db.new_unit_review(
+                unit_id=int(unit.db_id),
+                task_id=int(unit.task_id),
+                worker_id=int(unit.worker_id),
+                status=AgentState.STATUS_APPROVED,
+                feedback=feedback,
+                tips=tips,
+            )
+
+    def reject_work(self, feedback: Optional[str] = None) -> None:
         """Reject the work done on this specific Unit"""
         if self.get_status() == AgentState.STATUS_APPROVED:
             logger.warning(f"Cannot reject {self}, it is already approved")
             return
         client = self._get_client()
-        reject_work(client, self._get_mturk_assignment_id(), reason)
+        reject_work(client, self._get_mturk_assignment_id(), feedback)
         self.update_status(AgentState.STATUS_REJECTED)
+
+        unit = self.get_unit()
+        self.db.new_unit_review(
+            unit_id=int(unit.db_id),
+            task_id=int(unit.task_id),
+            worker_id=int(unit.worker_id),
+            status=AgentState.STATUS_REJECTED,
+            feedback=feedback,
+        )
 
     def mark_done(self) -> None:
         """

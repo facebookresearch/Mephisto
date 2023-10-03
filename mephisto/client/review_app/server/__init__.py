@@ -30,7 +30,7 @@ FLASK_SETTINGS_MODULE = os.environ.get(
 )
 
 
-def create_app(provider: str, debug: bool) -> Flask:
+def create_app(debug: bool) -> Flask:
     # Logging
     # TODO [Review APP]: Fix logging (it works in views only with `app.logger` somehow)
     flask_logger = get_logger("")
@@ -53,7 +53,6 @@ def create_app(provider: str, debug: bool) -> Flask:
     # Databases
     app.db = LocalMephistoDB()
     app.data_browser = DataBrowser(db=app.db)
-    app.datastore = app.db.get_datastore_for_provider(provider)
 
     # API URLS
     init_urls(app)

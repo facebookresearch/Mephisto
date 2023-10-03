@@ -11,8 +11,6 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
-from mephisto.abstractions.blueprint import AgentState
-from mephisto.client.review_app.server import db_queries
 from mephisto.data_model.unit import Unit
 
 
@@ -37,19 +35,10 @@ class UnitsSoftRejectView(MethodView):
                 raise BadRequest(f'Cound not reject softly Unit "{unit_id}".')
 
             try:
-                agent.soft_reject_work()
+                agent.soft_reject_work(feedback=feedback)
             except Exception as e:
                 raise BadRequest(f'Could not reject softly unit "{unit_id}". Reason: {e}')
 
-            unit.get_status()  # Update status immediately for other EPs
-
-            db_queries.create_unit_review(
-                db=app.db,
-                unit_id=int(unit.db_id),
-                task_id=int(unit.task_id),
-                worker_id=int(unit.worker_id),
-                status=AgentState.STATUS_SOFT_REJECTED,
-                feedback=feedback,
-            )
+            unit.get_status()  # Update status immediately for other EPs as this method affects DB
 
         return {}
