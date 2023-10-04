@@ -59,7 +59,7 @@ export const MOCK_RESPONSES_DATA = {
           output_preview: null,
         },
         review: {
-          tips: 5,
+          bonus: 5,
           feedback: null,
         },
       },
@@ -77,7 +77,7 @@ export const MOCK_RESPONSES_DATA = {
           output_preview: null,
         },
         review: {
-          tips: 6,
+          bonus: 6,
           feedback: null,
         },
       },
@@ -100,7 +100,7 @@ export const MOCK_RESPONSES_DATA = {
           output_preview: null,
         },
         review: {
-          tips: 5,
+          bonus: 5,
           feedback: null,
         },
       },

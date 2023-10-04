@@ -22,7 +22,9 @@ class UnitReviewHtmlView(MethodView):
         app.logger.debug(f"Found Unit in DB: {unit}")
 
         html_file_path = os.path.join(
-            Path(__file__).resolve().parent.parent.parent, "static", "index.html",
+            Path(__file__).resolve().parent.parent.parent,
+            "static",
+            "index.html",
         )
         with open(html_file_path) as f:
             html_template = f.read()

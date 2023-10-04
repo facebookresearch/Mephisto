@@ -216,7 +216,7 @@ CREATE_UNIT_REVIEW_TABLE = """
         task_id INTEGER NOT NULL,
         status TEXT NOT NULL,
         feedback TEXT,
-        tips INTEGER,
+        bonus INTEGER,
         blocked_worker BOOLEAN DEFAULT false,
         /* ID of `db.qualifications` (not `db.granted_qualifications`) */
         updated_qualification_id INTEGER,
@@ -1458,7 +1458,7 @@ class LocalMephistoDB(MephistoDB):
         worker_id: int,
         status: str,
         feedback: Optional[str] = None,
-        tips: Optional[str] = None,
+        bonus: Optional[str] = None,
     ) -> None:
         """Create unit review"""
 
@@ -1473,7 +1473,7 @@ class LocalMephistoDB(MephistoDB):
                     task_id,
                     status,
                     feedback,
-                    tips
+                    bonus
                 ) VALUES (?, ?, ?, ?, ?, ?);
                 """,
                 (
@@ -1482,7 +1482,7 @@ class LocalMephistoDB(MephistoDB):
                     task_id,
                     status,
                     feedback,
-                    tips,
+                    bonus,
                 ),
             )
             conn.commit()

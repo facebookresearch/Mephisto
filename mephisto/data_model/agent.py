@@ -560,7 +560,7 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
     def approve_work(
         self,
         feedback: Optional[str] = None,
-        tips: Optional[str] = None,
+        bonus: Optional[str] = None,
         skip_unit_review: bool = False,
     ) -> None:
         """Approve the work done on this agent's specific Unit"""

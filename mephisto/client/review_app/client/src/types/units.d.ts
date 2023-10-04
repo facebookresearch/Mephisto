@@ -18,7 +18,7 @@ declare type UnitType = {
     output_preview: null;
   };
   review: {
-    tips: number | null;
+    bonus: number | null;
     feedback: number | null;
   };
 };

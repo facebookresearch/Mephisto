@@ -64,7 +64,7 @@ class UnitsView(MethodView):
                 # In case if this is Expired Unit. It raises and axceptions
                 unit_data = {}
 
-            tips = unit_data.get("tips")
+            bonus = unit_data.get("bonus")
             feedback = unit_data.get("feedback")
 
             units.append(
@@ -82,7 +82,7 @@ class UnitsView(MethodView):
                         "outputs_preview": None,  # optional TODO [Review APP]
                     },
                     "review": {
-                        "tips": int(tips) if tips else None,
+                        "bonus": int(bonus) if bonus else None,
                         "feedback": feedback if feedback else None,
                     },
                 }

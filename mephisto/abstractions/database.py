@@ -1054,7 +1054,7 @@ class MephistoDB(ABC):
         worker_id: int,
         status: str,
         feedback: Optional[str] = None,
-        tips: Optional[str] = None,
+        bonus: Optional[str] = None,
     ) -> None:
         """new_unit_review implementation"""
         raise NotImplementedError()
@@ -1067,10 +1067,10 @@ class MephistoDB(ABC):
         worker_id: int,
         status: str,
         feedback: Optional[str] = None,
-        tips: Optional[str] = None,
+        bonus: Optional[str] = None,
     ) -> None:
         """Create unit review"""
-        return self._new_unit_review(unit_id, task_id, worker_id, status, feedback, tips)
+        return self._new_unit_review(unit_id, task_id, worker_id, status, feedback, bonus)
 
     @abstractmethod
     def _update_unit_review(

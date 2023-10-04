@@ -103,7 +103,7 @@ class ProlificAgent(Agent):
     def approve_work(
         self,
         feedback: Optional[str] = None,
-        tips: Optional[str] = None,
+        bonus: Optional[str] = None,
         skip_unit_review: bool = False,
     ) -> None:
         """Approve the work done on this specific Unit"""
@@ -138,7 +138,7 @@ class ProlificAgent(Agent):
                 worker_id=int(unit.worker_id),
                 status=AgentState.STATUS_APPROVED,
                 feedback=feedback,
-                tips=tips,
+                bonus=bonus,
             )
 
     def soft_reject_work(self, feedback: Optional[str] = None) -> None:

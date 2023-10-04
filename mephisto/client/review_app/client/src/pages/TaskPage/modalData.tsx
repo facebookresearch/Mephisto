@@ -14,11 +14,11 @@ export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
   form: {
     checkboxAssignQualification: false,
     checkboxComment: false,
-    checkboxGiveTips: false,
+    checkboxGiveBonus: false,
     comment: "",
     qualification: null,
     qualificationValue: 1,
-    tips: null,
+    bonus: null,
   },
   title: "Approve Unit",
   type: ReviewType.APPROVE,
@@ -35,7 +35,7 @@ export const SOFT_REJECT_MODAL_DATA_STATE: ModalDataType = {
     comment: "",
     qualification: null,
     qualificationValue: 1,
-    tips: null,
+    bonus: null,
   },
   title: "Soft-Reject Unit",
   type: ReviewType.SOFT_REJECT,
@@ -55,7 +55,7 @@ export const REJECT_MODAL_DATA_STATE: ModalDataType = {
     comment: "",
     qualification: null,
     qualificationValue: 1,
-    tips: null,
+    bonus: null,
   },
 };
 

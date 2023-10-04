@@ -301,8 +301,8 @@ function TaskPage(props: PropsType) {
           feedback: modalData.form.checkboxComment
             ? modalData.form.comment
             : null,
-          tips: modalData.form.checkboxGiveTips
-            ? modalData.form.tips
+          bonus: modalData.form.checkboxGiveBonus
+            ? modalData.form.bonus
             : null,
           unit_ids: unitIds
         }

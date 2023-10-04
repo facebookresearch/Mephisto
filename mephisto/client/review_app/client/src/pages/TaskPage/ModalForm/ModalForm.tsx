@@ -54,15 +54,15 @@ function ModalForm(props: ModalFormProps) {
     onChangeAssignQualification(id);
   };
 
-  const onChangeGiveTips = (value: boolean) => {
+  const onChangeGiveBonus = (value: boolean) => {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.checkboxGiveTips = value;
+    prevFormData.checkboxGiveBonus = value;
     props.setData({ ...props.data, form: prevFormData });
   };
 
-  const onChangeTips = (value: string) => {
+  const onChangeBonus = (value: string) => {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.tips = Number(value);
+    prevFormData.bonus = Number(value);
     props.setData({ ...props.data, form: prevFormData });
   };
 
@@ -206,25 +206,25 @@ function ModalForm(props: ModalFormProps) {
 
       <hr />
 
-      {props.data.form.checkboxGiveTips !== undefined && (
+      {props.data.form.checkboxGiveBonus !== undefined && (
         <>
           <Form.Check
             type={"checkbox"}
-            label={"Give Tips"}
-            id={"giveTips"}
-            checked={props.data.form.checkboxGiveTips}
-            onChange={() => onChangeGiveTips(!props.data.form.checkboxGiveTips)}
+            label={"Give Bonus"}
+            id={"giveBonus"}
+            checked={props.data.form.checkboxGiveBonus}
+            onChange={() => onChangeGiveBonus(!props.data.form.checkboxGiveBonus)}
           />
 
-          {props.data.form.checkboxGiveTips && (
+          {props.data.form.checkboxGiveBonus && (
             <Row className={"second-line"}>
               <Col xs={4}>
                 <Form.Control
                   size={"sm"}
                   type={"input"}
-                  placeholder={"Tip"}
-                  value={props.data.form.tips || ""}
-                  onChange={(e) => onChangeTips(e.target.value)}
+                  placeholder={"Bonus"}
+                  value={props.data.form.bonus || ""}
+                  onChange={(e) => onChangeBonus(e.target.value)}
                 />
               </Col>
               <Col>

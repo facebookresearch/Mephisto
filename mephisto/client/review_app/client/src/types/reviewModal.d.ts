@@ -8,12 +8,12 @@ type FormType = {
   checkboxAssignQualification?: boolean;
   checkboxBanWorker?: boolean;
   checkboxComment: boolean;
-  checkboxGiveTips?: boolean;
+  checkboxGiveBonus?: boolean;
   checkboxUnassignQualification?: boolean;
   comment: string;
   qualification: number | null;
   qualificationValue: number;
-  tips: number | null;
+  bonus: number | null;
 };
 
 type ModalDataType = {

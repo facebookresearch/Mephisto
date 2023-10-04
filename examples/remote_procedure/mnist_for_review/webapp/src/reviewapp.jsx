@@ -14,14 +14,13 @@ function ReviewApp() {
   const appRef = React.useRef(null);
   const [reviewData, setReviewData] = React.useState(null);
 
-  // Mandatory part to render review components with Task data
+  // Requirement #1. Render review components after receiving Task data via message
   window.onmessage = function (e) {
     const data = JSON.parse(e.data);
     setReviewData(data["REVIEW_DATA"]);
   };
 
-  // Mandatory part to make review iframe with correct size of review component.
-  // We cannot this automatically on our own
+  // Requirement #2. Resize iframe height to fit its content
   React.useLayoutEffect(() => {
     function updateSize() {
       if (appRef.current) {
@@ -42,8 +41,8 @@ function ReviewApp() {
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 
-  // Do not return loading or empty components before this return,
-  // we need to define `appRef` to get height of this component
+  // Requirement #3. This component must return a div with `ref={appRef}`
+  // so we can get displayed height of this component (for iframe resizing)
   return <div ref={appRef}>
     {reviewData ? (
       <BaseFrontend

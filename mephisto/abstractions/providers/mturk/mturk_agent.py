@@ -104,7 +104,7 @@ class MTurkAgent(Agent):
     def approve_work(
         self,
         feedback: Optional[str] = None,
-        tips: Optional[str] = None,
+        bonus: Optional[str] = None,
         skip_unit_review: bool = False,
     ) -> None:
         """Approve the work done on this specific Unit"""
@@ -123,7 +123,7 @@ class MTurkAgent(Agent):
                 worker_id=int(unit.worker_id),
                 status=AgentState.STATUS_APPROVED,
                 feedback=feedback,
-                tips=tips,
+                bonus=bonus,
             )
 
     def reject_work(self, feedback: Optional[str] = None) -> None:
