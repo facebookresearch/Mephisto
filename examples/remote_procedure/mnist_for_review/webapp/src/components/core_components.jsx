@@ -142,13 +142,20 @@ function Instructions({ taskData }) {
 }
 
 function TaskFrontend({
-  taskData,
-  finalResults = null,
   classifyDigit,
+  finalResults = null,
   handleSubmit,
+  initialTaskData,
 }) {
+  if (finalResults) {
+    return <ReviewFrontend
+      initialTaskData={initialTaskData}
+      reviewData={finalResults}
+    />;
+  }
+
   // TODO Update this file such that, if finalResults contains data we render in review mode with that data
-  const NUM_ANNOTATIONS = taskData.isScreeningUnit ? 1 : 3;
+  const NUM_ANNOTATIONS = initialTaskData.isScreeningUnit ? 1 : 3;
   const [annotations, updateAnnotations] = React.useReducer(
     (currentAnnotation, { updateIdx, updatedAnnotation }) => {
       return currentAnnotation.map((val, idx) =>
@@ -167,7 +174,7 @@ function TaskFrontend({
 
   return (
     <div>
-      <Instructions taskData={taskData} />
+      <Instructions taskData={initialTaskData} />
       <div>
         {annotations.map((_d, idx) => (
           <AnnotationCanvas
@@ -201,8 +208,6 @@ function TaskFrontend({
   );
 }
 
-// [RECEIVING WIDGET DATA]
-// ---
 function ReviewAnnotationCanvas({ index, value }) {
   return (
     <div
@@ -246,16 +251,13 @@ function ReviewAnnotationCanvas({ index, value }) {
     </div>
   );
 }
-// ---
 
-// [RECEIVING WIDGET DATA]
-// ---
-function ReviewFrontend({ reviewData }) {
+function ReviewFrontend({ initialTaskData, reviewData }) {
   return (
     <div>
       <Instructions taskData={{}} />
       <div>
-        {reviewData["outputs"]["final_submission"]["annotations"].map((_d, idx) => (
+        {reviewData["final_submission"]["annotations"].map((_d, idx) => (
           <ReviewAnnotationCanvas
             index={idx}
             key={"Annotation-" + String(idx)}
@@ -277,7 +279,6 @@ function ReviewFrontend({ reviewData }) {
     </div>
   );
 }
-// ---
 
 export {
   LoadingScreen,

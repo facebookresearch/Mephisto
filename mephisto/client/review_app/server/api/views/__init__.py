@@ -11,6 +11,8 @@ from .stats_view import StatsView
 from .task_view import TaskView
 from .tasks_view import TasksView
 from .tasks_worker_units_view import TaskUnitIdsView
+from .unit_review_bundle_view import UnitReviewBundleView
+from .unit_review_html_view import UnitReviewHtmlView
 from .units_approve_view import UnitsApproveView
 from .units_details_view import UnitsDetailsView
 from .units_reject_view import UnitsRejectView

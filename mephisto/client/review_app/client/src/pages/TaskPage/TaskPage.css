@@ -96,6 +96,10 @@
   justify-content: center;
 }
 
+.task-iframe {
+  width: 100%;
+}
+
 .json-pretty .__json-pretty__ {
   white-space: pre !important;
 }

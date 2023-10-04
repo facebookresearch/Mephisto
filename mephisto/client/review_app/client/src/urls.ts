@@ -23,6 +23,7 @@ const urls = {
     task: (id) => API_URL + `/tasks/${id}`,
     tasks: API_URL + "/tasks",
     tasksWorkerUnitsIds: (id) => API_URL + `/tasks/${id}/worker-units-ids`,
+    unitReviewHtml: (id) => API_URL + `/units/${id}/review.html`,
     units: API_URL + "/units",
     unitsApprove: API_URL + "/units/approve",
     unitsDetails: API_URL + "/units/details",

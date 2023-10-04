@@ -39,8 +39,6 @@ import ReviewModal from "./ReviewModal/ReviewModal";
 import TaskHeader from "./TaskHeader/TaskHeader";
 import "./TaskPage.css";
 
-const MNIST_URL = process.env.REACT_APP__MNIST_URL || "http://localhost:3000";
-
 const defaultStats = {
   total_count: null,
   reviewed_count: 0,
@@ -66,6 +64,7 @@ function TaskPage(props: PropsType) {
   const iframeRef = React.useRef(null);
 
   const [iframeLoaded, setIframeLoaded] = React.useState<boolean>(false);
+  const [iframeHeight, setIframeHeight] = React.useState<number>(100);
   const [task, setTask] = React.useState<TaskType>(null);
   const [units, setUnits] = React.useState<Array<UnitType>>(null);
   const [loading, setLoading] = React.useState(false);
@@ -101,6 +100,17 @@ function TaskPage(props: PropsType) {
   >({});
 
   const [finishedTask, setFinishedTask] = React.useState<boolean>(false);
+
+  window.onmessage = function (e) {
+    if (
+      e.data &&
+      e.type === "message" &&  // Waiting for `message` type only
+      !e.data?.type  // Exclude all unexpected messages from iframe
+    ) {
+      const data = JSON.parse(e.data);
+      setIframeHeight(data["IFRAME_DATA"]["height"]);
+    }
+  };
 
   const onGetTaskWorkerUnitsIdsSuccess = (
     workerUnitsIds: WorkerUnitIdType[]
@@ -513,37 +523,14 @@ function TaskPage(props: PropsType) {
             {/* Task info */}
             <div className={"question"} onClick={(e) => e.preventDefault()}>
               {"final_submission" in currentUnitDetails.outputs ? (
-                <>
-                  {/* TODO [RECEIVING WIDGET DATA]: Remove this later if `iframe` is OK */}
-                  {/*<div className={'images'}>*/}
-                  {/*  {(currentUnitDetails.outputs['final_submission']['annotations'] || []).map(*/}
-                  {/*    (item: {[key: string]: any}, i: number) => {*/}
-                  {/*      return <img src={item['imgData']} key={'img' + i} alt={'img' + i} />;*/}
-                  {/*    }*/}
-                  {/*  )}*/}
-                  {/*</div>*/}
-                  {/*<TaskFrontend*/}
-                  {/*  classifyDigit={(_) => null}*/}
-                  {/*  handleSubmit={(e) => console.log('handleSubmit', e)}*/}
-                  {/*  taskData={currentUnitDetails.outputs['init_data'] || {isScreeningUnit: false}}*/}
-                  {/*/>*/}
-
-                  {/* [RECEIVING WIDGET DATA] */}
-                  {/* --- */}
-                  {/*
-              NOTE: We need to pass `review_mode=true` to tell MNIST app
-                    not to show default view and make any requests to server
-            */}
-                  <iframe
-                    src={`${MNIST_URL}/?review_mode=true`}
-                    id={"task-preview"}
-                    width={1000}
-                    height={610}
-                    onLoad={() => setIframeLoaded(true)}
-                    ref={iframeRef}
-                  />
-                  {/* --- */}
-                </>
+                <iframe
+                  className={"task-iframe"}
+                  src={urls.server.unitReviewHtml(currentUnitOnReview)}
+                  id={"task-preview"}
+                  height={iframeHeight} // Width is always 100% to recieve a correct rendered height
+                  onLoad={() => setIframeLoaded(true)}
+                  ref={iframeRef}
+                />
               ) : (
                 <JSONPretty
                   className={"json-pretty"}

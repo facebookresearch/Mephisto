@@ -6,6 +6,7 @@ defaults:
 mephisto:
   blueprint:
     task_source: ${task_dir}/webapp/build/bundle.js
+    task_source_review: ${task_dir}/webapp/build/bundle.review.js
     link_task_source: false
     units_per_assignment: 1
     passed_qualification_name: "test-mnist-passed-qualification"

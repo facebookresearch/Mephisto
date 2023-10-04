@@ -24,7 +24,7 @@ def init_urls(app: Flask):
     )
     app.add_url_rule(
         "/tasks/<int:task_id>/worker-units-ids",
-        view_func=api_views.TaskUnitIdsView.as_view("worker-units-ids"),
+        view_func=api_views.TaskUnitIdsView.as_view("worker_units_ids"),
     )
     app.add_url_rule(
         "/tasks",
@@ -37,6 +37,14 @@ def init_urls(app: Flask):
     app.add_url_rule(
         "/units",
         view_func=api_views.UnitsView.as_view("units"),
+    )
+    app.add_url_rule(
+        "/units/<int:unit_id>/bundle.js",
+        view_func=api_views.UnitReviewBundleView.as_view("unit_review_bundle"),
+    )
+    app.add_url_rule(
+        "/units/<int:unit_id>/review.html",
+        view_func=api_views.UnitReviewHtmlView.as_view("unit_review_html"),
     )
     app.add_url_rule(
         "/units/details",

@@ -12,7 +12,6 @@ import {
   BaseFrontend,
   LoadingScreen,
   Instructions,
-  ReviewFrontend,
 } from "./components/core_components.jsx";
 
 import {
@@ -33,30 +32,7 @@ function uuidv4() {
 }
 
 function RemoteProcedureApp() {
-  const searchParams = new URLSearchParams(window.location.search);
-  const reviewMode = searchParams.get("review_mode");
-
-  const [reviewData, setReviewData] = React.useState(null);
-
-  // [RECEIVING WIDGET DATA]
-  // ---
-  window.onmessage = function (e) {
-    const data = JSON.parse(e.data);
-    setReviewData(data["REVIEW_DATA"]);
-  };
-  // ---
-
   let mephistoProps = useMephistoRemoteProcedureTask({});
-
-  // [RECEIVING WIDGET DATA]
-  // ---
-  // Return review before other code that contains any request to server
-  if (reviewMode) {
-    return (
-      <div>{reviewData && <ReviewFrontend reviewData={reviewData} />}</div>
-    );
-  }
-  // ---
 
   let {
     blockedReason,
@@ -98,7 +74,7 @@ function RemoteProcedureApp() {
           <BaseFrontend
             classifyDigit={classifyDigit}
             handleSubmit={handleSubmit}
-            taskData={initialTaskData["task_data"]}
+            initialTaskData={initialTaskData["task_data"]}
           />
         </div>
       </MephistoContext.Provider>

@@ -6,6 +6,7 @@ defaults:
 mephisto:
   blueprint:
     task_source: ${task_dir}/webapp/build/bundle.js
+    task_source_review: ${task_dir}/webapp/build/bundle.review.js
     link_task_source: false
     # NOTE pick something based on your task
     block_qualification: test_qual_block
