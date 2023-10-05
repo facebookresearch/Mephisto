@@ -10,14 +10,10 @@ from typing import List
 from flask.cli import pass_script_info
 from rich import print
 
-from mephisto.abstractions.providers.prolific.provider_type import (
-    PROVIDER_TYPE as PROLIFIC_PROVIDER_TYPE,
-)
 from mephisto.client.cli_commands import get_wut_arguments
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.utils.rich import console, create_table
 import rich_click as click  # type: ignore
-import os
 from rich_click import RichCommand, RichGroup
 from rich.markdown import Markdown
 import mephisto.scripts.local_db.review_tips_for_task as review_tips_local_db
@@ -50,14 +46,6 @@ click.rich_click.ERRORS_EPILOGUE = (
 )
 
 
-@cli.command("web", cls=RichCommand)
-def web():
-    """Launch a local webserver with the Mephisto UI"""
-    from mephisto.client.full.server import get_app
-
-    get_app().run(debug=False)
-
-
 @cli.command("config", cls=RichCommand)
 @click.argument("identifier", type=(str), default=None, required=False)
 @click.argument("value", type=(str), default=None, required=False)
@@ -88,78 +76,6 @@ def config(identifier, value):
         # Write mode:
         add_config_arg(section, key, value)
         print(f"[green]{identifier} succesfully updated to: {value}[/green]")
-
-
-@cli.command(
-    "review",
-    cls=RichCommand,
-)
-@click.argument(
-    "review_app_dir",
-    type=click.Path(exists=True),
-    default=os.path.join(os.path.dirname(__file__), "review/default-ui"),
-)
-@click.option("-p", "--port", type=(int), default=5000)
-@click.option("-o", "--output", type=(str), default="")
-@click.option("-a", "--assets", "assets_dir", type=(str), default=None)
-@click.option("--stdout", "output_method", flag_value="stdout")
-@click.option("--file", "output_method", flag_value="file", default=True)
-@click.option("--csv-headers/--no-csv-headers", default=False)
-@click.option("--json/--csv", default=False)
-@click.option("--db", "database_task_name", type=(str), default=None)
-@click.option("--all/--one-by-one", "all_data", default=False)
-@click.option("-d", "--debug", type=(bool), default=False)
-@click.option("-h", "--host", type=(str), default="127.0.0.1")
-def review(
-    review_app_dir,
-    port,
-    output,
-    output_method,
-    csv_headers,
-    json,
-    database_task_name,
-    all_data,
-    debug,
-    assets_dir,
-    host,
-):
-    """
-    Launch a local review UI server.
-    Reads in rows froms stdin and outputs to either a file or stdout.
-    """
-    from mephisto.client.review.review_server import run
-
-    if output == "" and output_method == "file":
-        raise click.UsageError(
-            "You must specify an output file via --output=<filename>, "
-            "unless the --stdout flag is set."
-        )
-    if database_task_name is not None:
-        from mephisto.abstractions.databases.local_database import LocalMephistoDB
-        from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
-
-        db = LocalMephistoDB()
-        mephisto_data_browser = MephistoDataBrowser(db=db)
-        name_list = mephisto_data_browser.get_task_name_list()
-        if database_task_name not in name_list:
-            raise click.BadParameter(
-                f'The task name "{database_task_name}" did not exist in MephistoDB.\n\n'
-                f'Perhaps you meant one of these? {", ".join(name_list)}\n\n'
-                f"Flag usage: mephisto review --db [task_name]\n"
-            )
-
-    run(
-        review_app_dir,
-        port,
-        output,
-        csv_headers,
-        json,
-        database_task_name,
-        all_data,
-        debug,
-        assets_dir,
-        host,
-    )
 
 
 @cli.command("check", cls=RichCommand)
