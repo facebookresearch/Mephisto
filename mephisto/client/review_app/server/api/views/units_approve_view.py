@@ -21,7 +21,7 @@ class UnitsApproveView(MethodView):
 
         data: dict = request.json
         unit_ids: Optional[str] = data.get("unit_ids") if data else None
-        feedback = data.get("feedback") if data else None  # Optional
+        review_note = data.get("review_note") if data else None  # Optional
         bonus = data.get("bonus") if data else None  # Optional
 
         # Validate params
@@ -38,7 +38,7 @@ class UnitsApproveView(MethodView):
                 raise BadRequest(f'Cound not approve Unit "{unit_id}".')
 
             try:
-                agent.approve_work(feedback=feedback, bonus=bonus)
+                agent.approve_work(review_note=review_note, bonus=bonus)
             except Exception as e:
                 raise BadRequest(f'Could not approve unit "{unit_id}". Reason: {e}')
 
@@ -58,7 +58,7 @@ class UnitsApproveView(MethodView):
 
                 # Pay bonus
                 try:
-                    bonus_successfully_paid, message = worker.bonus_worker(bonus, feedback, unit)
+                    bonus_successfully_paid, message = worker.bonus_worker(bonus, review_note, unit)
                     if not bonus_successfully_paid:
                         app.logger.error(f"Could not pay bonus. Reason: {message}")
                 except Exception:

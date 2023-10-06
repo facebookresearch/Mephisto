@@ -65,7 +65,7 @@ class UnitsView(MethodView):
                 unit_data = {}
 
             bonus = unit_data.get("bonus")
-            feedback = unit_data.get("feedback")
+            review_note = unit_data.get("review_note")
 
             units.append(
                 {
@@ -83,7 +83,7 @@ class UnitsView(MethodView):
                     },
                     "review": {
                         "bonus": int(bonus) if bonus else None,
-                        "feedback": feedback if feedback else None,
+                        "review_note": review_note if review_note else None,
                     },
                 }
             )

@@ -20,7 +20,7 @@ class UnitsSoftRejectView(MethodView):
 
         data: dict = request.json
         unit_ids: Optional[str] = data and data.get("unit_ids")
-        feedback = data and data.get("feedback")  # Optional
+        review_note = data and data.get("review_note")  # Optional
 
         # Validate params
         if not unit_ids:
@@ -35,7 +35,7 @@ class UnitsSoftRejectView(MethodView):
                 raise BadRequest(f'Cound not reject softly Unit "{unit_id}".')
 
             try:
-                agent.soft_reject_work(feedback=feedback)
+                agent.soft_reject_work(review_note=review_note)
             except Exception as e:
                 raise BadRequest(f'Could not reject softly unit "{unit_id}". Reason: {e}')
 

@@ -102,7 +102,7 @@ class ProlificAgent(Agent):
 
     def approve_work(
         self,
-        feedback: Optional[str] = None,
+        review_note: Optional[str] = None,
         bonus: Optional[str] = None,
         skip_unit_review: bool = False,
     ) -> None:
@@ -133,17 +133,17 @@ class ProlificAgent(Agent):
         if not skip_unit_review:
             unit = self.get_unit()
             self.db.new_unit_review(
-                unit_id=int(unit.db_id),
-                task_id=int(unit.task_id),
-                worker_id=int(unit.worker_id),
+                unit_id=unit.db_id,
+                task_id=unit.task_id,
+                worker_id=unit.worker_id,
                 status=AgentState.STATUS_APPROVED,
-                feedback=feedback,
+                review_note=review_note,
                 bonus=bonus,
             )
 
-    def soft_reject_work(self, feedback: Optional[str] = None) -> None:
+    def soft_reject_work(self, review_note: Optional[str] = None) -> None:
         """Mark as soft rejected on Mephisto and approve Worker on Prolific"""
-        super().soft_reject_work(feedback=feedback)
+        super().soft_reject_work(review_note=review_note)
 
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
@@ -160,7 +160,7 @@ class ProlificAgent(Agent):
             f"has been soft rejected"
         )
 
-    def reject_work(self, feedback: Optional[str] = None) -> None:
+    def reject_work(self, review_note: Optional[str] = None) -> None:
         """Reject the work done on this specific Unit"""
         logger.debug(f"{self.log_prefix}Rejecting work")
 
@@ -190,18 +190,18 @@ class ProlificAgent(Agent):
         logger.debug(
             f"{self.log_prefix}"
             f'Work for Study "{prolific_study_id}" completed by worker "{worker_id}" '
-            f"has been rejected. Reason: {feedback}"
+            f"has been rejected. Review note: {review_note}"
         )
 
         self.update_status(AgentState.STATUS_REJECTED)
 
         unit = self.get_unit()
         self.db.new_unit_review(
-            unit_id=int(unit.db_id),
-            task_id=int(unit.task_id),
-            worker_id=int(unit.worker_id),
+            unit_id=unit.db_id,
+            task_id=unit.task_id,
+            worker_id=unit.worker_id,
             status=AgentState.STATUS_REJECTED,
-            feedback=feedback,
+            review_note=review_note,
         )
 
     def mark_done(self) -> None:

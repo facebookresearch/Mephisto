@@ -559,14 +559,14 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
 
     def approve_work(
         self,
-        feedback: Optional[str] = None,
+        review_note: Optional[str] = None,
         bonus: Optional[str] = None,
         skip_unit_review: bool = False,
     ) -> None:
         """Approve the work done on this agent's specific Unit"""
         raise NotImplementedError()
 
-    def soft_reject_work(self, feedback: Optional[str] = None) -> None:
+    def soft_reject_work(self, review_note: Optional[str] = None) -> None:
         """
         Pay a worker for attempted work, but mark it as below the
         quality bar for this assignment
@@ -575,19 +575,19 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
         # qualification automatically if a threshold of
         # soft rejects as a proportion of total accepts
         # is exceeded
-        self.approve_work(feedback=feedback, skip_unit_review=True)
+        self.approve_work(review_note=review_note, skip_unit_review=True)
         self.update_status(AgentState.STATUS_SOFT_REJECTED)
 
         unit = self.get_unit()
         self.db.new_unit_review(
-            unit_id=int(unit.db_id),
-            task_id=int(unit.task_id),
-            worker_id=int(unit.worker_id),
+            unit_id=unit.db_id,
+            task_id=unit.task_id,
+            worker_id=unit.worker_id,
             status=AgentState.STATUS_SOFT_REJECTED,
-            feedback=feedback,
+            review_note=review_note,
         )
 
-    def reject_work(self, feedback: Optional[str] = None) -> None:
+    def reject_work(self, review_note: Optional[str] = None) -> None:
         """Reject the work done on this agent's specific Unit"""
         raise NotImplementedError()
 

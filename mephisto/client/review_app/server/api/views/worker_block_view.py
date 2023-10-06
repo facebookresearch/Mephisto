@@ -65,16 +65,16 @@ class WorkerBlockView(MethodView):
 
         data: dict = request.json
         unit_ids: Optional[str] = data and data.get("unit_ids")
-        feedback = data and data.get("feedback")
+        review_note = data and data.get("review_note")
 
         # Validate params
-        if not feedback:
-            raise BadRequest("`feedback` parameter must be specified.")
+        if not review_note:
+            raise BadRequest("`review_note` parameter must be specified.")
 
         # Block worker
         worker = Worker.get(app.db, str(worker_id))
 
-        worker.block_worker(feedback)
+        worker.block_worker(review_note)
 
         if unit_ids:
             for unit_id in unit_ids:

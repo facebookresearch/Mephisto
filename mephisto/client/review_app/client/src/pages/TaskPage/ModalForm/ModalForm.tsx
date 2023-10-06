@@ -72,15 +72,15 @@ function ModalForm(props: ModalFormProps) {
     props.setData({ ...props.data, form: prevFormData });
   };
 
-  const onChangeWriteComment = (value: boolean) => {
+  const onChangeWriteReviewNote = (value: boolean) => {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.checkboxComment = value;
+    prevFormData.checkboxReviewNote = value;
     props.setData({ ...props.data, form: prevFormData });
   };
 
-  const onChangeComment = (value: string) => {
+  const onChangeReviewNote = (value: string) => {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.comment = value;
+    prevFormData.reviewNote = value;
     props.setData({ ...props.data, form: prevFormData });
   };
 
@@ -255,20 +255,20 @@ function ModalForm(props: ModalFormProps) {
 
       <Form.Check
         type={"checkbox"}
-        label={"Write Comment"}
-        id={"comment"}
-        checked={props.data.form.checkboxComment}
-        onChange={() => onChangeWriteComment(!props.data.form.checkboxComment)}
+        label={"Write Note"}
+        id={"reviewNote"}
+        checked={props.data.form.checkboxReviewNote}
+        onChange={() => onChangeWriteReviewNote(!props.data.form.checkboxReviewNote)}
       />
 
-      {props.data.form.checkboxComment && (
+      {props.data.form.checkboxReviewNote && (
         <Row className={"second-line"}>
           <Col>
             <Form.Control
               size={"sm"}
               as={"textarea"}
-              value={props.data.form.comment}
-              onChange={(e) => onChangeComment(e.target.value)}
+              value={props.data.form.reviewNote}
+              onChange={(e) => onChangeReviewNote(e.target.value)}
             />
           </Col>
         </Row>

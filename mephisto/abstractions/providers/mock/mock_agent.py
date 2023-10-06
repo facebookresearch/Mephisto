@@ -75,7 +75,7 @@ class MockAgent(Agent):
 
     def approve_work(
         self,
-        feedback: Optional[str] = None,
+        review_note: Optional[str] = None,
         bonus: Optional[str] = None,
         skip_unit_review: bool = False,
     ) -> None:
@@ -89,15 +89,15 @@ class MockAgent(Agent):
         if not skip_unit_review:
             unit = self.get_unit()
             self.db.new_unit_review(
-                unit_id=int(unit.db_id),
-                task_id=int(unit.task_id),
-                worker_id=int(unit.worker_id),
+                unit_id=unit.db_id,
+                task_id=unit.task_id,
+                worker_id=unit.worker_id,
                 status=AgentState.STATUS_APPROVED,
-                feedback=feedback,
+                review_note=review_note,
                 bonus=bonus,
             )
 
-    def reject_work(self, feedback: Optional[str] = None) -> None:
+    def reject_work(self, review_note: Optional[str] = None) -> None:
         """
         Reject the work done on this specific Unit
         """
@@ -105,11 +105,11 @@ class MockAgent(Agent):
 
         unit = self.get_unit()
         self.db.new_unit_review(
-            unit_id=int(unit.db_id),
-            task_id=int(unit.task_id),
-            worker_id=int(unit.worker_id),
+            unit_id=unit.db_id,
+            task_id=unit.task_id,
+            worker_id=unit.worker_id,
             status=AgentState.STATUS_REJECTED,
-            feedback=feedback,
+            review_note=review_note,
         )
 
     def mark_done(self):

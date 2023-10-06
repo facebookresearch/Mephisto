@@ -16,7 +16,7 @@ from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
 )
-from typing import Mapping, Optional, Any, List, Dict
+from typing import Mapping, Optional, Any, List, Dict, Union
 import enum
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.unit import Unit
@@ -1049,11 +1049,11 @@ class MephistoDB(ABC):
 
     def _new_unit_review(
         self,
-        unit_id: int,
-        task_id: int,
-        worker_id: int,
+        unit_id: Union[int, str],
+        task_id: Union[int, str],
+        worker_id: Union[int, str],
         status: str,
-        feedback: Optional[str] = None,
+        review_note: Optional[str] = None,
         bonus: Optional[str] = None,
     ) -> None:
         """new_unit_review implementation"""
@@ -1062,15 +1062,15 @@ class MephistoDB(ABC):
     @NEW_UNIT_REVIEW_LATENCY.time()
     def new_unit_review(
         self,
-        unit_id: int,
-        task_id: int,
-        worker_id: int,
+        unit_id: Union[int, str],
+        task_id: Union[int, str],
+        worker_id: Union[int, str],
         status: str,
-        feedback: Optional[str] = None,
+        review_note: Optional[str] = None,
         bonus: Optional[str] = None,
     ) -> None:
         """Create unit review"""
-        return self._new_unit_review(unit_id, task_id, worker_id, status, feedback, bonus)
+        return self._new_unit_review(unit_id, task_id, worker_id, status, review_note, bonus)
 
     @abstractmethod
     def _update_unit_review(

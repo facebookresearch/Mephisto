@@ -215,7 +215,7 @@ CREATE_UNIT_REVIEW_TABLE = """
         worker_id INTEGER NOT NULL,
         task_id INTEGER NOT NULL,
         status TEXT NOT NULL,
-        feedback TEXT,
+        review_note TEXT,
         bonus INTEGER,
         blocked_worker BOOLEAN DEFAULT false,
         /* ID of `db.qualifications` (not `db.granted_qualifications`) */
@@ -1453,11 +1453,11 @@ class LocalMephistoDB(MephistoDB):
 
     def _new_unit_review(
         self,
-        unit_id: int,
-        task_id: int,
-        worker_id: int,
+        unit_id: Union[int, str],
+        task_id: Union[int, str],
+        worker_id: Union[int, str],
         status: str,
-        feedback: Optional[str] = None,
+        review_note: Optional[str] = None,
         bonus: Optional[str] = None,
     ) -> None:
         """Create unit review"""
@@ -1472,16 +1472,16 @@ class LocalMephistoDB(MephistoDB):
                     worker_id,
                     task_id,
                     status,
-                    feedback,
+                    review_note,
                     bonus
                 ) VALUES (?, ?, ?, ?, ?, ?);
                 """,
                 (
-                    unit_id,
-                    worker_id,
-                    task_id,
+                    nonesafe_int(unit_id),
+                    nonesafe_int(worker_id),
+                    nonesafe_int(task_id),
                     status,
-                    feedback,
+                    review_note,
                     bonus,
                 ),
             )

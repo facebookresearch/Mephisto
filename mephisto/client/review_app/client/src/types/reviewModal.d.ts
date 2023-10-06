@@ -7,10 +7,10 @@
 type FormType = {
   checkboxAssignQualification?: boolean;
   checkboxBanWorker?: boolean;
-  checkboxComment: boolean;
+  checkboxReviewNote: boolean;
   checkboxGiveBonus?: boolean;
   checkboxUnassignQualification?: boolean;
-  comment: string;
+  reviewNote: string;
   qualification: number | null;
   qualificationValue: number;
   bonus: number | null;

@@ -60,7 +60,7 @@ export const MOCK_RESPONSES_DATA = {
         },
         review: {
           bonus: 5,
-          feedback: null,
+          review_note: null,
         },
       },
       {
@@ -78,7 +78,7 @@ export const MOCK_RESPONSES_DATA = {
         },
         review: {
           bonus: 6,
-          feedback: null,
+          review_note: null,
         },
       },
     ],
@@ -101,7 +101,7 @@ export const MOCK_RESPONSES_DATA = {
         },
         review: {
           bonus: 5,
-          feedback: null,
+          review_note: null,
         },
       },
     ],

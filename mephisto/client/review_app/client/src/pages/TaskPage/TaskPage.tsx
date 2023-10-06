@@ -264,8 +264,8 @@ function TaskPage(props: PropsType) {
           setLoading,
           onError,
           {
-            feedback: _modalData.form.checkboxComment
-              ? _modalData.form.comment
+            review_note: _modalData.form.checkboxReviewNote
+              ? _modalData.form.reviewNote
               : null,
             unit_ids: unitIds,
           }
@@ -298,8 +298,8 @@ function TaskPage(props: PropsType) {
         setLoading,
         onError,
         {
-          feedback: modalData.form.checkboxComment
-            ? modalData.form.comment
+          review_note: modalData.form.checkboxReviewNote
+            ? modalData.form.reviewNote
             : null,
           bonus: modalData.form.checkboxGiveBonus
             ? modalData.form.bonus
@@ -313,8 +313,8 @@ function TaskPage(props: PropsType) {
         setLoading,
         onError,
         {
-          feedback: modalData.form.checkboxComment
-            ? modalData.form.comment
+          review_note: modalData.form.checkboxReviewNote
+            ? modalData.form.reviewNote
             : null,
           unit_ids: unitIds
         }
@@ -325,8 +325,8 @@ function TaskPage(props: PropsType) {
         setLoading,
         onError,
         {
-          feedback: modalData.form.checkboxComment
-            ? modalData.form.comment
+          review_note: modalData.form.checkboxReviewNote
+            ? modalData.form.reviewNote
             : null,
           unit_ids: unitIds
         }
@@ -546,48 +546,7 @@ function TaskPage(props: PropsType) {
                 <b>Results:</b>
               </h1>
 
-              {"final_submission" in currentUnitDetails.outputs ? (
-                <Table
-                  className={"results-table"}
-                  responsive={"sm"}
-                  bordered={false}
-                >
-                  <thead>
-                    <tr className={"titles-row"}>
-                      <th className={"title"}>
-                        <b>Predicted Number</b>
-                      </th>
-                      <th className={"title"}>
-                        <b>Annotation Correct?</b>
-                      </th>
-                      <th className={"title"}>
-                        <b>Corrected Annotation</b>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(
-                      currentUnitDetails.outputs["final_submission"][
-                        "annotations"
-                      ] || []
-                    ).map((item: { [key: string]: any }, i: number) => {
-                      return (
-                        <tr className={"results-row"} key={"results-row" + i}>
-                          <td className={"current-annotation"}>
-                            <b>{item["currentAnnotation"]}</b>
-                          </td>
-                          <td className={"is-correct"}>
-                            <b>{item["isCorrect"] ? "Yes" : "No"}</b>
-                          </td>
-                          <td>
-                            <b>{item["trueAnnotation"]}</b>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              ) : (
+              {!("final_submission" in currentUnitDetails.outputs) && (
                 <JSONPretty
                   className={"json-pretty"}
                   data={currentUnitDetails.outputs}

@@ -19,7 +19,7 @@ declare type UnitType = {
   };
   review: {
     bonus: number | null;
-    feedback: number | null;
+    review_note: number | null;
   };
 };
 
