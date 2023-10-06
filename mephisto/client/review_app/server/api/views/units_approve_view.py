@@ -51,9 +51,7 @@ class UnitsApproveView(MethodView):
                 try:
                     bonus = float(bonus)
                 except Exception:
-                    app.logger.exception(
-                        f"Could not pay bonus. Passed value is incorrect: {bonus}"
-                    )
+                    app.logger.exception(f"Could not pay bonus. Passed value is invalid: {bonus}")
                     return {}
 
                 # Pay bonus

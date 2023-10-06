@@ -104,8 +104,8 @@ function TaskPage(props: PropsType) {
   window.onmessage = function (e) {
     if (
       e.data &&
-      e.type === "message" &&  // Waiting for `message` type only
-      !e.data?.type  // Exclude all unexpected messages from iframe
+      e.type === "message" && // Waiting for `message` type only
+      !e.data?.type // Exclude all unexpected messages from iframe
     ) {
       const data = JSON.parse(e.data);
       setIframeHeight(data["IFRAME_DATA"]["height"]);
@@ -301,10 +301,8 @@ function TaskPage(props: PropsType) {
           review_note: modalData.form.checkboxReviewNote
             ? modalData.form.reviewNote
             : null,
-          bonus: modalData.form.checkboxGiveBonus
-            ? modalData.form.bonus
-            : null,
-          unit_ids: unitIds
+          bonus: modalData.form.checkboxGiveBonus ? modalData.form.bonus : null,
+          unit_ids: unitIds,
         }
       );
     } else if (modalData.type === ReviewType.SOFT_REJECT) {
@@ -316,7 +314,7 @@ function TaskPage(props: PropsType) {
           review_note: modalData.form.checkboxReviewNote
             ? modalData.form.reviewNote
             : null,
-          unit_ids: unitIds
+          unit_ids: unitIds,
         }
       );
     } else if (modalData.type === ReviewType.REJECT) {
@@ -328,7 +326,7 @@ function TaskPage(props: PropsType) {
           review_note: modalData.form.checkboxReviewNote
             ? modalData.form.reviewNote
             : null,
-          unit_ids: unitIds
+          unit_ids: unitIds,
         }
       );
     }
@@ -348,8 +346,8 @@ function TaskPage(props: PropsType) {
   const sendDataToTaskIframe = (data: object) => {
     const reviewData = {
       REVIEW_DATA: {
-        "inputs": data["inputs"],
-        "outputs": data["outputs"],
+        inputs: data["inputs"],
+        outputs: data["outputs"],
       },
     };
     const taskIframe = iframeRef.current;

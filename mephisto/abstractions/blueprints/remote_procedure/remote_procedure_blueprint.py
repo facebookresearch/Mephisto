@@ -102,7 +102,7 @@ class RemoteProcedureBlueprintArgs(
         },
     )
     task_source_review: str = field(
-        default='',
+        default="",
         metadata={
             "help": "Path to file containing javascript bundle for the task review application",
             "required": False,

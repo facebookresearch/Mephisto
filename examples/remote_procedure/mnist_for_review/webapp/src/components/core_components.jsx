@@ -148,10 +148,12 @@ function TaskFrontend({
   initialTaskData,
 }) {
   if (finalResults) {
-    return <ReviewFrontend
-      initialTaskData={initialTaskData}
-      reviewData={finalResults}
-    />;
+    return (
+      <ReviewFrontend
+        initialTaskData={initialTaskData}
+        reviewData={finalResults}
+      />
+    );
   }
 
   // TODO Update this file such that, if finalResults contains data we render in review mode with that data
@@ -159,14 +161,14 @@ function TaskFrontend({
   const [annotations, updateAnnotations] = React.useReducer(
     (currentAnnotation, { updateIdx, updatedAnnotation }) => {
       return currentAnnotation.map((val, idx) =>
-        idx == updateIdx ? updatedAnnotation : val,
+        idx == updateIdx ? updatedAnnotation : val
       );
     },
     Array(NUM_ANNOTATIONS).fill({
       currentAnnotation: null,
       trueAnnotation: null,
       isCorrect: null,
-    }),
+    })
   );
   let canSubmit =
     annotations.filter((a) => a.isCorrect === true || a.trueAnnotation !== "")

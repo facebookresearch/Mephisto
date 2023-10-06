@@ -213,7 +213,9 @@ function ModalForm(props: ModalFormProps) {
             label={"Give Bonus"}
             id={"giveBonus"}
             checked={props.data.form.checkboxGiveBonus}
-            onChange={() => onChangeGiveBonus(!props.data.form.checkboxGiveBonus)}
+            onChange={() =>
+              onChangeGiveBonus(!props.data.form.checkboxGiveBonus)
+            }
           />
 
           {props.data.form.checkboxGiveBonus && (
@@ -258,7 +260,9 @@ function ModalForm(props: ModalFormProps) {
         label={"Write Note"}
         id={"reviewNote"}
         checked={props.data.form.checkboxReviewNote}
-        onChange={() => onChangeWriteReviewNote(!props.data.form.checkboxReviewNote)}
+        onChange={() =>
+          onChangeWriteReviewNote(!props.data.form.checkboxReviewNote)
+        }
       />
 
       {props.data.form.checkboxReviewNote && (
