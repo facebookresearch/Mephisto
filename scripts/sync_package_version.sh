@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+
 # Update the version of a given package in the related package.json file
 # under "./examples" and "../mephisto/abstractions/blueprints"
 # Currently we support the update of the following packages:

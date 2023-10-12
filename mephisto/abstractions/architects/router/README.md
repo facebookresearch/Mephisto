@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # router
 This directory contains all of the Mephisto code regarding setting up and deploying and endpoint that can handle interfacing with the `mephisto-task` package. As of now there are two implementations, a node server in `deploy` and a Flask server in `flask`. Each of these can be extended upon such that you can deploy your own server (with whatever logic you may need) but still have mephisto routing functionality.
 

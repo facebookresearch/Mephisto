@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """
-Script to insert copyright header to files across the repo
+Script to insert legal header to files across the repo
 """
 
 import glob
@@ -135,7 +135,7 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
             last_line_number -= 1
             had_empty_line_after_comment = False
 
-        if not last_line_number:
+        if last_line_number < anchor_line_number:
             raise ProcessingError("Could not confirm last line of copyright note comment")
 
         # Note that we're also replacing an empty line after copyright notice

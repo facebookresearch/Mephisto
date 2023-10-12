@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Simple Static React Task With Tips
 This task is essentially the same as the "static-react-task" task except that there is a tips button that allows for the viewing and submission of tips. 
 

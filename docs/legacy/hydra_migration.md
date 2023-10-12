@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Transitioning from ARG_STRING to Hydra
 As Mephisto has moved away from the `ARG_STRING` in [#246](https://github.com/facebookresearch/Mephisto/pull/246), all existing scripts that used to use the `ARG_STRING` will need to use Hydra moving forward.
 

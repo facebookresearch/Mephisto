@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # ParlAI Chat Task
 
 This task exists to demonstrate both the out-of-the-box functionality of setting up a ParlAI chat on Mephisto, as well as more complicated tasks with custom frontend functionality. To get started you can run one of the following commands:

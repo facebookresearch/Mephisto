@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 /**
  * Constant properties common to all tests of a given test type, certain attributes are mandatory for functionality of tests
  */

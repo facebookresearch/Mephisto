@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # CrowdProviders
 The providers directory is home to the existing providers for Mephisto. This file describes high level what crowd providers do, important details on existing providers, and how to create a new `CrowdProvider` for an existing crowdsourcing service.
 

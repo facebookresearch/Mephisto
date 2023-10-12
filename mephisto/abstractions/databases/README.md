@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # MephistoDB implementations
 This folder contains implementations of the `MephistoDB` abstraction. Databases can currently be configured using the `mephisto.database._database_type` flag.
 

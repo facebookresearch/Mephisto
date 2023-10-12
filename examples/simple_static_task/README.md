@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Simple Static Task
 This example script is to demonstrate how to launch a simple task using a html file. The "static" nature of this task means that all of the content required for a worker to complete the task must be set before the task is launched, and must be able to be sent to the app upon initialization.
 
