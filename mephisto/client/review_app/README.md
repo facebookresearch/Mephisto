@@ -60,3 +60,42 @@ Example: [package.json](../../../examples/remote_procedure/mnist_for_review/weba
         <div ref={appRef}>
     - Rendered component must always return reference to `appRef`, like so `<div ref={appRef}>`
         - Example: comment #3 in [reviewapp.jsx](../../../examples/remote_procedure/mnist_for_review/webapp/src/reviewapp.jsx)
+
+-----
+
+#### Quick Start with Docker-Compose
+
+For cross-platform compatibility, TaskReview app can be run in dockerized form. _In the following example port values for TaskReview client and server can be customized if needed._
+
+Let's say we already have local database with data for completed (but not reviewed) tasks, and we need to run TaskReview app.
+
+1. In `docker/entrypoints` directory, create new entrypoint `server.my_review.sh` following this template:
+   ```shell
+   #!/bin/sh
+   set -e
+
+   # Build your Task app (MNIST is used as an example)
+   cd /mephisto/examples/remote_procedure/mnist_for_review/webapp/
+   npm install
+   npm run build:review
+
+   # Buid TaskReview app client
+   cd /mephisto/mephisto/client/review_app/client/
+   npm install
+
+   # Set main directory as repo root directory
+   cd /mephisto
+
+   exec "$@"
+   ```
+2. In `docker` directory, duplicate [docker-compose.dev.yml](../../../docker/docker-compose.dev.yml) file under new name `docker-compose.local.yml`.
+    - Change line `- ./entrypoints/server.prolific.sh:/entrypoint.sh` -> `- ./entrypoints/server.my_review.sh:/entrypoint.sh`
+3. Go to repo root folder.
+4. Launch docker containers `docker-compose -f docker/docker-compose.local.yml up`.
+5. Start TaskReview app server `docker-compose -f docker/docker-compose.local.yml exec fb_mephisto mephisto review_app -h 0.0.0.0 -p 8000 -d True`,
+6. Start TaskReview app client `docker-compose -f docker/docker-compose.local.yml exec fb_mephisto bash -c 'cd /mephisto/mephisto/client/review_app/client/ && REACT_APP__API_URL=http://localhost:8081 PORT=3000 npm start'`.
+7. Open TaskReview app in your browser at (http://localhost:3001)](http://localhost:3001).
+8. (Optional) In `docker/envs` directory, duplicate [env.dev](../../../docker/envs/env.dev) file under new name `env.local`.
+- In `docker-compose.local.yml`, change line `env_file: envs/env.dev` -> `env_file: envs/env.local`
+- Into this new `env.local` file, paste lines `REACT_APP__API_URL=http://localhost:8081` and `PORT=3000`
+- Now you don't have to specify these env parameters every time you run TaskReview app client, and the command is shortened to `docker-compose -f docker/docker-compose.local.yml exec fb_mephisto bash -c 'cd /mephisto/mephisto/client/review_app/client/ && npm start'`

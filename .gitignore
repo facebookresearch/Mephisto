@@ -55,3 +55,6 @@ aws_credentials
 docker-compose.local.*
 env.local
 my-review-interface
+docker/entrypoints/*.sh
+!docker/entrypoints/server.mturk.sh
+!docker/entrypoints/server.prolific.sh

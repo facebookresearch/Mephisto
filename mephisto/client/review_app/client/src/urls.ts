@@ -4,7 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const API_URL = "http://localhost:5001";
+const API_URL = process.env.REACT_APP__API_URL || "http://localhost:5000";
 
 const urls = {
   client: {
