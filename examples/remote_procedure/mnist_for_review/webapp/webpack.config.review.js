@@ -40,6 +40,11 @@ module.exports = {
         options: { limit: 100000 },
       },
       {
+        test: /\.tsx?$/,
+        use: "ts-loader",
+        exclude: /node_modules/,
+      },
+      {
         test: /\.jpg$/,
         loader: "file-loader",
       },
