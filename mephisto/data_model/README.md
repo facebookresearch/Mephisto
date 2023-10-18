@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Data Model
 This folder contains classes that generally represent the lowest levels of abstraction in Mephisto, lying as closely to the actual data as possible.
 

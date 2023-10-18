@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Utils
 Contains classes and utility functions that are generally useful for Mephisto classes to rely on and which don't better belong in a specific subfolder. These are differ from `tools`, which are more likely to be used directly by external Mephisto users rather than internal Mephisto classes.
 

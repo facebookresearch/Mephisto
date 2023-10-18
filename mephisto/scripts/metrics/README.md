@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Metrics
 
 This directory is the expected location to house a [Prometheus installation](https://prometheus.io/download/) and a [Grafana installation](https://grafana.com/grafana/download/7.3.0-381ff45epre?platform=mac), such that you can use Mephisto's full metrics. 

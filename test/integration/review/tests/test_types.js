@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 /**
  * represents strings used to denote different test types.
  * ALL STRINGS MUST BE UNIQUE

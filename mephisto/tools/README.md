@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Tools
 The tools directory contains helper methods and modules that allow for lower-level access to the Mephisto data model than the clients provide. These may be useful for creating custom workflows and scripts that are built on Mephisto.
 

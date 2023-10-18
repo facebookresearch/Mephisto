@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 **NOTE: These instructions are from before Hydra integration. They will need to be upated after Hydra integration**
 
 To run the example in this directory, modify `parlai_test_script.py` in the parent directory replacing:

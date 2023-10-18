@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Mephisto Remote Query Examples
 
 This directory contains examples of using remote queries. The `template` example consists of the boilerplate with pointers about how the code interacts with the data model (and hints on how to build your own task), while the `mnist` example shows what a functioning model-in-the-loop task would really run like.

@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Mephisto Remote Query Template
 
 This task is an _extremely rough_ bare-bones example of being able to set up a task where the frontend directly connects to the backend using the `useMephistoRemoteProcedureTask` hook from the `mephisto-task` package. It should serve as a decent example of how to get a `RemoteProcedureBlueprint` task up off the ground.

@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Mephisto Operations
 The contents of the operations folder comprise controllers for launching and monitoring tasks, as well as other classes that either operate on the data model or support the mid level of Mephisto's design. Each has a high level responsibility, detailed below. Within these classes there's something of a hierarchy depending on the amount of underlying infrastructure that a class is built upon. 
 

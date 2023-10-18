@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 export const getLength = (x, y) => Math.sqrt(x * x + y * y);
 
 export const getAngle = ({ x: x1, y: y1 }, { x: x2, y: y2 }) => {

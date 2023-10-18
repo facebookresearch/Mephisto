@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # mephisto-worker-addons
 
 The Tips component will allow task authors to set up a communication channel to solicit "tips" from workers to share with other workers, thus allowing for the "crowdsourcing" of the instructions for tasks as well. We find that workers sometimes will share these tips in third-party forums or via emails to the task authors. This feature creates a more vetted channel for such communication.
