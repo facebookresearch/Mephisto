@@ -174,6 +174,7 @@ class ProlificProvider(CrowdProvider):
         self,
         qualifications: List[QualificationType],
         bloked_participant_ids: List[str],
+        task_run: "TaskRun",
     ) -> List["Worker"]:
         qualified_workers = []
         workers: List[Worker] = self.db.find_workers(provider_type="prolific")
@@ -181,7 +182,9 @@ class ProlificProvider(CrowdProvider):
         available_workers = [w for w in workers if w.worker_name not in bloked_participant_ids]
 
         for worker in available_workers:
-            if worker_is_qualified(worker, qualifications):
+            if worker.can_send_more_submissions_for_task(task_run) and worker_is_qualified(
+                worker, qualifications
+            ):
                 qualified_workers.append(worker)
 
         return qualified_workers
@@ -305,7 +308,11 @@ class ProlificProvider(CrowdProvider):
             prolific_specific_qualifications = new_prolific_specific_qualifications
 
         if qualifications:
-            qualified_workers = self._get_qualified_workers(qualifications, blocked_participant_ids)
+            qualified_workers = self._get_qualified_workers(
+                qualifications,
+                blocked_participant_ids,
+                task_run,
+            )
 
             if qualified_workers:
                 prolific_workers_ids = [w.worker_name for w in qualified_workers]

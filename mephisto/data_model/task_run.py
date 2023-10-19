@@ -147,6 +147,16 @@ class TaskRunArgs:
         },
     )
 
+    max_submissions_per_worker: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Maximum submissions that a worker can submit on across all "
+                "tasks that share this task_name. (0 is infinite)"
+            )
+        },
+    )
+
     @classmethod
     def get_mock_params(cls) -> str:
         """Returns a param string with default / mock arguments to use for testing"""

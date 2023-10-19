@@ -536,6 +536,18 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
         agent = cls.new(db, worker, unit)
         unit.worker_id = worker.db_id
         agent._unit = unit
+
+        # In case provider API wasn't responsive, we ensure this submission
+        # doesn't exceed per-worker cap for this Task. Othewrwise don't process submission.
+        task_run: "TaskRun" = agent.get_task_run()
+        if not worker.can_send_more_submissions_for_task(task_run):
+            try:
+                worker.exclude_worker_from_task(task_run)
+            except Exception:
+                logger.exception(
+                    f"Failed to exclude worker {worker.db_id} in TaskRun {task_run.db_id}."
+                )
+
         return agent
 
     def get_status(self) -> str:

@@ -92,13 +92,41 @@ class ProlificAgent(Agent):
 
         assert isinstance(unit, ProlificUnit), "Can only register Prolific agents to Prolific units"
 
+        agent = cls.new(db, worker, unit)
+        unit.worker_id = worker.db_id
+        agent._unit = unit
+        task_run: "TaskRun" = agent.get_task_run()
+
+        # In case provider API wasn't responsive, we ensure this submission
+        # doesn't exceed per-worker cap for this Task. Othewrwise don't process submission.
+        if not worker.can_send_more_submissions_for_task(task_run):
+            logger.info(
+                f'Submission from worker "{worker.db_id}" is over the Task\'s submission cap.'
+            )
+            try:
+                worker.exclude_worker_from_task(task_run)
+            except Exception:
+                logger.exception(
+                    f"Failed to exclude worker {worker.db_id} in TaskRun {task_run.db_id}."
+                )
+            return agent
+
         prolific_study_id = provider_data["prolific_study_id"]
         prolific_submission_id = provider_data["assignment_id"]
         unit.register_from_provider_data(prolific_study_id, prolific_submission_id)
 
         logger.debug("Prolific Submission has been registered successfully")
 
-        return super().new_from_provider_data(db, worker, unit, provider_data)
+        # Check whether we need to prevent this worker from future submissions in this Task
+        if not worker.can_send_more_submissions_for_task(task_run):
+            try:
+                worker.exclude_worker_from_task(task_run)
+            except Exception:
+                logger.exception(
+                    f"Failed to exclude worker {worker.db_id} in TaskRun {task_run.db_id}."
+                )
+
+        return agent
 
     def approve_work(
         self,

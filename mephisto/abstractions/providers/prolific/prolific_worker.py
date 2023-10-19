@@ -13,8 +13,6 @@ from typing import Optional
 from typing import Tuple
 from typing import TYPE_CHECKING
 
-from omegaconf import DictConfig
-
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.api.client import ProlificClient
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
@@ -28,6 +26,7 @@ if TYPE_CHECKING:
     from mephisto.abstractions.providers.prolific.prolific_requester import ProlificRequester
     from mephisto.abstractions.providers.prolific.prolific_unit import ProlificUnit
     from mephisto.data_model.requester import Requester
+    from mephisto.data_model.task import Task
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.unit import Unit
 
@@ -178,6 +177,46 @@ class ProlificWorker(Worker):
         # if he is qualified at the moment
         self._grant_crowd_qualifications(client)
         logger.debug(f"{self.log_prefix}Worker {self.worker_name} unblocked")
+
+        return True, ""
+
+    def exclude_worker_from_task(
+        self,
+        task_run: Optional["TaskRun"] = None,
+    ) -> Tuple[bool, str]:
+        """Exclude this worker from current Task"""
+        logger.debug(f"{self.log_prefix}Excluding worker {self.worker_name} from Prolific")
+
+        # 1. Get Client
+        requester: "ProlificRequester" = task_run.get_requester()
+        client = self._get_client(requester.requester_name)
+
+        # 2. Find TaskRun IDs that are related to current Task
+        task: "Task" = task_run.get_task()
+        all_task_run_ids_for_task: List[str] = [t.db_id for t in task.get_runs()]
+
+        # 3. Select all Participant Group IDs that are related to the Task
+        datastore_qualifications = self.datastore.find_qualifications_by_ids(
+            task_run_ids=all_task_run_ids_for_task,
+        )
+        prolific_participant_group_ids = [
+            q["prolific_participant_group_id"] for q in datastore_qualifications
+        ]
+
+        logger.debug(
+            f"{self.log_prefix}Found {len(prolific_participant_group_ids)} Participant Groups: "
+            f"{prolific_participant_group_ids}"
+        )
+
+        # 4. Exclude the Worker from Prolific Participant Groups
+        for prolific_participant_group_id in prolific_participant_group_ids:
+            prolific_utils.exclude_worker_from_participant_group(
+                client,
+                self.worker_name,
+                prolific_participant_group_id,
+            )
+
+        logger.debug(f"{self.log_prefix}Worker {self.worker_name} excluded")
 
         return True, ""
 
