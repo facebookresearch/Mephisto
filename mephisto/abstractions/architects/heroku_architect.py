@@ -422,7 +422,7 @@ class HerokuArchitect(Architect):
             shlex.split(f"{heroku_executable_path} domains -a {heroku_app_name}")
         ).decode()
         possible_domains = domains.split("\n")[1:]
-        while possible_domains[0].strip() == '':
+        while possible_domains[0].strip() == "":
             possible_domains.pop(0)
         self.__heroku_app_url = possible_domains[0]
         return "https://{}".format(self.__heroku_app_url)
