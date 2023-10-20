@@ -1,8 +1,8 @@
 version: "3"
 
 services:
-  fb_mephisto_vscode:
-    container_name: fb_mephisto_vscode
+  mephisto_dc_vscode:
+    container_name: mephisto_dc_vscode
     build:
       context: ..
       dockerfile: Dockerfile

@@ -1,8 +1,8 @@
 version: "3"
 
 services:
-  fb_mephisto:
-    container_name: fb_mephisto
+  mephisto_dc:
+    container_name: mephisto_dc
     build:
       context: ..
       dockerfile: Dockerfile

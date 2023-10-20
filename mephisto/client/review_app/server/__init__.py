@@ -8,6 +8,7 @@ import json
 import os
 import traceback
 from logging.config import dictConfig
+from pathlib import Path
 from typing import Tuple
 
 from flask import Flask
@@ -38,7 +39,13 @@ def create_app(debug: bool) -> Flask:
     dictConfig(settings.LOGGING)
 
     # Create and configure the app
-    app = Flask(__name__)
+    static_folder = os.path.join(
+        Path(__file__).resolve().parent.parent,
+        "client",
+        "build",
+        "static",
+    )
+    app = Flask(__name__, static_folder=static_folder, static_url_path="/static")
     CORS(app)
 
     # Debug

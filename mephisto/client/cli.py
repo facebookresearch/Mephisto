@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-
+import os
+import subprocess
 # Copyright (c) Facebook, Inc. and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -12,6 +13,7 @@ from rich import print
 
 from mephisto.client.cli_commands import get_wut_arguments
 from mephisto.operations.registry import get_valid_provider_types
+from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.rich import console, create_table
 import rich_click as click  # type: ignore
 from rich_click import RichCommand, RichGroup
@@ -326,12 +328,16 @@ def metrics_cli(args):
 @click.option("-h", "--host", type=(str), default="127.0.0.1")
 @click.option("-p", "--port", type=(int), default=5000)
 @click.option("-d", "--debug", type=(bool), default=None)
+@click.option("-f", "--force-rebuild", type=(bool), default=False)
+@click.option("-o", "--server-only", type=(bool), default=False)
 @pass_script_info
 def review_app(
     info,
     host,
     port,
     debug,
+    force_rebuild,
+    server_only,
 ):
     """
     Launch a local review server.
@@ -343,15 +349,54 @@ def review_app(
     from werkzeug.serving import run_simple
     from mephisto.client.review_app.server import create_app
 
+    # Set env variables for Review App
+    app_url = f"http://{host}:{port}"
+    os.environ["HOST"] = host
+    os.environ["PORT"] = str(port)
+
+    print(f"[green]Review APP will start on \"{app_url}\" address.[/green]")
+
+    # Set up Review App Client
+    if not server_only:
+        review_app_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "review_app")
+        client_dir = "client"
+        client_path = os.path.join(review_app_path, client_dir)
+
+        # Install JS requirements
+        if os.path.exists(os.path.join(client_path, "node_modules")):
+            print(f"[blue]JS requirements are already installed.[/blue]")
+        else:
+            print(f"[blue]Installing JS requirements started.[/blue]")
+            app_started = subprocess.call(["npm", "install"], cwd=client_path)
+            if app_started != 0:
+                raise Exception(
+                    "Please make sure npm is installed, "
+                    "otherwise view the above error for more info."
+                )
+            print(f"[blue]Installing JS requirements finished.[/blue]")
+
+        if os.path.exists(os.path.join(client_path, "build", "index.html")) and not force_rebuild:
+            print(f"[blue]React bundle is already built.[/blue]")
+        else:
+            print(f"[blue]Building React bundle started.[/blue]")
+            build_custom_bundle(
+                review_app_path,
+                force_rebuild=force_rebuild,
+                webapp_name=client_dir,
+                build_command="build",
+            )
+            print(f"[blue]Building React bundle finished.[/blue]")
+
+    # Set debug
     debug = debug if debug is not None else get_debug_flag()
     reload = debug
     debugger = debug
-    eager_loading = not reload
 
-    # Flask banner
+    # Show Flask banner
+    eager_loading = not reload
     show_server_banner(get_env(), debug, info.app_import_path, eager_loading)
 
-    # Init App
+    # Init Flask App
     app = create_app(debug=debug)
 
     # Run Flask server

@@ -4,7 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const API_URL = process.env.REACT_APP__API_URL || "http://localhost:5000";
+const API_URL = process.env.REACT_APP__API_URL || "";
 
 const urls = {
   client: {
@@ -13,23 +13,23 @@ const urls = {
     tasks: "/tasks",
   },
   server: {
-    qualifications: API_URL + "/qualifications",
-    qualificationWorkers: (id) => API_URL + `/qualifications/${id}/workers`,
+    qualifications: API_URL + "/api/qualifications",
+    qualificationWorkers: (id) => API_URL + `/api/qualifications/${id}/workers`,
     qualificationGrantWorker: (id, workerId) =>
-      API_URL + `/qualifications/${id}/workers/${workerId}/grant`,
+      API_URL + `/api/qualifications/${id}/workers/${workerId}/grant`,
     qualificationRevokeWorker: (id, workerId) =>
-      API_URL + `/qualifications/${id}/workers/${workerId}/revoke`,
-    stats: API_URL + "/stats",
-    task: (id) => API_URL + `/tasks/${id}`,
-    tasks: API_URL + "/tasks",
-    tasksWorkerUnitsIds: (id) => API_URL + `/tasks/${id}/worker-units-ids`,
-    unitReviewHtml: (id) => API_URL + `/units/${id}/review.html`,
-    units: API_URL + "/units",
-    unitsApprove: API_URL + "/units/approve",
-    unitsDetails: API_URL + "/units/details",
-    unitsReject: API_URL + "/units/reject",
-    unitsSoftReject: API_URL + "/units/soft-reject",
-    workersBlock: (id) => API_URL + `/workers/${id}/block`,
+      API_URL + `/api/qualifications/${id}/workers/${workerId}/revoke`,
+    stats: API_URL + "/api/stats",
+    task: (id) => API_URL + `/api/tasks/${id}`,
+    tasks: API_URL + "/api/tasks",
+    tasksWorkerUnitsIds: (id) => API_URL + `/api/tasks/${id}/worker-units-ids`,
+    unitReviewHtml: (id) => API_URL + `/api/units/${id}/review.html`,
+    units: API_URL + "/api/units",
+    unitsApprove: API_URL + "/api/units/approve",
+    unitsDetails: API_URL + "/api/units/details",
+    unitsReject: API_URL + "/api/units/reject",
+    unitsSoftReject: API_URL + "/api/units/soft-reject",
+    workersBlock: (id) => API_URL + `/api/workers/${id}/block`,
   },
 };
 

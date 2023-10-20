@@ -5,37 +5,37 @@ from .api import views as api_views
 
 def init_urls(app: Flask):
     app.add_url_rule(
-        "/qualifications/<int:qualification_id>/workers",
+        "/api/qualifications/<int:qualification_id>/workers",
         view_func=api_views.QualificationWorkersView.as_view("qualification_workers"),
     )
     app.add_url_rule(
-        "/qualifications/<int:qualification_id>/workers/<int:worker_id>/grant",
+        "/api/qualifications/<int:qualification_id>/workers/<int:worker_id>/grant",
         view_func=api_views.QualifyWorkerView.as_view("qualification_worker_grant"),
         defaults={"action": "grant"},
     )
     app.add_url_rule(
-        "/qualifications/<int:qualification_id>/workers/<int:worker_id>/revoke",
+        "/api/qualifications/<int:qualification_id>/workers/<int:worker_id>/revoke",
         view_func=api_views.QualifyWorkerView.as_view("qualification_worker_revoke"),
         defaults={"action": "revoke"},
     )
     app.add_url_rule(
-        "/qualifications",
+        "/api/qualifications",
         view_func=api_views.QualificationsView.as_view("qualifications"),
     )
     app.add_url_rule(
-        "/tasks/<int:task_id>/worker-units-ids",
+        "/api/tasks/<int:task_id>/worker-units-ids",
         view_func=api_views.TaskUnitIdsView.as_view("worker_units_ids"),
     )
     app.add_url_rule(
-        "/tasks",
+        "/api/tasks",
         view_func=api_views.TasksView.as_view("tasks"),
     )
     app.add_url_rule(
-        "/tasks/<int:task_id>",
+        "/api/tasks/<int:task_id>",
         view_func=api_views.TaskView.as_view("task"),
     )
     app.add_url_rule(
-        "/units",
+        "/api/units",
         view_func=api_views.UnitsView.as_view("units"),
     )
     app.add_url_rule(
@@ -43,30 +43,38 @@ def init_urls(app: Flask):
         view_func=api_views.UnitReviewBundleView.as_view("unit_review_bundle"),
     )
     app.add_url_rule(
-        "/units/<int:unit_id>/review.html",
+        "/api/units/<int:unit_id>/review.html",
         view_func=api_views.UnitReviewHtmlView.as_view("unit_review_html"),
     )
     app.add_url_rule(
-        "/units/details",
+        "/api/units/details",
         view_func=api_views.UnitsDetailsView.as_view("units_details"),
     )
     app.add_url_rule(
-        "/units/approve",
+        "/api/units/approve",
         view_func=api_views.UnitsApproveView.as_view("units_approve"),
     )
     app.add_url_rule(
-        "/units/reject",
+        "/api/units/reject",
         view_func=api_views.UnitsRejectView.as_view("units_reject"),
     )
     app.add_url_rule(
-        "/units/soft-reject",
+        "/api/units/soft-reject",
         view_func=api_views.UnitsSoftRejectView.as_view("units_soft_reject"),
     )
     app.add_url_rule(
-        "/workers/<int:worker_id>/block",
+        "/api/workers/<int:worker_id>/block",
         view_func=api_views.WorkerBlockView.as_view("worker_block"),
     )
     app.add_url_rule(
-        "/stats",
+        "/api/stats",
         view_func=api_views.StatsView.as_view("stats"),
+    )
+    app.add_url_rule(
+        "/<path:path>",
+        view_func=api_views.HomeView.as_view("client-tasks"),
+    )
+    app.add_url_rule(
+        "/",
+        view_func=api_views.HomeView.as_view("client-home"),
     )
