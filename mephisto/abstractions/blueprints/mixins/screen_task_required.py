@@ -8,8 +8,6 @@ from typing import (
     Optional,
     Dict,
     Any,
-    Union,
-    Iterable,
     Callable,
     Tuple,
     cast,
@@ -22,6 +20,7 @@ from mephisto.abstractions.blueprint import BlueprintMixin
 from dataclasses import dataclass, field
 from omegaconf import MISSING, DictConfig
 from mephisto.data_model.qualification import QUAL_NOT_EXIST
+from mephisto.utils.logger_core import get_logger
 from mephisto.utils.qualifications import (
     make_qualification_dict,
     find_or_create_qualification,
@@ -32,9 +31,9 @@ if TYPE_CHECKING:
     from mephisto.abstractions.blueprint import SharedTaskState
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.unit import Unit
-    from mephisto.data_model.packet import Packet
     from mephisto.data_model.worker import Worker
-    from argparse import _ArgumentGroup as ArgumentGroup
+
+logger = get_logger(name=__name__)
 
 
 @dataclass
@@ -221,7 +220,13 @@ class ScreenTaskRequired(BlueprintMixin):
                 passed_qualification_name
             ):
                 return  # Do not run validation if screening with regular tasks and worker is already qualified
-            validation_result = screen_unit(unit)
+
+            try:
+                validation_result = screen_unit(unit)
+            except Exception:
+                logger.exception("Unexpected error in passed `screen_unit` function")
+                raise
+
             if validation_result is True:
                 agent.get_worker().grant_qualification(passed_qualification_name)
             elif validation_result is False:

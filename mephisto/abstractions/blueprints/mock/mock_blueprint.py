@@ -105,4 +105,5 @@ class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
         """
         Onboarding validation for MockBlueprints just returns the 'should_pass' field
         """
-        return onboarding_agent.state.get_data()["should_pass"]
+        state_data = onboarding_agent.state.get_data()
+        return state_data["outputs"]["should_pass"]

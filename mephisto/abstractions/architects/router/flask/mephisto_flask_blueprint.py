@@ -458,7 +458,7 @@ def submit_task():
         "packet_type": PACKET_TYPE_SUBMIT_UNIT,
         "subject_id": agent_id,
         "data": extracted_data,
-        "client_timestamp": data["client_timestamp"],
+        "client_timestamp": extracted_data["client_timestamp"],
         "router_incoming_timestamp": router_incoming_timestamp,
     }
     mephisto_router_app._handle_forward(packet)
