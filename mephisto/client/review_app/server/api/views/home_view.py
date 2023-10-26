@@ -23,7 +23,7 @@ class HomeView(MethodView):
     def get(self, path: Optional[str] = None, *args, **kwargs) -> Union[Response, dict]:
         """Return client 'index.html'"""
         if request.path == "/":
-            return redirect(url_for('client-tasks', path='tasks'), code=302)
+            return redirect(url_for("client-tasks", path="tasks"), code=302)
 
         ui_html_file_path = os.path.join(
             Path(__file__).resolve().parent.parent.parent.parent,

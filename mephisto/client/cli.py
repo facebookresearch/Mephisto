@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-import os
-import subprocess
 # Copyright (c) Facebook, Inc. and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
+import os
+import subprocess
 from typing import List
 
 from flask.cli import pass_script_info
@@ -354,7 +353,7 @@ def review_app(
     os.environ["HOST"] = host
     os.environ["PORT"] = str(port)
 
-    print(f"[green]Review APP will start on \"{app_url}\" address.[/green]")
+    print(f'[green]Review APP will start on "{app_url}" address.[/green]')
 
     # Set up Review App Client
     if not server_only:

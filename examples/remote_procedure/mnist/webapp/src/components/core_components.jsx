@@ -1,7 +1,9 @@
 /*
- * Copyright (c) Meta Platforms and its affiliates.
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+ * Copyright (c) 2017-present, Facebook, Inc.
+ * All rights reserved.
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
  */
 
 import React, { Fragment } from "react";
@@ -140,13 +142,22 @@ function Instructions({ taskData }) {
 }
 
 function TaskFrontend({
-  taskData,
-  finalResults = null,
   classifyDigit,
+  finalResults = null,
   handleSubmit,
+  initialTaskData,
 }) {
+  if (finalResults) {
+    return (
+      <ReviewFrontend
+        initialTaskData={initialTaskData}
+        reviewData={finalResults}
+      />
+    );
+  }
+
   // TODO Update this file such that, if finalResults contains data we render in review mode with that data
-  const NUM_ANNOTATIONS = taskData.isScreeningUnit ? 1 : 3;
+  const NUM_ANNOTATIONS = initialTaskData.isScreeningUnit ? 1 : 3;
   const [annotations, updateAnnotations] = React.useReducer(
     (currentAnnotation, { updateIdx, updatedAnnotation }) => {
       return currentAnnotation.map((val, idx) =>
@@ -165,7 +176,7 @@ function TaskFrontend({
 
   return (
     <div>
-      <Instructions taskData={taskData} />
+      <Instructions taskData={initialTaskData} />
       <div>
         {annotations.map((_d, idx) => (
           <AnnotationCanvas
@@ -199,4 +210,81 @@ function TaskFrontend({
   );
 }
 
-export { LoadingScreen, TaskFrontend as BaseFrontend, Instructions };
+function ReviewAnnotationCanvas({ index, value }) {
+  return (
+    <div
+      data-cy={`canvas-container-${index}`}
+      style={{ float: "left", padding: "3px", borderStyle: "solid" }}
+    >
+      <div data-cy={`canvas-mouse-down-container-${index}`}>
+        <img src={value["imgData"]} key={"img" + index} alt={"img" + index} />
+      </div>
+      <button
+        data-cy={`clear-button-${index}`}
+        className="button"
+        disabled={true}
+      >
+        {" "}
+        Clear Drawing{" "}
+      </button>
+      <br />
+      <span data-cy={`current-annotation-${index}`}>
+        Current Annotation: {value["currentAnnotation"]}
+      </span>
+      <br />
+      Annotation Correct?{" "}
+      <input
+        type="checkbox"
+        data-cy={`correct-checkbox-${index}`}
+        disabled={true}
+        checked={!!value["isCorrect"]}
+      />
+      <Fragment>
+        <br />
+        Corrected Annotation:
+        <br />
+        <input
+          type="text"
+          disabled={true}
+          value={value["trueAnnotation"]}
+          data-cy={`correct-text-input-${index}`}
+        />
+      </Fragment>
+    </div>
+  );
+}
+
+function ReviewFrontend({ initialTaskData, reviewData }) {
+  return (
+    <div>
+      <Instructions taskData={{}} />
+      <div>
+        {reviewData["final_submission"]["annotations"].map((_d, idx) => (
+          <ReviewAnnotationCanvas
+            index={idx}
+            key={"Annotation-" + String(idx)}
+            onUpdate={() => null}
+            value={_d}
+          />
+        ))}
+        <div style={{ clear: "both" }}></div>
+      </div>
+
+      <button
+        data-cy="submit-button"
+        className="button"
+        onClick={() => null}
+        disabled={true}
+      >
+        Submit Task
+      </button>
+    </div>
+  );
+}
+
+export {
+  LoadingScreen,
+  TaskFrontend as BaseFrontend,
+  ReviewFrontend,
+  Instructions,
+};
