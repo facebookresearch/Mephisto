@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -883,11 +883,11 @@ class BaseTestLiveRuns:
                 return None  # No real data to evaluate
 
             agent = unit.get_assigned_agent()
-            output = agent.state.get_data()
-            if output is None:
+            agent_data = agent.state.get_data()
+            if agent_data is None:
                 return None  # no data to evaluate
 
-            return output["success"]
+            return agent_data["outputs"]["success"]
 
         shared_state = MockSharedState()
         shared_state.on_unit_submitted = ScreenTaskRequired.create_validation_function(

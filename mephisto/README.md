@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Mephisto
 This is the main package directory, containing all of the core workings of Mephisto. They roughly follow the divisions noted in the [architecture overview doc](https://github.com/facebookresearch/Mephisto/blob/main/docs/architecture_overview.md#agent). The breakdown is as following:
 

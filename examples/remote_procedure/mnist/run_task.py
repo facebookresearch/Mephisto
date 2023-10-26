@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -52,7 +52,7 @@ def validate_screening_unit(unit: Unit):
     agent = unit.get_assigned_agent()
     if agent is not None:
         data = agent.state.get_data()
-        annotation = data["final_submission"]["annotations"][0]
+        annotation = data["outputs"]["final_submission"]["annotations"][0]
         if annotation["isCorrect"] and annotation["currentAnnotation"] == 3:
             return True
     return False

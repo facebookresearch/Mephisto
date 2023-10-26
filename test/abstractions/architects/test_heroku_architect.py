@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -25,6 +25,7 @@ from mephisto.abstractions.blueprints.mock.mock_blueprint import MockSharedState
 
 # TODO(#104) these tests should be marked as nightly's rather than on every run?
 # Maybe with some kind of LONG TEST flag? Investigate
+@unittest.skip("We are not actively supporting Heroku anymore")
 class HerokuArchitectTests(ArchitectTests):
     """
     Runs architect tests on Heroku. Ensures that deploying to heroku still

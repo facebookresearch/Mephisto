@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # MTurk Scripts
 This directory contains scripts that may be useful for Mephisto users that use MTurk as a crowd provider. Descriptions of the scripts and what they do can be found here:
 

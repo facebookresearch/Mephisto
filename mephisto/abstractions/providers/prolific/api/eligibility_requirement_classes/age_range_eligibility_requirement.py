@@ -1,3 +1,7 @@
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 from mephisto.abstractions.providers.prolific.api.constants import (
     ELIGIBILITY_REQUIREMENT_AGE_RANGE_QUESTION_ID,
 )

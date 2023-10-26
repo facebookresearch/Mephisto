@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Blueprints
 ## Overview
 Blueprints serve to package tasks (and groups of similar tasks) into a reusable format. They can be used to work through piloting tasks, collecting data, testing different formats, etc. They're also used by the architecture to simplify the data accumulation and review processes. The `StaticBlueprint` is a good starting example of how to implement a blueprint.

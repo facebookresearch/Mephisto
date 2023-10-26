@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+
 echo "Installing basic requirements..."
 # Following is commented out until the aws linux2 repo is no longer lagging
 # sudo yum update -y >> /home/ec2-user/routing_server/setup/setup_log.txt 2>&1

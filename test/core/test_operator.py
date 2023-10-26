@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -69,11 +69,21 @@ class OperatorBaseTest(object):
         shutil.rmtree(self.data_dir, ignore_errors=True)
         SHUTDOWN_TIMEOUT = 10
         threads = threading.enumerate()
-        target_threads = [t for t in threads if not isinstance(t, TMonitor) and not t.daemon]
+        target_threads = [
+            t for t in threads if
+            not isinstance(t, TMonitor) and
+            not t.daemon and
+            not t.name.startswith("asyncio_")
+        ]
         start_time = time.time()
         while len(target_threads) > 1 and time.time() - start_time < SHUTDOWN_TIMEOUT:
             threads = threading.enumerate()
-            target_threads = [t for t in threads if not isinstance(t, TMonitor) and not t.daemon]
+            target_threads = [
+                t for t in threads if
+                not isinstance(t, TMonitor) and
+                not t.daemon and
+                not t.name.startswith("asyncio_")
+            ]
             time.sleep(0.3)
         self.assertTrue(
             time.time() - start_time < SHUTDOWN_TIMEOUT,

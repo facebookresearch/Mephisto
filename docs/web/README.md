@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Mephisto Docs Website
 
 This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
