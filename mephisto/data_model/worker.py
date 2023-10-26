@@ -282,10 +282,10 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
 
     def can_send_more_submissions_for_task(self, task_run: "TaskRun") -> bool:
         """Check whether a worker is allowed to send any more submissions within current Task"""
-        max_submissions_per_worker = task_run.args.max_submissions_per_worker
+        maximum_units_per_worker = task_run.args.task.maximum_units_per_worker
 
         # By default, worker can send any amount of submissions
-        if max_submissions_per_worker is None:
+        if maximum_units_per_worker == 0:
             return True
 
         # Find all completed units byt this worker for current task
@@ -294,7 +294,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
             u for u in task_units if u.get_status() in AssignmentState.completed()
         ]
 
-        if len(completed_task_units) >= max_submissions_per_worker:
+        if len(completed_task_units) >= maximum_units_per_worker:
             return False
 
         return True
