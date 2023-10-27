@@ -42,5 +42,5 @@ mephisto:
           - 6463d44ed1b61a8fb4e0765a
           - 6463d488c2f2821eaa2fa13f
       - name: "ApprovalRateEligibilityRequirement"
-        minimum_approval_rate: 0
+        minimum_approval_rate: 1
         maximum_approval_rate: 100
