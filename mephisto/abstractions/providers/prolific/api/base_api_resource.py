@@ -99,8 +99,6 @@ class BaseAPIResource(object):
             else:
                 result = response.json()
 
-            logger.debug(f"{log_prefix} Response: {result}")
-
             return result
 
         except ProlificException:

@@ -97,20 +97,6 @@ class ProlificAgent(Agent):
         agent._unit = unit
         task_run: "TaskRun" = agent.get_task_run()
 
-        # In case provider API wasn't responsive, we ensure this submission
-        # doesn't exceed per-worker cap for this Task. Othewrwise don't process submission.
-        if not worker.can_send_more_submissions_for_task(task_run):
-            logger.info(
-                f'Submission from worker "{worker.db_id}" is over the Task\'s submission cap.'
-            )
-            try:
-                worker.exclude_worker_from_task(task_run)
-            except Exception:
-                logger.exception(
-                    f"Failed to exclude worker {worker.db_id} in TaskRun {task_run.db_id}."
-                )
-            return agent
-
         prolific_study_id = provider_data["prolific_study_id"]
         prolific_submission_id = provider_data["assignment_id"]
         unit.register_from_provider_data(prolific_study_id, prolific_submission_id)
@@ -119,6 +105,8 @@ class ProlificAgent(Agent):
 
         # Check whether we need to prevent this worker from future submissions in this Task
         if not worker.can_send_more_submissions_for_task(task_run):
+            # Excluding worker from Participant Group (instead of adding to Block List)
+            # only because Prolific cannot update Block List for an in-progress Study
             try:
                 worker.exclude_worker_from_task(task_run)
             except Exception:
@@ -267,7 +255,6 @@ class ProlificAgent(Agent):
         if prolific_submission_id:
             prolific_submission = prolific_utils.get_submission(client, prolific_submission_id)
         else:
-            # TODO: Not sure about this
             self.update_status(AgentState.STATUS_EXPIRED)
             return self.db_status
 
@@ -277,6 +264,9 @@ class ProlificAgent(Agent):
 
             if prolific_submission.status == SubmissionStatus.RESERVED:
                 provider_status = local_status
+            elif prolific_submission.status == SubmissionStatus.ACTIVE:
+                # We don't need to map this status in our DB
+                pass
             else:
                 provider_status = SUBMISSION_STATUS_TO_AGENT_STATE_MAP.get(
                     prolific_submission.status,

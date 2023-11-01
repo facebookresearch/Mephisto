@@ -537,8 +537,7 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
         unit.worker_id = worker.db_id
         agent._unit = unit
 
-        # In case provider API wasn't responsive, we ensure this submission
-        # doesn't exceed per-worker cap for this Task. Othewrwise don't process submission.
+        # Prevent sending more units to worker if worker exceeded submission cap within this Task
         task_run: "TaskRun" = agent.get_task_run()
         if not worker.can_send_more_submissions_for_task(task_run):
             try:

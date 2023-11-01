@@ -393,6 +393,15 @@ def create_study(
                     ),
                 ],
             ),
+            dict(
+                code=f"{constants.StudyCodeType.OTHER}_{code_suffix}",
+                code_type=constants.StudyCodeType.OTHER,
+                actions=[
+                    dict(
+                        action=constants.StudyAction.MANUALLY_REVIEW,
+                    ),
+                ],
+            ),
         ]
 
     # Task info

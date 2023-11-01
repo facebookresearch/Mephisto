@@ -293,8 +293,7 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         completed_task_units = [
             u for u in task_units if u.get_status() in AssignmentState.completed()
         ]
-
-        if len(completed_task_units) >= maximum_units_per_worker:
+        if len(completed_task_units) >= maximum_units_per_worker - 1:
             return False
 
         return True
