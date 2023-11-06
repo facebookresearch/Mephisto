@@ -68,7 +68,6 @@ def _find_unit_reviews(
 
     with db.table_access_condition:
         conn = db._get_connection()
-        conn.set_trace_callback(print)
         c = conn.cursor()
         c.execute(
             f"""
@@ -130,7 +129,6 @@ def _find_units_for_worker(
 
     with db.table_access_condition:
         conn = db._get_connection()
-        conn.set_trace_callback(print)
         c = conn.cursor()
         c.execute(
             f"""

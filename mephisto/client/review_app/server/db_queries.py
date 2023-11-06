@@ -20,9 +20,6 @@ def find_units(
     with db.table_access_condition:
         conn = db._get_connection()
 
-        if debug:
-            conn.set_trace_callback(print)
-
         params = []
 
         task_query = "task_id = ?" if task_id else ""
@@ -45,8 +42,5 @@ def find_units(
             params,
         )
         rows = c.fetchall()
-
-        if debug:
-            conn.set_trace_callback(None)
 
         return rows

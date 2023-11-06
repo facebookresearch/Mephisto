@@ -79,7 +79,7 @@ A simple project with HTML-based UI task template [simple_static_task](../exampl
       --build \
       --publish 3001:3000 \
       --rm mephisto_dc \
-      cd /mephisto/examples/simple_static_task && python ./static_test_script.py
+      python /mephisto/examples/simple_static_task/static_test_script.py
   ```
 - Browser page (for the first task unit): [http://localhost:3001/?worker_id=x&assignment_id=1](http://localhost:3001/?worker_id=x&assignment_id=1)
 - Browser page should display an image, instruction, select and file inputs, and a submit button.
@@ -97,7 +97,7 @@ A simple project with React-based UI task template [static_react_task](../exampl
       --build \
       --publish 3001:3000 \
       --rm mephisto_dc \
-      cd /mephisto/examples/static_react_task && python ./run_task.py
+      python /mephisto/examples/static_react_task/run_task.py
   ```
 - Browser page (for the first task unit): [http://localhost:3001/?worker_id=x&assignment_id=1](http://localhost:3001/?worker_id=x&assignment_id=1).
 - Browser page should display an instruction line and two buttons (green and red).
@@ -118,7 +118,7 @@ A more complex example featuring worker-generated dynamic input: [mnist](../exam
       apt install curl && \
       pip install grafana torch pillow numpy && \
       mephisto metrics install && \
-      cd /mephisto/examples/remote_procedure/mnist && python ./run_task.py
+      python /mephisto/examples/remote_procedure/mnist/run_task.py
   ```
 - Browser page (for the first task unit): [http://localhost:3001/?worker_id=x&assignment_id=1](http://localhost:3001/?worker_id=x&assignment_id=1).
 - Browser page should display instructions and a layout with 3 rectangle fields for drawing numbers with a mouse, each field having inputs at the bottom.
@@ -248,8 +248,7 @@ or simply embed that command into your docker-compose entrypoint script.
         --build \
         --rm mephisto_dc \
         rm -rf /mephisto/tmp && \
-        cd /mephisto/examples/simple_static_task && \
-        HYDRA_FULL_ERROR=1 python ./static_test_prolific_script.py
+        HYDRA_FULL_ERROR=1 python /mephisto/examples/simple_static_task/static_test_prolific_script.py
     ```
 
   This TaskRun script will spin up an EC2 server, upload your React Task App to it, and create a Study on Prolific. Now all eligible workers will see your Task Units (with links poiting to EC2 server) on Prolific, and can complete it.

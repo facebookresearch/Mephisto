@@ -17,6 +17,9 @@ class ProlificException(Exception):
     def __init__(self, message: Optional[str] = None):
         self.message = message or self.default_message
 
+    def __str__(self) -> str:
+        return self.message
+
 
 class ProlificAPIKeyError(ProlificException):
     default_message = "API key is missing."

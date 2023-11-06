@@ -116,10 +116,11 @@ class ProlificAgent(Agent):
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_participant_id()
+
+        datastore_unit = self.datastore.get_unit(self.unit_id)
         prolific_utils.approve_work(
             client,
-            study_id=prolific_study_id,
-            worker_id=worker_id,
+            submission_id=datastore_unit['prolific_submission_id'],
         )
 
         logger.debug(
@@ -148,10 +149,11 @@ class ProlificAgent(Agent):
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_participant_id()
+
+        datastore_unit = self.datastore.get_unit(self.unit_id)
         prolific_utils.approve_work(
             client,
-            study_id=prolific_study_id,
-            worker_id=worker_id,
+            submission_id=datastore_unit['prolific_submission_id'],
         )
 
         logger.debug(
@@ -171,6 +173,7 @@ class ProlificAgent(Agent):
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_participant_id()
+        datastore_unit = self.datastore.get_unit(self.unit_id)
 
         # [Depends on Prolific] remove this suppression of exception when Prolific fixes their API
         from .api.exceptions import ProlificException
@@ -178,8 +181,7 @@ class ProlificAgent(Agent):
         try:
             prolific_utils.reject_work(
                 client,
-                study_id=prolific_study_id,
-                worker_id=worker_id,
+                submission_id=datastore_unit['prolific_submission_id'],
             )
         except ProlificException:
             logger.info(

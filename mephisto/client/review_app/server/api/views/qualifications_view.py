@@ -24,9 +24,6 @@ def _find_qualifications_by_ids(
     with db.table_access_condition:
         conn = db._get_connection()
 
-        if debug:
-            conn.set_trace_callback(print)
-
         c = conn.cursor()
 
         qualifications_string = ",".join([f"{s}" for s in qualification_ids])
@@ -43,9 +40,6 @@ def _find_qualifications_by_ids(
             """
         )
         rows = c.fetchall()
-
-        if debug:
-            conn.set_trace_callback(None)
 
         return [
             Qualification(db, str(r["qualification_id"]), row=r, _used_new_call=True) for r in rows

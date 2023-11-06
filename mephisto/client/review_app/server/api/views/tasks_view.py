@@ -19,9 +19,6 @@ def _find_tasks(db, debug: bool = False) -> List[StringIDRow]:
     with db.table_access_condition:
         conn = db._get_connection()
 
-        if debug:
-            conn.set_trace_callback(print)
-
         c = conn.cursor()
         c.execute(
             """
@@ -29,9 +26,6 @@ def _find_tasks(db, debug: bool = False) -> List[StringIDRow]:
             """
         )
         rows = c.fetchall()
-
-        if debug:
-            conn.set_trace_callback(None)
 
         return rows
 
