@@ -101,7 +101,7 @@ class QualificationsView(MethodView):
         db_qualifications: List[Qualification] = app.db.find_qualifications(qualification_name)
 
         if db_qualifications:
-            raise BadRequest(f'Qualifications with name "{qualification_name}" already exists.')
+            raise BadRequest(f'Qualification with name "{qualification_name}" already exists.')
 
         db_qualification_id: str = app.db.make_qualification(qualification_name)
         db_qualification: StringIDRow = app.db.get_qualification(db_qualification_id)

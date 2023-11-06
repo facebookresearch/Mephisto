@@ -4,13 +4,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// TODO: Find the way to import it dynamically
-// import { TaskFrontend } from 'components/mnist_core_components_copied';
 import { ReviewType } from "consts/review";
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { useEffect } from "react";
-import { Button, Spinner, Table } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
 import JSONPretty from "react-json-pretty";
 import { useNavigate, useParams } from "react-router-dom";
 import {

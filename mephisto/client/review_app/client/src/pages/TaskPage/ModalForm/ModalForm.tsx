@@ -7,8 +7,8 @@
 import { ReviewType } from "consts/review";
 import * as React from "react";
 import { useEffect } from "react";
-import { Col, Form, Row } from "react-bootstrap";
-import { getQualifications } from "requests/qualifications";
+import { Button, Col, Form, Row } from "react-bootstrap";
+import { getQualifications, postQualification } from "requests/qualifications";
 import "./ModalForm.css";
 
 const range = (start, end) => Array.from(Array(end + 1).keys()).slice(start);
@@ -24,7 +24,8 @@ function ModalForm(props: ModalFormProps) {
   const [qualifications, setQualifications] = React.useState<
     Array<QualificationType>
   >(null);
-  const [loading, setLoading] = React.useState(false);
+  const [getQualificationsloading, setGetQualificationsloading] = React.useState(false);
+  const [, setCreateQualificationLoading] = React.useState(false);
 
   const onChangeAssign = (value: boolean) => {
     let prevFormData: FormType = Object(props.data.form);
@@ -38,9 +39,16 @@ function ModalForm(props: ModalFormProps) {
     props.setData({ ...props.data, form: prevFormData });
   };
 
-  const onChangeAssignQualification = (id: string) => {
+  const onChangeAssignQualification = (value: string) => {
     let prevFormData: FormType = Object(props.data.form);
-    prevFormData.qualification = Number(id);
+
+    if (value === "+") {
+      prevFormData.showNewQualification = true;
+      prevFormData.newQualificationValue = "";
+    } else {
+      prevFormData.qualification = Number(value);
+    }
+
     props.setData({ ...props.data, form: prevFormData });
   };
 
@@ -84,25 +92,64 @@ function ModalForm(props: ModalFormProps) {
     props.setData({ ...props.data, form: prevFormData });
   };
 
+  const onChangeNewQualificationValue = (value: string) => {
+    let prevFormData: FormType = Object(props.data.form);
+    prevFormData.newQualificationValue = value;
+    props.setData({ ...props.data, form: prevFormData });
+  };
+
+  const onClickAddNewQualification = (value: string) => {
+    createNewQualification(value);
+  };
+
   const onError = (errorResponse: ErrorResponseType | null) => {
     if (errorResponse) {
       props.setErrors((oldErrors) => [...oldErrors, ...[errorResponse.error]]);
     }
   };
 
+  const onCreateNewQualificationSuccess = () => {
+    // Clear input
+    let prevFormData: FormType = Object(props.data.form);
+    prevFormData.newQualificationValue = "";
+    prevFormData.showNewQualification = false;
+    props.setData({ ...props.data, form: prevFormData });
+
+    // Update select with Qualifications
+    requestQualifications();
+  };
+
+  const requestQualifications = () => {
+    let params;
+    if (props.data.type === ReviewType.REJECT) {
+      params = { worker_id: props.workerId };
+    }
+
+    getQualifications(
+      setQualifications,
+      setGetQualificationsloading,
+      onError,
+      params,
+    );
+  };
+
+  const createNewQualification = (name: string) => {
+    postQualification(
+      onCreateNewQualificationSuccess,
+      setCreateQualificationLoading,
+      onError,
+      {name: name},
+    );
+  };
+
   // Effiects
   useEffect(() => {
     if (qualifications === null) {
-      let params;
-      if (props.data.type === ReviewType.REJECT) {
-        params = { worker_id: props.workerId };
-      }
-
-      getQualifications(setQualifications, setLoading, onError, params);
+      requestQualifications();
     }
   }, []);
 
-  if (loading) {
+  if (getQualificationsloading) {
     return;
   }
 
@@ -126,7 +173,7 @@ function ModalForm(props: ModalFormProps) {
             }
           />
 
-          {props.data.form.checkboxAssignQualification && (
+          {props.data.form.checkboxAssignQualification && (<>
             <Row className={"second-line"}>
               <Col xs={9}>
                 <Form.Select
@@ -136,6 +183,7 @@ function ModalForm(props: ModalFormProps) {
                   onChange={(e) => onChangeAssignQualification(e.target.value)}
                 >
                   <option value={""}>---</option>
+                  <option value={"+"}>+ Add new qualification</option>
                   {qualifications &&
                     qualifications.map((q: QualificationType) => {
                       return (
@@ -161,7 +209,32 @@ function ModalForm(props: ModalFormProps) {
                 </Form.Select>
               </Col>
             </Row>
-          )}
+            {props.data.form.showNewQualification && (
+              <Row className={"third-line"}>
+                <Col xs={9}>
+                  <Form.Control
+                    size={"sm"}
+                    type={"input"}
+                    placeholder={"New qualification name"}
+                    value={props.data.form.newQualificationValue || ""}
+                    onChange={(e) => onChangeNewQualificationValue(e.target.value)}
+                  />
+                </Col>
+                <Col>
+                  <Button
+                    className={"new-qualification-name-button"}
+                    variant={"secondary"}
+                    size={"sm"}
+                    onClick={
+                      () => onClickAddNewQualification(props.data.form.newQualificationValue)
+                    }
+                  >
+                    Add
+                  </Button>
+                </Col>
+              </Row>
+            )}
+          </>)}
         </>
       )}
 

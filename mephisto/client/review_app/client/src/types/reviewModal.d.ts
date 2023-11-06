@@ -5,15 +5,17 @@
  */
 
 type FormType = {
+  bonus: number | null;
   checkboxAssignQualification?: boolean;
   checkboxBanWorker?: boolean;
-  checkboxReviewNote: boolean;
   checkboxGiveBonus?: boolean;
+  checkboxReviewNote: boolean;
   checkboxUnassignQualification?: boolean;
-  reviewNote: string;
+  newQualificationValue?: string;
   qualification: number | null;
   qualificationValue: number;
-  bonus: number | null;
+  reviewNote: string;
+  showNewQualification?: boolean;
 };
 
 type ModalDataType = {

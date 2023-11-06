@@ -10,10 +10,19 @@
   border: 1px solid black;
 }
 
-.review-form .second-line {
+.review-form .second-line,
+.review-form .third-line {
   margin-top: 10px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   padding-left: 25px;
+}
+
+.review-form .third-line {
+  margin-top: 10px;
+}
+
+.new-qualification-name-button {
+  width: 100%;
 }
