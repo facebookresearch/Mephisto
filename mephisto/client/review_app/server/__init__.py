@@ -9,6 +9,7 @@ import os
 import traceback
 from logging.config import dictConfig
 from pathlib import Path
+from typing import Optional
 from typing import Tuple
 
 from flask import Flask
@@ -31,7 +32,7 @@ FLASK_SETTINGS_MODULE = os.environ.get(
 )
 
 
-def create_app(debug: bool) -> Flask:
+def create_app(debug: bool = False, database_path: Optional[str] = None) -> Flask:
     # Logging
     # TODO [Review APP]: Fix logging (it works in views only with `app.logger` somehow)
     flask_logger = get_logger("")
@@ -58,7 +59,7 @@ def create_app(debug: bool) -> Flask:
     app.config.from_object(FLASK_SETTINGS_MODULE)
 
     # Databases
-    app.db = LocalMephistoDB()
+    app.db = LocalMephistoDB(database_path=database_path)
     app.data_browser = DataBrowser(db=app.db)
 
     # API URLS

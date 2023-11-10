@@ -25,34 +25,38 @@ class UnitsView(MethodView):
         At least one filtering parameter must be specified
         """
 
-        task_id = request.args.get("task_id")
-        unit_ids: Optional[str] = request.args.get("unit_ids")
+        task_id_param = request.args.get("task_id")
+        unit_ids_param: Optional[str] = request.args.get("unit_ids")
 
-        app.logger.debug(f"Params: {task_id=}, {unit_ids=}")
+        app.logger.debug(f"Params: {task_id_param=}, {unit_ids_param=}")
+
+        unit_ids: List[int] = []
 
         # Parse `unit_ids`
-        if unit_ids:
+        if unit_ids_param:
             try:
-                unit_ids: List[int] = [int(i.strip()) for i in unit_ids.split(",")]
+                unit_ids = [int(i.strip()) for i in unit_ids_param.split(",")]
             except ValueError:
                 raise BadRequest("`unit_ids` must be a comma-separated list of integers.")
 
         # Validate params
-        if not task_id and not unit_ids:
+        if not task_id_param and not unit_ids_param:
             raise BadRequest(
                 "At least one of `task_id` or `unit_ids` parameters must be specified."
             )
 
         # Check if task with past `task_id` exists
-        if task_id:
-            Task.get(app.db, str(task_id))
+        if task_id_param:
+            Task.get(app.db, str(task_id_param))
+            if not unit_ids_param:
+                unit_ids = [int(u.db_id) for u in app.db.find_units(task_id=task_id_param)]
 
         # Prepare response
         units = []
         for unit_id in unit_ids:
             unit: Unit = Unit.get(app.db, str(unit_id))
 
-            if task_id and unit.task_id != task_id:
+            if task_id_param and unit.task_id != task_id_param:
                 continue
 
             if unit.db_status != AssignmentState.COMPLETED:
