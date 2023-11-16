@@ -112,6 +112,7 @@ class ParticipantGroups(BaseAPIResource):
             Participant-Groups/paths/~1api~1v1~1participant-groups~1%7Bid%7D~1participants~1/delete
         """
         from mephisto.utils.logger_core import get_logger
+
         logger = get_logger(name=__name__)
         endpoint = cls.list_participants_for_group_api_endpoint.format(id=id)
         params = dict(participant_ids=participant_ids)

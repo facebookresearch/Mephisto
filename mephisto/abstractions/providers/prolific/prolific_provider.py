@@ -215,8 +215,7 @@ class ProlificProvider(CrowdProvider):
         return prolific_participant_group
 
     def _get_excluded_participant_ids(self, task_run: "TaskRun") -> List[str]:
-        """ Find participant_ids that exceeded `maximum_units_per_worker` cap within this Task
-        """
+        """Find participant_ids that exceeded `maximum_units_per_worker` cap within this Task"""
         task: "Task" = task_run.get_task()
         task_units: List["Unit"] = self.db.find_units(task_id=task.db_id)
 
