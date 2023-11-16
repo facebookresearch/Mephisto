@@ -21,6 +21,9 @@ const urls = {
       API_URL + `/api/qualifications/${id}/workers/${workerId}/revoke`,
     stats: API_URL + "/api/stats",
     task: (id) => API_URL + `/api/tasks/${id}`,
+    taskExportResults: (id) => API_URL + `/api/tasks/${id}/export-results`,
+    taskExportResultsJson: (id) =>
+      API_URL + `/api/tasks/${id}/export-results.json`,
     tasks: API_URL + "/api/tasks",
     tasksWorkerUnitsIds: (id) => API_URL + `/api/tasks/${id}/worker-units-ids`,
     unitReviewHtml: (id) => API_URL + `/api/units/${id}/review.html`,

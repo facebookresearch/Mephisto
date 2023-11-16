@@ -120,7 +120,7 @@ class ProlificAgent(Agent):
         datastore_unit = self.datastore.get_unit(self.unit_id)
         prolific_utils.approve_work(
             client,
-            submission_id=datastore_unit['prolific_submission_id'],
+            submission_id=datastore_unit["prolific_submission_id"],
         )
 
         logger.debug(
@@ -153,7 +153,7 @@ class ProlificAgent(Agent):
         datastore_unit = self.datastore.get_unit(self.unit_id)
         prolific_utils.approve_work(
             client,
-            submission_id=datastore_unit['prolific_submission_id'],
+            submission_id=datastore_unit["prolific_submission_id"],
         )
 
         logger.debug(
@@ -181,7 +181,7 @@ class ProlificAgent(Agent):
         try:
             prolific_utils.reject_work(
                 client,
-                submission_id=datastore_unit['prolific_submission_id'],
+                submission_id=datastore_unit["prolific_submission_id"],
             )
         except ProlificException:
             logger.info(

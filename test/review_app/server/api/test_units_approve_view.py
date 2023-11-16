@@ -65,7 +65,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
 
         with self.app_context:
             url = url_for("units_approve")
-            with self.assertLogs(level='ERROR') as cm:
+            with self.assertLogs(level="ERROR") as cm:
                 response = self.client.post(url, json={"unit_ids": [unit_id], "bonus": bonus})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -91,7 +91,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
 
         with self.app_context:
             url = url_for("units_approve")
-            with self.assertLogs(level='ERROR') as cm:
+            with self.assertLogs(level="ERROR") as cm:
                 response = self.client.post(url, json={"unit_ids": [unit_id], "bonus": bonus})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -116,7 +116,7 @@ class TestUnitsApproveView(BaseTestApiViewCase):
 
         with self.app_context:
             url = url_for("units_approve")
-            with self.assertLogs(level='ERROR') as cm:
+            with self.assertLogs(level="ERROR") as cm:
                 response = self.client.post(url, json={"unit_ids": [unit_id], "bonus": bonus})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

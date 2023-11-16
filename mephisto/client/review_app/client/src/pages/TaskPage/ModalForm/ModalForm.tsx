@@ -24,8 +24,11 @@ function ModalForm(props: ModalFormProps) {
   const [qualifications, setQualifications] = React.useState<
     Array<QualificationType>
   >(null);
-  const [getQualificationsloading, setGetQualificationsloading] = React.useState(false);
-  const [, setCreateQualificationLoading] = React.useState(false);
+  const [
+    getQualificationsloading,
+    setGetQualificationsloading,
+  ] = React.useState(false);
+  const [_, setCreateQualificationLoading] = React.useState(false);
 
   const onChangeAssign = (value: boolean) => {
     let prevFormData: FormType = Object(props.data.form);
@@ -129,7 +132,7 @@ function ModalForm(props: ModalFormProps) {
       setQualifications,
       setGetQualificationsloading,
       onError,
-      params,
+      params
     );
   };
 
@@ -138,7 +141,7 @@ function ModalForm(props: ModalFormProps) {
       onCreateNewQualificationSuccess,
       setCreateQualificationLoading,
       onError,
-      {name: name},
+      { name: name }
     );
   };
 
@@ -173,68 +176,76 @@ function ModalForm(props: ModalFormProps) {
             }
           />
 
-          {props.data.form.checkboxAssignQualification && (<>
-            <Row className={"second-line"}>
-              <Col xs={9}>
-                <Form.Select
-                  id={"assignQualification"}
-                  size={"sm"}
-                  value={props.data.form.qualification || ""}
-                  onChange={(e) => onChangeAssignQualification(e.target.value)}
-                >
-                  <option value={""}>---</option>
-                  <option value={"+"}>+ Add new qualification</option>
-                  {qualifications &&
-                    qualifications.map((q: QualificationType) => {
-                      return (
-                        <option key={"qual" + q.id} value={q.id}>
-                          {q.name}
-                        </option>
-                      );
-                    })}
-                </Form.Select>
-              </Col>
-              <Col>
-                <Form.Select
-                  id={"assignQualificationValue"}
-                  size={"sm"}
-                  value={props.data.form.qualificationValue}
-                  onChange={(e) =>
-                    onChangeAssignQualificationValue(e.target.value)
-                  }
-                >
-                  {range(1, 10).map((i) => {
-                    return <option key={"qualVal" + i}>{i}</option>;
-                  })}
-                </Form.Select>
-              </Col>
-            </Row>
-            {props.data.form.showNewQualification && (
-              <Row className={"third-line"}>
+          {props.data.form.checkboxAssignQualification && (
+            <>
+              <Row className={"second-line"}>
                 <Col xs={9}>
-                  <Form.Control
+                  <Form.Select
+                    id={"assignQualification"}
                     size={"sm"}
-                    type={"input"}
-                    placeholder={"New qualification name"}
-                    value={props.data.form.newQualificationValue || ""}
-                    onChange={(e) => onChangeNewQualificationValue(e.target.value)}
-                  />
-                </Col>
-                <Col>
-                  <Button
-                    className={"new-qualification-name-button"}
-                    variant={"secondary"}
-                    size={"sm"}
-                    onClick={
-                      () => onClickAddNewQualification(props.data.form.newQualificationValue)
+                    value={props.data.form.qualification || ""}
+                    onChange={(e) =>
+                      onChangeAssignQualification(e.target.value)
                     }
                   >
-                    Add
-                  </Button>
+                    <option value={""}>---</option>
+                    <option value={"+"}>+ Add new qualification</option>
+                    {qualifications &&
+                      qualifications.map((q: QualificationType) => {
+                        return (
+                          <option key={"qual" + q.id} value={q.id}>
+                            {q.name}
+                          </option>
+                        );
+                      })}
+                  </Form.Select>
+                </Col>
+                <Col>
+                  <Form.Select
+                    id={"assignQualificationValue"}
+                    size={"sm"}
+                    value={props.data.form.qualificationValue}
+                    onChange={(e) =>
+                      onChangeAssignQualificationValue(e.target.value)
+                    }
+                  >
+                    {range(1, 10).map((i) => {
+                      return <option key={"qualVal" + i}>{i}</option>;
+                    })}
+                  </Form.Select>
                 </Col>
               </Row>
-            )}
-          </>)}
+              {props.data.form.showNewQualification && (
+                <Row className={"third-line"}>
+                  <Col xs={9}>
+                    <Form.Control
+                      size={"sm"}
+                      type={"input"}
+                      placeholder={"New qualification name"}
+                      value={props.data.form.newQualificationValue || ""}
+                      onChange={(e) =>
+                        onChangeNewQualificationValue(e.target.value)
+                      }
+                    />
+                  </Col>
+                  <Col>
+                    <Button
+                      className={"new-qualification-name-button"}
+                      variant={"secondary"}
+                      size={"sm"}
+                      onClick={() =>
+                        onClickAddNewQualification(
+                          props.data.form.newQualificationValue
+                        )
+                      }
+                    >
+                      Add
+                    </Button>
+                  </Col>
+                </Row>
+              )}
+            </>
+          )}
         </>
       )}
 

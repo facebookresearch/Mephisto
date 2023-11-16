@@ -23,7 +23,7 @@ class TestUnitHtmlView(BaseTestApiViewCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            f"<script src=\"/units/{unit_id}/bundle.js\"></script>" in response.data.decode()
+            f'<script src="/units/{unit_id}/bundle.js"></script>' in response.data.decode()
         )
 
 

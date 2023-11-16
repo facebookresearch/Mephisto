@@ -35,6 +35,14 @@ def init_urls(app: Flask):
         view_func=api_views.TaskView.as_view("task"),
     )
     app.add_url_rule(
+        "/api/tasks/<int:task_id>/export-results",
+        view_func=api_views.TaskExportResultsView.as_view("task_export_results"),
+    )
+    app.add_url_rule(
+        "/api/tasks/<int:task_id>/export-results.json",
+        view_func=api_views.TaskExportResultsJsonView.as_view("task_export_results_json"),
+    )
+    app.add_url_rule(
         "/api/units",
         view_func=api_views.UnitsView.as_view("units"),
     )

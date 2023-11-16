@@ -30,9 +30,11 @@ class BaseTestApiViewCase(unittest.TestCase):
 
         # Configure test Flask client
         app = create_app(debug=True, database_path=database_path)
-        app.config.update({
-            "TESTING": True,
-        })
+        app.config.update(
+            {
+                "TESTING": True,
+            }
+        )
         self.app_context = app.test_request_context()
         self.app_context.push()
         self.client = app.test_client()

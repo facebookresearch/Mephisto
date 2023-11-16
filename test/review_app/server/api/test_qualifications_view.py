@@ -67,7 +67,8 @@ class TestQualificationsView(BaseTestApiViewCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            result["error"], f'Qualification with name "{qualification_name}" already exists.',
+            result["error"],
+            f'Qualification with name "{qualification_name}" already exists.',
         )
 
 

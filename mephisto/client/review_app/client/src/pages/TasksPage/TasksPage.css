@@ -56,6 +56,17 @@
   text-decoration: underline;
 }
 
+.tasks .tasks-table .task-row .export-loading {
+  padding-left: 20px;
+}
+
+.tasks .tasks-table .task-row .download-button {
+  cursor: pointer;
+}
+.tasks .tasks-table .task-row .download-button:hover {
+  text-decoration: underline;
+}
+
 .tasks .tasks-table .task-row .reviewed,
 .tasks .tasks-table .task-row .units,
 .tasks .tasks-table .task-row .date {

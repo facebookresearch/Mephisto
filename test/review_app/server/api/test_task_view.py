@@ -21,7 +21,7 @@ class TestTaskView(BaseTestApiViewCase):
             result = response.json
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(result, {"error" : "Not found"})
+        self.assertEqual(result, {"error": "Not found"})
 
     def test_one_task_success(self, *args, **kwargs):
         task_name, task_id = get_test_task(self.db)

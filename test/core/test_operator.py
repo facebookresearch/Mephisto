@@ -79,8 +79,8 @@ class OperatorBaseTest(object):
             threads = threading.enumerate()
             target_threads = [
                 t
-                for t in threads if
-                not isinstance(t, TMonitor)
+                for t in threads
+                if not isinstance(t, TMonitor)
                 and not t.daemon
                 and not t.name.startswith("asyncio_")
             ]

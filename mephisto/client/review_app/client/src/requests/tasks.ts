@@ -71,3 +71,24 @@ export function getTaskWorkerUnitsIds(
     abortController
   );
 }
+
+export function exportTaskResults(
+  id: number,
+  setDataAction: SetRequestDataActionType,
+  setLoadingAction: SetRequestLoadingActionType,
+  setErrorsAction: SetRequestErrorsActionType,
+  abortController?: AbortController
+) {
+  const url = generateURL(urls.server.taskExportResults, [id]);
+
+  makeRequest(
+    "GET",
+    url,
+    null,
+    setDataAction,
+    setLoadingAction,
+    setErrorsAction,
+    "exportTaskResults error:",
+    abortController
+  );
+}

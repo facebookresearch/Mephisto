@@ -42,7 +42,7 @@ class TestHomeView(BaseTestApiViewCase):
 
     @patch("os.path.join")
     def test_home__no_html_file_error(self, mock_join, *args, **kwargs):
-        mock_join.return_value = '/nonexistent/path'
+        mock_join.return_value = "/nonexistent/path"
 
         with self.app_context:
             url = url_for("client-tasks", path="tasks")

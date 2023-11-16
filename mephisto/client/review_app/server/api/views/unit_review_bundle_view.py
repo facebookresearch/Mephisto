@@ -35,13 +35,15 @@ class UnitReviewBundleView(MethodView):
 
         except (ConfigKeyError, FileNotFoundError) as e:
             return Response(
-                json.dumps({
-                    "error": (
-                        "`blueprint.task_source_review` was not found or not specified "
-                        "or database is corrupted or just old. "
-                        "You need this settings to make review app work."
-                    ),
-                }),
+                json.dumps(
+                    {
+                        "error": (
+                            "`blueprint.task_source_review` was not found or not specified "
+                            "or database is corrupted or just old. "
+                            "You need this settings to make review app work."
+                        ),
+                    }
+                ),
                 status=status.HTTP_404_NOT_FOUND,
                 mimetype="application/json",
             )

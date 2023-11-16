@@ -38,6 +38,18 @@ Get metadata for a task
 
 ---
 
+`GET /tasks/{id}/export-results`
+
+Compose a single file with reviewed task results
+
+---
+
+`GET /tasks/{id}/export-results.json`
+
+Serve a single composed file with reviewed task results
+
+---
+
 `GET /tasks/{id}/worker-units-ids`
 
 Get full, unpaginated list of unit IDs within a task (for subsequent client-side grouping by worker_id and `GET /task-units` pagination)
