@@ -44,6 +44,7 @@ class _AgentStateMetadata:
     task_end: Optional[float] = None
     tips: Optional[List[Dict[str, Any]]] = None
     feedback: Optional[List[Dict[str, Any]]] = None
+    behaviors: Optional[List[Dict[str, Any]]] = None
 
 
 # TODO(#567) File manipulations should ultimately be handled by the MephistoDB, rather than
