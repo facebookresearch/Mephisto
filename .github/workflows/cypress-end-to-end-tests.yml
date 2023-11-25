@@ -7,6 +7,8 @@ on:
     branches: [main]
     paths-ignore:
       - "**.md"
+env:
+  HYDRA_FULL_ERROR: 1
 jobs:
   # This job is made to setup path filtering, learn more about it here: https://github.com/facebookresearch/Mephisto/pull/857
   changes:
@@ -273,7 +275,9 @@ jobs:
           node-version: 16.16.0
 
       - name: 🤖 Install Mephisto
-        run: pip install -e .
+        run: |
+          pip install -e .
+          pip install detoxify
 
       - name: 🖋 Create data directory
         run: mkdir -p ~/mephisto/data
