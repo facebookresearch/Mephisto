@@ -6,7 +6,10 @@
 
 
 import os
+from datetime import datetime
 from shutil import copytree
+
+from dateutil.parser import parse
 
 from mephisto.data_model.project import Project
 from mephisto.data_model._db_backed_meta import (
@@ -65,6 +68,7 @@ class Task(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
         self.task_type: str = row["task_type"]
         self.project_id: Optional[str] = row["project_id"]
         self.parent_task_id: Optional[str] = row["parent_task_id"]
+        self.creation_date: Optional[datetime] = parse(row["creation_date"])
 
     def get_project(self) -> Optional[Project]:
         """

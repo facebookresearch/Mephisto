@@ -64,6 +64,13 @@ class MockBlueprintArgs(BlueprintArgs, OnboardingRequiredArgs, ScreenTaskRequire
         default=True,
         metadata={"help": "Whether to run this mock task as a concurrent task or not"},
     )
+    task_source_review: str = field(
+        default="/test/path/to/bundle.js",
+        metadata={
+            "help": "Path to file containing javascript bundle for the task review application",
+            "required": False,
+        },
+    )
 
 
 # Mock tasks right now inherit all mixins, this way we can test them.

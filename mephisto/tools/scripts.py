@@ -225,6 +225,8 @@ def build_custom_bundle(
     custom_src_dir,
     force_rebuild: Optional[bool] = None,
     post_install_script: Optional[str] = None,
+    webapp_name: Optional[str] = "webapp",
+    build_command: Optional[str] = "dev",
 ):
     """Locate all of the custom files used for a custom build, create
     a prebuild directory containing all of them, then build the
@@ -240,7 +242,7 @@ def build_custom_bundle(
 
     IGNORE_FOLDERS = {"node_modules", "build"}
 
-    prebuild_path = os.path.join(custom_src_dir, "webapp")
+    prebuild_path = os.path.join(custom_src_dir, webapp_name)
 
     IGNORE_FOLDERS = {os.path.join(prebuild_path, f) for f in IGNORE_FOLDERS}
     build_path = os.path.join(prebuild_path, "build", "bundle.js")
@@ -275,7 +277,7 @@ def build_custom_bundle(
     packages_installed = subprocess.call(["npm", "install"])
     if packages_installed != 0:
         raise Exception(
-            "please make sure npm is installed, otherwise view " "the above error for more info."
+            "please make sure npm is installed, otherwise view the above error for more info."
         )
 
     if post_install_script is not None and len(post_install_script) > 0:
@@ -287,7 +289,7 @@ def build_custom_bundle(
                 "The script should be able to be ran with bash"
             )
 
-    webpack_complete = subprocess.call(["npm", "run", "dev"])
+    webpack_complete = subprocess.call(["npm", "run", build_command])
     if webpack_complete != 0:
         raise Exception(
             "Webpack appears to have failed to build your "

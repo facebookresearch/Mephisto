@@ -5,7 +5,8 @@
   "main": "webpack.config.js",
   "scripts": {
     "dev": "webpack --mode development",
-    "test": "cypress open"
+    "test": "cypress open",
+    "build:review": "webpack --config=webpack.config.review.js --mode development"
   },
   "keywords": [],
   "author": "",

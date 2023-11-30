@@ -98,9 +98,10 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
     if likelihood_score < 2:
         # Insert a new copyright notice
         print("Inserting new notice")
+        maybe_shebang = lambda line: line[0] == "#" and line[1] != " "
 
-        if lines[0].startswith("#!") and not lines[1].startswith("#!"):
-            # Skipping shebang line
+        if maybe_shebang(lines[0]) and not maybe_shebang(lines[1]):
+            # Skipping shebang line (for chell, hydra config, etc)
             insert_at_line_number = 1
         else:
             # Insert at the top of the file

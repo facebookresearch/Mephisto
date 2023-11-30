@@ -610,10 +610,10 @@ def approve_work(client: MTurkClient, assignment_id: str, override_rejection: bo
         )
 
 
-def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
+def reject_work(client: MTurkClient, assignment_id: str, review_note: Optional[str] = None) -> None:
     """reject work for a given assignment through the mturk client"""
     try:
-        client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
+        client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=review_note)
     except Exception as e:
         logger.exception(
             f"Rejecting MTurk assignment failed, likely because it has auto-approved. Details:{e}",

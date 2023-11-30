@@ -1,0 +1,29 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.error-alert {
+  min-width: 200px;
+  border-radius: 0;
+  padding: 10px;
+}
+
+.error-alert:not(:last-child) {
+  margin-bottom: 5px;
+}
+
+.error-alert .btn-close {
+  padding: 10px;
+  font-size: 13px;
+}
+
+.error-alert .alert-heading {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.error-alert .alert-content {
+  font-size: 13px;
+}

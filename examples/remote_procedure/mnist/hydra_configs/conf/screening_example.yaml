@@ -1,8 +1,9 @@
+#@package _global_
+
 # Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-#@package _global_
 defaults:
   - /mephisto/blueprint: remote_procedure
   - /mephisto/architect: local
@@ -10,6 +11,7 @@ defaults:
 mephisto:
   blueprint:
     task_source: ${task_dir}/webapp/build/bundle.js
+    task_source_review: ${task_dir}/webapp/build/bundle.review.js
     link_task_source: false
     units_per_assignment: 1
     passed_qualification_name: "test-mnist-passed-qualification"

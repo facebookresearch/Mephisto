@@ -16,7 +16,7 @@ from mephisto.operations.registry import (
     get_crowd_provider_from_type,
     get_valid_provider_types,
 )
-from typing import Mapping, Optional, Any, List, Dict
+from typing import Mapping, Optional, Any, List, Dict, Union
 import enum
 from mephisto.data_model.agent import Agent, OnboardingAgent
 from mephisto.data_model.unit import Unit
@@ -92,6 +92,8 @@ CHECK_GRANTED_QUALIFICATIONS_LATENCY = DATABASE_LATENCY.labels(
 )
 GET_GRANTED_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="get_granted_qualification")
 REVOKE_QUALIFICATION_LATENCY = DATABASE_LATENCY.labels(method="revoke_qualification")
+NEW_UNIT_REVIEW_LATENCY = DATABASE_LATENCY.labels(method="new_unit_review")
+UPDATE_UNIT_REVIEW_LATENCY = DATABASE_LATENCY.labels(method="update_unit_review")
 
 
 class MephistoDB(ABC):
@@ -1044,6 +1046,58 @@ class MephistoDB(ABC):
         Remove the given qualification from the given worker
         """
         return self._revoke_qualification(qualification_id=qualification_id, worker_id=worker_id)
+
+    def _new_unit_review(
+        self,
+        unit_id: Union[int, str],
+        task_id: Union[int, str],
+        worker_id: Union[int, str],
+        status: str,
+        review_note: Optional[str] = None,
+        bonus: Optional[str] = None,
+    ) -> None:
+        """new_unit_review implementation"""
+        raise NotImplementedError()
+
+    @NEW_UNIT_REVIEW_LATENCY.time()
+    def new_unit_review(
+        self,
+        unit_id: Union[int, str],
+        task_id: Union[int, str],
+        worker_id: Union[int, str],
+        status: str,
+        review_note: Optional[str] = None,
+        bonus: Optional[str] = None,
+    ) -> None:
+        """Create unit review"""
+        return self._new_unit_review(unit_id, task_id, worker_id, status, review_note, bonus)
+
+    @abstractmethod
+    def _update_unit_review(
+        self,
+        unit_id: int,
+        qualification_id: int,
+        worker_id: int,
+        value: Optional[int] = None,
+        revoke: bool = False,
+    ) -> None:
+        """update_unit_review implementation"""
+        raise NotImplementedError()
+
+    @UPDATE_UNIT_REVIEW_LATENCY.time()
+    def update_unit_review(
+        self,
+        unit_id: int,
+        qualification_id: int,
+        worker_id: int,
+        value: Optional[int] = None,
+        revoke: bool = False,
+    ) -> None:
+        """
+        Update the given unit review with the given parameters if possible,
+        raise appropriate exception otherwise.
+        """
+        return self._update_unit_review(unit_id, qualification_id, worker_id, value, revoke)
 
     # File/blob manipulation methods
 

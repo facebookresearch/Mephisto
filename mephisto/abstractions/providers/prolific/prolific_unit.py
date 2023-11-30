@@ -28,10 +28,11 @@ if TYPE_CHECKING:
 from mephisto.utils.logger_core import get_logger
 
 SUBMISSION_STATUS_TO_ASSIGNMENT_STATE_MAP = {
+    # Note that both "Accepted" and "Soft-rejected" Mephisto statuses
+    # result in "Approved" status on Prolific, so we can't match it here as a simple mapping
     SubmissionStatus.RESERVED: AssignmentState.CREATED,
     SubmissionStatus.TIMED_OUT: AssignmentState.EXPIRED,
     SubmissionStatus.AWAITING_REVIEW: AssignmentState.COMPLETED,
-    SubmissionStatus.APPROVED: AssignmentState.COMPLETED,
     SubmissionStatus.RETURNED: AssignmentState.COMPLETED,
     SubmissionStatus.REJECTED: AssignmentState.REJECTED,
 }
@@ -136,8 +137,13 @@ class ProlificUnit(Unit):
         if agent is None:
             if self.db_status in AssignmentState.completed():
                 logger.warning(f"Agent for completed unit {self} is None")
-
             return self.db_status
+
+        agent_status = agent.get_status()
+        if agent_status == AgentState.STATUS_EXPIRED:
+            # TODO: should we handle EXPIRED agent status somewhere earlier?
+            self.set_db_status(AssignmentState.EXPIRED)
+            return AssignmentState.EXPIRED
 
         # Get API client
         requester: "ProlificRequester" = self.get_requester()
@@ -193,12 +199,19 @@ class ProlificUnit(Unit):
             elif prolific_submission.status == SubmissionStatus.PROCESSING:
                 # This is just Prolific's transient status to move Submission between 2 statuses
                 pass
+            elif prolific_submission.status == SubmissionStatus.APPROVED:
+                if agent_status == AgentState.STATUS_APPROVED:
+                    external_status = AssignmentState.ACCEPTED
+                elif agent_status == AgentState.STATUS_SOFT_REJECTED:
+                    external_status = AssignmentState.SOFT_REJECTED
+                else:
+                    raise Exception(f"Unexpected Agent status `{agent_status}`")
             else:
                 external_status = SUBMISSION_STATUS_TO_ASSIGNMENT_STATE_MAP.get(
                     prolific_submission.status,
                 )
                 if not external_status:
-                    raise Exception(f"Unexpected Submission status {prolific_submission.status}")
+                    raise Exception(f"Unexpected Submission status `{prolific_submission.status}`")
 
         if external_status != local_status:
             self.set_db_status(external_status)

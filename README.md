@@ -23,6 +23,8 @@ You can find complete details about the project on our [docs website](https://me
 
 [Get started in 10 minutes](https://mephisto.ai/docs/guides/quickstart)
 
+[How to run projects](mephisto/README.md)
+
 ## Want to help?
 
 Check out our [guidelines for contributing](https://github.com/facebookresearch/Mephisto/blob/main/CONTRIBUTING.md) and then take a look at some of our tagged issues: [good first issue](https://github.com/facebookresearch/Mephisto/labels/good%20first%20issue), [help wanted](https://github.com/facebookresearch/Mephisto/labels/help%20wanted).

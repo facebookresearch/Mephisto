@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import List
 from typing import Optional, Tuple
 
 from mephisto.abstractions.database import (
@@ -12,6 +13,8 @@ from mephisto.abstractions.database import (
     EntryAlreadyExistsException,
     EntryDoesNotExistException,
 )
+from mephisto.abstractions.databases.local_database import nonesafe_int
+from mephisto.abstractions.databases.local_database import StringIDRow
 
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.unit import Unit
@@ -117,7 +120,7 @@ def get_test_unit(db: MephistoDB, unit_index=0) -> str:
         assignment.task_run_id,
         assignment.requester_id,
         assignment.db_id,
-        0,
+        unit_index,
         pay_amount,
         assignment.provider_type,
         assignment.task_type,
@@ -185,3 +188,46 @@ def make_completed_unit(db: MephistoDB) -> str:
     unit = Unit.get(db, unit_id)
     unit.sync_status()
     return unit.db_id
+
+
+def get_test_qualification(db: MephistoDB, name="test_qualification") -> str:
+    return db.make_qualification(name)
+
+
+def grant_test_qualification(db: MephistoDB, qualification_id: str, worker_id: str, value: int = 1):
+    return db.grant_qualification(qualification_id, worker_id, value)
+
+
+def find_unit_reviews(
+    db,
+    qualification_id: str,
+    worker_id: str,
+    task_id: Optional[str] = None,
+) -> List[StringIDRow]:
+    """
+    Return unit reviews in the db by the given Qualification ID, Worker ID and Task ID
+    """
+
+    params = [nonesafe_int(qualification_id), nonesafe_int(worker_id)]
+    task_query = "AND (task_id = ?3)" if task_id else ""
+    if task_id:
+        params.append(nonesafe_int(task_id))
+
+    with db.table_access_condition:
+        conn = db._get_connection()
+        c = conn.cursor()
+        c.execute(
+            f"""
+            SELECT * FROM unit_review
+            WHERE
+                (updated_qualification_id = ?1) OR
+                (revoked_qualification_id = ?1)
+                AND (worker_id = ?2)
+                {task_query}
+            ORDER BY created_at ASC;
+            """,
+            params,
+        )
+
+        results = c.fetchall()
+        return results
