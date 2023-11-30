@@ -321,7 +321,7 @@ class ProlificDatastore:
             results = c.fetchall()
             return results
 
-    def get_bloked_participant_ids(self) -> List[str]:
+    def get_blocked_participant_ids(self) -> List[str]:
         return [w["worker_id"] for w in self.get_blocked_workers()]
 
     def ensure_unit_exists(self, unit_id: str) -> None:
@@ -629,7 +629,7 @@ class ProlificDatastore:
         task_run_ids: Optional[List[str]] = None,
     ) -> List[dict]:
         """Find qualifications by Mephisto ids of qualifications and task runs"""
-        if not qualification_ids:
+        if not (qualification_ids or task_run_ids):
             return []
 
         with self.table_access_condition, self._get_connection() as conn:
@@ -645,12 +645,14 @@ class ProlificDatastore:
             task_run_ids_block = ""
             if task_run_ids:
                 task_run_ids_str = ",".join([f'"{tid}"' for tid in task_run_ids])
-                task_run_ids_block = f"AND task_run_id IN ({task_run_ids_str})"
+                task_run_ids_block = f"task_run_id IN ({task_run_ids_str})"
+
+            where_block = " AND ".join(filter(bool, [qualification_ids_block, task_run_ids_block]))
 
             c.execute(
                 f"""
                 SELECT * FROM qualifications
-                WHERE {qualification_ids_block} {task_run_ids_block};
+                WHERE {where_block};
                 """
             )
             results = c.fetchall()

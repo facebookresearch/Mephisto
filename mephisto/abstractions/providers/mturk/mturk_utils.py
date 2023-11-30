@@ -439,7 +439,8 @@ def create_hit_type(
                 has_locale_qual = True
         locale_requirements += existing_qualifications
 
-    if not has_locale_qual and not client_is_sandbox(client):
+    is_sandbox = client_is_sandbox(client)
+    if not has_locale_qual and not is_sandbox:
         allowed_locales = get_config_arg("mturk", "allowed_locales")
         if allowed_locales is None:
             allowed_locales = [
@@ -457,6 +458,9 @@ def create_hit_type(
                 "ActionsGuarded": "DiscoverPreviewAndAccept",
             }
         )
+
+    if is_sandbox:
+        hit_reward = 0
 
     # Create the HIT type
     response = client.create_hit_type(

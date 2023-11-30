@@ -394,6 +394,15 @@ def create_study(
                     ),
                 ],
             ),
+            dict(
+                code=f"{constants.StudyCodeType.OTHER}_{code_suffix}",
+                code_type=constants.StudyCodeType.OTHER,
+                actions=[
+                    dict(
+                        action=constants.StudyAction.MANUALLY_REVIEW,
+                    ),
+                ],
+            ),
         ]
 
     # Task info
@@ -579,7 +588,10 @@ def remove_worker_qualification(
     *args,
     **kwargs,
 ) -> None:
-    """Remove a qualification for the given worker (remove a worker from a Participant Group)"""
+    """
+    Remove a qualification for the given worker (remove a worker from a Participant Group).
+    NOTE: If a participant is not a member of the group, they will be ignored (from API Docs)
+    """
     try:
         client.ParticipantGroups.remove_participants_from_group(
             id=qualification_id,
@@ -590,6 +602,14 @@ def remove_worker_qualification(
             f'Could not remove worker {worker_id} from a qualification "{qualification_id}"'
         )
         raise
+
+
+def exclude_worker_from_participant_group(
+    client: ProlificClient,
+    worker_id: str,
+    participant_group_id: str,
+):
+    remove_worker_qualification(client, worker_id, participant_group_id)
 
 
 def pay_bonus(
