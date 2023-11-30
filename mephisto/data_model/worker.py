@@ -12,8 +12,6 @@ from mephisto.data_model._db_backed_meta import (
     MephistoDataModelComponentMixin,
 )
 from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
-
-from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
@@ -261,17 +259,6 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
         """unblock a blocked worker for the specified reason"""
         raise NotImplementedError()
 
-    def exclude_worker_from_task(
-        self,
-        task_run: Optional["TaskRun"] = None,
-    ) -> Tuple[bool, str]:
-        """
-        Prevent this worker from further participation in current Task.
-        (Note that scope of exclusion is only within the current Task,
-        whereas block lists or altering worker qualifications would affect future Tasks.)
-        """
-        pass
-
     def is_blocked(self, requester: "Requester") -> bool:
         """Determine if a worker is blocked"""
         raise NotImplementedError()
@@ -279,24 +266,6 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
     def is_eligible(self, task_run: "TaskRun") -> bool:
         """Determine if this worker is eligible for the given task run"""
         raise NotImplementedError()
-
-    def can_send_more_submissions_for_task(self, task_run: "TaskRun") -> bool:
-        """Check whether a worker is allowed to send any more submissions within current Task"""
-        maximum_units_per_worker = task_run.args.task.maximum_units_per_worker
-
-        # By default, worker can send any amount of submissions
-        if maximum_units_per_worker == 0:
-            return True
-
-        # Find all completed units byt this worker for current task
-        task_units = self.db.find_units(task_id=task_run.task_id, worker_id=self.db_id)
-        completed_task_units = [
-            u for u in task_units if u.get_status() in AssignmentState.completed()
-        ]
-        if len(completed_task_units) >= maximum_units_per_worker - 1:
-            return False
-
-        return True
 
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Register this worker with the crowdprovider, if necessary"""

@@ -264,14 +264,10 @@ class TaskRun(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedMeta):
 
         # Cannot pair with self
         units: List["Unit"] = []
-        for unit_list in unit_assigns.values():
-            self_linked_units = [
-                u
-                for u in unit_list
-                if u.worker_id == worker.db_id and u.db_status == AssignmentState.LAUNCHED
-            ]
-            if not self_linked_units:
-                units += unit_list
+        for unit_set in unit_assigns.values():
+            is_self_set = map(lambda u: u.worker_id == worker.db_id, unit_set)
+            if not any(is_self_set):
+                units += unit_set
 
         # Valid units must be launched and must not be special units (negative indices)
         # Can use db_status directly rather than polling in the critical path, as in
