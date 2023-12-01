@@ -1,0 +1,148 @@
+[
+  {
+    "form": {
+      "name": "Form example",
+      "instruction": "Please answer all questions to the best of your ability as part of our study.",
+      "sections": [
+        {
+          "name": "About you",
+          "instruction": "Please introduce yourself. We would like to know more about your personal information, cultural bacground, etc.",
+          "fieldsets": [
+            {
+              "name": "Personal information",
+              "instruction": "",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_name_first",
+                      "label": "First name",
+                      "name": "name_first",
+                      "placeholder": "Type first name",
+                      "required": true,
+                      "style": {},
+                      "title": "First name of a person",
+                      "type": "input",
+                      "value": ""
+                    },
+                    {
+                      "class": "",
+                      "help": "Optional",
+                      "icon": "",
+                      "id": "id_name_last",
+                      "label": "Last name",
+                      "name": "name_last",
+                      "placeholder": "Type last name",
+                      "required": true,
+                      "style": {},
+                      "title": "Last name of a person",
+                      "type": "input",
+                      "value": ""
+                    }
+                  ],
+                  "help": "Please use your legal name"
+                },
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "We may contact you later for additional information",
+                      "icon": "",
+                      "id": "id_email",
+                      "label": "Email address",
+                      "name": "email",
+                      "placeholder": "user@example.com",
+                      "required": true,
+                      "style": {},
+                      "title": "Email address",
+                      "type": "email",
+                      "value": ""
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Cultural background",
+              "instruction": "Please tell us about your cultural affiliations and values that you use in your daily life.",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "Select country of your residence",
+                      "icon": "",
+                      "id": "id_country",
+                      "label": "Country",
+                      "name": "country",
+                      "options": [
+                        {
+                          "name": "---",
+                          "value": ""
+                        },
+                        {
+                          "name": "United States of America",
+                          "value": "USA"
+                        },
+                        {
+                          "name": "Canada",
+                          "value": "CAN"
+                        }
+                      ],
+                      "placeholder": "",
+                      "required": false,
+                      "style": {},
+                      "title": "Country",
+                      "type": "select",
+                      "value": ""
+                    },
+                    {
+                      "class": "",
+                      "help": "Select language spoken in your local community",
+                      "icon": "",
+                      "id": "id_language",
+                      "label": "Language",
+                      "name": "language",
+                      "options": [
+                        {
+                          "name": "---",
+                          "value": ""
+                        },
+                        {
+                          "name": "English",
+                          "value": "en"
+                        },
+                        {
+                          "name": "French",
+                          "value": "fr"
+                        },
+                        {
+                          "name": "Spanish",
+                          "value": "es"
+                        }
+                      ],
+                      "placeholder": "",
+                      "required": false,
+                      "style": {},
+                      "title": "Language",
+                      "type": "select",
+                      "value": ""
+                    }
+                  ]
+                }
+              ],
+              "help": "This information will help us compose statistics"
+            }
+          ]
+        }
+      ],
+      "submit_button": {
+        "text": "Submit",
+        "title": "Submit form"
+      }
+    }
+  }
+]
