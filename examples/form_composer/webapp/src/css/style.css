@@ -1,0 +1,133 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+/* --- Form --- */
+.form {
+  /* Variables */
+  --input-bg-color: #fafafa;
+
+  margin: 0 auto;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 1280px;
+}
+
+.form .form-name {
+  font-size: 22px;
+}
+
+.form .form-instruction {
+
+}
+
+/* --- Section --- */
+.form .section {
+
+}
+
+.form .section .section-name {
+  font-size: 18px;
+}
+
+.form .section .section-instruction {
+
+}
+
+/* --- Fieldset --- */
+.form .section .fieldset {
+  margin-bottom: 20px;
+}
+
+.form .section .fieldset .fieldset-header {
+  background-color: #d9e0df;
+}
+
+.form .section .fieldset .fieldset-name {
+  margin: 0;
+}
+
+.form .section .fieldset .fieldset-instruction {
+
+}
+
+/* --- Row --- */
+.form .section .fieldset .row {
+
+}
+
+.form .section .fieldset .row:not(:last-child) {
+  margin-bottom: 20px;
+}
+
+.form .section .fieldset .row .row-instruction {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.form .section .fieldset .row .row-help {
+  padding-top: 5px;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 15px;
+  margin-right: 15px;
+  font-size: 12px;
+  font-style: italic;
+  color: grey;
+  border-top: 1px solid #ccc;
+}
+
+/* --- Field --- */
+.form .section .fieldset .field {
+  margin-bottom: 10px;
+}
+
+.form .section .fieldset .field .field-help {
+  font-size: 10px;
+}
+
+.form .section .fieldset .field {
+
+}
+
+.form .section .fieldset .field label {
+  width: 100%;
+}
+
+.form .section .fieldset .field.required label:after {
+  content: "*";
+  color: red;
+  margin-left: 3px;
+}
+
+.form .section .fieldset .field input {
+  width: 100%;
+}
+
+.form .section .fieldset .field input,
+.form .section .fieldset .field select {
+  background-color: var(--input-bg-color);
+}
+
+.form .form-buttons-separator {
+  margin-bottom: 40px;
+  width: 70%;
+  border: 1px solid black;
+  opacity: 0.2;
+}
+
+/* --- Buttons --- */
+.form .form-buttons {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.form .form-buttons .button-submit {
+
+}

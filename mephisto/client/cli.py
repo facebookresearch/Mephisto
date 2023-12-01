@@ -8,6 +8,9 @@ import subprocess
 from typing import List
 
 from flask.cli import pass_script_info
+from omegaconf import DictConfig
+
+from mephisto.tools.scripts import task_script
 from rich import print
 
 from mephisto.client.cli_commands import get_wut_arguments
@@ -320,10 +323,7 @@ def metrics_cli(args):
         shutdown_grafana_server()
 
 
-@cli.command(
-    "review_app",
-    cls=RichCommand,
-)
+@cli.command("review_app", cls=RichCommand)
 @click.option("-h", "--host", type=(str), default="127.0.0.1")
 @click.option("-p", "--port", type=(int), default=5000)
 @click.option("-d", "--debug", type=(bool), default=None)
@@ -406,6 +406,29 @@ def review_app(
         use_reloader=reload,
         use_debugger=debugger,
     )
+
+
+@cli.command("form_composer", cls=RichCommand)
+@click.option("-c", "--config-path", type=(str))
+@click.option("-f", "--force-rebuild", type=(bool), default=False)
+def form_composer(config_path, force_rebuild):
+    # TODO [form-composer-example]: This is just an example (work in progress)
+    from mephisto.operations.operator import Operator
+
+    @task_script(default_config_file=config_path)
+    def main(operator: Operator, cfg: DictConfig) -> None:
+        task_dir = cfg.task_dir
+
+        build_custom_bundle(
+            task_dir,
+            force_rebuild=force_rebuild or cfg.mephisto.task.force_rebuild,
+            post_install_script=cfg.mephisto.task.post_install_script,
+        )
+
+        operator.launch_task_run(cfg.mephisto)
+        operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
+
+    main()
 
 
 if __name__ == "__main__":
