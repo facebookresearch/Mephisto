@@ -14,9 +14,9 @@ from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
 from mephisto.abstractions.databases.local_database import StringIDRow
-from mephisto.client.review_app.server.db_queries import find_units
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
+from mephisto.review_app.server.db_queries import find_units
 
 
 def get_results_dir() -> str:

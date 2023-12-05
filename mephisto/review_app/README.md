@@ -45,7 +45,7 @@ TaskReview app consists of server and client parts. To run them in separate step
 2. SSH into running container to run server: `docker exec -it mephisto_dc bash`
 3. Inside the container run server: `cd /mephisto && mephisto review_app -h 0.0.0.0 -p 8000 -d True -o True`
 4. SSH into running container to run client: `docker exec -it mephisto_dc bash`
-5. Inside the container run client: `cd /mephisto/mephisto/client/review_app/client/ && REACT_APP__API_URL=http://localhost:8081 PORT=3000 npm start`
+5. Inside the container run client: `cd /mephisto/mephisto/review_app/client/ && REACT_APP__API_URL=http://localhost:8081 PORT=3000 npm start`
 6. Open TaskReview app in your browser at (http://localhost:3001)](http://localhost:3001).
 
 ## Prepare your Task app
