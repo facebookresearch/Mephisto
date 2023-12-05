@@ -16,7 +16,7 @@ This is a Task generator that provides Tasks for simple questionnaire projects.
 
 All you need to do is provide Form Builder with a JSON configuration of your form fields.
 
-An example is found in `examples/form_composer/data/data.json` file.
+An example is found in `examples/react_auto_composing_forms/data/data.json` file.
 
 ---
 

@@ -345,8 +345,8 @@ def review_app(
     from flask.cli import show_server_banner
     from flask.helpers import get_debug_flag
     from flask.helpers import get_env
+    from mephisto.review_app.server import create_app
     from werkzeug.serving import run_simple
-    from mephisto.client.review_app.server import create_app
 
     # Set env variables for Review App
     app_url = f"http://{host}:{port}"
@@ -412,7 +412,7 @@ def review_app(
 @click.option("-c", "--config-path", type=(str))
 @click.option("-f", "--force-rebuild", type=(bool), default=False)
 def form_composer(config_path, force_rebuild):
-    # TODO [form-composer-example]: This is just an example (work in progress)
+    # TODO [form-builder-app]: This is just an example (work in progress)
     from mephisto.operations.operator import Operator
 
     @task_script(default_config_file=config_path)

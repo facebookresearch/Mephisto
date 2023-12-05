@@ -5,25 +5,16 @@
  */
 
 import React from "react";
+import { CheckboxField } from "./fields/CheckboxField";
+import { FileField } from "./fields/FileField";
+import { InputField } from "./fields/InputField";
+import { RadioField } from "./fields/RadioField";
+import { SelectField } from "./fields/SelectField";
+import { TextareaField } from "./fields/TextareaField";
 
-function LoadingScreen() {
-  return <Directions>Loading...</Directions>;
-}
-
-function Directions({ children }) {
-  return (
-    <section className="hero is-light" data-cy="directions-container">
-      <div className="hero-body">
-        <div className="container">
-          <p className="subtitle is-5">{children}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function FormComposer({ data, onSubmit }) {
-   const [form, setForm] = React.useState({});
+  const [form, setForm] = React.useState({});
 
   let formName = data.name;
   let formInstruction = data.instruction;
@@ -155,39 +146,27 @@ function FormComposer({ data, onSubmit }) {
                               </label>
 
                               {["input", "email", "password", "number"].includes(field.type) && (
-                                <input
-                                  className={`form-control`}
-                                  id={field.id}
-                                  name={field.name}
-                                  type={field.type}
-                                  placeholder={field.placeholder}
-                                  style={field.style}
-                                  required={field.required}
-                                  onChange={(e) => updateFormData(e, field.name)}
-                                />
+                                <InputField field={field} updateFormData={updateFormData} />
+                              )}
+
+                              {field.type === "textarea" && (
+                                <TextareaField field={field} updateFormData={updateFormData} />
+                              )}
+
+                              {field.type === "checkbox" && (
+                                <CheckboxField field={field} updateFormData={updateFormData} />
+                              )}
+
+                              {field.type === "radio" && (
+                                <RadioField field={field} updateFormData={updateFormData} />
                               )}
 
                               {field.type === "select" && (
-                                <select
-                                  className={`form-control`}
-                                  id={field.id}
-                                  name={field.name}
-                                  placeholder={field.placeholder}
-                                  style={field.style}
-                                  required={field.required}
-                                  onChange={(e) => updateFormData(e, field.name)}
-                                >
-                                  {field.options.map(( option, index ) => {
-                                    return (
-                                      <option
-                                        key={`option-${field.id}-${index}`}
-                                        value={option.value}
-                                      >
-                                        {option.name}
-                                      </option>
-                                    );
-                                  })}
-                                </select>
+                                <SelectField field={field} updateFormData={updateFormData} />
+                              )}
+
+                              {field.type === "file" && (
+                                <FileField field={field} updateFormData={updateFormData} />
                               )}
 
                               {fieldHelp && (
@@ -231,22 +210,4 @@ function FormComposer({ data, onSubmit }) {
   );
 }
 
-function AutoComposingFormFrontend({ taskData, onSubmit, onError }) {
-  let formData = taskData.form;
-
-  if (!formData) {
-    return (
-      <div>
-        Passed form data is invalid... Recheck your task config.
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <FormComposer data={formData} onSubmit={onSubmit} />
-    </div>
-  );
-}
-
-export { LoadingScreen, AutoComposingFormFrontend };
+export { FormComposer };

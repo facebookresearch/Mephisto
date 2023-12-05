@@ -10,8 +10,8 @@ from flask import current_app as app
 from flask.views import MethodView
 
 from mephisto.abstractions.databases.local_database import StringIDRow
-from mephisto.client.review_app.server.db_queries import find_units
 from mephisto.data_model.constants.assignment_state import AssignmentState
+from mephisto.review_app.server.db_queries import find_units
 
 
 class TaskUnitIdsView(MethodView):

@@ -135,6 +135,111 @@
                 }
               ],
               "help": "This information will help us compose statistics"
+            },
+            {
+              "name": "Additional information",
+              "instruction": "Optional details about you. You can tell us everything you want.",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_bio",
+                      "label": "Biography",
+                      "name": "bio",
+                      "placeholder": "",
+                      "required": false,
+                      "style": {},
+                      "title": "Bio",
+                      "type": "textarea",
+                      "value": ""
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    {
+                      "checked": false,
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_marital_status",
+                      "label": "Marital status",
+                      "name": "marital_status",
+                      "options": [
+                        {
+                          "checked": false,
+                          "label": "Married"
+                        }
+                      ],
+                      "required": false,
+                      "style": {},
+                      "title": "Marital status",
+                      "type": "checkbox",
+                      "value": "married"
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_kids",
+                      "label": "How many children do you have?",
+                      "name": "kids",
+                      "options": [
+                        {
+                          "checked": false,
+                          "label": "None",
+                          "value": "0"
+                        },
+                        {
+                          "checked": false,
+                          "label": "One",
+                          "value": "1"
+                        },
+                        {
+                          "checked": true,
+                          "label": "Two",
+                          "value": "2"
+                        },
+                        {
+                          "checked": false,
+                          "label": "Three or more",
+                          "value": ">=3"
+                        }
+                      ],
+                      "required": false,
+                      "style": {},
+                      "title": "How many children do you have?",
+                      "type": "radio"
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_avatar",
+                      "label": "Avatar",
+                      "name": "avatar",
+                      "placeholder": "Select a file",
+                      "required": false,
+                      "style": {},
+                      "title": "Avatar",
+                      "type": "file",
+                      "value": ""
+                    }
+                  ]
+                }
+              ],
+              "help": "Interesting details about your personality"
             }
           ]
         }

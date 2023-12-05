@@ -28,7 +28,7 @@ from .urls import init_urls
 
 FLASK_SETTINGS_MODULE = os.environ.get(
     "FLASK_SETTINGS_MODULE",
-    "mephisto.client.review_app.server.settings.base",
+    "mephisto.review_app.server.settings.base",
 )
 
 
