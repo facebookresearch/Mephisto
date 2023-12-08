@@ -6,7 +6,9 @@
 
 import React from "react";
 
-function FileField({ field, updateFormData }) {
+function FileField({ field, updateFormData, disabled, initialFormData }) {
+  const initialValue = initialFormData ? initialFormData[field.name] : "";
+
   return (
     <div className={`custom-file`}>
       <input
@@ -17,7 +19,9 @@ function FileField({ field, updateFormData }) {
         placeholder={field.placeholder}
         style={field.style}
         required={field.required}
-        onChange={(e) => updateFormData(e, field.name)}
+        defaultValue={initialValue}
+        onChange={(e) => !disabled && updateFormData(e, field.name, e.target.value)}
+        disabled={disabled}
       />
       <label className={`custom-file-label`} htmlFor={field.id}>
         {field.label}
