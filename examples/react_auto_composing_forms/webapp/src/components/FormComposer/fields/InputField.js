@@ -6,7 +6,9 @@
 
 import React from "react";
 
-function InputField({ field, updateFormData }) {
+function InputField({ field, updateFormData, disabled, initialFormData }) {
+  const initialValue = initialFormData ? initialFormData[field.name] : "";
+
   return (
     <input
       className={`form-control`}
@@ -16,7 +18,9 @@ function InputField({ field, updateFormData }) {
       placeholder={field.placeholder}
       style={field.style}
       required={field.required}
-      onChange={(e) => updateFormData(e, field.name)}
+      defaultValue={initialValue}
+      onChange={(e) => !disabled && updateFormData(e, field.name, e.target.value)}
+      disabled={disabled}
     />
   );
 }

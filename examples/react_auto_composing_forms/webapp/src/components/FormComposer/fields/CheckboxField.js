@@ -6,24 +6,53 @@
 
 import React from "react";
 
-function CheckboxField({ field, updateFormData }) {
+function CheckboxField({ field, updateFormData, disabled, initialFormData }) {
+  const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
+  const [widgetValue, setWidgetValue] = React.useState({});
+
+  const initialValue = initialFormData ? initialFormData[field.name] : {};
+
+  function setDefaultWidgetValue() {
+    const allItemsNotCheckedValue = Object.fromEntries(
+      field.options.map(o => [o.value, !!o.checked])
+    );
+    setWidgetValue(allItemsNotCheckedValue);
+  }
+
+  function updateFieldData(e, optionValue, checkValue) {
+    setLastCheckEvent(e);
+    setWidgetValue({ ...widgetValue, ...{[optionValue]: checkValue }});
+  }
+
+  React.useEffect(() => {
+    if (Object.keys(widgetValue).length === 0) {
+      setDefaultWidgetValue();
+    }
+  }, []);
+
+  React.useEffect(() => {
+    updateFormData(lastCheckEvent, field.name, widgetValue);
+  }, [widgetValue]);
+
   return (
     field.options.map(( option, index ) => {
+      const checked = (
+        initialFormData
+          ? initialValue[option.value]
+          : widgetValue[option.value]
+      );
+
       return (
         <div
           key={`option-${field.id}-${index}`}
-          className={`form-check`}
+          className={`form-check ${field.type} ${disabled ? "disabled" : ""}`}
+          required={field.required}
+          onClick={(e) => !disabled && updateFieldData(e, option.value, !checked)}
         >
-          <input
-            className={`form-check-input`}
+          <span
+            className={`form-check-input ${checked ? "checked" : ""}`}
             id={`${field.id}-${index}`}
-            name={field.name}
-            type={field.type}
             style={field.style}
-            required={field.required}
-            value={option.value}
-            checked={option.checked}
-            onChange={(e) => updateFormData(e, field.name)}
           />
           <label className={`form-check-label`} htmlFor={`${field.id}-${index}`}>
             {option.label}

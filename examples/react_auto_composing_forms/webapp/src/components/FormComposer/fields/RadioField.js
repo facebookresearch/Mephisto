@@ -6,24 +6,54 @@
 
 import React from "react";
 
-function RadioField({ field, updateFormData }) {
+function RadioField({ field, updateFormData, disabled, initialFormData }) {
+  const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
+  const [widgetValue, setWidgetValue] = React.useState(null);
+
+  const initialValue = initialFormData ? initialFormData[field.name] : "";
+
+  function updateFieldData(e, optionValue) {
+    setLastCheckEvent(e);
+    setWidgetValue(optionValue);
+  }
+
+  function setDefaultWidgetValue() {
+    field.options.map((option) => {
+      if (option.checked) {
+        setWidgetValue(option.value);
+      }
+    });
+  }
+
+  React.useEffect(() => {
+    if (!widgetValue) {
+      setDefaultWidgetValue();
+    }
+  }, []);
+
+  React.useEffect(() => {
+    updateFormData(lastCheckEvent, field.name, widgetValue);
+  }, [widgetValue]);
+
   return (
     field.options.map(( option, index ) => {
+      const checked = (
+        initialFormData
+          ? initialValue === option.value
+          : widgetValue === option.value
+      );
+
       return (
         <div
           key={`option-${field.id}-${index}`}
-          className={`form-check`}
+          className={`form-check ${field.type} ${disabled ? "disabled" : ""}`}
+          required={field.required}
+          onClick={(e) => !disabled && updateFieldData(e, option.value)}
         >
-          <input
-            className={`form-check-input`}
+          <span
+            className={`form-check-input ${checked ? "checked" : ""}`}
             id={`${field.id}-${index}`}
-            name={field.name}
-            type={field.type}
             style={field.style}
-            required={field.required}
-            value={option.value}
-            checked={option.checked}
-            onChange={(e) => updateFormData(e, field.name)}
           />
           <label className={`form-check-label`} htmlFor={`${field.id}-${index}`}>
             {option.label}

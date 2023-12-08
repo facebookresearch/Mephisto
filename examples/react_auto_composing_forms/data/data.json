@@ -77,6 +77,7 @@
                       "icon": "",
                       "id": "id_country",
                       "label": "Country",
+                      "multiple": false,
                       "name": "country",
                       "options": [
                         {
@@ -105,12 +106,9 @@
                       "icon": "",
                       "id": "id_language",
                       "label": "Language",
+                      "multiple": true,
                       "name": "language",
                       "options": [
-                        {
-                          "name": "---",
-                          "value": ""
-                        },
                         {
                           "name": "English",
                           "value": "en"
@@ -161,24 +159,33 @@
                 {
                   "fields": [
                     {
-                      "checked": false,
                       "class": "",
                       "help": "",
                       "icon": "",
-                      "id": "id_marital_status",
-                      "label": "Marital status",
-                      "name": "marital_status",
+                      "id": "id_skills",
+                      "label": "Skills",
+                      "name": "skills",
                       "options": [
                         {
                           "checked": false,
-                          "label": "Married"
+                          "label": "React",
+                          "value": "react"
+                        },
+                        {
+                          "checked": true,
+                          "label": "JavaScript",
+                          "value": "javascript"
+                        },
+                        {
+                          "checked": false,
+                          "label": "Python",
+                          "value": "python"
                         }
                       ],
                       "required": false,
                       "style": {},
-                      "title": "Marital status",
-                      "type": "checkbox",
-                      "value": "married"
+                      "title": "Skills you have",
+                      "type": "checkbox"
                     }
                   ]
                 },
@@ -240,6 +247,37 @@
                 }
               ],
               "help": "Interesting details about your personality"
+            }
+          ]
+        },
+        {
+          "name": "Second section",
+          "instruction": "Example of second section",
+          "fieldsets" : [
+            {
+              "name": "Fieldset #1",
+              "instruction": "",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_any_words",
+                      "label": "Any 5 words",
+                      "name": "any_words",
+                      "placeholder": "",
+                      "required": true,
+                      "style": {},
+                      "title": "Any 5 words",
+                      "type": "input",
+                      "value": ""
+                    }
+                  ],
+                  "help": "Please write something..."
+                }
+              ]
             }
           ]
         }

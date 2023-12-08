@@ -6,5 +6,5 @@
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-select/dist/css/bootstrap-select.min.css";
-import "./app.jsx";
+import "./reviewapp.jsx";
 import "./css/style.css";

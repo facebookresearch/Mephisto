@@ -23,7 +23,7 @@ function Directions({ children }) {
   );
 }
 
-function AutoComposingFormFrontend({ taskData, onSubmit, onError }) {
+function AutoComposingFormFrontend({ taskData, onSubmit, onError, finalResults = null }) {
   let formData = taskData.form;
 
   if (!formData) {
@@ -34,9 +34,29 @@ function AutoComposingFormFrontend({ taskData, onSubmit, onError }) {
     );
   }
 
+  // const _finalResults = {
+  //   "name_first": "Saved name first",
+  //   "name_last": "Saved name last",
+  //   "email": "saved@example.com",
+  //   "country": "CAN",
+  //   "language": ["fr", "es"],
+  //   "bio": "Some bio text about me",
+  //   "skills": {
+  //     "javascript": true,
+  //     "python": true,
+  //     "react": false,
+  //   },
+  //   "kids": ">=3",
+  //   // "avatar": "/path/to/file.jpg",
+  // }
+
   return (
     <div>
-      <FormComposer data={formData} onSubmit={onSubmit} />
+      <FormComposer
+        data={formData}
+        onSubmit={onSubmit}
+        finalResults={finalResults}
+      />
     </div>
   );
 }

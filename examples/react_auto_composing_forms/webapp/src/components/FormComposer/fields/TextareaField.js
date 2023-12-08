@@ -6,7 +6,9 @@
 
 import React from "react";
 
-function TextareaField({ field, updateFormData }) {
+function TextareaField({ field, updateFormData, disabled, initialFormData }) {
+  const initialValue = initialFormData ? initialFormData[field.name] : "";
+
   return (
     <textarea
       className={`form-control`}
@@ -15,7 +17,9 @@ function TextareaField({ field, updateFormData }) {
       placeholder={field.placeholder}
       style={field.style}
       required={field.required}
-      onChange={(e) => updateFormData(e, field.name)}
+      defaultValue={initialValue}
+      onChange={(e) => !disabled && updateFormData(e, field.name, e.target.value)}
+      disabled={disabled}
     />
   );
 }
