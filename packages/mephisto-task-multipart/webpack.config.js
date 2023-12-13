@@ -8,19 +8,19 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
-  entry: "./src/main.js",
+  entry: "./src/index.js",
   output: {
     path: __dirname,
     filename: "build/bundle.js",
+    library: "mephisto-task",
+    libraryTarget: "umd",
+  },
+  target: "web",
+  externals: {
+    react: "react",
+    "react-dom": "react-dom",
   },
   resolve: {
-    alias: {
-      react: path.resolve("./node_modules/react"),
-      // Use local library with code that can submit FormData
-      "mephisto-task-multipart": path.resolve(
-        __dirname, "../../../packages/mephisto-task-multipart",
-      ),
-    },
     fallback: {
       net: false,
       dns: false,
@@ -40,8 +40,14 @@ module.exports = {
       },
       {
         test: /\.(svg|png|jpe?g|ttf)$/,
-        loader: "url-loader",
-        options: { limit: 100000 },
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 100000,
+            },
+          },
+        ],
       },
       {
         test: /\.jpg$/,

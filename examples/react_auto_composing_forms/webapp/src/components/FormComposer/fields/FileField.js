@@ -5,27 +5,71 @@
  */
 
 import React from "react";
+import { fieldIsRequired } from '../validation';
 
-function FileField({ field, updateFormData, disabled, initialFormData }) {
-  const initialValue = initialFormData ? initialFormData[field.name] : "";
+function FileField({
+  field, updateFormData, disabled, initialFormData, isInReviewState, isInvalid, validationErrors,
+}) {
+  const [widgetValue, setWidgetValue] = React.useState("");
+
+  function onChange(e, fieldName) {
+    let fieldValue = null;
+    const input = e.target;
+
+    // Format of JSON value of files that server requires
+    input.files?.length && Object.values(input.files).forEach((file) => {
+      fieldValue = {
+        lastModified: file.lastModified ? file.lastModified : -1,
+        name: file.name ? file.name : "",
+        size: file.size ? file.size : -1,
+        type: file.type ? file.type : "",
+      };
+      setWidgetValue(fieldValue.name);
+    });
+
+    updateFormData(e, fieldName, fieldValue);
+  }
+
+  function setDefaultWidgetValue() {
+    const initialValue = initialFormData ? initialFormData[field.name] : {name: ""};
+    setWidgetValue(initialValue.name || "");
+  }
+
+  React.useEffect(() => {
+    if (!widgetValue) {
+      setDefaultWidgetValue();
+    }
+  }, []);
 
   return (
-    <div className={`custom-file`}>
+    <div className={`
+      custom-file 
+      ${isInvalid ? "is-invalid" : ""}
+    `}>
       <input
-        className={`custom-file-input`}
+        className={`
+          custom-file-input 
+          ${isInvalid ? "is-invalid" : ""}
+        `}
         id={field.id}
         name={field.name}
         type={field.type}
         placeholder={field.placeholder}
         style={field.style}
-        required={field.required}
-        defaultValue={initialValue}
-        onChange={(e) => !disabled && updateFormData(e, field.name, e.target.value)}
+        required={fieldIsRequired(field)}
+        onChange={(e) => !disabled && onChange(e, field.name)}
         disabled={disabled}
       />
-      <label className={`custom-file-label`} htmlFor={field.id}>
-        {field.label}
-      </label>
+
+      <span className={`custom-file-label`}>
+        {widgetValue}
+      </span>
+
+      {validationErrors && (
+        <div className={`invalid-feedback`}>
+          {validationErrors.join("\n")}
+        </div>
+      )}
     </div>
   );
 }

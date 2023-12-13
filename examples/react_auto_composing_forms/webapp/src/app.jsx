@@ -7,7 +7,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { AutoComposingFormFrontend, LoadingScreen } from "./components/core_components.jsx";
-import { useMephistoTask, ErrorBoundary } from "mephisto-task";
+import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
 
 /* ================= Application Components ================= */
 

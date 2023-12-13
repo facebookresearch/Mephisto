@@ -492,7 +492,7 @@ app.post("/submit_task", upload.any(), function (req, res) {
     packet_type: PACKET_TYPE_SUBMIT_UNIT,
     subject_id: agent_id,
     data: extracted_data,
-    client_timestamp: client_timestamp,
+    client_timestamp: client_timestamp ? Number(client_timestamp) : null,
     router_incoming_timestamp: pythonTime(),
   };
   _send_message(mephisto_socket, submit_packet);

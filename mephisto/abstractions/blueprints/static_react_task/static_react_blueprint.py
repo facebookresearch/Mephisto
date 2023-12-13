@@ -117,12 +117,23 @@ class StaticReactBlueprint(StaticBlueprint):
         link_task_source = args.blueprint.link_task_source
         current_architect = args.architect._architect_type
         allowed_architects = ["local"]
-        assert link_task_source == False or (
-            link_task_source == True and current_architect in allowed_architects
-        ), f"`link_task_source={link_task_source}` is not compatible with architect type: {args.architect._architect_type}. Please check your task configuration."
 
-        if link_task_source == False and current_architect in allowed_architects:
+        assert_message = (
+            f"`link_task_source={link_task_source}` is not compatible with architect type: "
+            f"{args.architect._architect_type}. Please check your task configuration."
+        )
+        assert link_task_source is False or (
+            link_task_source is True and current_architect in allowed_architects
+        ), assert_message
+
+        if link_task_source is False and current_architect in allowed_architects:
             logger.info(
-                "If you want your server to update on reload whenever you make changes to your webapp, then make sure to set \n\nlink_task_source: [blue]true[/blue]\n\nin your task's hydra configuration and run \n\n[purple]cd[/purple] webapp [red]&&[/red] [green]npm[/green] run dev:watch\n\nin a separate terminal window. For more information check out:\nhttps://mephisto.ai/docs/guides/tutorials/custom_react/#12-launching-the-task\n",
+                "If you want your server to update on reload whenever you make changes to your "
+                "webapp, then make sure to set \n\n"
+                "link_task_source: [blue]true[/blue]\n\n"
+                "in your task's hydra configuration and run \n\n"
+                "[purple]cd[/purple] webapp [red]&&[/red] [green]npm[/green] run dev:watch\n\n"
+                "in a separate terminal window. For more information check out:\n"
+                "https://mephisto.ai/docs/guides/tutorials/custom_react/#12-launching-the-task\n",
                 extra={"markup": True},
             )

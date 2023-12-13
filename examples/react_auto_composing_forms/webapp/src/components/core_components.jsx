@@ -47,7 +47,18 @@ function AutoComposingFormFrontend({ taskData, onSubmit, onError, finalResults =
   //     "react": false,
   //   },
   //   "kids": ">=3",
-  //   // "avatar": "/path/to/file.jpg",
+  //   "avatar": {
+  //     "lastModified": 1670876272000,
+  //     "name": "avatar.jpg",
+  //     "size": 13264,
+  //     "type": "application/pdf"
+  //   },
+  //   "resume": {
+  //     "lastModified": 1682060907000,
+  //     "name": "resume.csv",
+  //     "size": 61,
+  //     "type": "text/csv"
+  //   },
   // }
 
   return (
