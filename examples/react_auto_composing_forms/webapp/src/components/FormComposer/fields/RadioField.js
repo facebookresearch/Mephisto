@@ -6,7 +6,9 @@
 
 import React from "react";
 
-function RadioField({ field, updateFormData, disabled, initialFormData }) {
+function RadioField({
+  field, updateFormData, disabled, initialFormData, isInReviewState, isInvalid, validationErrors,
+}) {
   const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
   const [widgetValue, setWidgetValue] = React.useState(null);
 
@@ -35,8 +37,8 @@ function RadioField({ field, updateFormData, disabled, initialFormData }) {
     updateFormData(lastCheckEvent, field.name, widgetValue);
   }, [widgetValue]);
 
-  return (
-    field.options.map(( option, index ) => {
+  return (<>
+    {field.options.map(( option, index ) => {
       const checked = (
         initialFormData
           ? initialValue === option.value
@@ -46,8 +48,12 @@ function RadioField({ field, updateFormData, disabled, initialFormData }) {
       return (
         <div
           key={`option-${field.id}-${index}`}
-          className={`form-check ${field.type} ${disabled ? "disabled" : ""}`}
-          required={field.required}
+          className={`
+            form-check
+            ${field.type}
+            ${disabled ? "disabled" : ""}
+            ${isInvalid ? "is-invalid" : ""}
+          `}
           onClick={(e) => !disabled && updateFieldData(e, option.value)}
         >
           <span
@@ -55,13 +61,19 @@ function RadioField({ field, updateFormData, disabled, initialFormData }) {
             id={`${field.id}-${index}`}
             style={field.style}
           />
-          <label className={`form-check-label`} htmlFor={`${field.id}-${index}`}>
+          <span className={`form-check-label`}>
             {option.label}
-          </label>
+          </span>
         </div>
       );
-    })
-  );
+    })}
+
+    {validationErrors && (
+      <div className={`invalid-feedback`}>
+        {validationErrors.join("\n")}
+      </div>
+    )}
+  </>);
 }
 
 export { RadioField };

@@ -8,8 +8,11 @@ import React from "react";
 import $ from "jquery";
 import "bootstrap"
 import "bootstrap-select";
+import { fieldIsRequired } from '../validation';
 
-function SelectField({ field, updateFormData, disabled, initialFormData }) {
+function SelectField({
+  field, updateFormData, disabled, initialFormData, isInReviewState, isInvalid, validationErrors,
+}) {
   const initialValue = (
     initialFormData
       ? initialFormData[field.name]
@@ -26,25 +29,39 @@ function SelectField({ field, updateFormData, disabled, initialFormData }) {
   }
 
   React.useEffect(() => {
-    $('.selectpicker').selectpicker();
+    if (isInvalid) {
+      $(`.bootstrap-select.select-${field.name}`).addClass("is-invalid");
+    } else {
+      $(`.bootstrap-select.select-${field.name}`).removeClass("is-invalid");
+    }
+  }, [isInvalid]);
+
+  React.useEffect(() => {
+    $(`.selectpicker.select-${field.name}`).selectpicker();
   }, []);
 
-  return (
+  return (<>
     <select
-      className={`form-control custom-select selectpicker`}
+      className={`
+        form-control 
+        selectpicker
+        select-${field.name}
+        ${isInvalid ? "is-invalid" : ""}
+      `}
       id={field.id}
       name={field.name}
       placeholder={field.placeholder}
       style={field.style}
-      required={field.required}
+      required={fieldIsRequired(field)}
       defaultValue={initialValue}
       onChange={(e) => !disabled && onChange(e, field.name)}
       multiple={field.multiple}
       disabled={disabled}
+      data-actions-box={field.multiple ? true : null}
       data-live-search={true}
       data-selected-text-format={field.multiple ? "count > 1" : null}
-      data-width={"auto"}
-      data-actions-box={field.multiple ? true : null}
+      data-title={isInReviewState ? initialValue : null}
+      data-width={"100%"}
     >
       {field.options.map(( option, index ) => {
         return (
@@ -57,7 +74,13 @@ function SelectField({ field, updateFormData, disabled, initialFormData }) {
         );
       })}
     </select>
-  );
+
+    {validationErrors && (
+      <div className={`invalid-feedback`}>
+        {validationErrors.join("\n")}
+      </div>
+    )}
+  </>);
 }
 
 export { SelectField };

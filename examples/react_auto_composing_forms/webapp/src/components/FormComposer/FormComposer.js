@@ -5,6 +5,7 @@
  */
 
 import React from "react";
+import $ from "jquery";
 import { CheckboxField } from "./fields/CheckboxField";
 import { FileField } from "./fields/FileField";
 import { InputField } from "./fields/InputField";
@@ -12,10 +13,12 @@ import { RadioField } from "./fields/RadioField";
 import { SelectField } from "./fields/SelectField";
 import { TextareaField } from "./fields/TextareaField";
 import "./FormComposer.css";
-
+import { fieldIsRequired, validatorsByName } from './validation';
 
 function FormComposer({ data, onSubmit, finalResults }) {
+  const [invalidFormFields, setInvalidFormFields] = React.useState({});
   const [form, setForm] = React.useState({});
+  const [fields, setFields] = React.useState({});
 
   const isInReviewState = finalResults !== null;
 
@@ -33,15 +36,101 @@ function FormComposer({ data, onSubmit, finalResults }) {
     });
   }
 
+  function validateForm(e) {
+    // Clean previous invalidated fields
+    setInvalidFormFields({});
+
+    const formElement = e.currentTarget;
+    const formFieldElements = $.unique(Object.values(formElement.elements));
+
+    const _invalidFormFields = {};
+
+    formFieldElements.forEach((formFieldElement) => {
+      const _field = fields[formFieldElement.name];
+
+      if (!_field) {
+        return;
+      }
+
+      const fieldValidators = _field.validators || {};
+
+      Object.entries(fieldValidators).forEach((validator) => {
+        const [validatorName, validatorArguments] = validator;
+
+        if (!validatorsByName.hasOwnProperty(validatorName)) {
+          console.warn(
+            `You tried to validate field "${_field.name}" with validator "${validatorName}". ` +
+            `"FormComposer" does not support this validator, so we just ignore it`
+          )
+          return;
+        }
+
+        const validationResult = validatorsByName[validatorName](
+          _field,
+          formFieldElement,
+          ...validatorArguments,
+        );
+
+        if (validationResult) {
+          _invalidFormFields[_field.name] = [
+            ...(_invalidFormFields[_field.name] || []),
+            validationResult,
+          ];
+        }
+      });
+    });
+
+
+    // Set new invalid fields
+    setInvalidFormFields(_invalidFormFields);
+
+    return !Object.keys(_invalidFormFields).length;
+  }
+
+  function prepareFormData() {
+    // Append JSON data
+    const formData = new FormData();
+    formData.append("final_data", form);
+    formData.append("final_string_data", JSON.stringify(form));
+
+    // Append files
+    const fileInputs = document.querySelectorAll("input[type='file']");
+    fileInputs.forEach((input) => {
+      input.files?.length && Object.values(input.files).forEach((file) => {
+        formData.append(input.name, file, file.name);
+      });
+    });
+
+    return formData;
+  }
+
+  function onSubmitForm(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const formIsValid = validateForm(e);
+
+    if (!formIsValid) {
+      return;
+    }
+
+    const formData = prepareFormData();
+
+    // Pass data to `mephisto-task` library
+    onSubmit(formData);
+  }
+
   // Effects
   React.useEffect(() => {
     if (formSections.length) {
+      const _fields = {};
       const initialFormData = {};
 
       formSections.map((section) => {
         section.fieldsets.map((fieldset) => {
           fieldset.rows.map((row) => {
             row.fields.map((field) => {
+              _fields[field.name] = field;
               initialFormData[field.name] = field.value;
             });
           });
@@ -49,6 +138,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
       });
 
       setForm(initialFormData);
+      setFields(_fields);
     }
   }, [formSections]);
 
@@ -56,10 +146,8 @@ function FormComposer({ data, onSubmit, finalResults }) {
     <form
       className={`form-composer`}
       method={"POST"}
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(form);
-      }}
+      noValidate={true}
+      onSubmit={onSubmitForm}
     >
       {(formName || formInstruction) && (
         <div className={`alert alert-primary`} role={"alert"}>
@@ -175,7 +263,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     field
                                     form-group
                                     col
-                                    ${field.required ? "required" : ""}`
+                                    ${fieldIsRequired(field) ? "required" : ""}`
                                   }
                                 >
 
@@ -192,6 +280,9 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                       updateFormData={updateFormData}
                                       disabled={isInReviewState}
                                       initialFormData={finalResults}
+                                      isInReviewState={isInReviewState}
+                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
 
@@ -201,6 +292,9 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                       updateFormData={updateFormData}
                                       disabled={isInReviewState}
                                       initialFormData={finalResults}
+                                      isInReviewState={isInReviewState}
+                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
 
@@ -210,6 +304,9 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                       updateFormData={updateFormData}
                                       disabled={isInReviewState}
                                       initialFormData={finalResults}
+                                      isInReviewState={isInReviewState}
+                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
 
@@ -219,6 +316,9 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                       updateFormData={updateFormData}
                                       disabled={isInReviewState}
                                       initialFormData={finalResults}
+                                      isInReviewState={isInReviewState}
+                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
 
@@ -228,6 +328,9 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                       updateFormData={updateFormData}
                                       disabled={isInReviewState}
                                       initialFormData={finalResults}
+                                      isInReviewState={isInReviewState}
+                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
 
@@ -237,6 +340,9 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                       updateFormData={updateFormData}
                                       disabled={isInReviewState}
                                       initialFormData={finalResults}
+                                      isInReviewState={isInReviewState}
+                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
 
