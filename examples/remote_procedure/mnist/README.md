@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Mephisto MNIST Model Evaluator demo
 
 This task is a simple model evaluation demo, presenting the worker with three spaces to draw images in, running an MNIST model on them to predict an output, and then allowing the worker to assess and correct that output.

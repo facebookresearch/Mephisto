@@ -75,7 +75,8 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
     """
     ext = os.path.splitext(file_path)[1].lower()
 
-    EXAMINED_LINES = 10
+    EXAMINED_LINES = 12
+    EXAMINED_SYMBOLS = 50
 
     with open(file_path, "r") as f:
         lines = f.readlines()
@@ -83,25 +84,28 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
     if len(lines) < 2:
         raise UnsupportedFile("File has fewer than one line")
 
+    maybe_shebang = lambda i: lines[i][0] == "#" and lines[i].lstrip("#")[0] != " "
+
     # Check copyright presence at the top of the file
     anchor_line_number = None
     likelihood_score = 0
     for i, line in enumerate(lines[:EXAMINED_LINES]):
-        text = line[:50].lower()
+        text = line[:EXAMINED_SYMBOLS].lower()
         if "copyright" in text:
             likelihood_score += 1
         if "meta" in text or "facebook" in text:
             likelihood_score += 1
             anchor_line_number = i
+            # Exit right away to avoid picking up import lines further down
+            break
 
     new_lines = None
     if likelihood_score < 2:
         # Insert a new copyright notice
         print("Inserting new notice")
-        maybe_shebang = lambda line: line[0] == "#" and line[1] != " "
 
-        if maybe_shebang(lines[0]) and not maybe_shebang(lines[1]):
-            # Skipping shebang line (for chell, hydra config, etc)
+        if maybe_shebang(0) and not maybe_shebang(1):
+            # Skipping shebang line (for shell scripts, hydra configs, etc)
             insert_at_line_number = 1
         else:
             # Insert at the top of the file
@@ -117,16 +121,28 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
     elif replace_existing:
         # Replace existing copyright notice
         print("Updating existing notice")
+        n_examined_lines = len(lines[:EXAMINED_LINES])
+        line_has_words = lambda i: any(ch.isalpha() for ch in lines[i][:EXAMINED_SYMBOLS])
+        is_empty_line = lambda i: lines[i] == "\n"
 
         first_line_number = 0
+        if maybe_shebang(0) and not maybe_shebang(1):
+            first_line_number = 1
+
         last_line_number = None
-        for i, line in enumerate(lines[:EXAMINED_LINES]):
-            if line == "\n":
-                # Empty line
+        for i in range(n_examined_lines - 2):
+            if is_empty_line(i):
                 if i < anchor_line_number:
-                    first_line_number = i + 1
+                    # Move up lower notice boundary only if previous line is not comment opening
+                    if line_has_words(i-1):
+                        first_line_number = i + 1
                 else:
                     last_line_number = i - 1
+                    # Set upper notice boundary only except cases when
+                    # next line is a comment closing line followed by an empty line
+                    # (Note: this fails if old copyright notice has line breaks in it)
+                    if not (not line_has_words(i+1) and is_empty_line(i+2)):
+                        break
 
         if last_line_number is None:
             raise ProcessingError(
@@ -161,6 +177,8 @@ def run(
     glob_pattern = start_path.rstrip("/") + "/**"
     if extension:
         glob_pattern += "/*." + extension.lstrip(".")
+
+    print(f"\nLoading all files with {glob_pattern} mask...")
     all_paths = glob.glob(glob_pattern, recursive=True)
 
     # Apply filters that `glob` filter doesn"t support
