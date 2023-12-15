@@ -10,7 +10,7 @@ defaults:
   - /mephisto/provider: mock
 mephisto:
   blueprint:
-    data_csv: ${task_dir}/data.csv
+    data_csv: ${task_dir}/data/data.csv
     task_source: ${task_dir}/server_files/demo_task.html
     task_source_review: ${task_dir}/webapp/build/bundle.review.js
     preview_source: ${task_dir}/server_files/demo_preview.html

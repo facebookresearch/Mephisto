@@ -57,7 +57,7 @@ function TasksPage(props: PropsType) {
       }
     };
 
-    exportTaskResults(taskId, onSuccessExportResults, setLoadingExportResults);
+    exportTaskResults(taskId, onSuccessExportResults, setLoadingExportResults, onError);
   };
 
   useEffect(() => {

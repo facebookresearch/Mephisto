@@ -10,7 +10,6 @@ from mephisto.tools.scripts import (
     build_custom_bundle,
 )
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
-    BLUEPRINT_TYPE_REMOTE_PROCEDURE,
     SharedRemoteProcedureTaskState,
     RemoteProcedureAgentState,
 )
@@ -48,7 +47,7 @@ def build_tasks(num_tasks):
     return tasks
 
 
-@task_script(default_config_file="launch_with_local")
+@task_script(default_config_file="example_local_mock")
 def main(operator: Operator, cfg: DictConfig) -> None:
     def onboarding_always_valid(onboarding_data):
         # NOTE you can make an onboarding task and validate it here

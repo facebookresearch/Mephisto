@@ -14,7 +14,7 @@ mephisto:
     profile_name: mephisto-router-iam
     subdomain: "0802.1"
   blueprint:
-    data_csv: ${task_dir}/data_prolific.csv
+    data_csv: ${task_dir}/data/data_prolific.csv
     task_source: ${task_dir}/server_files/demo_task.html
     preview_source: ${task_dir}/server_files/demo_preview.html
     extra_source_dir: ${task_dir}/server_files/extra_refs

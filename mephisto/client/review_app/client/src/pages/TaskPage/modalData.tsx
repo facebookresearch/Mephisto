@@ -16,6 +16,7 @@ export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
     checkboxAssignQualification: false,
     checkboxGiveBonus: false,
     checkboxReviewNote: false,
+    checkboxReviewNoteSend: false,
     newQualificationValue: "",
     qualification: null,
     qualificationValue: 1,
@@ -35,6 +36,7 @@ export const SOFT_REJECT_MODAL_DATA_STATE: ModalDataType = {
     bonus: null,
     checkboxAssignQualification: false,
     checkboxReviewNote: false,
+    checkboxReviewNoteSend: false,
     newQualificationValue: "",
     qualification: null,
     qualificationValue: 1,
@@ -55,6 +57,7 @@ export const REJECT_MODAL_DATA_STATE: ModalDataType = {
   form: {
     checkboxUnassignQualification: false,
     checkboxReviewNote: false,
+    checkboxReviewNoteSend: false,
     checkboxBanWorker: false,
     reviewNote: "",
     qualification: null,

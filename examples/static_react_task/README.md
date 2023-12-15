@@ -17,7 +17,7 @@ python run_task.py mephisto.blueprint.onboarding_qualification=test-react-static
 ```
 or by specifying the config file that already has this set:
 ```console
-python run_task.py conf=onboarding_example
+python run_task.py conf=onboarding_example_local_mock
 ```
 
 ## Implementation
@@ -35,7 +35,7 @@ These defaults are handed to Hydra in order to ensure that by default, we run a 
 
 If your task has other variables that you think will almost always be set to particular values (say you always expect `mephisto.blueprint.units_per_assignment` to be `1`) that differ from Mephisto's default for those values (if such a default exists), you can include them by default by adding a config file with your defaults to `conf` and adding the string path to it here in the list, like `conf/base`. See the ParlAI Chat demo for an example of this.
 #### Creating and using override files
-You can create override configuration files, such as `example.yaml` vs `onboarding_example.yaml` in the `conf` directory. Having these files makes it really easy to set multiple values at once. You can only select one such configuration file per run, using the `conf=example` argument.
+You can create override configuration files, such as `example_local_mock.yaml` vs `onboarding_example_local_mock.yaml` in the `conf` directory. Having these files makes it really easy to set multiple values at once. You can only select one such configuration file per run, using the `conf=example` argument.
 #### Overriding on the command line
 You can also override configuration variables on the command line. Say you want to launch your server on port 4000 rather than 3000, you can use:
 ```console

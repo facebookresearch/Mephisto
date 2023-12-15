@@ -9,7 +9,7 @@ This example script is to demonstrate how to launch a simple task using a html f
 
 This specific example can be run with:
 ```console
-python static_test_script.py
+python run_task.py
 ```
 
 and can additionally be launched with an onboarding step by specifying an onboarding qualification:
@@ -40,7 +40,7 @@ You can get window properties as such:
 To run tests locally you should first launch the task as follows:
 
 ```bash
-python static_test_script.py
+python run_task.py
 ```
 This will run the task.
 

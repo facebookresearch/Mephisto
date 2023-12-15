@@ -10,7 +10,6 @@ from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import task_script
 from mephisto.operations.hydra_config import build_default_task_config
 from mephisto.abstractions.blueprints.parlai_chat.parlai_chat_blueprint import (
-    BLUEPRINT_TYPE_PARLAI_CHAT,
     SharedParlAITaskState,
 )
 

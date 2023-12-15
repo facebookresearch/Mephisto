@@ -6,7 +6,7 @@
 
 **NOTE: These instructions are from before Hydra integration. They will need to be upated after Hydra integration**
 
-To run the example in this directory, modify `parlai_test_script.py` in the parent directory replacing:
+To run the example in this directory, modify `run_task.py` in the parent directory replacing:
 
 ```
 source_dir_path = f"{TASK_DIRECTORY}/custom_simple"
@@ -20,7 +20,7 @@ source_dir_path = f"{TASK_DIRECTORY}/custom_input_and_messages"
 
 You can then run the task with:
 ```
-python parlai_test_script.py --build-custom-task True
+python run_task.py --build-custom-task True
 ```
 
 ---

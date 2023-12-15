@@ -48,6 +48,8 @@ TaskReview app consists of server and client parts. To run them in separate step
 5. Inside the container run client: `cd /mephisto/mephisto/client/review_app/client/ && REACT_APP__API_URL=http://localhost:8081 PORT=3000 npm start`
 6. Open TaskReview app in your browser at (http://localhost:3001)](http://localhost:3001).
 
+---
+
 ## Prepare your Task app
 
 For compatibility with TaskReview app, you will need to create a separate "review" version of your app.
@@ -82,3 +84,15 @@ Example: [package.json](../../../examples/remote_procedure/mnist/webapp/package.
         `<div ref={appRef}>`
     - Rendered component must always return reference to `appRef`, like so `<div ref={appRef}>`
         - Example: comment #3 in [reviewapp.jsx](../../../examples/remote_procedure/mnist/webapp/src/reviewapp.jsx)
+
+---
+
+## TaskReview app UI
+
+A quick overview of how TaskReview looks like.
+
+_Note that if your Task doesn't provide a custom layout for TaskReview App, in Submission view you'll see a generic display of JSON data._
+
+![List of tasks](screenshots/task_list.png)
+![Generic submission view](screenshots/generic_submission_view.png)
+![Submission approval](screenshots/approve_unit.png)

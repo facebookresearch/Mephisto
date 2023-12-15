@@ -11,6 +11,10 @@ import { Button, Col, Form, Row } from "react-bootstrap";
 import { getQualifications, postQualification } from "requests/qualifications";
 import "./ModalForm.css";
 
+// TODO(#1058): [Review APP] Implement back-end for this functionality
+const BONUS_FOR_WORKER_ENABLED = false;
+const FEEDBACK_FOR_WORKER_ENABLED = false;
+
 const range = (start, end) => Array.from(Array(end + 1).keys()).slice(start);
 
 type ModalFormProps = {
@@ -92,6 +96,12 @@ function ModalForm(props: ModalFormProps) {
   const onChangeReviewNote = (value: string) => {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.reviewNote = value;
+    props.setData({ ...props.data, form: prevFormData });
+  };
+
+  const onChangeWriteReviewNoteSend = (value: boolean) => {
+    let prevFormData: FormType = Object(props.data.form);
+    prevFormData.checkboxReviewNoteSend = value;
     props.setData({ ...props.data, form: prevFormData });
   };
 
@@ -290,7 +300,7 @@ function ModalForm(props: ModalFormProps) {
 
       <hr />
 
-      {props.data.form.checkboxGiveBonus !== undefined && (
+      {BONUS_FOR_WORKER_ENABLED && props.data.form.checkboxGiveBonus !== undefined && (
         <>
           <Form.Check
             type={"checkbox"}
@@ -341,7 +351,7 @@ function ModalForm(props: ModalFormProps) {
 
       <Form.Check
         type={"checkbox"}
-        label={"Write Note"}
+        label={FEEDBACK_FOR_WORKER_ENABLED ? "Write Note" : "Write Note for Yourself"}
         id={"reviewNote"}
         checked={props.data.form.checkboxReviewNote}
         onChange={() =>
@@ -350,16 +360,33 @@ function ModalForm(props: ModalFormProps) {
       />
 
       {props.data.form.checkboxReviewNote && (
-        <Row className={"second-line"}>
-          <Col>
-            <Form.Control
-              size={"sm"}
-              as={"textarea"}
-              value={props.data.form.reviewNote}
-              onChange={(e) => onChangeReviewNote(e.target.value)}
-            />
-          </Col>
-        </Row>
+        <>
+          <Row className={"second-line"}>
+            <Col>
+              <Form.Control
+                size={"sm"}
+                as={"textarea"}
+                value={props.data.form.reviewNote}
+                onChange={(e) => onChangeReviewNote(e.target.value)}
+              />
+            </Col>
+          </Row>
+          {FEEDBACK_FOR_WORKER_ENABLED && (
+            <Row className={"second-line"}>
+              <Col>
+                <Form.Check
+                  type={"checkbox"}
+                  label={"Share this comment with the worker"}
+                  id={"reviewNoteSend"}
+                  checked={props.data.form.checkboxReviewNoteSend}
+                  onChange={() =>
+                    onChangeWriteReviewNoteSend(!props.data.form.checkboxReviewNoteSend)
+                  }
+                />
+              </Col>
+            </Row>
+          )}
+        </>
       )}
     </Form>
   );
