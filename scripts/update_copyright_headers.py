@@ -134,14 +134,14 @@ def _update_copyright_header(file_path: str, replace_existing: bool = False):
             if is_empty_line(i):
                 if i < anchor_line_number:
                     # Move up lower notice boundary only if previous line is not comment opening
-                    if line_has_words(i-1):
+                    if line_has_words(i - 1):
                         first_line_number = i + 1
                 else:
                     last_line_number = i - 1
                     # Set upper notice boundary only except cases when
                     # next line is a comment closing line followed by an empty line
                     # (Note: this fails if old copyright notice has line breaks in it)
-                    if not (not line_has_words(i+1) and is_empty_line(i+2)):
+                    if not (not line_has_words(i + 1) and is_empty_line(i + 2)):
                         break
 
         if last_line_number is None:

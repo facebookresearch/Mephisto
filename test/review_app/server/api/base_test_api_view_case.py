@@ -44,5 +44,5 @@ class BaseTestApiViewCase(unittest.TestCase):
         self.db.shutdown()
         shutil.rmtree(self.data_dir, ignore_errors=True)
 
-        # Clean Falsk app context
+        # Clean Flask app context
         self.app_context.pop()

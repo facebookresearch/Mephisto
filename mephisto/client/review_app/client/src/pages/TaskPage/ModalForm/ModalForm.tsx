@@ -300,38 +300,39 @@ function ModalForm(props: ModalFormProps) {
 
       <hr />
 
-      {BONUS_FOR_WORKER_ENABLED && props.data.form.checkboxGiveBonus !== undefined && (
-        <>
-          <Form.Check
-            type={"checkbox"}
-            label={"Give Bonus"}
-            id={"giveBonus"}
-            checked={props.data.form.checkboxGiveBonus}
-            onChange={() =>
-              onChangeGiveBonus(!props.data.form.checkboxGiveBonus)
-            }
-          />
+      {BONUS_FOR_WORKER_ENABLED &&
+        props.data.form.checkboxGiveBonus !== undefined && (
+          <>
+            <Form.Check
+              type={"checkbox"}
+              label={"Give Bonus"}
+              id={"giveBonus"}
+              checked={props.data.form.checkboxGiveBonus}
+              onChange={() =>
+                onChangeGiveBonus(!props.data.form.checkboxGiveBonus)
+              }
+            />
 
-          {props.data.form.checkboxGiveBonus && (
-            <Row className={"second-line"}>
-              <Col xs={4}>
-                <Form.Control
-                  size={"sm"}
-                  type={"input"}
-                  placeholder={"Bonus"}
-                  value={props.data.form.bonus || ""}
-                  onChange={(e) => onChangeBonus(e.target.value)}
-                />
-              </Col>
-              <Col>
-                <span>Amount (cents)</span>
-              </Col>
-            </Row>
-          )}
+            {props.data.form.checkboxGiveBonus && (
+              <Row className={"second-line"}>
+                <Col xs={4}>
+                  <Form.Control
+                    size={"sm"}
+                    type={"input"}
+                    placeholder={"Bonus"}
+                    value={props.data.form.bonus || ""}
+                    onChange={(e) => onChangeBonus(e.target.value)}
+                  />
+                </Col>
+                <Col>
+                  <span>Amount (cents)</span>
+                </Col>
+              </Row>
+            )}
 
-          <hr />
-        </>
-      )}
+            <hr />
+          </>
+        )}
 
       {props.data.form.checkboxBanWorker !== undefined && (
         <>
@@ -351,7 +352,9 @@ function ModalForm(props: ModalFormProps) {
 
       <Form.Check
         type={"checkbox"}
-        label={FEEDBACK_FOR_WORKER_ENABLED ? "Write Note" : "Write Note for Yourself"}
+        label={
+          FEEDBACK_FOR_WORKER_ENABLED ? "Write Note" : "Write Note for Yourself"
+        }
         id={"reviewNote"}
         checked={props.data.form.checkboxReviewNote}
         onChange={() =>
@@ -380,7 +383,9 @@ function ModalForm(props: ModalFormProps) {
                   id={"reviewNoteSend"}
                   checked={props.data.form.checkboxReviewNoteSend}
                   onChange={() =>
-                    onChangeWriteReviewNoteSend(!props.data.form.checkboxReviewNoteSend)
+                    onChangeWriteReviewNoteSend(
+                      !props.data.form.checkboxReviewNoteSend
+                    )
                   }
                 />
               </Col>

@@ -30,14 +30,14 @@ Shared state handles both custom and Prolific-supported qualifications:
 ```python
 shared_state.prolific_specific_qualifications = [
     {
-        'name': 'AgeRangeEligibilityRequirement',
-        'min_age': 18,
-        'max_age': 100,
+        "name": "AgeRangeEligibilityRequirement",
+        "min_age": 18,
+        "max_age": 100,
     },
 ]
 
 shared_state.qualifications = [
-    make_qualification_dict('sample_qual_name', QUAL_GREATER_EQUAL, 1),
+    make_qualification_dict("sample_qual_name", QUAL_GREATER_EQUAL, 1),
 ]
 ```
 
@@ -48,7 +48,7 @@ under the key `prolific_eligibility_requirements` like so:
 mephisto:
   provider:
     prolific_eligibility_requirements:
-      - name: 'AgeRangeEligibilityRequirement'
+      - name: "AgeRangeEligibilityRequirement"
         min_age: 10
         max_age: 20
 ```
@@ -63,35 +63,35 @@ List of supported Eligibility Requirements for `SharedState.prolific_specific_qu
 ```python
 [
     {
-        'name': 'AgeRangeEligibilityRequirement',
-        'min_age': '<value>',
-        'max_age': '<value>',
+        "name": "AgeRangeEligibilityRequirement",
+        "min_age": "<value>",
+        "max_age": "<value>",
     },
     {
-        'name': 'ApprovalNumbersEligibilityRequirement',
-        'minimum_approvals': '<value>',
-        'maximum_approvals': '<value>',
+        "name": "ApprovalNumbersEligibilityRequirement",
+        "minimum_approvals": "<value>",
+        "maximum_approvals": "<value>",
     },
     {
-        'name': 'ApprovalRateEligibilityRequirement',
-        'minimum_approval_rate': '<value>',
-        'maximum_approval_rate': '<value>',
+        "name": "ApprovalRateEligibilityRequirement",
+        "minimum_approval_rate": "<value>",
+        "maximum_approval_rate": "<value>",
     },
     {
-        'name': 'CustomBlacklistEligibilityRequirement',
-        'black_list': '<value>',
+        "name": "CustomBlacklistEligibilityRequirement",
+        "black_list": "<value>",
     },
     {
-        'name': 'CustomWhitelistEligibilityRequirement',
-        'white_list': '<value>',
+        "name": "CustomWhitelistEligibilityRequirement",
+        "white_list": "<value>",
     },
     {
-        'name': 'JoinedBeforeEligibilityRequirement',
-        'joined_before': '<value>',
+        "name": "JoinedBeforeEligibilityRequirement",
+        "joined_before": "<value>",
     },
     {
-        'name': 'ParticipantGroupEligibilityRequirement',
-        'id': '<value>',
+        "name": "ParticipantGroupEligibilityRequirement",
+        "id": "<value>",
     },
 ]
 ```

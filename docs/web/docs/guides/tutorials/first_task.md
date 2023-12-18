@@ -20,7 +20,7 @@ To get started, you can launch a task by executing a run script. For instance, l
 
 ```bash
 $ cd examples/simple_static_task
-$ python static_test_script.py
+$ python run_task.py
 ```
 
 This will launch a local HTTP server with the task hosted, based on the default configuration options:
@@ -31,13 +31,13 @@ defaults:
   - /mephisto/architect: local
   - /mephisto/provider: mock
 ```
-We'll dig into *how* this works [later](#33-default-abstraction-usage). 
+We'll dig into *how* this works [later](#33-default-abstraction-usage).
 
 ### 1.2 Access the task
 
 By default, the task should be hosted at `localhost:3000`. This default is set by the `LocalArchitect`, which is used based on the `- /mephisto/architect: local` line above. Navigating to this address should show you the preview view for the task.
 
-Actually being able to access this task is done by providing `worker_id` and `assignment_id` URL params, like `localhost:3000/?worker_id=x&assignment_id=1` The `MockProvider` interprets these to be a test worker, which you can use to try out tasks. 
+Actually being able to access this task is done by providing `worker_id` and `assignment_id` URL params, like `localhost:3000/?worker_id=x&assignment_id=1` The `MockProvider` interprets these to be a test worker, which you can use to try out tasks.
 
 Try navigating here and completing a task by selecting a value (no need to use the file upload). After hitting submit you'll note that the window alerts you to the data that was sent to the Mephisto backend.
 
@@ -45,7 +45,7 @@ To work on another task, you'll want to change the `assignment_id` in your url. 
 
 If you try to work on another task, you'll note that the system states you've worked on the maximum number of tasks. On this task, this is because Mephisto has launched the same two tasks twice to attempt to get different workers to complete them, and as "x" you've already completed both tasks. More on this [later.](#unit-creation-explained)
 
-If you change to another `worker_id`, however, you can complete two more tasks. Do this and the Mephisto process should shut down cleanly. 
+If you change to another `worker_id`, however, you can complete two more tasks. Do this and the Mephisto process should shut down cleanly.
 
 
 ### 1.3 Reviewing tasks
@@ -60,7 +60,7 @@ For your convenience, for the `html-static-task-example` task we've already prov
 $ python examine_results.py
 Do you want to (r)eview, or (e)xamine data? Default examine. Can put e <end> or e <start> <end> to choose how many to view
 >> r
-Input task name: 
+Input task name:
 ```
 
 Here we can enter the default task name for this task, `html-static-task-example` to see the results. You can also leave the two qualifications blank, as we aren't dealing with these yet.
@@ -68,16 +68,16 @@ Here we can enter the default task name for this task, `html-static-task-example
 ```
 Input task name: html-static-task-example
 If you'd like to soft-block workers, you'll need a block qualification. Leave blank otherwise.
-Enter block qualification: 
+Enter block qualification:
 If you'd like to qualify high-quality workers, you'll need an approve qualification. Leave blank otherwise.
-Enter approve qualification: 
+Enter approve qualification:
 Starting review with following params:
 Task name: html-static-task-example
 Blocking qualification: None
 Approve qualification: None
-Press enter to continue... 
+Press enter to continue...
 ```
-After pressing enter, you'll be able to take action on some of the incoming tasks. You can `(a)ccept, (r)eject, (p)ass` using `a`, `r`, or `p`, using the caps version to apply to all the `Unit`s for a specific worker. Passing is used for work you think was attempted legitimately, but may have not been done 
+After pressing enter, you'll be able to take action on some of the incoming tasks. You can `(a)ccept, (r)eject, (p)ass` using `a`, `r`, or `p`, using the caps version to apply to all the `Unit`s for a specific worker. Passing is used for work you think was attempted legitimately, but may have not been done
 ```
 Reviewing for worker x, (1/2), Previous (First time worker!) (total remaining: 4)
 -------------------
@@ -105,7 +105,7 @@ Mephisto configuration options can be inherited from a number of different locat
 ```bash
 $ mephisto wut architect=local
 
-                                     Architect Arguments                                     
+                                     Architect Arguments
 ╭────────────────────┬──────┬───────────┬──────────────────────────────┬─────────┬──────────╮
 │ dest               │ type │ default   │ help                         │ choices │ required │
 ├────────────────────┼──────┼───────────┼──────────────────────────────┼─────────┼──────────┤
@@ -127,10 +127,10 @@ $ mephisto wut architect=local
 **For the blueprint:**
 ```bash
 $ mephisto wut blueprint=static_task
-Tasks launched from static blueprints need a source html file to display to workers, 
-as well as a csv containing values that will be inserted into templates in the html. 
+Tasks launched from static blueprints need a source html file to display to workers,
+as well as a csv containing values that will be inserted into templates in the html.
 
-                                     Blueprint Arguments                                     
+                                     Blueprint Arguments
 ╭───────────────────┬─────────┬────────────────────┬───────────────────┬─────────┬──────────╮
 │ dest              │ type    │ default            │ help              │ choices │ required │
 ├───────────────────┼─────────┼────────────────────┼───────────────────┼─────────┼──────────┤
@@ -199,7 +199,7 @@ For our given example task, the values we are using for these options are availa
 
 As a simple starting point, we can try launching the server on a different port. Right now the default is `3000`, but with the following command we can set that ourselves:
 ```
-python static_test_script.py mephisto.architect.port=1234
+python run_task.py mephisto.architect.port=1234
 ```
 
 This should launch the same task, but now available on the port `1234` rather than `3000`.
@@ -237,7 +237,7 @@ mephisto:
 
 Save this configuration file, and you're ready to launch again:
 ```bash
-$ python static_test_script.py conf=my_config
+$ python run_task.py conf=my_config
 ```
 You'll note that Mephisto launches the task under your new task name:
 ```
@@ -282,7 +282,7 @@ mephisto:
 ```
 Save this configuration file, and you're ready to see your task live:
 ```bash
-$ python static_test_script.py conf=my_config
+$ python run_task.py conf=my_config
 ```
 Mephisto should print out a link to view your task on the mturk sandbox, like `https://workersandbox.mturk.com/mturk/preview?groupId=XXXXXXXXXXXXXXXX`. Navigate here and you're working on the same task, available on MTurk (on the sandbox at least)!
 
@@ -292,13 +292,13 @@ Complete this task, and you can review it in the same way as before.
 
 ## 3. Task breakdown
 
-Now that you've gotten a task running, this section gives a quick overview on some of the components in the configs and `static_test_script.py` that led to the observed behaviors. The goal is to ensure you can write your own run files by the end of the tutorial sections.
+Now that you've gotten a task running, this section gives a quick overview on some of the components in the configs and `run_task.py` that led to the observed behaviors. The goal is to ensure you can write your own run files by the end of the tutorial sections.
 
 ### 3.1 Config registration
-Mephisto wires up to configuration using standard Hydra syntax, but with both `yaml` files (for ease of writing) _and_ structured configs (for ease of documentation). 
+Mephisto wires up to configuration using standard Hydra syntax, but with both `yaml` files (for ease of writing) _and_ structured configs (for ease of documentation).
 Here's the config we've set up for this example:
 ```python
-# static_test_script.py
+# run_task.py
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
     BLUEPRINT_TYPE_STATIC_HTML,
 )
@@ -312,7 +312,7 @@ This is all you really *need* to launch a Mephisto task! The `@task_script` deco
 
 Of course, there's quite a bit of 'magic' happening underneath the hood thanks to the script utilities. This version is explicit to show where you may add customization, and re-ordered for understanding:
 ```python
-# modified static_test_script.py
+# modified run_task.py
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
     BLUEPRINT_TYPE_STATIC_HTML,
 )

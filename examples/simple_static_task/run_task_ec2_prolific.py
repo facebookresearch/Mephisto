@@ -20,7 +20,7 @@ def main(operator, cfg: DictConfig) -> None:
 
     # Mephisto qualifications
     shared_state.qualifications = [
-        make_qualification_dict('sample_qual_name', QUAL_GREATER_EQUAL, 1),
+        make_qualification_dict("sample_qual_name", QUAL_GREATER_EQUAL, 1),
     ]
 
     # Prolific qualifications

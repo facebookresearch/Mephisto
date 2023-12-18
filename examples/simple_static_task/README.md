@@ -15,11 +15,11 @@ python run_task.py
 and can additionally be launched with an onboarding step by specifying an onboarding qualification:
 
 ```console
-python static_run_with_onboarding.py
+python run_task_with_onboarding.py
 ```
 
 ## Submit button customization
-### Hide the submit button 
+### Hide the submit button
 Writing the markup below in `demo_task.html` will allow you to hide the submit button.
 
 ```html
@@ -44,10 +44,10 @@ python run_task.py
 ```
 This will run the task.
 
-Then go into the `mephisto/abstractions/blueprints/static_html_task/source` and run 
+Then go into the `mephisto/abstractions/blueprints/static_html_task/source` and run
 ```console
 npm run test
-``` 
+```
 to open cypress.
 
 Select the Chrome browser and click on the one spec that shows up to run the tests.
