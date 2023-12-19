@@ -5,35 +5,38 @@
  */
 
 import React from "react";
-import { fieldIsRequired } from '../validation';
+import { checkFieldRequiredness } from "../validation/helpers";
+import { Errors } from "./Errors";
 
 function TextareaField({
-  field, updateFormData, disabled, initialFormData, isInReviewState, isInvalid, validationErrors,
+  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
 }) {
   const initialValue = initialFormData ? initialFormData[field.name] : "";
 
-  return (<>
-    <textarea
-      className={`
-        form-control
-        ${isInvalid ? "is-invalid" : ""}
-      `}
-      id={field.id}
-      name={field.name}
-      placeholder={field.placeholder}
-      style={field.style}
-      required={fieldIsRequired(field)}
-      defaultValue={initialValue}
-      onChange={(e) => !disabled && updateFormData(e, field.name, e.target.value)}
-      disabled={disabled}
-    />
+  return (
+    // bootstrap classes:
+    //  - form-control
+    //  - is-invalid
 
-    {validationErrors && (
-      <div className={`invalid-feedback`}>
-        {validationErrors.join("\n")}
-      </div>
-    )}
-  </>);
+    <>
+      <textarea
+        className={`
+          form-control
+          ${invalid ? "is-invalid" : ""}
+        `}
+        id={field.id}
+        name={field.name}
+        placeholder={field.placeholder}
+        style={field.style}
+        required={checkFieldRequiredness(field)}
+        defaultValue={initialValue}
+        onChange={(e) => !disabled && updateFormData(e, field.name, e.target.value)}
+        disabled={disabled}
+      />
+
+      <Errors messages={validationErrors} />
+    </>
+  );
 }
 
 export { TextareaField };

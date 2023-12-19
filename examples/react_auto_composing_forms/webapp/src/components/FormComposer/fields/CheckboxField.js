@@ -5,9 +5,10 @@
  */
 
 import React from "react";
+import { Errors } from "./Errors";
 
 function CheckboxField({
-  field, updateFormData, disabled, initialFormData, isInReviewState, isInvalid, validationErrors,
+  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
 }) {
   const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
   const [widgetValue, setWidgetValue] = React.useState({});
@@ -36,42 +37,47 @@ function CheckboxField({
     updateFormData(lastCheckEvent, field.name, widgetValue);
   }, [widgetValue]);
 
-  return (<>
-    {field.options.map(( option, index ) => {
-      const checked = (
-        initialFormData
-          ? initialValue[option.value]
-          : widgetValue[option.value]
-      );
+  return (
+    // bootstrap classes:
+    //  - form-check
+    //  - is-invalid
+    //  - disabled
+    //  - form-check-input
+    //  - form-check-label
 
-      return (
-        <div
-          key={`option-${field.id}-${index}`}
-          className={`
-            form-check
-            ${field.type} ${disabled ? "disabled" : ""}
-            ${isInvalid ? "is-invalid" : ""}
-          `}
-          onClick={(e) => !disabled && updateFieldData(e, option.value, !checked)}
-        >
-          <span
-            className={`form-check-input ${checked ? "checked" : ""}`}
-            id={`${field.id}-${index}`}
-            style={field.style}
-          />
-          <span className={`form-check-label`}>
-            {option.label}
-          </span>
-        </div>
-      );
-    })}
+    <>
+      {field.options.map(( option, index ) => {
+        const checked = (
+          initialFormData
+            ? initialValue[option.value]
+            : widgetValue[option.value]
+        );
 
-    {validationErrors && (
-      <div className={`invalid-feedback`}>
-        {validationErrors.join("\n")}
-      </div>
-    )}
-  </>);
+        return (
+          <div
+            key={`option-${field.id}-${index}`}
+            className={`
+              form-check
+              ${field.type} ${disabled ? "disabled" : ""}
+              ${invalid ? "is-invalid" : ""}
+            `}
+            onClick={(e) => !disabled && updateFieldData(e, option.value, !checked)}
+          >
+            <span
+              className={`form-check-input ${checked ? "checked" : ""}`}
+              id={`${field.id}-${index}`}
+              style={field.style}
+            />
+            <span className={`form-check-label`}>
+              {option.label}
+            </span>
+          </div>
+        );
+      })}
+
+      <Errors messages={validationErrors} />
+    </>
+  );
 }
 
 export { CheckboxField };

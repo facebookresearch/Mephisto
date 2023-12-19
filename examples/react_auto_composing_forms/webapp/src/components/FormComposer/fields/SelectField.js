@@ -8,10 +8,11 @@ import React from "react";
 import $ from "jquery";
 import "bootstrap"
 import "bootstrap-select";
-import { fieldIsRequired } from '../validation';
+import { checkFieldRequiredness } from "../validation/helpers";
+import { Errors } from "./Errors";
 
 function SelectField({
-  field, updateFormData, disabled, initialFormData, isInReviewState, isInvalid, validationErrors,
+  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
 }) {
   const initialValue = (
     initialFormData
@@ -29,58 +30,61 @@ function SelectField({
   }
 
   React.useEffect(() => {
-    if (isInvalid) {
+    if (invalid) {
       $(`.bootstrap-select.select-${field.name}`).addClass("is-invalid");
     } else {
       $(`.bootstrap-select.select-${field.name}`).removeClass("is-invalid");
     }
-  }, [isInvalid]);
+  }, [invalid]);
 
   React.useEffect(() => {
     $(`.selectpicker.select-${field.name}`).selectpicker();
   }, []);
 
-  return (<>
-    <select
-      className={`
-        form-control 
-        selectpicker
-        select-${field.name}
-        ${isInvalid ? "is-invalid" : ""}
-      `}
-      id={field.id}
-      name={field.name}
-      placeholder={field.placeholder}
-      style={field.style}
-      required={fieldIsRequired(field)}
-      defaultValue={initialValue}
-      onChange={(e) => !disabled && onChange(e, field.name)}
-      multiple={field.multiple}
-      disabled={disabled}
-      data-actions-box={field.multiple ? true : null}
-      data-live-search={true}
-      data-selected-text-format={field.multiple ? "count > 1" : null}
-      data-title={isInReviewState ? initialValue : null}
-      data-width={"100%"}
-    >
-      {field.options.map(( option, index ) => {
-        return (
-          <option
-            key={`option-${field.id}-${index}`}
-            value={option.value}
-          >
-            {option.name}
-          </option>
-        );
-      })}
-    </select>
+  return (
+    // bootstrap classes:
+    //  - form-control
+    //  - is-invalid
+    //  - selectpicker
 
-    {validationErrors && (
-      <div className={`invalid-feedback`}>
-        {validationErrors.join("\n")}
-      </div>
-    )}
-  </>);
+    <>
+      <select
+        className={`
+          form-control 
+          selectpicker
+          select-${field.name}
+          ${invalid ? "is-invalid" : ""}
+        `}
+        id={field.id}
+        name={field.name}
+        placeholder={field.placeholder}
+        style={field.style}
+        required={checkFieldRequiredness(field)}
+        defaultValue={initialValue}
+        onChange={(e) => !disabled && onChange(e, field.name)}
+        multiple={field.multiple}
+        disabled={disabled}
+        data-actions-box={field.multiple ? true : null}
+        data-live-search={true}
+        data-selected-text-format={field.multiple ? "count > 1" : null}
+        data-title={inReviewState ? initialValue : null}
+        data-width={"100%"}
+      >
+        {field.options.map(( option, index ) => {
+          return (
+            <option
+              key={`option-${field.id}-${index}`}
+              value={option.value}
+            >
+              {option.name}
+            </option>
+          );
+        })}
+      </select>
+
+      <Errors messages={validationErrors} />
+    </>
+  );
 }
 
 export { SelectField };

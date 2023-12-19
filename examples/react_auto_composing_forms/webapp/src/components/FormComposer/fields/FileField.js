@@ -5,10 +5,11 @@
  */
 
 import React from "react";
-import { fieldIsRequired } from '../validation';
+import { checkFieldRequiredness } from "../validation/helpers";
+import { Errors } from "./Errors";
 
 function FileField({
-  field, updateFormData, disabled, initialFormData, isInReviewState, isInvalid, validationErrors,
+  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
 }) {
   const [widgetValue, setWidgetValue] = React.useState("");
 
@@ -42,21 +43,27 @@ function FileField({
   }, []);
 
   return (
+    // bootstrap classes:
+    //  - custom-file
+    //  - is-invalid
+    //  - custom-file-input
+    //  - custom-file-label
+
     <div className={`
       custom-file 
-      ${isInvalid ? "is-invalid" : ""}
+      ${invalid ? "is-invalid" : ""}
     `}>
       <input
         className={`
           custom-file-input 
-          ${isInvalid ? "is-invalid" : ""}
+          ${invalid ? "is-invalid" : ""}
         `}
         id={field.id}
         name={field.name}
         type={field.type}
         placeholder={field.placeholder}
         style={field.style}
-        required={fieldIsRequired(field)}
+        required={checkFieldRequiredness(field)}
         onChange={(e) => !disabled && onChange(e, field.name)}
         disabled={disabled}
       />
@@ -65,11 +72,7 @@ function FileField({
         {widgetValue}
       </span>
 
-      {validationErrors && (
-        <div className={`invalid-feedback`}>
-          {validationErrors.join("\n")}
-        </div>
-      )}
+      <Errors messages={validationErrors} />
     </div>
   );
 }

@@ -4,8 +4,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from "react";
 import $ from "jquery";
+import React from "react";
 import { CheckboxField } from "./fields/CheckboxField";
 import { FileField } from "./fields/FileField";
 import { InputField } from "./fields/InputField";
@@ -13,14 +13,14 @@ import { RadioField } from "./fields/RadioField";
 import { SelectField } from "./fields/SelectField";
 import { TextareaField } from "./fields/TextareaField";
 import "./FormComposer.css";
-import { fieldIsRequired, validatorsByName } from './validation';
+import { checkFieldRequiredness, validateFormFields } from "./validation/helpers";
 
 function FormComposer({ data, onSubmit, finalResults }) {
   const [invalidFormFields, setInvalidFormFields] = React.useState({});
   const [form, setForm] = React.useState({});
   const [fields, setFields] = React.useState({});
 
-  const isInReviewState = finalResults !== null;
+  const inReviewState = finalResults !== null;
 
   let formName = data.name;
   let formInstruction = data.instruction;
@@ -43,45 +43,8 @@ function FormComposer({ data, onSubmit, finalResults }) {
     const formElement = e.currentTarget;
     const formFieldElements = $.unique(Object.values(formElement.elements));
 
-    const _invalidFormFields = {};
-
-    formFieldElements.forEach((formFieldElement) => {
-      const _field = fields[formFieldElement.name];
-
-      if (!_field) {
-        return;
-      }
-
-      const fieldValidators = _field.validators || {};
-
-      Object.entries(fieldValidators).forEach((validator) => {
-        const [validatorName, validatorArguments] = validator;
-
-        if (!validatorsByName.hasOwnProperty(validatorName)) {
-          console.warn(
-            `You tried to validate field "${_field.name}" with validator "${validatorName}". ` +
-            `"FormComposer" does not support this validator, so we just ignore it`
-          )
-          return;
-        }
-
-        const validationResult = validatorsByName[validatorName](
-          _field,
-          formFieldElement,
-          ...validatorArguments,
-        );
-
-        if (validationResult) {
-          _invalidFormFields[_field.name] = [
-            ...(_invalidFormFields[_field.name] || []),
-            validationResult,
-          ];
-        }
-      });
-    });
-
-
     // Set new invalid fields
+    const _invalidFormFields = validateFormFields(formFieldElements, fields);
     setInvalidFormFields(_invalidFormFields);
 
     return !Object.keys(_invalidFormFields).length;
@@ -263,7 +226,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     field
                                     form-group
                                     col
-                                    ${fieldIsRequired(field) ? "required" : ""}`
+                                    ${checkFieldRequiredness(field) ? "required" : ""}`
                                   }
                                 >
 
@@ -278,10 +241,10 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     <InputField
                                       field={field}
                                       updateFormData={updateFormData}
-                                      disabled={isInReviewState}
+                                      disabled={inReviewState}
                                       initialFormData={finalResults}
-                                      isInReviewState={isInReviewState}
-                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      inReviewState={inReviewState}
+                                      invalid={(invalidFormFields[field.name] || []).length}
                                       validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
@@ -290,10 +253,10 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     <TextareaField
                                       field={field}
                                       updateFormData={updateFormData}
-                                      disabled={isInReviewState}
+                                      disabled={inReviewState}
                                       initialFormData={finalResults}
-                                      isInReviewState={isInReviewState}
-                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      inReviewState={inReviewState}
+                                      invalid={(invalidFormFields[field.name] || []).length}
                                       validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
@@ -302,10 +265,10 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     <CheckboxField
                                       field={field}
                                       updateFormData={updateFormData}
-                                      disabled={isInReviewState}
+                                      disabled={inReviewState}
                                       initialFormData={finalResults}
-                                      isInReviewState={isInReviewState}
-                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      inReviewState={inReviewState}
+                                      invalid={(invalidFormFields[field.name] || []).length}
                                       validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
@@ -314,10 +277,10 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     <RadioField
                                       field={field}
                                       updateFormData={updateFormData}
-                                      disabled={isInReviewState}
+                                      disabled={inReviewState}
                                       initialFormData={finalResults}
-                                      isInReviewState={isInReviewState}
-                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      inReviewState={inReviewState}
+                                      invalid={(invalidFormFields[field.name] || []).length}
                                       validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
@@ -326,10 +289,10 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     <SelectField
                                       field={field}
                                       updateFormData={updateFormData}
-                                      disabled={isInReviewState}
+                                      disabled={inReviewState}
                                       initialFormData={finalResults}
-                                      isInReviewState={isInReviewState}
-                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      inReviewState={inReviewState}
+                                      invalid={(invalidFormFields[field.name] || []).length}
                                       validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
@@ -338,10 +301,10 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     <FileField
                                       field={field}
                                       updateFormData={updateFormData}
-                                      disabled={isInReviewState}
+                                      disabled={inReviewState}
                                       initialFormData={finalResults}
-                                      isInReviewState={isInReviewState}
-                                      isInvalid={(invalidFormFields[field.name] || []).length}
+                                      inReviewState={inReviewState}
+                                      invalid={(invalidFormFields[field.name] || []).length}
                                       validationErrors={(invalidFormFields[field.name] || [])}
                                     />
                                   )}
@@ -372,7 +335,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
         })}
       </div>
 
-      {(formSubmitButton && !isInReviewState) && (<>
+      {(formSubmitButton && !inReviewState) && (<>
         <hr className={`form-buttons-separator`} />
 
         <div className={`form-buttons container`}>
