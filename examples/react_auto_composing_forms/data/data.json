@@ -25,7 +25,11 @@
                       "style": {},
                       "title": "First name of a person",
                       "type": "input",
-                      "validators": {"required": [true], "minLength": [2]},
+                      "validators": {
+                        "required": true,
+                        "minLength": 2,
+                        "maxLength": 20
+                      },
                       "value": ""
                     },
                     {
@@ -36,7 +40,10 @@
                       "label": "Last name",
                       "name": "name_last",
                       "placeholder": "Type last name",
-                      "validators": {"required": [true]},
+                      "validators": {
+                        "required": true,
+                        "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
+                      },
                       "style": {},
                       "title": "Last name of a person",
                       "type": "input",
@@ -55,7 +62,7 @@
                       "label": "Email address",
                       "name": "email",
                       "placeholder": "user@example.com",
-                      "validators": {"required": [true]},
+                      "validators": {"required": true},
                       "style": {},
                       "title": "Email address",
                       "type": "email",
@@ -94,7 +101,7 @@
                         }
                       ],
                       "placeholder": "",
-                      "validators": {"required": [true]},
+                      "validators": {"required": true},
                       "style": {},
                       "title": "Country",
                       "type": "select",
@@ -123,7 +130,7 @@
                         }
                       ],
                       "placeholder": "",
-                      "validators": {"required": [false]},
+                      "validators": {"required": false},
                       "style": {},
                       "title": "Language",
                       "type": "select",
@@ -148,7 +155,7 @@
                       "label": "Biography",
                       "name": "bio",
                       "placeholder": "",
-                      "validators": {"required": [false]},
+                      "validators": {"required": false},
                       "style": {},
                       "title": "Bio",
                       "type": "textarea",
@@ -182,7 +189,7 @@
                           "value": "python"
                         }
                       ],
-                      "validators": {"required": [false]},
+                      "validators": {"required": false},
                       "style": {},
                       "title": "Skills you have",
                       "type": "checkbox"
@@ -220,7 +227,7 @@
                           "value": ">=3"
                         }
                       ],
-                      "validators": {"required": [false]},
+                      "validators": {"required": false},
                       "style": {},
                       "title": "How many children do you have?",
                       "type": "radio"
@@ -237,7 +244,7 @@
                       "label": "Avatar",
                       "name": "avatar",
                       "placeholder": "Select a file",
-                      "validators": {"required": [true]},
+                      "validators": {"required": true},
                       "style": {},
                       "title": "Avatar",
                       "type": "file",
@@ -251,7 +258,7 @@
                       "label": "Resume",
                       "name": "resume",
                       "placeholder": "Select a file",
-                      "validators": {"required": [false]},
+                      "validators": {"required": false},
                       "style": {},
                       "title": "Resume",
                       "type": "file",

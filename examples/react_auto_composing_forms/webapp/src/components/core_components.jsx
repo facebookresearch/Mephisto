@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { FormComposer } from './FormComposer/FormComposer';
+import { FormComposer } from "./FormComposer/FormComposer";
 
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;
