@@ -1,0 +1,329 @@
+[
+  {
+    "form": {
+      "name": "Form example",
+      "instruction": "Please answer all questions to the best of your ability as part of our study.",
+      "sections": [
+        {
+          "name": "About you",
+          "instruction": "Please introduce yourself. We would like to know more about your background, personal information, etc.",
+          "fieldsets": [
+            {
+              "name": "Personal information",
+              "instruction": "",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_name_first",
+                      "label": "First name",
+                      "name": "name_first",
+                      "placeholder": "Type first name",
+                      "style": {},
+                      "title": "Your first name",
+                      "type": "input",
+                      "validators": {
+                        "required": true,
+                        "minLength": 2,
+                        "maxLength": 20
+                      },
+                      "value": ""
+                    },
+                    {
+                      "class": "",
+                      "help": "Optional",
+                      "icon": "",
+                      "id": "id_name_last",
+                      "label": "Last name",
+                      "name": "name_last",
+                      "placeholder": "Type last name",
+                      "style": {},
+                      "title": "Your last name",
+                      "type": "input",
+                      "validators": {"required": true},
+                      "value": ""
+                    }
+                  ],
+                  "help": "Please use your legal name"
+                },
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "We may contact you later for additional information",
+                      "icon": "",
+                      "id": "id_email",
+                      "label": "Email address for Mephisto",
+                      "name": "email",
+                      "placeholder": "user@mephisto.ai",
+                      "style": {},
+                      "title": "Email address for Mephisto",
+                      "type": "email",
+                      "validators": {
+                        "required": true,
+                        "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
+                      },
+                      "value": ""
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Cultural background",
+              "instruction": "Please tell us about your cultural affiliations and values that you use in your daily life.",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "Select country of your residence",
+                      "icon": "",
+                      "id": "id_country",
+                      "label": "Country",
+                      "multiple": false,
+                      "name": "country",
+                      "options": [
+                        {
+                          "name": "---",
+                          "value": ""
+                        },
+                        {
+                          "name": "United States of America",
+                          "value": "USA"
+                        },
+                        {
+                          "name": "Canada",
+                          "value": "CAN"
+                        }
+                      ],
+                      "placeholder": "",
+                      "style": {},
+                      "title": "Country",
+                      "type": "select",
+                      "validators": {"required": true},
+                      "value": ""
+                    },
+                    {
+                      "class": "",
+                      "help": "Select language spoken in your local community",
+                      "icon": "",
+                      "id": "id_language",
+                      "label": "Language",
+                      "multiple": true,
+                      "name": "language",
+                      "options": [
+                        {
+                          "name": "English",
+                          "value": "en"
+                        },
+                        {
+                          "name": "French",
+                          "value": "fr"
+                        },
+                        {
+                          "name": "Spanish",
+                          "value": "es"
+                        },
+                        {
+                          "name": "Chinese",
+                          "value": "ch"
+                        }
+                      ],
+                      "placeholder": "",
+                      "style": {},
+                      "title": "Language",
+                      "type": "select",
+                      "validators": {
+                        "required": true,
+                        "minLength": 2,
+                        "maxLength": 3
+                      },
+                      "value": ""
+                    }
+                  ]
+                }
+              ],
+              "help": "This information will help us compile study statistics"
+            },
+            {
+              "name": "Additional information",
+              "instruction": "Optional details about you. You can fill out what you are most comfortable with.",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_bio",
+                      "label": "Biography",
+                      "name": "bio",
+                      "placeholder": "",
+                      "style": {},
+                      "title": "Your bio in a few apragraphs",
+                      "type": "textarea",
+                      "validators": {"required": false},
+                      "value": ""
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_skills",
+                      "label": "Technical Skills",
+                      "name": "skills",
+                      "options": [
+                        {
+                          "checked": false,
+                          "label": "React",
+                          "value": "react"
+                        },
+                        {
+                          "checked": true,
+                          "label": "JavaScript",
+                          "value": "javascript"
+                        },
+                        {
+                          "checked": false,
+                          "label": "Python",
+                          "value": "python"
+                        },
+                        {
+                          "checked": false,
+                          "label": "SQL",
+                          "value": "sql"
+                        }
+                      ],
+                      "style": {},
+                      "title": "Technical skills you may possess",
+                      "type": "checkbox",
+                      "validators": {
+                        "required": true,
+                        "minLength": 2,
+                        "maxLength": 3
+                      }
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_kids",
+                      "label": "How many children do you have?",
+                      "name": "kids",
+                      "options": [
+                        {
+                          "checked": false,
+                          "label": "None",
+                          "value": "0"
+                        },
+                        {
+                          "checked": false,
+                          "label": "One",
+                          "value": "1"
+                        },
+                        {
+                          "checked": false,
+                          "label": "Two",
+                          "value": "2"
+                        },
+                        {
+                          "checked": false,
+                          "label": "Three or more",
+                          "value": ">=3"
+                        }
+                      ],
+                      "style": {},
+                      "title": "How many children do you have?",
+                      "type": "radio",
+                      "validators": {"required": true}
+                    }
+                  ]
+                },
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_avatar",
+                      "label": "Profile Picture",
+                      "name": "avatar",
+                      "placeholder": "Select a file",
+                      "style": {},
+                      "title": "Your profile photo",
+                      "type": "file",
+                      "validators": {"required": true},
+                      "value": ""
+                    },
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_resume",
+                      "label": "Resume",
+                      "name": "resume",
+                      "placeholder": "Select a file",
+                      "style": {},
+                      "title": "Your current resume",
+                      "type": "file",
+                      "validators": {"required": false},
+                      "value": ""
+                    }
+                  ]
+                }
+              ],
+              "help": "Some additional details about your persona"
+            }
+          ]
+        },
+        {
+          "name": "Second section",
+          "instruction": "Example of another section",
+          "fieldsets" : [
+            {
+              "name": "Motivation",
+              "instruction": "",
+              "rows": [
+                {
+                  "fields": [
+                    {
+                      "class": "",
+                      "help": "",
+                      "icon": "",
+                      "id": "id_motto",
+                      "label": "Personal Motto",
+                      "name": "motto",
+                      "placeholder": "",
+                      "style": {},
+                      "title": "Your personal motto",
+                      "type": "input",
+                      "validators": {"required": true},
+                      "value": ""
+                    }
+                  ],
+                  "help": "Please type in your favorite personal motto"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "submit_button": {
+        "text": "Submit",
+        "title": "Submit form"
+      }
+    }
+  }
+]
