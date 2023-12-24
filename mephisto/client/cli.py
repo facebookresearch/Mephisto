@@ -7,32 +7,31 @@ import os
 import subprocess
 from typing import List
 
-from flask.cli import pass_script_info
-from omegaconf import DictConfig
-
-from mephisto.tools.scripts import task_script
-from rich import print
-
-from mephisto.client.cli_commands import get_wut_arguments
-from mephisto.operations.registry import get_valid_provider_types
-from mephisto.tools.scripts import build_custom_bundle
-from mephisto.utils.rich import console, create_table
 import rich_click as click  # type: ignore
-from rich_click import RichCommand, RichGroup
+from flask.cli import pass_script_info
+from rich import print
 from rich.markdown import Markdown
-import mephisto.scripts.local_db.review_tips_for_task as review_tips_local_db
+from rich_click import RichCommand
+from rich_click import RichGroup
+
+import mephisto.scripts.heroku.initialize_heroku as initialize_heroku
+import mephisto.scripts.local_db.clear_worker_onboarding as clear_worker_onboarding_local_db
+import mephisto.scripts.local_db.load_data_to_mephisto_db as load_data_local_db
 import mephisto.scripts.local_db.remove_accepted_tip as remove_accepted_tip_local_db
 import mephisto.scripts.local_db.review_feedback_for_task as review_feedback_local_db
-import mephisto.scripts.local_db.load_data_to_mephisto_db as load_data_local_db
-import mephisto.scripts.local_db.clear_worker_onboarding as clear_worker_onboarding_local_db
-import mephisto.scripts.heroku.initialize_heroku as initialize_heroku
-import mephisto.scripts.metrics.view_metrics as view_metrics
+import mephisto.scripts.local_db.review_tips_for_task as review_tips_local_db
 import mephisto.scripts.metrics.shutdown_metrics as shutdown_metrics
+import mephisto.scripts.metrics.view_metrics as view_metrics
 import mephisto.scripts.mturk.cleanup as cleanup_mturk
 import mephisto.scripts.mturk.identify_broken_units as identify_broken_units_mturk
 import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as print_outstanding_hit_status_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
+from mephisto.client.cli_commands import get_wut_arguments
+from mephisto.operations.registry import get_valid_provider_types
+from mephisto.tools.scripts import build_custom_bundle
+from mephisto.utils.rich import console
+from mephisto.utils.rich import create_table
 
 
 @click.group(cls=RichGroup)
@@ -409,26 +408,30 @@ def review_app(
 
 
 @cli.command("form_composer", cls=RichCommand)
-@click.option("-c", "--config-path", type=(str))
-@click.option("-f", "--force-rebuild", type=(bool), default=False)
-def form_composer(config_path, force_rebuild):
-    # TODO [form-builder-app]: This is just an example (work in progress)
-    from mephisto.operations.operator import Operator
+def form_composer():
+    # Get app path to run Python script from there (instead of the current file's directory).
+    # This is necessasry, because the whole infrastructure is built relative to the location
+    # of the called command-line script.
+    # The other parts of the logic are inside `form_composer/run.py` script
+    app_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "generators",
+        "form_composer",
+    )
+    os.chdir(app_path)
 
-    @task_script(default_config_file=config_path)
-    def main(operator: Operator, cfg: DictConfig) -> None:
-        task_dir = cfg.task_dir
+    # Start the process
+    process = subprocess.Popen("python ./run.py", shell=True, cwd=app_path)
 
-        build_custom_bundle(
-            task_dir,
-            force_rebuild=force_rebuild or cfg.mephisto.task.force_rebuild,
-            post_install_script=cfg.mephisto.task.post_install_script,
-        )
-
-        operator.launch_task_run(cfg.mephisto)
-        operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
-
-    main()
+    # Kill subprocess when we interrupt the main process
+    try:
+        process.wait()
+    except (KeyboardInterrupt, Exception):
+        try:
+            process.terminate()
+        except OSError:
+            pass
+        process.wait()
 
 
 if __name__ == "__main__":
