@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -100,7 +100,12 @@ class ProlificAgent(Agent):
 
         return super().new_from_provider_data(db, worker, unit, provider_data)
 
-    def approve_work(self) -> None:
+    def approve_work(
+        self,
+        review_note: Optional[str] = None,
+        bonus: Optional[str] = None,
+        skip_unit_review: bool = False,
+    ) -> None:
         """Approve the work done on this specific Unit"""
         logger.debug(f"{self.log_prefix}Approving work")
 
@@ -111,10 +116,11 @@ class ProlificAgent(Agent):
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_participant_id()
+
+        datastore_unit = self.datastore.get_unit(self.unit_id)
         prolific_utils.approve_work(
             client,
-            study_id=prolific_study_id,
-            worker_id=worker_id,
+            submission_id=datastore_unit["prolific_submission_id"],
         )
 
         logger.debug(
@@ -125,17 +131,29 @@ class ProlificAgent(Agent):
 
         self.update_status(AgentState.STATUS_APPROVED)
 
-    def soft_reject_work(self) -> None:
+        if not skip_unit_review:
+            unit = self.get_unit()
+            self.db.new_unit_review(
+                unit_id=unit.db_id,
+                task_id=unit.task_id,
+                worker_id=unit.worker_id,
+                status=AgentState.STATUS_APPROVED,
+                review_note=review_note,
+                bonus=bonus,
+            )
+
+    def soft_reject_work(self, review_note: Optional[str] = None) -> None:
         """Mark as soft rejected on Mephisto and approve Worker on Prolific"""
-        super().soft_reject_work()
+        super().soft_reject_work(review_note=review_note)
 
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_participant_id()
+
+        datastore_unit = self.datastore.get_unit(self.unit_id)
         prolific_utils.approve_work(
             client,
-            study_id=prolific_study_id,
-            worker_id=worker_id,
+            submission_id=datastore_unit["prolific_submission_id"],
         )
 
         logger.debug(
@@ -144,7 +162,7 @@ class ProlificAgent(Agent):
             f"has been soft rejected"
         )
 
-    def reject_work(self, reason) -> None:
+    def reject_work(self, review_note: Optional[str] = None) -> None:
         """Reject the work done on this specific Unit"""
         logger.debug(f"{self.log_prefix}Rejecting work")
 
@@ -155,6 +173,7 @@ class ProlificAgent(Agent):
         client = self._get_client()
         prolific_study_id = self.unit.get_prolific_study_id()
         worker_id = self.worker.get_prolific_participant_id()
+        datastore_unit = self.datastore.get_unit(self.unit_id)
 
         # [Depends on Prolific] remove this suppression of exception when Prolific fixes their API
         from .api.exceptions import ProlificException
@@ -162,8 +181,7 @@ class ProlificAgent(Agent):
         try:
             prolific_utils.reject_work(
                 client,
-                study_id=prolific_study_id,
-                worker_id=worker_id,
+                submission_id=datastore_unit["prolific_submission_id"],
             )
         except ProlificException:
             logger.info(
@@ -174,10 +192,19 @@ class ProlificAgent(Agent):
         logger.debug(
             f"{self.log_prefix}"
             f'Work for Study "{prolific_study_id}" completed by worker "{worker_id}" '
-            f"has been rejected. Reason: {reason}"
+            f"has been rejected. Review note: {review_note}"
         )
 
         self.update_status(AgentState.STATUS_REJECTED)
+
+        unit = self.get_unit()
+        self.db.new_unit_review(
+            unit_id=unit.db_id,
+            task_id=unit.task_id,
+            worker_id=unit.worker_id,
+            status=AgentState.STATUS_REJECTED,
+            review_note=review_note,
+        )
 
     def mark_done(self) -> None:
         """

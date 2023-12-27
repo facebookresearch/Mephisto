@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -91,6 +91,13 @@ class StaticBlueprintArgs(
     )
     units_per_assignment: int = field(
         default=1, metadata={"help": "How many workers you want to do each assignment"}
+    )
+    task_source_review: str = field(
+        default="",
+        metadata={
+            "help": "Path to file containing javascript bundle for the task review application",
+            "required": False,
+        },
     )
     extra_source_dir: str = field(
         default=MISSING,

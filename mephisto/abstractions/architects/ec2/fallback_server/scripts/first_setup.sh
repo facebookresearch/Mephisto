@@ -1,3 +1,7 @@
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 echo "Installing requirements"
 sudo yum update -y >> /home/ec2-user/setup_log.txt 2>&1
 sudo yum install -y httpd >> /home/ec2-user/setup_log.txt 2>&1

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -64,6 +64,13 @@ class MockBlueprintArgs(BlueprintArgs, OnboardingRequiredArgs, ScreenTaskRequire
         default=True,
         metadata={"help": "Whether to run this mock task as a concurrent task or not"},
     )
+    task_source_review: str = field(
+        default="/test/path/to/bundle.js",
+        metadata={
+            "help": "Path to file containing javascript bundle for the task review application",
+            "required": False,
+        },
+    )
 
 
 # Mock tasks right now inherit all mixins, this way we can test them.
@@ -105,4 +112,5 @@ class MockBlueprint(Blueprint, OnboardingRequired, ScreenTaskRequired):
         """
         Onboarding validation for MockBlueprints just returns the 'should_pass' field
         """
-        return onboarding_agent.state.get_data()["should_pass"]
+        state_data = onboarding_agent.state.get_data()
+        return state_data["outputs"]["should_pass"]

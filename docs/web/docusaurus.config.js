@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
@@ -145,7 +151,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()}. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Meta Platforms. Built with Docusaurus.`,
       },
       prism: {
         theme: lightCodeTheme,

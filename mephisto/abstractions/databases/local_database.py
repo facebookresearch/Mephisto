@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -208,6 +208,29 @@ CREATE TABLE IF NOT EXISTS granted_qualifications (
 );
 """
 
+CREATE_UNIT_REVIEW_TABLE = """
+    CREATE TABLE IF NOT EXISTS unit_review (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        unit_id INTEGER NOT NULL,
+        worker_id INTEGER NOT NULL,
+        task_id INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        review_note TEXT,
+        bonus INTEGER,
+        blocked_worker BOOLEAN DEFAULT false,
+        /* ID of `db.qualifications` (not `db.granted_qualifications`) */
+        updated_qualification_id INTEGER,
+        updated_qualification_value INTEGER,
+        /* ID of `db.qualifications` (not `db.granted_qualifications`) */
+        revoked_qualification_id INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+        FOREIGN KEY (unit_id) REFERENCES units (unit_id),
+        FOREIGN KEY (worker_id) REFERENCES workers (worker_id),
+        FOREIGN KEY (task_id) REFERENCES tasks (task_id)
+    );
+"""
+
 # Indices that are used by system-specific calls across Mephisto during live tasks
 # that improve the runtime of the system as a whole
 CREATE_CORE_INDEXES = """
@@ -222,6 +245,7 @@ CREATE INDEX IF NOT EXISTS agent_by_task_run_index ON agents(task_run_id);
 CREATE INDEX IF NOT EXISTS assignment_by_task_run_index ON assignments(task_run_id);
 CREATE INDEX IF NOT EXISTS task_run_by_requester_index ON task_runs(requester_id);
 CREATE INDEX IF NOT EXISTS task_run_by_task_index ON task_runs(task_id);
+CREATE INDEX IF NOT EXISTS unit_review_by_unit_index ON unit_review(unit_id);
 """
 
 
@@ -288,6 +312,7 @@ class LocalMephistoDB(MephistoDB):
                 c.execute(CREATE_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_GRANTED_QUALIFICATIONS_TABLE)
                 c.execute(CREATE_ONBOARDING_AGENTS_TABLE)
+                c.execute(CREATE_UNIT_REVIEW_TABLE)
                 c.executescript(CREATE_CORE_INDEXES)
 
     def __get_one_by_id(self, table_name: str, id_name: str, db_id: str) -> Mapping[str, Any]:
@@ -1425,6 +1450,92 @@ class LocalMephistoDB(MephistoDB):
                 OnboardingAgent(self, str(r["onboarding_agent_id"]), row=r, _used_new_call=True)
                 for r in rows
             ]
+
+    def _new_unit_review(
+        self,
+        unit_id: Union[int, str],
+        task_id: Union[int, str],
+        worker_id: Union[int, str],
+        status: str,
+        review_note: Optional[str] = None,
+        bonus: Optional[str] = None,
+    ) -> None:
+        """Create unit review"""
+
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+            c.execute(
+                """
+                INSERT INTO unit_review (
+                    unit_id,
+                    worker_id,
+                    task_id,
+                    status,
+                    review_note,
+                    bonus
+                ) VALUES (?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    nonesafe_int(unit_id),
+                    nonesafe_int(worker_id),
+                    nonesafe_int(task_id),
+                    status,
+                    review_note,
+                    bonus,
+                ),
+            )
+            conn.commit()
+
+    def _update_unit_review(
+        self,
+        unit_id: int,
+        qualification_id: int,
+        worker_id: int,
+        value: Optional[int] = None,
+        revoke: bool = False,
+    ) -> None:
+        """
+        Update the given unit review with the given parameters if possible,
+        raise appropriate exception otherwise.
+        """
+        with self.table_access_condition:
+            conn = self._get_connection()
+            c = conn.cursor()
+
+            c.execute(
+                """
+                SELECT * FROM unit_review
+                WHERE (unit_id = ?) AND (worker_id = ?)
+                ORDER BY created_at ASC;
+                """,
+                (unit_id, worker_id),
+            )
+            results = c.fetchall()
+            if not results:
+                raise EntryDoesNotExistException(
+                    f"`unit_review` was not created for this `unit_id={unit_id}`"
+                )
+
+            latest_unit_review_id = results[-1]["id"]
+
+            c.execute(
+                """
+                UPDATE unit_review
+                SET
+                    updated_qualification_id = ?,
+                    updated_qualification_value = ?,
+                    revoked_qualification_id = ?
+                WHERE id = ?;
+                """,
+                (
+                    qualification_id if not revoke else None,
+                    value,
+                    qualification_id if revoke else None,
+                    latest_unit_review_id,
+                ),
+            )
+            conn.commit()
 
     # File/blob manipulation methods
 

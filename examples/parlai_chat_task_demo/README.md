@@ -1,29 +1,35 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # ParlAI Chat Task
 
 This task exists to demonstrate both the out-of-the-box functionality of setting up a ParlAI chat on Mephisto, as well as more complicated tasks with custom frontend functionality. To get started you can run one of the following commands:
 
 The baseline chat example can be run from this directory with:
 ```console
-python parlai_test_script.py
+python run_task.py
 ```
 
 You can also run an example that has onboarding set up with:
 ```console
-python parlai_test_script.py conf=onboarding_example
+python run_task.py conf=onboarding_example
 ```
 Which is mostly a wrapper around adding an onboarding qualification, which you can do manually for any of the other configurations.
 ```console
-python parlai_test_script.py conf=... mephisto.blueprint.onboarding_qualification=test_onboard_qualification
+python run_task.py conf=... mephisto.blueprint.onboarding_qualification=test_onboard_qualification
 ```
 
 Further, you can try running a task using a prebuilt customized frontend bundle (built from the `webapp` directory) with:
 ```console
-python parlai_test_script.py conf=custom_prebuilt
+python run_task.py conf=custom_prebuilt
 ```
 
 Further, you can try running a task using an auto-building task (built from the `custom_simple` directory) with:
 ```console
-python parlai_test_script.py conf=custom_simple
+python run_task.py conf=custom_simple
 ```
 
 ### Common ParlAI blueprint argument overrides
@@ -90,10 +96,10 @@ Custom frontend bundles can be provided that override the view of how the ParlAI
 ## Simple chat collection (no custom frontend) 
 If you are able to provide your workers enough context just using a task description and perhaps a message in the chat thread with directions, you should be able to work on a task without a custom frontend. In order to get started on a task like this, you'll likely do the following:
 
-1. Copy the `demo_worlds.py`, `parlai_test_script.py`, and `task_description.html` files to a new directory for your task. This generally would go in the project directory you are launching tasks for, but you can use `mephisto/tasks` if you're just experimenting.  
+1. Copy the `demo_worlds.py`, `run_task.py`, and `task_description.html` files to a new directory for your task. This generally would go in the project directory you are launching tasks for, but you can use `mephisto/tasks` if you're just experimenting.  
 2. Update any task-related variables in your `conf/my_new_config.yaml` file to make sense for your task.
 3. Update your worlds file to specify the kind of conversation you are creating between agents.
-4. Run `parlai_test_script.py` to pilot your task over localhost. You can use different `worker_id` URL parameters in different windows to play the part of multiple workers at the same time.
+4. Run `run_task.py` to pilot your task over localhost. You can use different `worker_id` URL parameters in different windows to play the part of multiple workers at the same time.
 5. Repeat 3 & 4 until you're happy with your task.
 6. Launch a small batch on a crowd provider to see how real workers handle your task.
 7. Iterate more - use a review script (like the one present in `examples/simple_static_task/examine_results`) to make it easy to see what data you're getting.
@@ -108,7 +114,7 @@ If your task needs additional input beyond simple forms (tutorial TODO, see the 
 3. Update your worlds file to specify the kind of conversation you are creating between agents.
 4. Update `app.jsx` to alter parts of your frontend job to do what you want.
 5. Rebuild your frontend with `npm install; npm run dev`
-6. Run `parlai_test_script.py` to pilot your task over localhost. You can use different `worker_id` URL parameters in different windows to play the part of multiple workers at the same time.
+6. Run `run_task.py` to pilot your task over localhost. You can use different `worker_id` URL parameters in different windows to play the part of multiple workers at the same time.
 7. Repeat 3 - 6 until you're happy with your task.
 8. Launch a small batch on a crowd provider to see how real workers handle your task.
 9. Iterate more - use a review script (like the one present in `examples/simple_static_task/examine_results`) to make it easy to see what data you're getting.

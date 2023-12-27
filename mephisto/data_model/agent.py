@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -557,11 +557,16 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
 
     # Children classes should implement the following methods
 
-    def approve_work(self) -> None:
+    def approve_work(
+        self,
+        review_note: Optional[str] = None,
+        bonus: Optional[str] = None,
+        skip_unit_review: bool = False,
+    ) -> None:
         """Approve the work done on this agent's specific Unit"""
         raise NotImplementedError()
 
-    def soft_reject_work(self) -> None:
+    def soft_reject_work(self, review_note: Optional[str] = None) -> None:
         """
         Pay a worker for attempted work, but mark it as below the
         quality bar for this assignment
@@ -570,10 +575,19 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
         # qualification automatically if a threshold of
         # soft rejects as a proportion of total accepts
         # is exceeded
-        self.approve_work()
+        self.approve_work(review_note=review_note, skip_unit_review=True)
         self.update_status(AgentState.STATUS_SOFT_REJECTED)
 
-    def reject_work(self, reason) -> None:
+        unit = self.get_unit()
+        self.db.new_unit_review(
+            unit_id=unit.db_id,
+            task_id=unit.task_id,
+            worker_id=unit.worker_id,
+            status=AgentState.STATUS_SOFT_REJECTED,
+            review_note=review_note,
+        )
+
+    def reject_work(self, review_note: Optional[str] = None) -> None:
         """Reject the work done on this agent's specific Unit"""
         raise NotImplementedError()
 

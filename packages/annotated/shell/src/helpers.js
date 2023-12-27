@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 // export const frameToMs = (frame, fps) => (frame * 1000) / fps;
 
 // export const msToFrame = (ms, fps) => Math.floor((ms * fps) / 1000);

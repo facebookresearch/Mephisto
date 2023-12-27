@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -102,6 +102,13 @@ class ParlAIChatBlueprintArgs(OnboardingRequiredArgs, BlueprintArgs):
     custom_source_dir: str = field(
         default=MISSING,
         metadata={"help": "Optional path to a directory containing custom js code"},
+    )
+    task_source_review: str = field(
+        default="",
+        metadata={
+            "help": "Path to file containing javascript bundle for the task review application",
+            "required": False,
+        },
     )
     extra_source_dir: str = field(
         default=MISSING,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -440,6 +440,7 @@ class WorkerPool:
         live_run = self.get_live_run()
         blueprint = live_run.blueprint
         loop = live_run.loop_wrap.loop
+        agent_registration_id = crowd_data["agent_registration_id"]
 
         # Check screening
         if isinstance(blueprint, ScreenTaskRequired) and blueprint.use_screening_task:

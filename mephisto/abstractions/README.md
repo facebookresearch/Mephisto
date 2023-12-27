@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Mephisto Core Abstractions
 This directory contains the interfaces for the four core Mephisto abstractions (as well as subcomponents of those abstractions). Those abstractions are discussed at a high level in the [architecture overvierw doc](https://github.com/facebookresearch/Mephisto/blob/main/docs/architecture_overview.md).
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -44,7 +44,7 @@ def determine_toxicity(text: str):
     return Detoxify("original").predict(text)["toxicity"]
 
 
-@task_script(default_config_file="launch_with_local")
+@task_script(default_config_file="example_local_mock")
 def main(operator: Operator, cfg: DictConfig) -> None:
     tasks = build_tasks(cfg.num_tasks)
 

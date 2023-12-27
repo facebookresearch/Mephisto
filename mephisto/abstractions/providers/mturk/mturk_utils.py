@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -610,10 +610,10 @@ def approve_work(client: MTurkClient, assignment_id: str, override_rejection: bo
         )
 
 
-def reject_work(client: MTurkClient, assignment_id: str, reason: str) -> None:
+def reject_work(client: MTurkClient, assignment_id: str, review_note: Optional[str] = None) -> None:
     """reject work for a given assignment through the mturk client"""
     try:
-        client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=reason)
+        client.reject_assignment(AssignmentId=assignment_id, RequesterFeedback=review_note)
     except Exception as e:
         logger.exception(
             f"Rejecting MTurk assignment failed, likely because it has auto-approved. Details:{e}",

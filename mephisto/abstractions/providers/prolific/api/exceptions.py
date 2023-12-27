@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -16,6 +16,9 @@ class ProlificException(Exception):
 
     def __init__(self, message: Optional[str] = None):
         self.message = message or self.default_message
+
+    def __str__(self) -> str:
+        return self.message
 
 
 class ProlificAPIKeyError(ProlificException):

@@ -16,7 +16,7 @@ COPY . /mephisto
 RUN mkdir ~/.mephisto
 
 # Create the main Mephisto data directory
-RUN mkdir /mephisto/data
+RUN mkdir -p /mephisto/data
 
 # Write the mephisto config file manually for now to avoid prompt.
 # For bash-style string $ expansion for newlines,

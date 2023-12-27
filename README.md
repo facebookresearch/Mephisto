@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 <p align="center">
  <h1>
   <img width="250px" src="docs/web/static/img/logo.svg" alt="Mephisto" />
@@ -16,6 +22,8 @@ You can find complete details about the project on our [docs website](https://me
 ## Quickstart
 
 [Get started in 10 minutes](https://mephisto.ai/docs/guides/quickstart)
+
+[How to run projects](mephisto/README.md)
 
 ## Want to help?
 

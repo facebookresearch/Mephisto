@@ -1,3 +1,7 @@
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 """
 Script that allows for tips to be approved or rejected.
 Tips are collected by retrieving all units and then getting the agent of each unit.

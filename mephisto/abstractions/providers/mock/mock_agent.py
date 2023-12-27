@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -73,7 +73,12 @@ class MockAgent(Agent):
             self.datastore.agent_data[self.db_id]["acts"].append(act)
         return act
 
-    def approve_work(self) -> None:
+    def approve_work(
+        self,
+        review_note: Optional[str] = None,
+        bonus: Optional[str] = None,
+        skip_unit_review: bool = False,
+    ) -> None:
         """
         Approve the work done on this specific Unit
 
@@ -81,11 +86,31 @@ class MockAgent(Agent):
         """
         self.update_status(AgentState.STATUS_APPROVED)
 
-    def reject_work(self, reason) -> None:
+        if not skip_unit_review:
+            unit = self.get_unit()
+            self.db.new_unit_review(
+                unit_id=unit.db_id,
+                task_id=unit.task_id,
+                worker_id=unit.worker_id,
+                status=AgentState.STATUS_APPROVED,
+                review_note=review_note,
+                bonus=bonus,
+            )
+
+    def reject_work(self, review_note: Optional[str] = None) -> None:
         """
         Reject the work done on this specific Unit
         """
         self.update_status(AgentState.STATUS_REJECTED)
+
+        unit = self.get_unit()
+        self.db.new_unit_review(
+            unit_id=unit.db_id,
+            task_id=unit.task_id,
+            worker_id=unit.worker_id,
+            status=AgentState.STATUS_REJECTED,
+            review_note=review_note,
+        )
 
     def mark_done(self):
         """No need to tell mock crowd provider about doneness"""

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -28,7 +28,6 @@ from .api.base_api_resource import CREDENTIALS_CONFIG_DIR
 from .api.base_api_resource import CREDENTIALS_CONFIG_PATH
 from .api.client import ProlificClient
 from .api.data_models import BonusPayments
-from .api.data_models import ListSubmission
 from .api.data_models import Participant
 from .api.data_models import ParticipantGroup
 from .api.data_models import Project
@@ -69,12 +68,14 @@ def get_authenticated_client(profile_name: str) -> ProlificClient:
 
 def setup_credentials(
     profile_name: str,
-    register_args: Optional[ProlificRequesterArgs],
+    register_args: ProlificRequesterArgs,
 ) -> bool:
-    if register_args is None:
+    # Get API key from task asrgs, then from env, then from user prompt
+    api_key = register_args.api_key
+    if not api_key:
+        api_key = os.environ.get("PROLIFIC_API_KEY", None)
+    if not api_key:
         api_key = input(f"Provide api key for {profile_name}: ")
-    else:
-        api_key = register_args.api_key
 
     if not os.path.exists(os.path.expanduser(CREDENTIALS_CONFIG_DIR)):
         os.mkdir(os.path.expanduser(CREDENTIALS_CONFIG_DIR))
@@ -738,26 +739,6 @@ def calculate_pay_amount(
     return total_cost
 
 
-# --- Submissions ---
-def _find_submission(
-    client: ProlificClient,
-    study_id: str,
-    worker_id: str,
-) -> Optional[ListSubmission]:
-    """Find a Submission by Study and Worker"""
-    try:
-        submissions: List[ListSubmission] = client.Submissions.list(study_id=study_id)
-    except (ProlificException, ValidationError):
-        logger.exception(f'Could not receive submissions for study "{study_id}"')
-        raise
-
-    for submission in submissions:
-        if submission.participant_id == worker_id:
-            return submission
-
-    return None
-
-
 def get_submission(client: ProlificClient, submission_id: str) -> Submission:
     try:
         submission: Submission = client.Submissions.retrieve(id=submission_id)
@@ -769,13 +750,12 @@ def get_submission(client: ProlificClient, submission_id: str) -> Submission:
 
 def approve_work(
     client: ProlificClient,
-    study_id: str,
-    worker_id: str,
+    submission_id: str,
 ) -> Union[Submission, None]:
-    submission: ListSubmission = _find_submission(client, study_id, worker_id)
+    submission: Submission = get_submission(client, submission_id)
 
     if not submission:
-        logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
+        logger.warning(f'No submission found for id "{submission_id}"')
         return None
 
     # TODO (#1008): Handle other statuses later (when Submission was reviewed in Prolific UI)
@@ -784,13 +764,11 @@ def approve_work(
             submission: Submission = client.Submissions.approve(submission.id)
             return submission
         except (ProlificException, ValidationError):
-            logger.exception(
-                f'Could not approve submission for study "{study_id}" and participant "{worker_id}"'
-            )
+            logger.exception(f'Could not approve submission for id "{submission.id}"')
             raise
     else:
         logger.warning(
-            f'Cannot approve submission "{submission.id}" with status "{submission.status}"'
+            f'Cannot approve submission with id "{submission.id}" and status "{submission.status}"'
         )
 
     return None
@@ -798,13 +776,12 @@ def approve_work(
 
 def reject_work(
     client: ProlificClient,
-    study_id: str,
-    worker_id: str,
+    submission_id: str,
 ) -> Union[Submission, None]:
-    submission: ListSubmission = _find_submission(client, study_id, worker_id)
+    submission: Submission = get_submission(client, submission_id)
 
     if not submission:
-        logger.warning(f'No submission found for study "{study_id}" and participant "{worker_id}"')
+        logger.warning(f'No submission found for id "{submission_id}"')
         return None
 
     # TODO (#1008): Handle other statuses later (when Submission was reviewed in Prolific UI)
@@ -813,13 +790,11 @@ def reject_work(
             submission: Submission = client.Submissions.reject(submission.id)
             return submission
         except (ProlificException, ValidationError):
-            logger.exception(
-                f'Could not reject submission for study "{study_id}" and participant "{worker_id}"'
-            )
+            logger.exception(f'Could not reject submission for id "{submission.id}"')
             raise
     else:
         logger.warning(
-            f'Cannot reject submission "{submission.id}" with status "{submission.status}"'
+            f'Cannot reject submission with id "{submission.id}" and status "{submission.status}"'
         )
 
     return None

@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
 
 from abc import ABC
+from datetime import datetime
+
+from dateutil.parser import parse
 from prometheus_client import Gauge  # type: ignore
 from collections import defaultdict
 from mephisto.data_model.constants.assignment_state import AssignmentState
@@ -94,6 +97,7 @@ class Unit(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta):
         self.sandbox: bool = row["sandbox"]
         self.requester_id: str = row["requester_id"]
         self.worker_id: str = row["worker_id"]
+        self.creation_date: Optional[datetime] = parse(row["creation_date"])
 
         # Deferred loading of related entities
         self.__task: Optional["Task"] = None

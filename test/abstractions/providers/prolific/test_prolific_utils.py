@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -17,7 +17,6 @@ from omegaconf import DictConfig
 
 from mephisto.abstractions.providers.prolific.api import constants
 from mephisto.abstractions.providers.prolific.api.data_models import BonusPayments
-from mephisto.abstractions.providers.prolific.api.data_models import ListSubmission
 from mephisto.abstractions.providers.prolific.api.data_models import Participant
 from mephisto.abstractions.providers.prolific.api.data_models import ParticipantGroup
 from mephisto.abstractions.providers.prolific.api.data_models import Project
@@ -34,7 +33,6 @@ from mephisto.abstractions.providers.prolific.prolific_utils import _ec2_externa
 from mephisto.abstractions.providers.prolific.prolific_utils import _find_prolific_project
 from mephisto.abstractions.providers.prolific.prolific_utils import _find_prolific_workspace
 from mephisto.abstractions.providers.prolific.prolific_utils import _find_qualification
-from mephisto.abstractions.providers.prolific.prolific_utils import _find_submission
 from mephisto.abstractions.providers.prolific.prolific_utils import _get_block_list_qualification
 from mephisto.abstractions.providers.prolific.prolific_utils import _get_external_study_url
 from mephisto.abstractions.providers.prolific.prolific_utils import _is_ec2_architect
@@ -1290,45 +1288,29 @@ class TestProlificUtils(unittest.TestCase):
 
         self.assertEqual(cm.exception.message, exception_message)
 
-    @patch(f"{API_PATH}.submissions.Submissions.list")
-    def test__find_submission_success_found(self, mock_list, *args):
+    @patch(f"{API_PATH}.submissions.Submissions.retrieve")
+    def test_get_submission_success_found(self, mock_list, *args):
         worker_id = "test"
-        study_id = "test2"
+        submission_id = "test3"
 
-        mock_list_submission = ListSubmission()
-        mock_list_submission.id = "test3"
-        mock_list_submission.participant_id = worker_id
+        mock_submission = Submission()
+        mock_submission.id = "test3"
+        mock_submission.participant_id = worker_id
 
-        mock_list.return_value = [mock_list_submission]
+        mock_list.return_value = mock_submission
 
-        result = _find_submission(self.client, study_id, worker_id)
+        result = get_submission(self.client, submission_id)
 
-        self.assertEqual(mock_list_submission, result)
+        self.assertEqual(mock_submission, result)
 
-    @patch(f"{API_PATH}.submissions.Submissions.list")
-    def test__find_submission_success_not_found(self, mock_list, *args):
-        worker_id = "test"
-        study_id = "test2"
-
-        mock_list_submission = ListSubmission()
-        mock_list_submission.id = "test3"
-        mock_list_submission.participant_id = "test4"
-
-        mock_list.return_value = [mock_list_submission]
-
-        result = _find_submission(self.client, study_id, worker_id)
-
-        self.assertEqual(None, result)
-
-    @patch(f"{API_PATH}.submissions.Submissions.list")
-    def test__find_submission_exception(self, mock_list, *args):
-        worker_id = "test"
-        study_id = "test2"
+    @patch(f"{API_PATH}.submissions.Submissions.retrieve")
+    def test_get_submission_exception(self, mock_list, *args):
+        submission_id = "test3"
 
         exception_message = "Error"
         mock_list.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
-            _find_submission(self.client, study_id, worker_id)
+            get_submission(self.client, submission_id)
 
         self.assertEqual(cm.exception.message, exception_message)
 
@@ -1357,23 +1339,21 @@ class TestProlificUtils(unittest.TestCase):
         self.assertEqual(cm.exception.message, exception_message)
 
     @patch(f"{API_PATH}.submissions.Submissions.approve")
-    @patch(f"{UTILS_PATH}._find_submission")
-    def test_approve_work_submission_not_found(self, mock__find_submission, mock_approve, *args):
-        worker_id = "test"
-        study_id = "test2"
+    @patch(f"{UTILS_PATH}.get_submission")
+    def test_approve_work_submission_not_found(self, mock_get_submission, mock_approve, *args):
+        submission_id = "test"
 
-        mock__find_submission.return_value = False
+        mock_get_submission.return_value = False
 
-        result = approve_work(self.client, study_id, worker_id)
+        result = approve_work(self.client, submission_id)
 
         self.assertIsNone(result)
         mock_approve.assert_not_called()
 
     @patch(f"{API_PATH}.submissions.Submissions.approve")
-    @patch(f"{UTILS_PATH}._find_submission")
-    def test_approve_work_success(self, mock__find_submission, mock_approve, *args):
-        worker_id = "test"
-        study_id = "test2"
+    @patch(f"{UTILS_PATH}.get_submission")
+    def test_approve_work_success(self, mock_get_submission, mock_approve, *args):
+        submission_id = "test"
 
         mock_submission = Submission()
         mock_submission.id = "test3"
@@ -1383,73 +1363,69 @@ class TestProlificUtils(unittest.TestCase):
         mock_submission_approved.id = "test4"
         mock_submission_approved.status = constants.SubmissionStatus.APPROVED
 
-        mock__find_submission.return_value = mock_submission
+        mock_get_submission.return_value = mock_submission
         mock_approve.return_value = mock_submission_approved
 
-        result = approve_work(self.client, study_id, worker_id)
+        result = approve_work(self.client, submission_id)
 
         self.assertEqual(mock_submission_approved, result)
         mock_approve.assert_called_once()
 
     @patch(f"{API_PATH}.submissions.Submissions.approve")
-    @patch(f"{UTILS_PATH}._find_submission")
+    @patch(f"{UTILS_PATH}.get_submission")
     def test_approve_work_incorrect_submission_status(
         self,
-        mock__find_submission,
+        mock_get_submission,
         mock_approve,
         *args,
     ):
-        worker_id = "test"
-        study_id = "test2"
+        submission_id = "test"
 
         mock_submission = Submission()
         mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.ACTIVE
 
-        mock__find_submission.return_value = mock_submission
+        mock_get_submission.return_value = mock_submission
 
-        result = approve_work(self.client, study_id, worker_id)
+        result = approve_work(self.client, submission_id)
 
         self.assertIsNone(result)
         mock_approve.assert_not_called()
 
     @patch(f"{API_PATH}.submissions.Submissions.approve")
-    @patch(f"{UTILS_PATH}._find_submission")
-    def test_approve_work_exception(self, mock__find_submission, mock_approve, *args):
-        worker_id = "test"
-        study_id = "test2"
+    @patch(f"{UTILS_PATH}.get_submission")
+    def test_approve_work_exception(self, mock_get_submission, mock_approve, *args):
+        submission_id = "test"
 
         mock_submission = Submission()
         mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
 
-        mock__find_submission.return_value = mock_submission
+        mock_get_submission.return_value = mock_submission
 
         exception_message = "Error"
         mock_approve.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
-            approve_work(self.client, study_id, worker_id)
+            approve_work(self.client, submission_id)
 
         self.assertEqual(cm.exception.message, exception_message)
 
     @patch(f"{API_PATH}.submissions.Submissions.reject")
-    @patch(f"{UTILS_PATH}._find_submission")
-    def test_reject_work_submission_not_found(self, mock__find_submission, mock_reject, *args):
-        worker_id = "test"
-        study_id = "test2"
+    @patch(f"{UTILS_PATH}.get_submission")
+    def test_reject_work_submission_not_found(self, mock_get_submission, mock_reject, *args):
+        submission_id = "test"
 
-        mock__find_submission.return_value = False
+        mock_get_submission.return_value = False
 
-        result = reject_work(self.client, study_id, worker_id)
+        result = reject_work(self.client, submission_id)
 
         self.assertIsNone(result)
         mock_reject.assert_not_called()
 
     @patch(f"{API_PATH}.submissions.Submissions.reject")
-    @patch(f"{UTILS_PATH}._find_submission")
-    def test_reject_work_success(self, mock__find_submission, mock_reject, *args):
-        worker_id = "test"
-        study_id = "test2"
+    @patch(f"{UTILS_PATH}.get_submission")
+    def test_reject_work_success(self, mock_get_submission, mock_reject, *args):
+        submission_id = "test"
 
         mock_submission = Submission()
         mock_submission.id = "test3"
@@ -1459,52 +1435,50 @@ class TestProlificUtils(unittest.TestCase):
         mock_submission_rejected.id = "test4"
         mock_submission_rejected.status = constants.SubmissionStatus.REJECTED
 
-        mock__find_submission.return_value = mock_submission
+        mock_get_submission.return_value = mock_submission
         mock_reject.return_value = mock_submission_rejected
 
-        result = reject_work(self.client, study_id, worker_id)
+        result = reject_work(self.client, submission_id)
 
         self.assertEqual(mock_submission_rejected, result)
         mock_reject.assert_called_once()
 
     @patch(f"{API_PATH}.submissions.Submissions.reject")
-    @patch(f"{UTILS_PATH}._find_submission")
+    @patch(f"{UTILS_PATH}.get_submission")
     def test_reject_work_incorrect_submission_status(
         self,
-        mock__find_submission,
+        mock_get_submission,
         mock_reject,
         *args,
     ):
-        worker_id = "test"
-        study_id = "test2"
+        submission_id = "test"
 
         mock_submission = Submission()
         mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.ACTIVE
 
-        mock__find_submission.return_value = mock_submission
+        mock_get_submission.return_value = mock_submission
 
-        result = reject_work(self.client, study_id, worker_id)
+        result = reject_work(self.client, submission_id)
 
         self.assertIsNone(result)
         mock_reject.assert_not_called()
 
     @patch(f"{API_PATH}.submissions.Submissions.reject")
-    @patch(f"{UTILS_PATH}._find_submission")
-    def test_reject_work_exception(self, mock__find_submission, mock_reject, *args):
-        worker_id = "test"
-        study_id = "test2"
+    @patch(f"{UTILS_PATH}.get_submission")
+    def test_reject_work_exception(self, mock_get_submission, mock_reject, *args):
+        submission_id = "test"
 
         mock_submission = Submission()
         mock_submission.id = "test3"
         mock_submission.status = constants.SubmissionStatus.AWAITING_REVIEW
 
-        mock__find_submission.return_value = mock_submission
+        mock_get_submission.return_value = mock_submission
 
         exception_message = "Error"
         mock_reject.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
-            reject_work(self.client, study_id, worker_id)
+            reject_work(self.client, submission_id)
 
         self.assertEqual(cm.exception.message, exception_message)
 

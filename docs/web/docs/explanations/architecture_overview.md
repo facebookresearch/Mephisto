@@ -1,3 +1,9 @@
+<!---
+  Copyright (c) Meta Platforms and its affiliates.
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+
 # Mephisto Architecture
 
 This document seeks to explain the ideas that guided the creation of Mephisto. It will speak about the broad categories of how Mephisto works and how these parts are supposed to play together. It speaks a lot about the design goals of the Mephisto architecture. It isn't a perfect 1:1 representation of how the code is organized at the moment, but rather the ideal we were striving to reach. Understanding these ideals makes it _easier_ to understand Mephisto, both for usage and for joining in on development.

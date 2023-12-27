@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -64,9 +64,9 @@ class RemoteProcedureAgentState(AgentState):
         agent_file = self._get_expected_data_file()
         if self.agent.db.key_exists(agent_file):
             state = self.agent.db.read_dict(agent_file)
-            self.requests = {x["uuid"]: RemoteRequest(**x) for x in state["requests"]}
-            self.init_data = state["init_data"]
-            self.final_submission = state["final_submission"]
+            self.requests = {x["uuid"]: RemoteRequest(**x) for x in state["outputs"]["requests"]}
+            self.init_data = state["inputs"]
+            self.final_submission = state["outputs"]["final_submission"]
             # Backwards compatibility for times
             if "start_time" in state:
                 self.metadata.task_start = state["start_time"]
@@ -74,10 +74,13 @@ class RemoteProcedureAgentState(AgentState):
 
     def get_data(self) -> Dict[str, Any]:
         """Return dict with the messages of this agent"""
+        # TODO init_data -> inputs, final_submission -> outputs.final_submission, requests -> outputs.requests
         return {
-            "final_submission": self.final_submission,
-            "init_data": self.init_data,
-            "requests": [r.to_dict() for r in self.requests.values()],
+            "inputs": self.init_data,
+            "outputs": {
+                "final_submission": self.final_submission,
+                "requests": [r.to_dict() for r in self.requests.values()],
+            },
             "start_time": self.metadata.task_start,
             "end_time": self.metadata.task_end,
         }
