@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkweb=self.webpackChunkweb||[]).push([[2535],{5641:function(e){e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"mephisto-1.0","permalink":"/blog/2022/03/22/mephisto-1.0"}]}')}}]);
