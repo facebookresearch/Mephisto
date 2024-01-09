@@ -76,7 +76,7 @@ function SelectField({
               key={`option-${field.id}-${index}`}
               value={option.value}
             >
-              {option.name}
+              {option.label}
             </option>
           );
         })}
