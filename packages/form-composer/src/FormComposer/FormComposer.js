@@ -32,7 +32,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
 
   const inReviewState = finalResults !== null;
 
-  let formName = data.name;
+  let formTitle = data.title;
   let formInstruction = data.instruction;
   let formSections = data.sections;
   let formSubmitButton = data.submit_button;
@@ -137,15 +137,15 @@ function FormComposer({ data, onSubmit, finalResults }) {
       noValidate={true}
       onSubmit={onSubmitForm}
     >
-      {(formName || formInstruction) && (
+      {(formTitle || formInstruction) && (
         <div className={`alert alert-primary`} role={"alert"}>
-          {formName && (
+          {formTitle && (
             <h2 className={`form-name`}>
-              {formName}
+              {formTitle}
             </h2>
           )}
 
-          {formName && formInstruction && <hr />}
+          {formTitle && formInstruction && <hr />}
 
           {formInstruction && (
             <p className={`form-instruction`}>
@@ -160,7 +160,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
 
         {/* Sections */}
         {formSections.map(( section, sectionIndex ) => {
-          let sectionName = section.name;
+          let sectionTitle = section.title;
           let sectionInstruction = section.instruction;
           let fieldsets = section.fieldsets;
 
@@ -169,7 +169,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
               key={`section-${sectionIndex}`}
               className={`section container`}
             >
-              {(sectionName || sectionInstruction) && (
+              {(sectionTitle || sectionInstruction) && (
                 // Section header is clickable for accordion
                 <div
                   className={`section-header alert alert-info`}
@@ -182,9 +182,9 @@ function FormComposer({ data, onSubmit, finalResults }) {
                 >
                   <div className="row justify-content-between">
                     {/* Section name on the left side */}
-                    {sectionName && (
+                    {sectionTitle && (
                       <h4 className={`col-8 section-name dropdown-toggle`}>
-                        {sectionName}
+                        {sectionTitle}
                       </h4>
                     )}
 
@@ -197,7 +197,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
                     </div>
                   </div>
 
-                  {sectionName && sectionInstruction && <hr />}
+                  {sectionTitle && sectionInstruction && <hr />}
 
                   {sectionInstruction && (
                     <p className={`section-instruction`}>
@@ -220,7 +220,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
                 />
 
                 {fieldsets.map(( fieldset, fieldsetIndex ) => {
-                  let fieldsetName = fieldset.name;
+                  let fieldsetTitle = fieldset.title;
                   let fieldsetInstruction = fieldset.instruction;
                   let rows = fieldset.rows;
 
@@ -229,15 +229,15 @@ function FormComposer({ data, onSubmit, finalResults }) {
                       key={`fieldset-${fieldsetIndex}`}
                       className={`fieldset container`}
                     >
-                      {(fieldsetName || fieldsetInstruction) && (
+                      {(fieldsetTitle || fieldsetInstruction) && (
                         <div className={`fieldset-header alert alert-secondary`} role={"alert"}>
-                          {fieldsetName && (
+                          {fieldsetTitle && (
                             <h5 className={`fieldset-name`}>
-                              {fieldsetName}
+                              {fieldsetTitle}
                             </h5>
                           )}
 
-                          {fieldsetName && fieldsetInstruction && <hr />}
+                          {fieldsetTitle && fieldsetInstruction && <hr />}
 
                           {fieldsetInstruction && (
                             <p className={`fieldset-instruction`}>
@@ -269,6 +269,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                     col
                                     ${checkFieldRequiredness(field) ? "required" : ""}`
                                   }
+                                  title={field.tooltip}
                                 >
 
                                   <i>
@@ -383,7 +384,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
           <button
             className={`button-submit btn btn-success`}
             type={"submit"}
-            title={formSubmitButton.title}
+            title={formSubmitButton.tooltip}
           >
             {formSubmitButton.text}
           </button>

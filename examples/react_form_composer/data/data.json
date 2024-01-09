@@ -1,29 +1,27 @@
 [
   {
     "form": {
-      "name": "Form example",
+      "title": "Form example",
       "instruction": "Please answer all questions to the best of your ability as part of our study.",
       "sections": [
         {
-          "name": "About you",
+          "name": "section_about",
+          "title": "About you",
           "instruction": "Please introduce yourself. We would like to know more about your background, personal information, etc.",
           "fieldsets": [
             {
-              "name": "Personal information",
+              "title": "Personal information",
               "instruction": "",
               "rows": [
                 {
                   "fields": [
                     {
-                      "class": "",
                       "help": "",
-                      "icon": "",
                       "id": "id_name_first",
                       "label": "First name",
                       "name": "name_first",
                       "placeholder": "Type first name",
-                      "style": {},
-                      "title": "Your first name",
+                      "tooltip": "Your first name",
                       "type": "input",
                       "validators": {
                         "required": true,
@@ -33,15 +31,12 @@
                       "value": ""
                     },
                     {
-                      "class": "",
                       "help": "Optional",
-                      "icon": "",
                       "id": "id_name_last",
                       "label": "Last name",
                       "name": "name_last",
                       "placeholder": "Type last name",
-                      "style": {},
-                      "title": "Your last name",
+                      "tooltip": "Your last name",
                       "type": "input",
                       "validators": {"required": true},
                       "value": ""
@@ -52,15 +47,12 @@
                 {
                   "fields": [
                     {
-                      "class": "",
                       "help": "We may contact you later for additional information",
-                      "icon": "",
                       "id": "id_email",
                       "label": "Email address for Mephisto",
                       "name": "email",
                       "placeholder": "user@mephisto.ai",
-                      "style": {},
-                      "title": "Email address for Mephisto",
+                      "tooltip": "Email address for Mephisto",
                       "type": "email",
                       "validators": {
                         "required": true,
@@ -73,69 +65,63 @@
               ]
             },
             {
-              "name": "Cultural background",
+              "title": "Cultural background",
               "instruction": "Please tell us about your cultural affiliations and values that you use in your daily life.",
               "rows": [
                 {
                   "fields": [
                     {
-                      "class": "",
                       "help": "Select country of your residence",
-                      "icon": "",
                       "id": "id_country",
                       "label": "Country",
                       "multiple": false,
                       "name": "country",
                       "options": [
                         {
-                          "name": "---",
+                          "label": "---",
                           "value": ""
                         },
                         {
-                          "name": "United States of America",
+                          "label": "United States of America",
                           "value": "USA"
                         },
                         {
-                          "name": "Canada",
+                          "label": "Canada",
                           "value": "CAN"
                         }
                       ],
                       "placeholder": "",
-                      "style": {},
-                      "title": "Country",
+                      "tooltip": "Country",
                       "type": "select",
                       "validators": {"required": true},
                       "value": ""
                     },
                     {
-                      "class": "",
                       "help": "Select language spoken in your local community",
-                      "icon": "",
                       "id": "id_language",
                       "label": "Language",
                       "multiple": true,
                       "name": "language",
                       "options": [
                         {
-                          "name": "English",
+                          "label": "English",
                           "value": "en"
                         },
                         {
-                          "name": "French",
+                          "label": "French",
                           "value": "fr"
                         },
                         {
-                          "name": "Spanish",
+                          "label": "Spanish",
                           "value": "es"
                         },
                         {
-                          "name": "Chinese",
+                          "label": "Chinese",
                           "value": "ch"
                         }
                       ],
                       "placeholder": "",
-                      "style": {},
-                      "title": "Language",
+                      "tooltip": "Language",
                       "type": "select",
                       "validators": {
                         "required": true,
@@ -150,21 +136,18 @@
               "help": "This information will help us compile study statistics"
             },
             {
-              "name": "Additional information",
+              "title": "Additional information",
               "instruction": "Optional details about you. You can fill out what you are most comfortable with.",
               "rows": [
                 {
                   "fields": [
                     {
-                      "class": "",
                       "help": "",
-                      "icon": "",
                       "id": "id_bio",
                       "label": "Biography",
                       "name": "bio",
                       "placeholder": "",
-                      "style": {},
-                      "title": "Your bio in a few apragraphs",
+                      "tooltip": "Your bio in a few apragraphs",
                       "type": "textarea",
                       "validators": {"required": false},
                       "value": ""
@@ -174,9 +157,7 @@
                 {
                   "fields": [
                     {
-                      "class": "",
                       "help": "",
-                      "icon": "",
                       "id": "id_skills",
                       "label": "Technical Skills",
                       "name": "skills",
@@ -202,8 +183,7 @@
                           "value": "sql"
                         }
                       ],
-                      "style": {},
-                      "title": "Technical skills you may possess",
+                      "tooltip": "Technical skills you may possess",
                       "type": "checkbox",
                       "validators": {
                         "required": true,
@@ -216,9 +196,7 @@
                 {
                   "fields": [
                     {
-                      "class": "",
                       "help": "",
-                      "icon": "",
                       "id": "id_kids",
                       "label": "How many children do you have?",
                       "name": "kids",
@@ -244,8 +222,7 @@
                           "value": ">=3"
                         }
                       ],
-                      "style": {},
-                      "title": "How many children do you have?",
+                      "tooltip": "How many children do you have?",
                       "type": "radio",
                       "validators": {"required": true}
                     }
@@ -254,29 +231,23 @@
                 {
                   "fields": [
                     {
-                      "class": "",
                       "help": "",
-                      "icon": "",
                       "id": "id_avatar",
                       "label": "Profile Picture",
                       "name": "avatar",
                       "placeholder": "Select a file",
-                      "style": {},
-                      "title": "Your profile photo",
+                      "tooltip": "Your profile photo",
                       "type": "file",
                       "validators": {"required": true},
                       "value": ""
                     },
                     {
-                      "class": "",
                       "help": "",
-                      "icon": "",
                       "id": "id_resume",
                       "label": "Resume",
                       "name": "resume",
                       "placeholder": "Select a file",
-                      "style": {},
-                      "title": "Your current resume",
+                      "tooltip": "Your current resume",
                       "type": "file",
                       "validators": {"required": false},
                       "value": ""
@@ -289,25 +260,23 @@
           ]
         },
         {
-          "name": "Second section",
+          "name": "section_second",
+          "title": "Second section",
           "instruction": "Example of another section",
           "fieldsets" : [
             {
-              "name": "Motivation",
+              "title": "Motivation",
               "instruction": "",
               "rows": [
                 {
                   "fields": [
                     {
-                      "class": "",
                       "help": "",
-                      "icon": "",
                       "id": "id_motto",
                       "label": "Personal Motto",
                       "name": "motto",
                       "placeholder": "",
-                      "style": {},
-                      "title": "Your personal motto",
+                      "tooltip": "Your personal motto",
                       "type": "input",
                       "validators": {"required": true},
                       "value": ""
@@ -322,7 +291,7 @@
       ],
       "submit_button": {
         "text": "Submit",
-        "title": "Submit form"
+        "tooltip": "Submit form"
       }
     }
   }
