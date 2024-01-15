@@ -24,11 +24,11 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     )
     form_composer_app_dir = cfg.task_dir
 
-    # Build `form-composer` React package
+    # Build `react-form-composer` React package
     build_custom_bundle(
         mephisto_packages_dir,
         force_rebuild=cfg.mephisto.task.force_rebuild,
-        webapp_name="form-composer",
+        webapp_name="react-form-composer",
         build_command="build",
     )
 

@@ -263,7 +263,7 @@ Final steps of reviewing worker submissions and exporting the results will be sa
 
 ## Launch Auto-composed forms
 
-1. Create `data.json` config in `mephisto/generators/form_composer/data`. An example is found in `examples/react_form_composer/data/data.json` file
+1. Create `data.json` config in `mephisto/generators/form_composer/data`. An example is found in `examples/simple_form_composer/data/data.json` file
 2. Run a task with command:
     - Locally `mephisto form_composer`
     - Using Docker Compose

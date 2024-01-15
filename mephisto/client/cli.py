@@ -28,6 +28,9 @@ import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as print_outstanding_hit_status_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
 from mephisto.client.cli_commands import get_wut_arguments
+from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
+    create_extrapolated_config
+)
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.rich import console
@@ -410,7 +413,7 @@ def review_app(
 @cli.command("form_composer", cls=RichCommand)
 def form_composer():
     # Get app path to run Python script from there (instead of the current file's directory).
-    # This is necessasry, because the whole infrastructure is built relative to the location
+    # This is necessary, because the whole infrastructure is built relative to the location
     # of the called command-line script.
     # The other parts of the logic are inside `form_composer/run.py` script
     app_path = os.path.join(
@@ -419,6 +422,17 @@ def form_composer():
         "form_composer",
     )
     os.chdir(app_path)
+
+    # Check files and create config with units data before running a task
+    data_path = os.path.join(app_path, "data")
+    extrapolated_form_config_path = os.path.join(data_path, "data.json")
+    form_config_path = os.path.join(data_path, "form_config.json")
+    tokens_values_config_path = os.path.join(data_path, "tokens_values_config.json")
+    create_extrapolated_config(
+        form_config_path=form_config_path,
+        tokens_values_config_path=tokens_values_config_path,
+        combined_config_path=extrapolated_form_config_path,
+    )
 
     # Start the process
     process = subprocess.Popen("python ./run.py", shell=True, cwd=app_path)
