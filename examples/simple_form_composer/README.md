@@ -9,8 +9,8 @@ This is a Task generator that provides Tasks for simple questionnaire projects.
 1. In repo root, launch containers: `docker-compose -f docker/docker-compose.dev.yml up`
 2. SSH into running container to run server: `docker exec -it mephisto_dc bash`
 3. Inside the container run server: 
-   1. Build `form-composer` package `cd /mephisto/packages/form-composer && npm run build`
-   2. Run project: `cd /mephisto/examples/react_form_composer && python ./run_task.py`
+   1. Build `react-form-composer` package `cd /mephisto/packages/react-form-composer && npm run build`
+   2. Run project: `cd /mephisto/examples/simple_form_composer && python ./run_task.py`
 
 ---
 
@@ -18,7 +18,7 @@ This is a Task generator that provides Tasks for simple questionnaire projects.
 
 All you need to do is provide Form Builder with a JSON configuration of your form fields.
 
-An example is found in `examples/react_form_composer/data/data.json` file.
+An example is found in `examples/simple_form_composer/data/data.json` file.
 
 ---
 

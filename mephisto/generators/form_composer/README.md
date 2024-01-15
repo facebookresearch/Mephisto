@@ -20,12 +20,12 @@ and then the below commands.
 #### Installation
 
 ```bash
-cd /mephisto/packages/form-composer && npm install --save form-composer
+cd /mephisto/packages/react-form-composer && npm install --save react-form-composer
 ```
 
 #### Building
 ```bash
-cd /mephisto/packages/form-composer && npm run build
+cd /mephisto/packages/react-form-composer && npm run build
 ```
 
 ---
@@ -35,7 +35,7 @@ cd /mephisto/packages/form-composer && npm run build
 You will need to provide Form Builder with a JSON configuration of your form fields.
 The config file name should be `data.json`, and it should contain a single-item JSON array with one key `form`.
 
-An example is found in `examples/react_form_composer/data/data.json` file.
+An example is found in `examples/simple_form_composer/data/data.json` file.
 
 ---
 

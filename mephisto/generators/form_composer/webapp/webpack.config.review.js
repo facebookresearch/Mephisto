@@ -20,8 +20,8 @@ module.exports = {
       "mephisto-task-multipart": path.resolve(
         __dirname, "../../../../packages/mephisto-task-multipart",
       ),
-      "form-composer": path.resolve(
-        __dirname, "../../../../packages/form-composer",
+      "react-form-composer": path.resolve(
+        __dirname, "../../../../packages/react-form-composer",
       ),
     },
     fallback: {
