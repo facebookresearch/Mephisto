@@ -174,4 +174,10 @@ PY_JSON_TYPES_MAPPING: Dict[type, str] = {
     str: "String",
 }
 
-ATTRS_SUPPORTING_TOKENS = ["help", "instruction", "title"]
+ATTRS_SUPPORTING_TOKENS = [
+    "help",
+    "instruction",
+    "label",
+    "title",
+    "tooltip",
+]
