@@ -260,18 +260,3 @@ or simply embed that command into your docker-compose entrypoint script.
 ## Process results
 
 Final steps of reviewing worker submissions and exporting the results will be same as described under sample Mephisto project runs.
-
-## Launch Auto-composed forms
-
-1. Create `data.json` config in `mephisto/generators/form_composer/data`. An example is found in `examples/simple_form_composer/data/data.json` file
-2. Run a task with command:
-    - Locally `mephisto form_composer`
-    - Using Docker Compose
-      ```shell
-      docker-compose -f docker/docker-compose.dev.yml run \
-          --build \
-          --publish 8081:8000 \
-          --rm mephisto_dc \
-          mephisto form_composer
-      ```
-3. Open in Browser page: http://localhost:3001/

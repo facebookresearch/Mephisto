@@ -1,6 +1,4 @@
-# Form Composer
-
-This is a Task generator that provides Tasks for simple questionnaire projects.
+This form-based questionnaire is a simple example of Form Composer task generator.
 
 ---
 
@@ -8,44 +6,31 @@ This is a Task generator that provides Tasks for simple questionnaire projects.
 
 1. In repo root, launch containers: `docker-compose -f docker/docker-compose.dev.yml up`
 2. SSH into running container to run server: `docker exec -it mephisto_dc bash`
-3. Inside the container run server: 
+3. Inside the container run server:
    1. Build `react-form-composer` package `cd /mephisto/packages/react-form-composer && npm run build`
-   2. Run project: `cd /mephisto/examples/simple_form_composer && python ./run_task.py`
+   2. Run project with
+       - simple data config: `cd /mephisto/examples/simple_form_composer && python ./run_task.py`
+       - dynamic data configs: `cd /mephisto/examples/simple_form_composer && python ./run_task_dynamic.py`
 
 ---
 
 ### How to configure
 
-All you need to do is provide Form Builder with a JSON configuration of your form fields.
+1. For simple data config you need to provide Form Composer with one JSON file - a configuration of your form fields.
+An example is found in `examples/simple_form_composer/data/simple/data.json` file.
+2. For dynamic data configs you need two JSON files:
+   - form configuration `examples/simple_form_composer/data/dynamic/form_config.json`
+   - tokens values `examples/simple_form_composer/data/dynamic/tokens_values_config.json`
 
-An example is found in `examples/simple_form_composer/data/data.json` file.
-
----
-
-### How form is composed
-
-Form Builder supports several layers of hierarchy:
-
-1. Section
-2. Fieldset
-3. Fields Row
-4. Field
+Note that during bulding a Task with dynamic form config, the resulting data config will be placed in `data.json` file, i.e. `examples/simple_form_composer/data/dynamic/data.json` (in this example it's already been created and will be overwritten when you build a Task).
 
 ---
 
-### Validators
+### Form config
 
-Available validators:
- - `required` (boolean)
- - `minLength` (integer)
- - `maxLength` (integer)
- - `regexp` (string | array[string, string])
+For details on how form config is composed, and how data fields are validated please see the main Form Composer's README.
 
-`regexp` params:
-1. RedExp string (`"^[a-zA-Z0-9._-]+@mephisto\\.ai$"`). Default flags are `igm`
-2. Array with RedExp string and flags (`["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]`)
-
-Example:
+Here's a sample part of form config:
 
 ```json
 {
@@ -61,7 +46,7 @@ Example:
             "required": true,
             "minLength": 2,
             "maxLength": 20,
-            "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"] 
+            "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
             // or just string "regexp": "^[a-zA-Z0-9._-]+@mephisto\\.ai$"
           },
           "value": ""

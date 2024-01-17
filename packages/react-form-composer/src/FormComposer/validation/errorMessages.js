@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 export const MAX_LENGTH_ERROR_MESSAGE_KEY = "max-length";
 export const MAX_LENGTH_ITEMS_ERROR_MESSAGE_KEY = "max-length-items";
 export const MIN_LENGTH_ERROR_MESSAGE_KEY = "min-length";
