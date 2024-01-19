@@ -64,6 +64,7 @@ from mephisto.abstractions.providers.prolific.prolific_utils import pay_bonus
 from mephisto.abstractions.providers.prolific.prolific_utils import publish_study
 from mephisto.abstractions.providers.prolific.prolific_utils import reject_work
 from mephisto.abstractions.providers.prolific.prolific_utils import remove_worker_qualification
+from mephisto.abstractions.providers.prolific.prolific_utils import send_message
 from mephisto.abstractions.providers.prolific.prolific_utils import setup_credentials
 from mephisto.abstractions.providers.prolific.prolific_utils import stop_study
 from mephisto.abstractions.providers.prolific.prolific_utils import unblock_worker
@@ -1479,6 +1480,29 @@ class TestProlificUtils(unittest.TestCase):
         mock_reject.side_effect = ProlificRequestError(exception_message)
         with self.assertRaises(ProlificRequestError) as cm:
             reject_work(self.client, submission_id)
+
+        self.assertEqual(cm.exception.message, exception_message)
+
+    @patch(f"{API_PATH}.messages.Messages.send")
+    def test_send_message_success(self, *args):
+        study_id = "test"
+        participant_id = "test2"
+        text = "test3"
+
+        result = send_message(self.client, study_id, participant_id, text)
+
+        self.assertIsNone(result)
+
+    @patch(f"{API_PATH}.messages.Messages.send")
+    def test_send_message_exception(self, mock_send, *args):
+        study_id = "test"
+        participant_id = "test2"
+        text = "test3"
+
+        exception_message = "Error"
+        mock_send.side_effect = ProlificRequestError(exception_message)
+        with self.assertRaises(ProlificRequestError) as cm:
+            send_message(self.client, study_id, participant_id, text)
 
         self.assertEqual(cm.exception.message, exception_message)
 

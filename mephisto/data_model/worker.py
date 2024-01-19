@@ -4,14 +4,20 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Mapping
+from typing import Optional
+from typing import Tuple
+from typing import Type
+from typing import TYPE_CHECKING
+
 from mephisto.abstractions.blueprint import AgentState
-from mephisto.data_model._db_backed_meta import (
-    MephistoDBBackedABCMeta,
-    MephistoDataModelComponentMixin,
-)
-from typing import Any, List, Optional, Mapping, Tuple, Dict, Type, Tuple, TYPE_CHECKING
+from mephisto.data_model._db_backed_meta import MephistoDataModelComponentMixin
+from mephisto.data_model._db_backed_meta import MephistoDBBackedABCMeta
 from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
@@ -24,7 +30,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.requester import Requester
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.qualification import GrantedQualification
-    from argparse import _ArgumentGroup as ArgumentGroup
 
 
 @dataclass
@@ -270,6 +275,10 @@ class Worker(MephistoDataModelComponentMixin, metaclass=MephistoDBBackedABCMeta)
     def register(self, args: Optional[Dict[str, str]] = None) -> None:
         """Register this worker with the crowdprovider, if necessary"""
         pass
+
+    def send_feedback_message(self, text: str, unit: "Unit") -> bool:
+        """Send feedback message to a worker"""
+        raise NotImplementedError()
 
     @staticmethod
     def new(db: "MephistoDB", worker_name: str) -> "Worker":

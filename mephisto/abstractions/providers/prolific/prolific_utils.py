@@ -28,6 +28,7 @@ from .api.base_api_resource import CREDENTIALS_CONFIG_DIR
 from .api.base_api_resource import CREDENTIALS_CONFIG_PATH
 from .api.client import ProlificClient
 from .api.data_models import BonusPayments
+from .api.data_models import Message
 from .api.data_models import Participant
 from .api.data_models import ParticipantGroup
 from .api.data_models import Project
@@ -596,7 +597,7 @@ def pay_bonus(
     client: ProlificClient,
     task_run_config: "DictConfig",
     worker_id: str,
-    bonus_amount: int,  # in cents
+    bonus_amount: Union[int, float],  # in cents
     study_id: str,
     *args,
     **kwargs,
@@ -798,3 +799,12 @@ def reject_work(
         )
 
     return None
+
+
+def send_message(client: ProlificClient, study_id: str, participant_id: str, text: str) -> Message:
+    try:
+        message: Message = client.Messages.send(study_id, participant_id, text)
+    except (ProlificException, ValidationError):
+        logger.exception(f'Could not send message to participant "{participant_id}"')
+        raise
+    return message

@@ -20,7 +20,7 @@ class UnitsRejectView(MethodView):
 
         data: dict = request.json
         unit_ids: Optional[str] = data and data.get("unit_ids")
-        review_note = data and data.get("review_note")  # Optional
+        review_note: Optional[str] = data.get("review_note") if data else None
 
         # Validate params
         if not unit_ids:

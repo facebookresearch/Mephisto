@@ -4,24 +4,24 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.agent import Agent
-from mephisto.abstractions.blueprint import AgentState
-from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
-from mephisto.abstractions.providers.mturk.mturk_utils import (
-    approve_work,
-    reject_work,
-    get_assignment,
-    get_assignments_for_hit,
-)
+import json
+from typing import Any
+from typing import cast
+from typing import Dict
+from typing import Mapping
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Union
 
 import xmltodict  # type: ignore
-import json
 
-from typing import List, Optional, Tuple, Dict, Mapping, Any, cast, TYPE_CHECKING
-
+from mephisto.abstractions.blueprint import AgentState
+from mephisto.abstractions.providers.mturk.mturk_utils import approve_work
+from mephisto.abstractions.providers.mturk.mturk_utils import get_assignments_for_hit
+from mephisto.abstractions.providers.mturk.mturk_utils import reject_work
+from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
+from mephisto.data_model.agent import Agent
 from mephisto.utils.logger_core import get_logger
-
-logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -30,6 +30,8 @@ if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
     from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
+
+logger = get_logger(name=__name__)
 
 
 class MTurkAgent(Agent):
@@ -104,7 +106,7 @@ class MTurkAgent(Agent):
     def approve_work(
         self,
         review_note: Optional[str] = None,
-        bonus: Optional[str] = None,
+        bonus: Optional[Union[int, float]] = None,
         skip_unit_review: bool = False,
     ) -> None:
         """Approve the work done on this specific Unit"""
