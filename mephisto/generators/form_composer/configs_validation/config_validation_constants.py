@@ -181,3 +181,9 @@ ATTRS_SUPPORTING_TOKENS = [
     "title",
     "tooltip",
 ]
+
+
+ATTRS_WITH_UNIQUE_NAMES = [
+    "id",
+    "name",
+]

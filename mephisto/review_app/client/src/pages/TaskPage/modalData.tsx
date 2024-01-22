@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms and its affiliates.
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -16,6 +16,7 @@ export const APPROVE_MODAL_DATA_STATE: ModalDataType = {
     checkboxAssignQualification: false,
     checkboxGiveBonus: false,
     checkboxReviewNote: false,
+    checkboxReviewNoteSend: false,
     newQualificationValue: "",
     qualification: null,
     qualificationValue: 1,
@@ -35,6 +36,7 @@ export const SOFT_REJECT_MODAL_DATA_STATE: ModalDataType = {
     bonus: null,
     checkboxAssignQualification: false,
     checkboxReviewNote: false,
+    checkboxReviewNoteSend: false,
     newQualificationValue: "",
     qualification: null,
     qualificationValue: 1,
@@ -55,6 +57,7 @@ export const REJECT_MODAL_DATA_STATE: ModalDataType = {
   form: {
     checkboxUnassignQualification: false,
     checkboxReviewNote: false,
+    checkboxReviewNoteSend: false,
     checkboxBanWorker: false,
     reviewNote: "",
     qualification: null,

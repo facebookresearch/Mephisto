@@ -13,7 +13,7 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
 from omegaconf import DictConfig
 
 
-@task_script(default_config_file="example")
+@task_script(default_config_file="example_local_mock")
 def main(operator: Operator, cfg: DictConfig) -> None:
     def onboarding_always_valid(onboarding_data):
         return True

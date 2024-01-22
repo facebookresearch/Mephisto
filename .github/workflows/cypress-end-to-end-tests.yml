@@ -110,7 +110,7 @@ jobs:
           browser: chrome
           project: ./mephisto/abstractions/blueprints/static_html_task/source
           config-file: ./cypress.config.js
-          start: python ./examples/simple_static_task/static_test_script.py
+          start: python ./examples/simple_static_task/run_task.py
           wait-on: "http://localhost:3000/?worker_id=x&assignment_id=1"
           headless: true
 

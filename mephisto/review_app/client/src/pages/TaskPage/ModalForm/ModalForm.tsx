@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms and its affiliates.
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -10,6 +10,10 @@ import { useEffect } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import { getQualifications, postQualification } from "requests/qualifications";
 import "./ModalForm.css";
+
+// TODO(#1058): [Review APP] Implement back-end for this functionality
+const BONUS_FOR_WORKER_ENABLED = false;
+const FEEDBACK_FOR_WORKER_ENABLED = false;
 
 const range = (start, end) => Array.from(Array(end + 1).keys()).slice(start);
 
@@ -92,6 +96,12 @@ function ModalForm(props: ModalFormProps) {
   const onChangeReviewNote = (value: string) => {
     let prevFormData: FormType = Object(props.data.form);
     prevFormData.reviewNote = value;
+    props.setData({ ...props.data, form: prevFormData });
+  };
+
+  const onChangeWriteReviewNoteSend = (value: boolean) => {
+    let prevFormData: FormType = Object(props.data.form);
+    prevFormData.checkboxReviewNoteSend = value;
     props.setData({ ...props.data, form: prevFormData });
   };
 
@@ -290,38 +300,39 @@ function ModalForm(props: ModalFormProps) {
 
       <hr />
 
-      {props.data.form.checkboxGiveBonus !== undefined && (
-        <>
-          <Form.Check
-            type={"checkbox"}
-            label={"Give Bonus"}
-            id={"giveBonus"}
-            checked={props.data.form.checkboxGiveBonus}
-            onChange={() =>
-              onChangeGiveBonus(!props.data.form.checkboxGiveBonus)
-            }
-          />
+      {BONUS_FOR_WORKER_ENABLED &&
+        props.data.form.checkboxGiveBonus !== undefined && (
+          <>
+            <Form.Check
+              type={"checkbox"}
+              label={"Give Bonus"}
+              id={"giveBonus"}
+              checked={props.data.form.checkboxGiveBonus}
+              onChange={() =>
+                onChangeGiveBonus(!props.data.form.checkboxGiveBonus)
+              }
+            />
 
-          {props.data.form.checkboxGiveBonus && (
-            <Row className={"second-line"}>
-              <Col xs={4}>
-                <Form.Control
-                  size={"sm"}
-                  type={"input"}
-                  placeholder={"Bonus"}
-                  value={props.data.form.bonus || ""}
-                  onChange={(e) => onChangeBonus(e.target.value)}
-                />
-              </Col>
-              <Col>
-                <span>Amount (cents)</span>
-              </Col>
-            </Row>
-          )}
+            {props.data.form.checkboxGiveBonus && (
+              <Row className={"second-line"}>
+                <Col xs={4}>
+                  <Form.Control
+                    size={"sm"}
+                    type={"input"}
+                    placeholder={"Bonus"}
+                    value={props.data.form.bonus || ""}
+                    onChange={(e) => onChangeBonus(e.target.value)}
+                  />
+                </Col>
+                <Col>
+                  <span>Amount (cents)</span>
+                </Col>
+              </Row>
+            )}
 
-          <hr />
-        </>
-      )}
+            <hr />
+          </>
+        )}
 
       {props.data.form.checkboxBanWorker !== undefined && (
         <>
@@ -341,7 +352,9 @@ function ModalForm(props: ModalFormProps) {
 
       <Form.Check
         type={"checkbox"}
-        label={"Write Note"}
+        label={
+          FEEDBACK_FOR_WORKER_ENABLED ? "Write Note" : "Write Note for Yourself"
+        }
         id={"reviewNote"}
         checked={props.data.form.checkboxReviewNote}
         onChange={() =>
@@ -350,16 +363,35 @@ function ModalForm(props: ModalFormProps) {
       />
 
       {props.data.form.checkboxReviewNote && (
-        <Row className={"second-line"}>
-          <Col>
-            <Form.Control
-              size={"sm"}
-              as={"textarea"}
-              value={props.data.form.reviewNote}
-              onChange={(e) => onChangeReviewNote(e.target.value)}
-            />
-          </Col>
-        </Row>
+        <>
+          <Row className={"second-line"}>
+            <Col>
+              <Form.Control
+                size={"sm"}
+                as={"textarea"}
+                value={props.data.form.reviewNote}
+                onChange={(e) => onChangeReviewNote(e.target.value)}
+              />
+            </Col>
+          </Row>
+          {FEEDBACK_FOR_WORKER_ENABLED && (
+            <Row className={"second-line"}>
+              <Col>
+                <Form.Check
+                  type={"checkbox"}
+                  label={"Share this comment with the worker"}
+                  id={"reviewNoteSend"}
+                  checked={props.data.form.checkboxReviewNoteSend}
+                  onChange={() =>
+                    onChangeWriteReviewNoteSend(
+                      !props.data.form.checkboxReviewNoteSend
+                    )
+                  }
+                />
+              </Col>
+            </Row>
+          )}
+        </>
       )}
     </Form>
   );

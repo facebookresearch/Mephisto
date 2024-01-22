@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms and its affiliates.
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -296,10 +296,11 @@ function TaskPage(props: PropsType) {
         setLoading,
         onError,
         {
+          bonus: modalData.form.checkboxGiveBonus ? modalData.form.bonus : null,
           review_note: modalData.form.checkboxReviewNote
             ? modalData.form.reviewNote
             : null,
-          bonus: modalData.form.checkboxGiveBonus ? modalData.form.bonus : null,
+          send_to_worker: modalData.form.checkboxReviewNoteSend,
           unit_ids: unitIds,
         }
       );
@@ -312,6 +313,7 @@ function TaskPage(props: PropsType) {
           review_note: modalData.form.checkboxReviewNote
             ? modalData.form.reviewNote
             : null,
+          send_to_worker: modalData.form.checkboxReviewNoteSend,
           unit_ids: unitIds,
         }
       );
@@ -324,6 +326,7 @@ function TaskPage(props: PropsType) {
           review_note: modalData.form.checkboxReviewNote
             ? modalData.form.reviewNote
             : null,
+          send_to_worker: modalData.form.checkboxReviewNoteSend,
           unit_ids: unitIds,
         }
       );

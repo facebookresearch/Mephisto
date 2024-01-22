@@ -9,20 +9,20 @@ This form-based questionnaire is a simple example of Form Composer task generato
 3. Inside the container run server:
    1. Build `react-form-composer` package `cd /mephisto/packages/react-form-composer && npm run build`
    2. Run project with
-       - simple data config: `cd /mephisto/examples/simple_form_composer && python ./run_task.py`
-       - dynamic data configs: `cd /mephisto/examples/simple_form_composer && python ./run_task_dynamic.py`
+       - simple data config: `cd /mephisto/examples/form_composer_demo && python ./run_task.py`
+       - dynamic data configs: `cd /mephisto/examples/form_composer_demo && python ./run_task_dynamic.py`
 
 ---
 
 ### How to configure
 
 1. For simple data config you need to provide Form Composer with one JSON file - a configuration of your form fields.
-An example is found in `examples/simple_form_composer/data/simple/data.json` file.
+An example is found in `examples/form_composer_demo/data/simple/data.json` file.
 2. For dynamic data configs you need two JSON files:
-   - form configuration `examples/simple_form_composer/data/dynamic/form_config.json`
-   - tokens values `examples/simple_form_composer/data/dynamic/tokens_values_config.json`
+   - form configuration `examples/form_composer_demo/data/dynamic/form_config.json`
+   - tokens values `examples/form_composer_demo/data/dynamic/tokens_values_config.json`
 
-Note that during bulding a Task with dynamic form config, the resulting data config will be placed in `data.json` file, i.e. `examples/simple_form_composer/data/dynamic/data.json` (in this example it's already been created and will be overwritten when you build a Task).
+Note that during bulding a Task with dynamic form config, the resulting data config will be placed in `data.json` file, i.e. `examples/form_composer_demo/data/dynamic/data.json` (in this example it's already been created and will be overwritten when you build a Task).
 
 ---
 

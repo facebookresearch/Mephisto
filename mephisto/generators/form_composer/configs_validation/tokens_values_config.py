@@ -11,7 +11,7 @@ def validate_tokens_values_config(config_json: List[dict]) -> Tuple[bool, List[s
 
     if not isinstance(config_json, list):
         is_valid = False
-        errors.append("Config must be `Array`.")
+        errors.append("Config must be 'Array.")
 
     if config_json:
         if not all(config_json):

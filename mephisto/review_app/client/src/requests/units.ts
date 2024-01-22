@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms and its affiliates.
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -54,7 +54,7 @@ export function postUnitsApprove(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: number[] | string | number },
+  data: { [key: string]: number[] | string | number | boolean },
   abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsApprove, null, null);
@@ -75,7 +75,7 @@ export function postUnitsReject(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: number[] | string },
+  data: { [key: string]: number[] | string | boolean },
   abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsReject, null, null);
@@ -96,7 +96,7 @@ export function postUnitsSoftReject(
   setDataAction: SetRequestDataActionType,
   setLoadingAction: SetRequestLoadingActionType,
   setErrorsAction: SetRequestErrorsActionType,
-  data: { [key: string]: number[] | string },
+  data: { [key: string]: number[] | string | boolean },
   abortController?: AbortController
 ) {
   const url = generateURL(urls.server.unitsSoftReject, null, null);

@@ -4,7 +4,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import $ from "jquery";
 import React from "react";
 import { CheckboxField } from "./fields/CheckboxField";
 import { FileField } from "./fields/FileField";
@@ -53,9 +52,6 @@ function FormComposer({ data, onSubmit, finalResults }) {
   function validateForm(e) {
     // Clean previously invalidated fields
     setInvalidFormFields({});
-
-    const formElement = e.currentTarget;
-    const formFieldElements = $.unique(Object.values(formElement.elements));
 
     // Set new invalid fields
     const _invalidFormFields = validateFormFields(form, fields);
@@ -140,17 +136,19 @@ function FormComposer({ data, onSubmit, finalResults }) {
       {(formTitle || formInstruction) && (
         <div className={`alert alert-primary`} role={"alert"}>
           {formTitle && (
-            <h2 className={`form-name`}>
-              {formTitle}
-            </h2>
+            <h2
+              className={`form-name`}
+              dangerouslySetInnerHTML={{ __html: formTitle }}
+            ></h2>
           )}
 
           {formTitle && formInstruction && <hr />}
 
           {formInstruction && (
-            <p className={`form-instruction`}>
-              {formInstruction}
-            </p>
+            <p
+              className={`form-instruction`}
+              dangerouslySetInnerHTML={{ __html: formInstruction }}
+            ></p>
           )}
         </div>
       )}
@@ -183,9 +181,10 @@ function FormComposer({ data, onSubmit, finalResults }) {
                   <div className="row justify-content-between">
                     {/* Section name on the left side */}
                     {sectionTitle && (
-                      <h4 className={`col-8 section-name dropdown-toggle`}>
-                        {sectionTitle}
-                      </h4>
+                      <h4
+                        className={`col-8 section-name dropdown-toggle`}
+                        dangerouslySetInnerHTML={{ __html: sectionTitle }}
+                      ></h4>
                     )}
 
                     {/* Badge with errors number on the right side */}
@@ -200,9 +199,10 @@ function FormComposer({ data, onSubmit, finalResults }) {
                   {sectionTitle && sectionInstruction && <hr />}
 
                   {sectionInstruction && (
-                    <p className={`section-instruction`}>
-                      {sectionInstruction}
-                    </p>
+                    <p
+                      className={`section-instruction`}
+                      dangerouslySetInnerHTML={{ __html: sectionInstruction }}
+                    ></p>
                   )}
                 </div>
               )}
@@ -232,17 +232,19 @@ function FormComposer({ data, onSubmit, finalResults }) {
                       {(fieldsetTitle || fieldsetInstruction) && (
                         <div className={`fieldset-header alert alert-secondary`} role={"alert"}>
                           {fieldsetTitle && (
-                            <h5 className={`fieldset-name`}>
-                              {fieldsetTitle}
-                            </h5>
+                            <h5
+                              className={`fieldset-name`}
+                              dangerouslySetInnerHTML={{ __html: fieldsetTitle }}
+                            ></h5>
                           )}
 
                           {fieldsetTitle && fieldsetInstruction && <hr />}
 
                           {fieldsetInstruction && (
-                            <p className={`fieldset-instruction`}>
-                              {fieldsetInstruction}
-                            </p>
+                            <p
+                              className={`fieldset-instruction`}
+                              dangerouslySetInnerHTML={{ __html: fieldsetInstruction }}
+                            ></p>
                           )}
                         </div>
                       )}
@@ -352,18 +354,20 @@ function FormComposer({ data, onSubmit, finalResults }) {
                                   )}
 
                                   {fieldHelp && (
-                                    <small className={`field-help form-text text-muted`}>
-                                      {fieldHelp}
-                                    </small>
+                                    <small
+                                      className={`field-help form-text text-muted`}
+                                      dangerouslySetInnerHTML={{ __html: fieldHelp }}
+                                    ></small>
                                   )}
                                 </div>
                               );
                             })}
 
                             {rowHelp && (
-                              <div className={`row-help container`}>
-                                {rowHelp}
-                              </div>
+                              <div
+                                className={`row-help container`}
+                                dangerouslySetInnerHTML={{ __html: rowHelp }}
+                              ></div>
                             )}
                           </div>
                         );

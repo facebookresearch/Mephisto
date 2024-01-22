@@ -44,7 +44,7 @@ def determine_toxicity(text: str):
     return Detoxify("original").predict(text)["toxicity"]
 
 
-@task_script(default_config_file="launch_with_local")
+@task_script(default_config_file="example_local_mock")
 def main(operator: Operator, cfg: DictConfig) -> None:
     tasks = build_tasks(cfg.num_tasks)
 

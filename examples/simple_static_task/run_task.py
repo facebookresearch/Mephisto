@@ -8,7 +8,7 @@ from mephisto.tools.scripts import task_script
 from omegaconf import DictConfig
 
 
-@task_script(default_config_file="example")
+@task_script(default_config_file="example_local_mock")
 def main(operator, cfg: DictConfig) -> None:
     operator.launch_task_run(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)

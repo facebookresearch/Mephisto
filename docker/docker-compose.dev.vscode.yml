@@ -30,6 +30,6 @@ services:
         /tmp/debugpy
         --wait-for-client
         --listen 0.0.0.0:5678
-        /mephisto/examples/simple_static_task/static_test_script.py
+        /mephisto/examples/simple_static_task/run_task.py
         ",
       ]

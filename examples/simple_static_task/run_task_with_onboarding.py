@@ -7,9 +7,6 @@
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import task_script
 from mephisto.operations.hydra_config import build_default_task_config
-from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
-    BLUEPRINT_TYPE_STATIC_HTML,
-)
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
@@ -21,7 +18,7 @@ CORRECT_ANSWER = "apple"
 
 
 @dataclass
-class OnboardingConfig(build_default_task_config("onboarding_example")):  # type: ignore
+class OnboardingConfig(build_default_task_config("onboarding_example_local_mock")):  # type: ignore
     correct_answer: str = CORRECT_ANSWER
 
 

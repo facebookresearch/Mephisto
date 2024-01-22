@@ -54,13 +54,12 @@ Architect is the manager of infrastructure of a project. Currently we support th
 
 # Sample Mephisto projects
 
-Mephisto repo contains several sample projects.
-Let's try to run them with `docker-compose`, starting from the easiest one.
-(You can install Docker [here](https://docs.docker.com/engine/install/).)
+Mephisto repo contains several sample projects (they're called Tasks). If you don't want to engage any cloud infrastructure, you can run all sample projects on a local machine with `mock` architect.
 
-If you don't want to engage any cloud infrastructure, you can run all sample projects on a local machine with `mock` architect. Note that for any architect project data will be stored in SQLite databases and local files.
+Sample Tasks may contain several YAML configuration files. Their naming pattern follows convention `<base_name>_<architect>_<provider>.yaml`.
 
 A few notes:
+- For any architect project data will be stored in SQLite databases and local files.
 - If a project breaks and does not shut down cleanly, you may need to remove `tmp` directory in repo root before re-launching. (Otherwise you could see errors like Prometeus cannot start, etc.)
 - To see more browser links for task units (assignments) within a TaskRun, check console logs (and remember to use correct port)
 - If you terminate a TaskRun, you can launch it again, and results from all TaskRuns will be automatically collated
@@ -68,62 +67,9 @@ A few notes:
 
 ---
 
-#### 1. Simple HTML-based task
+# Collected Task data
 
-A simple project with HTML-based UI task template [simple_static_task](../examples/simple_static_task)
-
-- Default config file: [example.yaml](../examples/simple_static_task/hydra_configs/conf/example.yaml).
-- Launch command:
-  ```shell
-  docker-compose -f docker/docker-compose.dev.yml run \
-      --build \
-      --publish 3001:3000 \
-      --rm mephisto_dc \
-      python /mephisto/examples/simple_static_task/static_test_script.py
-  ```
-- Browser page (for the first task unit): [http://localhost:3001/?worker_id=x&assignment_id=1](http://localhost:3001/?worker_id=x&assignment_id=1)
-- Browser page should display an image, instruction, select and file inputs, and a submit button.
-
----
-
-#### 2. Simple React-based task
-
-A simple project with React-based UI task template [static_react_task](../examples/static_react_task)
-
-- Default config file: [example.yaml](../examples/static_react_task/hydra_configs/conf/example.yaml).
-- Launch command:
-  ```shell
-  docker-compose -f docker/docker-compose.dev.yml run \
-      --build \
-      --publish 3001:3000 \
-      --rm mephisto_dc \
-      python /mephisto/examples/static_react_task/run_task.py
-  ```
-- Browser page (for the first task unit): [http://localhost:3001/?worker_id=x&assignment_id=1](http://localhost:3001/?worker_id=x&assignment_id=1).
-- Browser page should display an instruction line and two buttons (green and red).
-
----
-
-#### 3. Task with dynamic input
-
-A more complex example featuring worker-generated dynamic input: [mnist](../examples/remote_procedure/mnist).
-
-- Default config file: [launch_with_local.yaml](../examples/remote_procedure/mnist/hydra_configs/conf/launch_with_local.yaml).
-- Launch command:
-  ```shell
-  docker-compose -f docker/docker-compose.dev.yml run \
-      --build \
-      --publish 3001:3000 \
-      --rm mephisto_dc \
-      apt install curl && \
-      pip install grafana torch pillow numpy && \
-      mephisto metrics install && \
-      python /mephisto/examples/remote_procedure/mnist/run_task.py
-  ```
-- Browser page (for the first task unit): [http://localhost:3001/?worker_id=x&assignment_id=1](http://localhost:3001/?worker_id=x&assignment_id=1).
-- Browser page should display instructions and a layout with 3 rectangle fields for drawing numbers with a mouse, each field having inputs at the bottom.
-
----
+A quick overview on how to work with data collected through Mephisto Tasks.
 
 ## Review collected data
 
@@ -145,6 +91,9 @@ The UI is fairly intuitive, and for more details you can consult [README.md for 
 
 ## Export collected data
 
+The easiest way to export raw data for the entire Task is to click Export button for that Task in Mephisto's Review App.
+The below explains in more detail how data storage is organized (e.g. for manual export).
+
 All TaskRun data is stored in `data` directory of repo root:
 
 - `data/database.db` is Mephisto's main SQLite database with generic objects data
@@ -156,9 +105,9 @@ Worker responses metadata are in these databases, and actual data of their respo
 
 ---
 
-# Your Mephisto project
+# Create your own Task
 
-Here's a list of steps on how to build and run your own custom task.
+Here's a list of steps on how to build and run your own custom data collection Task to run on Mephisto.
 
 ## Write Task App code
 
@@ -229,7 +178,7 @@ This is a sample YAML configuration to run your Task on **AWS EC2** architect wi
     For all available Prolific-specific parameters see `mephisto.abstractions.providers.prolific.prolific_provider.ProlificProviderArgs` class
     and [Prolific API Docs](https://docs.prolific.com/docs/api-docs/public/#tag/Studies).
 
-    Note that `prolific_eligibility_requirements` does not include custom worker qualifications, these are maintained in your local Mephisto database. These can be specified in `run_task.py` script (as example, see `examples/simple_static_task/static_test_prolific_script.py`)
+    Note that `prolific_eligibility_requirements` does not include custom worker qualifications, these are maintained in your local Mephisto database. These can be specified in a Task launching script (usually called `run_task.py`, for example, `examples/simple_static_task/run_task.py`)
 
 ---
 
@@ -241,22 +190,18 @@ This is a sample YAML configuration to run your Task on **AWS EC2** architect wi
     ```
 or simply embed that command into your docker-compose entrypoint script.
 
-2. Launch a new TaskRun (instead of `examples/simple_static_task` here specify path to your own Task code; `HYDRA_FULL_ERROR=1` is optional and prints out detailed error info)
+2. Launch a new TaskRun (instead of `examples/simple_static_task` below specify path to your own Task code; `HYDRA_FULL_ERROR=1` is optional and prints out detailed error info)
 
     ```shell
     docker-compose -f docker/docker-compose.dev.yml run \
         --build \
         --rm mephisto_dc \
         rm -rf /mephisto/tmp && \
-        HYDRA_FULL_ERROR=1 python /mephisto/examples/simple_static_task/static_test_prolific_script.py
+        HYDRA_FULL_ERROR=1 python /mephisto/examples/simple_static_task/run_task.py
     ```
 
   This TaskRun script will spin up an EC2 server, upload your React Task App to it, and create a Study on Prolific. Now all eligible workers will see your Task Units (with links poiting to EC2 server) on Prolific, and can complete it.
 
 3. Leave the Task running in the console until all worker submissions are received. If TaskRun was interrupted, you can restart it using the same commands. After all submissions are received, the Architect will automatically shut down actiive TaskRun.
 
----
-
-## Process results
-
-Final steps of reviewing worker submissions and exporting the results will be same as described under sample Mephisto project runs.
+4. Now you are ready to review, and then download, your Task results.

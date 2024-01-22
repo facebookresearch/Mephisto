@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -34,7 +34,7 @@ FLASK_SETTINGS_MODULE = os.environ.get(
 
 def create_app(debug: bool = False, database_path: Optional[str] = None) -> Flask:
     # Logging
-    # TODO [Review APP]: Fix logging (it works in views only with `app.logger` somehow)
+    # TODO(#1058): [Review APP] Fix logging (it works in views only with `app.logger` somehow)
     flask_logger = get_logger("")
     settings = import_string(FLASK_SETTINGS_MODULE)
     dictConfig(settings.LOGGING)

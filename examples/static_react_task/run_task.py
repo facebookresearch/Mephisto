@@ -43,7 +43,7 @@ def handle_onboarding(onboarding_data):
     return False
 
 
-@task_script(default_config_file="example.yaml")
+@task_script(default_config_file="example_local_mock.yaml")
 def main(operator: Operator, cfg: DictConfig) -> None:
     is_using_screening_units = cfg.mephisto.blueprint["use_screening_task"]
     shared_state = SharedStaticTaskState(
