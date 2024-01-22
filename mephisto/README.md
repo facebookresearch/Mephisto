@@ -204,11 +204,7 @@ or simply embed that command into your docker-compose entrypoint script.
 
 3. Leave the Task running in the console until all worker submissions are received. If TaskRun was interrupted, you can restart it using the same commands. After all submissions are received, the Architect will automatically shut down actiive TaskRun.
 
----
-
-## Process results
-
-Final steps of reviewing worker submissions and exporting the results will be same as described under sample Mephisto project runs.
+4. Now you are ready to review, and then download, your Task results.
 
 ---
 

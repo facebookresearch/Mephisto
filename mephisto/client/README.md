@@ -33,13 +33,13 @@ For more details you can consult [Setup section in quickstart.md](docs/web/docs/
 
 ### mephisto requesters
 
-Use the command to see registered requesters.
+Use the command to see registered requesters (Mock, Mturk, Prolific, etc.).
 For more details you can consult [Docs for Requesters](docs/web/docs/reference/requesters.md#requesters).
 
 
 ### mephisto register
 
-Use the command to register requesters a new requester.
+Use the command to register a new requester (Mock, Mturk, Prolific, etc.).
 For more details you can consult [Docs for Requesters](docs/web/docs/reference/requesters.md#requesters) and 
 [Setup section in quickstart.md](docs/web/docs/guides/quickstart.md#setup).
 
@@ -71,4 +71,4 @@ The UI is fairly intuitive, and for more details you can consult [README.md for 
 
 Application to run simple form-based tasks. 
 One thing that you need is to provide configs with fields that you need for your task.
-For more details you can consult [Docs for Metrics](docs/web/docs/guides/how_to_use/efficiency_organization/metrics_dashboarding.md).
+For more details you can consult [Docs for Form Composer generator](mephisto/generators/form_composer/README.md).

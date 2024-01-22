@@ -6,8 +6,12 @@
 import os
 import subprocess
 from typing import List
+from typing import Optional
 
 import rich_click as click  # type: ignore
+from botocore.exceptions import BotoCoreError
+from botocore.exceptions import ClientError
+from botocore.exceptions import NoCredentialsError
 from flask.cli import pass_script_info
 from rich import print
 from rich.markdown import Markdown
@@ -31,6 +35,13 @@ from mephisto.client.cli_commands import get_wut_arguments
 from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
     create_extrapolated_config
 )
+from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
+    generate_tokens_values_config_from_files
+)
+from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
+    get_file_urls_from_s3_storage
+)
+from mephisto.generators.form_composer.configs_validation.extrapolated_config import is_s3_url
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.rich import console
@@ -411,7 +422,9 @@ def review_app(
 
 
 @cli.command("form_composer", cls=RichCommand)
-def form_composer():
+@click.option("-m", "--manual-versions", type=(bool), default=False)
+@click.option("-f", "--files-folder", type=(str), default=None)
+def form_composer(manual_versions: bool, files_folder: Optional[str] = None):
     # Get app path to run Python script from there (instead of the current file's directory).
     # This is necessary, because the whole infrastructure is built relative to the location
     # of the called command-line script.
@@ -421,18 +434,52 @@ def form_composer():
         "generators",
         "form_composer",
     )
-    os.chdir(app_path)
 
-    # Check files and create config with units data before running a task
+    # Check files and create `data.json` config with units data before running a task
     data_path = os.path.join(app_path, "data")
     extrapolated_form_config_path = os.path.join(data_path, "data.json")
     form_config_path = os.path.join(data_path, "form_config.json")
     tokens_values_config_path = os.path.join(data_path, "tokens_values_config.json")
-    create_extrapolated_config(
-        form_config_path=form_config_path,
-        tokens_values_config_path=tokens_values_config_path,
-        combined_config_path=extrapolated_form_config_path,
-    )
+
+    # Change dir to app dir
+    os.chdir(app_path)
+
+    if manual_versions and files_folder:
+        print("`--manual-versions` and `--files-folder` parameters cannot be used concurrently")
+        return None
+
+    if files_folder:
+        if is_s3_url(files_folder):
+            try:
+                files_locations = get_file_urls_from_s3_storage(files_folder)
+            except (BotoCoreError, ClientError, NoCredentialsError) as e:
+                print(f"Could not retrieve images from S3 URL '{files_folder}'. Reason: {e}")
+                return None
+
+            if not files_locations:
+                print(
+                    f"Could not retrieve files from '{files_folder}' - "
+                    f"check if this location exists and contains files"
+                )
+                return None
+
+            generate_tokens_values_config_from_files(tokens_values_config_path, files_locations)
+        else:
+            print("`--images-path` must be URL on S3 directory")
+            return None
+
+    if manual_versions:
+        # In case if user wants to create `data.json` config with different forms for each unit
+        # they do not need to create `form_config.json` and `tokens_values_config.json` and
+        # we just skip extrapolating these configs
+        pass
+    else:
+        create_extrapolated_config(
+            form_config_path=form_config_path,
+            tokens_values_config_path=tokens_values_config_path,
+            combined_config_path=extrapolated_form_config_path,
+            skip_validating_tokens_values_config=bool(files_folder),
+        )
 
     # Start the process
     process = subprocess.Popen("python ./run.py", shell=True, cwd=app_path)
