@@ -469,15 +469,14 @@ def form_composer(manual_versions: bool, files_folder: Optional[str] = None):
             return None
 
     if manual_versions:
-        # In case if user wants to create `data.json` config with different forms for each unit
-        # they do not need to create `form_config.json` and `tokens_values_config.json` and
-        # we just skip extrapolating these configs
+        # When user wants to use manually composed `data.json` config,
+        # we don't need to auto-generate an extrapolated config
         pass
     else:
         create_extrapolated_config(
             form_config_path=form_config_path,
             tokens_values_config_path=tokens_values_config_path,
-            combined_config_path=extrapolated_form_config_path,
+            extrapolated_form_config_path=extrapolated_form_config_path,
             skip_validating_tokens_values_config=bool(files_folder),
         )
 

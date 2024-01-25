@@ -1,0 +1,35 @@
+#@package _global_
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: ec2
+  - /mephisto/provider: mturk_sandbox
+
+mephisto:
+  architect:
+    _architect_type: ec2
+    profile_name: mephisto-router-iam
+    subdomain: "0125_mturk.3"
+  blueprint:
+    data_json: ${task_dir}/data/dynamic/data.json
+    task_source: ${task_dir}/webapp/build/bundle.js
+    link_task_source: false
+    extra_source_dir: ${task_dir}/webapp/src/static
+    units_per_assignment: 1
+  log_level: "debug"
+  task:
+    task_name: form_composer_demo
+    task_title: "0125.3 Dynamic form-based Tasks for Prolific"
+    task_description: "In this Task, we use dynamic FormComposer feature."
+    task_reward: 0.05
+    task_tags: "dynamic,form,testing"
+    assignment_duration_in_seconds: 3600
+    force_rebuild: true
+    max_num_concurrent_units: 1
+    maximum_units_per_worker: 2
+  provider:
+    requester_name: NoahTurkProject1030v2_sandbox
