@@ -1,0 +1,34 @@
+#@package _global_
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: ec2
+  - /mephisto/provider: mturk_sandbox
+
+mephisto:
+  architect:
+    _architect_type: ec2
+    profile_name: mephisto-router-iam
+    subdomain: "1115_mturk.1"
+  blueprint:
+    data_csv: ${task_dir}/data_mturk.csv
+    task_source: ${task_dir}/server_files/demo_task.html
+    preview_source: ${task_dir}/server_files/demo_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 8
+  log_level: "debug"
+  task:
+    task_name: "1115_mturk"
+    task_title: "1115_mturk Task"
+    task_description: "This is a simple test of static Mturk tasks."
+    task_reward: 0.05
+    task_tags: "static,task,testing"
+    assignment_duration_in_seconds: 5000
+    max_num_concurrent_units: 2
+    maximum_units_per_worker: 2
+  provider:
+    requester_name: NoahTurkProject1030v2_sandbox

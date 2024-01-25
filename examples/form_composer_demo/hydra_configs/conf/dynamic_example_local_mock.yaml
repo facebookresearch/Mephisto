@@ -18,8 +18,8 @@ mephisto:
     units_per_assignment: 1
   task:
     task_name: form_composer_demo
-    task_title: "Example how to easily create simple form-based Tasks"
+    task_title: "Example how to easily create dynamic form-based Tasks"
     task_description: "In this Task, we use FormComposer feature."
     task_reward: 0
-    task_tags: "test,simple,form"
+    task_tags: "test,dynamic,form"
     force_rebuild: true

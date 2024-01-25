@@ -174,7 +174,7 @@ def _write_config_to_file(config_data: List[dict], file_path: str):
 def create_extrapolated_config(
     form_config_path: str,
     tokens_values_config_path: str,
-    combined_config_path: str,
+    extrapolated_form_config_path: str,
     skip_validating_tokens_values_config: bool = False,
 ):
     # Check if files exist
@@ -205,7 +205,7 @@ def create_extrapolated_config(
             tokens_values_data,
             skip_validating_tokens_values_config,
         )
-        _write_config_to_file(extrapolated_form_config_data, combined_config_path)
+        _write_config_to_file(extrapolated_form_config_data, extrapolated_form_config_path)
     except ValueError as e:
         logger.error(e)
 

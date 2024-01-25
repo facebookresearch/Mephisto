@@ -30,21 +30,25 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
-def create_data_config():
+def generate_data_json_config():
+    """
+    Generate extrapolated `data.json` config file,
+    based on existing form and tokens values config files
+    """
     app_path = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(app_path, "data")
 
-    extrapolated_form_config_path = os.path.join(data_path, "dynamic", "data.json")
     form_config_path = os.path.join(data_path, "dynamic", "form_config.json")
     tokens_values_config_path = os.path.join(data_path, "dynamic", "tokens_values_config.json")
+    extrapolated_form_config_path = os.path.join(data_path, "dynamic", "data.json")
 
     create_extrapolated_config(
         form_config_path=form_config_path,
         tokens_values_config_path=tokens_values_config_path,
-        combined_config_path=extrapolated_form_config_path,
+        extrapolated_form_config_path=extrapolated_form_config_path,
     )
 
 
 if __name__ == "__main__":
-    create_data_config()
+    generate_data_json_config()
     main()
