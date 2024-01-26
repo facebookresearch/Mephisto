@@ -16,14 +16,11 @@ from urllib.parse import urlparse
 import boto3
 
 from mephisto.generators.form_composer.constants import JSON_IDENTATION
-from mephisto.utils.logger_core import get_logger
 from .config_validation_constants import ATTRS_SUPPORTING_TOKENS
 from .form_config import validate_form_config
 from .tokens_values_config import validate_tokens_values_config
 
 FILE_LOCATION_TOKEN_NAME = "file_location"
-
-logger = get_logger(name=__name__)
 
 
 def _extrapolate_tokens_values(text: str, tokens_values: dict) -> str:
@@ -186,7 +183,7 @@ def create_extrapolated_config(
         with open(form_config_path) as form_config_file:
             form_config_data = json.load(form_config_file)
     except (JSONDecodeError, TypeError):
-        logger.error(f"Could not read JSON from '{form_config_path}' file")
+        print(f"Could not read JSON from '{form_config_path}' file")
         raise
 
     if os.path.exists(tokens_values_config_path):
@@ -194,7 +191,7 @@ def create_extrapolated_config(
             with open(tokens_values_config_path) as tokens_values_data_config_file:
                 tokens_values_data = json.load(tokens_values_data_config_file)
         except (JSONDecodeError, TypeError):
-            logger.error(f"Could not read JSON from '{tokens_values_config_path}' file")
+            print(f"Could not read JSON from '{tokens_values_config_path}' file")
     else:
         tokens_values_data = []
 
@@ -207,7 +204,7 @@ def create_extrapolated_config(
         )
         _write_config_to_file(extrapolated_form_config_data, extrapolated_form_config_path)
     except ValueError as e:
-        logger.error(e)
+        print(f"Could not extrapolate form configs: {e}")
 
 
 def _get_bucket_and_key_from_S3_url(s3_url: str) -> Tuple[str, str]:
@@ -268,4 +265,4 @@ def generate_tokens_values_config_from_files(tokens_values_config_path: str, fil
     try:
         _write_config_to_file(tokens_values_config_data, tokens_values_config_path)
     except ValueError as e:
-        logger.error(e)
+        print(f"Could not generate tokens values config: {e}")

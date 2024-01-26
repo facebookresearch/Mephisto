@@ -11,14 +11,12 @@ from omegaconf import DictConfig
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
-from mephisto.data_model.qualification import QUAL_GREATER_EQUAL
 from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
     create_extrapolated_config
 )
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.tools.scripts import task_script
-from mephisto.utils.qualifications import make_qualification_dict
 
 
 @task_script(default_config_file="dynamic_example_ec2_mturk_sandbox")
@@ -29,9 +27,9 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     shared_state = SharedStaticTaskState()
 
     # Mephisto qualifications
-    # shared_state.qualifications = [
-    #     make_qualification_dict("sample_qual_name", QUAL_GREATER_EQUAL, 1),
-    # ]
+    shared_state.qualifications = [
+        # Custom Mephisto qualifications
+    ]
 
     # Mturk qualifications
     shared_state.mturk_specific_qualifications = [

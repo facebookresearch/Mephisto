@@ -13,9 +13,10 @@ mephisto:
   blueprint:
     data_json: ${task_dir}/data/dynamic/data.json
     task_source: ${task_dir}/webapp/build/bundle.js
+    task_source_review: ${task_dir}/webapp/build/bundle.review.js
     link_task_source: false
     extra_source_dir: ${task_dir}/webapp/src/static
-    units_per_assignment: 1
+    units_per_assignment: 2
   task:
     task_name: form_composer_demo
     task_title: "Example how to easily create dynamic form-based Tasks"

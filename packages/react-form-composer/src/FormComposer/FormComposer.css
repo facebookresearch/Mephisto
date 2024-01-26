@@ -20,7 +20,7 @@
 }
 
 .form-composer .form-header {
-  text-align: center;
+
 }
 
 .form-composer .form-header .form-name {
@@ -211,6 +211,9 @@
 
 /* --- Bootstrap overriding --- */
 
+.form-control::placeholder{
+  color: #c7c7c7 !important;
+}
 .form-control::-moz-placeholder{
   color: #c7c7c7 !important;
   opacity: 1;
@@ -220,6 +223,10 @@
 }
 .form-control::-webkit-input-placeholder{
   color: #c7c7c7 !important;
+}
+
+.non-collapsable {
+  display: initial !important;
 }
 
 /* --- Custom classes for users --- */

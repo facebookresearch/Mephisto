@@ -24,7 +24,7 @@ docker-compose -f docker/docker-compose.dev.yml run \
     --build \
     --publish 8081:8000 \
     --rm mephisto_dc \
-    mephisto review_app -h 0.0.0.0 -p 8000 -d True -f False -o False
+    mephisto review_app -h 0.0.0.0 -p 8000 -d True -f False -s False
 ```
 
 where
@@ -37,7 +37,7 @@ where
     - `-p/--port` - port where TaskReview app is going to be served
     - `-d/--debug` - debug mode
     - `-f/--force-rebuild` - force rebuild React bundle (use if client code was updated between runs)
-    - `-o/--server-only` - prepare and start only server
+    - `-s/--skip-build` - skip all installation and building steps for the UI, and directly launch the server
 
 Now open TaskReview app in your browser at [http://localhost:8081](http://localhost:8081).
 
@@ -49,7 +49,7 @@ TaskReview app consists of server and client parts. To run them in separate step
 
 1. In repo root, launch containers: `docker-compose -f docker/docker-compose.dev.yml up`
 2. SSH into running container to run server: `docker exec -it mephisto_dc bash`
-3. Inside the container run server: `cd /mephisto && mephisto review_app -h 0.0.0.0 -p 8000 -d True -o True`
+3. Inside the container run server: `cd /mephisto && mephisto review_app -h 0.0.0.0 -p 8000 -d True -s True`
 4. SSH into running container to run client: `docker exec -it mephisto_dc bash`
 5. Inside the container run client: `cd /mephisto/mephisto/review_app/client/ && REACT_APP__API_URL=http://localhost:8081 PORT=3000 npm start`
 6. Open TaskReview app in your browser at (http://localhost:3001)](http://localhost:3001).
@@ -97,8 +97,12 @@ Example: [package.json](/examples/remote_procedure/mnist/webapp/package.json)
 
 A quick overview of how TaskReview looks like.
 
-_Note that if your Task doesn't provide a custom layout for TaskReview App, in Submission view you'll see a generic display of JSON data._
+_Note that if your Task doesn't provide a custom layout for TaskReview app, in Submission view you'll see a generic display of JSON data._
 
+TODO: add screeshots here.
+
+<!---
 ![List of tasks](./screenshots/task_list.png)
 ![Generic submission view](./screenshots/generic_submission_view.png)
 ![Submission approval](./screenshots/approve_unit.png)
+-->

@@ -29,6 +29,7 @@ declare type WorkerUnitIdType = {
 };
 
 declare type UnitDetailsType = {
+  has_task_source_review: boolean;
   id: number;
   inputs: object;
   outputs: object;

@@ -30,6 +30,15 @@ def _find_tasks(db, debug: bool = False) -> List[StringIDRow]:
         return rows
 
 
+def find_completed_units(task_id: int) -> List[StringIDRow]:
+    return find_units(
+        app.db,
+        task_id,
+        statuses=AssignmentState.completed(),
+        debug=app.debug,
+    )
+
+
 class TasksView(MethodView):
     def get(self) -> dict:
         """Get all available tasks (to select one for review)"""
@@ -39,17 +48,14 @@ class TasksView(MethodView):
 
         tasks = []
         for t in db_tasks:
-            db_units: List[StringIDRow] = find_units(
-                app.db,
-                int(t["task_id"]),
-                statuses=AssignmentState.completed(),
-                debug=app.debug,
-            )
-
-            app.logger.debug(f"All finished units: {[u['unit_id'] for u in db_units]}")
+            db_units: List[StringIDRow] = find_completed_units(int(t["task_id"]))
+            app.logger.debug(f"All completed units: {[u['unit_id'] for u in db_units]}")
 
             unit_count = len(db_units)
-            is_reviewed = all([u["status"] != AssignmentState.COMPLETED for u in db_units])
+            is_reviewed = (
+                unit_count > 0 and
+                all([u["status"] != AssignmentState.COMPLETED for u in db_units])
+            )
 
             tasks.append(
                 {

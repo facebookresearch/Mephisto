@@ -268,7 +268,11 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
               {/* Collapsable part of section with fieldsets */}
               <div
                 id={`accordion_collapsable_part_${sectionIndex}`}
-                className={`collapse ${initiallyCollapsed ? "" : "show"}`}
+                className={`
+                  collapse
+                  ${collapsable ? "" : "non-collapsable"}
+                  ${initiallyCollapsed ? "" : "show"}
+                `}
                 aria-labelledby={`accordion_heading_${sectionIndex}`}
                 data-parent={`#id_accordion`}
               >
@@ -445,7 +449,8 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
 
         {onSubmitLoading ? (
           <div className={`alert alert-success centered mx-auto col-6 ml-2 mr-2`}>
-            Form was sent...
+            Thank you!<br/>
+            Your form has been submitted.
           </div>
         ) : (
           <div className={`form-buttons container`}>

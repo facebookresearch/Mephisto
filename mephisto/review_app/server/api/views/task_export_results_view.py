@@ -16,7 +16,7 @@ from werkzeug.exceptions import BadRequest
 from mephisto.abstractions.databases.local_database import StringIDRow
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
-from mephisto.review_app.server.db_queries import find_units
+from .tasks_view import find_completed_units
 
 
 def get_results_dir() -> str:
@@ -25,8 +25,8 @@ def get_results_dir() -> str:
     return results_dir
 
 
-def get_result_file_path(results_dir: str, task_id: str) -> str:
-    return os.path.join(results_dir, f"task_{task_id}_results.json")
+def get_result_file_path(results_dir: str, task_id: str, n_units: int) -> str:
+    return os.path.join(results_dir, f"task_{task_id}__{n_units}_units__results.json")
 
 
 class TaskExportResultsView(MethodView):
@@ -36,13 +36,7 @@ class TaskExportResultsView(MethodView):
         db_task: StringIDRow = app.db.get_task(task_id)
         app.logger.debug(f"Found Task in DB: {db_task}")
 
-        db_units: List[StringIDRow] = find_units(
-            app.db,
-            int(db_task["task_id"]),
-            statuses=AssignmentState.completed(),
-            debug=app.debug,
-        )
-
+        db_units: List[StringIDRow] = find_completed_units(int(task_id))
         is_reviewed = all([u["status"] != AssignmentState.COMPLETED for u in db_units])
 
         if not is_reviewed:
@@ -66,8 +60,9 @@ class TaskExportResultsView(MethodView):
 
         # Save file with results, so it can be copied later from the repo if needed
         results_dir = get_results_dir()
-        results_file_path = get_result_file_path(results_dir, task_id)
+        results_file_path = get_result_file_path(results_dir, task_id, len(db_units))
 
+        # File is cached only if we did not add any new reviewed units to the task
         if not os.path.exists(results_file_path):
             os.makedirs(results_dir, exist_ok=True)
             with open(results_file_path, "w") as f:

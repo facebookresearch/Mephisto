@@ -9,24 +9,33 @@ This package provides `FormComposer` widget for React-based front-end developmen
 
 # How to Run
 
-To create and launch a Form Composer task, create a configuration that fits your needs,
-and then the below commands.
+To create and launch a Form Composer task, create your JSON form configuration,
+and then run the below commands.
 
----
+Once Form Composer launches, in the console you will see links like this:
+http://localhost:3000/?worker_id=x&assignment_id=1
 
-#### Installation
+To view your Task as a worker, take one of these links and paste it in your browser.
+If launched with `docker-compose`, replace 3000 with the remapped port (e.g. for `3001:3000` it will be 3001).
+
+
+#### With docker-compose
+
+You can launch Form Composer inside a Docker container:
 
 ```shell
-cd /mephisto/packages/react-form-composer && npm install --save react-form-composer
+docker-compose -f docker/docker-compose.dev.yml run \
+    --build \
+    --publish 8081:8000 \
+    --publish 3001:3000 \
+    --rm mephisto_dc \
+    mephisto form_composer
 ```
 
-#### Building
+#### Without docker-compose
 
-```shell
-cd /mephisto/packages/react-form-composer && npm run build
-```
-
-#### Launching
+First ensure that mephisto package is installed locally - please refer to [Mephisto's main doc](https://mephisto.ai/docs/guides/quickstart/).
+Once that is done, run a `form_composer` command:
 
 ```shell
 # Sample launching commands
@@ -39,25 +48,15 @@ where
 - `-m/--manual-versions` argument skips auto-generating form versions in `data.json` by extrapolating token values, and instead uses an existing `data.json` file (see [Custom form versions](#custom-form-versions) section)
 - `-f/--files-folder` argument generates token values based on file names found within specified file folder (see a separate section about this mode of running Form Composer)
 
-Using Docker Compose:
-
-```shell
-docker-compose -f docker/docker-compose.dev.yml run \
-    --build \
-    --publish 8081:8000 \
-    --rm mephisto_dc \
-    mephisto form_composer
-```
-
-Once it launches, in Docker console you will see links like this: http://localhost:3000/?worker_id=x&assignment_id=1 To view your Task as a worker, take one of these links, replace port 3000 with a port from your `docker-compose` config (e.g. for `3001:3000` it will be 3001), and paste it in your browser.
-
+---
 
 # Config file structure
 
-- You will need to provide Form Composer with a JSON configuration of your form fields.
-The form config file should be named `form_config.json`, and contain a JSON object with one key `form`.
+You will need to provide Form Composer with a JSON configuration of your form fields,
+and place it in `generators/form-composer/data` directory.
+- The form config file should be named `form_config.json`, and contain a JSON object with one key `form`.
 - If you want to slightly vary your form within a Task (by inserting different values into its text), you need to add a file named `tokens_values_config.json` and containing a JSON array of objects, each with one key `tokens_values` and value representing name-value pairs for the text tokens.
-    - For more details, read about dynamic form configs further down.
+- For more details, read about dynamic form configs further down.
 
 Config examples:
 - form config: `examples/form_composer_demo/data/dynamic/form_config.json`
@@ -169,6 +168,9 @@ While attributes values are limited to numbers and text, these fields (at any hi
 - `instruction`
 - `title`
 
+_Note that, due to limitations of JSON format, HTML content needs to be converted into a single long string of text._
+
+
 ---
 
 #### Config level: form
@@ -176,7 +178,7 @@ While attributes values are limited to numbers and text, these fields (at any hi
 `form` is a top-level config object with the following attributes:
 
 - `instruction` - HTML content describing this form; it is located before all contained sections (String, Optional)
-- `title` - Header of the form (String)
+- `title` - HTML header of the form (String)
 - `submit_button` - Button to submit the whole form and thus finish a task (Object)
     - `text` - Label shown on the button
     - `tooltip` - Browser tooltip shown on mouseover
@@ -244,7 +246,7 @@ Here's example of a single field config:
 
 The most important attributes are: `label`, `name`, `type`, `validators`
 
-- `help` - HTML explanation of the field displayed in small font below the field (String, Optional)
+- `help` - HTML explanation of the field/fieldset displayed in small font below the field (String, Optional)
 - `id` - Unique HTML id of the field, in case we need to refer to it from custom handlers code (String, Optional)
 - `label` - Field name displayed above the field (String)
 - `name` - Unique name under which this field's data will be sent to the server (String)
@@ -294,6 +296,8 @@ Dynamic form config consists of two parts:
 #### Extrapolated config
 
 During bulding a Task with dynamic form config, the resulting config containing all form vesions will be placed in `data.json` file (next to `form_config.json` file).
+
+Note that each form version in `data.json` represents one assignment in Mephisto.
 
 - In your YAML Task config, always refer to the extrapolated config file `data.json` (not the foorm config file)
 - Every time you re-run Form Composer, `data.json` file will be overwritten
