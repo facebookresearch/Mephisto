@@ -5,6 +5,7 @@
  */
 
 import React from "react";
+import { DEFAULT_COLLAPSABLE, DEFAULT_INITIALLY_COLLAPSED } from "./constants";
 import { CheckboxField } from "./fields/CheckboxField";
 import { FileField } from "./fields/FileField";
 import { InputField } from "./fields/InputField";
@@ -14,9 +15,16 @@ import { TextareaField } from "./fields/TextareaField";
 import "./FormComposer.css";
 import { SectionErrors } from "./SectionErrors";
 import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
+import { FormErrors } from "./FormErrors";
 import { checkFieldRequiredness, validateFormFields } from "./validation/helpers";
 
-function FormComposer({ data, onSubmit, finalResults }) {
+function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
+  // State to hide submit button
+  const [onSubmitLoading, setOnSubmitLoading] = React.useState(false);
+
+  // List of unexpected server error messages
+  const [submitErrors, setSubmitErrors] = React.useState([]);
+
   // Invalid fields (having error messages after form validation)
   const [invalidFormFields, setInvalidFormFields] = React.useState({});
 
@@ -47,6 +55,13 @@ function FormComposer({ data, onSubmit, finalResults }) {
         ...{ [fieldName]: value },
       };
     });
+  }
+
+  function scrollToFirstInvalidSection() {
+    const firstInvalidSection = document.querySelectorAll("section[data-invalid='true']")[0];
+    if (firstInvalidSection){
+      window.scrollTo(0, firstInvalidSection.offsetTop);
+    }
   }
 
   function validateForm(e) {
@@ -90,6 +105,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
     const formData = prepareFormData();
 
     // Pass data to `mephisto-task` library
+    setOnSubmitLoading(true);
     onSubmit(formData);
   }
 
@@ -126,6 +142,18 @@ function FormComposer({ data, onSubmit, finalResults }) {
     }
   }, [formSections]);
 
+  React.useEffect(() => {
+    if (Object.keys(invalidFormFields).length) {
+      scrollToFirstInvalidSection();
+    }
+  }, [invalidFormFields]);
+
+  React.useEffect(() => {
+    if (serverSubmitErrors && serverSubmitErrors.length) {
+      setSubmitErrors(serverSubmitErrors);
+    }
+  }, [serverSubmitErrors]);
+
   return (
     <form
       className={`form-composer`}
@@ -134,7 +162,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
       onSubmit={onSubmitForm}
     >
       {(formTitle || formInstruction) && (
-        <div className={`alert alert-primary`} role={"alert"}>
+        <div className={`form-header alert alert-primary`} role={"alert"}>
           {formTitle && (
             <h2
               className={`form-name`}
@@ -158,31 +186,61 @@ function FormComposer({ data, onSubmit, finalResults }) {
 
         {/* Sections */}
         {formSections.map(( section, sectionIndex ) => {
-          let sectionTitle = section.title;
-          let sectionInstruction = section.instruction;
-          let fieldsets = section.fieldsets;
+          const sectionTitle = section.title;
+          const sectionInstruction = section.instruction;
+          const fieldsets = section.fieldsets;
+
+          const collapsable = (
+            [null, undefined].includes(section.collapsable)  // Not specified in config
+              ? DEFAULT_COLLAPSABLE
+              : section.collapsable
+          );
+          const initiallyCollapsed = (
+            collapsable
+              ? (
+                [null, undefined].includes(section.initially_collapsed)  // Not specified in config
+                  ? DEFAULT_INITIALLY_COLLAPSED
+                  : section.initially_collapsed)
+              : false
+          );
+
+          const sectionHasInvalidFields = !!(sectionsFields[sectionIndex] || []).filter(
+            (field) => Object.keys(invalidFormFields).includes(field.name)
+          ).length;
 
           return (
             <section
               key={`section-${sectionIndex}`}
-              className={`section container`}
+              className={`section`}
+              data-id={`section-${sectionIndex}`}
+              data-invalid={sectionHasInvalidFields}
             >
               {(sectionTitle || sectionInstruction) && (
                 // Section header is clickable for accordion
                 <div
-                  className={`section-header alert alert-info`}
+                  className={`
+                    section-header
+                    alert
+                    alert-info
+                    ${collapsable ? "collapsable" : ""}
+                    ${sectionHasInvalidFields ? "has-invalid-fields" : ""}
+                  `}
                   role={"alert"}
                   id={`accordion_heading_${sectionIndex}`}
-                  data-toggle={"collapse"}
-                  data-target={`#accordion_collapsable_part_${sectionIndex}`}
-                  aria-expanded={true}
-                  aria-controls={`accordion_collapsable_part_${sectionIndex}`}
+                  data-toggle={collapsable ? "collapse" : null}
+                  data-target={collapsable ? `#accordion_collapsable_part_${sectionIndex}` : null}
+                  aria-expanded={collapsable ? initiallyCollapsed : null}
+                  aria-controls={collapsable ? `accordion_collapsable_part_${sectionIndex}` : null}
                 >
                   <div className="row justify-content-between">
                     {/* Section name on the left side */}
                     {sectionTitle && (
                       <h4
-                        className={`col-8 section-name dropdown-toggle`}
+                        className={`
+                          col-8
+                          section-name
+                          ${collapsable ? "dropdown-toggle" : ""}
+                        `}
                         dangerouslySetInnerHTML={{ __html: sectionTitle }}
                       ></h4>
                     )}
@@ -210,7 +268,7 @@ function FormComposer({ data, onSubmit, finalResults }) {
               {/* Collapsable part of section with fieldsets */}
               <div
                 id={`accordion_collapsable_part_${sectionIndex}`}
-                className={`collapse ${sectionIndex === 0 ? "show" : ""}`}
+                className={`collapse ${initiallyCollapsed ? "" : "show"}`}
                 aria-labelledby={`accordion_heading_${sectionIndex}`}
                 data-parent={`#id_accordion`}
               >
@@ -220,9 +278,9 @@ function FormComposer({ data, onSubmit, finalResults }) {
                 />
 
                 {fieldsets.map(( fieldset, fieldsetIndex ) => {
-                  let fieldsetTitle = fieldset.title;
-                  let fieldsetInstruction = fieldset.instruction;
-                  let rows = fieldset.rows;
+                  const fieldsetTitle = fieldset.title;
+                  const fieldsetInstruction = fieldset.instruction;
+                  const rows = fieldset.rows;
 
                   return (
                     <fieldset
@@ -250,8 +308,8 @@ function FormComposer({ data, onSubmit, finalResults }) {
                       )}
 
                       {rows.map(( row, rowIndex ) => {
-                        let rowHelp = row.help;
-                        let fields = row.fields;
+                        const rowHelp = row.help;
+                        const fields = row.fields;
 
                         return (
                           <div
@@ -259,18 +317,18 @@ function FormComposer({ data, onSubmit, finalResults }) {
                             className={`row`}
                           >
                             {fields.map(( field, fieldIndex ) => {
-                              let fieldHelp = field.help;
+                              const fieldHelp = field.help;
 
                               return (
                                 <div
                                   key={`field-${fieldIndex}`}
-                                  className={
-                                    `${field.class ? field.class : ""}
+                                  className={`
+                                    ${field.class ? field.class : ""}
                                     field
                                     form-group
                                     col
-                                    ${checkFieldRequiredness(field) ? "required" : ""}`
-                                  }
+                                    ${checkFieldRequiredness(field) ? "required" : ""}
+                                  `}
                                   title={field.tooltip}
                                 >
 
@@ -381,19 +439,37 @@ function FormComposer({ data, onSubmit, finalResults }) {
         })}
       </div>
 
+      {/* Submit button */}
       {(formSubmitButton && !inReviewState) && (<>
         <hr className={`form-buttons-separator`} />
 
-        <div className={`form-buttons container`}>
-          <button
-            className={`button-submit btn btn-success`}
-            type={"submit"}
-            title={formSubmitButton.tooltip}
-          >
-            {formSubmitButton.text}
-          </button>
-        </div>
+        {onSubmitLoading ? (
+          <div className={`alert alert-success centered mx-auto col-6 ml-2 mr-2`}>
+            Form was sent...
+          </div>
+        ) : (
+          <div className={`form-buttons container`}>
+            <button
+              className={`button-submit btn btn-success`}
+              type={"submit"}
+              title={formSubmitButton.tooltip}
+            >
+              {formSubmitButton.text}
+            </button>
+          </div>
+        )}
+
+        {!!Object.keys(invalidFormFields).length && (
+          <div className={`alert alert-danger centered mx-auto col-6 ml-2 mr-2`}>
+            Please correct validation errors in the form
+          </div>
+        )}
       </>)}
+
+      {/* Unexpected server errors */}
+      {!!submitErrors.length && (
+        <FormErrors errorMessages={submitErrors} />
+      )}
     </form>
   );
 }

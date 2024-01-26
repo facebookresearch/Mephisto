@@ -15,6 +15,9 @@ function RadioField({
 
   const initialValue = initialFormData ? initialFormData[field.name] : "";
 
+  const [invalidField, setInvalidField] = React.useState(false);
+  const [errors, setErrors] = React.useState([]);
+
   function updateFieldData(e, optionValue) {
     setLastCheckEvent(e);
     setWidgetValue(optionValue);
@@ -33,6 +36,14 @@ function RadioField({
       setDefaultWidgetValue();
     }
   }, []);
+
+  React.useEffect(() => {
+    setInvalidField(invalid);
+  }, [invalid]);
+
+  React.useEffect(() => {
+    setErrors(validationErrors);
+  }, [validationErrors]);
 
   React.useEffect(() => {
     updateFormData(lastCheckEvent, field.name, widgetValue);
@@ -61,9 +72,13 @@ function RadioField({
               form-check
               ${field.type}
               ${disabled ? "disabled" : ""}
-              ${invalid ? "is-invalid" : ""}
+              ${invalidField ? "is-invalid" : ""}
             `}
-            onClick={(e) => !disabled && updateFieldData(e, option.value)}
+            onClick={(e) => {
+              !disabled && updateFieldData(e, option.value);
+              setInvalidField(false);
+              setErrors([]);
+            }}
           >
             <span
               className={`form-check-input ${checked ? "checked" : ""}`}
@@ -77,7 +92,7 @@ function RadioField({
         );
       })}
 
-      <Errors messages={validationErrors} />
+      <Errors messages={errors} />
     </>
   );
 }

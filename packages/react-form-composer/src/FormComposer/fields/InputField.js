@@ -13,6 +13,18 @@ function InputField({
 }) {
   const initialValue = initialFormData ? initialFormData[field.name] : "";
 
+  const [invalidField, setInvalidField] = React.useState(false);
+  const [errors, setErrors] = React.useState([]);
+
+  // Effects
+  React.useEffect(() => {
+    setInvalidField(invalid);
+  }, [invalid]);
+
+  React.useEffect(() => {
+    setErrors(validationErrors);
+  }, [validationErrors]);
+
   return (
     // bootstrap classes:
     //  - form-control
@@ -22,7 +34,7 @@ function InputField({
       <input
         className={`
           form-control 
-          ${invalid ? "is-invalid" : ""}
+          ${invalidField ? "is-invalid" : ""}
         `}
         id={field.id}
         name={field.name}
@@ -31,11 +43,15 @@ function InputField({
         style={field.style}
         required={checkFieldRequiredness(field)}
         defaultValue={initialValue}
-        onChange={(e) => !disabled && updateFormData(e, field.name, e.target.value)}
+        onChange={(e) => {
+          !disabled && updateFormData(e, field.name, e.target.value);
+          setInvalidField(false);
+          setErrors([]);
+        }}
         disabled={disabled}
       />
 
-      <Errors messages={validationErrors} />
+      <Errors messages={errors} />
     </>
   );
 }

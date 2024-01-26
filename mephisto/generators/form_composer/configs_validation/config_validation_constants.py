@@ -35,9 +35,17 @@ AVAILABLE_FORM_ATTRS: AvailableAttrsType = {
 }
 
 AVAILABLE_SECTION_ATTRS: AvailableAttrsType = {
+    "collapsable": {
+        "type": bool,
+        "required": False,
+    },
     "fieldsets": {
         "type": list,
         "required": True,
+    },
+    "initially_collapsed": {
+        "type": bool,
+        "required": False,
     },
     "instruction": {
         "type": str,

@@ -142,14 +142,11 @@ export function postCompleteTask(agent_id, complete_data, multipart) {
 
     return postMultipartData("/submit_task", formData)
       .then((data) => {
-        console.log("####@@@@ formData before handleSubmitToProvider", formData.get("final_string_data"), formData.get("final_data"));
-        console.log("####@@@@ data before handleSubmitToProvider", data);
         handleSubmitToProvider(formData.get("final_string_data") || formData.get("final_data"));
         return data;
       })
       .then(function (data) {
         console.log("Submitted");
-        console.log("####@@@@ multipart data after handleSubmitToProvider", data);
       });
   } else {
     return postData("/submit_task", {
@@ -162,7 +159,7 @@ export function postCompleteTask(agent_id, complete_data, multipart) {
         return data;
       })
       .then(function (data) {
-        console.log("Submitted Simple");  //##@@
+        console.log("Submitted");
       });
   }
 }

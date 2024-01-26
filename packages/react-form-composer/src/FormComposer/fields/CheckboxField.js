@@ -15,6 +15,9 @@ function CheckboxField({
 
   const initialValue = initialFormData ? initialFormData[field.name] : {};
 
+  const [invalidField, setInvalidField] = React.useState(false);
+  const [errors, setErrors] = React.useState([]);
+
   function setDefaultWidgetValue() {
     const allItemsNotCheckedValue = Object.fromEntries(
       field.options.map(o => [o.value, !!o.checked])
@@ -27,11 +30,20 @@ function CheckboxField({
     setWidgetValue({ ...widgetValue, ...{[optionValue]: checkValue }});
   }
 
+  // Effects
   React.useEffect(() => {
     if (Object.keys(widgetValue).length === 0) {
       setDefaultWidgetValue();
     }
   }, []);
+
+  React.useEffect(() => {
+    setInvalidField(invalid);
+  }, [invalid]);
+
+  React.useEffect(() => {
+    setErrors(validationErrors);
+  }, [validationErrors]);
 
   React.useEffect(() => {
     updateFormData(lastCheckEvent, field.name, widgetValue);
@@ -59,9 +71,13 @@ function CheckboxField({
             className={`
               form-check
               ${field.type} ${disabled ? "disabled" : ""}
-              ${invalid ? "is-invalid" : ""}
+              ${invalidField ? "is-invalid" : ""}
             `}
-            onClick={(e) => !disabled && updateFieldData(e, option.value, !checked)}
+            onClick={(e) => {
+              !disabled && updateFieldData(e, option.value, !checked);
+              setInvalidField(false);
+              setErrors([]);
+            }}
           >
             <span
               className={`form-check-input ${checked ? "checked" : ""}`}
@@ -75,7 +91,7 @@ function CheckboxField({
         );
       })}
 
-      <Errors messages={validationErrors} />
+      <Errors messages={errors} />
     </>
   );
 }

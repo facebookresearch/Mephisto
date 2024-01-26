@@ -4,13 +4,10 @@
   LICENSE file in the root directory of this source tree.
 -->
 
-# Form Composer
-
 This package provides `FormComposer` widget for React-based front-end development for Mephisto tasks.
 
----
 
-## How to Run
+# How to Run
 
 To create and launch a Form Composer task, create a configuration that fits your needs,
 and then the below commands.
@@ -54,9 +51,8 @@ docker-compose -f docker/docker-compose.dev.yml run \
 
 Once it launches, in Docker console you will see links like this: http://localhost:3000/?worker_id=x&assignment_id=1 To view your Task as a worker, take one of these links, replace port 3000 with a port from your `docker-compose` config (e.g. for `3001:3000` it will be 3001), and paste it in your browser.
 
----
 
-## How to configure
+# Config file structure
 
 - You will need to provide Form Composer with a JSON configuration of your form fields.
 The form config file should be named `form_config.json`, and contain a JSON object with one key `form`.
@@ -153,7 +149,7 @@ Here's a brief example of a form config:
 
 ---
 
-#### Form config hierarchy levels
+## Form config levels
 
 Form UI layout consists of the following layers of UI object hierarchy:
 
@@ -184,7 +180,7 @@ While attributes values are limited to numbers and text, these fields (at any hi
 - `submit_button` - Button to submit the whole form and thus finish a task (Object)
     - `text` - Label shown on the button
     - `tooltip` - Browser tooltip shown on mouseover
-- `sections` - List of containers into which form content is divided, for convenience; each section has its own validation messages, and is collapsible (Array[Object])
+- `sections` - **List of containers** into which form content is divided, for convenience; each section has its own validation messages, and is collapsible (Array[Object])
 
 ---
 
@@ -192,10 +188,12 @@ While attributes values are limited to numbers and text, these fields (at any hi
 
 Each item of `sections` list is an object with the following attributes:
 
+- `collapsable` - Whether the section will toggle when its title is clicked (Boolean, Optional, Default: true)
+- `initially_collapsed` - Whether the section display will initially be collapsed (Boolean, Optional, Default: false)
 - `instruction` - HTML content describing this section; it is located before all contained fieldsets (String, Optional)
-- `title` - Header of the section (String)
 - `name` - Unique string that serves as object reference when using dynamic form config (String)
-- `fieldsets` - List of containers into which form fields are grouped by meaning (Array[Object])
+- `title` - Header of the section (String)
+- `fieldsets` - **List of containers** into which form fields are grouped by meaning (Array[Object])
 
 ---
 
@@ -205,7 +203,7 @@ Each item of `fieldsets` list is an object with the following attributes:
 
 - `instruction` - HTML content describing this fieldset; it is located before all contained field rows (String, Optional)
 - `title` - Header of the section (String)
-- `rows` - List of horizontal lines into which section's form fields are organized (Array[Object])
+- `rows` - **List of horizontal lines** into which section's form fields are organized (Array[Object])
 
 ---
 
@@ -213,7 +211,7 @@ Each item of `fieldsets` list is an object with the following attributes:
 
 Each item of `rows` list is an object with the following attributes:
 
-- `fields` - List of one or more fields that will be line up into one horizontal line
+- `fields` - **List of fields** that will be lined up into one horizontal line
 
 ---
 
@@ -221,7 +219,7 @@ Each item of `rows` list is an object with the following attributes:
 
 Each item of `fields` list is an object that corresponds to the actual form field displayed in the resulting Task UI page.
 
-Example of a field config:
+Here's example of a single field config:
 
 ```json
 {
@@ -278,15 +276,14 @@ The most important attributes are: `label`, `name`, `type`, `validators`
     - `value`: value sent to the server (String|Number|Boolean)
     - `checked`: initial state of selection (Boolean, default: false)
 
----
 
-## Dynamic form config
+# Dynamic form config
 
 If you wish to slightly vary form instructions within the same Task (e.g. show different images or different text), you should use a dynamic form config.
 
 ---
 
-#### Dynamic form config files
+## Dynamic form config files
 
 Dynamic form config consists of two parts:
 
@@ -294,7 +291,7 @@ Dynamic form config consists of two parts:
 - `tokens_values_config.json`: file containing sets of token values, where each set is plugged into a dynamic form config to generate its form version (each form version will be completed by `units_per_assignment` different workers).
 
 
-###### Extrapolated config
+#### Extrapolated config
 
 During bulding a Task with dynamic form config, the resulting config containing all form vesions will be placed in `data.json` file (next to `form_config.json` file).
 
@@ -303,7 +300,7 @@ During bulding a Task with dynamic form config, the resulting config containing 
 - Run generator with command: `mephisto form_composer`
 
 
-###### Custom form versions
+#### Custom form versions
 
 Suppose your form variations go beyond slight text changes (e.g. you wish to add a fieldset in one version of form config). In that case:
 
@@ -313,7 +310,7 @@ Suppose your form variations go beyond slight text changes (e.g. you wish to add
 
 ---
 
-#### Tokens extrapolation
+## Tokens extrapolation
 
 A token is a named text placeholder that gets replaced ("extrapolated") by values specified in `tokens_values_config.json` (each set of `tokens_values` specifies a form version, and contains one such value).
 
@@ -333,7 +330,7 @@ When reusing a token with same name in different form attributes (across all lev
 
 ---
 
-#### Dynamic form config with `--files-folder`
+## Dynamic form config with `--files-folder`
 
 Consider a special case when form config has only one token, a file path. Form Composer offers a shortcut to save your time on creating `tokens_values_config.json` file in this scenario. Simply launch task with this command:
 
@@ -366,10 +363,9 @@ Note that:
 - `form_config.json` file must contain one, and only one, token name `{{file_location}}`
 - `tokens_values_config.json` file is not needed in this case (it will be auto-generated)
 
-
 ---
 
-#### Using FormBuilder with your application
+## Embedding FormBuilder into custom application
 
 If you wish to embed FormComposer in your custom application, a few tips about extrapolator function `mephisto.generators.form_composer.configs_validation.extrapolated_config.create_extrapolated_config` (that generates extrapolated `data.json` config):
 

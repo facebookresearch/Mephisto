@@ -17,13 +17,12 @@ export function SectionErrors({ invalidFormFields, sectionFields }) {
     // bootstrap classes:
     //  - alert
     //  - alert-danger
-    //  - ml-2
-    //  - mr-2
+    //  - container
 
     <>
       {sectionHasErrors && sectionFields && (
         <div
-          className={`alert alert-danger ml-2 mr-2`}
+          className={`alert alert-danger container`}
           role={"alert"}
         >
           <b>
