@@ -15,10 +15,10 @@ from .task_export_results_view import get_results_dir
 
 
 class TaskExportResultsJsonView(MethodView):
-    def get(self, task_id: str = None) -> dict:
+    def get(self, task_id: str = None, n_units: int = None) -> dict:
         """Get result data file in JSON format"""
         results_dir = get_results_dir()
-        results_file_path = get_result_file_path(results_dir, task_id)
+        results_file_path = get_result_file_path(results_dir, task_id, n_units)
 
         if not os.path.exists(results_file_path):
             raise NotFound("File not found")

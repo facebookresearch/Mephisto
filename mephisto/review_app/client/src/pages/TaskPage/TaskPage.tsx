@@ -99,6 +99,10 @@ function TaskPage(props: PropsType) {
 
   const [finishedTask, setFinishedTask] = React.useState<boolean>(false);
 
+  const currentUnitDetails = unitDetailsMap[String(currentUnitOnReview)];
+
+  const [unitResultsIsJSON, setUnitResultsIsJSON] = React.useState<boolean>(false);
+
   window.onmessage = function (e) {
     if (
       e.data &&
@@ -334,6 +338,7 @@ function TaskPage(props: PropsType) {
 
     // Save current state of the modal data
     updateModalState(setModalState, modalData.type, modalData);
+    setIframeLoaded(false);
   };
 
   const onError = (errorResponse: ErrorResponseType | null) => {
@@ -355,8 +360,6 @@ function TaskPage(props: PropsType) {
     taskIframe.contentWindow.postMessage(JSON.stringify(reviewData), "*");
   };
   // ---
-
-  const currentUnitDetails = unitDetailsMap[String(currentUnitOnReview)];
 
   // Effects
   useEffect(() => {
@@ -456,11 +459,20 @@ function TaskPage(props: PropsType) {
   // [RECEIVING WIDGET DATA]
   // ---
   useEffect(() => {
-    if (iframeLoaded && currentUnitDetails) {
+    if (iframeLoaded && currentUnitDetails?.has_task_source_review) {
       sendDataToTaskIframe(currentUnitDetails);
     }
   }, [currentUnitDetails, iframeLoaded]);
   // ---
+
+  useEffect(() => {
+    if (currentUnitDetails) {
+      const unitOutputs = currentUnitDetails.outputs;
+      if (typeof unitOutputs === "object") {
+        setUnitResultsIsJSON(true);
+      }
+    }
+  }, [currentUnitDetails]);
 
   if (task === null) {
     return null;
@@ -519,14 +531,33 @@ function TaskPage(props: PropsType) {
 
         {currentUnitDetails?.outputs && (
           <>
+            {/* Results table */}
+            <div className={"results"}>
+              <h1>
+                <b>Results:</b>
+              </h1>
+
+              {unitResultsIsJSON ? (
+                <JSONPretty
+                  className={"json-pretty"}
+                  data={currentUnitDetails.outputs}
+                  space={4}
+                />
+              ) : (
+                <div>
+                  {JSON.stringify(currentUnitDetails.outputs)}
+                </div>
+              )}
+            </div>
+
             {/* Task info */}
             <div className={"question"} onClick={(e) => e.preventDefault()}>
-              {"final_submission" in currentUnitDetails.outputs ? (
+              {currentUnitDetails.has_task_source_review ? (
                 <iframe
                   className={"task-iframe"}
                   src={urls.server.unitReviewHtml(currentUnitOnReview)}
                   id={"task-preview"}
-                  height={iframeHeight} // Width is always 100% to recieve a correct rendered height
+                  height={iframeHeight} // Width is always 100% to receive correctly rendered height
                   onLoad={() => setIframeLoaded(true)}
                   ref={iframeRef}
                 />
@@ -534,21 +565,6 @@ function TaskPage(props: PropsType) {
                 <JSONPretty
                   className={"json-pretty"}
                   data={currentUnitDetails.inputs}
-                  space={4}
-                />
-              )}
-            </div>
-
-            {/* Results table */}
-            <div className={"results"}>
-              <h1>
-                <b>Results:</b>
-              </h1>
-
-              {!("final_submission" in currentUnitDetails.outputs) && (
-                <JSONPretty
-                  className={"json-pretty"}
-                  data={currentUnitDetails.outputs}
                   space={4}
                 />
               )}

@@ -7,6 +7,7 @@
         "name": "section_about",
         "title": "About you",
         "instruction": "Please introduce yourself. We would like to know more about your background, personal information, etc.",
+        "collapsable": false,
         "fieldsets": [
           {
             "title": "Personal information",
@@ -262,6 +263,7 @@
         "name": "section_second",
         "title": "Second section",
         "instruction": "Example of another section",
+        "initially_collapsed": true,
         "fieldsets" : [
           {
             "title": "Motivation",

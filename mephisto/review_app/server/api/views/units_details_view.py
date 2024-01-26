@@ -12,6 +12,7 @@ from flask import request
 from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
+from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 
 
@@ -49,11 +50,15 @@ class UnitsDetailsView(MethodView):
                 # In case if this is Expired Unit. It raises and axceptions
                 unit_data = {}
 
+            task_run: TaskRun = unit.get_task_run()
+            has_task_source_review = bool(task_run.args.get("blueprint").get("task_source_review"))
+
             units.append(
                 {
+                    "has_task_source_review": has_task_source_review,
                     "id": int(unit.db_id),
                     "inputs": unit_data.get("data", {}).get("inputs"),  # instructions for worker
-                    "outputs": unit_data.get("data", {}).get("outputs"),  # resposne from worker
+                    "outputs": unit_data.get("data", {}).get("outputs"),  # response from worker
                 }
             )
 

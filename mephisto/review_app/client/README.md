@@ -24,4 +24,4 @@
             - We render unit's review representation in an iframe
             - User can choose to reject/accept unit, grant/revoke qualification, and block the worker
 - When all units are reviewed, user is redirected to "Tasks" page and clicks  "Download" button for the reviewed Task
-  - We pull Task data from `GET /tasks/<task_id>/export-results.json` endpoint
+  - We pull Task data from `GET /tasks/<task_id>/<n_units>/export-results.json` endpoint

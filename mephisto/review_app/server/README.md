@@ -50,7 +50,7 @@ Compose a single file with reviewed task results
 
 ---
 
-`GET /tasks/{id}/export-results.json`
+`GET /tasks/{id}/{n_units}/export-results.json`
 
 Serve a single composed file with reviewed task results
 

@@ -42,7 +42,7 @@ function TasksPage(props: PropsType) {
     }
   };
 
-  const requestTaskResults = (taskId: number) => {
+  const requestTaskResults = (taskId: number, nUnits: number) => {
     const onSuccessExportResults = (data) => {
       if (data.file_created) {
         // Create pseudo link and click it
@@ -50,7 +50,7 @@ function TasksPage(props: PropsType) {
         const link = document.createElement("a");
         link.setAttribute("style", "display: none;");
         link.id = linkId;
-        link.href = urls.server.taskExportResultsJson(taskId);
+        link.href = urls.server.taskExportResultsJson(taskId, nUnits);
         link.target = "_blank";
         link.click();
         link.remove();
@@ -104,17 +104,18 @@ function TasksPage(props: PropsType) {
           {tasks &&
             tasks.map((task: TaskType, index) => {
               const date = moment(task.created_at).format("MMM D, YYYY");
+              const nonClickable = task.is_reviewed || task.unit_count == 0;
 
               return (
                 <tr
-                  className={"task-row" + (task.is_reviewed ? " no-hover" : "")}
+                  className={"task-row" + (nonClickable ? " no-hover" : "")}
                   key={"task-row" + index}
-                  onClick={() => !task.is_reviewed && onTaskRowClick(task.id)}
+                  onClick={() => !nonClickable && onTaskRowClick(task.id)}
                 >
                   <td
                     className={
                       "task" +
-                      (task.is_reviewed ? " text-muted" : " text-primary")
+                      (nonClickable ? " text-muted" : " text-primary")
                     }
                   >
                     {task.name}
@@ -128,7 +129,7 @@ function TasksPage(props: PropsType) {
                     {task.is_reviewed && !loadingExportResults && (
                       <span
                         className={"text-primary download-button"}
-                        onClick={() => requestTaskResults(task.id)}
+                        onClick={() => requestTaskResults(task.id, task.unit_count)}
                       >
                         Download
                       </span>

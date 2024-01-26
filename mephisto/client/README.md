@@ -8,51 +8,52 @@ TODO: [form-builder-app] Complete this reamde with details about each command
 
 ## Commands
 
-- [mephisto config](#mephisto-config)
-- [mephisto check](#mephisto-check)
-- [mephisto requesters](#mephisto-requesters)
-- [mephisto register](#mephisto-register)
-- [mephisto wut](#mephisto-wut)
-- [mephisto scripts](#mephisto-scripts)
-- [mephisto metrics](#mephisto-metrics)
-- [mephisto review_app](#mephisto-reviewapp)
-- [mephisto form_composer](#mephisto-formcomposer)
+- [Commands](#commands)
+  - [mephisto config](#mephisto-config)
+  - [mephisto check](#mephisto-check)
+  - [mephisto requesters](#mephisto-requesters)
+  - [mephisto register](#mephisto-register)
+  - [mephisto wut](#mephisto-wut)
+  - [mephisto scripts](#mephisto-scripts)
+  - [mephisto metrics](#mephisto-metrics)
+  - [mephisto review\_app](#mephisto-review_app)
+  - [mephisto form\_composer](#mephisto-form_composer)
 
 
 ### mephisto config
 
-Set up a data directory where the results of your crowdsourcing tasks will be stored.
+Sets up a data directory to store results of your crowdsourcing tasks.
 For more details you can consult [Setup section in quickstart.md](docs/web/docs/guides/quickstart.md#setup).
 
 
 ### mephisto check
 
-Check that everything is set up correctly.
+Check that Mephisto is set up correctly.
 For more details you can consult [Setup section in quickstart.md](docs/web/docs/guides/quickstart.md#setup).
 
 
 ### mephisto requesters
 
-Use the command to see registered requesters (Mock, Mturk, Prolific, etc.).
+Use the command to list registered requesters (Mock, Mturk, Prolific, etc.).
 For more details you can consult [Docs for Requesters](docs/web/docs/reference/requesters.md#requesters).
 
 
 ### mephisto register
 
-Use the command to register a new requester (Mock, Mturk, Prolific, etc.).
-For more details you can consult [Docs for Requesters](docs/web/docs/reference/requesters.md#requesters) and 
+Register a new requester within your current Mephisto instance (Mock, Mturk, Prolific, etc.).
+For more details you can consult [Docs for Requesters](docs/web/docs/reference/requesters.md#requesters) and
 [Setup section in quickstart.md](docs/web/docs/guides/quickstart.md#setup).
 
 
 ### mephisto wut
 
-Dig for more information about specific configuration arguments.
+Find more information about specific configuration arguments.
 For more details you can consult [First Task Tutorial](docs/web/docs/guides/tutorials/first_task.md#21-discovering-options-with-mephisto-wut).
 
 
 ### mephisto scripts
 
-Run scripts from `mephisto/scripts` directory.
+Run a script from `mephisto/scripts` directory.
 
 
 ### mephisto metrics
@@ -63,12 +64,11 @@ For more details you can consult [Docs for Metrics](docs/web/docs/guides/how_to_
 
 ### mephisto review_app
 
-Run the Web-application to review completed Mephisto tasks.
-The UI is fairly intuitive, and for more details you can consult [README.md for TaskReview app](mephisto/review_app/README.md).
+Run TaskReview app (a web application) to review your task results.
+The UI is fairly intuitive; for more details you can consult [README.md for TaskReview app](mephisto/review_app/README.md).
 
 
 ### mephisto form_composer
 
-Application to run simple form-based tasks. 
-One thing that you need is to provide configs with fields that you need for your task.
+Compose and launch a simple form-based data collection task, based on your form configuration.
 For more details you can consult [Docs for Form Composer generator](mephisto/generators/form_composer/README.md).

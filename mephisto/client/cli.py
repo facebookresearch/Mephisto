@@ -341,7 +341,7 @@ def metrics_cli(args):
 @click.option("-p", "--port", type=(int), default=5000)
 @click.option("-d", "--debug", type=(bool), default=None)
 @click.option("-f", "--force-rebuild", type=(bool), default=False)
-@click.option("-o", "--server-only", type=(bool), default=False)
+@click.option("-s", "--skip-build", type=(bool), default=False)
 @pass_script_info
 def review_app(
     info,
@@ -349,7 +349,7 @@ def review_app(
     port,
     debug,
     force_rebuild,
-    server_only,
+    skip_build,
 ):
     """
     Launch a local review server.
@@ -369,8 +369,11 @@ def review_app(
     print(f'[green]Review APP will start on "{app_url}" address.[/green]')
 
     # Set up Review App Client
-    if not server_only:
-        review_app_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "review_app")
+    if not skip_build:
+        review_app_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "review_app",
+        )
         client_dir = "client"
         client_path = os.path.join(review_app_path, client_dir)
 
@@ -379,6 +382,7 @@ def review_app(
             print(f"[blue]JS requirements are already installed.[/blue]")
         else:
             print(f"[blue]Installing JS requirements started.[/blue]")
+            subprocess.call(["ls"], cwd=client_path)
             app_started = subprocess.call(["npm", "install"], cwd=client_path)
             if app_started != 0:
                 raise Exception(
