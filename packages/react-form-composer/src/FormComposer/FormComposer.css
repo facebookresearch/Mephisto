@@ -9,6 +9,7 @@
 .form-composer {
   /* Variables */
   --input-bg-color: #fafafa;
+  --error-color: red;
 
   margin: 0 auto;
   padding-top: 20px;
@@ -18,11 +19,15 @@
   max-width: 1280px;
 }
 
-.form-composer .form-name {
+.form-composer .form-header {
+  text-align: center;
+}
+
+.form-composer .form-header .form-name {
   font-size: 22px;
 }
 
-.form-composer .form-instruction {
+.form-composer .form-header .form-instruction {
 
 }
 
@@ -32,9 +37,18 @@
 
 }
 
-.form-composer .section .section-header:hover {
+.form-composer .section .section-header:not(.collapsable):hover {
+  cursor: initial;
+  opacity: 1;
+}
+
+.form-composer .section .section-header.collapsable:hover {
   cursor: pointer;
   opacity: 0.8;
+}
+
+.form-composer .section .section-header.has-invalid-fields .section-name {
+  color: var(--error-color);
 }
 
 .form-composer .section .section-name {
@@ -110,7 +124,7 @@
 
 .form-composer .section .fieldset .field.required label:after {
   content: "*";
-  color: red;
+  color: var(--error-color);
   margin-left: 3px;
 }
 
@@ -169,7 +183,7 @@
 
 .form-composer .section .fieldset .field .form-check.checkbox.is-invalid .form-check-input,
 .form-composer .section .fieldset .field .form-check.radio.is-invalid .form-check-input {
-  border-color: red;
+  border-color: var(--error-color);
 }
 
 .form-composer .section .fieldset .field .form-check:not(.disabled):hover .form-check-input {
@@ -192,4 +206,25 @@
 
 .form-composer .form-buttons .button-submit {
 
+}
+
+
+/* --- Bootstrap overriding --- */
+
+.form-control::-moz-placeholder{
+  color: #c7c7c7 !important;
+  opacity: 1;
+}
+.form-control:-ms-input-placeholder{
+  color: #c7c7c7 !important;
+}
+.form-control::-webkit-input-placeholder{
+  color: #c7c7c7 !important;
+}
+
+/* --- Custom classes for users --- */
+
+.centered {
+  display: block;
+  text-align: center;
 }

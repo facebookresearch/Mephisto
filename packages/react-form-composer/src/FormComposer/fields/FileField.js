@@ -13,6 +13,10 @@ function FileField({
 }) {
   const [widgetValue, setWidgetValue] = React.useState("");
 
+  const [invalidField, setInvalidField] = React.useState(false);
+  const [errors, setErrors] = React.useState([]);
+
+  // Methods
   function onChange(e, fieldName) {
     let fieldValue = null;
     const input = e.target;
@@ -36,11 +40,20 @@ function FileField({
     setWidgetValue(initialValue.name || "");
   }
 
+  // Effects
   React.useEffect(() => {
     if (!widgetValue) {
       setDefaultWidgetValue();
     }
   }, []);
+
+  React.useEffect(() => {
+    setInvalidField(invalid);
+  }, [invalid]);
+
+  React.useEffect(() => {
+    setErrors(validationErrors);
+  }, [validationErrors]);
 
   return (
     // bootstrap classes:
@@ -51,12 +64,12 @@ function FileField({
 
     <div className={`
       custom-file 
-      ${invalid ? "is-invalid" : ""}
+      ${invalidField ? "is-invalid" : ""}
     `}>
       <input
         className={`
           custom-file-input 
-          ${invalid ? "is-invalid" : ""}
+          ${invalidField ? "is-invalid" : ""}
         `}
         id={field.id}
         name={field.name}
@@ -64,7 +77,11 @@ function FileField({
         placeholder={field.placeholder}
         style={field.style}
         required={checkFieldRequiredness(field)}
-        onChange={(e) => !disabled && onChange(e, field.name)}
+        onChange={(e) => {
+          !disabled && onChange(e, field.name);
+          setInvalidField(false);
+          setErrors([]);
+        }}
         disabled={disabled}
       />
 
@@ -72,7 +89,7 @@ function FileField({
         {widgetValue}
       </span>
 
-      <Errors messages={validationErrors} />
+      <Errors messages={errors} />
     </div>
   );
 }

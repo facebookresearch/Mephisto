@@ -20,6 +20,10 @@ function SelectField({
       : (field.multiple ? [] : "")
   );
 
+  const [invalidField, setInvalidField] = React.useState(false);
+  const [errors, setErrors] = React.useState([]);
+
+  // Methods
   function onChange(e, fieldName) {
     let fieldValue = e.target.value;
     if (field.multiple) {
@@ -29,17 +33,32 @@ function SelectField({
     updateFormData(e, fieldName, fieldValue);
   }
 
+  // Effects
+  React.useEffect(() => {
+    $(`.selectpicker.select-${field.name}`).selectpicker();
+  }, []);
+
   React.useEffect(() => {
     if (invalid) {
       $(`.bootstrap-select.select-${field.name}`).addClass("is-invalid");
     } else {
       $(`.bootstrap-select.select-${field.name}`).removeClass("is-invalid");
     }
+
+    setInvalidField(invalid);
   }, [invalid]);
 
   React.useEffect(() => {
-    $(`.selectpicker.select-${field.name}`).selectpicker();
-  }, []);
+    if (invalidField) {
+      $(`.bootstrap-select.select-${field.name}`).addClass("is-invalid");
+    } else {
+      $(`.bootstrap-select.select-${field.name}`).removeClass("is-invalid");
+    }
+  }, [invalidField]);
+
+  React.useEffect(() => {
+    setErrors(validationErrors);
+  }, [validationErrors]);
 
   return (
     // bootstrap classes:
@@ -53,7 +72,7 @@ function SelectField({
           form-control 
           selectpicker
           select-${field.name}
-          ${invalid ? "is-invalid" : ""}
+          ${invalidField ? "is-invalid" : ""}
         `}
         id={field.id}
         name={field.name}
@@ -61,7 +80,11 @@ function SelectField({
         style={field.style}
         required={checkFieldRequiredness(field)}
         defaultValue={initialValue}
-        onChange={(e) => !disabled && onChange(e, field.name)}
+        onChange={(e) => {
+          !disabled && onChange(e, field.name);
+          setInvalidField(false);
+          setErrors([]);
+        }}
         multiple={field.multiple}
         disabled={disabled}
         data-actions-box={field.multiple ? true : null}
@@ -82,7 +105,7 @@ function SelectField({
         })}
       </select>
 
-      <Errors messages={validationErrors} />
+      <Errors messages={errors} />
     </>
   );
 }
