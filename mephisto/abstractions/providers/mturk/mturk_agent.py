@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.agent import Agent
-from mephisto.abstractions.blueprint import AgentState
-from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
-from mephisto.abstractions.providers.mturk.mturk_utils import (
-    approve_work,
-    reject_work,
-    get_assignment,
-    get_assignments_for_hit,
-)
+import json
+from typing import Any
+from typing import cast
+from typing import Dict
+from typing import Mapping
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Union
 
 import xmltodict  # type: ignore
-import json
 
-from typing import List, Optional, Tuple, Dict, Mapping, Any, cast, TYPE_CHECKING
-
+from mephisto.abstractions.blueprint import AgentState
+from mephisto.abstractions.providers.mturk.mturk_utils import approve_work
+from mephisto.abstractions.providers.mturk.mturk_utils import get_assignments_for_hit
+from mephisto.abstractions.providers.mturk.mturk_utils import reject_work
+from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
+from mephisto.data_model.agent import Agent
 from mephisto.utils.logger_core import get_logger
-
-logger = get_logger(name=__name__)
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
@@ -30,6 +30,8 @@ if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
     from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
+
+logger = get_logger(name=__name__)
 
 
 class MTurkAgent(Agent):
@@ -101,7 +103,12 @@ class MTurkAgent(Agent):
 
     # Required functions for Agent Interface
 
-    def approve_work(self) -> None:
+    def approve_work(
+        self,
+        review_note: Optional[str] = None,
+        bonus: Optional[Union[int, float]] = None,
+        skip_unit_review: bool = False,
+    ) -> None:
         """Approve the work done on this specific Unit"""
         if self.get_status() == AgentState.STATUS_APPROVED:
             logger.info(f"Approving already approved agent {self}, skipping")
@@ -110,14 +117,34 @@ class MTurkAgent(Agent):
         approve_work(client, self._get_mturk_assignment_id(), override_rejection=True)
         self.update_status(AgentState.STATUS_APPROVED)
 
-    def reject_work(self, reason) -> None:
+        if not skip_unit_review:
+            unit = self.get_unit()
+            self.db.new_unit_review(
+                unit_id=unit.db_id,
+                task_id=unit.task_id,
+                worker_id=unit.worker_id,
+                status=AgentState.STATUS_APPROVED,
+                review_note=review_note,
+                bonus=bonus,
+            )
+
+    def reject_work(self, review_note: Optional[str] = None) -> None:
         """Reject the work done on this specific Unit"""
         if self.get_status() == AgentState.STATUS_APPROVED:
             logger.warning(f"Cannot reject {self}, it is already approved")
             return
         client = self._get_client()
-        reject_work(client, self._get_mturk_assignment_id(), reason)
+        reject_work(client, self._get_mturk_assignment_id(), review_note)
         self.update_status(AgentState.STATUS_REJECTED)
+
+        unit = self.get_unit()
+        self.db.new_unit_review(
+            unit_id=unit.db_id,
+            task_id=unit.task_id,
+            worker_id=unit.worker_id,
+            status=AgentState.STATUS_REJECTED,
+            review_note=review_note,
+        )
 
     def mark_done(self) -> None:
         """

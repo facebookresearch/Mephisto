@@ -4,17 +4,21 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.agent import Agent
+from typing import Any
+from typing import Dict
+from typing import Mapping
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Union
+
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.providers.mock.provider_type import PROVIDER_TYPE
-
-from typing import List, Optional, Tuple, Dict, Mapping, Any, TYPE_CHECKING
+from mephisto.data_model.agent import Agent
 
 if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
-    from mephisto.data_model.packet import Packet
     from mephisto.abstractions.providers.mock.mock_datastore import MockDatastore
 
 
@@ -76,7 +80,7 @@ class MockAgent(Agent):
     def approve_work(
         self,
         review_note: Optional[str] = None,
-        bonus: Optional[str] = None,
+        bonus: Optional[Union[int, float]] = None,
         skip_unit_review: bool = False,
     ) -> None:
         """

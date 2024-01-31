@@ -448,11 +448,20 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
         <hr className={`form-buttons-separator`} />
 
         {onSubmitLoading ? (
+          // Banner of success
           <div className={`alert alert-success centered mx-auto col-6 ml-2 mr-2`}>
             Thank you!<br/>
             Your form has been submitted.
           </div>
-        ) : (
+        ) : (<>
+          {/* Button instruction */}
+          {formSubmitButton.instruction && (
+            <div className={`alert alert-light centered mx-auto col-6 ml-2 mr-2`}>
+              {formSubmitButton.instruction}
+            </div>
+          )}
+
+          {/* Submit button */}
           <div className={`form-buttons container`}>
             <button
               className={`button-submit btn btn-success`}
@@ -462,8 +471,9 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
               {formSubmitButton.text}
             </button>
           </div>
-        )}
+        </>)}
 
+        {/* Additional reminder to correct form errors above */}
         {!!Object.keys(invalidFormFields).length && (
           <div className={`alert alert-danger centered mx-auto col-6 ml-2 mr-2`}>
             Please correct validation errors in the form

@@ -10,14 +10,15 @@ from typing import Dict
 from typing import Mapping
 from typing import Optional
 from typing import TYPE_CHECKING
+from typing import Union
 
 from mephisto.abstractions.blueprint import AgentState
 from mephisto.abstractions.providers.prolific import prolific_utils
+from mephisto.abstractions.providers.prolific.api.client import ProlificClient
+from mephisto.abstractions.providers.prolific.api.constants import SubmissionStatus
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
 from mephisto.data_model.agent import Agent
 from mephisto.utils.logger_core import get_logger
-from mephisto.abstractions.providers.prolific.api.client import ProlificClient
-from mephisto.abstractions.providers.prolific.api.constants import SubmissionStatus
 
 if TYPE_CHECKING:
     from mephisto.abstractions.providers.prolific.prolific_datastore import ProlificDatastore
@@ -28,16 +29,15 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
 
-
 SUBMISSION_STATUS_TO_AGENT_STATE_MAP = {
-    SubmissionStatus.RESERVED: AgentState.STATUS_WAITING,
-    SubmissionStatus.TIMED_OUT: AgentState.STATUS_TIMEOUT,
-    SubmissionStatus.AWAITING_REVIEW: AgentState.STATUS_COMPLETED,
+    SubmissionStatus.ACTIVE: AgentState.STATUS_IN_TASK,
     SubmissionStatus.APPROVED: AgentState.STATUS_COMPLETED,
-    SubmissionStatus.RETURNED: AgentState.STATUS_RETURNED,
+    SubmissionStatus.AWAITING_REVIEW: AgentState.STATUS_COMPLETED,
     SubmissionStatus.REJECTED: AgentState.STATUS_REJECTED,
+    SubmissionStatus.RESERVED: AgentState.STATUS_WAITING,
+    SubmissionStatus.RETURNED: AgentState.STATUS_RETURNED,
+    SubmissionStatus.TIMED_OUT: AgentState.STATUS_TIMEOUT,
 }
-
 logger = get_logger(name=__name__)
 
 
@@ -103,7 +103,7 @@ class ProlificAgent(Agent):
     def approve_work(
         self,
         review_note: Optional[str] = None,
-        bonus: Optional[str] = None,
+        bonus: Optional[Union[int, float]] = None,
         skip_unit_review: bool = False,
     ) -> None:
         """Approve the work done on this specific Unit"""
@@ -139,7 +139,7 @@ class ProlificAgent(Agent):
                 worker_id=unit.worker_id,
                 status=AgentState.STATUS_APPROVED,
                 review_note=review_note,
-                bonus=bonus,
+                bonus=str(bonus),
             )
 
     def soft_reject_work(self, review_note: Optional[str] = None) -> None:

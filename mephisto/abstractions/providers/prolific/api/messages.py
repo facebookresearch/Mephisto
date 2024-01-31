@@ -52,9 +52,13 @@ class Messages(BaseAPIResource):
         return messages
 
     @classmethod
-    def send(cls, **data) -> Message:
+    def send(cls, study_id: str, recipient_id: str, text: str) -> Message:
         """Send a message to a participant or another researcher"""
-        message = Message(**data)
+        message = Message(
+            body=text,
+            recipient_id=recipient_id,
+            study_id=study_id,
+        )
         message.validate()
         response_json = cls.post(cls.list_api_endpoint, params=message.to_dict())
         return Message(**response_json)

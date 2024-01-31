@@ -5,14 +5,16 @@
  */
 
 import fieldIsRequired from "./validators/fieldIsRequired";
+import fileExtensionSatisfied from "./validators/fileExtensionSatisfied";
 import maxLengthSatisfied from "./validators/maxLengthSatisfied";
 import minLengthSatisfied from "./validators/minLengthSatisfied";
 import regexpSatisfied from "./validators/regexpSatisfied";
 
 // Available name of validator for users in JSON-config -> validator-function
 export const validatorFunctionsByConfigName = {
+  "fileExtension": fileExtensionSatisfied,
   "maxLength": maxLengthSatisfied,
   "minLength": minLengthSatisfied,
-  "required": fieldIsRequired,
   "regexp": regexpSatisfied,
+  "required": fieldIsRequired,
 };

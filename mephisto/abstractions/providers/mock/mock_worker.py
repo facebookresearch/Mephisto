@@ -4,22 +4,30 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.worker import Worker
+from typing import Any
+from typing import Mapping
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
+
 from mephisto.abstractions.providers.mock.provider_type import PROVIDER_TYPE
-from typing import List, Optional, Tuple, Dict, Mapping, Type, Any, TYPE_CHECKING
+from mephisto.data_model.worker import Worker
+from mephisto.utils.logger_core import get_logger
 
 if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.unit import Unit
-    from mephisto.data_model.agent import Agent
     from mephisto.data_model.requester import Requester
     from mephisto.abstractions.providers.mock.mock_datastore import MockDatastore
+
+logger = get_logger(name=__name__)
 
 
 class MockWorker(Worker):
     """
-    This class represents an individual - namely a person. It maintains components of ongoing identity for a user.
+    This class represents an individual - namely a person.
+    It maintains components of ongoing identity for a user.
     """
 
     def __init__(
@@ -36,6 +44,7 @@ class MockWorker(Worker):
         self, amount: float, reason: str, unit: Optional["Unit"] = None
     ) -> Tuple[bool, str]:
         """Bonus this worker for work any reason. Return success of bonus"""
+        logger.debug(f"Mock paying bonus to worker. Amount: {amount}. Reason: '{reason}")
         return True, ""
 
     def block_worker(
@@ -59,6 +68,11 @@ class MockWorker(Worker):
 
     def is_eligible(self, task_run: "TaskRun") -> bool:
         """Determine if this worker is eligible for the given task run"""
+        return True
+
+    def send_feedback_message(self, text: str, unit: "Unit") -> bool:
+        """Send feedback message to a worker"""
+        logger.debug(f"Mock sending feedback message to worker: '{text}'. Unit: {unit}")
         return True
 
     @staticmethod

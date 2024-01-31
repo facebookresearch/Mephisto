@@ -180,8 +180,9 @@ _Note that, due to limitations of JSON format, HTML content needs to be converte
 - `instruction` - HTML content describing this form; it is located before all contained sections (String, Optional)
 - `title` - HTML header of the form (String)
 - `submit_button` - Button to submit the whole form and thus finish a task (Object)
-    - `text` - Label shown on the button
-    - `tooltip` - Browser tooltip shown on mouseover
+    - `instruction` - Text shown above the "Submit" button (String, Optional)
+    - `text` - Label shown on the button (String)
+    - `tooltip` - Browser tooltip shown on mouseover (String, Optional)
 - `sections` - **List of containers** into which form content is divided, for convenience; each section has its own validation messages, and is collapsible (Array[Object])
 
 ---
@@ -260,6 +261,7 @@ The most important attributes are: `label`, `name`, `type`, `validators`
     - `regexp`: Ensure provided value confirms to a Javascript regular expression. It can be:
         - (String): a regexp string (e.g. `"^[a-zA-Z0-9._-]+$"`) in which case default matching flags are `igm` are used
         - (2-item Array[String, String]): a regexp string followed by matching flags (e.g. `["^[a-zA-Z0-9._-]+$", "ig"]`)
+    - `fileExtension`: Ensure uploaded file has specified extension(s) (e.g. `["doc", "pdf"]`) (Array<String>)
 - `value` - Initial value of the field (String, Optional)
 
 

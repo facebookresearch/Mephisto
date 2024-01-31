@@ -32,7 +32,7 @@
                       "value": ""
                     },
                     {
-                      "help": "Optional",
+                      "help": "",
                       "id": "id_name_last",
                       "label": "Last name",
                       "name": "name_last",
@@ -347,7 +347,7 @@
                       "value": ""
                     },
                     {
-                      "help": "Optional",
+                      "help": "",
                       "id": "id_name_last",
                       "label": "Last name",
                       "name": "name_last",
