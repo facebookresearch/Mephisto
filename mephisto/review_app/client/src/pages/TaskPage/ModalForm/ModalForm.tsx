@@ -14,10 +14,6 @@ import "./ModalForm.css";
 const BONUS_FOR_WORKER_ENABLED = true;
 const FEEDBACK_FOR_WORKER_ENABLED = true;
 
-// TODO(#1058): [Review APP] Implement back-end for this functionality
-const BONUS_FOR_WORKER_ENABLED = false;
-const FEEDBACK_FOR_WORKER_ENABLED = false;
-
 const range = (start, end) => Array.from(Array(end + 1).keys()).slice(start);
 
 type ModalFormProps = {

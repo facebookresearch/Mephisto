@@ -29,16 +29,15 @@ if TYPE_CHECKING:
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.worker import Worker
 
-
 SUBMISSION_STATUS_TO_AGENT_STATE_MAP = {
-    SubmissionStatus.RESERVED: AgentState.STATUS_WAITING,
-    SubmissionStatus.TIMED_OUT: AgentState.STATUS_TIMEOUT,
-    SubmissionStatus.AWAITING_REVIEW: AgentState.STATUS_COMPLETED,
+    SubmissionStatus.ACTIVE: AgentState.STATUS_IN_TASK,
     SubmissionStatus.APPROVED: AgentState.STATUS_COMPLETED,
-    SubmissionStatus.RETURNED: AgentState.STATUS_RETURNED,
+    SubmissionStatus.AWAITING_REVIEW: AgentState.STATUS_COMPLETED,
     SubmissionStatus.REJECTED: AgentState.STATUS_REJECTED,
+    SubmissionStatus.RESERVED: AgentState.STATUS_WAITING,
+    SubmissionStatus.RETURNED: AgentState.STATUS_RETURNED,
+    SubmissionStatus.TIMED_OUT: AgentState.STATUS_TIMEOUT,
 }
-
 logger = get_logger(name=__name__)
 
 

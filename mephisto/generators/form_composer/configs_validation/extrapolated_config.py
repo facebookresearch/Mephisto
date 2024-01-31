@@ -63,9 +63,10 @@ def _collect_form_config_items_to_extrapolate(config_data: dict) -> List[dict]:
     return items_to_extrapolate
 
 
-def _collect_tokens_from_form_config(config_data: dict) -> set:
+def _collect_tokens_from_form_config(config_data: dict) -> Tuple[set, List[str]]:
     items_to_extrapolate = _collect_form_config_items_to_extrapolate(config_data)
     tokens_in_form_config = set()
+    tokens_in_unexpected_attrs_errors = []
 
     for item in items_to_extrapolate:
         for attr_name in ATTRS_SUPPORTING_TOKENS:
@@ -74,7 +75,21 @@ def _collect_tokens_from_form_config(config_data: dict) -> set:
                 continue
             tokens_in_form_config.update(set(re.findall(r"\{\{\s*(\w+?)\s*\}\}", item_attr)))
 
-    return tokens_in_form_config
+        attrs_not_suppoting_tokens = set(item.keys()) - set(ATTRS_SUPPORTING_TOKENS)
+        for attr_name in attrs_not_suppoting_tokens:
+            item_attr = item.get(attr_name)
+            if isinstance(item_attr, str):
+                found_attr_tokens = re.findall(r"\{\{\s*(\w+?)\s*\}\}", item_attr)
+                if found_attr_tokens:
+                    found_attr_tokens_string = ", ".join([f"'{t}'" for t in found_attr_tokens])
+                    tokens_in_unexpected_attrs_errors.append(
+                        f"You tried to set tokens {found_attr_tokens_string} "
+                        f"in attribute '{attr_name}' with value '{item_attr}'. "
+                        f"You can use tokens only in following attributes: "
+                        f"{', '.join(ATTRS_SUPPORTING_TOKENS)}"
+                    )
+
+    return tokens_in_form_config, tokens_in_unexpected_attrs_errors
 
 
 def _extrapolate_tokens_in_form_config(config_data: dict, tokens_values: dict) -> dict:
@@ -94,6 +109,10 @@ def _combine_extrapolated_form_configs(
     # Validate Form config
     form_config_is_valid, form_config_errors = validate_form_config(form_config_data)
 
+    if not form_config_is_valid:
+        # Stop generating a Task, the config is incorrect
+        raise ValueError("\n" + "\n\n".join(form_config_errors))
+
     # Validate token values config
     if skip_validating_tokens_values_config:
         tokens_values_config_is_valid, tokens_values_data_config_errors = True, []
@@ -103,7 +122,9 @@ def _combine_extrapolated_form_configs(
         )
 
     # Validate tokens in both configs
-    tokens_from_form_config = _collect_tokens_from_form_config(form_config_data)
+    tokens_from_form_config, tokens_in_unexpected_attrs_errors = _collect_tokens_from_form_config(
+        form_config_data,
+    )
     tokens_from_tokens_values_config = set(sum(
         [list(u["tokens_values"].keys()) for u in tokens_values_config_data],
         [],
@@ -114,7 +135,7 @@ def _combine_extrapolated_form_configs(
     # Token names present in form config, but not in token values config
     underspecified_tokens = tokens_from_form_config - tokens_from_tokens_values_config
 
-    # Print errors
+    # Output errors, if any
     if overspecified_tokens:
         errors.append(
             f"Values for the following tokens are provided in tokens value config, "
@@ -127,6 +148,9 @@ def _combine_extrapolated_form_configs(
             f"but their values are not provided in the tokens values config: "
             f"{', '.join(underspecified_tokens)}."
         )
+
+    if tokens_in_unexpected_attrs_errors:
+        errors = errors + tokens_in_unexpected_attrs_errors
 
     if not form_config_is_valid:
         form_config_errors = [f"  - {e}" for e in form_config_errors]
@@ -142,7 +166,7 @@ def _combine_extrapolated_form_configs(
         # Stop generating a Task, the config is incorrect
         raise ValueError("\n" + "\n\n".join(errors))
 
-    # Combine extrapolated configs
+    # If no errors, combine extrapolated form versions to create Task data config
     combined_config = []
     if tokens_values_config_data:
         for unit_tokens_values in tokens_values_config_data:

@@ -34,6 +34,21 @@ AVAILABLE_FORM_ATTRS: AvailableAttrsType = {
     },
 }
 
+AVAILABLE_SUBMIT_BUTTON_ATTRS: AvailableAttrsType = {
+    "instruction": {
+        "type": str,
+        "required": False,
+    },
+    "text": {
+        "type": str,
+        "required": True,
+    },
+    "tooltip": {
+        "type": str,
+        "required": False,
+    },
+}
+
 AVAILABLE_SECTION_ATTRS: AvailableAttrsType = {
     "collapsable": {
         "type": bool,

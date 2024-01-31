@@ -10,6 +10,7 @@ from .config_validation_constants import AVAILABLE_FIELDSET_ATTRS
 from .config_validation_constants import AVAILABLE_FORM_ATTRS
 from .config_validation_constants import AVAILABLE_ROW_ATTRS
 from .config_validation_constants import AVAILABLE_SECTION_ATTRS
+from .config_validation_constants import AVAILABLE_SUBMIT_BUTTON_ATTRS
 from .config_validation_constants import AvailableAttrsType
 
 UniqueAttrsType = Dict[str, List[str]]
@@ -54,14 +55,18 @@ def validate_form_config(config_json: dict) -> Tuple[bool, List[str]]:
 
     if not isinstance(config_json, dict):
         is_valid = False
-        errors.append("Config must be 'Object'.")
+        errors.append("Form config must be a dictionary.")
 
-    if config_json.keys() != AVAILABLE_CONFIG_ATTRS.keys():
+    elif config_json.keys() != AVAILABLE_CONFIG_ATTRS.keys():
         is_valid = False
         errors.append(
-            f"Config must contain only next attributes: "
+            f"Form config must contain only these attributes: "
             f"{', '.join(AVAILABLE_CONFIG_ATTRS.keys())}."
         )
+
+    if not is_valid:
+        # return early in case configs don't even have a correst data type
+        return is_valid, errors
 
     items_to_validate: List[Tuple[dict, str, AvailableAttrsType]] = []
     unique_names: UniqueAttrsType = {}
@@ -71,8 +76,12 @@ def validate_form_config(config_json: dict) -> Tuple[bool, List[str]]:
 
     # Add form
     form = config_json["form"]
-    items_to_validate.append((form, 'form', AVAILABLE_FORM_ATTRS))
+    items_to_validate.append((form, "form", AVAILABLE_FORM_ATTRS))
     _collect_values_for_unique_attrs_from_item(form, unique_names)
+
+    # Add submit button
+    submit_button = form["submit_button"]
+    items_to_validate.append((submit_button, "submit_button", AVAILABLE_SUBMIT_BUTTON_ATTRS))
 
     # Add form sections
     sections = form["sections"]
@@ -99,7 +108,9 @@ def validate_form_config(config_json: dict) -> Tuple[bool, List[str]]:
                     available_field_attrs = AVAILABLE_FIELD_ATTRS_BY_TYPE.get(field_type)
 
                     if not available_field_attrs:
-                        errors.append(f"Object 'field' mast have 'type' attribute.")
+                        errors.append(
+                            f"Object 'field' has unsupported 'type' attribute value: {field_type}"
+                        )
                         is_valid = False
                         continue
 

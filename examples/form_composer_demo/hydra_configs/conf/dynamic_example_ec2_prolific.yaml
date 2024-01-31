@@ -13,7 +13,7 @@ mephisto:
   architect:
     _architect_type: ec2
     profile_name: mephisto-router-iam
-    subdomain: "0124.3"
+    subdomain: "0124.6"
   blueprint:
     data_json: ${task_dir}/data/dynamic/data.json
     task_source: ${task_dir}/webapp/build/bundle.js
@@ -23,8 +23,9 @@ mephisto:
     units_per_assignment: 1
   log_level: "debug"
   task:
-    task_name: form_composer_demo
-    task_title: "Dynamic form-based Tasks for Prolific"
+    task_name: "Sample Form Builder Questionnaire"
+    # Note: don't use `Prolific` in task names, because their API will refute it
+    task_title: "Dynamic form-based Tasks for Prolifik"
     task_description: "In this Task, we use dynamic FormComposer feature."
     task_reward: 70
     task_tags: "test,simple,form"
