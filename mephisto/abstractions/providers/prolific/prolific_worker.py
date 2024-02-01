@@ -13,8 +13,6 @@ from typing import Optional
 from typing import Tuple
 from typing import TYPE_CHECKING
 
-from omegaconf import DictConfig
-
 from mephisto.abstractions.providers.prolific import prolific_utils
 from mephisto.abstractions.providers.prolific.api.client import ProlificClient
 from mephisto.abstractions.providers.prolific.provider_type import PROVIDER_TYPE
@@ -297,6 +295,28 @@ class ProlificWorker(Worker):
         )
 
         return None
+
+    def send_feedback_message(self, text: str, unit: "Unit") -> bool:
+        """Send feedback message to a worker"""
+        requester = cast(
+            "ProlificRequester",
+            self.db.find_requesters(provider_type=self.provider_type)[-1],
+        )
+
+        assert isinstance(requester, ProlificRequester), "Must be an Prolific requester"
+
+        client = self._get_client(requester.requester_name)
+        datastore_unit = self.datastore.get_unit(unit.db_id)
+        prolific_study_id = datastore_unit["prolific_study_id"]
+
+        prolific_utils.send_message(
+            client=client,
+            study_id=prolific_study_id,
+            participant_id=self.get_prolific_participant_id(),
+            text=text,
+        )
+
+        return True
 
     @staticmethod
     def new(db: "MephistoDB", worker_id: str) -> "Worker":

@@ -5,11 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 from __future__ import annotations
-import csv
-from genericpath import exists
 
 import os
-from pathlib import Path
 import threading
 from queue import Queue
 from uuid import uuid4
@@ -29,7 +26,7 @@ from mephisto.data_model.exceptions import (
     AgentShutdownError,
 )
 
-from typing import Optional, Mapping, Dict, Any, cast, TYPE_CHECKING
+from typing import Optional, Mapping, Dict, Any, cast, TYPE_CHECKING, Union
 
 try:
     from detoxify import Detoxify
@@ -42,7 +39,6 @@ if TYPE_CHECKING:
     from mephisto.data_model.unit import Unit
     from mephisto.data_model.assignment import Assignment
     from mephisto.abstractions.database import MephistoDB
-    from mephisto.data_model.packet import Packet
     from mephisto.data_model.task import Task
     from mephisto.data_model.task_run import TaskRun
     from mephisto.operations.datatypes import LiveTaskRun
@@ -560,7 +556,7 @@ class Agent(_AgentBase, MephistoDataModelComponentMixin, metaclass=MephistoDBBac
     def approve_work(
         self,
         review_note: Optional[str] = None,
-        bonus: Optional[str] = None,
+        bonus: Optional[Union[int, float]] = None,
         skip_unit_review: bool = False,
     ) -> None:
         """Approve the work done on this agent's specific Unit"""

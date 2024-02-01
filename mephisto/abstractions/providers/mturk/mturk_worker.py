@@ -4,32 +4,33 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from mephisto.data_model.worker import Worker
-from mephisto.data_model.requester import Requester
-from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
-from mephisto.abstractions.providers.mturk.mturk_utils import (
-    pay_bonus,
-    block_worker,
-    unblock_worker,
-    is_worker_blocked,
-    give_worker_qualification,
-    remove_worker_qualification,
-)
-from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
-
+from typing import Any
+from typing import cast
+from typing import Mapping
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from typing import List, Optional, Tuple, Dict, Mapping, Any, cast, TYPE_CHECKING
+from mephisto.abstractions.providers.mturk.mturk_utils import block_worker
+from mephisto.abstractions.providers.mturk.mturk_utils import email_worker
+from mephisto.abstractions.providers.mturk.mturk_utils import give_worker_qualification
+from mephisto.abstractions.providers.mturk.mturk_utils import is_worker_blocked
+from mephisto.abstractions.providers.mturk.mturk_utils import pay_bonus
+from mephisto.abstractions.providers.mturk.mturk_utils import remove_worker_qualification
+from mephisto.abstractions.providers.mturk.mturk_utils import unblock_worker
+from mephisto.abstractions.providers.mturk.provider_type import PROVIDER_TYPE
+from mephisto.data_model.requester import Requester
+from mephisto.data_model.worker import Worker
+from mephisto.utils.logger_core import get_logger
 
 if TYPE_CHECKING:
     from mephisto.abstractions.providers.mturk.mturk_datastore import MTurkDatastore
     from mephisto.abstractions.database import MephistoDB
     from mephisto.data_model.task_run import TaskRun
     from mephisto.data_model.unit import Unit
-    from mephisto.abstractions.providers.mturk.mturk_unit import MTurkUnit
     from mephisto.abstractions.providers.mturk.mturk_requester import MTurkRequester
 
-from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
 
@@ -177,6 +178,27 @@ class MTurkWorker(Worker):
         Qualifications are handled primarily by MTurk, so if a worker is able to get
         through to be able to access the task, they should be eligible
         """
+        return True
+
+    def send_feedback_message(self, text: str, unit: "Unit") -> bool:
+        """Send feedback message to a worker"""
+        requester = cast(
+            "MTurkRequester",
+            self.db.find_requesters(provider_type=self.provider_type)[-1],
+        )
+
+        assert isinstance(requester, MTurkRequester), "Must be an MTurk requester"
+
+        client = self._get_client(requester._requester_name)
+        task_name = unit.get_task_run().get_task().task_name
+
+        email_worker(
+            client=client,
+            worker_id=self.get_mturk_worker_id(),
+            subject=f'Feedback for your Mturk task "{task_name}"',
+            message_text=text,
+        )
+
         return True
 
     @staticmethod

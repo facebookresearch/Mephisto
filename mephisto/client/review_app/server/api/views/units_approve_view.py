@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Optional
+from typing import Union
 
 from flask import current_app as app
 from flask import request
@@ -21,8 +22,9 @@ class UnitsApproveView(MethodView):
 
         data: dict = request.json
         unit_ids: Optional[str] = data.get("unit_ids") if data else None
-        review_note = data.get("review_note") if data else None  # Optional
-        bonus = data.get("bonus") if data else None  # Optional
+        review_note: Optional[str] = data.get("review_note") if data else None
+        bonus: Optional[Union[int, float]] = data.get("bonus") if data else None
+        send_to_worker: Optional[bool] = data.get("send_to_worker", False) if data else False
 
         # Validate params
         if not unit_ids:
@@ -62,5 +64,8 @@ class UnitsApproveView(MethodView):
                 except Exception:
                     app.logger.exception("Could not pay bonus. Unexpected error")
                     return {}
+
+            if review_note and send_to_worker:
+                worker.send_feedback_message(text=review_note, unit=unit)
 
         return {}
