@@ -97,12 +97,10 @@ Example: [package.json](/examples/remote_procedure/mnist/webapp/package.json)
 
 A quick overview of how TaskReview looks like.
 
-_Note that if your Task doesn't provide a custom layout for TaskReview app, in Submission view you'll see a generic display of JSON data._
+_Note that Submission page will include a customized Task results view (at the bottom) only if your Task provides a custom layout for TaskReview app._
 
-TODO: add screeshots here.
-
-<!---
-![List of tasks](./screenshots/task_list.png)
-![Generic submission view](./screenshots/generic_submission_view.png)
-![Submission approval](./screenshots/approve_unit.png)
--->
+![List of tasks](./screenshots/tasks_list.png)
+![Generic Task results view](./screenshots/submission_results_expanded.png)
+![Custom Task results view](./screenshots/submission_results_collapsed.png)
+![Submission approval dialog](./screenshots/submission_approve_dialog.png)
+![Submission reject dialog](./screenshots/submission_reject_dialog.png)
