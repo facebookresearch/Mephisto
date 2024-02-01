@@ -300,7 +300,9 @@ function TaskPage(props: PropsType) {
         setLoading,
         onError,
         {
-          bonus: modalData.form.checkboxGiveBonus ? Number(modalData.form.bonus) : null,
+          bonus: modalData.form.checkboxGiveBonus
+            ? Number(modalData.form.bonus)
+            : null,
           review_note: modalData.form.checkboxReviewNote
             ? modalData.form.reviewNote
             : null,
