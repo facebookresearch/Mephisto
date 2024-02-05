@@ -9,9 +9,6 @@ from typing import List
 from typing import Optional
 
 import rich_click as click  # type: ignore
-from botocore.exceptions import BotoCoreError
-from botocore.exceptions import ClientError
-from botocore.exceptions import NoCredentialsError
 from flask.cli import pass_script_info
 from rich import print
 from rich.markdown import Markdown
@@ -32,20 +29,29 @@ import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as print_outstanding_hit_status_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
 from mephisto.client.cli_commands import get_wut_arguments
-from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
+from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config
 )
-from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
-    generate_tokens_values_config_from_files
+from mephisto.generators.form_composer.config_validation.task_data_config import (
+    verify_form_composer_configs
 )
-from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
-    get_file_urls_from_s3_storage
+from mephisto.generators.form_composer.config_validation.single_token_values_config import (
+    update_single_token_values_config_with_file_urls
 )
-from mephisto.generators.form_composer.configs_validation.extrapolated_config import is_s3_url
+from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
+    update_token_sets_values_config_with_premutated_data
+)
+from mephisto.generators.form_composer.config_validation.utils import is_s3_url
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.rich import console
 from mephisto.utils.rich import create_table
+
+FORM_COMPOSER_DATA_DIR_NAME = "data"
+FORM_COMPOSER_DATA_CONFIG_NAME = "data.json"
+FORM_COMPOSER_FORM_CONFIG_NAME = "form_config.json"
+FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
+FORM_COMPOSER_SINGLE_TOKEN_VALUES_CONFIG_NAME = "single_token_values_config.json"
 
 
 @click.group(cls=RichGroup)
@@ -425,64 +431,30 @@ def review_app(
     )
 
 
-@cli.command("form_composer", cls=RichCommand)
-@click.option("-m", "--manual-versions", type=(bool), default=False)
-@click.option("-f", "--files-folder", type=(str), default=None)
-def form_composer(manual_versions: bool, files_folder: Optional[str] = None):
-    # Get app path to run Python script from there (instead of the current file's directory).
-    # This is necessary, because the whole infrastructure is built relative to the location
-    # of the called command-line script.
-    # The other parts of the logic are inside `form_composer/run.py` script
+def _get_form_composer_app_path() -> str:
     app_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         "generators",
         "form_composer",
     )
+    return app_path
 
-    # Check files and create `data.json` config with units data before running a task
-    data_path = os.path.join(app_path, "data")
-    extrapolated_form_config_path = os.path.join(data_path, "data.json")
-    form_config_path = os.path.join(data_path, "form_config.json")
-    tokens_values_config_path = os.path.join(data_path, "tokens_values_config.json")
+
+@cli.command("form_composer", cls=RichCommand)
+@click.option("-o", "--task-data-config-only", type=(bool), default=True)
+def form_composer(task_data_config_only: bool = True):
+    app_path = _get_form_composer_app_path()
+    app_data_path = os.path.join(app_path, FORM_COMPOSER_DATA_DIR_NAME)
+
+    task_data_config_path = os.path.join(app_data_path, FORM_COMPOSER_DATA_CONFIG_NAME)
 
     # Change dir to app dir
     os.chdir(app_path)
 
-    if manual_versions and files_folder:
-        print("`--manual-versions` and `--files-folder` parameters cannot be used concurrently")
-        return None
-
-    if files_folder:
-        if is_s3_url(files_folder):
-            try:
-                files_locations = get_file_urls_from_s3_storage(files_folder)
-            except (BotoCoreError, ClientError, NoCredentialsError) as e:
-                print(f"Could not retrieve images from S3 URL '{files_folder}'. Reason: {e}")
-                return None
-
-            if not files_locations:
-                print(
-                    f"Could not retrieve files from '{files_folder}' - "
-                    f"check if this location exists and contains files"
-                )
-                return None
-
-            generate_tokens_values_config_from_files(tokens_values_config_path, files_locations)
-        else:
-            print("`--images-path` must be URL on S3 directory")
-            return None
-
-    if manual_versions:
-        # When user wants to use manually composed `data.json` config,
-        # we don't need to auto-generate an extrapolated config
-        pass
-    else:
-        create_extrapolated_config(
-            form_config_path=form_config_path,
-            tokens_values_config_path=tokens_values_config_path,
-            extrapolated_form_config_path=extrapolated_form_config_path,
-            skip_validating_tokens_values_config=bool(files_folder),
-        )
+    verify_form_composer_configs(
+        task_data_config_path=task_data_config_path,
+        task_data_config_only=task_data_config_only,
+    )
 
     # Start the process
     process = subprocess.Popen("python ./run.py", shell=True, cwd=app_path)
@@ -496,6 +468,99 @@ def form_composer(manual_versions: bool, files_folder: Optional[str] = None):
         except OSError:
             pass
         process.wait()
+
+
+@cli.command("form_composer_config", cls=RichCommand)
+@click.option("-v", "--verify", type=(bool), default=False)
+@click.option("-f", "--update-file-location-values", type=(str), default=None)
+@click.option("-e", "--extrapolate-token-sets", type=(bool), default=False)
+@click.option("-p", "--permutate-single-tokens", type=(bool), default=False)
+def form_composer_config(
+    verify: bool = False,
+    extrapolate_token_sets: bool = False,
+    update_file_location_values: Optional[str] = None,
+    permutate_single_tokens: bool = False,
+):
+    """
+    Prepare (parts of) config for the `form_composer` command.
+    Note that each parameter is essentially a separate command, and they cannot be mixed.
+
+    :param verify: Validate all JSON configs currently present in the form builder config directory
+    :param update_file_location_values: Update existing single-token values config
+        with file URLs automatically taken from a location (e.g. an S3 folder)
+    :param extrapolate_token_sets: Generate form versions based on extrapolated values of token sets
+    :param permutate_single_tokens: Create tokens sets as all possible permutations of values lists
+        defined in single-token values config
+    """
+    # Get app path to run Python script from there (instead of the current file's directory).
+    # This is necessary, because the whole infrastructure is built relative to the location
+    # of the called command-line script.
+    # The other parts of the logic are inside `form_composer/run***.py` script
+    app_path = _get_form_composer_app_path().
+    app_data_path = os.path.join(app_path, FORM_COMPOSER_DATA_DIR_NAME)
+
+    full_path = lambda data_file: os.path.join(app_data_path, data_file)
+
+    # Check files and create `data.json` config with tokens data before running a task
+    task_data_config_path = full_path(FORM_COMPOSER_DATA_CONFIG_NAME)
+    form_config_path = full_path(FORM_COMPOSER_FORM_CONFIG_NAME)
+    token_sets_values_config_path = full_path(FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME)
+    single_token_values_config_path = full_path(FORM_COMPOSER_SINGLE_TOKEN_VALUES_CONFIG_NAME)
+
+    # Change dir to app dir
+    os.chdir(app_path)
+
+    if verify:
+        print(f"[green]Started configs verification in '{task_data_config_path}'[/green]")
+        verify_form_composer_configs(
+            task_data_config_path=task_data_config_path,
+            form_config_path=form_config_path,
+            token_sets_values_config_path=token_sets_values_config_path,
+            single_token_values_config_path=single_token_values_config_path,
+            task_data_config_only=False,
+        )
+        print(f"[green]Finished successfully[/green]")
+        return None
+
+    if update_file_location_values:
+        print(
+            f"[green]Started updating '{FORM_COMPOSER_SINGLE_TOKEN_VALUES_CONFIG_NAME}' "
+            f"with file URLs from '{update_file_location_values}'[/green]"
+        )
+        if is_s3_url(update_file_location_values):
+            update_single_token_values_config_with_file_urls(
+                url=update_file_location_values,
+                single_token_values_config_path=single_token_values_config_path,
+            )
+            print(f"[green]Finished successfully[/green]")
+        else:
+            print("`--update-file-location-values` must be a valid S3 URL")
+        return None
+
+    if permutate_single_tokens:
+        print(
+            f"[green]Started updating '{FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME}' "
+            f"with permutated single-token values[/green]"
+        )
+        update_token_sets_values_config_with_premutated_data(
+            single_token_values_config_path=single_token_values_config_path,
+            token_sets_values_config_path=token_sets_values_config_path,
+        )
+        print(f"[green]Finished successfully[/green]")
+        return None
+
+    if extrapolate_token_sets:
+        print(
+            f"[green]Started extrapolating token sets values "
+            f"from '{FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
+        )
+        create_extrapolated_config(
+            form_config_path=form_config_path,
+            token_sets_values_config_path=token_sets_values_config_path,
+            task_data_config_path=task_data_config_path,
+        )
+        print(f"[green]Finished successfully[/green]")
+        return None
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ from omegaconf import DictConfig
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
-from mephisto.generators.form_composer.configs_validation.extrapolated_config import (
+from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config
 )
 from mephisto.operations.operator import Operator
@@ -94,13 +94,13 @@ def generate_data_json_config():
     data_path = os.path.join(app_path, "data")
 
     form_config_path = os.path.join(data_path, "dynamic", "form_config.json")
-    tokens_values_config_path = os.path.join(data_path, "dynamic", "tokens_values_config.json")
-    extrapolated_form_config_path = os.path.join(data_path, "dynamic", "data.json")
+    token_sets_values_config_path = os.path.join(data_path, "dynamic", "token_sets_values_config.json")
+    task_data_config_path = os.path.join(data_path, "dynamic", "data.json")
 
     create_extrapolated_config(
         form_config_path=form_config_path,
-        tokens_values_config_path=tokens_values_config_path,
-        extrapolated_form_config_path=extrapolated_form_config_path,
+        token_sets_values_config_path=token_sets_values_config_path,
+        task_data_config_path=task_data_config_path,
     )
 
 

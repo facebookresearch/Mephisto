@@ -144,10 +144,10 @@
                     {
                       "help": "",
                       "id": "id_bio",
-                      "label": "Biography",
+                      "label": "Biography since age of 18",
                       "name": "bio",
                       "placeholder": "",
-                      "tooltip": "Your bio in a few apragraphs",
+                      "tooltip": "Your bio in a few paragraphs",
                       "type": "textarea",
                       "validators": {"required": false},
                       "value": ""

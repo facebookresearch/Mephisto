@@ -72,6 +72,22 @@
   padding: 10px 30px;
 }
 
+.task .content .results .results-header {
+  cursor: pointer;
+}
+
+.task .content .results .results-icon {
+  display: inline-block;
+  margin-left: 10px;
+  font-style: normal;
+  font-size: 50px;
+  line-height: 1;
+}
+
+.task .content .results .results-closed{
+  display: none;
+}
+
 .task .content .results .results-table {
   max-width: 1000px;
 }
