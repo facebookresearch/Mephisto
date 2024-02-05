@@ -24,6 +24,7 @@ function TasksPage(props: PropsType) {
 
   const [tasks, setTasks] = React.useState<Array<TaskType>>(null);
   const [loading, setLoading] = React.useState(false);
+  const [taskIdExportResults, setTaskIdExportResults] = React.useState(null);
   const [loadingExportResults, setLoadingExportResults] = React.useState(false);
 
   const onTaskRowClick = (id: number) => {
@@ -43,7 +44,11 @@ function TasksPage(props: PropsType) {
   };
 
   const requestTaskResults = (taskId: number, nUnits: number) => {
+    setTaskIdExportResults(taskId);
+
     const onSuccessExportResults = (data) => {
+      setTaskIdExportResults(null);
+
       if (data.file_created) {
         // Create pseudo link and click it
         const linkId = "result-json";
@@ -126,7 +131,10 @@ function TasksPage(props: PropsType) {
                   <td className={"units"}>{task.unit_count}</td>
                   <td className={"date"}>{date}</td>
                   <td className={"export"}>
-                    {task.is_reviewed && !loadingExportResults && (
+                    {(
+                      task.is_reviewed &&
+                      !(loadingExportResults && taskIdExportResults === task.id)
+                    ) && (
                       <span
                         className={"text-primary download-button"}
                         onClick={() => requestTaskResults(task.id, task.unit_count)}
@@ -134,7 +142,7 @@ function TasksPage(props: PropsType) {
                         Download
                       </span>
                     )}
-                    {loadingExportResults && (
+                    {(taskIdExportResults === task.id && loadingExportResults) && (
                       <div className={"export-loading"}>
                         <Spinner
                           animation="border"

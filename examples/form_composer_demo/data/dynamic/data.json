@@ -155,7 +155,7 @@
                       "label": "Biography",
                       "name": "bio",
                       "placeholder": "",
-                      "tooltip": "Your bio in a few apragraphs",
+                      "tooltip": "Your bio in a few paragraphs",
                       "type": "textarea",
                       "validators": {
                         "required": false
@@ -470,7 +470,7 @@
                       "label": "Biography",
                       "name": "bio",
                       "placeholder": "",
-                      "tooltip": "Your bio in a few apragraphs",
+                      "tooltip": "Your bio in a few paragraphs",
                       "type": "textarea",
                       "validators": {
                         "required": false

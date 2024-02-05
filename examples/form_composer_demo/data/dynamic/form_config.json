@@ -151,10 +151,10 @@
                 {
                     "help": "",
                     "id": "id_bio",
-                    "label": "Biography",
+                    "label": "Biography since age of {{ since_age }}",
                     "name": "bio",
                     "placeholder": "",
-                    "tooltip": "Your bio in a few apragraphs",
+                    "tooltip": "Your bio in a few paragraphs",
                     "type": "textarea",
                     "validators": {
                         "required": false
@@ -249,7 +249,7 @@
                     "placeholder": "Select a file",
                     "tooltip": "Your profile photo",
                     "type": "file",
-                    "validators": {"required": true, "fileExtension": ["jpg", "jpeg", "png"]},
+                    "validators": {"required": true, "fileExtension": ["png", "jpg", "jpeg"]},
                     "value": ""
                 },
                 {
@@ -285,17 +285,14 @@
             {
                 "fields": [
                 {
-                    "help": "",
                     "id": "id_motto",
                     "label": "Personal Motto",
                     "name": "motto",
-                    "placeholder": "",
                     "tooltip": "Your personal motto",
                     "type": "input",
                     "validators": {
                         "required": true
                     },
-                    "value": ""
                 }
                 ],
                 "help": "Please type in your favorite personal motto"

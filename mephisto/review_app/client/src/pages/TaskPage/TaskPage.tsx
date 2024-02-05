@@ -103,6 +103,8 @@ function TaskPage(props: PropsType) {
 
   const [unitResultsIsJSON, setUnitResultsIsJSON] = React.useState<boolean>(false);
 
+  const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(true);
+
   window.onmessage = function (e) {
     if (
       e.data &&
@@ -535,21 +537,26 @@ function TaskPage(props: PropsType) {
           <>
             {/* Results table */}
             <div className={"results"}>
-              <h1>
-                <b>Results:</b>
+              <h1 className={"results-header"} onClick={() => setResultsVisibility(!resultsVisibility)}>
+                <b>Results</b>
+                <i className={"results-icon"}>
+                  {resultsVisibility ? <>&#x25BE;</> : <>&#x25B8;</>}
+                </i>
               </h1>
 
-              {unitResultsIsJSON ? (
-                <JSONPretty
-                  className={"json-pretty"}
-                  data={currentUnitDetails.outputs}
-                  space={4}
-                />
-              ) : (
-                <div>
-                  {JSON.stringify(currentUnitDetails.outputs)}
-                </div>
-              )}
+              <div className={`${resultsVisibility ? "" : "results-closed"}`}>
+                {unitResultsIsJSON ? (
+                  <JSONPretty
+                    className={"json-pretty"}
+                    data={currentUnitDetails.outputs}
+                    space={4}
+                  />
+                ) : (
+                  <div>
+                    {JSON.stringify(currentUnitDetails.outputs)}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Task info */}

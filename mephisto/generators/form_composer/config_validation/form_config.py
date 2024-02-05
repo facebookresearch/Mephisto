@@ -55,7 +55,7 @@ def validate_form_config(config_json: dict) -> Tuple[bool, List[str]]:
 
     if not isinstance(config_json, dict):
         is_valid = False
-        errors.append("Form config must be a dictionary.")
+        errors.append("Form config must be a key/value JSON Object.")
 
     elif config_json.keys() != AVAILABLE_CONFIG_ATTRS.keys():
         is_valid = False
