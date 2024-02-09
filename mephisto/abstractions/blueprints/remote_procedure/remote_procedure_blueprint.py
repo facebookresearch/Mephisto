@@ -70,7 +70,7 @@ class SharedRemoteProcedureTaskState(
         Mapping[
             str,
             Callable[
-                [str, Dict[str, Any], "RemoteProcedureAgentState"],
+                [str, Any, "RemoteProcedureAgentState"],
                 Optional[Dict[str, Any]],
             ],
         ]

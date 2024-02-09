@@ -23,8 +23,11 @@ function Directions({ children }) {
   );
 }
 
-function AutoComposingFormFrontend({ taskData, onSubmit, onError, finalResults = null }) {
+function AutoComposingFormFrontend({
+  taskData, onSubmit, onError, finalResults = null, remoteProcedure,
+}) {
   let formData = taskData.form;
+  window["getPresignedUrl"] = remoteProcedure("getPresignedUrl");
 
   if (!formData) {
     return (

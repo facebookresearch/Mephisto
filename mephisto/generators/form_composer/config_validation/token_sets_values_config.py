@@ -1,13 +1,17 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import itertools
-import json
-from json import JSONDecodeError
 from typing import Dict
 from typing import List
 from typing import Tuple
 
 from .common_validation import validate_config_dict_item
 from .config_validation_constants import AVAILABLE_TASK_ATTRS
-from .single_token_values_config import validate_single_token_values_config
+from .config_validation_constants import TOKENS_VALUES_KEY
+from .separate_token_values_config import validate_separate_token_values_config
 from .utils import make_error_message
 from .utils import read_config_file
 from .utils import write_config_to_file
@@ -44,7 +48,7 @@ def validate_token_sets_values_config(config_json: List[dict]) -> Tuple[bool, Li
     return is_valid, errors
 
 
-def _premutate_single_tokents(data: Dict[str, List[str]]) -> TokensPermutationType:
+def _premutate_separate_tokens(data: Dict[str, List[str]]) -> TokensPermutationType:
     all_permutations = []
     # Make a list to iterate many times
     data_keys = list(data.keys())
@@ -60,7 +64,7 @@ def _premutate_single_tokents(data: Dict[str, List[str]]) -> TokensPermutationTy
 
         all_permutations.append(
             {
-                "tokens_values": single_permudation,
+                TOKENS_VALUES_KEY: single_permudation,
             }
         )
 
@@ -68,26 +72,26 @@ def _premutate_single_tokents(data: Dict[str, List[str]]) -> TokensPermutationTy
 
 
 def update_token_sets_values_config_with_premutated_data(
-    single_token_values_config_path: str,
+    separate_token_values_config_path: str,
     token_sets_values_config_path: str,
 ):
     # Read JSON from files
-    single_token_values_config_data = read_config_file(single_token_values_config_path)
+    separate_token_values_config_data = read_config_file(separate_token_values_config_path)
 
-    single_token_values_config_is_valid, single_token_values_config_errors = (
-        validate_single_token_values_config(single_token_values_config_data)
+    separate_token_values_config_is_valid, separate_token_values_config_errors = (
+        validate_separate_token_values_config(separate_token_values_config_data)
     )
 
     errors = []
-    if not single_token_values_config_is_valid:
+    if not separate_token_values_config_is_valid:
         errors.append(make_error_message(
-            "Single token values config is invalid.", single_token_values_config_errors,
+            "Separate token values config is invalid.", separate_token_values_config_errors,
         ))
 
     if errors:
         # Stop generating a Task, the config is incorrect
         raise ValueError("\n" + "\n\n".join(errors))
 
-    premutated_data = _premutate_single_tokents(single_token_values_config_data)
+    premutated_data = _premutate_separate_tokens(separate_token_values_config_data)
 
     write_config_to_file(premutated_data, token_sets_values_config_path)

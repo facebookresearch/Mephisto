@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -11,8 +11,9 @@ from typing import Optional
 from typing import Tuple
 
 from .config_validation_constants import ATTRS_SUPPORTING_TOKENS
+from .config_validation_constants import TOKENS_VALUES_KEY
 from .form_config import validate_form_config
-from .single_token_values_config import validate_single_token_values_config
+from .separate_token_values_config import validate_separate_token_values_config
 from .token_sets_values_config import validate_token_sets_values_config
 from .utils import make_error_message
 from .utils import read_config_file
@@ -106,7 +107,7 @@ def _validate_tokens_in_both_configs(
     tokens_from_token_sets_values_config = set([
         token_name
         for token_set_values_data in token_sets_values_config_data
-        for token_name in token_set_values_data.get("tokens_values", {}).keys()
+        for token_name in token_set_values_data.get(TOKENS_VALUES_KEY, {}).keys()
 
     ])
     # Token names present in token values config, but not in form config
@@ -179,7 +180,7 @@ def _combine_extrapolated_form_configs(
                 combined_config.append(form_config_data)
             else:
                 form_config_data_with_tokens = _extrapolate_tokens_in_form_config(
-                    deepcopy(form_config_data), token_sets_values["tokens_values"],
+                    deepcopy(form_config_data), token_sets_values[TOKENS_VALUES_KEY],
                 )
                 combined_config.append(form_config_data_with_tokens)
     else:
@@ -218,22 +219,6 @@ def create_extrapolated_config(
         print(f"Could not extrapolate form configs: {e}")
 
 
-def generate_tokens_values_config_from_files(token_sets_values_config_path: str, files: List[str]):
-    token_sets_values_config_data = []
-
-    for i, file_location in enumerate(files):
-        token_sets_values_config_data.append(dict(
-            tokens_values={
-                FILE_LOCATION_TOKEN_NAME: file_location,
-            },
-        ))
-
-    try:
-        write_config_to_file(token_sets_values_config_data, token_sets_values_config_path)
-    except ValueError as e:
-        print(f"Could not write tokens values to file: {e}")
-
-
 def validate_task_data_config(config_json: List[dict]) -> Tuple[bool, List[str]]:
     is_valid = True
     errors = []
@@ -261,7 +246,7 @@ def verify_form_composer_configs(
     task_data_config_path: str,
     form_config_path: Optional[str] = None,
     token_sets_values_config_path: Optional[str] = None,
-    single_token_values_config_path: Optional[str] = None,
+    separate_token_values_config_path: Optional[str] = None,
     task_data_config_only: bool = False,
 ):
     errors = []
@@ -324,16 +309,16 @@ def verify_form_composer_configs(
         if tokens_in_unexpected_attrs_errors:
             errors = errors + tokens_in_unexpected_attrs_errors
 
-        # 4. Validate single token values config
-        single_token_values_config_data = read_config_file(single_token_values_config_path)
+        # 4. Validate separate token values config
+        separate_token_values_config_data = read_config_file(separate_token_values_config_path)
 
-        single_token_values_config_is_valid, single_token_values_config_errors = (
-            validate_single_token_values_config(single_token_values_config_data)
+        separate_token_values_config_is_valid, separate_token_values_config_errors = (
+            validate_separate_token_values_config(separate_token_values_config_data)
         )
 
-        if not single_token_values_config_is_valid:
+        if not separate_token_values_config_is_valid:
             token_sets_values_data_config_errors = [
-                f"  - {e}" for e in single_token_values_config_errors
+                f"  - {e}" for e in separate_token_values_config_errors
             ]
             errors_string = "\n".join(token_sets_values_data_config_errors)
             errors.append(f"Single token values config is invalid. Errors:\n{errors_string}")

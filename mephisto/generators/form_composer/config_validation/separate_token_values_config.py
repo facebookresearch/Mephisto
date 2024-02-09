@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -6,11 +11,13 @@ from botocore.exceptions import BotoCoreError
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
 
+from mephisto.generators.form_composer.remote_procedures import ProcedureName
+from .config_validation_constants import FILE_URL_TOKEN_KEY
 from .utils import get_file_urls_from_s3_storage
 from .utils import write_config_to_file
 
 
-def validate_single_token_values_config(
+def validate_separate_token_values_config(
     config_json: Dict[str, List[str]],
 ) -> Tuple[bool, List[str]]:
     is_valid = True
@@ -34,8 +41,10 @@ def validate_single_token_values_config(
     return is_valid, errors
 
 
-def update_single_token_values_config_with_file_urls(
-    url: str, single_token_values_config_path: str,
+def update_separate_token_values_config_with_file_urls(
+    url: str,
+    separate_token_values_config_path: str,
+    use_presigned_urls: bool,
 ):
     try:
         files_locations = get_file_urls_from_s3_storage(url)
@@ -50,7 +59,13 @@ def update_single_token_values_config_with_file_urls(
         )
         return None
 
-    single_token_values_config_data = {
-        "file_location": files_locations,
+    if use_presigned_urls:
+        files_locations = [
+            "{{" + f"{ProcedureName.GET_PRESIGNED_URL}({url})" + "}}"
+            for url in files_locations
+        ]
+
+    separate_token_values_config_data = {
+        FILE_URL_TOKEN_KEY: files_locations,
     }
-    write_config_to_file(single_token_values_config_data, single_token_values_config_path)
+    write_config_to_file(separate_token_values_config_data, separate_token_values_config_path)

@@ -35,8 +35,8 @@ from mephisto.generators.form_composer.config_validation.task_data_config import
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     verify_form_composer_configs
 )
-from mephisto.generators.form_composer.config_validation.single_token_values_config import (
-    update_single_token_values_config_with_file_urls
+from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
+    update_separate_token_values_config_with_file_urls
 )
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
     update_token_sets_values_config_with_premutated_data
@@ -48,10 +48,10 @@ from mephisto.utils.rich import console
 from mephisto.utils.rich import create_table
 
 FORM_COMPOSER_DATA_DIR_NAME = "data"
-FORM_COMPOSER_DATA_CONFIG_NAME = "data.json"
+FORM_COMPOSER_DATA_CONFIG_NAME = "task_data.json"
 FORM_COMPOSER_FORM_CONFIG_NAME = "form_config.json"
 FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
-FORM_COMPOSER_SINGLE_TOKEN_VALUES_CONFIG_NAME = "single_token_values_config.json"
+FORM_COMPOSER_SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
 
 
 @click.group(cls=RichGroup)
@@ -443,6 +443,10 @@ def _get_form_composer_app_path() -> str:
 @cli.command("form_composer", cls=RichCommand)
 @click.option("-o", "--task-data-config-only", type=(bool), default=True)
 def form_composer(task_data_config_only: bool = True):
+    # Get app path to run Python script from there (instead of the current file's directory).
+    # This is necessary, because the whole infrastructure is built relative to the location
+    # of the called command-line script.
+    # The other parts of the logic are inside `form_composer/run***.py` script
     app_path = _get_form_composer_app_path()
     app_data_path = os.path.join(app_path, FORM_COMPOSER_DATA_DIR_NAME)
 
@@ -471,85 +475,102 @@ def form_composer(task_data_config_only: bool = True):
 
 
 @cli.command("form_composer_config", cls=RichCommand)
-@click.option("-v", "--verify", type=(bool), default=False)
+@click.option("-v", "--verify", type=(bool), default=False, is_flag=True)
 @click.option("-f", "--update-file-location-values", type=(str), default=None)
-@click.option("-e", "--extrapolate-token-sets", type=(bool), default=False)
-@click.option("-p", "--permutate-single-tokens", type=(bool), default=False)
+@click.option("-e", "--extrapolate-token-sets", type=(bool), default=False, is_flag=True)
+@click.option("-p", "--permutate-separate-tokens", type=(bool), default=False, is_flag=True)
+@click.option("-d", "--directory", type=(str), default=None)
+@click.option("-u", "--use-presigned-urls", type=(bool), default=False, is_flag=True)
 def form_composer_config(
-    verify: bool = False,
-    extrapolate_token_sets: bool = False,
+    verify: Optional[bool] = False,
     update_file_location_values: Optional[str] = None,
-    permutate_single_tokens: bool = False,
+    extrapolate_token_sets: Optional[bool] = False,
+    permutate_separate_tokens: Optional[bool] = False,
+    directory: Optional[str] = None,
+    use_presigned_urls: Optional[bool] = False,
 ):
     """
     Prepare (parts of) config for the `form_composer` command.
     Note that each parameter is essentially a separate command, and they cannot be mixed.
 
     :param verify: Validate all JSON configs currently present in the form builder config directory
-    :param update_file_location_values: Update existing single-token values config
+    :param update_file_location_values: Update existing separate-token values config
         with file URLs automatically taken from a location (e.g. an S3 folder)
     :param extrapolate_token_sets: Generate form versions based on extrapolated values of token sets
-    :param permutate_single_tokens: Create tokens sets as all possible permutations of values lists
-        defined in single-token values config
+    :param permutate_separate_tokens: Create tokens sets as all possible permutations of
+        values lists defined in separate-token values config
+    :param directory: Path to the directory where form and token configs are located.
+        By default it's the `data` directory of `form_composer` generator
+    :param use_presigned_urls: a modifier for `--update_file_location_values` parameter.
+        Wraps every S3 URL with a standard handler that presigns these URLs during form rendering        when we use `--update_file_location_values` command
     """
-    # Get app path to run Python script from there (instead of the current file's directory).
-    # This is necessary, because the whole infrastructure is built relative to the location
-    # of the called command-line script.
-    # The other parts of the logic are inside `form_composer/run***.py` script
-    app_path = _get_form_composer_app_path().
-    app_data_path = os.path.join(app_path, FORM_COMPOSER_DATA_DIR_NAME)
 
-    full_path = lambda data_file: os.path.join(app_data_path, data_file)
+    # Substitute defaults for missing param values
+    if directory:
+        app_data_path = directory
+    else:
+        app_path = _get_form_composer_app_path()
+        app_data_path = os.path.join(app_path, FORM_COMPOSER_DATA_DIR_NAME)
+    print(f"[blue]Using config directory: {app_data_path}[/blue]")
+
+    # Validate param values
+    if not os.path.exists(app_data_path):
+        print(f"[red]Directory '{app_data_path}' does not exist[/red]")
+        return None
+
+    if use_presigned_urls and not update_file_location_values:
+        print(
+            f"[red]Parameter `--use-presigned-urls` can be used "
+            f"only with `--update-file-location-values` option[/red]"
+        )
+        return None
 
     # Check files and create `data.json` config with tokens data before running a task
+    full_path = lambda data_file: os.path.join(app_data_path, data_file)
     task_data_config_path = full_path(FORM_COMPOSER_DATA_CONFIG_NAME)
     form_config_path = full_path(FORM_COMPOSER_FORM_CONFIG_NAME)
     token_sets_values_config_path = full_path(FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME)
-    single_token_values_config_path = full_path(FORM_COMPOSER_SINGLE_TOKEN_VALUES_CONFIG_NAME)
+    separate_token_values_config_path = full_path(FORM_COMPOSER_SEPARATE_TOKEN_VALUES_CONFIG_NAME)
 
-    # Change dir to app dir
-    os.chdir(app_path)
-
+    # Run the command
     if verify:
         print(f"[green]Started configs verification in '{task_data_config_path}'[/green]")
         verify_form_composer_configs(
             task_data_config_path=task_data_config_path,
             form_config_path=form_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
-            single_token_values_config_path=single_token_values_config_path,
+            separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,
         )
         print(f"[green]Finished successfully[/green]")
-        return None
 
-    if update_file_location_values:
+    elif update_file_location_values:
         print(
-            f"[green]Started updating '{FORM_COMPOSER_SINGLE_TOKEN_VALUES_CONFIG_NAME}' "
+            f"[green]Started updating '{FORM_COMPOSER_SEPARATE_TOKEN_VALUES_CONFIG_NAME}' "
             f"with file URLs from '{update_file_location_values}'[/green]"
         )
         if is_s3_url(update_file_location_values):
-            update_single_token_values_config_with_file_urls(
+            update_separate_token_values_config_with_file_urls(
                 url=update_file_location_values,
-                single_token_values_config_path=single_token_values_config_path,
+                separate_token_values_config_path=separate_token_values_config_path,
+                use_presigned_urls=use_presigned_urls,
             )
             print(f"[green]Finished successfully[/green]")
         else:
             print("`--update-file-location-values` must be a valid S3 URL")
-        return None
 
-    if permutate_single_tokens:
+    elif permutate_separate_tokens:
         print(
             f"[green]Started updating '{FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME}' "
-            f"with permutated single-token values[/green]"
+            f"with permutated separate-token values[/green]"
         )
         update_token_sets_values_config_with_premutated_data(
-            single_token_values_config_path=single_token_values_config_path,
+            separate_token_values_config_path=separate_token_values_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
         )
         print(f"[green]Finished successfully[/green]")
-        return None
 
-    if extrapolate_token_sets:
+    elif extrapolate_token_sets:
         print(
             f"[green]Started extrapolating token sets values "
             f"from '{FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
@@ -560,7 +581,17 @@ def form_composer_config(
             task_data_config_path=task_data_config_path,
         )
         print(f"[green]Finished successfully[/green]")
-        return None
+
+    else:
+        print(
+            f"[red]"
+            f"This command must have one of following parameters:"
+            f"\n-v/--verify"
+            f"\n-f/--update-file-location-value"
+            f"\n-e/--extrapolate-token-set"
+            f"\n-p/--permutate-separate-tokens"
+            f"[/red]"
+        )
 
 
 if __name__ == "__main__":
