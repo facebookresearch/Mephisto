@@ -14,6 +14,9 @@ from omegaconf import DictConfig
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
+from mephisto.client.cli import FORM_COMPOSER_DATA_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER_FORM_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config
 )
@@ -87,15 +90,17 @@ def _build_custom_bundles(cfg: DictConfig) -> None:
 
 def generate_data_json_config():
     """
-    Generate extrapolated `data.json` config file,
+    Generate extrapolated `task_data.json` config file,
     based on existing form and tokens values config files
     """
     app_path = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(app_path, "data")
 
-    form_config_path = os.path.join(data_path, "dynamic", "form_config.json")
-    token_sets_values_config_path = os.path.join(data_path, "dynamic", "token_sets_values_config.json")
-    task_data_config_path = os.path.join(data_path, "dynamic", "data.json")
+    form_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER_FORM_CONFIG_NAME)
+    token_sets_values_config_path = os.path.join(
+        data_path, "dynamic", FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME,
+    )
+    task_data_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER_DATA_CONFIG_NAME)
 
     create_extrapolated_config(
         form_config_path=form_config_path,
@@ -109,7 +114,7 @@ def generate_preview_html():
     preview_path = os.path.join(app_path, "preview")
     data_path = os.path.join(app_path, "data", "dynamic")
 
-    data_config_path = os.path.join(data_path, "data.json")
+    data_config_path = os.path.join(data_path, FORM_COMPOSER_DATA_CONFIG_NAME)
     preview_template_path = os.path.join(preview_path, "mturk_preview_template.html")
     preview_html_path = os.path.join(preview_path, "mturk_preview.html")
 

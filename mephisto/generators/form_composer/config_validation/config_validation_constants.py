@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -7,6 +7,9 @@ from typing import Dict
 from typing import Union
 
 AvailableAttrsType = Dict[str, Dict[str, Union[type, bool]]]
+
+TOKENS_VALUES_KEY = "tokens_values"
+FILE_URL_TOKEN_KEY = "file_location"
 
 AVAILABLE_CONFIG_ATTRS: AvailableAttrsType = {
     "form": {
@@ -182,7 +185,7 @@ AVAILABLE_FIELD_ATTRS_BY_TYPE: Dict[str, AvailableAttrsType] = {
 }
 
 AVAILABLE_TASK_ATTRS: AvailableAttrsType = {
-    "tokens_values": {
+    TOKENS_VALUES_KEY: {
         "type": dict,
         "required": True,
     },

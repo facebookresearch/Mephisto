@@ -8,6 +8,11 @@ import os
 
 from omegaconf import DictConfig
 
+from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
+    SharedRemoteProcedureTaskState
+)
+from mephisto.generators.form_composer.config_validation.utils import read_config_file
+from mephisto.generators.form_composer.remote_procedures import JS_NAME_FUNCTION_MAPPING
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.tools.scripts import task_script
@@ -18,8 +23,20 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     # Build packages
     _build_custom_bundles(cfg)
 
+    # Configure shared state
+    task_data_config_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "data",
+        "task_data.json",
+    )
+    task_data = read_config_file(task_data_config_path)
+    shared_state = SharedRemoteProcedureTaskState(
+        static_task_data=task_data,
+        function_registry=JS_NAME_FUNCTION_MAPPING,
+    )
+
     # Launch Task Run
-    operator.launch_task_run(cfg.mephisto)
+    operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 

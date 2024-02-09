@@ -7,7 +7,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { AutoComposingFormFrontend, LoadingScreen } from "./components/core_components.jsx";
-import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
+import { useMephistoRemoteProcedureTask, ErrorBoundary } from "mephisto-task-multipart";
 
 /* ================= Application Components ================= */
 
@@ -15,21 +15,28 @@ function MainApp() {
   const {
     isLoading,
     initialTaskData,
+    remoteProcedure,
     handleSubmit,
     handleFatalError,
-  } = useMephistoTask();
+  } = useMephistoRemoteProcedureTask();
 
   if (isLoading || !initialTaskData) {
     return <LoadingScreen />;
+  }
+
+  let _initialTaskData = initialTaskData;
+  if (initialTaskData.hasOwnProperty("task_data")) {
+    _initialTaskData = initialTaskData.task_data;
   }
 
   return (
     <div>
       <ErrorBoundary handleError={handleFatalError}>
         <AutoComposingFormFrontend
-          taskData={initialTaskData}
+          taskData={_initialTaskData}
           onSubmit={handleSubmit}
           onError={handleFatalError}
+          remoteProcedure={remoteProcedure}
         />
       </ErrorBoundary>
     </div>

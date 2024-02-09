@@ -33,7 +33,7 @@ You can launch FormComposer inside a Docker container:
 docker-compose -f docker/docker-compose.dev.yml run \
     --build \
     --rm mephisto_dc \
-    mephisto form_composer_config --extrapolate-token-sets True
+    mephisto form_composer_config --extrapolate-token-sets
 ```
 
 2. Run composer itself (`form_composer` command)
@@ -53,7 +53,7 @@ First ensure that mephisto package is installed locally - please refer to [Mephi
 Once that is done, run `form_composer_config` command(s) if needed, and then `form_composer` command:
 
 ```shell
-mephisto form_composer_config --extrapolate-token-sets True
+mephisto form_composer_config --extrapolate-token-sets
 mephisto form_composer
 ```
 
@@ -64,17 +64,17 @@ The `form_composer_config` utility command helps auto-generate FormComposer conf
 
 ```shell
 # Sample launching commands
-mephisto form_composer_config --verify True
-mephisto form_composer_config --extrapolate-token-sets True
-mephisto form_composer_config --permutate-single-tokens True
+mephisto form_composer_config --verify
+mephisto form_composer_config --extrapolate-token-sets
+mephisto form_composer_config --permutate-separate-tokens
 mephisto form_composer_config --update-file-location-values "https://s3.amazon.com/...."
 ```
 
 where
-- `-v/--verify BOOLEAN` - if truthy, validates all JSON configs currently present in the form builder config directory
+- `-v/--verify` - if truthy, validates all JSON configs currently present in the form builder config directory
 - `-f/--update-file-location-values S3_URL` - generates token values based on file names found within specified S3 folder (see a separate section about this mode of running FormComposer)
-- `-e/--extrapolate-token-sets BOOLEAN` - if truthy, generates Task data config based on provided form config and takon sets values
-- `-p/--permutate-single-tokens BOOLEAN` - if truthy, generates token sets values as all possible combinations of values of individual tokens
+- `-e/--extrapolate-token-sets` - if truthy, generates Task data config based on provided form config and takon sets values
+- `-p/--permutate-sepatate-tokens` - if truthy, generates token sets values as all possible combinations of values of individual tokens
 
 To understand what "tokens" means, read on about FormComposer config structure.
 
@@ -84,8 +84,8 @@ To understand what "tokens" means, read on about FormComposer config structure.
 You will need to provide FormComposer with a JSON configuration of your form fields,
 and place it in `generators/form-composer/data` directory.
 
-- The form config file should be named `data.json`, and contain a list of JSON objects, each one with one key `form`.
-- If you want to slightly vary your form within a Task (by inserting different values into its text), you need to add two files (that will be used to auto-generate `data.json` file):
+- The task config file should be named `task_data.json`, and contain a list of JSON objects, each one with one key `form`.
+- If you want to slightly vary your form within a Task (by inserting different values into its text), you need to add two files (that will be used to auto-generate `task_data.json` file):
     - `token_sets_values_config.json` containing a JSON array of objects (each with one key `tokens_values` and value representing name-value pairs for a set of text tokens to be used in one form version).
     - `form_config.json` containing a single JSON object with one key `form`.
 - For more detail, read on about dynamic form configs.
@@ -93,18 +93,18 @@ and place it in `generators/form-composer/data` directory.
 For detailed structure of each config file, see [Config file reference](#config-file-reference).
 
 Working config examples are provided in `examples/form_composer_demo/data` directory:
-- task data config: `simple/data.json`
+- task data config: `simple/task_data.json`
 - form config: `dynamic/form_config.json`
 - token sets values config: `dynamic/token_sets_values_config.json`
-- single tokens values: `dynamic/single_token_values_config.json` to create `token_sets_values_config.json`
-- resulting extrapolated config: `dynamic/data.json`
+- separate tokens values: `dynamic/separate_token_values_config.json` to create `token_sets_values_config.json`
+- resulting extrapolated config: `dynamic/task_data.json`
 
 
 ## Embedding FormComposer into custom application
 
 A few tips if you wish to embed FormComposer in your custom application:
 
-- to extrapolate form config (and generate the `data.json` file), call the extrapolator function `mephisto.generators.form_composer.configs_validation.extrapolated_config.create_extrapolated_config`
+- to extrapolate form config (and generate the `task_data.json` file), call the extrapolator function `mephisto.generators.form_composer.configs_validation.extrapolated_config.create_extrapolated_config`
     - For a live example, you can explore the source code of [run_task_dynamic.py](/examples/form_composer_demo/run_task_dynamic.py) module
 
 
@@ -115,8 +115,8 @@ A few tips if you wish to embed FormComposer in your custom application:
 
 The simplest Task scenario is showing the same exact form to all of your workers. In that case you need to:
 
-- Compose `data.json` file containing definition of a single form (and place it into FormComposer config folder)
-- Optionally, verify your config: `mephisto form_composer_config --verify True`
+- Compose `task_data.json` file containing definition of a single form (and place it into FormComposer config folder)
+- Optionally, verify your config: `mephisto form_composer_config --verify`
 - Run FormComposer: `mephisto form_composer`
 
 But suppose you wish to show a slightly different version of the form to your workers. You can do so by defining multiple form versions. FormComposer provides several ways of doing so.
@@ -127,8 +127,8 @@ But suppose you wish to show a slightly different version of the form to your wo
 
 If your form versions vary considerably (e.g. showing different sets of fields), you should do the following steps:
 
-- Populate these form versions into `data.json` file manually (it will be basically a JSON array of N individual form versions configs)
-- Optionally, verify your config: `mephisto form_composer_config --verify True`
+- Populate these form versions into `task_data.json` file manually (it will be basically a JSON array of N individual form versions configs)
+- Optionally, verify your config: `mephisto form_composer_config --verify`
 - Run FormComposer: `mephisto form_composer`
 
 _As a result, for each Task assignment Mephisto will automatically produce N units, each unit having a different form version. In total you will be collecting data from `N * units_per_assignment` workers._
@@ -142,9 +142,9 @@ If your form versions vary only slightly (e.g. same set of fields, but showing d
 - Ensure you populate these files, and place them into your FormComposer config folder:
     - `form_config.json`: tokenized form config - same as regular form config, except it will contain tokens within certain objects' attributes (see [Tokens extrapolation](#tokens-extrapolation))
     - `token_sets_values_config.json`: file containing sets of token values, where each set is used to generate one version of the form (and each form version will be completed by `units_per_assignment` different workers).
-- Optionally, verify your files: `mephisto form_composer_config --verify True`
-- Generate task data config: `mephisto form_composer_config --extrapolate-token-sets True`
-    - This will overwrite existing `data.json` file with auto-generated form versions, by extrapolating provided token sets values
+- Optionally, verify your files: `mephisto form_composer_config --verify`
+- Generate task data config: `mephisto form_composer_config --extrapolate-token-sets`
+    - This will overwrite existing `task_data.json` file with auto-generated form versions, by extrapolating provided token sets values
 - Run FormComposer: `mephisto form_composer`
 
 _The number of generated form versions N will be same as number of provided token sets. In total you will be collecting data from `N * units_per_assignment` workers._
@@ -176,21 +176,21 @@ If you wish to reuse the same token across different form attributes and levels,
 
 In a special case when all of your tokens sets are simply permutations of several value lists, sets of token values can be easily auto-generated.
 
-- Populate your lists of values for every single token into `single_token_values_config.json` file
-- Optionally, verify your config: `mephisto form_composer_config --verify True`
-- Generate `token_sets_values_config.json` with command: `mephisto form_composer_config --permutate-single-tokens True`
+- Populate your lists of values for every separate token into `separate_token_values_config.json` file
+- Optionally, verify your config: `mephisto form_composer_config --verify`
+- Generate `token_sets_values_config.json` with command: `mephisto form_composer_config --permutate-separate-tokens`
 
 _"Permutation" means all possible combinations of values. For example, permutations of amounts `2, 3`, sizes `big` and animals `cats, dogs` will produce result `2 big cats, 2 big dogs, 3 big cats, 3 big dogs`._
 
 ---
 
-#### Generate single token values with `--update-file-location-values`
+#### Generate separate token values with `--update-file-location-values`
 
 In a special case when one of your tokens is an S3 file URL, that token values can be easily auto-generated.
 
 - Make a public S3 folder that will contain only the files that you want (all of them)
 - Run command: `mephisto form_composer --update-file-location-values S3_FOLDER_URL`
-- As a result, a token with name `"file_location"` will be added to your `single_token_values_config.json` config file. Its values will be S3 URLs of all files found .recursively within the `S3_FOLDER_URL`
+- As a result, a token with name `"file_location"` will be added to your `separate_token_values_config.json` config file. Its values will be S3 URLs of all files found .recursively within the `S3_FOLDER_URL`
 
 ---
 
@@ -200,7 +200,7 @@ Putting it altogether, this is a brief example of composing a dynamic form confi
 
 #### Single token values config
 
-Let's start with separate token values in `single_token_values_config.json` file:
+Let's start with separate token values in `separate_token_values_config.json` file:
 
 ```json
 {
@@ -252,7 +252,7 @@ These tokens are placed into the `form_config.json` dynamic form config like so:
 
 #### Task data config
 
-After extrapolating attributes from `form_config.json` with token sets from `token_sets_values_config.json`, we get the resulting `data.json` file used for the task:
+After extrapolating attributes from `form_config.json` with token sets from `token_sets_values_config.json`, we get the resulting `task_data.json` file used for the task:
 
 ```json
 // First extrapolated form version
@@ -306,9 +306,9 @@ TBD (aka "remote procedure")
 
 # Config file reference
 
-## Config file: `data.json`
+## Config file: `task_data.json`
 
-Task data config file `data.json` specifies layout of all form versions that are completed by workers. Here's an abbreviated example of such config:
+Task data config file `task_data.json` specifies layout of all form versions that are completed by workers. Here's an abbreviated example of such config:
 
 ```json
 [
@@ -527,7 +527,7 @@ The most important attributes are: `label`, `name`, `type`, `validators`
 
 ## Config file: `form_config.json`
 
-Form config file `form_config.json` specifies layout of a form in the same way as `data.json`, but with a few notable differences:
+Form config file `form_config.json` specifies layout of a form in the same way as `task_data.json`, but with a few notable differences:
 - It contains a single JSON object (not a JSON array of objects)
 - Some of its form attributes definitions must contain dynamic tokens (whose values will be extrapolated, i.e. substituted with variable chunks of text) - see further below.
 
@@ -557,7 +557,7 @@ Example:
 ]
 ```
 
-## Config file: `single_token_values_config.json`
+## Config file: `separate_token_values_config.json`
 
 Lists of separate tokens values are specified as JSON object with key-value pairs, where keys are token names, and values are JSON arrays of their values.
 

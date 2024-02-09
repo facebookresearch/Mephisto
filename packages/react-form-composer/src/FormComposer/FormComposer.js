@@ -13,9 +13,10 @@ import { RadioField } from "./fields/RadioField";
 import { SelectField } from "./fields/SelectField";
 import { TextareaField } from "./fields/TextareaField";
 import "./FormComposer.css";
+import { FormErrors } from "./FormErrors";
 import { SectionErrors } from "./SectionErrors";
 import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
-import { FormErrors } from "./FormErrors";
+import { formatStringWithProcedureTokens } from "./utils";
 import { checkFieldRequiredness, validateFormFields } from "./validation/helpers";
 
 function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
@@ -39,8 +40,8 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
 
   const inReviewState = finalResults !== null;
 
-  let formTitle = data.title;
-  let formInstruction = data.instruction;
+  let formTitle = formatStringWithProcedureTokens(data.title);
+  let formInstruction = formatStringWithProcedureTokens(data.instruction);
   let formSections = data.sections;
   let formSubmitButton = data.submit_button;
 
@@ -186,8 +187,8 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
 
         {/* Sections */}
         {formSections.map(( section, sectionIndex ) => {
-          const sectionTitle = section.title;
-          const sectionInstruction = section.instruction;
+          const sectionTitle = formatStringWithProcedureTokens(section.title);
+          const sectionInstruction = formatStringWithProcedureTokens(section.instruction);
           const fieldsets = section.fieldsets;
 
           const collapsable = (
@@ -282,8 +283,8 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
                 />
 
                 {fieldsets.map(( fieldset, fieldsetIndex ) => {
-                  const fieldsetTitle = fieldset.title;
-                  const fieldsetInstruction = fieldset.instruction;
+                  const fieldsetTitle = formatStringWithProcedureTokens(fieldset.title);
+                  const fieldsetInstruction = formatStringWithProcedureTokens(fieldset.instruction);
                   const rows = fieldset.rows;
 
                   return (
@@ -312,7 +313,7 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
                       )}
 
                       {rows.map(( row, rowIndex ) => {
-                        const rowHelp = row.help;
+                        const rowHelp = formatStringWithProcedureTokens(row.help);
                         const fields = row.fields;
 
                         return (
@@ -321,6 +322,8 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
                             className={`row`}
                           >
                             {fields.map(( field, fieldIndex ) => {
+                              const fieldLabel = formatStringWithProcedureTokens(field.label);
+                              const fieldTooltip = formatStringWithProcedureTokens(field.tooltip);
                               const fieldHelp = field.help;
 
                               return (
@@ -333,14 +336,14 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
                                     col
                                     ${checkFieldRequiredness(field) ? "required" : ""}
                                   `}
-                                  title={field.tooltip}
+                                  title={fieldTooltip}
                                 >
 
                                   <i>
                                     {field.icon}
                                   </i>
                                   <label htmlFor={field.id}>
-                                    {field.label}
+                                    {fieldLabel}
                                   </label>
 
                                   {["input", "email", "password", "number"].includes(field.type) && (
