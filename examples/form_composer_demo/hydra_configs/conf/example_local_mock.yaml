@@ -18,7 +18,7 @@ mephisto:
     extra_source_dir: ${task_dir}/webapp/src/static
     units_per_assignment: 1
   task:
-    task_name: "Sample Form Builder Questionnaire"
+    task_name: "Form Builder Sample"
     task_title: "Example how to easily create simple form-based Tasks"
     task_description: "In this Task, we use FormComposer feature."
     task_reward: 0

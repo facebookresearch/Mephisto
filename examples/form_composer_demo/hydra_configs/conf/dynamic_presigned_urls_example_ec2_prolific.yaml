@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 defaults:
-  - /mephisto/blueprint: static_react_task
+  - /mephisto/blueprint: remote_procedure
   - /mephisto/architect: ec2
   - /mephisto/provider: prolific
 
@@ -15,7 +15,6 @@ mephisto:
     profile_name: mephisto-router-iam
     subdomain: "0123"
   blueprint:
-    data_json: ${task_dir}/data/dynamic/task_data.json
     task_source: ${task_dir}/webapp/build/bundle.js
     task_source_review: ${task_dir}/webapp/build/bundle.review.js
     link_task_source: false
@@ -25,8 +24,8 @@ mephisto:
   task:
     task_name: "Form Builder Sample"
     # Note: don't use `Prolific` in task names, because Prolific will (silently) block your account
-    task_title: "Dynamic form-based Tasks for Prolifik"
-    task_description: "In this Task, we use dynamic FormComposer feature."
+    task_title: "Dynamic form-based Tasks with expiring URLs for Prolifik"
+    task_description: "In this Task, we use dynamic FormComposer feature with presigned S3 URLs."
     task_reward: 70
     task_tags: "test,simple,form"
     force_rebuild: true

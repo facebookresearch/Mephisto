@@ -1,0 +1,14 @@
+[
+  {
+    "tokens_values": {
+      "file_location": "{{getPresignedUrl(\"https://s3.amazonaws.com/path/to/your/folder/file1.jpg\")}}",
+      "since_age": 18
+    }
+  },
+  {
+    "tokens_values": {
+      "file_location": "{{getPresignedUrl(\"https://s3.amazonaws.com/path/to/your/folder/file2.jpg\")}}",
+      "since_age": 18
+    }
+  }
+]

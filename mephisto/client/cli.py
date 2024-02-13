@@ -47,11 +47,11 @@ from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.rich import console
 from mephisto.utils.rich import create_table
 
-FORM_COMPOSER_DATA_DIR_NAME = "data"
-FORM_COMPOSER_DATA_CONFIG_NAME = "task_data.json"
-FORM_COMPOSER_FORM_CONFIG_NAME = "form_config.json"
-FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
-FORM_COMPOSER_SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
+FORM_COMPOSER__DATA_DIR_NAME = "data"
+FORM_COMPOSER__DATA_CONFIG_NAME = "task_data.json"
+FORM_COMPOSER__FORM_CONFIG_NAME = "form_config.json"
+FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME = "token_sets_values_config.json"
+FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME = "separate_token_values_config.json"
 
 
 @click.group(cls=RichGroup)
@@ -448,9 +448,9 @@ def form_composer(task_data_config_only: bool = True):
     # of the called command-line script.
     # The other parts of the logic are inside `form_composer/run***.py` script
     app_path = _get_form_composer_app_path()
-    app_data_path = os.path.join(app_path, FORM_COMPOSER_DATA_DIR_NAME)
+    app_data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
 
-    task_data_config_path = os.path.join(app_data_path, FORM_COMPOSER_DATA_CONFIG_NAME)
+    task_data_config_path = os.path.join(app_data_path, FORM_COMPOSER__DATA_CONFIG_NAME)
 
     # Change dir to app dir
     os.chdir(app_path)
@@ -500,9 +500,10 @@ def form_composer_config(
     :param permutate_separate_tokens: Create tokens sets as all possible permutations of
         values lists defined in separate-token values config
     :param directory: Path to the directory where form and token configs are located.
-        By default it's the `data` directory of `form_composer` generator
+        By default, it's the `data` directory of `form_composer` generator
     :param use_presigned_urls: a modifier for `--update_file_location_values` parameter.
-        Wraps every S3 URL with a standard handler that presigns these URLs during form rendering        when we use `--update_file_location_values` command
+        Wraps every S3 URL with a standard handler that presigns these URLs during form rendering
+        when we use `--update_file_location_values` command
     """
 
     # Substitute defaults for missing param values
@@ -510,7 +511,7 @@ def form_composer_config(
         app_data_path = directory
     else:
         app_path = _get_form_composer_app_path()
-        app_data_path = os.path.join(app_path, FORM_COMPOSER_DATA_DIR_NAME)
+        app_data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
     print(f"[blue]Using config directory: {app_data_path}[/blue]")
 
     # Validate param values
@@ -527,10 +528,10 @@ def form_composer_config(
 
     # Check files and create `data.json` config with tokens data before running a task
     full_path = lambda data_file: os.path.join(app_data_path, data_file)
-    task_data_config_path = full_path(FORM_COMPOSER_DATA_CONFIG_NAME)
-    form_config_path = full_path(FORM_COMPOSER_FORM_CONFIG_NAME)
-    token_sets_values_config_path = full_path(FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME)
-    separate_token_values_config_path = full_path(FORM_COMPOSER_SEPARATE_TOKEN_VALUES_CONFIG_NAME)
+    task_data_config_path = full_path(FORM_COMPOSER__DATA_CONFIG_NAME)
+    form_config_path = full_path(FORM_COMPOSER__FORM_CONFIG_NAME)
+    token_sets_values_config_path = full_path(FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME)
+    separate_token_values_config_path = full_path(FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME)
 
     # Run the command
     if verify:
@@ -546,7 +547,7 @@ def form_composer_config(
 
     elif update_file_location_values:
         print(
-            f"[green]Started updating '{FORM_COMPOSER_SEPARATE_TOKEN_VALUES_CONFIG_NAME}' "
+            f"[green]Started updating '{FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME}' "
             f"with file URLs from '{update_file_location_values}'[/green]"
         )
         if is_s3_url(update_file_location_values):
@@ -561,7 +562,7 @@ def form_composer_config(
 
     elif permutate_separate_tokens:
         print(
-            f"[green]Started updating '{FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME}' "
+            f"[green]Started updating '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' "
             f"with permutated separate-token values[/green]"
         )
         update_token_sets_values_config_with_premutated_data(
@@ -573,7 +574,7 @@ def form_composer_config(
     elif extrapolate_token_sets:
         print(
             f"[green]Started extrapolating token sets values "
-            f"from '{FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
+            f"from '{FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME}' [/green]"
         )
         create_extrapolated_config(
             form_config_path=form_config_path,

@@ -8,7 +8,7 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { AutoComposingFormFrontend } from "./components/core_components.jsx";
+import { FormComposerBaseFrontend } from "./components/core_components.jsx";
 
 function ReviewApp() {
   const appRef = React.useRef(null);
@@ -44,7 +44,7 @@ function ReviewApp() {
   return (
     <div ref={appRef}>
       {reviewData ? (
-        <AutoComposingFormFrontend
+        <FormComposerBaseFrontend
           taskData={reviewData["inputs"]}
           finalResults={reviewData["outputs"]}
         />

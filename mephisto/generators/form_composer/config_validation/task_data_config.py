@@ -10,6 +10,8 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+from mephisto.generators.form_composer.constants import TOKEN_END_REGEX
+from mephisto.generators.form_composer.constants import TOKEN_START_REGEX
 from .config_validation_constants import ATTRS_SUPPORTING_TOKENS
 from .config_validation_constants import TOKENS_VALUES_KEY
 from .form_config import validate_form_config
@@ -24,7 +26,11 @@ FILE_LOCATION_TOKEN_NAME = "file_location"
 
 def _extrapolate_tokens_values(text: str, tokens_values: dict) -> str:
     for token, value in tokens_values.items():
-        text = re.sub(r"\{\{(\s*)" + token + r"(\s*)\}\}", value, text)
+        text = re.sub(
+            TOKEN_START_REGEX + r"(\s*)" + token + r"(\s*)" + TOKEN_END_REGEX,
+            value,
+            text,
+        )
     return text
 
 
@@ -72,13 +78,19 @@ def _collect_tokens_from_form_config(config_data: dict) -> Tuple[set, List[str]]
             item_attr = item.get(attr_name)
             if not item_attr:
                 continue
-            tokens_in_form_config.update(set(re.findall(r"\{\{\s*(\w+?)\s*\}\}", item_attr)))
+            tokens_in_form_config.update(set(re.findall(
+                TOKEN_START_REGEX + r"\s*(\w+?)\s*" + TOKEN_END_REGEX,
+                item_attr,
+            )))
 
         attrs_not_suppoting_tokens = set(item.keys()) - set(ATTRS_SUPPORTING_TOKENS)
         for attr_name in attrs_not_suppoting_tokens:
             item_attr = item.get(attr_name)
             if isinstance(item_attr, str):
-                found_attr_tokens = re.findall(r"\{\{\s*(\w+?)\s*\}\}", item_attr)
+                found_attr_tokens = re.findall(
+                    TOKEN_START_REGEX + r"\s*(\w+?)\s*" + TOKEN_END_REGEX,
+                    item_attr,
+                )
                 if found_attr_tokens:
                     found_attr_tokens_string = ", ".join([f"'{t}'" for t in found_attr_tokens])
                     tokens_in_unexpected_attrs_errors.append(
