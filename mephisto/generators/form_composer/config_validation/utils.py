@@ -21,7 +21,7 @@ from rich import print
 
 from mephisto.generators.form_composer.constants import CONTENTTYPE_BY_EXTENSION
 from mephisto.generators.form_composer.constants import JSON_IDENTATION
-from mephisto.generators.form_composer.constants import S3_URL_EXPIRATION_SECONDS
+from mephisto.generators.form_composer.constants import S3_URL_EXPIRATION_MINUTES
 from mephisto.utils.logger_core import get_logger
 
 logger = get_logger(name=__name__)
@@ -122,9 +122,10 @@ def get_file_urls_from_s3_storage(s3_url: str) -> List[str]:
     return urls
 
 
-def get_s3_presigned_url(s3_url: str, expires_in_secs: int = S3_URL_EXPIRATION_SECONDS) -> str:
+def get_s3_presigned_url(s3_url: str, expires_in_mins: int = S3_URL_EXPIRATION_MINUTES) -> str:
     """ Generate expiring URL to access protected content """
     def boto_action():
+        expires_in_secs = expires_in_mins * 60
         return s3_client.generate_presigned_url(
             ClientMethod="get_object",
             Params={

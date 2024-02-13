@@ -19,7 +19,7 @@ import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
 import { formatStringWithProcedureTokens } from "./utils";
 import { checkFieldRequiredness, validateFormFields } from "./validation/helpers";
 
-function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
+function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRenderingErrors}) {
   // State to hide submit button
   const [onSubmitLoading, setOnSubmitLoading] = React.useState(false);
 
@@ -40,8 +40,8 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
 
   const inReviewState = finalResults !== null;
 
-  let formTitle = formatStringWithProcedureTokens(data.title);
-  let formInstruction = formatStringWithProcedureTokens(data.instruction);
+  let formTitle = formatStringWithProcedureTokens(data.title, setRenderingErrors);
+  let formInstruction = formatStringWithProcedureTokens(data.instruction, setRenderingErrors);
   let formSections = data.sections;
   let formSubmitButton = data.submit_button;
 
@@ -187,8 +187,10 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
 
         {/* Sections */}
         {formSections.map(( section, sectionIndex ) => {
-          const sectionTitle = formatStringWithProcedureTokens(section.title);
-          const sectionInstruction = formatStringWithProcedureTokens(section.instruction);
+          const sectionTitle = formatStringWithProcedureTokens(section.title, setRenderingErrors);
+          const sectionInstruction = formatStringWithProcedureTokens(
+            section.instruction, setRenderingErrors,
+          );
           const fieldsets = section.fieldsets;
 
           const collapsable = (
@@ -283,8 +285,12 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
                 />
 
                 {fieldsets.map(( fieldset, fieldsetIndex ) => {
-                  const fieldsetTitle = formatStringWithProcedureTokens(fieldset.title);
-                  const fieldsetInstruction = formatStringWithProcedureTokens(fieldset.instruction);
+                  const fieldsetTitle = formatStringWithProcedureTokens(
+                    fieldset.title, setRenderingErrors,
+                  );
+                  const fieldsetInstruction = formatStringWithProcedureTokens(
+                    fieldset.instruction, setRenderingErrors,
+                  );
                   const rows = fieldset.rows;
 
                   return (
@@ -313,7 +319,9 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
                       )}
 
                       {rows.map(( row, rowIndex ) => {
-                        const rowHelp = formatStringWithProcedureTokens(row.help);
+                        const rowHelp = formatStringWithProcedureTokens(
+                          row.help, setRenderingErrors,
+                        );
                         const fields = row.fields;
 
                         return (
@@ -322,8 +330,12 @@ function FormComposer({ data, onSubmit, finalResults, serverSubmitErrors }) {
                             className={`row`}
                           >
                             {fields.map(( field, fieldIndex ) => {
-                              const fieldLabel = formatStringWithProcedureTokens(field.label);
-                              const fieldTooltip = formatStringWithProcedureTokens(field.tooltip);
+                              const fieldLabel = formatStringWithProcedureTokens(
+                                field.label, setRenderingErrors,
+                              );
+                              const fieldTooltip = formatStringWithProcedureTokens(
+                                field.tooltip, setRenderingErrors,
+                              );
                               const fieldHelp = field.help;
 
                               return (

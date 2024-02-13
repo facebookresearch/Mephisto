@@ -8,9 +8,9 @@ import os
 
 from omegaconf import DictConfig
 
-from mephisto.client.cli import FORM_COMPOSER_DATA_CONFIG_NAME
-from mephisto.client.cli import FORM_COMPOSER_FORM_CONFIG_NAME
-from mephisto.client.cli import FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config
 )
@@ -70,7 +70,7 @@ def _build_custom_bundles(cfg: DictConfig) -> None:
     )
 
 
-def generate_data_json_config():
+def generate_task_data_json_config():
     """
     Generate extrapolated `task_data.json` config file,
     based on existing form and tokens values config files
@@ -78,11 +78,11 @@ def generate_data_json_config():
     app_path = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(app_path, "data")
 
-    form_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER_FORM_CONFIG_NAME)
+    form_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__FORM_CONFIG_NAME)
     token_sets_values_config_path = os.path.join(
-        data_path, "dynamic", FORM_COMPOSER_TOKEN_SETS_VALUES_CONFIG_NAME,
+        data_path, "dynamic", FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
     )
-    task_data_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER_DATA_CONFIG_NAME)
+    task_data_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__DATA_CONFIG_NAME)
 
     create_extrapolated_config(
         form_config_path=form_config_path,
@@ -92,5 +92,5 @@ def generate_data_json_config():
 
 
 if __name__ == "__main__":
-    generate_data_json_config()
+    generate_task_data_json_config()
     main()

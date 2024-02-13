@@ -70,6 +70,55 @@ A more complex example featuring worker-generated dynamic input: [mnist](/exampl
 
 ---
 
+#### 3. Dynamic form-based task
+
+You can create and modify auto composing forms that we use in command `mephisto form_composer` ([README](/mephisto/generators/form_composer/README.md)) if it looks too easy for you. 
+
+There are three examples:
+
+1. Simple example with already prepared task data config. Launch command:
+  ```shell
+  docker-compose -f docker/docker-compose.dev.yml run \
+      --build \
+      --publish 3001:3000 \
+      --rm mephisto_dc \
+      python /mephisto/examples/form_composer_demo/run_task.py
+  ```
+
+2. Dynamic example with already prepared all configs which you can play, regenerate them and see how easy you can make your own more complicated form. Launch command:
+  ```shell
+  docker-compose -f docker/docker-compose.dev.yml run \
+      --build \
+      --publish 3001:3000 \
+      --rm mephisto_dc \
+      python /mephisto/examples/form_composer_demo/run_task_dynamic.py
+  ```
+Also, there are other dynamic commands to play with Prolific or MTurk, just change script name in command to `run_task_dynamic_ec2_prolific.py` and `run_task_dynamic_ec2_mturk_sandbox.py` accordingly.
+
+3. Dynamic example with already prepared all configs, but to show how to work with presigned S3 URLs. 
+To make this example fully workable, you need to set AWS credentials as environment variables 
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `S3_URL_EXPIRATION_MINUTES` (if you want to change default 1 hour) in file `docker/envs/env.dev`.
+Also, you need to change fake URLs in all configs on private ones from your own S3 storage. 
+Or you can use commands to recreate all configs aotomatically. Read how to do this [here](/mephisto/generators/form_composer/README.md#using-formcomposerconfig-utility).
+Example of `form_composer_config` command will be:
+  ```shell
+  docker-compose -f docker/docker-compose.dev.yml run \
+      --build \
+      --publish 3001:3000 \
+      --rm mephisto_dc \
+      mephisto form_composer_config --update-file-location-values "https://s3.amazon.com/...." --use_presigned_urls
+  ```
+After you generetad/changed all configs, you can launch with next command:
+  ```shell
+  docker-compose -f docker/docker-compose.dev.yml run \
+      --build \
+      --publish 3001:3000 \
+      --rm mephisto_dc \
+      python /mephisto/examples/form_composer_demo/run_task_dynamic_presigned_urls.py
+  ```
+
+---
+
 # Your Mephisto project
 
 To read on steps for creating your own custom Mephisto task, please refer to README in the main Mephisto repo.

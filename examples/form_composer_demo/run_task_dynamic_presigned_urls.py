@@ -6,45 +6,40 @@
 
 import os
 
+from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import \
+    SharedRemoteProcedureTaskState
+from mephisto.generators.form_composer.config_validation.utils import read_config_file
 from omegaconf import DictConfig
 
-from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
-    SharedStaticTaskState,
-)
 from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
-from mephisto.data_model.qualification import QUAL_GREATER_EQUAL
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config
 )
+from mephisto.generators.form_composer.remote_procedures import JS_NAME_FUNCTION_MAPPING
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.tools.scripts import task_script
-from mephisto.utils.qualifications import make_qualification_dict
 
 
-@task_script(default_config_file="dynamic_example_ec2_prolific")
+@task_script(default_config_file="dynamic_example_local_mock")
 def main(operator: Operator, cfg: DictConfig) -> None:
     # Build packages
     _build_custom_bundles(cfg)
 
-    shared_state = SharedStaticTaskState()
-
-    # Mephisto qualifications
-    shared_state.qualifications = [
-        make_qualification_dict("sample_qual_name", QUAL_GREATER_EQUAL, 1),
-    ]
-
-    # Prolific qualifications
-    # Note that we'll prefix names with a customary `web.eligibility.models.` later in the code
-    shared_state.prolific_specific_qualifications = [
-        {
-            "name": "AgeRangeEligibilityRequirement",
-            "min_age": 18,
-            "max_age": 100,
-        },
-    ]
+    # Configure shared state
+    task_data_config_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "data",
+        "dynamic",
+        "task_data.json",
+    )
+    task_data = read_config_file(task_data_config_path)
+    shared_state = SharedRemoteProcedureTaskState(
+        static_task_data=task_data,
+        function_registry=JS_NAME_FUNCTION_MAPPING,
+    )
 
     operator.launch_task_run(cfg.mephisto, shared_state)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
@@ -100,11 +95,15 @@ def generate_data_json_config():
     app_path = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(app_path, "data")
 
-    form_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__FORM_CONFIG_NAME)
-    token_sets_values_config_path = os.path.join(
-        data_path, "dynamic", FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
+    form_config_path = os.path.join(
+        data_path, "dynamic_presigned_urls", FORM_COMPOSER__FORM_CONFIG_NAME,
     )
-    task_data_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__DATA_CONFIG_NAME)
+    token_sets_values_config_path = os.path.join(
+        data_path, "dynamic_presigned_urls", FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
+    )
+    task_data_config_path = os.path.join(
+        data_path, "dynamic_presigned_urls", FORM_COMPOSER__DATA_CONFIG_NAME,
+    )
 
     create_extrapolated_config(
         form_config_path=form_config_path,

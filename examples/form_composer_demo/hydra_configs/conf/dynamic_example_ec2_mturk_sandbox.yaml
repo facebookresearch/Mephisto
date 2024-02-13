@@ -13,7 +13,7 @@ mephisto:
   architect:
     _architect_type: ec2
     profile_name: mephisto-router-iam
-    subdomain: "0125_mturk.5"
+    subdomain: "0123"
   blueprint:
     data_json: ${task_dir}/data/dynamic/task_data.json
     task_source: ${task_dir}/webapp/build/bundle.js
@@ -24,7 +24,7 @@ mephisto:
     units_per_assignment: 1
   log_level: "debug"
   task:
-    task_name: "Sample Form Builder Questionnaire"
+    task_name: "Form Builder Sample"
     task_title: "Dynamic form-based Tasks for Mturk"
     task_description: "In this Task, we use dynamic FormComposer feature."
     task_reward: 0.05

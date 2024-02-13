@@ -6,7 +6,7 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { AutoComposingFormFrontend, LoadingScreen } from "./components/core_components.jsx";
+import { FormComposerBaseFrontend, LoadingScreen } from "./components/core_components.jsx";
 import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
 
 /* ================= Application Components ================= */
@@ -26,7 +26,7 @@ function MainApp() {
   return (
     <div>
       <ErrorBoundary handleError={handleFatalError}>
-        <AutoComposingFormFrontend
+        <FormComposerBaseFrontend
           taskData={initialTaskData}
           onSubmit={handleSubmit}
           onError={handleFatalError}

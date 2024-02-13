@@ -3,6 +3,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
+
 CONTENTTYPE_BY_EXTENSION = {
     # Docs
     'csv': 'text/csv',
@@ -25,4 +27,13 @@ CONTENTTYPE_BY_EXTENSION = {
 
 JSON_IDENTATION = 2
 
-S3_URL_EXPIRATION_SECONDS = 60
+S3_URL_EXPIRATION_MINUTES = int(os.environ.get("S3_URL_EXPIRATION_MINUTES", 60))
+
+TOKEN_START_SYMBOLS = "{{"
+
+TOKEN_END_SYMBOLS = "}}"
+
+TOKEN_START_REGEX = r"\{\{"
+
+TOKEN_END_REGEX = r"\}\}"
+

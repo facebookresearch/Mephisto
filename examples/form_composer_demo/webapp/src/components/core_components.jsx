@@ -23,10 +23,10 @@ function Directions({ children }) {
   );
 }
 
-function AutoComposingFormFrontend({ taskData, onSubmit, onError, finalResults = null }) {
-  let formData = taskData.form;
+function FormComposerBaseFrontend({ taskData, onSubmit, onError, finalResults = null }) {
+  let initialConfigFormData = taskData.form;
 
-  if (!formData) {
+  if (!initialConfigFormData) {
     return (
       <div>
         Passed form data is invalid... Recheck your task config.
@@ -34,37 +34,10 @@ function AutoComposingFormFrontend({ taskData, onSubmit, onError, finalResults =
     );
   }
 
-  // const _finalResults = {
-  //   "name_first": "Saved name first",
-  //   "name_last": "Saved name last",
-  //   "email": "saved@example.com",
-  //   "country": "CAN",
-  //   "language": ["fr", "es"],
-  //   "bio": "Some bio text about me",
-  //   "skills": {
-  //     "javascript": true,
-  //     "python": true,
-  //     "react": false,
-  //   },
-  //   "kids": ">=3",
-  //   "avatar": {
-  //     "lastModified": 1670876272000,
-  //     "name": "avatar.jpg",
-  //     "size": 13264,
-  //     "type": "application/pdf"
-  //   },
-  //   "resume": {
-  //     "lastModified": 1682060907000,
-  //     "name": "resume.csv",
-  //     "size": 61,
-  //     "type": "text/csv"
-  //   },
-  // }
-
   return (
     <div>
       <FormComposer
-        data={formData}
+        data={initialConfigFormData}
         onSubmit={onSubmit}
         finalResults={finalResults}
       />
@@ -72,4 +45,4 @@ function AutoComposingFormFrontend({ taskData, onSubmit, onError, finalResults =
   );
 }
 
-export { LoadingScreen, AutoComposingFormFrontend };
+export { LoadingScreen, FormComposerBaseFrontend };

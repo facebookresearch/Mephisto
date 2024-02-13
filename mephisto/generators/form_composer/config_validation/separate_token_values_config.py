@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import urllib.parse
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -11,6 +12,8 @@ from botocore.exceptions import BotoCoreError
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
 
+from mephisto.generators.form_composer.constants import TOKEN_END_SYMBOLS
+from mephisto.generators.form_composer.constants import TOKEN_START_SYMBOLS
 from mephisto.generators.form_composer.remote_procedures import ProcedureName
 from .config_validation_constants import FILE_URL_TOKEN_KEY
 from .utils import get_file_urls_from_s3_storage
@@ -61,7 +64,11 @@ def update_separate_token_values_config_with_file_urls(
 
     if use_presigned_urls:
         files_locations = [
-            "{{" + f"{ProcedureName.GET_PRESIGNED_URL}({url})" + "}}"
+            (
+                TOKEN_START_SYMBOLS +
+                f"{ProcedureName.GET_MULTIPLE_PRESIGNED_URLS}({urllib.parse.quote(url)})" +
+                TOKEN_END_SYMBOLS
+            )
             for url in files_locations
         ]
 

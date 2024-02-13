@@ -1,0 +1,12 @@
+{
+  "company_name": [
+    "Mephisto"
+  ],
+  "file_location": [
+    "{{getPresignedUrl(\"https://s3.amazonaws.com/path/to/your/folder/file1.jpg\")}}",
+    "{{getPresignedUrl(\"https://s3.amazonaws.com/path/to/your/folder/file2.jpg\")}}"
+  ],
+  "since_age": [
+    18
+  ]
+}

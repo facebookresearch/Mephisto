@@ -55,6 +55,7 @@ Once that is done, run `form_composer_config` command(s) if needed, and then `fo
 ```shell
 mephisto form_composer_config --extrapolate-token-sets
 mephisto form_composer
+mephisto form_composer --task-data-config-only
 ```
 
 
@@ -68,6 +69,10 @@ mephisto form_composer_config --verify
 mephisto form_composer_config --extrapolate-token-sets
 mephisto form_composer_config --permutate-separate-tokens
 mephisto form_composer_config --update-file-location-values "https://s3.amazon.com/...."
+# Parameters that work together
+mephisto form_composer_config --directory /my/own/path/to/data/ --verify
+mephisto form_composer_config --directory /my/own/path/to/data/ --extrapolate-token-sets
+mephisto form_composer_config --update-file-location-values "https://s3.amazon.com/...." --use_presigned_urls
 ```
 
 where
@@ -75,6 +80,10 @@ where
 - `-f/--update-file-location-values S3_URL` - generates token values based on file names found within specified S3 folder (see a separate section about this mode of running FormComposer)
 - `-e/--extrapolate-token-sets` - if truthy, generates Task data config based on provided form config and takon sets values
 - `-p/--permutate-sepatate-tokens` - if truthy, generates token sets values as all possible combinations of values of individual tokens
+- `-d/--directory` - sets directory where parameters above find configs to work (omittig sets default directory which is `form_composer` generator's data directory)
+- `-u/--use_presigned_urls` - works together with `--update-file-location-values` and tells that all URLs from S3 will be wrapped with special token `{{getPresignedUrl(<URL>)}}`. 
+    When worker opens a task page this token will be overridden with S3 presigned URL. This kind of URLs is available for some period of time (default 1 hour). 
+    If you want to change this period set environment variable `S3_URL_EXPIRATION_MINUTES` 
 
 To understand what "tokens" means, read on about FormComposer config structure.
 
@@ -198,7 +207,7 @@ In a special case when one of your tokens is an S3 file URL, that token values c
 
 Putting it altogether, this is a brief example of composing a dynamic form config.
 
-#### Single token values config
+#### Separate token values config
 
 Let's start with separate token values in `separate_token_values_config.json` file:
 
@@ -225,6 +234,22 @@ Permutating these token values will produce this `form_config.json` file with to
     "tokens_values": {
       "actor": "Mark Hamill",
       "movie_name": "Star Wars"
+    }
+  },
+]
+```
+
+Example of config after using `--update-file-location-values "https://s3.amazon.com/...." --use_presigned_urls` params:
+```json
+[
+  {
+    "tokens_values": {
+      "file_location": "{{getPresignedUrl(\"https://s3.amazon.com/1.jpg\")}}"
+    }
+  },
+  {
+    "tokens_values": {
+      "file_location": "{{getPresignedUrl(\"https://s3.amazon.com/2.jpg\")}}"
     }
   },
 ]
