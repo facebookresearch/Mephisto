@@ -6,6 +6,7 @@
 import os.path
 import re
 from copy import deepcopy
+from rich import print
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -28,7 +29,7 @@ def _extrapolate_tokens_values(text: str, tokens_values: dict) -> str:
     for token, value in tokens_values.items():
         text = re.sub(
             TOKEN_START_REGEX + r"(\s*)" + token + r"(\s*)" + TOKEN_END_REGEX,
-            value,
+            str(value),
             text,
         )
     return text
@@ -120,7 +121,6 @@ def _validate_tokens_in_both_configs(
         token_name
         for token_set_values_data in token_sets_values_config_data
         for token_name in token_set_values_data.get(TOKENS_VALUES_KEY, {}).keys()
-
     ])
     # Token names present in token values config, but not in form config
     overspecified_tokens = tokens_from_token_sets_values_config - tokens_from_form_config
@@ -173,11 +173,11 @@ def _combine_extrapolated_form_configs(
         errors = errors + tokens_in_unexpected_attrs_errors
 
     if not form_config_is_valid:
-        errors.append(make_error_message("Form config is invalid.", form_config_errors))
+        errors.append(make_error_message("Form config is invalid", form_config_errors))
 
     if not token_sets_values_config_is_valid:
         errors.append(make_error_message(
-            "Toekn sets values config is invalid.", token_sets_values_data_config_errors,
+            "Token sets values config is invalid", token_sets_values_data_config_errors,
         ))
 
     if errors:
@@ -228,7 +228,8 @@ def create_extrapolated_config(
         )
         write_config_to_file(extrapolated_form_config_data, task_data_config_path)
     except ValueError as e:
-        print(f"Could not extrapolate form configs: {e}")
+        print(f"\n[red]Could not extrapolate form configs:[/red] {e}\n")
+        exit()
 
 
 def validate_task_data_config(config_json: List[dict]) -> Tuple[bool, List[str]]:
@@ -264,47 +265,64 @@ def verify_form_composer_configs(
     errors = []
 
     try:
-        # 1. Validate data config
-        task_data_config_data = read_config_file(task_data_config_path)
+        # 1. Validate task data config
+        task_data_config_data = read_config_file(task_data_config_path, exit_if_no_file=False)
 
-        task_data_config_is_valid, task_data_config_errors = validate_task_data_config(
-            task_data_config_data,
-        )
-
-        if not task_data_config_is_valid:
-            errors.append(make_error_message(
-                "Task data config is invalid.", task_data_config_errors,
-            ))
+        if task_data_config_data is None:
+            pass
+        else:
+            task_data_config_is_valid, task_data_config_errors = validate_task_data_config(
+                task_data_config_data,
+            )
+            if not task_data_config_is_valid:
+                errors.append(make_error_message(
+                    "Task data config is invalid", task_data_config_errors,
+                ))
 
         if task_data_config_only:
             if errors:
-                raise ValueError("\n" + "\n\n".join(errors))
+                raise ValueError(make_error_message("", errors))
 
             return None
 
-        # 2. Validate form config config
-        form_config_data = read_config_file(form_config_path)
+        # 2. Validate form config
+        form_config_data = read_config_file(form_config_path, exit_if_no_file=False)
 
-        form_config_is_valid, form_config_errors = validate_form_config(form_config_data)
+        if form_config_data is None:
+            pass
+        else:
+            form_config_is_valid, form_config_errors = validate_form_config(form_config_data)
 
-        if not form_config_is_valid:
-            errors.append(make_error_message("Form config is invalid.", form_config_errors))
+            if not form_config_is_valid:
+                errors.append(make_error_message("Form config is invalid", form_config_errors))
 
         # 3. Validate token sets values config
-        if os.path.exists(token_sets_values_config_path):
-            token_sets_values_data = read_config_file(token_sets_values_config_path)
-        else:
-            token_sets_values_data = []
+        token_sets_values_data = read_config_file(
+            token_sets_values_config_path, exit_if_no_file=False,
+        )
 
+        # 3a. Validate token sets values data itself
+        if token_sets_values_data is None:
+            token_sets_values_data = []
+        else:
+            token_sets_values_config_is_valid, token_sets_values_config_errors = (
+                validate_token_sets_values_config(token_sets_values_data)
+            )
+
+            if not token_sets_values_config_is_valid:
+                errors.append(make_error_message(
+                    "Token sets values config is invalid",
+                    token_sets_values_config_errors,
+                    indent=4,
+                ))
+
+        # 3b. Ensure there's no unused token names in both token setes and form config
         (
             overspecified_tokens,
             underspecified_tokens,
             tokens_in_unexpected_attrs_errors,
-        ) = _validate_tokens_in_both_configs(
-            form_config_data, token_sets_values_data,
-        )
+        ) = _validate_tokens_in_both_configs(form_config_data, token_sets_values_data)
 
-        # Output errors, if any
         if overspecified_tokens:
             errors.append(
                 f"Values for the following tokens are provided in token sets values config, "
@@ -322,21 +340,23 @@ def verify_form_composer_configs(
             errors = errors + tokens_in_unexpected_attrs_errors
 
         # 4. Validate separate token values config
-        separate_token_values_config_data = read_config_file(separate_token_values_config_path)
+        separate_token_values_config_data = read_config_file(
+            separate_token_values_config_path, exit_if_no_file=False,
+        )
 
         separate_token_values_config_is_valid, separate_token_values_config_errors = (
             validate_separate_token_values_config(separate_token_values_config_data)
         )
 
         if not separate_token_values_config_is_valid:
-            token_sets_values_data_config_errors = [
-                f"  - {e}" for e in separate_token_values_config_errors
-            ]
-            errors_string = "\n".join(token_sets_values_data_config_errors)
-            errors.append(f"Single token values config is invalid. Errors:\n{errors_string}")
+            errors.append(make_error_message(
+                "Separate token values config is invalid", separate_token_values_config_errors,
+            ))
 
         if errors:
-            raise ValueError("\n" + "\n\n".join(errors))
+            raise ValueError(make_error_message("", errors))
+        else:
+            print(f"[green]All configs are valid.[/green]")
 
     except ValueError as e:
-        print(f"Could not extrapolate form configs: {e}")
+        print(f"\n[red]Provided Form Composer config files are invalid:[/red] {e}\n")

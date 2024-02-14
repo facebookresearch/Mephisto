@@ -535,7 +535,7 @@ def form_composer_config(
 
     # Run the command
     if verify:
-        print(f"[green]Started configs verification in '{task_data_config_path}'[/green]")
+        print(f"Started configs verification")
         verify_form_composer_configs(
             task_data_config_path=task_data_config_path,
             form_config_path=form_config_path,
@@ -543,7 +543,7 @@ def form_composer_config(
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,
         )
-        print(f"[green]Finished successfully[/green]")
+        print(f"Finished configs verification")
 
     elif update_file_location_values:
         print(

@@ -35,19 +35,33 @@ def write_config_to_file(config_data: Union[List[dict], dict], file_path: str):
         f.write(config_str)
 
 
-def read_config_file(config_path: str) -> Union[List[dict], dict]:
+def read_config_file(
+    config_path: str, exit_if_no_file: bool = True
+) -> Union[List[dict], dict, None]:
+
+    if not os.path.exists(config_path):
+        if exit_if_no_file:
+            print(f"[red]Required file not found: '{config_path}'.[/red]")
+            exit()
+
+        print(f"[yellow]Required file not found: '{config_path}'.[/yellow]")
+        return None
+
     try:
         with open(config_path) as config_file:
             config_data = json.load(config_file)
-    except (JSONDecodeError, TypeError, FileNotFoundError):
-        print(f"[red]Could not read JSON from '{config_path}' file[/red]")
+    except (JSONDecodeError, TypeError):
+        print(f"[red]Could not read JSON from file: '{config_path}'.[/red]")
         exit()
+
     return config_data
 
 
-def make_error_message(main_message: str, error_list: List[str]) -> str:
-    errors_bullet = "\n  - " + "\n  - ".join(map(str, error_list))
-    return f"{main_message}. Errors:{errors_bullet}"
+def make_error_message(main_message: str, error_list: List[str], indent: int = 2) -> str:
+    prefix = "\n" + (" " * indent) + "- "
+    errors_bullets = prefix + prefix.join(map(str, error_list))
+    error_title = f"{main_message.rstrip('.')}. Errors:" if main_message else ""
+    return error_title + errors_bullets
 
 
 def get_file_ext(file_name: str) -> str:

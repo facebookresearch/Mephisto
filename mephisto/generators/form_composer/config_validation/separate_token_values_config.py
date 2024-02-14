@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import urllib.parse
+import os
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -17,6 +17,7 @@ from mephisto.generators.form_composer.constants import TOKEN_START_SYMBOLS
 from mephisto.generators.form_composer.remote_procedures import ProcedureName
 from .config_validation_constants import FILE_URL_TOKEN_KEY
 from .utils import get_file_urls_from_s3_storage
+from .utils import read_config_file
 from .utils import write_config_to_file
 
 
@@ -66,13 +67,19 @@ def update_separate_token_values_config_with_file_urls(
         files_locations = [
             (
                 TOKEN_START_SYMBOLS +
-                f"{ProcedureName.GET_MULTIPLE_PRESIGNED_URLS}({urllib.parse.quote(url)})" +
+                f'{ProcedureName.GET_MULTIPLE_PRESIGNED_URLS}("{url}")' +
                 TOKEN_END_SYMBOLS
             )
             for url in files_locations
         ]
 
-    separate_token_values_config_data = {
+    # Update data in existing config file, or create new if it doesn't exist
+    config_data = {}
+    if os.path.exists(separate_token_values_config_path):
+        config_data = read_config_file(separate_token_values_config_path)
+
+    config_data.update({
         FILE_URL_TOKEN_KEY: files_locations,
-    }
-    write_config_to_file(separate_token_values_config_data, separate_token_values_config_path)
+    })
+
+    write_config_to_file(config_data, separate_token_values_config_path)

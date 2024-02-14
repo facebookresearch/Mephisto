@@ -18,12 +18,12 @@ const WAIT_FOR_AGENT_ID_MSEC = 1000;
 
 let tokenProcedureResultMapping = {};
 
-const procedureRegex = /([\w\(\)\"\'\/\.\_\-\:\{\}\s\\]+?)/;
 const optionalSpacesRegex = /\s*/;
 const openingRegex = new RegExp(TOKEN_START_REGEX.source + optionalSpacesRegex.source, "gi");
 const closingRegex = new RegExp(optionalSpacesRegex.source + TOKEN_END_REGEX.source, "gi");
+const innerRegex = /(.*?)/;
 export const procedureTokenRegex = new RegExp(
-  openingRegex.source + procedureRegex.source + closingRegex.source,
+  openingRegex.source + innerRegex.source + closingRegex.source,
   "gi",
 );
 
@@ -95,9 +95,9 @@ function _getUrlsFromString(string) {
     const matches = [...string.matchAll(procedureTokenRegex)];
     matches.forEach(([token, procedureCode]) => {
       if (procedureCode.includes(ProcedureName.GET_MULTIPLE_PRESIGNED_URLS)) {
-        const procedureCodeMatches = [...procedureCode.matchAll(/\(\"([^\s]+)\"\)/gi)];
-        if (procedureCodeMatches.length && procedureCodeMatches[0].length === 2) {
-          const procedureCodeUrl = procedureCodeMatches[0][1];
+        const procedureCodeWithUrlMatches = [...procedureCode.matchAll(/\(\"(.+?)\"\)/gi)];
+        if (procedureCodeWithUrlMatches.length && procedureCodeWithUrlMatches[0].length === 2) {
+          const procedureCodeUrl = procedureCodeWithUrlMatches[0][1];
           urls.push(procedureCodeUrl);
           urlTotokenProcedureMapping[procedureCodeUrl] = token;
         }

@@ -82,7 +82,7 @@ def _build_custom_bundles(cfg: DictConfig) -> None:
         build_command="build:review",
     )
 
-    # Build UI for the application
+    # Build Task UI for the application
     build_custom_bundle(
         cfg.task_dir,
         force_rebuild=cfg.mephisto.task.force_rebuild,
@@ -112,6 +112,9 @@ def generate_data_json_config():
 
 
 def generate_preview_html():
+    """
+    Generate HTML preview of a Task (based on first form version contained in `task_data.json`)
+    """
     app_path = os.path.dirname(os.path.abspath(__file__))
     preview_path = os.path.join(app_path, "preview")
     data_path = os.path.join(app_path, "data", "dynamic")
@@ -127,11 +130,15 @@ def generate_preview_html():
         print(f"Could not read JSON from '{data_config_path}' file")
         raise
 
-    first_form_data = data_config_data[0]
+    first_form_version = data_config_data[0]["form"]
 
+    # Erase all tokens from the text since HTML preview is inherently static
+    erase_tokens = lambda text: re.sub(
+        TOKEN_START_REGEX + r"(.*?)" + TOKEN_END_REGEX, ".....", text,
+    )
     preview_data = {
-        "title": first_form_data["form"]["title"],
-        "instruction": first_form_data["form"]["instruction"],
+        "title": erase_tokens(first_form_version["title"]),
+        "instruction": erase_tokens(first_form_version["instruction"]),
     }
 
     with open(preview_template_path, "r") as f:
@@ -139,8 +146,9 @@ def generate_preview_html():
 
     with open(preview_html_path, "w") as f:
         for attr_name, value in preview_data.items():
+            # Simply replace `[[ token_name ]]` substrings in the HTML template for our valoues
             preview_template = re.sub(
-                TOKEN_START_REGEX + r"(\s*)" + attr_name + r"(\s*)" + TOKEN_END_REGEX,
+                r"\[\[(\s*)" + attr_name + r"(\s*)\]\]",
                 value,
                 preview_template,
             )
