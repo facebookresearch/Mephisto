@@ -15,11 +15,11 @@ mephisto:
     profile_name: mephisto-router-iam
     subdomain: "0123"
   blueprint:
-    task_source: ${task_dir}/webapp/build/bundle.js
+    task_source: ${task_dir}/webapp/build/bundle.presigned_urls.js
     task_source_review: ${task_dir}/webapp/build/bundle.review.js
     link_task_source: false
     extra_source_dir: ${task_dir}/webapp/src/static
-    units_per_assignment: 1
+    units_per_assignment: 2
   log_level: "debug"
   task:
     task_name: "Form Builder Sample"

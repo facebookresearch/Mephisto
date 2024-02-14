@@ -25,25 +25,35 @@ TokensPermutationType = List[
 ]
 
 
-def validate_token_sets_values_config(config_json: List[dict]) -> Tuple[bool, List[str]]:
+def validate_token_sets_values_config(config_data: List[dict]) -> Tuple[bool, List[str]]:
     is_valid = True
     errors = []
 
-    if not isinstance(config_json, list):
+    if not isinstance(config_data, list):
         is_valid = False
         errors.append("Config must be a JSON Array.")
 
-    if config_json:
-        if not all(config_json):
+    if config_data:
+        if not all(config_data):
             is_valid = False
             errors.append("Config must contain at least one non-empty item.")
 
-        for item in config_json:
+        # Ensure each token set has correct JSON structure
+        for item in config_data:
             item_is_valid = validate_config_dict_item(
                 item, "item_tokens_values", AVAILABLE_TASK_ATTRS, errors,
             )
             if not item_is_valid:
                 is_valid = False
+
+        # Ensure all token sets have the same set of keys (i.e. token names)
+        token_names_from_token_sets_values_config = [
+            tuple(sorted(token_set_values_data.get(TOKENS_VALUES_KEY, {}).keys()))
+            for token_set_values_data in config_data
+        ]
+        if len(set(token_names_from_token_sets_values_config)) > 1:
+            is_valid = False
+            errors.append("Some token sets contain dissimilar set of token names.")
 
     return is_valid, errors
 
@@ -85,7 +95,7 @@ def update_token_sets_values_config_with_premutated_data(
     errors = []
     if not separate_token_values_config_is_valid:
         errors.append(make_error_message(
-            "Separate token values config is invalid.", separate_token_values_config_errors,
+            "Separate token values config is invalid", separate_token_values_config_errors,
         ))
 
     if errors:

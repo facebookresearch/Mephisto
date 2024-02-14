@@ -84,7 +84,7 @@ def _build_custom_bundles(cfg: DictConfig) -> None:
         build_command="build:review",
     )
 
-    # Build UI for the application
+    # Build Task UI for the application
     build_custom_bundle(
         cfg.task_dir,
         force_rebuild=cfg.mephisto.task.force_rebuild,

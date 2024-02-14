@@ -23,7 +23,7 @@ from mephisto.tools.scripts import build_custom_bundle
 from mephisto.tools.scripts import task_script
 
 
-@task_script(default_config_file="dynamic_example_local_mock")
+@task_script(default_config_file="dynamic_presigned_urls_example_ec2_prolific")
 def main(operator: Operator, cfg: DictConfig) -> None:
     # Build packages
     _build_custom_bundles(cfg)
@@ -32,7 +32,7 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     task_data_config_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         "data",
-        "dynamic",
+        "dynamic_presigned_urls",
         "task_data.json",
     )
     task_data = read_config_file(task_data_config_path)
@@ -79,11 +79,12 @@ def _build_custom_bundles(cfg: DictConfig) -> None:
         build_command="build:review",
     )
 
-    # Build UI for the application
+    # Build Task UI for the application
     build_custom_bundle(
         cfg.task_dir,
         force_rebuild=cfg.mephisto.task.force_rebuild,
         post_install_script=cfg.mephisto.task.post_install_script,
+        build_command="build:presigned_urls",
     )
 
 

@@ -8,15 +8,18 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
-  entry: "./src/presign_urls_app.js",
+  entry: "./src/presigned_urls.js",
   output: {
     path: __dirname,
-    filename: "build/bundle.presign_urls.js",
+    filename: "build/bundle.presigned_urls.js",
   },
   resolve: {
     alias: {
       react: path.resolve("./node_modules/react"),
       // Use local library with code that can submit FormData
+      "mephisto-task-multipart": path.resolve(
+        __dirname, "../../../packages/mephisto-task-multipart",
+      ),
       "react-form-composer": path.resolve(
         __dirname, "../../../packages/react-form-composer",
       ),

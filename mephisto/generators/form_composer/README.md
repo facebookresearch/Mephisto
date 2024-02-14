@@ -65,27 +65,26 @@ The `form_composer_config` utility command helps auto-generate FormComposer conf
 
 ```shell
 # Sample launching commands
-mephisto form_composer_config --verify
-mephisto form_composer_config --extrapolate-token-sets
+mephisto form_composer_config --update-file-location-values "https://s3.amazonaws.com/..." --use_presigned_urls
+mephisto form_composer_config --update-file-location-values "https://s3.amazonaws.com/..."
 mephisto form_composer_config --permutate-separate-tokens
-mephisto form_composer_config --update-file-location-values "https://s3.amazon.com/...."
+mephisto form_composer_config --extrapolate-token-sets
+mephisto form_composer_config --verify
 # Parameters that work together
 mephisto form_composer_config --directory /my/own/path/to/data/ --verify
 mephisto form_composer_config --directory /my/own/path/to/data/ --extrapolate-token-sets
-mephisto form_composer_config --update-file-location-values "https://s3.amazon.com/...." --use_presigned_urls
+mephisto form_composer_config --update-file-location-values "https://s3.amazonaws.com/..."
 ```
 
 where
+- `-d/--directory` - a **modifier** for all `form_composer_config` command options that specifies the directory where all form JSON config files are located (if missing the default is `mephisto/generators/form_composer/data` directory)
 - `-v/--verify` - if truthy, validates all JSON configs currently present in the form builder config directory
-- `-f/--update-file-location-values S3_URL` - generates token values based on file names found within specified S3 folder (see a separate section about this mode of running FormComposer)
-- `-e/--extrapolate-token-sets` - if truthy, generates Task data config based on provided form config and takon sets values
 - `-p/--permutate-sepatate-tokens` - if truthy, generates token sets values as all possible combinations of values of individual tokens
-- `-d/--directory` - sets directory where parameters above find configs to work (omittig sets default directory which is `form_composer` generator's data directory)
-- `-u/--use_presigned_urls` - works together with `--update-file-location-values` and tells that all URLs from S3 will be wrapped with special token `{{getPresignedUrl(<URL>)}}`. 
-    When worker opens a task page this token will be overridden with S3 presigned URL. This kind of URLs is available for some period of time (default 1 hour). 
-    If you want to change this period set environment variable `S3_URL_EXPIRATION_MINUTES` 
+- `-f/--update-file-location-values S3_FOLDER_URL` - generates token values based on file names found within the specified S3 folder (see a separate section about this mode of running FormComposer)
+- `-e/--extrapolate-token-sets` - if truthy, generates Task data config based on provided form config and takon sets values
+- `-u/--use-presigned-urls` - a **modifier** for `--update-file-location-values` command that converts S3 URLs into short-lived rtemporary ones (for more detailes see "Presigned URLs" section)
 
-To understand what "tokens" means, read on about FormComposer config structure.
+To understand what the concept of "tokens" means, read on about FormComposer config structure.
 
 
 ## Config files
@@ -203,6 +202,16 @@ In a special case when one of your tokens is an S3 file URL, that token values c
 
 ---
 
+#### Mturk Task Preview
+
+For Tasks run with Mechanical Turk provider, FormComposer generates a Task preview (a small HTML snippet shown to worker prior to starting the task). This Task review comprises HTML content of `form` object's attributes `title` and `instruction`.
+
+However, note that the task preview is inherently static, therefore:
+- we always take the first form version in `data_task.json` to generate Task preview for all form versions
+- we erase dynamic tokens from the Task review content
+
+---
+
 ## Dynamic form config example
 
 Putting it altogether, this is a brief example of composing a dynamic form config.
@@ -239,17 +248,17 @@ Permutating these token values will produce this `form_config.json` file with to
 ]
 ```
 
-Example of config after using `--update-file-location-values "https://s3.amazon.com/...." --use_presigned_urls` params:
+Example of config after using `--update-file-location-values "https://s3.amazonaws.com/...." --use_presigned_urls` params:
 ```json
 [
   {
     "tokens_values": {
-      "file_location": "{{getPresignedUrl(\"https://s3.amazon.com/1.jpg\")}}"
+      "file_location": "{{getPresignedUrl(\"https://s3.amazonaws.com/1.jpg\")}}"
     }
   },
   {
     "tokens_values": {
-      "file_location": "{{getPresignedUrl(\"https://s3.amazon.com/2.jpg\")}}"
+      "file_location": "{{getPresignedUrl(\"https://s3.amazonaws.com/2.jpg\")}}"
     }
   },
 ]
@@ -321,10 +330,37 @@ TBD
 ---
 
 
-# Custom callbacks
+# Form callbacks
 
-TBD (aka "remote procedure")
+During rendering of a Task in the browser, we may send calls to the server-side for additional data. In Mephisto, API views servicing such requests are called "remote procedures".
 
+
+## Presigned S3 URLs
+
+An example of a remote procedure that gets called during the initial form loading, is `getPresignedUrl` and `getMultiplePresignedUrls` functions. These functions allow to generate short-lived S3 URLs, in order to limit exposure of sensitive resources.
+
+The below command auto-generates config token values that presign themselves during rendering of the Task page:
+
+```
+mephisto form_composer_config --update-file-location-values "https://s3.amazonaws.com/..." --use_presigned_urls
+```
+
+This is how URL pre-signing works:
+  - When a worker opens the Task page and the form HTML is generated, it will contain so-called "procedure tokens", i.e. token values that look like this: `{{getMultiplePresignedUrls(<S3_FILE_URL>)}}`
+    - the "wrapper" part of a procedure token is the name of a Javascript function that will render itself dynamically (e.g. by calling some remote API to receive additional data)
+    - the argument part is the argument value provided suring the function call
+  - As soon as the form HTML is in place, the remote procedure gets called
+  - Mephisto's predefined remote procedure generates presigned URL, and its expiration starts ticking
+
+Presigned S3 URLs use the following environment variables:
+  - Required: valid AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`
+  form_composer_config` command)
+  - Optional: URL expiration time `S3_URL_EXPIRATION_MINUTES`, can be up to 7 days long (if missing the default value is 60 minutes)
+
+
+## Custom callbacks
+
+You can write your own remote procedures. A good place to start is looking at how S3 URL presigning is implemented in the `examples/form_composer_demo` example project.
 
 -----
 

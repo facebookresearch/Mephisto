@@ -7,7 +7,8 @@
     "dev": "webpack --mode development",
     "dev:watch": "webpack --mode development --watch",
     "test": "cypress open",
-    "build:review": "webpack --config=webpack.config.review.js --mode development"
+    "build:review": "webpack --config=webpack.config.review.js --mode development",
+    "build:presigned_urls": "webpack --config=webpack.config.presigned_urls.js --mode development"
   },
   "keywords": [],
   "author": "",

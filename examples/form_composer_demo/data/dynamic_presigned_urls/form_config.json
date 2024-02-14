@@ -292,7 +292,7 @@
                     "type": "input",
                     "validators": {
                         "required": true
-                    },
+                    }
                 }
                 ],
                 "help": "Please type in your favorite personal motto"

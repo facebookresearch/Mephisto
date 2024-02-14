@@ -3,8 +3,8 @@
     "Mephisto"
   ],
   "file_location": [
-    "{{getPresignedUrl(\"https://s3.amazonaws.com/path/to/your/folder/file1.jpg\")}}",
-    "{{getPresignedUrl(\"https://s3.amazonaws.com/path/to/your/folder/file2.jpg\")}}"
+    "{{getMultiplePresignedUrls(\"https%3A//your-bucket.s3.amazonaws.com/your/folder/path/file1.jpg\")}}",
+    "{{getMultiplePresignedUrls(\"https%3A//your-bucket.s3.amazonaws.com/your/folder/path/file2.jpg\")}}"
   ],
   "since_age": [
     18
