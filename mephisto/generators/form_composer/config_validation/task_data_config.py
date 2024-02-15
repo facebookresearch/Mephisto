@@ -6,18 +6,22 @@
 import os.path
 import re
 from copy import deepcopy
-from rich import print
 from typing import List
 from typing import Optional
 from typing import Tuple
 
+from rich import print
+
+from mephisto.generators.form_composer.constants import S3_URL_EXPIRATION_MINUTES_MAX
 from mephisto.generators.form_composer.constants import TOKEN_END_REGEX
 from mephisto.generators.form_composer.constants import TOKEN_START_REGEX
+from mephisto.generators.form_composer.remote_procedures import ProcedureName
 from .config_validation_constants import ATTRS_SUPPORTING_TOKENS
 from .config_validation_constants import TOKENS_VALUES_KEY
 from .form_config import validate_form_config
 from .separate_token_values_config import validate_separate_token_values_config
 from .token_sets_values_config import validate_token_sets_values_config
+from .utils import get_s3_presigned_url
 from .utils import make_error_message
 from .utils import read_config_file
 from .utils import write_config_to_file
@@ -28,7 +32,12 @@ FILE_LOCATION_TOKEN_NAME = "file_location"
 def _extrapolate_tokens_values(text: str, tokens_values: dict) -> str:
     for token, value in tokens_values.items():
         text = re.sub(
-            TOKEN_START_REGEX + r"(\s*)" + token + r"(\s*)" + TOKEN_END_REGEX,
+            (
+                TOKEN_START_REGEX + r"(\s*)" +
+                # Escape and add parentheses around the token, in case it has special characters
+                r"(" + re.escape(token) + r")" +
+                "(\s*)" + TOKEN_END_REGEX
+            ),
             str(value),
             text,
         )
@@ -69,7 +78,11 @@ def _collect_form_config_items_to_extrapolate(config_data: dict) -> List[dict]:
     return items_to_extrapolate
 
 
-def _collect_tokens_from_form_config(config_data: dict) -> Tuple[set, List[str]]:
+def _collect_tokens_from_form_config(
+    config_data: dict, regex: Optional[str] = None,
+) -> Tuple[set, List[str]]:
+    regex = regex or r"\s*(\w+?)\s*"
+
     items_to_extrapolate = _collect_form_config_items_to_extrapolate(config_data)
     tokens_in_form_config = set()
     tokens_in_unexpected_attrs_errors = []
@@ -80,7 +93,7 @@ def _collect_tokens_from_form_config(config_data: dict) -> Tuple[set, List[str]]
             if not item_attr:
                 continue
             tokens_in_form_config.update(set(re.findall(
-                TOKEN_START_REGEX + r"\s*(\w+?)\s*" + TOKEN_END_REGEX,
+                TOKEN_START_REGEX + regex + TOKEN_END_REGEX,
                 item_attr,
             )))
 
@@ -89,7 +102,7 @@ def _collect_tokens_from_form_config(config_data: dict) -> Tuple[set, List[str]]
             item_attr = item.get(attr_name)
             if isinstance(item_attr, str):
                 found_attr_tokens = re.findall(
-                    TOKEN_START_REGEX + r"\s*(\w+?)\s*" + TOKEN_END_REGEX,
+                    TOKEN_START_REGEX + regex + TOKEN_END_REGEX,
                     item_attr,
                 )
                 if found_attr_tokens:
@@ -360,3 +373,28 @@ def verify_form_composer_configs(
 
     except ValueError as e:
         print(f"\n[red]Provided Form Composer config files are invalid:[/red] {e}\n")
+
+
+def prepare_task_config_for_review_app(config: dict) -> dict:
+    config = deepcopy(config)
+
+    procedure_code_regex = r"\s*(.+?)\s*"
+    tokens_from_inputs, _ = _collect_tokens_from_form_config(config, regex=procedure_code_regex)
+
+    url_from_rpocedure_code_regex = r"\(\"(.+?)\"\)"
+    token_values = {}
+    for token in tokens_from_inputs:
+        presigned_url_procedure_names = [
+            ProcedureName.GET_MULTIPLE_PRESIGNED_URLS,
+            ProcedureName.GET_PRESIGNED_URL,
+        ]
+        if any([p in token for p in presigned_url_procedure_names]):
+            url = re.findall(url_from_rpocedure_code_regex, token)[0]
+            # Presign URL for max possible perioid of time,
+            # because there's no need to hide files from researchers
+            # and review can last for a long time
+            presigned_url = get_s3_presigned_url(url, S3_URL_EXPIRATION_MINUTES_MAX)
+            token_values[token] = presigned_url
+
+    prepared_config = _extrapolate_tokens_in_form_config(config, token_values)
+    return prepared_config

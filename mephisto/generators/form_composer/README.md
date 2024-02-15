@@ -355,7 +355,7 @@ This is how URL pre-signing works:
 Presigned S3 URLs use the following environment variables:
   - Required: valid AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`
   form_composer_config` command)
-  - Optional: URL expiration time `S3_URL_EXPIRATION_MINUTES`, can be up to 7 days long (if missing the default value is 60 minutes)
+  - Optional: URL expiration time `S3_URL_EXPIRATION_MINUTES` (if missing the default value is 60 minutes)
 
 
 ## Custom callbacks

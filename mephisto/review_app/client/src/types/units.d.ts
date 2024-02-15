@@ -33,4 +33,5 @@ declare type UnitDetailsType = {
   id: number;
   inputs: object;
   outputs: object;
+  prepared_inputs: object;
 };

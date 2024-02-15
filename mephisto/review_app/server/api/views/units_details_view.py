@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 # Copyright (c) Meta Platforms and its affiliates.
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -14,6 +13,9 @@ from werkzeug.exceptions import BadRequest
 
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
+from mephisto.generators.form_composer.config_validation.task_data_config import (
+    prepare_task_config_for_review_app
+)
 
 
 class UnitsDetailsView(MethodView):
@@ -53,12 +55,27 @@ class UnitsDetailsView(MethodView):
             task_run: TaskRun = unit.get_task_run()
             has_task_source_review = bool(task_run.args.get("blueprint").get("task_source_review"))
 
+            inputs = unit_data.get("data", {}).get("inputs")
+            outputs = unit_data.get("data", {}).get("outputs")
+
+            # In case if there is outdated code that returns `final_submission`
+            # under `inputs` and `outputs` keys, we should use the value in side `final_submission`
+            if "final_submission" in inputs:
+                inputs = inputs["final_submission"]
+            if "final_submission" in outputs:
+                outputs = outputs["final_submission"]
+
+            # Perform any dynamic action on task config for current unit
+            # to make it the same as it looked like for a worker
+            prepared_inputs = prepare_task_config_for_review_app(inputs)
+
             units.append(
                 {
                     "has_task_source_review": has_task_source_review,
                     "id": int(unit.db_id),
-                    "inputs": unit_data.get("data", {}).get("inputs"),  # instructions for worker
-                    "outputs": unit_data.get("data", {}).get("outputs"),  # response from worker
+                    "inputs": inputs,  # instructions for worker
+                    "outputs": outputs,  # response from worker
+                    "prepared_inputs": prepared_inputs,  # prepared instructions from worker
                 }
             )
 

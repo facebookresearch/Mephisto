@@ -134,7 +134,7 @@ def generate_preview_html():
 
     # Erase all tokens from the text since HTML preview is inherently static
     erase_tokens = lambda text: re.sub(
-        TOKEN_START_REGEX + r"(.*?)" + TOKEN_END_REGEX, ".....", text,
+        TOKEN_START_REGEX + r"(.*?)" + TOKEN_END_REGEX, "...", text,
     )
     preview_data = {
         "title": erase_tokens(first_form_version["title"]),
