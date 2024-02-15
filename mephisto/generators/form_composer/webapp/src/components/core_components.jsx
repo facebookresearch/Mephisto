@@ -52,17 +52,24 @@ function FormComposerBaseFrontend({
   const [formData, setFormData] = React.useState(null);
   const [formComposerRenderingErrors, setFormComposerRenderingErrors] = React.useState(null);
 
-  let initialConfigFormData = taskData.form;
+  const inReviewState = finalResults !== null;
+  const initialConfigFormData = taskData.form;
 
-  prepareRemoteProcedures(remoteProcedure);
+  if (!inReviewState) {
+    prepareRemoteProcedures(remoteProcedure);
+  }
 
   React.useEffect(() => {
-    prepareFormData(
-      taskData,
-      setFormData,
-      setLoadingFormData,
-      setFormComposerRenderingErrors,
-    );
+    if (inReviewState) {
+      setFormData(initialConfigFormData);
+    } else {
+      prepareFormData(
+        taskData,
+        setFormData,
+        setLoadingFormData,
+        setFormComposerRenderingErrors,
+      );
+    }
   }, [taskData.form]);
 
   if (!initialConfigFormData) {

@@ -16,7 +16,7 @@ import "./FormComposer.css";
 import { FormErrors } from "./FormErrors";
 import { SectionErrors } from "./SectionErrors";
 import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
-import { formatStringWithProcedureTokens } from "./utils";
+import { formatStringWithProcedureTokens, setPageTitle } from "./utils";
 import { checkFieldRequiredness, validateFormFields } from "./validation/helpers";
 
 function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRenderingErrors}) {
@@ -40,8 +40,14 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
 
   const inReviewState = finalResults !== null;
 
-  let formTitle = formatStringWithProcedureTokens(data.title, setRenderingErrors);
-  let formInstruction = formatStringWithProcedureTokens(data.instruction, setRenderingErrors);
+  const formatStringWithTokens = (
+    inReviewState
+      ? (v, _) => { return v } // Return value as is, ignoring whole formatting
+      : formatStringWithProcedureTokens
+  );
+
+  let formTitle = formatStringWithTokens(data.title, setRenderingErrors);
+  let formInstruction = formatStringWithTokens(data.instruction, setRenderingErrors);
   let formSections = data.sections;
   let formSubmitButton = data.submit_button;
 
@@ -111,6 +117,10 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
   }
 
   // Effects
+  React.useEffect(() => {
+    setPageTitle(formTitle);
+  }, [formTitle]);
+
   React.useEffect(() => {
     if (formSections.length) {
       const _fields = {};
@@ -187,8 +197,8 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
 
         {/* Sections */}
         {formSections.map(( section, sectionIndex ) => {
-          const sectionTitle = formatStringWithProcedureTokens(section.title, setRenderingErrors);
-          const sectionInstruction = formatStringWithProcedureTokens(
+          const sectionTitle = formatStringWithTokens(section.title, setRenderingErrors);
+          const sectionInstruction = formatStringWithTokens(
             section.instruction, setRenderingErrors,
           );
           const fieldsets = section.fieldsets;
@@ -285,10 +295,8 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                 />
 
                 {fieldsets.map(( fieldset, fieldsetIndex ) => {
-                  const fieldsetTitle = formatStringWithProcedureTokens(
-                    fieldset.title, setRenderingErrors,
-                  );
-                  const fieldsetInstruction = formatStringWithProcedureTokens(
+                  const fieldsetTitle = formatStringWithTokens(fieldset.title, setRenderingErrors);
+                  const fieldsetInstruction = formatStringWithTokens(
                     fieldset.instruction, setRenderingErrors,
                   );
                   const rows = fieldset.rows;
@@ -319,9 +327,7 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                       )}
 
                       {rows.map(( row, rowIndex ) => {
-                        const rowHelp = formatStringWithProcedureTokens(
-                          row.help, setRenderingErrors,
-                        );
+                        const rowHelp = formatStringWithTokens(row.help, setRenderingErrors);
                         const fields = row.fields;
 
                         return (
@@ -330,10 +336,10 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                             className={`row`}
                           >
                             {fields.map(( field, fieldIndex ) => {
-                              const fieldLabel = formatStringWithProcedureTokens(
+                              const fieldLabel = formatStringWithTokens(
                                 field.label, setRenderingErrors,
                               );
-                              const fieldTooltip = formatStringWithProcedureTokens(
+                              const fieldTooltip = formatStringWithTokens(
                                 field.tooltip, setRenderingErrors,
                               );
                               const fieldHelp = field.help;
@@ -471,9 +477,10 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
         ) : (<>
           {/* Button instruction */}
           {formSubmitButton.instruction && (
-            <div className={`alert alert-light centered mx-auto col-6 ml-2 mr-2`}>
-              {formSubmitButton.instruction}
-            </div>
+            <div
+              className={`alert alert-light centered mx-auto col-6 ml-2 mr-2`}
+              dangerouslySetInnerHTML={{ __html: formSubmitButton.instruction }}
+            ></div>
           )}
 
           {/* Submit button */}

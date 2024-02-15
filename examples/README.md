@@ -152,16 +152,14 @@ Putting it altogether, let's prepare and launch a task featuring a form containi
 - Remove content of folder `/tmp` (if you didn't shut the previous Task run correctly)
 - Specify your AWS credentials
     - Create file `docker/aws_credentials` and populate it with AWS keys info
-    - Populate your AWS credentials into Docker env
-        -  create local env `docker/envs/env.local` and add AWS keys into it (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`)
-        -  clone `docker/docker-compose.dev.yml` file as `docker/docker-compose.dev.yml`, and point it to the `env.local` environment
+    - Populate your AWS credentials into `docker/envs/env.local` file
 - Stand up docker containers: `docker-compose -f docker/docker-compose.local.vscode.yml up`
 - SSH into the running container: `docker exec -it mephisto_dc bash`
 - Generate your task data config with these commands:
   ```shell
   mephisto form_composer_config \
     --directory "/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls" \
-    --update-file-location-values "https://dev-alented-private.s3.amazonaws.com/mephisto" \
+    --update-file-location-values "https://your-bucket.s3.amazonaws.com/..." \
     --use-presigned-urls
 
   mephisto form_composer_config \
@@ -178,7 +176,7 @@ Putting it altogether, let's prepare and launch a task featuring a form containi
   ```
 - Launch your task:
   ```shell
-  cd /mephisto/examples/form_composer_demo && python run_task_dynamic_presigned_urls_ec2_prolific.py
+  cd /mephisto/examples/form_composer_demo && python run_task_dynamic_ec2_prolific.py
   ```
 - After the Task is completed by all workers, launch task review app (for more details see `mephisto/review_app/README.md`):
   ```shell

@@ -101,9 +101,11 @@ function TaskPage(props: PropsType) {
 
   const currentUnitDetails = unitDetailsMap[String(currentUnitOnReview)];
 
+  const [unitInputsIsJSON, setUnitInputsIsJSON] = React.useState<boolean>(false);
   const [unitResultsIsJSON, setUnitResultsIsJSON] = React.useState<boolean>(false);
 
-  const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(true);
+  const [inputsVisibility, setInputsVisibility] = React.useState<boolean>(false);
+  const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(false);
 
   window.onmessage = function (e) {
     if (
@@ -356,7 +358,7 @@ function TaskPage(props: PropsType) {
   const sendDataToTaskIframe = (data: object) => {
     const reviewData = {
       REVIEW_DATA: {
-        inputs: data["inputs"],
+        inputs: data["prepared_inputs"],
         outputs: data["outputs"],
       },
     };
@@ -471,7 +473,13 @@ function TaskPage(props: PropsType) {
 
   useEffect(() => {
     if (currentUnitDetails) {
+      const unitInputs = currentUnitDetails.inputs;
       const unitOutputs = currentUnitDetails.outputs;
+
+      if (typeof unitInputs === "object") {
+        setUnitInputsIsJSON(true);
+      }
+
       if (typeof unitOutputs === "object") {
         setUnitResultsIsJSON(true);
       }
@@ -533,9 +541,37 @@ function TaskPage(props: PropsType) {
           </div>
         )}
 
+        {currentUnitDetails?.inputs && (
+          <>
+            {/* Initial parameters */}
+            <div className={"results"}>
+              <h1 className={"results-header"} onClick={() => setInputsVisibility(!inputsVisibility)}>
+                <b>Initial Parameters</b>
+                <i className={"results-icon"}>
+                  {inputsVisibility ? <>&#x25BE;</> : <>&#x25B8;</>}
+                </i>
+              </h1>
+
+              <div className={`${inputsVisibility ? "" : "results-closed"}`}>
+                {unitInputsIsJSON ? (
+                  <JSONPretty
+                    className={"json-pretty"}
+                    data={currentUnitDetails.inputs}
+                    space={4}
+                  />
+                ) : (
+                  <div>
+                    {JSON.stringify(currentUnitDetails.inputs)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
         {currentUnitDetails?.outputs && (
           <>
-            {/* Results table */}
+            {/* Results */}
             <div className={"results"}>
               <h1 className={"results-header"} onClick={() => setResultsVisibility(!resultsVisibility)}>
                 <b>Results</b>

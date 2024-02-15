@@ -18,12 +18,12 @@ const WAIT_FOR_AGENT_ID_MSEC = 1000;
 
 let tokenProcedureResultMapping = {};
 
+const procedureRegex = /(.*?)/;
 const optionalSpacesRegex = /\s*/;
 const openingRegex = new RegExp(TOKEN_START_REGEX.source + optionalSpacesRegex.source, "gi");
 const closingRegex = new RegExp(optionalSpacesRegex.source + TOKEN_END_REGEX.source, "gi");
-const innerRegex = /(.*?)/;
 export const procedureTokenRegex = new RegExp(
-  openingRegex.source + innerRegex.source + closingRegex.source,
+  openingRegex.source + procedureRegex.source + closingRegex.source,
   "gi",
 );
 
@@ -257,4 +257,9 @@ export function prepareRemoteProcedures(remoteProcedureCollection) {
   _prepareRemoteProceduresForPresignUrls(remoteProcedureCollection);
 
   // 2. TODO: Add additional steps here
+}
+
+export function setPageTitle(title) {
+  const titleElement = document.querySelector("title");
+  titleElement.innerText = title;
 }
