@@ -28,18 +28,22 @@ docker-compose -f docker/docker-compose.dev.yml run \
 ```
 
 where
-- `--build` - build image before starting container
-- `--publish 8081:8000` - docker port mapping, with `8000` being same port as in `-p` param
-- `--rm` - automatically remove container when it already exits
-- `mephisto_dc` - container name in `docker-compose.dev.yml` file
-- `mephisto review_app -h 0.0.0.0 -p 8000 -d True` - launch Mephisto service inside container, where
-    - `-h/--host` - host where TaskReview app is going to be served
-    - `-p/--port` - port where TaskReview app is going to be served
-    - `-d/--debug` - debug mode
-    - `-f/--force-rebuild` - force rebuild React bundle (use if client code was updated between runs)
-    - `-s/--skip-build` - skip all installation and building steps for the UI, and directly launch the server
 
-Now open TaskReview app in your browser at [http://localhost:8081](http://localhost:8081).
+- `--build` - builds image before starting container
+- `--publish 8081:8000` - maps docker ports, with `8000` being same port as in `-p` option
+- `--rm` - automatically removes the previous container if it already exits
+- `mephisto_dc` - container name in `docker-compose.dev.yml` file
+- `mephisto review_app -h 0.0.0.0 -p 8000 -d True` - launches Mephisto's TaskReview app service inside the container
+
+Command `mephisto review_app` supports the following options:
+
+- `-h/--host` - host where TaskReview app will be served
+- `-p/--port` - port where TaskReview app will be served
+- `-d/--debug` - run in debug mode (with extra logging)
+- `-f/--force-rebuild` - force rebuild React bundle (use if your Task client code has been updated)
+- `-s/--skip-build` - skip all installation and building steps for the UI, and directly launch the server (use if no code has been changed)
+
+Now you can access TaskReview app in your browser at [http://localhost:8081](http://localhost:8081).
 
 ---
 

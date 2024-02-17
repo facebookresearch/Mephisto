@@ -20,11 +20,11 @@ class UnitsApproveView(MethodView):
     def post(self) -> dict:
         """Approve worker's input"""
 
-        data: dict = request.json
-        unit_ids: Optional[str] = data.get("unit_ids") if data else None
-        review_note: Optional[str] = data.get("review_note") if data else None
-        bonus: Optional[Union[int, float]] = data.get("bonus") if data else None
-        send_to_worker: Optional[bool] = data.get("send_to_worker", False) if data else False
+        data: dict = request.json or {}
+        unit_ids: Optional[str] = data.get("unit_ids")
+        review_note: Optional[str] = data.get("review_note")
+        bonus: Optional[Union[int, float]] = data.get("bonus")
+        send_to_worker: Optional[bool] = data.get("send_to_worker", False)
 
         # Validate params
         if not unit_ids:

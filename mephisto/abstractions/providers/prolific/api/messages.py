@@ -60,5 +60,5 @@ class Messages(BaseAPIResource):
             study_id=study_id,
         )
         message.validate()
-        response_json = cls.post(cls.list_api_endpoint, params=message.to_dict())
-        return Message(**response_json)
+        cls.post(cls.list_api_endpoint, params=message.to_dict())
+        return message

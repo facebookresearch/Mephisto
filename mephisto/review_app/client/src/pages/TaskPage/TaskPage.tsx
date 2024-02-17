@@ -104,8 +104,9 @@ function TaskPage(props: PropsType) {
   const [unitInputsIsJSON, setUnitInputsIsJSON] = React.useState<boolean>(false);
   const [unitResultsIsJSON, setUnitResultsIsJSON] = React.useState<boolean>(false);
 
-  const [inputsVisibility, setInputsVisibility] = React.useState<boolean>(false);
-  const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(false);
+  // Allow `null` state so that non-null values persist between task units
+  const [inputsVisibility, setInputsVisibility] = React.useState<boolean>(null);
+  const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(null);
 
   window.onmessage = function (e) {
     if (
@@ -118,9 +119,7 @@ function TaskPage(props: PropsType) {
     }
   };
 
-  const onGetTaskWorkerUnitsIdsSuccess = (
-    workerUnitsIds: WorkerUnitIdType[]
-  ) => {
+  const onGetTaskWorkerUnitsIdsSuccess = (workerUnitsIds: WorkerUnitIdType[]) => {
     setWorkerUnits(() => {
       const workerUnitsMap = {};
 
@@ -355,22 +354,22 @@ function TaskPage(props: PropsType) {
 
   // [RECEIVING WIDGET DATA]
   // ---
-  const sendDataToTaskIframe = (data: object) => {
+  const sendDataToUnitIframe = (data: object) => {
     const reviewData = {
       REVIEW_DATA: {
         inputs: data["prepared_inputs"],
         outputs: data["outputs"],
       },
     };
-    const taskIframe = iframeRef.current;
-    taskIframe.contentWindow.postMessage(JSON.stringify(reviewData), "*");
+    const unitIframe = iframeRef.current;
+    unitIframe.contentWindow.postMessage(JSON.stringify(reviewData), "*");
   };
   // ---
 
   // Effects
   useEffect(() => {
     // Set default title
-    setPageTitle("Mephisto - Task Review - Task");
+    setPageTitle("Mephisto - Task Review - Current Task");
     setFinishedTask(false);
 
     if (task === null) {
@@ -466,7 +465,7 @@ function TaskPage(props: PropsType) {
   // ---
   useEffect(() => {
     if (iframeLoaded && currentUnitDetails?.has_task_source_review) {
-      sendDataToTaskIframe(currentUnitDetails);
+      sendDataToUnitIframe(currentUnitDetails);
     }
   }, [currentUnitDetails, iframeLoaded]);
   // ---
@@ -483,6 +482,18 @@ function TaskPage(props: PropsType) {
       if (typeof unitOutputs === "object") {
         setUnitResultsIsJSON(true);
       }
+
+      // If Task expressly does not provide a preview template,
+      // we just simply show JSON data for the Unit.
+      // Change values only one time on loading page to save user choice
+      if (currentUnitDetails.has_task_source_review === false) {
+        if (inputsVisibility === null) {
+          setInputsVisibility(false);
+        }
+        if (resultsVisibility === null) {
+          setResultsVisibility(true);
+        }
+      }
     }
   }, [currentUnitDetails]);
 
@@ -496,26 +507,66 @@ function TaskPage(props: PropsType) {
         taskStats={taskStats}
         workerStats={workerStats}
         workerId={unitsOnReview ? currentWorkerOnReview : null}
+        loading={loading}
       />
 
-      <div className={"buttons"}>
-        {!finishedTask ? (
-          <>
-            <Button variant={"success"} size={"sm"} onClick={onApproveClick}>
-              Approve
-            </Button>
-            <Button variant={"warning"} size={"sm"} onClick={onSoftRejectClick}>
-              Soft-Reject
-            </Button>
-            <Button variant={"danger"} size={"sm"} onClick={onRejectClick}>
-              Reject
-            </Button>
-          </>
-        ) : (
-          <div>
-            No units left for this task. Redirecting to the list of tasks.
-          </div>
-        )}
+      <div className={"review-board"}>
+        <div className={"left-side"}>
+          {!finishedTask ? (
+            <div className={"review-controls"}>
+              <Button
+                variant={"success"}
+                size={"sm"}
+                onClick={!loading && onApproveClick}
+                disabled={loading}
+              >
+                Approve
+              </Button>
+              <Button
+                variant={"warning"}
+                size={"sm"}
+                onClick={!loading && onSoftRejectClick}
+                disabled={loading}
+              >
+                Soft-Reject
+              </Button>
+              <Button
+                variant={"danger"}
+                size={"sm"}
+                onClick={!loading && onRejectClick}
+                disabled={loading}
+              >
+                Reject
+              </Button>
+            </div>
+          ) : (
+            <div>
+              No unreviewed units left for this task. <br/>
+              Redirecting to the list of tasks.
+            </div>
+          )}
+        </div>
+
+        <div className={"right-side"}>
+          {/* Unit info */}
+          {unitDetails && currentUnitOnReview && (
+            <div className={"info"}>
+              {currentUnitDetails && (
+                <>
+                  <div className={"grey"}>
+                    Task ID: {currentUnitDetails.task_id}
+                  </div>
+                  <div className={"grey"}>
+                    Worker ID: {currentUnitDetails.worker_id}
+                  </div>
+                  <div className={"black"}>
+                    Unit ID: {currentUnitDetails.id}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className={"content"}>
@@ -528,29 +579,20 @@ function TaskPage(props: PropsType) {
           </div>
         )}
 
-        {/* Unit info */}
-        {unitDetails && currentUnitOnReview && (
-          <div className={"info"}>
-            {currentUnitDetails && (
-              <>
-                <div>Unit ID: {currentUnitDetails.id}</div>
-                <div>Task ID: {currentUnitDetails.task_id}</div>
-                <div>Worker ID: {currentUnitDetails.worker_id}</div>
-              </>
-            )}
-          </div>
-        )}
-
         {currentUnitDetails?.inputs && (
           <>
-            {/* Initial parameters */}
+            {/* Initial Unit parameters */}
             <div className={"results"}>
-              <h1 className={"results-header"} onClick={() => setInputsVisibility(!inputsVisibility)}>
-                <b>Initial Parameters</b>
+              <h2
+                className={"results-header"}
+                onClick={() => setInputsVisibility(!inputsVisibility)}
+                title={"Toggle initial Unit parameters data"}
+              >
+                Initial Parameters
                 <i className={"results-icon"}>
                   {inputsVisibility ? <>&#x25BE;</> : <>&#x25B8;</>}
                 </i>
-              </h1>
+              </h2>
 
               <div className={`${inputsVisibility ? "" : "results-closed"}`}>
                 {unitInputsIsJSON ? (
@@ -573,12 +615,16 @@ function TaskPage(props: PropsType) {
           <>
             {/* Results */}
             <div className={"results"}>
-              <h1 className={"results-header"} onClick={() => setResultsVisibility(!resultsVisibility)}>
-                <b>Results</b>
+              <h2
+                className={"results-header"}
+                onClick={() => setResultsVisibility(!resultsVisibility)}
+                title={"Toggle Unit results data"}
+              >
+                Results
                 <i className={"results-icon"}>
                   {resultsVisibility ? <>&#x25BE;</> : <>&#x25B8;</>}
                 </i>
-              </h1>
+              </h2>
 
               <div className={`${resultsVisibility ? "" : "results-closed"}`}>
                 {unitResultsIsJSON ? (
@@ -595,22 +641,17 @@ function TaskPage(props: PropsType) {
               </div>
             </div>
 
-            {/* Task info */}
-            <div className={"question"} onClick={(e) => e.preventDefault()}>
-              {currentUnitDetails.has_task_source_review ? (
+            {/* Completed Unit preview */}
+            <div className={"unit-preview-container"} onClick={(e) => e.preventDefault()}>
+              {currentUnitDetails.has_task_source_review && (
                 <iframe
-                  className={"task-iframe"}
+                  className={"unit-preview-iframe"}
                   src={urls.server.unitReviewHtml(currentUnitOnReview)}
-                  id={"task-preview"}
+                  id={"unit-preview"}
+                  title={"Completed Unit preview"}
                   height={iframeHeight} // Width is always 100% to receive correctly rendered height
                   onLoad={() => setIframeLoaded(true)}
                   ref={iframeRef}
-                />
-              ) : (
-                <JSONPretty
-                  className={"json-pretty"}
-                  data={currentUnitDetails.inputs}
-                  space={4}
                 />
               )}
             </div>

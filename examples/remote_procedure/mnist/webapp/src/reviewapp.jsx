@@ -34,6 +34,10 @@ function ReviewApp() {
     }
     window.addEventListener("resize", updateSize);
     updateSize();
+    // HACK: Catch-all resize, if normal resizes failed (e.g. acync long loading images)
+    setTimeout(() => {
+      updateSize();
+    }, 3000);
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 

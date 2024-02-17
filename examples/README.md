@@ -145,15 +145,16 @@ This example builds further upon the Dynamic form example. Here we use presigned
 Putting it altogether, let's prepare and launch a task featuring a form containing one embedded file plus a few other fields. Here we'll assume working in directory `/mephisto/examples/form_composer_demo/data/dynamic_presigned_urls`.
 
 - Adjust `dynamic_presigned_urls_example_ec2_prolific.yaml` task config as needed
-- Create `form_config.json` file to determine your form fields and layout
+- Create `form_config.json` file to define your form fields and layout
     - it should contain a token named `file_location`
     - for more details see `mephisto/generators/form_composer/README.md`
-- Create `separate_token_values_config.json` with desired token values (except embedded files)
-- Remove content of folder `/tmp` (if you didn't shut the previous Task run correctly)
+- Create `separate_token_values_config.json` with desired token values
 - Specify your AWS credentials
-    - Create file `docker/aws_credentials` and populate it with AWS keys info
-    - Populate your AWS credentials into `docker/envs/env.local` file
-- Stand up docker containers: `docker-compose -f docker/docker-compose.local.vscode.yml up`
+    - Create file `docker/aws_credentials` and populate it with AWS keys info (for infrastructure and Mturk)
+    - Populate your AWS credentials into `docker/envs/env.local` file (for presigning S3 URLs)
+    - Clone file `docker/docker-compose.dev.yml` as `docker/docker-compose.local.yml`, and point its `env_file` to `envs/env.local`
+- Remove content of folder `/tmp` (if you didn't shut the previous Task run correctly)
+- Launch docker containers: `docker-compose -f docker/docker-compose.local.yml up`
 - SSH into the running container: `docker exec -it mephisto_dc bash`
 - Generate your task data config with these commands:
   ```shell
@@ -176,9 +177,9 @@ Putting it altogether, let's prepare and launch a task featuring a form containi
   ```
 - Launch your task:
   ```shell
-  cd /mephisto/examples/form_composer_demo && python run_task_dynamic_ec2_prolific.py
+  cd /mephisto/examples/form_composer_demo && python run_task_dynamic_presigned_urls_ec2_prolific.py
   ```
-- After the Task is completed by all workers, launch task review app (for more details see `mephisto/review_app/README.md`):
+- After the Task is completed by all workers, launch task review app and acces it at  [http://localhost:8081](http://localhost:8081) (for more details see `mephisto/review_app/README.md`):
   ```shell
   mephisto review_app -h 0.0.0.0 -p 8000 -d True -f True
   ```

@@ -126,8 +126,8 @@ def generate_preview_html():
     try:
         with open(data_config_path) as data_config_file:
             data_config_data = json.load(data_config_file)
-    except (JSONDecodeError, TypeError):
-        print(f"Could not read JSON from '{data_config_path}' file")
+    except (JSONDecodeError, TypeError) as e:
+        print(f"Could not read JSON from '{data_config_path}' file: {e}")
         raise
 
     first_form_version = data_config_data[0]["form"]

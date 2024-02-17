@@ -7,8 +7,12 @@
 set -e
 
 pip install pytest black
+
 cd /mephisto
+# Directory for Task results
 mkdir -p "data" && chmod 777 "data"
+# Directory for Cypress testing
+mkdir -p "/root/.cache/cypress" && chmod 777 "/root/.cache/cypress"
 
 mephisto register prolific name=prolific api_key=$PROLIFIC_API_KEY
 
