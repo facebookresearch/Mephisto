@@ -50,8 +50,8 @@ def read_config_file(
     try:
         with open(config_path) as config_file:
             config_data = json.load(config_file)
-    except (JSONDecodeError, TypeError):
-        print(f"[red]Could not read JSON from file: '{config_path}'.[/red]")
+    except (JSONDecodeError, TypeError) as e:
+        print(f"[red]Could not read JSON from file: '{config_path}': {e}.[/red]")
         exit()
 
     return config_data

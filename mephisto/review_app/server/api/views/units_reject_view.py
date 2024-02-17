@@ -12,15 +12,17 @@ from flask.views import MethodView
 from werkzeug.exceptions import BadRequest
 
 from mephisto.data_model.unit import Unit
+from mephisto.data_model.worker import Worker
 
 
 class UnitsRejectView(MethodView):
     def post(self) -> dict:
         """Reject worker's result"""
 
-        data: dict = request.json
-        unit_ids: Optional[str] = data and data.get("unit_ids")
-        review_note: Optional[str] = data.get("review_note") if data else None
+        data: dict = request.json or {}
+        unit_ids: Optional[str] = data.get("unit_ids")
+        review_note: Optional[str] = data.get("review_note")
+        send_to_worker: Optional[bool] = data.get("send_to_worker", False)
 
         # Validate params
         if not unit_ids:
@@ -29,6 +31,7 @@ class UnitsRejectView(MethodView):
         # Reject units
         for unit_id in unit_ids:
             unit: Unit = Unit.get(app.db, str(unit_id))
+            worker: Worker = Worker.get(app.db, str(unit.worker_id))
 
             agent = unit.get_assigned_agent()
             if not agent:
@@ -40,5 +43,8 @@ class UnitsRejectView(MethodView):
                 raise BadRequest(f'Could not reject unit "{unit_id}". Reason: {e}')
 
             unit.get_status()  # Update status immediately for other EPs as this method affects DB
+
+            if review_note and send_to_worker:
+                worker.send_feedback_message(text=review_note, unit=unit)
 
         return {}

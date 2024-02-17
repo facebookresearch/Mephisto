@@ -100,7 +100,7 @@ function TasksPage(props: PropsType) {
               <b>Date</b>
             </th>
             <th className={"title export"}>
-              <b>Export task results</b>
+              <b>Export results</b>
             </th>
             <th></th>
           </tr>
@@ -109,7 +109,7 @@ function TasksPage(props: PropsType) {
           {tasks &&
             tasks.map((task: TaskType, index) => {
               const date = moment(task.created_at).format("MMM D, YYYY");
-              const nonClickable = task.is_reviewed || task.unit_count == 0;
+              const nonClickable = task.is_reviewed || task.unit_count === 0;
 
               return (
                 <tr
