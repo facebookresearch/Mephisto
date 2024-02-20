@@ -9,6 +9,10 @@ from .api import views as api_views
 
 def init_urls(app: Flask):
     app.add_url_rule(
+        "/api/units/<int:unit_id>/static/<path:filename>",
+        view_func=api_views.UnitDataStaticView.as_view("unit_data_static"),
+    )
+    app.add_url_rule(
         "/api/qualifications/<int:qualification_id>/workers",
         view_func=api_views.QualificationWorkersView.as_view("qualification_workers"),
     )
