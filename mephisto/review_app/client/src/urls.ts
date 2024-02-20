@@ -32,6 +32,7 @@ const urls = {
     unitsDetails: API_URL + "/api/units/details",
     unitsReject: API_URL + "/api/units/reject",
     unitsSoftReject: API_URL + "/api/units/soft-reject",
+    unitsOutputsFile: (id, filename) => API_URL + `/api/units/${id}/static/${filename}`,
     workersBlock: (id) => API_URL + `/api/workers/${id}/block`,
   },
 };

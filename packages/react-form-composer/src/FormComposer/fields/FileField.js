@@ -9,7 +9,14 @@ import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
 function FileField({
-  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
+  field,
+  updateFormData,
+  disabled,
+  initialFormData,
+  inReviewState,
+  invalid,
+  validationErrors,
+  onReviewFileButtonClick,
 }) {
   const [widgetValue, setWidgetValue] = React.useState("");
 
@@ -40,6 +47,10 @@ function FileField({
     setWidgetValue(initialValue.name || "");
   }
 
+  function onReviewFileClick() {
+    onReviewFileButtonClick(widgetValue);
+  }
+
   // Effects
   React.useEffect(() => {
     if (!widgetValue) {
@@ -63,6 +74,7 @@ function FileField({
     //  - custom-file-label
 
     <div className={`
+      file-field
       custom-file 
       ${invalidField ? "is-invalid" : ""}
     `}>
@@ -84,6 +96,20 @@ function FileField({
         }}
         disabled={disabled}
       />
+
+      {/*
+        Button to open file in modal window in Review App.
+        This button is shown over input browse button only in review state and if file was attached
+      */}
+      {(inReviewState && widgetValue) && (
+        <div
+          className={"review-file-button"}
+          title={"View uploaded file content"}
+          onClick={onReviewFileClick}
+        >
+          View file
+        </div>
+      )}
 
       <span className={`custom-file-label`}>
         {widgetValue}

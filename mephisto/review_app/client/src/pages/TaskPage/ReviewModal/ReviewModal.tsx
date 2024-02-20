@@ -27,13 +27,13 @@ type ReviewModalProps = {
 };
 
 function ReviewModal(props: ReviewModalProps) {
-  const onModalClose = () => {
+  function onModalClose() {
     props.setShow(!props.show);
-  };
+  }
 
-  const onChangeApplyToNext = (value: boolean) => {
+  function onChangeApplyToNext(value: boolean) {
     props.setData({ ...props.data, applyToNext: value });
-  };
+  }
 
   return (
     props.show && (

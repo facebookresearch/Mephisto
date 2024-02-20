@@ -34,4 +34,5 @@ declare type UnitDetailsType = {
   inputs: object;
   outputs: object;
   prepared_inputs: object;
+  unit_data_folder: string;
 };

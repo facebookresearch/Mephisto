@@ -8,7 +8,7 @@
 
 ---
 
-`GET /tasks`
+`GET /api/tasks`
 
 Get all available tasks (to select one for review)
 
@@ -29,7 +29,7 @@ Get all available tasks (to select one for review)
 
 ---
 
-`GET /tasks/{id}`
+`GET /api/tasks/{id}`
 
 Get metadata for a task
 
@@ -44,19 +44,19 @@ Get metadata for a task
 
 ---
 
-`GET /tasks/{id}/export-results`
+`GET /api/tasks/{id}/export-results`
 
 Compose a single file with reviewed task results
 
 ---
 
-`GET /tasks/{id}/{n_units}/export-results.json`
+`GET /api/tasks/{id}/{n_units}/export-results.json`
 
 Serve a single composed file with reviewed task results
 
 ---
 
-`GET /tasks/{id}/worker-units-ids`
+`GET /api/tasks/{id}/worker-units-ids`
 
 Get full, unpaginated list of unit IDs within a task (for subsequent client-side grouping by worker_id and `GET /task-units` pagination)
 
@@ -74,7 +74,7 @@ Get full, unpaginated list of unit IDs within a task (for subsequent client-side
 
 ---
 
-`GET /qualifications`
+`GET /api/qualifications`
 
 Get all available qualifications (to select "approve" and "reject" qualifications)
 
@@ -92,7 +92,7 @@ Get all available qualifications (to select "approve" and "reject" qualification
 
 ---
 
-`POST /qualifications`
+`POST /api/qualifications`
 
 Create a new qualification
 
@@ -104,7 +104,7 @@ Create a new qualification
 
 ---
 
-`GET /qualifications/{id}/workers?{task_id=}`
+`GET /api/qualifications/{id}/workers?{task_id=}`
 
 Get list of all bearers of a qualification.
 
@@ -124,7 +124,7 @@ Get list of all bearers of a qualification.
 
 ---
 
-`POST /qualifications/{id}/workers/{id}/grant`
+`POST /api/qualifications/{id}/workers/{id}/grant`
 
 Grant qualification to a worker
 
@@ -137,7 +137,7 @@ Grant qualification to a worker
 
 ---
 
-`POST /qualifications/{id}/workers/{id}/revoke`
+`POST /api/qualifications/{id}/workers/{id}/revoke`
 
 Revoke qualification from a worker
 
@@ -149,7 +149,7 @@ Revoke qualification from a worker
 
 ---
 
-`GET /units?{task_id=}{unit_ids=}`
+`GET /api/units?{task_id=}{unit_ids=}`
 
 Get workers' results (filtered by task_id and/or unit_ids, etc) - without full details of input/output. At least one filtering parameter must be specified
 
@@ -181,7 +181,7 @@ _NOTE: this edpoint is not currently used in TaskReview app_
 }
 ```
 
-`GET /units/details?{unit_ids=}`
+`GET /api/units/details?{unit_ids=}`
 
 Get full input for specified workers results (`units_ids` parameter is mandatory)
 
@@ -189,10 +189,12 @@ Get full input for specified workers results (`units_ids` parameter is mandatory
 {
     "units": [
         {
+            "has_task_source_review": <bool>,
             "id": <int>,
-            "inputs": <json str>,  // instructions for worker
-            "outputs": <json str>,  // response from worker
-            "data": {...},  // any other unit data
+            "inputs": <json object>,  // instructions for worker
+            "outputs": <json object>,  // response from worker
+            "prepared_inputs": <json object>,  // prepared instructions from worker
+            "unit_data_folder": <str>},  // path to data dir in file system
         },
         ...  // more units
     ]
@@ -201,7 +203,7 @@ Get full input for specified workers results (`units_ids` parameter is mandatory
 
 ---
 
-`POST /units/approve`
+`POST /api/units/approve`
 
 Approve worker's result
 
@@ -215,7 +217,7 @@ Approve worker's result
 
 ---
 
-`POST /units/reject`
+`POST /api/units/reject`
 
 Reject worker's result
 
@@ -228,7 +230,7 @@ Reject worker's result
 
 ---
 
-`POST /units/soft-reject`
+`POST /api/units/soft-reject`
 
 Soft-reject worker's result
 
@@ -241,7 +243,7 @@ Soft-reject worker's result
 
 ---
 
-`POST /workers/{id}/block`
+`POST /api/workers/{id}/block`
 
 Permanently block a worker
 
@@ -254,7 +256,7 @@ Permanently block a worker
 
 ---
 
-`GET /stats?{task_id=}{worker_id=}{since=}{limit=}`
+`GET /api/stats?{task_id=}{worker_id=}{since=}{limit=}`
 
 Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must be present.
 
@@ -269,6 +271,14 @@ Get stats of (recent) approvals. Either `task_id` or `worker_id` (or both) must 
     },
 }
 ```
+
+---
+
+`GET /api/units/{unit_id}/static/{filename}`
+
+Return static file from `data` directory for specific unit.
+
+Response: file.
 
 ---
 

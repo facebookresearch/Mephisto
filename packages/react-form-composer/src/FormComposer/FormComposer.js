@@ -5,7 +5,11 @@
  */
 
 import React from "react";
-import { DEFAULT_COLLAPSABLE, DEFAULT_INITIALLY_COLLAPSED } from "./constants";
+import {
+  DEFAULT_COLLAPSABLE,
+  DEFAULT_INITIALLY_COLLAPSED,
+  MESSAGES_IN_REVIEW_FILE_DATA_KEY
+} from "./constants";
 import { CheckboxField } from "./fields/CheckboxField";
 import { FileField } from "./fields/FileField";
 import { InputField } from "./fields/InputField";
@@ -114,6 +118,18 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
     // Pass data to `mephisto-task` library
     setOnSubmitLoading(true);
     onSubmit(formData);
+  }
+
+  function sendMessageToReviewAppWithFileInfo(filename) {
+    // Send file field information to the Review app as a message from iframe
+    window.top.postMessage(
+      JSON.stringify({
+        [MESSAGES_IN_REVIEW_FILE_DATA_KEY]: {
+          filename: filename,
+        },
+      }),
+      "*"
+    );
   }
 
   // Effects
@@ -433,6 +449,7 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                                       inReviewState={inReviewState}
                                       invalid={(invalidFormFields[field.name] || []).length}
                                       validationErrors={(invalidFormFields[field.name] || [])}
+                                      onReviewFileButtonClick={sendMessageToReviewAppWithFileInfo}
                                     />
                                   )}
 

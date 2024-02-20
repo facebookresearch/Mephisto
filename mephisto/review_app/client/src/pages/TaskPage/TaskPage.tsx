@@ -4,7 +4,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { ReviewType } from "consts/review";
+import {
+  MESSAGES_IFRAME_DATA_KEY,
+  MESSAGES_IN_REVIEW_FILE_DATA_KEY,
+  ReviewType,
+} from "consts/review";
 import cloneDeep from "lodash/cloneDeep";
 import * as React from "react";
 import { useEffect } from "react";
@@ -27,6 +31,7 @@ import {
 import { postWorkerBlock } from "requests/workers";
 import urls from "urls";
 import { setPageTitle, updateModalState } from "./helpers";
+import { InReviewFileModal } from "./InReviewFileModal/InReviewFileModal";
 import {
   APPROVE_MODAL_DATA_STATE,
   DEFAULT_MODAL_STATE_VALUE,
@@ -108,6 +113,11 @@ function TaskPage(props: PropsType) {
   const [inputsVisibility, setInputsVisibility] = React.useState<boolean>(null);
   const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(null);
 
+  const [inReviewFileModalShow, setInReviewFileModalShow] = React.useState<boolean>(false);
+  const [inReviewFileModalData, setInReviewFileModalData] = React.useState<
+    InReviewFileModalDataType
+  >({});
+
   window.onmessage = function (e) {
     if (
       e.data &&
@@ -115,7 +125,25 @@ function TaskPage(props: PropsType) {
       !e.data?.type // Exclude all unexpected messages from iframe
     ) {
       const data = JSON.parse(e.data);
-      setIframeHeight(data["IFRAME_DATA"]["height"]);
+
+      // Resize iframe message
+      if (data.hasOwnProperty(MESSAGES_IFRAME_DATA_KEY)) {
+        setIframeHeight(data[MESSAGES_IFRAME_DATA_KEY]["height"]);
+      }
+      // Open file field modal message
+      else if (data.hasOwnProperty(MESSAGES_IN_REVIEW_FILE_DATA_KEY)) {
+        const filename = data[MESSAGES_IN_REVIEW_FILE_DATA_KEY].filename;
+        const unitDataFolderStartIndex = currentUnitDetails.unit_data_folder.indexOf("data/data");
+        const unitDataFolder = currentUnitDetails.unit_data_folder.slice(unitDataFolderStartIndex);
+
+        setInReviewFileModalData({
+          filename: filename,
+          title: filename,
+          unitId: currentUnitOnReview,
+          unitDataFolder: unitDataFolder,
+        });
+        setInReviewFileModalShow(true);
+      }
     }
   };
 
@@ -667,6 +695,13 @@ function TaskPage(props: PropsType) {
         onSubmit={onModalSubmit}
         setErrors={props.setErrors}
         workerId={currentWorkerOnReview}
+      />
+
+      <InReviewFileModal
+        show={inReviewFileModalShow}
+        setShow={setInReviewFileModalShow}
+        data={inReviewFileModalData}
+        setData={setInReviewFileModalData}
       />
     </div>
   );

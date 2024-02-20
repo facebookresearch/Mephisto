@@ -69,6 +69,8 @@ class UnitsDetailsView(MethodView):
             # to make it the same as it looked like for a worker
             prepared_inputs = prepare_task_config_for_review_app(inputs)
 
+            unit_data_folder = unit.get_assigned_agent().get_data_dir()
+
             units.append(
                 {
                     "has_task_source_review": has_task_source_review,
@@ -76,6 +78,7 @@ class UnitsDetailsView(MethodView):
                     "inputs": inputs,  # instructions for worker
                     "outputs": outputs,  # response from worker
                     "prepared_inputs": prepared_inputs,  # prepared instructions from worker
+                    "unit_data_folder": unit_data_folder,  # path to data dir in file system
                 }
             )
 
