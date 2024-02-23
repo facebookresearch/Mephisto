@@ -54,15 +54,15 @@ def _duplicate_values_exist(unique_names: UniqueAttrsType, errors: List[str]) ->
     return is_valid
 
 
-def validate_form_config(config_json: dict) -> Tuple[bool, List[str]]:
+def validate_form_config(config_data: dict) -> Tuple[bool, List[str]]:
     is_valid = True
     errors = []
 
-    if not isinstance(config_json, dict):
+    if not isinstance(config_data, dict):
         is_valid = False
         errors.append("Form config must be a key/value JSON Object.")
 
-    elif config_json.keys() != AVAILABLE_CONFIG_ATTRS.keys():
+    elif config_data.keys() != AVAILABLE_CONFIG_ATTRS.keys():
         is_valid = False
         errors.append(
             f"Form config must contain only these attributes: "
@@ -77,10 +77,10 @@ def validate_form_config(config_json: dict) -> Tuple[bool, List[str]]:
     unique_names: UniqueAttrsType = {}
 
     # Add main config level
-    items_to_validate.append((config_json, "Config", AVAILABLE_CONFIG_ATTRS))
+    items_to_validate.append((config_data, "Config", AVAILABLE_CONFIG_ATTRS))
 
     # Add form
-    form = config_json["form"]
+    form = config_data["form"]
     items_to_validate.append((form, "form", AVAILABLE_FORM_ATTRS))
     _collect_values_for_unique_attrs_from_item(form, unique_names)
 

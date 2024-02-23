@@ -10,9 +10,7 @@ from unittest.mock import patch
 from flask import url_for
 
 from mephisto.abstractions.providers.prolific.api import status
-from mephisto.client.review_app.server.api.views.task_export_results_view import (
-    get_result_file_path,
-)
+from mephisto.review_app.server.api.views.task_export_results_view import get_result_file_path
 from mephisto.data_model.constants.assignment_state import AssignmentState
 from mephisto.data_model.unit import Unit
 from mephisto.utils.testing import get_test_qualification
@@ -22,7 +20,7 @@ from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCa
 
 
 class TestTaskExportResultsView(BaseTestApiViewCase):
-    @patch("mephisto.client.review_app.server.api.views.task_export_results_view.get_results_dir")
+    @patch("mephisto.review_app.server.api.views.task_export_results_view.get_results_dir")
     def test_task_export_result_success(self, mock_get_results_dir, *args, **kwargs):
         mock_get_results_dir.return_value = self.data_dir
 
@@ -43,7 +41,7 @@ class TestTaskExportResultsView(BaseTestApiViewCase):
 
         results_file_data = "Test JS"
 
-        results_file_path = get_result_file_path(self.data_dir, unit.task_id)
+        results_file_path = get_result_file_path(self.data_dir, unit.task_id, 1)
         f = open(results_file_path, "w")
         f.write(results_file_data)
         f.close()

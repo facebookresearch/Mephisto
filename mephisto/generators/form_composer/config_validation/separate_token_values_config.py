@@ -11,6 +11,7 @@ from typing import Tuple
 from botocore.exceptions import BotoCoreError
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
+from rich import print
 
 from mephisto.generators.form_composer.constants import TOKEN_END_SYMBOLS
 from mephisto.generators.form_composer.constants import TOKEN_START_SYMBOLS
@@ -22,17 +23,17 @@ from .utils import write_config_to_file
 
 
 def validate_separate_token_values_config(
-    config_json: Dict[str, List[str]],
+    config_data: Dict[str, List[str]],
 ) -> Tuple[bool, List[str]]:
     is_valid = True
     errors = []
 
-    if not isinstance(config_json, dict):
+    if not isinstance(config_data, dict):
         is_valid = False
         errors.append("Config must be a key/value JSON Object.")
         return is_valid, errors
 
-    for i, token_values in enumerate(config_json.items()):
+    for i, token_values in enumerate(config_data.items()):
         token, values = token_values
 
         if not values:
@@ -48,7 +49,7 @@ def validate_separate_token_values_config(
 def update_separate_token_values_config_with_file_urls(
     url: str,
     separate_token_values_config_path: str,
-    use_presigned_urls: bool,
+    use_presigned_urls: bool = False,
 ):
     try:
         files_locations = get_file_urls_from_s3_storage(url)
