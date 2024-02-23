@@ -10,15 +10,13 @@ from unittest.mock import patch
 from flask import url_for
 
 from mephisto.abstractions.providers.prolific.api import status
-from mephisto.client.review_app.server.api.views.task_export_results_view import (
-    get_result_file_path,
-)
+from mephisto.review_app.server.api.views.task_export_results_view import get_result_file_path
 from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCase
 
 
 class TestTaskExportResultsJsonView(BaseTestApiViewCase):
     @patch(
-        "mephisto.client.review_app.server.api.views.task_export_results_json_view.get_results_dir"
+        "mephisto.review_app.server.api.views.task_export_results_json_view.get_results_dir"
     )
     def test_task_export_result_json_success(self, mock_get_results_dir, *args, **kwargs):
         mock_get_results_dir.return_value = self.data_dir

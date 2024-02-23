@@ -184,6 +184,8 @@ Putting it altogether, let's prepare and launch a task featuring a form containi
   mephisto review_app -h 0.0.0.0 -p 8000 -d True -f True
   ```
 
+_Note: if a package build was terminated/failed, or related source code was changed, FormComposer needs to be rebuilt with this command: `mephisto scripts form_composer rebuild_all_apps`._
+
 ---
 
 # Your Mephisto project

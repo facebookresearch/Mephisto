@@ -7,22 +7,22 @@ import os
 
 CONTENTTYPE_BY_EXTENSION = {
     # Docs
-    'csv': 'text/csv',
-    'doc': 'application/msword',
-    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'pdf': 'application/pdf',
+    "csv": "text/csv",
+    "doc": "application/msword",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "pdf": "application/pdf",
     # Images
-    'bmp': 'image/bmp',
-    'gif': 'image/gif',
-    'heic': 'image/heic',
-    'heif': 'image/heif',
-    'jpeg': 'image/jpeg',
-    'jpg': 'image/jpeg',
-    'png': 'image/png',
+    "bmp": "image/bmp",
+    "gif": "image/gif",
+    "heic": "image/heic",
+    "heif": "image/heif",
+    "jpeg": "image/jpeg",
+    "jpg": "image/jpeg",
+    "png": "image/png",
     # Videos
-    'mkv': 'video/x-matroska',
-    'mp4': 'video/mp4',
-    'webm': 'video/webm',
+    "mkv": "video/x-matroska",
+    "mp4": "video/mp4",
+    "webm": "video/webm",
 }
 
 JSON_IDENTATION = 2

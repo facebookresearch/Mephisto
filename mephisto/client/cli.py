@@ -28,6 +28,7 @@ import mephisto.scripts.mturk.identify_broken_units as identify_broken_units_mtu
 import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as print_outstanding_hit_status_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
+import mephisto.scripts.form_composer.rebuild_all_apps as rebuild_all_apps_form_composer
 from mephisto.client.cli_commands import get_wut_arguments
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config
@@ -223,7 +224,7 @@ def run_script(script_type, script_name):
             res += "\n  * " + item
         return res
 
-    VALID_SCRIPT_TYPES = ["local_db", "heroku", "metrics", "mturk"]
+    VALID_SCRIPT_TYPES = ["local_db", "heroku", "metrics", "mturk", "form_composer"]
     if script_type is None or script_type.strip() not in VALID_SCRIPT_TYPES:
         print("")
         raise click.UsageError(
@@ -246,6 +247,9 @@ def run_script(script_type, script_name):
         "launch_makeup_hits",
         "print_outstanding_hit_status",
         "soft_block_workers_by_mturk_id",
+    ]
+    FORM_COMPOSER_VALID_SCRIPTS_NAMES = [
+        "rebuild_all_apps",
     ]
     script_type_to_scripts_data = {
         "local_db": {
@@ -275,8 +279,14 @@ def run_script(script_type, script_name):
                 MTURK_VALID_SCRIPTS_NAMES[0]: cleanup_mturk.main,
                 MTURK_VALID_SCRIPTS_NAMES[1]: identify_broken_units_mturk.main,
                 MTURK_VALID_SCRIPTS_NAMES[2]: launch_makeup_hits_mturk.main,
-                MTURK_VALID_SCRIPTS_NAMES[3]: print_outstanding_hit_status_mturk.main,
+                MTURK_VALID_SCRIPTS_NAMES[3]: rebuild_all_apps_form_composer.main,
                 MTURK_VALID_SCRIPTS_NAMES[4]: soft_block_workers_by_mturk_id_mturk.main,
+            },
+        },
+        "form_composer": {
+            "valid_script_names": FORM_COMPOSER_VALID_SCRIPTS_NAMES,
+            "scripts": {
+                FORM_COMPOSER_VALID_SCRIPTS_NAMES[0]: rebuild_all_apps_form_composer.main,
             },
         },
     }

@@ -56,8 +56,14 @@ def _set_tokens_in_form_config_item(item: dict, tokens_values: dict):
 def _collect_form_config_items_to_extrapolate(config_data: dict) -> List[dict]:
     items_to_extrapolate = []
 
+    if not isinstance(config_data, dict):
+        return items_to_extrapolate
+
     form = config_data["form"]
     items_to_extrapolate.append(form)
+
+    submit_button = form["submit_button"]
+    items_to_extrapolate.append(submit_button)
 
     sections = form["sections"]
     for section in sections:
@@ -125,7 +131,7 @@ def _extrapolate_tokens_in_form_config(config_data: dict, tokens_values: dict) -
 
 
 def _validate_tokens_in_both_configs(
-    form_config_data, token_sets_values_config_data,
+    form_config_data: dict, token_sets_values_config_data: List[dict],
 ) -> Tuple[set, set, list]:
     tokens_from_form_config, tokens_in_unexpected_attrs_errors = (
         _collect_tokens_from_form_config(form_config_data)
@@ -245,21 +251,21 @@ def create_extrapolated_config(
         exit()
 
 
-def validate_task_data_config(config_json: List[dict]) -> Tuple[bool, List[str]]:
+def validate_task_data_config(config_data: List[dict]) -> Tuple[bool, List[str]]:
     is_valid = True
     errors = []
 
-    if not isinstance(config_json, list):
+    if not isinstance(config_data, list):
         is_valid = False
         errors.append("Config must be a JSON Array.")
 
-    if config_json:
-        if not all(config_json):
+    if config_data:
+        if not all(config_data):
             is_valid = False
             errors.append("Task data config must contain at least one non-empty item.")
 
         # Validate each form version contained in task data config
-        for item in config_json:
+        for item in config_data:
             form_config_is_valid, form_config_errors = validate_form_config(item)
             if not form_config_is_valid:
                 is_valid = False
@@ -375,11 +381,13 @@ def verify_form_composer_configs(
         print(f"\n[red]Provided Form Composer config files are invalid:[/red] {e}\n")
 
 
-def prepare_task_config_for_review_app(config: dict) -> dict:
-    config = deepcopy(config)
+def prepare_task_config_for_review_app(config_data: dict) -> dict:
+    config_data = deepcopy(config_data)
 
     procedure_code_regex = r"\s*(.+?)\s*"
-    tokens_from_inputs, _ = _collect_tokens_from_form_config(config, regex=procedure_code_regex)
+    tokens_from_inputs, _ = _collect_tokens_from_form_config(
+        config_data, regex=procedure_code_regex,
+    )
 
     url_from_rpocedure_code_regex = r"\(\"(.+?)\"\)"
     token_values = {}
@@ -396,5 +404,5 @@ def prepare_task_config_for_review_app(config: dict) -> dict:
             presigned_url = get_s3_presigned_url(url, S3_URL_EXPIRATION_MINUTES_MAX)
             token_values[token] = presigned_url
 
-    prepared_config = _extrapolate_tokens_in_form_config(config, token_values)
+    prepared_config = _extrapolate_tokens_in_form_config(config_data, token_values)
     return prepared_config

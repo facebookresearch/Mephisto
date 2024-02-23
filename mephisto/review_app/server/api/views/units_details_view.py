@@ -55,8 +55,8 @@ class UnitsDetailsView(MethodView):
             task_run: TaskRun = unit.get_task_run()
             has_task_source_review = bool(task_run.args.get("blueprint").get("task_source_review"))
 
-            inputs = unit_data.get("data", {}).get("inputs")
-            outputs = unit_data.get("data", {}).get("outputs")
+            inputs = unit_data.get("data", {}).get("inputs", {})
+            outputs = unit_data.get("data", {}).get("outputs", {})
 
             # In case if there is outdated code that returns `final_submission`
             # under `inputs` and `outputs` keys, we should use the value in side `final_submission`
@@ -67,9 +67,12 @@ class UnitsDetailsView(MethodView):
 
             # Perform any dynamic action on task config for current unit
             # to make it the same as it looked like for a worker
-            prepared_inputs = prepare_task_config_for_review_app(inputs)
+            prepared_inputs = inputs
+            if "form" in inputs:
+                prepared_inputs = prepare_task_config_for_review_app(inputs)
 
-            unit_data_folder = unit.get_assigned_agent().get_data_dir()
+            agent = unit.get_assigned_agent()
+            unit_data_folder = agent.get_data_dir() if agent else None
 
             units.append(
                 {

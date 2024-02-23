@@ -10,6 +10,7 @@ from flask import current_app as app
 from flask import Response
 from flask import send_from_directory
 from flask.views import MethodView
+from werkzeug.exceptions import NotFound
 
 from mephisto.data_model.agent import Agent
 from mephisto.data_model.unit import Unit
@@ -55,5 +56,10 @@ class UnitDataStaticView(MethodView):
         if filename_by_original_name:
             filename = filename_by_original_name
 
-        unit_data_folder = unit.get_assigned_agent().get_data_dir()
+        agent = unit.get_assigned_agent()
+        if not agent:
+            app.logger.debug(f"No agent found for {unit}")
+            raise NotFound("File not found")
+
+        unit_data_folder = agent.get_data_dir()
         return send_from_directory(unit_data_folder, filename)
