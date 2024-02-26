@@ -9,7 +9,7 @@ import os
 from omegaconf import DictConfig
 
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
-    SharedRemoteProcedureTaskState
+    SharedRemoteProcedureTaskState,
 )
 from mephisto.generators.form_composer.config_validation.utils import read_config_file
 from mephisto.generators.form_composer.remote_procedures import JS_NAME_FUNCTION_MAPPING
@@ -41,12 +41,12 @@ def main(operator: Operator, cfg: DictConfig) -> None:
 
 
 def _build_custom_bundles(cfg: DictConfig) -> None:
-    """ Locally build bundles that are not available on npm repository """
+    """Locally build bundles that are not available on npm repository"""
     mephisto_packages_dir = os.path.join(
         # Root project directory
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__)
-        )))),
+        os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        ),
         "packages",
     )
 

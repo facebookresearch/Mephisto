@@ -12,9 +12,9 @@ import regexpSatisfied from "./validators/regexpSatisfied";
 
 // Available name of validator for users in JSON-config -> validator-function
 export const validatorFunctionsByConfigName = {
-  "fileExtension": fileExtensionSatisfied,
-  "maxLength": maxLengthSatisfied,
-  "minLength": minLengthSatisfied,
-  "regexp": regexpSatisfied,
-  "required": fieldIsRequired,
+  fileExtension: fileExtensionSatisfied,
+  maxLength: maxLengthSatisfied,
+  minLength: minLengthSatisfied,
+  regexp: regexpSatisfied,
+  required: fieldIsRequired,
 };

@@ -5,7 +5,11 @@
  */
 
 import React from "react";
-import { FormComposer, prepareFormData, prepareRemoteProcedures } from "react-form-composer";
+import {
+  FormComposer,
+  prepareFormData,
+  prepareRemoteProcedures,
+} from "react-form-composer";
 
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;
@@ -18,8 +22,8 @@ function LoadingPresignedUrlsScreen() {
 function NoFormDataErrorsMessage() {
   return (
     <div>
-      Could not render the form due to invalid configuration.
-      We're sorry, please return the task.
+      Could not render the form due to invalid configuration. We're sorry,
+      please return the task.
     </div>
   );
 }
@@ -27,8 +31,8 @@ function NoFormDataErrorsMessage() {
 function RenderingErrorsMessage() {
   return (
     <div>
-      Sorry, we could not render the page.
-      Please try to restart this task (or cancel it).
+      Sorry, we could not render the page. Please try to restart this task (or
+      cancel it).
     </div>
   );
 }
@@ -46,11 +50,18 @@ function Directions({ children }) {
 }
 
 function FormComposerBaseFrontend({
-  taskData, onSubmit, onError, finalResults = null, remoteProcedure,
+  taskData,
+  onSubmit,
+  onError,
+  finalResults = null,
+  remoteProcedure,
 }) {
   const [loadingFormData, setLoadingFormData] = React.useState(false);
   const [formData, setFormData] = React.useState(null);
-  const [formComposerRenderingErrors, setFormComposerRenderingErrors] = React.useState(null);
+  const [
+    formComposerRenderingErrors,
+    setFormComposerRenderingErrors,
+  ] = React.useState(null);
 
   let initialConfigFormData = taskData.form;
 
@@ -61,7 +72,7 @@ function FormComposerBaseFrontend({
       taskData,
       setFormData,
       setLoadingFormData,
-      setFormComposerRenderingErrors,
+      setFormComposerRenderingErrors
     );
   }, [taskData.form]);
 

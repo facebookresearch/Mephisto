@@ -67,9 +67,9 @@ def update_separate_token_values_config_with_file_urls(
     if use_presigned_urls:
         files_locations = [
             (
-                TOKEN_START_SYMBOLS +
-                f'{ProcedureName.GET_MULTIPLE_PRESIGNED_URLS}("{url}")' +
-                TOKEN_END_SYMBOLS
+                TOKEN_START_SYMBOLS
+                + f'{ProcedureName.GET_MULTIPLE_PRESIGNED_URLS}("{url}")'
+                + TOKEN_END_SYMBOLS
             )
             for url in files_locations
         ]
@@ -79,8 +79,10 @@ def update_separate_token_values_config_with_file_urls(
     if os.path.exists(separate_token_values_config_path):
         config_data = read_config_file(separate_token_values_config_path)
 
-    config_data.update({
-        FILE_URL_TOKEN_KEY: files_locations,
-    })
+    config_data.update(
+        {
+            FILE_URL_TOKEN_KEY: files_locations,
+        }
+    )
 
     write_config_to_file(config_data, separate_token_values_config_path)

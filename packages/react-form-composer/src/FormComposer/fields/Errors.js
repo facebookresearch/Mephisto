@@ -12,15 +12,13 @@ export function Errors({ messages }) {
     //  - invalid-feedback
 
     <>
-      {messages && messages.length > 0 &&
+      {messages && messages.length > 0 && (
         <div className={`invalid-feedback`}>
           {messages.map((message, i) => {
-            return <div key={`message-${i}`}>
-              {message}
-            </div>;
+            return <div key={`message-${i}`}>{message}</div>;
           })}
         </div>
-      }
+      )}
     </>
   );
 }

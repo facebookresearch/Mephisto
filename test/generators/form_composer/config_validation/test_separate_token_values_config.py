@@ -9,10 +9,10 @@ from botocore.exceptions import NoCredentialsError
 
 from mephisto.client.cli import FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
-    update_separate_token_values_config_with_file_urls
+    update_separate_token_values_config_with_file_urls,
 )
 from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
-    validate_separate_token_values_config
+    validate_separate_token_values_config,
 )
 
 
@@ -68,17 +68,23 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_credentials_error(
-        self, mock_get_file_urls_from_s3_storage, mock_read_config_file, *args, **kwargs,
+        self,
+        mock_get_file_urls_from_s3_storage,
+        mock_read_config_file,
+        *args,
+        **kwargs,
     ):
         url = "https://test-bucket-private.s3.amazonaws.com/path/"
         separate_token_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
         )
 
         mock_get_file_urls_from_s3_storage.side_effect = NoCredentialsError()
 
         result = update_separate_token_values_config_with_file_urls(
-            url, separate_token_values_config_path,
+            url,
+            separate_token_values_config_path,
         )
 
         self.assertIsNone(result)
@@ -93,17 +99,23 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_no_file_locations(
-        self, mock_get_file_urls_from_s3_storage, mock_read_config_file, *args, **kwargs,
+        self,
+        mock_get_file_urls_from_s3_storage,
+        mock_read_config_file,
+        *args,
+        **kwargs,
     ):
         url = "https://test-bucket-private.s3.amazonaws.com/path/"
         separate_token_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
         )
 
         mock_get_file_urls_from_s3_storage.return_value = []
 
         result = update_separate_token_values_config_with_file_urls(
-            url, separate_token_values_config_path,
+            url,
+            separate_token_values_config_path,
         )
 
         self.assertIsNone(result)
@@ -114,11 +126,15 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_success_new_config_file(
-        self, mock_get_file_urls_from_s3_storage, *args, **kwargs,
+        self,
+        mock_get_file_urls_from_s3_storage,
+        *args,
+        **kwargs,
     ):
         url = "https://test-bucket-private.s3.amazonaws.com/path/"
         separate_token_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
         )
 
         mock_get_file_urls_from_s3_storage.return_value = [
@@ -127,7 +143,8 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         ]
 
         update_separate_token_values_config_with_file_urls(
-            url, separate_token_values_config_path,
+            url,
+            separate_token_values_config_path,
         )
 
         f = open(separate_token_values_config_path, "r")
@@ -148,11 +165,15 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_success_updated_config_file(
-        self, mock_get_file_urls_from_s3_storage, *args, **kwargs,
+        self,
+        mock_get_file_urls_from_s3_storage,
+        *args,
+        **kwargs,
     ):
         url = "https://test-bucket-private.s3.amazonaws.com/path/"
         separate_token_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
         )
 
         mock_get_file_urls_from_s3_storage.return_value = [
@@ -168,7 +189,8 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         f.close()
 
         update_separate_token_values_config_with_file_urls(
-            url, separate_token_values_config_path,
+            url,
+            separate_token_values_config_path,
         )
 
         f = open(separate_token_values_config_path, "r")
@@ -189,11 +211,15 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         "get_file_urls_from_s3_storage"
     )
     def test_update_separate_token_values_config_with_file_urls_success_new_config_file_presigned(
-        self, mock_get_file_urls_from_s3_storage, *args, **kwargs,
+        self,
+        mock_get_file_urls_from_s3_storage,
+        *args,
+        **kwargs,
     ):
         url = "https://test-bucket-private.s3.amazonaws.com/path/"
         separate_token_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
         )
 
         mock_get_file_urls_from_s3_storage.return_value = [
@@ -202,7 +228,9 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
         ]
 
         update_separate_token_values_config_with_file_urls(
-            url, separate_token_values_config_path, use_presigned_urls=True,
+            url,
+            separate_token_values_config_path,
+            use_presigned_urls=True,
         )
 
         f = open(separate_token_values_config_path, "r")
@@ -212,8 +240,8 @@ class TestSeparateTokenValuesConfig(unittest.TestCase):
             result_config_data,
             {
                 "file_location": [
-                    "{{getMultiplePresignedUrls(\"https://example.com/1.jpg\")}}",
-                    "{{getMultiplePresignedUrls(\"https://example.com/2.jpg\")}}",
+                    '{{getMultiplePresignedUrls("https://example.com/1.jpg")}}',
+                    '{{getMultiplePresignedUrls("https://example.com/2.jpg")}}',
                 ],
             },
         )

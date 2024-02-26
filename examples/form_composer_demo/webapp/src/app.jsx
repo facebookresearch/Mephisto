@@ -6,7 +6,10 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { FormComposerBaseFrontend, LoadingScreen } from "./components/core_components.jsx";
+import {
+  FormComposerBaseFrontend,
+  LoadingScreen,
+} from "./components/core_components.jsx";
 import { useMephistoTask, ErrorBoundary } from "mephisto-task-multipart";
 
 /* ================= Application Components ================= */

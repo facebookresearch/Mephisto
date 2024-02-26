@@ -4,7 +4,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { REGEXP_ERROR_MESSAGE_KEY, validationErrorMessagesByName } from "../errorMessages";
+import {
+  REGEXP_ERROR_MESSAGE_KEY,
+  validationErrorMessagesByName,
+} from "../errorMessages";
 
 /**
  * Check if string-value matches RegExp
@@ -18,7 +21,7 @@ export default function regexpSatisfied(field, value, regexp, regexpFlags) {
   if (["input", "textarea", "email"].includes(field.type)) {
     const _value = (value || "").trim();
 
-    const _regexpParams = regexpFlags || "igm"
+    const _regexpParams = regexpFlags || "igm";
     const _regexp = new RegExp(regexp, _regexpParams);
 
     if (!_regexp.test(_value)) {
@@ -28,4 +31,3 @@ export default function regexpSatisfied(field, value, regexp, regexpFlags) {
 
   return null;
 }
-

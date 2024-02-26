@@ -31,16 +31,16 @@ import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers
 import mephisto.scripts.form_composer.rebuild_all_apps as rebuild_all_apps_form_composer
 from mephisto.client.cli_commands import get_wut_arguments
 from mephisto.generators.form_composer.config_validation.task_data_config import (
-    create_extrapolated_config
+    create_extrapolated_config,
 )
 from mephisto.generators.form_composer.config_validation.task_data_config import (
-    verify_form_composer_configs
+    verify_form_composer_configs,
 )
 from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
-    update_separate_token_values_config_with_file_urls
+    update_separate_token_values_config_with_file_urls,
 )
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
-    update_token_sets_values_config_with_premutated_data
+    update_token_sets_values_config_with_premutated_data,
 )
 from mephisto.generators.form_composer.config_validation.utils import is_s3_url
 from mephisto.operations.registry import get_valid_provider_types

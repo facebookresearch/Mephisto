@@ -21,17 +21,11 @@ export function FormErrors({ errorMessages }) {
         className={`alert alert-danger mx-auto col-6 ml-2 mr-2`}
         role={"alert"}
       >
-        <b>
-          Could not submit the form:
-        </b>
+        <b>Could not submit the form:</b>
 
         <ul>
           {errorMessages.map((message, index) => {
-            return (
-              <li key={`error-message-${index}`}>
-                {message}
-              </li>
-            );
+            return <li key={`error-message-${index}`}>{message}</li>;
           })}
         </ul>
       </div>

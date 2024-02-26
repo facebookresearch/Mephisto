@@ -7,7 +7,7 @@
 import {
   MIN_LENGTH_ERROR_MESSAGE_KEY,
   MIN_LENGTH_ITEMS_ERROR_MESSAGE_KEY,
-  validationErrorMessagesByName
+  validationErrorMessagesByName,
 } from "../errorMessages";
 
 /**
@@ -20,7 +20,9 @@ import {
 export default function minLengthSatisfied(field, value, minLength) {
   let valueLength = 0;
   const _minLength = Math.floor(minLength);
-  let errorMessage = validationErrorMessagesByName[MIN_LENGTH_ERROR_MESSAGE_KEY](_minLength);
+  let errorMessage = validationErrorMessagesByName[
+    MIN_LENGTH_ERROR_MESSAGE_KEY
+  ](_minLength);
 
   if (["input", "textarea", "email"].includes(field.type)) {
     const _value = (value || "").trim();
@@ -30,13 +32,17 @@ export default function minLengthSatisfied(field, value, minLength) {
   if (field.type === "checkbox") {
     const _value = value || {};
     valueLength = Object.entries(_value).filter(([k, v]) => v === true).length;
-    errorMessage = validationErrorMessagesByName[MIN_LENGTH_ITEMS_ERROR_MESSAGE_KEY](_minLength);
+    errorMessage = validationErrorMessagesByName[
+      MIN_LENGTH_ITEMS_ERROR_MESSAGE_KEY
+    ](_minLength);
   }
 
   if (field.type === "select" && field.multiple === true) {
     const _value = value || [];
     valueLength = _value.length;
-    errorMessage = validationErrorMessagesByName[MIN_LENGTH_ITEMS_ERROR_MESSAGE_KEY](_minLength);
+    errorMessage = validationErrorMessagesByName[
+      MIN_LENGTH_ITEMS_ERROR_MESSAGE_KEY
+    ](_minLength);
   }
 
   if (valueLength < _minLength) {

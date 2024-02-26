@@ -23,12 +23,10 @@ def main(operator: Operator, cfg: DictConfig) -> None:
 
 
 def _build_custom_bundles(cfg: DictConfig) -> None:
-    """ Locally build bundles that are not available on npm repository """
+    """Locally build bundles that are not available on npm repository"""
     mephisto_packages_dir = os.path.join(
         # Root project directory
-        os.path.dirname(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__)
-        ))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "packages",
     )
 

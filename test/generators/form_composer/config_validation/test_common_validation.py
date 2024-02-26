@@ -2,7 +2,7 @@ import unittest
 
 from mephisto.generators.form_composer.config_validation import config_validation_constants
 from mephisto.generators.form_composer.config_validation.common_validation import (
-    validate_config_dict_item
+    validate_config_dict_item,
 )
 
 
@@ -93,12 +93,12 @@ class TestCommonValidation(unittest.TestCase):
             errors,
             [
                 (
-                    'Object `form`. Not all required attributes were specified. '
-                    'Required attributes: sections, submit_button, title. '
-                    'Passed attributes: title, instruction.'
+                    "Object `form`. Not all required attributes were specified. "
+                    "Required attributes: sections, submit_button, title. "
+                    "Passed attributes: title, instruction."
                 ),
-                'Attribute `title` in object `form` must be `String`.',
-                'Attribute `instruction` in object `form` must be `String`.',
+                "Attribute `title` in object `form` must be `String`.",
+                "Attribute `instruction` in object `form` must be `String`.",
             ],
         )
 
@@ -109,7 +109,7 @@ class TestCommonValidation(unittest.TestCase):
         submit_button_item = {
             "instruction": "Submit instruction",
             "text": "Submit text",
-            "tooltip": "Submit tooltip"
+            "tooltip": "Submit tooltip",
         }
 
         result = validate_config_dict_item(
@@ -284,7 +284,7 @@ class TestCommonValidation(unittest.TestCase):
                 (
                     "Object `row`. Not all required attributes were specified. "
                     "Required attributes: fields. Passed attributes: ."
-                 ),
+                ),
             ],
         )
 
@@ -347,6 +347,6 @@ class TestCommonValidation(unittest.TestCase):
                 ),
                 "Attribute `id` in object `field` must be `String`.",
                 "Attribute `name` in object `field` must be `String`.",
-                "Attribute `validators` in object `field` must be `Object`."
+                "Attribute `validators` in object `field` must be `Object`.",
             ],
         )

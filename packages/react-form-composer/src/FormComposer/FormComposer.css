@@ -29,7 +29,6 @@ video {
 }
 
 .form-composer .form-header {
-
 }
 
 .form-composer .form-header .form-name {
@@ -37,13 +36,10 @@ video {
 }
 
 .form-composer .form-header .form-instruction {
-
 }
-
 
 /* --- Section --- */
 .form-composer .section {
-
 }
 
 .form-composer .section .section-header:not(.collapsable):hover {
@@ -65,9 +61,7 @@ video {
 }
 
 .form-composer .section .section-instruction {
-
 }
-
 
 /* --- Fieldset --- */
 .form-composer .section .fieldset {
@@ -83,13 +77,10 @@ video {
 }
 
 .form-composer .section .fieldset .fieldset-instruction {
-
 }
-
 
 /* --- Row --- */
 .form-composer .section .fieldset .row {
-
 }
 
 .form-composer .section .fieldset .row:not(:last-child) {
@@ -113,7 +104,6 @@ video {
   border-top: 1px solid #ccc;
 }
 
-
 /* --- Field --- */
 .form-composer .section .fieldset .field {
   margin-bottom: 10px;
@@ -124,7 +114,6 @@ video {
 }
 
 .form-composer .section .fieldset .field {
-
 }
 
 .form-composer .section .fieldset .field label {
@@ -172,7 +161,12 @@ video {
   background-color: transparent;
 }
 
-.form-composer .section .fieldset .field .form-check.checkbox .form-check-input {
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.checkbox
+  .form-check-input {
   border-radius: 4px;
 }
 
@@ -185,22 +179,52 @@ video {
   margin-left: 10px;
 }
 
-.form-composer .section .fieldset .field .form-check.checkbox .form-check-input.checked,
-.form-composer .section .fieldset .field .form-check.radio .form-check-input.checked {
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.checkbox
+  .form-check-input.checked,
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.radio
+  .form-check-input.checked {
   background-color: #495057;
 }
 
-.form-composer .section .fieldset .field .form-check.checkbox.is-invalid .form-check-input,
-.form-composer .section .fieldset .field .form-check.radio.is-invalid .form-check-input {
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.checkbox.is-invalid
+  .form-check-input,
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.radio.is-invalid
+  .form-check-input {
   border-color: var(--error-color);
 }
 
-.form-composer .section .fieldset .field .form-check:not(.disabled):hover .form-check-input {
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check:not(.disabled):hover
+  .form-check-input {
   border-color: #495057;
   cursor: pointer;
 }
 
-.form-composer .section .fieldset .field .form-check:not(.disabled):hover .form-check-label {
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check:not(.disabled):hover
+  .form-check-label {
   opacity: 0.8;
   cursor: pointer;
 }
@@ -241,23 +265,21 @@ video {
 }
 
 .form-composer .form-buttons .button-submit {
-
 }
-
 
 /* --- Bootstrap overriding --- */
 
-.form-control::placeholder{
+.form-control::placeholder {
   color: #c7c7c7 !important;
 }
-.form-control::-moz-placeholder{
+.form-control::-moz-placeholder {
   color: #c7c7c7 !important;
   opacity: 1;
 }
-.form-control:-ms-input-placeholder{
+.form-control:-ms-input-placeholder {
   color: #c7c7c7 !important;
 }
-.form-control::-webkit-input-placeholder{
+.form-control::-webkit-input-placeholder {
   color: #c7c7c7 !important;
 }
 

@@ -8,7 +8,13 @@ import React from "react";
 import { Errors } from "./Errors";
 
 function RadioField({
-  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
+  field,
+  updateFormData,
+  disabled,
+  initialFormData,
+  inReviewState,
+  invalid,
+  validationErrors,
 }) {
   const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
   const [widgetValue, setWidgetValue] = React.useState(null);
@@ -58,12 +64,10 @@ function RadioField({
     //  - form-check-label
 
     <>
-      {field.options.map(( option, index ) => {
-        const checked = (
-          initialFormData
-            ? initialValue === option.value
-            : widgetValue === option.value
-        );
+      {field.options.map((option, index) => {
+        const checked = initialFormData
+          ? initialValue === option.value
+          : widgetValue === option.value;
 
         return (
           <div
@@ -85,9 +89,7 @@ function RadioField({
               id={`${field.id}-${index}`}
               style={field.style}
             />
-            <span className={`form-check-label`}>
-              {option.label}
-            </span>
+            <span className={`form-check-label`}>{option.label}</span>
           </div>
         );
       })}

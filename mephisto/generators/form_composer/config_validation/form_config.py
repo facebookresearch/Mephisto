@@ -22,7 +22,8 @@ UniqueAttrsType = Dict[str, List[str]]
 
 
 def _collect_values_for_unique_attrs_from_item(
-    item: dict, values_for_unique_attrs: UniqueAttrsType,
+    item: dict,
+    values_for_unique_attrs: UniqueAttrsType,
 ) -> UniqueAttrsType:
     for attr_name in ATTRS_WITH_UNIQUE_NAMES:
         attr_value = item.get(attr_name)
@@ -41,7 +42,8 @@ def _duplicate_values_exist(unique_names: UniqueAttrsType, errors: List[str]) ->
     for attr_name, unique_values in unique_names.items():
         checked_unique_values = set()
         duplicated_unique_names = [
-            unique_name for unique_name in unique_values
+            unique_name
+            for unique_name in unique_values
             if unique_name in checked_unique_values or checked_unique_values.add(unique_name)
         ]
         if duplicated_unique_names:

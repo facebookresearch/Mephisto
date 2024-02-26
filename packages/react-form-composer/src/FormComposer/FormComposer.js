@@ -8,7 +8,7 @@ import React from "react";
 import {
   DEFAULT_COLLAPSABLE,
   DEFAULT_INITIALLY_COLLAPSED,
-  MESSAGES_IN_REVIEW_FILE_DATA_KEY
+  MESSAGES_IN_REVIEW_FILE_DATA_KEY,
 } from "./constants";
 import { CheckboxField } from "./fields/CheckboxField";
 import { FileField } from "./fields/FileField";
@@ -21,9 +21,18 @@ import { FormErrors } from "./FormErrors";
 import { SectionErrors } from "./SectionErrors";
 import { SectionErrorsCountBadge } from "./SectionErrorsCountBadge";
 import { formatStringWithProcedureTokens, setPageTitle } from "./utils";
-import { checkFieldRequiredness, validateFormFields } from "./validation/helpers";
+import {
+  checkFieldRequiredness,
+  validateFormFields,
+} from "./validation/helpers";
 
-function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRenderingErrors}) {
+function FormComposer({
+  data,
+  onSubmit,
+  finalResults,
+  serverSubmitErrors,
+  setRenderingErrors,
+}) {
   // State to hide submit button
   const [onSubmitLoading, setOnSubmitLoading] = React.useState(false);
 
@@ -44,14 +53,17 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
 
   const inReviewState = finalResults !== null;
 
-  const formatStringWithTokens = (
-    inReviewState
-      ? (v, _) => { return v } // Return value as is, ignoring whole formatting
-      : formatStringWithProcedureTokens
-  );
+  const formatStringWithTokens = inReviewState
+    ? (v, _) => {
+        return v;
+      } // Return value as is, ignoring whole formatting
+    : formatStringWithProcedureTokens;
 
   let formTitle = formatStringWithTokens(data.title, setRenderingErrors);
-  let formInstruction = formatStringWithTokens(data.instruction, setRenderingErrors);
+  let formInstruction = formatStringWithTokens(
+    data.instruction,
+    setRenderingErrors
+  );
   let formSections = data.sections;
   let formSubmitButton = data.submit_button;
 
@@ -69,8 +81,10 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
   }
 
   function scrollToFirstInvalidSection() {
-    const firstInvalidSection = document.querySelectorAll("section[data-invalid='true']")[0];
-    if (firstInvalidSection){
+    const firstInvalidSection = document.querySelectorAll(
+      "section[data-invalid='true']"
+    )[0];
+    if (firstInvalidSection) {
       window.scrollTo(0, firstInvalidSection.offsetTop);
     }
   }
@@ -95,9 +109,10 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
     // Append files
     const fileInputs = document.querySelectorAll("input[type='file']");
     fileInputs.forEach((input) => {
-      input.files?.length && Object.values(input.files).forEach((file) => {
-        formData.append(input.name, file, file.name);
-      });
+      input.files?.length &&
+        Object.values(input.files).forEach((file) => {
+          formData.append(input.name, file, file.name);
+        });
     });
 
     return formData;
@@ -210,31 +225,31 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
 
       {/* Accordion with collapsable sections */}
       <div className={`accordion`} id={`id_accordion`}>
-
         {/* Sections */}
-        {formSections.map(( section, sectionIndex ) => {
-          const sectionTitle = formatStringWithTokens(section.title, setRenderingErrors);
+        {formSections.map((section, sectionIndex) => {
+          const sectionTitle = formatStringWithTokens(
+            section.title,
+            setRenderingErrors
+          );
           const sectionInstruction = formatStringWithTokens(
-            section.instruction, setRenderingErrors,
+            section.instruction,
+            setRenderingErrors
           );
           const fieldsets = section.fieldsets;
 
-          const collapsable = (
-            [null, undefined].includes(section.collapsable)  // Not specified in config
-              ? DEFAULT_COLLAPSABLE
-              : section.collapsable
-          );
-          const initiallyCollapsed = (
-            collapsable
-              ? (
-                [null, undefined].includes(section.initially_collapsed)  // Not specified in config
-                  ? DEFAULT_INITIALLY_COLLAPSED
-                  : section.initially_collapsed)
-              : false
-          );
+          const collapsable = [null, undefined].includes(section.collapsable) // Not specified in config
+            ? DEFAULT_COLLAPSABLE
+            : section.collapsable;
+          const initiallyCollapsed = collapsable
+            ? [null, undefined].includes(section.initially_collapsed) // Not specified in config
+              ? DEFAULT_INITIALLY_COLLAPSED
+              : section.initially_collapsed
+            : false;
 
-          const sectionHasInvalidFields = !!(sectionsFields[sectionIndex] || []).filter(
-            (field) => Object.keys(invalidFormFields).includes(field.name)
+          const sectionHasInvalidFields = !!(
+            sectionsFields[sectionIndex] || []
+          ).filter((field) =>
+            Object.keys(invalidFormFields).includes(field.name)
           ).length;
 
           return (
@@ -257,9 +272,17 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                   role={"alert"}
                   id={`accordion_heading_${sectionIndex}`}
                   data-toggle={collapsable ? "collapse" : null}
-                  data-target={collapsable ? `#accordion_collapsable_part_${sectionIndex}` : null}
+                  data-target={
+                    collapsable
+                      ? `#accordion_collapsable_part_${sectionIndex}`
+                      : null
+                  }
                   aria-expanded={collapsable ? initiallyCollapsed : null}
-                  aria-controls={collapsable ? `accordion_collapsable_part_${sectionIndex}` : null}
+                  aria-controls={
+                    collapsable
+                      ? `accordion_collapsable_part_${sectionIndex}`
+                      : null
+                  }
                 >
                   <div className="row justify-content-between">
                     {/* Section name on the left side */}
@@ -310,10 +333,14 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                   invalidFormFields={invalidFormFields}
                 />
 
-                {fieldsets.map(( fieldset, fieldsetIndex ) => {
-                  const fieldsetTitle = formatStringWithTokens(fieldset.title, setRenderingErrors);
+                {fieldsets.map((fieldset, fieldsetIndex) => {
+                  const fieldsetTitle = formatStringWithTokens(
+                    fieldset.title,
+                    setRenderingErrors
+                  );
                   const fieldsetInstruction = formatStringWithTokens(
-                    fieldset.instruction, setRenderingErrors,
+                    fieldset.instruction,
+                    setRenderingErrors
                   );
                   const rows = fieldset.rows;
 
@@ -323,11 +350,16 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                       className={`fieldset container`}
                     >
                       {(fieldsetTitle || fieldsetInstruction) && (
-                        <div className={`fieldset-header alert alert-secondary`} role={"alert"}>
+                        <div
+                          className={`fieldset-header alert alert-secondary`}
+                          role={"alert"}
+                        >
                           {fieldsetTitle && (
                             <h5
                               className={`fieldset-name`}
-                              dangerouslySetInnerHTML={{ __html: fieldsetTitle }}
+                              dangerouslySetInnerHTML={{
+                                __html: fieldsetTitle,
+                              }}
                             ></h5>
                           )}
 
@@ -336,27 +368,31 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                           {fieldsetInstruction && (
                             <p
                               className={`fieldset-instruction`}
-                              dangerouslySetInnerHTML={{ __html: fieldsetInstruction }}
+                              dangerouslySetInnerHTML={{
+                                __html: fieldsetInstruction,
+                              }}
                             ></p>
                           )}
                         </div>
                       )}
 
-                      {rows.map(( row, rowIndex ) => {
-                        const rowHelp = formatStringWithTokens(row.help, setRenderingErrors);
+                      {rows.map((row, rowIndex) => {
+                        const rowHelp = formatStringWithTokens(
+                          row.help,
+                          setRenderingErrors
+                        );
                         const fields = row.fields;
 
                         return (
-                          <div
-                            key={`row-${rowIndex}`}
-                            className={`row`}
-                          >
-                            {fields.map(( field, fieldIndex ) => {
+                          <div key={`row-${rowIndex}`} className={`row`}>
+                            {fields.map((field, fieldIndex) => {
                               const fieldLabel = formatStringWithTokens(
-                                field.label, setRenderingErrors,
+                                field.label,
+                                setRenderingErrors
                               );
                               const fieldTooltip = formatStringWithTokens(
-                                field.tooltip, setRenderingErrors,
+                                field.tooltip,
+                                setRenderingErrors
                               );
                               const fieldHelp = field.help;
 
@@ -368,27 +404,36 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                                     field
                                     form-group
                                     col
-                                    ${checkFieldRequiredness(field) ? "required" : ""}
+                                    ${
+                                      checkFieldRequiredness(field)
+                                        ? "required"
+                                        : ""
+                                    }
                                   `}
                                   title={fieldTooltip}
                                 >
+                                  <i>{field.icon}</i>
+                                  <label htmlFor={field.id}>{fieldLabel}</label>
 
-                                  <i>
-                                    {field.icon}
-                                  </i>
-                                  <label htmlFor={field.id}>
-                                    {fieldLabel}
-                                  </label>
-
-                                  {["input", "email", "password", "number"].includes(field.type) && (
+                                  {[
+                                    "input",
+                                    "email",
+                                    "password",
+                                    "number",
+                                  ].includes(field.type) && (
                                     <InputField
                                       field={field}
                                       updateFormData={updateFormData}
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={(invalidFormFields[field.name] || []).length}
-                                      validationErrors={(invalidFormFields[field.name] || [])}
+                                      invalid={
+                                        (invalidFormFields[field.name] || [])
+                                          .length
+                                      }
+                                      validationErrors={
+                                        invalidFormFields[field.name] || []
+                                      }
                                     />
                                   )}
 
@@ -399,8 +444,13 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={(invalidFormFields[field.name] || []).length}
-                                      validationErrors={(invalidFormFields[field.name] || [])}
+                                      invalid={
+                                        (invalidFormFields[field.name] || [])
+                                          .length
+                                      }
+                                      validationErrors={
+                                        invalidFormFields[field.name] || []
+                                      }
                                     />
                                   )}
 
@@ -411,8 +461,13 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={(invalidFormFields[field.name] || []).length}
-                                      validationErrors={(invalidFormFields[field.name] || [])}
+                                      invalid={
+                                        (invalidFormFields[field.name] || [])
+                                          .length
+                                      }
+                                      validationErrors={
+                                        invalidFormFields[field.name] || []
+                                      }
                                     />
                                   )}
 
@@ -423,8 +478,13 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={(invalidFormFields[field.name] || []).length}
-                                      validationErrors={(invalidFormFields[field.name] || [])}
+                                      invalid={
+                                        (invalidFormFields[field.name] || [])
+                                          .length
+                                      }
+                                      validationErrors={
+                                        invalidFormFields[field.name] || []
+                                      }
                                     />
                                   )}
 
@@ -435,8 +495,13 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={(invalidFormFields[field.name] || []).length}
-                                      validationErrors={(invalidFormFields[field.name] || [])}
+                                      invalid={
+                                        (invalidFormFields[field.name] || [])
+                                          .length
+                                      }
+                                      validationErrors={
+                                        invalidFormFields[field.name] || []
+                                      }
                                     />
                                   )}
 
@@ -447,16 +512,25 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
                                       disabled={inReviewState}
                                       initialFormData={finalResults}
                                       inReviewState={inReviewState}
-                                      invalid={(invalidFormFields[field.name] || []).length}
-                                      validationErrors={(invalidFormFields[field.name] || [])}
-                                      onReviewFileButtonClick={sendMessageToReviewAppWithFileInfo}
+                                      invalid={
+                                        (invalidFormFields[field.name] || [])
+                                          .length
+                                      }
+                                      validationErrors={
+                                        invalidFormFields[field.name] || []
+                                      }
+                                      onReviewFileButtonClick={
+                                        sendMessageToReviewAppWithFileInfo
+                                      }
                                     />
                                   )}
 
                                   {fieldHelp && (
                                     <small
                                       className={`field-help form-text text-muted`}
-                                      dangerouslySetInnerHTML={{ __html: fieldHelp }}
+                                      dangerouslySetInnerHTML={{
+                                        __html: fieldHelp,
+                                      }}
                                     ></small>
                                   )}
                                 </div>
@@ -482,48 +556,57 @@ function FormComposer({data, onSubmit, finalResults, serverSubmitErrors, setRend
       </div>
 
       {/* Submit button */}
-      {(formSubmitButton && !inReviewState) && (<>
-        <hr className={`form-buttons-separator`} />
+      {formSubmitButton && !inReviewState && (
+        <>
+          <hr className={`form-buttons-separator`} />
 
-        {onSubmitLoading ? (
-          // Banner of success
-          <div className={`alert alert-success centered mx-auto col-6 ml-2 mr-2`}>
-            Thank you!<br/>
-            Your form has been submitted.
-          </div>
-        ) : (<>
-          {/* Button instruction */}
-          {formSubmitButton.instruction && (
+          {onSubmitLoading ? (
+            // Banner of success
             <div
-              className={`alert alert-light centered mx-auto col-6 ml-2 mr-2`}
-              dangerouslySetInnerHTML={{ __html: formSubmitButton.instruction }}
-            ></div>
+              className={`alert alert-success centered mx-auto col-6 ml-2 mr-2`}
+            >
+              Thank you!
+              <br />
+              Your form has been submitted.
+            </div>
+          ) : (
+            <>
+              {/* Button instruction */}
+              {formSubmitButton.instruction && (
+                <div
+                  className={`alert alert-light centered mx-auto col-6 ml-2 mr-2`}
+                  dangerouslySetInnerHTML={{
+                    __html: formSubmitButton.instruction,
+                  }}
+                ></div>
+              )}
+
+              {/* Submit button */}
+              <div className={`form-buttons container`}>
+                <button
+                  className={`button-submit btn btn-success`}
+                  type={"submit"}
+                  title={formSubmitButton.tooltip}
+                >
+                  {formSubmitButton.text}
+                </button>
+              </div>
+            </>
           )}
 
-          {/* Submit button */}
-          <div className={`form-buttons container`}>
-            <button
-              className={`button-submit btn btn-success`}
-              type={"submit"}
-              title={formSubmitButton.tooltip}
+          {/* Additional reminder to correct form errors above */}
+          {!!Object.keys(invalidFormFields).length && (
+            <div
+              className={`alert alert-danger centered mx-auto col-6 ml-2 mr-2`}
             >
-              {formSubmitButton.text}
-            </button>
-          </div>
-        </>)}
-
-        {/* Additional reminder to correct form errors above */}
-        {!!Object.keys(invalidFormFields).length && (
-          <div className={`alert alert-danger centered mx-auto col-6 ml-2 mr-2`}>
-            Please correct validation errors in the form
-          </div>
-        )}
-      </>)}
+              Please correct validation errors in the form
+            </div>
+          )}
+        </>
+      )}
 
       {/* Unexpected server errors */}
-      {!!submitErrors.length && (
-        <FormErrors errorMessages={submitErrors} />
-      )}
+      {!!submitErrors.length && <FormErrors errorMessages={submitErrors} />}
     </form>
   );
 }

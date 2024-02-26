@@ -20,17 +20,23 @@ let tokenProcedureResultMapping = {};
 
 const procedureRegex = /(.*?)/;
 const optionalSpacesRegex = /\s*/;
-const openingRegex = new RegExp(TOKEN_START_REGEX.source + optionalSpacesRegex.source, "gi");
-const closingRegex = new RegExp(optionalSpacesRegex.source + TOKEN_END_REGEX.source, "gi");
+const openingRegex = new RegExp(
+  TOKEN_START_REGEX.source + optionalSpacesRegex.source,
+  "gi"
+);
+const closingRegex = new RegExp(
+  optionalSpacesRegex.source + TOKEN_END_REGEX.source,
+  "gi"
+);
 export const procedureTokenRegex = new RegExp(
   openingRegex.source + procedureRegex.source + closingRegex.source,
-  "gi",
+  "gi"
 );
 
 const ProcedureName = {
   GET_MULTIPLE_PRESIGNED_URLS: "getMultiplePresignedUrls",
   GET_PRESIGNED_URL: "getPresignedUrl",
-}
+};
 
 let urlTotokenProcedureMapping = {};
 
@@ -39,7 +45,10 @@ export function formatStringWithProcedureTokens(string, errorCallback) {
     return string;
   }
 
-  if (string.includes(TOKEN_START_SYMBOLS) && string.includes(TOKEN_END_SYMBOLS)) {
+  if (
+    string.includes(TOKEN_START_SYMBOLS) &&
+    string.includes(TOKEN_END_SYMBOLS)
+  ) {
     let _string = string;
 
     // Find array of pairs [[<token with brackets>, <procedure code with arguments>], ...]
@@ -65,14 +74,19 @@ export function formatStringWithProcedureTokens(string, errorCallback) {
         // Lookup the procedure in global variables and call it (note: all procedures are Promises)
         const procedurePromise = eval("window." + procedureCleanString);
 
-        procedurePromise.then((response) => {
-          tokenProcedureResultMapping[entireToken] = response;
-        }).catch((error) => {
-          if (errorCallback) {
-            errorCallback(error);
-          }
-          console.error(`Could not get remote response for '${procedureName}'`, error);
-        });
+        procedurePromise
+          .then((response) => {
+            tokenProcedureResultMapping[entireToken] = response;
+          })
+          .catch((error) => {
+            if (errorCallback) {
+              errorCallback(error);
+            }
+            console.error(
+              `Could not get remote response for '${procedureName}'`,
+              error
+            );
+          });
       }
     });
 
@@ -90,13 +104,21 @@ export function formatStringWithProcedureTokens(string, errorCallback) {
 function _getUrlsFromString(string) {
   let urls = [];
 
-  if (string.includes(TOKEN_START_SYMBOLS) && string.includes(TOKEN_END_SYMBOLS)) {
+  if (
+    string.includes(TOKEN_START_SYMBOLS) &&
+    string.includes(TOKEN_END_SYMBOLS)
+  ) {
     // Find array of pairs [[<token with brackets>, <procedure code with arguments>], ...]
     const matches = [...string.matchAll(procedureTokenRegex)];
     matches.forEach(([token, procedureCode]) => {
       if (procedureCode.includes(ProcedureName.GET_MULTIPLE_PRESIGNED_URLS)) {
-        const procedureCodeWithUrlMatches = [...procedureCode.matchAll(/\(\"(.+?)\"\)/gi)];
-        if (procedureCodeWithUrlMatches.length && procedureCodeWithUrlMatches[0].length === 2) {
+        const procedureCodeWithUrlMatches = [
+          ...procedureCode.matchAll(/\(\"(.+?)\"\)/gi),
+        ];
+        if (
+          procedureCodeWithUrlMatches.length &&
+          procedureCodeWithUrlMatches[0].length === 2
+        ) {
           const procedureCodeUrl = procedureCodeWithUrlMatches[0][1];
           urls.push(procedureCodeUrl);
           urlTotokenProcedureMapping[procedureCodeUrl] = token;
@@ -145,8 +167,15 @@ export function _getAllUrlsToPresign(formConfig) {
   return [...urls];
 }
 
-export function _replaceUrlsWithPresignedUrlsInFormData(taskData, presignedUrls) {
-  function _replaceTokensWithUrlsConfigItem(configItem, originalUrl, presignedUrl) {
+export function _replaceUrlsWithPresignedUrlsInFormData(
+  taskData,
+  presignedUrls
+) {
+  function _replaceTokensWithUrlsConfigItem(
+    configItem,
+    originalUrl,
+    presignedUrl
+  ) {
     Object.entries(configItem).forEach(([key, value]) => {
       if (typeof value === "string") {
         const token = urlTotokenProcedureMapping[originalUrl];
@@ -191,7 +220,7 @@ function _prepareFormDataWithUrlsToPresign(
   taskConfigData,
   setFormDataState,
   setLoadingFormDataState,
-  setFormComposerRenderingErrorsState,
+  setFormComposerRenderingErrorsState
 ) {
   // Get URLs to presign from the whole config
   const urlsToPresign = _getAllUrlsToPresign(taskConfigData.form);
@@ -215,14 +244,20 @@ function _prepareFormDataWithUrlsToPresign(
 
   // Make a request to the server. Note: timeout is a hack (see the comment next to the constant)
   setTimeout(() => {
-    window.getMultiplePresignedUrls(urlsToPresign).then((response) => {
-      setLoadingFormDataState(false);
-      const updatedTaskData = _replaceUrlsWithPresignedUrlsInFormData(taskConfigData, response);
-      setFormDataState(updatedTaskData.form);
-    }).catch((error) => {
-      setLoadingFormDataState(false);
-      setFormComposerRenderingErrorsState(error);
-    });
+    window
+      .getMultiplePresignedUrls(urlsToPresign)
+      .then((response) => {
+        setLoadingFormDataState(false);
+        const updatedTaskData = _replaceUrlsWithPresignedUrlsInFormData(
+          taskConfigData,
+          response
+        );
+        setFormDataState(updatedTaskData.form);
+      })
+      .catch((error) => {
+        setLoadingFormDataState(false);
+        setFormComposerRenderingErrorsState(error);
+      });
   }, WAIT_FOR_AGENT_ID_MSEC);
 }
 
@@ -230,14 +265,14 @@ export function prepareFormData(
   taskConfigData,
   setFormDataState,
   setLoadingFormDataState,
-  setFormComposerRenderingErrorsState,
+  setFormComposerRenderingErrorsState
 ) {
   // 1. Presign URLs
   _prepareFormDataWithUrlsToPresign(
     taskConfigData,
     setFormDataState,
     setLoadingFormDataState,
-    setFormComposerRenderingErrorsState,
+    setFormComposerRenderingErrorsState
   );
 
   // 2. TODO: Add additional steps here

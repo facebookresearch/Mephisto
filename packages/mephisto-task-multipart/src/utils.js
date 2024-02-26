@@ -142,7 +142,9 @@ export function postCompleteTask(agent_id, complete_data, multipart) {
 
     return postMultipartData("/submit_task", formData)
       .then((data) => {
-        handleSubmitToProvider(formData.get("final_string_data") || formData.get("final_data"));
+        handleSubmitToProvider(
+          formData.get("final_string_data") || formData.get("final_data")
+        );
         return data;
       })
       .then(function (data) {

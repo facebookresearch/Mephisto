@@ -8,7 +8,13 @@ import React from "react";
 import { Errors } from "./Errors";
 
 function CheckboxField({
-  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
+  field,
+  updateFormData,
+  disabled,
+  initialFormData,
+  inReviewState,
+  invalid,
+  validationErrors,
 }) {
   const [lastCheckEvent, setLastCheckEvent] = React.useState(null);
   const [widgetValue, setWidgetValue] = React.useState({});
@@ -20,14 +26,14 @@ function CheckboxField({
 
   function setDefaultWidgetValue() {
     const allItemsNotCheckedValue = Object.fromEntries(
-      field.options.map(o => [o.value, !!o.checked])
+      field.options.map((o) => [o.value, !!o.checked])
     );
     setWidgetValue(allItemsNotCheckedValue);
   }
 
   function updateFieldData(e, optionValue, checkValue) {
     setLastCheckEvent(e);
-    setWidgetValue({ ...widgetValue, ...{[optionValue]: checkValue }});
+    setWidgetValue({ ...widgetValue, ...{ [optionValue]: checkValue } });
   }
 
   // Effects
@@ -58,12 +64,10 @@ function CheckboxField({
     //  - form-check-label
 
     <>
-      {field.options.map(( option, index ) => {
-        const checked = (
-          initialFormData
-            ? initialValue[option.value]
-            : widgetValue[option.value]
-        );
+      {field.options.map((option, index) => {
+        const checked = initialFormData
+          ? initialValue[option.value]
+          : widgetValue[option.value];
 
         return (
           <div
@@ -84,9 +88,7 @@ function CheckboxField({
               id={`${field.id}-${index}`}
               style={field.style}
             />
-            <span className={`form-check-label`}>
-              {option.label}
-            </span>
+            <span className={`form-check-label`}>{option.label}</span>
           </div>
         );
       })}

@@ -9,7 +9,13 @@ import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
 function InputField({
-  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
+  field,
+  updateFormData,
+  disabled,
+  initialFormData,
+  inReviewState,
+  invalid,
+  validationErrors,
 }) {
   const initialValue = initialFormData ? initialFormData[field.name] : "";
 
@@ -33,7 +39,7 @@ function InputField({
     <>
       <input
         className={`
-          form-control 
+          form-control
           ${invalidField ? "is-invalid" : ""}
         `}
         id={field.id}

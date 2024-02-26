@@ -106,14 +106,22 @@ function TaskPage(props: PropsType) {
 
   const currentUnitDetails = unitDetailsMap[String(currentUnitOnReview)];
 
-  const [unitInputsIsJSON, setUnitInputsIsJSON] = React.useState<boolean>(false);
-  const [unitResultsIsJSON, setUnitResultsIsJSON] = React.useState<boolean>(false);
+  const [unitInputsIsJSON, setUnitInputsIsJSON] = React.useState<boolean>(
+    false
+  );
+  const [unitResultsIsJSON, setUnitResultsIsJSON] = React.useState<boolean>(
+    false
+  );
 
   // Allow `null` state so that non-null values persist between task units
   const [inputsVisibility, setInputsVisibility] = React.useState<boolean>(null);
-  const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(null);
+  const [resultsVisibility, setResultsVisibility] = React.useState<boolean>(
+    null
+  );
 
-  const [inReviewFileModalShow, setInReviewFileModalShow] = React.useState<boolean>(false);
+  const [inReviewFileModalShow, setInReviewFileModalShow] = React.useState<
+    boolean
+  >(false);
   const [inReviewFileModalData, setInReviewFileModalData] = React.useState<
     InReviewFileModalDataType
   >({});
@@ -133,8 +141,12 @@ function TaskPage(props: PropsType) {
       // Open file field modal message
       else if (data.hasOwnProperty(MESSAGES_IN_REVIEW_FILE_DATA_KEY)) {
         const filename = data[MESSAGES_IN_REVIEW_FILE_DATA_KEY].filename;
-        const unitDataFolderStartIndex = currentUnitDetails.unit_data_folder.indexOf("data/data");
-        const unitDataFolder = currentUnitDetails.unit_data_folder.slice(unitDataFolderStartIndex);
+        const unitDataFolderStartIndex = currentUnitDetails.unit_data_folder.indexOf(
+          "data/data"
+        );
+        const unitDataFolder = currentUnitDetails.unit_data_folder.slice(
+          unitDataFolderStartIndex
+        );
 
         setInReviewFileModalData({
           filename: filename,
@@ -147,7 +159,9 @@ function TaskPage(props: PropsType) {
     }
   };
 
-  const onGetTaskWorkerUnitsIdsSuccess = (workerUnitsIds: WorkerUnitIdType[]) => {
+  const onGetTaskWorkerUnitsIdsSuccess = (
+    workerUnitsIds: WorkerUnitIdType[]
+  ) => {
     setWorkerUnits(() => {
       const workerUnitsMap = {};
 
@@ -569,7 +583,7 @@ function TaskPage(props: PropsType) {
             </div>
           ) : (
             <div>
-              No unreviewed units left for this task. <br/>
+              No unreviewed units left for this task. <br />
               Redirecting to the list of tasks.
             </div>
           )}
@@ -630,9 +644,7 @@ function TaskPage(props: PropsType) {
                     space={4}
                   />
                 ) : (
-                  <div>
-                    {JSON.stringify(currentUnitDetails.inputs)}
-                  </div>
+                  <div>{JSON.stringify(currentUnitDetails.inputs)}</div>
                 )}
               </div>
             </div>
@@ -662,15 +674,16 @@ function TaskPage(props: PropsType) {
                     space={4}
                   />
                 ) : (
-                  <div>
-                    {JSON.stringify(currentUnitDetails.outputs)}
-                  </div>
+                  <div>{JSON.stringify(currentUnitDetails.outputs)}</div>
                 )}
               </div>
             </div>
 
             {/* Completed Unit preview */}
-            <div className={"unit-preview-container"} onClick={(e) => e.preventDefault()}>
+            <div
+              className={"unit-preview-container"}
+              onClick={(e) => e.preventDefault()}
+            >
               {currentUnitDetails.has_task_source_review && (
                 <iframe
                   className={"unit-preview-iframe"}

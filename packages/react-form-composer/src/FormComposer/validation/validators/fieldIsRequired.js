@@ -4,7 +4,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { REQUIRED_ERROR_MESSAGE_KEY, validationErrorMessagesByName } from "../errorMessages";
+import {
+  REQUIRED_ERROR_MESSAGE_KEY,
+  validationErrorMessagesByName,
+} from "../errorMessages";
 
 /**
  * Check if value is not empty
@@ -22,7 +25,9 @@ export default function fieldIsRequired(field, value, required) {
   if (typeof _value === "string") {
     _value = (_value || "").trim();
   } else if (field.type === "checkbox") {
-    const numberOfSelectedValues = Object.values(value).filter((v) => v === true).length
+    const numberOfSelectedValues = Object.values(value).filter(
+      (v) => v === true
+    ).length;
     _value = numberOfSelectedValues ? value : null;
   } else if (field.type === "select" && field.multiple === true) {
     _value = (value || []).length > 0 ? value : null;
@@ -36,4 +41,3 @@ export default function fieldIsRequired(field, value, required) {
 
   return null;
 }
-

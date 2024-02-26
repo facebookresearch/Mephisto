@@ -10,7 +10,7 @@ from urllib.parse import quote
 from botocore.exceptions import BotoCoreError
 
 from mephisto.generators.form_composer.config_validation.utils import (
-    _get_bucket_and_key_from_S3_url
+    _get_bucket_and_key_from_S3_url,
 )
 from mephisto.generators.form_composer.config_validation.utils import _run_and_handle_boto_errors
 from mephisto.generators.form_composer.config_validation.utils import get_file_ext
@@ -112,8 +112,7 @@ class TestUtils(unittest.TestCase):
         )
 
         self.assertEqual(
-            result,
-            f"{main_message}. Errors:\n    - {error_list[0]}\n    - {error_list[1]}"
+            result, f"{main_message}. Errors:\n    - {error_list[0]}\n    - {error_list[1]}"
         )
 
     def test_get_file_ext_success(self, *args, **kwargs):

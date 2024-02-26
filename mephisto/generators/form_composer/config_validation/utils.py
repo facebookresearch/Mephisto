@@ -65,7 +65,7 @@ def make_error_message(main_message: str, error_list: List[str], indent: int = 2
 
 
 def get_file_ext(file_name: str) -> str:
-    """ Cut off file extension without period """
+    """Cut off file extension without period"""
     return Path(file_name).suffix.lower()[1:]
 
 
@@ -77,7 +77,7 @@ def _run_and_handle_boto_errors(
     error_message: str = "Error occurred",
     reraise: bool = True,
 ) -> Any:
-    """ Handles standard boto errors in a standard way """
+    """Handles standard boto errors in a standard way"""
     try:
         return fn()
 
@@ -94,10 +94,10 @@ def is_s3_url(value: str) -> bool:
     if isinstance(value, str):
         parsed_url = urlparse(value)
         return bool(
-            parsed_url.scheme == "https" and
-            "s3" in parsed_url.hostname and
-            parsed_url.netloc and
-            parsed_url.path
+            parsed_url.scheme == "https"
+            and "s3" in parsed_url.hostname
+            and parsed_url.netloc
+            and parsed_url.path
         )
 
     return False
@@ -137,7 +137,8 @@ def get_file_urls_from_s3_storage(s3_url: str) -> List[str]:
 
 
 def get_s3_presigned_url(s3_url: str, expires_in_mins: int = S3_URL_EXPIRATION_MINUTES) -> str:
-    """ Generate expiring URL to access protected content """
+    """Generate expiring URL to access protected content"""
+
     def boto_action():
         expires_in_secs = expires_in_mins * 60
         return s3_client.generate_presigned_url(

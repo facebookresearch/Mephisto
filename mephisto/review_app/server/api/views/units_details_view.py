@@ -14,7 +14,7 @@ from werkzeug.exceptions import BadRequest
 from mephisto.data_model.task_run import TaskRun
 from mephisto.data_model.unit import Unit
 from mephisto.generators.form_composer.config_validation.task_data_config import (
-    prepare_task_config_for_review_app
+    prepare_task_config_for_review_app,
 )
 
 

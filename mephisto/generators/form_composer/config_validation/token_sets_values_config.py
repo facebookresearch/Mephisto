@@ -16,13 +16,7 @@ from .utils import make_error_message
 from .utils import read_config_file
 from .utils import write_config_to_file
 
-TokensPermutationType = List[
-    Dict[
-        str, Dict[
-            str, List[str]
-        ]
-    ]
-]
+TokensPermutationType = List[Dict[str, Dict[str, List[str]]]]
 
 
 def validate_token_sets_values_config(config_data: List[dict]) -> Tuple[bool, List[str]]:
@@ -41,7 +35,10 @@ def validate_token_sets_values_config(config_data: List[dict]) -> Tuple[bool, Li
         # Ensure each token set has correct JSON structure
         for item in config_data:
             item_is_valid = validate_config_dict_item(
-                item, "item_tokens_values", AVAILABLE_TASK_ATTRS, errors,
+                item,
+                "item_tokens_values",
+                AVAILABLE_TASK_ATTRS,
+                errors,
             )
             if not item_is_valid:
                 is_valid = False
@@ -88,15 +85,19 @@ def update_token_sets_values_config_with_premutated_data(
     # Read JSON from files
     separate_token_values_config_data = read_config_file(separate_token_values_config_path)
 
-    separate_token_values_config_is_valid, separate_token_values_config_errors = (
-        validate_separate_token_values_config(separate_token_values_config_data)
-    )
+    (
+        separate_token_values_config_is_valid,
+        separate_token_values_config_errors,
+    ) = validate_separate_token_values_config(separate_token_values_config_data)
 
     errors = []
     if not separate_token_values_config_is_valid:
-        errors.append(make_error_message(
-            "Separate token values config is invalid", separate_token_values_config_errors,
-        ))
+        errors.append(
+            make_error_message(
+                "Separate token values config is invalid",
+                separate_token_values_config_errors,
+            )
+        )
 
     if errors:
         # Stop generating a Task, the config is incorrect

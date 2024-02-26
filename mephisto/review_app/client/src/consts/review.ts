@@ -22,33 +22,33 @@ export const FileType = {
 };
 
 export const FILE_TYPE_BY_EXT = {
-  "png": FileType.IMAGE,
-  "jpg": FileType.IMAGE,
-  "jpeg": FileType.IMAGE,
-  "gif": FileType.IMAGE,
-  "heic": FileType.IMAGE,
-  "heif": FileType.IMAGE,
-  "webp": FileType.IMAGE,
-  "bmp": FileType.IMAGE,
-  "mkv": FileType.VIDEO,
-  "mp4": FileType.VIDEO,
-  "webm": FileType.VIDEO,
-  "mp3": FileType.AUDIO,
-  "ogg": FileType.AUDIO,
-  "wav": FileType.AUDIO,
-  "pdf": FileType.PDF,
+  png: FileType.IMAGE,
+  jpg: FileType.IMAGE,
+  jpeg: FileType.IMAGE,
+  gif: FileType.IMAGE,
+  heic: FileType.IMAGE,
+  heif: FileType.IMAGE,
+  webp: FileType.IMAGE,
+  bmp: FileType.IMAGE,
+  mkv: FileType.VIDEO,
+  mp4: FileType.VIDEO,
+  webm: FileType.VIDEO,
+  mp3: FileType.AUDIO,
+  ogg: FileType.AUDIO,
+  wav: FileType.AUDIO,
+  pdf: FileType.PDF,
 };
 
 export const AUDIO_TYPES_BY_EXT = {
-  "mp3": "audio/mpeg",
-  "ogg": "audio/ogg",
-  "wav": "audio/wav",
+  mp3: "audio/mpeg",
+  ogg: "audio/ogg",
+  wav: "audio/wav",
 };
 
 export const VIDEO_TYPES_BY_EXT = {
-  "mkv": "video/x-matroska",
-  "mp4": "video/mp4",
-  "webm": "video/webm",
-  "mov": "video/quicktime",
-  "avi": "video/x-msvideo",
+  mkv: "video/x-matroska",
+  mp4: "video/mp4",
+  webm: "video/webm",
+  mov: "video/quicktime",
+  avi: "video/x-msvideo",
 };

@@ -17,7 +17,6 @@ import {
   procedureTokenRegex,
 } from "./FormComposer/utils";
 
-
 export {
   FormComposer,
   TOKEN_END_REGEX,

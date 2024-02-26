@@ -87,10 +87,9 @@
   font-style: normal;
   font-size: 40px;
   line-height: 0.5;
-
 }
 
-.task .content .results .results-closed{
+.task .content .results .results-closed {
   display: none;
 }
 

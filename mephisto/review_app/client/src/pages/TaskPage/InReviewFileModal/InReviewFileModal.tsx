@@ -4,13 +4,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { AUDIO_TYPES_BY_EXT, FILE_TYPE_BY_EXT, FileType, VIDEO_TYPES_BY_EXT } from "consts/review";
+import {
+  AUDIO_TYPES_BY_EXT,
+  FILE_TYPE_BY_EXT,
+  FileType,
+  VIDEO_TYPES_BY_EXT,
+} from "consts/review";
 import * as React from "react";
 import { useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import urls from "urls";
 import "./InReviewFileModal.css";
-
 
 type InReviewFileModalProps = {
   data: InReviewFileModalDataType;
@@ -31,11 +35,12 @@ function InReviewFileModal(props: InReviewFileModalProps) {
     setShow(!show);
   }
 
-  function truncateFilename(filename: string, n: number): string  {
+  function truncateFilename(filename: string, n: number): string {
     const ext = data.filename.split(".").pop();
-    const _filename = (filename.length > n)
-      ? (filename.slice(0, (n - 1 - ext.length)) + "…" + "." + ext)
-      : filename;
+    const _filename =
+      filename.length > n
+        ? filename.slice(0, n - 1 - ext.length) + "…" + "." + ext
+        : filename;
     return _filename;
   }
 
@@ -65,9 +70,7 @@ function InReviewFileModal(props: InReviewFileModalProps) {
           >
             ✕
           </button>
-          <Modal.Title>
-            {truncateFilename(data.title, 50)}
-          </Modal.Title>
+          <Modal.Title>{truncateFilename(data.title, 50)}</Modal.Title>
           <a
             className={"button-download-file"}
             title={"Download file"}
@@ -79,33 +82,40 @@ function InReviewFileModal(props: InReviewFileModalProps) {
         </Modal.Header>
 
         <Modal.Body>
-          {fileType ? (<>
-            {fileType === FileType.IMAGE && (
-              <img className={""} src={fileUrl} alt={`image "${data.filename}}`} />
-            )}
-            {fileType === FileType.VIDEO && (
-              <video className={""} controls={true}>
-                <source src={fileUrl} type={VIDEO_TYPES_BY_EXT[fileExt]} />
-              </video>
-            )}
-            {fileType === FileType.AUDIO && (
-              <div className={"audio-wrapper"}>
-                <audio className={""} controls={true}>
-                  <source src={fileUrl} type={AUDIO_TYPES_BY_EXT[fileExt]} />
-                </audio>
-              </div>
-            )}
-            {fileType === FileType.PDF && (
-              <div className={"pdf-wrapper"}>
-                <iframe
+          {fileType ? (
+            <>
+              {fileType === FileType.IMAGE && (
+                <img
                   className={""}
-                  src={`${fileUrl}#view=fit&page=1&toolbar=0&navpanes=0`}
+                  src={fileUrl}
+                  alt={`image "${data.filename}}`}
                 />
-              </div>
-            )}
-          </>) : (
+              )}
+              {fileType === FileType.VIDEO && (
+                <video className={""} controls={true}>
+                  <source src={fileUrl} type={VIDEO_TYPES_BY_EXT[fileExt]} />
+                </video>
+              )}
+              {fileType === FileType.AUDIO && (
+                <div className={"audio-wrapper"}>
+                  <audio className={""} controls={true}>
+                    <source src={fileUrl} type={AUDIO_TYPES_BY_EXT[fileExt]} />
+                  </audio>
+                </div>
+              )}
+              {fileType === FileType.PDF && (
+                <div className={"pdf-wrapper"}>
+                  <iframe
+                    className={""}
+                    src={`${fileUrl}#view=fit&page=1&toolbar=0&navpanes=0`}
+                  />
+                </div>
+              )}
+            </>
+          ) : (
             <div className={"other-type-wrapper"}>
-              This file type cannot be previewed.<br/>
+              This file type cannot be previewed.
+              <br />
               Please download it, or open locally.
             </div>
           )}

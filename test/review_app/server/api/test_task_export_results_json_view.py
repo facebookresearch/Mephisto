@@ -15,9 +15,7 @@ from test.review_app.server.api.base_test_api_view_case import BaseTestApiViewCa
 
 
 class TestTaskExportResultsJsonView(BaseTestApiViewCase):
-    @patch(
-        "mephisto.review_app.server.api.views.task_export_results_json_view.get_results_dir"
-    )
+    @patch("mephisto.review_app.server.api.views.task_export_results_json_view.get_results_dir")
     def test_task_export_result_json_success(self, mock_get_results_dir, *args, **kwargs):
         mock_get_results_dir.return_value = self.data_dir
         task_id = 1

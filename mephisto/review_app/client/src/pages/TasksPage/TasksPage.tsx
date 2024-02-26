@@ -119,8 +119,7 @@ function TasksPage(props: PropsType) {
                 >
                   <td
                     className={
-                      "task" +
-                      (nonClickable ? " text-muted" : " text-primary")
+                      "task" + (nonClickable ? " text-muted" : " text-primary")
                     }
                   >
                     {task.name}
@@ -131,18 +130,20 @@ function TasksPage(props: PropsType) {
                   <td className={"units"}>{task.unit_count}</td>
                   <td className={"date"}>{date}</td>
                   <td className={"export"}>
-                    {(
-                      task.is_reviewed &&
-                      !(loadingExportResults && taskIdExportResults === task.id)
-                    ) && (
-                      <span
-                        className={"text-primary download-button"}
-                        onClick={() => requestTaskResults(task.id, task.unit_count)}
-                      >
-                        Download
-                      </span>
-                    )}
-                    {(taskIdExportResults === task.id && loadingExportResults) && (
+                    {task.is_reviewed &&
+                      !(
+                        loadingExportResults && taskIdExportResults === task.id
+                      ) && (
+                        <span
+                          className={"text-primary download-button"}
+                          onClick={() =>
+                            requestTaskResults(task.id, task.unit_count)
+                          }
+                        >
+                          Download
+                        </span>
+                      )}
+                    {taskIdExportResults === task.id && loadingExportResults && (
                       <div className={"export-loading"}>
                         <Spinner
                           animation="border"

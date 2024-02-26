@@ -76,7 +76,10 @@ class TestRemoteProcedures(unittest.TestCase):
 
     @patch("mephisto.generators.form_composer.remote_procedures.get_s3_presigned_url")
     def test__get_presigned_url_for_thread_exception(
-        self, mock_get_s3_presigned_url, *args, **kwargs,
+        self,
+        mock_get_s3_presigned_url,
+        *args,
+        **kwargs,
     ):
         test_url = "https://test-bucket-private.s3.amazonaws.com/path/image.png"
 
@@ -90,7 +93,10 @@ class TestRemoteProcedures(unittest.TestCase):
 
     @patch("mephisto.generators.form_composer.remote_procedures.get_s3_presigned_url")
     def test__get_presigned_url_for_thread_success(
-        self, mock_get_s3_presigned_url, *args, **kwargs,
+        self,
+        mock_get_s3_presigned_url,
+        *args,
+        **kwargs,
     ):
         presigned_url_expected = "presigned_url"
         test_url = "https://test-bucket-private.s3.amazonaws.com/path/image.png"
@@ -105,7 +111,10 @@ class TestRemoteProcedures(unittest.TestCase):
 
     @patch("mephisto.generators.form_composer.remote_procedures.get_s3_presigned_url")
     def test__get_multiple_presigned_urls_errors(
-        self, mock_get_s3_presigned_url, *args, **kwargs,
+        self,
+        mock_get_s3_presigned_url,
+        *args,
+        **kwargs,
     ):
         test_url = "https://test-bucket-private.s3.amazonaws.com/path/image.png"
 
@@ -121,7 +130,10 @@ class TestRemoteProcedures(unittest.TestCase):
 
     @patch("mephisto.generators.form_composer.remote_procedures.get_s3_presigned_url")
     def test__get_multiple_presigned_urls_success(
-        self, mock_get_s3_presigned_url, *args, **kwargs,
+        self,
+        mock_get_s3_presigned_url,
+        *args,
+        **kwargs,
     ):
         presigned_url_expected = "presigned_url"
         test_url = "https://test-bucket-private.s3.amazonaws.com/path/image.png"

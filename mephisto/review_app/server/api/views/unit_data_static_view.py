@@ -37,7 +37,11 @@ class UnitDataStaticView(MethodView):
         return None
 
     def get(
-        self, unit_id: str = None, filename: Optional[str] = None, *args, **kwargs,
+        self,
+        unit_id: str = None,
+        filename: Optional[str] = None,
+        *args,
+        **kwargs,
     ) -> Union[Response, dict]:
         """
         Return static file from `data` directory for specific unit.

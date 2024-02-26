@@ -6,7 +6,7 @@ from typing import Union
 from mephisto.generators.form_composer.config_validation.utils import is_s3_url
 
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_agent_state import (
-    RemoteProcedureAgentState
+    RemoteProcedureAgentState,
 )
 from mephisto.generators.form_composer.config_validation.utils import get_s3_presigned_url
 from mephisto.utils.logger_core import get_logger
@@ -45,7 +45,9 @@ def _get_presigned_url_for_thread(url: str) -> Tuple[str, Union[str, None], Unio
 
 
 def _get_multiple_presigned_urls(
-    request_id: str, urls: List[str], agent_state: RemoteProcedureAgentState,
+    request_id: str,
+    urls: List[str],
+    agent_state: RemoteProcedureAgentState,
 ) -> List[Tuple[str, str]]:
     logger.debug(f"Presigning S3 URLs '{', '.join(urls)}' ({request_id=})")
 
@@ -53,9 +55,7 @@ def _get_multiple_presigned_urls(
     threads_results = []
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for url in urls:
-            threads_results.append(
-                executor.submit(_get_presigned_url_for_thread, url)
-            )
+            threads_results.append(executor.submit(_get_presigned_url_for_thread, url))
 
     # Separate successful results from errors
     success_results = []
@@ -65,9 +65,7 @@ def _get_multiple_presigned_urls(
         original_url, presigned_url, error = response
 
         if error:
-            errors.append(
-                f"Could not presign URL '{original_url}' because of error: {error}."
-            )
+            errors.append(f"Could not presign URL '{original_url}' because of error: {error}.")
             continue
 
         success_results.append((original_url, presigned_url))

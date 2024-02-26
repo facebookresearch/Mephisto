@@ -8,8 +8,8 @@ import React from "react";
 
 export function SectionErrorsCountBadge({ invalidFormFields, sectionFields }) {
   const allInvalidFieldnames = Object.keys(invalidFormFields);
-  const sectionInvalidFields = (sectionFields || []).filter(
-    (field) => allInvalidFieldnames.includes(field.name)
+  const sectionInvalidFields = (sectionFields || []).filter((field) =>
+    allInvalidFieldnames.includes(field.name)
   );
   const numberErrors = sectionInvalidFields.length;
 
@@ -22,15 +22,8 @@ export function SectionErrorsCountBadge({ invalidFormFields, sectionFields }) {
     <>
       {sectionFields && numberErrors > 0 && (
         <span className={`badge badge-danger`}>
-          <span className={`badge badge-light`}>
-            {numberErrors}
-          </span>
-
-          {" "}
-
-          <span>
-            errors
-          </span>
+          <span className={`badge badge-light`}>{numberErrors}</span>{" "}
+          <span>errors</span>
         </span>
       )}
     </>

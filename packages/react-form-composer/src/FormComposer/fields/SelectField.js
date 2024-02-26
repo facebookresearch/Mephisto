@@ -6,19 +6,25 @@
 
 import React from "react";
 import $ from "jquery";
-import "bootstrap"
+import "bootstrap";
 import "bootstrap-select";
 import { checkFieldRequiredness } from "../validation/helpers";
 import { Errors } from "./Errors";
 
 function SelectField({
-  field, updateFormData, disabled, initialFormData, inReviewState, invalid, validationErrors,
+  field,
+  updateFormData,
+  disabled,
+  initialFormData,
+  inReviewState,
+  invalid,
+  validationErrors,
 }) {
-  const initialValue = (
-    initialFormData
-      ? initialFormData[field.name]
-      : (field.multiple ? [] : "")
-  );
+  const initialValue = initialFormData
+    ? initialFormData[field.name]
+    : field.multiple
+    ? []
+    : "";
 
   const [invalidField, setInvalidField] = React.useState(false);
   const [errors, setErrors] = React.useState([]);
@@ -27,7 +33,10 @@ function SelectField({
   function onChange(e, fieldName) {
     let fieldValue = e.target.value;
     if (field.multiple) {
-      fieldValue = Array.from(e.target.selectedOptions, option => option.value);
+      fieldValue = Array.from(
+        e.target.selectedOptions,
+        (option) => option.value
+      );
     }
 
     updateFormData(e, fieldName, fieldValue);
@@ -69,7 +78,7 @@ function SelectField({
     <>
       <select
         className={`
-          form-control 
+          form-control
           selectpicker
           select-${field.name}
           ${invalidField ? "is-invalid" : ""}
@@ -93,12 +102,9 @@ function SelectField({
         data-title={inReviewState ? initialValue : null}
         data-width={"100%"}
       >
-        {field.options.map(( option, index ) => {
+        {field.options.map((option, index) => {
           return (
-            <option
-              key={`option-${field.id}-${index}`}
-              value={option.value}
-            >
+            <option key={`option-${field.id}-${index}`} value={option.value}>
               {option.label}
             </option>
           );

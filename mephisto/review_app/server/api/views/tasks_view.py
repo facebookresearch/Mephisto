@@ -52,9 +52,8 @@ class TasksView(MethodView):
             app.logger.debug(f"All completed units: {[u['unit_id'] for u in db_units]}")
 
             unit_count = len(db_units)
-            is_reviewed = (
-                unit_count > 0 and
-                all([u["status"] != AssignmentState.COMPLETED for u in db_units])
+            is_reviewed = unit_count > 0 and all(
+                [u["status"] != AssignmentState.COMPLETED for u in db_units]
             )
 
             tasks.append(

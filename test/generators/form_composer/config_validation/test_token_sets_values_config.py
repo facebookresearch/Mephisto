@@ -7,13 +7,13 @@ import unittest
 from mephisto.client.cli import FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
-    _premutate_separate_tokens
+    _premutate_separate_tokens,
 )
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
-    update_token_sets_values_config_with_premutated_data
+    update_token_sets_values_config_with_premutated_data,
 )
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
-    validate_token_sets_values_config
+    validate_token_sets_values_config,
 )
 
 
@@ -109,15 +109,17 @@ class TestTokenSetsValuesConfig(unittest.TestCase):
                         "token 1": "value 2",
                     },
                 },
-             ],
+            ],
         )
 
     def test_update_token_sets_values_config_with_premutated_data_error(self, *args, **kwargs):
         separate_token_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
         )
         token_sets_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
         )
 
         initial_config_data = {
@@ -129,7 +131,8 @@ class TestTokenSetsValuesConfig(unittest.TestCase):
 
         with self.assertRaises(ValueError) as cm:
             update_token_sets_values_config_with_premutated_data(
-                separate_token_values_config_path, token_sets_values_config_path,
+                separate_token_values_config_path,
+                token_sets_values_config_path,
             )
 
         self.assertEqual(
@@ -143,10 +146,12 @@ class TestTokenSetsValuesConfig(unittest.TestCase):
 
     def test_update_token_sets_values_config_with_premutated_data_success(self, *args, **kwargs):
         separate_token_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__SEPARATE_TOKEN_VALUES_CONFIG_NAME,
         )
         token_sets_values_config_path = os.path.join(
-            self.data_dir, FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
+            self.data_dir,
+            FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
         )
 
         initial_config_data = {
@@ -157,7 +162,8 @@ class TestTokenSetsValuesConfig(unittest.TestCase):
         f.close()
 
         update_token_sets_values_config_with_premutated_data(
-            separate_token_values_config_path, token_sets_values_config_path,
+            separate_token_values_config_path,
+            token_sets_values_config_path,
         )
 
         f = open(token_sets_values_config_path, "r")

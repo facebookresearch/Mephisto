@@ -18,7 +18,8 @@ module.exports = {
       react: path.resolve("./node_modules/react"),
       // Use local library with code that can submit FormData
       "react-form-composer": path.resolve(
-        __dirname, "../../../packages/react-form-composer",
+        __dirname,
+        "../../../packages/react-form-composer"
       ),
     },
     fallback: {

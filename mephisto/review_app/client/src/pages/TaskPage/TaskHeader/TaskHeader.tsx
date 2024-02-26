@@ -30,20 +30,15 @@ function StatCountWithPercentage(props: StatCountWithPercentagePropsType) {
     return total !== 0 ? Math.round((value * 100) / total) : 0;
   }
 
-  return (
-    totalCount !== null ? (
-      <>
-        <b>{count}</b>
-        {" "}
-        <span className={"percentage"}>
-          ({toPercent(totalCount, count)}%)
-        </span>
-      </>
-    ) : (
-      <>
-        <b>--</b>
-      </>
-    )
+  return totalCount !== null ? (
+    <>
+      <b>{count}</b>{" "}
+      <span className={"percentage"}>({toPercent(totalCount, count)}%)</span>
+    </>
+  ) : (
+    <>
+      <b>--</b>
+    </>
   );
 }
 
@@ -56,10 +51,7 @@ function TaskHeader(props: TaskHeaderPropsType) {
       <Row>
         <Col className={"logo"} sm={3}>
           {!props.loading ? (
-            <Link
-              to={urls.client.tasks}
-              title={"Go to Tasks list"}
-            >
+            <Link to={urls.client.tasks} title={"Go to Tasks list"}>
               <img src={logo} alt="logo" />
             </Link>
           ) : (
@@ -104,17 +96,20 @@ function TaskHeader(props: TaskHeaderPropsType) {
                   </td>
                   <td className={"center"}>
                     <StatCountWithPercentage
-                      totalCount={wStats.total_count} count={wStats.approved_count}
+                      totalCount={wStats.total_count}
+                      count={wStats.approved_count}
                     />
                   </td>
                   <td className={"center"}>
                     <StatCountWithPercentage
-                      totalCount={wStats.total_count} count={wStats.soft_rejected_count}
+                      totalCount={wStats.total_count}
+                      count={wStats.soft_rejected_count}
                     />
                   </td>
                   <td className={"center"}>
                     <StatCountWithPercentage
-                      totalCount={wStats.total_count} count={wStats.rejected_count}
+                      totalCount={wStats.total_count}
+                      count={wStats.rejected_count}
                     />
                   </td>
                 </tr>
@@ -135,17 +130,20 @@ function TaskHeader(props: TaskHeaderPropsType) {
                   </td>
                   <td className={"center"}>
                     <StatCountWithPercentage
-                      totalCount={tStats.total_count} count={tStats.approved_count}
+                      totalCount={tStats.total_count}
+                      count={tStats.approved_count}
                     />
                   </td>
                   <td className={"center"}>
                     <StatCountWithPercentage
-                      totalCount={tStats.total_count} count={tStats.soft_rejected_count}
+                      totalCount={tStats.total_count}
+                      count={tStats.soft_rejected_count}
                     />
                   </td>
                   <td className={"center"}>
                     <StatCountWithPercentage
-                      totalCount={tStats.total_count} count={tStats.rejected_count}
+                      totalCount={tStats.total_count}
+                      count={tStats.rejected_count}
                     />
                   </td>
                 </tr>

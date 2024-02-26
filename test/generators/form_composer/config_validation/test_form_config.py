@@ -1,7 +1,7 @@
 import unittest
 
 from mephisto.generators.form_composer.config_validation.form_config import (
-    _collect_values_for_unique_attrs_from_item
+    _collect_values_for_unique_attrs_from_item,
 )
 from mephisto.generators.form_composer.config_validation.form_config import _duplicate_values_exist
 from mephisto.generators.form_composer.config_validation.form_config import validate_form_config
@@ -25,7 +25,8 @@ class TestFormConfig(unittest.TestCase):
 
         values_for_unique_attrs = {}
         result = _collect_values_for_unique_attrs_from_item(
-            item=item, values_for_unique_attrs=values_for_unique_attrs,
+            item=item,
+            values_for_unique_attrs=values_for_unique_attrs,
         )
 
         self.assertEqual(result, {"id": ["id_field"], "name": ["field_name"]})
@@ -54,7 +55,7 @@ class TestFormConfig(unittest.TestCase):
             [
                 "Found duplicate names for unique attribute 'id' in your form config: id_field",
                 "Found duplicate names for unique attribute 'name' in your form config: field_name",
-            ]
+            ],
         )
 
     def test_validate_form_config_not_dict(self, *args, **kwargs):
@@ -175,7 +176,7 @@ class TestFormConfig(unittest.TestCase):
                                                 "tooltip": "Field tooltip 2",
                                                 "type": "input",
                                                 "value": "",
-                                            }
+                                            },
                                         ],
                                         "help": "Row help",
                                     },

@@ -59,10 +59,7 @@
                       "type": "email",
                       "validators": {
                         "required": true,
-                        "regexp": [
-                          "^[a-zA-Z0-9._-]+@mephisto\\.ai$",
-                          "ig"
-                        ]
+                        "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
                       },
                       "value": ""
                     }
@@ -252,11 +249,7 @@
                       "type": "file",
                       "validators": {
                         "required": true,
-                        "fileExtension": [
-                          "png",
-                          "jpg",
-                          "jpeg"
-                        ]
+                        "fileExtension": ["png", "jpg", "jpeg"]
                       },
                       "value": ""
                     },
@@ -377,10 +370,7 @@
                       "type": "email",
                       "validators": {
                         "required": true,
-                        "regexp": [
-                          "^[a-zA-Z0-9._-]+@mephisto\\.ai$",
-                          "ig"
-                        ]
+                        "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
                       },
                       "value": ""
                     }
@@ -570,11 +560,7 @@
                       "type": "file",
                       "validators": {
                         "required": true,
-                        "fileExtension": [
-                          "png",
-                          "jpg",
-                          "jpeg"
-                        ]
+                        "fileExtension": ["png", "jpg", "jpeg"]
                       },
                       "value": ""
                     },

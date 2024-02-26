@@ -38,4 +38,3 @@ TOKEN_END_SYMBOLS = "}}"
 TOKEN_START_REGEX = r"\{\{"
 
 TOKEN_END_REGEX = r"\}\}"
-

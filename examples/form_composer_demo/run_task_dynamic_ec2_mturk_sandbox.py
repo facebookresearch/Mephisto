@@ -18,7 +18,7 @@ from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.task_data_config import (
-    create_extrapolated_config
+    create_extrapolated_config,
 )
 from mephisto.generators.form_composer.constants import TOKEN_END_REGEX
 from mephisto.generators.form_composer.constants import TOKEN_START_REGEX
@@ -49,12 +49,10 @@ def main(operator: Operator, cfg: DictConfig) -> None:
 
 
 def _build_custom_bundles(cfg: DictConfig) -> None:
-    """ Locally build bundles that are not available on npm repository """
+    """Locally build bundles that are not available on npm repository"""
     mephisto_packages_dir = os.path.join(
         # Root project directory
-        os.path.dirname(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__)
-        ))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "packages",
     )
 
@@ -100,7 +98,9 @@ def generate_data_json_config():
 
     form_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__FORM_CONFIG_NAME)
     token_sets_values_config_path = os.path.join(
-        data_path, "dynamic", FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
+        data_path,
+        "dynamic",
+        FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
     )
     task_data_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__DATA_CONFIG_NAME)
 
@@ -134,7 +134,9 @@ def generate_preview_html():
 
     # Erase all tokens from the text since HTML preview is inherently static
     erase_tokens = lambda text: re.sub(
-        TOKEN_START_REGEX + r"(.*?)" + TOKEN_END_REGEX, "...", text,
+        TOKEN_START_REGEX + r"(.*?)" + TOKEN_END_REGEX,
+        "...",
+        text,
     )
     preview_data = {
         "title": erase_tokens(first_form_version["title"]),

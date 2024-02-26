@@ -29,7 +29,10 @@ class TestUnitDataStaticView(BaseTestApiViewCase):
 
     @patch("mephisto.data_model.unit.Unit.get_assigned_agent")
     def test_unit_data_static_with_agent_not_found_error(
-        self, mock_get_assigned_agent, *args, **kwargs,
+        self,
+        mock_get_assigned_agent,
+        *args,
+        **kwargs,
     ):
         unit_id = get_test_unit(self.db)
         agent_id = get_test_agent(self.db, unit_id=unit_id)
@@ -51,7 +54,11 @@ class TestUnitDataStaticView(BaseTestApiViewCase):
     @patch("mephisto.data_model.agent.Agent.get_data_dir")
     @patch("mephisto.data_model.unit.Unit.get_assigned_agent")
     def test_unit_data_static_success_with_filename_from_fs(
-        self, mock_get_assigned_agent, mock_get_data_dir, *args, **kwargs,
+        self,
+        mock_get_assigned_agent,
+        mock_get_data_dir,
+        *args,
+        **kwargs,
     ):
         unit_id = get_test_unit(self.db)
         agent_id = get_test_agent(self.db, unit_id=unit_id)
@@ -77,7 +84,12 @@ class TestUnitDataStaticView(BaseTestApiViewCase):
     @patch("mephisto.data_model.agent.Agent.get_data_dir")
     @patch("mephisto.data_model.unit.Unit.get_assigned_agent")
     def test_unit_data_static_success_with_filename_by_original_name(
-        self, mock_get_assigned_agent, mock_get_data_dir, mock_get_parsed_data, *args, **kwargs,
+        self,
+        mock_get_assigned_agent,
+        mock_get_data_dir,
+        mock_get_parsed_data,
+        *args,
+        **kwargs,
     ):
         unit_id = get_test_unit(self.db)
         agent_id = get_test_agent(self.db, unit_id=unit_id)

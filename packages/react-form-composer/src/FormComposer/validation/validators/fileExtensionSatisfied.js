@@ -4,8 +4,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { FILE_EXTENSION_ERROR_MESSAGE_KEY, validationErrorMessagesByName } from "../errorMessages";
-
+import {
+  FILE_EXTENSION_ERROR_MESSAGE_KEY,
+  validationErrorMessagesByName,
+} from "../errorMessages";
 
 /**
  * Check if file has correct extension
@@ -24,7 +26,9 @@ export default function fileExtensionSatisfied(field, value, ...extensions) {
   }
 
   const fileName = (value.name || "").trim();
-  const _extensions = extensions.map((e) => e.toLowerCase().replaceAll(".", ""));
+  const _extensions = extensions.map((e) =>
+    e.toLowerCase().replaceAll(".", "")
+  );
 
   const fileExtension = fileName.split(".").pop().toLowerCase();
   const fileHasCorrectExtension = _extensions.includes(fileExtension);
@@ -32,7 +36,8 @@ export default function fileExtensionSatisfied(field, value, ...extensions) {
   if (!fileHasCorrectExtension) {
     const extensionsString = _extensions.join(", ");
     return validationErrorMessagesByName[FILE_EXTENSION_ERROR_MESSAGE_KEY](
-      extensionsString, fileExtension,
+      extensionsString,
+      fileExtension
     );
   }
 

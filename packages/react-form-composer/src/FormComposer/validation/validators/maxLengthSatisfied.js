@@ -7,7 +7,7 @@
 import {
   MAX_LENGTH_ERROR_MESSAGE_KEY,
   MAX_LENGTH_ITEMS_ERROR_MESSAGE_KEY,
-  validationErrorMessagesByName
+  validationErrorMessagesByName,
 } from "../errorMessages";
 
 /**
@@ -20,7 +20,9 @@ import {
 export default function maxLengthSatisfied(field, value, maxLength) {
   let valueLength = 0;
   const _maxLength = Math.floor(maxLength);
-  let errorMessage = validationErrorMessagesByName[MAX_LENGTH_ERROR_MESSAGE_KEY](_maxLength);
+  let errorMessage = validationErrorMessagesByName[
+    MAX_LENGTH_ERROR_MESSAGE_KEY
+  ](_maxLength);
 
   if (["input", "textarea", "email"].includes(field.type)) {
     const _value = (value || "").trim();
@@ -30,13 +32,17 @@ export default function maxLengthSatisfied(field, value, maxLength) {
   if (field.type === "checkbox") {
     const _value = value || {};
     valueLength = Object.entries(_value).filter(([k, v]) => v === true).length;
-    errorMessage = validationErrorMessagesByName[MAX_LENGTH_ITEMS_ERROR_MESSAGE_KEY](_maxLength);
+    errorMessage = validationErrorMessagesByName[
+      MAX_LENGTH_ITEMS_ERROR_MESSAGE_KEY
+    ](_maxLength);
   }
 
   if (field.type === "select" && field.multiple === true) {
     const _value = value || [];
     valueLength = _value.length;
-    errorMessage = validationErrorMessagesByName[MAX_LENGTH_ITEMS_ERROR_MESSAGE_KEY](_maxLength);
+    errorMessage = validationErrorMessagesByName[
+      MAX_LENGTH_ITEMS_ERROR_MESSAGE_KEY
+    ](_maxLength);
   }
 
   if (valueLength > _maxLength) {

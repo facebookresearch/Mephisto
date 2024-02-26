@@ -6,8 +6,14 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { FormComposerBaseFrontend, LoadingScreen } from "./components/core_components.jsx";
-import { useMephistoRemoteProcedureTask, ErrorBoundary } from "mephisto-task-multipart";
+import {
+  FormComposerBaseFrontend,
+  LoadingScreen,
+} from "./components/core_components.jsx";
+import {
+  useMephistoRemoteProcedureTask,
+  ErrorBoundary,
+} from "mephisto-task-multipart";
 
 /* ================= Application Components ================= */
 

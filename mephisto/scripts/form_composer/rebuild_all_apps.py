@@ -27,7 +27,10 @@ from mephisto.tools.scripts import build_custom_bundle
 
 def _clean_examples_form_composer_demo(repo_path: str):
     webapp_path = os.path.join(
-        repo_path, "examples", "form_composer_demo", "webapp",
+        repo_path,
+        "examples",
+        "form_composer_demo",
+        "webapp",
     )
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
@@ -38,7 +41,11 @@ def _clean_examples_form_composer_demo(repo_path: str):
 
 def _clean_generators_form_composer(repo_path: str):
     webapp_path = os.path.join(
-        repo_path, "mephisto", "generators", "form_composer", "webapp",
+        repo_path,
+        "mephisto",
+        "generators",
+        "form_composer",
+        "webapp",
     )
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
@@ -49,7 +56,10 @@ def _clean_generators_form_composer(repo_path: str):
 
 def _clean_review_app(repo_path: str):
     webapp_path = os.path.join(
-        repo_path, "mephisto", "review_app", "client",
+        repo_path,
+        "mephisto",
+        "review_app",
+        "client",
     )
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
@@ -60,7 +70,9 @@ def _clean_review_app(repo_path: str):
 
 def _clean_packages_mephisto_task_multipart(repo_path: str):
     webapp_path = os.path.join(
-        repo_path, "packages", "mephisto-task-multipart",
+        repo_path,
+        "packages",
+        "mephisto-task-multipart",
     )
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
@@ -71,7 +83,9 @@ def _clean_packages_mephisto_task_multipart(repo_path: str):
 
 def _clean_packages_react_form_composer(repo_path: str):
     webapp_path = os.path.join(
-        repo_path, "packages", "react-form-composer",
+        repo_path,
+        "packages",
+        "react-form-composer",
     )
     print(f"[blue]Cleaning '{webapp_path}'[/blue]")
     build_path = os.path.join(webapp_path, "build")
@@ -116,7 +130,10 @@ def _build_examples_form_composer_demo(repo_path: str):
 
 def _build_generators_form_composer(repo_path: str):
     webapp_path = os.path.join(
-        repo_path, "mephisto", "generators", "form_composer",
+        repo_path,
+        "mephisto",
+        "generators",
+        "form_composer",
     )
     print(f"[blue]Building '{webapp_path}'[/blue]")
     # Build Review UI for the application
@@ -180,9 +197,9 @@ def _build(repo_path: str):
 
 
 def main():
-    repo_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__)
-    ))))
+    repo_path = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    )
 
     _clean(repo_path)
     _build(repo_path)

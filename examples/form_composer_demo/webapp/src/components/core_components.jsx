@@ -23,15 +23,16 @@ function Directions({ children }) {
   );
 }
 
-function FormComposerBaseFrontend({ taskData, onSubmit, onError, finalResults = null }) {
+function FormComposerBaseFrontend({
+  taskData,
+  onSubmit,
+  onError,
+  finalResults = null,
+}) {
   let initialConfigFormData = taskData.form;
 
   if (!initialConfigFormData) {
-    return (
-      <div>
-        Passed form data is invalid... Recheck your task config.
-      </div>
-    );
+    return <div>Passed form data is invalid... Recheck your task config.</div>;
   }
 
   return (

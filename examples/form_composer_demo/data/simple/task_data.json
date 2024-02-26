@@ -38,7 +38,7 @@
                       "placeholder": "Type last name",
                       "tooltip": "Your last name",
                       "type": "input",
-                      "validators": {"required": true},
+                      "validators": { "required": true },
                       "value": ""
                     }
                   ],
@@ -93,7 +93,7 @@
                       "placeholder": "",
                       "tooltip": "Country",
                       "type": "select",
-                      "validators": {"required": true},
+                      "validators": { "required": true },
                       "value": ""
                     },
                     {
@@ -149,7 +149,7 @@
                       "placeholder": "",
                       "tooltip": "Your bio in a few paragraphs",
                       "type": "textarea",
-                      "validators": {"required": false},
+                      "validators": { "required": false },
                       "value": ""
                     }
                   ]
@@ -224,7 +224,7 @@
                       ],
                       "tooltip": "How many children do you have?",
                       "type": "radio",
-                      "validators": {"required": true}
+                      "validators": { "required": true }
                     }
                   ]
                 },
@@ -238,7 +238,7 @@
                       "placeholder": "Select a file",
                       "tooltip": "Your profile photo",
                       "type": "file",
-                      "validators": {"required": true},
+                      "validators": { "required": true },
                       "value": ""
                     },
                     {
@@ -249,7 +249,7 @@
                       "placeholder": "Select a file",
                       "tooltip": "Your current resume",
                       "type": "file",
-                      "validators": {"required": false},
+                      "validators": { "required": false },
                       "value": ""
                     }
                   ]
@@ -263,7 +263,7 @@
           "name": "section_second",
           "title": "Second section",
           "instruction": "Example of another section",
-          "fieldsets" : [
+          "fieldsets": [
             {
               "title": "Motivation",
               "instruction": "",
@@ -278,7 +278,7 @@
                       "placeholder": "",
                       "tooltip": "Your personal motto",
                       "type": "input",
-                      "validators": {"required": true},
+                      "validators": { "required": true },
                       "value": ""
                     }
                   ],

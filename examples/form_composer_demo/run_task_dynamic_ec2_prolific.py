@@ -16,7 +16,7 @@ from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.data_model.qualification import QUAL_GREATER_EQUAL
 from mephisto.generators.form_composer.config_validation.task_data_config import (
-    create_extrapolated_config
+    create_extrapolated_config,
 )
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import build_custom_bundle
@@ -51,12 +51,10 @@ def main(operator: Operator, cfg: DictConfig) -> None:
 
 
 def _build_custom_bundles(cfg: DictConfig) -> None:
-    """ Locally build bundles that are not available on npm repository """
+    """Locally build bundles that are not available on npm repository"""
     mephisto_packages_dir = os.path.join(
         # Root project directory
-        os.path.dirname(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__)
-        ))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "packages",
     )
 
@@ -102,7 +100,9 @@ def generate_data_json_config():
 
     form_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__FORM_CONFIG_NAME)
     token_sets_values_config_path = os.path.join(
-        data_path, "dynamic", FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
+        data_path,
+        "dynamic",
+        FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
     )
     task_data_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__DATA_CONFIG_NAME)
 

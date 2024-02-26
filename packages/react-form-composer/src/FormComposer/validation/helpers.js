@@ -51,13 +51,17 @@ export function validateFormFields(formFieldsValues, fields) {
       if (!validatorFunctionsByConfigName.hasOwnProperty(validatorName)) {
         console.warn(
           `You tried to validate field "${field.name}" with validator "${validatorName}". ` +
-          `"FormComposer" does not support this validator, so we just ignore it`
-        )
+            `"FormComposer" does not support this validator, so we just ignore it`
+        );
         return;
       }
 
       const validatorFunction = validatorFunctionsByConfigName[validatorName];
-      const validationResult = validatorFunction(field, fieldValue, ..._validatorArguments);
+      const validationResult = validatorFunction(
+        field,
+        fieldValue,
+        ..._validatorArguments
+      );
 
       if (validationResult) {
         invalidFormFields[field.name] = [

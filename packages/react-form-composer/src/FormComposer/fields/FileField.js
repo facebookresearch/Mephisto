@@ -29,21 +29,24 @@ function FileField({
     const input = e.target;
 
     // Format of JSON value of files that server requires
-    input.files?.length && Object.values(input.files).forEach((file) => {
-      fieldValue = {
-        lastModified: file.lastModified ? file.lastModified : -1,
-        name: file.name ? file.name : "",
-        size: file.size ? file.size : -1,
-        type: file.type ? file.type : "",
-      };
-      setWidgetValue(fieldValue.name);
-    });
+    input.files?.length &&
+      Object.values(input.files).forEach((file) => {
+        fieldValue = {
+          lastModified: file.lastModified ? file.lastModified : -1,
+          name: file.name ? file.name : "",
+          size: file.size ? file.size : -1,
+          type: file.type ? file.type : "",
+        };
+        setWidgetValue(fieldValue.name);
+      });
 
     updateFormData(e, fieldName, fieldValue);
   }
 
   function setDefaultWidgetValue() {
-    const initialValue = initialFormData ? initialFormData[field.name] : {name: ""};
+    const initialValue = initialFormData
+      ? initialFormData[field.name]
+      : { name: "" };
     setWidgetValue(initialValue.name || "");
   }
 
@@ -73,14 +76,16 @@ function FileField({
     //  - custom-file-input
     //  - custom-file-label
 
-    <div className={`
+    <div
+      className={`
       file-field
-      custom-file 
+      custom-file
       ${invalidField ? "is-invalid" : ""}
-    `}>
+    `}
+    >
       <input
         className={`
-          custom-file-input 
+          custom-file-input
           ${invalidField ? "is-invalid" : ""}
         `}
         id={field.id}
@@ -101,7 +106,7 @@ function FileField({
         Button to open file in modal window in Review App.
         This button is shown over input browse button only in review state and if file was attached
       */}
-      {(inReviewState && widgetValue) && (
+      {inReviewState && widgetValue && (
         <div
           className={"review-file-button"}
           title={"View uploaded file content"}
@@ -111,9 +116,7 @@ function FileField({
         </div>
       )}
 
-      <span className={`custom-file-label`}>
-        {widgetValue}
-      </span>
+      <span className={`custom-file-label`}>{widgetValue}</span>
 
       <Errors messages={errors} />
     </div>

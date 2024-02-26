@@ -8,8 +8,8 @@ import React from "react";
 
 export function SectionErrors({ invalidFormFields, sectionFields }) {
   const allInvalidFieldnames = Object.keys(invalidFormFields);
-  const sectionInvalidFields = (sectionFields || []).filter(
-    (field) => allInvalidFieldnames.includes(field.name)
+  const sectionInvalidFields = (sectionFields || []).filter((field) =>
+    allInvalidFieldnames.includes(field.name)
   );
   const sectionHasErrors = sectionInvalidFields.length > 0;
 
@@ -21,13 +21,8 @@ export function SectionErrors({ invalidFormFields, sectionFields }) {
 
     <>
       {sectionHasErrors && sectionFields && (
-        <div
-          className={`alert alert-danger container`}
-          role={"alert"}
-        >
-          <b>
-            Please fix the following errors:
-          </b>
+        <div className={`alert alert-danger container`} role={"alert"}>
+          <b>Please fix the following errors:</b>
 
           <ul key={`fields-errors`}>
             {sectionFields.map((field, fieldIndex) => {
@@ -40,9 +35,7 @@ export function SectionErrors({ invalidFormFields, sectionFields }) {
 
               return (
                 <li key={`fields-errors-${fieldIndex}`}>
-                  <div>
-                    {field.label}:
-                  </div>
+                  <div>{field.label}:</div>
 
                   <ul key={`field-errors`}>
                     {fieldErrors.map((error, errorIndex) => {
