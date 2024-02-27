@@ -29,6 +29,13 @@ examples/simple_static_task/hydra_configs/conf/*
 !examples/simple_static_task/hydra_configs/conf/prolific_example.yaml
 !examples/simple_static_task/hydra_configs/conf/onboarding_example*.yaml
 examples/**/build/*
+examples/form_composer_demo/preview/*_preview.html
+
+# Form Composer
+mephisto/generators/form_composer/data/*.json
+mephisto/generators/form_composer/webapp/package-lock.json
+mephisto/generators/form_composer/hydra_configs/conf/*.yaml
+!mephisto/generators/form_composer/hydra_configs/conf/default.yaml
 
 # PyCharm
 .idea

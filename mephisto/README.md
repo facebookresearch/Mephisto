@@ -81,11 +81,11 @@ docker-compose -f docker/docker-compose.dev.yml run \
     --build \
     --publish 8081:8000 \
     --rm mephisto_dc \
-    mephisto review_app -h 0.0.0.0 -p 8000 -d True -f False -o False
+    mephisto review_app -h 0.0.0.0 -p 8000 -d True -f False -s False
 ```
 - Browser page: [http://localhost:8081/](http://localhost:8081/).
 
-The UI is fairly intuitive, and for more details you can consult [README.md for TaskReview app](mephisto/client/review_app/README.md).
+The UI is fairly intuitive, and for more details you can consult [README.md for TaskReview app](/mephisto/review_app/README.md).
 
 ---
 
@@ -121,7 +121,7 @@ In order to launch your own customized project, you will need to write a React a
     - `data_json`: path to a json file containing task data
   - To see other configurable blueprint variables, type `mephisto wut blueprint=static_task`
 4. Customize task's front-end code, with starting point being `/<my_task_folder>/webapp/src/components/core_components.jsx` (you caninclude an onboarding step if you like).
-5. Add the ability to review results of your task app. In short, you need to implement additional component or logic to render json data that TaskReview app will provide. For more details, read this [doc](mephisto/client/review_app/README.md).
+5. Add the ability to review results of your task app. In short, you need to implement additional component or logic to render json data that TaskReview app will provide. For more details, read this [doc](/mephisto/review_app/README.md).
 6. Run `run_task.py` to dry-run your task on localhost.
 7. Repeat 5 & 6 until you're happy with your task.
 8. Launch a small batch with a chosen crowd provider to see how real workers handle your task.
@@ -205,3 +205,26 @@ or simply embed that command into your docker-compose entrypoint script.
 3. Leave the Task running in the console until all worker submissions are received. If TaskRun was interrupted, you can restart it using the same commands. After all submissions are received, the Architect will automatically shut down actiive TaskRun.
 
 4. Now you are ready to review, and then download, your Task results.
+
+---
+
+## Process results
+
+Final steps of reviewing worker submissions and exporting the results will be same as described under sample Mephisto project runs.
+
+---
+
+## Launch Auto-composed forms
+
+1. Create `data.json` config in `mephisto/generators/form_composer/data`. An example is found in `examples/simple_form_composer/data/data.json` file
+2. Run a task with command:
+    - Locally `mephisto form_composer`
+    - Using Docker Compose
+      ```shell
+      docker-compose -f docker/docker-compose.dev.yml run \
+          --build \
+          --publish 8081:8000 \
+          --rm mephisto_dc \
+          mephisto form_composer
+      ```
+3. Open in Browser page: http://localhost:3001/

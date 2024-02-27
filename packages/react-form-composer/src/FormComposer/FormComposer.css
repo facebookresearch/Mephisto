@@ -1,0 +1,295 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/* --- Default content styles --- */
+img,
+video {
+  max-width: 100%;
+  max-height: 500px;
+  display: block;
+  margin: 20px 0;
+}
+
+/* --- Form --- */
+.form-composer {
+  /* Variables */
+  --input-bg-color: #fafafa;
+  --error-color: red;
+  --orange-color: orange;
+
+  margin: 0 auto;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 1280px;
+}
+
+.form-composer .form-header {
+}
+
+.form-composer .form-header .form-name {
+  font-size: 22px;
+}
+
+.form-composer .form-header .form-instruction {
+}
+
+/* --- Section --- */
+.form-composer .section {
+}
+
+.form-composer .section .section-header:not(.collapsable):hover {
+  cursor: initial;
+  opacity: 1;
+}
+
+.form-composer .section .section-header.collapsable:hover {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.form-composer .section .section-header.has-invalid-fields .section-name {
+  color: var(--error-color);
+}
+
+.form-composer .section .section-name {
+  font-size: 18px;
+}
+
+.form-composer .section .section-instruction {
+}
+
+/* --- Fieldset --- */
+.form-composer .section .fieldset {
+  margin-bottom: 20px;
+}
+
+.form-composer .section .fieldset .fieldset-header {
+  background-color: #d9e0df;
+}
+
+.form-composer .section .fieldset .fieldset-name {
+  margin: 0;
+}
+
+.form-composer .section .fieldset .fieldset-instruction {
+}
+
+/* --- Row --- */
+.form-composer .section .fieldset .row {
+}
+
+.form-composer .section .fieldset .row:not(:last-child) {
+  margin-bottom: 20px;
+}
+
+.form-composer .section .fieldset .row .row-instruction {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.form-composer .section .fieldset .row .row-help {
+  padding-top: 5px;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 15px;
+  margin-right: 15px;
+  font-size: 12px;
+  font-style: italic;
+  color: grey;
+  border-top: 1px solid #ccc;
+}
+
+/* --- Field --- */
+.form-composer .section .fieldset .field {
+  margin-bottom: 10px;
+}
+
+.form-composer .section .fieldset .field .field-help {
+  font-size: 10px;
+}
+
+.form-composer .section .fieldset .field {
+}
+
+.form-composer .section .fieldset .field label {
+  width: 100%;
+}
+
+.form-composer .section .fieldset .field.required label:after {
+  content: "*";
+  color: var(--error-color);
+  margin-left: 3px;
+}
+
+.form-composer .section .fieldset .field input {
+  width: 100%;
+}
+
+.form-composer .section .fieldset .field input,
+.form-composer .section .fieldset .field select {
+  background-color: var(--input-bg-color);
+}
+
+.form-composer .form-buttons-separator {
+  margin-bottom: 40px;
+  width: 70%;
+  border: 1px solid black;
+  opacity: 0.2;
+}
+
+.form-composer .section .fieldset .field .form-check.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.form-composer .section .fieldset .field .form-check.checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.form-composer .section .fieldset .field .form-check.checkbox .form-check-input,
+.form-composer .section .fieldset .field .form-check.radio .form-check-input {
+  margin-top: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ced4da;
+  background-color: transparent;
+}
+
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.checkbox
+  .form-check-input {
+  border-radius: 4px;
+}
+
+.form-composer .section .fieldset .field .form-check.radio .form-check-input {
+  border-radius: 50%;
+}
+
+.form-composer .section .fieldset .field .form-check.checkbox .form-check-label,
+.form-composer .section .fieldset .field .form-check.radio .form-check-label {
+  margin-left: 10px;
+}
+
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.checkbox
+  .form-check-input.checked,
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.radio
+  .form-check-input.checked {
+  background-color: #495057;
+}
+
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.checkbox.is-invalid
+  .form-check-input,
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check.radio.is-invalid
+  .form-check-input {
+  border-color: var(--error-color);
+}
+
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check:not(.disabled):hover
+  .form-check-input {
+  border-color: #495057;
+  cursor: pointer;
+}
+
+.form-composer
+  .section
+  .fieldset
+  .field
+  .form-check:not(.disabled):hover
+  .form-check-label {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.form-composer .section .fieldset .field .file-field {
+  position: relative;
+}
+
+.form-composer .section .fieldset .field .file-field .review-file-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  display: block;
+  width: 88px;
+  height: calc(1.5em + 0.75rem + 2px);
+  padding: 0.375rem 0.75rem;
+  line-height: 1.5;
+  background-color: var(--orange-color);
+  color: white;
+  border: 1px solid var(--orange-color);
+  border-left: inherit;
+  border-radius: 0 0.25rem 0.25rem 0;
+  cursor: pointer;
+}
+
+.form-composer .section .fieldset .field .file-field .review-file-button:hover {
+  background-color: #de8800;
+  border-color: #de8800;
+}
+
+/* --- Buttons --- */
+.form-composer .form-buttons {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.form-composer .form-buttons .button-submit {
+}
+
+/* --- Bootstrap overriding --- */
+
+.form-control::placeholder {
+  color: #c7c7c7 !important;
+}
+.form-control::-moz-placeholder {
+  color: #c7c7c7 !important;
+  opacity: 1;
+}
+.form-control:-ms-input-placeholder {
+  color: #c7c7c7 !important;
+}
+.form-control::-webkit-input-placeholder {
+  color: #c7c7c7 !important;
+}
+
+.non-collapsable {
+  display: initial !important;
+}
+
+/* --- Custom classes for users --- */
+
+.centered {
+  display: block;
+  text-align: center;
+}

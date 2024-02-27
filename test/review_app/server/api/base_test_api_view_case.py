@@ -13,7 +13,7 @@ from typing import Type
 
 from mephisto.abstractions.database import MephistoDB
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
-from mephisto.client.review_app.server import create_app
+from mephisto.review_app.server import create_app
 
 
 class BaseTestApiViewCase(unittest.TestCase):

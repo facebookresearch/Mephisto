@@ -64,7 +64,21 @@ function getAgentRegistration() {
 }
 
 
+function convertTaskDataToJson(task_data) {
+  // task_data can be a string if our task UI contains a "multipart/data" form inside
+  if (typeof task_data === "string") {
+    try {
+      task_data = JSON.parse(task_data);
+    } catch {
+      console.error("Could not convert `task_data` string to JSON:", task_data);
+    }
+  }
+  return task_data;
+}
+
+
 function handleSubmitToProvider(task_data) {
+  task_data = convertTaskDataToJson(task_data);
   // Redirecting a worker to the Prolific Study page back.
   // Otherwise, this worker will stay at our project's page without ability to finish his job
   var completionCode = STUDY_CODE_TYPE_COMPLETED + '_' + getProlificStudyId();

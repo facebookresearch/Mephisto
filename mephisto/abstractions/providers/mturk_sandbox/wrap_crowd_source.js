@@ -51,7 +51,20 @@ function getAgentRegistration() {
   };
 }
 
+function convertTaskDataToJson(task_data) {
+  // task_data can be a string if our task UI contains a "multipart/data" form inside
+  if (typeof task_data === "string") {
+    try {
+      task_data = JSON.parse(task_data);
+    } catch {
+      console.error("Could not convert `task_data` string to JSON:", task_data);
+    }
+  }
+  return task_data;
+}
+
 function handleSubmitToProvider(task_data) {
+  task_data = convertTaskDataToJson(task_data);
   // MTurk agents need to submit some task parameters
   let urlParams = new URLSearchParams(window.location.search);
   task_data["assignmentId"] = getAssignmentId();

@@ -11,5 +11,5 @@ This task is a simple model evaluation demo, presenting the worker with three sp
 Introduced in [#677](https://github.com/facebookresearch/Mephisto/pull/677), some screenshots and discussion there.
 
 For more details how to write your own `webapp` (ReactJS application) see example in current directory. 
-Also, read [short documentation](../../../mephisto/client/review_app/README.md) 
+Also, read [short documentation](mephisto/review_app/README.md) 
 for the main Review App to understand how to add review part in your `webapp`.

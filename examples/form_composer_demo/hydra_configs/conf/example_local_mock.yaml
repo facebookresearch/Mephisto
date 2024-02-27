@@ -1,0 +1,26 @@
+#@package _global_
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
+
+mephisto:
+  blueprint:
+    data_json: ${task_dir}/data/simple/task_data.json
+    task_source: ${task_dir}/webapp/build/bundle.js
+    task_source_review: ${task_dir}/webapp/build/bundle.review.js
+    link_task_source: false
+    extra_source_dir: ${task_dir}/webapp/src/static
+    units_per_assignment: 1
+  task:
+    task_name: "Form Builder Sample"
+    task_title: "Example how to easily create simple form-based Tasks"
+    task_description: "In this Task, we use FormComposer feature."
+    task_reward: 0
+    task_tags: "test,simple,form"
+    force_rebuild: true

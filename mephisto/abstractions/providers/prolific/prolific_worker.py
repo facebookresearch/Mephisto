@@ -167,7 +167,7 @@ class ProlificWorker(Worker):
         logger.debug(f"{self.log_prefix}Task Run: {task_run}")
 
         task_run_args = task_run.args
-        requester = cast("ProlificRequester", requester)
+        requester: "ProlificRequester" = cast("ProlificRequester", requester)
         client = self._get_client(requester.requester_name)
         prolific_utils.unblock_worker(client, task_run_args, self.worker_name, reason)
         self.datastore.set_worker_blocked(self.worker_name, is_blocked=False)
@@ -182,7 +182,7 @@ class ProlificWorker(Worker):
     def is_blocked(self, requester: "Requester") -> bool:
         """Determine if a worker is blocked"""
         task_run = self._get_first_task_run(requester)
-        requester = cast("ProlificRequester", requester)
+        requester: "ProlificRequester" = cast("ProlificRequester", requester)
         is_blocked = self.datastore.get_worker_blocked(self.get_prolific_participant_id())
 
         logger.debug(
@@ -256,7 +256,7 @@ class ProlificWorker(Worker):
         """Grant qualification by the given name to this worker"""
         logger.debug(f"{self.log_prefix}Granting crowd qualification: {qualification_name}")
 
-        requester = cast(
+        requester: "ProlificRequester" = cast(
             "ProlificRequester",
             self.db.find_requesters(provider_type=self.provider_type)[-1],
         )
@@ -298,12 +298,11 @@ class ProlificWorker(Worker):
 
     def send_feedback_message(self, text: str, unit: "Unit") -> bool:
         """Send feedback message to a worker"""
-        requester = cast(
+        requester: "ProlificRequester" = cast(
             "ProlificRequester",
             self.db.find_requesters(provider_type=self.provider_type)[-1],
         )
-
-        assert isinstance(requester, ProlificRequester), "Must be an Prolific requester"
+        # assert isinstance(requester, ProlificRequester), "Must be an Prolific requester"
 
         client = self._get_client(requester.requester_name)
         datastore_unit = self.datastore.get_unit(unit.db_id)

@@ -1,0 +1,54 @@
+#@package _global_
+
+# Copyright (c) Meta Platforms and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+defaults:
+  - /mephisto/blueprint: static_react_task
+  - /mephisto/architect: ec2
+  - /mephisto/provider: prolific
+
+mephisto:
+  architect:
+    _architect_type: ec2
+    profile_name: mephisto-router-iam
+    subdomain: "0123"
+  blueprint:
+    data_json: ${task_dir}/data/dynamic/task_data.json
+    task_source: ${task_dir}/webapp/build/bundle.js
+    task_source_review: ${task_dir}/webapp/build/bundle.review.js
+    link_task_source: false
+    extra_source_dir: ${task_dir}/webapp/src/static
+    units_per_assignment: 1
+  log_level: "debug"
+  task:
+    task_name: "Form Builder Sample"
+    # Note: don't use `Prolific` in task names, because Prolific will (silently) block your account
+    task_title: "Dynamic form-based Tasks for Prolifik"
+    task_description: "In this Task, we use dynamic FormComposer feature."
+    task_reward: 70
+    task_tags: "test,simple,form"
+    force_rebuild: true
+    max_num_concurrent_units: 1
+  provider:
+    prolific_external_study_url: "https://example.com?participant_id={{%PROLIFIC_PID%}}&study_id={{%STUDY_ID%}}&submission_id={{%SESSION_ID%}}"
+    prolific_id_option: "url_parameters"
+    prolific_workspace_name: "My Workspace"
+    prolific_project_name: "Project"
+    prolific_allow_list_group_name: "Allow list"
+    prolific_block_list_group_name: "Block list"
+    prolific_eligibility_requirements:
+      - name: "CustomWhitelistEligibilityRequirement"
+        white_list:
+          - 6528ff4ac201b9605db841e4
+          - 6528ff6b4a6e8ccb70226c4b
+          - 6528ff850867369791a99491
+          - 6528ffa32c90c600f42b3589
+          - 6528ffc2618c084ccb2b37a0
+          - 6528ffe199313384fde5028e
+          - 652907b023fbe4ed22234d75
+          - 652907fb98474afcbe5cb5cd
+      - name: "ApprovalRateEligibilityRequirement"
+        minimum_approval_rate: 1
+        maximum_approval_rate: 100

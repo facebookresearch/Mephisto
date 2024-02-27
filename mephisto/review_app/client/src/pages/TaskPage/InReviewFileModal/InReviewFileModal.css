@@ -1,0 +1,129 @@
+/*
+ * Copyright (c) Meta Platforms and its affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+.in-review-file-modal .modal-dialog {
+  max-width: 98vw;
+  min-width: 500px;
+  width: fit-content;
+}
+
+.in-review-file-modal .modal-dialog .modal-header {
+  background-color: #ecdadf;
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  border-radius: 0;
+}
+
+.in-review-file-modal .modal-dialog .modal-header .button-close {
+  height: 38px;
+  width: 38px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.in-review-file-modal .modal-dialog .modal-header .button-download-file {
+  height: 38px;
+  width: 38px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  border: none;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  color: black;
+}
+
+.in-review-file-modal .modal-dialog .modal-header .button-close:hover,
+.in-review-file-modal .modal-dialog .modal-header .button-download-file:hover {
+  opacity: 0.7;
+  background-color: #ddb6c1;
+}
+
+.in-review-file-modal .modal-dialog .modal-header .modal-title {
+  font-size: 26px;
+  padding: 0 15px;
+}
+
+/* Body */
+.in-review-file-modal .modal-dialog .modal-content {
+  border-radius: initial;
+  width: fit-content;
+  min-width: 500px;
+}
+
+.in-review-file-modal .modal-dialog .modal-content.file-type-audio {
+  min-width: 700px;
+}
+
+.in-review-file-modal .modal-dialog .modal-content .modal-body {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding: 0;
+}
+
+.in-review-file-modal .modal-dialog .modal-content .modal-body img,
+.in-review-file-modal .modal-dialog .modal-content .modal-body video {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.in-review-file-modal .modal-dialog .modal-content .modal-body .pdf-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: calc(129% + 2%);
+}
+.in-review-file-modal .modal-dialog .modal-content .modal-body iframe {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f2f2f2;
+  border: 1px solid #cccccc;
+}
+
+.in-review-file-modal .modal-dialog .modal-content .modal-body .audio-wrapper {
+  width: 100%;
+  padding: 25px;
+}
+.in-review-file-modal
+  .modal-dialog
+  .modal-content
+  .modal-body
+  .audio-wrapper
+  audio {
+  width: 100%;
+}
+
+.in-review-file-modal
+  .modal-dialog
+  .modal-content
+  .modal-body
+  .other-type-wrapper {
+  padding: 25px;
+}
+
+/* Footer */
+.in-review-file-modal .modal-dialog .modal-content .modal-footer {
+  justify-content: center;
+}
+.in-review-file-modal .modal-dialog .modal-content .modal-footer .file-path {
+  margin: 0;
+  padding: 0;
+  color: grey;
+  font-size: 14px;
+  font-style: italic;
+}
