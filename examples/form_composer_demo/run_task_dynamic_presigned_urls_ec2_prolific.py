@@ -93,21 +93,18 @@ def generate_data_json_config():
     based on existing form and tokens values config files
     """
     app_path = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(app_path, "data")
+    data_path = os.path.join(app_path, "data", "dynamic_presigned_urls")
 
     form_config_path = os.path.join(
         data_path,
-        "dynamic_presigned_urls",
         FORM_COMPOSER__FORM_CONFIG_NAME,
     )
     token_sets_values_config_path = os.path.join(
         data_path,
-        "dynamic_presigned_urls",
         FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
     )
     task_data_config_path = os.path.join(
         data_path,
-        "dynamic_presigned_urls",
         FORM_COMPOSER__DATA_CONFIG_NAME,
     )
 

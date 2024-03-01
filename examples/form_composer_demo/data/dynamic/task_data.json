@@ -2,12 +2,12 @@
   {
     "form": {
       "title": "Form example",
-      "instruction": "Please answer <b>all</b> questions to the best of your ability as part of our study.",
+      "instruction": "<div class=\"instruction\">Please answer <b>all</b> questions to the best of your ability as part of our study.</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
       "sections": [
         {
           "name": "section_about",
           "title": "About you",
-          "instruction": "<p>Please introduce yourself. We would like to know more about your:</p><ul><li>Background</li><li>Personal information</li><li>Etc</li></ul>",
+          "instruction": "<p>Please introduce yourself. We would like to know more about your:</p>\n<ul>\n    <li>Background</li>\n    <li>Personal information</li>\n    <li>Etc</li>\n</ul>\n",
           "collapsable": false,
           "fieldsets": [
             {
@@ -50,12 +50,12 @@
                 {
                   "fields": [
                     {
-                      "help": "We may contact you later at your Mephisto email for additional information",
+                      "help": "We may contact you later at your Facebook email for additional information",
                       "id": "id_email",
-                      "label": "Email address for Mephisto",
+                      "label": "Email address for Facebook",
                       "name": "email",
                       "placeholder": "user@mephisto.ai",
-                      "tooltip": "Email address for Mephisto",
+                      "tooltip": "Email address for Facebook",
                       "type": "email",
                       "validators": {
                         "required": true,
@@ -155,7 +155,8 @@
                       "tooltip": "Your bio in a few paragraphs",
                       "type": "textarea",
                       "validators": {
-                        "required": false
+                        "required": false,
+                        "checkForbiddenWords": true
                       },
                       "value": ""
                     }
@@ -313,12 +314,12 @@
   {
     "form": {
       "title": "Form example",
-      "instruction": "Please answer <b>all</b> questions to the best of your ability as part of our study.",
+      "instruction": "<div class=\"instruction\">Please answer <b>all</b> questions to the best of your ability as part of our study.</div>\n\n<style>\n  .instruction {\n    font-style: italic;\n  }\n</style>\n",
       "sections": [
         {
           "name": "section_about",
           "title": "About you",
-          "instruction": "<p>Please introduce yourself. We would like to know more about your:</p><ul><li>Background</li><li>Personal information</li><li>Etc</li></ul>",
+          "instruction": "<p>Please introduce yourself. We would like to know more about your:</p>\n<ul>\n    <li>Background</li>\n    <li>Personal information</li>\n    <li>Etc</li>\n</ul>\n",
           "collapsable": false,
           "fieldsets": [
             {
@@ -361,12 +362,12 @@
                 {
                   "fields": [
                     {
-                      "help": "We may contact you later at your Facebook email for additional information",
+                      "help": "We may contact you later at your Mephisto email for additional information",
                       "id": "id_email",
-                      "label": "Email address for Facebook",
+                      "label": "Email address for Mephisto",
                       "name": "email",
                       "placeholder": "user@mephisto.ai",
-                      "tooltip": "Email address for Facebook",
+                      "tooltip": "Email address for Mephisto",
                       "type": "email",
                       "validators": {
                         "required": true,
@@ -466,7 +467,8 @@
                       "tooltip": "Your bio in a few paragraphs",
                       "type": "textarea",
                       "validators": {
-                        "required": false
+                        "required": false,
+                        "checkForbiddenWords": true
                       },
                       "value": ""
                     }

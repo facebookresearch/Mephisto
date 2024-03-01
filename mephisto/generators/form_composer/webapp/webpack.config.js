@@ -25,6 +25,9 @@ module.exports = {
         __dirname,
         "../../../../packages/react-form-composer"
       ),
+      "custom-validators": path.resolve(
+        process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
+      ),
     },
     fallback: {
       net: false,

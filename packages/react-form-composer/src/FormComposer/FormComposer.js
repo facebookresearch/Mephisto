@@ -32,6 +32,7 @@ function FormComposer({
   finalResults,
   serverSubmitErrors,
   setRenderingErrors,
+  customValidators,
 }) {
   // State to hide submit button
   const [onSubmitLoading, setOnSubmitLoading] = React.useState(false);
@@ -94,7 +95,11 @@ function FormComposer({
     setInvalidFormFields({});
 
     // Set new invalid fields
-    const _invalidFormFields = validateFormFields(form, fields);
+    const _invalidFormFields = validateFormFields(
+      form,
+      fields,
+      customValidators
+    );
     setInvalidFormFields(_invalidFormFields);
 
     return !Object.keys(_invalidFormFields).length;

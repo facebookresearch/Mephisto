@@ -85,14 +85,10 @@ function InReviewFileModal(props: InReviewFileModalProps) {
           {fileType ? (
             <>
               {fileType === FileType.IMAGE && (
-                <img
-                  className={""}
-                  src={fileUrl}
-                  alt={`image "${data.filename}}`}
-                />
+                <img src={fileUrl} alt={`image "${data.filename}"`} />
               )}
               {fileType === FileType.VIDEO && (
-                <video className={""} controls={true}>
+                <video controls={true}>
                   <source src={fileUrl} type={VIDEO_TYPES_BY_EXT[fileExt]} />
                 </video>
               )}
@@ -106,7 +102,6 @@ function InReviewFileModal(props: InReviewFileModalProps) {
               {fileType === FileType.PDF && (
                 <div className={"pdf-wrapper"}>
                   <iframe
-                    className={""}
                     src={`${fileUrl}#view=fit&page=1&toolbar=0&navpanes=0`}
                   />
                 </div>

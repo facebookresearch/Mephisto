@@ -7,6 +7,9 @@
 import React from "react";
 import { FormComposer } from "react-form-composer";
 
+// Required import for custom validators
+import * as customValidators from "custom-validators";
+
 function LoadingScreen() {
   return <Directions>Loading...</Directions>;
 }
@@ -41,6 +44,8 @@ function FormComposerBaseFrontend({
         data={initialConfigFormData}
         onSubmit={onSubmit}
         finalResults={finalResults}
+        // Required for custom validators
+        customValidators={customValidators}
       />
     </div>
   );

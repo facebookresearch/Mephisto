@@ -96,7 +96,9 @@ and place it in `generators/form-composer/data` directory.
 - If you want to slightly vary your form within a Task (by inserting different values into its text), you need to add two files (that will be used to auto-generate `task_data.json` file):
     - `token_sets_values_config.json` containing a JSON array of objects (each with one key `tokens_values` and value representing name-value pairs for a set of text tokens to be used in one form version).
     - `form_config.json` containing a single JSON object with one key `form`.
-- For more detail, read on about dynamic form configs.
+    - For more details, read on about dynamic form configs.
+- If you want to insert code (HTML or JS) into your form config, you need to create `insertions` directory in the form config directory, and place these files there
+    - For more details, read on about insertions.
 
 For detailed structure of each config file, see [Config file reference](#config-file-reference).
 
@@ -112,9 +114,22 @@ Working config examples are provided in `examples/form_composer_demo/data` direc
 
 A few tips if you wish to embed FormComposer in your custom application:
 
-- to extrapolate form config (and generate the `task_data.json` file), call the extrapolator function `mephisto.generators.form_composer.configs_validation.extrapolated_config.create_extrapolated_config`
+- To extrapolate form config (and generate the `task_data.json` file), call the extrapolator function `mephisto.generators.form_composer.configs_validation.extrapolated_config.create_extrapolated_config`
     - For a live example, you can explore the source code of [run_task_dynamic.py](/examples/form_composer_demo/run_task_dynamic.py) module
-
+- To use code insertions:
+    - Point `WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS` backend env variable to the location of `custom_validators.js` module (before building all webapp applications)
+    - When using `FormComposer` component, import validators with `import * as customValidators from "custom-validators";` and pass them to your `FormComposer` component as an argument: `customValidators={customValidators}`
+    - Set this alias in your webpack config (to avoid build-time exception that `custom-validators` cannot be found):
+    ```js
+    resolve: {
+      alias: {
+        ...
+        "custom-validators": path. resolve(
+          process.env.WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS
+        ),
+      },
+    }
+    ```
 
 ---
 
@@ -346,24 +361,121 @@ mephisto form_composer_config --update-file-location-values "https://s3.amazonaw
 ```
 
 This is how URL pre-signing works:
-  - When a worker opens the Task page and the form HTML is generated, it will contain so-called "procedure tokens", i.e. token values that look like this: `{{getMultiplePresignedUrls(<S3_FILE_URL>)}}`
+- When a worker opens the Task page and the form HTML is generated, it will contain so-called "procedure tokens", i.e. token values that look like this: `{{getMultiplePresignedUrls(<S3_FILE_URL>)}}`
     - the "wrapper" part of a procedure token is the name of a Javascript function that will render itself dynamically (e.g. by calling some remote API to receive additional data)
     - the argument part is the argument value provided suring the function call
-  - As soon as the form HTML is in place, the remote procedure gets called
-  - Mephisto's predefined remote procedure generates presigned URL, and its expiration starts ticking
+- As soon as the form HTML is in place, the remote procedure gets called
+- Mephisto's predefined remote procedure generates presigned URL, and its expiration starts ticking
 
 Presigned S3 URLs use the following environment variables:
-  - Required: valid AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`
+- Required: valid AWS credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_DEFAULT_REGION`
   form_composer_config` command)
-  - Optional: URL expiration time `S3_URL_EXPIRATION_MINUTES` (if missing the default value is 60 minutes)
+- Optional: URL expiration time `S3_URL_EXPIRATION_MINUTES` (if missing the default value is 60 minutes)
 
 
 ## Custom callbacks
 
 You can write your own remote procedures. A good place to start is looking at how S3 URL presigning is implemented in the `examples/form_composer_demo` example project.
 
------
+---
 
+
+# Insertions
+
+FormComposer allows for insertion of code into its config in these scenarios:
+- Specify lengthy content of an attribute (e.g. "instruction") in a separate HTML file
+- Define custom validators for form fileds in a JS file
+
+The inserted code must reside in separate files (called "insertion files") located in `insertions` subdirectory of your form config directory.
+- _Remember that you can change default config directory path using `--directory` option of `form_composer_config` command_
+
+---
+
+## HTML content insertion
+
+An HTML insertion file is specified as a file path that's relative to the form config. It can be inserted directly into `form_config.json` config, or via a token.
+
+#### Insertion without token
+
+Simply set entire value of an attribute to the insertion file's path. This is equivalent to setting value of that attribute to content of the HTML file (except now you don't have to stitch all HTML content into a single unreadable JSON line).
+
+Attributes that support HTML insertions are the same ones that support tokens
+
+Example in `form_config.json`:
+```json
+{
+  ...
+  "instruction": "insertions/some_content.html"
+  ...
+}
+```
+
+#### Insertion via token
+
+Use an extrapolated token as usual, and set that token's value to the insertion file's path. Upon extrapolation, value of such token will be automatically replaced with content of the HTML file.
+
+Example in `token_sets_values_config.json`:
+```json
+[
+  {
+    "tokens_values": {
+      "html_file": "insertions/some_content.html"
+    }
+  }
+]
+```
+
+## JS validator insertion
+
+You can define your own custom field validators as Javascript functions, and place them in a special file `insertions/custom_validators.js` inside your form config directory. When a Task is rendered in the browser, your functions will be imported from this file.
+
+Each validator function must have the following signature:
+- Accept 2 required arguments `field` and `value`, and any number of optional arguments
+    - `field` is a JS object representing a rendered form field
+    - `value` is provided value of the field (format depends on the field type)
+    - optional arguments are the parameters you specified in the form config
+        - This can be a single value (Boolean, String, Number)
+        - This can also be an Array of values
+            - _In this case, note that Array-type arguments will be passed as separate positional arguments after the `value` argument. If you need to use them as an array in your code, combine them like so: `fn(field, value, ...optionalArgs)`._
+- Return value must be either:
+    - `null` if validation passed successfully
+    - String if validation failed
+        - This value will be shown to user as an error message underneath the field, and in the error summary block
+
+Example in `custom_validators.js`...
+
+```js
+// You can import some functions from another file
+import { someHelper } from "./helpers.js";
+
+export function fieldContainsWord(field, value, word) {
+  someHelper();
+
+  if (value.includes(word)) {
+    return null;
+  }
+
+  return `Field ${field.name} must contain a word "${word}".`;
+}
+
+// This way you can separate all your validators into separate files, for convenience
+export { phoneValidatorFunction } from "./phone_validator_code.js";
+```
+
+...and its usage in `form_config.json`:
+```json
+{
+  ...
+  "validators": {
+    "required": true,
+    ...
+    "fieldContainsWord": "Mephisto"
+  },
+  ...
+}
+```
+
+-----
 
 # Config file reference
 
@@ -387,7 +499,7 @@ Task data config file `task_data.json` specifies layout of all form versions tha
             // Two fieldsets
             {
               "title": "Personal information",
-              "instruction": "",
+              "instruction": "insertions/personal_info_instruction.html",
               "rows": [
                 // Two rows
                 {
@@ -541,8 +653,8 @@ Here's example of a single field config:
     "required": true,
     "minLength": 2,
     "maxLength": 20,
-    "regexp": ["^[a-zA-Z0-9._-]+@mephisto\\.ai$", "ig"]
-    // or can use this --> "regexp": "^[a-zA-Z0-9._-]+@mephisto\\.ai$"
+    "regexp": ["^[a-z\.\-']+$", "ig"]
+    // or can use this --> "regexp": "^[a-z\.\-']+$"
   },
   "value": ""
 }
@@ -568,6 +680,11 @@ The most important attributes are: `label`, `name`, `type`, `validators`
         - (2-item Array[String, String]): a regexp string followed by matching flags (e.g. `["^[a-zA-Z0-9._-]+$", "ig"]`)
     - `fileExtension`: Ensure uploaded file has specified extension(s) (e.g. `["doc", "pdf"]`) (Array<String>)
 - `value` - Initial value of the field (String, Optional)
+
+
+######## Attributes - file field
+
+- `show_preview` - Show preview of selected file before the form is submitted (Boolean, Optional)
 
 
 ######## Attributes - select field
@@ -603,16 +720,16 @@ Example:
 [
   {
     "tokens_values": {
-      "actor": "Carrie Fisher",
-      "movie_name": "Star Wars",
-      "genre": "Sci-Fi"
+      "model": "Volkswagen",
+      "make": "Beetle",
+      "review_criteria": "insertions/review_criteria.html"
     }
   },
   {
     "tokens_values": {
-      "actor": "Keanu Reeves",
-      "movie_name": "The Matrix",
-      "genre": "Sci-Fi"
+      "model": "Nissan",
+      "make": "Murano",
+      "review_criteria": "insertions/review_criteria.html"
     }
   }
 ]
@@ -627,8 +744,8 @@ Example:
 ```json
 {
   "actor": ["Carrie Fisher", "Keanu Reeves"],
-  "movie_name": ["Star Wars", "The Matrix"],
-  "genre": ["Sci-Fi"]
+  "genre": ["Sci-Fi"],
+  "movie_name": ["Star Wars", "The Matrix"]
 }
 
 ```

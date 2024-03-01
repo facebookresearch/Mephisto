@@ -257,6 +257,50 @@ video {
   border-color: #de8800;
 }
 
+.form-composer .section .fieldset .field .file-field .file-preview {
+  display: flex;
+  max-width: 400px;
+  max-height: 400px;
+}
+
+.form-composer .section .fieldset .field .file-field .file-preview img {
+  max-width: 400px;
+  max-height: 400px;
+}
+
+.form-composer
+  .section
+  .fieldset
+  .field
+  .file-field
+  .file-preview
+  .audio-wrapper {
+  width: 100%;
+  padding: 25px;
+}
+
+.form-composer
+  .section
+  .fieldset
+  .field
+  .file-field
+  .file-preview
+  .audio-wrapper
+  audio {
+  width: 100%;
+}
+
+.form-composer
+  .section
+  .fieldset
+  .field
+  .file-field
+  .file-preview
+  .pdf-wrapper
+  iframe {
+  margin: 20px 0;
+}
+
 /* --- Buttons --- */
 .form-composer .form-buttons {
   margin-bottom: 40px;

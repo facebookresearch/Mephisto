@@ -10,6 +10,8 @@ AvailableAttrsType = Dict[str, Dict[str, Union[type, bool]]]
 
 TOKENS_VALUES_KEY = "tokens_values"
 FILE_URL_TOKEN_KEY = "file_location"
+INSERTIONS_PATH_NAME = "insertions"
+CUSTOM_VALIDATORS_JS_FILE_NAME = "custom_validators.js"
 
 AVAILABLE_CONFIG_ATTRS: AvailableAttrsType = {
     "form": {
@@ -132,6 +134,10 @@ COMMON_AVAILABLE_FIELD_ATTRS: AvailableAttrsType = {
     },
     "placeholder": {
         "type": str,
+        "required": False,
+    },
+    "show_preview": {
+        "type": bool,
         "required": False,
     },
     "tooltip": {

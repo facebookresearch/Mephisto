@@ -5,6 +5,7 @@
 
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 
 from .common_validation import validate_config_dict_item
@@ -56,7 +57,10 @@ def _duplicate_values_exist(unique_names: UniqueAttrsType, errors: List[str]) ->
     return is_valid
 
 
-def validate_form_config(config_data: dict) -> Tuple[bool, List[str]]:
+def validate_form_config(
+    config_data: dict,
+    data_path: Optional[str] = None,
+) -> Tuple[bool, List[str]]:
     is_valid = True
     errors = []
 
@@ -126,7 +130,7 @@ def validate_form_config(config_data: dict) -> Tuple[bool, List[str]]:
 
     # Run structure validation
     for item in items_to_validate:
-        config_is_valid = validate_config_dict_item(*item, errors=errors)
+        config_is_valid = validate_config_dict_item(*item, errors=errors, data_path=data_path)
         if not config_is_valid:
             is_valid = False
 

@@ -18,6 +18,9 @@ from mephisto.data_model.qualification import QUAL_GREATER_EQUAL
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
 )
+from mephisto.generators.form_composer.config_validation.utils import (
+    set_custom_validators_js_env_var,
+)
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.tools.scripts import task_script
@@ -96,21 +99,23 @@ def generate_data_json_config():
     based on existing form and tokens values config files
     """
     app_path = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(app_path, "data")
+    data_path = os.path.join(app_path, "data", "dynamic")
 
-    form_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__FORM_CONFIG_NAME)
+    form_config_path = os.path.join(data_path, FORM_COMPOSER__FORM_CONFIG_NAME)
     token_sets_values_config_path = os.path.join(
         data_path,
-        "dynamic",
         FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME,
     )
-    task_data_config_path = os.path.join(data_path, "dynamic", FORM_COMPOSER__DATA_CONFIG_NAME)
+    task_data_config_path = os.path.join(data_path, FORM_COMPOSER__DATA_CONFIG_NAME)
 
     create_extrapolated_config(
         form_config_path=form_config_path,
         token_sets_values_config_path=token_sets_values_config_path,
         task_data_config_path=task_data_config_path,
     )
+
+    # Set env var for `custom_validators.js`
+    set_custom_validators_js_env_var(data_path)
 
 
 if __name__ == "__main__":

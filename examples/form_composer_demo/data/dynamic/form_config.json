@@ -1,12 +1,12 @@
 {
   "form": {
     "title": "Form example",
-    "instruction": "Please answer <b>all</b> questions to the best of your ability as part of our study.",
+    "instruction": "insertions/form_instruction.html",
     "sections": [
       {
         "name": "section_about",
         "title": "About you",
-        "instruction": "<p>Please introduce yourself. We would like to know more about your:</p><ul><li>Background</li><li>Personal information</li><li>Etc</li></ul>",
+        "instruction": "{{about_section_instruction}}",
         "collapsable": false,
         "fieldsets": [
           {
@@ -154,7 +154,8 @@
                     "tooltip": "Your bio in a few paragraphs",
                     "type": "textarea",
                     "validators": {
-                      "required": false
+                      "required": false,
+                      "checkForbiddenWords": true
                     },
                     "value": ""
                   }

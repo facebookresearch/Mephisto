@@ -3,10 +3,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
 from typing import List
+from typing import Optional
 
+from .config_validation_constants import ATTRS_SUPPORTING_TOKENS
 from .config_validation_constants import AvailableAttrsType
 from .config_validation_constants import PY_JSON_TYPES_MAPPING
+from .utils import is_insertion_file
 
 
 def validate_config_dict_item(
@@ -14,6 +18,7 @@ def validate_config_dict_item(
     item_log_name: str,
     available_attrs: AvailableAttrsType,
     errors: List[str],
+    data_path: Optional[str] = None,
 ) -> bool:
     is_valid = True
 
@@ -57,4 +62,39 @@ def validate_config_dict_item(
                 f"must be `{PY_JSON_TYPES_MAPPING[attr_type]}`."
             )
 
+        if data_path:
+            for attr_name in ATTRS_SUPPORTING_TOKENS:
+                item_attr = item.get(attr_name)
+                if not item_attr:
+                    continue
+
+                if is_insertion_file(item_attr):
+                    file_path = os.path.abspath(os.path.join(data_path, item_attr))
+                    if not os.path.exists(file_path):
+                        is_valid = False
+                        errors.append(
+                            f"Could not find insertion file '{file_path}'. "
+                            f"Either create the file, or update the config."
+                        )
+
     return is_valid
+
+
+def replace_path_to_file_with_its_content(
+    value: str,
+    data_path: str,
+) -> str:
+    """
+    Attributes may contain tokens whose value is relative HTML file paths.
+    We replace such token values with content from the indicated file.
+    """
+    if is_insertion_file(value):
+        file_path = os.path.abspath(os.path.join(data_path, value))
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Could not open insertion file '{file_path}'")
+
+        with open(file_path) as html_file:
+            file_content_value = html_file.read()
+            return file_content_value
+
+    return value

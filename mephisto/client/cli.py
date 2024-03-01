@@ -15,6 +15,7 @@ from rich.markdown import Markdown
 from rich_click import RichCommand
 from rich_click import RichGroup
 
+import mephisto.scripts.form_composer.rebuild_all_apps as rebuild_all_apps_form_composer
 import mephisto.scripts.heroku.initialize_heroku as initialize_heroku
 import mephisto.scripts.local_db.clear_worker_onboarding as clear_worker_onboarding_local_db
 import mephisto.scripts.local_db.load_data_to_mephisto_db as load_data_local_db
@@ -26,23 +27,24 @@ import mephisto.scripts.metrics.view_metrics as view_metrics
 import mephisto.scripts.mturk.cleanup as cleanup_mturk
 import mephisto.scripts.mturk.identify_broken_units as identify_broken_units_mturk
 import mephisto.scripts.mturk.launch_makeup_hits as launch_makeup_hits_mturk
-import mephisto.scripts.mturk.print_outstanding_hit_status as print_outstanding_hit_status_mturk
 import mephisto.scripts.mturk.print_outstanding_hit_status as soft_block_workers_by_mturk_id_mturk
-import mephisto.scripts.form_composer.rebuild_all_apps as rebuild_all_apps_form_composer
 from mephisto.client.cli_commands import get_wut_arguments
+from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
+    update_separate_token_values_config_with_file_urls,
+)
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
 )
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     verify_form_composer_configs,
 )
-from mephisto.generators.form_composer.config_validation.separate_token_values_config import (
-    update_separate_token_values_config_with_file_urls,
-)
 from mephisto.generators.form_composer.config_validation.token_sets_values_config import (
     update_token_sets_values_config_with_premutated_data,
 )
 from mephisto.generators.form_composer.config_validation.utils import is_s3_url
+from mephisto.generators.form_composer.config_validation.utils import (
+    set_custom_validators_js_env_var,
+)
 from mephisto.operations.registry import get_valid_provider_types
 from mephisto.tools.scripts import build_custom_bundle
 from mephisto.utils.rich import console
@@ -465,6 +467,9 @@ def form_composer(task_data_config_only: bool = True):
     # Change dir to app dir
     os.chdir(app_path)
 
+    # Set env var for `custom_validators.js`
+    set_custom_validators_js_env_var(app_data_path)
+
     verify_form_composer_configs(
         task_data_config_path=task_data_config_path,
         task_data_config_only=task_data_config_only,
@@ -552,6 +557,7 @@ def form_composer_config(
             token_sets_values_config_path=token_sets_values_config_path,
             separate_token_values_config_path=separate_token_values_config_path,
             task_data_config_only=False,
+            data_path=app_data_path,
         )
         print(f"Finished configs verification")
 
@@ -590,6 +596,7 @@ def form_composer_config(
             form_config_path=form_config_path,
             token_sets_values_config_path=token_sets_values_config_path,
             task_data_config_path=task_data_config_path,
+            data_path=app_data_path,
         )
         print(f"[green]Finished successfully[/green]")
 

@@ -19,6 +19,12 @@ from botocore.exceptions import BotoCoreError
 from botocore.exceptions import NoCredentialsError
 from rich import print
 
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    CUSTOM_VALIDATORS_JS_FILE_NAME,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    INSERTIONS_PATH_NAME,
+)
 from mephisto.generators.form_composer.constants import CONTENTTYPE_BY_EXTENSION
 from mephisto.generators.form_composer.constants import JSON_IDENTATION
 from mephisto.generators.form_composer.constants import S3_URL_EXPIRATION_MINUTES
@@ -67,6 +73,26 @@ def make_error_message(main_message: str, error_list: List[str], indent: int = 2
 def get_file_ext(file_name: str) -> str:
     """Cut off file extension without period"""
     return Path(file_name).suffix.lower()[1:]
+
+
+def is_insertion_file(path: str, ext: str = "html") -> bool:
+    if not isinstance(path, str):
+        return False
+
+    if f"{INSERTIONS_PATH_NAME}/" in path and path.endswith(f".{ext}"):
+        return True
+
+    return False
+
+
+def set_custom_validators_js_env_var(data_path: str):
+    custom_validators_js_file_path = os.path.abspath(
+        os.path.join(data_path, INSERTIONS_PATH_NAME, CUSTOM_VALIDATORS_JS_FILE_NAME)
+    )
+    custom_validators_js_file_exists = os.path.exists(custom_validators_js_file_path)
+    os.environ["WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS"] = (
+        custom_validators_js_file_path if custom_validators_js_file_exists else ""
+    )
 
 
 # ----- S3 -----

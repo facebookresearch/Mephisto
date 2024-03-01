@@ -22,10 +22,20 @@ export function checkFieldRequiredness(field) {
  * Validate Form-elements
  * @param {HTMLElement[]} formFieldsValues HTML elements
  * @param {object} fields FormComposer fields
+ * @param {module} customValidators optional module with custom validation functions
  * @return {object} invalid FormComposer fields
  */
-export function validateFormFields(formFieldsValues, fields) {
+export function validateFormFields(formFieldsValues, fields, customValidators) {
   const invalidFormFields = {};
+
+  let _validatorFunctionsByConfigName = validatorFunctionsByConfigName;
+  // Update default validators with provided by user
+  if (customValidators) {
+    _validatorFunctionsByConfigName = {
+      ..._validatorFunctionsByConfigName,
+      ...customValidators,
+    };
+  }
 
   Object.entries(formFieldsValues).forEach(([fieldName, fieldValue]) => {
     const field = fields[fieldName];
@@ -48,7 +58,7 @@ export function validateFormFields(formFieldsValues, fields) {
         _validatorArguments = [validatorArguments];
       }
 
-      if (!validatorFunctionsByConfigName.hasOwnProperty(validatorName)) {
+      if (!_validatorFunctionsByConfigName.hasOwnProperty(validatorName)) {
         console.warn(
           `You tried to validate field "${field.name}" with validator "${validatorName}". ` +
             `"FormComposer" does not support this validator, so we just ignore it`
@@ -56,7 +66,7 @@ export function validateFormFields(formFieldsValues, fields) {
         return;
       }
 
-      const validatorFunction = validatorFunctionsByConfigName[validatorName];
+      const validatorFunction = _validatorFunctionsByConfigName[validatorName];
       const validationResult = validatorFunction(
         field,
         fieldValue,
