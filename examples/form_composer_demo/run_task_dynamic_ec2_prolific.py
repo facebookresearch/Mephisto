@@ -12,6 +12,7 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
     SharedStaticTaskState,
 )
 from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
 from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.data_model.qualification import QUAL_GREATER_EQUAL
@@ -99,7 +100,7 @@ def generate_data_json_config():
     based on existing form and tokens values config files
     """
     app_path = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(app_path, "data", "dynamic")
+    data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic")
 
     form_config_path = os.path.join(data_path, FORM_COMPOSER__FORM_CONFIG_NAME)
     token_sets_values_config_path = os.path.join(

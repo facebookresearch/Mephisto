@@ -15,6 +15,7 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
     SharedStaticTaskState,
 )
 from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
 from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.task_data_config import (
@@ -122,7 +123,7 @@ def generate_preview_html():
     """
     app_path = os.path.dirname(os.path.abspath(__file__))
     preview_path = os.path.join(app_path, "preview")
-    data_path = os.path.join(app_path, "data", "dynamic")
+    data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic")
 
     data_config_path = os.path.join(data_path, FORM_COMPOSER__DATA_CONFIG_NAME)
     preview_template_path = os.path.join(preview_path, "mturk_preview_template.html")

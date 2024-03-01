@@ -380,6 +380,13 @@ def verify_form_composer_configs(
         if form_config_data is None:
             pass
         else:
+            # Handle HTML insertion files (replace their paths with file content)
+            if data_path:
+                form_config_data = _replace_html_paths_with_html_file_content(
+                    form_config_data,
+                    data_path,
+                )
+
             form_config_is_valid, form_config_errors = validate_form_config(
                 form_config_data,
                 data_path,

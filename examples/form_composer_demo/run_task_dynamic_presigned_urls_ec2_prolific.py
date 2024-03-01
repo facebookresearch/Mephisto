@@ -6,18 +6,19 @@
 
 import os
 
+from omegaconf import DictConfig
+
 from mephisto.abstractions.blueprints.remote_procedure.remote_procedure_blueprint import (
     SharedRemoteProcedureTaskState,
 )
-from mephisto.generators.form_composer.config_validation.utils import read_config_file
-from omegaconf import DictConfig
-
 from mephisto.client.cli import FORM_COMPOSER__DATA_CONFIG_NAME
+from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
 from mephisto.client.cli import FORM_COMPOSER__FORM_CONFIG_NAME
 from mephisto.client.cli import FORM_COMPOSER__TOKEN_SETS_VALUES_CONFIG_NAME
 from mephisto.generators.form_composer.config_validation.task_data_config import (
     create_extrapolated_config,
 )
+from mephisto.generators.form_composer.config_validation.utils import read_config_file
 from mephisto.generators.form_composer.remote_procedures import JS_NAME_FUNCTION_MAPPING
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import build_custom_bundle
@@ -93,7 +94,7 @@ def generate_data_json_config():
     based on existing form and tokens values config files
     """
     app_path = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(app_path, "data", "dynamic_presigned_urls")
+    data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic_presigned_urls")
 
     form_config_path = os.path.join(
         data_path,

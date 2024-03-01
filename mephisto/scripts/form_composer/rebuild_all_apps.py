@@ -22,6 +22,9 @@ import shutil
 
 from rich import print
 
+from mephisto.generators.form_composer.config_validation.utils import (
+    set_custom_validators_js_env_var
+)
 from mephisto.tools.scripts import build_custom_bundle
 
 
@@ -109,11 +112,21 @@ def _clean(repo_path: str):
 
 
 def _build_examples_form_composer_demo(repo_path: str):
-    webapp_path = os.path.join(repo_path, "examples", "form_composer_demo")
-    print(f"[blue]Building '{webapp_path}'[/blue]")
+    app_path = os.path.join(
+        repo_path,
+        "examples",
+        "form_composer_demo",
+    )
+    print(f"[blue]Building '{app_path}'[/blue]")
+
+    # Set env var for `custom_validators.js`
+    from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
+    data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic")
+    set_custom_validators_js_env_var(data_path)
+
     # Build Review UI for the application
     build_custom_bundle(
-        webapp_path,
+        app_path,
         force_rebuild=True,
         webapp_name="webapp",
         build_command="build:review",
@@ -121,7 +134,7 @@ def _build_examples_form_composer_demo(repo_path: str):
 
     # Build Task UI for the application
     build_custom_bundle(
-        webapp_path,
+        app_path,
         force_rebuild=True,
         webapp_name="webapp",
         build_command="dev",
@@ -129,16 +142,22 @@ def _build_examples_form_composer_demo(repo_path: str):
 
 
 def _build_generators_form_composer(repo_path: str):
-    webapp_path = os.path.join(
+    app_path = os.path.join(
         repo_path,
         "mephisto",
         "generators",
         "form_composer",
     )
-    print(f"[blue]Building '{webapp_path}'[/blue]")
+    print(f"[blue]Building '{app_path}'[/blue]")
+
+    # Set env var for `custom_validators.js`
+    from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
+    data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
+    set_custom_validators_js_env_var(data_path)
+
     # Build Review UI for the application
     build_custom_bundle(
-        webapp_path,
+        app_path,
         force_rebuild=True,
         webapp_name="webapp",
         build_command="build:review",
@@ -146,7 +165,7 @@ def _build_generators_form_composer(repo_path: str):
 
     # Build Task UI for the application
     build_custom_bundle(
-        webapp_path,
+        app_path,
         force_rebuild=True,
         webapp_name="webapp",
         build_command="build",
@@ -154,10 +173,14 @@ def _build_generators_form_composer(repo_path: str):
 
 
 def _build_review_app(repo_path: str):
-    webapp_path = os.path.join(repo_path, "mephisto", "review_app")
-    print(f"[blue]Building '{webapp_path}'[/blue]")
+    app_path = os.path.join(
+        repo_path,
+        "mephisto",
+        "review_app",
+    )
+    print(f"[blue]Building '{app_path}'[/blue]")
     build_custom_bundle(
-        webapp_path,
+        app_path,
         force_rebuild=True,
         webapp_name="client",
         build_command="build",
