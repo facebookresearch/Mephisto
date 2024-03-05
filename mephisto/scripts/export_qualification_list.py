@@ -10,7 +10,7 @@ from mephisto.data_model.worker import Worker
 from mephisto.abstractions.providers.mturk.mturk_worker import MTurkWorker
 
 """
-This script can be used to dump out the contents of one's qualifications 
+This script can be used to dump out the contents of one's qualifications
 table. This can be useful for bookkeeping, migrations, or sharing qual lists
 """
 
