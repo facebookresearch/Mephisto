@@ -23,6 +23,9 @@ from mephisto.generators.form_composer.config_validation.config_validation_const
     CUSTOM_VALIDATORS_JS_FILE_NAME,
 )
 from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
     INSERTIONS_PATH_NAME,
 )
 from mephisto.generators.form_composer.constants import CONTENTTYPE_BY_EXTENSION
@@ -90,7 +93,7 @@ def set_custom_validators_js_env_var(data_path: str):
         os.path.join(data_path, INSERTIONS_PATH_NAME, CUSTOM_VALIDATORS_JS_FILE_NAME)
     )
     custom_validators_js_file_exists = os.path.exists(custom_validators_js_file_path)
-    os.environ["WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS"] = (
+    os.environ[CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY] = (
         custom_validators_js_file_path if custom_validators_js_file_exists else ""
     )
 

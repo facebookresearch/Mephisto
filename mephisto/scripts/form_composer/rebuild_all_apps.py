@@ -23,7 +23,7 @@ import shutil
 from rich import print
 
 from mephisto.generators.form_composer.config_validation.utils import (
-    set_custom_validators_js_env_var
+    set_custom_validators_js_env_var,
 )
 from mephisto.tools.scripts import build_custom_bundle
 
@@ -121,6 +121,7 @@ def _build_examples_form_composer_demo(repo_path: str):
 
     # Set env var for `custom_validators.js`
     from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
+
     data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME, "dynamic")
     set_custom_validators_js_env_var(data_path)
 
@@ -152,6 +153,7 @@ def _build_generators_form_composer(repo_path: str):
 
     # Set env var for `custom_validators.js`
     from mephisto.client.cli import FORM_COMPOSER__DATA_DIR_NAME
+
     data_path = os.path.join(app_path, FORM_COMPOSER__DATA_DIR_NAME)
     set_custom_validators_js_env_var(data_path)
 

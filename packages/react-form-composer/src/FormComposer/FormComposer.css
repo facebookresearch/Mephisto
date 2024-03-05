@@ -337,3 +337,8 @@ video {
   display: block;
   text-align: center;
 }
+
+.hidden {
+  display: none;
+  visibility: hidden;
+}

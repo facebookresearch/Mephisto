@@ -24,7 +24,7 @@ docker-compose -f docker/docker-compose.dev.yml run \
     --build \
     --publish 8081:8000 \
     --rm mephisto_dc \
-    mephisto review_app -h 0.0.0.0 -p 8000 -d True -f False -s False
+    mephisto review_app --host 0.0.0.0 --port 8000 --debug --force-rebuild --skip-build
 ```
 
 where
@@ -33,7 +33,7 @@ where
 - `--publish 8081:8000` - maps docker ports, with `8000` being same port as in `-p` option
 - `--rm` - automatically removes the previous container if it already exits
 - `mephisto_dc` - container name in `docker-compose.dev.yml` file
-- `mephisto review_app -h 0.0.0.0 -p 8000 -d True` - launches Mephisto's TaskReview app service inside the container
+- `mephisto review_app --host 0.0.0.0 --port 8000 --debug` - launches Mephisto's TaskReview app service inside the container
 
 Command `mephisto review_app` supports the following options:
 
@@ -53,7 +53,7 @@ TaskReview app consists of server and client parts. To run them in separate step
 
 1. In repo root, launch containers: `docker-compose -f docker/docker-compose.dev.yml up`
 2. SSH into running container to run server: `docker exec -it mephisto_dc bash`
-3. Inside the container run server: `cd /mephisto && mephisto review_app -h 0.0.0.0 -p 8000 -d True -s True`
+3. Inside the container run server: `cd /mephisto && mephisto review_app --host 0.0.0.0 --port 8000 --debug --skip-build`
 4. SSH into running container to run client: `docker exec -it mephisto_dc bash`
 5. Inside the container run client: `cd /mephisto/mephisto/review_app/client/ && REACT_APP__API_URL=http://localhost:8081 PORT=3000 npm start`
 6. Open TaskReview app in your browser at (http://localhost:3001)](http://localhost:3001).

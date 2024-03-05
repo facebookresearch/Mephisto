@@ -12,6 +12,7 @@ TOKENS_VALUES_KEY = "tokens_values"
 FILE_URL_TOKEN_KEY = "file_location"
 INSERTIONS_PATH_NAME = "insertions"
 CUSTOM_VALIDATORS_JS_FILE_NAME = "custom_validators.js"
+CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY = "WEBAPP__FORM_COMPOSER__CUSTOM_VALIDATORS"
 
 AVAILABLE_CONFIG_ATTRS: AvailableAttrsType = {
     "form": {
@@ -168,6 +169,7 @@ AVAILABLE_FIELD_ATTRS_BY_TYPE: Dict[str, AvailableAttrsType] = {
     },
     "email": COMMON_AVAILABLE_FIELD_ATTRS,
     "file": COMMON_AVAILABLE_FIELD_ATTRS,
+    "hidden": COMMON_AVAILABLE_FIELD_ATTRS,
     "input": COMMON_AVAILABLE_FIELD_ATTRS,
     "radio": {
         **COMMON_AVAILABLE_FIELD_ATTRS,

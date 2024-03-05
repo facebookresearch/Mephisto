@@ -263,7 +263,7 @@ def _combine_extrapolated_form_configs(
 
 def _replace_html_paths_with_html_file_content(
     config_data: dict,
-    resources_html_path: str,
+    data_path: str,
 ) -> dict:
     items_to_replace = _collect_form_config_items_to_extrapolate(config_data)
 
@@ -273,7 +273,7 @@ def _replace_html_paths_with_html_file_content(
             if not item_attr:
                 continue
 
-            item[attr_name] = replace_path_to_file_with_its_content(item_attr, resources_html_path)
+            item[attr_name] = replace_path_to_file_with_its_content(item_attr, data_path)
 
     return config_data
 

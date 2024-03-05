@@ -9,6 +9,15 @@ from urllib.parse import quote
 
 from botocore.exceptions import BotoCoreError
 
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    CUSTOM_VALIDATORS_JS_FILE_NAME,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY,
+)
+from mephisto.generators.form_composer.config_validation.config_validation_constants import (
+    INSERTIONS_PATH_NAME,
+)
 from mephisto.generators.form_composer.config_validation.utils import (
     _get_bucket_and_key_from_S3_url,
 )
@@ -16,9 +25,13 @@ from mephisto.generators.form_composer.config_validation.utils import _run_and_h
 from mephisto.generators.form_composer.config_validation.utils import get_file_ext
 from mephisto.generators.form_composer.config_validation.utils import get_file_urls_from_s3_storage
 from mephisto.generators.form_composer.config_validation.utils import get_s3_presigned_url
+from mephisto.generators.form_composer.config_validation.utils import is_insertion_file
 from mephisto.generators.form_composer.config_validation.utils import is_s3_url
 from mephisto.generators.form_composer.config_validation.utils import make_error_message
 from mephisto.generators.form_composer.config_validation.utils import read_config_file
+from mephisto.generators.form_composer.config_validation.utils import (
+    set_custom_validators_js_env_var,
+)
 from mephisto.generators.form_composer.config_validation.utils import write_config_to_file
 from mephisto.generators.form_composer.constants import CONTENTTYPE_BY_EXTENSION
 
@@ -244,3 +257,50 @@ class TestUtils(unittest.TestCase):
             get_s3_presigned_url(s3_url)
 
         self.assertEqual(cm.exception.__str__(), "An unspecified error occurred")
+
+    def test_is_insertion_file(self, *args, **kwargs):
+        not_path = None
+        result = is_insertion_file(not_path)
+        self.assertFalse(result)
+
+        any_string = "Test"
+        result = is_insertion_file(any_string)
+        self.assertFalse(result)
+
+        incorrect_dir = "dir/file.html"
+        result = is_insertion_file(incorrect_dir, ext="html")
+        self.assertFalse(result)
+
+        incorrect_ext = "dir/file.txt"
+        result = is_insertion_file(incorrect_ext, ext="html")
+        self.assertFalse(result)
+
+        correct_path = "insertions/file.html"
+        result = is_insertion_file(correct_path, ext="html")
+        self.assertTrue(result)
+
+    def test_set_custom_validators_js_env_var_not_exists(self, *args, **kwargs):
+        set_custom_validators_js_env_var(self.data_dir)
+
+        self.assertEqual(os.environ.get(CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY), "")
+
+    def test_set_custom_validators_js_env_var_success(self, *args, **kwargs):
+        custom_validators_js_path = os.path.abspath(
+            os.path.join(
+                self.data_dir,
+                INSERTIONS_PATH_NAME,
+                CUSTOM_VALIDATORS_JS_FILE_NAME,
+            )
+        )
+
+        os.makedirs(os.path.dirname(custom_validators_js_path), exist_ok=True)
+        f = open(custom_validators_js_path, "w")
+        f.write("")
+        f.close()
+
+        set_custom_validators_js_env_var(self.data_dir)
+
+        self.assertEqual(
+            os.environ.get(CUSTOM_VALIDATORS_JS_FILE_NAME_ENV_KEY),
+            custom_validators_js_path,
+        )

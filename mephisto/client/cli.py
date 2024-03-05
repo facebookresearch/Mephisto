@@ -10,6 +10,7 @@ from typing import Optional
 
 import rich_click as click  # type: ignore
 from flask.cli import pass_script_info
+from flask.cli import ScriptInfo
 from rich import print
 from rich.markdown import Markdown
 from rich_click import RichCommand
@@ -357,17 +358,17 @@ def metrics_cli(args):
 @cli.command("review_app", cls=RichCommand)
 @click.option("-h", "--host", type=(str), default="127.0.0.1")
 @click.option("-p", "--port", type=(int), default=5000)
-@click.option("-d", "--debug", type=(bool), default=None)
-@click.option("-f", "--force-rebuild", type=(bool), default=False)
-@click.option("-s", "--skip-build", type=(bool), default=False)
+@click.option("-d", "--debug", type=(bool), default=False, is_flag=True)
+@click.option("-f", "--force-rebuild", type=(bool), default=False, is_flag=True)
+@click.option("-s", "--skip-build", type=(bool), default=False, is_flag=True)
 @pass_script_info
 def review_app(
-    info,
-    host,
-    port,
-    debug,
-    force_rebuild,
-    skip_build,
+    info: ScriptInfo,
+    host: Optional[str],
+    port: Optional[str],
+    debug: bool = False,
+    force_rebuild: bool = False,
+    skip_build: bool = False,
 ):
     """
     Launch a local review server.
@@ -453,7 +454,7 @@ def _get_form_composer_app_path() -> str:
 
 
 @cli.command("form_composer", cls=RichCommand)
-@click.option("-o", "--task-data-config-only", type=(bool), default=True)
+@click.option("-o", "--task-data-config-only", type=(bool), default=True, is_flag=True)
 def form_composer(task_data_config_only: bool = True):
     # Get app path to run Python script from there (instead of the current file's directory).
     # This is necessary, because the whole infrastructure is built relative to the location

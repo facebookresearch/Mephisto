@@ -12,6 +12,7 @@ import {
 } from "./constants";
 import { CheckboxField } from "./fields/CheckboxField";
 import { FileField } from "./fields/FileField";
+import { HiddenField } from "./fields/HiddenField";
 import { InputField } from "./fields/InputField";
 import { RadioField } from "./fields/RadioField";
 import { SelectField } from "./fields/SelectField";
@@ -414,6 +415,7 @@ function FormComposer({
                                         ? "required"
                                         : ""
                                     }
+                                    ${field.type === "hidden" ? "hidden" : ""}
                                   `}
                                   title={fieldTooltip}
                                 >
@@ -527,6 +529,16 @@ function FormComposer({
                                       onReviewFileButtonClick={
                                         sendMessageToReviewAppWithFileInfo
                                       }
+                                    />
+                                  )}
+
+                                  {field.type === "hidden" && (
+                                    <HiddenField
+                                      field={field}
+                                      updateFormData={updateFormData}
+                                      disabled={inReviewState}
+                                      initialFormData={finalResults}
+                                      inReviewState={inReviewState}
                                     />
                                   )}
 

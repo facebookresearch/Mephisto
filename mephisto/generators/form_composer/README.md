@@ -670,7 +670,7 @@ The most important attributes are: `label`, `name`, `type`, `validators`
 - `name` - Unique name under which this field's data will be sent to the server (String)
 - `placeholder` - Text faintly displayed in the field before user provides a value (String, Optional)
 - `tooltip` - Text shown in browser tooltip on mouseover (String, Optional)
-- `type` - Type of the field (`input`, `email`, `select`, `textarea`, `checkbox`, `radio`, `file`) (String)
+- `type` - Type of the field (`input`, `email`, `select`, `textarea`, `checkbox`, `radio`, `file`, `hidden`) (String)
 - `validators` - Validators preventing incorrect data from being submitted (Object[<String>: String|Boolean|Number], Optional). Supported key-value pairs for the `validators` object:
     - `required`: Ensure field is not left empty (Boolean)
     - `minLength`: Ensure minimal number of typed characters or selected choices (Number)
